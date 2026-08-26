@@ -71,8 +71,10 @@ documents; the rules themselves are all here, in full.
 | 21 | **Run the health check before reporting status or closing a phase** | [§5](#5-project-status-and-planning) |
 | 22 | **READ EVERY SCREENSHOT HE SENDS, PIXEL BY PIXEL. Never skip one** — he built it for you at real cost | [§1](#1-working-with-wyatt) |
 | 23 | **ONE DISPLAY PATH** — host/guest decides who *computes*, never what is *drawn*. Ask: what makes these two agree? | [§2](#2-design-rules) |
+| 24 | **Every change to the game goes through a SEA TRIAL** — and "did you run it" is answered by opening the report, not by asking me | [§5](#5-project-status-and-planning) |
+| 25 | **Show the work to a CEO before showing it to him** — a fresh agent judges whether the ASK was executed, and its verdict reaches him in ITS words | [§1](#1-working-with-wyatt) |
 
-> **23 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **25 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -347,6 +349,37 @@ looked.
   makes.** Different trigger: 19 fires when you are investigating or delivering; 22 fires the moment
   an image arrives. The two failures are also different — 19 is not looking, 22 is being handed the
   answer and not opening it.
+
+### Show the work to a CEO before showing it to him
+
+Wyatt, 2026-08-26: *"Keep CEO — I will use it again every time I ask you to do something to
+deliberate on whether or not you have executed what I've asked you to do. So I will always say,
+after you've done your work, show it to CEO before you show it to me."*
+
+**The sequence: do the work → spawn a CEO → give him the CEO's verdict → then your own account.**
+
+**Why it exists, and it is not about honesty.** On 2026-08-25/26 a session answered his 35-item
+playtest by shipping 22 fixes, verifying 4, and reporting success. Nothing in that report was a lie.
+**The gap was between what he ASKED for and what was delivered** — and that gap is invisible from
+inside the work. The first CEO review found in one pass that the QA process built that morning had
+already certified an untested build: *"The unit shipped a process today and its very first output is
+a lie."* Every claim in it was verified before being acted on, and every one held.
+
+**How to run it so it stays real:**
+
+- **FRESH CONTEXT, ALWAYS.** A CEO that inherits your reasoning inherits your blind spot. Spawn a
+  new one; never continue the last.
+- **Hand it three things:** his request **verbatim**, what was actually done (files, commits,
+  measurements), and **the previous CEO's verdict** — so it can say whether the same fault recurs.
+- **Its question is narrow: *did the thing he asked for happen?*** Not "is this good work".
+  **Adjacent, competent, impressive work that misses the ask is exactly what it exists to catch.**
+- **Tell it explicitly that it may say NO**, and that a criticism without a file:line citation is an
+  opinion.
+- **Its verdict reaches him in ITS words, especially when it is bad.** A kind paraphrase makes the
+  whole mechanism theatre — and the paraphraser is the one with the motive.
+
+**Where the line is:** it runs after *work* — something built, fixed, measured or shipped. Not after
+a question answered or a file handed over. He can move that line; he has only to say so.
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 
@@ -717,6 +750,44 @@ Start at [`.planning/STATE.md`](../.planning/STATE.md), then
 development period is [`.planning/research/v2.0-intake/`](../.planning/research/v2.0-intake/) — read
 the relevant report before planning any phase; it is the only synthesis of a period that left no GSD
 artifacts.
+
+### Every change to the game goes through a SEA TRIAL
+
+```bash
+node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
+node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
+```
+
+**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md). A hook stops the first edit to game
+code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
+enforces rule 17.
+
+Wyatt named it on 2026-08-26. A *sea trial* is the naval term for taking a vessel out and testing
+everything before it is accepted into service. **He chose it over "QA" deliberately:** *"did you QA
+it?"* can be answered evasively — the night before, a session had run *something*, so it could say
+yes while **18 of its 22 fixes were unverified**. *"Did you run the sea trial?"* cannot, because a
+sea trial leaves a report with a build stamp in it and he can open the report.
+
+**FOUR STEPS, never skipped, never reordered:** show it broken (write the check that FAILS first) →
+change it → show it fixed (that SAME check passes) → sweep.
+
+**THREE GEARS, chosen by the files you touched, never by how the change feels:**
+
+| | | |
+|---|---|---|
+| **COSMETIC** | words, colours, comments | step 1 waived; `npm test` + a screenshot |
+| **PLUMBING** | how a mode *serves the game up* — the device hand-off, room codes, joining | that mode, **and the others once** |
+| **FULL** | **everything else — the default** | three modes, two sizes, **both engines**, real mouse |
+
+**The middle gear is a different SUBJECT, not a smaller size.** Wyatt, 2026-08-26: *"Each mode
+should be structurally different just about who the player is playing against, but the game itself
+should remain consistent for every player in every mode."* An earlier draft had a gear meaning
+"behaviour changed inside one mode" and he threw it out — **that sentence presumes the fork it is
+supposed to prevent**, then looks only where the fork is. `4/scripts/mode_fork_check.js` now fails
+the build when a new fork appears in code that draws.
+
+**What the report must never lose: the NOT-RUN column.** A leg that could not start is not a leg
+that passed. "We tested it" becomes a lie precisely there.
 
 ### Run the health check before reporting status or closing a phase
 

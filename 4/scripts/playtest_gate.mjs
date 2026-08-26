@@ -24,9 +24,19 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
+/* THE SECOND ENGINE. Wyatt, 2026-08-26: "your fixes must be verified across Safari and Chrome."
+   wk.mjs is a MOUNT, not a second driver — it returns the same handle shape openChrome() does, so
+   makePlayer() and every check below run against it unchanged (ONE DRIVER, TWO MOUNTS, rule 23).
+   The pulse bug lived only in his phone's WebKit and cost eight days; three Chromium engines
+   cleared it honestly. That is the whole argument for this import. */
+import { openWebKit } from "./lib/wk.mjs";
 import { MEASURE, structuralChecks, waitSettled } from "./lib/checks.mjs";
 import { judgeAll, writeJudgeQueue } from "./lib/vision.mjs";
 import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
+/* DO THE TWO CAPTAINS SEE THE SAME GAME? This leg already played both seats and threw the
+   comparison away — each was judged against the universal rules ALONE, which cannot see "both
+   screens are individually fine and they disagree". That is seven of Wyatt's 35 findings. */
+import { compareWhenSettled } from "./lib/seat_parity.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const LEGS = arg("legs", "solo-desktop,solo-phone,passplay-phone,crew-desktop").split(",");
@@ -116,7 +126,20 @@ async function bootHost(c, name) {
 async function bootJoin(c, name, code) {
   await freshPage(c, "guest");
   const g = await c.ev(`__gate(document.getElementById('choiceJoin'))`); if (!g || !g.ok) throw new Error("join card not clickable");
-  await c.clickXY(g.x, g.y); await nameModal(c, name); await sleep(700);
+  await c.clickXY(g.x, g.y); await sleep(700);
+  /* THE NAME MODAL IS GONE FROM THIS FLOW, and this line waited for it for two days.
+     Wyatt's item 31, shipped 2026-08-24 (025f57cc): "'Join a crew' goes straight to the join
+     screen -- the name modal in between is gone." The game changed; the rig did not. Every crew
+     leg since has died here with "name confirm not clickable", and a crew probe hung all night on
+     2026-08-26 for the same reason.
+
+     THIS IS THE RIG ROTTING AGAINST THE GAME, which is a failure mode worth naming: a harness that
+     encodes a flow can be broken by a fix to that flow, and it fails in a way that looks like the
+     GAME is broken. It is now tolerant -- the modal is used if it is there and skipped if it is
+     not -- so this particular rot cannot recur in either direction. */
+  const hasModal = await c.ev(`(()=>{const m=document.getElementById('nameModal');
+    return !!(m && getComputedStyle(m).display !== 'none');})()`);
+  if (hasModal) { await nameModal(c, name); await sleep(700); }
   await c.ev(`(() => { const jc = document.getElementById('joinCode'); if (jc) jc.value = ${JSON.stringify(code)};
     const jn = document.getElementById('joinName'); if (jn) jn.value = ${JSON.stringify(name)}; return 1; })()`);
   const b = await c.ev(`__gate(document.getElementById('btnJoin'))`); if (!b || !b.ok) throw new Error("join button not clickable");
@@ -209,6 +232,12 @@ function legVerdict(rec) {
     const unexercised = [...P.coverage.entries()].filter(([k, r]) => r.seen > 2 && r.clicked === 0 && !/back|menu close|chat close/.test(k)).map(([k]) => k);
     if (unexercised.length) v.push(`offered but never exercised: ${unexercised.join(", ")}`);
   }
+  /* THE TWO SEATS DISAGREEING IS A FAILURE, not a note. This is the class Wyatt's 2026-08-26
+     playtest was mostly made of — seven findings where both screens were individually fine and they
+     showed different games — and until this line the leg had no way to say so. */
+  if (rec.parity && rec.parity.length)
+    v.push(`${rec.parity.length} moment(s) where the two captains saw different games: ` +
+           rec.parity.slice(0, 3).map(p => `${p.field} (${p.why})`).join("; "));
   if (rec.consoleErrs && rec.consoleErrs.length) v.push(`${rec.consoleErrs.length} console error(s): ${rec.consoleErrs[0]}`);
   /* A JUDGED SLOT CAN BE EMPTY, AND EVERY READER MUST COPE. judgeAll stops the whole pass on the
      first FATAL, so screens it never reached come back `undefined` — deliberately, because an
@@ -293,7 +322,51 @@ const legDefs = {
   "solo-phone":    { W: 390, H: 664, mobile: true, dsf: 2 },
   "passplay-phone":{ W: 390, H: 664, mobile: true, dsf: 2 },
   "crew-desktop":  { W: 1890, H: 960, guestW: 1400, guestH: 900 },
+  /* CREW ON A PHONE — the combination Wyatt actually playtested for two hours on 2026-08-26, and
+     the one with NO LEG until the CEO review pointed at the hole. It did not even show up as a gap:
+     a leg that is not in the table produces no row, which is worse than a not-run cell, because a
+     not-run cell is at least visible. Most of his 35 findings came from this square.
+     Both seats phone-sized, because a crew game between two phones is what he and a friend play. */
+  "crew-phone":    { W: 390, H: 664, mobile: true, dsf: 2, guestW: 390, guestH: 664 },
+  /* Pass-and-play on a desktop — the other empty square in the matrix. */
+  "passplay-desktop": { W: 1890, H: 960 },
+
+  /* THE WEBKIT LEGS — the same modes, the same player, the other engine.
+     WHY NOT ALL FOUR MODES IN WEBKIT: the two engines diverge on RENDERING, ANIMATION and LAYOUT
+     TIMING — that is where the pulse bug lived, where the var()-in-keyframes fault lived, and where
+     Safari's storm behaviour has always been the risk. They do not diverge on whether a bot passes
+     correctly or whether a room code works. Running the wire twice buys nothing and doubles the
+     load on the machine Wyatt plays on.
+     So: WebKit plays SOLO at both sizes, which exercises every prompt, every ceremony, every
+     animation and every layout the game has — and Chrome carries the multiplayer legs. */
+  "solo-desktop-wk": { W: 1890, H: 960, engine: "webkit" },
+  "solo-phone-wk":   { W: 390, H: 664, mobile: true, dsf: 2, engine: "webkit" },
 };
+
+/* One door for both engines. A leg says which it wants; nothing below this line knows the
+   difference, which is the property that keeps the two from drifting. */
+async function openEngine(def, opts) {
+  if (def.engine === "webkit") return openWebKit(opts);
+  return openChrome(opts);
+}
+
+/* Is WebKit reachable at all? Playwright is deliberately NOT a dependency of this repo (no build
+   step, no node_modules), so it is installed out of tree and pointed at with PW_DIR.
+   A MISSING ENGINE IS "NOT RUN", NEVER A PASS. That distinction is the entire reason this function
+   exists: a leg that silently skipped would make the report say Safari was covered when it was not,
+   which is the exact lie this whole process was built to stop. */
+function webkitAvailable() {
+  const dir = process.env.PW_DIR || "/tmp/pw";
+  try {
+    fs.accessSync(path.join(dir, "node_modules", "playwright"));
+    return { ok: true, dir };
+  } catch {
+    return { ok: false, dir, how:
+      `WebKit is not installed, so the Safari legs did NOT run.\n` +
+      `      mkdir -p ${dir} && cd ${dir} && npm init -y && npm i playwright && npx playwright install webkit\n` +
+      `      then re-run with PW_DIR=${dir}` };
+  }
+}
 
 async function runLeg(name, idx) {
   const def = legDefs[name]; if (!def) { log(`unknown leg ${name}`); return { name, verdict: ["unknown leg"] }; }
@@ -301,27 +374,60 @@ async function runLeg(name, idx) {
   const dbg = DBG0 + idx * 4;
   ownPorts.dbg.add(dbg); ownPorts.dbg.add(dbg + 1);
   let host = null, guest = null;
+  if (def.engine === "webkit") {
+    const wk = webkitAvailable();
+    if (!wk.ok) { log(`[${name}] NOT RUN — ${wk.how}`); return { name, notRun: wk.how, verdict: [] }; }
+  }
   try {
-    host = await openChrome({ W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
+    host = await openEngine(def, { W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
       profileDir: path.join(OUT, `prof-${name}-a`), mobile: !!def.mobile, dsf: def.dsf || 1 });
     host.httpPort = PORT0;   // navigate against the run's shared server
-    if (name === "crew-desktop") {
+    if (name.startsWith("crew-")) {
       // Wyatt's ruling: crew plays to the TRUE end; players are test1/test2 so the permanent
       // gamelog rows are filterable. Two separate Chromes = separate localStorage/pp_id (§5c).
       const code = await bootHost(host, "test1");
       log(`[${name}] room ${code} created by test1`);
-      guest = await openChrome({ W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`) });
+      guest = await openEngine(def, { W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`) });
       guest.httpPort = PORT0;
       await bootJoin(guest, "test2", code);
       log(`[${name}] test2 joined ${code}`);
       await hostStart(host);
       const recA = { screens: rec.screens, finished: false }, recB = { screens: rec.screens, finished: false };
       rec.seats = [recA, recB];
+      /* THE PARITY SAMPLER runs ALONGSIDE the two seats, not after them: a divergence that heals
+         before the voyage ends is still a divergence a player saw. It compares only the SHARED
+         truth — the day, the wind, every purse, who is lit, whether a battle card or a bench is up
+         — because the two seats' PROMPTS are legitimately different and comparing those would cry
+         wolf every turn. It waits for both to settle before each comparison, so the network's
+         latency is never reported as a fault. */
+      rec.parity = [];
+      let sampling = true;
+      const sampler = (async () => {
+        while (sampling) {
+          const r = await compareWhenSettled(host, guest);
+          if (r && r.findings && r.findings.length) {
+            for (const f of r.findings) {
+              const key = f.field + "|" + f.why;
+              if (!rec.parity.some(p => p.key === key)) {
+                rec.parity.push({ key, ...f });
+                log(`[${name}] SEATS DISAGREE — ${f.field}: ${f.why}`);
+              }
+            }
+          }
+          await sleep(2500);
+        }
+      })();
       await Promise.all([playSeat(host, `${name}-host`, recA), playSeat(guest, `${name}-guest`, recB, { quests: true })]);
-      rec.finished = recA.finished || recB.finished;
+      sampling = false; await sampler.catch(() => {});
+      /* BOTH, NOT EITHER. This was `||` until the CEO review of 2026-08-26: if the host completed
+         the voyage while the guest sat stuck on a card forever, the leg reported "finished" and went
+         green. That is T-04's exact symptom — a guest holding a dead battle card for 13.4 seconds
+         and, in his playtest, until its own turn came round. The one bug he called serious would
+         have passed this gate. */
+      rec.finished = recA.finished && recB.finished;
     } else {
       const seat = { screens: rec.screens, finished: false }; rec.seats = [seat];
-      if (name === "passplay-phone") await bootPassPlay(host, ["Davy Scones", "Peg Leg Meg"]);
+      if (name.startsWith("passplay-")) await bootPassPlay(host, ["Davy Scones", "Peg Leg Meg"]);
       else await bootSolo(host, "Davy Scones");   // the long name — the one that cliped, on purpose
       await playSeat(host, name, seat);
       rec.finished = seat.finished;
