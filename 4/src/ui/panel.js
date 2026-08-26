@@ -1292,7 +1292,7 @@ export function dryCeremony(){
     panel(`<div class="apMsg">🏴 <b>The shelves be bare…</b><br><br>
       Word travels the Sugar Seas: when an island sells its last crate, the <b>black market</b>
       opens after dark. Any sold-out island — marked with the black flag — will find ye one more
-      crate… for <b>10🌕</b>.</div>
+      crate… for <b>10🌕.</b></div>
       <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">Arrgh!</button></div>
       `,true);   /* the "Steep, aye…" helper line is gone — his call, 2026-08-25 */
     const go=$("bmCerGo");

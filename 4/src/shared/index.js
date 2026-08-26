@@ -112,6 +112,9 @@ const EMOJI_IMG={
 const EMOJIFY_RE=new RegExp(
   "(?:"+Object.keys(EMOJI_IMG).sort((a,b)=>b.length-a.length)
     .map(e=>e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")\\uFE0F?","gu");
+// The same alternation, capturing the emoji and any punctuation glued to its right, so emojify()
+// can keep the two on one line. Built from EMOJIFY_RE.source so the two can never drift apart.
+const EMOJIFY_PUNCT_RE=new RegExp("("+EMOJIFY_RE.source+")([.,;:!?\u2026]+)?","gu");
 // drop-in replacement for any narration/label/log HTML string: swaps every emoji that has custom
 // art for its <img>, leaving anything without dedicated art untouched. Safe to run more than once
 // on the same string (already-swapped text has no emoji left to match) — deliberately applied at
@@ -141,7 +144,20 @@ function emojify(html){
   // captured tags. Index parity is used rather than a startsWith("<") test so that a stray, never
   // -closed "<" in ordinary prose stays TEXT and still gets its emoji swapped.
   return html.split(/(<[^>]*>)/).map((seg,i)=>
-    i%2?seg:seg.replace(EMOJIFY_RE,m=>iconImg(EMOJI_IMG[m.replace(/️$/,"")]))
+    i%2?seg:seg.replace(EMOJIFY_PUNCT_RE,(m,emo,punct)=>{
+      const img=iconImg(EMOJI_IMG[emo.replace(/️$/,"")]);
+      /* PUNCTUATION STAYS WITH ITS ICON. An <img> is a replaced element, so the browser is allowed
+         to break the line straight after it — and it does. The sea trial's vision judge caught the
+         result twice, on two different legs: "…find ye one more crate… for 10 [coin]" with the FULL
+         STOP stranded alone on the next line, which it read as "a broken/truncated sentence
+         template". A player reads it the same way.
+         Fixed HERE rather than at the call sites because the sweep found five of them
+         (util.js x3, flow.js, panel.js) and any new line of copy would be a sixth. Adds a wrapper
+         but no TEXT, which matters: menuButtons() (ui/stage.js) measures textContent against a
+         16-character cutoff to decide the radial bloom, so a fix that added even one invisible
+         character could silently drop prompts to a flat card. */
+      return punct?`<span class="pp4Cling">${img}${punct}</span>`:img;
+    })
   ).join("");
 }
 const BOAT_IMG=[1,2,3,4].map(i=>`${ASSET_BASE}boats/${i}.png`);

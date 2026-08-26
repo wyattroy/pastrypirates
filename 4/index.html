@@ -465,6 +465,11 @@
   #apGridInner { overflow: hidden; min-height: 0; padding: 0 10px; }
   @media (prefers-reduced-motion: reduce) { #apGrid { transition: none; } }
   .apMsg { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  /* emojify() wraps an icon and the punctuation glued to its right in this, so the browser cannot
+     break the line between them. An <img> is a replaced element and a break straight after one is
+     allowed — which stranded a lone "." on its own line under "for 10 [coin]", caught by the sea
+     trial's vision judge on two separate legs, 2026-08-26. Carries no text, only the rule. */
+  .pp4Cling { white-space: nowrap; }
   /* notes/edits #4b: a parenthetical aside like "(1 broadside)" must never split across a line
      break — wrap it in this class at the string-building level wherever it appears. */
   .nobrk { white-space: nowrap; }
@@ -2323,7 +2328,13 @@
     background:#177; color:#fffdf2; box-shadow:0 8px 24px rgba(0,0,0,.25);
     position:sticky; bottom:0; z-index:1; }
   /* the air under a sticky button has to belong to the SCROLLER, not to the button, or the button
-     lifts off the card's bottom edge by its own margin and floats */
+     lifts off the card's bottom edge by its own margin and floats.
+     THE RULE ABOVE IS RIGHT AND THIS SELECTOR WAS WRONG: #statsPanel does not scroll. #statsWrap
+     does (overflow-y:auto), so this 10px reserved nothing against the 66px button and ~52px of the
+     stats list could never be scrolled out from under it — caught by the sea trial's vision judge
+     on the END OF VOYAGE screen, 2026-08-26. The real reservation is now made in stage.js, from the
+     button's MEASURED height, because that height moves with the font, padding and border (rule 9).
+     This 10px stays only as the small gap between the last row and the panel edge. */
   body.pp4Stage #statsPanel { padding-bottom:10px; }
   /* playtest 13: the recipe scroll hints at more — a parchment fade at the cut edge */
   #recipeModalBody::after { content:""; position:sticky; bottom:-1px; display:block; height:30px;

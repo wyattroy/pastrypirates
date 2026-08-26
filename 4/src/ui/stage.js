@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-26i";
+const PP4_STAMP = "2026-08-26j";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1137,6 +1137,20 @@ function ribbonTick(){
     again.className = "pp4Again"; again.type = "button"; again.textContent = "🔁 Play again!";
     again.onclick = () => { const orig = $("btnPlayAgain"); if (orig && orig.onclick) orig.onclick(); };
     ($("statsPanel") || sw).appendChild(again);
+    /* THE AIR UNDER THE STICKY BUTTON MUST BELONG TO THE ELEMENT THAT ACTUALLY SCROLLS — and until
+       2026-08-26 it was reserved on one that does not. index.html carried
+       `body.pp4Stage #statsPanel { padding-bottom:10px }` with a comment stating the rule correctly;
+       #statsPanel does not scroll. #statsWrap is the scroller (overflow-y:auto), and it reserved its
+       own unrelated 14px against a 66px button.
+       MEASURED at 390x844: content 855 in a 786 box, button 66 tall, 14 reserved — so ~52px of the
+       stats list sat permanently behind the button and could not be scrolled clear. The sea trial's
+       vision judge caught it twice on the END OF VOYAGE screen, which is the last thing a player
+       sees in every game.
+       DERIVED, NOT TYPED (rule 9): the button's height is its font size plus its padding plus its
+       border, and all three move — 66 would be wrong the first time any of them changed. Read the
+       rendered box and reserve exactly that. */
+    const reserve = again.offsetHeight;
+    if (reserve > 0) sw.style.paddingBottom = reserve + "px";
   }
 }
 

@@ -106,7 +106,35 @@ if (legs.length) {
 }
 
 /* ---- the report ------------------------------------------------------------ */
-const notRun = [...gateOut.matchAll(/\[([\w-]+)\] NOT RUN — ([\s\S]*?)(?=\n\[|\n$)/g)].map(m => ({ leg: m[1], why: m[2].trim() }));
+/* "DID IT RUN?" IS ANSWERED BY EVIDENCE PRODUCED, NOT BY MATCHING A PHRASE — and getting that wrong
+   is exactly the lie this whole file exists to prevent.
+   On 2026-08-26 this report stated `voyages that did NOT run | none` while BOTH Safari legs had
+   died instantly on a missing Playwright and produced ZERO screens. It listed them under "voyages
+   played with a real mouse". Safari is a stated core requirement of this game, so that was the most
+   misleading line in the repo — and the cause was small: the matcher below recognised only the
+   exact string "[leg] NOT RUN — ", while the gate had emitted "[leg] ERROR: playwright not found".
+   One phrasing understood, another not, and the difference silently became a pass.
+   So the primary test is now the one thing no wording can fake: A LEG THAT PRODUCED NO SCREENS DID
+   NOT SAIL. report.json is the gate's own record of what it actually captured. The phrase matchers
+   are kept as a supplement (they carry a human-readable reason), never as the sole authority. */
+const notRunByPhrase = [...gateOut.matchAll(/\[([\w-]+)\] (?:NOT RUN — |ERROR: )([\s\S]*?)(?=\n\[|\n$)/g)]
+  .map(m => ({ leg: m[1], why: m[2].trim() }));
+let notRun = notRunByPhrase.slice();
+try {
+  const rj = JSON.parse(fs.readFileSync(path.join(OUT, "report.json"), "utf8"));
+  for (const leg of rj) {
+    const n = (leg.screens || []).length;
+    if (n > 0) continue;                                     // it captured something: it sailed
+    if (notRun.some(x => x.leg === leg.name)) continue;      // already named, keep its reason
+    notRun.push({ leg: leg.name, why: (leg.verdict || ["produced no screens at all"]).join("\n") });
+  }
+  // A leg the phrase-matcher flagged but which DID capture screens is a mid-leg error, not a
+  // no-show — do not demote a leg that actually sailed.
+  const captured = new Set(rj.filter(l => (l.screens || []).length > 0).map(l => l.name));
+  notRun = notRun.filter(n => !captured.has(n.leg));
+} catch (e) {
+  say(`   (could not read report.json to verify what actually sailed: ${e.message})`);
+}
 const ranLegs = legs.filter(l => !notRun.some(n => n.leg === l));
 const mins = Math.round((Date.now() - started) / 60000);
 /* A LEG THAT DID NOT RUN IS NOT A PASS, and until the CEO review of 2026-08-26 this file said so
