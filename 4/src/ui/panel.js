@@ -1022,7 +1022,7 @@ export function typewriterReveal(msgEl,msPerChar,startDelayMs=0){
       if(revealed<total)msgEl._revealTimer=setTimeout(step,pollMs);
       else{msgEl._revealNow=null;resolve();}
     };
-    /* T-24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear
+    /* T-17 — his checklist #24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear
        all of the text. this is a nice affordance for players who are familiar with the game and
        follows the same logic where they get to progress bot turns by tapping."
 

@@ -1869,7 +1869,7 @@ function buildStage(){
   const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
   document.body.appendChild(prompt);
   if (ap) prompt.appendChild(ap);
-  /* T-24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear all
+  /* T-17 — his checklist #24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear all
      of the text. this is a nice affordance for players who are familiar with the game and follows
      the same logic where they get to progress bot turns by tapping."
 

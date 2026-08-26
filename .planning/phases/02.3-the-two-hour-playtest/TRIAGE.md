@@ -67,7 +67,7 @@ running it by hand rather than a hole in CI.
 | T-20 | coin on the dock button | **fixed** | both label widths together |
 | T-21 | "Wait, not yet" too loud | **fixed** | blue |
 | T-22 | focus on pre-game modals | **fixed** | wired into `showStep`, so no screen can be forgotten |
-| T-24 | tap to finish the text | **FIXED + VERIFIED** | mid-type tap 44→76 chars; finished-message tap changes nothing |
+| T-17 | tap to finish the text | **FIXED + VERIFIED** | mid-type tap 44→76 chars; finished-message tap changes nothing |
 | T-25 | bake-off title | **FIXED + SCREENSHOT** | "Davy Probe, Yer Bake-Off" |
 | T-27 | crates behind the green squares | **fixed** | swapping bowls raised for the swap only |
 | T-29 | "?" cursor that does nothing | **fixed** | real `disabled` can't fire a click, so it stops promising |
@@ -86,7 +86,14 @@ running it by hand rather than a hole in CI.
 | T-03 | wind announcement | **parked** | I claimed a screenshot confirmed it. **It did not.** Retracted |
 | T-05, T-06, T-10, T-14, T-17, T-23, T-26, T-28, T-32, T-34, T-35 | | **untouched** | |
 
-> **A numbering correction, in the open.** The storm fix was first labelled **T-32** in its commit
+> **TWO numbering corrections, in the open — and it is the same mistake twice.** The storm fix was
+> labelled **T-32** and belongs to **T-08**; the tap-to-finish fix was labelled **T-24** and belongs
+> to **T-17**. Both times I reached for HIS checklist number when the code and this document use
+> mine. **The tell is a T-number that matches his item number** — when those two agree it is almost
+> always the error, because the two sequences only line up by coincidence. Every citation in code
+> now carries both, written as `T-08 — his checklist #32`, so neither can be read alone.
+>
+> **The original note follows.** The storm fix was first labelled **T-32** in its commit
 > and code comment. T-32 in this document is the bake-off's reveal lag; the storm item is **T-08**
 > (his checklist #32). I took HIS number instead of mine. Corrected in `stage.js` and here rather
 > than quietly — a triage whose numbers drift from the code that cites them is worse than no
