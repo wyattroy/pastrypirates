@@ -1,3 +1,7 @@
+> # ⚠ SUPERSEDED — written an hour BEFORE the cutover, and it describes the old layout.
+> **Read [`HANDOFF-2026-08-26-CUTOVER.md`](HANDOFF-2026-08-26-CUTOVER.md) instead.** `4/` is now the
+> repo root and v1 is at `classic/`, so every path below is wrong. Kept for its findings only.
+
 # Handoff — 2026-08-26, night
 
 **Live build: `2026-08-26j`.** `main` level with `origin/main`. 5 commits this session.
