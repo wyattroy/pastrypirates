@@ -377,6 +377,20 @@ after you've done your work, show it to CEO before you show it to me."*
 
 **The sequence: do the work → spawn a CEO → give him the CEO's verdict → then your own account.**
 
+```bash
+node 4/scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
+```
+
+**It is a COMMAND, not a memory exercise** — Wyatt, 2026-08-26: *"I need to be able to ask you to run
+CEO too."* It was documented and not runnable, so every session hand-assembled the brief differently.
+The script pulls in what changed, the build stamp, the sea trial's current state, and — the part that
+was silently broken — **the previous verdict**, from [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md).
+
+> **APPEND THE VERDICT TO THAT FILE WHEN YOU ARE DONE.** Rule 25 tells you to hand each CEO the
+> previous one so it can spot a RECURRING fault. Until 2026-08-26 verdicts lived only in the running
+> session's context, so the moment a session ended that check quietly stopped working. **A verdict
+> nobody recorded is a recurrence check nobody can run.**
+
 **Why it exists, and it is not about honesty.** On 2026-08-25/26 a session answered his 35-item
 playtest by shipping 22 fixes, verifying 4, and reporting success. Nothing in that report was a lie.
 **The gap was between what he ASKED for and what was delivered** — and that gap is invisible from
@@ -758,6 +772,7 @@ and ask before writing code.
 | Bot behaviour or tuning | [`docs/BOT-DESIGN-PRINCIPLES.md`](../docs/BOT-DESIGN-PRINCIPLES.md), [`docs/BOT-V3-RACE-PLANNER.md`](../docs/BOT-V3-RACE-PLANNER.md) |
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
+| Reviewing work before he sees it (rule 25) | [`.claude/CEO-BRIEF.md`](CEO-BRIEF.md) + [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) |
 | **Testing, measuring, or trusting any instrument** | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — *THE WHOLE LOOP, END TO END*, and [`docs/HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md) — the day five instruments lied |
 | **Everything — read at session start** | [`docs/HARD-WON-LESSONS.md`](../docs/HARD-WON-LESSONS.md) |
 
@@ -809,12 +824,10 @@ node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
 node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
 ```
 
-**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — and read its *"THE WHOLE LOOP, END
-TO END"* section, which is the process the sea trial sits inside: predict before you measure,
-red-proof the instrument, answer the REPORTED symptom, read the NOT-RUN column first, treat the
-vision judge as a witness rather than a verdict. Every step in it exists because skipping it cost
-something on 2026-08-26; the war stories are [`HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md).
-A hook stops the first edit to game code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
+**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md)** — read its *"THE WHOLE LOOP, END TO
+END"* section before changing how anything is tested. Every step in it exists because skipping it
+cost something on 2026-08-26; the war stories are [`HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md).
+**A hook stops the first edit to game code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
 enforces rule 17.
 
 Wyatt named it on 2026-08-26. A *sea trial* is the naval term for taking a vessel out and testing

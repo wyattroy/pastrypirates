@@ -27,6 +27,22 @@ const path = require("path");
 /* The §4 table, as data. Add a row here in the same commit that adds a doc to CLAUDE.md §4. */
 const SUBSYSTEMS = [
   {
+    id: "qa",
+    docs: ["docs/QA-PROCESS.md", "docs/HARD-WON-LESSONS.md"],
+    why: "testing, measuring, or trusting any instrument",
+    // Added 2026-08-26 by the commit that also added the row to CLAUDE.md §4 — because the commit
+    // BEFORE it added the prose row and skipped this one, and a CEO review is what noticed.
+    // 4/scripts/doc_command_check.js now fails the build when these two tables disagree.
+    match: (f) => /(^|\/)(4\/)?scripts\/.*(check|test|gate|trial|drill|probe)/i.test(f)
+                || /(^|\/)4\/scripts\/lib\//.test(f),
+  },
+  {
+    id: "ceo",
+    docs: [".claude/CEO-BRIEF.md"],
+    why: "reviewing work before Wyatt sees it (rule 25)",
+    match: (f) => /CEO-BRIEF|CEO-REVIEWS/.test(f),
+  },
+  {
     id: "trade",
     docs: ["docs/TRADE-SYSTEM.md"],
     why: "anything that trades",
