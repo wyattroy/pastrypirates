@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-26h";
+const PP4_STAMP = "2026-08-26i";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -548,25 +548,73 @@ function clampAskToScreen(ap, tSafeV){
   if (pillB && pillB.height > 0) placeBackButton(ap, pillB, tSafeV);
 }
 /* Lifts the ask pill clear of any prompt circle already sitting on it (see the call site). */
+/* THE LIFT CAN FAIL TO CLEAR, AND IT REPORTS NOTHING WHEN IT DOES. That is the 3x `no-cover-ask`
+   on the crew-phone sea trial, 2026-08-26 (host-016, guest-020, guest-022): a long three-line trade
+   question with a circle sitting on the word it is asking about.
+
+   WHAT IS MEASURED, AND WHAT IS NOT — read this before trusting the next paragraph.
+     - guest-022 (390x664): MEASURED clamp-bound. The pill sits at y~83, the `tSafeV - 34` ceiling
+       is y~53, and the lift wants y~37. It rises the 30px it is allowed and STILL overlaps by ~4px.
+       Here the floor is genuinely the cause.
+     - host-016 (same 390x664 at 2x): MEASURED to have ~36px of headroom — the lift wanted y~65
+       against a y~53 ceiling, so it was NOT clamped, and the circle stayed on "deal" anyway.
+       WHY the lift did not take on that screen is NOT ESTABLISHED. A candidate, unverified: the
+       placement pass below writes `msg.style.top = mTop` unconditionally (see it a few hundred
+       lines down), so a re-place discards whatever the lift just did.
+   Both findings are from CEO review 4, which measured the two shots rather than reading this
+   function. An earlier version of this comment asserted the clamp as THE cause for all three
+   screens; that was a guess written in the voice of a finding, and host-016 contradicts it.
+
+   THE FIX DOES NOT DEPEND ON WHICH CAUSE IT WAS, which is the reason to prefer it. Whatever
+   defeated the lift, the durable answer is to re-run the placement against the pill's TRUE size.
+   The machinery already exists and this adds no second corrective path (rule 23): the pass treats
+   the pill as an obstacle (`obstacles.push(pillB)`) and `formationOK` refuses any formation that
+   hits an obstacle, sail rects included — so D-38 cannot be traded away by moving the circles.
+   The call site's own note says why the pass seated the fan badly in the first place: `.apMsg`
+   reveals progressively, so it measured a SMALL pill, avoided that correctly, and the memo then
+   froze the layout while the pill grew into it. Dropping `S.radKey` re-runs that same pass — the
+   file's existing idiom for "re-place next tick" (3 other uses).
+
+   ORDERING, because it is what makes this converge rather than oscillate: this function runs ABOVE
+   the memo check, so clearing `S.radKey` re-places on the SAME tick, not the next one. The pass
+   then sets the pill from `mTop` and seats the fan around the pill's now-full-height rect in one
+   pass, so the pill and the circles are positioned against each other consistently. */
+let _refan = { key: null, n: 0 };
 function liftAskClearOfFan(ap, tSafeV, capTV){
   const msg = ap.querySelector(".apMsg"); if (!msg || !msg.style.top) return;
   const btns = [...ap.querySelectorAll(".apBtn")].filter(b => b.style.left && b.offsetWidth > 4);
   if (!btns.length) return;
   const mr = fixedRect(msg);
   if (!(mr.width > 0 && mr.height > 0)) return;
-  const sits = btns.some(b => {
+  // Shape-aware, exactly as the gate is: a circle's CORNER clipping a text box is not a circle
+  // sitting on it. Taken as a function so the same test can be re-asked after the lift.
+  const sitsOn = box => btns.some(b => {
     const r = fixedRect(b);
     const bx = r.left + r.width / 2, by = r.top + r.height / 2, rad = Math.min(r.width, r.height) / 2;
-    const px = Math.max(mr.left, Math.min(bx, mr.right)), py = Math.max(mr.top, Math.min(by, mr.bottom));
+    const px = Math.max(box.left, Math.min(bx, box.right)), py = Math.max(box.top, Math.min(by, box.bottom));
     return Math.hypot(bx - px, by - py) < rad - 2;
   });
-  if (!sits) return;
+  if (!sitsOn(mr)) return;
   const blockTop = Math.min(...btns.map(b => fixedRect(b).top));
   const lifted = Math.max(tSafeV - 34, Math.min(blockTop - mr.height - 10, capTV - mr.height - 8));
   if (Math.abs((parseFloat(msg.style.top) || 0) - lifted) > 1){
     msg.style.top = lifted + "px";
     placeBackButton(ap, fixedRect(msg), tSafeV);
   }
+  /* THE CAP IS NOT OPTIONAL. A board so full that no formation clears the pill would otherwise drop
+     the memo on EVERY tick — re-placing the fan forever, which is the runaway-probe failure this
+     repo has paid for twice. It BOUNDS the churn at three re-places; it does not "prevent" it, and
+     saying so would be another behavioural claim this function cannot honour.
+     KEYED PER PROMPT, NOT PER TURN. This first read `S.turnSerial + "|" + btns.length`, and
+     `turnSerial` only moves when the wheel passes to another captain — but ONE turn holds many
+     prompts (a trade alone walks "what'll ye do" -> the ingredient pick -> "coins only" -> "Offer
+     it!" -> the table's answer). Two of them with the same circle count shared a single budget, so
+     the first could spend all three and leave the second none. The question's own text is what
+     makes a prompt distinct, and this file already uses exactly that key for `S.frameKey` — reused
+     here rather than invented. (CEO review 4 caught the coarse key.) */
+  const stamp = S.turnSerial + "|" + (msg.textContent || "").slice(0, 60) + "|" + btns.length;
+  if (_refan.key !== stamp) _refan = { key: stamp, n: 0 };
+  if (sitsOn(fixedRect(msg)) && _refan.n < 3){ _refan.n++; S.radKey = null; }
 }
 function capBandBottom(){
   const cap = $("pp4Cap");

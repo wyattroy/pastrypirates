@@ -2248,12 +2248,18 @@ export function armHostGone(){
   netMarkHostGoneOnDisconnect(appState.db,armedRoom);
   if(_hostGoneArmedFor===armedRoom)return;              // never stack a second watcher on one room
   _hostGoneArmedFor=armedRoom;
+  // FOURTH GUARD, and the one that was missing: name this consumer. watchPresence() already holds
+  // a .info/connected watcher from page boot, and until 2026-08-26 both used the wrapper's default
+  // label — so this one, attaching second, produced an identical registry key and was REFUSED.
+  // The whole repair above therefore never ran: a host whose connection blipped left the guest on
+  // "yer matey has left the game…" with nothing to clear it. Found by the crew-phone sea trial as
+  // a single console ERROR; proved by 4/scripts/net_connected_twin_test.js.
   netWatchConnected(appState.db,snap=>{
     if(snap.val()!==true)return;
     if(appState.room!==armedRoom||!appState.isHost||!appState.gameStarted||appState.liveDone)return;
     netUpdateRoom(appState.db,armedRoom,{status:"playing"},()=>{});
     netMarkHostGoneOnDisconnect(appState.db,armedRoom);
-  },()=>{});
+  },()=>{},"hostgone-reassert");
 }
 export async function startGame(){
   try{
