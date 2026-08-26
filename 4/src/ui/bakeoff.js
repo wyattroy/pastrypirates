@@ -497,6 +497,16 @@ export async function playBakeoffLive(spec,io){
          into sampled keyframes because no single CSS easing can draw a curve that comes back to
          where it started. Still transform-only (PERF-01). The old two-stage version (climb the
          whole way, then drop level in a separate step) is gone with it. */
+      /* T-27 (Wyatt, 2026-08-26): "the crates are visible moving behind the green 'correct crate'
+         square. this looks messy. the crates should move in front of the green 'correct' squares
+         so it looks like the correct guesses are locked in, behind."
+
+         The two travelling bowls are SIBLINGS of the ones standing still, so in a flat flex row
+         they paint in DOM order — a crate swapping past a solved bowl went behind it. Raising the
+         pair for the length of the swap says the right thing about the game: what is settled stays
+         put and stays back, what is in play moves over the top of it. Removed on commit below, so
+         nothing carries a stacking context it no longer needs. */
+      A.classList.add("bkoSwapping");B.classList.add("bkoSwapping");
       const lift=A.getBoundingClientRect().height*0.3;
       const peakA=d>0?-lift:lift;
       const easeIO=u=>u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
@@ -529,6 +539,7 @@ export async function playBakeoffLive(spec,io){
     if(B._bkoAnim){B._bkoAnim.cancel();B._bkoAnim=null;}
     A.style.transition="";B.style.transition="";
     A.style.transform="";B.style.transform="";
+    A.classList.remove("bkoSwapping");B.classList.remove("bkoSwapping");   // T-27
     await sleep(reduced?40:SETTLE_MS);
   }
   }

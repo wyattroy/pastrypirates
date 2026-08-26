@@ -1319,6 +1319,11 @@
     position: relative; padding: 0; border: none; background: none; cursor: pointer;
     border-radius: 10px; }
   .bkoBowl.locked { cursor: default; }
+  /* T-27: a bowl in mid-swap paints OVER the ones standing still. Siblings in a flat flex row paint
+     in DOM order, so a crate travelling past a solved bowl went behind it — "this looks messy",
+     and it said the wrong thing: the settled guesses should read as locked in, behind. Applied by
+     bakeoff.js for the length of the swap only. */
+  .bkoBowl.bkoSwapping { z-index: 4; }
   .bkoIng { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; z-index: 1; }
   /* THE GHOST BOWL (Wyatt, 2026-08-08: "Make the 'bowls' appear at 50% opacity behind the
      ingredients on this screen, so that the helper text (which refers to bowls) makes more sense").
