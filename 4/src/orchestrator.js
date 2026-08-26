@@ -503,6 +503,45 @@ export function applyBenchSnap(snap){
   return null;
 }
 
+/* Apply one battle moment to THIS screen. THE SINGLE ENTRY BOTH TIERS REACH — the host calls it
+   directly (mirror-when-remote), every other client calls it from watchBattle. Deliberately the
+   same shape as applyBenchSnap above, including `null` meaning RETIRE.
+
+   T-04 (Wyatt, 2026-08-26, and he called it "a serious, bad bug"): "after observing other players
+   battle, their battle card stays on screen for the guest indefinitely. it stays up until the
+   guest's turn, when it disappears."
+
+   WHY IT HAPPENED, MEASURED (4/scripts/qa/battle_watch_probe, one real fight, two browsers):
+
+     card appears        host  7358ms   guest  7350ms
+     battle node cleared    —           guest hears it at 14404ms
+     card actually leaves host 14402ms  guest 27752ms  <- when its own turn prompt arrived
+
+   13.4 seconds of a dead card. NOTHING TOLD THE WATCHER'S SCREEN THE FIGHT WAS OVER: the listener's
+   else-branch set `spectatingBattle=false` and drew nothing, while the host retired its own card
+   from a completely different place (its game loop). The flag was healthy the whole time — it
+   cleared within 2ms of the host. The DRAWING is what was missing.
+
+   That is rule 23 exactly: two things kept in step by discipline, and they drifted. The fix is not
+   a guest-side `panel("")` — that would be a second retirement path and the same fault one layer
+   down. There is now one function, and both tiers are made to go through it.
+
+   `panel("")` is guarded on our own content so this can never blank a panel that has already moved
+   on to something else — the bake-off bench takes the same precaution. */
+export function applyBattleSnap(snap){
+  if(!snap){
+    if(document.querySelector("#actionPanel .btl"))panel("");
+    appState.spectatingBattle=false;
+    return;
+  }
+  // Reading spectatingBattle BEFORE assigning it true IS the edge trigger (260801-7f4): this runs
+  // on every write to the battle node, many times per fight, so read-then-assign is what keeps the
+  // clash to once per battle instead of once per scoreboard update.
+  if(!appState.spectatingBattle&&!snap.title)playBattleEngage();
+  appState.spectatingBattle=true;
+  if(!appState.inBattlePrompt)renderBattleFromSnap(snap);
+}
+
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
@@ -538,11 +577,11 @@ export function watchBattle(){
       // first battle-node write (the scoreboard appearing), which trails the host's own clash on
       // the announcement by a few seconds when a human spectator is put through side-bet prompts —
       // still before the first flip, still fixing the "end of fight" complaint on this tier too.
-      if(!appState.spectatingBattle&&!v.title)playBattleEngage();
-      appState.spectatingBattle=true;
-      if(!appState.inBattlePrompt)renderBattleFromSnap(v);
+      applyBattleSnap(v);
     }
-    else appState.spectatingBattle=false; // battle node cleared at battle end — narration may take over again
+    // T-04: the battle node cleared, so the fight is over. This used to set the flag and draw
+    // NOTHING, leaving the card on screen until some later prompt happened to replace it.
+    else applyBattleSnap(null);
   });
 }
 // battleFooter moved verbatim to src/ui/flow.js (11-05).
@@ -797,7 +836,10 @@ async function asyncBattleRun(att,def){
       }
     }
   }
-  panel("");
+  // THE SAME RETIREMENT EVERY OTHER CAPTAIN GETS (T-04). This was a bare panel(""), which is what
+  // made the host's teardown and a watcher's two separate pieces of code — the condition rule 23
+  // exists to forbid. Both now leave by this door.
+  applyBattleSnap(null);
   // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
   // back for the result narration (and so spectatingBattle resets). (#9)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netRemoveBattle(appState.db,appState.room,netFail("battle clear"));
@@ -1653,7 +1695,24 @@ export function watchPrompt(){
       // renderer itself never touches Firebase.
       // `hint` is the sail self-check's shout, composed by pickCell for EVERY captain since 02.15
       // Stage 4 — rendered here, never authored here, exactly like `msg` (D-35).
-      renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null},cell=>sendResponse(p.id,cell));
+      /* T-02 (Wyatt, 2026-08-26): "The guest cannot 'stay put' -- why is there an entire parallel
+         track of code for guests? this violates many of my design principles."
+
+         HE IS RIGHT, AND IT WAS ONE MISSING FIELD. renderPickPrompt draws the yellow stay square
+         only `if(spec.pos)`, and this spec was built as {cells,msg,hint} — so no guest has ever
+         been sent the position of their own boat, no guest has ever had a stay square, and the
+         Stay put button that square unlocks could never appear. Not a parallel renderer: the ONE
+         converged renderer, starved of an argument.
+
+         prompt_field_parity_check's assertion 2 has been RED about exactly this the whole time —
+         "pickCell() SENDS 'pos' and watchPrompt's pick branch never reads p.pos". The gate named
+         the field, the tier and the consequence, and nobody read it.
+
+         And the comment inside renderPickPrompt claimed `pos` is "absent only across a version
+         skew (an older host feeding a newer guest)". It was absent on EVERY guest in EVERY game.
+         That is rule 6's other half in the wild — a comment making a claim about runtime, rotted,
+         and believed. */
+      renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null,pos:p.pos||null},cell=>sendResponse(p.id,cell));
     }else if(p.kind==="bake"){
       /* MP-04 — THE BAKE, TAKEN BY ITS OWN CAPTAIN (04-01 Task 2, THE TRACER).
          Before this branch existed, a guest's bake was played on the HOST's screen by the host's

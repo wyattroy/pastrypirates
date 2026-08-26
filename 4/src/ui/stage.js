@@ -2950,7 +2950,27 @@ function promptTick(){
   if (!S.tween && fc % 3) return;
   const big = box.offsetHeight > vhPx() * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
-  if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
+  /* T-07 (Wyatt, 2026-08-26): "when you observe other players battling, the battle box moves around
+     in a glitchy way, and sometimes it's offscreen; it almost looks like it's trying to hover the
+     box over my own boat, which is unnecessary. expectation: it should be centered over the game
+     board and stay there."  It IS hovering his own boat: `u` above is MY seat, and the card is hung
+     off that hull below. A battle between two OTHER captains has nothing to do with my ship, and
+     the camera is meanwhile holding on the pair who are fighting — so the card is anchored to a
+     boat the director is not even looking at.
+
+     MEASURED, both screens, one real battle (4/scripts/qa/battle_watch_probe): the watching guest's
+     card travelled 435,453 -> 350,176 -> 261,227 in 600ms and then jittered +/-10px for the rest of
+     the fight; the host's went 304,167 -> 306,166 and stopped. The 600ms is the camera's 650ms
+     tween — the guest aims its camera at the same instant the card is born, so the card rides the
+     tween. And `top = sy + 34` is NOT clamped to the viewport the way `left` is, which is the
+     "sometimes it's offscreen" half: an anchor ship above the visible band sends top negative.
+
+     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. So the
+     battle card joins it rather than getting placement logic of its own. This function runs on both
+     tiers, so host and guest take the rule from the same line; nothing is branched on who is
+     watching. */
+  const isBattle = !!box.querySelector(".btl");
+  if (big || isBattle || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
   box.classList.remove("centered");
   const W = Math.min(330, vwPx() - 16);
   box.style.width = W + "px";

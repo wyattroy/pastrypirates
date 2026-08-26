@@ -156,7 +156,13 @@ function listSteps(steps){
 function bakeTitle(bake,watching){
   const who=bake&&bake.baker;
   if(!who)return "The Bake-Off";
-  return watching?`${who}'s Bake-Off`:`${who}, Yer Bake-Off`;
+  /* ONE SPAN, NOT THREE. `.bkoHd` is display:flex with gap:6px, so every child is a flex ITEM:
+     returning `<span>Name</span>, Yer Bake-Off` made the coloured name one item and the rest an
+     anonymous second one, separated by the row gap -- "Davy Probe , Yer Bake-Off", with the comma
+     adrift. Caught on the rendered card by bakeoff_surface.mjs, which read the title back as
+     "Davy Probe\n, Yer Bake-Off". Wrapping makes the whole heading a single item again. */
+  const inner=watching?`${who}'s Bake-Off`:`${who}, Yer Bake-Off`;
+  return `<span class="bkoWho">${inner}</span>`;
 }
 function shellHTML(bake,slots,hint,btnLabel,btnEnabled,watching){
   const att=bake.attempts+1;
