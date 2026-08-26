@@ -31,5 +31,18 @@ layout-check-shots/
 # A profile also carries Cookies, Login Data and History — these were empty because
 # the profiles were freshly made, which is luck, not a guarantee. See
 # docs/DRIVING-THE-GAME.md §8a: user-data-dir belongs in /tmp.
+#
+# The globs must cover EVERY name the QA scripts give a profile, not just the one
+# that leaked. Checked against 4/scripts on main 2026-08-26: playtest_gate.mjs makes
+# prof-<name>-a and prof-sheet-<tag> (these are the ones that leaked), group_g_peek_probe
+# prof, group_f/g_shots prof-<TAG>, mp_rig prof-host and prof-guest, mouse_qa profile,
+# stage_layout_check profile-<W>x<H>, contact_sheet _sheet-profile. A name-by-name list
+# rots the moment someone adds a script, so these are deliberately shape-based.
+# Note playtest_gate.mjs defaults --out to ./playtest-gate (inside the repo), so the
+# default run is caught here too, not only the --out that caused the incident.
+prof/
 prof-*/
+profile/
+profile-*/
+_sheet-profile/
 chrome-probe*/
