@@ -745,6 +745,12 @@ export async function bakeoffPrompt(p,setup,fallback){
     locked:p.bake.locked.slice(),
     attempts:p.bake.attempts,
     cost:BAKE_REWATCH_COST,
+    /* T-25 (Wyatt, 2026-08-26): "the bakeoff title shouldn't say The Bake-off, it should say
+       {Captain's name}'s bake-off, or {Your captain's name}, Yer Bake-Off."
+       IT RIDES IN THE SPEC rather than being looked up on each screen, for the reason the whole
+       spec exists: a watcher has no `p`, and a name resolved independently on two machines is two
+       answers waiting to disagree. One field, built once, read by baker and watcher alike. */
+    baker:pn(p.idx),
     coins:p.coins};
   // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
   // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the

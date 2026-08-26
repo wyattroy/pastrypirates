@@ -2458,6 +2458,32 @@
      happens during docks" for anyone with that setting on.) */
   #actionPanel .apBtn:hover, #actionPanel .btlBtn:hover,
   #btnStart:hover, #btnConfirmStart:hover, #btnStartPassPlay:hover { animation-play-state: paused; }
+
+  /* ============ TWO CORRECTIONS TO THE VOCABULARY (Wyatt, 2026-08-26 playtest) ============
+
+     T-16 — "no orange glow on start button."  The ceremony's Start button IS given the right
+     class: netIntroBarrier() builds it with cls:"primary ahoyGlow" (flow.js), and `.ahoyGlow` is
+     named in the glow rule above. The class was never the problem — SPECIFICITY was. `.ahoyGlow`
+     alone is (0,1,0); the two GROW rules above also set `animation`, on selectors carrying an id
+     plus five or six pseudo-classes. Wherever the ceremony's prompt is not `.pp4Center`, the grow
+     rule wins the `animation` property outright and the button quietly scales instead of glowing.
+     One class cannot out-rank that, so the glow is restated here at a weight that can.
+
+     WHY RESTATED RATHER THAN MOVED: the block above is the single definition of the vocabulary
+     (his ruling, 2026-08-24 — "one CSS block"). This does not introduce a second gesture; it is
+     the SAME pp4Glow keyframe, re-asserted for the one button that was losing the cascade. If the
+     grow selectors are ever simplified, delete this and check the ceremony again.
+
+     T-30 — "remove the orange attention glow from the watch again button."  #bkoWatch carries
+     .apBtn so it inherits the fan's attention cue, but it is not what the game is asking of you —
+     the bake is. It keeps its shape and loses the pulse. `animation:none` covers BOTH the glow and
+     the grow, so it cannot come back through the other rule. ========================== */
+  #actionPanel .apBtn.ahoyGlow:not(:disabled):not([aria-disabled="true"]),
+  #pp4Prompt #actionPanel .apBtn.ahoyGlow:not(:disabled):not([aria-disabled="true"]) {
+    animation: pp4Glow 1.1s ease-in-out infinite; }
+  #actionPanel .apBtn.bkoWatch,
+  #pp4Prompt #actionPanel .apBtn.bkoWatch,
+  #pp4Prompt.pp4Center .bkoBtns .apBtn.bkoWatch { animation: none; }
   @media (prefers-reduced-motion: reduce) {
     #pp4Prompt:not(.pp4Center) #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]):not(.recipeCard) {
       animation: pp4Glow 1.1s ease-in-out infinite; } }

@@ -1694,8 +1694,13 @@ export function watchPrompt(){
       /* THE SPEC IS THE OBJECT THAT CAME OVER THE WIRE, held once and handed both to the
          choreography and to the publisher — so a remote captain's bench and the bench every other
          captain watches are built from literally the same fields. */
+      // `baker` (T-25) is read here for the same reason every other field is: the prompt-field
+      // parity gate treats a field this branch does not read as a fact the local captain gets and
+      // a remote one does not. It caught this exact omission the moment `baker` was added — the
+      // local screen would have titled the card "{Captain}'s Bake-Off" while a remote captain's
+      // still read "The Bake-Off". A title is not load-bearing; the divergence would have been.
       const wireSpec={order:p.order||[],before:p.before||[],swaps:p.swaps||[],
-                      locked:p.locked||[],attempts:p.attempts||0,cost};
+                      locked:p.locked||[],attempts:p.attempts||0,cost,baker:p.baker};
       const seat=p.seat;
       /* MP-13 (04-01 Task 4) — A CAPTAIN WHO DROPS MID-BAKE DOES NOT STALL THE TABLE.
          The bake has no shot clock any more (Wyatt, 2026-08-18: the finish line gets as long as it

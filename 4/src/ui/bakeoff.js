@@ -147,6 +147,17 @@ function listSteps(steps){
 // `p` used to be the first argument here and was never read in the body — the whole shell is
 // composed from the BAKE, which is the only thing a bench is about. Dropped in 04-01 Task 2, where
 // the choreography stopped taking a player at all (see playBakeoffLive).
+/* T-25 — whose bake is this?  ONE RULE TAKING THE VIEWER AS ITS INPUT, which DISPLAY-RULES §2
+   sanctions explicitly ("a rule that takes the viewer as an input is not two rules") — the same
+   shape the captains list already uses. It is NOT a baker branch and a watcher branch: one
+   expression, one source of the name, and that name arrived in the shared spec so the two screens
+   cannot resolve it differently.  Falls back to the old wording if `baker` is absent, so a bench
+   published by an older client still renders a sensible heading rather than "undefined's". */
+function bakeTitle(bake,watching){
+  const who=bake&&bake.baker;
+  if(!who)return "The Bake-Off";
+  return watching?`${who}'s Bake-Off`:`${who}, Yer Bake-Off`;
+}
 function shellHTML(bake,slots,hint,btnLabel,btnEnabled,watching){
   const att=bake.attempts+1;
   /* THE SAME SHELL FOR A WATCHER (04-01 Task 3, MP-05). Same header, same recipe card, same bench,
@@ -154,7 +165,7 @@ function shellHTML(bake,slots,hint,btnLabel,btnEnabled,watching){
      watcher has nothing to answer. That is the whole shape of this convergence: the response
      mechanism is what differs between tiers, never the drawing. */
   return `<div class="bko${watching?" bkoWatching":""}">
-    <div class="bkoHd">${iconImg(CUPCAKE_IMG)} The Bake-Off<span class="bkoAtt">attempt ${att}</span></div>
+    <div class="bkoHd">${iconImg(CUPCAKE_IMG)} ${bakeTitle(bake,watching)}<span class="bkoAtt">attempt ${att}</span></div>
     ${cardHTML(bake)}
     ${benchHTML(bake,slots)}
     <div class="bkoHint" id="bkoHint">${hint}</div>
@@ -335,7 +346,7 @@ export async function playBakeoffLive(spec,io){
   const swaps=spec.swaps||[];
   // The shape cardHTML/benchHTML/stepOfSlot have always read. Built from the spec rather than
   // handed in, so this function never touches a live engine object.
-  const bake={order:spec.order,locked:(spec.locked||[]).slice(),attempts:spec.attempts||0};
+  const bake={order:spec.order,locked:(spec.locked||[]).slice(),attempts:spec.attempts||0,baker:spec.baker};
   const n=bake.order.length;
   while(bake.locked.length<n)bake.locked.push(false);
 
