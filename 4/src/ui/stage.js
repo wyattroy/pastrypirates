@@ -1224,7 +1224,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   let subj = S.subject; S.subject = null;
   if (subj == null && typeof msg === "string"){
     /* turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour.
-       ONE CAPTAIN NAMED, OR NOBODY. T-32 (Wyatt, 2026-08-26): "the storm narration that reported
+       ONE CAPTAIN NAMED, OR NOBODY. T-08 — his checklist #32 (Wyatt, 2026-08-26): "the storm narration that reported
        how players were moved appeared connected to the player 1; it shouldn't -- it should appear
        in the dark blue narration box that reports table-wide events. this should be the behavior
        across all modes, not just pass-and-play."

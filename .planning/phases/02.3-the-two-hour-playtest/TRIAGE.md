@@ -73,12 +73,18 @@ running it by hand rather than a hole in CI.
 | T-29 | "?" cursor that does nothing | **fixed** | real `disabled` can't fire a click, so it stops promising |
 | T-30 | Watch again glows | **FIXED + SCREENSHOT** | `animation:none` |
 | T-31 | pink/blue colours | **fixed** | wrong→red, selected→yellow (it had no colour of its own) |
-| T-32 | storm report pinned to player 1 | **fixed** | the anchor was the reading order of the sentence |
+| T-08 | storm report pinned to player 1 | **fixed** | the anchor was the reading order of the sentence |
 | T-33 | blue "?" art | **fixed (4 changes)** | 1739 of 1743 redundant image writes removed; hole art preloaded; the promised fallback now exists |
 | T-01 | solo Enter dumps home | **parked** | does NOT reproduce in Chrome; goes to the WebKit mount |
 | T-18 | parentheses split | **parked** | `nobrk` holds in solo at 390px; needs the ceremony at width |
 | T-03 | wind announcement | **parked** | I claimed a screenshot confirmed it. **It did not.** Retracted |
-| T-05, T-06, T-08, T-10, T-14, T-17, T-23, T-26, T-28, T-34, T-35 | | **untouched** | |
+| T-05, T-06, T-10, T-14, T-17, T-23, T-26, T-28, T-32, T-34, T-35 | | **untouched** | |
+
+> **A numbering correction, in the open.** The storm fix was first labelled **T-32** in its commit
+> and code comment. T-32 in this document is the bake-off's reveal lag; the storm item is **T-08**
+> (his checklist #32). I took HIS number instead of mine. Corrected in `stage.js` and here rather
+> than quietly — a triage whose numbers drift from the code that cites them is worse than no
+> triage, and this is exactly the class of error the "point, don't restate" convention exists for.
 
 **Not one item was marked fixed on reading alone.** Everything above was either measured,
 screenshotted, or is explicitly labelled as proven only at the seam.
