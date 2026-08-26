@@ -24,6 +24,12 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
+/* THE SECOND ENGINE. Wyatt, 2026-08-26: "your fixes must be verified across Safari and Chrome."
+   wk.mjs is a MOUNT, not a second driver — it returns the same handle shape openChrome() does, so
+   makePlayer() and every check below run against it unchanged (ONE DRIVER, TWO MOUNTS, rule 23).
+   The pulse bug lived only in his phone's WebKit and cost eight days; three Chromium engines
+   cleared it honestly. That is the whole argument for this import. */
+import { openWebKit } from "./lib/wk.mjs";
 import { MEASURE, structuralChecks, waitSettled } from "./lib/checks.mjs";
 import { judgeAll, writeJudgeQueue } from "./lib/vision.mjs";
 import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
@@ -293,7 +299,43 @@ const legDefs = {
   "solo-phone":    { W: 390, H: 664, mobile: true, dsf: 2 },
   "passplay-phone":{ W: 390, H: 664, mobile: true, dsf: 2 },
   "crew-desktop":  { W: 1890, H: 960, guestW: 1400, guestH: 900 },
+
+  /* THE WEBKIT LEGS — the same modes, the same player, the other engine.
+     WHY NOT ALL FOUR MODES IN WEBKIT: the two engines diverge on RENDERING, ANIMATION and LAYOUT
+     TIMING — that is where the pulse bug lived, where the var()-in-keyframes fault lived, and where
+     Safari's storm behaviour has always been the risk. They do not diverge on whether a bot passes
+     correctly or whether a room code works. Running the wire twice buys nothing and doubles the
+     load on the machine Wyatt plays on.
+     So: WebKit plays SOLO at both sizes, which exercises every prompt, every ceremony, every
+     animation and every layout the game has — and Chrome carries the multiplayer legs. */
+  "solo-desktop-wk": { W: 1890, H: 960, engine: "webkit" },
+  "solo-phone-wk":   { W: 390, H: 664, mobile: true, dsf: 2, engine: "webkit" },
 };
+
+/* One door for both engines. A leg says which it wants; nothing below this line knows the
+   difference, which is the property that keeps the two from drifting. */
+async function openEngine(def, opts) {
+  if (def.engine === "webkit") return openWebKit(opts);
+  return openChrome(opts);
+}
+
+/* Is WebKit reachable at all? Playwright is deliberately NOT a dependency of this repo (no build
+   step, no node_modules), so it is installed out of tree and pointed at with PW_DIR.
+   A MISSING ENGINE IS "NOT RUN", NEVER A PASS. That distinction is the entire reason this function
+   exists: a leg that silently skipped would make the report say Safari was covered when it was not,
+   which is the exact lie this whole process was built to stop. */
+function webkitAvailable() {
+  const dir = process.env.PW_DIR || "/tmp/pw";
+  try {
+    fs.accessSync(path.join(dir, "node_modules", "playwright"));
+    return { ok: true, dir };
+  } catch {
+    return { ok: false, dir, how:
+      `WebKit is not installed, so the Safari legs did NOT run.\n` +
+      `      mkdir -p ${dir} && cd ${dir} && npm init -y && npm i playwright && npx playwright install webkit\n` +
+      `      then re-run with PW_DIR=${dir}` };
+  }
+}
 
 async function runLeg(name, idx) {
   const def = legDefs[name]; if (!def) { log(`unknown leg ${name}`); return { name, verdict: ["unknown leg"] }; }
@@ -301,8 +343,12 @@ async function runLeg(name, idx) {
   const dbg = DBG0 + idx * 4;
   ownPorts.dbg.add(dbg); ownPorts.dbg.add(dbg + 1);
   let host = null, guest = null;
+  if (def.engine === "webkit") {
+    const wk = webkitAvailable();
+    if (!wk.ok) { log(`[${name}] NOT RUN — ${wk.how}`); return { name, notRun: wk.how, verdict: [] }; }
+  }
   try {
-    host = await openChrome({ W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
+    host = await openEngine(def, { W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
       profileDir: path.join(OUT, `prof-${name}-a`), mobile: !!def.mobile, dsf: def.dsf || 1 });
     host.httpPort = PORT0;   // navigate against the run's shared server
     if (name === "crew-desktop") {
@@ -310,7 +356,7 @@ async function runLeg(name, idx) {
       // gamelog rows are filterable. Two separate Chromes = separate localStorage/pp_id (§5c).
       const code = await bootHost(host, "test1");
       log(`[${name}] room ${code} created by test1`);
-      guest = await openChrome({ W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`) });
+      guest = await openEngine(def, { W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`) });
       guest.httpPort = PORT0;
       await bootJoin(guest, "test2", code);
       log(`[${name}] test2 joined ${code}`);
