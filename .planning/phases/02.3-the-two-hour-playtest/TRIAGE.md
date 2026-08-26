@@ -50,7 +50,7 @@ running it by hand rather than a hole in CI.
 
 ## 0b. STATUS AFTER THE OVERNIGHT RUN (2026-08-26, build `2026-08-26g`)
 
-**16 of 35 addressed. 3 verified on screen. 4 deliberately parked with a diagnosis. 12 untouched.**
+**21 of 35 addressed. 4 verified on screen. 5 deliberately parked with a diagnosis. 9 untouched.**
 
 | | Item | State | Evidence |
 |---|---|---|---|
@@ -74,6 +74,12 @@ running it by hand rather than a hole in CI.
 | T-30 | Watch again glows | **FIXED + SCREENSHOT** | `animation:none` |
 | T-31 | pink/blue colours | **fixed** | wrong→red, selected→yellow (it had no colour of its own) |
 | T-08 | storm report pinned to player 1 | **fixed** | the anchor was the reading order of the sentence |
+| T-11 | host-return message never clears | **fixed** | "Yargh! They're back!" takes a normal hold |
+| T-27 | crates behind the green squares | **fixed** | swapping bowls raised for the swap only |
+| T-29 | "?" cursor that does nothing | **fixed** | real `disabled` can't fire a click, so it stops promising; watcher's crates lose the pointer and answer with "Now yer just watchin'" |
+| T-34 | flips "not consistent" | **FIXED + GATED** | you were right. The SPIN was one constant; the LANDED HOLD was three things — and a **bot's dock coin held for nothing at all**. Now one constant, and a gate |
+| T-35 | flip should match the sound | **FIXED + MEASURED** | the blip is at **795ms**; the flip was **1000ms**, landing 205ms late. Now 795 — offset 0ms |
+| T-28 | rewatch covers too fast | **parked, diagnosed at the line** | fixing only the baker's side would desynchronise the watcher — the exact bug class you're angriest about |
 | T-33 | blue "?" art | **fixed (4 changes)** | 1739 of 1743 redundant image writes removed; hole art preloaded; the promised fallback now exists |
 | T-01 | solo Enter dumps home | **parked** | does NOT reproduce in Chrome; goes to the WebKit mount |
 | T-18 | parentheses split | **parked** | `nobrk` holds in solo at 390px; needs the ceremony at width |
