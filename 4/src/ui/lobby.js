@@ -47,6 +47,9 @@ import { syncBoardSizing } from "./board.js";
 // hand-built stage pattern as the bake-off intro and the black-market beat. No cycle: panel.js
 // imports nothing from this file.
 import { panel } from "./panel.js";
+// T-12: the stage layer lives on document.body, outside #game, so leaving a voyage has to take it
+// down explicitly. stage.js does not import lobby.js (only names it in comments), so no cycle.
+import { hideStageLayer, showStageLayer } from "./stage.js";
 
 const $=id=>document.getElementById(id);
 
@@ -309,17 +312,26 @@ const showBackdrop=on=>{const b=$("welcomeBackdrop");if(b)b.style.display=on?"bl
 //
 // hideBootLoader() is idempotent (it returns if already hidden), so calling it from all three of
 // these is safe no matter which one wins the race to paint.
+/* T-12: hiding #game is NOT hiding the game. The ribbon, wind pill, captains box, chat sheet, fx
+   layer, ceremony veil and prompt are all appended to document.body — outside #game — so a captain
+   sent back to port kept every one of them painted behind the welcome card (his screenshot:
+   "DAY 4", the captains box, and a live "wy2: tap to sail" bubble under the Play Solo buttons).
+   Both screens that leave a voyage take the stage down; the one that enters a voyage puts it back.
+   Wired in these three functions rather than at each caller, because every route to these screens
+   goes through them and a route added later cannot forget. */
 export function showHome(){
   showStep("stepChoose");
   $("lobby").style.display="flex";$("lobbyRoom").style.display="none";
   showBackdrop(true);
   $("game").style.display="none";$("game").classList.add("bg-blurred");
+  hideStageLayer();
   hideBootLoader();
 }
 export function showRoom(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="flex";
   showBackdrop(true);
   $("game").style.display="none";$("game").classList.add("bg-blurred");
+  hideStageLayer();
   $("roomCode").textContent=appState.room;
   hideBootLoader();
 }
@@ -327,6 +339,7 @@ export function showGameView(){
   $("lobby").style.display="none";$("lobbyRoom").style.display="none";
   showBackdrop(false);
   $("game").style.display="";$("game").classList.remove("bg-blurred");
+  showStageLayer();
   syncBoardSizing();
   hideBootLoader();
 }

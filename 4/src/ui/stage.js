@@ -30,7 +30,53 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-26b";
+const PP4_STAMP = "2026-08-26c";
+
+/* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
+   "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
+   looks crazy." His screenshot shows the welcome card floating over a LIVE game: the DAY 4 ribbon,
+   the captains box, and a narration bubble reading "wy2: tap to sail", all still painted behind it.
+
+   WHY, and it is structural rather than a missed line. showHome() hides #game — and every one of
+   these elements is appended to document.body, OUTSIDE #game (search body.appendChild in this
+   file: ribbon, wind pill, captains box, chat sheet, the fx layer, the ceremony veil, the prompt).
+   They were never inside the thing being hidden, so hiding it could not touch them. There was no
+   stage teardown at all; nothing in the codebase had ever needed to take the stage down, because
+   until a captain could leave a voyage mid-flight nothing ever went back.
+
+   HIDDEN, NOT REMOVED, deliberately. maybeBuildStage() builds these once and reuses them, and a
+   stale 2026-08-13 no-op in exactly that function silently prevented the whole stage from building
+   in ANY networked game until 02-03 found it. Removing nodes here would put the correctness of a
+   return trip on the rebuild path being perfect. Hiding cannot fail that way, and buildStage's own
+   guards keep working untouched.
+
+   Also drops body.pp4Stage, which is what gives the page the phone-column layout and
+   overflow:hidden — left on, the welcome screen inherits a game's body styling. */
+/* Set while the player is at port. The prompt's display is rewritten by promptTick() on EVERY
+   FRAME, so hiding it lasted under 16ms — the first version of this teardown left #pp4Prompt
+   painted over the welcome card and the probe caught it: 5 elements hidden, 4 stayed hidden, the
+   prompt came straight back. A flag the tick reads is the fix; hiding harder is not. */
+let stageDown = false;
+export function hideStageLayer(){
+  stageDown = true;
+  for(const id of ["pp4Ribbon","pp4Pill","pp4Cap","pp4Col","pp4ChatSheet","pp4Prompt","pp4Fx","pp4Veil","pp4Stamp"]){
+    const e=document.getElementById(id);
+    if(e)e.style.display="none";
+  }
+  document.body.classList.remove("pp4Stage","pp4Side");
+}
+/* The other half. Clears the inline display rather than setting one, so each element goes back
+   under CSS control and whatever the game logic wanted for it (a pill hidden in a mode that has no
+   wind, the chat sheet closed) still holds. Setting display:"" here rather than "block" is the
+   whole point — an inline value would out-rank the stylesheet forever. */
+export function showStageLayer(){
+  stageDown = false;
+  for(const id of ["pp4Ribbon","pp4Pill","pp4Cap","pp4Col","pp4ChatSheet","pp4Prompt","pp4Fx","pp4Veil","pp4Stamp"]){
+    const e=document.getElementById(id);
+    if(e&&e.style.display==="none")e.style.display="";
+  }
+}
+
 
 const S = {
   active: false,            // stage layout applied (solo game on screen)
@@ -2166,6 +2212,10 @@ function peekHintLast(){
 function promptTick(){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
+  // AT PORT: this loop keeps running (it is the shared stage rAF, not per-game), and it owns
+  // box.style.display. Without this it re-shows the prompt one frame after hideStageLayer() hides
+  // it — T-12's second half. Returning early leaves the hidden display exactly as set.
+  if (stageDown) return;
   // textContent, not innerText — innerText forces a layout pass, and this runs every frame
   const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
   /* D-20 (playtest 22 item 11 / 02.2 item 11, Wyatt): "no popup appears until the director camera
