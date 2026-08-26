@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-26c";
+const PP4_STAMP = "2026-08-26d";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1852,6 +1852,26 @@ function buildStage(){
   const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
   document.body.appendChild(prompt);
   if (ap) prompt.appendChild(ap);
+  /* T-24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear all
+     of the text. this is a nice affordance for players who are familiar with the game and follows
+     the same logic where they get to progress bot turns by tapping."
+
+     Delegated from the box, so it covers the card AND the space around it in one listener, and so a
+     card rebuilt for the next prompt inherits it without rewiring.
+
+     A TAP ON A CONTROL IS NOT A TAP TO HURRY. If the target is a button, a link, a crate, a recipe
+     card or anything else that answers, this stands aside completely — otherwise the first
+     impatient tap on "Pass" would be spent skipping text instead of passing, which is a worse game
+     than the one he is complaining about. Everything else is fair game: the message, the padding,
+     the sea showing through the box.
+
+     `capture:true` so the decision is made before the panel's own handlers run, and no
+     preventDefault anywhere — this never consumes an event, it only ever hurries alongside one. */
+  prompt.addEventListener("pointerdown", ev => {
+    if (ev.target.closest(".apBtn,.btlBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
+    const msg = prompt.querySelector(".apMsg:not(.fadeOut)");
+    if (msg && typeof msg._revealNow === "function") msg._revealNow();
+  }, { capture: true });
   /* D-51 — THE TURN-CLOCK ROW HAS LEFT THE MENU. Wyatt, 2026-08-21: "remove the 'Turn clock: OFF
      – no rush' button in the menu, it's already visible always in the header row." Two controls
      for one state is exactly the consistency fault rule 8 exists to catch, and the ribbon chip is

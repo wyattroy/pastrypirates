@@ -1020,7 +1020,30 @@ export function typewriterReveal(msgEl,msPerChar,startDelayMs=0){
         if(r.dirty){r.shownEl.textContent=r.chars.slice(0,r.shown).join("");r.hiddenEl.textContent=r.chars.slice(r.shown).join("");r.dirty=false;}
       }
       if(revealed<total)msgEl._revealTimer=setTimeout(step,pollMs);
-      else resolve();
+      else{msgEl._revealNow=null;resolve();}
+    };
+    /* T-24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear
+       all of the text. this is a nice affordance for players who are familiar with the game and
+       follows the same logic where they get to progress bot turns by tapping."
+
+       Exposed as a handle ON THE ELEMENT rather than as a global, for the same reason panelSeq
+       exists: a newer message must never be finished by a tap meant for an older one. The handle is
+       nulled the moment this reveal ends, either way, so a stale tap is a no-op instead of an
+       exception.
+
+       It reveals through the SAME bookkeeping the tick uses — every unit marked shown, every image
+       opaque, one write per node — so a hurried message and a fully-typed one end up in byte-
+       identical DOM. Writing the text straight in would skip the img opacity and leave icons
+       invisible on exactly the messages a player was impatient with. */
+    msgEl._revealNow=()=>{
+      if(msgEl._revealTimer){clearTimeout(msgEl._revealTimer);msgEl._revealTimer=null;}
+      while(revealed<total){
+        const u=units[revealed++];
+        if(u.img)u.img.style.opacity="1"; else u.rec.shown++;
+      }
+      for(const r of recs){r.shownEl.textContent=r.chars.join("");r.hiddenEl.textContent="";r.dirty=false;}
+      msgEl._revealNow=null;
+      resolve();
     };
     step();
   });
