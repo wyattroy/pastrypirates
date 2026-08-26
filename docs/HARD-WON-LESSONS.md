@@ -651,7 +651,7 @@ It passes either way, which is what makes it dangerous: a gate scanning the wron
 it is *reassuring*.
 
 ```bash
-node v2bakeoff/scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
+node scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
 ```
 
 `module_graph_check.js` and `ui_contract_check.js` exist only at the root and have **no v2
@@ -1205,3 +1205,112 @@ the one place in the pipeline whose whole job is to look rather than measure.
 **Both were still worth chasing.** Investigating the false one is what found the real desktop
 subtitle clipping, and what found the drag-off-the-board deafness below. **Chase the phantom; just
 never hand it over wearing a mechanism.**
+
+---
+
+## 10. 2026-08-26 — every instrument lied, and each one lied in a way that read as truth
+
+**§9 was the day the instruments cost more than the bugs. This is the day they started reporting
+bugs that did not exist and certifying tests that never ran.** Five separate measuring devices were
+wrong in one session. None of them looked broken. Every one produced a confident, specific,
+plausible answer.
+
+**Read this section at the moment you are about to trust a number, not once at session start.**
+
+**The PROCESS these lessons produced lives in [`QA-PROCESS.md` → THE WHOLE LOOP, END TO END](QA-PROCESS.md).** This section is the evidence; that one is what to do about it.
+
+### 10a. The five instruments, and what each one's lie looked like
+
+| instrument | what it reported | what was true |
+|---|---|---|
+| the seeded-defect drill | "3 of 3 bugs CAUGHT" | it grades by grepping output for `FAIL`/`✗`, and an UNSEEDED leg prints both — **an unbroken game scores 3 of 3 too** |
+| the settle probe | `settled: true` at 631ms | **14 of 75 characters were painted.** It compares rectangles; a typewriter changes neither geometry nor textContent |
+| the sea-trial report | "voyages that did NOT run: **none**" | **both Safari legs died instantly** and captured zero screens. It matched one phrasing (`NOT RUN —`) and the gate had emitted another (`ERROR:`) |
+| the remote-control detector | "remote control is DOWN" | Wyatt was reading the session on his phone at that moment |
+| the vision judge | 16 findings | **roughly half survive contact with the source** |
+
+### 10b. THE PATTERN, and it is the only thing here worth memorising
+
+**Every one of the five failed by measuring an adjacent thing and reporting it as the thing.**
+
+- The drill measured *"did the leg fail?"* and reported *"did we catch the bug?"*
+- Settle measured *geometry* and reported *"has this screen stopped changing?"*
+- The report measured *one sentence in a log* and reported *"did Safari run?"*
+- The detector measured `WarmLifecycle` — the **warm-process** subsystem — and reported *"can he see this on his phone?"*
+
+**So the question to ask of any instrument is never "is it green?" It is: WHAT DOES THIS ACTUALLY
+MEASURE, AND IS THAT THE SAME THING AS WHAT I AM ABOUT TO CLAIM?** Four times out of five here, it
+was not, and the gap was invisible from the reading alone.
+
+### 10c. A measurement that cannot fail is not a measurement — three in one day, all mine
+
+1. A settle trace that began sampling **after** the reveal had already finished, so both the old and
+   new probe "settled on complete text" and the check could not have failed.
+2. A test of the icon-punctuation fix that used a **wheat emoji, which has no custom artwork** — so
+   it never became an image and never exercised the path it claimed to test.
+3. A "does the button cover the card" probe whose card-finder walked up to the **full-screen
+   container**, making `OVERLAPS: true` true of everything.
+
+**Before believing a pass, prove the instrument reached its subject.** Feed it the broken case and
+watch it go red. If you cannot make it fail, you have not written a test.
+
+### 10d. The typewriter is invisible to BOTH obvious signals, by design
+
+`typewriterReveal()` (`4/src/ui/panel.js`) splits each text node into **two spans holding the same
+characters** — a revealed prefix and a `visibility:hidden` remainder that still occupies its exact
+layout box. That is a good design: line breaking matches the finished message from the first frame,
+so no word ever hops a line mid-reveal. It also means:
+
+- **geometry never changes during a reveal** — that is the entire point;
+- **`textContent` returns the full string throughout** — both spans are in it.
+
+Only the **painted** pixels differ. A first fix using `textContent` did nothing, and a 40-sample
+trace is what caught it. **If you need to know whether text has finished arriving, walk the nodes
+and skip anything under `visibility:hidden`** — see `SETTLE_PROBE` in `4/scripts/lib/checks.mjs`.
+
+### 10e. The vision judge has TWO named biases — calibrate before acting
+
+Of 16 findings this trial, the confirmed real ones were the "Play again!" overlap and an orphaned
+full stop. The rest fell into two shapes:
+
+1. **Deliberate whitespace reads as a defect.** Three findings — a desktop right-column gap, day-1
+   captain rows sized to hold a full 8-crate hold, and (previously) "dead space below the CAPTAINS
+   panel" that turned out to be the harness emulating a phone height no phone gives the page. **All
+   three had already been argued and settled in the source.**
+2. **Small glyphs are misread.** It reported a literal `$` in `WIND NOW: $↓`. `DIRS={N,S,E,W}` — a
+   `$` is unreachable, and the `↓` beside it confirms the letter is `S`.
+
+**So: never act on a judge finding without opening the screenshot AND checking the graveyard
+(rule 10).** It is still worth having — it found both real bugs — but it is a witness, not a verdict.
+
+### 10f. The fix you verify must be the fix that was reported
+
+The "Play again!" button was reported as covering the award cards. I fixed **reachability** (52px of
+stats were permanently unscrollable behind it → 0), measured exactly that, and called it fixed. The
+next trial reported it again, because the complaint was about **mid-scroll overlap** and I had
+measured only the **fully-scrolled** state.
+
+**Write down the reported symptom verbatim, and make the after-measurement address that sentence.**
+
+### 10g. Reading the graveyard stopped a regression that a green trial would have blessed
+
+Round two on that button, the plan was "take it out of the scrolling region." The comment directly
+above it records that **sticky IS the fix** for a worse defect (D-46 fault 2: the button below the
+fold, unreachable), and that awards passing behind it is the accepted consequence — *"a control you
+cannot hit is the one unacceptable outcome."*
+
+**Shipping the "obvious fix" would have re-broken a fixed bug, and every gate would have stayed
+green**, because no check tests "is the button above the fold on a short window". The only thing
+that caught it was writing the plan down before executing it. See
+[the predict-before-measure rule](../.claude/CLAUDE.md) in rule 6.
+
+### 10h. Following the mandated workflow disarmed the gate that enforces it
+
+`4/scripts/qa/gear.mjs` compares against `origin/main`. **Rule 24 requires you to commit AND push so
+Wyatt can play it — and pushing empties that diff, so the picker then reports `GEAR: NONE`.** Doing
+exactly what the rules say produces "nothing to prove". Use `--since=HEAD~N` after a push, and treat
+a `NONE` verdict on a day you changed game code as the tell.
+
+**This is the third time this shape has appeared** (the working-tree version, the origin/main
+version, and now the post-push version). A gate whose subject can vanish will eventually report on
+an empty set and call it a pass.

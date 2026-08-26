@@ -21,6 +21,17 @@ node_modules/
 # the commit messages, never in the repo
 layout-check-shots/
 
+# Sea-trial / probe output — thousands of PNGs per run, regenerated on every trial.
+# Added 2026-08-26 after `git add -A` staged 15,913 of them into the cutover commit.
+sea-trial-shots/
+crew-phone-shots/
+seed-drill-shots/
+mp-rig-shots/
+playtest-gate/
+# ...and the browser PROFILE each of those runs creates. Output dirs above are only
+# half the guard: a profile lands wherever --out points, so naming the dirs cannot
+# catch a run pointed somewhere new. That is exactly how 5d82213 happened — --out was
+# aimed at .planning/phases/02.2-…/playtest-2026-08-22, outside every dir listed above.
 # Chrome/Chromium profiles from playtest runs. NEVER commit a --user-data-dir.
 # On 2026-08-26, commit 5d82213 added 15 of these (10,713 files, 142 MB) because a
 # playtest pointed --user-data-dir INSIDE the repo instead of /tmp. GitHub's secret

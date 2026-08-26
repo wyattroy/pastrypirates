@@ -40,14 +40,14 @@ const FORK = /\b(isHost|amHost|passAndPlay|mySeat|seatLocal|decisionIsLocal)\b/;
    orchestrator.js is deliberately absent: it is where "who computes and who creates the room"
    legitimately lives (rule 23), and counting it would train the reader to ignore this gate. */
 const BASELINE = {
-  "4/src/ui/audio.js":  0,
-  "4/src/ui/board.js":  3,
-  "4/src/ui/flow.js":  13,
-  "4/src/ui/lobby.js":  5,
-  "4/src/ui/panel.js":  7,
-  "4/src/ui/stage.js":  9,
-  "4/src/ui/util.js":  22,
-  "4/index.html":       0,
+  "src/ui/audio.js":  0,
+  "src/ui/board.js":  3,
+  "src/ui/flow.js":  13,
+  "src/ui/lobby.js":  5,
+  "src/ui/panel.js":  7,
+  "src/ui/stage.js":  9,
+  "src/ui/util.js":  22,
+  "index.html":       0,
 };
 
 const strip = src => src

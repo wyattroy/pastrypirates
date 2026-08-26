@@ -78,6 +78,8 @@ import { fileURLToPath } from "node:url";
 import { locateClassicScriptRegion } from "./lib/js_region_tokenizer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { pickTree, treeLine } from "./lib/pick_tree.js";
+
 const REAL_ROOT = path.join(__dirname, "..");
 
 const DEBUG_HOOK_NAMES = ["__pp_module_ok", "__pp_boot_count", "__pp_net_debug", "__pp_app_state_debug"];
@@ -1498,7 +1500,18 @@ function drill() {
 if (process.argv.includes("--drill")) {
   drill();
 } else {
-  const results = runAll(REAL_ROOT);
+  /* WHICH TREE — added at the 2026-08-26 cutover, through the shared picker rather than a local
+     flag (rule 23: one spelling of "which tree", scripts/lib/pick_tree.js).
+     This gate has only ever run BARE, which meant the root tree, which meant the v1 game. The
+     cutover made root the promoted game, and it fails 24 of these assertions — 2 retained globals
+     and ~22 player-facing strings still in the pre-conversion you/your register. Those are REAL
+     findings, recorded in .planning/BACKLOG.md; they are not silently adopted by moving a flag.
+     Pointing this at `classic` preserves EXACTLY the coverage that existed the day before the
+     cutover — no more, and importantly no less. Promoting it to guard the live game means fixing
+     the game, which is a separate and deliberate act. */
+  const picked = pickTree(process.argv);
+  console.log(treeLine(picked));
+  const results = runAll(picked.root);
   const failed = results.filter((r) => !r.ok);
   if (failed.length) {
     console.error("\nFAILURES:");

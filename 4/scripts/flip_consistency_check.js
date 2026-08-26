@@ -45,7 +45,7 @@ const srcFiles = [];
     if (e.isDirectory()) walk(rel);
     else if (e.name.endsWith(".js")) srcFiles.push(rel);
   }
-})("4/src");
+})("src");
 
 const defs = srcFiles.filter(f => /(?:export\s+)?const\s+FLIP_SPIN_MS\s*=/.test(read(f)));
 if (defs.length === 1) ok("one flip clock", `FLIP_SPIN_MS defined once, in ${defs[0]}`);
@@ -105,7 +105,7 @@ else ok("one landed-hold clock", `FLIP_LAND_HOLD_MS defined once in ${holdDefs[0
    re-exported the byte length changes, this fails loudly and asks for a re-measure rather than
    quietly checking a stale number -- which is the rule-9 corollary applied to an asset. */
 const MEASURED = { bytes: 15504, ms: 965, blipMs: 795 };
-const spin = Number((read(defs[0] || "4/src/ui/board.js").match(/FLIP_SPIN_MS\s*=\s*(\d+)/) || [])[1]);
+const spin = Number((read(defs[0] || "src/ui/board.js").match(/FLIP_SPIN_MS\s*=\s*(\d+)/) || [])[1]);
 const sfxPath = path.join(REPO, "sfx", "coin-flip.mp3");
 if (!fs.existsSync(sfxPath)) bad("flip fits its sound", "sfx/coin-flip.mp3 is missing — cannot check");
 else if (!spin) bad("flip fits its sound", "could not read FLIP_SPIN_MS");

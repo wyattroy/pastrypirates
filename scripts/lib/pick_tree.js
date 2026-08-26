@@ -18,12 +18,13 @@
 //   node scripts/<gate>.js               -> the ROOT tree. BYTE-FOR-BYTE the behaviour these
 //                                           gates had before Phase 3. The root game still has a
 //                                           suite and this must never quietly change.
-//   node scripts/<gate>.js --tree=4      -> 4/, the game actually being developed.
+//   node scripts/<gate>.js --tree=classic -> classic/, the previous game (frozen). `--tree=4` throws.
 //   node scripts/<gate>.js --tree=root   -> the root tree, said out loud.
 //   node scripts/<gate>.js --tree=<path> -> an arbitrary root. This is what a red-proof uses when
 //                                           it needs a synthetic tree under os.tmpdir().
 //
-// `--tree` with no value means `4` — the same shorthand the parity gate has accepted since D-28.
+// `--tree` with no value still means `4`, which now throws — deliberately, so a stale invocation
+// is loud instead of scanning an empty tree.
 //
 // ============================================================================
 // EVERY CALLER MUST PRINT `label` AS ITS FIRST LINE OF OUTPUT
@@ -50,15 +51,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // scripts/lib/ -> scripts/ -> the repo root.
 export const REPO_ROOT = path.join(__dirname, "..", "..");
 
-const ROOT_LABEL = "root (the OLD game — not the tree under development)";
-const FOUR_LABEL = "4/ (the game actually being developed)";
+const ROOT_LABEL = "root (THE GAME — promoted from 4/ at the 2026-08-26 cutover)";
+const CLASSIC_LABEL = "classic/ (the previous game, kept for old bookmarks — frozen)";
 
 export function pickTree(argv) {
   const arg = argv.find((a) => a.startsWith("--tree"));
   if (!arg) return { root: REPO_ROOT, label: ROOT_LABEL, isFour: false, name: "root" };
   const v = arg.includes("=") ? arg.split("=").slice(1).join("=") : "4";
   if (v === "root") return { root: REPO_ROOT, label: ROOT_LABEL, isFour: false, name: "root" };
-  if (v === "4") return { root: path.join(REPO_ROOT, "4"), label: FOUR_LABEL, isFour: true, name: "4" };
+  /* `--tree=4` is RETIRED, and it fails loudly rather than scanning an empty directory. At the
+     2026-08-26 cutover 4/ was promoted to the repo root, so a gate still asking for "4" would scan
+     4/ — which now holds only scripts/ — find no game, and go GREEN over nothing. That is the exact
+     "a gate aimed at the wrong tree is not silent, it is reassuring" failure this module exists to
+     prevent (HARD-WON-LESSONS §3), so it must never be a quiet pass. */
+  if (v === "4") {
+    throw new Error("--tree=4 is retired: 4/ was promoted to the repo root at the 2026-08-26 cutover.\n"
+      + "  the promoted game  -> omit the flag, or --tree=root\n"
+      + "  the previous game  -> --tree=classic");
+  }
+  if (v === "classic") return { root: path.join(REPO_ROOT, "classic"), label: CLASSIC_LABEL, isFour: false, name: "classic" };
   const abs = path.resolve(v);
   return { root: abs, label: abs, isFour: false, name: abs };
 }

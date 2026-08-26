@@ -200,43 +200,62 @@ hour" into an hour of lost work.
 > to make the page optimized for mobile."* **Do not assume either device — he says which one he is
 > on, unprompted. Give a page the room its content needs unless he has told you he is on the phone.**
 
-**The mechanism, measured — do not re-derive it, and do not guess at it as an earlier session did.**
-Remote control is armed **once**, when a session starts (or when the 🌐 globe in the session's top bar
-is clicked). A **15-minute idle timeout then tears it down, and it never re-arms itself.** "Idle"
-means *Wyatt* is not typing — it is **completely blind to whether work is happening**. The proof is in
-`~/Library/Logs/Claude/main1.log`:
+> ### ⚠ THIS SECTION HAS NOW BEEN WRONG TWICE, THE SAME WAY. READ THE TRAP BEFORE THE RULE.
+>
+> **`[WarmLifecycle:session] Idle timeout reached, disconnecting local_<id>` IS NOT REMOTE CONTROL.**
+> It governs keeping a session PROCESS warm in memory — note it has a `:preview` twin firing on the
+> same ids — and it cycles every ~15 minutes forever whether or not the phone can see anything.
+>
+> An earlier version of this section read those lines and concluded remote control "is armed once…
+> and never re-arms itself." On **2026-08-26** that was rewritten — and the rewrite made the SAME
+> misread, built a detector on it, and reported DOWN while Wyatt was reading the session on his
+> phone. He said so plainly: *"I can see this from my phone just fine."*
+>
+> **Two independent readers drew the same wrong conclusion from the same lines.** That is why this
+> warning is at the top instead of the bottom: the log is genuinely misleading here, and being
+> careful is not sufficient protection against it.
 
-```
-2026-08-18 13:10:26  Enabling remote control for session local_1d43c178…     <- armed, once
-2026-08-19 09:09:12  [WarmLifecycle:session] Idle timeout reached, disconnecting local_1d43c178…
-2026-08-19 09:28:46  … 09:43:46 … 09:58:46 … 10:13:46   (every ~15 min)      <- never re-armed
-                     [WarmLifecycle:session] Starting idle timeout … 900s
-```
+**WHAT THE LOG CAN AND CANNOT TELL YOU** (`~/Library/Logs/Claude/main.log` — **not `main1.log`,
+which stopped being written 2026-08-19 and still sits on disk looking healthy**):
 
-**Every one of those disconnects fired while a subagent was running flat out.** So the long
-autonomous run — precisely when he most needs to watch from his phone — is the exact case that kills
-his ability to. A brand-new session works, which is why "just start a new one" looks like a fix and
-is really just a fresh 15-minute clock.
+| line | what it means |
+|---|---|
+| `[rcAutoEnable] verdict: enable=true source=explicit_pref` | his preference is ON — a new session arms itself |
+| `Enabling remote control for session local_<id>` | armed. **Once per arming, not once per session** |
+| `Remote control enabled: https://claude.ai/code/session_<id>` | the URL his phone opens |
+| `[remote-control] bridge_state: connected \| ready \| reconnecting` | **the only three values ever written — THERE IS NO "down"** |
+| `[remote-tools-device] …` | the real transport, and it **SELF-HEALS** — 332 reconnects against 236 socket closes in one log |
+| `[WarmLifecycle:*]` | **a different subsystem. Ignore it. See the box above.** |
 
-**There is NO re-arm. This is the part that matters.** Arming happens only inside
-`LocalSessions.start`, from the auto-enable preference (`[rcAutoEnable] verdict: enable=true
-source=explicit_pref` — Wyatt has it ON, which is why a brand-new session is reachable by itself).
-Once the idle recycle has taken a session's bridge, **nothing brings it back**: the app bundle
-contains no UI string for enabling, disabling or re-connecting remote control on a running session.
-**The 🌐 globe is the browser preview panel, not remote control** — a session sent him there twice
-before checking, which is how this note got written.
+**SO THERE IS NO HONEST "IS IT DOWN?" TEST HERE, AND YOU MUST NOT INVENT ONE.** No down state is
+logged, and a closed socket is a bridge about to reconnect rather than a dead one.
+`~/.claude/bin/rc-state.sh` now reports evidence of LIFE (recent `[remote-tools-device]` activity)
+and returns UNKNOWN otherwise — **it will never print DOWN**, because nothing in the log supports
+that word. Its previous version did, and that is what misled a session into telling Wyatt his phone
+access was gone while he was using it.
 
-**So the rule is not "re-arm it," it is: work he needs to watch from his phone must run in a session
-started for that purpose.** A long-lived session silently stops being phone-visible, permanently, and
-neither he nor you can tell from inside it.
+**HE RE-ARMS IT HIMSELF, AND THIS PART IS SOLID.** Wyatt, 2026-08-26: *"i'm able to re-arm it myself
+by just typing /remote-control in the chat."* The log corroborates it — one session torn down at
+12:49:03 and armed again at **12:49:39**, thirty-six seconds later; this session armed 2026-08-24
+20:37:48 and again 2026-08-26 10:52:59.
 
-- **When he says he is stepping away, offer the handoff in that same reply** — a fresh session picks
-  up from `.planning/` on disk, and `/gsd-execute-phase {N}` skips every plan that already has a
-  SUMMARY. The cost of handing off is near zero; the cost of not is his whole window.
-- **Never assert a cause for this without reading `~/Library/Logs/Claude/main1.log` first.** Two
-  confident wrong answers were given on 2026-08-19 — "local sessions are never phone-reachable"
-  (his had been, the day before) and "click the globe" — before anyone opened the log that says it
-  outright.
+**WHAT A SESSION CANNOT DO IS TYPE IT — verified, not assumed.** `Skill("remote-control")` returns,
+exactly: *"remote-control is a UI command, not a skill. Ask the user to run /remote-control
+themselves — it cannot be invoked via the Skill tool."* A subagent runs in this session with the
+same tools and gets the same refusal. **So: ask him; never imply a watcher will handle it.**
+
+- **When he says he is stepping away, ask him to confirm the phone link works** — one line, in that
+  same reply. Cheap for him, and it is the only reliable signal there is.
+- **Do not tell him it is down.** You cannot know that. If something looks wrong, say what you
+  actually observed and ask.
+- **Give him the link from the app, never a bookmark** — the `claude.ai/code/session_…` URL
+  sometimes survives a re-arm and sometimes does not.
+- **The handoff offer still stands** — a fresh session picks up from `.planning/` on disk, and
+  `/gsd-execute-phase {N}` skips every plan that already has a SUMMARY.
+- **Never assert a cause here without opening `main.log` first — and then check you are reading the
+  remote-control subsystem and not `WarmLifecycle`.** Four wrong answers are now on the record:
+  *"local sessions are never phone-reachable"*, *"click the globe"*, *"there is NO re-arm"*, and
+  *"it is DOWN"* — the last two both from misreading the same lines.
 
 - **Front-load every decision.** If he is about to be away, ask everything answerable *now*. A run
   that blocks twenty minutes after he leaves burns the whole window for one question.
@@ -358,6 +377,20 @@ after you've done your work, show it to CEO before you show it to me."*
 
 **The sequence: do the work → spawn a CEO → give him the CEO's verdict → then your own account.**
 
+```bash
+node 4/scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
+```
+
+**It is a COMMAND, not a memory exercise** — Wyatt, 2026-08-26: *"I need to be able to ask you to run
+CEO too."* It was documented and not runnable, so every session hand-assembled the brief differently.
+The script pulls in what changed, the build stamp, the sea trial's current state, and — the part that
+was silently broken — **the previous verdict**, from [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md).
+
+> **APPEND THE VERDICT TO THAT FILE WHEN YOU ARE DONE.** Rule 25 tells you to hand each CEO the
+> previous one so it can spot a RECURRING fault. Until 2026-08-26 verdicts lived only in the running
+> session's context, so the moment a session ended that check quietly stopped working. **A verdict
+> nobody recorded is a recurrence check nobody can run.**
+
 **Why it exists, and it is not about honesty.** On 2026-08-25/26 a session answered his 35-item
 playtest by shipping 22 fixes, verifying 4, and reporting success. Nothing in that report was a lie.
 **The gap was between what he ASKED for and what was delivered** — and that gap is invisible from
@@ -445,6 +478,37 @@ rejected, what a number cost somebody. Strip them and every settled argument get
 **Why this is rule 6's other half.** Both failures are the same one: believing something without
 measuring it. A screenshot you reasoned about, a check that could not fail, and a comment describing
 intent are three faces of the same mistake — **evidence that was never actually gathered.**
+
+### WRITE THE PREDICTION DOWN BEFORE YOU MEASURE — rule 6's working form
+
+Wyatt, 2026-08-26, proposing a bigger version of this and then choosing the small one: *"could you
+trace the entire codebase to determine what you expect the behavior to be at every step, so that
+you're not making assumptions about the code instead of actually testing it?"*
+
+**The tracing idea was audited against four wrong calls made that day and would have caught one and
+a half.** It cannot see the failures that actually cost this project — the orphaned full stop was
+the browser's line-breaking around an inline image (no JavaScript to trace), and the buried stats
+row was CSS plus content height at one viewport width (in no function at all). **A trace is a very
+long, very confident comment**, which is the thing the section above forbids. The repo has already
+paid for that once: the auto-generated architecture blocks were deleted on 2026-08-18 for citing
+`index.html:1017–1684` for a class that file does not contain.
+
+**So: before any measurement or fix, write down what you expect and WHY — then measure, then say
+plainly whether you were right.** It costs about ninety seconds and it caught two wrong answers the
+day it was adopted.
+
+- **Name what would prove you WRONG**, in the same note. A prediction with no failing case is a
+  wish. *"If no-cover-ask is gone but Deny is still never exercised, my reasoning is wrong"* — it
+  was, and the note is why that got reported instead of quietly reframed as a partial win.
+- **Write it BEFORE the result exists.** The whole value is that it cannot be retrofitted. A
+  prediction composed after the measurement always turns out to have been right.
+- **Say which parts were wrong, out loud, in the reply he reads.** On 2026-08-26 a settle fix based
+  on `textContent` did nothing; the written prediction is what made that undeniable rather than
+  something to rationalise. The wrong fix never shipped.
+- **A measurement that cannot fail is not a measurement.** Check the instrument reaches its subject
+  before believing it: three times in one day a probe measured a state it had never actually
+  created — a settle trace begun after the reveal had finished, an emoji with no custom art
+  standing in for an icon, a "card" that resolved to the full-screen container.
 
 ### Do not build tooling when the ask is to fix the game
 
@@ -708,6 +772,8 @@ and ask before writing code.
 | Bot behaviour or tuning | [`docs/BOT-DESIGN-PRINCIPLES.md`](../docs/BOT-DESIGN-PRINCIPLES.md), [`docs/BOT-V3-RACE-PLANNER.md`](../docs/BOT-V3-RACE-PLANNER.md) |
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
+| Reviewing work before he sees it (rule 25) | [`.claude/CEO-BRIEF.md`](CEO-BRIEF.md) + [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) |
+| **Testing, measuring, or trusting any instrument** | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — *THE WHOLE LOOP, END TO END*, and [`docs/HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md) — the day five instruments lied |
 | **Everything — read at session start** | [`docs/HARD-WON-LESSONS.md`](../docs/HARD-WON-LESSONS.md) |
 
 ### Two facts that save the most time
@@ -758,8 +824,10 @@ node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
 node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
 ```
 
-**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md). A hook stops the first edit to game
-code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
+**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md)** — read its *"THE WHOLE LOOP, END TO
+END"* section before changing how anything is tested. Every step in it exists because skipping it
+cost something on 2026-08-26; the war stories are [`HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md).
+**A hook stops the first edit to game code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
 enforces rule 17.
 
 Wyatt named it on 2026-08-26. A *sea trial* is the naval term for taking a vessel out and testing
