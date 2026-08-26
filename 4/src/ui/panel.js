@@ -834,16 +834,48 @@ function runHeightSequence({ghostEl,targetH,fromH,revealDone}){
     if(!alive())return;
     if(grid.style.gridTemplateRows===targetH+"px")grid.style.gridTemplateRows="max-content";
   };
+  /* T-15 (Wyatt, 2026-08-26): "the stages have a brief (half second or so) pause where their
+     narration boxes are completely blank white... The exact instant that a box appears, the text
+     should start to appear in it. otherwise it looks like the game is laggy and stalling."
+
+     HE UNDER-ESTIMATED IT. Measured 2026-08-26 in a driven solo game with an in-page rAF recorder,
+     time from a box becoming visible to its FIRST character:
+         before  median 917ms · 90th 1001ms · worst 1001ms
+         after   median 334ms · 90th  360ms · worst  360ms
+     [UNGATED-IN-4: nothing keeps this duration low. The recorder is a measuring tool that was run
+     by hand, not a check that runs in npm test — it drives a real browser through a real voyage,
+     which the gate chain cannot afford. If this regresses, nothing will say so. Turning it into a
+     gate needs a threshold somebody is willing to defend, and that is a decision, not a chore.]
+     The cause was this line: the reveal waited for the OLD line's whole fade-out —
+     GHOST_FADE_MS (800) + 120 backstop — before typing the first character of the new one. 920ms
+     of white box, which is what he watched and called lag.
+
+     WHAT CHANGED: the resize no longer queues BEHIND the fade. It starts at once, and the reveal
+     waits only for it. The ghost keeps fading on its own clock, behind the arriving text, which is
+     a crossfade rather than a stall.
+
+     WHY NOT ZERO, which is literally what he asked for: the height animation is the thing that
+     makes the box the right size, and #apGridInner is overflow:hidden. Typing into a box still at
+     the OLD height is precisely P3/P5 — "the 2nd line is cut off during writing, but only
+     sometimes" — a bug he reported himself and which cost a session to find. So the wait is now
+     the RESIZE only (~180ms, and skipped entirely when the height is unchanged or the centre stage
+     owns the row), not the fade. ~920ms -> ~180ms, with the clipping fault still impossible.
+
+     If he still wants literal zero after seeing it, the change is to hand typewriterReveal() a
+     resolved promise instead of this one — and the clipping is what to watch for. */
   const fading = ghostEl ? once(ghostEl,"animationend",GHOST_FADE_MS+120) : Promise.resolve();
-  const canReveal = fading.then(()=>{
-    if(!alive())return;
+  const canReveal = (()=>{
+    if(!alive())return Promise.resolve();
     // RESIZING — skipped entirely when the height is unchanged (rule 4), or when the centre stage
     // has taken the row off us (see centreStaged() above).
-    if(centreStaged()||Math.abs(targetH-fromH)<1)return;
+    if(centreStaged()||Math.abs(targetH-fromH)<1)return Promise.resolve();
     grid.style.gridTemplateRows=targetH+"px";
     return once(grid,"transitionend",RESIZE_BACKSTOP);
-  });
-  canReveal.then(()=>{ if(alive())revealDone.then(settle,settle); });
+  })();
+  // The ghost's fade is still awaited — for the SETTLE, not for the text. Releasing the pinned row
+  // to max-content while the old line is still painted is what collapsed the box mid-fade before.
+  const faded = fading;
+  Promise.all([canReveal,faded]).then(()=>{ if(alive())revealDone.then(settle,settle); });
   return canReveal;
 }
 // THE RESIZE / ORIENTATIONCHANGE PATH (src/main.js). Deliberately NOT the swap sequence.
