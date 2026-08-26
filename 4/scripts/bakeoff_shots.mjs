@@ -27,7 +27,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { REPO } from "./lib/chrome.mjs";
+import { REPO, gameURL } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -113,9 +113,9 @@ const BKO_VISIBLE = `(() => {
 
 log(`\n=== ${TAG} ${MOBILE ? "(touch)" : ""} — booting a ${PNP ? "PASS-AND-PLAY" : "solo"} voyage at ?ovens=1 ===`);
 out.mode = PNP ? "pass-and-play" : "solo";
-await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2000);
+await c.nav(gameURL(PORT)); await sleep(2000);
 await ev("localStorage.clear(); 1");
-await c.nav(`http://127.0.0.1:${PORT}/4/?ovens=1`); await sleep(2500);
+await c.nav(`${gameURL(PORT)}?ovens=1`); await sleep(2500);
 await armGate();
 if (!await clickSel(PNP ? "#choicePassPlay" : "#choiceSolo")) await die(`${PNP ? "pass&play" : "solo"} card not clickable`);
 await sleep(900);
@@ -137,13 +137,13 @@ if (PNP) {
 { // a game with a HUMAN seat — never merely "a game exists" (§3's attract-board trap)
   let ok = false;
   for (let i = 0; i < 60 && !ok; i++) { await sleep(500);
-    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
+    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/src/state/index.js');window.appState=m.appState;}
       const g=window.appState.game; const hs=g?g.players.filter(p=>p.strategy==='human').length:0;
       return !!(g&&hs>=${PNP ? 2 : 1}&&document.getElementById('pp4Ribbon'));}catch(e){return false}})()`);
   }
   if (!ok) await die(PNP ? "no two-human pass-and-play game inside 30s" : "no human solo game inside 30s");
 }
-await ev(`(async()=>{ window.__B = { st:(await import('/4/src/state/index.js')).appState }; return 1; })()`);
+await ev(`(async()=>{ window.__B = { st:(await import('/src/state/index.js')).appState }; return 1; })()`);
 
 /* clear the recipe draft and the opening ceremony (§3c: a recipe card takes TWO taps) */
 for (let i = 0; i < 30; i++) {

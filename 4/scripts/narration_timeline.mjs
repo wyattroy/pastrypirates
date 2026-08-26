@@ -33,7 +33,7 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+import { REPO, CHROME, LINUX_ARGS, gameURL, GAME_PATH } from "./lib/chrome.mjs";
 import { driver, driverOff } from "./mp_rig.mjs";
 import { PROBE_SRC, BOARD_SAMPLER_SRC, PILL_PROBE_SRC, RECIPE_PROBE_SRC, HOLD_TEXTS, measureHold, measureHoldTwice } from "./lib/narration_probe.mjs";
 
@@ -53,7 +53,7 @@ const log = (...a) => { const s = `[${new Date().toISOString().slice(11, 19)}] `
 /* ---------- process bookkeeping: everything this run started, and nothing else ---------- */
 const procs = [], myDbg = [], myHttp = [];
 const serve = port => { const p = spawn("python3", ["-m", "http.server", String(port)], { cwd: REPO, stdio: "ignore" });
-  procs.push(p); myHttp.push(port); return `http://127.0.0.1:${port}/4/`; };
+  procs.push(p); myHttp.push(port); return gameURL(port); };
 const launch = (dbg, profile) => {
   fs.rmSync(profile, { recursive: true, force: true });
   const p = spawn(CHROME, [...LINUX_ARGS, "--headless=new", "--mute-audio",
@@ -205,7 +205,7 @@ async function soloLeg(url, out) {
     i.value = "Claude"; document.getElementById("btnNameConfirm").click(); return true; })()`);
   log("name entered:", nm);
   const started = await C.waitFor(`(()=>{try{return !!(window.appState&&appState.game&&appState.game.players.some(p=>p.strategy==='human'))}catch(e){return false}})()`, 30000, "solo game start");
-  if (!started) { const s = await C.ev(`(async()=>{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!(m.appState.game)})()`); log("late appState import:", s); }
+  if (!started) { const s = await C.ev(`(async()=>{const m=await import('/src/state/index.js');window.appState=m.appState;return !!(m.appState.game)})()`); log("late appState import:", s); }
 
   await C.ev(PROBE_SRC);
   await C.ev(BOARD_SAMPLER_SRC(4000));
@@ -372,9 +372,9 @@ async function soloLeg(url, out) {
      RED-PROOFED IN PLACE: the same injection is run first with the handler unregistered, which
      must show no card. A sampler that cannot go red is not believed. */
   out.blackmarket = await C.ev(`(async () => {
-    const g = appState.game, ui = await import("/4/src/ui/index.js");
+    const g = appState.game, ui = await import("/src/ui/index.js");
     const botSeat = g.players.findIndex(p => p.strategy !== "human");
-    const h = (await import("/4/src/ui/handlers.js")).netHandlers();
+    const h = (await import("/src/ui/handlers.js")).netHandlers();
     const real = h.onDryCeremony;
     // narrateCurrent() ALONE is the precise unit under test: it is the bot narration path, and it
     // is the function that had no knowledge of firstDry. botBeat() is just onLiveRender() + this,
@@ -402,7 +402,7 @@ async function soloLeg(url, out) {
   log("black market (bot path):", JSON.stringify(out.blackmarket));
   if (out.blackmarket && out.blackmarket.bot_first_ceremony_shown) {
     // re-fire once purely to photograph it, then dismiss
-    await C.ev(`(async () => { const g = appState.game, ui = await import("/4/src/ui/index.js");
+    await C.ev(`(async () => { const g = appState.game, ui = await import("/src/ui/index.js");
       const b = g.players.findIndex(p => p.strategy !== "human");
       g.events.push({ t:"dock", p:b, ing:"sugar", heads:1, got:"bought", price:1, black:0, wentDry:1, firstDry:1 });
       appState.evIdx = g.events.length - 1;
@@ -419,7 +419,7 @@ async function soloLeg(url, out) {
      for. `inline_lines` counts narration bubbles raised BETWEEN the storm starting and its
      summary landing — the thing Wyatt saw as "it described player actions one by one". */
   out.storm = await C.ev(`(async () => {
-    const g = appState.game, ui = await import("/4/src/ui/index.js");
+    const g = appState.game, ui = await import("/src/ui/index.js");
     const mark = window.__NT.bubbles.length;
     /* WHY THE OBVIOUS POSE DOES NOT WORK, recorded so nobody re-derives it. stormOrder() resolves
        ships FURTHEST DOWNWIND FIRST, precisely so a lead ship clears its square before the one
@@ -545,15 +545,15 @@ async function crewLeg(out) {
   await Host.ev(`(()=>{const b=document.getElementById('btnConfirmStart'); if(b){b.click();return true} return false})()`);
   await sleep(2500);
   // appState is a module export, not a global — import it before asking whether the game exists
-  const bindState = C => C.ev(`(async()=>{try{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!m.appState}catch(e){return false}})()`);
+  const bindState = C => C.ev(`(async()=>{try{const m=await import('/src/state/index.js');window.appState=m.appState;return !!m.appState}catch(e){return false}})()`);
   await bindState(Host); await bindState(Guest);
-  const up = await Guest.waitFor(`(async()=>{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!(m.appState&&m.appState.game)})()`, 60000, "guest game");
+  const up = await Guest.waitFor(`(async()=>{const m=await import('/src/state/index.js');window.appState=m.appState;return !!(m.appState&&m.appState.game)})()`, 60000, "guest game");
   log("guest game up:", up);
   /* Both clients are driven THROUGH THE INTRO and then stopped. The recipe picker takes two taps a
      card (§3c) and the Ahoy barrier takes one, and none of that can be measured through — a hold
      taken while a centre-stage card is up measures the card, not the hold. The drivers are then
      switched off so the game is blocked on somebody's answer: the quiet state. */
-  await driver(Host, "/4/"); await driver(Guest, "/4/");
+  await driver(Host, GAME_PATH); await driver(Guest, GAME_PATH);
   await sleep(45000);
   await driverOff(Host); await driverOff(Guest);
   await sleep(2500);

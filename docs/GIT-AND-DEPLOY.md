@@ -180,23 +180,34 @@ no deploy workflow.** What is on `main` *is* what is live — there is nothing i
 
 | URL | Served from | What it is |
 |---|---|---|
-| `playpastrypirates.com` | repo root (`index.html`) | the finished game real players play |
-| `playpastrypirates.com/4` | `4/` | **the milestone under development** — what Wyatt playtests |
+| `playpastrypirates.com` | repo root (`index.html`, `src/`) | **the game under development AND the game real players play — the same files** |
+| `playpastrypirates.com/classic` | `classic/` | v1, frozen |
 
-> **This table changes at v2.0's cutover (Phase 6).** `4/` becomes the root and today's root game
-> moves to `/classic`. Update this section in the same commit that performs the cutover.
+> ### ⚠ THE CUTOVER (2026-08-26) INVERTED WHAT THIS SECTION USED TO SAY
+>
+> The old table had `/4` as a separate milestone tree, and the paragraph under it read: *"Merging
+> does not touch the root game, because the root game is different files. Do not treat a merge to
+> `main` as a scary outward-facing act requiring ceremony."*
+>
+> **That reassurance was load-bearing on the two-tree layout, and the two-tree layout is gone.**
+> `4/` was promoted to the root; there is no separate development copy any more. Every push to
+> `main` is served to real players immediately, because there is no build step between `main` and
+> the domain.
+>
+> This section carried its own instruction to be updated in the cutover commit. **It was not**, and
+> it sat wrong for the rest of the day — including telling sessions to bump `PP4_STAMP` in
+> `4/src/ui/stage.js`, which the cutover deleted. A doc that tells you to edit a file that does not
+> exist is the same failure as a gate pointed at the wrong tree: not silent, *reassuring*.
 
-**So pushing the work-in-progress build to `main` is the normal thing to do, not a release.** It is
-how he gets to play it: `/4` on the live domain is where he playtests, and it is his only way in at
-all whenever he is away from the laptop.
-Merging does not touch the root game, because the root game is different files. Do not treat a merge
-to `main` as a scary outward-facing act requiring ceremony — **treat the *diff* as the thing to
-check.**
+**Pushing to `main` is still the normal way the work reaches him**, and still his only route when he
+is away from the laptop — so this is not an argument for pushing less. **It is an argument for
+knowing what is in the diff, and for sailing the trial BEFORE the push rather than after.** The diff
+is still the thing to read; it is simply no longer the thing that makes the push safe.
 
 ### The loop, every time
 
 1. Develop and commit on the session's designated branch.
-2. **Bump the build stamp** — `PP4_STAMP` in `4/src/ui/stage.js`, shown in the hamburger menu as
+2. **Bump the build stamp** — `PP4_STAMP` in `src/ui/stage.js` (**not `4/src/…` — the cutover moved it**), shown in the hamburger menu as
    `v4 · build 2026-08-13g`. It is how he tells at a glance whether he is looking at your work.
 3. **Prove the merge touches only the milestone.** Run this and read it — empty output is the
    licence to push:
@@ -276,11 +287,11 @@ www.gstatic.com
 *.firebaseio.com
 ```
 
-- `www.gstatic.com` — the Firebase SDK is two `<script>` tags in `4/index.html`
+- `www.gstatic.com` — the Firebase SDK is two `<script>` tags in `index.html`
   (`firebase-app-compat.js` and `firebase-database-compat.js`, v12.15.0). Blocked, Firebase never
   loads and Host/Join do nothing at all.
 - `*.firebaseio.com` — the database is `pastry-pirates-default-rtdb.firebaseio.com`
-  (`4/src/net/index.js`). **The wildcard matters:** the Realtime Database redirects clients onto
+  (`src/net/index.js`). **The wildcard matters:** the Realtime Database redirects clients onto
   regional shard hosts (`s-usc1c-nss-####.firebaseio.com`), so an exact-host allowlist connects and
   then dies on the redirect — indistinguishable, from the seat, from "multiplayer is broken".
 
@@ -347,7 +358,8 @@ fallback if the hook ever reports "skipped" — and as the record of what the fi
    created real Firebase room **AGHR**, guest joined; both sides screenshotted and compared —
    rosters identical, each side's own seat highlighted, host showing "Start the voyage!" against
    the guest's "Waiting for the host…". Room torn down, processes killed.
-4. **The live stamp reads.** `curl -s https://playpastrypirates.com/4/src/ui/stage.js | grep
+4. **The live stamp reads.** *(Run on 2026-08-21, when the game was still at `/4/`; the same
+   check today is `curl -s https://playpastrypirates.com/src/ui/stage.js`.)* `curl -s https://playpastrypirates.com/4/src/ui/stage.js | grep
    PP4_STAMP` returned **`2026-08-21g`**, the live stamp.
 
 Also proven: the root `npm test` and all eight `4/scripts` static gates pass on bare Node in the

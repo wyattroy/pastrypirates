@@ -32,6 +32,7 @@ import { fileURLToPath } from "node:url";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 import { openWebKit } from "./lib/wk.mjs";
 import { makePlayer, GATE_SRC } from "./lib/player.mjs";
+import { gameURL } from "./lib/chrome.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.split("=")[1] : d; };
@@ -84,7 +85,7 @@ const isMenu = m => /what'll ye do/i.test(m);
    reached after a sail are dead. So a probe that cannot say whether a sail preceded each menu is
    not testing his case at all, however many menus it counts. This reads the seat's own square. */
 const WHERE_SRC = `(async () => { try {
-  if (!window.appState) { const m = await import('/4/src/state/index.js'); window.appState = m.appState; }
+  if (!window.appState) { const m = await import('/src/state/index.js'); window.appState = m.appState; }
   const g = window.appState.game; if (!g) return null;
   const me = g.players[window.appState.mySeat]; if (!me || !me.pos) return null;
   /* p.pos, NOT p.x/p.y. The first version read me.x/me.y - which do not exist - so the position
@@ -103,9 +104,9 @@ try {
   log(`engine=${WEBKIT ? "WebKit" : "Chrome"}  ${W}x${H}${PHONE ? " (phone, touch)" : ""}  port=${PORT}`);
 
   // the documented way in (DRIVING-THE-GAME.md §3): mode card FIRST, then the modal
-  await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2200);
+  await c.nav(gameURL(PORT)); await sleep(2200);
   await c.ev(`localStorage.clear(); localStorage.setItem('pp_id','qa-pulse-probe'); 1`);
-  await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2600);
+  await c.nav(gameURL(PORT)); await sleep(2600);
   await c.ev(GATE_SRC);
   let g = await c.ev(`__gate(document.getElementById('choiceSolo'))`);
   if (!g || !g.ok) throw new Error("solo card not clickable");

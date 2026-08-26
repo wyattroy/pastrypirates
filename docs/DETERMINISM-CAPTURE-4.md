@@ -82,9 +82,9 @@ confirmed by reading `4/`'s source, not assumed:**
 
 | Queued fix | Where it lives in `4/` | Verified |
 |---|---|---|
-| `spoil` carries rendered text | `4/src/engine/index.js:1793` — `const spoil=spoilIng?ilabelImg(spoilIng):"nothing"` | yes |
-| `gave` carries rendered text | `4/src/engine/index.js:1140` emits it, via `offerLabel()` whose render line is `:1166` | yes |
-| `ilabelImg` imported into the engine tier | `4/src/engine/index.js:8`, in the shared-barrel import list | yes |
+| `spoil` carries rendered text | `src/engine/index.js:1793` — `const spoil=spoilIng?ilabelImg(spoilIng):"nothing"` | yes |
+| `gave` carries rendered text | `src/engine/index.js:1140` emits it, via `offerLabel()` whose render line is `:1166` | yes |
+| `ilabelImg` imported into the engine tier | `src/engine/index.js:8`, in the shared-barrel import list | yes |
 
 **`-NEXT.md` §7's ruling is binding and is the reason these are not three separate tasks:**
 
@@ -99,7 +99,7 @@ So the purity fixes and the capture are **one pass**. That is why they travel to
 `-NEXT.md` §6 is explicit that the interim display-layer fix must be **REMOVED**, not left beside
 the new path as a second way of spelling the same thing.
 
-**03-01-PLAN.md estimated "roughly fifteen sites in `4/src/ui/util.js` which parse prose". Measured
+**03-01-PLAN.md estimated "roughly fifteen sites in `src/ui/util.js` which parse prose". Measured
 on 2026-08-23, that is too high, and the real shape is:**
 
 | What | Count | Where |
@@ -142,21 +142,33 @@ would then pass verification forever while protecting nothing —
 
 ### The steps
 
+> ### ⚠ THE CUTOVER DELETED STEP 2. Read this before following the steps.
+>
+> Everything above was written while the new game lived at `4/`, and the copy-it-into-`4/` trick
+> existed **only** to aim a tree-relative harness at that tree. **On 2026-08-26 `4/` was promoted to
+> the repo root**, so `scripts/determinism_baseline.js` — which loads `../../src/engine/index.js` —
+> now already loads the promoted game's engine and already writes `scripts/fixtures/determinism/`.
+> **There is nothing to copy and nothing to aim.** The tree-relative property did the whole job.
+>
+> The paragraphs above are kept because the REASONING is still the thing that matters: a harness
+> that resolves relative to itself is what makes a corpus provably about the tree it sits in, and
+> "do not have a copy import the root's loader" is still the trap. Only the mechanics changed.
+
 ```bash
 # 1. Land ALL of section 3 first — the purity fixes AND their UI half. One pass (-NEXT.md §7).
 
-# 2. Put the harness in the 4/ tree, so it aims itself.
-cp scripts/determinism_baseline.js 4/scripts/determinism_baseline.js
+# 2. Capture. (No copy step any more — the game is at the root, and so is the harness.)
+node scripts/determinism_baseline.js --capture
 
-# 3. Capture.
-node 4/scripts/determinism_baseline.js --capture
+# 3. Verify the capture verifies. A corpus that cannot be re-verified is not a corpus.
+node scripts/determinism_baseline.js --verify
 
-# 4. Verify the capture verifies. A corpus that cannot be re-verified is not a corpus.
-node 4/scripts/determinism_baseline.js --verify
-
-# 5. Wire BOTH aims into npm test and update package.json's `gates` counts IN THE SAME EDIT —
+# 4. Wire it into npm test and update package.json's `gates` counts IN THE SAME EDIT —
 #    scripts/gate_count_check.js fails the build if the declared numbers drift from the chain.
 ```
+
+**The "twin question" below is now moot too** — there is no second copy to keep in step, because
+there is no second tree. `4/scripts/lib_twin_check.js` has nothing to watch here.
 
 **Three things 03-03 must decide when it does step 2, none of which is decided here:**
 
@@ -191,7 +203,7 @@ documented act. Not a crisis.
 
 ### What triggers it
 
-**Any change to what `4/src/engine/index.js` emits into the event stream — INCLUDING ADDING OR
+**Any change to what `src/engine/index.js` emits into the event stream — INCLUDING ADDING OR
 RENAMING A FIELD ON AN EXISTING EVENT.** Not just new events. Not just removed ones. A field.
 
 That invalidates every fixture at once.
@@ -228,7 +240,7 @@ from what was already emitted.
 
 **`4/` did this again, on its own, and it is the model to copy.** A swept storm step emits nothing
 between stepping onto the rim and `tradewind()`, so the event stream cannot supply the entry cell —
-which looks like it forces a new field. Instead `4/src/ui/flow.js` split the guard from the ride
+which looks like it forces a new field. Instead `src/ui/flow.js` split the guard from the ride
 (`animateRimSweepIfAny` → `animateRimSweepRun(seat,from,to)`) so the caller, which is holding the
 pre-step square, passes it in. **The animation shipped and the door stayed shut.** That shape —
 *give the renderer an entry point that takes the value, rather than putting the value in the

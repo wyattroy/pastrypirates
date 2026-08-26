@@ -213,7 +213,7 @@ evidence, and is how bots learn each other's recipes without ever seeing one.
 
 ---
 
-## 4. THE HUMAN FLOW (`4/src/ui/flow.js`)
+## 4. THE HUMAN FLOW (`src/ui/flow.js`)
 
 **Building an offer** — `humanTrade(p)`, a three-step machine where Back always steps *back*:
 
@@ -261,7 +261,7 @@ along invisibly from an offer that was just rejected.
 
 - **THE SLIDER'S NUMBER IS A DECISION, so it is written to the decision log.** `ask()` records which
   *button* was pressed; the slider's value lives in a `ref` the button knows nothing about. Both
-  quantity controls therefore return through `logQuantity()` (`4/src/ui/flow.js`), which records the
+  quantity controls therefore return through `logQuantity()` (`src/ui/flow.js`), which records the
   number live and replays the recorded one — the same seam `pickCell()` and `bakeoffPrompt()` use.
   Measured before the fix: a captain dragged the slider to 6 and the log gained exactly `[0]`, so a
   refresh replayed the trade at 1 coin and every decision after it landed on the wrong prompt. Wyatt
@@ -272,7 +272,7 @@ along invisibly from an offer that was just rejected.
 hole: the slider reached the local prompt path only, a genuinely remote seat fell back to a ± coin
 stepper, and it said *"close this if /4 ever ships online multiplayer."* /4 is shipping online
 multiplayer. **`coinStepper` no longer exists in the tree.** Every seat — solo, pass-and-play, host,
-guest — drags the same bar, built by `sliderWrapHTML` and wired by `wireSlider` (`4/src/ui/util.js`),
+guest — drags the same bar, built by `sliderWrapHTML` and wired by `wireSlider` (`src/ui/util.js`),
 named directly by `localAsk` and by `watchPrompt`'s ask branch and gated as shared by
 `scripts/host_guest_parity_check.js` assertion 6.
 
@@ -396,7 +396,7 @@ time — **4,884 dead turns** in 300 games. Ask the exact question the action wi
 
 ## 8. WHERE IT LIVES
 
-Engine — `4/src/engine/index.js`:
+Engine — `src/engine/index.js`:
 `holdersOf` · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
 `collectResponses` · `settleTrade` · `counterTerms` · `offerLabel` · `rememberRefusal` ·
 `refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
@@ -404,8 +404,8 @@ Engine — `4/src/engine/index.js`:
 Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgress`
 Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
 
-UI — `4/src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `crateOpt` · `logQuantity`
-UI, shared by both tiers — `4/src/ui/util.js`: `ask` · `optionButtonsHTML` · `sliderWrapHTML` ·
+UI — `src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `crateOpt` · `logQuantity`
+UI, shared by both tiers — `src/ui/util.js`: `ask` · `optionButtonsHTML` · `sliderWrapHTML` ·
 `sliderText` · `wireSlider` · `sliderWirePayload`
 Harnesses — `4/scripts/trade_offer_measure.js` (the guarded number) ·
 `4/scripts/dlog_quantity_check.js` (reads flow.js **and** util.js since 05-01) ·
@@ -422,7 +422,7 @@ who is asking and who is answering changes which code runs:
 
 | Who hails | Who answers | Where it settles |
 |---|---|---|
-| bot | bot | `Game.tryTrade` — `4/src/engine/index.js` |
+| bot | bot | `Game.tryTrade` — `src/engine/index.js` |
 | **human** | bots | `humanTrade`'s settlement — `flow.js` |
 | **bot** | human (and bots) | `botOpenTradeLive`'s settlement — `flow.js` |
 

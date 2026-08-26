@@ -21,6 +21,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { serve, launch, attach, makeHost, makeGuest, driver, driverOff, ribbonReport, killAll, sleep, SHOTS } from "./mp_rig.mjs";
+import { GAME_PATH } from "./lib/chrome.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const PORT = +arg("port", 8791), DBG_A = +arg("dbgA", 9791), DBG_B = +arg("dbgB", 9792);
@@ -92,7 +93,7 @@ try {
   /* ONE async IIFE, returning the string. `JSON.stringify(await (async()=>…)())` puts an `await` at
      the top level of the evaluated expression, which is a ReferenceError, and CDP reports it as an
      exception with no hint that the shape is the problem. ev() already passes awaitPromise. */
-  const gstate = JSON.parse(await B.ev(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;
+  const gstate = JSON.parse(await B.ev(`(async()=>{const st=(await import('/src/state/index.js')).appState;
     return JSON.stringify({room:st.room||null,mySeat:st.mySeat,isHost:!!st.isHost});})()`));
   ok("an ordinary, non-colliding join still gets a seat", gstate.room, code);
   ok("...and the guest is not the host", gstate.isHost, false);
@@ -115,12 +116,12 @@ try {
   await A.waitFor(`(()=>{const b=document.getElementById('btnConfirmStart');return !!(b&&b.getBoundingClientRect().width>10)})()`, 20000, "host: confirm start");
   await A.ev(`document.getElementById('btnConfirmStart').click();true`);
   await sleep(3000);
-  await A.waitFor(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;return !!st.gameStarted})()`, 40000, "host: game started");
-  await B.waitFor(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;return !!st.gameStarted})()`, 40000, "guest: game started");
+  await A.waitFor(`(async()=>{const st=(await import('/src/state/index.js')).appState;return !!st.gameStarted})()`, 40000, "host: game started");
+  await B.waitFor(`(async()=>{const st=(await import('/src/state/index.js')).appState;return !!st.gameStarted})()`, 40000, "guest: game started");
   ok("the voyage starts for BOTH captains", true, true);
 
   /* both sides play - the recipe draft first, then ordinary turns */
-  await driver(A, `/4/`); await driver(B, `/4/`);
+  await driver(A, GAME_PATH); await driver(B, GAME_PATH);
   log(`  drivers up; running a bounded ${ROUNDS} rounds, then stopping WELL SHORT of the end card`);
   let round = 0;
   for (let i = 0; i < 90; i++) {
@@ -132,7 +133,7 @@ try {
       if (e) { emptyPrompts[tag]++; log(`    D-21? ${tag}: ${JSON.stringify(e)}`); }
     }
     if (round >= ROUNDS) break;
-    const over = await A.ev(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;
+    const over = await A.ev(`(async()=>{const st=(await import('/src/state/index.js')).appState;
       return !!(st.game&&(st.game.winner!=null||st.game.over));})()`);
     if (over) break;
   }
@@ -149,7 +150,7 @@ try {
      guest - comparing it across clients reports drift that does not exist. Compare the event state. */
   ok("the board drawn on both screens is the same board", H.posEvent, G.posEvent);
   ok("nobody reached the end of voyage (writeGameLog never ran)",
-    await A.ev(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;
+    await A.ev(`(async()=>{const st=(await import('/src/state/index.js')).appState;
       return !!(st.game&&(st.game.winner!=null||st.game.over));})()`), false);
   await SHOT(A, "d-crew-03-host-midgame.png");
   await SHOT(B, "d-crew-04-guest-midgame.png");
@@ -160,7 +161,7 @@ try {
 } catch (e) {
   fails++; log("ABORT: " + (e && e.message ? e.message : e));
 } finally {
-  if (code) { try { await A.ev(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;
+  if (code) { try { await A.ev(`(async()=>{const st=(await import('/src/state/index.js')).appState;
       if(st.db) await st.db.ref('rooms/${code}').remove(); return 1;})()`); log(`\n  room ${code} deleted`); } catch (e) { log("  could not delete room: " + e.message); } }
   killAll();
 }

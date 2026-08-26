@@ -60,7 +60,7 @@ const WARN = `(() => {
            painted: r.width > 10 && r.height > 4, redBox: (document.getElementById('joinName')||{className:''}).className.includes('nameWarned') };
 })()`;
 const SEATS = `(() => [...document.querySelectorAll('#seatList .seat .nm')].map(e => (e.textContent||'').trim()))()`;
-const STATE = `(async()=>{ const st=(await import('/4/src/state/index.js')).appState;
+const STATE = `(async()=>{ const st=(await import('/src/state/index.js')).appState;
   return { room: st.room||null, mySeat: st.mySeat, isHost: !!st.isHost }; })()`;
 
 const url = serve(PORT);
@@ -160,7 +160,7 @@ try {
 } finally {
   /* DELETE THE ROOM. A probe that leaves live rooms behind is litter in a database Wyatt shares
      with real players (DRIVING-THE-GAME §3). */
-  if (code) { try { await A.ev(`(async()=>{const st=(await import('/4/src/state/index.js')).appState;
+  if (code) { try { await A.ev(`(async()=>{const st=(await import('/src/state/index.js')).appState;
       if(st.db) await st.db.ref('rooms/${code}').remove(); return 1;})()`); log(`\n  room ${code} deleted`); } catch (e) { log("  could not delete room: " + e.message); } }
   killAll();
 }

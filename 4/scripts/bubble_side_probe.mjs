@@ -30,14 +30,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openWebKit } from "./lib/wk.mjs";
 import { makePlayer, GATE_SRC } from "./lib/player.mjs";
+import { gameURL } from "./lib/chrome.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PORT = Number(process.env.PORT || 8561);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const c=await openWebKit({W:390,H:844,httpPort:PORT,serveRoot:REPO,profileDir:"/tmp/wk-edge",mobile:true,dsf:3});
 try{
-  await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2200);
+  await c.nav(gameURL(PORT)); await sleep(2200);
   await c.ev(`localStorage.clear(); localStorage.setItem('pp_id','qa-edge'); 1`);
-  await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2600);
+  await c.nav(gameURL(PORT)); await sleep(2600);
   await c.ev(GATE_SRC);
   let g=await c.ev(`__gate(document.getElementById('choiceSolo'))`); await c.clickXY(g.x,g.y); await sleep(1300);
   g=await c.ev(`__gate(document.getElementById('nameModalInput'))`); if(g&&g.ok){await c.clickXY(g.x,g.y); await c.type("Wy");}

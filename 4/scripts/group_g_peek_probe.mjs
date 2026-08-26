@@ -23,7 +23,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { REPO } from "./lib/chrome.mjs";
+import { REPO, gameURL } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -48,9 +48,9 @@ const shot = n => c.shot(path.join(OUT, `${n}.png`));
 process.on("SIGINT", () => finish(1));
 
 /* ---- boot ---- */
-await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2000);
+await c.nav(gameURL(PORT)); await sleep(2000);
 await ev("localStorage.clear(); 1");
-await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2500);
+await c.nav(gameURL(PORT)); await sleep(2500);
 await ev(`window.__gate = el => { if(!el) return null; const r=el.getBoundingClientRect();
   if (r.width<4||r.height<4) return null; return {x:r.left+r.width/2, y:r.top+r.height/2}; };`);
 const clickId = async id => { const g = await ev(`__gate(document.getElementById(${JSON.stringify(id)}))`); if (g) await c.clickXY(g.x, g.y); return !!g; };
@@ -61,11 +61,11 @@ await clickId("choiceSolo"); await sleep(900);
            await c.type("Davy Scones"); } }
 await clickId("btnNameConfirm");
 { let ok = false; for (let i = 0; i < 60 && !ok; i++) { await sleep(500);
-    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
+    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/src/state/index.js');window.appState=m.appState;}
       const g=window.appState.game; return !!(g&&g.players.some(p=>p.strategy==='human')&&document.getElementById('pp4Ribbon'));}catch(e){return false}})()`); }
   if (!ok) { log("ABORT: no solo game"); await finish(1); } }
-await ev(`(async()=>{ window.__G = { st:(await import('/4/src/state/index.js')).appState,
-  flow:await import('/4/src/ui/flow.js'), board:await import('/4/src/ui/board.js') }; return 1; })()`);
+await ev(`(async()=>{ window.__G = { st:(await import('/src/state/index.js')).appState,
+  flow:await import('/src/ui/flow.js'), board:await import('/src/ui/board.js') }; return 1; })()`);
 // clear the intro barriers
 for (let i = 0; i < 26; i++) {
   const n = await ev("[...document.querySelectorAll('#pp4Prompt .apBtn')].filter(b=>b.getBoundingClientRect().width>4).length");

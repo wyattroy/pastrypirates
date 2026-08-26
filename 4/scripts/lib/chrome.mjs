@@ -24,3 +24,23 @@ export const CHROME = (() => {
 // Linux containers (the cloud sandbox) need both or headless Chrome dies at launch: the SUID
 // sandbox is unavailable when running as root, and /dev/shm is tiny.
 export const LINUX_ARGS = process.platform === "linux" ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
+
+/* ── WHERE THE GAME IS SERVED FROM — ONE SPELLING, IN ONE PLACE ────────────────────────────────
+   Every browser script used to hardcode `http://127.0.0.1:${PORT}/4/`. Twenty call sites across
+   twelve files, and nothing made them agree — which is CLAUDE.md rule 23 exactly: *what makes
+   these two agree?* If the honest answer is "nothing, we keep them in step", that is the defect,
+   before a line is written.
+
+   THE COST OF NOT HAVING THIS, PAID 2026-08-26. The cutover promoted `4/` to the repo root, so
+   `4/` holds only `scripts/`. Every one of those twenty navigations then loaded python's directory
+   listing for `4/` instead of the game. The browser opened, the page loaded, HTTP 200 — and the
+   first thing each script looked for (`#choiceSolo`) was not there, so they all died with the same
+   uninformative "solo card not clickable". THE ENTIRE SEA TRIAL WAS POINTED AT AN EMPTY DIRECTORY
+   and reported it as the game being broken. docs/DRIVING-THE-GAME.md had already been updated and
+   no longer mentions `/4/` anywhere; the doc was right and the code it documents was orphaned.
+
+   So: change it HERE, once, and every driver moves with it. If the game ever moves again, this
+   constant is the only edit — and `game_url_check.js` fails the build if a new hardcoded URL
+   appears beside it. */
+export const GAME_PATH = "/";
+export const gameURL = (port, host = "127.0.0.1") => `http://${host}:${port}${GAME_PATH}`;

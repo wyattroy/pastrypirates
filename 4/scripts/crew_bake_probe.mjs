@@ -396,7 +396,7 @@ process.on("unhandledRejection", async e => { log("UNHANDLED: " + e); await fini
 
 /* ================= the run ================= */
 try {
-  const base = serve(PORT);                       // http://127.0.0.1:PORT/4/
+  const base = serve(PORT);                       // http://127.0.0.1:PORT/  (the game is at the root since the cutover)
   const url = base + "?ovens=1";
   log(`=== crew bake probe (${out.mode}) — ${url} ===`);
   /* CHROME PROFILES GO TO tmpdir, NEVER TO --out. The first run put them under the shots directory

@@ -562,9 +562,11 @@ locally reasonable:
 1. The game is solo-first. The game loop draws the screen. Correct, and simple.
 2. Multiplayer arrives. The host already has a working loop that draws. The cheapest way to give a
    guest a screen is *"broadcast the state, let the guest listen and draw."*
-3. **The second director is emergent.** `4/src/orchestrator.js:1654` — the host runs `runLiveNet()`
-   and draws from the game loop; the guest attaches **nine independent listeners** that each decide
-   on their own what to draw and when.
+3. **The second director is emergent.** `src/orchestrator.js:2318-2319` — the host runs
+   `runLiveNet()` and draws from the game loop; the guest attaches **nine independent listeners**
+   that each decide on their own what to draw and when. *(Path and line both corrected 2026-08-26:
+   it said `4/src/…:1654`, a tree the cutover deleted and a line that is `const subHtml=…`. The
+   fork is one `if/else` pair — verified by reading it, not by grep.)*
 
 **THE TRIGGER — memorise this sentence, because it is the moment the fault is born:** *"the existing
 one already works, I'll just add a listener/branch/path for the new case."* **When a SECOND consumer
@@ -917,18 +919,29 @@ deploy workflow.** What is on `main` *is* what is live.
 
 | URL | Served from |
 |---|---|
-| `playpastrypirates.com` | repo root — the game real players play |
-| `playpastrypirates.com/4` | `4/` — **the milestone under development**, what he playtests |
+| `playpastrypirates.com` | repo root — **the game under development AND the game real players play. The same files.** |
+| `playpastrypirates.com/classic` | `classic/` — v1, frozen |
 
-> **This changes at v2.0's cutover (Phase 6):** `4/` becomes the root, today's game moves to
-> `/classic`. Update this table in the same commit.
+> ### ⚠ THE CUTOVER INVERTED THIS SECTION'S OLD REASSURANCE. READ THIS BEFORE YOU PUSH.
+>
+> Until 2026-08-26 this table had two rows and the rule underneath it said: *"Merging does not touch
+> the root game; they are different files. Treat the diff as the thing to check, not the push."*
+> **That was true only while `4/` was a separate tree, and it is now false.** There is no separate
+> dev tree. **Every push to `main` changes the game real players are in the middle of, immediately,
+> with no build step in between.**
+>
+> The diff is still the thing to check — but it is no longer the thing that makes a push *safe*.
+> Nothing does. **Sail the trial before you push, not after.**
 
-**So pushing work-in-progress to `main` is normal, not a release** — the live domain is how he
-playtests, and it is the only route at all when he is away from the laptop. Merging does not touch
-the root game; they are different files. **Treat the *diff* as the thing to check, not the push.**
+**Pushing to `main` is still how he playtests, and it is his only route when he is away from the
+laptop** — so this is not a reason to push less. It is a reason to know what is in the push.
 
-Every time: commit on the session's branch → **bump `PP4_STAMP` in `4/src/ui/stage.js`** → prove the
-diff touches only the milestone → push, pull, verify zero → tell him the build stamp to look for.
+Every time: commit → **bump `PP4_STAMP` in `src/ui/stage.js`** → read the diff → push, pull, verify
+zero → tell him the build stamp to look for.
+
+> **`4/src/ui/stage.js` DOES NOT EXIST.** This line said so until 2026-08-26 and would have sent a
+> session to a path the cutover deleted — the deploy loop's single most-run step, pointing at
+> nothing. `4/` holds only `scripts/` now.
 
 **The tell that a session skipped this: he reports an old build stamp.** It is never a cache — there
 is no build step. **If he cannot see it, it is not on `main`.**

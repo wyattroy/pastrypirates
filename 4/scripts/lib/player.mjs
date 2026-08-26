@@ -71,7 +71,7 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
   // window, exactly as mouse_qa.mjs does. Without this every read threw, was swallowed, and the
   // gate reported DAY 0 forever and could never see the end of voyage. A silent zero, not an error.
   const state = () => ev(`(async()=>{try{
-    if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
+    if(!window.appState){const m=await import('/src/state/index.js');window.appState=m.appState;}
     const g=window.appState.game; if(!g) return {ev:0,day:0,over:false};
     return {ev:(g.log||g.events||[]).length, day:g.round||0,
       over:(()=>{const s=document.getElementById('statsWrap');return !!(s&&s.style.display!=='none');})()};

@@ -18,7 +18,7 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+import { REPO, CHROME, LINUX_ARGS, gameURL } from "./lib/chrome.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 // D-42: the phone size is 390x664 — the viewport a real iPhone-class Safari/Chrome gives the page
@@ -110,8 +110,8 @@ async function clickSel(c, selector, filterSrc = "() => true") {
 // tower, the clipped names and the ribbon-clipped "Arrgh" all reached Wyatt: the first screen was
 // never measured.
 async function bootToStage(c) {
-  await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2200);
-  await c.ev("localStorage.clear(); 1"); await c.send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2500);
+  await c.send("Page.navigate", { url: gameURL(PORT) }); await sleep(2200);
+  await c.ev("localStorage.clear(); 1"); await c.send("Page.navigate", { url: gameURL(PORT) }); await sleep(2500);
   await c.ev(GATE);
   if (!await clickSel(c, "#choiceSolo")) throw new Error("solo card not clickable"); await sleep(900);
   const ni = await c.ev("(()=>{const el=document.getElementById('nameModalInput'); if(!el) return null; const g=__gate(el); return g.ok?g:null;})()");

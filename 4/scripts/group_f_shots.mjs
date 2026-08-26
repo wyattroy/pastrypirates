@@ -28,7 +28,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { REPO } from "./lib/chrome.mjs";
+import { REPO, gameURL } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -102,9 +102,9 @@ async function clickSel(sel, filter = "() => true") {
 
 /* ---- boot a solo voyage (DRIVING-THE-GAME §2, §3 — both of that section's traps) ---- */
 log(`\n=== ${TAG} ${MOBILE ? "(touch)" : ""} — booting solo ===`);
-await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2000);
+await c.nav(gameURL(PORT)); await sleep(2000);
 await ev("localStorage.clear(); 1");
-await c.nav(`http://127.0.0.1:${PORT}/4/`); await sleep(2500);
+await c.nav(gameURL(PORT)); await sleep(2500);
 await armGate();
 if (!await clickSel("#choiceSolo")) await die("solo card not clickable: " + JSON.stringify(await ev("(()=>{const e=document.getElementById('choiceSolo'); return e?{g:__gate(e), r:JSON.parse(JSON.stringify(e.getBoundingClientRect())), iw:innerWidth, ih:innerHeight, sy:scrollY, bh:document.body.scrollHeight}:'no #choiceSolo';})()")));
 await sleep(900);
@@ -124,17 +124,17 @@ if (!await clickSel("#btnNameConfirm")) await die("name confirm not clickable");
 {
   let ok = false;
   for (let i = 0; i < 60 && !ok; i++) { await sleep(500);
-    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/4/src/state/index.js');window.appState=m.appState;}
+    ok = await ev(`(async()=>{try{if(!window.appState){const m=await import('/src/state/index.js');window.appState=m.appState;}
       const g=window.appState.game; return !!(g&&g.players.some(p=>p.strategy==='human')&&document.getElementById('pp4Ribbon'));}catch(e){return false}})()`);
   }
   if (!ok) await die("no human solo game inside 30s");
 }
 // cache the live modules once (§6: appState is not a window global)
 await ev(`(async()=>{ window.__F = {
-  st:(await import('/4/src/state/index.js')).appState,
-  flow:await import('/4/src/ui/flow.js'),
-  board:await import('/4/src/ui/board.js'),
-  orch:await import('/4/src/orchestrator.js') }; return 1; })()`);
+  st:(await import('/src/state/index.js')).appState,
+  flow:await import('/src/ui/flow.js'),
+  board:await import('/src/ui/board.js'),
+  orch:await import('/src/orchestrator.js') }; return 1; })()`);
 /* ---- SCENE: the RECIPE SHEET, caught on the way past (D-46 faults 3, 4 and 5) ----
    It is the first screen of every voyage, so it is posed by simply not dismissing it yet. Three of
    Wyatt's five phone leftovers live on this one screen: a captain row sliced by the bottom edge

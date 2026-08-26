@@ -6,7 +6,7 @@ import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";   // one resolver for every driver
+import { REPO, CHROME, LINUX_ARGS, gameURL } from "./lib/chrome.mjs";   // one resolver for every driver
 const OUT = process.argv[2] || path.join(process.cwd(), "mouse-qa-shots");
 const W = +(process.argv[3] || 1400), H = +(process.argv[4] || 900);
 const PORT = +(process.argv[5] || 8477), DBG = +(process.argv[6] || 9377);
@@ -99,8 +99,8 @@ const clickSel = async (selector, filterSrc = "() => true", label = selector) =>
   await mouseClick(g.pick.g.x, g.pick.g.y); acts.push(label + ":" + g.pick.txt); return { clicked: g.pick.txt, at: [g.pick.g.x, g.pick.g.y] }; };
 
 // --- boot -------------------------------------------------------------------
-await send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(2500);
-await ev("localStorage.clear(); 1"); await send("Page.navigate", { url: `http://127.0.0.1:${PORT}/4/` }); await sleep(3000);
+await send("Page.navigate", { url: gameURL(PORT) }); await sleep(2500);
+await ev("localStorage.clear(); 1"); await send("Page.navigate", { url: gameURL(PORT) }); await sleep(3000);
 await ev(GATE); await ev(CURSOR); await ev("document.title='🤖 CLAUDE IS USING THIS — ' + document.title; 1");
 if (HEADED) { // prove there is a real window, and put it in front — log the evidence rather than assuming it
   try { const wt = await send("Browser.getWindowForTarget", {}); const b = wt.result?.bounds;
@@ -120,7 +120,7 @@ await shot("name-modal");
 r = await clickSel("#btnNameConfirm", "() => true", "nameConfirm"); log("name confirm:", JSON.stringify(r));
 let started = false; for (let i = 0; i < 40 && !started; i++) { await sleep(500);
   started = await ev("(()=>{try{return !!(window.appState&&appState.game&&appState.game.players.some(p=>p.strategy==='human'))}catch(e){return false}})()"); }
-if (!started) { const st = await ev("(async()=>{const m=await import('/4/src/state/index.js');window.appState=m.appState;return !!(m.appState.game&&m.appState.game.players.some(p=>p.strategy==='human'))})()"); started = !!st; }
+if (!started) { const st = await ev("(async()=>{const m=await import('/src/state/index.js');window.appState=m.appState;return !!(m.appState.game&&m.appState.game.players.some(p=>p.strategy==='human'))})()"); started = !!st; }
 log("solo started:", started); await shot("game-start");
 if (!started) { await finding("RED", "solo game did not start after name confirm"); killAll(); process.exit(2); }
 

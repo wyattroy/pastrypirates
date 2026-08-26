@@ -329,7 +329,7 @@ negative about the fault. Say which engine you measured, in the sentence where y
 result, or the reader will hear "not reproducible" and stop.
 
 **What actually found it: making the game testify on HIS device.** The `?debug=pulse` beacon
-(`4/src/ui/pulsebeacon.js`) printed one line that ended it:
+(`src/ui/pulsebeacon.js`) printed one line that ended it:
 
     Trade:none(pp4Grow/running)   Pass +1:none(pp4Grow/running)
 
@@ -1053,7 +1053,7 @@ paused itself (its tab-hide gate), and `waitWhilePaused()` — a promise that re
 
 1. **The first probe measured a property that does not exist.** It read `g.turn` and reported
    `undefined`, which read as "the turn pointer is corrupt". There is no `this.turn` in
-   `4/src/engine/index.js` and never has been. A probe that names a field the code does not have
+   `src/engine/index.js` and never has been. A probe that names a field the code does not have
    returns `undefined` for a healthy game and a dead one alike — it cannot fail, so it cannot be
    evidence. **Grep the property before you believe a reading of it.**
 2. **The honest instrument was the one with a control**: sample `game.events.length` twice, 25s
@@ -1256,7 +1256,7 @@ watch it go red. If you cannot make it fail, you have not written a test.
 
 ### 10d. The typewriter is invisible to BOTH obvious signals, by design
 
-`typewriterReveal()` (`4/src/ui/panel.js`) splits each text node into **two spans holding the same
+`typewriterReveal()` (`src/ui/panel.js`) splits each text node into **two spans holding the same
 characters** — a revealed prefix and a `visibility:hidden` remainder that still occupies its exact
 layout box. That is a good design: line breaking matches the finished message from the first frame,
 so no word ever hops a line mid-reveal. It also means:

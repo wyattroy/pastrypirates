@@ -34,8 +34,14 @@ const pass = (what) => console.log(`  PASS  ${what}`);
 const exists = (rel) => fs.existsSync(path.join(REPO, rel));
 
 // The documents that TELL A SESSION WHAT TO DO. If a path here is wrong, a session follows it.
-const DOCS = [".claude/CLAUDE.md", "docs/QA-PROCESS.md", "docs/HARD-WON-LESSONS.md",
-              "docs/DRIVING-THE-GAME.md", "docs/GIT-AND-DEPLOY.md"];
+/* EVERY doc, not a hand-kept list of five. The list version scanned CLAUDE.md, QA-PROCESS,
+   HARD-WON-LESSONS, DRIVING-THE-GAME and GIT-AND-DEPLOY — so docs/AUDIO.md, which CLAUDE.md §4
+   itself tells you to read before touching sound, was never checked, and its link to the audio
+   module sat dead for a day after the cutover with this gate reporting all green. A hand-kept
+   list of what to guard is the same shape as the bug it is guarding against: it rots silently,
+   and nothing says so. Derived from the directory instead. */
+const DOCS = [".claude/CLAUDE.md", ".claude/CEO-BRIEF.md",
+              ...fs.readdirSync(path.join(REPO, "docs")).filter(f => f.endsWith(".md")).map(f => "docs/" + f)];
 
 console.log("doc_command_check — every command and link the docs name must exist\n");
 
@@ -60,7 +66,12 @@ for (const doc of DOCS) {
   if (!exists(doc)) continue;
   const dir = path.dirname(path.join(REPO, doc));
   const text = fs.readFileSync(path.join(REPO, doc), "utf8");
-  for (const m of text.matchAll(/\]\((\.{1,2}\/[^)#\s]+\.md)(?:#[^)]*)?\)/g)) {
+  /* .md AND SOURCE FILES. This used to match `.md` only, and that hole let a real one through:
+     docs/AUDIO.md linked `[4/src/ui/audio.js](../4/src/ui/audio.js)` for a whole day after the
+     cutover deleted `4/`, and this gate reported "all 21 relative doc links resolve" the entire
+     time. A doc that hands you a dead path to the SOURCE is exactly as broken as one that hands
+     you a dead path to another doc — and the source links are the ones a session actually opens. */
+  for (const m of text.matchAll(/\]\((\.{1,2}\/[^)#\s]+\.(?:md|js|mjs|cjs|html|json|py|sh))(?:#[^)]*)?\)/g)) {
     links++;
     if (!fs.existsSync(path.resolve(dir, m[1]))) badLinks.push(`${doc} -> ${m[1]}`);
   }

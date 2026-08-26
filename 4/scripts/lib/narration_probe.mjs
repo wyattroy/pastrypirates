@@ -225,7 +225,7 @@ export const RECIPE_PROBE_SRC = `(async () => {
   const seat = (window.appState && appState.mySeat) || 0;
   const rec = g && g.players && g.players[seat] && g.players[seat].recipe;
   if (!rec) return { missing: true, why: "no recipe on this seat yet" };
-  const ui = await import("/4/src/ui/index.js");
+  const ui = await import("/src/ui/index.js");
   ui.openRecipeModal(rec);
   await new Promise(r => setTimeout(r, 700));
   const body = document.getElementById("recipeModalBody");

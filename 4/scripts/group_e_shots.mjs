@@ -22,7 +22,7 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+import { REPO, CHROME, LINUX_ARGS, gameURL } from "./lib/chrome.mjs";
 
 const OUT = process.argv[2] || "/tmp/group-e-shots";
 const PORT = +(process.argv[3] || 8691), DBG = +(process.argv[4] || 9691);
@@ -70,7 +70,7 @@ const ev = async expr => { const r = await send("Runtime.evaluate", { expression
 const shot = async n => { const r = await send("Page.captureScreenshot", { format: "png" });
   if (r.result?.data) { fs.writeFileSync(path.join(OUT, n), Buffer.from(r.result.data, "base64")); log("shot", n); } };
 
-const URL0 = `http://127.0.0.1:${PORT}/4/`;
+const URL0 = gameURL(PORT);
 await send("Page.navigate", { url: URL0 }); await sleep(1600);
 await ev("localStorage.clear(); 1");
 await send("Page.navigate", { url: URL0 }); await sleep(2600);
@@ -79,13 +79,13 @@ await sleep(900);
 await ev(`(()=>{const i=document.getElementById("nameModalInput"); if(!i)return false;
   i.value="Claude"; document.getElementById("btnNameConfirm").click(); return true;})()`);
 for (let i = 0; i < 50; i++) { if (await ev(`!!(window.appState && appState.game)`) === true) break; await sleep(400); }
-await ev(`(async()=>{ if(!window.appState){const m=await import('/4/src/state/index.js'); window.appState=m.appState;} return !!window.appState; })()`);
+await ev(`(async()=>{ if(!window.appState){const m=await import('/src/state/index.js'); window.appState=m.appState;} return !!window.appState; })()`);
 await sleep(1500);
 const out = { W, H };
 
 /* ---------- 1. the radial fan: D-32's pulse and D-33's Dock petal, in one picture ---------- */
 out.fan = await ev(`(async () => {
-  const g = appState.game, ui = await import("/4/src/ui/index.js");
+  const g = appState.game, ui = await import("/src/ui/index.js");
   const me = g.players[appState.mySeat || 0];
   // put the captain ON a berth so the action menu offers Dock -- the whole point of the shot
   const need = g.needs(me)[0];
@@ -126,8 +126,8 @@ log("petal pulse swing:", JSON.stringify(out.pulse));
 
 /* ---------- 2. the black-market ceremony on the BOT path, red-proofed ---------- */
 out.blackmarket = await ev(`(async () => {
-  const g = appState.game, ui = await import("/4/src/ui/index.js");
-  const h = (await import("/4/src/ui/handlers.js")).netHandlers();
+  const g = appState.game, ui = await import("/src/ui/index.js");
+  const h = (await import("/src/ui/handlers.js")).netHandlers();
   const botSeat = g.players.findIndex(p => p.strategy !== "human");
   const real = h.onDryCeremony;
   const fire = async () => {
@@ -155,7 +155,7 @@ await sleep(700);
 
 /* ---------- 3. one storm that really is stopped by a hull ---------- */
 out.storm = await ev(`(async () => {
-  const g = appState.game, ui = await import("/4/src/ui/index.js");
+  const g = appState.game, ui = await import("/src/ui/index.js");
   const NT = window.__NTBUB = { list: [] };
   const mo = new MutationObserver(ms => { for (const m of ms) m.addedNodes.forEach(n => {
     if (n.nodeType === 1 && n.classList && n.classList.contains("pp4Bub"))
@@ -195,9 +195,9 @@ out.storm = await ev(`(async () => {
 log("storm:", JSON.stringify(out.storm));
 // re-raise just the summary so it can be photographed on screen
 if (out.storm && out.storm.summary_line) {
-  await ev(`(async () => { const ui = await import("/4/src/ui/index.js");
+  await ev(`(async () => { const ui = await import("/src/ui/index.js");
     const g = appState.game, e = g.events.filter(x => x.t === "stormSummary").pop();
-    if (!e) return false; const u = await import("/4/src/ui/util.js");
+    if (!e) return false; const u = await import("/src/ui/util.js");
     const L = u.describeFor(e, u.NEUTRAL_VIEWER); if (!L) return false;
     ui.flash(L.txt); return true; })()`);
   await sleep(1400); await shot("e-storm-one-summary.png");
@@ -205,7 +205,7 @@ if (out.storm && out.storm.summary_line) {
 
 /* ---------- 4. the crate: how long between the Buy click and the crate landing ---------- */
 out.crate = await ev(`(async () => {
-  const g = appState.game, ui = await import("/4/src/ui/index.js");
+  const g = appState.game, ui = await import("/src/ui/index.js");
   const me = g.players[appState.mySeat || 0];
   const need = g.needs(me)[0]; const isle = need ? g.islandOf[need] : null;
   let berth = null;

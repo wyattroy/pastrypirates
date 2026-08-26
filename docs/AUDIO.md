@@ -11,7 +11,7 @@ cold session — or Wyatt, months later — can carry on without re-deriving any
   [round 2](https://claude.ai/code/artifact/464b56e4-70b7-4e0a-afcc-1b7237575dc1) ·
   [round 3](https://claude.ai/code/artifact/cc2f6a16-488a-46f8-ad9e-2140fa7b917f)
 
-The audio module itself is [`4/src/ui/audio.js`](../4/src/ui/audio.js). Its own header is excellent
+The audio module itself is [`src/ui/audio.js`](../src/ui/audio.js). Its own header is excellent
 and still accurate on *architecture* — one AudioContext, one master gain, a quieter storm bus, a
 fresh source node per play so repeats layer. **This document is about what that architecture is
 currently doing wrong, and what is meant to fill it.**
@@ -25,12 +25,12 @@ the game actively worse than silence.
 
 ### DEFECT-1 — `fishing.mp3` can never play. One of six sounds is dead.
 
-`EVENT_SOUND` in `4/src/ui/audio.js` lists **`anchorHold` twice**. In a JavaScript object literal
+`EVENT_SOUND` in `src/ui/audio.js` lists **`anchorHold` twice**. In a JavaScript object literal
 the last one wins, so the intended `anchorHold: "fishing"` is silently overwritten by a later
 `anchorHold: "storm"`. The only other two events mapped to `fishing` — `fish` and `anchor` — are
 **not emitted anywhere in `4/src`** under the v2 rules.
 
-The engine states the intent in writing, at `4/src/engine/index.js:463`: *"the audio cues
+The engine states the intent in writing, at `src/engine/index.js:463`: *"the audio cues
 (windmove/blownOut -> ship-move, anchorHold -> fishing)"*. **The comment and the behaviour
 disagree.** Every game downloads and decodes a 55 KB file that nothing can trigger.
 
@@ -94,7 +94,7 @@ through — give them explicit entries either way.
 
 ## 2. The audio contradicts the script
 
-The battles are written entirely as gunpowder. Counted across `4/src` and `4/index.html`:
+The battles are written entirely as gunpowder. Counted across `4/src` and `index.html`:
 
 | Word | Occurrences |
 |---|---|
@@ -116,11 +116,11 @@ is the `clash` slot still open in §4.
 
 ### The narration already asks for a drumroll, and nothing plays
 
-`4/src/orchestrator.js:1078` is literally `await flash("Drumroll...")`. The board pulls back for a
+`src/orchestrator.js:1078` is literally `await flash("Drumroll...")`. The board pulls back for a
 last look, the blue box types the word, holds, fades, and the gold banner reveals the winner. The
 whole moment is built, staged and timed. **It is simply mute.**
 
-**The window is exact, not estimated.** `4/src/ui/stage.js:578` holds every narration line for
+**The window is exact, not estimated.** `src/ui/stage.js:578` holds every narration line for
 `Math.max(2550, Math.min(6750, msgHoldMs(msg) * 1.5))`, and `"Drumroll..."` is short enough to take
 that floor — so the roll is **2.55 seconds** and its final hit lands as the box fades into the
 reveal.

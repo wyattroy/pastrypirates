@@ -22,7 +22,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { REPO } from "./lib/chrome.mjs";
+import { REPO, gameURL } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 /* THE SECOND ENGINE. Wyatt, 2026-08-26: "your fixes must be verified across Safari and Chrome."
    wk.mjs is a MOUNT, not a second driver — it returns the same handle shape openChrome() does, so
@@ -82,11 +82,11 @@ await sleep(900);
    Nothing in the game reads gamelogs back, so these rows cannot affect what any player sees. */
 const QA_PLAYER_ID = "qa-playtest-gate";
 async function freshPage(c, idSuffix = "a") {
-  await c.nav(`http://127.0.0.1:${c.httpPort}/4/`); await sleep(2200);
+  await c.nav(gameURL(c.httpPort)); await sleep(2200);
   // each browser needs its OWN id or the second one rejoins as the first's seat (§5c) — the shared
   // prefix is what makes both filterable, the suffix is what keeps them distinct captains.
   await c.ev(`localStorage.clear(); localStorage.setItem('pp_id', ${JSON.stringify(QA_PLAYER_ID)} + '-' + ${JSON.stringify(idSuffix)}); 1`);
-  await c.nav(`http://127.0.0.1:${c.httpPort}/4/`); await sleep(2600);
+  await c.nav(gameURL(c.httpPort)); await sleep(2600);
   await c.ev(GATE_SRC);
 }
 async function nameModal(c, name) {

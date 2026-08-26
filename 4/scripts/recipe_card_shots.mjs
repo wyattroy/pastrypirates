@@ -19,7 +19,7 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO, CHROME, LINUX_ARGS } from "./lib/chrome.mjs";
+import { REPO, CHROME, LINUX_ARGS, gameURL } from "./lib/chrome.mjs";
 import { RECIPE_PROBE_SRC } from "./lib/narration_probe.mjs";
 
 const OUT = process.argv[2] || "/tmp/recipe-shots";
@@ -67,7 +67,7 @@ const metrics = (w, h) => send("Emulation.setDeviceMetricsOverride", { width: w,
 const shot = async name => { const r = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   if (r.result?.data) { fs.writeFileSync(path.join(OUT, name), Buffer.from(r.result.data, "base64")); log("shot", name); } };
 
-const URL0 = `http://127.0.0.1:${PORT}/4/`;
+const URL0 = gameURL(PORT);
 await metrics(1400, 900);
 await send("Page.navigate", { url: URL0 }); await sleep(1600);
 await ev("localStorage.clear(); 1");
@@ -77,11 +77,11 @@ await sleep(900);
 await ev(`(() => { const i=document.getElementById("nameModalInput"); if(!i) return false;
   i.value="Claude"; document.getElementById("btnNameConfirm").click(); return true; })()`);
 for (let i = 0; i < 40; i++) { const ok = await ev(`!!(window.appState && appState.game)`); if (ok === true) break; await sleep(400); }
-await ev(`(async()=>{ if(!window.appState){ const m=await import('/4/src/state/index.js'); window.appState=m.appState; } return !!window.appState; })()`);
+await ev(`(async()=>{ if(!window.appState){ const m=await import('/src/state/index.js'); window.appState=m.appState; } return !!window.appState; })()`);
 
 /* ---- RED PROOF, before anything is believed: no recipe on the seat -> no card ---- */
 const red = await ev(`(async () => {
-  const ui = await import("/4/src/ui/index.js");
+  const ui = await import("/src/ui/index.js");
   const seat = appState.mySeat || 0;
   const keep = appState.game.players[seat].recipe;
   appState.game.players[seat].recipe = null;
@@ -97,7 +97,7 @@ log("RED PROOF:", JSON.stringify(red), red && red.drew_with_no_recipe === false 
 
 /* ---- pose a real recipe on this seat and look at it ---- */
 const posed = await ev(`(async () => {
-  const r = await import("/4/src/ui/recipe.js");
+  const r = await import("/src/ui/recipe.js");
   const seat = appState.mySeat || 0, p = appState.game.players[seat];
   if (!p.recipe) {
     // the draft has not happened yet, so hand the seat a real recipe from the book the modal reads
