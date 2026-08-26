@@ -30,7 +30,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 // Bumped on every /4 deploy. Shown in the ☰ menu so a playtest screenshot proves which build it
 // came from — two stall reports have now turned out to be photos of code that was already fixed,
 // and Safari's module cache makes "refresh" an unreliable way to get the new build.
-const PP4_STAMP = "2026-08-26d";
+const PP4_STAMP = "2026-08-26e";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1223,9 +1223,26 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
   let subj = S.subject; S.subject = null;
   if (subj == null && typeof msg === "string"){
-    // turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour
-    const i = HEXCOL.findIndex(cx => msg.indexOf(`color:${cx}`) >= 0);
-    if (i >= 0) subj = i;
+    /* turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour.
+       ONE CAPTAIN NAMED, OR NOBODY. T-32 (Wyatt, 2026-08-26): "the storm narration that reported
+       how players were moved appeared connected to the player 1; it shouldn't -- it should appear
+       in the dark blue narration box that reports table-wide events. this should be the behavior
+       across all modes, not just pass-and-play."
+
+       This used to take the FIRST colour it found. A storm summary names several captains, each
+       wrapped in their own colour by pn() — "Flaky Jack was swept…, Dough Hook held…" — so a
+       report about the whole table was pinned to whichever captain happened to be mentioned
+       first. That is his player 1, and the arbitrariness is the tell: the anchor was the reading
+       order of the sentence, not its subject.
+
+       A line naming two or more captains is BY DEFINITION about the table rather than about any
+       one of them, so it stays subject-less and draws in the table-wide box. The turn-start case
+       the sniff exists for names exactly one captain and is untouched. Nothing is mode-specific:
+       this is the one derivation every mode reads, which is why his "across all modes" comes for
+       free rather than needing three fixes. */
+    const named = [];
+    for (let i = 0; i < HEXCOL.length; i++) if (msg.indexOf(`color:${HEXCOL[i]}`) >= 0) named.push(i);
+    if (named.length === 1) subj = named[0];
   }
   if (S.hurry) S.hurry();                            // one live bubble: retire the old one NOW
   // playtest 5: a manual pinch/pan holds the camera only until the next action — then the

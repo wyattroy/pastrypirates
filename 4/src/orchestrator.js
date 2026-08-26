@@ -2093,7 +2093,26 @@ async function hostGoneGrace(quiet){
     await new Promise(res=>setTimeout(res,2000));
     last=(await netReadRoom(appState.db,appState.room)).val();
     if(!last)return {gone:true,room:null};
-    if(last.status!=="hostgone")return {gone:false,room:last};
+    if(last.status!=="hostgone"){
+      /* T-11 (Wyatt, 2026-08-26): "This message DID appear -- although the message never
+         disappeared once the host had returned. It needs to disappear with an affirmative
+         'Yargh! They're back!' which then disappears after the standard time for a message of
+         that length."
+
+         THE WAIT LINE HAS NO DEADLINE, and that is deliberate — {wait:true} means "nothing is
+         happening yet", and item 19 removed the deadline from wait lines precisely so one cannot
+         time out while the table is genuinely still waiting. The comment above claims it "retires
+         itself on the next narration once play resumes"; that is true and it is not enough,
+         because there may be no narration for a while after a host walks back in, and until then
+         his screen still says they are gone.
+
+         An ORDINARY narration is the answer: no `wait` flag, so it takes the standard hold for its
+         length and fades on its own. It also replaces the wait line by being the next narration,
+         which is the mechanism the old comment was relying on — this just guarantees one happens.
+         @copy prompt.net.hostback — his words, verbatim. */
+      if(!quiet)showNarration("⚓ Yargh! They're back!");
+      return {gone:false,room:last};
+    }
   }
   return {gone:!last||last.status==="hostgone",room:last};
 }
