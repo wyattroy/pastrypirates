@@ -404,6 +404,21 @@ export async function playBakeoffLive(spec,io){
   // definition and leaves through the same one exit as a finished attempt (item 6).
   if(!row){retireBakeCard();return null;}
   const bowls=[...row.querySelectorAll(".bkoBowl")];
+  /* T-29 (Wyatt, 2026-08-26): "it seems like the crates are clickable by the watcher (the mouse
+     changes cursor) -- if the player tries to click while watching, a tooltip should appear that
+     says 'Now yer just watchin''."  The cursor is fixed in CSS (.bkoWatching .bkoBowl); this is the
+     answer for a tap that happens anyway. It borrows the hint line the bench already has rather
+     than inventing a tooltip, so there is one place the bench speaks and it cannot drift — and it
+     restores whatever the hint said before, because that line is load-bearing during a real bake. */
+  if(watch){
+    const hint=$("bkoHint");
+    for(const b of bowls) b.addEventListener("click",()=>{
+      if(!hint)return;
+      if(hint._t)clearTimeout(hint._t); else hint._was=hint.textContent;
+      hint.textContent="Now yer just watchin'";   // his words, exactly
+      hint._t=setTimeout(()=>{hint.textContent=hint._was||"";hint._t=null;},1800);
+    });
+  }
 
   // MEASURED ONCE, never per frame: the centre-to-centre distance between two bowls, used for the
   // swap translate. Horizontal, so it is a left-to-left distance and the swap animates translateX.

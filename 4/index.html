@@ -544,8 +544,22 @@
      real disabled button fires no click, so it could never be tapped to ask why. The look is
      unchanged; the selector gains the aria form alongside the old one. `cursor: help` rather than
      `not-allowed`, because the button now DOES do something when ye tap it. */
-  .apBtn.apDisabled, .apBtn:disabled, .apBtn[aria-disabled="true"] {
+  /* T-29 (Wyatt, 2026-08-26): "the cursor turns into a '?' but nothing happens when buttons are
+     clicked. IF nothing happens, it should not change into a ?"
+
+     He is right, and the rule above says why without noticing: `cursor: help` was chosen "because
+     the button now DOES do something when ye tap it" — which is true of the ARIA form and false of
+     the real `disabled` attribute, because a genuinely disabled button fires no click event at all.
+     The selector carried both, so the bake-off's Ready button (built with a real `disabled`) and
+     every other truly-dead control offered a "?" that could never be answered. Split: the ones that
+     can explain themselves keep the help cursor, the ones that cannot stop pretending. */
+  .apBtn.apDisabled, .apBtn[aria-disabled="true"] {
     opacity: .45; cursor: help; filter: grayscale(.4); }
+  .apBtn:disabled:not(.apDisabled):not([aria-disabled="true"]) {
+    opacity: .45; cursor: default; filter: grayscale(.4); }
+  /* T-29, the other half: a WATCHER's crates are not theirs to open. The pointer cursor said they
+     were. bakeoff.js flashes "Now yer just watchin'" into the hint line if one is clicked anyway. */
+  .bkoWatching .bkoBowl { cursor: default; }
   .apBtn.apDisabled:hover, .apBtn:disabled:hover, .apBtn[aria-disabled="true"]:hover { background: #fff; }
   /* The reason a greyed circle is greyed, spoken AT that circle. Wyatt's screenshot had one helper
      line explaining one of several greyed buttons from across the board; a bubble with a tail
