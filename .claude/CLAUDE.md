@@ -758,6 +758,7 @@ and ask before writing code.
 | Bot behaviour or tuning | [`docs/BOT-DESIGN-PRINCIPLES.md`](../docs/BOT-DESIGN-PRINCIPLES.md), [`docs/BOT-V3-RACE-PLANNER.md`](../docs/BOT-V3-RACE-PLANNER.md) |
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
+| **Testing, measuring, or trusting any instrument** | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — *THE WHOLE LOOP, END TO END*, and [`docs/HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md) — the day five instruments lied |
 | **Everything — read at session start** | [`docs/HARD-WON-LESSONS.md`](../docs/HARD-WON-LESSONS.md) |
 
 ### Two facts that save the most time
@@ -808,8 +809,12 @@ node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
 node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
 ```
 
-**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md). A hook stops the first edit to game
-code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
+**Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — and read its *"THE WHOLE LOOP, END
+TO END"* section, which is the process the sea trial sits inside: predict before you measure,
+red-proof the instrument, answer the REPORTED symptom, read the NOT-RUN column first, treat the
+vision judge as a witness rather than a verdict. Every step in it exists because skipping it cost
+something on 2026-08-26; the war stories are [`HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md).
+A hook stops the first edit to game code in a session and states the gear** — `.claude/hooks/qa-gear-first.cjs`, beside the one that
 enforces rule 17.
 
 Wyatt named it on 2026-08-26. A *sea trial* is the naval term for taking a vessel out and testing

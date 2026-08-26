@@ -8,6 +8,13 @@ results). This says **how** to drive it. Read both before a browser pass.
 
 ---
 
+> **BEFORE YOU WRITE A PROBE, READ [`QA-PROCESS.md` → THE WHOLE LOOP](QA-PROCESS.md).** This file
+> tells you how to drive the game; that one tells you how not to fool yourself with what you
+> measure. On 2026-08-26 three probes written against this manual could not have failed — one began
+> sampling after the animation it was timing had finished, one used an emoji with no artwork so it
+> never became the image it was testing, and one resolved "the card" to the full-screen container.
+> **Red-proof every probe: feed it the broken case and watch it go red.**
+
 ## 1. Serve it, and use a port you have never loaded
 
 ```bash

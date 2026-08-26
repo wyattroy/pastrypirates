@@ -148,3 +148,132 @@ the thorough pass existed and nobody ran it.
 4. **The rig is not a bug.** When the two-browser rig breaks, everything stops until it runs. A
    per-bug time budget must never be applied to the thing bugs are tested with — doing that
    silently turned "test every mode" into "test solo", and nobody said so out loud.
+
+---
+
+# THE WHOLE LOOP, END TO END — added 2026-08-26
+
+**Everything above describes the sea trial. This describes the process the sea trial sits inside.**
+It was refined across one long session in which **five separate instruments were wrong** and two of
+the day's "fixes" were wrong before they were right. Each numbered step below exists because
+skipping it cost something that day. The war stories are
+[`HARD-WON-LESSONS.md` §10](HARD-WON-LESSONS.md).
+
+**If you read one line: an instrument that cannot fail is not an instrument, and four of the five
+that lied were measuring something ADJACENT to what they reported.**
+
+## 0. Before you touch anything — ask what already exists
+
+Read the subsystem's own doc (CLAUDE.md rule 20) **and** the comments around the code you intend to
+change. On 2026-08-26 the "obvious fix" for a reported overlap would have **re-broken a defect fixed
+weeks earlier**, and the comment saying so was four lines above the CSS. Every gate would have
+stayed green. See §10g.
+
+```bash
+git log --all --oneline --grep="<subsystem>" -i          # the arguments already had
+git log --all --format="%H %s" -S "<the number or fn>"   # where a quantity was last defended
+```
+
+## 1. WRITE THE PREDICTION DOWN — before you measure, before you fix
+
+State in writing: **what you expect, why, and what would prove you wrong.** Then measure. Then say
+plainly which parts were wrong. Roughly ninety seconds.
+
+- **Name the falsifier**, or it is a wish. *"If no-cover-ask is gone but Deny is still never
+  exercised, my reasoning is wrong"* — it was, and the note is why that got reported instead of
+  quietly reframed as a partial win.
+- **Write it BEFORE the result exists.** A prediction composed afterwards is always right.
+- It is also what gives step 0 a chance to fire: you cannot check a plan against the graveyard
+  until you have written the plan down.
+
+Full rule: `.claude/CLAUDE.md` rule 6, *"write the prediction down before you measure"*.
+
+## 2. RED-PROOF THE INSTRUMENT before you believe it
+
+**Feed it the broken case and watch it go red.** If you cannot make it fail, you have not written a
+test — you have written a sentence that always says yes.
+
+Three of the day's own probes could not have failed: a trace that began after the animation had
+finished; a test using an emoji with no artwork, so it never became the image it claimed to test; a
+"does this cover that" check whose element-finder resolved to the full-screen container.
+
+**And ask the harder question:** *what does this actually measure, and is that the same thing as
+what I am about to claim?* Four of five failures that day were an adjacent measurement reported as
+the real one — geometry reported as "has it stopped changing", a log phrase reported as "did Safari
+run", a warm-process timer reported as "can he see this on his phone".
+
+## 3. THE FOUR STEPS (unchanged — see the top of this file)
+
+Show it broken → change it → show that SAME check passes → sweep.
+
+**The check must address the REPORTED symptom.** Write the complaint down verbatim and make the
+after-measurement answer that sentence. On 2026-08-26 a button was reported as covering cards
+mid-scroll; the fix addressed *fully-scrolled reachability*, was measured there, was declared fixed,
+and came back in the next trial. See §10f.
+
+## 4. THE SWEEP — one fix, every site
+
+`emojify()` proved the shape: the reported bug was one stranded full stop, and the sweep found
+**five** places with the same fault plus a sixth waiting in the next line of copy. Fix centrally
+where a central fix exists; when you fix at a call site, say why the central one could not see it.
+
+## 5. RUN THE SEA TRIAL — and read the NOT-RUN column first
+
+```bash
+node 4/scripts/qa/gear.mjs --since=HEAD~1   # AFTER a push, or it reports NONE. See below.
+node 4/scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
+```
+
+> **AFTER A PUSH THE GEAR PICKER GOES BLIND.** It diffs against `origin/main`, and rule 24's own
+> workflow tells you to push so Wyatt can play it — which empties that diff and yields `GEAR: NONE`.
+> **A `NONE` verdict on a day you changed game code is the tell, not the answer.** Third appearance
+> of this shape; see §10h.
+
+**"Did it run?" is answered by evidence captured, never by a phrase in a log.** The report once
+said *"voyages that did NOT run: none"* while both Safari legs had died instantly — it matched
+`NOT RUN —` and the gate had printed `ERROR:`. It now decides from `report.json`: **a leg that
+captured no screens did not sail.**
+
+## 6. READ THE JUDGE AS A WITNESS, NOT A VERDICT
+
+Roughly half its findings survive contact with the source. **Open the screenshot. Then check the
+graveyard.** Two named biases:
+
+- **Deliberate whitespace reads as a defect** — three findings in one trial, all previously settled.
+- **Small glyphs are misread** — it reported a literal `$` where the wind said `S`.
+
+It is still worth having: it found both of that trial's real bugs. But never act on it unread.
+
+## 7. SHOW IT TO A CEO BEFORE SHOWING IT TO WYATT
+
+Fresh context, his request verbatim, what was actually done, and the previous verdict. Its question
+is narrow — **did the thing he asked for happen?** Its verdict reaches him in ITS words, especially
+when bad. Template: `.claude/CEO-BRIEF.md`, rule 25.
+
+It has earned its place: it caught an untested build being certified, a dead sweep command, a
+fabricated quote, and a cause asserted for three screens that was measurably wrong on one of them.
+
+## 8. LEAVE THE MACHINE AS YOU FOUND IT
+
+```bash
+pkill -f remote-debugging-port; pkill -f http.server
+```
+
+Bound every probe. Kill it when you have the answer, not when the task ends. Never leave one running
+across a reply — he is at the keyboard, on the machine it is heating.
+
+---
+
+## The one-screen version
+
+| | |
+|---|---|
+| 0 | Read the doc **and the comments**. The argument may already be had. |
+| 1 | **Write the prediction and its falsifier** before measuring. |
+| 2 | **Make the instrument go red** before believing it green. Ask what it really measures. |
+| 3 | Broken → change → **the same check** passes → sweep. Answer the reported sentence. |
+| 4 | Fix centrally; sweep every site. |
+| 5 | Sea trial. **Read NOT-RUN first.** `--since=HEAD~1` after a push. |
+| 6 | Judge = witness. Open the picture, check the graveyard. |
+| 7 | CEO before Wyatt. Its words, especially when bad. |
+| 8 | Kill every browser and server. |
