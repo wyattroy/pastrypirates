@@ -200,93 +200,62 @@ hour" into an hour of lost work.
 > to make the page optimized for mobile."* **Do not assume either device — he says which one he is
 > on, unprompted. Give a page the room its content needs unless he has told you he is on the phone.**
 
-**THE MECHANISM, RE-MEASURED 2026-08-26. The previous version of this section was wrong in both
-directions, and it is worth knowing how, because the failure was not carelessness — it was reading a
-file that had quietly stopped being written.**
-
-**HE RE-ARMS IT HIMSELF. Typing `/remote-control` in the chat brings a dead session's bridge back.**
-Wyatt, 2026-08-26: *"i'm able to re-arm it myself by just typing /remote-control in the chat."* The
-log corroborates him outright — the same internal session id armed **four times, three times, and
-twice** across separate days, and in one case **twice in thirty-three minutes**:
-
-```
-2026-08-24 12:49:03  [WarmLifecycle:session] Idle timeout reached, disconnecting local_162d734f…
-2026-08-24 12:49:39  Enabling remote control for session local_162d734f…   <- BACK, 36 SECONDS LATER
-```
-
-**That pair is the whole disproof.** A teardown, then the same session armed again half a minute
-after it. The clearest case of all is this file's own session: `local_cc513bc7` was armed
-2026-08-24 20:37:48, torn down repeatedly for the next 38 hours, and armed again at **2026-08-26
-10:52:59** — Wyatt typing `/remote-control`, recorded in the log, on the morning this paragraph was
-written. *(Found by CEO review 3, which pointed out the best evidence was sitting in the session
-that was writing the rule and had gone uncited.)*
-
-> ### ⚠ READ THE LIVE LOG, NOT THE DEAD ONE
+> ### ⚠ THIS SECTION HAS NOW BEEN WRONG TWICE, THE SAME WAY. READ THE TRAP BEFORE THE RULE.
 >
-> This section used to cite `~/Library/Logs/Claude/main1.log` and told every future session to do the
-> same. **That file stopped being written on 2026-08-19.** It is still on disk, still ~900KB, still
-> full of plausible lines — so a session that greps it gets a confident answer built entirely out of
-> week-old facts, with nothing anywhere to signal the staleness. **The live file is
-> `~/Library/Logs/Claude/main.log`.** Check the mtime before you trust either.
+> **`[WarmLifecycle:session] Idle timeout reached, disconnecting local_<id>` IS NOT REMOTE CONTROL.**
+> It governs keeping a session PROCESS warm in memory — note it has a `:preview` twin firing on the
+> same ids — and it cycles every ~15 minutes forever whether or not the phone can see anything.
+>
+> An earlier version of this section read those lines and concluded remote control "is armed once…
+> and never re-arms itself." On **2026-08-26** that was rewritten — and the rewrite made the SAME
+> misread, built a detector on it, and reported DOWN while Wyatt was reading the session on his
+> phone. He said so plainly: *"I can see this from my phone just fine."*
+>
+> **Two independent readers drew the same wrong conclusion from the same lines.** That is why this
+> warning is at the top instead of the bottom: the log is genuinely misleading here, and being
+> careful is not sufficient protection against it.
 
-What the live log actually records:
+**WHAT THE LOG CAN AND CANNOT TELL YOU** (`~/Library/Logs/Claude/main.log` — **not `main1.log`,
+which stopped being written 2026-08-19 and still sits on disk looking healthy**):
 
 | line | what it means |
 |---|---|
-| `[rcAutoEnable] verdict: enable=true source=explicit_pref` | his preference is ON — a brand-new session arms itself |
-| `Enabling remote control for session local_<id>` | armed. Appears **once per arming, NOT once per session** |
+| `[rcAutoEnable] verdict: enable=true source=explicit_pref` | his preference is ON — a new session arms itself |
+| `Enabling remote control for session local_<id>` | armed. **Once per arming, not once per session** |
 | `Remote control enabled: https://claude.ai/code/session_<id>` | the URL his phone opens |
-| `[remote-control] bridge_state: connected \| ready \| reconnecting` | the only three values it has ever written — **there is no "down" state** |
-| `[WarmLifecycle:session] Idle timeout reached, disconnecting local_<id>` | **this** is the teardown |
-| `Mapping internal session local_<id> to CLI session <cli-uuid>` | how a session finds **its own** id |
+| `[remote-control] bridge_state: connected \| ready \| reconnecting` | **the only three values ever written — THERE IS NO "down"** |
+| `[remote-tools-device] …` | the real transport, and it **SELF-HEALS** — 332 reconnects against 236 socket closes in one log |
+| `[WarmLifecycle:*]` | **a different subsystem. Ignore it. See the box above.** |
 
-**The 15-minute idle clock is real, and it is still blind to whether work is happening** — "idle"
-means *Wyatt* is not typing. So the long autonomous run remains the exact case that kills his phone
-access, precisely when he most needs it. **That half of the old note was right and still is.**
+**SO THERE IS NO HONEST "IS IT DOWN?" TEST HERE, AND YOU MUST NOT INVENT ONE.** No down state is
+logged, and a closed socket is a bridge about to reconnect rather than a dead one.
+`~/.claude/bin/rc-state.sh` now reports evidence of LIFE (recent `[remote-tools-device]` activity)
+and returns UNKNOWN otherwise — **it will never print DOWN**, because nothing in the log supports
+that word. Its previous version did, and that is what misled a session into telling Wyatt his phone
+access was gone while he was using it.
 
-**ALIVENESS IS A COMPARISON, NOT A STATE READ — and this is the part that keeps being got wrong.**
-Because no "down" value is ever logged, the only honest test is *which timestamp is later*: the last
-`Enabling` for that id, or the last `Idle timeout reached, disconnecting` for it.
+**HE RE-ARMS IT HIMSELF, AND THIS PART IS SOLID.** Wyatt, 2026-08-26: *"i'm able to re-arm it myself
+by just typing /remote-control in the chat."* The log corroborates it — one session torn down at
+12:49:03 and armed again at **12:49:39**, thirty-six seconds later; this session armed 2026-08-24
+20:37:48 and again 2026-08-26 10:52:59.
 
-> **Take the LAST of each, and do not picture two tidy events.** The disconnect line is a
-> **repeating timer expiry, not a one-shot** — it re-fires roughly every 15 minutes for as long as a
-> session sits idle. One session (`local_cc513bc7`) logged it **108 times across 38 hours**. The
-> comparison is still correct because it reads the most recent of each, but a reader who pictures a
-> single clean "down" event will mis-read this log. *(CEO review 3 flagged the earlier wording here
-> as tidier than the truth; it estimated "over 150" and the counted figure is 108.)*
+**WHAT A SESSION CANNOT DO IS TYPE IT — verified, not assumed.** `Skill("remote-control")` returns,
+exactly: *"remote-control is a UI command, not a skill. Ask the user to run /remote-control
+themselves — it cannot be invoked via the Skill tool."* A subagent runs in this session with the
+same tools and gets the same refusal. **So: ask him; never imply a watcher will handle it.**
 
-That is
-`~/.claude/bin/rc-state.sh` (`--self <cli-uuid>` resolves the id from the mapping line, so it keeps
-working after a restart issues a new one). **The proof that it goes both ways is an ARTIFACT, not this sentence** —
-`~/.claude/bin/rc-state.proof.txt`, regenerated by `~/.claude/bin/rc-state.proof.sh`: red on three
-known-dead sessions, green on the live one, UNKNOWN on an id it has never seen. A check nobody has
-watched go red is a check nobody should trust (§5's seeded-defect drill that could not fail) — and a
-*sentence claiming* it went red is exactly the rotting comment rule 6 forbids. This paragraph
-originally made that mistake and CEO review 3 caught it.
-
-**WHAT YOU CANNOT DO — AND A SUBAGENT CANNOT EITHER: type it for him.** Verified 2026-08-26:
-`Skill("remote-control")` returns *"remote-control is a UI command, not a skill. Ask the user to run
-/remote-control themselves."* A subagent runs inside this session with the same tools and gets the
-same refusal. **You can detect the death. Only he can undo it.** Say that plainly rather than
-implying a watcher will fix it.
-
-**AND THE ALERT CANNOT OUTLIVE WHAT IT IS ALERTING ABOUT.** A push reaches his *phone* only while the
-bridge is still up; the moment it is down the only screen left is the laptop he has walked away
-from. A watcher is therefore a safety net for the case where it dies while he is still nearby — it
-is **not** a substitute for arming it before he goes.
-
-- **When he says he is stepping away, ask him to type `/remote-control` in that same reply.** Two
-  seconds of his time, and it is the whole difference between a watched run and a lost window.
-- **Give him the phone link from the app, never from a bookmark.** The `claude.ai/code/session_…`
-  URL *sometimes* survives a re-arm and sometimes does not — `local_cc513bc7` was issued a new one on
-  all three of its armings; `local_162d734f` kept the same one across both. Do not assume either.
+- **When he says he is stepping away, ask him to confirm the phone link works** — one line, in that
+  same reply. Cheap for him, and it is the only reliable signal there is.
+- **Do not tell him it is down.** You cannot know that. If something looks wrong, say what you
+  actually observed and ask.
+- **Give him the link from the app, never a bookmark** — the `claude.ai/code/session_…` URL
+  sometimes survives a re-arm and sometimes does not.
 - **The handoff offer still stands** — a fresh session picks up from `.planning/` on disk, and
-  `/gsd-execute-phase {N}` skips every plan that already has a SUMMARY. Cheap to do, expensive to skip.
-- **Never assert a cause for this without opening `~/Library/Logs/Claude/main.log` first.** There are
-  now **three** confident wrong answers on the record: *"local sessions are never phone-reachable"*
-  (his had been, the day before), *"click the globe"*, and this file's own **"There is NO re-arm…
-  nothing brings it back."** All three were written by someone who had not read the current log —
-  the third one by a session that had this very paragraph in front of it telling it to.
+  `/gsd-execute-phase {N}` skips every plan that already has a SUMMARY.
+- **Never assert a cause here without opening `main.log` first — and then check you are reading the
+  remote-control subsystem and not `WarmLifecycle`.** Four wrong answers are now on the record:
+  *"local sessions are never phone-reachable"*, *"click the globe"*, *"there is NO re-arm"*, and
+  *"it is DOWN"* — the last two both from misreading the same lines.
 
 - **Front-load every decision.** If he is about to be away, ask everything answerable *now*. A run
   that blocks twenty minutes after he leaves burns the whole window for one question.
