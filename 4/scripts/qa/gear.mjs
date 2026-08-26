@@ -1,0 +1,150 @@
+/* WHICH GEAR IS THIS CHANGE IN?  — the mechanical half of the QA process.
+ *
+ * Wyatt, 2026-08-26: "I want one elegant process that is called every time we need to change the
+ * code of the game. Design this such that small changes can be qa'd quickly, and large changes are
+ * qa'd appropriately, but all using a similar logic."
+ *
+ * SAME FOUR STEPS EVERY TIME — show it broken, change it, show it fixed, sweep. Only the SWEEP
+ * changes size, and this file is what decides the size. It reads the files you actually changed.
+ *
+ * WHY IT IS MECHANICAL AND NOT A JUDGEMENT CALL: a rule based on how risky a change FEELS cannot be
+ * enforced by anything, and the whole reason this exists is that on 2026-08-25/26 a session shipped
+ * 22 fixes, picked its own testing depth by mood, and verified 4 of them in one mode at one screen
+ * size. A rule based on "which files did you edit" can be enforced by a hook. That is the entire
+ * design constraint.
+ *
+ *   node 4/scripts/qa/gear.mjs              what gear am I in, right now, for my current changes
+ *   node 4/scripts/qa/gear.mjs --since=HEAD~3
+ *   node 4/scripts/qa/gear.mjs --files a.js b.js
+ */
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+
+const arg = k => (process.argv.find(a => a.startsWith(k)) || "").split("=")[1];
+const sh = c => { try { return execSync(c, { cwd: REPO, encoding: "utf8" }); } catch { return ""; } };
+
+/* ---- what changed ---------------------------------------------------------- */
+let files;
+const iFiles = process.argv.indexOf("--files");
+if (iFiles >= 0) files = process.argv.slice(iFiles + 1);
+else {
+  const since = arg("--since");
+  const raw = since ? sh(`git diff --name-only ${since}`)
+                    : sh("git diff --name-only") + sh("git diff --name-only --cached");
+  files = [...new Set(raw.split("\n").map(s => s.trim()).filter(Boolean))];
+}
+
+/* ---- the rules -------------------------------------------------------------
+
+   WYATT'S DESIGN PRINCIPLE, and this file must not contradict it (2026-08-26):
+
+     "Each mode should be structurally different just about who the player is playing against, but
+      the game itself should remain consistent for every player in every mode."
+
+   Pastry Pirates is ONE game, not three. Solo, pass-and-play and crew are three answers to one
+   question — who are the other captains, and how does a turn reach them? Everything else is the
+   same game, and a player should not be able to tell which mode they are in from the board, the
+   narration, the wording, the pacing or the prompts.
+
+   AN EARLIER VERSION OF THIS FILE HAD A GEAR CALLED "behaviour changed inside one mode", and he
+   caught it. That sentence PRESUMES the fork it should be preventing: it treats "this only affects
+   crew" as an ordinary thing to say, then only looks at crew — so a divergence introduced anywhere
+   else sails through, and the process quietly teaches itself that forking modes is routine. It is
+   the same failure as the parity gate declaring localAsk an acceptable gap: a process agreeing, in
+   advance, that a fork is fine.
+
+   So there are three gears and the middle one is a different SUBJECT, not a smaller size:
+
+     COSMETIC  words, colours, comments — cannot change anything
+     PLUMBING  how a mode SERVES the game to its players: pass-and-play's hand-the-device gate and
+               how often it fires, crew's room codes and joining and the 30-second grace. This is
+               genuinely per-mode, because it is about the seating rather than the game.
+     FULL      anything that can change what a captain SEES or CAN DO — every mode, every size.
+
+   PLUMBING MUST BE EARNED, and everything else defaults to FULL. That polarity is deliberate: this
+   file shipped an hour earlier defaulting to the LENIENT answer when it had no evidence, and dropped
+   real changes into the gear that skips proving them broken.
+
+   THE TELL that separates plumbing from the game: if a change can alter what any player sees or can
+   do, it is NOT plumbing. `pos` went missing from the guest's sail prompt exactly here — it looked
+   like wire plumbing and it changed what a guest could DO (stay put). Hence PLUMBING_FORBIDDEN
+   below: an edit that mentions a prompt's payload or a renderer is the game, whatever file it is in. */
+
+/* Narrow, explicit, and the ONLY way to earn the plumbing gear. */
+const PLUMBING = [
+  { re: /^4\/src\/ui\/lobby\.js$/,      modes: ["crew"],       what: "the room screens — creating, joining, naming, leaving" },
+  { re: /\bpassGate\b/,                  modes: ["passplay"],   what: "pass-and-play's hand-the-device gate" },
+  { re: /\bnetCreateRoom\b|\bnetJoinRoom\b|\bnetLeaveRoom\b|\bgenCode\b|\bhostGoneGrace\b/,
+                                          modes: ["crew"],       what: "crew's room lifecycle and the host-gone grace" },
+];
+/* …but NEVER plumbing, whatever else the edit matches. These are the game reaching a player. */
+const PLUMBING_FORBIDDEN = /\bspec\b|\bpayload\b|renderPickPrompt|playBakeoffLive|showNarration|localAsk|applyBenchSnap|applyBattleSnap|\bpanel\(/;
+
+/* ---- helpers ---------------------------------------------------------------- */
+const isDoc = f => f.endsWith(".md") || f.startsWith(".planning/") || f.startsWith("docs/");
+
+function changedLines(f) {
+  const d = sh(`git diff -U0 -- ${JSON.stringify(f)}`) + sh(`git diff -U0 --cached -- ${JSON.stringify(f)}`);
+  return d.split("\n").filter(l => /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l));
+}
+
+/* A changed line that is only a comment, or only inside a CSS block, cannot change behaviour.
+   NO EVIDENCE MEANS NOT-COSMETIC. `[].every(...)` is TRUE, so an empty diff — a file passed by name
+   with nothing to inspect, a change already committed, a rename — reported "all cosmetic" and
+   dropped the change into the one gear that skips proving it broken first. Caught by pointing this
+   at a plain UI file, which came back COSMETIC.
+
+   The direction is the whole lesson: a check that cannot see its subject must return the STRICT
+   answer, never the lenient one. The same mistake pointed the other way let a narration probe
+   measure a display:none panel and report PASS. */
+const looksCosmetic = lines => lines.length > 0 && lines.every(l => {
+  const t = l.slice(1).trim();
+  if (!t) return true;
+  if (/^(\/\/|\/\*|\*|<!--)/.test(t)) return true;                                                  // comment
+  if (/^[.#:@a-zA-Z][^{};]*\{?$/.test(t) && !/\b(function|=>|const|let|var|return|await)\b/.test(t)) return true;  // css selector
+  if (/^[a-z-]+\s*:\s*[^;]+;$/.test(t)) return true;                                                 // css declaration
+  return false;
+});
+
+/* ---- decide ----------------------------------------------------------------- */
+const game = files.filter(f => f.startsWith("4/") && !isDoc(f));
+let gear, why, modes = ["solo", "passplay", "crew"];
+
+if (!game.length) {
+  gear = "NONE"; why = "no game code changed — documents and planning only";
+} else {
+  const allLines = game.map(f => changedLines(f).join("\n")).join("\n");
+  const cosmetic = game.every(f => looksCosmetic(changedLines(f)));
+
+  if (cosmetic) { gear = "COSMETIC"; why = `only words, colours or comments changed in: ${game.join(", ")}`; }
+  else if (PLUMBING_FORBIDDEN.test(allLines)) {
+    gear = "FULL";
+    why = "this edit touches a prompt's payload or a renderer — that is THE GAME reaching a player, whatever file it lives in";
+  } else {
+    const hit = PLUMBING.find(p => game.some(f => p.re.test(f)) || p.re.test(allLines));
+    if (hit) { gear = "PLUMBING"; modes = hit.modes; why = `${hit.what} — how one mode serves the game up, not the game itself`; }
+    else { gear = "FULL"; why = `behaviour can change in: ${game.join(", ")}`; }
+  }
+}
+
+/* ---- say it in plain English ------------------------------------------------ */
+const PLAN = {
+  NONE:     { first: "nothing to prove — no game code changed",
+              sweep: () => "npm test, so the written record stays consistent" },
+  COSMETIC: { first: "NOT required — a colour or a word proves itself with a screenshot",
+              sweep: () => "npm test, plus a screenshot of the one screen you changed" },
+  PLUMBING: { first: "REQUIRED — write the check that FAILS before you touch the code",
+              sweep: m => `npm test, plus the robot playing the mode this serving belongs to, at every screen size:\n           node 4/scripts/qa/matrix.mjs --mode=${m.join(",")}\n         ...AND the other modes once, to prove the serving change did not leak into the game.` },
+  FULL:     { first: "REQUIRED — write the check that FAILS before you touch the code",
+              sweep: () => "npm test, plus the robot playing ALL THREE modes at all three sizes,\n           including a real two-browser crew game:\n           node 4/scripts/qa/matrix.mjs" },
+};
+const p = PLAN[gear];
+console.log(`\n  GEAR: ${gear}`);
+console.log(`  why:  ${why}`);
+console.log(`\n  Step 1, show it broken first: ${p.first}`);
+console.log(`  Step 4, the sweep:            ${p.sweep(modes)}`);
+console.log(`\n  (Steps 2 and 3 never change: make the change, then show that same check passes.)\n`);
+process.stdout.write("");
