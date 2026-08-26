@@ -125,19 +125,24 @@ function checkPurity() {
    this whole phase exists to stop.
    ============================================================================================ */
 const TREE_INVENTORY = {
-  root: {
+  /* THE KEYS SWAPPED AT THE 2026-08-26 CUTOVER, and the numbers did not move — the TREES did.
+     `root` used to mean the v1 game and `4` the game under development. 4/ was promoted to the repo
+     root, so what these two entries describe is unchanged; only their names are. Getting this wrong
+     is not a quiet failure: engine_contract_check went red on 7-vs-9 annotations and five "missing"
+     exports the instant the trees moved, which is the gate doing exactly its job. */
+  classic: {
     annotationCount: 7,
-    /* Every pinned moved symbol is exported by the root barrels. Nothing is absent by design. */
+    /* Every pinned moved symbol is exported by the classic barrels. Nothing is absent by design. */
     absentByDesign: {},
   },
-  "4": {
-    // NINE, not seven. MEASURED 2026-08-23: 4/src/shared/index.js has 7 and 4/src/engine/index.js
-    // has 2. The two `4/`-only sites are real order-reaching constructs the root tree does not
+  root: {
+    // NINE, not seven. MEASURED 2026-08-23: src/shared/index.js has 7 and src/engine/index.js
+    // has 2. The two promoted-tree-only sites are real order-reaching constructs the classic tree does not
     // have:
-    //   4/src/shared/index.js:244  SEA_CREATURES — Wyatt, 2026-08-06: "we want each animal to be
+    //   src/shared/index.js:244  SEA_CREATURES — Wyatt, 2026-08-06: "we want each animal to be
     //     followed by a substantially different animal". Each captain walks the list as a RING, so
     //     the 50->1 join is a real adjacency too.
-    //   4/src/engine/index.js:1229 the bot's trade offer is COMPOSED FIRST and only then tested
+    //   src/engine/index.js:1229 the bot's trade offer is COMPOSED FIRST and only then tested
     //     against the memory. Testing before composing lets the real hail through anyway — and the
     //     hail is the spam (docs/HARD-WON-LESSONS.md §5, commit 03a683c).
     // Both are COUNTED but not ANCHORED below, and that gap is stated rather than hidden: the
@@ -145,17 +150,17 @@ const TREE_INVENTORY = {
     // check uses. Anchoring it would mean changing how a construct is recognised as annotated,
     // which is a bigger change than a count and does not belong in a gate port.
     annotationCount: 9,
-    /* SEVEN v1 CONSTANTS 4/ DELETED ON PURPOSE — verified absent from 4/src entirely, not moved.
-       4/src/shared/index.js:218 says so in its own words: "The lee is gone: an island upwind of
+    /* SEVEN v1 CONSTANTS THE PROMOTED GAME DELETED ON PURPOSE — verified absent from src/ entirely, not moved.
+       src/shared/index.js:218 says so in its own words: "The lee is gone: an island upwind of
        you does nothing at all now. v1's SAIL_BUDGET(_LEEWARD) and windStepCost are deleted rather
        than left unused — a constant nothing reads is exactly the dead code the house rules exist
        to prevent." AW/TW/DW are v1's bot weight tables and FISH_BASE its fishing constant; the v3
        race planner replaced all four. Reason is recorded per name so this list cannot become a
        shrug. */
     absentByDesign: {
-      SAIL_BUDGET: "the lee mechanic is gone in 4/ — deleted, not moved (4/src/shared/index.js:218)",
-      SAIL_BUDGET_LEEWARD: "the lee mechanic is gone in 4/ — deleted, not moved (4/src/shared/index.js:218)",
-      windStepCost: "the lee mechanic is gone in 4/ — deleted, not moved (4/src/shared/index.js:218)",
+      SAIL_BUDGET: "the lee mechanic is gone in the promoted game — deleted, not moved (src/shared/index.js:218)",
+      SAIL_BUDGET_LEEWARD: "the lee mechanic is gone in the promoted game — deleted, not moved (src/shared/index.js:218)",
+      windStepCost: "the lee mechanic is gone in the promoted game — deleted, not moved (src/shared/index.js:218)",
       AW: "v1 bot weight table, superseded by the v3 race planner",
       TW: "v1 bot weight table, superseded by the v3 race planner",
       DW: "v1 bot weight table, superseded by the v3 race planner",

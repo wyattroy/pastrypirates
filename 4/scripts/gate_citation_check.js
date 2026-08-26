@@ -27,7 +27,7 @@
 // ============================================================================
 // What counts as a citation — DERIVED, never a hardcoded list (CLAUDE.md rule 9)
 // ============================================================================
-// A mention in `4/src/**` or `4/index.html` is a CITATION when either:
+// A mention in `src/**` or `4/index.html` is a CITATION when either:
 //   (a) it carries an explicit `scripts/` or `4/scripts/` path prefix — unambiguous, and
 //       DELIBERATELY independent of whether the file exists, because "cites a check that does not
 //       exist" is one of the three things this gate is here to catch; or
@@ -64,7 +64,7 @@
 // ============================================================================
 // THE HONEST EXCEPTION, and why it has to be possible
 // ============================================================================
-// 4/src/ui/util.js:1381 already says, correctly, that a root gate's pins read the ROOT tree's
+// src/ui/util.js:1381 already says, correctly, that a root gate's pins read the ROOT tree's
 // src/ui/util.js and not that file. THAT COMMENT IS TRUE. Telling anyone to "fix" it would make
 // the record worse, and a gate that forces a true sentence to be deleted is a gate that degrades
 // the thing it protects.
@@ -82,7 +82,7 @@
 // fuzzy-scope failure this file's own rule warns about, committed by the file itself.
 //
 //     ROOT-TREE-CITATION   The sentence is TRUE AS WRITTEN and is ABOUT THE ROOT TREE ON PURPOSE.
-//                          Nothing is wrong here and nothing is owed. Example: 4/src/ui/util.js
+//                          Nothing is wrong here and nothing is owed. Example: src/ui/util.js
 //                          saying narration_test.js's G28 pins read the ROOT tree's util.js, not
 //                          this one — which is a fact, checked by path, and correcting it would
 //                          make the record worse.
@@ -98,7 +98,7 @@
 // declares the next citation too. An exception you can count is a completely different animal
 // from an exception you cannot see:
 //
-//     grep -rn "ROOT-TREE-CITATION\|UNGATED-IN-4" 4/src 4/index.html
+//     grep -rn "ROOT-TREE-CITATION\|UNGATED-IN-4" src 4/index.html
 //
 // Text INSIDE a marker bracket is not itself scanned for citations — the marker names a script by
 // design, and counting that mention would inflate every number this gate prints.
@@ -121,7 +121,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.join(__dirname, "..", "..");
-const FOUR = path.join(REPO_ROOT, "4");
+const FOUR = REPO_ROOT;
 
 const MARKER_ROOT = "ROOT-TREE-CITATION";   // true as written, about the root tree on purpose
 const MARKER_UNGATED = "UNGATED-IN-4";      // real script, does not read 4/, known gap — a DEBT
@@ -268,7 +268,7 @@ for (const file of scanTargets) {
 /* ================= Output ================= */
 
 console.log(
-  `citations scanned: ${scanned} across ${scanTargets.length} file(s) in 4/src + 4/index.html — ${satisfied} satisfied by a gate that reads 4/, ${markedRoot} declared ${MARKER_ROOT} (true as written), ${markedUngated} declared ${MARKER_UNGATED} (KNOWN GAP — this number is a debt and should fall), ${failures.length} unsatisfied. Script universe: ${universe.size} distinct filename(s) under scripts/ and 4/scripts/; ${coversFour.size} chain entr(y/ies) read 4/.`
+  `citations scanned: ${scanned} across ${scanTargets.length} file(s) in src + 4/index.html — ${satisfied} satisfied by a gate that reads 4/, ${markedRoot} declared ${MARKER_ROOT} (true as written), ${markedUngated} declared ${MARKER_UNGATED} (KNOWN GAP — this number is a debt and should fall), ${failures.length} unsatisfied. Script universe: ${universe.size} distinct filename(s) under scripts/ and 4/scripts/; ${coversFour.size} chain entr(y/ies) read 4/.`
 );
 
 if (universe.size === 0) {

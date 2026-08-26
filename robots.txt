@@ -1,10 +1,16 @@
+# playpastrypirates.com
+# The game lives at / since the 2026-08-26 cutover. The old preview trees /v2, /v2bakeoff and /3
+# were deleted in that same commit, so they need no Disallow — a rule for a path that does not
+# exist is just an invitation to look. /4 still exists but holds ONLY dev scripts, no page, so it
+# is kept out of the index below. The previous game is kept at /classic so old
+# bookmarks and saved voyages keep working; it is noindex,follow there so it cannot compete with
+# the front door for the same search results.
 User-agent: *
 Allow: /
 Disallow: /lab.html
 Disallow: /stats.html
-Disallow: /v2/
-Disallow: /v2bakeoff/
-Disallow: /3/
+Disallow: /classic/lab.html
+Disallow: /classic/stats.html
 Disallow: /4/
 
 Sitemap: https://playpastrypirates.com/sitemap.xml

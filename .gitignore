@@ -20,3 +20,11 @@ node_modules/
 # 142MB of transient probe output per pass; evidence lives in the gate's log and
 # the commit messages, never in the repo
 layout-check-shots/
+
+# Sea-trial / probe output — thousands of PNGs per run, regenerated on every trial.
+# Added 2026-08-26 after `git add -A` staged 15,913 of them into the cutover commit.
+sea-trial-shots/
+crew-phone-shots/
+seed-drill-shots/
+mp-rig-shots/
+playtest-gate/

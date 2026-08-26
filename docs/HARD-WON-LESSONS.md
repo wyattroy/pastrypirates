@@ -651,7 +651,7 @@ It passes either way, which is what makes it dangerous: a gate scanning the wron
 it is *reassuring*.
 
 ```bash
-node v2bakeoff/scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
+node scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
 ```
 
 `module_graph_check.js` and `ui_contract_check.js` exist only at the root and have **no v2

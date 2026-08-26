@@ -28,8 +28,8 @@
 // House convention (scripts/net_registry_test.js): no test runner, one PASS/FAIL line per case,
 // every case runs before exit, exit 0 on pass / 1 on any failure.
 
-import { netWatchConnected } from "../src/net/watchers.js";
-import { detachAll, size } from "../src/net/registry.js";
+import { netWatchConnected } from "../../src/net/watchers.js";
+import { detachAll, size } from "../../src/net/registry.js";
 
 let failures = 0;
 function check(name, condition, detail) {

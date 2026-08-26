@@ -32,7 +32,7 @@
 import { getMyId } from "./util.js";
 
 const USAGE_DB="https://pastry-pirates-default-rtdb.firebaseio.com";
-const USAGE_BUILD="v4";
+const USAGE_BUILD="main";
 
 let lastGid=null;
 

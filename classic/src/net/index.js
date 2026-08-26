@@ -32,8 +32,7 @@ import {
   netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
   netSetTurnOrder, netUpdateRoom, netDeleteRoom,
   netSetMeta, netWriteGameLog,
-  netMarkPresence, netMarkHostGoneOnDisconnect, netClearHostGone,
-  netForfeitOnDisconnect, netClearForfeitOnDisconnect,
+  netMarkPresence,
   netSetDlog, netPushEvent,
   netSetRecovery, netRemoveRecovery,
   netCreateRoom, netSetFeedback, netSetPaused,
@@ -58,8 +57,7 @@ export {
   netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
   netSetTurnOrder, netUpdateRoom, netDeleteRoom,
   netSetMeta, netWriteGameLog,
-  netMarkPresence, netMarkHostGoneOnDisconnect, netClearHostGone,
-  netForfeitOnDisconnect, netClearForfeitOnDisconnect,
+  netMarkPresence,
   netSetDlog, netPushEvent,
   netSetRecovery, netRemoveRecovery,
   netCreateRoom, netSetFeedback, netSetPaused,
@@ -95,11 +93,6 @@ export function cfgReady() {
 // a later phase's job, not this one's.
 export function netInit() {
   if (!cfgReady()) return null;
-  // v2 ships without the Firebase SDK tags (solo / pass-and-play only), so the global is simply
-  // absent. That is a supported configuration here, not a failure — check for it before touching
-  // it, so a solo build boots with a clean console instead of a thrown ReferenceError caught one
-  // line later. `typeof` is the one operator safe on an undeclared identifier.
-  if (typeof firebase === "undefined") return null;
   try {
     firebase.initializeApp(firebaseConfig);
     return firebase.database();
