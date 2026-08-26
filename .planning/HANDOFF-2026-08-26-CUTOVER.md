@@ -117,11 +117,12 @@ recurrence check silently stops working.
 ## 6. STILL BROKEN
 
 - **§0** — the unreachable sail squares.
-- **The seeded-defect drill still cannot fail.** `4/scripts/qa/seed_drill.mjs:72` grades on the leg's
-  **exit status** (not a grep — an earlier doc said grep and was wrong), and the leg fails on its own
-  for unrelated reasons, so every seed scores CAUGHT regardless. **Fix: one UNSEEDED baseline run
-  first, then grade each seed only on failures the baseline did not have.** ~15 lines.
-  **Until it exists there is no evidence the sea trial catches Wyatt's bugs.**
+- **The seeded-defect drill has been FIXED but not yet RUN — see [§8](#8-the-seeded-defect-drill--it-could-not-fail-and-now-it-can).**
+  It graded on the leg's exit status and the leg fails on its own, so every seed scored CAUGHT; worse,
+  its four seeds still pointed into `4/` after the cutover and it died on `ENOENT` before reaching its
+  own "the fix moved" guard. It now sails an unseeded baseline and grades each seed only on failures
+  the baseline did not have. **The prediction for all four seeds is written down in §8 BEFORE the run.
+  Until someone sails it there is still no evidence the sea trial catches Wyatt's bugs.**
 - **`deny` never exercised** in crew games. A theory that it shared a cause with the covering bug was
   written down in advance and disproved. Unexplained.
 - **31% of screens hit the settle cap**, all `churn: geometry` (the text class is fixed).
@@ -142,3 +143,174 @@ curl -s https://playpastrypirates.com/src/ui/stage.js | grep -o 'PP4_STAMP = "[^
 curl -s -o /dev/null -w "%{http_code}\n" https://playpastrypirates.com/classic/   # expect 200
 node 4/scripts/qa/gear.mjs --since=HEAD~1            # NOT bare — bare reports NONE after a push
 ```
+
+---
+
+## 8. THE SEEDED-DEFECT DRILL — it could not fail, and now it can
+
+**Wyatt, 2026-08-26:** *"the seed drill still cannot fail, so nothing yet proves the sea trial
+catches your bugs. It's ~15 lines — run one unseeded baseline and grade each seed only on failures
+the baseline didn't have. That's the cheapest way to make everything else built today actually mean
+something."*
+
+**He was right about the fault and right about the fix.** Two things were wrong, and the second was
+worse than the one on the record.
+
+### It was not mis-grading. It was DEAD.
+
+`§6` said the drill graded on exit status and therefore always said CAUGHT. True, but it had stopped
+getting that far. **All four seeds pointed into `4/`** — `4/src/ui/lobby.js`, `4/index.html`,
+`4/src/orchestrator.js` — and the cutover moved the game to root that morning. `4/` now holds only
+`scripts/`.
+
+The drill has a `CANNOT SEED` branch written for exactly this ("the fix moved, so this drill tested
+nothing"). **It never reached it**, because the `readFileSync` sat *outside* the guard, so a missing
+file threw `ENOENT` and killed the process:
+
+```
+Error: ENOENT: no such file or directory, open '…/pastrypirates/4/src/ui/lobby.js'
+    at …/4/scripts/qa/seed_drill.mjs:55:23
+```
+
+**A guard that only covers the cheap failure is not a guard.** The read is inside it now, so a tree
+that moves reports `CANNOT SEED` exactly like a line that moves.
+
+### Why exit status could never work — measured, not reasoned
+
+The old drill's own leftover report is the evidence. `seed-drill-shots/report.json` names exactly
+two failures, and neither has anything to do with any seed:
+
+```
+· did not finish the voyage
+· 6 screen(s) never stopped moving before being checked
+```
+
+**The leg exits non-zero because it does not finish inside the 4-minute bound.** Every seed inherits
+that. Comparing two non-zero exit codes tells you nothing at all.
+
+### What it does now
+
+Sails the leg **once with nothing seeded**, keeps every failure that run names, and grades each seed
+**only on failures the baseline did not already have**. Exit status is not consulted.
+
+- **The comparator is `playtest_gate.mjs`'s own `report.json`**, not its log — `verdict[]` per leg
+  plus every `screens[].fails[]` as `{rule, what}`. Verified against three real reports on disk:
+  10, 8 and 2 signatures respectively, parsed clean.
+- **Counts are normalised out of the signature** (`\d+` → `#`), because "4 structural check
+  failure(s)" and "6" are the same complaint and a wobbling count must not read as a catch.
+  **The cost, stated plainly: a seed whose only effect is to raise a count the baseline already
+  reports will score MISSED.** That is the safer direction to be wrong in — this drill exists
+  because it over-reported CAUGHT.
+- **No report is `null`, not an empty set.** "The gate never reached a verdict" and "the gate found
+  nothing wrong" are opposite facts. A seed whose run wrote no report scores `NO REPORT` and is
+  counted as **not graded**, never as passed. If the *baseline* writes no report the drill refuses
+  to grade at all and exits 2.
+- **Each run gets its own `--out` subdirectory, wiped first**, so a stale `report.json` can never be
+  read as this run's.
+- **Red-proofed before use:** fed identical baseline and seeded sets, the grader returns MISSED —
+  the verdict the old one was structurally incapable of producing.
+
+**Size: ~100 lines changed, about half of them comment.** Wyatt's ~15-line estimate was right about
+the logic.
+
+### WHAT IS STILL NOT PROVEN — do not skip this
+
+**The drill has been made able to fail. It has not yet been RUN.** Nothing below the line is
+established until someone sails it:
+
+```bash
+node 4/scripts/qa/seed_drill.mjs            # baseline + 4 seeds, ~25 min of browser
+```
+
+**The prediction was written before any of it, and it is on the record so it cannot be retrofitted:**
+
+| seed | predicted | why |
+|---|---|---|
+| T-12 homepage over a live voyage | **CAUGHT** | a full-screen overlay should trip `not-occluded` / `on-screen` |
+| T-16 no orange glow on Start | **MISSED** | `structuralChecks` measures geometry, occlusion and clipping. There is no rule that can see a glow, and the drill runs `--judge=off` |
+| T-30 Watch again shouting | **MISSED** | same — a CSS class rename with no geometric consequence |
+| T-02 guest has no stay square | **MISSED** | it is a *guest* bug and the drill's default leg is `solo-phone`, where no guest exists. **The instrument cannot reach its subject** |
+
+**The falsifier, also written first:** if all four come back CAUGHT with distinct new signatures
+traceable to their seed, the coverage reasoning above is wrong and should be reported as wrong.
+
+**If T-02 lands MISSED for the reason predicted, that is a finding about the DRILL, not the sea
+trial** — a guest bug must be seeded on `crew-phone`, not solo. `--leg=` already takes it.
+
+---
+
+## 9. 10,371 CHROME PROFILES ARE TRACKED ON A PUBLIC REPO
+
+A second session investigated the GitHub secret-scanning alert and wrote up
+`~/Downloads/notetoqasession.md`. **Its findings hold. Its recommended action was stale, and one of
+its claims is now false.** Both verified here rather than taken on trust.
+
+### The alert is not a real leak
+
+The Google API key at `…/prof-passplay-phone-a/Default/shared_proto_db/000003.log` is **Chrome's
+own**, baked into the browser binary — 1,337 occurrences, all Chrome calling
+`optimizationguide-pa.googleapis.com`, byte-identical across 15 independently created profiles. A
+per-project key cannot be identical across separate profiles. **Nothing to rotate.**
+
+The other session also opened the rest of each profile, because the repo is public: cookies empty,
+logins empty, history one `127.0.0.1` URL, no auth tokens. **The game has no Firebase Auth at all,
+so there were never player tokens to leak.** Those DBs were empty because the profiles were fresh —
+**luck, not a guarantee**, which is the actual reason to fix this.
+
+### What is measured, on `main` at `8cad02da`
+
+| | |
+|---|---|
+| tracked files total | **13,194** |
+| of those, Chrome profile files | **10,371** |
+| `.git` on disk | **2.7 GB** |
+| the flagged key file | **still tracked** |
+| `mp-rig-shots/` | in `.gitignore` **and 7 PNGs already tracked** — ignoring never affects a tracked file |
+
+### The branch is real, but the note's headline is out of date
+
+`claude/github-issue-investigation-exs7h3` — three commits, forked at `401b4e02`, **nine commits
+behind `main`**. Everything from `8f4beae3` through the cutover and `8cad02da` landed after it.
+
+- **The note says it "fast-forwards with zero conflicts." It no longer does.** `git merge-base
+  --is-ancestor origin/main <branch>` fails, and a simulated merge (`git merge-tree --write-tree`,
+  which touches nothing) reports **exactly one conflict: `.gitignore`** — because the cutover added
+  `sea-trial-shots/` and friends to it after the note was written. One conflict, resolvable as the
+  union of both sides.
+- **It does NOT resurrect `3/`, `v2/` or `v2bakeoff/`.** A first read here used `git diff main
+  branch` and concluded that it would; **that was wrong, and a two-tree diff is not a merge
+  preview.** The simulated merge keeps every cutover deletion. Recorded because the wrong method is
+  the reusable lesson.
+- **The merged tree measured: 2,481 files (from 13,194), zero profile files, key file gone**, and
+  `index.html`, `src/orchestrator.js`, `classic/index.html` and `4/scripts/` all intact.
+
+### The caveat the note understates
+
+**Deleting the files in a new commit does not remove them from history.** The key stays retrievable
+at `5d82213` and `.git` stays 2.7 GB; only the working tree and future `git clone --depth 1` get
+smaller. For a Chrome-baked key that is fine — **but "once the files are gone" promises more than a
+delete commit delivers.** Anything that truly removes it means rewriting public history.
+
+### Second hole worth keeping
+
+Ignoring output *directories* cannot catch this class: **a browser profile lands wherever `--out`
+points**, and `5d82213` happened because `--out` was aimed inside `.planning/phases/…`, outside
+every ignored directory. The branch's second commit ignores the profile **names** as shape globs
+(`prof/`, `prof-*/`, `profile/`, `profile-*/`, `_sheet-profile/`, `chrome-probe*/`) across the seven
+scripts that create them. That is the durable half of the fix.
+
+### Recommended order
+
+1. Merge the branch, resolving `.gitignore` as the union of both sides.
+2. `git rm --cached -r mp-rig-shots` — ignored but tracked, so the ignore is inert.
+3. Dismiss the GitHub alert as "used in tests".
+
+**Expect ~10,700 files to vanish from the checkout on the next pull. That is the point, and it will
+look alarming mid-run — do it at a quiet moment.**
+
+### Unrelated and larger, flagged so it is not lost again
+
+The Realtime DB takes writes on four top-level paths — `rooms/`, `presence/`, `feedback/`,
+`gamelogs/` — and **the game never authenticates**. The security rules are the only thing protecting
+it, and the `databaseURL` is in view-source. `.planning/codebase/CONCERNS.md:141` flagged this and it
+was never resolved. Wyatt has been told.
