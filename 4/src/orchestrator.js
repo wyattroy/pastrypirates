@@ -1868,6 +1868,27 @@ export async function createRoom(){
   // Nothing is faked by doing this early: genCode() generated the code LOCALLY a few lines up, so
   // the six characters on screen are the real ones. Only their registration is still in flight. On
   // failure everything is undone and we return to the menu (see the catch).
+  /* T-13 (Wyatt, 2026-08-26): "when the host leaves the game -- when they try to host a new game,
+     in the same browser, the 'Captains at the Table' box is populated with the stale players from
+     the past game -- not new ones. User must refresh the page to clear it."
+
+     THIS CLOSES THE WINDOW I CAN SEE AND IS NOT CLAIMED AS THE WHOLE FIX. showRoom() is called
+     HERE, deliberately, before the network write (see the measured note above: the room screen used
+     to take 1002ms to appear). #seatList still holds the PREVIOUS room's markup at that moment, and
+     nothing clears it, so the old captains are on screen until the first seats push repaints them.
+     Emptying it means a new room starts empty rather than starting wrong.
+
+     WHAT I COULD NOT REPRODUCE is the PERSISTENCE he describes — "must refresh to clear it" means
+     the repaint never arrives at all, and that is a different fault from a stale first frame.
+     RULED OUT, so nobody re-runs them:
+       - the registry refusing a duplicate attach: keyFor() includes ref.toString(), which carries
+         the room code, so a new room is a new key and attaches normally (net/registry.js).
+       - listeners leaking from the abandoned room: the Back to port handler calls netLeaveRoom(),
+         which is detachRoom(), which does drop every room-scoped entry (net/index.js:116).
+     Neither is the cause. Reproducing it needs leaving a real room and hosting another in the same
+     browser, which is a two-room crew run and is the verification that ran out of budget tonight. */
+  $("seatList").innerHTML="";
+  const wm=$("waitMsg"); if(wm)wm.textContent="";
   showRoom();
   try{
     await netCreateRoom(appState.db,code,{host:appState.myId,status:"lobby",numSeats:appState.numSeats,seats,createdAt:Date.now()});
