@@ -49,6 +49,8 @@ import {
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
   // the flip's own five, for preloadAssets — see its note on why a timed ceremony cannot wait
   FLIP_SOCKET_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
+  // T-33: the greyed-crate art, warmed alongside ING_IMG rather than fetched cold mid-voyage
+  ING_HOLE_IMG,
   SEA_CREATURES, buildRoster,
 } from "../shared/index.js";
 import { escHtml } from "./recipe.js";
@@ -2374,7 +2376,10 @@ export function updateRecipeBanner(){
 export function preloadAssets(){
   const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
     FLIP_SOCKET_IMG,COIN_SPIN_IMG,FLIP_HEADS_IMG,FLIP_TAILS_IMG,COIN_IMG,
-    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
+    // T-33: ING_HOLE_IMG was the ONE ingredient family never warmed here, so the greyed-crate art
+    // was always fetched cold in the middle of a voyage — and both image failures caught in a
+    // driven run were in it (holes/sugar.png, twice). Seven files, ~24KB.
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i]),...ING_ALL.map(i=>ING_HOLE_IMG[i])];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
     img.onload=img.onerror=()=>res();

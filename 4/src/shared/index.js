@@ -17,8 +17,15 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const ING_ALL=["wheat","dairy","sugar","eggs","cocoa","spice","vanilla"];
 const ING_EMOJI={wheat:"🌾",eggs:"🥚",sugar:"🍬",cocoa:"🍫",dairy:"🥛",vanilla:"🌼",spice:"🌶️"};
 // custom-art pipeline: drop matching files in assets/ and they render in place of the emoji/
-// vector fallback automatically (iconAt() below removes the <image> on load failure, leaving
-// the original emoji/shape visible) — nothing else in the code needs to change.
+// vector fallback automatically — nothing else in the code needs to change.
+//
+// THIS COMMENT USED TO CLAIM "iconAt() below removes the <image> on load failure, leaving the
+// original emoji/shape visible". IT DOES NOT, and never has: iconAt() (ui/board.js) has no error
+// handler, and neither does ingImg(). Only spawnPops() and the board backdrop have one. So a
+// failed ingredient image is left showing the browser's broken-image glyph — the blue "?" Wyatt
+// photographed on 2026-08-26. Corrected rather than deleted because the false version was
+// load-bearing: it is why nobody added the fallback it promised. (Rule 6: a comment is not a
+// measurement, and one making a runtime claim rots.)
 // v2 shares v1's art and sound rather than duplicating 19MB. NEVER copy CNAME/robots.txt/
 // sitemap.xml alongside them — those claim the live domain (see root CLAUDE.md).
 const ASSET_BASE="../assets/";

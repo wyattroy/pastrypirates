@@ -134,7 +134,18 @@ export function el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag)
 // width/height in board px.
 export function iconAt(svg,cx,cy,size,href,rotateDeg,flip){
   const g=el("g",{transform:`translate(${cx},${cy})${flip?" scale(-1,1)":""}${rotateDeg?` rotate(${rotateDeg})`:""}`},svg);
-  el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
+  const im=el("image",{x:-size/2,y:-size/2,width:size,height:size,href},g);
+  /* T-33 — THE FALLBACK TWO COMMENTS ALREADY PROMISED, now actually here. shared/index.js said
+     "iconAt() below removes the <image> on load failure, leaving the original emoji/shape visible"
+     and spawnPops says "same fallback as iconAt()". Neither was true: this function had no error
+     handler, so a failed ingredient image was left showing the browser's broken-image glyph — the
+     blue "?" Wyatt photographed on 2026-08-26, on island tiles AND in captains' hold chips.
+     Two image failures were caught in a driven solo run, both on holes/sugar.png.
+
+     Removing the <image> is the whole fallback: whatever the art was drawn OVER (the island shape,
+     the crate) is underneath and becomes visible again. An empty square is a far better failure
+     than a broken-image icon, and it is what the rest of the file already does. */
+  im.addEventListener("error",()=>im.remove());
   return g;
 }
 let cell=0,shipEls=[],activeRing=null,spinNeedle=null,forecastNeedle=null,forecastPulse=null,forecastBox=null,forecastLabel=null,forecastStorm=null,forecastMark=null,forecastSpin=null,forecastSpinner=null,stormText=null,stormDial=null,windLabels=[];
@@ -1657,8 +1668,14 @@ export function render(){
       // @copy misc.board.emptyhold
       newChipsHtml=held.join("")||`<span style="opacity:.4">empty hold</span>`;
     }
-    if(chipsEl.innerHTML&&chipsEl.innerHTML!==newChipsHtml)pulseEl(chipsEl);
-    chipsEl.innerHTML=newChipsHtml;
+    /* T-33 — the guard decided whether to PULSE, not whether to WRITE, so all four captains' hold
+       chips were destroyed and rebuilt on every render: 600 fresh <img> elements in 210 seconds,
+       each one a cold fetch. Moving the assignment inside the comparison keeps the pulse behaviour
+       byte-identical and stops the churn. */
+    if(chipsEl.innerHTML!==newChipsHtml){
+      if(chipsEl.innerHTML)pulseEl(chipsEl);
+      chipsEl.innerHTML=newChipsHtml;
+    }
     const lastEv=appState.game.events[appState.game.events.length-1];
     $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&appState.evIdx===appState.game.events.length-1)?iconImg(CROWN_IMG):"";
   });
@@ -1691,7 +1708,16 @@ export function render(){
       const ic=document.getElementById(`crate_${ing}_${idx}`);if(!ic)continue;
       const taken=idx>=remaining;
       const img=ic.querySelector("image");
-      if(img)img.setAttribute("href",taken?ING_HOLE_IMG[ing]:ING_IMG[ing]);
+      /* T-33 — WRITE ONLY WHEN IT CHANGES. This wrote every crate's href on every render whether
+         or not the value differed, and an SVG href assignment restarts the load machinery even
+         when the string is identical. Measured over one 210-second solo voyage: 1743 href writes
+         on #board, of which 1739 wrote the value that was already there — about 29 redundant
+         fetches per game event, forever. A rewrite that lands on an in-flight load CANCELS it and
+         fires `error`, and nothing here catches an error, so the element is left showing the
+         browser's broken-image glyph — a blue "?" in Safari, which is exactly what Wyatt
+         photographed on the board AND in the hold chips. */
+      const want=taken?ING_HOLE_IMG[ing]:ING_IMG[ing];
+      if(img&&img.getAttribute("href")!==want)img.setAttribute("href",want);
       ic.style.opacity=taken?.45:1;
     }
     // the black-market flag rises exactly when the last crate greys (same snapshot, one truth)
