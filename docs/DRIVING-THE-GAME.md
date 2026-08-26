@@ -496,6 +496,18 @@ leverage tool in this document.
 curl -s http://127.0.0.1:9333/json/version    # confirm it is up
 ```
 
+> **`--user-data-dir` GOES IN `/tmp`, AND NEVER INSIDE THE REPO.** A Chrome profile is ~10 MB and
+> ~700 files of browser bookkeeping, and it carries `Cookies`, `Login Data` and `History` alongside
+> the parts you want. On **2026-08-26** a playtest pointed it at
+> `.planning/phases/02.2-…/playtest-…/prof-*` and the whole run was committed: **15 profiles, 10,713
+> files, 142 MB**, in commit `5d82213`. At 3:50am GitHub emailed Wyatt *"Possible valid secrets
+> detected"* — its scanner had found, in `Default/shared_proto_db/000003.log`, the Google API key
+> **baked into every copy of Chrome** (sent as `X-Goog-Api-Key` to
+> `optimizationguide-pa.googleapis.com`). It is Google's key, not ours, so nothing needed rotating —
+> but the repo is public, the profiles' `Cookies` and `Login Data` were empty only because they were
+> newly made, and it cost 142 MB and an alert. `.gitignore` now carries `prof-*/` and
+> `chrome-probe*/`. **Keep profiles in `/tmp` and they cannot be added by accident.**
+
 Headless **does** run rAF and CSS animations properly. Confirm the environment before trusting a
 reading — a wrong answer here invalidates everything downstream:
 
