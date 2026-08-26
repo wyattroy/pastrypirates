@@ -36,7 +36,17 @@ export const SEAT_VIEW = `JSON.stringify((()=>{
     return r.width>1 && r.height>1 && s.display!=='none' && s.visibility!=='hidden'; };
   const rib = document.getElementById('pp4Ribbon');
   const day = rib ? ((txt(rib)||'').match(/DAY\\s*\\d+/)||[])[0]||null : null;
-  const rows = [...document.querySelectorAll('[id^=prow]')].map(r => {
+  /* #prow0..3 ONLY. A bare id-prefix selector also matches #prowRecipe0..3 -- and A CAPTAIN'S
+     RECIPE IS PRIVATE, so the host legitimately shows Cinnamon where the guest shows Spiced. The
+     first run of this comparator reported exactly that as a divergence, twice, inside 60 seconds.
+     A gate that cries wolf teaches its reader to dismiss it, which is worse than no gate -- this
+     file's own header says so, and then the selector broke the rule anyway. Caught by READING the
+     finding instead of trusting it.
+
+     NO BACKTICKS IN HERE, EVER: this whole block lives inside a template literal, so one backtick
+     in a comment closes the string and the rest of the comment is parsed as code. That is exactly
+     how the first version of this fix crashed -- "ReferenceError: id is not defined". */
+  const rows = [...document.querySelectorAll('#prow0,#prow1,#prow2,#prow3')].map(r => {
     const t = txt(r)||'';
     return { name: t.split(' ')[0]||'', purse: (t.match(/\\d+/)||[])[0]||null, lit: r.classList.contains('activeTurn') };
   });

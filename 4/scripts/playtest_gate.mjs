@@ -126,7 +126,20 @@ async function bootHost(c, name) {
 async function bootJoin(c, name, code) {
   await freshPage(c, "guest");
   const g = await c.ev(`__gate(document.getElementById('choiceJoin'))`); if (!g || !g.ok) throw new Error("join card not clickable");
-  await c.clickXY(g.x, g.y); await nameModal(c, name); await sleep(700);
+  await c.clickXY(g.x, g.y); await sleep(700);
+  /* THE NAME MODAL IS GONE FROM THIS FLOW, and this line waited for it for two days.
+     Wyatt's item 31, shipped 2026-08-24 (025f57cc): "'Join a crew' goes straight to the join
+     screen -- the name modal in between is gone." The game changed; the rig did not. Every crew
+     leg since has died here with "name confirm not clickable", and a crew probe hung all night on
+     2026-08-26 for the same reason.
+
+     THIS IS THE RIG ROTTING AGAINST THE GAME, which is a failure mode worth naming: a harness that
+     encodes a flow can be broken by a fix to that flow, and it fails in a way that looks like the
+     GAME is broken. It is now tolerant -- the modal is used if it is there and skipped if it is
+     not -- so this particular rot cannot recur in either direction. */
+  const hasModal = await c.ev(`(()=>{const m=document.getElementById('nameModal');
+    return !!(m && getComputedStyle(m).display !== 'none');})()`);
+  if (hasModal) { await nameModal(c, name); await sleep(700); }
   await c.ev(`(() => { const jc = document.getElementById('joinCode'); if (jc) jc.value = ${JSON.stringify(code)};
     const jn = document.getElementById('joinName'); if (jn) jn.value = ${JSON.stringify(name)}; return 1; })()`);
   const b = await c.ev(`__gate(document.getElementById('btnJoin'))`); if (!b || !b.ok) throw new Error("join button not clickable");
