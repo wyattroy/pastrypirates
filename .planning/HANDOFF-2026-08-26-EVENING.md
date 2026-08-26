@@ -72,7 +72,7 @@ happen?** — not "is this good work". **Its verdict reaches him in ITS words, e
 `4/scripts/qa/seed_drill.mjs` puts last night's bugs back and asks whether the trial notices. It ran
 and reported **T-12, T-16, T-30 CAUGHT**.
 
-**DO NOT BELIEVE THAT.** Each seed is bounded to `--max-min=4`, so **every leg ends "voyage
+**DO NOT BELIEVE THAT — 4 of 4 is exactly what a broken drill would also print.** Each seed is bounded to `--max-min=4`, so **every leg ends "voyage
 incomplete" whether the bug is there or not.** There is no control run. **The drill as it stands
 cannot go green, so its red means nothing.**
 
