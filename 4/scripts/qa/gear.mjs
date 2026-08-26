@@ -130,8 +130,14 @@ if (!game.length) {
      see its subject must return the STRICT answer, never the lenient one." It was applied to the
      inner test and not to the enclosing one, in the same file, in the same hour.
 
-     So: nothing to compare means compare against what SHIPPED. If that is empty too, the honest
-     answer is still FULL — never NONE. */
+     So: nothing to compare means compare against what SHIPPED — origin/main...HEAD.
+
+     AND IF THAT IS EMPTY TOO, NONE IS CORRECT. An earlier version of this comment claimed "the
+     honest answer is still FULL — never NONE" while the code eight lines down set NONE, which is
+     rule 6's rot exactly: a comment asserting behaviour the code does not have, written the day
+     after that rule was earned. The code is right and the comment was wrong. Nothing changed
+     against the shipped tree genuinely means there is nothing to sail — the danger was never NONE
+     itself, it was NONE reached by looking only at UNCOMMITTED work. */
   const vsMain = sh("git diff --name-only origin/main...HEAD").split("\n").map(x => x.trim()).filter(Boolean);
   const shipped = vsMain.filter(f => f.startsWith("4/") && !isDoc(f));
   if (shipped.length) {
@@ -164,9 +170,9 @@ const PLAN = {
   COSMETIC: { first: "NOT required — a colour or a word proves itself with a screenshot",
               sweep: () => "npm test, plus a screenshot of the one screen you changed" },
   PLUMBING: { first: "REQUIRED — write the check that FAILS before you touch the code",
-              sweep: m => `npm test, plus the robot playing the mode this serving belongs to, at every screen size:\n           node 4/scripts/qa/matrix.mjs --mode=${m.join(",")}\n         ...AND the other modes once, to prove the serving change did not leak into the game.` },
+              sweep: m => `npm test, plus the robot playing the mode this serving belongs to, at every screen size:\n           node 4/scripts/sea_trial.mjs --gear=PLUMBING   (${m.join(",")}, plus the others once)\n         ...AND the other modes once, to prove the serving change did not leak into the game.` },
   FULL:     { first: "REQUIRED — write the check that FAILS before you touch the code",
-              sweep: () => "npm test, plus the robot playing ALL THREE modes at all three sizes,\n           including a real two-browser crew game:\n           node 4/scripts/qa/matrix.mjs" },
+              sweep: () => "npm test, plus the robot playing ALL THREE modes at all three sizes,\n           including a real two-browser crew game:\n           node 4/scripts/sea_trial.mjs" },
 };
 const p = PLAN[gear];
 console.log(`\n  GEAR: ${gear}`);

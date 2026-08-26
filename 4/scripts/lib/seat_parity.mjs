@@ -50,28 +50,52 @@ export const SEAT_VIEW = `JSON.stringify((()=>{
     const t = txt(r)||'';
     return { name: t.split(' ')[0]||'', purse: (t.match(/\\d+/)||[])[0]||null, lit: r.classList.contains('activeTurn') };
   });
-  const hd = [...document.querySelectorAll('.bkoHd')].find(vis);
+  /* WHAT IS NOT HERE, AND WHY — this list shrank on 2026-08-26 after its first real voyage.
+     It used to carry 'battle' (is a battle card on screen) and 'bench' (whose bake-off is showing),
+     read out of #pp4Prompt. #pp4Prompt IS THE VIEWER'S OWN PROMPT BOX -- every prompt in the game
+     draws into #actionPanel inside it -- so those two fields were per-seat surfaces sitting in a
+     list whose header promised viewer-specific things were "excluded by construction". They were
+     not. The header described an intention the selector did not implement.
+
+     And the game puts DIFFERENT THINGS in that box on purpose: the captain whose decision it is
+     gets a battle card with buttons while everyone else gets a waiting line (orchestrator.js), a
+     seat already inside its own battle prompt deliberately does not redraw from the shared
+     snapshot, and a spectator being asked to call the winner has the box replaced entirely.
+
+     It duly cried wolf twice in one voyage -- and in OPPOSITE directions, which is the fingerprint
+     of "whose turn is it", not of a fault. A gate that cries wolf teaches its reader to dismiss it.
+
+     CATCHING T-04 (a battle card stuck on the guest for 13.4 seconds and past the end of the
+     fight) NEEDS A CLOCK, not a snapshot: a difference that clears when the battle clears is
+     normal; one that OUTLIVES the battle is the bug. This comparator has no clock, so it cannot
+     tell them apart, and shipping a field that cannot tell them apart is worse than shipping
+     neither. That is the next piece of work, named rather than faked.
+
+     AND NOTE THE QUOTE MARKS IN THIS COMMENT. This block lives inside a template literal, so a
+     single backtick closes the string and everything after it is parsed as code. This file already
+     carried a warning saying exactly that, written an hour earlier after the same crash -- and the
+     comment you are reading crashed the same way on its first save. The warning was not enough;
+     using ordinary quotes in here is. */
   return {
     day,
     wind: txt(document.getElementById('pp4Pill')),
     captains: rows.map(r => r.name + ':' + r.purse).join(','),
     lit: rows.filter(r => r.lit).map(r => r.name).join(',') || '(nobody)',
-    battle: !!(document.querySelector('#pp4Prompt .btl') && vis(document.querySelector('#pp4Prompt .btl'))),
-    bench: hd ? (txt(hd)||'').replace(/attempt.*$/,'').trim() : null,
   };
 })())`;
 
-/* WHAT IS ALLOWED TO DIFFER, and why each one is on the list. Anything not named here that differs
-   is a finding. Keeping this list SHORT is the whole value — every entry is a place the two screens
-   are permitted to disagree, which is a place a bug can hide. */
-const ALLOWED = {
-  // The captains box is ordered per viewer in pass-and-play (the acting captain floats to the top),
-  // so ORDER is not compared — only the SET. Handled in compare(), not here.
-};
+/* Every field above is a fact about the TABLE. Nothing viewer-specific is collected at all, so
+   there is no allow-list — and there deliberately isn't one. An earlier version of this file
+   declared an empty `ALLOWED` object that no code read: a stub implying a mechanism that did not
+   exist, which is the same species as a comment describing behaviour the code does not have.
+   If a field ever needs an exception, that is the signal it does not belong in this list. */
 
 /* Compare two views. Returns [] when the table agrees. */
 export function compareSeats(a, b, { aName = "host", bName = "guest" } = {}) {
-  if (!a || !b) return [];
+  /* A SEAT THAT COULD NOT BE READ IS NOT A SEAT THAT AGREES. This returned [] -- "they match" --
+     which is the lenient answer on no evidence, the exact polarity error gear.mjs was rewritten to
+     avoid the day before. Same mistake, different file, same hour. */
+  if (!a || !b) return [{ field: "could not read a seat", why: "one of the two screens returned nothing — NOT compared, and not agreement" }];
   const out = [];
   const say = (field, why) => out.push({ field, why });
 
@@ -84,8 +108,6 @@ export function compareSeats(a, b, { aName = "host", bName = "guest" } = {}) {
     say("captains", `${aName}: ${a.captains || "(none)"}   ${bName}: ${b.captains || "(none)"}`);
 
   if (a.lit !== b.lit) say("whose turn", `${aName} lights ${a.lit}, ${bName} lights ${b.lit}`);
-  if (a.battle !== b.battle) say("battle card", `${aName} ${a.battle ? "has" : "has no"} battle card, ${bName} ${b.battle ? "has" : "has no"}`);
-  if (!!a.bench !== !!b.bench) say("bake-off bench", `${aName} ${a.bench ? `shows "${a.bench}"` : "shows no bench"}, ${bName} ${b.bench ? `shows "${b.bench}"` : "shows no bench"}`);
 
   return out;
 }

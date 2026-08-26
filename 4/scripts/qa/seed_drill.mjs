@@ -62,7 +62,11 @@ for (const s of seeds) {
     fs.writeFileSync(full, original.replace(s.find, s.with));
     console.log(`\n▶ ${s.id} — ${s.what}\n  seeded into ${s.file}; sailing ${LEG}…`);
     const r = spawnSync("node", ["4/scripts/playtest_gate.mjs", `--legs=${LEG}`,
-      `--out=${path.join(REPO, "seed-drill-shots")}`, "--judge=off", "--port=8900", "--dbg=9900"],
+      `--out=${path.join(REPO, "seed-drill-shots")}`, "--judge=off", "--port=8900", "--dbg=9900",
+      /* BOUNDED. A seeded bug that is going to be caught is caught in the opening minutes -- all
+         four seeds here are visible on the first screens. A full voyage per seed would be ~40
+         minutes for four, which is how a drill stops being run. */
+      `--max-min=${arg("max-min", "4")}`],
       { cwd: REPO, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
     const out = ((r.stdout || "") + (r.stderr || ""));
     const caught = r.status !== 0;

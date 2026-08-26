@@ -55,11 +55,11 @@ const NOT_PLUMBING = /\bspec\b|\bpayload\b|renderPickPrompt|playBakeoffLive|show
 const GEARS = {
   FULL: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: () => "npm test\n     node 4/scripts/qa/matrix.mjs          (all 3 modes, 3 screen sizes, a real two-browser crew game)",
+    sweep: () => "npm test\n     node 4/scripts/sea_trial.mjs          (all modes, all sizes, both engines, a real two-browser crew game)",
   },
   PLUMBING: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: m => `npm test\n     node 4/scripts/qa/matrix.mjs --mode=${m}\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
+    sweep: m => `npm test\n     node 4/scripts/sea_trial.mjs --gear=PLUMBING   (${m}, plus the others once)\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
   },
 };
 

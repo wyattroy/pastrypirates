@@ -49,8 +49,8 @@ reason this document exists is that a session picked its own depth by mood.
 | Gear | You are here when | Step 1 | The sweep |
 |---|---|---|---|
 | **COSMETIC** | only words, colours or comments changed | **waived** — a colour proves itself with a screenshot | `npm test` + a screenshot of the one screen |
-| **PLUMBING** | **how a mode SERVES the game up** — pass-and-play's hand-the-device gate, crew's room codes / joining / the 30-second grace | **required** | `npm test` + `matrix.mjs --mode=<that mode>` **and the other modes once**, to prove the serving change did not leak into the game |
-| **FULL** | **everything else — this is the default** | **required** | `npm test` + `matrix.mjs` (all three modes, three sizes, a real two-browser crew game) |
+| **PLUMBING** | **how a mode SERVES the game up** — pass-and-play's hand-the-device gate, crew's room codes / joining / the 30-second grace | **required** | `npm test` + `sea_trial.mjs --gear=PLUMBING` **and the other modes once**, to prove the serving change did not leak into the game |
+| **FULL** | **everything else — this is the default** | **required** | `npm test` + `sea_trial.mjs` (all modes, all sizes, both engines, a real two-browser crew game) |
 
 ### The middle gear is a different SUBJECT, not a smaller size
 
@@ -90,9 +90,9 @@ testing**, and it is what every professional team does.)*
 ## The robot that plays the game
 
 ```bash
-node 4/scripts/qa/matrix.mjs                  # all three modes, three screen sizes
-node 4/scripts/qa/matrix.mjs --mode=crew      # one mode
-node 4/scripts/qa/matrix.mjs --quick          # phone size only
+node 4/scripts/sea_trial.mjs                  # the whole thing: modes, sizes, both engines
+node 4/scripts/sea_trial.mjs --gear=PLUMBING  # one mode, plus the others once
+node 4/scripts/playtest_gate.mjs --legs=crew-phone   # one leg, when you know which
 ```
 
 It opens real browsers, plays real voyages, and after every move looks at ten specific things. Then
@@ -118,8 +118,16 @@ reports a pass.
 ## When the slow sweep runs
 
 Wyatt's ruling, 2026-08-26: **automatically, in the background, and nothing ships until it comes
-back clean.** The full three-mode sweep takes 20–30 minutes. Nobody waits for it and nobody has to
-remember to run it; it gates the push.
+back clean.** The full sweep takes 20–30 minutes. Nobody should have to wait for it or remember it.
+
+> **⚠ NOT BUILT YET — and this paragraph asserted it in the present tense for half a day.** Nothing
+> gates the push today. The hook (`qa-gear-first.cjs`) only ever sees `Edit`/`Write`; it never sees a
+> `git push`, and it lets the retry through one line later. Caught by the CEO review, which was
+> right to call a committed document claiming a mechanism that was never written.
+>
+> **What it needs:** a `.git/hooks/pre-push` that refuses when `.planning/SEA-TRIAL.md` has no clean
+> verdict for the current `PP4_STAMP`. About fifteen lines of shell, no dependencies. The build
+> stamp is already the right key — CLAUDE.md §6 makes it the thing Wyatt looks for.
 
 The alternative he rejected — *run it only when asked* — is exactly what happened on 2026-08-25:
 the thorough pass existed and nobody ran it.

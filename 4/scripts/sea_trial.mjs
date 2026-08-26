@@ -60,6 +60,22 @@ const LEGS = {
 };
 const legs = LEGS[gear] || LEGS.FULL;
 
+/* WRITE THE REPORT BEFORE SAILING, NOT AFTER.
+   A killed run used to leave the PREVIOUS run's verdict on disk, and rule 24 tells Wyatt to answer
+   "did you run it?" by opening that file. On 2026-08-26 it therefore said PASSED, in bold, on a
+   build carrying 18 unverified fixes -- because a smoke test had written it and a real run had been
+   killed. THE ARTIFACT OUTLIVED THE RUN AND KEPT ITS VERDICT.
+   Stamping it IN PROGRESS first means the only way to get a green report is to finish. A crash, a
+   kill, a laptop lid closing -- all of them now leave the truth. */
+fs.writeFileSync(path.join(REPO, ".planning", "SEA-TRIAL.md"),
+`# Sea trial — build \`${STAMP}\`
+
+**IN PROGRESS — no verdict yet.**  ·  started ${started.toISOString()}  ·  gear **${gear}**
+
+If this is still what the file says, the trial did not finish. **A trial that did not finish is not
+a trial that passed.** Nothing here has been proven about build \`${STAMP}\`.
+`);
+
 say(`\n⚓ SEA TRIAL — build ${STAMP}`);
 say(`   gear: ${gear}  (${gearWhy})`);
 say(`   legs: ${legs.length ? legs.join(", ") : "none — this gear needs no voyage"}\n`);
