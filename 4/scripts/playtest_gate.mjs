@@ -33,6 +33,10 @@ import { openWebKit } from "./lib/wk.mjs";
 import { MEASURE, structuralChecks, waitSettled } from "./lib/checks.mjs";
 import { judgeAll, writeJudgeQueue } from "./lib/vision.mjs";
 import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
+/* DO THE TWO CAPTAINS SEE THE SAME GAME? This leg already played both seats and threw the
+   comparison away — each was judged against the universal rules ALONE, which cannot see "both
+   screens are individually fine and they disagree". That is seven of Wyatt's 35 findings. */
+import { compareWhenSettled } from "./lib/seat_parity.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const LEGS = arg("legs", "solo-desktop,solo-phone,passplay-phone,crew-desktop").split(",");
@@ -215,6 +219,12 @@ function legVerdict(rec) {
     const unexercised = [...P.coverage.entries()].filter(([k, r]) => r.seen > 2 && r.clicked === 0 && !/back|menu close|chat close/.test(k)).map(([k]) => k);
     if (unexercised.length) v.push(`offered but never exercised: ${unexercised.join(", ")}`);
   }
+  /* THE TWO SEATS DISAGREEING IS A FAILURE, not a note. This is the class Wyatt's 2026-08-26
+     playtest was mostly made of — seven findings where both screens were individually fine and they
+     showed different games — and until this line the leg had no way to say so. */
+  if (rec.parity && rec.parity.length)
+    v.push(`${rec.parity.length} moment(s) where the two captains saw different games: ` +
+           rec.parity.slice(0, 3).map(p => `${p.field} (${p.why})`).join("; "));
   if (rec.consoleErrs && rec.consoleErrs.length) v.push(`${rec.consoleErrs.length} console error(s): ${rec.consoleErrs[0]}`);
   /* A JUDGED SLOT CAN BE EMPTY, AND EVERY READER MUST COPE. judgeAll stops the whole pass on the
      first FATAL, so screens it never reached come back `undefined` — deliberately, because an
@@ -299,6 +309,14 @@ const legDefs = {
   "solo-phone":    { W: 390, H: 664, mobile: true, dsf: 2 },
   "passplay-phone":{ W: 390, H: 664, mobile: true, dsf: 2 },
   "crew-desktop":  { W: 1890, H: 960, guestW: 1400, guestH: 900 },
+  /* CREW ON A PHONE — the combination Wyatt actually playtested for two hours on 2026-08-26, and
+     the one with NO LEG until the CEO review pointed at the hole. It did not even show up as a gap:
+     a leg that is not in the table produces no row, which is worse than a not-run cell, because a
+     not-run cell is at least visible. Most of his 35 findings came from this square.
+     Both seats phone-sized, because a crew game between two phones is what he and a friend play. */
+  "crew-phone":    { W: 390, H: 664, mobile: true, dsf: 2, guestW: 390, guestH: 664 },
+  /* Pass-and-play on a desktop — the other empty square in the matrix. */
+  "passplay-desktop": { W: 1890, H: 960 },
 
   /* THE WEBKIT LEGS — the same modes, the same player, the other engine.
      WHY NOT ALL FOUR MODES IN WEBKIT: the two engines diverge on RENDERING, ANIMATION and LAYOUT
@@ -351,7 +369,7 @@ async function runLeg(name, idx) {
     host = await openEngine(def, { W: def.W, H: def.H, dbgPort: dbg, httpPort: null, serveRoot: REPO,
       profileDir: path.join(OUT, `prof-${name}-a`), mobile: !!def.mobile, dsf: def.dsf || 1 });
     host.httpPort = PORT0;   // navigate against the run's shared server
-    if (name === "crew-desktop") {
+    if (name.startsWith("crew-")) {
       // Wyatt's ruling: crew plays to the TRUE end; players are test1/test2 so the permanent
       // gamelog rows are filterable. Two separate Chromes = separate localStorage/pp_id (§5c).
       const code = await bootHost(host, "test1");
@@ -363,11 +381,40 @@ async function runLeg(name, idx) {
       await hostStart(host);
       const recA = { screens: rec.screens, finished: false }, recB = { screens: rec.screens, finished: false };
       rec.seats = [recA, recB];
+      /* THE PARITY SAMPLER runs ALONGSIDE the two seats, not after them: a divergence that heals
+         before the voyage ends is still a divergence a player saw. It compares only the SHARED
+         truth — the day, the wind, every purse, who is lit, whether a battle card or a bench is up
+         — because the two seats' PROMPTS are legitimately different and comparing those would cry
+         wolf every turn. It waits for both to settle before each comparison, so the network's
+         latency is never reported as a fault. */
+      rec.parity = [];
+      let sampling = true;
+      const sampler = (async () => {
+        while (sampling) {
+          const r = await compareWhenSettled(host, guest);
+          if (r && r.findings && r.findings.length) {
+            for (const f of r.findings) {
+              const key = f.field + "|" + f.why;
+              if (!rec.parity.some(p => p.key === key)) {
+                rec.parity.push({ key, ...f });
+                log(`[${name}] SEATS DISAGREE — ${f.field}: ${f.why}`);
+              }
+            }
+          }
+          await sleep(2500);
+        }
+      })();
       await Promise.all([playSeat(host, `${name}-host`, recA), playSeat(guest, `${name}-guest`, recB, { quests: true })]);
-      rec.finished = recA.finished || recB.finished;
+      sampling = false; await sampler.catch(() => {});
+      /* BOTH, NOT EITHER. This was `||` until the CEO review of 2026-08-26: if the host completed
+         the voyage while the guest sat stuck on a card forever, the leg reported "finished" and went
+         green. That is T-04's exact symptom — a guest holding a dead battle card for 13.4 seconds
+         and, in his playtest, until its own turn came round. The one bug he called serious would
+         have passed this gate. */
+      rec.finished = recA.finished && recB.finished;
     } else {
       const seat = { screens: rec.screens, finished: false }; rec.seats = [seat];
-      if (name === "passplay-phone") await bootPassPlay(host, ["Davy Scones", "Peg Leg Meg"]);
+      if (name.startsWith("passplay-")) await bootPassPlay(host, ["Davy Scones", "Peg Leg Meg"]);
       else await bootSolo(host, "Davy Scones");   // the long name — the one that cliped, on purpose
       await playSeat(host, name, seat);
       rec.finished = seat.finished;

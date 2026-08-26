@@ -84,7 +84,11 @@ const PLUMBING = [
 const PLUMBING_FORBIDDEN = /\bspec\b|\bpayload\b|renderPickPrompt|playBakeoffLive|showNarration|localAsk|applyBenchSnap|applyBattleSnap|\bpanel\(/;
 
 /* ---- helpers ---------------------------------------------------------------- */
-const isDoc = f => f.endsWith(".md") || f.startsWith(".planning/") || f.startsWith("docs/");
+/* NOT THE GAME: documents, and the test tooling itself. Editing a probe does not require sailing a
+   voyage to prove the GAME still works — and the hook (.claude/hooks/qa-gear-first.cjs) already
+   exempts 4/scripts/ for the same reason, since writing a check IS step one. The two must agree, or
+   a session gets stopped by one and waved through by the other. */
+const isDoc = f => f.endsWith(".md") || f.startsWith(".planning/") || f.startsWith("docs/") || f.startsWith("4/scripts/");
 
 function changedLines(f) {
   const d = sh(`git diff -U0 -- ${JSON.stringify(f)}`) + sh(`git diff -U0 --cached -- ${JSON.stringify(f)}`);
@@ -110,11 +114,34 @@ const looksCosmetic = lines => lines.length > 0 && lines.every(l => {
 });
 
 /* ---- decide ----------------------------------------------------------------- */
-const game = files.filter(f => f.startsWith("4/") && !isDoc(f));
+const game = files.filter(f => f.startsWith("4/") && !isDoc(f));   // let, morally — the NONE branch may refill it
 let gear, why, modes = ["solo", "passplay", "crew"];
 
 if (!game.length) {
-  gear = "NONE"; why = "no game code changed — documents and planning only";
+  /* THE BYPASS THAT MADE THE WHOLE PROCESS THEATRE, found by the CEO review 2026-08-26 and verified
+     before it was believed.
+
+     This read the WORKING TREE. The moment you commit a fix — which is the workflow this project
+     mandates, atomic commits, one per fix — the tree is clean, this returned NONE, sea_trial sailed
+     zero legs and wrote a report saying PASSED. Nobody had to cheat, nobody had to be tired: FOLLOWING
+     THE RULES EXACTLY was sufficient to skip everything and produce a green certificate.
+
+     And the lesson was already learned TWELVE LINES DOWN, in looksCosmetic(): "a check that cannot
+     see its subject must return the STRICT answer, never the lenient one." It was applied to the
+     inner test and not to the enclosing one, in the same file, in the same hour.
+
+     So: nothing to compare means compare against what SHIPPED. If that is empty too, the honest
+     answer is still FULL — never NONE. */
+  const vsMain = sh("git diff --name-only origin/main...HEAD").split("\n").map(x => x.trim()).filter(Boolean);
+  const shipped = vsMain.filter(f => f.startsWith("4/") && !isDoc(f));
+  if (shipped.length) {
+    game.push(...shipped);
+    gear = "FULL";
+    why = `nothing uncommitted, so this reads what is AHEAD OF origin/main: ${shipped.join(", ")}`;
+  } else {
+    gear = "NONE";
+    why = "no game code changed, committed or uncommitted, against origin/main";
+  }
 } else {
   const allLines = game.map(f => changedLines(f).join("\n")).join("\n");
   const cosmetic = game.every(f => looksCosmetic(changedLines(f)));

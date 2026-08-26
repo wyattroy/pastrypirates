@@ -38,7 +38,7 @@ const started = new Date();
 
 /* ---- which gear? ---------------------------------------------------------- */
 let gear = arg("gear");
-let gearWhy = "forced on the command line";
+let gearWhy = "**FORCED ON THE COMMAND LINE — this overrode the mechanical picker.** Treat this report as weaker evidence than one whose gear was derived.";
 if (!gear) {
   const r = spawnSync("node", [path.join(REPO, "4/scripts/qa/gear.mjs")], { encoding: "utf8" });
   gear = ((r.stdout || "").match(/GEAR:\s*(\w+)/) || [])[1] || "FULL";
@@ -51,8 +51,11 @@ if (!gear) {
    how ONE mode serves the game up must be shown not to have leaked into the game itself. */
 const LEGS = {
   COSMETIC: [],
-  PLUMBING: ["solo-phone", "passplay-phone", "crew-desktop"],
-  FULL: ["solo-desktop", "solo-phone", "passplay-phone", "crew-desktop", "solo-desktop-wk", "solo-phone-wk"],
+  PLUMBING: ["solo-phone", "passplay-phone", "crew-phone"],
+  /* The full matrix. crew-phone is here because it is the square Wyatt actually playtested and the
+     one that had no leg at all until 2026-08-26 — most of his 35 findings came from it. */
+  FULL: ["solo-desktop", "solo-phone", "passplay-phone", "passplay-desktop",
+         "crew-desktop", "crew-phone", "solo-desktop-wk", "solo-phone-wk"],
   NONE: [],
 };
 const legs = LEGS[gear] || LEGS.FULL;
@@ -90,11 +93,18 @@ if (legs.length) {
 const notRun = [...gateOut.matchAll(/\[([\w-]+)\] NOT RUN — ([\s\S]*?)(?=\n\[|\n$)/g)].map(m => ({ leg: m[1], why: m[2].trim() }));
 const ranLegs = legs.filter(l => !notRun.some(n => n.leg === l));
 const mins = Math.round((Date.now() - started) / 60000);
-const verdict = !unitOk ? "FAILED" : gateOk === false ? "FAILED" : notRun.length ? "PASSED WITH GAPS" : legs.length ? "PASSED" : "PASSED (no voyage needed)";
+/* A LEG THAT DID NOT RUN IS NOT A PASS, and until the CEO review of 2026-08-26 this file said so
+   in its own header and then contradicted itself in code: "PASSED WITH GAPS" exited 0. The verdict
+   word is what people quote, so it must never be able to contradict the table underneath it. */
+const verdict = !unitOk ? "FAILED"
+  : gateOk === false ? "FAILED"
+  : notRun.length ? "INCOMPLETE"
+  : legs.length ? "PASSED"
+  : "NOTHING SAILED";
 
 const report = `# Sea trial — build \`${STAMP}\`
 
-**${verdict}**  ·  ${started.toISOString()}  ·  ${mins} min  ·  gear **${gear}**
+**${verdict}** — ${ranLegs.length} of ${legs.length} voyage(s) sailed${notRun.length ? `, ${notRun.length} NOT RUN` : ""}  ·  ${started.toISOString()}  ·  ${mins} min  ·  gear **${gear}**
 
 > Gear chosen because: ${gearWhy}
 
@@ -124,4 +134,6 @@ const dir = path.join(REPO, ".planning");
 fs.writeFileSync(path.join(dir, "SEA-TRIAL.md"), report);
 say(`\n⚓ ${verdict}  —  report: .planning/SEA-TRIAL.md  (build ${STAMP}, ${mins} min)`);
 if (notRun.length) say(`   ${notRun.length} leg(s) did NOT run — read the report, they are not passes.`);
-process.exit(verdict === "FAILED" ? 1 : 0);
+/* INCOMPLETE and NOTHING SAILED both exit non-zero. Only a trial that actually sailed every leg
+   it promised, and passed, is allowed to be green. */
+process.exit(verdict === "PASSED" ? 0 : 1);
