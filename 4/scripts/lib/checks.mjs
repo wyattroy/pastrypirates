@@ -180,23 +180,94 @@ export const SETTLE_PROBE = `(() => {
      four. Rounding to 8px separates "arriving" from "breathing" without naming a single element,
      which keeps this a general rule rather than a list of exceptions to maintain (D-37). */
   const q = v => Math.round(v / 8);
-  return [...document.querySelectorAll(sel)].map(el => { const r = el.getBoundingClientRect();
+  const geom = [...document.querySelectorAll(sel)].map(el => { const r = el.getBoundingClientRect();
     return q(r.left) + ',' + q(r.top) + ',' + q(r.width) + ',' + q(r.height); }).join(';');
+  /* AND THE VISIBLE WORDS. Wyatt, 2026-08-26: "only capture screenshots after the text has entered
+     entirely and settled."
+
+     WHY NEITHER RECTS NOR textContent CAN SEE THIS — read typewriterReveal() in 4/src/ui/panel.js
+     before changing anything here. It splits each text node into TWO adjacent spans holding the
+     SAME characters: a revealed prefix, and the remainder at visibility:hidden which still
+     occupies its exact layout box. That is deliberate and good — line breaking is identical to the
+     finished message from the first frame, so no word ever hops a line mid-reveal.
+     It also means:
+       - GEOMETRY NEVER CHANGES during a reveal. By design. Nothing reflows.
+       - textContent RETURNS THE FULL STRING THE WHOLE TIME, because both spans are in it.
+     So the only thing that differs mid-reveal is what is PAINTED — which is why the vision judge
+     was the only check that could see it, and why it reported perfectly good copy as a truncation
+     bug twice on 2026-08-26: "...then sa" (solo-desktop-001) and "gather each ingredien"
+     (passplay-phone-001). Same sentence, same box, DIFFERENT cut points — clipping is
+     deterministic, so different cuts prove a reveal in flight.
+
+     MEASURED, not reasoned: a first attempt at this fix added plain textContent and changed
+     nothing — a 40-sample trace showed 75 of 75 characters present at 12ms. The trace is what
+     caught it; the source is what explained it.
+
+     So: gather the text that is NOT inside a hidden subtree, and the images still faded out (the
+     same function sets IMG opacity to 0 and transitions it in, so a half-revealed line can also be
+     missing its icons). Scoped to the reading surfaces — containers like #pp4Prompt/#pp4Cap
+     aggregate volatile children and would keep the signature churning forever, which is the 8px
+     lesson above in another costume. */
+  const READ = '.apMsg, .apSub, .pp4Bub, .apBtn, .btlBtn, .pp4PeekHint';
+  const shown = el => {
+    let out = '';
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let t;
+    while (t = w.nextNode()) {
+      const par = t.parentElement;
+      if (par && getComputedStyle(par).visibility === 'hidden') continue;
+      out += t.nodeValue;
+    }
+    return out.replace(/\s+/g, ' ').trim();
+  };
+  const words = [...document.querySelectorAll(READ)].map(el => {
+    const faded = [...el.querySelectorAll('img')].filter(i => +getComputedStyle(i).opacity < 0.99).length;
+    return shown(el) + (faded ? '~' + faded : '');
+  }).join('|');
+  return geom + '\u00a7' + words;
 })()`;
 
+/* THE CAP FOLLOWS PROGRESS RATHER THAN NAMING A DURATION. Measured 2026-08-26: the opening
+   narration paints at ~25ms/char and finishes at ~1890ms, so a 75-character line settles at 2202ms
+   — inside the old flat 2600ms cap by a whisker. A three-line trade offer is comfortably longer and
+   would blow it, and the screen would be graded half-typed again.
+   Raising 2600 to some bigger number would be exactly the constant rule 9 forbids: right for
+   today's longest message, wrong for the next one, and it taxes every quiet screen by the
+   difference. So while the PAINTED text is still growing, the deadline is pushed out — the wait
+   tracks the reveal's own progress. HARD_MS is a runaway guard, not a pacing number: it exists
+   only so a permanently-churning screen cannot hold a browser open forever (rule 17), and it is
+   reported when it bites. */
+const HARD_MS = 12000;
 export async function waitSettled(c, { sampleMs = 120, stableFor = 3, capMs = 2600 } = {}) {
   const t0 = Date.now();
   let last = null, same = 0, samples = 0;
-  while (Date.now() - t0 < capMs) {
+  let deadline = t0 + capMs, grewTo = -1, pushed = 0;
+  /* WHICH HALF IS STILL MOVING — reported, not merely counted. "20 screens never stopped moving"
+     was the shape of this finding for two days and it is not actionable: it names a quantity, not a
+     cause. Geometry churn and text churn need opposite fixes, so the report has to tell them
+     apart. Costs one string split on the sample we already have. */
+  let churn = null;
+  while (Date.now() < deadline && Date.now() - t0 < HARD_MS) {
     const now = await c.ev(SETTLE_PROBE);
     samples++;
+    // Still painting? Then this is progress, not churn — give it the same window again.
+    if (typeof now === "string") {
+      const n = (now.split("\u00a7")[1] || "").length;
+      if (n > grewTo) { grewTo = n; pushed++; deadline = Math.min(t0 + HARD_MS, Date.now() + capMs); }
+    }
     if (typeof now === "string" && now === last) { if (++same >= stableFor) return { settled: true, ms: Date.now() - t0, samples }; }
-    else { same = 0; last = now; }
+    else {
+      if (typeof now === "string" && typeof last === "string") {
+        const [g0, w0] = last.split("\u00a7"), [g1, w1] = now.split("\u00a7");
+        churn = g0 !== g1 ? (w0 !== w1 ? "geometry+text" : "geometry") : "text";
+      }
+      same = 0; last = now;
+    }
     await new Promise(r => setTimeout(r, sampleMs));
   }
   /* HITTING THE CAP IS NOT A FAULT, and an earlier version of this made it one — which fired on
      nearly every screen of a real leg and would have trained its reader to ignore the gate entirely,
      the exact failure HARD-WON-LESSONS warns about. It is a fact worth recording and nothing more:
      the checks below still run, on the best moment available. */
-  return { settled: false, ms: Date.now() - t0, samples };
+  return { settled: false, ms: Date.now() - t0, samples, churn, pushed, hardCap: Date.now() - t0 >= HARD_MS };
 }
