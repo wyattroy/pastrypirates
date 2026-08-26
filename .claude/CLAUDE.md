@@ -465,6 +465,37 @@ rejected, what a number cost somebody. Strip them and every settled argument get
 measuring it. A screenshot you reasoned about, a check that could not fail, and a comment describing
 intent are three faces of the same mistake — **evidence that was never actually gathered.**
 
+### WRITE THE PREDICTION DOWN BEFORE YOU MEASURE — rule 6's working form
+
+Wyatt, 2026-08-26, proposing a bigger version of this and then choosing the small one: *"could you
+trace the entire codebase to determine what you expect the behavior to be at every step, so that
+you're not making assumptions about the code instead of actually testing it?"*
+
+**The tracing idea was audited against four wrong calls made that day and would have caught one and
+a half.** It cannot see the failures that actually cost this project — the orphaned full stop was
+the browser's line-breaking around an inline image (no JavaScript to trace), and the buried stats
+row was CSS plus content height at one viewport width (in no function at all). **A trace is a very
+long, very confident comment**, which is the thing the section above forbids. The repo has already
+paid for that once: the auto-generated architecture blocks were deleted on 2026-08-18 for citing
+`index.html:1017–1684` for a class that file does not contain.
+
+**So: before any measurement or fix, write down what you expect and WHY — then measure, then say
+plainly whether you were right.** It costs about ninety seconds and it caught two wrong answers the
+day it was adopted.
+
+- **Name what would prove you WRONG**, in the same note. A prediction with no failing case is a
+  wish. *"If no-cover-ask is gone but Deny is still never exercised, my reasoning is wrong"* — it
+  was, and the note is why that got reported instead of quietly reframed as a partial win.
+- **Write it BEFORE the result exists.** The whole value is that it cannot be retrofitted. A
+  prediction composed after the measurement always turns out to have been right.
+- **Say which parts were wrong, out loud, in the reply he reads.** On 2026-08-26 a settle fix based
+  on `textContent` did nothing; the written prediction is what made that undeniable rather than
+  something to rationalise. The wrong fix never shipped.
+- **A measurement that cannot fail is not a measurement.** Check the instrument reaches its subject
+  before believing it: three times in one day a probe measured a state it had never actually
+  created — a settle trace begun after the reveal had finished, an emoji with no custom art
+  standing in for an icon, a "card" that resolved to the full-screen container.
+
 ### Do not build tooling when the ask is to fix the game
 
 Infrastructure, harnesses and process improvements are a **substitution** for the ask unless he asked
