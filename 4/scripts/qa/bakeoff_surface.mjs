@@ -36,8 +36,13 @@ const READ = `JSON.stringify((()=>{
   const hd=[...document.querySelectorAll('.bkoHd')].find(vis);
   const watch=document.getElementById('bkoWatch');
   const go=document.getElementById('bkoGo');
+  /* T-09: who is drawn as the active captain while the bench is up? The row highlight and the
+     header ring both come from ONE derivation in board.js, so reading the row is enough. */
+  const rows=[...document.querySelectorAll('[id^=prow]')];
+  const lit=rows.filter(r=>r.classList.contains('activeTurn')).map(r=>(r.innerText||'').split(String.fromCharCode(10))[0].trim());
   return {
     onBench: !!hd,
+    activeRows: lit,
     title: hd?(hd.innerText||'').replace(/attempt.*$/s,'').trim():null,
     watch: watch?{hidden:watch.hidden, vis:vis(watch), animation:getComputedStyle(watch).animationName}:null,
     go: go?{label:(go.innerText||'').trim(), animation:getComputedStyle(go).animationName}:null,
@@ -65,6 +70,10 @@ console.log("  Bake button : " + JSON.stringify(seen.go));
 const t25 = seen.title && /Yer Bake-Off|'s Bake-Off/.test(seen.title);
 const t30 = !seen.watch || seen.watch.animation === "none";
 console.log("");
+const baker = (seen.title || "").split(",")[0].split("'")[0].trim();
+const t09 = seen.activeRows.length === 1 && seen.activeRows[0] === baker;
+console.log("  active captain drawn : " + JSON.stringify(seen.activeRows) + "   (baker is " + JSON.stringify(baker) + ")");
+console.log("  T-09 (baker is lit)      : " + (t09 ? "PASS" : "FAIL — " + (seen.activeRows.length ? "lit: " + seen.activeRows.join(",") : "nobody lit")));
 console.log("  T-25 (titled by captain) : " + (t25 ? "PASS — " + seen.title : "FAIL — still " + seen.title));
 console.log("  T-30 (Watch again quiet) : " + (t30 ? "PASS — animation none" : "FAIL — runs " + seen.watch.animation));
 console.log("");

@@ -1368,18 +1368,36 @@
     border-radius: 50%; background: var(--teal); color: #fff; font-size: 12px; font-weight: 700;
     line-height: 19px; text-align: center; opacity: 0; transition: opacity .15s ease;
     box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
-  /* The badge shows for three different reasons and colours itself accordingly: orange while the
-     player is assigning it, green once that step is banked, pink where it went wrong. */
+  /* The badge shows for three different reasons and colours itself accordingly: YELLOW while the
+     player is assigning it, green once that step is banked, RED where it went wrong.
+
+     T-31 (Wyatt, 2026-08-26): "the bakeoff correct/incorrect guess colors look a bit strange on my
+     laptop screen -- the pink should be redder -- pink doesn't seem like 'bad'. And instead of
+     using blue to select, use yellow, so it looks more different than the green."
+
+     Both were real. WRONG was #d6337f, a magenta-pink that reads as a highlight rather than a
+     fault. SELECTED had no colour of its own at all: it inherited the base badge's var(--teal),
+     which is the same blue as the recipe list's step numbers — so "I am choosing this one" and
+     "this step is banked" were a blue and a green sitting side by side, the two hardest states to
+     tell apart at a glance. Yellow is now the only warm state on the bench, so a pick cannot be
+     mistaken for a result.
+
+     The sentence above this used to claim the assigning badge was ORANGE. It was teal. Corrected
+     rather than deleted — the false version is why the collision survived (rule 6).
+
+     Yellow takes dark ink, not the white the base badge sets: white on #eaa60f fails contrast at
+     this size, and the number has to be readable to be worth showing. */
   .bkoBowl.picked .bkoNum, .bkoBowl.locked .bkoNum,
   .bkoBowl.right .bkoNum, .bkoBowl.wrong .bkoNum { opacity: 1; }
+  .bkoBowl.picked .bkoNum { background: #eaa60f; color: #3a2600; }
   .bkoBowl.locked .bkoNum, .bkoBowl.right .bkoNum { background: #3aa76d; }
-  .bkoBowl.wrong .bkoNum { background: #d6337f; }
+  .bkoBowl.wrong .bkoNum { background: #c9372c; }
   /* `covered` is the ONE switch that raises or drops a dome. The right/wrong/locked states used to
      each re-declare their own lift transform, which meant four places could disagree about where a
      dome sits — and after the lift changed above they would have quietly reinstated the old eject.
      The JS removes `covered` for all three, so the base rule already has them uncovered. */
   .bkoBowl.right { outline: 3px solid #3aa76d; outline-offset: 1px; }
-  .bkoBowl.wrong { outline: 3px solid #d6337f; outline-offset: 1px; }
+  .bkoBowl.wrong { outline: 3px solid #c9372c; outline-offset: 1px; }   /* T-31: redder than pink */
   .bkoBowl.locked { outline: 3px solid #3aa76d; outline-offset: 1px; opacity: .88; }
   .bkoBowl.flash { animation: bkoFlash .34s ease; }
   @keyframes bkoFlash { 0%,100% { opacity: 1; } 50% { opacity: .35; } }

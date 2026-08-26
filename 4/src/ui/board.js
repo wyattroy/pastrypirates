@@ -1680,10 +1680,37 @@ export function render(){
     $("crown"+i).innerHTML=(lastEv.t==="end"&&lastEv.winner===i&&appState.evIdx===appState.game.events.length-1)?iconImg(CROWN_IMG):"";
   });
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
+  /* T-09 (Wyatt, 2026-08-26, with a host/guest screenshot pair): "the bakeoff SHOULD be happening
+     for guest because it's their turn -- but Dough hook (who just played) is still displayed as the
+     active player ship in the top header, and in the captain's box." He saw it in crew; he then
+     found the same thing in pass-and-play (his #34), so it is every mode.
+
+     THE WALK ONLY KNEW ABOUT `turn`. A bake is not a turn — the engine emits {t:"ovens",p} when a
+     captain steps up and {t:"bake",p} for each attempt — so during a bake the most recent `turn`
+     was still the PREVIOUS captain's, and the ring and the highlight faithfully pointed at them.
+     Both screens agreed, which is why this was never a host/guest fault: one derivation, one wrong
+     answer, drawn identically everywhere.
+
+     THIS CHANGE DOES NOT FIX WHAT HE SAW, and the probe says so: bakeoff_surface.mjs still reads
+     "Flaky Jack" lit while "Davy Probe" bakes. MEASURED, not assumed. The reason is that
+     bakeoffPrompt runs BEFORE the engine records anything — {t:"ovens"} and {t:"bake"} are emitted
+     when the attempt RESOLVES — so while the bench is on screen there is no bake event to find.
+     What this does fix is the moment after the bake, and a resumed voyage replaying across one.
+
+     THE REAL DEFECT, located and left for a supervised change: there are TWO independent answers
+     to "whose turn is it". `appState.curSeat`, which every prompt sets through applyActiveSeat —
+     including the bake — and THIS EVENT WALK, which the ring and the captains box actually read.
+     They disagree for the whole length of a bake. That is rule 23's shape exactly: one fact,
+     derived twice, kept in step by nothing.
+
+     Converging them means deciding which one wins during REPLAY, where there is no live actor and
+     the box must follow the narration playhead rather than run ahead of it (see applyCaptainOrder
+     below). That is a design call, not a patch, so it waits for Wyatt rather than being guessed at
+     while he sleeps. Do not "fix" this by reading curSeat here as well — that makes three. */
   let active=null;
   for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
     const t=appState.game.events[i].t;
-    if(t==="turn"){active=appState.game.events[i].p;break;}
+    if(t==="turn"||t==="ovens"||t==="bake"){active=appState.game.events[i].p;break;}
     if(t==="newround")break;
   }
   if(active!=null&&st[active].done)active=null;
