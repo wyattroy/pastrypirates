@@ -314,3 +314,132 @@ The Realtime DB takes writes on four top-level paths — `rooms/`, `presence/`, 
 `gamelogs/` — and **the game never authenticates**. The security rules are the only thing protecting
 it, and the `databaseURL` is in view-source. `.planning/codebase/CONCERNS.md:141` flagged this and it
 was never resolved. Wyatt has been told.
+
+---
+
+## 10. THE SEA TRIAL HAD NOT TESTED THE GAME SINCE THE CUTOVER
+
+**Found by making the seed drill able to fail — which is exactly what Wyatt said it would buy.**
+The fixed drill's first run reported *"4 REAL GAP(S) — the sea trial would not have found these."*
+Its own baseline, one line above, said:
+
+```
+· leg error: solo card not clickable
+· did not finish the voyage
+```
+
+**The leg never got past the front screen.** Nothing had reached any seeded code. A drill that had
+just been made able to fail immediately produced a confident wrong finding — because it was still
+grading a run that never happened.
+
+### The cause: 77 references to a directory the cutover emptied
+
+`playtest_gate.mjs:85` navigated to `http://127.0.0.1:${PORT}/4/`. `4/` now holds only `scripts/`,
+so python's `http.server` answered **200 with a directory listing**, Chrome loaded it happily, and
+the first thing every driver looks for — `#choiceSolo` — was not on the page.
+
+| | count |
+|---|---|
+| scripts navigating to `/4/` | **12 files, 22 sites** |
+| in-page `import("/4/src/…")` calls | **15 files, 49 sites** |
+| **total dead references** | **77** |
+| gates that could see any of them | **0** |
+
+**`docs/DRIVING-THE-GAME.md` had already been updated and no longer mentions `/4/` anywhere.** The
+doc was right; the code it documents was orphaned. `HARD-WON-LESSONS.md` §3 names the shape exactly:
+*a gate aimed at the wrong tree is not silent, it is REASSURING.*
+
+### The fix is rule 23's, not a find-and-replace
+
+`gameURL(port)` and `GAME_PATH` now live **once**, in `4/scripts/lib/chrome.mjs`, and all 22
+navigations go through them. Twenty-two copies of a constant kept in step by discipline is the
+defect rule 23 forbids *before a line is written*.
+
+**PROVEN, not assumed:** before the repoint the gate died instantly at the front screen; after it, a
+`solo-phone` leg reached **DAY 0 → DAY 1 → DAY 2**, clicked sail squares, ran a trade, and exercised
+14 interaction kinds.
+
+### The new gate — `4/scripts/game_url_check.js`, in `npm test` (19 gates)
+
+Its load-bearing case is **not** "does a file exist":
+
+> **`GAME_PATH` must resolve to an `index.html` that actually CONTAINS `#choiceSolo`.** A directory
+> listing and the wrong tree's `index.html` both pass a mere existence check. This is the case that
+> would have caught the cutover on the day it happened.
+
+Plus: no script may hardcode a local game URL; no in-page import may name a non-root tree; and a
+**two-way red-proof**. The first version of the URL case had no `fetch()` discriminator and
+condemned **nine CDP `/json/new` calls that are all correct** — rule 6, *when a check condemns
+something known to work, suspect the check first.* Verified by reintroducing the defect, watching it
+go red, and removing it again.
+
+### Doc rot from the same cause, swept in the same pass
+
+**35 lines** across `DISPLAY-RULES`, `DETERMINISM-CAPTURE-4`, `TRADE-SYSTEM`, `AUDIO`,
+`HARD-WON-LESSONS`, `GIT-AND-DEPLOY` and `CLAUDE.md` still sent readers to `4/src/…`.
+
+- **`CLAUDE.md` §6 told every session to bump `PP4_STAMP` in `4/src/ui/stage.js`** — the deploy
+  loop's single most-run step, pointing at nothing.
+- **Both deploy docs still carried the reassurance the cutover INVERTED:** *"merging does not touch
+  the root game, they are different files."* True with two trees; **false with one.** Every push to
+  `main` is served to real players immediately. Both now say so, in a warning box.
+- **Rule 23's own citation was wrong in both halves** — `4/src/orchestrator.js:1654` is a deleted
+  tree *and* a line reading `const subHtml=…`. The host/guest fork is one `if/else` pair at
+  **`src/orchestrator.js:2318-2319`**. Corrected by reading it.
+
+### `doc_command_check.js` reported all-green throughout, and why
+
+It scanned a **hand-kept list of five docs** with a **`.md`-only** link regex. So `docs/AUDIO.md` —
+which `CLAUDE.md` §4 itself tells you to read before touching sound — **was never checked at all**,
+and its dead link to the audio module sat green for a day.
+
+The list is now **derived from the directory** and the regex covers source files: **13 → 47
+commands, 21 → 24 links.** It immediately found three more dead commands (a determinism recipe whose
+copy-into-`4/` step the cutover made obsolete, and a brief pointing into the deleted `v2bakeoff/`).
+Red-proofed with two planted defects.
+
+> **The lesson, and it is the same one three times today:** a hand-kept list of what to guard rots
+> exactly like the thing it guards, and nothing says so. Derive it.
+
+---
+
+## 11. WHAT THE DRILL ACTUALLY MEASURED — and the prediction it falsified
+
+**The 0/4 from the first valid run is WITHDRAWN, not reported.** Two of its four rows were grading
+code that never executed.
+
+**The prediction in §8 was written before any run. Here is how it held up, in the open:**
+
+| seed | predicted | actual | |
+|---|---|---|---|
+| T-12 | **CAUGHT** — a full-screen overlay should trip `not-occluded` | **WRONG, and for a reason I did not consider** | `showRoom()` is the multiplayer room screen (`lobby.js:263` guards on `appState.room`). A solo leg never runs the seeded line. It was not a coverage gap; it was an unreachable seed |
+| T-16 | MISSED — geometry checks cannot see a glow | reachable, and the reasoning held | `appState.isHost` is TRUE in solo, so solo *does* run `netIntroBarrier()`. Confirmed by the gate's own coverage line: `arrgh:1/1`, `start:1/1` |
+| T-30 | MISSED — a CSS class rename with no geometric consequence | reachable, reasoning held | the bake-off's Watch again button; solo plays bake-offs |
+| T-02 | MISSED — *"it is a guest bug and the leg is solo"* | **right, and for exactly the stated reason** | the line is `orchestrator.js:1716`, inside `watchPrompt()`, attached only on a guest (`orchestrator.js:2319`) |
+
+**Writing the falsifier down is what made T-12 reportable as wrong instead of quietly reframed as a
+partial win.** The stated falsifier — *"if the covered squares are not where I expect, the
+explanation cannot be right"* — is what forced checking reachability at all.
+
+### So the drill now pairs every seed with a leg that can reach it
+
+Each seed carries its `leg` **and the `why`**, and the drill sails **one baseline per leg**.
+`--leg=` still forces them all onto one leg, and every forced row is marked — because three of these
+four would silently measure nothing that way.
+
+### THE SECOND CONFOUND, and it is not fixed — it is only made visible
+
+The baseline is bounded at **4 minutes** (the gate's real default is 35) and **does not finish its
+voyage**. So `"did not finish the voyage"` is one of the baseline's own signatures and is therefore
+**subtracted from every seed** — which is exactly the signature a seed that *breaks the game
+outright* would produce.
+
+**While that is true, the drill is blind to its most important class of catch.** It now prints that
+warning itself, on the leg it applies to, rather than burying it here:
+
+> *⚠ this baseline did not finish its voyage, so "did not finish" cannot discriminate. A seed that
+> BREAKS the game outright will read as MISSED. Raise `--max-min` until the baseline finishes before
+> trusting a MISSED on this leg.*
+
+**The next person to touch this should raise `--max-min` until at least the solo baseline finishes,
+then re-run.** Until then, a MISSED is *"not yet a gap"*, not *"a gap"*.
