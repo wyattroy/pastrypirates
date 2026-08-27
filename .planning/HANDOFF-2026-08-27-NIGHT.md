@@ -1,5 +1,12 @@
 # Handoff — the night of 2026-08-26 → 27
 
+> ## ⚠ SUPERSEDED by [`HANDOFF-2026-08-27.md`](HANDOFF-2026-08-27.md)
+>
+> Written for the 8am read; accurate for that moment. Since then: the script tree moved out of
+> `4/`, two more instruments were found broken, the release process was written down, and the
+> work moved to staging for review. Start with the newer file.
+
+
 > ## THE ONE-LINE VERSION
 > **Four separate instruments were broken by the cutover, and one of them was the sea trial itself.**
 > Every gate this project relies on has been unable to see the game since the promotion. They can
