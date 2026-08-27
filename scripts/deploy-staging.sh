@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Deploy the current working tree to the TEMPORARY preview site.
+# Publish the current working tree to STAGING — staging.playpastrypirates.com.
 #
-#   scripts/deploy-preview.sh "commit message"
+#   scripts/deploy-staging.sh "commit message"
 #
 # ============================================================================
 #  WHY THIS SCRIPT EXISTS — read before "simplifying" it
 # ============================================================================
 #
 # Two separate Claude sessions have now come within one command of publishing
-# this repo's CNAME file into the preview repo. Both were hand-rolling an
+# this repo's CNAME file into the staging repo. Both were hand-rolling an
 # rsync. The second one caught it only because `git status` was read carefully
 # before pushing; there was nothing stopping it.
 #
@@ -21,7 +21,7 @@
 # not instant. This is a production outage caused by a preview deploy.
 #
 # It is an easy mistake precisely because everything about it looks right:
-# the preview repo IS a copy of this repo, so "copy everything across" is the
+# the staging repo IS a copy of this repo, so "copy everything across" is the
 # obvious instinct, and CNAME is a 21-byte file nobody scrolls to in a
 # 130-file diff.
 #
@@ -32,9 +32,11 @@
 #
 set -euo pipefail
 
-PREVIEW_REPO="wyattroy/pastrypirates-v13-preview"
+STAGING_REPO="wyattroy/pastrypirates-staging"
+PROD_HOST="playpastrypirates.com"
+STAGING_HOST="staging.playpastrypirates.com"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MSG="${1:-Update preview}"
+MSG="${1:-Update staging}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -61,7 +63,7 @@ trap 'rm -rf "$WORK"' EXIT
 # — 7.7 GB of probe screenshots, every one of them ALREADY in .gitignore and
 # none of them in this list. rsync copies the WORKING TREE, not the index, so
 # `.gitignore` does not protect a preview deploy. Running this script that day
-# would have pushed 7.7 GB into the preview repo.
+# would have pushed 7.7 GB into the staging repo.
 #
 # That is the same shape as the two faults found the same day (a doc-check
 # scanning a hand-kept list of five files; a profile ignore listing three of
@@ -100,28 +102,52 @@ done < "$SRC/.gitignore"
 
 echo "    excludes: ${#EXCLUDES[@]} (3 site-identity + tracked dirs + everything .gitignore lists)"
 
-echo "==> preview deploy: $PREVIEW_REPO"
+echo "==> staging deploy: $STAGING_REPO"
 [ -f "$SRC/CNAME" ] && echo "    (this repo owns CNAME -> $(cat "$SRC/CNAME") — it will NOT be copied)"
 
 git -C "$SRC" diff --quiet || echo "    note: working tree has uncommitted changes; deploying them as-is"
 
-gh repo clone "$PREVIEW_REPO" "$WORK/preview" -- -q
-rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/preview/"
+gh repo clone "$STAGING_REPO" "$WORK/staging" -- -q
+rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/staging/"
 
-# --- the guard. Never remove; this is the whole reason the script exists. ---
-if [ -e "$WORK/preview/CNAME" ]; then
-  echo "FATAL: a CNAME reached the preview checkout." >&2
-  echo "       Publishing it would contest playpastrypirates.com and can take" >&2
-  echo "       the LIVE game offline. Refusing to push. Fix the excludes." >&2
+# --- THE GUARD. Never remove; this is the whole reason the script exists. ---
+#
+# IT CHANGED SHAPE ON 2026-08-26 AND THE REASON MATTERS. It used to be "a CNAME
+# here at all is fatal", which was correct while the destination was an anonymous
+# github.io preview owning no domain. Staging now HAS a domain, so it legitimately
+# owns a CNAME — and the old guard would have refused every deploy forever.
+#
+# The danger was never "a CNAME exists". It is "THIS repo's CNAME reached the
+# other repo", because two repos claiming ONE hostname makes GitHub unset the
+# domain on one of them and the LIVE game goes down for real players. A SUBDOMAIN
+# is a different hostname and does not contest the apex. So the guard now checks
+# CONTENT: staging's CNAME must say the staging host and must never say the
+# production host.
+#
+# rsync --exclude=CNAME already protects the destination's own file from --delete,
+# so staging keeps its CNAME across every deploy. This verifies that it did.
+if [ ! -e "$WORK/staging/CNAME" ]; then
+  echo "FATAL: staging has no CNAME. It should contain $STAGING_HOST." >&2
+  echo "       Without it GitHub serves staging at wyattroy.github.io and the" >&2
+  echo "       custom domain silently stops working. Restore it; do not proceed." >&2
   exit 1
 fi
-if git -C "$WORK/preview" ls-files --error-unmatch CNAME >/dev/null 2>&1; then
-  echo "FATAL: CNAME is tracked in the preview repo already — remove it there first." >&2
+GOT="$(tr -d '[:space:]' < "$WORK/staging/CNAME")"
+if [ "$GOT" = "$PROD_HOST" ]; then
+  echo "FATAL: staging's CNAME says '$PROD_HOST' — the PRODUCTION host." >&2
+  echo "       Publishing this contests the live domain and can take the game" >&2
+  echo "       offline for real players. This is the exact outage this script" >&2
+  echo "       exists to prevent. Refusing to push." >&2
   exit 1
 fi
-echo "    guard passed: no CNAME in the preview checkout"
+if [ "$GOT" != "$STAGING_HOST" ]; then
+  echo "FATAL: staging's CNAME says '$GOT', expected '$STAGING_HOST'." >&2
+  echo "       Refusing to push something nobody intended." >&2
+  exit 1
+fi
+echo "    guard passed: staging CNAME is '$GOT' (not the production host)"
 
-cd "$WORK/preview"
+cd "$WORK/staging"
 if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcelain)" ]; then
   echo "==> nothing changed; not pushing."
   exit 0
@@ -130,5 +156,5 @@ git add -A
 git status --short | sed 's/^/    /'
 git commit -q -m "$MSG"
 git push -q origin HEAD:main
-echo "==> pushed. https://wyattroy.github.io/pastrypirates-v13-preview/"
+echo "==> pushed. https://$STAGING_HOST/"
 echo "    (GitHub Pages takes a minute or two to rebuild.)"
