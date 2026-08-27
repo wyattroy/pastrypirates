@@ -371,6 +371,20 @@ is unchanged: `node scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
 
 ### WHAT A CLOUD CTO RUN FOUND, 2026-08-27 — seven things that only fail in a container
 
+> **THE THREE HOSTS TO ADD TO THE ENVIRONMENT'S ALLOWLIST**, if cloud QA is ever to be complete:
+>
+> ```
+> cdn.playwright.dev
+> playwright.download.prss.microsoft.com
+> staging.playpastrypirates.com
+> ```
+>
+> The first two make the Safari-family sea-trial legs installable; the third lets a cloud session
+> verify its own staging publish instead of taking it on trust. Set at
+> **claude.ai/code → environment selector → settings icon → Network access → Custom → Allowed
+> domains**, and **tick "Also include default list of common package managers"** — Custom REPLACES
+> the Trusted list otherwise, which would cut off npm and the package registries.
+
 Run from `claude/cloud-handoff-planning-a9ay1u` while Wyatt was away. Every one of these was
 MEASURED here, and every one is invisible from a Mac. **THREE of them were in the same command** —
 `deploy-staging.sh`, the CTO's only way to hand him anything — and it published successfully only
@@ -379,7 +393,7 @@ after all three were fixed.
 | | what happens | status |
 |---|---|---|
 | **WebKit cannot be installed** | `npm i playwright` in `~/.pw` works (19 MB). `npx playwright install webkit` is refused by the egress proxy: **403, `no rule or allowlist entry allows host "cdn.playwright.dev"`**, and the same for `playwright.download.prss.microsoft.com`. No WebKit exists anywhere on the image. | **OPEN — needs those two hosts allowlisted.** Until then `solo-desktop-wk` and `solo-phone-wk` are permanently NOT RUN in the cloud, and no cloud report may ever imply Safari was covered. |
-| **`gh` is not installed** | `deploy-staging.sh` cloned the staging repo with `gh repo clone`, so the CTO's only publishing route died on its first command. Plain HTTPS `git` *does* reach `wyattroy/pastrypirates-staging` through the session proxy. | **FIXED** — the script feature-detects `gh` and falls back to `git clone`. Only the checkout changes; the rsync, the EXCLUDES and every CNAME guard are untouched. |
+| **`gh` is not installed IN THE CONTAINER** — it IS on Wyatt's Mac, which is why this never showed up before | `deploy-staging.sh` cloned the staging repo with `gh repo clone`, so the CTO's only publishing route died on its first command. Measured in the container: `command -v gh` is empty and `/usr/bin/gh`, `/usr/local/bin/gh` and `/opt/gh` do not exist. Plain HTTPS `git` *does* reach `wyattroy/pastrypirates-staging` through the session proxy. | **FIXED** — the script feature-detects `gh` and falls back to `git clone`. Only the checkout changes; the rsync, the EXCLUDES and every CNAME guard are untouched. |
 | **`rsync` is not installed** | `deploy-staging.sh` syncs the tree with rsync. Third blocker in the same command, after `gh` and `sed`. | **FIXED by installing the real tool** — `apt-get install -y rsync` works in the container. **DO NOT substitute `cp -r` or a hand-rolled copy.** rsync's `--exclude` list is what keeps `CNAME`, `robots.txt` and `sitemap.xml` out of the staging repo, and hand-rolling that sync is the exact move that twice came within one command of taking the live game down. |
 | **`sed -i ''` is BSD-only** | Two sites in `deploy-staging.sh`. GNU sed reads the empty string as the SCRIPT and the real script as a FILENAME: `sed: can't read s\|hello\|bye\|`. It could not stamp a build. | **FIXED** — feature-detected (`sed --version` answers on GNU, not BSD). |
 | **A cloud CTO can PUBLISH to staging but cannot CHECK its own publish** | `curl http://staging.playpastrypirates.com/` returns **`Host not in allowlist: staging.playpastrypirates.com`** from the egress proxy. `https://playpastrypirates.com/` returns 200, so this is the allowlist, not the site. | **OPEN — add `staging.playpastrypirates.com` to the network egress settings.** Until then, verify a publish through GIT instead: shallow-clone `wyattroy/pastrypirates-staging` and read `src/ui/stage.js`'s stamp, `index.html`'s `[STAGING]` title and `CNAME`. That proves the push landed; **it does NOT prove GitHub Pages rebuilt**, and no cloud report may claim it did. |
