@@ -3066,10 +3066,12 @@ function roundCfg(strategies){
     // rule 9c: powder still 2 up front. rule 9b: another 2 buys a fresh broadside, repeatable.
     powder:2,refire:2,callBounty:2,
     // rule 10: heads finds treasure, tails is a turn of dock work. rule 11: price = 6 − crates left.
-    // WHAT THE DOCK PAYS IS THE FIELD ON THE NEXT LINE, NOT THIS PROSE. Derive every displayed
-    // amount from cfg — `flow.js` and `util.js` already do. This block is the GRAVEYARD for that
-    // pair: it has moved twice, each time on Wyatt's ask and each time against a measured table,
-    // so any amount spelled out in a sentence here is dated evidence and not a standing fact.
+    // WHAT THE DOCK PAYS IS THE `dockHeads`/`dockTails` FIELDS BELOW, NOT THIS PROSE. Derive every
+    // displayed amount from cfg (checked 2026-08-27: `ui/flow.js` and `ui/util.js` both do; the
+    // how-to-play modal still hardcodes its numbers — that is a filed todo, not this line's job).
+    // This block is the GRAVEYARD for that pair: it has moved twice, each time on Wyatt's ask and
+    // each time against a measured table, so any amount spelled out in a sentence here is dated
+    // evidence and not a standing fact.
     //
     // CORRECTED 2026-08-27 (W2-10). This comment opened "TREASURE PAYS 5, NOT 6" from 2026-08-08
     // until today. It was TRUE when written — 49443202 introduced the sentence and `dockHeads:5`
@@ -3098,7 +3100,7 @@ function roundCfg(strategies){
     //   tails/heads   in the healthy 1–3-miss band   priced out 4+ times in a voyage
     //     2 / 5 (was)            24.6%                          0.2%
     //     1 / 4                  31.4%                          4.4%
-    //     1 / 3 (shipped)        41.1%                          7.2%
+    //     1 / 3 (his pick)       41.1%                          7.2%
     // A leaner dock is what makes money bite at all: it nearly halves the captains money never
     // troubles, and buys that with a small tail it now stifles. He was shown that trade and took
     // it. 1/4 remains the measured half-step if the stifled tail ever proves too much.
