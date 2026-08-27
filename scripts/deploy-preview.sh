@@ -48,6 +48,33 @@ trap 'rm -rf "$WORK"' EXIT
 # plus a sitemap pointing at the live domain. Copying them across would have invited Google to
 # index the preview as duplicate content competing with the real game — the same failure as
 # CNAME wearing different clothes, and it went unnoticed until the deploy diff was read.
+#
+# ============================================================================
+#  THE SECOND HALF OF THE EXCLUDES IS DERIVED, NOT TYPED — added 2026-08-26
+# ============================================================================
+# This list was hand-kept, written 2026-08-02, and by 2026-08-26 it had rotted
+# into a live hazard: the QA runs that landed after it produced
+#   seed-drill-shots  4.1G
+#   sea-trial-shots   3.1G
+#   crew-phone-shots  546M
+#   mp-rig-shots      6.5M
+# — 7.7 GB of probe screenshots, every one of them ALREADY in .gitignore and
+# none of them in this list. rsync copies the WORKING TREE, not the index, so
+# `.gitignore` does not protect a preview deploy. Running this script that day
+# would have pushed 7.7 GB into the preview repo.
+#
+# That is the same shape as the two faults found the same day (a doc-check
+# scanning a hand-kept list of five files; a profile ignore listing three of
+# seven names): A HAND-KEPT LIST OF WHAT TO EXCLUDE ROTS EXACTLY LIKE THE THING
+# IT GUARDS, AND NOTHING SAYS SO. So the transient-output half is now derived
+# from .gitignore itself — one place says what is junk, and this follows it.
+#
+# WHAT IS NOT DERIVED, AND MUST NEVER BE. The site-identity files and the
+# tracked directories below are excluded EXPLICITLY, because they are NOT in
+# .gitignore and never will be: CNAME/robots.txt/sitemap.xml are tracked on
+# purpose (they identify the live site), and .planning/, .claude/ and
+# art-review/ are tracked on purpose too. Deriving these away would be the
+# outage this script exists to prevent.
 EXCLUDES=(
   --exclude=CNAME          # ← THE ONE THAT MATTERS. See the header.
   --exclude=robots.txt     # preview must stay Disallow:/ — do not publish the live Allow:/
@@ -60,6 +87,18 @@ EXCLUDES=(
   --exclude=node_modules/
   --exclude=.DS_Store
 )
+
+# Everything .gitignore calls junk is junk here too. Comments and blank lines
+# dropped; negations (!foo) skipped rather than mis-translated, because rsync's
+# include/exclude ordering is not git's and a wrong guess here is silent.
+while IFS= read -r pat; do
+  case "$pat" in
+    ''|'#'*|'!'*) continue ;;
+  esac
+  EXCLUDES+=( "--exclude=$pat" )
+done < "$SRC/.gitignore"
+
+echo "    excludes: ${#EXCLUDES[@]} (3 site-identity + tracked dirs + everything .gitignore lists)"
 
 echo "==> preview deploy: $PREVIEW_REPO"
 [ -f "$SRC/CNAME" ] && echo "    (this repo owns CNAME -> $(cat "$SRC/CNAME") — it will NOT be copied)"
