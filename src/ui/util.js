@@ -767,10 +767,10 @@ const EVENT_NARRATION={
     const txt=isLocalTo(e.p,viewerSeat)
       ?(e.heads
         ?`⚪ HEADS! Ye dig deep at ${place} and strike buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTailYou}`
-        :`⚫ TAILS — ye spend the turn haulin' crates at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTailYou}`)
+        :`⚫ TAILS — ye spend the turn workin' the docks at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTailYou}`)
       :(e.heads
         ?`⚪ HEADS! ${pn(e.p)} digs deep at ${place} and strikes buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTail}`
-        :`⚫ TAILS — ${pn(e.p)} spends the turn haulin' crates at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTail}`);
+        :`⚫ TAILS — ${pn(e.p)} spends the turn workin' the docks at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTail}`);
     const cap=(e.heads?`⚪H 💰+${heads}🌕`:`⚫T +${tails}🌕`)+
       (bought?(barter?` · ${e.paidIng.map(x=>ING_EMOJI[x]||"📦").join("")} → ${ING_EMOJI[e.ing]}`:` · buys ${ING_EMOJI[e.ing]} −${paid}🌕`):``);
     return {txt,caps:[[e.p,cap]],

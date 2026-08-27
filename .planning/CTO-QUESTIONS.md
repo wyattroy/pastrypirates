@@ -103,3 +103,30 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   backlog**, not derived. If a different count is right, it is one character.
 - **answer:**
 - **resolved:**
+
+### Q-6 — You cut "after dark" from the black-market card. Should the dock recap lose it too?
+- **kind:** TASTE (wording — yours). **PARKED, not defaulted.**
+- **asked:** 2026-08-27 by the cloud CTO, surfaced by two agents independently while shipping W2-2
+- **why it matters:** Your new line is *"Sold-out islands fly the black market flag. They'll find ye
+  one more ingredient — for 10🌕."* You deliberately dropped "after dark". But four lines in
+  `src/ui/util.js:758-764` still narrate a black-market purchase as happening
+  **"under cover o' dark"** — so the card that teaches the rule and the recap that reports it now
+  use different imagery for the same act. Rule 8 says that is a defect *unless you chose it*.
+- **the options, none taken:** (a) drop "under cover o' dark" from the recap to match the card;
+  (b) keep it — the card states a rule, the recap narrates a moment, and flavour is welcome there;
+  (c) something else.
+- **nothing was changed either way.** This is wording a player sees, so it never defaults.
+- **answer:**
+- **resolved:**
+
+### Q-7 — The How-to-Play rulebook types `3🌕` and `1🌕` by hand
+- **kind:** MECHANISM, but reported rather than fixed because the fix is not small
+- **asked:** 2026-08-27, found by the W2-3 audit at `index.html:2724`
+- **why it matters:** Every other place in the game now DERIVES the dock payouts from
+  `cfg.dockHeads` / `cfg.dockTails` — that is rule 9, and it is why a stale comment claiming
+  "TREASURE PAYS 5" survived next to code paying 3. The rulebook modal is static HTML with no
+  access to `cfg`, so making it derive needs a real mechanism, not a copy edit. `.planning/todos`
+  already records this ("How-to-Play modal hardcodes economy numbers"). **Left alone deliberately:
+  it is the one surface where the numbers can silently go wrong, and it deserves its own item.**
+- **answer:**
+- **resolved:**

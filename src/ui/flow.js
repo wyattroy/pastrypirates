@@ -1391,7 +1391,7 @@ export async function humanDock(p,port){
   // already puts explanatory text (and, per the standing top-to-bottom rule, is revealed last).
   // @copy misc.paramprompt.dockflip
   const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — dig for treasure!`,true,
-    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn's work on the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
+    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn workin' the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
   if(h==="back")return "back";
   p.coins+=h?g.cfg.dockHeads:g.cfg.dockTails;
   let got=h?"treasure":"dockhand";
@@ -1455,7 +1455,27 @@ export async function humanDock(p,port){
          a second copy of a sentence the button says while pointing at itself. The price and the
          barter alternative are both on the two buttons' own labels. */
       const sub=null;
-      const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
+      /* W2-4 (Wyatt, 2026-08-27): "Money must be explicit wherever it changes hands."
+         This prompt is the ONE place in the dock flow that had gone quiet about it. The line
+         BEFORE the flip already names both payouts (:1394) and the recap AFTER it already names
+         what landed (util.js:769-773) — so the amount was stated on the way in and on the way out,
+         and vanished at the exact moment the coin landed and the captain was asked to spend.
+
+         DERIVED FROM cfg, NEVER TYPED (rule 9). dockHeads/dockTails are cfg FIELDS precisely so
+         they can move — a "+3" written into this sentence is a price list standing in for a
+         quantity that shifts, and it would go silently wrong the day the payout is retuned. That
+         is not hypothetical here: the comment above those very fields claimed 5 while the code
+         paid 3, and it took a playtest to catch it (W2-10).
+
+         AND THE SAME EDIT SWEEPS TWO CONSISTENCY FAULTS (rule 8), both surfaced by the W2-3 audit:
+         the tails outcome is ONE action and was named three ways — "haulin' crates" (util.js, now
+         "workin' the docks"), "a turn's work on the docks" (:1394) and "a turn on the docks" here.
+         A player read a different name for the thing they had just done every time they did it.
+         And this was the ONLY dock line in the tree spelling the coins with the variation selector
+         (U+FE0F) — every other flip, here and in util.js, uses the bare ⚪/⚫. Same family as the
+         minus sign that must be U+2212: a character nobody can see is still a difference the font
+         renders. */
+      const v=await ask(`${h?`⚪ TREASURE <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span>!`:`⚫ TAILS <span class="nobrk">(+${g.cfg.dockTails}🌕)</span> — a turn workin' the docks.`} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
       if(appState.turnExpired)break;
       // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
       // await, and the shot clock's penalty can take a coin while this prompt sits open. One
