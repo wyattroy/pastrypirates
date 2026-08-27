@@ -46,18 +46,34 @@ const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)
    read sat outside the guard. It is inside it now. */
 const SEEDS = [
   { id: "T-12", what: "the homepage drawn on top of a live voyage",
+    leg: "crew-phone",
+    why: "showRoom() is the MULTIPLAYER room screen. lobby.js:263 calls it only when appState.room "
+       + "is set, and orchestrator.js:1893/2136 are both room paths. A solo game has no room, so a "
+       + "solo leg never runs the seeded line at all.",
     file: "src/ui/lobby.js",
     find: "  hideStageLayer();\n  hideBootLoader();\n}\nexport function showRoom(){",
     with: "  hideBootLoader();\n}\nexport function showRoom(){" },
   { id: "T-16", what: "no orange glow on the ceremony's Start button",
+    leg: "solo-phone",
+    why: "REACHABLE IN SOLO, and this was checked rather than assumed: .ahoyGlow is added by "
+       + "netIntroBarrier() (flow.js:2553), reached via showAhoyIntro() from runLiveNet() — and "
+       + "appState.isHost is TRUE in solo, so solo runs that loop. The gate's own coverage line "
+       + "shows `arrgh:1/1` and `start:1/1`, which ARE those buttons.",
     file: "index.html",
     find: "  #actionPanel .apBtn.ahoyGlow:not(:disabled):not([aria-disabled=\"true\"]),",
     with: "  #actionPanel .apBtn.ahoyGlowDISABLED:not(:disabled):not([aria-disabled=\"true\"])," },
   { id: "T-30", what: "Watch again shouting for attention",
+    leg: "solo-phone",
+    why: "the bake-off's Watch again button (bakeoff.js:179), revealed with the bake input. Solo "
+       + "plays bake-offs, so the button is built and the seeded rule applies to it.",
     file: "index.html",
     find: "  #actionPanel .apBtn.bkoWatch,",
     with: "  #actionPanel .apBtn.bkoWatchDISABLED," },
   { id: "T-02", what: "a guest with no stay square — cannot stay put",
+    leg: "crew-phone",
+    why: "the seeded line is orchestrator.js:1716, inside watchPrompt(). watchPrompt() is attached "
+       + "ONLY on a guest (the else branch at orchestrator.js:2319). A solo leg has no guest and "
+       + "never calls it, so seeding this and sailing solo measures nothing whatsoever.",
     file: "src/orchestrator.js",
     find: "hint:p.hint||null,pos:p.pos||null}",
     with: "hint:p.hint||null}" },
@@ -65,7 +81,10 @@ const SEEDS = [
 
 const only = arg("seed");
 const seeds = only ? SEEDS.filter(s => s.id === only) : SEEDS;
-const LEG = arg("leg", "solo-phone");
+/* --leg= FORCES every seed onto one leg. Useful for a quick pass, and DANGEROUS as a default,
+   which is why it is not one: three of these four seeds live in code a solo leg never executes.
+   When it is used, the report says so on every row rather than quietly grading nothing. */
+const FORCED = arg("leg", null);
 const SHOTS = path.join(REPO, "seed-drill-shots");
 const results = [];
 
@@ -91,10 +110,10 @@ function signatures(out) {
   return S;
 }
 
-function sail(tag) {
+function sail(tag, leg) {
   const out = path.join(SHOTS, tag);
   fs.rmSync(out, { recursive: true, force: true });       // a stale report.json must never be read as this run's
-  const r = spawnSync("node", ["4/scripts/playtest_gate.mjs", `--legs=${LEG}`,
+  const r = spawnSync("node", ["4/scripts/playtest_gate.mjs", `--legs=${leg}`,
     `--out=${out}`, "--judge=off", "--port=8900", "--dbg=9900",
     /* BOUNDED. A seeded bug that is going to be caught is caught in the opening minutes -- all
        four seeds here are visible on the first screens. A full voyage per seed would be ~40
@@ -104,45 +123,68 @@ function sail(tag) {
   return { status: r.status, sigs: signatures(out), out };
 }
 
-/* THE BASELINE. This is the whole fix: sail with nothing seeded so there is something to subtract. */
-console.log(`▶ baseline — nothing seeded; sailing ${LEG} to find out what this leg says on its own…`);
-const base = sail("baseline");
-if (!base.sigs) {
-  console.log(`\n  THE BASELINE WROTE NO REPORT (${path.join(base.out, "report.json")} absent).`);
-  console.log(`  Without it there is nothing to subtract, so every seed would score CAUGHT again.`);
-  console.log(`  Refusing to grade. Fix the leg first — this drill is worthless while it cannot fail.`);
-  process.exit(2);
+/* ONE BASELINE PER LEG, sailed on demand and cached. This is the whole fix Wyatt asked for, plus
+   the correction the first valid run forced: the seeds do not all live on the same leg, so one
+   global baseline was both insufficient and misleading. */
+const baselines = new Map();
+function baselineFor(leg) {
+  if (baselines.has(leg)) return baselines.get(leg);
+  console.log(`\n▶ baseline (${leg}) — nothing seeded; finding out what this leg says on its own…`);
+  const b = sail(`baseline-${leg}`, leg);
+  if (!b.sigs) {
+    console.log(`  THE ${leg} BASELINE WROTE NO REPORT (${path.join(b.out, "report.json")} absent).`);
+    console.log(`  Without it there is nothing to subtract, so every seed on this leg would score`);
+    console.log(`  CAUGHT again. Refusing to grade them.`);
+  } else {
+    console.log(`  baseline names ${b.sigs.size} failure(s) of its own — subtracted from every ${leg} seed:`);
+    for (const t of b.sigs.values()) console.log(`    · ${String(t).slice(0, 110)}`);
+    /* THE CONFOUND, NAMED OUT LOUD. If the baseline itself never finishes, "did not finish the
+       voyage" is subtracted from every seed — and that is exactly the signature a seed which
+       BREAKS the game would produce. The drill is then blind to its most important class of catch.
+       Said here rather than in a doc, because the person who needs it is reading this output. */
+    if ([...b.sigs.keys()].some(k => /did not finish/.test(k)))
+      console.log(`  ⚠ this baseline did not finish its voyage, so "did not finish" cannot discriminate.\n` +
+                  `    A seed that BREAKS the game outright will read as MISSED. Raise --max-min until\n` +
+                  `    the baseline finishes before trusting a MISSED on this leg.`);
+  }
+  baselines.set(leg, b);
+  return b;
 }
-console.log(`  baseline names ${base.sigs.size} failure(s) of its own — these are subtracted from every seed:`);
-for (const t of base.sigs.values()) console.log(`    · ${String(t).slice(0, 110)}`);
 
 for (const s of seeds) {
+  const leg = FORCED || s.leg;
   const full = path.join(REPO, s.file);
   /* The read is INSIDE the guard. A file that has moved reports CANNOT SEED like a line that has
      moved; before the cutover it threw ENOENT and killed the run instead. */
   if (!fs.existsSync(full)) {
-    results.push({ ...s, verdict: "CANNOT SEED", note: `${s.file} does not exist — the tree moved, so this drill tested nothing` });
+    results.push({ ...s, leg, verdict: "CANNOT SEED", note: `${s.file} does not exist — the tree moved, so this drill tested nothing` });
     console.log(`\n  ${s.id}  CANNOT SEED — ${s.file} is gone; not testing nothing and calling it a pass`);
     continue;
   }
   const original = fs.readFileSync(full, "utf8");
   if (!original.includes(s.find)) {
-    results.push({ ...s, verdict: "CANNOT SEED", note: "the shipped code no longer contains the line this seed reverses — the fix moved, so this drill tested nothing" });
+    results.push({ ...s, leg, verdict: "CANNOT SEED", note: "the shipped code no longer contains the line this seed reverses — the fix moved, so this drill tested nothing" });
     console.log(`\n  ${s.id}  CANNOT SEED — the fix has moved; not testing nothing and calling it a pass`);
+    continue;
+  }
+  const base = baselineFor(leg);
+  if (!base.sigs) {
+    results.push({ ...s, leg, verdict: "NO BASELINE", note: `the ${leg} baseline wrote no report — NOT graded, and NOT a pass` });
+    console.log(`  ${s.id}  NO BASELINE on ${leg} — not graded`);
     continue;
   }
   try {
     fs.writeFileSync(full, original.replace(s.find, s.with));
-    console.log(`\n▶ ${s.id} — ${s.what}\n  seeded into ${s.file}; sailing ${LEG}…`);
-    const run = sail(s.id);
+    console.log(`\n▶ ${s.id} — ${s.what}\n  seeded into ${s.file}; sailing ${leg}${FORCED && FORCED !== s.leg ? `  ⚠ FORCED off its own leg (${s.leg}) — it may be unreachable here` : ""}…`);
+    const run = sail(s.id, leg);
     if (!run.sigs) {
-      results.push({ ...s, verdict: "NO REPORT", note: "the gate wrote no report.json for this run — NOT graded, and NOT a pass" });
+      results.push({ ...s, leg, verdict: "NO REPORT", note: "the gate wrote no report.json for this run — NOT graded, and NOT a pass" });
       console.log(`  ${s.id}  NO REPORT — the gate never reached a verdict; this seed is not graded`);
       continue;
     }
     const fresh = [...run.sigs.keys()].filter(k => !base.sigs.has(k)).map(k => run.sigs.get(k));
     const caught = fresh.length > 0;
-    results.push({ ...s, verdict: caught ? "CAUGHT" : "MISSED", fresh,
+    results.push({ ...s, leg, verdict: caught ? "CAUGHT" : "MISSED", fresh,
       note: caught ? fresh.slice(0, 2).map(t => String(t).slice(0, 90)).join(" | ") : `nothing the baseline did not already say (${run.sigs.size} vs ${base.sigs.size} failure(s))` });
     console.log(`  ${s.id}  ${caught ? "CAUGHT ✓" : "MISSED ✗"}  ${results.at(-1).note}`);
   } finally {
@@ -151,8 +193,9 @@ for (const s of seeds) {
 }
 
 console.log("\n=== SEEDED-DEFECT DRILL ===");
-console.log(`  leg: ${LEG}   baseline: ${base.sigs.size} pre-existing failure(s), subtracted from every seed`);
-for (const r of results) console.log(`  ${r.id.padEnd(6)} ${r.verdict.padEnd(12)} ${r.what}`);
+for (const [leg, b] of baselines) console.log(`  baseline ${leg.padEnd(12)} ${b.sigs ? b.sigs.size + " pre-existing failure(s)" : "NO REPORT — its seeds were not graded"}`);
+console.log("");
+for (const r of results) console.log(`  ${r.id.padEnd(6)} ${String(r.leg).padEnd(12)} ${r.verdict.padEnd(12)} ${r.what}`);
 const missed = results.filter(r => r.verdict === "MISSED");
 const graded = results.filter(r => r.verdict === "CAUGHT" || r.verdict === "MISSED");
 console.log(`\n  caught ${results.filter(r => r.verdict === "CAUGHT").length} / ${graded.length} graded` +
@@ -163,6 +206,8 @@ for (const r of results.filter(r => r.verdict === "CAUGHT")) {
 }
 if (missed.length) {
   console.log(`\n  ${missed.length} REAL GAP(S) — the sea trial would not have found these:`);
-  for (const m of missed) console.log(`    ${m.id}  ${m.what}`);
-  console.log(`  This is a coverage finding about the PROCESS, not a bug in the game.`);
+  for (const m of missed) console.log(`    ${m.id}  ${m.what}\n           reachable because: ${m.why}`);
+  console.log(`\n  This is a coverage finding about the PROCESS, not a bug in the game — BUT read the`);
+  console.log(`  baseline warnings above first. A MISSED on a leg whose baseline never finished is`);
+  console.log(`  not yet a gap; it may be a seed the drill could not see.`);
 }
