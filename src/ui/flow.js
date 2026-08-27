@@ -684,7 +684,9 @@ export function pickCell(p,cells){
   // (orchestrator.js), never added here. `pos` (item 21) is the captain's own square, carried so
   // the renderer can draw the stay square on BOTH tiers from the same authoritative value — a
   // guest's game.players[].pos is a stale render shell and must never be read for this.
-  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
+  // `cells` is handed to sailPickMsg for W2-8: the line says a blue square takes two taps only
+  // when one of THESE squares is a blue one. Same list the renderer is about to colour.
+  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx,cells),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
   const base=decisionIsLocal(p.idx)?localPickCell(p,spec)
     :netHandlers().onRemotePrompt(p.idx,spec);
   const cellP=withShotClock(p.idx,base,null);

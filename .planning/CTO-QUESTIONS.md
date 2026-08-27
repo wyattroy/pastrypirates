@@ -152,3 +152,42 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   leaves a button whose whole point is a hint nobody can see.
 - **answer:**
 - **resolved:**
+
+### Q-9 — The short weather line would delete three bits of your approved copy. All seven days, or only the calm ones?
+- **kind:** TASTE (wording + scope — yours). **PARKED, not defaulted.**
+- **asked:** 2026-08-27 by the cloud CTO, from the W2-1 measurement
+- **the ambiguity in W2-1 is RESOLVED first:** you meant the **day-start narration line**
+  (`src/ui/util.js:412-441`), not the wind pill. Decisive: your template `Day 12: Wind south.
+  Tomorrow: a storm.` is **38 characters** and the pill is already **27**, so "too long" cannot be
+  about the pill — and the pill carries no day number, while the narration line is the only surface
+  with a day, a wind and a next-day wind in one sentence.
+- **what is actually on screen today, all seven branches, measured:**
+
+  | chars | line |
+  |---|---|
+  | 57 | `— Day 1: wind is blowin' north — 🧭 Next day: wind south.` |
+  | 82 | `— Day 4: wind still blows west, this westerly is gusting — 🧭 Next day: wind east.` |
+  | 84 | `— Day 7: wind still to the east, this easterly won't quit — 🧭 Next day: wind north.` |
+  | 101 | `— Day 5: wind is blowin' south — 🧭 Next day: ⛈️ a storm's comin' — no tellin' which way she'll blow.` |
+  | 91 | `Day 6: A ⛈️ storm be ragin'! It'll blow every ship 3 squares west. 🧭 Next day: wind north.` |
+  | 139 | `— Day 9: ⛈️ The storm's baked in and won't cool down! It's aiming north...` |
+  | 165 | `— Day 11: ⛈️ The storm's baked in and won't cool down! It's still aiming south. Fie, Poseidon!...` |
+
+- **WHY IT WAS NOT SHIPPED.** Your template has no slot for a storm, so applying it to all seven
+  deletes three things that are **your own approved copy** (`11cbf345`, 2026-07-29, from the 209
+  reviewed dispositions, re-approved at D-49):
+  1. **the storm's rule** — *"It'll blow every ship 3 squares west"* is the ONLY place a player is
+     ever told how far a storm moves them;
+  2. **the wind-streak flavour** — *"this westerly is gusting"*, *"won't quit"*;
+  3. **"no tellin' which way she'll blow"** — the v2.1 rule (`4749bcd2`) that a FORECAST storm names
+     no direction. Rendering it as `Tomorrow: a storm.` is a guess at your wording, not your wording.
+- **the options:** (a) all seven days take the short form, and those three go; (b) the calm days go
+  short and storms keep a sentence of their own — cuts 57→~33 chars on the common case and keeps
+  the rule on screen (**the CTO's recommendation**); (c) short form plus your own storm wording.
+- **the edit is ready either way** and derives day and both directions from the event (rule 9);
+  nothing about the weather would be typed. `windHoldPhrase` (`util.js:336`) becomes dead code if
+  the streak flavour goes.
+- **⚠️ NO GATE PROTECTS THIS COPY.** Nothing under `scripts/` contains any of those literals, and
+  the narration tests that did are in the parked `test:v1` chain.
+- **answer:**
+- **resolved:**
