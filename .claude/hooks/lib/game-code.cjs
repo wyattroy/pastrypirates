@@ -25,6 +25,22 @@ const NOT_GAME = [
   /^scripts\//,      // tooling: gates, probes, deploy
   /^4\//,            // the retired tree. Kept so a stale path is excluded rather than called game
   /^staging\//,      // generated output, if it ever returns
+  /* GIT'S OWN FILES. Added 2026-08-27, after the Stop hook demanded a playtest checklist from a
+     session whose ONLY "game" change was adding .planning/.cto-lock to .gitignore — and gear.mjs
+     answered "GEAR: FULL — behaviour can change in: .gitignore", i.e. an 80-minute eight-leg sea
+     trial for an ignore rule.
+
+     THIS IS NARROW ON PURPOSE AND THE STRICT POSTURE ABOVE STILL STANDS. These two are excluded
+     because they are PROVABLY unreachable: git reads them, the browser never fetches them, and
+     there is no build step that could carry them into anything served. That is a different claim
+     from "this feels like tooling" — package.json is deliberately NOT excluded here, because
+     arguing it cannot reach a player takes more than one sentence, and the file's whole design is
+     that an unanswerable case gets the strict answer.
+
+     THE COST OF LEAVING IT: a gate that cries wolf is a gate people learn to walk past, which is
+     how six instruments rotted through the cutover without one of them failing loudly. */
+  /^\.gitignore$/,
+  /^\.gitattributes$/,
 ];
 
 /** A repo-relative path. `.md` is never game code, wherever it lives. */

@@ -76,7 +76,12 @@ function main() {
   const list = game.slice(0, 8).join(", ") + (game.length > 8 ? `, +${game.length - 8} more` : "");
   const latest = sheets.length ? sheets.sort((a, b) => b.m - a.m)[0].f : "(none)";
   const reason =
-`THIS SESSION CHANGED THE GAME. WYATT NEEDS A CHECKLIST BEFORE YOU STOP.
+`THIS BRANCH CHANGES THE GAME AND HAS NO CHECKLIST NEWER THAN THAT WORK.
+
+(Wording corrected 2026-08-27: this said "THIS SESSION CHANGED THE GAME", which it cannot know. It
+compares origin/main...HEAD — the whole BRANCH, across every session that touched it. A session that
+changed only docs was told it had changed the game, which is the kind of false statement from an
+instrument this project has been burned by repeatedly. What is true is the line above.)
 
   changed: ${list}
   newest checklist in .planning/: ${latest}${sheets.length ? " — older than the work above" : ""}
