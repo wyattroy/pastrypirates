@@ -42,7 +42,7 @@ const path = require("path");
 
    PLUMBING MUST BE EARNED. Everything else is FULL. */
 const PLUMBING = [
-  { re: /^4\/src\/ui\/lobby\.js$/, mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
+  { re: /^src\/ui\/lobby\.js$/,   mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
   { re: /\bpassGate\b/,             mode: "passplay", what: "pass-and-play's hand-the-device gate" },
   { re: /\bnetCreateRoom\b|\bnetJoinRoom\b|\bnetLeaveRoom\b|\bgenCode\b|\bhostGoneGrace\b/,
                                      mode: "crew",     what: "crew's room lifecycle and the host-gone grace" },
@@ -82,11 +82,24 @@ function main() {
   const rel = filePath.startsWith(repo) ? filePath.slice(repo.length + 1) : filePath;
   const content = String(ti.content || ti.new_string || "");
 
-  // only the game the milestone ships
-  const isGame = /^4\/(src\/|index\.html$)/.test(rel);
+  /* WHAT COUNTS AS GAME CODE — AND THIS HOOK HAD NOT FIRED SINCE THE CUTOVER.
+     It tested `/^4\/(src\/|index\.html$)/`. The v2.0 cutover promoted `4/` to the repo root on
+     2026-08-26, so BOTH of those paths were deleted and this hook — the thing that exists to stop
+     the first edit to game code and state the gear — matched NOTHING and exited silently on every
+     single game edit for a day and a half. It did not fire on the bake-off fix, the End of Voyage
+     footer, or any of the stage.js work.
+
+     FIFTH INSTANCE of one cutover outliving the paths that named it: the browser fleet navigating
+     to an empty /4/, 35 lines of docs, the gear picker's own filter, sea_trial's build stamp, and
+     now the hook that enforces the gear. A hand-written path is a claim nobody re-checks.
+
+     Derived as an EXCLUSION list, matching 4/scripts/qa/gear.mjs so the hook and the picker cannot
+     disagree about what the game is (rule 23). Strict by default: a new top-level directory nobody
+     anticipated is GAME and gets the heavier gear, rather than slipping through unchallenged. */
+  const NOT_GAME = [/^\.planning\//, /^docs\//, /^\.claude\//, /^notes\//, /^art-review\//,
+                    /^scripts\//, /^4\//, /^staging\//];
+  const isGame = !!rel && !rel.endsWith(".md") && !NOT_GAME.some(re => re.test(rel));
   if (!isGame) process.exit(0);
-  // writing a check is STEP ONE. Never stand in front of it.
-  if (/^4\/scripts\//.test(rel)) process.exit(0);
 
   let gear = "FULL", mode = null;
   let why = `${rel} can change what a captain sees or can do`;
@@ -106,6 +119,17 @@ function main() {
   const reason =
 `QA PROCESS — this change is GEAR: ${gear}
 (${why})
+
+  0. WIDEN THE TIME HORIZON
+                      WHAT HAPPENED IMMEDIATELY BEFORE THE BUG? And if that is not enough,
+                      what happened before THAT? A bug you cannot explain from its own
+                      moment is usually the consequence of a preceding one, and a snapshot
+                      cannot show you a race. INTERMITTENT IS THE TELL: a fault that appears
+                      in some runs and not others is almost never a wrong constant — it is
+                      two things happening in an order nobody fixed.
+                      Earned 2026-08-27. Two days went into measuring WHERE some sail squares
+                      were drawn; the cause was 180ms earlier, in the order they were drawn
+                      and framed. Wyatt: "what happens right before the bug each time?"
 
 THE FOUR STEPS. They never change and are never skipped:
 

@@ -153,6 +153,30 @@ the thorough pass existed and nobody ran it.
 
 # THE WHOLE LOOP, END TO END — added 2026-08-26
 
+> ### STEP 0 — WIDEN THE TIME HORIZON. What happened immediately BEFORE the bug?
+>
+> **Before you write the failing check, ask what preceded the fault** — and if one step back is not
+> enough, ask what preceded *that*. A bug you cannot explain from its own moment is usually the
+> consequence of a preceding one, and **a snapshot cannot show you a race**.
+>
+> **INTERMITTENT IS THE TELL.** A fault that appears in some runs and not others is almost never a
+> wrong constant; it is two things happening in an order nobody fixed.
+>
+> **Earned 2026-08-27.** Sail squares were being drawn off the edge of a phone. Two days went into
+> measuring WHERE they were — rects, transforms, the camera's scale — and two geometry theories were
+> measured dead. Wyatt asked *"what happens right before the bug each time?"* and it moved in
+> minutes: the squares are drawn, then the camera is asked to frame them **180ms later**, and the
+> camera is allowed to refuse while a centre-stage card holds attention. The squares were correct;
+> the ORDER was not.
+>
+> **It applies to instruments as much as to the game.** *"The trial says NOT RUN"* — what happened
+> just before? A reboot cleared `/tmp`. *"The gear says NONE"* — what happened just before? A cutover
+> moved the tree.
+>
+> Stated in full in `.claude/CLAUDE.md` (rule 6's family) and printed by
+> `.claude/hooks/qa-gear-first.cjs` as step 0, so it arrives when you are about to change game code
+> rather than in a file somebody read this morning.
+
 **Everything above describes the sea trial. This describes the process the sea trial sits inside.**
 It was refined across one long session in which **five separate instruments were wrong** and two of
 the day's "fixes" were wrong before they were right. Each numbered step below exists because

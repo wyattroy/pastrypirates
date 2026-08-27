@@ -510,6 +510,42 @@ day it was adopted.
   created — a settle trace begun after the reveal had finished, an emoji with no custom art
   standing in for an icon, a "card" that resolved to the full-screen container.
 
+### WIDEN THE TIME HORIZON — what happened immediately BEFORE the bug?
+
+Wyatt, 2026-08-27, after watching a session measure the same broken screen for two days: *"think
+like a top-tier software architect, creatively expanding your pattern recognition scope in time.
+what happens right before the bug each time?"*
+
+**A bug you cannot explain from its own moment is usually the consequence of a preceding one.**
+When something is INTERMITTENT, or the code at the scene of the crime looks correct, stop asking
+*what does this look like* and start asking **what happened just before it — and if that is not
+enough, what happened before THAT.**
+
+**The case that earned it.** Sail squares a guest cannot tap: some are drawn off the edge of the
+phone. Two days went into measuring WHERE the squares were — their rects, the board's transform,
+the camera's scale — and two separate geometry theories were measured dead. One question moved it
+in minutes. The answer was 180 milliseconds earlier: `src/ui/flow.js` draws the squares, then asks
+the camera to frame them **on a `setTimeout`** — and the camera is allowed to REFUSE while a
+centre-stage card holds the player's attention. The squares were correct. The order was not.
+
+**Why measuring harder could never have found it:** every measurement was taken at the moment of
+the symptom, and the cause had already finished happening. **A snapshot cannot show you a race.**
+
+- **Ask it of the SEQUENCE, not the screen.** What rendered before this? What resolved, arrived,
+  timed out or was torn down in the second before? Whose turn ended?
+- **Go back TWO steps when one is not enough.** The sail squares needed: squares drawn → camera
+  asked late → camera refused because a card was still up. Stopping at step one finds nothing.
+- **Intermittent is the tell.** A bug that appears in some runs and not others is almost never a
+  wrong constant; it is two things happening in an order nobody fixed.
+- **Put it in the prediction.** The prediction note (below) gets a line: *what happened immediately
+  before?* If you cannot answer it, you are not ready to measure yet.
+- **It applies to instruments too.** "The trial says NOT RUN" — what happened just before? A reboot
+  cleared `/tmp`. "The gear says NONE" — what happened just before? A cutover moved the tree.
+
+**This is enforced, not remembered.** `.claude/hooks/qa-gear-first.cjs` prints it as STEP 0 of the
+four steps, so it arrives at the moment you are about to change game code rather than at the top of
+a file somebody read this morning.
+
 ### Do not build tooling when the ask is to fix the game
 
 Infrastructure, harnesses and process improvements are a **substitution** for the ask unless he asked
