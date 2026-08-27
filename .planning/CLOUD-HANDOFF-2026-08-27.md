@@ -170,6 +170,38 @@ Q-3 he answered today: KEEP the End of Voyage heading where it is.**
 
 ---
 
+## 5b. RUNNING SUBAGENTS IN ONE SHARED CHECKOUT — earned 2026-08-27, the hard way
+
+**Wyatt, 2026-08-27:** *"the cto should never be locked — it should be deciding on the next most
+valuable task to be coordinating, and spinning up sub agents to accomplish them."* So you WILL run
+several at once. There is one working tree and they all share it. Three things went wrong here in
+one hour, and none of them was the agents' fault.
+
+1. **ASSIGN FILES, NOT TASKS — and say the ownership out loud in every prompt.** Give each agent the
+   exact file it may edit and the exact list it may not, and tell it that reporting a needed change
+   in someone else's file *is a complete result, not a failure*. That single sentence produced the
+   best findings of the run: the dock-language audit, the stray U+FE0F flip emoji, and a second
+   rotted comment nobody had asked about.
+
+2. **NEVER `git stash` A SHARED TREE.** Stashing to red-proof a check takes every other agent's
+   in-flight work with it. It was done here and got away with it — the pop restored everything —
+   but it is a coin flip. **Red-proof against `git show HEAD:<file>` instead**, which is stable and
+   touches nothing.
+
+3. **DO NOT COMMIT A FILE AN AGENT IS STILL WORKING IN.** The coordinator committed
+   `src/engine/index.js` while its agent was mid-task, so that agent's half-finished file shipped
+   under someone else's commit message. Nothing was lost only because the follow-up refinements were
+   committed too. **Commit when the agent REPORTS, not when the tree looks quiet** — and agents
+   should never commit at all; the coordinator does, after reading the diff.
+
+4. **A GREP OF THE WORKING TREE MEASURES A MOVING TARGET.** The coordinator grepped for a string an
+   agent had fixed seconds earlier, found nothing, and told Wyatt his defect was not real. He had
+   just read it in the live game and was right — it was at `HEAD` and on `origin/main` both.
+   **Before calling any reported defect false, read `git show HEAD:<file>` AND `git show
+   origin/main:<file>`.** He plays production; you read a branch that is dozens of commits ahead.
+   *That last point generalises to the whole backlog: an item he wrote from playing the live game
+   may already be fixed on the branch and merely unshipped.*
+
 ## 6. THE LEDGER — how the shift worker knows you are alive
 
 **Append to `.planning/CTO-LEDGER.md`, newest at the bottom, never edit an entry:**

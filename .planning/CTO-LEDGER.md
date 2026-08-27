@@ -52,3 +52,4 @@ convention: *never hand-type a number that can be counted.*
 2026-08-27T19:50:59Z  W2-6  DONE-PENDING-CEO  "On the Sugar Seas" out of title/og/twitter + about.html; schema.org name left for Wyatt
 2026-08-27T19:50:59Z  W2-10 HEARTBEAT  last agent still working src/engine/index.js
 2026-08-27T19:53:23Z  W2-7  PARKED  the rename is one line; the TOOLTIP it needs has no mechanism in the game (data-why is disabled-buttons-only, util.js:1737). Raised as Q-8 rather than shipping half of it.
+2026-08-27T19:54:57Z  W2-10 DONE-PENDING-CEO  engine comment corrected, graveyard kept, second rotted claim found; 3 stale doc references dated. MY MISTAKE, owned: I committed the agent's file mid-task. Rule written into the handoff as 5b.
