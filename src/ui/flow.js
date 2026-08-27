@@ -1827,8 +1827,13 @@ export async function humanTrade(p){
          top?'"  His sentence, verbatim. The line now asks the question the control answers; the
          running amount is not lost, because the slider draws its own value beside the handle.
          The deal itself is still on screen — this prompt sits under the offer being built. */
+      /* W2-9 (Wyatt, 2026-08-27): "context-blind. If coin is the ONLY thing being offered it makes
+         no sense — should read 'How many coins?'" Right: "on top" of nothing is not a question.
+         THE SIGNAL ALREADY EXISTED, one line up. `st.baseIng` is null exactly when the captain
+         picked "— coins only —" (:1806), and `minC` at :1812 was already branching on it to raise
+         the floor to 1. The control knew; only the sentence did not. Nothing new is computed here. */
       const n=await coinSlider(p.idx,
-        k=>`Would ye offer any coin on top?`,
+        k=>st.baseIng?`Would ye offer any coin on top?`:`How many coins?`,
         minC,minC,maxC,"Offer it!");
       if(n==null)return false;
       if(n==="__back__"){step=1;continue;}
