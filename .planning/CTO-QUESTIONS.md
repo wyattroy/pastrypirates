@@ -65,3 +65,29 @@ or not it was pushed — the push can fail, the file cannot.
   *Worth noting for the record: this question sat open for a day and cost one line of a question
   form to close. **Front-loading works.** Two of the three parked questions below are still open
   only because they need a MEASUREMENT put in front of him first, not because he is slow.*
+
+### Q-4 — The staging build stamp drops the BRANCH name. Keep it that way?
+- **kind:** TASTE (wording of something he reads on every playtest)
+- **asked:** 2026-08-27 by the cloud CTO, while shipping W0-3
+- **default:** none needed — **already shipped one way and trivially reversible**, one line in
+  `scripts/deploy-staging.sh`. Flagged rather than parked because it does not block anything.
+- **why it matters:** He decided W0-3 as *"date-based build number, staging appends `-staging`"*.
+  Taken literally that also deletes the `@<sha>` added this morning — and that was added because
+  staging once served different code under a stamp byte-identical to production's, so he would
+  have played a stale build with no tell. **The sha was kept.** What was dropped instead is the
+  branch name, which the commit already implies. The ☰ menu now reads:
+
+      Build 2026.08.27.3-staging@0ad2e83     (was: v4 · build 2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42)
+
+  The deploy log still prints the branch, so nothing is lost from the record — only from the screen.
+- **answer:**
+- **resolved:**
+
+### Q-5 — Today's build is numbered `.3`. Is that the right count?
+- **kind:** MECHANISM, but **named as a guess** rather than defaulted quietly
+- **asked:** 2026-08-27 by the cloud CTO
+- **why it matters:** `YYYY.MM.DD.N` needs N = the Nth build published that day, and nothing in the
+  repo counts publishes. **`2026.08.27.3` was taken verbatim from the number he wrote in the
+  backlog**, not derived. If a different count is right, it is one character.
+- **answer:**
+- **resolved:**

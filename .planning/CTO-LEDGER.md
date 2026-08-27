@@ -31,3 +31,7 @@ convention: *never hand-type a number that can be counted.*
 ## Entries
 
 2026-08-27T00:00:00Z  BOOTSTRAP  HEARTBEAT  ledger created; no CTO has run yet
+2026-08-27T18:54:55Z  W0-1  START  cloud CTO session begins; Wave 0 depth-first, all three items end to end
+2026-08-27T18:55:57Z  W0-1  HEARTBEAT  cloud QA question ANSWERED: playwright npm pkg installs (19MB, ~/.pw) but the WebKit BROWSER download is 403-blocked by the egress proxy (cdn.playwright.dev, playwright.download.prss.microsoft.com). No webkit on disk anywhere. Both -wk legs WILL be NOT-RUN in cloud.
+2026-08-27T19:01:23Z  W0-1  HEARTBEAT  code done: devHost widened to staging, ?bake2=1 and ?endcard=1 added, precedence chain converged. New gate dev_flag_gate_check.js went RED->GREEN. npm test 20 gates exit 0. Next: DRIVE it, a green suite proves nothing about what he sees.
+2026-08-27T19:11:01Z  W0-1  HEARTBEAT  probe caught my own bug: ?endcard=1 sat behind the turn-order intro s parrot Start button and never fired. Moved the skip BEFORE the intro. bake2 verified working (attempts=1, 2 of 5 locked, red-proof held). W0-2 shipped. W0-3 next.

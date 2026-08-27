@@ -157,7 +157,20 @@ function tally(){
   document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
 }
 tally();
-document.getElementById("copy").onclick=()=>{
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
   const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
   for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
     L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
@@ -167,14 +180,25 @@ document.getElementById("copy").onclick=()=>{
   if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
   if(L.length<=2) L.push("(nothing marked yet)");
   document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
   document.getElementById("out").showModal();
+  await copyNotes();
 };
-document.getElementById("docopy").onclick=async()=>{
-  const t=document.getElementById("outtxt"); t.select();
-  try{ await navigator.clipboard.writeText(t.value); document.getElementById("docopy").textContent="Copied ✓"; }
-  catch(e){ document.execCommand("copy"); document.getElementById("docopy").textContent="Copied ✓"; }
-  setTimeout(()=>document.getElementById("docopy").textContent="Copy to clipboard",1500);
-};
+document.getElementById("docopy").onclick=()=>copyNotes();
 document.getElementById("close").onclick=()=>document.getElementById("out").close();
 document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
   state={}; localStorage.removeItem(KEY); location.reload(); };
