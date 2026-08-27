@@ -28,6 +28,13 @@ playwright not found. mkdir -p /tmp/pw && cd /tmp/pw && npm init -y && npm i pla
 
 A leg that did not run is **not** a leg that passed. This section exists so that distinction cannot be lost.
 
+> **THEY WERE RUN AFTERWARDS, and this section stays as written because it is the record of THIS
+> run.** Playwright was installed and both WebKit legs sailed at 01:18 on 2026-08-27: each played a
+> **complete voyage to the end card** (day 18 and day 17) with **zero structural failures and zero
+> console errors**. Full result — and the reason it will break again on the next reboot — in
+> [`BACKLOG.md`](BACKLOG.md), under the sea-trial section. **Safari coverage for the build in THIS
+> report is still zero;** the later run is separate evidence, not a retroactive pass.
+
 
 ## The voyages, in full
 
