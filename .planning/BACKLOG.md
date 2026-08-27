@@ -38,7 +38,7 @@ own ideas.**
 
 | # | Item | Gear | Note |
 |---|---|---|---|
-| W0-1 | **Skip straight to the endgame for testing.** A URL he can type on his phone that drops him into a bake-off SECOND attempt, and one for the End of Voyage card. | plumbing | **Four of his PROBLEM marks (#3, #4, #5, #6) are marked PROBLEM only because he could not get there.** Follows the existing `?bakeoff=1` / `?ovens=1` / `?wind=1` pattern (`src/shared/index.js:433,478`). ⚠️ `devHost()` (`src/shared/index.js:465`) is localhost-only — staging is a real domain, so the gate must be widened or the hook left ungated. |
+| W0-1 | **Skip straight to the endgame for testing.** A URL he can type on his phone that drops him into a bake-off SECOND attempt, and one for the End of Voyage card. | plumbing | **Four of his PROBLEM marks (#3, #4, #5, #6) are marked PROBLEM only because he could not get there.** Follows the existing `?bakeoff=1` / `?ovens=1` / `?wind=1` pattern (`src/shared/index.js:433,478`). ✅ **DECIDED 2026-08-27: staging and localhost ONLY** — never production. `devHost()` (`src/shared/index.js:465`) is localhost-only today; widen it to include `staging.playpastrypirates.com`. **A player on the live game must not be able to reach the end card by URL.** |
 | W0-2 | **`Copy my notes` takes two clicks.** First opens the box; second copies. | n/a | `.planning/staging-checklist.html:160` builds the text and opens a `<dialog>`; `:172` does the copy. Make the first click do both, dialog becomes confirmation. |
 | W0-3 | **Reformat the build stamp.** Currently `v4 · build 2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42` — long, and "v4" no longer means anything. | cosmetic | **DECIDED 2026-08-27: date-based build number** — `Build 2026.08.27.3`, staging appends `-staging`. `src/ui/stage.js:33,1998`; the staging suffix is written by `scripts/deploy-staging.sh:171`. |
 
@@ -79,7 +79,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | # | Item |
 |---|---|
 | W2-1 | **Weather forecast line too long.** Should read `Day {day}: Wind {direction}. Tomorrow: {direction}`. *(Check whether he means the narration line or the wind pill — the pill currently reads `WIND NOW: W← • FORECAST: W←`.)* |
-| W2-2 | **"The Shelves be bare…" — cut 50%.** `src/ui/panel.js:1292`, and the inline variants at `src/ui/util.js:760,765`. **Show him the line and offer 3 options.** |
+| W2-2 | **"The Shelves be bare…" — cut 50%.** `src/ui/panel.js:1292`. ✅ **DECIDED 2026-08-27 — and he took NONE of the three offered, he wrote his own.** Ship EXACTLY:<br>`Sold-out islands fly the black market flag. They'll find ye one more ingredient — for 10🌕.`<br>**Two word choices are his and are not typos: "crate"→"ingredient", "black flag"→"black market flag". Do not "correct" either.** He also dropped "after dark" and "Sugar Seas" entirely — the latter agrees with W2-6. ⚠️ The `10🌕` is hardcoded in the copy; derive it from cfg (rule 9) rather than carrying the number across. |
 | W2-3 | **Dock language consistency.** `spends the turn haulin' crates at {location}` → `workin' the docks` (`src/ui/util.js:770,773`). **Then audit every other reference to docking** and make them agree. |
 | W2-4 | **Money must be explicit wherever it changes hands.** `TREASURE! Buy…` → `TREASURE (+3🌕)! Buy…` (`src/ui/flow.js:1458`); same principle for `TAILS (+1🌕) — work the docks…`. **Audit every narration line that moves coin.** ✅ **His numbers are CORRECT — measured 2026-08-27:** `dockHeads:3, dockTails:1` (`src/engine/index.js:3081`). **Derive them from `cfg`, never type them** (rule 9) — the payout is a field precisely so it can move. |
 | W2-5 | **Dock recap money consistency:** `strikes buried treasure (+3🌕) — then buys {ingredient} (-{price}🌕)`. Same derive-don't-type rule. |
@@ -132,7 +132,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 |---|---|
 | Q-1 | **Crustbeard started the ovens at the last part of the day, but instead of the bake-off everyone got another turn.** Wyatt: *"Isn't this right? or am i misremembering the rules?"* — **a rules question, and rules are his.** Measure what the engine actually does, present it, do not change it. |
 | Q-2 | **"I didn't get to watch Crustbeard's bake-off, but I want to."** Traced to **one missing publish**, not a missing feature — but it adds time to every bot turn. **A pacing decision, his.** See the standing T-23 entry below. |
-| Q-3 | **The "End of voyage" heading now stays put instead of scrolling away.** A side effect of moving "Play again!" outside the scroller. **Keep or revert — one line either way. Still unanswered.** |
+| ~~Q-3~~ | ✅ **ANSWERED 2026-08-27: KEEP IT.** The "End of voyage" heading stays put while the award cards scroll. No longer parked; nothing to do. |
 
 ## ✅ CLOSED by this playtest
 

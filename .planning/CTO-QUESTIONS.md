@@ -53,11 +53,15 @@ or not it was pushed — the push can fail, the file cannot.
 - **answer:**
 - **resolved:**
 
-### Q-3 — The "End of voyage" heading now stays put instead of scrolling away. Keep or revert?
+### Q-3 — The "End of voyage" heading now stays put instead of scrolling away. Keep or revert? ✅ RESOLVED
 - **kind:** TASTE
-- **asked:** 2026-08-26 (checklist item #5, still unanswered as of 2026-08-27)
+- **asked:** 2026-08-26 (checklist item #5)
 - **default:** none — TASTE, parks instead
 - **why it matters:** Nobody set out to change it; it fell out of moving "Play again!" outside the
   scroller. One line either way.
-- **answer:**
-- **resolved:**
+- **answer:** **"Keep it — stays put."** Wyatt, 2026-08-27.
+- **resolved:** 2026-08-27
+
+  *Worth noting for the record: this question sat open for a day and cost one line of a question
+  form to close. **Front-loading works.** Two of the three parked questions below are still open
+  only because they need a MEASUREMENT put in front of him first, not because he is slow.*
