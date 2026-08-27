@@ -61,10 +61,10 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — staging checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@abcce16d</strong> ·
+  <div class="sub">Build <strong id="stamp">2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42</strong> ·
    <a href="http://staging.playpastrypirates.com/" target="_blank" rel="noopener">staging.playpastrypirates.com</a>
-   — <strong>http://, not https:// yet</strong> (certificate still being issued). If the stamp in the ☰ menu does NOT end
-   <code>@abcce16d</code>, stop and tell me: there is no build step, so a different stamp means ye are on a different build.</div>
+   — <strong>http://, not https:// yet</strong> (certificate still being issued). <strong>The browser tab must read “[STAGING]”</strong> — that is the fastest tell and it needs no menu.
+   If the stamp in the ☰ menu does NOT end <code>@b8d61e42</code>, stop and tell me: there is no build step, so a different stamp means ye are on a different build.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
     <button class="primary" id="copy">Copy my notes</button>
@@ -89,7 +89,7 @@ const DATA = [
  {h:"Start here — this address is brand new"},
  {note:"<strong>This is the first time ye have ever played staging.</strong> It is the same game as production, at a different address, with a stamp that says so. Production is untouched at <code>2026-08-26k-CUTOVER</code> — if ye want to compare, open both."},
  {n:1,look:"Open staging.playpastrypirates.com on yer phone — note the http, no s",right:"The game loads exactly as production does. Art, sound, everything.",why:"The certificate is still being issued by GitHub; https will start working on its own within the hour. If http fails entirely, that is finding number one and the rest of this sheet can wait."},
- {n:2,look:"Open the ☰ menu and read the build stamp",right:"It ends <code>-STAGING/aug26-night-fixes@abcce16d</code>.",why:"The @sha was added today because the branch name alone was NOT a build identity — staging served a half-finished build under a stamp identical to the finished one, and ye would have had no tell. Now the stamp names the exact commit."},
+ {n:2,look:"Open the ☰ menu and read the build stamp",right:"It ends <code>-STAGING/aug26-night-fixes@b8d61e42</code>.",why:"The @sha was added today because the branch name alone was NOT a build identity — staging served a half-finished build under a stamp identical to the finished one, and ye would have had no tell. Now the stamp names the exact commit."},
 
  {h:"The two changes ye can actually feel"},
  {n:3,look:"A bake-off SECOND attempt, where ye already got some crates right first time",right:"The crates ye already solved are judged instantly. Only the unsolved ones take a beat each.",why:"Yer words: “the 1st turned pink instantly, then the 5th lagged as if 2, 3 and 4 were being revealed invisibly.” Exactly right. Measured: three already-solved crates cost 1,561ms of dead air — 3 × 520ms — for crates that visibly did not change. Now: −6ms, i.e. nothing."},
