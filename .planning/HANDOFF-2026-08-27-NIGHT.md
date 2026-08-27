@@ -139,6 +139,41 @@ would settle them — and it needs a **crew guest**, which tonight's solo probe 
 
 ---
 
+## 5b. THE SEA TRIAL RAN — 81 minutes, 8 legs, and it FAILED
+
+**That is the point.** Until last night it crashed before sailing a leg, so this is the first real
+result the gate has produced since the cutover. Full detail in `BACKLOG.md`.
+
+- **The ONLY structural failure across all 8 legs is §0** — same leg, same seat, same screen as
+  every previous trial. Everything else in the game is structurally clean.
+- **Three attempts to reproduce §0 under measurement, on a real two-phone crew rig, all failed.**
+  It is intermittent, which the drill's null test independently measured.
+- **"Play again!" covering the award cards is now on its EIGHTH flag** across three trials. It is
+  documented design and the third option (a footer outside the scroller) is unbuilt — **his call**.
+- **NEW: a ghosted rounded-box edge** above the "tap and hold the sea" bubble on crew-phone. A
+  floating box is placed with its top above `boardBand().top`, so the clipped host cuts it and
+  leaves a sliver. **The fix is the placement, not the clip.** Not attempted unattended — retuning
+  bubble placement without his eye is a taste change.
+- **One judge OVER-report, recorded as a non-bug:** two trade circles it called overlapping measure
+  **~11 CSS px apart**. The structural `no-pile` rule was right to stay quiet. Nobody should "fix" it.
+- **A standing backlog entry is now wrong and is corrected:** *"`deny` is never exercised in crew
+  games"* — this trial exercised it (`deny:1/7`, `deny:1/4`). It was very likely never exercised
+  because **the crew legs could not run at all**. Rule 6 applies to inherited claims too.
+- **`menu:0/1` on every leg** — nothing behind ☰ is being exercised by the driver at all.
+
+### Safari: the two WebKit legs did NOT run, and that is now fixed
+
+Both died with *"playwright not found"*, so **Safari coverage in that trial was ZERO** — the report
+says so in its NOT-RUN column, which is the one thing that column exists for.
+
+**The browsers were already on this machine** (`~/Library/Caches/ms-playwright/webkit-2287`,
+`webkit-2336`); only the npm package directory was missing. That is what `/tmp/pw` loses on every
+reboot, so **this will recur**. If you want Safari legs to just work, install the package once
+somewhere durable and export `PW_DIR` — e.g. `~/.pw` instead of `/tmp/pw`. Left as your call
+rather than writing into your home directory unasked.
+
+---
+
 ## 6. STILL OPEN
 
 - **§0**, above — and it is what makes `crew-phone` gradeable, so it blocks trusting crew results.
