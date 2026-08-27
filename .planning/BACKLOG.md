@@ -262,3 +262,57 @@ the live one.** That is the real prize here, and it is a copy pass plus two deci
 - [ ] **Safari storm on a real device** — never measured on this build. Headless WebKit now runs in
       the sea trial, but `DRIVING-THE-GAME.md` §9 is explicit: *"Chrome is not Safari… a green
       harness still earns a human Safari pass."*
+
+### §0 — what was MEASURED on 2026-08-26 night, and the two theories it killed
+
+**No fix yet. Two hypotheses eliminated and one mechanism located — recorded so the next session
+does not re-derive them.** Measured on a real solo phone (390×664) at a live sail prompt, values
+read from the rendered page, not reasoned:
+
+```
+vw 390  vh 664
+#board      l0 t86  r390 b476   (390×390 — a SQUARE)
+#boardwrap  l0 t86  r390 b476   (identical)
+#pp4Cap     l0 t476 r390 b664
+#sailHost   l-185.4 t-48.6 r575.4 b712.1   transform: scale(1.95052) translate(-185.351px,-134.637px)
+viewBox "155.94 113.27 328.118 328.118"    preserveAspectRatio "xMidYMin meet"
+```
+
+**KILLED — "the HTML sail layer and the SVG board are scaled by different numbers and drift."**
+This was the sharper theory and it is wrong. Worked through arithmetically from the measured values:
+SVG puts a board unit at `390/328.118 = 1.188595` px each; the HTML layer puts it at
+`(1/640)·390 · (640/328.118)` = **the same 1.188595**. Checked at three board coordinates across the
+whole width — **agreement to 0.000 px**. The two paths do not drift. *(Its own falsifier — "if
+`#board`.width === vwPx() there is no mismatch" — is exactly what the measurement shows: both 390.)*
+
+**KILLED — "the captains panel overlaps the board's visible band."** The board ends at y=476 and
+`#pp4Cap` begins at y=476. They are **adjacent, not overlapping**, at this size in this mode.
+
+**LOCATED — nothing clips the camera-mapped HTML layers.** `#boardwrap` is
+`position: relative; width: 100%; container-type: inline-size` with **no `overflow` rule**. The
+`overflow: hidden` in this area belongs to `#board`, which is the SVG and clips only its own
+content — not its sibling HTML layers. And `#sailHost` measures **−48.6 → 712.1**, far outside the
+board's 86 → 476, because it is a transformed layer whose children paint wherever the transform puts
+them. **So a sail square whose board coordinate is outside the current camera frame paints outside
+the board entirely** — over the ribbon above, or into the captains panel's band below, which is
+exactly what `sailCell <- covered by #pp4Cap` reports.
+
+**WHAT IS STILL NOT KNOWN, and why no fix shipped tonight.** `camFitCells()` fits the bounding box of
+every legal cell plus the player's own ship, grows the frame for the prompt's reserve, clamps to 640,
+and `camTo` clamps the origin into the board — **on paper every legal square should always be in
+frame**. So the open question is what puts one outside it. The two candidates, neither measured:
+
+1. **The camera has not moved yet.** `camTo` REMEMBERS rather than performs while a centre-stage card
+   or the flip veil holds attention (`stageHoldsAttention()` → `S.camHeld`), and `tick()` performs it
+   later. Squares drawn before that glide would sit on the old frame.
+2. **The glide is mid-flight.** `camTo` tweens over 650 ms; the trial reports **31% of screens hit the
+   settle cap**, so screens are being judged while still moving.
+
+**The decisive measurement is a CREW GUEST at a tap-to-sail prompt** — that is where it reproduces,
+and tonight's probe was solo. Read `S.camHeld`, `S.tween`, `S.cam` and every `.sailCell` rect at the
+settled moment, and ask whether the failing cells are outside the frame the camera was asked for or
+outside the frame it had actually reached.
+
+> **Do not "fix" this by clipping `#sailHost`.** It would stop the square painting over the captains
+> panel and would NOT make it reachable — it would hide a legal move instead of showing an
+> unreachable one, which is worse. The fault is the frame, not the paint.
