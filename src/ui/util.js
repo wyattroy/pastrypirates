@@ -754,15 +754,26 @@ const EVENT_NARRATION={
     const gave=barter
       ?(e.paidIng[0]===e.paidIng[1]?`two ${fmtItem(e.paidIng[0])}`:e.paidIng.map(fmtItem).join(" an' "))
       :``;
+    /* W2-5 — ONE FORMAT FOR COIN IN THIS SENTENCE, NOT TWO. The dig above already names the gain
+       as a signed parenthetical, `(+3🌕)`; the purchase in the SAME breath read "for 12🌕". Money
+       arriving and money leaving were dressed differently a dozen words apart.
+       THE MINUS IS U+2212 "−", NEVER ASCII "-" — the same character the broadside line and the
+       captain's-log capsule below already use; a hyphen here is the drift this whole clause exists
+       to stop. `.nobrk` because the coin is an <img>, and a replaced element hands the browser a
+       break opportunity immediately after it — the reason a full stop turned up alone on its own
+       line twice. Built ONCE and spent by both the third-person and the addressed form, so the two
+       can never say the amount differently. The barter clause takes no `spent`: it pays in crates,
+       and inventing a coin figure where no coin moved would be a lie the whole table can read. */
+    const spent=`<span class="nobrk">(−${paid}🌕)</span>`;
     const buyTail=bought
       ?(barter?` — then trades ${gave} to the black market for ${goods}, under cover o' dark.`
-        :e.black?` — then pays the black market ${paid}🌕 for ${goods} under cover o' dark.`
-        :` — then buys ${goods} for ${paid}🌕.`+(e.wentDry?` That were the last crate — the shelves be bare!`:``))
+        :e.black?` — then pays the black market for ${goods} ${spent}, under cover o' dark.`
+        :` — then buys ${goods} ${spent}.`+(e.wentDry?` That were the last crate — the shelves be bare!`:``))
       :``;
     const buyTailYou=bought
       ?(barter?` — then ye trade ${gave} to the black market for ${goods}, under cover o' dark.`
-        :e.black?` — then ye pay the black market ${paid}🌕 for ${goods} under cover o' dark.`
-        :` — then ye buy ${goods} for ${paid}🌕.`+(e.wentDry?` Ye took the last crate — the shelves be bare!`:``))
+        :e.black?` — then ye pay the black market for ${goods} ${spent}, under cover o' dark.`
+        :` — then ye buy ${goods} ${spent}.`+(e.wentDry?` Ye took the last crate — the shelves be bare!`:``))
       :``;
     const txt=isLocalTo(e.p,viewerSeat)
       ?(e.heads
