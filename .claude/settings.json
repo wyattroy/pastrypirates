@@ -28,6 +28,12 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cto-staging-only.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "CTO lock held? then main is unreachable"
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Checking CLAUDE.md \u00a74 \u2014 read the doc first"

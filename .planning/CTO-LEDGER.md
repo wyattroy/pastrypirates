@@ -1,0 +1,33 @@
+# CTO ledger — what the marathon worker has actually done
+
+**APPEND ONLY. Newest at the BOTTOM. Never edit an entry.**
+
+This file is the CTO's progress record. `.planning/BACKLOG.md` is the MANDATE (what may be worked
+on); this is the STATE (what has happened to each item). Two files, two jobs — a status column
+inside the backlog would mean the mandate and the progress rot together.
+
+**Nothing here is hand-counted.** `scripts/qa/cto_supervise.mjs` derives every number from these
+entries — items done, items in flight, how long the current one has been running. The project's own
+convention: *never hand-type a number that can be counted.*
+
+## The format — one line per event, four fields
+
+```
+<ISO8601>  <ITEM-ID>  <STATE>  <one line of what happened>
+```
+
+**STATE is one of:** `START` · `DONE` · `BLOCKED` · `PARKED` · `ABANDONED` · `REVERTED` · `HEARTBEAT`
+
+- `START` — work began. The supervisor measures staleness from the newest START with no matching close.
+- `DONE` — finished AND verified AND a CEO verdict is in `.planning/CEO-REVIEWS.md`. **All three, or it is not DONE.**
+- `BLOCKED` — cannot proceed for a mechanical reason (a gate fails, a tool is missing). Names the blocker.
+- `PARKED` — needs Wyatt. The question goes in `.planning/CTO-QUESTIONS.md`. **Taste never times out.**
+- `ABANDONED` — started, then dropped. Must say why. An item that silently stops is the failure this state exists to make visible.
+- `REVERTED` — a CEO verdict said NOT DONE and the commit was backed out. **This is a success of the process, not a failure of it.**
+- `HEARTBEAT` — "I am alive and working on <ID>". Written at least every 20 minutes during a work
+  session, so the supervisor can tell a slow item from a dead worker. **Without this, a stuck CTO
+  and a busy CTO look identical** — and the whole reason the shift worker exists is to tell them apart.
+
+## Entries
+
+2026-08-27T00:00:00Z  BOOTSTRAP  HEARTBEAT  ledger created; no CTO has run yet
