@@ -49,7 +49,7 @@ import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
-  DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
+  DIRS, DIRNAME, STORM_PUSH, WAVE_IMG, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
@@ -2163,7 +2163,30 @@ export async function humanAct(p,sailCtx){
   // the flat label agree with the fan rather than inventing a style.
   // NOT changed: the parentheticals in NARRATION (e.g. the sailing-order line, :2260) — item 1 says
   // action prompt BUTTONS, and narration is prose where a bracket reads normally.
-  if(!canOvens)opts.push({label:`🌊 Pass${appState.game.cfg.passCoin?` <span class="nobrk">+${appState.game.cfg.passCoin}🌕</span>`:""}`,value:"pass"});
+  /* MUSE, not Pass (Wyatt, 2026-08-27). "Pass" named the absence of a move; "Muse" names what the
+     captain is actually doing — watching the water and thinking about a recipe — so the quietest
+     turn in the game stops reading as a forfeit.
+
+     GRAVEYARD, so nobody re-runs this argument by accident (rule 10): this label was briefly
+     "Look into the ocean" on 2026-08-05 and was changed BACK to "Pass". "Muse" is a different word
+     and a later ruling of his, not a repeat of that one.
+
+     NO TOOLTIP, and that is his call too, made the same day: "don't build the tooltip, ignore this
+     and let the idea go." The backlog had asked for hover text explaining the button; the game has
+     no mechanism for one on an ENABLED button (data-why is disabled-buttons-only, util.js), and he
+     chose not to build one rather than have half the item ship quietly.
+
+     THREE STACKED LINES — "a wave image above 'Muse' and a +1🌕 below it", his words. The <br>
+     idiom is the house form for exactly this and is already what crateOpt() uses for the radial
+     fan ("icon above, words below"); `short` and `label` carry the same shape so the circle and
+     the list button read identically rather than being two spellings kept in step (rule 8).
+     A real WAVE_IMG, not the 🌊 emoji, because he asked for an image and the asset already exists.
+     The coin still comes off cfg.passCoin — a payout is not a constant (rule 9). */
+  if(!canOvens){
+    const museCoin=appState.game.cfg.passCoin?`<br><span class="nobrk">+${appState.game.cfg.passCoin}🌕</span>`:"";
+    const museFace=`${iconImg(WAVE_IMG)}<br>Muse${museCoin}`;
+    opts.push({label:museFace,short:museFace,value:"pass"});
+  }
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
