@@ -196,15 +196,18 @@ shipped.
 ```bash
 git checkout -b aug28-whatever            # 1. a dated branch (monthDD-topic)
 
-npm test                                  # 2. the gates — expect 19, exit 0
+npm test                                  # 2. the gates — expect 20, exit 0
 node scripts/qa/gear.mjs                  # 3. how deep must this change be tested?
 node scripts/sea_trial.mjs                # 4. sail it, at whatever gear step 3 named
 
 ./scripts/deploy-staging.sh "what changed"   # 5. -> staging.playpastrypirates.com
 ```
 
-**6. Wyatt plays staging.** The build stamp must read `<stamp>-STAGING/<branch>`. If it reads a
-bare stamp he is looking at production and the publish did not land.
+**6. Wyatt plays staging.** The build stamp must read `<stamp>-staging@<sha>` — e.g.
+`Build 2026.08.27.3-staging@a24c675`. If it reads a bare stamp he is looking at production and the
+publish did not land. *(The suffix was `-STAGING/<branch>` until W0-3, 2026-08-27: he asked for a
+shorter stamp, the sha stayed because it is what makes it a build identity, and the branch name
+moved to the deploy log.)*
 
 **7. On his approval — and only then:**
 
@@ -227,7 +230,7 @@ there is no build step. If he cannot see it, it is not on `main`.
 
 ### Why the stamp matters more than it looks
 
-`deploy-staging.sh` rewrites `PP4_STAMP` to `<stamp>-STAGING/<branch>` **on the published copy, not
+`deploy-staging.sh` rewrites `PP4_STAMP` to `<stamp>-staging@<sha>` **on the published copy, not
 the source**. On 2026-08-27 it did not, and staging served DIFFERENT CODE under a stamp IDENTICAL to
 production — worse than no stamp, because the one tell Wyatt uses to know which build he is looking
 at was actively lying. The script now refuses to publish at all if it cannot stamp the build.
