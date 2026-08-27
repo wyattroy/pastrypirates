@@ -3,7 +3,10 @@
    offered it makes no sense — should read 'How many coins?'"
    Reads the real source and evaluates the real label closure, so it cannot pass on a comment. */
 import fs from "node:fs";
-const SRC="/home/user/pastrypirates/src/ui/flow.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+// derived, never typed — same reason as w21_weather_line_check.mjs
+const SRC = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".."), "src/ui/flow.js");
 const s=fs.readFileSync(SRC,"utf8");
 
 // pull the label expression actually passed to coinSlider in buildOffer's step 2
