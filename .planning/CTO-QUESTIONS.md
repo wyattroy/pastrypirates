@@ -130,3 +130,25 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   it is the one surface where the numbers can silently go wrong, and it deserves its own item.**
 - **answer:**
 - **resolved:**
+
+### Q-8 — "Muse" wants a tooltip, and the game has no tooltip for an ENABLED button
+- **kind:** MECHANISM (reported, not defaulted — it is bigger than the copy change it serves)
+- **asked:** 2026-08-27 by the cloud CTO. This ANSWERS the open question the backlog attaches to
+  W2-7: *"is there a tooltip mechanism for this button at all today?"*
+- **the answer is no, and here is the evidence.** The only tap-to-explain mechanism in the prompt
+  system is `data-why` (`src/ui/util.js:1730-1737`), and it is written **only when a button is
+  DISABLED** — `it.disabled&&it.why`. It exists to explain why a greyed control cannot be pressed.
+  There is nothing that attaches an explanation to a button a captain CAN press. The only other
+  `title=` in the prompt path is on a captain ROW (`util.js:157`), not a button.
+- **so W2-7 is two jobs, not one.** Renaming Pass → Muse is a copy change. Giving it the tooltip
+  *"Watch the water and write a recipe about what you see."* needs a new affordance that does not
+  exist — and rule 8 says whatever is built becomes the way EVERY enabled button explains itself,
+  everywhere, forever. That is a design decision, not a rename.
+- **also in the graveyard (rule 10), so nobody re-runs it silently:** this label already read
+  *"Look into the ocean"* on 2026-08-05 and **was changed back to "Pass"** (`src/ui/util.js:558`
+  records it). "Muse" is a different word and the rename is Wyatt's call; the history is here only
+  so the argument is not repeated by accident.
+- **nothing was changed.** The rename was not shipped on its own, because shipping half of it
+  leaves a button whose whole point is a hint nobody can see.
+- **answer:**
+- **resolved:**
