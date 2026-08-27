@@ -23,17 +23,43 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile = false, dsf = 1 }) {
+  /* FINDING PLAYWRIGHT IS THE CODE'S JOB, NOT THE OPERATOR'S — and it used to be neither.
+     This looked only at $PW_DIR, and the documented home for it was /tmp/pw. /tmp is cleared on
+     reboot, so the package vanished and every Safari leg died with "playwright not found" while
+     the WebKit BROWSERS sat perfectly intact in ~/Library/Caches/ms-playwright. On 2026-08-27 that
+     had silently disabled Safari coverage entirely: the full sea trial reported 2 legs NOT RUN and
+     nobody had noticed the install was a reboot away from gone.
+
+     Wyatt: "fix playwright to ALWAYS be able to run in this process of sea trials -- install the
+     package somewhere durable and keep track of it."
+
+     So the search is ordered and every step is tried, rather than one env var being mandatory:
+       1. $PW_DIR            an explicit override still wins, for a one-off or a CI image
+       2. ~/.pw              THE DURABLE HOME. Survives reboots; 18 MB; created 2026-08-27
+       3. bare "playwright"  a global or workspace install, if someone has one
+     The browsers themselves already live durably in ~/Library/Caches/ms-playwright, so only this
+     little package directory was ever the fragile part. */
   let webkit;
-  try {
-    const d = process.env.PW_DIR;
-    ({ webkit } = await import(d ? path.join(d, "node_modules/playwright/index.mjs") : "playwright"));
-  } catch {
-    throw new Error("playwright not found. mkdir -p /tmp/pw && cd /tmp/pw && npm init -y && "
-      + "npm i playwright && npx playwright install webkit  — then PW_DIR=/tmp/pw");
+  const homePw = path.join(os.homedir(), ".pw", "node_modules/playwright/index.mjs");
+  const candidates = [
+    process.env.PW_DIR ? path.join(process.env.PW_DIR, "node_modules/playwright/index.mjs") : null,
+    homePw,
+    "playwright",
+  ].filter(Boolean);
+  const tried = [];
+  for (const c of candidates) {
+    try { ({ webkit } = await import(c)); if (webkit) break; } catch { tried.push(c); }
+  }
+  if (!webkit) {
+    throw new Error("playwright not found. Tried: " + tried.join(", ")
+      + `\n  Install it durably (NOT in /tmp, which is cleared on reboot):\n`
+      + `    mkdir -p ~/.pw && cd ~/.pw && npm i playwright && npx playwright install webkit\n`
+      + `  4/scripts/lib/wk.mjs finds ~/.pw automatically; PW_DIR only overrides it.`);
   }
   const srv = httpPort ? spawn("python3", ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
   if (profileDir) fs.rmSync(profileDir, { recursive: true, force: true });
