@@ -129,7 +129,7 @@ rm -f .planning/.cto-lock
 > `curl https://staging.playpastrypirates.com/` fails: **GitHub is still serving its default
 > `*.github.io` certificate** and has not issued the subdomain's. Plain `http://` returns 200 and
 > serves the right build. **`deploy-staging.sh` does no post-publish check at all, so nothing in the
-> loop would ever have told us.** When you report to Wyatt, give him the `http://` URL, typed out.
+> loop would ever have told us.** When you report to Wyatt, give him the `https://` URL — **CORRECTED 2026-08-27: `http://` is refused by the container's egress proxy outright, and the real blocker is that GitHub has issued no certificate for the subdomain. See GIT-AND-DEPLOY §7**.
 > He played PRODUCTION for a while believing it was staging once already — a bare domain sends the
 > browser to `https://`, that fails, and he lands on his production bookmark.
 >
