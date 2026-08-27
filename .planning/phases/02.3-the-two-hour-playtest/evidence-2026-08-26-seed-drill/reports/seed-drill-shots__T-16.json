@@ -1,0 +1,546 @@
+[
+  {
+    "name": "solo-phone",
+    "screens": [
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-001-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-001.png",
+        "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 1365,
+          "samples": 12
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-002-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-002.png",
+        "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, choose yer recipe:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 374,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-003-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-003.png",
+        "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Dark Cho,pp4Bake:Bake thi",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-004-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-004.png",
+        "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 375,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-005-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-005.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 371,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-006-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-006.png",
+        "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ Davy Scones: tap to sail",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2629,
+          "samples": 21,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": [
+          {
+            "ok": false,
+            "rule": "on-screen",
+            "what": "clickable off-screen: sailCell sailSwept"
+          },
+          {
+            "ok": false,
+            "rule": "not-occluded",
+            "what": "clickable covered by something else: sailCell <- covered by .pp4Tail <div>, sailCell <- covered by .pp4Bub out <div>, sailCell <- covered by .pp4Bub out <div>, sailCell <- covered by .pp4Bub out <div>"
+          },
+          {
+            "ok": false,
+            "rule": "sail-clickable",
+            "what": "5 sail square(s) covered: a sail square <- .pp4Tail <div>, a sail square <- .pp4Bub out <div>, a sail square <- nothing (outside any element)"
+          }
+        ]
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-007-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-007.png",
+        "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 3104,
+          "samples": 25,
+          "churn": "geometry",
+          "pushed": 5,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-008-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-008.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 372,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-009-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-009.png",
+        "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 496,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-010-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-010.png",
+        "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 374,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-011-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-011.png",
+        "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 497,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-012-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-012.png",
+        "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2624,
+          "samples": 21,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-013-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-013.png",
+        "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 614,
+          "samples": 6
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-014-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-014.png",
+        "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 371,
+          "samples": 4
+        },
+        "motionOnly": []
+      }
+    ],
+    "consoleErrs": [],
+    "seats": [
+      {
+        "screens": [
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1365,
+              "samples": 12
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-002.png",
+            "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 374,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Dark Cho,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-004.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 375,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-005.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 371,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-006.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ Davy Scones: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2629,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": [
+              {
+                "ok": false,
+                "rule": "on-screen",
+                "what": "clickable off-screen: sailCell sailSwept"
+              },
+              {
+                "ok": false,
+                "rule": "not-occluded",
+                "what": "clickable covered by something else: sailCell <- covered by .pp4Tail <div>, sailCell <- covered by .pp4Bub out <div>, sailCell <- covered by .pp4Bub out <div>, sailCell <- covered by .pp4Bub out <div>"
+              },
+              {
+                "ok": false,
+                "rule": "sail-clickable",
+                "what": "5 sail square(s) covered: a sail square <- .pp4Tail <div>, a sail square <- .pp4Bub out <div>, a sail square <- nothing (outside any element)"
+              }
+            ]
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 3104,
+              "samples": 25,
+              "churn": "geometry",
+              "pushed": 5,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-008.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 372,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-009.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 496,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-010.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 374,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-011.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 497,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-012.png",
+            "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2624,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-013.png",
+            "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 614,
+              "samples": 6
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-014.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 371,
+              "samples": 4
+            },
+            "motionOnly": []
+          }
+        ],
+        "finished": false,
+        "player": {
+          "coverage": {
+            "arrgh": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "dark chocolate cream puf": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "cinnamon snapscrisp rust": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "start": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "sail square": {
+              "seen": 4,
+              "clicked": 4
+            },
+            "trade": {
+              "seen": 4,
+              "clicked": 2
+            },
+            "pass #": {
+              "seen": 4,
+              "clicked": 1
+            },
+            "toasty wheat": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "cacao pods": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "coins only": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "slider": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "offer it": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "menu": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "menu open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "menu close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "attack #": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "flip coin": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "crystal sugar": {
+              "seen": 1,
+              "clicked": 1
+            }
+          },
+          "deadButtons": [],
+          "findings": [],
+          "screens": [
+            {
+              "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-001.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, choose yer recipe:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-002.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Dark Chocola|Cinnamon Sna ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Dark Cho,pp4Bake:Bake thi",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-003.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-004.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-005.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ Davy Scones: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-006.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-007.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-008.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-009.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-010.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-011.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ Davy Scones, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-012.png"
+            },
+            {
+              "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-013.png"
+            },
+            {
+              "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/T-16/solo-phone-014.png"
+            }
+          ],
+          "days": {},
+          "pending": {},
+          "_steppedThisPrompt": false
+        }
+      }
+    ],
+    "finished": false,
+    "verdict": [
+      "did not finish the voyage",
+      "3 observation(s) seen only DURING an animation — not failures, read them in the log",
+      "3 screen(s) never stopped moving before being checked"
+    ]
+  }
+]

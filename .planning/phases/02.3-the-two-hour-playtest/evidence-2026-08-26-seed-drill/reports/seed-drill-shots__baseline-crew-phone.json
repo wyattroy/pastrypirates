@@ -1,0 +1,1483 @@
+[
+  {
+    "name": "crew-phone",
+    "screens": [
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001.png",
+        "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 1723,
+          "samples": 15
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001.png",
+        "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 1605,
+          "samples": 14
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002.png",
+        "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 371,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002.png",
+        "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 369,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003.png",
+        "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Molten C,pp4Bake:Bake thi",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 365,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003.png",
+        "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Mexican ,pp4Bake:Bake thi",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004.png",
+        "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004.png",
+        "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 369,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 490,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006.png",
+        "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2841,
+          "samples": 23,
+          "churn": "geometry",
+          "pushed": 2,
+          "hardCap": false
+        },
+        "motionOnly": [
+          {
+            "ok": false,
+            "rule": "no-cover-ask",
+            "what": "control covering the question it answers: \"sailCell\" over \"test1: tap to sail\""
+          }
+        ]
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007.png",
+        "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2863,
+          "samples": 23,
+          "churn": "geometry",
+          "pushed": 3,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 374,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009.png",
+        "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2711,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010.png",
+        "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2603,
+          "samples": 21,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006.png",
+        "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+        "fails": [
+          {
+            "ok": false,
+            "rule": "no-cover-ask",
+            "what": "control covering the question it answers: \"sailCell\" over \"test2: tap to sail\""
+          }
+        ],
+        "settle": {
+          "settled": false,
+          "ms": 2708,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": [
+          {
+            "ok": false,
+            "rule": "not-occluded",
+            "what": "clickable covered by something else: sailCell <- covered by .pp4BubIn <div>"
+          },
+          {
+            "ok": false,
+            "rule": "sail-clickable",
+            "what": "1 sail square(s) covered: a sail square <- .pp4BubIn <div>"
+          }
+        ]
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007.png",
+        "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 3105,
+          "samples": 25,
+          "churn": "geometry",
+          "pushed": 5,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2627,
+          "samples": 21,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009.png",
+        "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 992,
+          "samples": 9
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010.png",
+        "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 493,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011.png",
+        "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2615,
+          "samples": 21,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011.png",
+        "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012.png",
+        "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2722,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012.png",
+        "sig": "radial pp4Stage ~ Flaky Jack|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Speckled Eggs?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2712,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013.png",
+        "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test1: test2 offers  Toasty Wheat + 1 co",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2716,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014.png",
+        "sig": "radial pp4Stage ~ test1|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2700,
+          "samples": 22,
+          "churn": "geometry",
+          "pushed": 1,
+          "hardCap": false
+        },
+        "motionOnly": []
+      }
+    ],
+    "consoleErrs": [],
+    "seats": [
+      {
+        "screens": [
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1723,
+              "samples": 15
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1605,
+              "samples": 14
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002.png",
+            "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 371,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002.png",
+            "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Molten C,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 365,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Mexican ,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 490,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2841,
+              "samples": 23,
+              "churn": "geometry",
+              "pushed": 2,
+              "hardCap": false
+            },
+            "motionOnly": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"sailCell\" over \"test1: tap to sail\""
+              }
+            ]
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2863,
+              "samples": 23,
+              "churn": "geometry",
+              "pushed": 3,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 374,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2711,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2603,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"sailCell\" over \"test2: tap to sail\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": [
+              {
+                "ok": false,
+                "rule": "not-occluded",
+                "what": "clickable covered by something else: sailCell <- covered by .pp4BubIn <div>"
+              },
+              {
+                "ok": false,
+                "rule": "sail-clickable",
+                "what": "1 sail square(s) covered: a sail square <- .pp4BubIn <div>"
+              }
+            ]
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 3105,
+              "samples": 25,
+              "churn": "geometry",
+              "pushed": 5,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2627,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 992,
+              "samples": 9
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011.png",
+            "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2615,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2722,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012.png",
+            "sig": "radial pp4Stage ~ Flaky Jack|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Speckled Eggs?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2712,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013.png",
+            "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test1: test2 offers  Toasty Wheat + 1 co",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2716,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014.png",
+            "sig": "radial pp4Stage ~ test1|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2700,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          }
+        ],
+        "finished": false,
+        "player": {
+          "coverage": {
+            "arrgh": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "mexican chocolate tortea": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "spiced cocoa shortbreadb": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "start": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "sail square": {
+              "seen": 3,
+              "clicked": 3
+            },
+            "trade": {
+              "seen": 3,
+              "clicked": 2
+            },
+            "pass #": {
+              "seen": 3,
+              "clicked": 1
+            },
+            "toasty wheat": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "coins only": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "slider": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "offer it": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "menu": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "menu open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "menu close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "chat open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "speckled eggs": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "flaky jack": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "walk away": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "accept": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "counter": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "deny": {
+              "seen": 1,
+              "clicked": 0
+            }
+          },
+          "deadButtons": [],
+          "findings": [],
+          "screens": [
+            {
+              "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Mexican ,pp4Bake:Bake thi",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Flaky Jack|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test1: test2 offers  Toasty Wheat + 1 co",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013.png"
+            }
+          ],
+          "days": {},
+          "pending": {},
+          "_steppedThisPrompt": false
+        }
+      },
+      {
+        "screens": [
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1723,
+              "samples": 15
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1605,
+              "samples": 14
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002.png",
+            "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 371,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-002.png",
+            "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Molten C,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 365,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Mexican Choc|Spiced Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Mexican ,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-004.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 490,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-005.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-006.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2841,
+              "samples": 23,
+              "churn": "geometry",
+              "pushed": 2,
+              "hardCap": false
+            },
+            "motionOnly": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"sailCell\" over \"test1: tap to sail\""
+              }
+            ]
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2863,
+              "samples": 23,
+              "churn": "geometry",
+              "pushed": 3,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-008.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 374,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-009.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2711,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-010.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2603,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"sailCell\" over \"test2: tap to sail\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": [
+              {
+                "ok": false,
+                "rule": "not-occluded",
+                "what": "clickable covered by something else: sailCell <- covered by .pp4BubIn <div>"
+              },
+              {
+                "ok": false,
+                "rule": "sail-clickable",
+                "what": "1 sail square(s) covered: a sail square <- .pp4BubIn <div>"
+              }
+            ]
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 3105,
+              "samples": 25,
+              "churn": "geometry",
+              "pushed": 5,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2627,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 992,
+              "samples": 9
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011.png",
+            "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2615,
+              "samples": 21,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-011.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2722,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-012.png",
+            "sig": "radial pp4Stage ~ Flaky Jack|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Speckled Eggs?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2712,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-host-013.png",
+            "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test1: test2 offers  Toasty Wheat + 1 co",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2716,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014.png",
+            "sig": "radial pp4Stage ~ test1|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2700,
+              "samples": 22,
+              "churn": "geometry",
+              "pushed": 1,
+              "hardCap": false
+            },
+            "motionOnly": []
+          }
+        ],
+        "finished": false,
+        "player": {
+          "coverage": {
+            "arrgh": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "molten chocolate lava ca": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "crispy cocoa snapsthin h": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "start": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "sail square": {
+              "seen": 3,
+              "clicked": 3
+            },
+            "trade": {
+              "seen": 3,
+              "clicked": 2
+            },
+            "pass #": {
+              "seen": 3,
+              "clicked": 1
+            },
+            "toasty wheat": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "coins only": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "slider": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "offer it": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "dough hook": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "walk away": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "menu": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "menu open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "menu close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "chat open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "speckled eggs": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "test#": {
+              "seen": 1,
+              "clicked": 1
+            }
+          },
+          "deadButtons": [],
+          "findings": [],
+          "screens": [
+            {
+              "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-001.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-002.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Molten Choco|Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Molten C,pp4Bake:Bake thi",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-003.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-004.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-005.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-006.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-007.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-008.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-009.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-010.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-011.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-012.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Speckled Eggs?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-013.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ test1|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Speckled Eggs the table answers",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/seed-drill-shots/baseline-crew-phone/crew-phone-guest-014.png"
+            }
+          ],
+          "days": {},
+          "pending": {},
+          "_steppedThisPrompt": false
+        }
+      }
+    ],
+    "parity": [],
+    "finished": false,
+    "verdict": [
+      "did not finish the voyage",
+      "1 structural check failure(s)",
+      "3 observation(s) seen only DURING an animation — not failures, read them in the log",
+      "12 screen(s) never stopped moving before being checked"
+    ]
+  }
+]
