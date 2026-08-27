@@ -104,5 +104,5 @@ RESULT: FAIL
 Screenshots and contact sheets: `sea-trial-shots/` (not committed — 100MB+ per run).
 
 ---
-*Written by `4/scripts/sea_trial.mjs`. To check whether a sea trial was actually run for what is
+*Written by `scripts/sea_trial.mjs`. To check whether a sea trial was actually run for what is
 live, compare the build stamp above with the one in the game's ☰ menu.*

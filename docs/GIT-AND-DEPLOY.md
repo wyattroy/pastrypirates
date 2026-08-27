@@ -326,15 +326,15 @@ grep -rl "$PWD" .claude/commands .claude/agents .claude/gsd-core | xargs sed -i 
 ### Setup script
 
 Nothing beyond a clone — there is no build step and no `package-lock.json`, so no `npm ci`. The
-root `npm test` and every `4/scripts/*_check.js` gate run on bare Node.
+root `npm test` and every `scripts/*_check.js` gate run on bare Node.
 
 ### Browser QA in the cloud
 
-`4/scripts/mouse_qa.mjs` and `4/scripts/mp_rig.mjs` resolve Chrome from `$CHROME_BIN`, then the
+`scripts/mouse_qa.mjs` and `scripts/mp_rig.mjs` resolve Chrome from `$CHROME_BIN`, then the
 PATH (`google-chrome`, `chromium`, `chromium-browser`), then the Mac bundle; on Linux they add
 `--no-sandbox --disable-dev-shm-usage` (a container running as root cannot use Chrome's SUID
 sandbox, and `/dev/shm` is tiny). The repo root is derived from the script's own location. Usage
-is unchanged: `node 4/scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
+is unchanged: `node scripts/mouse_qa.mjs <outdir> <W> <H> <port> <dbgport>`.
 
 ### THE PROOF — RAN 2026-08-21, all four items passed.
 
@@ -343,14 +343,14 @@ after a two-part browser TLS fix — **now applied AUTOMATICALLY at session star
 `.claude/hooks/cloud-session-start.sh` (a SessionStart hook in `.claude/settings.json`, added
 2026-08-21 at Wyatt's ask: *"I want this to work, now and always"*). It no-ops on the laptop
 (`CLAUDE_CODE_REMOTE` guard), is idempotent, and installs the fixed browser as `chromium` on PATH
-so `4/scripts/lib/chrome.mjs` resolves it with no env var. The manual recipe stays below as the
+so `scripts/lib/chrome.mjs` resolves it with no env var. The manual recipe stays below as the
 fallback if the hook ever reports "skipped" — and as the record of what the fix IS.
 
 1. **Project-local GSD works.** `node .claude/gsd-core/bin/gsd-tools.cjs validate health` ran —
    known-noise W019s only. Also verified: `state get`, `progress` and the full command list all
    respond; **zero laptop-absolute paths** remain in `.claude/commands`, `.claude/agents`,
    `.claude/gsd-core`; GSD **1.8.0 project-local**.
-2. **Solo mouse-QA at 1400×900, past the bar.** `node 4/scripts/mouse_qa.mjs <out> 1400 900 8611
+2. **Solo mouse-QA at 1400×900, past the bar.** `node scripts/mouse_qa.mjs <out> 1400 900 8611
    9611` — the bar was Day 6; the run played a full voyage to the end-of-voyage card at **Day 14**:
    1158 ticks, 72 real-mouse actions, 115 screenshots, **0 findings, 0 console errors**. The
    screenshots were verified readable by eye (the Day-1 board and the end-of-voyage card).

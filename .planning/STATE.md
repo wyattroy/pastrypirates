@@ -102,7 +102,7 @@ button — now guards the fallback `doPass(p)` in `4/src/engine/index.js`'s head
 `4/src/ui/flow.js`'s animated `botTurn()`; a bake-eligible bot ends its turn silently and
 `lightOvens(p)` still fires unconditionally from the day loop, exactly as it already did for a human
 who pressed "Fire up the ovens!" **Proven from the event stream, not asserted**: the new
-`4/scripts/bot_bake_pass_check.js` was red-proofed against the pre-fix commit (99 violations across
+`scripts/bot_bake_pass_check.js` was red-proofed against the pre-fix commit (99 violations across
 60 seeded games, exit 1) before being trusted green (0 violations, exit 0). A live, screenshotted
 solo session (state-injected per DRIVING-THE-GAME.md §5e — multiplayer injection is forbidden)
 confirmed it directly: a pirate-personality bot's full turn history was `pass` (not yet home-adjacent)
@@ -482,7 +482,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: The layout gate's contact-sheet SCREENSHOT is deleted: it had never once succeeded on a real multi-size run, only photographed its own 404
 - [Phase ?]: 03-01: TEST-03 deferred — the determinism door stays OPEN for Phases 4 and 5. Reasoning AND its alternative in docs/DETERMINISM-CAPTURE-4.md §2; one sentence from Wyatt overturns it.
 - [Phase ?]: 03-01: scripts/lib/ twins are GATED, never deduped — deduping would re-root the engine loader at the root tree and measure the old game, green (HARD-WON-LESSONS §3).
-- [Phase ?]: 03-01: the ten existing 4/scripts/ gates all exit 0 but were NOT wired into npm test — none was red-proofed tonight, and an unproven gate in the chain is worse than no gate. Cheapest coverage win available to 03-02.
+- [Phase ?]: 03-01: the ten existing scripts/ gates all exit 0 but were NOT wired into npm test — none was red-proofed tonight, and an unproven gate in the chain is worse than no gate. Cheapest coverage win available to 03-02.
 
 ### Pending Todos
 
@@ -521,7 +521,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   `fbf1088`).** All five `4/`-side sites now read and write the namespaced `pp4_timerOff`, and the old
   shared key is removed exactly once per browser behind the `pp4_timerOffCleaned` marker. The OFF
   default in `4/` was intentional and was **not** changed (Wyatt, 2026-08-18). Gated by
-  `4/scripts/pp4_timeroff_check.js`, which checks the source shape *and* the cleanup's real behaviour.
+  `scripts/pp4_timeroff_check.js`, which checks the source shape *and* the cleanup's real behaviour.
   **Still open, and only a person can check it:** confirm on a real browser that setting the live
   game's clock, opening `/4`, and coming back leaves the live setting intact.
 

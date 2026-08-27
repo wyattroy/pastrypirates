@@ -57,7 +57,7 @@
 // comment" — but that cost is now "rewrite the paragraph explaining WHY the
 // host-gone path works", i.e. the gate makes writing the explanation an
 // offence. HARD-WON-LESSONS §1b records the same thing happening to
-// 4/scripts/seat_arg_check.js, whose first run failed on the comment
+// scripts/seat_arg_check.js, whose first run failed on the comment
 // documenting the bug it exists to catch.
 //
 // So assertions 2 and 3 now match against source with COMMENT CHARACTERS

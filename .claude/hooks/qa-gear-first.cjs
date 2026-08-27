@@ -55,11 +55,11 @@ const NOT_PLUMBING = /\bspec\b|\bpayload\b|renderPickPrompt|playBakeoffLive|show
 const GEARS = {
   FULL: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: () => "npm test\n     node 4/scripts/sea_trial.mjs          (all modes, all sizes, both engines, a real two-browser crew game)",
+    sweep: () => "npm test\n     node scripts/sea_trial.mjs          (all modes, all sizes, both engines, a real two-browser crew game)",
   },
   PLUMBING: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: m => `npm test\n     node 4/scripts/sea_trial.mjs --gear=PLUMBING   (${m}, plus the others once)\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
+    sweep: m => `npm test\n     node scripts/sea_trial.mjs --gear=PLUMBING   (${m}, plus the others once)\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
   },
 };
 
@@ -93,7 +93,7 @@ function main() {
      to an empty /4/, 35 lines of docs, the gear picker's own filter, sea_trial's build stamp, and
      now the hook that enforces the gear. A hand-written path is a claim nobody re-checks.
 
-     Derived as an EXCLUSION list, matching 4/scripts/qa/gear.mjs so the hook and the picker cannot
+     Derived as an EXCLUSION list, matching scripts/qa/gear.mjs so the hook and the picker cannot
      disagree about what the game is (rule 23). Strict by default: a new top-level directory nobody
      anticipated is GAME and gets the heavier gear, rather than slipping through unchallenged. */
   const NOT_GAME = [/^\.planning\//, /^docs\//, /^\.claude\//, /^notes\//, /^art-review\//,
@@ -141,7 +141,7 @@ THE FOUR STEPS. They never change and are never skipped:
   4. SWEEP            ${g.sweep(mode)}
 
 Which gear you are in is decided by the files you touch, not by how the change feels:
-     node 4/scripts/qa/gear.mjs
+     node scripts/qa/gear.mjs
 
 Full contract: docs/QA-PROCESS.md
 

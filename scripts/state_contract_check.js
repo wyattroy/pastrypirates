@@ -82,7 +82,7 @@ const STATE_INDEX_JS = path.join(ROOT, "src", "state", "index.js");
      ./migrate_app_state.js's APP_STATE_NAMES / checkNameBareUsages / hasTopLevelDeclaration, and
      ./lib/js_region_tokenizer.js's classify / maskNonCode / locateClassicScriptRegion. These are
      the migration's own definition of "what an app-state name is" and a character classifier;
-     neither describes a tree. There is deliberately no 4/scripts/migrate_app_state.js, and adding
+     neither describes a tree. There is deliberately no scripts/migrate_app_state.js, and adding
      one would fork the vocabulary. (The tokenizer's own exported ROOT/INDEX_HTML constants ARE
      tree artifacts, so they are no longer imported here — this file computes both from the
      selector instead. That import was the crash that made this gate un-runnable against 4/.)

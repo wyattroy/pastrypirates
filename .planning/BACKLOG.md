@@ -158,7 +158,7 @@ corpus** — `docs/DETERMINISM-CAPTURE-4.md` was written in advance precisely be
 a *one-way door*. Coverage today is identical to coverage yesterday. What is lost is the *guard*.
 
 **Why it was not fixed on the night:** the honest fix is a re-point, and it is wider than it looks.
-`4/scripts/lib/load_engine.js` is a byte-identical twin that resolves to `4/src/engine` — which no
+`scripts/lib/load_engine.js` is a byte-identical twin that resolves to `4/src/engine` — which no
 longer exists — so it is broken too, and `lib_twin_check.js` exists to assert those two files never
 drift. Making them legitimately differ is a change to a check's premise, and that is not work to do
 at 1am on a one-way cutover. `DETERMINISM-CAPTURE-4.md` says this exact thing: the door should be
@@ -229,7 +229,7 @@ the live one.** That is the real prize here, and it is a copy pass plus two deci
 
 ## 🟠 Process debt
 
-- [ ] **The seeded-defect drill still cannot fail.** `4/scripts/qa/seed_drill.mjs:72` grades on the
+- [ ] **The seeded-defect drill still cannot fail.** `scripts/qa/seed_drill.mjs:72` grades on the
       leg's **exit status**, and the leg fails on its own for unrelated reasons — so every seed scores
       CAUGHT whether the bug is present or not. **Fix: run one UNSEEDED baseline first and grade each
       seed only on failures the baseline did not have.** ~15 lines.
@@ -253,7 +253,7 @@ the live one.** That is the real prize here, and it is a copy pass plus two deci
       approved copy strings lifted out of commit bodies.
 - [x] ~~**Tidy-up**: `v2/`, `v2bakeoff/` and `3/`~~ — deleted at the 2026-08-26 cutover (96 files,
       3.3MB, recoverable from git history).
-- [ ] **`4/scripts/` is the last thing left in `4/`.** The game moved to the root at the cutover but
+- [ ] **`scripts/` is the last thing left in `4/`.** The game moved to the root at the cutover but
       the dev scripts stayed put, to avoid merging two `scripts/lib/` directories at midnight. Moving
       them to `scripts/` means resolving exactly two collisions — `lib/` and `no_undef_check.js` —
       and deciding what `lib_twin_check.js` compares once there is only one `lib/`. Until then `4/`

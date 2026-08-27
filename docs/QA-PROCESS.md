@@ -39,7 +39,7 @@ so nobody knows whether it can.)*
 ## The three gears — chosen by the files you touched, not by how the change feels
 
 ```bash
-node 4/scripts/qa/gear.mjs
+node scripts/qa/gear.mjs
 ```
 
 It reads what you actually changed and tells you the gear and the sweep. **It is mechanical on
@@ -90,9 +90,9 @@ testing**, and it is what every professional team does.)*
 ## The robot that plays the game
 
 ```bash
-node 4/scripts/sea_trial.mjs                  # the whole thing: modes, sizes, both engines
-node 4/scripts/sea_trial.mjs --gear=PLUMBING  # one mode, plus the others once
-node 4/scripts/playtest_gate.mjs --legs=crew-phone   # one leg, when you know which
+node scripts/sea_trial.mjs                  # the whole thing: modes, sizes, both engines
+node scripts/sea_trial.mjs --gear=PLUMBING  # one mode, plus the others once
+node scripts/playtest_gate.mjs --legs=crew-phone   # one leg, when you know which
 ```
 
 It opens real browsers, plays real voyages, and after every move looks at ten specific things. Then
@@ -244,8 +244,8 @@ where a central fix exists; when you fix at a call site, say why the central one
 ## 5. RUN THE SEA TRIAL — and read the NOT-RUN column first
 
 ```bash
-node 4/scripts/qa/gear.mjs --since=HEAD~1   # AFTER a push, or it reports NONE. See below.
-node 4/scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
+node scripts/qa/gear.mjs --since=HEAD~1   # AFTER a push, or it reports NONE. See below.
+node scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
 ```
 
 > **AFTER A PUSH THE GEAR PICKER GOES BLIND.** It diffs against `origin/main`, and rule 24's own

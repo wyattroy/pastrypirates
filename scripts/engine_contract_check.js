@@ -199,7 +199,7 @@ function checkAnnotations() {
      2026-08-23 (03-01 Task 2). If that had been applied GLOBALLY here, this count would read ZERO,
      compare zero against a pinned zero once somebody "fixed" the pin, and pass forever — a check
      that cannot fail while still reading as protection (docs/HARD-WON-LESSONS.md §2 and §3, and
-     the same disease as 4/scripts/seat_arg_check.js's comment stripper blanking what it inspects).
+     the same disease as scripts/seat_arg_check.js's comment stripper blanking what it inspects).
      STRIP PER-ASSERTION, NEVER GLOBALLY. If you are adding stripping to this file, this function
      is the one that must not get it.
      ========================================================================================== */

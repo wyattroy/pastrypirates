@@ -378,7 +378,7 @@ after you've done your work, show it to CEO before you show it to me."*
 **The sequence: do the work → spawn a CEO → give him the CEO's verdict → then your own account.**
 
 ```bash
-node 4/scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
+node scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
 ```
 
 **It is a COMMAND, not a memory exercise** — Wyatt, 2026-08-26: *"I need to be able to ask you to run
@@ -858,8 +858,8 @@ artifacts.
 ### Every change to the game goes through a SEA TRIAL
 
 ```bash
-node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
-node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
+node scripts/qa/gear.mjs      # how deep does THIS change have to go?
+node scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
 ```
 
 **Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md)** — read its *"THE WHOLE LOOP, END TO
@@ -889,7 +889,7 @@ change it → show it fixed (that SAME check passes) → sweep.
 should be structurally different just about who the player is playing against, but the game itself
 should remain consistent for every player in every mode."* An earlier draft had a gear meaning
 "behaviour changed inside one mode" and he threw it out — **that sentence presumes the fork it is
-supposed to prevent**, then looks only where the fork is. `4/scripts/mode_fork_check.js` now fails
+supposed to prevent**, then looks only where the fork is. `scripts/mode_fork_check.js` now fails
 the build when a new fork appears in code that draws.
 
 **What the report must never lose: the NOT-RUN column.** A leg that could not start is not a leg

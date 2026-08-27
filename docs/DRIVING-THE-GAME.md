@@ -686,7 +686,7 @@ disabled every Safari leg: on 2026-08-27 a full sea trial reported **2 legs NOT 
 `~/Library/Caches/ms-playwright/`. Only the little npm package directory had evaporated, and
 nothing said so until a trial refused to sail.
 
-`4/scripts/lib/wk.mjs` now searches, in order:
+`scripts/lib/wk.mjs` now searches, in order:
 
 1. **`$PW_DIR`** — an explicit override still wins, for a one-off or a CI image
 2. **`~/.pw`** — the durable home. 18 MB, survives reboots, created 2026-08-27

@@ -270,7 +270,7 @@ function checkFileOwnership(root) {
        pure, which names windDotSpecs as a sibling example of the same pure/DOM split. It is not a
        wind-dot symbol landing in the wrong file; it is the documentation of the very discipline
        D-14 exists to protect, and flagging it makes writing that documentation an offence. The
-       identical thing happened to 4/scripts/seat_arg_check.js, whose first run failed on the
+       identical thing happened to scripts/seat_arg_check.js, whose first run failed on the
        comment quoting the bug it catches (docs/HARD-WON-LESSONS.md §1b).
        What D-14 reserves is where the CODE lives. Prose about wind dots is not an edit to the
        wind-dot workstream. index.html below is deliberately NOT stripped — it is markup, not JS,
