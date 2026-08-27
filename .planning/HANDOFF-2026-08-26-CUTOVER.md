@@ -521,3 +521,80 @@ runs, still exits 0.
 > instrument, and the instrument had never been asked whether it could be wrong. Rule 6 covers
 > defects; **it applies to WORKLISTS too.** A job list produced by a gate is a measurement, and it
 > gets the same treatment as any other.
+
+---
+
+## 13. THE FINAL SCORING — and it is neither 4/4 nor 0/4
+
+**The per-leg drill reported CAUGHT 4/4.** That number was not reported to Wyatt as a result,
+because two of the four were "caught" by a line the gate itself prints as *"not failures"*. Instead
+the drill was asked the question nobody had asked it: **can it fire on nothing?**
+
+```bash
+node 4/scripts/qa/seed_drill.mjs --null --reuse-baselines
+```
+
+Sail each leg AGAIN with nothing seeded and grade it exactly as a seed. Whatever it reports **is**
+the noise floor, by construction — there is no seed to explain it.
+
+### The measured floor
+
+| leg | appeared | disappeared | **unstable** |
+|---|---|---|---|
+| `solo-phone` | 0 | 0 | **0 — identical** |
+| `crew-phone` | 0 | **3** | **3** |
+
+The three that flapped on crew-phone: `1 structural check failure(s)`, `3 observation(s) seen only
+DURING an animation`, and **`no-cover-ask: "sailCell" over "test2: tap to sail"`** — the §0 family.
+
+> **THE FIRST VERSION OF THE NULL TEST SAID "NOISE FLOOR: 0 — two unseeded runs agree."** It counted
+> only signatures that APPEARED and ignored the three that VANISHED. **A disappearing signature is
+> exactly as damning**, because the baseline is the subtrahend: when the baseline happens to HOLD a
+> flapping signature a seeded run showing it is correctly subtracted, and when the baseline happens
+> to LACK it, that same run reads as CAUGHT. **Instability is the measurement; which way it fell on
+> the day is not.** Fixed to count both directions, and the drill now exits non-zero on a non-zero
+> floor rather than printing a reassurance.
+
+### So the four seeds score like this
+
+| seed | leg | floor | verdict |
+|---|---|---|---|
+| **T-16** no glow on Start | solo | **0** | **CATCH STANDS** — but on weak evidence: its only new signature is a motion-only line the gate labels *not a failure*. Two unseeded runs had none; the seeded run had 3 |
+| **T-30** Watch again shouting | solo | **0** | **CATCH STANDS**, and it is mechanistically coherent: the seed removes `animation: none` from `.bkoWatch`, so the button animates again, and the new signature is an extra during-animation observation |
+| **T-12** homepage over a voyage | crew | **3** | **NOT ESTABLISHED.** Its "catch" is `sailCell <- covered by #pp4Cap` — the CAPTAINS PANEL, nothing to do with a homepage |
+| **T-02** guest has no stay square | crew | **3** | **NOT ESTABLISHED.** Its "catch" is `sailCell off-screen` — nothing to do with a missing *stay* control, which the gate has no rule to detect at all |
+
+**The screenshots settle T-12 and T-02 independently of the floor** (rule 19 — look at the rendered
+picture, not the assertion). Both fail on the same screen,
+`crew-phone-guest-006-settled.png`:
+
+- **T-12's shot** shows a bright sail square at the foot of the board **clipped behind the captains
+  panel**, and **no homepage anywhere on screen**. The seed had no visible effect.
+- **T-02's shot** shows sail squares **cut off at the left edge of the phone**.
+
+**Both are §0 — the pinned "sail squares a guest cannot tap" — surfacing intermittently.** A
+genuine, intermittent bug in the game is indistinguishable from a seeded one when you subtract a
+single baseline.
+
+### THE LESSON THAT OUTLIVES THIS DRILL
+
+**Differential grading against ONE baseline cannot work on a leg that has a flapping defect.** The
+flapping thing here is a REAL BUG (§0), not harness noise — which is why raising `--max-min` will
+not fix it. Two honest ways forward, in order of value:
+
+1. **Fix §0.** It is the top of `BACKLOG.md` anyway, it is the one unacceptable class (a control a
+   player cannot hit), and fixing it also makes crew-phone gradeable.
+2. **Sail several baselines** and treat only signatures present in ALL of them as stable.
+
+**Until one of those happens, a `crew-phone` CAUGHT means nothing and the drill now says so.**
+
+### What Wyatt's ~15 lines actually bought
+
+He said it was *"the cheapest way to make everything else built today actually mean something."*
+It cost more than 15 lines, and it was right:
+
+- it found the drill was **dead**, not merely mis-grading (`ENOENT`, guard in the wrong place);
+- the fixed drill's first run then exposed that **the whole browser-QA fleet had been pointed at an
+  empty directory since the cutover** (§10) — 77 dead references, no gate able to see one;
+- and asking the drill whether it can fire on nothing exposed that **§0 makes crew-phone
+  ungradeable**, which is a much more useful thing to know than "4/4".

@@ -186,19 +186,33 @@ if (process.argv.includes("--null")) {
     if (!run.sigs) { console.log(`  ${leg}: null run wrote no report — NOT graded`); continue; }
     const fresh = [...run.sigs.keys()].filter(k => !base.sigs.has(k)).map(k => run.sigs.get(k));
     const gone  = [...base.sigs.keys()].filter(k => !run.sigs.has(k)).map(k => base.sigs.get(k));
-    floor += fresh.length;
-    console.log(`  ${leg}: ${fresh.length} signature(s) appeared with NO seed, ${gone.length} disappeared`);
+    /* COUNT BOTH DIRECTIONS, and the first version of this counted only `fresh`. That gave
+       "NOISE FLOOR: 0 — two unseeded runs agree" on a crew-phone pair where THREE signatures had
+       vanished between them. They did not agree at all.
+
+       A DISAPPEARING SIGNATURE IS EXACTLY AS DAMNING AS AN APPEARING ONE, because the baseline is
+       the subtrahend. For a flapping signature S: when the baseline happens to HOLD S, a seeded run
+       showing S is correctly subtracted; when the baseline happens to LACK S, that same run reads as
+       CAUGHT. Instability in EITHER direction means the baseline is a coin toss, and that is how
+       T-12 and T-02 were both "caught" 2026-08-26 by the §0 sail-square bug rather than by their
+       seeds. Instability is the measurement; which way it fell on the day is not. */
+    floor += fresh.length + gone.length;
+    console.log(`  ${leg}: ${fresh.length} signature(s) appeared with NO seed, ${gone.length} disappeared` +
+                `  -> ${fresh.length + gone.length} unstable`);
     for (const f of fresh) console.log(`    + ${String(f).slice(0, 120)}`);
     for (const g of gone)  console.log(`    - ${String(g).slice(0, 120)}`);
+    if (fresh.length + gone.length === 0) console.log(`    (identical — this leg's signature set is stable)`);
   }
-  console.log(`\n══ NOISE FLOOR: ${floor} ══`);
+  console.log(`\n══ NOISE FLOOR: ${floor} unstable signature(s) ══`);
   console.log(floor === 0
-    ? "  Zero. Two unseeded runs agree, so a CAUGHT on this leg means something."
-    : `  NOT ZERO. ${floor} signature(s) appeared with nothing seeded, so a CAUGHT of that shape is\n` +
-      `  indistinguishable from noise. Any seed whose only new signature is one of the above is NOT\n` +
-      `  caught, whatever the summary says. Fix the flapping signature or raise --max-min before\n` +
-      `  trusting this drill's verdicts.`);
-  process.exit(0);
+    ? "  Zero. Two unseeded runs produced identical signature sets, so a CAUGHT means something."
+    : `  NOT ZERO. ${floor} signature(s) differed between two runs with NOTHING seeded.\n` +
+      `  Every one of them can produce a FALSE CAUGHT: the baseline is subtracted, so whenever it\n` +
+      `  happens to lack a flapping signature, any run that shows it reads as caught. A seed whose\n` +
+      `  only new signature has one of these shapes is NOT caught, whatever the summary says.\n` +
+      `  One baseline cannot fix this. Either make the underlying defect deterministic, or sail\n` +
+      `  several baselines and treat only the signatures present in ALL of them as stable.`);
+  process.exit(floor === 0 ? 0 : 1);
 }
 
 for (const s of seeds) {
