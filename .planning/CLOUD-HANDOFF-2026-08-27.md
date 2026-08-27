@@ -162,8 +162,10 @@ your best call quietly becomes the design of his game while he sleeps. *"Taste, 
 and 'how much is enough' are his. Mechanism is yours."* **He comes back to a batch of questions, not
 a batch of decisions somebody made for him.**
 
-Every question goes in `.planning/CTO-QUESTIONS.md` **and** is pushed to his phone. The push can
-fail; the file cannot. **Three are already parked — Q-1 (the ovens rule), Q-2 (watching a bot bake).
+Every question goes in `.planning/CTO-QUESTIONS.md`. **CORRECTED 2026-08-27: this said the question
+is ALSO pushed to his phone. It is not — no push mechanism has ever existed.** The file is the only
+channel, so a CTO report must name its open questions out loud. See the warning at the top of
+`CTO-QUESTIONS.md`. **Three are already parked — Q-1 (the ovens rule), Q-2 (watching a bot bake).
 Q-3 he answered today: KEEP the End of Voyage heading where it is.**
 
 ---

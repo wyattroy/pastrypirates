@@ -164,8 +164,23 @@ else {
      that trusts the hook instead of checking it is not a supervisor. */
   sh("git fetch origin --quiet");
   const aheadLocal = sh("git rev-list --count origin/main..main");
-  if (aheadLocal === null) unknowns.push("Could not compare local `main` to `origin/main`.");
-  else if (aheadLocal !== "0") findings.push(`Local \`main\` is **${aheadLocal} commit(s) ahead of \`origin/main\`** — something committed to main locally. Nothing in the CTO's loop should ever do that.`);
+  /* "AHEAD OF origin/main" IS NOT THE SAME QUESTION AS "SOMEBODY COMMITTED TO MAIN HERE", and
+     reading it as if it were made this detector cry wolf on every cloud session.
+
+     MEASURED 2026-08-27: a fresh cloud container's clone left local `main` 50 commits ahead and 70
+     behind, on an old lineage whose tip was authored by WYATT on 2026-08-21. The CTO had not gone
+     near `main`. The supervisor's one and only alarm was firing for something no CTO could ever
+     cause — a smoke detector wired to the kettle — and an alarm that is always wrong is one people
+     learn to walk past, which is the failure this whole file exists to prevent.
+
+     THE HONEST TEST IS "--not --remotes": are those commits reachable from ANY remote branch? If
+     every one of them is, they were fetched, not authored here, however far ahead they look. Only
+     a commit that exists NOWHERE on the remote was made on this machine. Derived from the refs
+     themselves, never from a list of excuses somebody typed. */
+  const localOnly = sh("git rev-list --count origin/main..main --not --remotes");
+  if (aheadLocal === null || localOnly === null) unknowns.push("Could not compare local `main` to `origin/main`.");
+  else if (localOnly !== "0") findings.push(`Local \`main\` carries **${localOnly} commit(s) that exist on NO remote branch** — something committed to main on this machine. Nothing in the CTO's loop should ever do that.`);
+  else if (aheadLocal !== "0") facts.push(`Local \`main\` is ${aheadLocal} commit(s) ahead of \`origin/main\`, but **every one of them is already on a remote branch** — a stale clone, not local work. Common in a fresh cloud container. Tidy with \`git branch -f main origin/main\`; it is not a finding.`);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────────────────────

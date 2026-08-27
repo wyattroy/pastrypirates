@@ -17,8 +17,20 @@ differently:
 enough' are his. Mechanism is yours."* A ten-minute timer does not transfer taste; it only hides who
 made the call. He comes back to a batch of QUESTIONS, not a batch of decisions somebody made for him.
 
-**Every question is pushed to his phone when it is asked**, and every one is recorded here whether
-or not it was pushed — the push can fail, the file cannot.
+> ### ⚠ THIS FILE IS THE ONLY CHANNEL. NOTHING PUSHES A QUESTION TO HIS PHONE.
+>
+> **Until 2026-08-27 this line read *"Every question is pushed to his phone when it is asked."* That
+> was never true — no such code has ever existed.** Searching every script and hook for anything
+> that reads this file finds exactly one program, `scripts/qa/cto_supervise.mjs`, and it only
+> COUNTS the questions. (Its `push` calls are JavaScript array appends, which is presumably how the
+> claim survived a reading.)
+>
+> Found by the CEO review of 2026-08-27, which put it plainly: *"If you are away for days, that is
+> the difference between 'he has four questions waiting' and 'he never heard.'"*
+>
+> **So a parked question waits here until Wyatt opens this file, or until a session tells him.**
+> Every CTO report must therefore name the open questions out loud rather than assuming he has seen
+> them. If a real push is ever built, this warning is what should be deleted to make room for it.
 
 ## The format
 
