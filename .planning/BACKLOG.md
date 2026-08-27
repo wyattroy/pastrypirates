@@ -634,3 +634,16 @@ reads as *"a faint ghosted/duplicate rounded-box edge"*.
 
 **Whether that is a bug is Wyatt's call.** A 300ms cross-fade between narration lines is ordinary UI
 polish; the vision judge flagged it as an artifact. What is NOT in doubt is the cause.
+
+---
+
+## 🧭 CTO PROPOSALS — found while working the mandate, NOT executed
+
+**Rule 3 of the CTO spec: the CTO executes only what is on the list above.** These were measured
+while doing approved work and are written here for Wyatt to accept or reject. **Nothing below has
+been changed in the game.**
+
+| # | Proposal | Evidence | Why it is not just done |
+|---|---|---|---|
+| **P-1** | **The shot-clock narration tells the player they lost a coin when they lost nothing.** When the 30-second clock runs out on a captain with an EMPTY PURSE, the game says *"ye were too slow and lose 1🌕"* — and takes nothing, because `applyShotClockPenalty` computes `take=Math.min(1,p.coins)` (`src/ui/util.js:2305`). The narration is not derived from `take`; the amount is typed into the sentence (`src/ui/util.js:1007`), and the `shotclock` event (`:2307`) does not carry what was actually taken, so the line has nothing truthful to read. Same rule-9 fault as W2-4/W2-10, but this one **states a falsehood to a player** rather than merely rotting. | Measured 2026-08-27: `take=Math.min(1,p.coins)` at `util.js:2305`; event is `{t:"shotclock",p,others}` with no amount; narration hardcodes `1🌕` at `util.js:1007`. | **The clean fix ADDS A FIELD TO AN EVENT, and the event stream is the determinism corpus** — CLAUDE.md says changing what the engine emits invalidates the whole corpus and forces a gated re-record. That is a decision with a cost attached, not a copy edit. It is also the only coin line in `util.js` not using the `(±N🌕)` shape, so fixing it finishes W2-4's sweep. |
+| **P-2** | **Give the coin slider a pulse** — the second half of W2-9. The wording fix shipped; the pulse did not. | `index.html:2429` carries Wyatt's standing order: *"To make a new surface glow or grow, add its selector here — never write a new `@keyframes` or a per-surface animation rule elsewhere."* The slider is not an `.apBtn`, so no existing rule reaches it and it has never pulsed. | **Glow vs. grow is taste.** His documented rule is glow on a stage, swell over the board — and this prompt is over the board, but scaling a 170px track is likely to read badly beside the petals. Also unverified: nobody has confirmed WebKit animates a range-thumb pseudo-element, and his phone is the only real Safari. |

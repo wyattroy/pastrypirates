@@ -388,9 +388,44 @@ export function sailSelfCheck(p,cells){
   console.error("[sail self-check]",{wind,dialWind,pos:p.pos,bad,cells});
   return `⚠️ SAIL BUG — screenshot this: wind ${wind} at ${p.pos.join(",")} · ${problems.join(" · ")}`;
 }
-export function sailPickMsg(seat){
+/* W2-8 (Wyatt, 2026-08-27): "'Tap to sail' -> 'Tap square again to sail trade winds'". A blue
+   square is the ONE square in the set that does not commit on the first tap — sweepGuard()
+   (src/ui/stage.js) swallows that tap to draw the ride preview, and only a second tap sails. That
+   is a deliberate exception to the one-tap gesture and his own pick (2026-08-13), but nothing on
+   screen said so, so the confirming tap had to be found by accident.
+
+   WHY THE CLAUSE IS CONDITIONAL rather than replacing the line outright. `cells` is a whole SET and
+   it is usually mixed: an amber square commits at once, a blue one does not. A line that told every
+   prompt to "tap the square again" would be false for every amber square in it — worse than saying
+   nothing. So the clause is added only where a blue square is actually on offer, which is only
+   within reach of the rim rather than every turn.
+
+   THE GRAVEYARD, because this is the SECOND sentence written on this card (rule 10). The first —
+   sailGuideLine()'s "Blue squares are the trade winds — land there and the current carries ye on" —
+   was deleted at playtest 22 item 2: "Remove it entirely — it's too long, it blocks the board, and
+   it appears every time." All three objections are answered on purpose: this clause is short, it
+   rides the existing line instead of adding a second one, and it appears only beside a blue square.
+   It also carries only the fact the BOARD CANNOT TEACH — the channel is tinted and the arrows flow
+   along it, so what blue MEANS is already shown; that it takes two taps is not.
+
+   ONE PREDICATE, NOT TWO. `g.onRim` is the same call sailHighlightRect() makes to decide whether to
+   paint the square blue at all, asked of the same `cells`, so the sentence and the colour cannot
+   disagree — there is nothing left to keep in step. And the line is built ONCE, here, on the
+   deciding device and shipped in spec.msg, so host and guest read the identical words.
+
+   `cells` is optional: renderPickPrompt's version-skew fallback calls this with a seat alone (see
+   its comment below), and that path degrades to the plain line rather than guessing.
+
+   STILL "tap", NOT "click", and that is a KNOWN GAP rather than a choice: D-40's verb helper
+   (holdVerb(), src/ui/stage.js:445) is private to that module, so there is no shared way to say
+   tap-or-click from here. Re-testing `matchMedia("(pointer: coarse)")` in this file would be a
+   second copy of the same rule to keep in step. Export holdVerb() and both lines can read it. */
+export function sailPickMsg(seat,cells){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
-  return `${pn(seat)}: tap to sail`;   // /4 playtest 6: one line — the card must stay small
+  const g=appState.game;
+  const swept=!!(g&&g.onRim&&(cells||[]).some(c=>c&&g.onRim(c)));
+  // /4 playtest 6: one line — the card must stay small
+  return `${pn(seat)}: tap to sail${swept?" — blue squares take two taps":""}`;
 }
 /* THE SAIL CARD, BUILT ONCE. 02.15-01, the narrow half — see renderPickPrompt (02.15-02 Task 3,
    THE TRACER) for the wide one, which converged the ORCHESTRATION around this same builder.
