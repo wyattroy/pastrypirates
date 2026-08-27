@@ -365,11 +365,34 @@ exercised it: **`deny:1/7` on crew-desktop and `deny:1/4` on crew-phone**, with 
 all* — the browser fleet was loading a directory listing. **Rule 6 applies to standing claims too:
 this one was inherited, not re-measured.**
 
-### TWO LEGS DID NOT RUN — and a leg that did not run is not a leg that passed
+### TWO LEGS DID NOT RUN — and then they were RUN. Safari is clean.
 
-`solo-desktop-wk` and `solo-phone-wk` both died with *"playwright not found"*. **Safari/WebKit
-coverage in this trial is ZERO.** The report says so in its own NOT-RUN column, which is the one
-thing that column exists for.
+`solo-desktop-wk` and `solo-phone-wk` both died with *"playwright not found"*, so Safari coverage in
+the 8-leg trial was **ZERO** and the report said so in its NOT-RUN column — which is the one thing
+that column exists for.
+
+**They were then installed and run properly, 2026-08-27 01:18.** Both legs played a **COMPLETE
+VOYAGE to the end card** — day 17 and day 18 — and the result is the best news of the night:
+
+| leg | finished | screens | **structural failures** | **console errors** |
+|---|---|---|---|---|
+| `solo-desktop-wk` | **yes**, day 18 | 22 | **0** | **0** |
+| `solo-phone-wk` | **yes**, day 17 | 21 | **0** | **0** |
+
+Their only complaints are `4` and `7` *"screen(s) never stopped moving before being checked"* — the
+known settle-cap issue, not a Safari fault. **A screenshot was read rather than trusting the
+assertions** (`solo-phone-wk-005-settled.png`): art, wind arrows, whirlpools, the narration box and
+the captains panel all render correctly on WebKit.
+
+**This is the first Safari evidence this project has ever had.** `DRIVING-THE-GAME.md` §9 still
+stands — *"Chrome is not Safari… a green harness still earns a human Safari pass"* — and **a storm
+has still never been measured on a real device.** But "we have no idea whether Safari works" is no
+longer true: it plays two full voyages without a single structural failure or console error.
+
+**It will break again on the next reboot.** The webkit BROWSERS are installed durably in
+`~/Library/Caches/ms-playwright/`; only the npm package directory is missing, and the documented
+home for it is `/tmp/pw`, which `/tmp` clears. Point `PW_DIR` somewhere that survives — `~/.pw` —
+and Safari legs simply work. Left as Wyatt's call rather than writing into his home directory.
 
 ### Coverage worth watching
 
