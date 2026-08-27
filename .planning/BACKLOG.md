@@ -440,3 +440,70 @@ bench.** He saw neither the bench nor the broadcast wait line.
 **That exhausts what reading can settle.** It needs a live crew bake with the two-phone rig and the
 publish/receive instrumented on both sides — is `onBenchPublish` firing on the guest at all, and is
 `watchBattle`'s callback receiving it on the host?
+
+---
+
+## 🔴 WHY 31% OF SCREENS NEVER SETTLE — measured 2026-08-27, and it undermines every "settled" verdict
+
+**Found by asking step 0 of the loop: what happens right before "still moving at the cap"?**
+
+### The measurement
+
+Sampled exactly what `waitSettled` samples, per element, at a live sail prompt. **Only one class of
+element moves at all:**
+
+```
+element        quantised-8px changes   exact-px changes   (34 samples)
+pp4Bub#0                 3                    3
+pp4Bub#1                 0                    0
+```
+
+Re-run tracking bubbles **by identity** — because the first pass keyed on position in the NodeList
+and therefore could not tell a NEW bubble from a MOVED one:
+
+```
+bubble   samples alive   distinct tops   faded?   text
+B1            16               3          yes     "Crustbeard takes the wheel…"
+B2            15               4          yes     "Crustbeard sets sail"
+B3            22               1          yes     "Crustbeard attacks Flaky Jack!"
+
+bubbles created in 12s : 3      bubbles that MOVED : 2      max on screen at once : 2
+```
+
+### What it means
+
+**A narration bubble is anchored to a captain's ship and re-placed as the board moves — 3 to 4
+distinct positions across its life.** That is intended behaviour. But `.pp4Bub` is in
+`SETTLE_PROBE`'s selector list, so **while any narration bubble is tracking its subject the screen
+cannot settle, by construction.** The 8px quantiser was built to absorb the sail squares' permanent
+bounce; a bubble re-anchoring travels much further than 8px.
+
+**THIS IS WHY "IT IS ON THE SETTLED SHOT" CANNOT BE TRUSTED.** When `waitSettled` hits its cap it
+returns `settled:false` and the gate checks anyway — and those failures still land in `fails`, not
+`motionOnly`. So a screen judged during narration is reported exactly like one judged at rest. The
+sail-square failure is reported on a shot whose own log line reads *"still moving at the cap
+(2717ms) — checked anyway"*.
+
+**It is an INSTRUMENT fault, not a game fault** — the game is behaving as designed. But it sits
+directly under the top item on this list, so it is not separable from it.
+
+### Options, none taken — this decides when EVERY screen is judged
+
+1. **Drop `.pp4Bub` from the settle probe.** Cheapest. Cost: a bubble sliding in is no longer waited
+   for, so a screenshot could catch one mid-entry.
+2. **Wait for the bubble to stop rather than for the page to stop** — settle on the bubble's own
+   anchor being stable, not on its absolute rect.
+3. **Report the distinction honestly instead of hiding it:** a failure found on an UNSETTLED screen
+   goes in its own column, never beside one found at rest. This is the smallest change and it stops
+   the gate over-claiming, without deciding the harder question.
+
+### And the same measurement located the GHOST BOX
+
+`finish()` in `stage.js` does `b.classList.add("out")` then `setTimeout(() => b.remove(), 300)`,
+while `.pp4Bub` carries `transition: opacity .35s`. **So a finished bubble sits in the DOM for 300ms
+at falling opacity — measured at 0.13–0.28 — while the next one is placed.** Two bubbles were on
+screen in 1 sample of 60: a narrow window, which is exactly why the ghost is intermittent and why it
+reads as *"a faint ghosted/duplicate rounded-box edge"*.
+
+**Whether that is a bug is Wyatt's call.** A 300ms cross-fade between narration lines is ordinary UI
+polish; the vision judge flagged it as an artifact. What is NOT in doubt is the cause.
