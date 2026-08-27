@@ -160,10 +160,16 @@ STAMPFILE="$WORK/staging/src/ui/stage.js"
 if [ -f "$STAMPFILE" ]; then
   STAMP="$(grep -o 'PP4_STAMP = "[^"]*"' "$STAMPFILE" | head -1 | sed 's/.*= "//; s/"//')"
   BRANCH="$(git -C "$SRC" branch --show-current)"
+  # ...AND THE COMMIT, because the branch name alone is not a build identity. Caught 2026-08-27:
+  # staging carried the bake-off fix but NOT the End of Voyage footer, and its stamp was byte
+  # identical to the build that had both — the branch had advanced and the stamp had not. Wyatt
+  # would have played a stale build with no tell. The short SHA changes with every commit, so a
+  # screenshot now names the exact build it came from.
+  SHA="$(git -C "$SRC" rev-parse --short HEAD)"
   case "$STAMP" in
     *-STAGING/*) echo "    stamp already marked: $STAMP" ;;
-    *) sed -i '' "s|const PP4_STAMP = \"$STAMP\";|const PP4_STAMP = \"$STAMP-STAGING/$BRANCH\";|" "$STAMPFILE"
-       echo "    stamped: $STAMP-STAGING/$BRANCH" ;;
+    *) sed -i '' "s|const PP4_STAMP = \"$STAMP\";|const PP4_STAMP = \"$STAMP-STAGING/$BRANCH@$SHA\";|" "$STAMPFILE"
+       echo "    stamped: $STAMP-STAGING/$BRANCH@$SHA" ;;
   esac
 else
   echo "FATAL: $STAMPFILE missing — refusing to publish an unstampable staging build." >&2

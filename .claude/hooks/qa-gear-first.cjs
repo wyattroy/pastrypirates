@@ -82,24 +82,12 @@ function main() {
   const rel = filePath.startsWith(repo) ? filePath.slice(repo.length + 1) : filePath;
   const content = String(ti.content || ti.new_string || "");
 
-  /* WHAT COUNTS AS GAME CODE — AND THIS HOOK HAD NOT FIRED SINCE THE CUTOVER.
-     It tested `/^4\/(src\/|index\.html$)/`. The v2.0 cutover promoted `4/` to the repo root on
-     2026-08-26, so BOTH of those paths were deleted and this hook — the thing that exists to stop
-     the first edit to game code and state the gear — matched NOTHING and exited silently on every
-     single game edit for a day and a half. It did not fire on the bake-off fix, the End of Voyage
-     footer, or any of the stage.js work.
-
-     FIFTH INSTANCE of one cutover outliving the paths that named it: the browser fleet navigating
-     to an empty /4/, 35 lines of docs, the gear picker's own filter, sea_trial's build stamp, and
-     now the hook that enforces the gear. A hand-written path is a claim nobody re-checks.
-
-     Derived as an EXCLUSION list, matching scripts/qa/gear.mjs so the hook and the picker cannot
-     disagree about what the game is (rule 23). Strict by default: a new top-level directory nobody
-     anticipated is GAME and gets the heavier gear, rather than slipping through unchallenged. */
-  const NOT_GAME = [/^\.planning\//, /^docs\//, /^\.claude\//, /^notes\//, /^art-review\//,
-                    /^scripts\//, /^4\//, /^staging\//];
-  const isGame = !!rel && !rel.endsWith(".md") && !NOT_GAME.some(re => re.test(rel));
-  if (!isGame) process.exit(0);
+  /* WHAT COUNTS AS GAME CODE lives in ONE place now — .claude/hooks/lib/game-code.cjs — because
+     it was written twice, both copies said `4/src/`, and both were wrong for a day and a half after
+     the cutover: this hook never fired on a single game edit and the picker reported GEAR: NONE for
+     every change to the live game. Rule 23: what makes these two agree? Now, nothing has to. */
+  const { isGameCode } = require(path.join(__dirname, "lib", "game-code.cjs"));
+  if (!isGameCode(rel)) process.exit(0);
 
   let gear = "FULL", mode = null;
   let why = `${rel} can change what a captain sees or can do`;
