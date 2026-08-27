@@ -75,7 +75,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { locateClassicScriptRegion } from "./lib/js_region_tokenizer.js";
+import { locateClassicScriptRegion, classify } from "./lib/js_region_tokenizer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { pickTree, treeLine } from "./lib/pick_tree.js";
@@ -336,22 +336,64 @@ function checkChromeExceptionsFresh(root) {
   return failures;
 }
 
-// A leading-comment line, in either JS (`//`) or CSS/JSDoc (`/*`, `*`) form. index.html's two
-// excluded CSS comments — the shot-clock width reservation at :377 and the "you just lost treasure"
-// pop note at :425 — are both caught here by construction, not by a special case.
+// A leading-comment line, in either JS (`//`) or CSS/JSDoc (`/*`, `*`) form. Kept as a cheap
+// second filter, but it is NO LONGER what separates prose from speech — see maskToSpeech below.
 const isLeadingComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+
+/* ONLY WHAT A PLAYER CAN ACTUALLY READ, AND THIS USED TO BE A LINE-WISE GUESS.
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   MEASURED 2026-08-26 against the promoted tree: this scan reported 67 player-facing strings in
+   the pre-conversion register. SIXTY-SEVEN. Classified with this repo's own tokenizer, 59 were
+   COMMENT ONLY, 1 was code only, and of the 7 touching a string, every single one was a false
+   positive — six were `hd.you` / `sh.you`, a BOOLEAN PROPERTY, in template literals whose actual
+   words already read "yer" and "ye've"; the seventh was inside an HTML comment. The true count of
+   player-facing strings in the wrong register was ZERO.
+
+   WHY IT WAS WRONG. `isLeadingComment` only skips a line that STARTS with `//`, `/*` or `*`. This
+   codebase indents block-comment continuation lines with plain spaces, so every line after the
+   first of a long WHY-comment read as code. Those comments are the graveyard (CLAUDE.md rule 10)
+   and many of them QUOTE WYATT DIRECTLY.
+
+   WHAT THAT NEARLY COST. The handoff called this "THE HIGHEST-VALUE SMALL JOB — the pirate voice,
+   in the live game" and sized it at ~22 strings. Acting on the list would have rewritten 59 code
+   comments — including his own words — into pirate speak: destroying the graveyard, corrupting the
+   record, and changing nothing a player can see. A gate that is confidently wrong is worse than no
+   gate, because it generates work.
+
+   So the pronoun detector now runs over SPEECH ONLY, region-classified, never line-guessed:
+     - .js  -> string literals only. Interpolation expressions inside a template are CODE to the
+               tokenizer, so `${hd.you ? "yer" : "their"}` contributes only its quoted words.
+     - .html-> the markup text, with HTML comments and CSS block comments blanked. HTML text IS
+               speech, so it is kept rather than discarded.
+   Masking preserves length and newlines so every reported line number stays true. */
+function maskToSpeech(rel, src) {
+  const blank = (str, a, b) => str.slice(0, a) + str.slice(a, b).replace(/[^\n]/g, " ") + str.slice(b);
+  if (rel.endsWith(".html")) {
+    let out = src;
+    for (const re of [/<!--[\s\S]*?-->/g, /\/\*[\s\S]*?\*\//g]) {
+      out = out.replace(re, (m) => m.replace(/[^\n]/g, " "));
+    }
+    return out;
+  }
+  let out = src;
+  for (const seg of classify(src)) {
+    if (seg.type !== "string") out = blank(out, seg.start, seg.end);
+  }
+  return out;
+}
 
 function scanRegisterFile(rel, content) {
   const failures = [];
-  content.split("\n").forEach((line, i) => {
+  maskToSpeech(rel, content).split("\n").forEach((line, i) => {
     if (!PRONOUN_RE.test(line)) return;
     if (isLeadingComment(line)) return;
-    if (REGISTER_LINE_ANCHORS.some((a) => line.includes(a))) return;
-    if (rel === REGISTER_IDENT_FILE && REGISTER_IDENT_FRAGMENTS.some((f) => line.includes(f))) return;
+    const raw = content.split("\n")[i];
+    if (REGISTER_LINE_ANCHORS.some((a) => raw.includes(a))) return;
+    if (rel === REGISTER_IDENT_FILE && REGISTER_IDENT_FRAGMENTS.some((f) => raw.includes(f))) return;
     // out-of-character chrome (F1 labels, G16 notices) — scoped per file, so a chrome fragment can
     // never excuse a spoken string in a different file, and never excuses any OTHER line in its own
     // file either
-    if (REGISTER_CHROME_EXCEPTIONS.some((e) => e.rel === rel && line.includes(e.anchor))) return;
+    if (REGISTER_CHROME_EXCEPTIONS.some((e) => e.rel === rel && raw.includes(e.anchor))) return;
     failures.push(`D-29-REGISTER: ${rel}:${i + 1} — a player-facing string still reads the pre-conversion 2nd-person register; convert it to ye/yer (art-review/narration-audit.html's PIRATE_MAP is the spec)`);
   });
   return failures;
