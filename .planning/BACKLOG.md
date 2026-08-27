@@ -316,3 +316,62 @@ outside the frame it had actually reached.
 > **Do not "fix" this by clipping `#sailHost`.** It would stop the square painting over the captains
 > panel and would NOT make it reachable — it would hide a legal move instead of showing an
 > unreachable one, which is worse. The fault is the frame, not the paint.
+
+---
+
+## 🟠 THE FIRST HONEST FULL SEA TRIAL SINCE THE CUTOVER — 2026-08-27, 81 min, 8 legs
+
+**It FAILED, which is the point.** Until tonight it crashed on `ENOENT` before sailing a leg, so this
+is the first real result the gate has produced since the promotion. Build `2026-08-26k-CUTOVER`,
+gear FULL, legs: solo-desktop, solo-phone, passplay-phone, passplay-desktop, crew-desktop,
+crew-phone, solo-desktop-wk, solo-phone-wk.
+
+### The ONLY structural failure across all 8 legs is §0 — again
+
+```
+crew-phone-guest-006-settled.png
+  FAIL on-screen      : clickable off-screen: sailCell
+  FAIL sail-clickable : 1 sail square(s) covered: a sail square <- nothing (outside any element)
+```
+
+Same leg, same seat, same screen number as every previous trial. *"Covered by nothing (outside any
+element)"* means the cell's own centre is **outside the viewport** — `elementFromPoint` returned
+null. **Everything else in the game is structurally clean.**
+
+**Three attempts to reproduce it under measurement, all on a real two-phone crew rig, failed** — 2
+sail prompts measured in one run, 15 cells in another, every cell fully on screen. **It is
+intermittent**, which the drill's null test independently measured (crew noise floor 3, solo 0).
+That is why it must be fixed before any crew-phone verdict can be trusted.
+
+### What the vision judge saw — read the pictures, not the captions
+
+| screen | finding |
+|---|---|
+| `solo-phone-022`, `solo-phone-eov` | **"Play again!" covers the award cards**, cutting off their descriptions. This is now the **eighth** flag across three trials |
+| `crew-phone-host-008` | **NEW — a ghosted rounded-box edge peeking above the "Tap and hold the sea" bubble**, just under the wind bar |
+| `passplay-desktop-009`, `crew-desktop-host-006` | large empty dead space in the right-hand column — the known desktop gap, his call |
+| `solo-phone-019` | two circular trade labels "overlap/touch". **MEASURED FROM THE IMAGE: they are ~11 CSS px apart — crowded, NOT overlapping.** The judge over-reported; the structural `no-pile` rule was right to stay quiet. Recorded so nobody "fixes" a non-bug |
+
+**The ghost box is worth a look.** A floating box is being placed with its top ABOVE
+`boardBand().top`, so `#pp4Fx` — the clipped host — cuts it and leaves a sliver showing. The fix is
+in the placement, not the clip; not attempted unattended because re-tuning bubble placement without
+Wyatt's eye is exactly the kind of taste change that costs a round.
+
+### A STANDING ENTRY IS NOW WRONG, corrected in the open
+
+**"`deny` is never exercised in crew games. Unexplained."** — that is no longer true. This trial
+exercised it: **`deny:1/7` on crew-desktop and `deny:1/4` on crew-phone**, with `counter:2/5` and
+`counter:1/3` alongside. It was very likely never exercised *because the crew legs could not run at
+all* — the browser fleet was loading a directory listing. **Rule 6 applies to standing claims too:
+this one was inherited, not re-measured.**
+
+### TWO LEGS DID NOT RUN — and a leg that did not run is not a leg that passed
+
+`solo-desktop-wk` and `solo-phone-wk` both died with *"playwright not found"*. **Safari/WebKit
+coverage in this trial is ZERO.** The report says so in its own NOT-RUN column, which is the one
+thing that column exists for.
+
+### Coverage worth watching
+
+`menu:0/1` on every single leg — the game offers the menu and the driver never opens it, so nothing
+behind ☰ is being exercised at all. Several ingredient options sit at `0/2`.
