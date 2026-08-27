@@ -127,8 +127,22 @@ function sail(tag, leg) {
    the correction the first valid run forced: the seeds do not all live on the same leg, so one
    global baseline was both insufficient and misleading. */
 const baselines = new Map();
+const REUSE = process.argv.includes("--reuse-baselines");
 function baselineFor(leg) {
   if (baselines.has(leg)) return baselines.get(leg);
+  /* --reuse-baselines re-grades against a baseline ALREADY on disk instead of re-sailing it. Only
+     honest while the build has not changed since that run — it is for re-scoring a finished drill
+     and for the null test below, never for a fresh verdict on new code. */
+  if (REUSE) {
+    const out = path.join(SHOTS, `baseline-${leg}`);
+    const sigs = signatures(out);
+    if (sigs) {
+      console.log(`\n▶ baseline (${leg}) — REUSED from ${path.relative(REPO, out)}, ${sigs.size} failure(s)`);
+      const b = { status: null, sigs, out };
+      baselines.set(leg, b); return b;
+    }
+    console.log(`\n  --reuse-baselines: no stored report for ${leg}; sailing one.`);
+  }
   console.log(`\n▶ baseline (${leg}) — nothing seeded; finding out what this leg says on its own…`);
   const b = sail(`baseline-${leg}`, leg);
   if (!b.sigs) {
@@ -149,6 +163,42 @@ function baselineFor(leg) {
   }
   baselines.set(leg, b);
   return b;
+}
+
+/* ── THE NULL TEST — does this drill fire on NOTHING? ────────────────────────────────────────
+   A CAUGHT means "this run produced a failure signature the baseline did not have". That is only
+   evidence of a SEED if two UNSEEDED runs of the same leg produce the same signatures. Nobody had
+   ever checked, and the first per-leg run reported 4/4 with two of the four "caught" by a line the
+   gate itself labels `not failures` — motion-only observations, which are timing-dependent.
+
+   So: sail the leg again with nothing seeded and grade it exactly as a seed. Anything it reports
+   IS the noise floor, by construction, because there is no seed to explain it. Rule 6's other
+   half: a check that cannot fail is not a check, and a check that fires on nothing is worse. */
+if (process.argv.includes("--null")) {
+  const legs = [...new Set(seeds.map(x => FORCED || x.leg))];
+  console.log(`\n══ NULL TEST — sailing ${legs.length} leg(s) with NOTHING seeded, graded as if seeded ══`);
+  let floor = 0;
+  for (const leg of legs) {
+    const base = baselineFor(leg);
+    if (!base.sigs) { console.log(`  ${leg}: no baseline — cannot measure a noise floor`); continue; }
+    console.log(`\n▶ null (${leg}) — a second unseeded run…`);
+    const run = sail(`null-${leg}`, leg);
+    if (!run.sigs) { console.log(`  ${leg}: null run wrote no report — NOT graded`); continue; }
+    const fresh = [...run.sigs.keys()].filter(k => !base.sigs.has(k)).map(k => run.sigs.get(k));
+    const gone  = [...base.sigs.keys()].filter(k => !run.sigs.has(k)).map(k => base.sigs.get(k));
+    floor += fresh.length;
+    console.log(`  ${leg}: ${fresh.length} signature(s) appeared with NO seed, ${gone.length} disappeared`);
+    for (const f of fresh) console.log(`    + ${String(f).slice(0, 120)}`);
+    for (const g of gone)  console.log(`    - ${String(g).slice(0, 120)}`);
+  }
+  console.log(`\n══ NOISE FLOOR: ${floor} ══`);
+  console.log(floor === 0
+    ? "  Zero. Two unseeded runs agree, so a CAUGHT on this leg means something."
+    : `  NOT ZERO. ${floor} signature(s) appeared with nothing seeded, so a CAUGHT of that shape is\n` +
+      `  indistinguishable from noise. Any seed whose only new signature is one of the above is NOT\n` +
+      `  caught, whatever the summary says. Fix the flapping signature or raise --max-min before\n` +
+      `  trusting this drill's verdicts.`);
+  process.exit(0);
 }
 
 for (const s of seeds) {
