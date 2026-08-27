@@ -107,7 +107,19 @@ echo "==> staging deploy: $STAGING_REPO"
 
 git -C "$SRC" diff --quiet || echo "    note: working tree has uncommitted changes; deploying them as-is"
 
-gh repo clone "$STAGING_REPO" "$WORK/staging" -- -q
+# GET THE STAGING CHECKOUT. `gh` when it exists, plain git when it does not.
+# The CLOUD CONTAINER HAS NO `gh` (measured 2026-08-27) — so this line, which is the CTO's only
+# route to publishing anything, failed on the only platform the CTO runs on. Plain HTTPS git does
+# reach the repo there, through the session's authenticated proxy.
+# THIS IS NOT HAND-ROLLING THE SYNC, and the difference matters: only the way the CHECKOUT is
+# fetched changes. The rsync, the EXCLUDES, and every CNAME guard below are untouched — they are
+# the parts that stop a preview deploy taking the live game down, and nothing here goes near them.
+if command -v gh >/dev/null 2>&1; then
+  gh repo clone "$STAGING_REPO" "$WORK/staging" -- -q
+else
+  echo "    no gh — cloning over https"
+  git clone -q "https://github.com/$STAGING_REPO" "$WORK/staging"
+fi
 rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/staging/"
 
 # --- THE GUARD. Never remove; this is the whole reason the script exists. ---
