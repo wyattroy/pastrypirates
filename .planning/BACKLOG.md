@@ -375,3 +375,45 @@ thing that column exists for.
 
 `menu:0/1` on every single leg — the game offers the menu and the driver never opens it, so nothing
 behind ☰ is being exercised at all. Several ingredient options sit at `0/2`.
+
+### T-23 "nobody can watch a bot bake" — the mechanism, traced 2026-08-27 (READ, not measured)
+
+**This is not a feature to build. It is one missing publish.** The whole watching apparatus already
+exists and already works for humans; a bot simply never feeds it.
+
+The chain, read end to end:
+
+1. `bakeoffPrompt` (`src/ui/flow.js`) builds `onBench = patch => netHandlers().onBenchPublish(spec, p.idx, patch)`
+   and hands it to `playBakeoffLive` — **but only on the branch that runs a HUMAN's attempt.**
+2. `watchBattle` (`src/orchestrator.js:551`) is attached by **every** client, host included, and its
+   bake branch `if(v&&v.bake){applyBenchSnap(v.bake);return;}` runs **before** the `isHost` guard.
+3. `applyBenchSnap` skips only `decisionIsLocal(snap.seat)`, and `decisionIsLocal(s)` is
+   `(passAndPlay && human) || s === appState.mySeat` (`src/ui/util.js:2158,2174`). **For a bot seat
+   that is FALSE on every client, including the host.**
+4. So `benchWatch(snap)` would run and draw the face-down bench for everyone — **if a snapshot ever
+   arrived.** None does: a bot's bake never goes through the human branch, so `onBench` is never
+   called and nothing is ever published.
+
+**So the fix is to publish a bench for a bot's attempt, not to build a watching mode.** Everything
+downstream — the face-down bench, the picks, the reveal, the "X is at the ovens — watch the crates"
+hint, the paid-replay epoch handling — already exists and is already shared by both tiers.
+
+**Why this matters more than its size suggests:** in SOLO every opponent is a bot, so a solo player
+currently never sees a single opponent's bake-off. Wyatt: *"a vital part of the gameplay and endgame
+tension."*
+
+> **STATUS: READ, NOT MEASURED.** No bot bake was observed under instrumentation. Before building,
+> confirm by watching a solo bake-off that `onBenchPublish` is never called for a bot seat — that is
+> the one claim above that a measurement could overturn.
+
+### T-06 "host sees nothing during a guest's bake" — re-read, still not reproduced
+
+Wyatt ruled 2026-08-26 that **the bench SHOULD be there**, so this is a bug in the watch path, not a
+design question. Re-reading it on 2026-08-27 confirms the earlier trace: `watchBattle` is attached
+on the host, the bake branch precedes the `isHost` return, and `decisionIsLocal(guestSeat)` is
+**false** on the host — so nothing in the path blocks it. **By reading, the host should get the
+bench.** He saw neither the bench nor the broadcast wait line.
+
+**That exhausts what reading can settle.** It needs a live crew bake with the two-phone rig and the
+publish/receive instrumented on both sides — is `onBenchPublish` firing on the guest at all, and is
+`watchBattle`'s callback receiving it on the host?
