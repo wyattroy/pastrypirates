@@ -61,7 +61,22 @@ that door is a documented one-way act: [`DETERMINISM-CAPTURE-4.md`](../docs/DETE
 
 ---
 
-## 3. THE HIGHEST-VALUE SMALL JOB — the pirate voice, in the live game
+## 3. ~~THE HIGHEST-VALUE SMALL JOB — the pirate voice, in the live game~~ — WITHDRAWN
+
+> ### ⛔ THIS JOB DOES NOT EXIST. THE COUNT WAS ZERO, NOT 22. See [§12](#12-the-pirate-voice-job-was-phantom--and-doing-it-would-have-been-destructive).
+>
+> Pointed at the promoted tree, `ui_contract_check` reports **67**, not ~22. Classified with the
+> repo's own tokenizer: **59 are comment-only, 1 is code-only, and all 7 that touch a string are
+> false positives** — six are `hd.you`, a boolean property, inside templates that already read
+> "yer" and "ye've". **The true number of player-facing strings in the wrong register is ZERO.**
+>
+> **Doing this job would have rewritten 59 code comments — many of them direct quotations of
+> Wyatt — into pirate speak.** The gate is fixed (2026-08-26); root now reports 0.
+>
+> The section is kept below, struck through, because the reasoning that produced it is the thing
+> worth not repeating: the number came from a gate's output, unread.
+
+### The original text, for the record
 
 Pointing `ui_contract_check` at the promoted tree surfaced **~22 player-facing strings still in the
 pre-conversion "you/your" register** instead of ye/yer — `src/orchestrator.js` (1145, 1194–5, 1733,
@@ -138,11 +153,16 @@ recurrence check silently stops working.
 
 ```bash
 git fetch origin && git status                       # expect clean, level with origin/main
-npm test                                             # expect 18 gates, exit 0
+npm test                                             # expect 19 gates, exit 0 (18 + game_url_check)
 curl -s https://playpastrypirates.com/src/ui/stage.js | grep -o 'PP4_STAMP = "[^"]*"'
 curl -s -o /dev/null -w "%{http_code}\n" https://playpastrypirates.com/classic/   # expect 200
 node 4/scripts/qa/gear.mjs --since=HEAD~1            # NOT bare — bare reports NONE after a push
+node 4/scripts/game_url_check.js                     # the browser fleet points at the real game
 ```
+
+**And one that is new, because the sea trial was silently testing nothing for most of 2026-08-26
+(§10): `game_url_check.js` is the only thing that will tell you the drivers can still reach the
+game. Run it before believing any voyage result.**
 
 ---
 
@@ -443,3 +463,61 @@ warning itself, on the leg it applies to, rather than burying it here:
 
 **The next person to touch this should raise `--max-min` until at least the solo baseline finishes,
 then re-run.** Until then, a MISSED is *"not yet a gap"*, not *"a gap"*.
+
+---
+
+## 12. THE PIRATE-VOICE JOB WAS PHANTOM — and doing it would have been destructive
+
+**§3 called this "the highest-value small job" and sized it at ~22 player-facing strings.** Run
+against the promoted tree, `ui_contract_check` actually reports **67**. Neither number was ever
+inspected; both came straight from a gate's output.
+
+### What the 67 actually are, classified with the repo's own tokenizer
+
+| | |
+|---|---|
+| comment only | **59** |
+| code only | **1** |
+| touching a string | **7 — and every one a false positive** |
+
+Six of the seven are `hd.you` / `sh.you` — **a boolean property** — inside template literals in
+`src/ui/util.js:510–524` whose words *already* read `"yer"` and `"ye've"`. They were correct before
+anyone looked. The seventh, `index.html:2646`, sits inside an HTML comment; the player-facing text
+three lines above it reads *"What do they call ye, captain?"*.
+
+**The true count of player-facing strings in the pre-conversion register is ZERO.**
+
+### Why the gate was wrong
+
+`isLeadingComment` skipped only a line that **starts** with `//`, `/*` or `*`. This codebase indents
+block-comment continuation lines with plain spaces, so **every line after the first of a long
+WHY-comment read as code.** A line-wise prose grep with a naive comment heuristic — precisely the
+artefact class CLAUDE.md already warns about for W002/W011.
+
+### What acting on the list would have cost
+
+It would have rewritten **59 code comments into pirate speak.** Those comments are the graveyard
+(rule 10), and many of them **quote Wyatt directly** — *"you can plan ahead"*, *"you're right, we
+don't"*, *"the etc is important here so i want you to understand my intention"*.
+
+**Converting his own words into ye/yer destroys the record and breaks rule 12's voice boundary in
+the one direction nobody thought to guard** — and changes nothing a player can see. A gate that is
+confidently wrong is worse than no gate, because it *generates work*.
+
+### The fix
+
+The pronoun detector now runs over **speech only, region-classified, never line-guessed**: `.js`
+string literals via the shared tokenizer (interpolation expressions are code to it, so
+`${hd.you ? "yer" : "their"}` contributes only its quoted words), and `.html` markup text with HTML
+and CSS block comments blanked. Masking preserves length and newlines, so reported line numbers stay
+true.
+
+**Red-proofed both directions**, because a narrower check can be a blind one: a planted file with a
+genuinely bad player string, a comment mentioning "you and your crew", and an `${x.you ? …}` template
+produces **exactly one** failure — the real one. Root went **67 → 0**; `classic`, the tree `npm test`
+runs, still exits 0.
+
+> **The pattern, for the third time today:** the number was believed because it came from an
+> instrument, and the instrument had never been asked whether it could be wrong. Rule 6 covers
+> defects; **it applies to WORKLISTS too.** A job list produced by a gate is a measurement, and it
+> gets the same treatment as any other.
