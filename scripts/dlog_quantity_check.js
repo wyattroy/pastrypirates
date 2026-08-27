@@ -74,7 +74,7 @@ function body(name, text = src) {
  *    replay. One without the other is worse than neither: recording alone makes every replay one
  *    entry out of step from the first coined trade onwards. */
 const lq = body("logQuantity");
-ok("logQuantity() exists in 4/src/ui/flow.js", !!lq);
+ok("logQuantity() exists in src/ui/flow.js", !!lq);
 if (lq) {
   ok("logQuantity() RECORDS the number when live", /onLogDecision\(\s*n\s*\)/.test(lq),
      "it must call netHandlers().onLogDecision(n)");
@@ -121,7 +121,7 @@ ok("the slider's live value is read only inside coinSlider()", reads === inSlide
  *    unused second quantity control is how a dead branch gets rebuilt, and while it existed the
  *    decision log's LENGTH depended on how the trade was routed (an N-coin counter cost N+2 entries
  *    remotely and 2 locally — measured 2026-08-23: 12 entries for one guest's 8-coin counter). */
-ok("coinStepper() no longer exists in 4/src/", !/function\s+coinStepper\s*\(/.test(src) && !/function\s+coinStepper\s*\(/.test(usrc),
+ok("coinStepper() no longer exists in src/", !/function\s+coinStepper\s*\(/.test(src) && !/function\s+coinStepper\s*\(/.test(usrc),
    "a second quantity control is back — the decision log's length now depends on routing again");
 
 /* 5. ONE BUILDER, AND ONLY ONE PLACE MAY WRITE THE ANSWER INTO IT (05-01 Task 3).
@@ -157,7 +157,7 @@ ok("nothing builds apSliderWrap markup outside that builder",
    ((src + usrc).match(/class="apSliderWrap"/g) || []).length === 1,
    "a second piece of slider markup exists — stage.js reads .apSliderWrap and .apSlider BY CLASS, so a copy that differs by one name renders a flat card on whichever tier has it");
 
-console.log("\ndlog quantity check — 4/src/ui/flow.js + 4/src/ui/util.js");
+console.log("\ndlog quantity check — src/ui/flow.js + src/ui/util.js");
 /* FALSIFIABLE, NOT A BARE "OK". The comment stripper is the one part that could quietly blank the
    thing it inspects, and a green run over nothing at all is a shape this project has shipped
    before (HARD-WON-LESSONS §1b). Print what was actually scanned. */
@@ -176,7 +176,7 @@ console.log("FAIL (" + fails.length + ")");
 fails.forEach(s => console.log("  FAIL " + s));
 if (fails.length) {
   console.log("\nA quantity the captain confirms is a DECISION. Route it through logQuantity() in");
-  console.log("4/src/ui/flow.js, or a solo refresh replays it at the control's floor.\n");
+  console.log("src/ui/flow.js, or a solo refresh replays it at the control's floor.\n");
   process.exit(1);
 }
 console.log("");

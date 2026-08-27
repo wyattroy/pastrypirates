@@ -2,7 +2,7 @@
 /* AUDIO MAP GATE — the SFX event map has no duplicate key, and no stem is still at the untouched
  * default gain.
  *
- * WHY THIS EXISTS. docs/AUDIO.md DEFECT-1/DEFECT-2: `4/src/ui/audio.js` mapped `anchorHold` TWICE
+ * WHY THIS EXISTS. docs/AUDIO.md DEFECT-1/DEFECT-2: `src/ui/audio.js` mapped `anchorHold` TWICE
  * inside the same `EVENT_SOUND` object literal — once paired with `fishing`, once (later, silently
  * winning) paired with `storm`. `fishing.mp3` was downloaded and decoded every game and could never
  * play; one anchoring ship dumped an 8-second storm bed on the master bus at roughly three times the
@@ -17,7 +17,7 @@
  *       (DEFECT-3 — the six stems were never levelled against each other before this gate existed).
  *
  * RED-PROOFED, not merely written: run against the pre-fix commit's copy of this file
- * (`git show 95ca2d7:4/src/ui/audio.js`) before this gate existed, it exits 1 on BOTH assertions —
+ * (`git show 95ca2d7:src/ui/audio.js`) before this gate existed, it exits 1 on BOTH assertions —
  * `anchorHold` mapped twice, and all six `SFX_VOLUME` entries still `1`. See
  * `.planning/phases/02.2-a-captain-who-cannot-take-their-turn/02.2-01-SUMMARY.md` for the transcript
  * of that run. A check that cannot fail is not protection (CLAUDE.md rule 6).

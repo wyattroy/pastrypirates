@@ -3,8 +3,8 @@
  *
  * WHY THIS EXISTS. Passing is the always-available turn-ender: the one move nobody can ever be
  * denied. RULE-01 makes it pay one dubloon. Three separate places in this tree end a turn that way
- * — the human menu and the animated bot fallback in 4/src/ui/flow.js, and the engine fallback in
- * 4/src/engine/index.js — and the flow-tier bot fallback is duplicated on purpose rather than
+ * — the human menu and the animated bot fallback in src/ui/flow.js, and the engine fallback in
+ * src/engine/index.js — and the flow-tier bot fallback is duplicated on purpose rather than
  * inherited (the comment above it says why). A payment added only to the engine would pay the
  * simulator and leave every real browser game exactly as broken, so this gate checks all three.
  *
@@ -62,18 +62,18 @@
  *                       key added, removed or renamed. Derived from a recorded {t:"turn"} entry in
  *                       the same run rather than hand-typed, so it stays true if ev() ever gains a
  *                       field (and stays a real check if it does not).
- *   RULE-01 all sites   Structural, on 4/src/ui/flow.js read as raw text: both UI-tier sites call
+ *   RULE-01 all sites   Structural, on src/ui/flow.js read as raw text: both UI-tier sites call
  *                       the shared method and neither emits a bare pass event any more.
  *   Cursor placement    The human-only sea-cursor advance stays in the human menu and did NOT
  *                       migrate into the engine. It is per-device narration bookkeeping owned by one
  *                       seat; bots walk their own derived offsets and never touch it. Folding it
  *                       into the shared method would hand it to bots.
- *   Determinism         4/src/engine/ still contains zero wall-clock and zero random sources. A
+ *   Determinism         src/engine/ still contains zero wall-clock and zero random sources. A
  *                       single non-seeded call there makes seeded lockstep replay meaningless and
  *                       the Phase 3 corpus worthless.
  *
  * TWO HALVES. Half one imports ../src/engine/index.js and drives the real engine — source shape
- * cannot tell you what a snapshot actually contains. Half two reads 4/src/ui/flow.js as raw text,
+ * cannot tell you what a snapshot actually contains. Half two reads src/ui/flow.js as raw text,
  * the source-text assertion convention of scripts/narration_flow_test.js, because botTurn and
  * humanAct need a DOM and can never run here.
  *
@@ -103,7 +103,7 @@ import { Game, roundCfg } from "../src/engine/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");            // -> 4/
-const SRC = path.join(ROOT, "src");                 // -> 4/src
+const SRC = path.join(ROOT, "src");                 // -> src
 const FLOW_PATH = path.join(SRC, "ui", "flow.js");
 const ENGINE_DIR = path.join(SRC, "engine");
 const ENGINE_PATH = path.join(ENGINE_DIR, "index.js");
@@ -297,7 +297,7 @@ if (found) {
 } // end of the engine half
 
 /* ================= HALF TWO: source text ================= */
-console.log("\n  -- 4/src/ui/flow.js: all three sites, one method --");
+console.log("\n  -- src/ui/flow.js: all three sites, one method --");
 
 const humanRegion = regionAfter(FLOW_SRC, 'if(v==="pass"){', 700, "human menu");
 const botRegion = regionAfter(FLOW_SRC, "v2 rule 3: no fishing", 500, "bot fallback");
@@ -322,7 +322,7 @@ check("the human-only sea-cursor advance did not migrate into the engine", count
  * The negative assertion is the one with teeth: a re-hardcoded gain parenthetical looks like a `+`
  * immediately followed by a digit, and the region is trimmed to the option itself so the rule's own
  * written explanation above it cannot trip the check on the explanation instead of on a breach. */
-console.log("\n  -- 4/src/ui/flow.js: the Pass button states the amount, and derives it --");
+console.log("\n  -- src/ui/flow.js: the Pass button states the amount, and derives it --");
 const LITERAL_GAIN = /\(\+\d/;
 const passBtn = upTo(regionAfter(FLOW_SRC, "if(!canOvens)opts.push({label:", 400, "pass button"), "});");
 console.log(`         scanned ${passBtn.length} chars: ${passBtn}`);
@@ -347,7 +347,7 @@ checkTrue("CONTROL: the Attack precedent the Pass button copies is still present
 checkTrue("CONTROL: Attack states no literal amount either — same rule, both buttons",
   !/\(−\d/.test(attackOpt) && !LITERAL_GAIN.test(attackOpt));
 
-console.log("\n  -- 4/src/engine/index.js --");
+console.log("\n  -- src/engine/index.js --");
 checkTrue("the engine defines and calls the shared method", countOf(ENGINE_SRC, "doPass") >= 2);
 check("the engine emits the pass event in exactly one place", countOf(ENGINE_SRC, 'ev({t:"pass"'), 1);
 
@@ -362,16 +362,16 @@ checkTrue("LEG C: the payment adds no literal amount to the purse — the number
 check("the payout is written in exactly one place in the engine — the round config",
   countOf(ENGINE_SRC, "passCoin:"), 1);
 
-/* Determinism. 4/src/engine/ is clean of all three sources today and Phase 3 records a corpus
+/* Determinism. src/engine/ is clean of all three sources today and Phase 3 records a corpus
  * against it; RULE-01's dubloon is an integer increment and must not change that. */
-console.log("\n  -- 4/src/engine/ is still determinism-clean --");
+console.log("\n  -- src/engine/ is still determinism-clean --");
 const engineFiles = fs.readdirSync(ENGINE_DIR).filter((f) => f.endsWith(".js")).sort();
 checkTrue("CONTROL: the engine directory has files to scan", engineFiles.length > 0);
 console.log(`         scanning ${engineFiles.length} file(s): ${engineFiles.join(", ")}`);
 for (const src of ["Math.random", "Date.now", "performance.now"]) {
   let n = 0;
   for (const f of engineFiles) n += countOf(fs.readFileSync(path.join(ENGINE_DIR, f), "utf8"), src);
-  check(`no ${src} anywhere under 4/src/engine/`, n, 0);
+  check(`no ${src} anywhere under src/engine/`, n, 0);
 }
 
 console.log(`\n  ${anchorsFound} source anchor(s) located, ${failures} failure(s)\n`);

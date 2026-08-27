@@ -72,7 +72,7 @@ const STATE_INDEX_JS = path.join(ROOT, "src", "state", "index.js");
    ============================================================================
    FOLLOWS THE TREE (a TREE ARTIFACT — the scanned game's own code):
      index.html, src/, src/main.js, src/state/index.js, and src/module-contract.js's
-     MODULE_OK_FLAG. `4/src/module-contract.js` EXISTS and is the one that matters when scanning
+     MODULE_OK_FLAG. `src/module-contract.js` EXISTS and is the one that matters when scanning
      4/. The two copies happen to agree today ("__pp_module_ok", byte-identical files) — which is
      exactly why getting this backwards would be invisible. A statically-imported `../src/
      module-contract.js` would pin the ROOT's flag value forever, and the day 4/ changed its own,

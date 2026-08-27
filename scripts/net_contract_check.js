@@ -248,7 +248,7 @@ function checkNoAppStateDependency() {
   for (const file of netJsFiles) {
     const rel = path.relative(REPO_ROOT, file);
     // STRIPS COMMENTS (03-01 Task 2). This is the assertion that reported
-    // 4/src/net/writers.js:174 and :193 — both prose inside the host-gone comment block.
+    // src/net/writers.js:174 and :193 — both prose inside the host-gone comment block.
     const lines = stripCommentSegments(fs.readFileSync(file, "utf8")).split("\n");
     lines.forEach((line, i) => {
       for (const { name, re } of APP_STATE_PATTERNS) {

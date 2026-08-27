@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* STAGE IMPORT GATE — 4/src/ui/stage.js must load under Node without throwing.
+/* STAGE IMPORT GATE — src/ui/stage.js must load under Node without throwing.
  *
  * WHY THIS EXISTS. Root `npm test` runs 21 gates and not one of them loads `4/`. That is the
  * failure shape docs/HARD-WON-LESSONS.md §3 names outright — "a gate's ROOT is wherever the gate's
@@ -24,11 +24,11 @@
  */
 import("../src/ui/stage.js")
   .then(() => {
-    console.log("PASS TEST-01 — 4/src/ui/stage.js imported under Node without throwing");
+    console.log("PASS TEST-01 — src/ui/stage.js imported under Node without throwing");
     process.exit(0);
   })
   .catch((err) => {
-    console.error("FAIL TEST-01 — 4/src/ui/stage.js threw on import:");
+    console.error("FAIL TEST-01 — src/ui/stage.js threw on import:");
     console.error(err && err.stack ? err.stack : err);
     process.exit(1);
   });

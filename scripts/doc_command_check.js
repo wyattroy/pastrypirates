@@ -8,7 +8,7 @@
 //
 // The answer today is that .claude/CLAUDE.md carries the two commands inline and is loaded into
 // every session automatically. The answer in a year is "only if something checks" — and until this
-// file, nothing did. gate_citation_check.js checks citations inside 4/src/**; the DOCS were
+// file, nothing did. gate_citation_check.js checks citations inside src/**; the DOCS were
 // unguarded, which is precisely where the instructions live.
 //
 // THIS HAS ALREADY COST SOMETHING. The sea trial printed a sweep command, `qa/matrix.mjs`, that had
@@ -67,7 +67,7 @@ for (const doc of DOCS) {
   const dir = path.dirname(path.join(REPO, doc));
   const text = fs.readFileSync(path.join(REPO, doc), "utf8");
   /* .md AND SOURCE FILES. This used to match `.md` only, and that hole let a real one through:
-     docs/AUDIO.md linked `[4/src/ui/audio.js](../4/src/ui/audio.js)` for a whole day after the
+     docs/AUDIO.md linked `[src/ui/audio.js](../src/ui/audio.js)` for a whole day after the
      cutover deleted `4/`, and this gate reported "all 21 relative doc links resolve" the entire
      time. A doc that hands you a dead path to the SOURCE is exactly as broken as one that hands
      you a dead path to another doc — and the source links are the ones a session actually opens. */

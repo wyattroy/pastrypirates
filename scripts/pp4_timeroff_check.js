@@ -21,11 +21,11 @@
  *         Namespacing them would break the player's own name and id at the Phase 6 cutover, when
  *         the promoted game and /classic share one origin.
  *
- * TWO HALVES. Half one reads 4/src/**\/*.js as raw text (the source-text assertion convention of
+ * TWO HALVES. Half one reads src/**\/*.js as raw text (the source-text assertion convention of
  * scripts/ui_contract_check.js — deliberately NO comment stripping on a raw substring match).
  * Half two IMPORTS cleanupLegacyTimerKey and drives it against a fake store, because source shape
  * cannot tell you whether the marker guard actually works. That import is only possible because
- * 01-01 made 4/src/ui/stage.js load under Node at all; before that commit this half could not
+ * 01-01 made src/ui/stage.js load under Node at all; before that commit this half could not
  * have been written.
  *
  * QUOTED vs BARE. Half one counts QUOTED key literals, so a key name mentioned in PROSE must be
@@ -49,7 +49,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");          // -> 4/
-const SRC = path.join(ROOT, "src");               // -> 4/src
+const SRC = path.join(ROOT, "src");               // -> src
 const STAGE_PATH = path.join(SRC, "ui", "stage.js");
 const ORCH_PATH = path.join(SRC, "orchestrator.js");
 
@@ -83,7 +83,7 @@ function walkJs(dir) {
 const files = walkJs(SRC);
 // A count is falsifiable; a bare "OK" is not. A green run over an empty tree is a shape this
 // project has shipped before (HARD-WON-LESSONS §3), so the scan size is printed and asserted.
-console.log(`Scanned ${files.length} file(s) under 4/src/**/*.js`);
+console.log(`Scanned ${files.length} file(s) under src/**/*.js`);
 checkTrue("the scan found a non-trivial number of files (not an empty tree)", files.length >= 20);
 
 // Every quoted occurrence of the legacy key, with file:line, across the whole tree.
@@ -94,7 +94,7 @@ for (const f of files) {
     if (line.includes(LEGACY_KEY)) legacyHits.push(`${path.relative(ROOT, f)}:${i + 1}`);
   });
 }
-check(`D-01 the legacy key literal appears exactly once under 4/src/ (at ${legacyHits.join(", ") || "nowhere"})`,
+check(`D-01 the legacy key literal appears exactly once under src/ (at ${legacyHits.join(", ") || "nowhere"})`,
   legacyHits.length, 1);
 
 /* Locate the cleanup function's body by matching braces, NOT by line number — line numbers rot.
@@ -143,13 +143,13 @@ checkTrue(`D-01 the one legacy key literal sits INSIDE ${CLEANUP_FN}`,
 
 // The five renamed sites. grep-style line counts, matching the plan's acceptance criteria.
 const countLines = (src, needle) => src.split("\n").filter(l => l.includes(needle)).length;
-checkTrue(`D-01 the per-game key appears on >=2 lines of 4/src/ui/stage.js (got ${countLines(stageSrc, GAME_KEY)})`,
+checkTrue(`D-01 the per-game key appears on >=2 lines of src/ui/stage.js (got ${countLines(stageSrc, GAME_KEY)})`,
   countLines(stageSrc, GAME_KEY) >= 2);
-checkTrue(`D-01 the per-game key appears on >=3 lines of 4/src/orchestrator.js (got ${countLines(orchSrc, GAME_KEY)})`,
+checkTrue(`D-01 the per-game key appears on >=3 lines of src/orchestrator.js (got ${countLines(orchSrc, GAME_KEY)})`,
   countLines(orchSrc, GAME_KEY) >= 3);
-checkTrue("D-02 the one-time marker key literal is present in 4/src/ui/stage.js",
+checkTrue("D-02 the one-time marker key literal is present in src/ui/stage.js",
   stageSrc.includes(MARKER_KEY));
-checkTrue(`D-02 ${CLEANUP_FN} is exported from 4/src/ui/stage.js`,
+checkTrue(`D-02 ${CLEANUP_FN} is exported from src/ui/stage.js`,
   stageSrc.includes(`export function ${CLEANUP_FN}`));
 checkTrue(`D-02 initStage() calls ${CLEANUP_FN}`, stageSrc.includes(`${CLEANUP_FN}(localStorage)`));
 
@@ -170,12 +170,12 @@ checkTrue(`D-03 the off-by-default seed still assigns true inside initStage() an
 checkTrue("D-03 the seed still writes the string one (the default is OFF, unchanged by FIX-01)",
   seedIdx > 0 && seedLines[seedIdx - 1].includes(`${GAME_KEY}, "1"`));
 
-/* D-04 — the three shared identity keys are still present, un-prefixed, somewhere under 4/src/.
+/* D-04 — the three shared identity keys are still present, un-prefixed, somewhere under src/.
  * Asserted as PRESENCE, never as absence-of-a-prefixed-variant: an absence assertion is satisfied
  * by an empty tree and would go green if these keys were deleted outright. */
 const allSrc = files.map(f => fs.readFileSync(f, "utf8")).join("\n");
 for (const key of ['"pp_id"', '"pp_lastName"', '"pp_muted"']) {
-  checkTrue(`D-04 the shared identity key ${key} is still present un-prefixed under 4/src/`,
+  checkTrue(`D-04 the shared identity key ${key} is still present un-prefixed under src/`,
     allSrc.includes(key));
 }
 
@@ -236,7 +236,7 @@ check("case 4 (D-02): the re-planted legacy key SURVIVES untouched", s.peek("pp_
 check("case 4 (D-02): no removal was even attempted", s.removals.length, 0);
 
 // Case 5 — every store method throws (Safari private mode). Returns false, throws nothing, logs
-// nothing — the try/catch-swallow convention at 4/src/ui/audio.js:177-183.
+// nothing — the try/catch-swallow convention at src/ui/audio.js:177-183.
 let threw = false, ret = null;
 try { ret = cleanupLegacyTimerKey(throwingStore); } catch (e) { threw = true; }
 check("case 5 (every store call throws): does not throw", threw, false);

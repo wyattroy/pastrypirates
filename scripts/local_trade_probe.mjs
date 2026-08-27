@@ -203,7 +203,7 @@ try {
 
   // §3: click the mode card FIRST, then the name modal it opens. btnNameConfirm is in the DOM from
   // boot, so waiting on its EXISTENCE returns instantly and the confirm fires into a closed modal.
-  // #choicePassPlay, not #choicePass — read off 4/index.html rather than guessed at. The first run
+  // #choicePassPlay, not #choicePass — read off index.html rather than guessed at. The first run
   // named a card that does not exist and aborted; the abort printed the four ids the page actually
   // offers, which is why the check reports the universe instead of just failing.
   const cardId = PNP ? "choicePassPlay" : "choiceSolo";

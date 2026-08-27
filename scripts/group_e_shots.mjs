@@ -11,7 +11,7 @@
  * that stops one ship against another, a bot claiming the first dry shelf — and playing until one
  * happens is what made the driven pass take twenty minutes and produce nothing. So the LIVE
  * appState object is mutated at runtime and the real code path is then run against it.
- *   - A LIVE MUTATION CANNOT SHIP. Nothing under 4/src is edited to make an event happen. Editing
+ *   - A LIVE MUTATION CANNOT SHIP. Nothing under src is edited to make an event happen. Editing
  *     the engine and reverting is the old method and is forbidden.
  *   - RED-PROOF EVERY INJECTION: the known-negative is forced FIRST, and its result is reported
  *     beside the positive. A probe that has not been seen fail has proved nothing.

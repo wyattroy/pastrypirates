@@ -13,7 +13,7 @@
  *
  * THE THREE RULES THIS FILE OBEYS, all of them earned:
  *   1. A LIVE MUTATION CANNOT SHIP; A SOURCE EDIT CAN. Everything here mutates the live `appState`
- *      object over CDP. Nothing under 4/src is edited to make a state happen — that is the old
+ *      object over CDP. Nothing under src is edited to make a state happen — that is the old
  *      forced-storm method and Phase 14 carries a verification row proving it never shipped.
  *   2. RED-PROOF EVERY INJECTION. Each pose reports the known-negative it forced first, beside the
  *      positive, so a check that could not have failed is visible as one.

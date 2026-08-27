@@ -15,7 +15,7 @@
 // the IDENTICAL registry key (scope|ref|event|label). The registry refuses a duplicate key by
 // design — so whichever attaches SECOND silently never attaches at all.
 //
-// armHostGone() attaches second. Its own comment (4/src/orchestrator.js) says what that costs: a
+// armHostGone() attaches second. Its own comment (src/orchestrator.js) says what that costs: a
 // host whose connection blips for a moment leaves the room marked "hostgone" and the guest reading
 // "yer matey has left the game…" with nothing to clear it. The repair that is supposed to undo that
 // is the listener that was refused.

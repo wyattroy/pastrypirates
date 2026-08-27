@@ -14,7 +14,7 @@
  * sentences in both persons, which is why the tag can be appended by the renderer in ONE place and
  * all 100 hand-written strings stay untouched.
  *
- * That is also the seaLine contract (4/src/ui/util.js): both persons are read out verbatim, nothing
+ * That is also the seaLine contract (src/ui/util.js): both persons are read out verbatim, nothing
  * is conjugated, no article is guessed, no agreement is derived. The deleted seaSighting() did all
  * three and got the plurals wrong. This gate is what stops that coming back.
  *
@@ -76,7 +76,7 @@
  * checked before the 100 renderings run — a builder that ignored its viewer argument would otherwise
  * sail through 100 identical assertions.
  *
- * WHY THE EXPLICIT EXIT. Importing 4/src/ui/util.js arms module-scope timers that hold Node's event
+ * WHY THE EXPLICIT EXIT. Importing src/ui/util.js arms module-scope timers that hold Node's event
  * loop open forever after a perfectly SUCCESSFUL import — the same reason scripts/stage_import_
  * check.js and scripts/pp4_timeroff_check.js force theirs. A gate that hangs CI is worse than no
  * gate.
@@ -270,7 +270,7 @@ checkTrue("LEG A: and a rendering at the restored default carries D-06's approve
   render(SEA_CREATURES[4], false).txt.endsWith(WRAPPED));
 
 /* ================= the builder's own source ================= */
-console.log("\n  -- 4/src/ui/util.js: appended in one place, resolved at the chokepoint --");
+console.log("\n  -- src/ui/util.js: appended in one place, resolved at the chokepoint --");
 check("the tag is written in exactly one place in the narration table", countOf(UTIL_SRC, "Recipe idea!"), 1);
 
 const passIdx = UTIL_SRC.indexOf("\n  pass:(e,at,cellPx,viewerSeat)=>(");

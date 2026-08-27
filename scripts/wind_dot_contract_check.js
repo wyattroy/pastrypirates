@@ -266,7 +266,7 @@ function checkFileOwnership(root) {
     const rel = path.relative(REPO_ROOT, file);
     if (relToTree === BOARD_REL) continue; // the one file this workstream owns
     /* STRIPS COMMENTS (03-01 Task 2), PER-ASSERTION, and here is the finding that earned it.
-       Against 4/ this reported 4/src/engine/bakeoff.js:13 — a sentence explaining WHY that file is
+       Against 4/ this reported src/engine/bakeoff.js:13 — a sentence explaining WHY that file is
        pure, which names windDotSpecs as a sibling example of the same pure/DOM split. It is not a
        wind-dot symbol landing in the wrong file; it is the documentation of the very discipline
        D-14 exists to protect, and flagging it makes writing that documentation an offence. The

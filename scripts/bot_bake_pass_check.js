@@ -14,7 +14,7 @@
  * runs. A gated determinism re-record (docs/DETERMINISM-RERECORD.md) is a cost this file never
  * incurs.
  *
- * HOW A "TURN" IS FOUND IN THE STREAM. playBakeoff() (4/src/engine/index.js) calls, per seat, per
+ * HOW A "TURN" IS FOUND IN THE STREAM. playBakeoff() (src/engine/index.js) calls, per seat, per
  * round: this.takeTurn(p, wind, storm) then this.lightOvens(p) — same p, back to back, before the
  * loop moves to the next seat. Only AFTER every seat in the round has had that pair does the day
  * loop run that round's bake ATTEMPTS (this.bakeAttempt for whoever is already p.baking). So the
@@ -102,7 +102,7 @@ console.log("FAIL (" + fails.length + ")");
 fails.forEach((s) => console.log("  FAIL " + s));
 if (fails.length) {
   console.log("\nA bake-eligible captain must never collect the pass dubloon (item 4, D-15). See the");
-  console.log("canBake(p) guard at 4/src/engine/index.js's takeTurn fallback and 4/src/ui/flow.js's");
+  console.log("canBake(p) guard at src/engine/index.js's takeTurn fallback and src/ui/flow.js's");
   console.log("botTurn fallback.\n");
   process.exit(1);
 }

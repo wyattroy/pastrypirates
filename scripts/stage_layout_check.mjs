@@ -34,7 +34,7 @@ const SIZES = arg("sizes", "390x664,820x1180,960x1080,1400x900,1890x960,1920x108
 const OUT = path.resolve(arg("out", path.join(process.cwd(), "layout-check-shots")));
 const PORT = +arg("port", 8720), DBG0 = +arg("dbg", 9720);
 const PAR = Math.max(1, +arg("parallel", 2));   // sizes run PAR at a time — five Chromes at once would heat his laptop; one at a time took >10 min
-const PHONE_MAX_W = 600;                       // the CSS boundary: `@media (min-width:601px)` in 4/index.html
+const PHONE_MAX_W = 600;                       // the CSS boundary: `@media (min-width:601px)` in index.html
 const REACH_MS = 150_000;                       // to reach the first sail prompt (intro + recipe pick + bots)
 fs.mkdirSync(OUT, { recursive: true });
 const sleep = ms => new Promise(r => setTimeout(r, ms));

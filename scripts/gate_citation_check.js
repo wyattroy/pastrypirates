@@ -27,7 +27,7 @@
 // ============================================================================
 // What counts as a citation — DERIVED, never a hardcoded list (CLAUDE.md rule 9)
 // ============================================================================
-// A mention in `src/**` or `4/index.html` is a CITATION when either:
+// A mention in `src/**` or `index.html` is a CITATION when either:
 //   (a) it carries an explicit `scripts/` or `scripts/` path prefix — unambiguous, and
 //       DELIBERATELY independent of whether the file exists, because "cites a check that does not
 //       exist" is one of the three things this gate is here to catch; or
@@ -98,7 +98,7 @@
 // declares the next citation too. An exception you can count is a completely different animal
 // from an exception you cannot see:
 //
-//     grep -rn "ROOT-TREE-CITATION\|UNGATED-IN-4" src 4/index.html
+//     grep -rn "ROOT-TREE-CITATION\|UNGATED-IN-4" src index.html
 //
 // Text INSIDE a marker bracket is not itself scanned for citations — the marker names a script by
 // design, and counting that mention would inflate every number this gate prints.
@@ -268,7 +268,7 @@ for (const file of scanTargets) {
 /* ================= Output ================= */
 
 console.log(
-  `citations scanned: ${scanned} across ${scanTargets.length} file(s) in src + 4/index.html — ${satisfied} satisfied by a gate that reads 4/, ${markedRoot} declared ${MARKER_ROOT} (true as written), ${markedUngated} declared ${MARKER_UNGATED} (KNOWN GAP — this number is a debt and should fall), ${failures.length} unsatisfied. Script universe: ${universe.size} distinct filename(s) under scripts/ and scripts/; ${coversFour.size} chain entr(y/ies) read 4/.`
+  `citations scanned: ${scanned} across ${scanTargets.length} file(s) in src + index.html — ${satisfied} satisfied by a gate that reads 4/, ${markedRoot} declared ${MARKER_ROOT} (true as written), ${markedUngated} declared ${MARKER_UNGATED} (KNOWN GAP — this number is a debt and should fall), ${failures.length} unsatisfied. Script universe: ${universe.size} distinct filename(s) under scripts/ and scripts/; ${coversFour.size} chain entr(y/ies) read 4/.`
 );
 
 if (universe.size === 0) {

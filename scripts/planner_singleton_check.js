@@ -23,7 +23,7 @@
  *                    actually reach; source text cannot tell you what a class ended up with.
  *   THE LIVE BRAIN   Game.prototype still carries planTurn, planTurnV3, chooseAction, and the four
  *                    v3-suffixed helpers. This is the half that catches the one-character mistake.
- *   NO DEAD SOURCE   4/src/engine/index.js contains the deleted planner's name zero times — code
+ *   NO DEAD SOURCE   src/engine/index.js contains the deleted planner's name zero times — code
  *                    AND comment, because a comment describing a function that no longer exists is
  *                    a lie the next reader has to disprove. Each of the four deleted helpers is
  *                    absent as a METHOD DECLARATION, matched on the declaration shape (line-start
@@ -35,11 +35,11 @@
  *                    the deleted planner, so it must now occur zero times, and the tighter one used
  *                    by the race planner must occur on exactly three lines. Resolved by removal, not
  *                    by reconciliation.
- *   DETERMINISM      4/src/engine/ still holds zero wall-clock and zero random sources. Phase 3
+ *   DETERMINISM      src/engine/ still holds zero wall-clock and zero random sources. Phase 3
  *                    records a determinism corpus against this engine and a single non-seeded call
  *                    makes seeded lockstep replay meaningless (docs/DETERMINISM-RERECORD.md).
  *
- * QUOTED vs BARE. Every substring counted here is counted in 4/src/engine/index.js, never in this
+ * QUOTED vs BARE. Every substring counted here is counted in src/engine/index.js, never in this
  * file, so prose in this header may name the deleted symbols freely. That is deliberate: the trap
  * scripts/seat_arg_check.js hit on its first run — failing on the comment documenting the bug it
  * existed to catch (HARD-WON-LESSONS §1b) — is avoided by scanning a different file, not by
@@ -66,7 +66,7 @@ import { Game } from "../src/engine/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");                       // -> 4/
-const ENGINE_DIR = path.join(ROOT, "src", "engine");           // -> 4/src/engine
+const ENGINE_DIR = path.join(ROOT, "src", "engine");           // -> src/engine
 const ENGINE_PATH = path.join(ENGINE_DIR, "index.js");
 const ENGINE_SRC = fs.readFileSync(ENGINE_PATH, "utf8");
 
@@ -96,13 +96,13 @@ const CLOCK_SOURCES = ["Math.random", "Date.now", "performance.now"];
 const LOOSE_EPSILON = "1e-9";
 const TIGHT_EPSILON = "1e-12";
 
-console.log("\nFIX-06 — one planner in 4/src/engine/index.js\n");
+console.log("\nFIX-06 — one planner in src/engine/index.js\n");
 
 /* ================= CONTROLS ================= */
 console.log("  -- controls, known before anything is measured --");
 checkTrue("CONTROL: the engine source was read and is non-empty", ENGINE_SRC.length > 0);
 const protoNames = Object.getOwnPropertyNames(Game.prototype);
-console.log(`         4/src/engine/index.js is ${ENGINE_SRC.split("\n").length} lines; Game.prototype carries ${protoNames.length} own properties`);
+console.log(`         src/engine/index.js is ${ENGINE_SRC.split("\n").length} lines; Game.prototype carries ${protoNames.length} own properties`);
 checkTrue("CONTROL: Game.prototype carries a plausible number of methods", protoNames.length > 50);
 checkTrue("CONTROL: the declaration matcher finds a declaration it should find", declaredAsMethod(ENGINE_SRC, "chooseAction"));
 checkTrue("CONTROL: the declaration matcher rejects a name that is only ever called", !declaredAsMethod(ENGINE_SRC, "this.tour3"));
@@ -125,7 +125,7 @@ for (const h of LIVE_HELPERS) {
 }
 
 /* ================= HALF TWO: the source text ================= */
-console.log("\n  -- 4/src/engine/index.js as raw text --");
+console.log("\n  -- src/engine/index.js as raw text --");
 check(`the classic planner's name appears nowhere, code or comment`, countOf(ENGINE_SRC, DEAD_PLANNER), 0);
 for (const h of DEAD_HELPERS)
   check(`${h} is not declared as a method`, declaredAsMethod(ENGINE_SRC, h), false);
@@ -137,14 +137,14 @@ console.log("\n  -- FIX-06's precision edge: one tie-break tolerance, not two --
 check(`the looser tolerance is gone (it lived only inside the deleted planner)`, countLines(ENGINE_SRC, LOOSE_EPSILON), 0);
 check(`the tighter tolerance is on exactly three lines`, countLines(ENGINE_SRC, TIGHT_EPSILON), 3);
 
-console.log("\n  -- 4/src/engine/ is still determinism-clean --");
+console.log("\n  -- src/engine/ is still determinism-clean --");
 const engineFiles = fs.readdirSync(ENGINE_DIR).filter((f) => f.endsWith(".js")).sort();
 checkTrue("CONTROL: the engine directory has files to scan", engineFiles.length > 0);
 console.log(`         scanning ${engineFiles.length} file(s): ${engineFiles.join(", ")}`);
 for (const src of CLOCK_SOURCES) {
   let n = 0;
   for (const f of engineFiles) n += countOf(fs.readFileSync(path.join(ENGINE_DIR, f), "utf8"), src);
-  check(`no ${src} anywhere under 4/src/engine/`, n, 0);
+  check(`no ${src} anywhere under src/engine/`, n, 0);
 }
 
 console.log(`\n  ${protoNames.length} prototype member(s) inspected, ${failures} failure(s)\n`);

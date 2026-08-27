@@ -185,7 +185,7 @@ export const SETTLE_PROBE = `(() => {
   /* AND THE VISIBLE WORDS. Wyatt, 2026-08-26: "only capture screenshots after the text has entered
      entirely and settled."
 
-     WHY NEITHER RECTS NOR textContent CAN SEE THIS — read typewriterReveal() in 4/src/ui/panel.js
+     WHY NEITHER RECTS NOR textContent CAN SEE THIS — read typewriterReveal() in src/ui/panel.js
      before changing anything here. It splits each text node into TWO adjacent spans holding the
      SAME characters: a revealed prefix, and the remainder at visibility:hidden which still
      occupies its exact layout box. That is deliberate and good — line breaking is identical to the

@@ -945,48 +945,61 @@ No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skill
 
 ---
 
-## 6. How the work reaches Wyatt's phone
+## 6. THE RELEASE PROCESS — staging, then production
 
-Wyatt, 2026-08-14: *"playpastrypirates.com continues serving its normal version; but
-playpastrypirates.com/4 is serving the version that we are working on."*
+**Full contract: [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) §5. The shape, in one screen:**
 
-`playpastrypirates.com` is GitHub Pages serving **`main`, from the repo root, no build step, no
-deploy workflow.** What is on `main` *is* what is live.
+| environment | address | what it is |
+|---|---|---|
+| **staging** | `staging.playpastrypirates.com` | where Wyatt plays work in progress. Published from ANY branch |
+| **production** | `playpastrypirates.com` | the game real players are in the middle of — `main`, repo root, **no build step** |
+| frozen | `playpastrypirates.com/classic` | v1 |
 
-| URL | Served from |
-|---|---|
-| `playpastrypirates.com` | repo root — **the game under development AND the game real players play. The same files.** |
-| `playpastrypirates.com/classic` | `classic/` — v1, frozen |
+**TWO ENVIRONMENTS, ONE SOURCE TREE. Promotion is a MERGE, never a copy.**
 
-> ### ⚠ THE CUTOVER INVERTED THIS SECTION'S OLD REASSURANCE. READ THIS BEFORE YOU PUSH.
->
-> Until 2026-08-26 this table had two rows and the rule underneath it said: *"Merging does not touch
-> the root game; they are different files. Treat the diff as the thing to check, not the push."*
-> **That was true only while `4/` was a separate tree, and it is now false.** There is no separate
-> dev tree. **Every push to `main` changes the game real players are in the middle of, immediately,
-> with no build step in between.**
->
-> The diff is still the thing to check — but it is no longer the thing that makes a push *safe*.
-> Nothing does. **Sail the trial before you push, not after.**
+1. **ONE SOURCE TREE** — `index.html` + `src/`. **Never a second folder holding "the staging
+   version".** That is two things kept in step by memory, and it drifted within twelve hours the one
+   day it existed.
+2. **PROMOTE THE ARTIFACT** — production changes because the SAME COMMITS moved onto `main`. Copying
+   files at release time ships something nobody tested.
+3. **ENVIRONMENTS DIFFER BY CONFIGURATION, NOT CONTENT** — same game, different address, its own
+   `robots.txt`.
+4. **A RELEASE IS REVERSIBLE** — undo a bad one by reverting the merge.
 
-**Pushing to `main` is still how he playtests, and it is his only route when he is away from the
-laptop** — so this is not a reason to push less. It is a reason to know what is in the push.
+> **Staging is a STAGE, not a copy.** A release does not consume it and no new one is made
+> afterwards. It is a permanent address whose contents are replaced each time you publish.
 
-Every time: commit → **bump `PP4_STAMP` in `src/ui/stage.js`** → read the diff → push, pull, verify
-zero → tell him the build stamp to look for.
-
-> **`4/src/ui/stage.js` DOES NOT EXIST.** This line said so until 2026-08-26 and would have sent a
-> session to a path the cutover deleted — the deploy loop's single most-run step, pointing at
-> nothing. `4/` holds only `scripts/` now.
+```bash
+git checkout -b aug28-topic                  # dated branch: monthDD-topic
+npm test                                     # 19 gates, exit 0
+node scripts/qa/gear.mjs                     # how deep must this be tested?
+node scripts/sea_trial.mjs                   # sail it at that gear
+./scripts/deploy-staging.sh "what changed"   # -> staging.playpastrypirates.com
+#  ...Wyatt plays staging. Stamp must read <stamp>-STAGING/<branch>.
+#  ...ON HIS APPROVAL ONLY:
+git checkout main && git merge aug28-topic && git push origin main && git pull origin main
+curl -s https://playpastrypirates.com/src/ui/stage.js | grep -o 'PP4_STAMP = "[^"]*"'
+```
 
 **The tell that a session skipped this: he reports an old build stamp.** It is never a cache — there
 is no build step. **If he cannot see it, it is not on `main`.**
 
-Full loop and the incident that earned it: [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) §5.
+> ### ⚠ EVERY PUSH TO `main` IS SERVED TO REAL PLAYERS IMMEDIATELY
+> There is no separate dev tree any more and nothing stands between `main` and the domain.
+> **Sail the trial and publish to staging BEFORE you merge, not after.**
+
+### The gates that stop this rotting — one cutover broke SIX instruments and none of them said so
+
+`tree_health_check` (the chain's own paths resolve) · `game_url_check` (the fleet points at a page
+that really contains the game) · `doc_command_check` (every `node …` command and link in the docs
+exists) · `gate_count_check` (declared gates = gates run) · `gear.mjs` + `qa-gear-first.cjs` (what
+counts as game code, by EXCLUSION, strict by default).
+
+**The reusable lesson: a hand-kept list of what to guard rots exactly like the thing it guards.**
+Every one of these DERIVES its answer — from `.gitignore`, from the directory, from `package.json`'s
+own chain — rather than from a list somebody typed.
 
 ---
-
-<!-- GSD:project-start source:PROJECT.md -->
 
 ## Project
 

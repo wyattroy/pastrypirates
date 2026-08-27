@@ -8,7 +8,7 @@
  *
  * Same three rules as group_f_shots.mjs, and for the same reasons:
  *   1. A LIVE MUTATION CANNOT SHIP; A SOURCE EDIT CAN. Everything is mutated on the live objects
- *      over CDP; nothing under 4/src is edited to make a state happen (DRIVING-THE-GAME §5e).
+ *      over CDP; nothing under src is edited to make a state happen (DRIVING-THE-GAME §5e).
  *   2. RED-PROOF EVERY INJECTION — force the known-negative first and print it beside the positive.
  *   3. SOLO ONLY. Injection desyncs a real room.
  *

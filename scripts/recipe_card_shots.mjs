@@ -11,7 +11,7 @@
  *
  * POSED, NOT PLAYED (DRIVING-THE-GAME §5e). A recipe is drafted several prompts into a voyage; the
  * modal only needs a recipe array on a seat, so the LIVE appState object is given one. Nothing in
- * 4/src is edited to make this happen — a live mutation cannot ship, an engine edit can.
+ * src is edited to make this happen — a live mutation cannot ship, an engine edit can.
  * RED-PROOFED: the known-negative runs FIRST — with no recipe on the seat, openRecipeModal must
  * draw nothing — so a pass afterwards is a pass at something.
  * SOLO ONLY. Headless, muted, bounded loops, and it kills its own ports before it returns.
