@@ -13,7 +13,134 @@ forgotten-by-accident; everything here is deferred-on-purpose, which is a differ
 whole reason the file exists.
 
 ---
+---
 
+# 🚩 THE CTO WORK LIST — Wyatt's playtest, 2026-08-27
+
+**Build played:** `2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42`, on his phone, over
+staging. **All 13 checklist items were reported.** 5 passed, 7 problems, 1 (solo) passed with a note.
+
+**THIS SECTION IS THE CTO'S ONLY MANDATE.** Wyatt, 2026-08-27: *"CTO only executes things that have
+been added to the backlog — it won't, for example, change the rules of the game, or change it in
+ways that we have not agreed upon."* An item that is not in the table below is not work. When the
+table is empty of unstarted items, **the CTO stops and writes proposals; it does not promote its
+own ideas.**
+
+**32 items** (31 of his, plus one stale engine comment found while checking his numbers). Waves are the proposed order — Wyatt approves or reshuffles, and the order is his.
+
+> **The one argument I'd make against my own ordering:** Wave 1 is the architecture because he chose
+> it directly (*"Go straight at the guest architecture"*, 2026-08-27). **Wave 2 would buy more felt
+> improvement per hour** — nine copy fixes, all cosmetic gear, all safe, all noticed immediately. If
+> the goal is "the game is noticeably better when I return", swapping waves 1 and 2 does that
+> faster. His call.
+
+## Wave 0 — unblock (3) · these remove obstacles from HIS path, not the player's
+
+| # | Item | Gear | Note |
+|---|---|---|---|
+| W0-1 | **Skip straight to the endgame for testing.** A URL he can type on his phone that drops him into a bake-off SECOND attempt, and one for the End of Voyage card. | plumbing | **Four of his PROBLEM marks (#3, #4, #5, #6) are marked PROBLEM only because he could not get there.** Follows the existing `?bakeoff=1` / `?ovens=1` / `?wind=1` pattern (`src/shared/index.js:433,478`). ⚠️ `devHost()` (`src/shared/index.js:465`) is localhost-only — staging is a real domain, so the gate must be widened or the hook left ungated. |
+| W0-2 | **`Copy my notes` takes two clicks.** First opens the box; second copies. | n/a | `.planning/staging-checklist.html:160` builds the text and opens a `<dialog>`; `:172` does the copy. Make the first click do both, dialog becomes confirmation. |
+| W0-3 | **Reformat the build stamp.** Currently `v4 · build 2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42` — long, and "v4" no longer means anything. | cosmetic | **DECIDED 2026-08-27: date-based build number** — `Build 2026.08.27.3`, staging appends `-staging`. `src/ui/stage.js:33,1998`; the staging suffix is written by `scripts/deploy-staging.sh:171`. |
+
+## Wave 1 — the guest/host split (4 bugs, ONE cause) · HIS PICK
+
+**The cause, in one line: the host has a script; the guest has a news feed.** The host's screen is
+drawn by a loop that walks the whole performance in order. The guest's is drawn by nine independent
+Firebase listeners reacting to published facts. **Anything the host does BETWEEN two publishes never
+crosses the wire, so the guest cannot reproduce it** — it jumps, because it was only told the
+destination.
+
+**Wyatt's chosen approach, 2026-08-27: option B — "the host reads its own mail."** The host
+publishes every event and then draws from its own listener, identical code to a guest. One display
+path, literally. **This is the biggest of the three options and it touches the 30-second shot clock
+and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where this codebase breaks.
+
+> **THE SCOPING INSIGHT, and it is what makes B survivable.** There are two kinds of traffic, and
+> they are not the same job:
+> 1. **Events** — things that HAPPENED (sail, dock, flip, newround, end). One-way, fire and forget.
+>    **These loop back cleanly**, and all three movement/camera bugs below live here.
+> 2. **Prompts** — things a captain must ANSWER. Request/response, need a promise that
+>    `withShotClock()` can race. **These cannot simply loop back.** They are the six forks in
+>    `docs/DISPLAY-RULES.md` §4 — two converged, four open — and they are their own piece of work.
+>
+> **Do the event stream first.** In solo `appState.room === null`, so there is no wire — B needs a
+> LOCAL bus that behaves identically with or without Firebase. One bus, three producers (engine,
+> Firebase, replay), one consumer (the director).
+
+| # | Item | Verified? |
+|---|---|---|
+| W1-1 | **Guest does not animate boats square by square** — host, solo and pass-and-play all do. | ✅ **MEASURED 2026-08-27.** The host glides the route (`src/ui/flow.js:1185`); `watchEvents` (`src/orchestrator.js:1572`) calls `animateRimSweepIfAny()`, gets `false` for an ordinary sail, and goes straight to `render()` — which snaps. |
+| W1-2 | **During a storm the host steps one square at a time; the guest jumps to the end point.** Two paths where there should be one. **And once converged, make the one function move directly to the end point** — Wyatt's explicit pick. | Not yet measured. Same family as W1-1. |
+| W1-3 | **The director does not follow a guest's boat through the trade winds** — it correctly follows the host's. | ⚠️ **CAUSE UNKNOWN — an earlier guess was WRONG and is corrected here.** The rim sweep AND its camera call (`window.__pp4.sweepCam()`, `src/ui/flow.js` in `animateRimSweepRun`) are **already shared by both tiers**. So "the guest has no sweep animation" is false. Measure before theorising. |
+| W1-4 | **Sail squares a guest cannot tap** — cut off at the screen edge, first tap-to-sail, crew, phone. | ⚠️ **THE RECORDED CAUSE MAY BE THE WRONG ONE.** The standing entry below says *"sailCell covered by `#pp4Cap`"*. **In Wyatt's 2026-08-27 screenshot the captains panel is nowhere near the lowest sail square** — the failure is the board's left column cut by the screen edge, with a partial element sliced at the bezel. The known race (`flow.js:620` draws, asks the camera 180ms later; `stage.js:124` lets it refuse while a card is up) is still the best lead. **See the standing entry: "TOP OF THE LIST — sail squares a guest cannot tap".** |
+
+## Wave 2 — the words (10) · cosmetic gear, safe, felt immediately
+
+| # | Item |
+|---|---|
+| W2-1 | **Weather forecast line too long.** Should read `Day {day}: Wind {direction}. Tomorrow: {direction}`. *(Check whether he means the narration line or the wind pill — the pill currently reads `WIND NOW: W← • FORECAST: W←`.)* |
+| W2-2 | **"The Shelves be bare…" — cut 50%.** `src/ui/panel.js:1292`, and the inline variants at `src/ui/util.js:760,765`. **Show him the line and offer 3 options.** |
+| W2-3 | **Dock language consistency.** `spends the turn haulin' crates at {location}` → `workin' the docks` (`src/ui/util.js:770,773`). **Then audit every other reference to docking** and make them agree. |
+| W2-4 | **Money must be explicit wherever it changes hands.** `TREASURE! Buy…` → `TREASURE (+3🌕)! Buy…` (`src/ui/flow.js:1458`); same principle for `TAILS (+1🌕) — work the docks…`. **Audit every narration line that moves coin.** ✅ **His numbers are CORRECT — measured 2026-08-27:** `dockHeads:3, dockTails:1` (`src/engine/index.js:3081`). **Derive them from `cfg`, never type them** (rule 9) — the payout is a field precisely so it can move. |
+| W2-5 | **Dock recap money consistency:** `strikes buried treasure (+3🌕) — then buys {ingredient} (-{price}🌕)`. Same derive-don't-type rule. |
+| W2-10 | **A LOAD-BEARING COMMENT IN THE ENGINE IS STALE, found while checking W2-4.** `src/engine/index.js:3069` reads *"TREASURE PAYS 5, NOT 6"* with a 600-voyage balance table under it — but the line it describes is `dockHeads:3`. **The code pays 3; the comment claims 5.** Wyatt observed 3 in play and was right. This is rule 6's second half in the wild: a comment is a statement of intent by somebody who has since left the room. **Correct the comment, keep the balance table** (it is graveyard, rule 10) and date the correction. |
+| W2-6 | **Remove "On the Sugar Seas" from the page title.** `index.html:10`. **Audit where else it appears** — `og:title` :15, `twitter:title` :22, schema.org `name` :26. It should be colour in scarce places; the game is called Pastry Pirates. ⚠️ The schema.org `name` is load-bearing for the SEO entry below — changing it is an SEO decision, not only a copy one. |
+| W2-7 | **"Pass" → "Muse" everywhere**, with tooltip *"Watch the water and write a recipe about what you see."* Button at `src/ui/flow.js:2104`. **GRAVEYARD (rule 10):** the label briefly read *"Look into the ocean"* on 2026-08-05 and **was changed back to "Pass"** — `src/ui/util.js:558` records it. "Muse" is a different word and this is his call; the history is here so nobody re-runs the argument silently. *(Open question: is there a tooltip mechanism for this button at all today?)* |
+| W2-8 | **"Tap to sail" → "Tap square again to sail trade winds"** to confirm trade-wind movement. |
+| W2-9 | **"Would ye offer any coin on top?" is context-blind.** If coin is the ONLY thing being offered it makes no sense — should read `How many coins?`. **And the slider itself should pulse** to show what to touch. `sliderWrapHTML`/`wireSlider`, `src/ui/util.js`. |
+
+## Wave 3 — glitches a player sees constantly (5)
+
+| # | Item |
+|---|---|
+| W3-1 | **The battle box choreography is glitchy, in ALL modes.** It appears for an instant, the stage deletes it, it moves down to centre, then it is removed and replaced by the stage with the coin flipper. **And after the flip the coin disappears from the flippenator BEFORE the stage does** — it should stay until the stage goes. ⚠️ **All modes means this is NOT a host/guest fault** — do not fold it into Wave 1. |
+| W3-2 | **Bake-off attempt 2+ : the boxes jitter after being shuffled** instead of settling smoothly. Wyatt's own hypothesis: the open crates, or the borders around them. `src/ui/bakeoff.js`. |
+| W3-3 | **The drumroll fires AFTER the narration that names the winner.** It should come first. Found in the solo voyage, 2026-08-27, on a two-captain tie broken by crates/coins. |
+| W3-4 | **The End of Voyage card "SLAMS" down to the captains box.** It should scroll smoothly. |
+| W3-5 | **A trade-wind square's preview stays on screen** after you click a trade-wind square and then click a yellow sailing square. It should be removed. |
+
+## Wave 4 — layout (6)
+
+| # | Item |
+|---|---|
+| W4-1 | **"Choose yer recipe card" is not horizontally centred.** Seen in pass-and-play. ⚠️ **Wyatt: *"Don't apply this fix only for pass-and-play, it should apply to all games architecturally."*** |
+| W4-2 | **Guest battle narration box is not centred.** ⚠️ **NARROWED 2026-08-27:** his screenshot shows the guest's *tap-to-sail* narration box correctly centred, so this is specific to the BATTLE box, not all guest narration. |
+| W4-3 | **The centre div has its own blue background**, layered on top of the page gradient under the board and the captains box. **The gradient should be the only background.** |
+| W4-4 | **At tablet width the captains box is narrower than the board**, leaving a ~10px dead strip. ⚠️ **ALSO ON A PHONE** — his screenshot shows the captain rows ending ~200px short of the panel's own right edge. Wider than "tablet". |
+| W4-5 | **Move the "Tap and hold the sea to reveal the board" tooltip** closer to the recipe card, **and give it the same pulse as the buttons** — Wyatt: *"in a way, it is a button — a button that reveals the sea."* |
+| W4-6 | **The `🦜Start` button has no glow**, on host or guest. It should glow consistently with the other stage buttons. |
+
+## Wave 5 — art and asset (3)
+
+| # | Item |
+|---|---|
+| W5-1 | **The coin flip is low-res** while the rest of the game is not. |
+| W5-2 | **The buttons to call other battling captains sit on top of their boats**, and often on the WRONG boat. They should be directly beside the boats — side, top or bottom — so the player can read the wind and the situation. |
+| W5-3 | **The black market flags are not attached to the docks.** For every dock orientation, set the base of the flag on the dock. |
+
+## Wave 6 — the slider edge case (1)
+
+| # | Item |
+|---|---|
+| W6-1 | **"Would ye offer any coin on top?" appears with NO SLIDER** when the player has no money left. **Expectation: the slider appears greyed out, and the button reads "Nah" instead of "Offer it!"** |
+
+## ⛔ PARKED — needs Wyatt's ruling, the CTO may NOT default these
+
+**These are TASTE or RULES. Per the 10-minute rule's exemption, they never time out — they park.**
+
+| # | Question |
+|---|---|
+| Q-1 | **Crustbeard started the ovens at the last part of the day, but instead of the bake-off everyone got another turn.** Wyatt: *"Isn't this right? or am i misremembering the rules?"* — **a rules question, and rules are his.** Measure what the engine actually does, present it, do not change it. |
+| Q-2 | **"I didn't get to watch Crustbeard's bake-off, but I want to."** Traced to **one missing publish**, not a missing feature — but it adds time to every bot turn. **A pacing decision, his.** See the standing T-23 entry below. |
+| Q-3 | **The "End of voyage" heading now stays put instead of scrolling away.** A side effect of moving "Play again!" outside the scroller. **Keep or revert — one line either way. Still unanswered.** |
+
+## ✅ CLOSED by this playtest
+
+- **The ghost box** (a finished narration bubble at 13–28% opacity for 300ms while the next is
+  placed). **Wyatt, 2026-08-27, checklist #8: *"It's fine, i don't mind it."*** The standing entry
+  below is answered. **Do not re-open it.**
+
+---
 ## 🔴 TOP OF THE LIST — sail squares a guest cannot tap
 
 **Deferred at the cutover by Wyatt's explicit call, 2026-08-26, on the understanding that it is
