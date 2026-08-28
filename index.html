@@ -723,8 +723,11 @@
      on this screen), and neither triggers layout on a button pinned in the clock's corner.
      Honours prefers-reduced-motion by dropping to a STATIC glow rather than to nothing at all —
      the whole point is visibility, so the message must survive the animation being switched off. */
-  @media (prefers-reduced-motion: reduce) {
-  /* (#scTimerToggle's rule stood here — the ⏱ toggle left with the shot clock, 2026-08-28.) */
+  /* (#scTimerToggle's rule and a reduced-motion @media for #scPause.scPulse stood here — both
+     left with the shot clock, 2026-08-28. The first cut of that removal deleted the line holding
+     the @media's CLOSING brace but not its opener, which left the media query swallowing every
+     rule below it — the whole game laid out as a 300px-tall stack, caught only by a screenshot.
+     If you remove a rule whose line ends `} }`, one of those braces belongs to the block ABOVE.) */
   /* notes/edits #11: paused always reads as silver/inert, regardless of whose turn it was paused
      on or whether it was already urgent — distinct from both the normal brass panel and .urgent */
   /* UI-02: outer edge radiates orange as the 20s window counts to 0 (--heat 0→1, set in setClockUI) */
@@ -2819,15 +2822,14 @@
       <div id="flipPanel">
         <div class="flipPlank"><div id="flipCoinWrap" class="coin wait">?</div></div>
       </div>
-           corners, and 21-03's D-20 change makes the timer toggle visible in solo for the first
-           time, so a third icon there would newly crowd a panel that already clamps to 70-118px.
-           Bare 🔊/🔇 emoji scaffold (D-14): the real speaker icon + blocked-slash overlay is
-           Wave 5's job and needs Wyatt's art pipeline; this ships behaviour complete now with no
-           broken image and no borrowed icon (horn.png already carries the 📯 meaning). Visible
-           content set every tick by setClockUI(); click bound once in wireLobby().
-           MUTE-01 (2026-08-02): the button itself lives in #muteSlot, a #layout grid child, so it can
-           sit under the captains box when the row is too narrow — see the #muteSlot rule. Its cqw
-           sizing still resolves against this row, because #muteSlot shares this row's box. -->
+      <!-- #shotClockPanel stood here until 2026-08-28 (the clock removed on Wyatt's order, then
+           play/pause outright with it — A-10; git log at this file for the panel's history). The
+           MUTE button outlived it: it lives in #muteSlot further down (see the MUTE-01 comment
+           there), its visible content set every tick by setClockUI(), click bound once in
+           wireLobby(). NOTE, earned the day A-10 shipped: the first cut of this removal deleted
+           the line carrying this comment's OPENER and left its tail rendering as page text inside
+           #controlsRow — caught only by looking at a screenshot (rule 19), after 33 gates and a
+           passing probe missed it. Balance the comment markers when editing here. -->
       <button id="btnPlayAgain" type="button" style="display:none">🔁 Play again</button>
     </div>
     <div id="actionPanel" style="display:none"><div id="apGrid"><div id="apGridInner"></div></div></div>
