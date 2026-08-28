@@ -115,6 +115,34 @@ if (/background-color:#0c3442/.test(clean) && (clean.match(/radial-gradient\(ell
   pass("the page's own art-derived surround gradient is still there");
 else fail("the html surround gradient is gone — that is the background he wants VISIBLE, not removed");
 
+/* AND IT PAINTS AT EVERY WIDTH — Wyatt, 2026-08-28, with a screenshot: "i want the page's
+   5-gradient background to show up behind it. On all screen widths, including phone." It used to
+   live inside @media(min-width:601px), which is why the phone had a flat colour instead. A future
+   edit that re-gates it would restore exactly the thing he asked to be rid of, so the gate holds
+   the ruling rather than trusting the comment. Walked with the same brace stack the rules use. */
+{
+  let inMedia = null, depth = 0, buf = "", i = 0;
+  const stack = [];
+  while (i < clean.length) {
+    const ch = clean[i];
+    if (ch === "{") {
+      const head = buf.replace(/\s+/g, " ").trim();
+      if (/^html\b/.test(head)) {
+        let d = 1, j = i + 1;
+        for (; j < clean.length && d; j++) { if (clean[j] === "{") d++; else if (clean[j] === "}") d--; }
+        if (/background-color:#0c3442/.test(clean.slice(i + 1, j - 1)))
+          inMedia = stack.filter(h => /^@media/.test(h)).join(" | ");
+      }
+      stack.push(head); buf = ""; i++; continue;
+    }
+    if (ch === "}") { stack.pop(); buf = ""; i++; continue; }
+    buf += ch; i++;
+  }
+  if (inMedia === null) fail("could not locate the html surround rule — re-anchor this assertion, do not delete it");
+  else if (inMedia === "") pass("the surround paints at EVERY width, phone included — his 2026-08-28 ruling");
+  else fail(`the surround is gated behind ${inMedia} — Wyatt asked for it "on all screen widths, including phone"`);
+}
+
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
   : `\nPASSED — nothing paints over the page surround: body itself, nor any of the board's ${BLEED.length} wrapper(s) (${BLEED.join(", ") || "none"})`);
 process.exit(fails ? 1 : 0);

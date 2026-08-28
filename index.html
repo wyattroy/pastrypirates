@@ -1515,7 +1515,8 @@
      which would have swapped his blue band for a PALE one, in the same place, and read as a worse
      bug. Measured after the first cut, before the screenshot could show it. */
   body.pp4Stage { overflow:hidden; background:none; }
-  @media (max-width: 600px) { body.pp4Stage { background:#3d7d99; } }
+  /* the phone's flat #3d7d99 went with it (2026-08-28): the surround now paints at every width,
+     so there is no width left where a flat colour is the only ground. */
   /* D-31 (2026-08-21) — REPLACES the item-22 stopgap (D-18). Wyatt's ruling: two real desktop
      sizes, both DERIVED from the window's own geometry, never a breakpoint table. The mechanism
      item 22 built stays — it is exactly right, just fed a computed number instead of a literal one.
@@ -1545,25 +1546,37 @@
      rather than displacing it, exactly as it already does on phone, so no ribbon-height subtraction
      belongs in this number) and the captains panel's OWN rendered content (never a typed number).
      The 430px fallback covers only the one frame before that first measurement lands. */
+  /* ON EVERY WIDTH, INCLUDING PHONE — Wyatt, 2026-08-28, with a screenshot marking four
+     strips of flat blue either side of the board and the captains box: "there seems to be a
+     blue background behind the captain's box AND the board div, which I don't want -- i want
+     the page's 5-gradient background to show up behind it. On all screen widths, including
+     phone." This rule lived inside @media(min-width:601px) on the reasoning that "the phone's
+     board fills the viewport, so there is no surround to paint" — his screenshot and his
+     ruling retire that reasoning. It also ANSWERS the question parked as Q-14 the same hour.
+     */
+  /* THE SEA AROUND THE BOARD (Wyatt, 2026-08-21: "the background color is pretty gruesome — use a
+     blue scattered radial gradient that matches the board better"). Every colour below is SAMPLED
+     FROM assets/board.png rather than picked by eye — the art's own dominant blues, in order of
+     how much of the ocean they cover: #186078 (deep, ~44% of sea pixels), #306090, #307890,
+     #4890a8, with #60a8a8 as the rare highlight. The base is a darkened #186078 so the board
+     still reads as the brightest thing on screen, and the scattered ellipses echo the swirl of
+     the water without competing with it. Desktop only — the phone's board fills the viewport, so
+     there is no surround to paint (D-18/D-31: the phone stays byte-identical). */
+  html {
+    background-color:#0c3442;
+    background-image:
+      radial-gradient(ellipse 55% 45% at 12% 16%, rgba(48,120,144,.50), transparent 70%),
+      radial-gradient(ellipse 48% 40% at 88% 24%, rgba(48,96,144,.45), transparent 72%),
+      radial-gradient(ellipse 62% 46% at 80% 84%, rgba(24,96,120,.55), transparent 74%),
+      radial-gradient(ellipse 50% 38% at 18% 86%, rgba(72,144,168,.28), transparent 70%),
+      radial-gradient(circle at 50% 52%, rgba(96,168,168,.13), transparent 62%);
+    background-attachment:fixed;
+  }
+
   @media (min-width: 601px) {
-    /* THE SEA AROUND THE BOARD (Wyatt, 2026-08-21: "the background color is pretty gruesome — use a
-       blue scattered radial gradient that matches the board better"). Every colour below is SAMPLED
-       FROM assets/board.png rather than picked by eye — the art's own dominant blues, in order of
-       how much of the ocean they cover: #186078 (deep, ~44% of sea pixels), #306090, #307890,
-       #4890a8, with #60a8a8 as the rare highlight. The base is a darkened #186078 so the board
-       still reads as the brightest thing on screen, and the scattered ellipses echo the swirl of
-       the water without competing with it. Desktop only — the phone's board fills the viewport, so
-       there is no surround to paint (D-18/D-31: the phone stays byte-identical). */
-    html {
-      background-color:#0c3442;
-      background-image:
-        radial-gradient(ellipse 55% 45% at 12% 16%, rgba(48,120,144,.50), transparent 70%),
-        radial-gradient(ellipse 48% 40% at 88% 24%, rgba(48,96,144,.45), transparent 72%),
-        radial-gradient(ellipse 62% 46% at 80% 84%, rgba(24,96,120,.55), transparent 74%),
-        radial-gradient(ellipse 50% 38% at 18% 86%, rgba(72,144,168,.28), transparent 70%),
-        radial-gradient(circle at 50% 52%, rgba(96,168,168,.13), transparent 62%);
-      background-attachment:fixed;
-    }
+    /* THE SEA AROUND THE BOARD moved OUT of this desktop-only block — see the global rule
+       above the media query. Wyatt, 2026-08-28: "i want the page's 5-gradient background to show
+       up behind it. On all screen widths, including phone." */
     /* min-height, not height: <body> holds no in-flow content once the stage is up (every stage
        element is position:fixed, per the note above), so its own box collapses to near-0 tall
        without this — and util.js's vwPx()/vhPx() read that same box, so a collapsed body would

@@ -229,7 +229,7 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
 - **answer:** (b) BECAUSE host and guest parity is the #1 goal of this work. If we need to change the game to fix pace, we want to fix pace for ALL PLAYERS EQUALLY. *(Wyatt, 2026-08-28)*
 - **resolved:** 2026-08-28
 
-### Q-14 — On a PHONE, should the page have the board-art surround gradient at all?
+### ~~Q-14~~ — On a PHONE, should the page have the board-art surround gradient at all? ✅ ANSWERED
 - **kind:** TASTE (his)
 - **asked:** 2026-08-28 (raised by CEO Review 13 against W4-3)
 - **default:** none — TASTE, parks instead
@@ -242,6 +242,6 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   phone as it is (no visible surround, so nothing to see), or extend the gradient below 601px so
   the ground is the same one everywhere (consistency, rule 8) — the phone does show a sliver of
   ground above and below the board on some viewports.
-- **answer:**
-- **resolved:**
+- **answer:** "i want the page's 5-gradient background to show up behind it. On all screen widths, including phone." *(Wyatt, 2026-08-28, with a screenshot marking four strips of flat blue either side of the board and the captains box)* — SHIPPED the same hour; the gradient rule left @media(min-width:601px) and the flat #3d7d99 is gone at every width.
+- **resolved:** 2026-08-28
 
