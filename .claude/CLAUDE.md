@@ -931,7 +931,7 @@ that passed. "We tested it" becomes a lie precisely there.
 ### Run the health check before reporting status or closing a phase
 
 ```bash
-node ~/.claude/gsd-core/bin/gsd-tools.cjs validate health
+node .claude/gsd-core/bin/gsd-tools.cjs validate health
 ```
 
 1. **Before answering "where are we"** or any status question.
@@ -979,9 +979,23 @@ record is [`CTO-LEDGER.md`](../.planning/CTO-LEDGER.md) plus
 [`BACKLOG.md`](../.planning/BACKLOG.md)'s wave list. Reconciliation is deferred to the start of the
 next milestone, when the phase list is rewritten anyway — his call, over spending a fix window on it.
 
-**AND RULE 21'S HEALTH CHECK CANNOT RUN IN A CLOUD SESSION.** `~/.claude/gsd-core/bin/gsd-tools.cjs`
-does not exist in the container — verified 2026-08-28. Say that plainly instead of reporting a
-health check you did not run; on a cloud session, `npm test` and the sea trial are the whole gate.
+> **⚠ CORRECTION, 2026-08-28, SAME DAY, BY THE SESSION THAT GOT IT WRONG.** The paragraph that was
+> here said *"rule 21's health check CANNOT RUN in a cloud session"*, and that was **false**. What
+> was actually checked was the `~/.claude/…` path this file used to print — a path that exists on
+> Wyatt's Mac and not in a container. **The tool is in the repo**, at
+> `.claude/gsd-core/bin/gsd-tools.cjs`, and the check runs fine in the cloud: 0 errors, 36 warnings,
+> 33 of them the known W019 noise, plus a phase folder the roadmap does not list, a missing
+> validation doc, and a stale worktree this session had left in scratch (since removed).
+>
+> **The real fault was one character of documentation**, and it is worth more than the wrong claim
+> was: a home-rooted path in a doc is a command that works for exactly ONE machine and silently
+> misleads every other one. `doc_command_check.js` could not see it, twice over — `~` was not in its
+> path pattern, so such a command never matched at all, and behind that sat a `startsWith("~")` skip
+> calling it *"outside the repo on purpose"*, which could therefore never fire. **It now FAILS a
+> home-rooted command instead of skipping it**, and it caught this one in two files, not one.
+>
+> **The lesson is rule 6's, again: an instrument that reports NOT FOUND has told you something about
+> ITSELF, not about the world.** Ask what it actually looked at before repeating it to him.
 <!-- GSD:workflow-end -->
 
 <!-- GSD:skills-start source:skills/ -->
