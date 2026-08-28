@@ -1,5 +1,32 @@
 # Roadmap: Pastry Pirates
 
+> # ⛔ THIS FILE IS HISTORICAL. DO NOT PLAN FROM IT, AND DO NOT LET A COMMAND PLAN FROM IT.
+>
+> **Wyatt's ruling, 2026-08-28.** The status table near the bottom of this file has been wrong for
+> **215 commits** — it was last touched 2026-08-25. It currently says Phase 6 "The Cutover" is
+> **Not started**; the cutover shipped, and the `4/` tree it moved is not even on disk any more. It
+> says Phase 3 has 30 gates; there are 37. It says phases 7–9 are Not started; those are the
+> board-and-screen phases, and they are most of what has shipped since.
+>
+> **This is not new information and that is the point.** `.planning/STATE.md` has carried a note
+> since 2026-08-25 saying *"THE ROADMAP'S OWN STATUS TABLE IS STALE and no phase-level percentage
+> should be trusted until somebody audits it."* Nobody audited it, and on 2026-08-28
+> `/gsd-autonomous` read this file and proposed re-planning work that had shipped a week earlier —
+> the "adjacent, competent, misses the ask" failure rule 25 exists to catch.
+>
+> ### WHERE THE TRUTH ACTUALLY LIVES
+>
+> | for | read |
+> |---|---|
+> | what is happening now, in order | [`CTO-LEDGER.md`](CTO-LEDGER.md) — append-only, one entry per item |
+> | what is still to fix | [`BACKLOG.md`](BACKLOG.md) — the wave list, from Wyatt's playtests |
+> | whether it survived contact | [`SEA-TRIAL.md`](SEA-TRIAL.md) + [`CEO-REVIEWS.md`](CEO-REVIEWS.md) |
+>
+> **Everything BELOW this banner is a record of what was planned, not a claim about what is done.**
+> It is kept because the phase write-ups and their reasoning are worth reading. Reconciling it is
+> deliberately deferred to the start of the next milestone, when the phase list is being rewritten
+> anyway — Wyatt chose that over spending an hour of a fix window on it.
+
 > **⚠️ PHASE NUMBERING RESTARTS AT 1 FOR v2.0**
 >
 > **Wyatt's explicit choice, 2026-08-18.** v2.0 promotes a different game with a different engine,

@@ -956,17 +956,32 @@ check can see: [`docs/PLANNING-HEALTH.md`](../docs/PLANNING-HEALTH.md).**
 
 <!-- GSD:workflow-start source:GSD defaults -->
 
-### GSD Workflow Enforcement
+### GSD — WHICH HALF, AND WHEN. Wyatt's ruling, 2026-08-28.
 
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+He asked what integrating GSD costs and buys, and the honest measured answer was that **GSD is two
+systems under one name, in opposite health here.** The one-small-task half is alive — 24 folders in
+`.planning/quick/`, 13 of them in one week. The phase/roadmap half had been dead for **215 commits**
+and was actively misleading: `/gsd-autonomous` read `ROADMAP.md` on 2026-08-28 and proposed
+re-planning the cutover, which shipped a week earlier. `ROADMAP.md` now carries a banner saying so.
 
-Use these entry points:
+**THE TWO SYSTEMS ARE NOT COMPETING — THEY GUARD DIFFERENT FAILURES.** GSD's phase loop guards
+against *building the wrong thing*. The sea trial and the CEO guard against *shipping the broken
+thing*. This project's pain has been almost entirely the second kind, which is why the ledger loop
+grew where it did. Neither is a superset of the other.
 
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
+| the work | the loop |
+|---|---|
+| **an item** — a playtest-list bug, a copy fix, a layout item | **`/gsd-quick`, then the four steps**: claim it in the ledger, gate RED first, fix, gate green, matched-pair screenshot, per-item CEO. His pick, 2026-08-28: the quick artifact is worth the extra step for the cross-session paper trail. |
+| **a milestone** — a cutover, a new mode, the tutorial | a real GSD phase (discuss → plan → execute). Thinking first pays where the thing is big and hard to undo. |
 
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+**`ROADMAP.md` AND `STATE.md` ARE NOT AUTHORITATIVE AND NO COMMAND SHOULD PLAN FROM THEM.** The live
+record is [`CTO-LEDGER.md`](../.planning/CTO-LEDGER.md) plus
+[`BACKLOG.md`](../.planning/BACKLOG.md)'s wave list. Reconciliation is deferred to the start of the
+next milestone, when the phase list is rewritten anyway — his call, over spending a fix window on it.
+
+**AND RULE 21'S HEALTH CHECK CANNOT RUN IN A CLOUD SESSION.** `~/.claude/gsd-core/bin/gsd-tools.cjs`
+does not exist in the container — verified 2026-08-28. Say that plainly instead of reporting a
+health check you did not run; on a cloud session, `npm test` and the sea trial are the whole gate.
 <!-- GSD:workflow-end -->
 
 <!-- GSD:skills-start source:skills/ -->
