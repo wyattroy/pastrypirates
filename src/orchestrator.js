@@ -1482,44 +1482,35 @@ export function watchDraftPrompt(){
   });
 }
 // remote: render the game purely from the broadcast event feed
-export function watchEvents(){
-  netWatchEvents(appState.db,appState.room,async snap=>{
-    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
-    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
-    // reorder the feed. Everything after the await is presentation only.
-    const e=fixEv(snap.val());
-    appState.game.events.push(e);
-    appState.evIdx=appState.game.events.length-1;
-    /* THE GUEST'S OWN COPY OF THE GAME USED TO BE A PHOTOGRAPH TAKEN THE INSTANT THE VOYAGE BEGAN.
+/* ═════════ THE ONE EVENT CONSUMER (W1, 2026-08-28) ═════════
+   Wyatt: "fix all the described architecture so both host and guest listen to one game activity
+   engine." This is the event channel's half of that sentence. Everything an event DRAWS —
+   active seat, captain's log, rim sweep, render, pops, sound, end-meta — happens HERE and only
+   here, whichever tier the event reaches this browser on:
+     · a GUEST gets it from the Firebase listener (watchEvents below);
+     · the HOST and solo/pass-and-play get it from the local drain (liveRender, src/ui/panel.js,
+       through the onConsumeEvent handler seam) — Rule A: the host's own screen never round-trips
+       through Firebase, so the host calls this locally and never reads its own write back.
+   The comments that taught this body its steps were written in watchEvents and are preserved
+   there; the ORDER is the guest's proven order and is gated (one_event_consumer_check.mjs):
+   ANIMATE BEFORE render(), or the ship has already jumped to its destination.
 
-       beginGame() constructs `appState.game` on both tiers, but only the host's runLiveNet() ever
-       mutates it again — so on a guest, round stayed 0, windNow stayed null, and every captain's
-       pos/coins/ing stayed at their spawn values for the entire voyage while `events[]` filled up
-       with everything that actually happened. render() has always known that and draws from
-       `events[evIdx].state` (board.js:1567), which is why the BOARD was right and the RIBBON, the
-       WIND PILL and every CAMERA CUT were wrong: those read `appState.game` directly
-       (stage.js ribbonTick :403, pillHTML :381, camToSeat :72, camFitSail :97, camFitSeats :111).
-       Measured on a real driven guest, 2026-08-19, on day 2 of a live crew game:
-           appState.game.players pos: 7,6 · 7,8 · 8,7 · 6,7   (spawn, frozen)
-           events[last].state    pos: 8,9 · 9,10 · 9,9 · 6,7   (what was actually on screen)
-           host ribbon "DAY 2" / pill "WIND NOW: W← · FORECAST: N↑"
-           guest ribbon "DAY 1" / pill blank, because pillHTML()'s own !g.windNow guard hides it
+   WHO COMPUTES IS STILL A BRANCH, AND THAT IS SANCTIONED: the state-sync block below runs on a
+   guest only. It is Rule A's "who computes" fork — a guest mirrors the authoritative snapshot
+   baked onto every event; the host IS the authority, and (measured risk, not style) writing a
+   drained event's older snapshot back onto live engine objects mid-loop would corrupt the game.
+   Nothing in the branch decides what is DRAWN.
 
-       THE FIX IS TO STOP THE LIE, NOT TO PATCH THE SIX PLACES THAT READ IT. Game.ev()
-       (engine/index.js:316) already bakes round/wind/storm and a full per-seat snapshot onto EVERY
-       event that crosses the wire, and `newround` additionally carries next/nextStorm — so this
-       needs no engine change, no wire-format change, and raises no determinism question. It is the
-       same move applyEndMeta() (:757) has always made for the end-of-voyage fields, run on every
-       event instead of once at the finish line. Not one renderer changed to make the ribbon, the
-       pill and the sail camera correct.
-
-       MUTATED IN PLACE, NEVER REASSIGNED: renderBattleFromSnap holds `appState.game.players[i]`
-       object references across the fight (flow.js:2283-2285). Replacing the array would strand
-       them; writing their fields makes those same references simply become true.
-
-       The arrays are COPIED, not aliased, exactly as Game.ev() copies them on the way out —
-       `events[i].state` is the scrubber's history, and history must not be reachable for writing
-       through a live player object. */
+   KNOWN, ACCEPTED DIVERGENCE, localized here on purpose: the host's drain hands this consumer
+   only the LATEST event per liveRender() call (two engine events pushed back-to-back coalesce),
+   while a guest consumes every event individually. Same consumer, different feed rate — fixing
+   the feed is a follow-up with player-visible consequences (extra pops/sounds on the host), so
+   it is flagged for Wyatt rather than slipped in. */
+export async function consumeEvent(e){
+  if(!e)return;
+  if(!appState.isHost){
+    // the guest's mirror of the host-authoritative state — see watchEvents' preserved history
+    // below for the day the ribbon said DAY 1 while the board played day 2 (2026-08-19).
     if(e.state)e.state.forEach((s,i)=>{
       const p=appState.game.players[i];if(!p||!s)return;
       p.pos=Array.isArray(s.pos)?[...s.pos]:p.pos;
@@ -1528,41 +1519,39 @@ export function watchEvents(){
     if(e.round!=null)appState.game.round=e.round;
     if(e.wind!=null)appState.game.windNow=e.wind;
     if(e.storm!=null)appState.game.stormNow=e.storm;
-    // next/nextStorm ride on the `newround` event ONLY (engine/index.js:2940), and they are already
-    // forecastWind()'s own output — a storm-bound forecast arrives as null and Firebase drops the
-    // key, so windNext lands undefined and g.forecastWind() returns null through its own stormNext
-    // branch, which is exactly what the host shows. pillHTML() calls forecastWind() unmodified.
     if(e.t==="newround"){appState.game.windNext=e.next;appState.game.stormNext=e.nextStorm;}
-    /* 21 AND 20 — WHOSE TURN IT IS, learned from the same place on both tiers (02.15-01 Stage 2).
-       Measured before it was written, fourteen consecutive samples of a real two-tab crew game:
-       host curSeat=1 with the ribbon glowing boat 1, guest curSeat=0 with the glow on boat 0 and
-       never moving. Nothing on this tier had ever written it. Same shared renderer, two sets of
-       callers, one of which did not exist on a guest — D-24 in one figure.
-       `p` rides `turn`, `sail`, `dock`, `pass` and `attack` already; applyActiveSeat skips the
-       events that carry no seat rather than blanking the indicator, and bounds the seat before it
-       is used as an index. Nothing is asked of the engine, so the event schema and the determinism
-       corpus are untouched — the same move this callback already makes for round, wind and storm. */
-    applyActiveSeat(e.p);
-    syncLogLines();
-    $("scrub").max=Math.max(0,appState.game.events.length-1);
-    // ANIMATE BEFORE render(), or the ship has already jumped to its destination and there is
-    // nothing left to watch. The same shared stepper the host calls — one function, both tiers, so
-    // they cannot be paced or aimed differently (that is what scripts/host_guest_parity_check.js
-    // assertion 3 pins). This tier does NOT read rimCellInfo or rimHead itself.
-    //
-    // KNOWN, ACCEPTED DEGRADATION, stated rather than discovered later: the guest's coin/crate
-    // panels lag by the sweep's duration (~95ms per square) because render() now runs after it, and
-    // an event arriving mid-sweep harmlessly snaps the ship to its true square on the next paint.
-    // Degradation, not breakage.
-    await animateRimSweepIfAny();
-    render();
-    // (the re-fetch of events[evIdx] that used to sit here is gone — `e` is declared once, at the
-    // top of this callback, and evIdx was set to events.length-1 the instant after `e` was pushed,
-    // so the line was already handing back the identical object. It is now also a redeclaration
-    // this scope would refuse to parse.)
-    spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
-    playForEvent(e); // AUDIO-01/D-07: the guest's mirror of the host's per-event sound moment — rival and bot captains audible here too, no isLocalTo gate
-    if(e.t==="end")applyEndMeta();
+  }
+  applyActiveSeat(e.p);
+  syncLogLines();
+  $("scrub").max=Math.max(0,appState.game.events.length-1);
+  await animateRimSweepIfAny();   // idempotent (_lastSweptEvIdx) — a host call site that already awaited the ride makes this a no-op
+  render();
+  spawnPops(e,boardCell());
+  playForEvent(e);                // AUDIO-01/D-07: the per-event sound moment, every tier, no isLocalTo gate
+  if(e.t==="end")applyEndMeta();  // self-guarded: host/already-applied return immediately
+}
+
+// remote: feed the broadcast event stream into the ONE consumer
+export function watchEvents(){
+  netWatchEvents(appState.db,appState.room,async snap=>{
+    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
+    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
+    // reorder the feed. Everything after the await is presentation only.
+    const e=fixEv(snap.val());
+    appState.game.events.push(e);
+    appState.evIdx=appState.game.events.length-1;
+    /* THE HISTORY THIS CALLBACK EARNED, preserved with it (2026-08-19, measured on a real driven
+       guest): the guest's appState.game used to be a photograph taken the instant the voyage
+       began — round stayed 0, windNow null, every pos at spawn — so the BOARD (drawn from
+       events[evIdx].state) was right while the RIBBON, the WIND PILL and every CAMERA CUT (which
+       read appState.game directly) were wrong. The fix was to stop the lie at the source: bake
+       the state onto every event (Game.ev already did) and mirror it here — MUTATED IN PLACE,
+       never reassigned, because renderBattleFromSnap holds player object references across a
+       fight. That mirror now lives in consumeEvent's guest branch, where the host's drain shares
+       every line AFTER it. `p` rides turn/sail/dock/pass/attack for applyActiveSeat (02.15-01
+       Stage 2); the rim sweep's known, accepted degradation stands: the guest's coin panels lag
+       by the sweep's duration, an event arriving mid-sweep snaps the ship true on the next paint. */
+    await consumeEvent(e);
   });
 }
 export function watchPrompt(){

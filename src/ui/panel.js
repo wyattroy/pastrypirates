@@ -36,16 +36,16 @@ import {
   PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
 } from "../shared/index.js";
 import {
-  render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
+  boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
+  soloBotGame, currentTurnSeat, pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
   waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER,
-  pickNarrVariant, eventCeremony,
+  pickNarrVariant, eventCeremony, voyageAground,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
-import { playForEvent, isMuted } from "./audio.js";
+import { isMuted } from "./audio.js";
 
 const $=id=>document.getElementById(id);
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
@@ -185,14 +185,19 @@ export function liveRender(){
   if(appState.replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
   appState.evIdx=Math.max(0,appState.game.events.length-1);
   if(!appState.game.events.length)return;
-  syncLogLines();
-  $("scrub").max=Math.max(0,appState.game.events.length-1);
-  render();
   const e=appState.game.events[appState.evIdx];
-  spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
-  playForEvent(e); // AUDIO-01/D-07: the host's per-event sound moment — fires once per game.ev() call, whole table audible, no isLocalTo gate
+  const _nh=netHandlers();
+  /* W1 (2026-08-28): THE HOST'S INLINE DRAWING IS GONE. The render/pops/sound lines that stood
+     here were the second orchestration CLAUDE.md rule 23 names — the host drew from this loop
+     while a guest drew from watchEvents, and every divergence of three phases lived in that gap.
+     This is now the local DRAIN feeding the ONE consumer (consumeEvent, src/orchestrator.js,
+     via the handler seam — panel.js is ui-tier and may never import the orchestrator). Rule A:
+     the host consumes locally, never reading its own write back off Firebase.
+     Fire-and-forget WITH the aground catch: liveRender stays synchronous for its 57 call sites,
+     and a throw inside the consumer must still surface the wreck screen rather than vanish as
+     an unhandled rejection (the runLiveNet catch cannot see a detached promise). */
+  if(_nh.onConsumeEvent)_nh.onConsumeEvent(e).catch(err=>voyageAground(err,"consumeEvent"));
   if(appState.isHost){
-    const _nh=netHandlers();
     // seam (D-07/criterion 1, RESEARCH Q1b edge 2): was a direct pushEvents() call — pushEvents
     // is itself still a classic-script global this wave, wired in through the still-present PP
     // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
