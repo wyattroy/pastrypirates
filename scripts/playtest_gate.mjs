@@ -448,7 +448,12 @@ async function runLeg(name, idx) {
   } catch (e) {
     rec.error = String(e.message || e); log(`[${name}] ERROR: ${rec.error}`);
     try { if (host) { const f = `${OUT}/${name}-error.png`; await host.shot(f); rec.screens.push({ shot: f, sig: "ERROR", fails: [{ ok: false, rule: "run", what: rec.error }] }); } } catch {}
-  } finally { try { if (host) host.close(); } catch {} try { if (guest) guest.close(); } catch {} }
+  } finally {
+    // the wk mount rides out WPEWebProcess segfaults by relaunch-and-resume; the count is honesty,
+    // not decoration — a leg that finished with recoveries must say so in its summary
+    rec.recoveries = ((host && host.recoveries) || 0) + ((guest && guest.recoveries) || 0);
+    try { if (host) host.close(); } catch {} try { if (guest) guest.close(); } catch {}
+  }
   // vision judge over every distinct screen (capped)
   if (JUDGE && rec.screens.length) {
     const items = rec.screens.slice(0, JUDGE_CAP).map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
@@ -495,6 +500,7 @@ for (const r of results) {
   if (!ok) anyFail = true;
   log(legVerdictLine(r));
   for (const v of r.verdict) log(`   ✗ ${v}`);
+  if (r.recoveries) log(`   ✱ ${r.recoveries} WebKit relaunch(es) mid-voyage — the known WPEWebProcess SIGSEGV, resumed from the game's own solo save each time`);
   const P = (r.seats && r.seats[0] && r.seats[0].player) ? r.seats[0].player : null;
   if (P) log(`   coverage: ${[...P.coverage.entries()].map(([k, c]) => `${k}:${c.clicked}/${c.seen}`).join("  ")}`);
 }
