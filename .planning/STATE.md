@@ -241,7 +241,7 @@ both sides before any group is handed to him** (rule 19).
 
 *02.1 remains closed on his ruling, and its own must-have — "Wyatt has played a stretch of the
 voyage himself and said it holds together" — remains NOT met. Nothing below changes that.*
-Last activity: 2026-08-24 - Completed quick task 260824-wkw: the pulse-debug system (build 2026-08-24g)
+Last activity: 2026-08-28 - Completed quick task 260828-vhv: W4-4 captains box width
 negative result.
 
 **The build:** `PP4_STAMP` is **`2026-08-20a`** (commit `54806c6`) — the sound fix, the six
@@ -561,6 +561,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260824-txl | His stepping-away notes: 30s host grace, one-tap recipe confirm, Enter submits names, the stay-put redesign — build 2026-08-24f | 2026-08-24 | d890b30 | [260824-txl-his-stepping-away-playtest-notes-30s-hos](./quick/260824-txl-his-stepping-away-playtest-notes-30s-hos/) |
 | 260824-vg9 | THE PULSE BUG, SOLVED. The freeze is one prompt (the turn menu) and the trigger is SAILING: the reveal gate holds buttons hidden for the boat's glide, and iOS 18.7 WebKit never creates an animation granted to a not-yet-drawn element. Fixed by granting the swell at reveal — build 2026-08-25a, confirmed green by Wyatt | 2026-08-25 | 4a7181c | [260824-vg9-ingest-the-pulse-video-and-run-the-webkit](./quick/260824-vg9-ingest-the-pulse-video-and-run-the-webkit/) |
 | 260824-wkw | The pulse-debug system: ledgers, the ?debug=pulse beacon, the WebKit runner, and the /oracle-debug handoff plan — build 2026-08-24g | 2026-08-24 | (this commit) | [260824-wkw-the-pulse-debug-system-hypothesis-eviden](./quick/260824-wkw-the-pulse-debug-system-hypothesis-eviden/) |
+| 260828-vhv | W4-4: captains box now fills the board width, and its rows fill the box. Two faults — a gap variable reused as an inset, and the classic --boardW still capping a re-parented panel | 2026-08-28 | f45aea7b | [260828-vhv-w4-4-captains-box-narrower-than-the-boar](./quick/260828-vhv-w4-4-captains-box-narrower-than-the-boar/) |
 
 ### Roadmap Evolution
 
