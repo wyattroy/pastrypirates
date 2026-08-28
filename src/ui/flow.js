@@ -2589,6 +2589,58 @@ export async function botTurn(p){
 // blocks until every human seat (not just the host) has read msg and clicked through — same
 // per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
 // real button instead of read-only narration text they can't dismiss
+/* ═════════ THE ONE DRAFT DISPATCHER (W1, 2026-08-28) — forks 4 and 5 converge here ═════════
+   One dispatcher, and the PUBLIC/PRIVATE distinction is an INPUT, because the two forks' pass-
+   and-play branches meant OPPOSITE things and both were Wyatt's decisions:
+     · PRIVATE (fork 4, the recipe draft): every seat in turn behind the pass-the-device gate,
+       serially — "nobody's two recipe choices are ever on screen for the seat that comes next".
+       Collapsing this is an INFORMATION LEAK, and (with no shot clock left to force it) three
+       concurrent localAsk calls into ONE #actionPanel would strand two promises and hang the
+       voyage at Promise.all forever — the fork-4/5 map's exact warning.
+     · PUBLIC (fork 5, the intro barriers): ONE showing for the whole table. Wyatt, 2026-08-08:
+       "Dont require passing to the next player for the opening narration… Just show those once."
+       A pass-the-device gate exists to keep private information off the next player's screen;
+       a public card has none.
+   Networked (and solo): every seat concurrently — a local seat through localAsk, a remote seat
+   through the draft-prompt channel (the netHandlers seam: this file is ui-tier and may not
+   import the orchestrator). `waitMsg` (item 19: a wait line has no deadline) shows on a LOCAL
+   seat's answer only in the concurrent mode — on a shared device there is no one to wait for.
+   `announce` (the "everyone's choosing…" broadcast) fires only in the concurrent mode for the
+   same reason. Returns {seatIdx: choice}; the CALLER logs decisions in seat-index order, so the
+   reload-replay stream is identical whichever mode ran (both modes resolve in seat order here —
+   serial by construction, concurrent by the post-join loop the caller already had).
+   DELIBERATE DROP, flagged on the checklist: fork 4's concurrent branch used to call raw
+   setActor once per seat inside its map — net effect, the actor glow pointed at the LAST pending
+   seat while every prompt was open (the map called it a wart: neither converged applyActiveSeat
+   nor meaningful). The dispatcher does not reproduce it; the serial branch DOES set the actor,
+   because there the device genuinely follows one seat at a time.
+   Gate: scripts/qa/draft_dispatch_convergence_check.mjs. */
+export async function draftDispatch({seats,isPublic,msgFor,optsFor,waitMsg,announce}){
+  const results={};
+  if(appState.passAndPlay){
+    if(isPublic){
+      // ONE DEVICE, ONE SHOWING — the table reads it together, off one screen.
+      results[seats[0]]=await localAsk(msgFor(seats[0]),optsFor(seats[0]));
+      return results;
+    }
+    // one device, secret options: draft in turn, each behind the pass-the-device screen
+    for(const seat of seats){
+      await passGate(seat);
+      setActor(seat);
+      results[seat]=await localAsk(msgFor(seat),optsFor(seat));
+    }
+    return results;
+  }
+  if(announce)netHandlers().onBroadcast(announce.html,announce.variants,{wait:true});
+  await Promise.all(seats.map(seat=>{
+    if(decisionIsLocal(seat))return localAsk(msgFor(seat),optsFor(seat)).then(i=>{
+      results[seat]=i;
+      if(waitMsg)showNarration(waitMsg,{wait:true}); // item 19: no deadline on a wait line
+    });
+    return netHandlers().onRemoteDraftPrompt(seat,msgFor(seat),optsFor(seat),waitMsg).then(i=>{results[seat]=i;});
+  }));
+  return results;
+}
 /* 17a AND 17c — THE SAME TEXT ARRIVING TWICE ON A GUEST, AND THIS LINE WAS THE SECOND COPY.
    It used to read `netHandlers().onNetBroadcast(msg);` — a third, redundant delivery of a message
    the barrier below already hands to EVERY human seat: localAsk for a local one, onRemoteDraftPrompt
@@ -2611,29 +2663,15 @@ export async function netIntroBarrier(msg,btnLabel){
   // message and button centred — instead of a bubble at the top and a lone circle mid-sea
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow",stage:true}];
   const humans=appState.game.players.filter(p=>p.strategy==="human");
-  if(appState.passAndPlay){
-    // ONE DEVICE, ONE SHOWING (Wyatt, 2026-08-08: "Dont require passing to the next player for the
-    // opening narration, or the lots drawing narration. Just show those once").
-    //
-    // This used to walk every human seat — pass the device, read, click, pass again — for two
-    // screens that say the SAME PUBLIC THING to everybody: the ahoy welcome, and who drew first
-    // lot. A pass-the-device gate exists to keep one player's private information off another
-    // player's screen; neither of these has any. So the gate was pure ceremony, and four players
-    // paid it twice before the first turn.
-    //
-    // Nothing is skipped and nothing is hidden — the table reads it together, once, off one screen.
-    // The FIRST REAL TURN still gates normally, via humanTurn's own passGate, so the device still
-    // reaches the right hands before anybody acts.
-    await localAsk(msg,opts);
-    return;
-  }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
-  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
+  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat.
+  // (On a shared device the dispatcher never shows it: nobody is waiting for anybody.)
   // @copy misc.draftwait.introwait
   const waitMsg=humans.length>1?"⚓ Waiting for yer mateys…":null;
-  await Promise.all(humans.map(p=>seatLocal(p.idx)
-    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg,{wait:true});return i;}) // item 19: no deadline on a wait line
-    :netHandlers().onRemoteDraftPrompt(p.idx,msg,opts,waitMsg)));
+  // FORK 5 IS THE PUBLIC CASE — one showing for a shared device (Wyatt 2026-08-08), every human
+  // concurrently when each has their own screen. The whole pass-and-play/networked branch pair that
+  // stood here lives in draftDispatch now, where fork 4 shares it.
+  await draftDispatch({seats:humans.map(p=>p.idx),isPublic:true,msgFor:()=>msg,optsFor:()=>opts,waitMsg});
 }
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration

@@ -104,7 +104,7 @@ import {
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
-  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, wireRestoreFail,
+  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, draftDispatch, wireRestoreFail,
   startPassAndPlay,
   endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
@@ -889,78 +889,29 @@ export async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    // G4 (Wyatt-approved 2026-07-30): one short line. The trailing clause explaining how to win
-    // duplicated the Ahoy intro that closed moments earlier (and, after G5, immediately before) —
-    // the prompt's job is to ask, not to re-teach. The two recipe cards below it carry the detail.
-    // Not an extracted @copy site: the message reaches localAsk/remoteDraftPrompt via a variable,
-    // so it drifts no baseline. D-29 (`yer`, not `your`) satisfied.
+    // G4 (Wyatt-approved 2026-07-30): one short line — the prompt's job is to ask, not re-teach.
+    // Not an extracted @copy site: the message reaches the dispatcher via a variable. D-29 (`yer`).
     const msgFor=p=>`${pn(p.idx)}, choose yer recipe:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
-    if(appState.passAndPlay){
-      // one device, secret options: draft in turn, each gated by the pass-the-device screen
-      // so nobody's two recipe choices are ever on screen for the seat that comes next
-      for(const p of pending){
-        await passGate(p.idx);
-        setActor(p.idx);
-        const i=await localAsk(msgFor(p),optsFor(p));
-        picks[p.idx]=i;logDecision(i);
-      }
-    }else{
-      /* 17b — ONE MOMENT, ONE SENTENCE, FROM ONE PLACE, ON BOTH SIDES (D-07).
-         This was netBroadcast, which is "broadcast to spectators WITHOUT touching this screen's
-         panel" — so every guest read "⚓ Everyone's choosing their recipe…" and the host read
-         NOTHING for this beat, and was left holding netIntroBarrier's older "⚓ Waiting for yer
-         mateys…" from the moment before. That is exactly the pair in his screenshot 17b: not two
-         wordings for one moment, but the host stranded a moment behind because it was the one
-         screen the line was never delivered to. netNarrate draws locally AND mirrors, so the host
-         now reads the same sentence at the same beat, and stageFlash's S.hurry() retires the stale
-         wait line as it lands. `wait` because this line's whole subject is that nothing is
-         happening yet — item 19. */
-      /* MY OWN REGRESSION, SAME DAY, AND THE VARIANTS ARE THE FIX. Wyatt, 2026-08-20, with a
-         screenshot of a SOLO game: "wy is choosing a recipe…" floating over wy's own screen while
-         wy's recipe card was open in front of him. Told about himself, in the third person, in a
-         game with no one else in it.
-
-         The netBroadcast -> netNarrate change above is right and stays: the host WAS the one screen
-         never told. But netBroadcast never touched the sending screen, so the actor was silenced by
-         accident — and netNarrate draws locally, which removed that accident and exposed that this
-         call passes NO variants. The variants list is what silences a line for the captain it is
-         about; every sibling line already has one (flow.js:543's sail line, util.js:1573's "is
-         deciding"). This one was simply never given one, because until today it never needed one.
-
-         Every PENDING captain is an actor here, not just the first — in the multi-player wording
-         they are all choosing at once — so the whole pending set is silenced, not `pending[0]`. */
-      // @copy misc.draftwait.recipechoosing
-      netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
-        pending.map(q=>({seat:q.idx,html:""})),{wait:true});
-      const results={};
-      /* THE SAME LINE FOR EVERY CAPTAIN, WRITTEN ONCE. Wyatt, 2026-08-20: "when both host and guest
-         are on recipe choice, the waiting card only appears to host. this is a parity problem."
-
-         It was, and it was one missing ARGUMENT. remoteDraftPrompt(seat,msg,opts,waitMsg) carries
-         the wait line to a remote captain in the payload, and watchDraftPrompt shows it the moment
-         they answer — that channel has always worked; the intro barrier (ui/flow.js) passes one and
-         a guest sees it there. This call simply never passed one, so the host got the line from its
-         own localAsk branch and the guest got silence.
-
-         Hoisted to a const so the two branches cannot drift again: whatever a local captain is told
-         is by construction what a remote captain is told. MEASURED before and after in a real
-         two-window game — host saw both wait lines, guest saw only the intro one. */
-      // @copy misc.draftwait.recipechosen
-      // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
-      const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
-      const jobs=pending.map(p=>{
-        setActor(p.idx);
-        if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
-          results[p.idx]=i;
-          if(draftWait)showNarration(draftWait,{wait:true});
-        });
-        return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p),draftWait).then(i=>{results[p.idx]=i;});
-      });
-      await Promise.all(jobs);
-      for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
-    }
+    /* FORK 4 CONVERGED (W1, 2026-08-28): the pass-and-play/networked branch pair that stood here
+       — with its 17b one-moment-one-sentence lesson, the solo third-person regression and its
+       variants fix, and the draftWait argument a guest once never received — lives in
+       draftDispatch (src/ui/flow.js) now, where fork 5 shares every line of it. The recipe draft
+       is the PRIVATE case: recipe cards are secret, so a shared device walks every seat behind
+       the pass gate, serially. The announce line and its variants ride in unchanged; decisions
+       are logged below in seat-index order exactly as before, whichever mode ran, so a reload-
+       replay reconstructs the identical stream. */
+    const byIdx={};pending.forEach(p=>{byIdx[p.idx]=p;});
+    // @copy misc.draftwait.recipechoosing
+    const announce={html:pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
+      variants:pending.map(q=>({seat:q.idx,html:""}))};
+    // @copy misc.draftwait.recipechosen
+    // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
+    const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
+    const results=await draftDispatch({seats:pending.map(p=>p.idx),isPublic:false,
+      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
+    for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
   }
   appState.game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
   if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));

@@ -29,7 +29,8 @@ function fnBody(src, name) {
   let h = src.indexOf(`export function ${name}(`);
   if (h < 0) h = src.indexOf(`export async function ${name}(`);
   if (h < 0) return null;
-  let i = src.indexOf("{", h), depth = 0, j = i;
+  // the body's brace, not a destructured parameter's — start looking after the params close
+  let i = src.indexOf("{", src.indexOf(")", h)), depth = 0, j = i;
   for (; j < src.length; j++) {
     if (src[j] === "{") depth++;
     else if (src[j] === "}") { depth--; if (!depth) break; }
