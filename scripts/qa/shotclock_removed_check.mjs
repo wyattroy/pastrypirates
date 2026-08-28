@@ -28,6 +28,15 @@ const pass = m => console.log("PASS " + m);
 const fail = m => { console.log("FAIL " + m); fails++; };
 
 const read = f => fs.readFileSync(path.join(REPO, f), "utf8");
+/* COMMENTS ARE STRIPPED BEFORE MATCHING — mode_fork_check's own precedent, for the same reason:
+   the comments are this repo's graveyard (rule 10), and the tombstones the removal left behind
+   deliberately NAME what stood there so the clock's return can find its way back. Matching them
+   would force deleting the very records the removal is supposed to leave. What this gate asserts
+   is that no LIVE code references the clock. Red-proofed both ways on 2026-08-28: without the
+   strip, every tombstone comment read as a failure. */
+const strip = src => src
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .split("\n").map(l => l.replace(/(^|[^:])\/\/.*$/, "$1")).join("\n");
 // every shipped module that could carry clock code — src/ recursively, plus index.html
 const srcFiles = [];
 (function walk(d){ for (const e of fs.readdirSync(path.join(REPO, d), { withFileTypes: true })) {
@@ -36,7 +45,7 @@ const srcFiles = [];
   else if (e.name.endsWith(".js")) srcFiles.push(rel);
 } })("src");
 srcFiles.push("index.html");
-const all = srcFiles.map(f => ({ f, s: read(f) }));
+const all = srcFiles.map(f => ({ f, s: strip(read(f)) }));
 
 /* ---- 1. the clock machinery is gone ---------------------------------------------------- */
 // identifiers that must have ZERO occurrences anywhere in shipped code. shotClockPaused and
@@ -67,7 +76,7 @@ for (const id of GONE) {
   else pass("no shotclock/shotclockskip emitters or consumers anywhere in shipped code");
 }
 {
-  const u = read("src/ui/util.js");
+  const u = strip(read("src/ui/util.js"));   // the tombstone comment may name the award
   if (/Barnacle Brain/.test(u)) fail("the Barnacle Brain award row survives with nothing to tally — every seat would score 0 and it would be handed out by tie-break (inventory D3)");
   else pass("Barnacle Brain award removed with its events");
 }

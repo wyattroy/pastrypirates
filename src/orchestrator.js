@@ -21,7 +21,7 @@
 // ui->net import would. That asymmetry is why the many still-existing bare-identifier calls FROM
 // src/ui/flow.js and src/ui/util.js INTO the functions below (broadcastFlip, netNarrate,
 // netBroadcast, renderBattle, battleAsk, asyncBattle, remotePrompt, remoteDraftPrompt,
-// logDecision, beginGame, broadcastClock, expireShotClock, and others — RESEARCH.md's own
+// logDecision, beginGame, and others — RESEARCH.md's own
 // 11-04/11-05 SUMMARYs record these as deliberately left bare, "orchestration... homed in 11-06")
 // are NOT converted to `import`s here — they stay bare, resolved through src/main.js's PP bridge
 // exactly like every other still-bridged cross-reference this whole phase, now extended with this
@@ -76,7 +76,7 @@ import {
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
-  netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
+  netSetFlip, netWatchFlip,
   netSetPaused, netWatchPaused, netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
@@ -120,8 +120,8 @@ import {
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
+  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, stepDelay, ask, pickNarrVariant,
+  waitWhilePaused, sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
@@ -161,46 +161,14 @@ export function watchFlip(){
   netWatchFlip(appState.db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
 
-export function broadcastClock(){
-  setClockUI();
-  if(!appState.db||!appState.room)return;
-  // CLOCK-02 FIX (mp-pause-clock-desync): the payload now also carries the whole-table pause
-  // state, so a guest flips frozen<->running AND reads its frozen remaining from the SAME
-  // authoritative clock write that carries the deadline — never a round-trip apart from the
-  // /paused flag. That round-trip gap WAS the desync: guests rendered the stale pre-pause
-  // deadline and a host-only pauseElapsed they never received. `paused` rides every write (so a
-  // running broadcast clears it); `pauseElapsed` (the host's frozen elapsed, D-07) is only
-  // meaningful while paused, so it is included only then. Host stays the sole deadline writer.
-  const payload=appState.shotClockSeat==null?null:{
-    seat:appState.shotClockSeat,
-    deadline:appState.shotClockDeadline,
-    paused:!!appState.shotClockPaused,
-  };
-  if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
-  netSetClock(appState.db,appState.room,payload,netFail("clock"));
-}
-// #7 / FIX-02/N-03 (phase 21): any player may switch the turn timer off/on, in EVERY mode — the
-// early return that used to make this a silent no-op with no Firebase connection (the D-20 "dead
-// control" bug) is gone. Persisted locally FIRST, before either branch, so solo and pass-and-play
-// (which never used to reach this line at all) actually remember the preference too (D-19). Then,
-// exactly like togglePause() immediately below: multiplayer (db && room) writes Firebase so the
-// whole table stays in sync via watchTimer(); solo/pass-and-play calls applyTimerOff() directly —
-// the SAME body watchTimer() calls, carrying the BUG-02 re-arm fix verbatim (D-17/D-18), so neither
-// direction can drift between the networked and local path.
-export function toggleTimer(){
-  const next=!appState.timerOff;
-  try{localStorage.setItem("pp4_timerOff",next?"1":"0");}catch(e){}
-  if(appState.db&&appState.room){
-    netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
-  }else{
-    applyTimerOff(next);
-  }
-}
+/* broadcastClock() stood here — the host-authoritative clock write (deadline + pause payload).
+   Removed 2026-08-28 with the shot clock (see src/ui/util.js's ask()). Pause now syncs solely
+   over its own /paused flag via togglePause()/watchPause() below. */
+/* toggleTimer() stood here — the ⏱ off/on toggle, every mode. Left with the clock 2026-08-28. */
 // CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
-// countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
-// Multiplayer: write the flag; every client's watchPause() mirrors it, and only the host's
-// branch mutates shotClockDeadline/shotClockPauseElapsed (D-06/D-07 — see applyPauseState).
-// Solo/pass-and-play (no db/room): fall back to the local toggleShotClockPause() unchanged.
+// bot captains and every awaited beat — via the ▶/⏸ button (D-05 once paired it with the ⏱
+// toggle; the toggle left with the clock). Multiplayer: write the flag; every client's
+// watchPause() mirrors it. Solo/pass-and-play (no db/room): the local toggleShotClockPause().
 export function togglePause(){
   if(appState.db&&appState.room){
     netSetPaused(appState.db,appState.room,!appState.shotClockPaused,netFail("pause"));
@@ -217,89 +185,25 @@ export function toggleMute(){
   setMuted(!isMuted());
   setClockUI();
 }
-// Structurally identical to watchTimer() below: every client (host and guest) attaches this so
-// the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
-// deadline/pauseElapsed math) — a guest just mirrors the boolean for rendering (D-06).
+// Every client (host and guest) attaches this so the shared paused flag is tracked table-wide.
+// Only the host branch runs applyPauseState — a guest just mirrors the boolean for rendering (D-06).
 export function watchPause(){
   netWatchPaused(appState.db,appState.room,s=>{
     const v=!!s.val();
     if(appState.isHost){
       applyPauseState(v);
-      // CLOCK-02 FIX (mp-pause-clock-desync): applyPauseState() recomputes the host-authoritative
-      // deadline (resume) / stashes pauseElapsed (pause) but is PURELY LOCAL. Without this
-      // re-broadcast the guests keep rendering the stale pre-pause deadline — freezing at a
-      // different number and racing to 0 on resume. broadcastClock() is the single deadline writer
-      // (host authority preserved) and now also carries the pause state for the guest render.
-      broadcastClock();
+      // (The CLOCK-02 re-broadcast that stood here synced the frozen countdown to guests. With
+      // the clock out the /paused flag itself is the whole shared state — nothing else to send.)
     }else appState.shotClockPaused=v;
     setClockUI();
   });
 }
-// notes/edits BUG-02 / D-18 (phase 21): the state-mutation body (including the re-arm fix) now
-// lives in src/ui/util.js's applyTimerOff(), shared verbatim with toggleTimer()'s new local
-// branch below — this callback is reduced to just the Firebase wiring.
-export function watchTimer(){
-  netWatchTimerOff(appState.db,appState.room,s=>applyTimerOff(!!s.val()));
-}
-// notes/edits #1 audit: this was a bare netNarrate() with no hold/fade at all — the shot-clock
-// penalty text could get clobbered the instant the next event fires, with no guaranteed read
-// time whatsoever. async + flash() now gives it the same length-aware timing as every other
-// narration. Called from a setInterval tick (shotClockTick) that doesn't await it — fine, since
-// this is a one-shot side effect with nothing downstream depending on its completion order.
-export async function expireShotClock(){
-  // notes/edits #9: shotClockTick() is a setInterval that keeps ticking every 500ms while this
-  // async function is mid-flight (its awaits below routinely run well past 500ms) — without
-  // clearing the interval and blocking re-entry synchronously, right here, before any await, the
-  // still-running tick fires this function again on top of itself and strips a second resource
-  // for the same expiry ("snoozing pirates lose their treasure" firing more than once).
-  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-  const p=appState.game.players[appState.shotClockSeat];
-  appState.shotClockSeat=null;
-  appState.turnExpired=true;
-  // BUG-02: a null resolver here is a real, distinguishable state, not an ordinary no-op — it
-  // means the decision in flight was created before a timer-off and its resolver was never
-  // handed back (see stopShotClock/rearmShotClock). Degrade loudly rather than silently letting
-  // the countdown expire while nothing actually resolves the promise.
-  if(appState.shotClockForce){appState.shotClockForce();appState.shotClockForce=null;}
-  else if(appState.shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",appState.shotClockStash.seat,"— auto-skip degraded");
-  if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
-  if(p){
-    // NARR-01 audit finding: this used to hand-write text byte-identical to
-    // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
-    // as every other event in the codebase is narrated, so the duplicate can never drift again.
-    //
-    // WYATT, 2026-07-30: **running out the 30s clock now costs the TURN AND NOTHING ELSE.**
-    // *"when the shot clock runs out, you just lose your turn, but you don't lose a crate. Let's
-    // get rid of that crate losing business altogether."* Asked whether the coin fallback went too,
-    // he chose both 30s penalties. DO NOT RESTORE EITHER. What used to be here:
-    //
-    //   - holding crates -> a RANDOM crate spliced out and returned to tokens[]
-    //   - holding none   -> up to 5🌕 taken
-    //
-    // The 20-second penalty (applyShotClockPenalty in src/ui/util.js — 1🌕 to each other captain) is
-    // a DIFFERENT mechanic at a different threshold and deliberately still runs. He was asked
-    // about it specifically and kept it.
-    //
-    // This also removes CR-02's root cause rather than guarding its symptom. The confiscation ran
-    // AFTER shotClockForce() had already resolved the pending `ask()` promise, and `ask()` forces
-    // default index 0 — Accept — so a partner who timed out auto-accepted a trade for a crate the
-    // clock had just taken, and the trade then spliced on indexOf === -1. With no confiscation
-    // there is no vanishing crate. The moveCrate() invariant and the turnExpired guard in
-    // humanTrade stay regardless: a timed-out partner must not auto-accept in the first place.
-    //
-    // Determinism: the crate branch consumed one appState.game.r() call (the random crate index).
-    // Removing it changes RNG draw counts in LIVE games only — the 31 fixtures are all-bot engine
-    // replays where no shot clock ever fires, and src/engine/index.js is untouched. Verified green.
-    appState.game.ev({t:"shotclockskip",p:p.idx});
-    await narrateLastEvent();
-    liveRender();
-    if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
-  }
-  stopShotClock();
-}
-export function watchClock(){
-  netWatchClock(appState.db,appState.room,s=>{appState.clockState=s.val();setClockUI();});
-}
+/* expireShotClock() and watchClock() stood here — the 30s auto-skip (turnExpired, the forced
+   default answer, the activePickCleanup teardown, the `shotclockskip` event and its narration)
+   and the guest's mirror of the clock broadcast. Removed 2026-08-28 with the shot clock (see
+   src/ui/util.js's ask()). Wyatt's rulings that shaped the penalty (2026-07-30: "you just lose
+   your turn... get rid of that crate losing business altogether") are preserved in git history
+   at this file and must ride back in WITH the clock. */
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 // D-10: `variants` is additive — the host's OWN screen now selects from the exact same payload
@@ -597,9 +501,6 @@ export function battleAsk(p,o,msg,opts,colors){
   setActor(p.idx);
   const seat=p.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
-  // every battle decision — flip or yes/no — re-arms the clock to whoever's actually
-  // being asked, same as ask(); a forced timeout just resolves to the flip itself
-  armClock(seat);
   // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
   // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
   // turn, the table can see it's the human's defend flip and nudge them (see #11).
@@ -637,8 +538,9 @@ export function battleAsk(p,o,msg,opts,colors){
       colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
       flip:isFlip,battle:battleSnapshot(o)});
   }
-  const wrapped=withShotClock(seat,idxP,opts.length-1);
-  return wrapped.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
+  // resolveOpt's opts.length-1 fallback is NOT clock residue — it is also the null-answer
+  // fallback for a disconnected guest, and it stays (fork-3 map, landmine 4).
+  return idxP.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
 }
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 /* ================= v2 rule 9 (and rule 13): the one-round battle =================
@@ -1465,7 +1367,7 @@ export function logDecision(v){
 }
 // D-08: tell the crew their captain is mid-repair. Guests watch only ev/prompt/narr/flip/battle/
 // clock/timerOff/draftPrompts/response/chat — none of which can carry this — so it gets its own
-// small node rather than overloading prompt's payload shape. Host-only, guarded like broadcastClock.
+// small node rather than overloading prompt's payload shape. Host-only, guarded on isHost+db+room.
 export function setRecoveryState(state){
   if(!appState.isHost||!appState.db||!appState.room)return;
   if(state)netSetRecovery(appState.db,appState.room,{state,at:Date.now()},netFail("recovery"));
@@ -2410,7 +2312,7 @@ export function beginGame(cfg,seed){
      stopped the game with an empty panel and, measured, NOTHING in the console. See
      voyageAground()'s note in util.js for why that is worse than a crash. */
   if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchTurnOrder();watchRecoveryState();}
   /* EVERY CLIENT WATCHES THE BENCH NODE, THE HOST INCLUDED — watchChat's shape, one line below,
      and for the same reason (04-01 Task 3, MP-05). A bake-off bench is published by whoever is
      BAKING, and the baker may be a guest, so a host that only ever wrote to this node could never
@@ -2421,37 +2323,13 @@ export function beginGame(cfg,seed){
      attach a listener to rooms/null/battle. */
   if(appState.db&&appState.room)watchBattle();
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
-  watchTimer(); // #7: every client tracks the shared timer-off flag
   watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
-  // D-19 (phase 21): this used to be read ONLY inside the isHost&&db&&room branch below, which
-  // never runs in solo or pass-and-play — so appState.timerOff silently kept its `false` default
-  // there and a player who switched the timer off last game got it back on every new game. Read
-  // unconditionally, in every mode, before that branch — guarded by !appState.replaying so a
-  // reload-replay keeps whatever the live game already had, exactly like the dlog reset above.
-  // P8 (Wyatt, 2026-08-01: "i turned the timer off, refreshed the page, and the timer was turned
-  // on"). D-19 above fixed the fresh-game case; a RELOAD still lost it, because a solo/pass-and-play
-  // reload resumes through replay, `appState.replaying` is true, and this read was skipped — so
-  // appState.timerOff fell back to its `false` default in src/state/index.js.
-  //
-  // pp4_timerOff is a PER-DEVICE preference, not game state (see src/ui/util.js's note that it is
-  // structurally excluded from the versioned-blob mechanism, and never cleared) — confirmed by
-  // Wyatt 2026-08-01: "per-device in local storage". So on replay it should still be honoured.
-  // FIX-01 (D-01): this key was pp_timerOff until 2026-08-19, un-namespaced and therefore SHARED
-  // with the live game at the same origin — so this read, and the room push below, were reading and
-  // broadcasting the other game's preference. The per-game key is the fix; the one-time removal of
-  // the legacy key lives in cleanupLegacyTimerKey() in src/ui/stage.js.
-  // The !replaying guard is kept ONLY for networked games, where the room's shared flag is the
-  // authority and watchTimer() delivers it; overriding that from one device's localStorage mid-
-  // replay is what the original guard was protecting against.
-  if(!appState.replaying||!(appState.db&&appState.room)){
-    try{appState.timerOff=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
-  }
-  // host seeds the shared flag from its own last choice so the preference carries across games
-  // (but not on a reload-replay, which must keep whatever the live game already had)
-  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
-    let off=false;try{off=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
-    netSetTimerOff(appState.db,appState.room,off,netFail("timerOff"));
-  }
+  /* The pp4_timerOff read and the host's room-seed of the shared timer flag stood here
+     (D-19/P8/FIX-01 — the per-device preference and its cross-game carry). Left with the shot
+     clock 2026-08-28; the localStorage key is untouched on players' devices, so their preference
+     survives to be honoured when the clock returns. cleanupLegacyTimerKey() in src/ui/stage.js
+     still removes the LEGACY pp_ key exactly once — that hygiene is about the classic game's
+     namespace, not the clock. */
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
@@ -2534,7 +2412,6 @@ export function wireLobby(){
     leaveGame();
   };
   $("scPause").onclick=togglePause;
-  $("scTimerToggle").onclick=toggleTimer;
   $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};

@@ -593,8 +593,9 @@ export function checkRingMovesWithShip(root) {
 // a gate that is green against a declaration anyone can read the holes in — a reviewable statement,
 // not an accident. Widening the declaration to cover a renderer that is still host-only turns this
 // back into the reassuring kind of gate; do not do it.
+// watchClock left with the shot clock (2026-08-28) — eight listeners now.
 const LISTENERS = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBattle",
-                   "watchDraftPrompt","watchClock","watchTurnOrder","watchRecoveryState"];
+                   "watchDraftPrompt","watchTurnOrder","watchRecoveryState"];
 
 // Renderers this gate tracks. `shared:true` means a listener must be able to reach it;
 // `shared:false` is a DECLARED GAP — still host-loop-only, with the stage that closes it named.
@@ -1113,7 +1114,7 @@ function drill() {
      names, because the assertion's own anti-vacuity guard refuses to report against a tree it
      cannot parse — which is the property drill 6c exists to prove. */
   const NINE = ["watchEvents","watchPrompt","watchNarr","watchFlip","watchBattle",
-                "watchDraftPrompt","watchClock","watchTurnOrder","watchRecoveryState"];
+                "watchDraftPrompt","watchTurnOrder","watchRecoveryState"];   // eight since the clock left; name kept so the fixtures read
   // pad each body so the whole listener set clears the 500-char floor without any real call in it
   const orchFixture = (bodies) => NINE.map((w) =>
     `export function ${w}(){\n  const pad="${"x".repeat(70)}";\n  ${bodies[w] || ""}\n}\n`).join("\n");

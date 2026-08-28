@@ -89,8 +89,6 @@ if (typeof window !== "undefined") {
     onLogDecision: orchestrator.logDecision,
     onBeginGame: orchestrator.beginGame,
     onBroadcastFlip: orchestrator.broadcastFlip,
-    onBroadcastClock: orchestrator.broadcastClock,
-    onExpireShotClock: orchestrator.expireShotClock,
     onTogglePause: orchestrator.togglePause,
     onCreateRoom: orchestrator.createRoom, // UI-05: "Host a Crew" creates the room directly
     onNetBroadcast: orchestrator.netBroadcast,

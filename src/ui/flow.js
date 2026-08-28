@@ -58,8 +58,8 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, armClock, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
-  decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
+  decisionIsLocal, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
@@ -201,7 +201,7 @@ export function localAsk(msg,opts,colors,sub,extra){
       // THE TAP IS THE FLIP — playtest 22 (Wyatt: "the coin disappears, the word FLIP remains,
       // which looks messy and bad, then after a second or two the coin starts to flip"). The spin
       // used to arrive only from the far side of this promise: localAsk resolves, ask()'s
-      // withShotClock wrapper resolves, and only then does humanFlip call broadcastFlip("spin").
+      // (formerly clock-)wrapped promise resolves, and only then does humanFlip call broadcastFlip("spin").
       // None of that is a deliberate pause, so the gap is scheduling latency — the same thing this
       // build has been caught losing whole timers to — and until it landed the coin sat blank with
       // a stale caption on it. There is no state between armed and spinning, so the tap paints the
@@ -579,10 +579,10 @@ export function sailHighlightRect(c,cellPx,svg){
 // channel. Knows nothing about Firebase, promises or seats: it imports nothing from src/net/, by
 // construction (T-02.15-01) — the local caller below never lets this renderer anywhere near a
 // writer, which is what keeps a solo game (db===null) alive on this path.
-// Returns its own teardown so a caller that owns a shot clock (localPickCell only — activePickCleanup
-// stays a LOCAL-caller concern, per Task 3's ruling: registering it on the guest tier too would be a
-// behaviour change on a path only the host's own shot clock reads) can register it and abandon an
-// unanswered prompt without waiting for or forcing this renderer's own promise.
+// Returns its own teardown so a caller that needs to abandon an unanswered prompt can do so
+// without waiting for or forcing this renderer's own promise. (While the shot clock lived, its
+// expiry was the one registered caller — activePickCleanup, a LOCAL-caller concern; the clock
+// left 2026-08-28 and the teardown return survives it for the clock's return.)
 export function renderPickPrompt(spec,answer){
   const svg=$("board"),hs=[];
   appState.currentPrompt=spec;
@@ -666,7 +666,6 @@ export function pickCell(p,cells){
   // and wired it to the recipe draft; this per-turn line never got it. Fire-and-forget, so it meets
   // the flag's stated safety condition (see stageFlash's note: a wait line must never be awaited).
   netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}],{wait:true});
-  armClock(p.idx);
   /* EVERY CAPTAIN'S SQUARES ARE CHECKED, NOT JUST THE ONES ON THIS DEVICE. G6 (Wyatt-approved
      2026-07-30) is "yes, build this check and apply it to all situations", and it was applied to
      one: sailSelfCheck ran inside localPickCell, so it covered a captain whose decision is LOCAL
@@ -689,8 +688,7 @@ export function pickCell(p,cells){
   const spec={kind:"pick",cells,msg:sailPickMsg(p.idx,cells),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
   const base=decisionIsLocal(p.idx)?localPickCell(p,spec)
     :netHandlers().onRemotePrompt(p.idx,spec);
-  const cellP=withShotClock(p.idx,base,null);
-  return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
+  return base.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
 /* ================= the bake-off's decision seam =================
 
@@ -844,13 +842,10 @@ export function localPickCell(p,spec){
   const pre=ffEndNow();
   if(pre)return pre.then(()=>localPickCell(p,spec));
   return new Promise(res=>{
-    // activePickCleanup is a LOCAL-caller concern, exactly as it was before this task: the host's
-    // own shot clock (expireShotClock, src/orchestrator.js) reads it to abandon an unanswered
-    // prompt's DOM without waiting for or forcing this promise. It is renderPickPrompt's own
-    // teardown, returned — registering it on the guest tier too would be a behaviour change on a
-    // path only the host reads, which tonight's pure-plumbing constraint forbids.
-    const teardown=renderPickPrompt(spec,v=>{appState.activePickCleanup=null;res(v);});
-    appState.activePickCleanup=teardown;
+    // The activePickCleanup registration stood here — the shot clock's expireShotClock was its
+    // ONLY reader (inventory D4), so the registration left with the clock 2026-08-28. The
+    // renderer still returns its teardown; nothing registers it until the clock's return does.
+    renderPickPrompt(spec,v=>{res(v);});
   });
 }
 // v2 rules 2 and 8 delete three v1 helpers outright rather than leaving them dormant:
@@ -2305,7 +2300,7 @@ export async function humanTurn(p){
   await passGate(p.idx);
   applyActiveSeat(p.idx); // ...and again after the gate, exactly as setActor was called before it
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
-  // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
+  // flag only ever got cleared by the clock's arming deep inside a decision, too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
   // fresh the moment a new human turn actually begins
   appState.turnExpired=false;
@@ -2325,7 +2320,7 @@ export async function humanTurn(p){
   await flash(neutralBanner,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
-  // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
+  // eats no time. (Each ask()/pickCell() call re-armed it fresh while the clock lived.)
   if(appState.turnExpired){appState.activeTurnSeat=null;appState.recipeRevealed=false;return;}
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
@@ -2359,7 +2354,6 @@ export async function humanTurn(p){
   if(!appState.game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
   appState.recipeRevealed=false; // the TURN is over — the reveal ends with it (playtest 18: no mid-turn re-locks)
-  stopShotClock();
   appState.activeTurnSeat=null;
   // refresh now, not at the next turn's render — otherwise this seat's "check my recipe"
   // button sits frozen (blurred but visible) behind the next pass-the-device screen
