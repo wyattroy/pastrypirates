@@ -245,3 +245,32 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
 - **answer:** "i want the page's 5-gradient background to show up behind it. On all screen widths, including phone." *(Wyatt, 2026-08-28, with a screenshot marking four strips of flat blue either side of the board and the captains box)* — SHIPPED the same hour; the gradient rule left @media(min-width:601px) and the flat #3d7d99 is gone at every width.
 - **resolved:** 2026-08-28
 
+
+## Q-15 — PARKED BY WYATT 2026-08-28: a hook that fires when a session is about to read something bulky
+
+**His ask that raised it:** *"are you compressing your context as efficiently as gsd would? if not,
+could we add that behavior to one of our team (eg ceo or the agent that keeps ceo running?)"* — and,
+earlier in the same message, *"compress your context more aggressively so you don't get stupid and
+stale."*
+
+**What was answered, and what shipped:** GSD compresses harder, and by one specific habit — its
+commands are orchestrators that spawn subagents to do the READING, write an artifact to disk, and
+return a paragraph. The main thread never sees the 400 lines. The CTO does that for the CEO and not
+for its own work. **The half that shipped** is check 5 in `scripts/qa/ceo_brief.mjs` (commit
+`b2d43644`): every reviewer is now asked to name bulk reading done in the main thread that a
+subagent could have done — with the exceptions stated as exceptions so it cannot punish the right
+behaviour (Wyatt's own words and screenshots, the rendered game, a file being actively edited).
+
+**The parked half:** a PreToolUse hook in the shape of `qa-gear-first.cjs` — fires the first time a
+session is about to read a file over ~200 lines, names the subagent alternative, lets it proceed.
+That is the only form of this rule the project has ever made stick; a line in CLAUDE.md is the form
+it has watched fail five times (§5's GSD rule, rule 21's uninstallable health check, "ask with the
+question UI" repeated daily, "CEO after every item" said three times, HARD-WON-LESSONS §0).
+
+**Why parked, in his words' spirit rather than mine:** he chose *"not now"* over building it, so the
+CEO check can produce EVIDENCE about how often this actually happens before machinery is built for
+it. That is the right order and it is the opposite of what happened on 2026-08-19, when a hook was
+built during a fix window and the game got no better (rule 7).
+
+**What would un-park it:** two or more CEO verdicts naming real instances. Build it against those,
+not against a guess.
