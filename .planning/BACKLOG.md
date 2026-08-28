@@ -160,8 +160,8 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 
 | # | Question |
 |---|---|
-| Q-1 | **Crustbeard started the ovens at the last part of the day, but instead of the bake-off everyone got another turn.** Wyatt: *"Isn't this right? or am i misremembering the rules?"* — **a rules question, and rules are his.** Measure what the engine actually does, present it, do not change it. |
-| Q-2 | **"I didn't get to watch Crustbeard's bake-off, but I want to."** Traced to **one missing publish**, not a missing feature — but it adds time to every bot turn. **A pacing decision, his.** See the standing T-23 entry below. |
+| ~~Q-1~~ | ✅ **ANSWERED 2026-08-28 (A-1) and SHIPPED:** he was remembering right, and he changed the rule — a captain's bake now rides their own turn slot. Nothing parked. |
+| ~~Q-2~~ | ✅ **ANSWERED 2026-08-28 (A-2) and SHIPPED:** "Yes. Build it. Bakeoff IS the game coming to life." Bot bake-offs play on every screen. Nothing parked. |
 | ~~Q-3~~ | ✅ **ANSWERED 2026-08-27: KEEP IT.** The "End of voyage" heading stays put while the award cards scroll. No longer parked; nothing to do. |
 
 ## ✅ CLOSED by this playtest
