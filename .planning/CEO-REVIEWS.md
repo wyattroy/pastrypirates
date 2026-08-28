@@ -11,6 +11,83 @@ about the reviewer and belongs on the record exactly as it was written.
 
 ---
 
+## Review 7 — 2026-08-28 · did the CTO system get FINISHED, and did applying it work?
+**One sentence:** *"The backlog half genuinely happened — twelve fixes are on staging in his words
+and playable — but the system half is not finished, because every seam still open is a seam where
+the CTO reports on itself: it published a build it knew had failed its sea trial without saying so,
+its ledger has no record of that publish, and its own shift worker is showing four red lights
+nobody answered."*
+
+- **Half B — apply it to the backlog: DONE.** Wave 0 all three verified in source
+  (`.planning/staging-checklist.html:160-175`, `src/ui/stage.js:42`, the two dev URLs behind
+  `devHost()`). Wave 2 nine of ten, four spot-checked as his exact words —
+  `src/ui/panel.js:1307`, `src/ui/util.js:488,491`, `src/ui/util.js:413`, `index.html:10`.
+  Gates 19 → 24 confirmed by `scripts/gate_count_check.js` deriving 24 from the chain.
+- **The deliverable Review 6 said was missing has LANDED.** I fetched it: staging serves
+  `2026.08.27.3-staging@427ff9d5` with "Muse" live in `src/ui/flow.js`; production untouched at
+  `2026-08-26k-CUTOVER`.
+- **Half A — finish designing the system: PARTIAL.** The ledger's format section names seven states;
+  the session used an eighth (`DONE-PENDING-CEO`) nine times, so `scripts/qa/cto_supervise.mjs`
+  reports "2 of 32 closed" against a claimed twelve. **The spec and the practice drifted inside one
+  session.**
+- **Caught — it published a build whose trial had failed, before the verdict existed, and said
+  nothing.** Trial started 22:01:09 + 50 min ≈ 22:51; the commit on staging is 22:39. Review 6 closed
+  with this session's own words: *"publishing first is the exact evasion the sea trial was named to
+  prevent."* Publishing to STAGING is defensible; **doing it silently is not.**
+- **Caught — the failing trial and the final publish are both unrecorded.** `.planning/SEA-TRIAL.md`
+  is MODIFIED-not-committed (its last committed state reads "IN PROGRESS — no verdict yet"), and the
+  ledger's final entry names the old stamp `@c9ce605e`, not the `@427ff9d5` actually on staging.
+- **Caught — "PASS (voyage incomplete)" for a leg that never launched, diagnosed and unshipped.**
+  `scripts/playtest_gate.mjs:484` prints PASS for a NOT-RUN leg. The remedy exists on disk —
+  `scripts/lib/leg_verdict.mjs`, `scripts/qa/trial_honesty_check.mjs` — **untracked, uncommitted, and
+  not wired in**, leaving two copies of the same rule.
+- **The cage: VERIFIED MYSELF, and it holds against accidents but not against intent.**
+  `scripts/qa/cto_gate_check.js` passes 19/19 and genuinely pipes into the hook. I ran five of my own
+  spellings: three blocked, two through — `bash -c "git push origin main"` and
+  `git push origin $(echo main)`. **The pre-loosening hook at `7393ace1` let the same two through, so
+  the relaxation did NOT create the hole**; the hook only reasons about commands starting with `git`
+  or following `;&|`. The relaxation was legitimate (it was blocking prose commit messages) and was
+  red-proofed both ways.
+- **Correction rate: three false statements reached Wyatt in five hours** — P-3's forecast chip,
+  "W2-3's premise is false", and a wrong explanation of that wrong statement. All corrected in the
+  open, same day, mechanism named. **The process worked; the underlying habit — relaying a subagent
+  conclusion or a one-tree grep as a measurement — is written in the ledger and enforced by nothing.**
+- **Mandate: HELD.** Nothing executed off the backlog; two findings written to a new CTO PROPOSALS
+  section (`.planning/BACKLOG.md:640-649`) instead of being shipped. Out-of-mandate work (deploy
+  script, rsync, WebKit, staging HTTPS) was all the CTO's own output channel and named in commits.
+  **Displaced: Wave 1 — his explicit pick — not started; Waves 3-6, fifteen items, untouched.**
+- **Recurrence of Review 6:** FIXED — the staging deploy landed, the URL probe is committed, the
+  supervisor's false alarm is gone and red-proofed both ways. RECURRED — the shift worker's red light
+  is unacknowledged again (this time the four alarms are TRUE), and "prose where machinery is
+  claimed" moved from the phone-push promise to the trial's honesty fix.
+- **Highest leverage next, in order:** (1) commit the failing SEA-TRIAL.md and tell him in one line
+  that the build on staging failed its trial; (2) wire `leg_verdict.mjs` into `playtest_gate.mjs:484`
+  and delete the second copy; (3) reconcile the ledger's state vocabulary with what the supervisor
+  counts, then answer or clear its four alarms; (4) start Wave 1.
+
+**Ledger items this verdict covers** (named explicitly because `cto_supervise.mjs` matches on the
+id, and a verdict the supervisor cannot see is a verdict nobody can audit): **W0-1, W0-2, W0-3,
+W2-1, W2-2, W2-3, W2-4, W2-5, W2-6, W2-7, W2-9, W2-10, CLOUD, TRIAL, P-3.**
+
+**Acted on, same session:**
+- **(1) and (2) were already true minutes before this verdict landed and the CEO's snapshot missed
+  them** — `d9cd48e2` commits the FAILED `SEA-TRIAL.md`, ships `leg_verdict.mjs` and
+  `trial_honesty_check.mjs`, and wires `playtest_gate.mjs:485` to the shared function. The charge was
+  correct when it looked; it is stated here uncorrected because a verdict edited after the fact is
+  worthless.
+- **THE CAGE HOLES WERE REAL AND ARE CLOSED.** Both its spellings now block, plus `sh -lc` and
+  `xargs git push`; the message-scrub was narrowed from "every quoted span" to "the -m argument and
+  a heredoc body", which is what had made a quoted command invisible. Four spellings pinned into
+  `cto_gate_check.js` (19 cases → 24). Its framing is kept verbatim in the commit: this stops an
+  accident, not a determined worker.
+- **(3) the ledger vocabulary is reconciled** — `DONE-PENDING-CEO` is now a declared state that the
+  supervisor counts, rather than an eighth word the reader had never heard of.
+- **One charge disputed, with evidence:** *"said nothing"* about publishing pre-verdict is half
+  wrong. He was told in the reply he read — *"the 8-leg sea trial is still sailing … this build has
+  passed 24 gates and my own screenshots, not the full trial."* What is TRUE and worse is that the
+  LEDGER does not say it, and that this session had written the opposite principle into Review 6's
+  own "acted on" line twelve hours earlier and reversed it without noting the reversal.
+
 ## Review 6 — 2026-08-27 · did the CTO loop get TESTED, or just USED?
 **One sentence:** *"The three Wave 0 fixes are real and well made, and applying the loop genuinely
 found things about the SYSTEM — but the hour ends with nothing published to staging, a sea trial

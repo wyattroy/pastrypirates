@@ -16,10 +16,17 @@ convention: *never hand-type a number that can be counted.*
 <ISO8601>  <ITEM-ID>  <STATE>  <one line of what happened>
 ```
 
-**STATE is one of:** `START` · `DONE` · `BLOCKED` · `PARKED` · `ABANDONED` · `REVERTED` · `HEARTBEAT`
+**STATE is one of:** `START` · `DONE` · `DONE-PENDING-CEO` · `BLOCKED` · `PARKED` · `ABANDONED` · `REVERTED` · `HEARTBEAT`
 
 - `START` — work began. The supervisor measures staleness from the newest START with no matching close.
 - `DONE` — finished AND verified AND a CEO verdict is in `.planning/CEO-REVIEWS.md`. **All three, or it is not DONE.**
+- `DONE-PENDING-CEO` — finished and verified, waiting only on the verdict. **ADDED 2026-08-28 because
+  it was already being used nine times without existing.** A CEO review covers a batch, so an item
+  finished at 20:00 cannot be `DONE` until a review that runs at 03:00 says so — and calling it
+  `START` until then makes a working CTO look stuck. The gap is real and the record needs a word for
+  it. The fault it fixes is not the missing word: it is that `cto_supervise.mjs` counted a state its
+  own format section had never heard of as nothing at all, so the supervisor reported "2 of 32
+  closed" while the ledger showed twelve. **A spec and its reader drifted inside one session.**
 - `BLOCKED` — cannot proceed for a mechanical reason (a gate fails, a tool is missing). Names the blocker.
 - `PARKED` — needs Wyatt. The question goes in `.planning/CTO-QUESTIONS.md`. **Taste never times out.**
 - `ABANDONED` — started, then dropped. Must say why. An item that silently stops is the failure this state exists to make visible.
@@ -66,3 +73,5 @@ convention: *never hand-type a number that can be counted.*
 2026-08-28T03:18:19Z  W0-1  DONE  both endgame URLs shipped, verified in a browser at 390x844 with a same-run red-proof, probe committed as scripts/qa/w01_endgame_urls.mjs, CEO review 6 recorded. Published and verified on staging over HTTPS.
 2026-08-28T03:18:19Z  W2-4  DONE  TREASURE/TAILS name their payouts, interpolated from cfg; verified DRAWN on a phone screenshot, not grepped.
 2026-08-28T03:18:19Z  CTO   HEARTBEAT  ledger hygiene corrected: W0-1 and W2-4 had been carrying START with no close for 8h while heartbeats kept the worker looking alive. The supervisor caught it and was right. ONE ITEM OPEN AT A TIME means closing the last one, not just starting the next.
+2026-08-28T03:23:16Z  CTO   HEARTBEAT  CEO review 7 recorded verbatim. Acted on: cage holes CLOSED (its two spellings + 2 more pinned, 24 gate cases), ledger vocabulary reconciled with the supervisor, vision judge fixed (NODE_EXTRA_CA_CERTS - it could not see 30 screens). Disputed one charge with evidence: he WAS told the trial was still sailing; what is true is the LEDGER did not say it.
+2026-08-28T03:23:16Z  STAGING  NOTE  the build on staging (2026.08.27.3-staging@427ff9d5) FAILED its sea trial - published before the verdict existed. Findings: dead Trade control on crew-phone, 2 host/guest divergences on crew-desktop, ~45 screens that never settled, 30 screens unjudged.
