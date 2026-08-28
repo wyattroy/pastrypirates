@@ -38,8 +38,20 @@ function extractJSON(text) {
 export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", timeoutMs = 120000 } = {}) {
   const prompt = `${RUBRIC}\n\nContext (informational only, does not change the rules): ${context}\nRead the image file at ${imgPath} and judge it.`;
   return new Promise((resolve) => {
+    /* THE JUDGE MUST TRUST THE PROXY'S CA, OR IT CANNOT SEE ANYTHING.
+       Measured 2026-08-27: in a cloud container every judge call died with
+         "API Error: Unable to connect to API: Self-signed certificate detected."
+       and the trial fell back to its queue — **30 screens went unjudged in one run**, reported as
+       DEFERRED rather than passed, which is the honest behaviour and still means the eyes never
+       opened. Cloud sessions route HTTPS through a policy proxy that re-terminates TLS, so the
+       child process has to be told where the bundle is; the parent's own trust does not inherit.
+       FEATURE-DETECTED, never assumed: the file exists in a container and not on Wyatt's Mac, so
+       this is a no-op on the laptop rather than a second thing to keep in step. */
+    const CA = "/root/.ccr/ca-bundle.crt";
+    const env = { ...process.env };
+    if (!env.NODE_EXTRA_CA_CERTS && fs.existsSync(CA)) env.NODE_EXTRA_CA_CERTS = CA;
     const child = execFile("claude", ["-p", prompt, "--model", model, "--output-format", "json"],
-      { maxBuffer: 8 * 1024 * 1024 }, (err, stdout) => {
+      { maxBuffer: 8 * 1024 * 1024, env }, (err, stdout) => {
         if (err && !stdout) return resolve({ verdict: "ERROR", issues: ["vision call failed: " + String(err.message || err).slice(0, 120)], confidence: 0 });
         let text = stdout;
         let outer = null;
