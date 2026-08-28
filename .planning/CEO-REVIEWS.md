@@ -6,6 +6,12 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 10 — 2026-08-28, "CEO after every item" recorded durably (small item, short verdict) — VERBATIM
+
+YES — the thing you asked for happened. Your order is now written in the two places every session is forced to read: the rulebook that loads into every session (`.claude/CLAUDE.md`, lines 417–425, directly inside the CEO rule) and the top of the CEO brief itself (`.claude/CEO-BRIEF.md`, lines 5–11), and both say the same thing in plain terms — every item you ask for closes with its own fresh CEO verdict, written into the record before the next item starts, and a batch review at the end is named as the failure, not an option. Both quote you word for word, twice, so the next session also learns this is the second time you had to say it. One caution: this repo's strongest rules are enforced by machinery that physically interrupts a session, and this one is still only words on a page — words that have now failed you twice. If a third session batches its reviews anyway, the next step is a mechanical fence (a check that notices work landing while the review file sits untouched), and I would not wait for a fourth occurrence to build it.
+
+*(Session note: the fence was built the same hour, on this verdict — `.claude/hooks/ceo-cadence-fence.cjs`, wired beside the existing commit hooks: it interrupts when game-code commits keep landing while `.planning/CEO-REVIEWS.md` sits untouched.)*
+
 ## Review 9 — 2026-08-28, the A-1..A-13 batch (ledger item W1B) — VERBATIM
 
 ### 1. Item by item — did each thing happen?

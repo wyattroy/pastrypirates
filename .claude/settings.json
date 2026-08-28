@@ -43,6 +43,10 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-gear-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Which QA gear is this change in? (docs/QA-PROCESS.md)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
           }
         ]
       }
