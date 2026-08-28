@@ -245,6 +245,19 @@ export function watchChat(){
   });
 }
 
+/* FORK 3, STEP A (W1, 2026-08-28) — THE PUBLISH LEAVES THE RENDERER. renderBattle used to write
+   the wire from inside itself; watchBattle's host guard existed purely to stop the host reading
+   its own write (the fork-3 map's ECHO LOOP landmine). This is benchPublish/applyBenchSnap's
+   shape: LOCAL RENDER ALWAYS, then the write under its own Rule A guard. Every scoreboard moment
+   in the host loop now goes through here; renderBattle stays reachable directly only for the
+   GUEST's render path (renderBattleFromSnap via the handler table), which must never publish.
+   Gate: scripts/qa/battle_publish_seam_check.mjs. */
+export function battlePublish(o){
+  renderBattle(o);
+  // broadcast the read-only scoreboard (never buttons) so every connected client — not just
+  // whoever's deciding — sees the same battle unfold in real time
+  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
+}
 // The battle scoreboard: names, a static result circle per fighter, and pips. The coin never
 // spins here — every flip in the game (battles included) physically happens on the shared
 // flippenator; this just displays whatever it last landed on for each fighter.
@@ -292,9 +305,6 @@ export function renderBattle(o){
     <div class="btl-wind">${windTag}</div>
     ${battleFooter(o)}
   </div>`,!!o.prompt);
-  // broadcast the read-only scoreboard (never buttons) so every connected client — not just
-  // whoever's deciding — sees the same battle unfold in real time
-  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
 }
 // battleSnapshot/renderBattleFromSnap moved verbatim to src/ui/flow.js (11-05).
 
@@ -466,7 +476,7 @@ export function watchBattle(){
     if(v){
       // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
       // trigger — this callback fires on every write to the battle node (many times per fight,
-      // once per renderBattle()), so without the read-then-assign order the clash would re-fire
+      // once per battlePublish()), so without the read-then-assign order the clash would re-fire
       // on every scoreboard update instead of once per battle.
       //
       // `!v.title` — REWRITTEN 04-01 Task 3 TO SAY WHAT IT NOW DOES rather than what it was left
@@ -522,18 +532,18 @@ export function battleAsk(p,o,msg,opts,colors){
     idxP=new Promise(res=>{
       if(isFlip){
         // the scoreboard just shows state — the flippenator is the actual control
-        renderBattle(o);
+        battlePublish(o);
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
       }else{
-        renderBattle(Object.assign({},o,{prompt:{msg,opts,colors}}));
+        battlePublish(Object.assign({},o,{prompt:{msg,opts,colors}}));
         $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{
           b.onclick=()=>res(+b.dataset.i);
         });
       }
     });
   }else{
-    renderBattle(Object.assign({},o,{waiting:pn(seat)}));
+    battlePublish(Object.assign({},o,{waiting:pn(seat)}));
     idxP=remotePrompt(seat,{kind:"ask",msg,labels:opts.map(x=>x.label),
       colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
       flip:isFlip,battle:battleSnapshot(o)});
@@ -563,7 +573,7 @@ export function battleAsk(p,o,msg,opts,colors){
    attacked at all, so there is always a crate to take.
 
    `need` is gone along with the scoreboard race: the battle-UI's a/d counters now only ever read
-   0 or 1, and exist so the shared renderBattle() scoreboard keeps working unchanged. */
+   0 or 1, and exist so the shared battlePublish() scoreboard keeps working unchanged. */
 /* THE CAMERA IS ARMED AND DISARMED AROUND THE WHOLE FIGHT, not around the battle card, because a
    battle asks its questions before the card exists — collectSideBets runs first, and playtest 22
    found the crow's-nest call being made with the camera parked on the caller's own boat (Wyatt:
@@ -620,12 +630,12 @@ async function asyncBattleRun(att,def){
     // playtest 11: the battle card's own coin spins through the beat — before this, only the
     // (hidden-under-the-stage) flippenator got the spin state and the card coin jumped
     // wait -> face with no motion at all
-    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));
     await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
     // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
     // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
     await sleep(FLIP_LAND_HOLD_MS);
@@ -635,25 +645,25 @@ async function asyncBattleRun(att,def){
   const bFlip=async(side,p,extra)=>{
     extra=extra||{};
     const key=side==="a"?"atState":"dfState";
-    renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
-    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
+    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
     await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
-    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
+    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
     await sleep(FLIP_LAND_HOLD_MS);   // playtest 13 / T-34: the landed face holds, same as every other flip
     broadcastFlip("wait");
     return h;
   };
   // ---- THE round ----
   round=1;
-  renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
+  battlePublish(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
   await sleep(beat*0.5);
   const ah=hA?await hFlip("a",att,`⚔️ ${nm(att.idx)} (attacker) — fire!`,{dfState:"wait"}):await bFlip("a",att,{dfState:"wait"});
-  renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
+  battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
   await sleep(beat*0.6);
-  renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"d",
+  battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"d",
     result:`${nm(att.idx)} shows ${ah?"HEADS":"TAILS"} — ${nm(def.idx)} must answer…`}));
   await sleep(beat);
   const dh=hD?await hFlip("d",def,`⚔️ ${nm(att.idx)} attacks ye — defend! FLIP`,{atState:ah?"H":"T"}):await bFlip("d",def,{atState:ah?"H":"T"});
@@ -678,7 +688,7 @@ async function asyncBattleRun(att,def){
   // @copy misc.battleline.bothmiss
   else rmsg=`<span class="cancel">Both miss — ⚫ TAILS all round.</span>`;
   rounds.push([ah?1:0,dh?1:0,0,scorer]);
-  renderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
+  battlePublish(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
   await sleep(hold);
 
   if(!winner){
@@ -731,10 +741,10 @@ async function asyncBattleRun(att,def){
         rounds.push([rh?1:0,null,0,rh?"a":null]);
         if(rh){a++;winner=att;
           // @copy misc.battleline.refirehits
-          renderBattle(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:`<span class="score">The second broadside tells — ${nm(att.idx)} lands it!</span>`}));
+          battlePublish(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:`<span class="score">The second broadside tells — ${nm(att.idx)} lands it!</span>`}));
         }else{
           // @copy misc.battleline.refiremisses
-          renderBattle(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">The shot goes wide.</span>`}));
+          battlePublish(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">The shot goes wide.</span>`}));
         }
         await sleep(hold);
       }
