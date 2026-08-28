@@ -90,6 +90,20 @@ export async function judgeAll(items, { concurrency = 3, model = "claude-sonnet-
       if (fatal) return;
       const i = next++;
       results[i] = await judgeScreen(items[i].path, items[i].context || "", { model });
+      /* A TRANSIENT TLS FAILURE IS NOT AN EXPIRED LOGIN. Measured on the 2026-08-28 trial: the
+         SAME run judged dozens of screens and then hit "Self-signed certificate detected" three
+         separate times — with NODE_EXTRA_CA_CERTS correctly inherited (verified in the parent
+         env), so the proxy's TLS interception simply hiccuped. Treating one hiccup as FATAL
+         deferred 45 judged-able screens to the queue. So a cert-flavoured FATAL gets exactly TWO
+         bounded retries with a short breath between; a FATAL that repeats or is not cert-flavoured
+         (expired OAuth, missing CLI) still stops the whole pass, because there every further call
+         genuinely fails the same way. */
+      if (results[i] && results[i].verdict === "FATAL" && /certificate|SSL|TLS/i.test(String(results[i].issues && results[i].issues[0] || ""))) {
+        for (let r = 0; r < 2 && results[i].verdict === "FATAL"; r++) {
+          await new Promise(w => setTimeout(w, 3000 * (r + 1)));
+          results[i] = await judgeScreen(items[i].path, items[i].context || "", { model });
+        }
+      }
       if (results[i] && results[i].verdict === "FATAL" && !fatal) fatal = results[i];
       if (onEach) onEach(items[i], results[i], i);
     }
