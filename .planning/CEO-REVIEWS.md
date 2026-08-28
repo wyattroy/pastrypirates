@@ -6,6 +6,49 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 8 — 2026-08-28, the Wave 1 window (one game activity engine) — VERBATIM
+
+**One sentence to read first:** *The convergence you asked for genuinely happened — one engine now feeds both screens, the clock is out cleanly, and nothing shipped to production — but the checklist you are about to read contains one false sentence: "crew-phone finished the voyage — both screens, identical End of Voyage" is proven by screenshots of the PREVIOUS build, and on THIS build that leg stalled at day 8 for 28 minutes and nobody knows why.*
+
+### 1. What you asked for, item by item
+
+**"Both host and guest listen to one game activity engine" — MOSTLY DONE, honestly labeled.** I read the code, not the report. There is now one function that draws every game event for everybody — `consumeEvent` at `src/orchestrator.js:1460`. The guest's Firebase listener hands events to it (`src/orchestrator.js:1505`); the host's loop hands events to it (`src/ui/panel.js:199`), and the host's separate drawing code is genuinely deleted, not wrapped. Same for prompts: one renderer, `renderAskPrompt` at `src/ui/flow.js:201`, called by the host's path (`flow.js:270`) and the guest's path (`orchestrator.js:1563`). Same for the recipe draft and intro cards: one dispatcher (`flow.js:2618`), and your two opposite pass-and-play decisions both survived inside it — the intro shows once to the table, the secret recipe pick still walks each seat behind the pass-the-device screen. The convergence deleted 618 more lines than it added, which is what real convergence looks like. All 31 automated gates pass (I ran them, exit 0), and each new gate was demonstrably run failing first — the failing runs are in the commit history, so the gates can actually fail. **Not done, and they said so:** the battle channel is only half-converged (step A of the map), and one small host/guest difference remains, correctly parked as your call (Q-13).
+
+**"Remove the shot clock, temporarily" — DONE.** The whole clock block is gone from `src/ui/util.js` (the tombstone comment at `util.js:1849` names every removed function), the design decisions it carried are pointed at in git history for its return, and Rule C is retired with a return path (`docs/DISPLAY-RULES.md:320`). **Pause survived** — I traced it: `applyPauseState` (`util.js:1867`), the flag every sleep stalls on (`flow.js:80`), the networked path (`orchestrator.js:174`). But pause was never pressed in any trial — checklist row 3 correctly hands that to your fingers.
+
+**"Include the bakeoff" — DONE as verification, no new code.** The bake channels were already converged in an earlier phase; this session changed zero bakeoff lines and its events now ride the one consumer like everything else. That is the right answer, not a dodge.
+
+**"Re-sail the trial first" — DONE, in the right order.** The full 8-leg re-sail on the old build finished and its verdict was committed at 05:14; the first game-code change is 05:36. Your order was followed to the minute.
+
+**"CEO and mentor running for this" — NOT DONE as ordered.** `.planning/CEO-REVIEWS.md` contains no Review 8. The ledger promised "CEO after every item" at 04:14 and then marked items DONE with no verdict recorded — the ledger's own definition of DONE requires one. I am the first CEO to see this work, at the end, not during. The project's own rule applies: a verdict nobody recorded is a recurrence check nobody can run.
+
+### 2. What you did not ask for
+
+Almost nothing — this window stayed on the mandate unusually well. The new gates, the four parked questions (Q-10..Q-13, each written with a default and none deciding taste for you), and the checklist are the standing process, not substitution. Production is untouched — I curled it: `2026-08-26k-CUTOVER`. Staging serves `2026.08.28.1-staging@9179ff66`, deployed after the trial verdict this time, not before.
+
+### 3. The claim the repo does not support — this is the bad news
+
+The ledger's final entry and the checklist you will read (`.planning/staging-checklist.html:90`) both say crew-phone **"finished the GAME (host+guest EOV IDENTICAL)"** and blame the failure on **"the test rig running out of computer, not the game."** I checked the evidence behind that sentence and it is the wrong evidence:
+
+- The two End-of-Voyage screenshots eyeballed (`sea-trial-shots/crew-phone-{host,guest}-eov.png`) were written at **05:02** — more than an hour **before** this build's trial launched at 06:12. They are the **previous build's** voyage.
+- The pictures prove it themselves: both show the **⏱ "off" chip** in the top ribbon — a chip this very wave deleted (`src/ui/stage.js:1103`). They also read **DAY 23** where the ledger typed "day 18." Nobody checked which run the pictures came from.
+- What actually happened on this build (`sea-trial-shots/log.txt`, the second run): crew-phone advanced a day roughly every 40 seconds up to DAY 8, then advanced **zero days for the next 28 minutes** and timed out. The "CPU contention" explanation fails too: every other leg was finished or dead by minute 46, leaving crew-phone ~24 minutes on a quiet machine. Its last live screenshot (06:54) shows an open trade prompt.
+
+So "6 of 8 full voyages" is really 5 of 8, and "no regression attributable to Wave 1" is not established for the crew-phone leg. It may well be a driver stall, not a game bug — crew-desktop and both pass-and-play legs finished cleanly on this build — but nobody has measured that, and the sentence handed to you asserts it as measured fact.
+
+### 4. The last verdict's faults — fixed, or recurred?
+
+**Fixed, verifiably:** publishing before the verdict (this deploy waited); the failed trial going unrecorded (the FAILED report is committed); "PASS" printed for a leg that never finished (this report honestly prints "FAIL (voyage incomplete)"); the ledger vocabulary drift (DONE-PENDING-CEO is now a declared state).
+
+**Recurred, in new clothing:** Review 7's closing line was that the underlying habit — *relaying a conclusion as if it were a measurement* — is "enforced by nothing." This window proves it: the crew-phone sentence is exactly that habit, and it reached the one document written specifically for your eyes. And the mechanism built to catch it — the per-item CEO you explicitly ordered — did not run.
+
+### 5. What to do with this
+
+Play staging with the checklist — the eleven rows are good, and rows 3 (pause) and 5 (guest dock-flip) genuinely need your fingers. But before trusting the "no regression" line, someone needs to run one crew game on two phones — or re-run just that leg — and watch whether it gets past day 8. That is a twenty-minute question, and right now it is open.
+
+---
+
+
 **APPEND ONLY. Newest at the top. Never edit an old verdict** — a review that was wrong is evidence
 about the reviewer and belongs on the record exactly as it was written.
 
