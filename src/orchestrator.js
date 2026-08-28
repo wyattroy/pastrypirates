@@ -1692,8 +1692,29 @@ export function watchPrompt(){
       const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
       const backHtml=backIdx>=0?backButtonHTML(backIdx):"";
       if(flipIdx>=0){
+        /* THE GUEST'S FLIP CEREMONY HAD NO WORDS, AND ITS COIN DID NOT SPIN. Both fixed here, and
+           both are the same fault: two orchestrations drawing one moment, so a fix made on the
+           host's path in playtest 22 never reached the guest's.
+
+           WORDS. `window.__pp4.flipMsg` is stamped in exactly two places, both in flow.js on the
+           HOST's local path. src/ui/stage.js writes `fm ? emojify(String(fm.m)) : ""` for the
+           ceremony title and the same for the stakes — so a guest got an EMPTY title over EMPTY
+           stakes for the whole ceremony. The wire already carried msg and sub; nobody assigned them.
+
+           THE SPIN. flow.js paints setFlipCoin("spin") inside the tap's own frame, which IS the
+           playtest-22 fix for Wyatt's "the coin disappears, the word FLIP remains, which looks
+           messy and bad, then after a second or two the coin starts to flip". A guest never called
+           it, so a guest still saw the fault the host had stopped seeing: blank coin, then a spin a
+           beat later when the host's broadcast landed. Idempotent, so the broadcast that follows is
+           a no-op — the same reasoning as the host's.
+
+           GUARDED ON !p.battle, AND THE GUARD IS THE POINT. stage.js falls back to "⚔️ Broadside!"
+           when `!fm && btl` — a battle flip borrows no words. Stamping unconditionally would
+           silently blank the battle ceremony's title. The battle sub-branch above already returns
+           before this line, so the guard is belt-and-braces rather than the only thing holding. */
+        if(!p.battle&&window.__pp4)window.__pp4.flipMsg={m:p.msg||"",s:p.sub||""};
         setNeedsAction(true);
-        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
+        setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);sendResponse(p.id,flipIdx);});
         if(backIdx>=0){
           // @copy prompt.net.promptrerender
           panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
