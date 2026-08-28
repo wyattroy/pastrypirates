@@ -393,6 +393,12 @@ the live one.** That is the real prize here, and it is a copy pass plus two deci
       **Until this exists there is no evidence the sea trial catches Wyatt's bugs.**
 - [ ] **Nothing gates the push.** A ~15-line `pre-push` hook could refuse game code without a
       completed sea trial for that build stamp — and would also dodge the post-push gear blindness.
+- [ ] **`ui_contract_check --drill` fails on its own COIN-NOBRK fixtures** (pre-existing at
+      9179ff66, verified via stash on 2026-08-28): drill 9's synthetic `battleflee`/`fish` fixtures
+      no longer match what `checkCoinParentheticalNobrk` expects, so the drill reports DRILL
+      FAILURE while the real-tree gate is green. The npm-test chain never runs `--drill`, so
+      nothing is red in CI — but it means those assertions' red-proof is currently unproven.
+      Re-anchor the fixtures to the current util.js/flow.js shapes.
 - [ ] **Red-proof meta-gate** — nothing verifies the 34 gates can go red. Only 5 of 42 scripts carry
       a `FAILURE DEMONSTRATION` header; it is a habit, not a gate.
 - [ ] **Trigger-fired lessons** — extend `.claude/hooks/` so a lesson arrives when you are about to
@@ -555,6 +561,18 @@ and Safari legs simply work. Left as Wyatt's call rather than writing into his h
 
 `menu:0/1` on every single leg — the game offers the menu and the driver never opens it, so nothing
 behind ☰ is being exercised at all. Several ingredient options sit at `0/2`.
+
+### T-23 — CLOSED 2026-08-28 (A-2, built and MEASURED)
+
+**Wyatt ruled it in: "Yes. Build it. Bakeoff IS the game coming to life."** The trace below held
+exactly: the one missing publish is now `botBakePerform` (`src/orchestrator.js`), publishing the
+same open/shuffle/pick moments through the same `benchPublish` a human's `onBench` uses, and
+`benchReveal` runs for every performed bake. Pacing derives from `bakeoff.js`'s own animation
+constants (`benchChoreoMs`/`BENCH_STUDY_MS`/`BENCH_BEAT_MS`). Gate:
+`scripts/qa/a2_bot_bake_watch_check.mjs`. The READ-NOT-MEASURED caveat was closed by a live solo
+probe: a bot's bench appeared titled "Crustbeard's Bake-Off", badges landed 0→5 one per beat, the
+verdict revealed, the card retired — screenshots read. (The publish also carries `spec.baker` now,
+closing the watcher half of T-25's title rule.) The original trace is kept below as the record.
 
 ### T-23 "nobody can watch a bot bake" — the mechanism, traced 2026-08-27 (READ, not measured)
 
