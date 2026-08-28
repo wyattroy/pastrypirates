@@ -1321,6 +1321,14 @@ export async function liveResolveEndNet(){
   appState.liveDone=true;
   playWinScreen(); // D-05: the host's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
   liveRender();
+  /* A STATE CHANGE IS NOT AN EVENT (found by the 2026-08-28 sea trial, both solo legs stuck on a
+     silent board with the voyage over). Since A-13 the drain consumes each event exactly once, so
+     the liveRender() above draws NOTHING here — the `end` event was consumed lines ago, while
+     liveDone was still false, and board.js's showStats gate re-hid the stats on that render. The
+     redraw for the FLAG has to be explicit, exactly as applyEndMeta (this function's guest twin)
+     has always done: liveDone=true, playWinScreen(), render(). one_event_consumer_check §5 holds
+     both twins to it. */
+  render();
   // The victory box that used to be flashed here is GONE, deliberately — do not restore it. Its
   // three pieces (the "wins!" line, the recipe picture, the Best Baker sentence) now render in the
   // gold End of Voyage banner via showStats(), which liveRender() has just called. Flashing them
