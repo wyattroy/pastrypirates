@@ -1,8 +1,8 @@
-# Sea trial — build `2026.08.27.3`
+# Sea trial — build `2026.08.28.1`
 
-**FAILED** — 8 of 8 voyage(s) sailed  ·  2026-08-28T04:10:12.447Z  ·  62 min  ·  gear **FULL**
+**FAILED** — 8 of 8 voyage(s) sailed  ·  2026-08-28T06:12:11.744Z  ·  75 min  ·  gear **FULL**
 
-> Gear chosen because: **FORCED ON THE COMMAND LINE — this overrode the mechanical picker.** Treat this report as weaker evidence than one whose gear was derived.
+> Gear chosen because: nothing uncommitted, so this reads what is AHEAD OF origin/main: about.html, index.html, package.json, src/engine/index.js, src/main.js, src/net/index.js, src/net/watchers.js, src/net/writers.js, src/orchestrator.js, src/shared/index.js, src/state/index.js, src/ui/audio.js, src/ui/bakeoff.js, src/ui/board.js, src/ui/flow.js, src/ui/panel.js, src/ui/stage.js, src/ui/util.js
 
 ## What ran
 
@@ -17,66 +17,66 @@
 ## The voyages, in full
 
 ```
-[3533s]   [solo-phone-wk] DAY 4
-[3555s] [solo-phone-wk] ERROR: s.replace is not a function
-[3555s] [solo-phone-wk] vision-judging 11 screen(s)…
-[3566s]   [judge FATAL] solo-desktop-wk-018-settled.png: the judge cannot run: API Error: Unable to connect to API: Self-signed certificate detected. Check your proxy or corporate SSL certificates
-[3571s] [solo-desktop-wk] !! the vision judge cannot run: the judge cannot run: API Error: Unable to connect to API: Self-signed certificate detected. Check your proxy or corporate SSL certificates
-[3571s] [solo-desktop-wk] falling back to the QUEUE — these 20 screen(s) are deferred, not cleared
-[3575s] [solo-desktop-wk] contact sheet: /home/user/pastrypirates/sea-trial-shots/contact-solo-desktop-wk.png
-[3691s] [solo-desktop-wk] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
-[3729s] [solo-phone-wk] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
-[3729s] 
+[2558s]   [solo-phone-wk] DAY 1
+[2565s]   [solo-phone-wk] note: still moving at the cap (2733ms) — checked anyway
+[2580s]   [solo-phone-wk] DAY 2
+[2612s]   [solo-phone-wk] DAY 3
+[2618s] [solo-phone-wk] ERROR: sig() could not read the page: page.evaluate: Target crashed 
+[2618s] [solo-phone-wk] vision-judging 8 screen(s)…
+[2651s] [solo-desktop-wk] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[2660s] [solo-phone-wk] contact sheet: /home/user/pastrypirates/sea-trial-shots/contact-solo-phone-wk.png
+[2775s] [solo-phone-wk] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[4212s]   [crew-phone-guest] TIMED OUT after 35 min without reaching the end of voyage
+[4212s]   [crew-phone-host] TIMED OUT after 35 min without reaching the end of voyage
+[4215s] [crew-phone] vision-judging 30 screen(s)…
+[4463s] [crew-phone] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)
+[4463s] 
 == solo-desktop: FAIL
-[3729s]    ✗ 6 screen(s) never stopped moving before being checked
-[3729s]    ✗ vision pass DEFERRED for 25 screen(s) — queued for a session, NOT cleared
-[3729s]    coverage: arrgh:2/2  snickerdoodle bitespillo:2/2  cinnamon dutch babya dra:0/2  start:1/1  sail square:23/23  trade:8/18  muse#:7/18  toasty wheat:2/7  coins only:2/8  slider:8/8  offer it:8/8  menu:0/1  crystal sugar:3/7  attack #:3/3  flip coin:4/4  fire again #:1/1  break off:0/1  cacao pods:1/4  speckled eggs:3/8  hot cinnamon:1/5  fresh milk:3/9  crustbeard:1/1  walk away:0/2  vanilla beans:2/4  dough hook:1/1
-[3729s] 
+[4463s]    ✗ vision judge FAILED 4 screen(s)
+[4463s]    ✗ 6 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:2/2  snickerdoodle bitespillo:2/2  cocoa cloud souffléan ai:0/2  start:1/1  sail square:15/15  trade:7/15  muse#:7/15  speckled eggs:1/8  coins only:3/7  slider:7/7  offer it:7/7  menu:0/1  call crustbeard:1/1  call dough hook:0/1  fresh milk:1/6  crystal sugar:3/10  hot cinnamon:1/7  vanilla beans:3/7  dough hook:1/2  walk away:1/3  cacao pods:1/4  attack #:1/1  flip coin:1/1  toasty wheat:2/2  flaky jack:1/1
+[4463s] 
 == solo-phone: FAIL
-[3729s]    ✗ 1 structural check failure(s)
-[3729s]    ✗ 10 screen(s) never stopped moving before being checked
-[3729s]    coverage: arrgh:2/2  vanilla bean crème brûlé:2/2  french pots de crèmeluxu:0/2  start:1/1  sail square:30/30  trade:10/21  muse#:10/21  toasty wheat:2/9  hot cinnamon:1/9  vanilla beans:1/9  coins only:4/9  slider:9/9  offer it:9/9  menu:0/1  menu open:1/0  menu close:1/0  call crustbeard:1/1  call dough hook:1/2  fresh milk:2/8  crystal sugar:5/9  flaky jack:1/1  walk away:1/3  speckled eggs:2/6  dough hook:1/2  cacao pods:1/5  call flaky jack:0/1  dock:1/1  flip coin:1/1  nah:1/1
-[3729s] 
+[4463s]    ✗ vision judge FAILED 3 screen(s)
+[4463s]    ✗ 6 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:1/1  cinnamon snapscrisp rust:2/2  mexican chocolate potssi:0/2  start:1/1  sail square:24/24  muse#:12/25  menu:0/1  menu open:1/0  menu close:1/0  trade:12/22  crystal sugar:6/14  coins only:4/8  slider:8/8  offer it:11/11  crustbeard#:1/1  walk away:0/2  fresh milk:2/8  dock:1/1  flip coin:1/1  nah:1/1  accept:1/1  counter:0/1  deny:0/1  vanilla beans:1/7  speckled eggs:5/10  flaky jack#:1/1  toasty wheat:2/5  hot cinnamon:2/5
+[4463s] 
 == passplay-phone: FAIL
-[3729s]    ✗ vision judge FAILED 1 screen(s)
-[3729s]    ✗ 2 screen(s) never stopped moving before being checked
-[3729s]    coverage: arrgh:1/1  molten chocolate lava ca:2/2  mexican chocolate potssi:0/2  at the helm:37/37  cinnamonchocolate fudgea:2/2  french pots de crèmeluxu:0/2  start:1/1  sail square:44/44  dock:1/1  trade:18/36  muse#:17/36  flip coin:1/1  buy #:1/1  nah:0/1  toasty wheat:4/18  crystal sugar:3/18  vanilla beans:3/17  coins only:8/18  slider:11/11  offer it:18/18  accept:1/1  counter:0/1  deny:0/1  davy scones:1/1  walk away:1/4  menu:0/1  menu open:1/0  menu close:1/0  cacao pods:3/17  hot cinnamon:9/27  dough hook:2/3  fresh milk:3/9  speckled eggs:3/6
-[3729s] 
+[4463s]    ✗ vision judge FAILED 1 screen(s)
+[4463s]    ✗ 1 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:1/1  cinnamonsugar churroscri:2/2  chocolate fudge tortea p:0/2  at the helm:35/35  chocolate genoise sponge:2/2  mexican chocolate tortea:0/2  start:1/1  sail square:44/44  trade:17/34  muse#:17/34  hot cinnamon:5/19  coins only:2/2  slider:2/2  offer it:17/17  menu:0/1  menu open:1/0  menu close:1/0  flaky jack#:1/1  walk away:0/2  vanilla beans:14/27  dough hook:1/1  speckled eggs:2/11  cacao pods:3/12  crystal sugar:3/11  toasty wheat:3/9  fresh milk:2/3
+[4463s] 
 == passplay-desktop: FAIL
-[3729s]    ✗ vision judge FAILED 2 screen(s)
-[3729s]    ✗ 6 screen(s) never stopped moving before being checked
-[3729s]    coverage: arrgh:1/1  spiced cocoa shortbreadb:2/2  crispy cocoa snapsthin h:0/2  at the helm:31/31  dark chocolate cream puf:2/2  molten chocolate lava ca:0/2  start:1/1  sail square:35/35  muse#:13/30  menu:0/1  trade:13/26  toasty wheat:3/12  coins only:4/6  slider:6/6  offer it:13/13  flaky jack#:2/3  walk away:1/6  accept:1/1  counter:0/1  deny:0/1  davy scones:1/1  hot cinnamon:2/11  dock:1/1  flip coin:7/7  nah:1/1  speckled eggs:7/15  call dough hook:1/1  call davy scones:0/1  attack #:3/3  call peg leg meg:1/1  call flaky jack:0/1  vanilla beans:2/6  crystal sugar:2/5  cacao pods:5/8  dough hook:2/2  flee:1/1  stand yer ground:0/1  fresh milk:1/1
-[3729s] 
+[4463s]    ✗ vision judge FAILED 1 screen(s)
+[4463s]    ✗ 10 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:2/2  mexican chocolate potssi:2/2  mayan cocoa souffléa soa:0/2  at the helm:36/36  cinnamon snapscrisp rust:2/2  cinnamon sponge cakea fl:0/2  start:1/1  sail square:44/44  dock:2/2  muse#:15/36  flip coin:9/9  buy #:1/1  nah:1/2  trade:15/34  hot cinnamon:3/16  coins only:7/11  slider:12/12  offer it:15/15  accept:1/3  counter:1/3  deny:1/4  peg leg meg:1/1  walk away:1/5  menu:0/1  speckled eggs:3/14  dough hook:1/2  coin:1/1  ask it:1/1  dough hook#:1/1  attack #:4/4  crystal sugar:5/18  flaky jack#:1/1  vanilla beans:3/10  cacao pods:3/8  speckled eggs #:3/3  call peg leg meg:1/1  call flaky jack:0/1  toasty wheat:3/3
+[4463s] 
 == crew-desktop: FAIL
-[3729s]    ✗ offered but never exercised: walk away
-[3729s]    ✗ vision judge FAILED 2 screen(s)
-[3729s]    ✗ 11 screen(s) never stopped moving before being checked
-[3729s]    coverage: arrgh:2/2  cinnamonchocolate fudgea:2/2  cinnamonsugar churroscri:0/2  start:1/1  sail square:26/26  trade:9/19  muse#:9/20  speckled eggs:2/9  hot cinnamon:1/8  coins only:6/8  slider:6/6  offer it:8/8  dough hook:1/2  walk away:0/3  menu:0/1  chat:1/1  chat open:1/0  chat close:1/0  flip coin:5/5  attack #:2/2  fresh milk:2/6  call test#:1/1  call dough hook:0/1  vanilla beans:1/5  toasty wheat:3/5  crystal sugar:1/3  test#:1/1  accept:1/2  counter:0/1  deny:1/2  flaky jack#:1/1  flee:1/2  stand yer ground:1/2
-[3729s] 
-== crew-phone: FAIL
-[3729s]    ✗ 3 structural check failure(s)
-[3729s]    ✗ offered but never exercised: deny
-[3729s]    ✗ 19 screen(s) never stopped moving before being checked
-[3729s]    coverage: arrgh:2/2  cinnamon dutch babya dra:2/2  mexican chocolate potssi:0/2  start:1/1  sail square:24/24  dock:1/2  muse#:10/23  flip coin:3/3  buy #:1/1  nah:0/1  menu:0/1  menu open:1/0  menu close:1/0  chat:1/1  chat open:1/0  chat close:1/0  trade:11/21  speckled eggs:2/10  coins only:5/11  offer it:11/11  toasty wheat:2/9  cacao pods:6/16  slider:9/9  attack #:1/1  call test#:1/1  call flaky jack:0/1  test#:1/1  walk away:1/3  fresh milk:2/5  vanilla beans:1/5  hot cinnamon:4/4  dough hook:1/2  accept:1/1  counter:0/1  deny:0/1
-[3729s] 
+[4463s]    ✗ offered but never exercised: vanilla beans
+[4463s]    ✗ offered but never exercised: vanilla beans
+[4463s]    ✗ vision judge FAILED 3 screen(s)
+[4463s]    ✗ 8 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:1/1  spiced fudge browniesdee:2/2  cinnamon sponge cakea fl:0/2  start:1/1  sail square:12/12  trade:6/12  muse#:6/12  fresh milk:1/5  coins only:6/6  slider:6/6  offer it:6/6  menu:0/1  chat:1/1  chat open:1/0  chat close:1/0  cacao pods:1/5  vanilla beans:0/4  speckled eggs:1/4  hot cinnamon:1/4  crystal sugar:1/1  toasty wheat:1/1  dough hook:1/1  walk away:0/1  accept:1/1  counter:0/1  deny:0/1
+[4463s] 
+== crew-phone: FAIL (voyage incomplete)
+[4463s]    ✗ did not finish the voyage
+[4463s]    ✗ 2 structural check failure(s)
+[4463s]    ✗ 7 screen(s) never stopped moving before being checked
+[4463s]    coverage: arrgh:2/2  molten chocolate lava ca:2/2  cinnamon dutch babya dra:0/2  start:1/1  sail square:8/8  dock:1/1  muse#:3/8  flip coin:2/2  buy #:1/1  nah:0/1  call flaky jack:1/1  call dough hook:0/1  menu:0/1  menu open:1/0  menu close:1/0  chat:1/1  chat open:1/0  chat close:1/0  trade:4/7  crystal sugar:1/4  coins only:3/4  offer it:4/4  hot cinnamon:1/3  slider:3/3  speckled eggs:2/3  cacao pods:0/2  test#:1/1  walk away:0/1  fresh milk:1/1
+[4463s] 
 == solo-desktop-wk: FAIL (voyage incomplete)
-[3729s]    ✗ did not finish the voyage
-[3729s]    ✗ 5 screen(s) never stopped moving before being checked
-[3729s]    ✗ vision pass DEFERRED for 20 screen(s) — queued for a session, NOT cleared
-[3729s]    ✗ leg error: s.replace is not a function
-[3729s]    coverage: arrgh:2/2  french pots de crèmeluxu:2/2  pound cakea dense rich b:0/2  start:1/1  sail square:13/13  trade:6/12  muse#:5/12  toasty wheat:2/6  coins only:6/6  slider:6/6  offer it:6/6  menu:0/1  call crustbeard:1/1  call flaky jack:1/3  speckled eggs:1/5  dough hook:1/1  walk away:0/1  attack #:1/1  flip coin:1/1  accept:1/1  counter:0/1  deny:0/1  call dough hook:1/2  fresh milk:1/4  cacao pods:1/2  crystal sugar:1/1  vanilla beans:0/1
-[3729s] 
+[4463s]    ✗ did not finish the voyage
+[4463s]    ✗ 1 screen(s) never stopped moving before being checked
+[4463s]    ✗ leg error: sig() could not read the page: page.evaluate: Target crashed 
+[4463s]    coverage: arrgh:1/1  mexican chocolate tortea:2/2  french pots de crèmeluxu:0/2  start:1/1  sail square:1/1
+[4463s] 
 == solo-phone-wk: FAIL (voyage incomplete)
-[3729s]    ✗ did not finish the voyage
-[3729s]    ✗ 1 structural check failure(s)
-[3729s]    ✗ 2 observation(s) seen only DURING an animation — not failures, read them in the log
-[3729s]    ✗ 3 screen(s) never stopped moving before being checked
-[3729s]    ✗ leg error: s.replace is not a function
-[3729s]    coverage: arrgh:1/1  chocolate fudge tortea p:2/2  cinnamon sponge cakea fl:0/2  start:1/1  sail square:4/4  trade:2/3  muse#:1/3  hot cinnamon:1/2  coins only:2/2  slider:2/2  offer it:2/2  menu:0/1  menu open:1/0  menu close:1/0  cacao pods:1/1
-[3729s] 
+[4463s]    ✗ did not finish the voyage
+[4463s]    ✗ 1 screen(s) never stopped moving before being checked
+[4463s]    ✗ leg error: sig() could not read the page: page.evaluate: Target crashed 
+[4463s]    coverage: arrgh:1/1  snickerdoodle bitespillo:2/2  vanilla bean crème brûlé:0/2  start:1/1  sail square:3/3  muse#:2/2  menu:0/1  menu open:1/0  menu close:1/0
+[4463s] 
 RESULT: FAIL
-[3729s] WROTE /home/user/pastrypirates/sea-trial-shots/judge-queue.json — 45 screen(s) awaiting a session's eyes.
-[3729s]   A session should read that file; it carries its own instructions and the rubric.
 ```
 
 Screenshots and contact sheets: `sea-trial-shots/` (not committed — 100MB+ per run).
