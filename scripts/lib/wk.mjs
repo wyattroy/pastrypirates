@@ -136,10 +136,26 @@ export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile
     await context.addInitScript(MUTE_INIT);
     page = context.pages()[0] || await context.newPage();
     handle.page = page;
+    pageCrashed = false;
+    page.on("crash", () => { pageCrashed = true; });   // proactive: the next op recovers first
     page.on("pageerror", e => consoleErrs.push("EXC " + String(e).slice(0, 200)));
     page.on("console", m => { if (m.type() === "error") consoleErrs.push("ERR " + m.text().slice(0, 200)); });
   };
-  const CRASH_RE = /Target crashed|Target closed|Target page, context or browser has been closed|browser has been closed/i;
+  const CRASH_RE = /Target crashed|Target closed|Target page, context or browser has been closed|browser has been closed|wk-op-timeout/i;
+  /* A HANG IS A CRASH THAT FORGOT TO SAY SO — measured 2026-08-28, the first proving run of this
+     recovery: the leg froze at day 10 for 100 minutes with the web process ALIVE and no error
+     thrown anywhere. page.evaluate has no default timeout, so one wedged call held the driver
+     inside a single await where even the leg's 35-minute budget could not fire. So every mount
+     operation carries a hard ceiling, and blowing it takes the same relaunch-and-resume road as a
+     real crash — the voyage lives in the game's own save either way. 60s is deliberately far
+     above any honest op (a sig read is milliseconds, a screenshot seconds) so this can only catch
+     the pathological case, never race a slow-but-working one. */
+  const OP_TIMEOUT_MS = 60000;
+  const withTimeout = (p, label) => Promise.race([p, new Promise((_, rej) => {
+    const t = setTimeout(() => rej(new Error(`wk-op-timeout: ${label} after ${OP_TIMEOUT_MS}ms`)), OP_TIMEOUT_MS);
+    if (t.unref) t.unref();          // never hold the gate process open on our own watchdog
+  })]);
+  let pageCrashed = false;
   const recover = async () => {
     handle.recoveries++;
     console.log(`[wk-mount] WPEWebProcess died (the known container SIGSEGV) — relaunching and resuming the voyage from its own save. Recovery #${handle.recoveries}.`);
@@ -154,11 +170,13 @@ export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile
   };
   /* every public operation retries ONCE through a recovery; a second failure surfaces as before */
   const guarded = (fn, fallback) => async (...args) => {
-    try { return await fn(...args); }
-    catch (e) {
+    try {
+      if (pageCrashed) throw new Error("Target crashed (crash event)");
+      return await withTimeout(fn(...args), fn.name || "op");
+    } catch (e) {
       if (!CRASH_RE.test(String(e.message))) { if (fallback) return fallback(e); throw e; }
       await recover();
-      try { return await fn(...args); }
+      try { return await withTimeout(fn(...args), fn.name || "op-retry"); }
       catch (e2) { if (fallback) return fallback(e2); throw e2; }
     }
   };
