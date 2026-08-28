@@ -134,7 +134,6 @@ export function liveRender(){
   if(appState.replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
   appState.evIdx=Math.max(0,appState.game.events.length-1);
   if(!appState.game.events.length)return;
-  const e=appState.game.events[appState.evIdx];
   const _nh=netHandlers();
   /* W1 (2026-08-28): THE HOST'S INLINE DRAWING IS GONE. The render/pops/sound lines that stood
      here were the second orchestration CLAUDE.md rule 23 names — the host drew from this loop
@@ -145,7 +144,17 @@ export function liveRender(){
      Fire-and-forget WITH the aground catch: liveRender stays synchronous for its 57 call sites,
      and a throw inside the consumer must still surface the wreck screen rather than vanish as
      an unhandled rejection (the runLiveNet catch cannot see a detached promise). */
-  if(_nh.onConsumeEvent)_nh.onConsumeEvent(e).catch(err=>voyageAground(err,"consumeEvent"));
+  /* A-13 (Wyatt: "host and guest parity is the #1 goal of this work. If we need to change the
+     game to fix pace, we want to fix pace for ALL PLAYERS EQUALLY."): the drain hands the
+     consumer EVERY unconsumed event, in order — matching the guest, whose wire delivers each
+     event individually. The coalescing this replaces (only the LATEST event per call drew; a
+     burst's earlier pops and sounds were skipped on the host alone) was the last divergence
+     inside the one-consumer claim, flagged as Q-13 and closed by his (b). Start-in-order,
+     interleave-at-awaits — the same semantics a guest has when a burst arrives. */
+  if(_nh.onConsumeEvent)while(appState.evConsumed<appState.game.events.length){
+    const e=appState.game.events[appState.evConsumed++];
+    _nh.onConsumeEvent(e).catch(err=>voyageAground(err,"consumeEvent"));
+  }
   if(appState.isHost){
     // seam (D-07/criterion 1, RESEARCH Q1b edge 2): was a direct pushEvents() call — pushEvents
     // is itself still a classic-script global this wave, wired in through the still-present PP

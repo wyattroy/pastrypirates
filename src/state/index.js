@@ -70,6 +70,12 @@ export const appState = {
   turnOrder: null,
   numSeats: 4,
   evPushed: 0,
+  // A-13 (Wyatt, 2026-08-28: "host and guest parity is the #1 goal of this work"): the ONE
+  // consumption frontier. Events at index < evConsumed have been handed to consumeEvent — the
+  // host's drain advances it as it drains, the guest's wire feed advances it as events arrive,
+  // so neither tier can double-draw and neither can skip. Reset with evPushed; jumped past the
+  // rebuilt history at endReplay so a resumed voyage never replays its pops and sounds.
+  evConsumed: 0,
   promptCounter: 0,
   gameStarted: false,
   appliedMeta: false,

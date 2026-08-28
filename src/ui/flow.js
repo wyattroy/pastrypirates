@@ -2955,6 +2955,10 @@ export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 export function endReplay(){
   if(!appState.replaying)return;
   appState.replaying=false;
+  // A-13: the rebuilt history was drawn silently (liveRender returns early while replaying) —
+  // the consumption frontier must jump past it, or the first live drain would replay every pop
+  // and sound of the whole voyage at once.
+  appState.evConsumed=appState.game.events.length;
   // BUG-04: this used to set evPushed=resumeEvLen unconditionally. When a replay came up short,
   // that silently moved the broadcast frontier PAST events that were never rebuilt, so every
   // future event was suppressed and guests saw a permanently frozen board. Only advance the

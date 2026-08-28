@@ -1422,11 +1422,10 @@ export function watchDraftPrompt(){
    drained event's older snapshot back onto live engine objects mid-loop would corrupt the game.
    Nothing in the branch decides what is DRAWN.
 
-   KNOWN, ACCEPTED DIVERGENCE, localized here on purpose: the host's drain hands this consumer
-   only the LATEST event per liveRender() call (two engine events pushed back-to-back coalesce),
-   while a guest consumes every event individually. Same consumer, different feed rate — fixing
-   the feed is a follow-up with player-visible consequences (extra pops/sounds on the host), so
-   it is flagged for Wyatt rather than slipped in. */
+   THE FEED-RATE DIVERGENCE IS CLOSED (A-13, Wyatt 2026-08-28: "host and guest parity is the #1
+   goal"): the host's drain (liveRender) now hands this consumer EVERY unconsumed event in order,
+   exactly as the guest's wire does — the shared evConsumed frontier is what makes double-draws
+   and skips both impossible. */
 export async function consumeEvent(e){
   if(!e)return;
   if(!appState.isHost){
@@ -1461,6 +1460,7 @@ export function watchEvents(){
     const e=fixEv(snap.val());
     appState.game.events.push(e);
     appState.evIdx=appState.game.events.length-1;
+    appState.evConsumed=appState.game.events.length;   // A-13: the wire IS this tier's drain — keep the one frontier true
     /* THE HISTORY THIS CALLBACK EARNED, preserved with it (2026-08-19, measured on a real driven
        guest): the guest's appState.game used to be a photograph taken the instant the voyage
        began — round stayed 0, windNow null, every pos at spawn — so the BOARD (drawn from
@@ -2146,7 +2146,7 @@ export function beginGame(cfg,seed){
   // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
   appState.game.seaSeat=appState.mySeat;
   appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
-  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.appliedMeta=false;
+  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;
