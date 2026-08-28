@@ -45,7 +45,7 @@ import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
   // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
-  NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
+  NAMES, HEXCOL, DIRNAME, STORM_PUSH, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
   CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
   ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
   // the flip's own five, for preloadAssets — see its note on why a timed ceremony cannot wait
@@ -441,8 +441,15 @@ const EVENT_NARRATION={
      protect, and a span that cannot wrap is a liability the moment a line grows again. */
   newround:e=>{
     const tail=e.nextStorm?" Tomorrow: a storm.":(e.next?` Tomorrow: ${DIRNAME[e.next]}.`:"");
+    /* A-9 (Wyatt, 2026-08-28): option (b) — calm days stay short, a STORM day keeps a sentence of
+       its own carrying the rule, because this is the ONLY place a player is ever told how far a
+       storm moves them. His example verbatim: "It'll blow every ship 3 squares WEST." Distance
+       and direction both DERIVED (rule 9): STORM_PUSH is the same constant the engine pushes
+       with, DIRNAME is the one CAPS spelling every wind surface shares. This reverses the
+       2026-08-27 "minus 3 squares" cut on his own later word — the graveyard note below stands
+       as the history of that day, not the ruling in force. */
     const head=e.storm
-      ? `Day ${e.round}: Storm ${e.streak>=2?"still":"blowin\u2019"} ${DIRNAME[e.dir]}.`
+      ? `Day ${e.round}: Storm ${e.streak>=2?"still":"blowin\u2019"} ${DIRNAME[e.dir]}. It\u2019ll blow every ship ${STORM_PUSH} squares ${DIRNAME[e.dir]}.`
       : `Day ${e.round}: Wind ${DIRNAME[e.dir]}.`;
     return {cls:"roundhdr",txt:head+tail};
   },
@@ -474,13 +481,13 @@ const EVENT_NARRATION={
        and inventing a coin figure where no coin moved would be a lie the whole table can read. */
     const spent=`<span class="nobrk">(−${paid}🌕)</span>`;
     const buyTail=bought
-      ?(barter?` — then trades ${gave} to the black market for ${goods}, under cover o' dark.`
-        :e.black?` — then pays the black market for ${goods} ${spent}, under cover o' dark.`
+      ?(barter?` — then trades ${gave} to the black market for ${goods}.`
+        :e.black?` — then pays the black market for ${goods} ${spent}.`
         :` — then buys ${goods} ${spent}.`+(e.wentDry?` That were the last crate — the shelves be bare!`:``))
       :``;
     const buyTailYou=bought
-      ?(barter?` — then ye trade ${gave} to the black market for ${goods}, under cover o' dark.`
-        :e.black?` — then ye pay the black market for ${goods} ${spent}, under cover o' dark.`
+      ?(barter?` — then ye trade ${gave} to the black market for ${goods}.`
+        :e.black?` — then ye pay the black market for ${goods} ${spent}.`
         :` — then ye buy ${goods} ${spent}.`+(e.wentDry?` Ye took the last crate — the shelves be bare!`:``))
       :``;
     const txt=isLocalTo(e.p,viewerSeat)
