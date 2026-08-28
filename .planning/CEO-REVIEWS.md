@@ -6,6 +6,27 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 12 — 2026-08-28, Safari + three sizes, cloud and local (ledger item W2) — VERBATIM
+
+**Verdict, for Wyatt:** Yes — most of what you asked for happened, and the headline is real, not dressed up: I opened the raw data file myself and all ten voyages genuinely reached End of Voyage, including all three Safari ones, which had never once finished a voyage before tonight. The third size is now tablet portrait exactly as you ruled, Safari plays solo at all three sizes exactly as you ruled, and the instructions are written into the QA process document where the next session is forced to read them. Two honest gaps you should hold onto. First, the local half of your question — "or local" — is **documented but not demonstrated**; the runbook is written and a session on your Mac is meant to run it, and every document I checked says so plainly rather than pretending otherwise, so the item is not closed until that run reports back. Second, Safari only finished by being restarted mid-voyage eleven times on the desktop leg — that is a limp, not a stroll, and while the caveat is stated well in the process doc, the sea trial report you actually open shows all ten legs in one tidy list with the restart count buried seventy lines down, and nothing in the machinery will ever fail a leg no matter how many restarts it needs. I would ask for two small things before calling this finished: put the restart count at the top of the report where you will meet it, and pick a number of restarts that means "this is broken," so that a future crash caused by your own game can't quietly ride the same rescue road.
+
+### What it verified itself, against the repo
+
+- **The three sizes are real now, and were not before.** `playtest_gate.mjs:341` solo-tablet 768x954 with touch; `:355` the WebKit twin; `sea_trial.mjs:80-81` FULL widened to ten. The two places that used to lie now tell the truth (`CLAUDE.md:919`, `gear.mjs:183`). DONE.
+- **The Safari ruling was followed** — `playtest_gate.mjs:353-355`, solo at all three sizes, Chrome carries multiplayer, his sentence quoted as the reason. DONE.
+- **"10 of 10 finished" is data, not a log summary.** Ten records in `report.json`, every one `finished: true`, no `error`, WebKit recoveries 11/2/1. And it checked what `finished` CAN mean: `playtest_gate.mjs:209` sets it only on the game's own `st.over` with the end screenshot captured; the timeout path at `:215` sets it false. **It cannot be a leg that ran out of clock and got rounded up.**
+- **The WebKit fix is real machinery** — `wk.mjs:135` persistent context, `:153` the 60s ceiling, `:159-178` relaunch/resume/retry; `playtest_gate.mjs:454` sums and `:503` prints.
+- **The local boundary is not overclaimed anywhere** it checked — report, ledger, docs, commit messages. Clean.
+- **The collision fix is real and fenced** — ran `trial_report_ownership_check.mjs` itself, seven PASSes, wired at `package.json:11`, count agrees at 35.
+- **Review 9's recurring fault has stopped**: three verdicts in one day, each before the next item, and Review 10's caution became machinery within the hour (`ceo-cadence-fence.cjs`, wired at `settings.json:49`). "The words became machinery."
+
+### Where it pushed back — all three acted on the same hour
+
+1. **(c) The 11-relaunch leg is honestly "running", but the caveat is not where you would meet it.** The summary table listed `solo-desktop-wk` in the same undifferentiated list as seven clean Chrome legs, with the relaunch notice ~70 lines down in the log block. **FIXED:** the summary table now carries a "voyages that only finished after a BROWSER RESTART" row, derived from report.json, naming each leg, its count and its days.
+2. **Nothing bounded the recoveries** — `legVerdict()` never read them, so a future crash caused by our own game code would relaunch, resume and report `finished:true` with a small asterisk; "this repo has already paid once for an instrument that was reassuring rather than silent." **FIXED:** any recovery on a NON-WebKit leg now fails outright (Chrome has never needed one, so it is by definition not the sanctioned crash), and a WebKit leg gets a budget of one rescue per four game-days sailed (floor 2) — the 11-over-29-days leg fails that budget, exactly as the CEO judged it should.
+3. **A wrong number in the append-only record** — the ledger said "44 judge findings"; the data says 24, and the commit message already said 24. Second time in two days a CEO has found a wrong figure there. **CORRECTED IN THE OPEN**, not silently.
+4. **One thing quietly lost, disclosed not hidden:** the `solo-tablet-wk` contact sheet timed out, so the newest leg is the one with no contact sheet on disk.
+
 ## Review 11 — 2026-08-28, the staging checklist item + the leak its own publish step caused — VERBATIM
 
 **I checked every claim against the live repo and the live staging site myself — commands and outputs below, not the write-up's word.**

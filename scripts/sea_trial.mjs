@@ -144,8 +144,18 @@ if (legs.length) {
 const notRunByPhrase = [...gateOut.matchAll(/\[([\w-]+)\] (?:NOT RUN — |ERROR: )([\s\S]*?)(?=\n\[|\n$)/g)]
   .map(m => ({ leg: m[1], why: m[2].trim() }));
 let notRun = notRunByPhrase.slice();
+let rescueRow = "";                 // filled below; empty when nothing was rescued
 try {
   const rj = JSON.parse(fs.readFileSync(path.join(OUT, "report.json"), "utf8"));
+  /* THE RESCUE COUNT BELONGS AT THE TOP — CEO Review 12, 2026-08-28: "the sea trial report you
+     actually open shows all ten legs in one tidy list with the restart count buried seventy lines
+     down." Rule 24's whole point is that "did it run?" is answered by OPENING THIS FILE, so a leg
+     that only finished because the browser was restarted eleven times must not sit in the summary
+     table looking identical to seven clean ones. Derived from report.json, never from prose. */
+  const rescued = rj.filter(l => l.recoveries > 0)
+                    .map(l => `${l.name} ×${l.recoveries}${l.days ? ` over ${l.days} days` : ""}`);
+  if (rescued.length) rescueRow =
+    `\n| **voyages that only finished after a BROWSER RESTART** | **${rescued.join(", ")}** — the known WebKit crash in this container; each was resumed from the game's own save. A rescued leg is not a clean one. |`;
   for (const leg of rj) {
     const n = (leg.screens || []).length;
     if (n > 0) continue;                                     // it captured something: it sailed
@@ -182,7 +192,7 @@ const report = `# Sea trial — build \`${STAMP}\`
 |---|---|
 | checks with no browser (\`npm test\`) | ${unitOk ? "PASS" : "**FAIL**"} |
 | voyages played with a real mouse | ${ranLegs.length ? ranLegs.join(", ") : "none"} |
-| **voyages that did NOT run** | ${notRun.length ? "**" + notRun.map(n => n.leg).join(", ") + "**" : "none"} |
+| **voyages that did NOT run** | ${notRun.length ? "**" + notRun.map(n => n.leg).join(", ") + "**" : "none"} |${rescueRow}
 
 ${notRun.length ? "## What did NOT run, and why\n\n" + notRun.map(n => `**${n.leg}**\n\n\`\`\`\n${n.why}\n\`\`\`\n`).join("\n") + "\nA leg that did not run is **not** a leg that passed. This section exists so that distinction cannot be lost.\n" : ""}
 ${unitOk ? "" : "## The browser-free checks failed\n\n```\n" + unitTail + "\n```\n"}
