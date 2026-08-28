@@ -268,6 +268,11 @@ re-derive them each time at great time and cost." Every line below was paid for 
 difference is listed here — if you are about to fight one that is not, add it to this section in
 the same session.
 
+> **WHICH environment to pick, and what each costs, is a separate question with its own document:
+> [`CLOUD-VS-LOCAL.md`](CLOUD-VS-LOCAL.md)** — the measured 10-leg comparison, the traps unique to
+> each, and the one thing only a Mac can answer (Safari). This section is the *how*; that one is
+> the *where*.
+
 ### IS IT PROVEN? — the honest answer, 2026-08-28
 
 He asked: *"Make sure the full Sea Trial can run in safari and chrome, at the three sizes, whether
