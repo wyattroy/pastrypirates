@@ -98,6 +98,7 @@ import {
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
+  benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
@@ -317,8 +318,15 @@ let _bench=null;
 /* Publish one moment of a bench. `spec` is the SAME object the choreography is running from, so a
    watcher cannot be handed a bench that disagrees with the one being played. */
 export function benchPublish(spec,seat,patch){
+  /* `baker` rides the snapshot (A-2 sweep, closing a T-25 gap): the spec has carried the baker's
+     name since T-25 ("one field, built once, read by baker and watcher alike"), but this assign
+     dropped it — so every WATCHER titled the bench with bakeTitle's generic fallback while the
+     baker's own screen said whose bake it was. Forwarding it is what makes a watched bench read
+     "Crustbeard's Bake-Off". */
   const snap=Object.assign({seat,order:spec.order,before:spec.before,swaps:spec.swaps||[],
-    locked:spec.locked||[],attempts:spec.attempts||0,epoch:0},patch||{});
+    locked:spec.locked||[],attempts:spec.attempts||0,baker:spec.baker||null,epoch:0},patch||{});
+  // `||null`, not bare: RTDB rejects a set() carrying `undefined`, and a spec without a baker
+  // (an older client's) must degrade to bakeTitle's fallback, not kill the whole publish.
   applyBenchSnap(snap);                                   // LOCAL RENDER ALWAYS
   if(appState.db&&appState.room&&!appState.replaying)
     netSetBattle(appState.db,appState.room,{title:BENCH_TITLE,bake:snap},netFail("bake bench"));
@@ -352,7 +360,7 @@ function benchWatch(snap){
     setPicks:(p)=>{picks=p||[];if(pickCb)pickCb(picks);}};
   _bench=sess;
   playBakeoffLive({order:snap.order,before:snap.before,swaps:snap.swaps||[],
-                   locked:snap.locked||[],attempts:snap.attempts||0},{watch:ctl})
+                   locked:snap.locked||[],attempts:snap.attempts||0,baker:snap.baker},{watch:ctl})
     .catch(e=>{console.error("bench watch",e);})
     .then(()=>{if(_bench===sess)_bench=null;});
   // A watcher that arrives after the shuffle has begun does not sit on a Ready that will never be
@@ -961,8 +969,7 @@ async function runLiveDayBakeoff(order){
   liveRender();
   return g.endBakeDay();
 }
-/* One captain's attempt. The UI half lands in a later step; for now every seat plays with the
-   engine's own botGuess, which is exactly what a forfeited human turn will use too. */
+/* One captain's attempt. */
 async function bakeTurnLive(p){
   const g=appState.game;
   /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
@@ -970,10 +977,20 @@ async function bakeTurnLive(p){
      then does the human path get to look at the bench. */
   const {setup,fallback}=g.bakeSetup(p);
   const human=p.strategy==="human";
-  // bakeoffPrompt owns replay, the decision log and the shot clock (see its note in flow.js). It is
-  // called for a human seat even under replay — that is the whole point, since it is what returns
-  // the guess the player ACTUALLY made rather than re-deriving one from the bot.
-  const dec=human?await bakeoffPrompt(p,setup,fallback):{g:fallback,w:0};
+  /* A-2 (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming to life."): a bot's bake
+     PLAYS on every screen now, where it used to resolve invisibly in one tick. `perform` is when
+     any bench is worth drawing at all — never under replay (its sleeps no-op but the watcher's
+     animations would run in real time), and for a bot never under fast-forward either (a human's
+     bake ends the skip itself, via bakeoffPrompt's ffEndNow). When it is false the bot bakes
+     silently, exactly as it always did. */
+  const perform=!appState.replaying&&(human||!appState.ff);
+  // bakeoffPrompt owns replay and the decision log (see its note in flow.js). It is called for a
+  // human seat even under replay — that is the whole point, since it is what returns the guess the
+  // player ACTUALLY made rather than re-deriving one from the bot. The bot's guess is the engine's
+  // own fallback either way: the performance publishes a decision already made, it never makes one.
+  let dec;
+  if(human)dec=await bakeoffPrompt(p,setup,fallback);
+  else{ if(perform)await botBakePerform(p,setup,fallback); dec={g:fallback,w:0}; }
   /* WHERE A RE-WATCH IS ACTUALLY PAID FOR — three cases, one debit site, and the engine is the
      only thing that ever moves a coin.
        LOCAL, LIVE      already charged, one click at a time, by flow.js's onRewatch — so the purse
@@ -990,12 +1007,57 @@ async function bakeTurnLive(p){
      is also what reconciles the buyer's optimistic figure back to the settled one. */
   if(dec.w&&(appState.replaying||!decisionIsLocal(p.idx)))g.bakeRewatch(p,dec.w);
   const out=g.bakeResolve(p,dec.g);
-  if(human&&!appState.replaying)await benchReveal(p,out.res);
+  // A-2: the verdict reveals for EVERY performed bake, not only a human's — the crates a bot's
+  // watchers just studied come off the same way, through the same one publish.
+  if(perform)await benchReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
   // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
   await narrateLastEvent();
+}
+/* A-2 — THE BOT'S BAKE, PERFORMED (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming
+   to life.").
+
+   T-23's trace was right and is now closed: the entire watcher pipeline already existed — a bot
+   seat is never decisionIsLocal, so benchPublish -> applyBenchSnap -> benchWatch draws a bench on
+   EVERY screen, the publisher's own included (that is what solo is). The one missing thing was a
+   publisher, and this is it: the same discrete moments a human baker's onBench publishes, through
+   the same benchPublish, so a bot's bake and a human's bake are one display path (rule 23).
+
+   IT DECIDES NOTHING AND DRAWS NOTHING FROM THE SEEDED STREAM (BOT-DESIGN-PRINCIPLES; the race
+   planner's determinism contract). bakeSetup already shuffled and already computed `fallback`
+   before this runs; this function reads those and paces them out loud. Whether anyone watched can
+   never change what the bot guessed.
+
+   THE PACING IS THE CHOREOGRAPHY'S OWN (rule 9 — nothing is a constant): bakeoff.js answers how
+   long its cover-and-swap animation takes (benchChoreoMs, from the same COVER/SWAP/SETTLE numbers
+   the animation runs on), the study window is the game's original PREVIEW_MS, and picks land one
+   per SETTLE_MS — the beat that file already defends as the line between trackable and blur. The
+   added seconds on a bot's bake day are the point, not a cost: this is the game coming to life.
+
+   THE TAP LIST IS THE ENGINE'S OWN DATA: fallback[k] is null exactly at steps already locked
+   (botGuess's expansion), so "which crates does the bot tap, in what order" is read straight off
+   the guess — no re-derivation that could disagree with what scoreAttempt will be handed. */
+async function botBakePerform(p,setup,fallback){
+  const spec={order:p.bake.order.slice(),
+    before:(setup.before||p.bake.slots).slice(),
+    swaps:(setup.swaps||[]).map(sw=>[sw[0],sw[1]]),
+    locked:p.bake.locked.slice(),
+    attempts:p.bake.attempts,
+    baker:pn(p.idx)};
+  benchPublish(spec,p.idx,{phase:"open"});      // the bench appears; the bot "studies"
+  await sleep(BENCH_STUDY_MS);
+  benchPublish(spec,p.idx,{phase:"shuffle"});   // Ready — every watcher's crates cover and swap
+  await sleep(benchChoreoMs(spec));
+  const picks=[];
+  for(let k=0;k<spec.order.length;k++){
+    if(fallback[k]==null)continue;              // a locked step is never tapped
+    await sleep(BENCH_BEAT_MS);
+    picks.push(fallback[k]);
+    benchPublish(spec,p.idx,{phase:"pick",picks:picks.slice()});
+  }
+  await sleep(BENCH_BEAT_MS);                   // the last badge lands before the crates lift
 }
 /* THE VERDICT — the one bench moment the HOST publishes, because the host is the only thing that
    scores (04-01 Task 3, MP-05).
