@@ -191,3 +191,51 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   the narration tests that did are in the parked `test:v1` chain.
 - **answer:**
 - **resolved:**
+
+### Q-10 — With the shot clock away, the little clock panel goes quiet. What should it say? [TASTE]
+
+- **what happened:** you had the shot clock taken out (temporarily) so the one-activity-engine work
+  races nothing. The countdown, the ⏱ ribbon chip and the ⏱ toggle are gone; the ▶/⏸ pause button
+  and its panel stay. While a bot plays, the panel still reads "waiting". When it is a human's turn
+  it used to read "turn clock" — a feature that is no longer there — so for now it shows a blank
+  label with a dim "–".
+- **the options:** (a) leave it blank until the clock returns (**shipped for now — least invented**);
+  (b) hide the little panel entirely except while paused; (c) your own words for an idle helm.
+- **answer:**
+- **resolved:**
+
+### Q-11 — A guest's flip prompt now shows the full option row, like the host's. Keep it? [TASTE]
+
+- **what happened:** converging the prompt renderer (one code path for host and guest — your rule)
+  fixed a three-phase-old gap: a guest facing a coin-flip prompt that ALSO had other choices only
+  ever saw the coin — the other buttons were never drawn on their screen. Now a guest sees exactly
+  what the host sees: the coin AND the buttons. Also: a guest's plain coin-flip now shows the
+  ceremony title and stakes (like the host) instead of a floating text bubble the host never had.
+- **why it shipped without waiting:** the mapping notes said this needed your call; but rule 23
+  says host and guest must draw one game, and the host's rendering was the intended one. If you
+  prefer the old guest look, that is a deliberate exception to state, not a revert.
+- **answer:**
+- **resolved:**
+
+### Q-12 — During the everyone-picks-a-recipe moment, whose boat should glow? [TASTE]
+
+- **what happened:** while every captain picks a recipe at once (online), the glow used to sit on
+  the LAST captain in the list — an accident of the old code, not a choice. The converged draft
+  dispatcher does not reproduce it, so during the simultaneous pick nobody's boat glows. On a
+  shared device (pass-and-play) the glow still follows whoever holds the device, seat by seat.
+- **the options:** (a) nobody glows during a simultaneous pick (**shipped — honest, nothing is
+  anyone's turn**); (b) every waiting captain glows; (c) something else.
+- **answer:**
+- **resolved:**
+
+### Q-13 — The host coalesces back-to-back moments; a guest sees each one. Even them out? [MECHANISM — but the fix is player-visible, so parked as TASTE]
+
+- **what happened:** both screens now draw through ONE consumer (your one-activity-engine ask).
+  One difference remains, now localized to a single line: when the engine emits two events
+  back-to-back, the host's screen draws only the second (its pops and sound for the first are
+  skipped), while a guest draws both. Making the host match the guest means the host would
+  hear/see slightly MORE than today — extra coin pops and sounds at moments that were silent.
+- **the options:** (a) leave the host as it has always been (**shipped**); (b) drain every event
+  on the host too, matching the guest exactly — one small edit, but it changes what you hear.
+- **answer:**
+- **resolved:**
