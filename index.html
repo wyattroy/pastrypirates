@@ -1728,7 +1728,13 @@
   body.pp4Peek #pp4Prompt.pp4Center { opacity:1; pointer-events:auto; }
   #pp4Prompt.centered { left:50% !important; top:44% !important; transform:translate(-50%,-50%);
     width:min(348px, 94vw) !important; max-height:78vh; overflow:auto; }
-  #pp4Prompt #actionPanel { margin:0; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }
+  /* W4-1 (Wyatt): "Choose yer recipe card is not horizontally centred… Don't apply this fix only
+     for pass-and-play, it should apply to all games architecturally." MEASURED: the cards are
+     centred in their row and the row in the panel — it is THE PANEL that sits left, because it is
+     capped at max-width:628px and this rule replaced the base rule's `margin: 0 auto` with
+     `margin:0`. 53px left of centre at 1200px, 17px on a phone. The centre-stage variant escaped
+     it only because its container flex-centres; the ORDINARY prompt is most of the game. */
+  #pp4Prompt #actionPanel { margin:0 auto; box-shadow:0 10px 30px rgba(0,0,0,.35); border-radius:13px; }
   /* N4 radial: the menu blooms around the ship as circular choices */
   /* ITEM 22 (D-18): 100%, not 100vh — see the #boardwrap note above; a percentage height on a
      position:fixed box follows whatever containing block is actually in force (body's capped
@@ -1877,7 +1883,15 @@
   body.pp4Stage #controlsRow { display:none; }  /* coin + clock left the sheet: ceremony + menu toggle */  /* sea-creature bubbles don't track the camera yet */
   #pp4Ribbon { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; align-items:center;
     gap:10px; padding:9px 12px calc(7px + env(safe-area-inset-top)); color:#fff; font-weight:800;
-    background:linear-gradient(180deg,rgba(10,40,48,.88),rgba(10,40,48,.5) 75%,transparent);
+    /* NO WASH OF ITS OWN. It used to paint linear-gradient(180deg, rgba(10,40,48,.88),
+       rgba(10,40,48,.5) 75%, transparent) — a dark slab across the top of the page, on top of the
+       surround gradient the page already paints. Wyatt circled it in red on 2026-08-28, the same
+       complaint as W4-3's flat band behind the board and the captains box: "i want the page's
+       5-gradient background to show up behind it. On all screen widths, including phone."
+       The bar's own text carries a shadow instead, so it stays legible over whatever is behind it
+       (the surround on desktop, the sea on a phone) without covering the page. Held by
+       scripts/qa/w43_one_background_check.mjs, which finds this bar BY SHAPE, not by id. */
+    text-shadow:0 1px 3px rgba(6,26,32,.85), 0 0 10px rgba(6,26,32,.55);
     display:none; }
   body.pp4Stage #pp4Ribbon { display:flex; }
   #pp4Round { font-size:13px; letter-spacing:1px; }
@@ -1992,7 +2006,10 @@
   #footerRow.pp4MenuList #btnMute::after { content:"Sound: ON"; position:static; width:auto;
     height:auto; transform:none; font:inherit; }
   #footerRow.pp4MenuList #btnMute[aria-pressed="true"]::after { content:"Sound: OFF"; }
-  body.pp4Stage #actionPanel { margin:0; }
+  /* W4-1: and this one applies in EVERY mode, which is what made the fault architectural rather
+     than a pass-and-play quirk. Same reason as the rule above — the panel is capped, so a zero
+     horizontal margin pins it left. */
+  body.pp4Stage #actionPanel { margin:0 auto; }
 
   /* playtest 22 item 7: the clipped host every board-anchored floater lives in. It spans the
      board's visible window — below the wind ribbon, above the captains box — and stage.js resizes

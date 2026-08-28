@@ -143,6 +143,45 @@ else fail("the html surround gradient is gone — that is the background he want
   else fail(`the surround is gated behind ${inMedia} — Wyatt asked for it "on all screen widths, including phone"`);
 }
 
+/* THE TOP BAR IS NOT A GROUND EITHER. Wyatt, 2026-08-28, with the bar circled in red on a
+   screenshot: "remove this gradient from the top bar too… i want the page's 5-gradient background
+   to show up behind it. On all screen widths, including phone."
+   THE BAR IS FOUND BY SHAPE, NEVER BY ID — a rule that pins an element to all of top/left/right at
+   position:fixed IS the full-width top bar, whatever it gets called next year. That also scopes the
+   assertion correctly for free: the bar's CHILDREN (the ☰ chip, the wind pill) are chips he did not
+   circle, they are not full-bleed, and so they fall outside by construction rather than by a typed
+   exception somebody has to remember. */
+{
+  /* Every rule in the sheet with its @media context — a self-contained walk, so this section can
+     be read and trusted on its own. */
+  const RULES = [];
+  { const stack = []; let buf = "", i = 0;
+    while (i < clean.length) {
+      const ch = clean[i];
+      if (ch === "{") {
+        const head = buf.replace(/\s+/g, " ").trim();
+        let d = 1, j = i + 1;
+        for (; j < clean.length && d; j++) { if (clean[j] === "{") d++; else if (clean[j] === "}") d--; }
+        RULES.push({ head, body: clean.slice(i + 1, j - 1), media: stack.filter(h => /^@media/.test(h)).join(" | ") });
+        stack.push(head); buf = ""; i++; continue;
+      }
+      if (ch === "}") { stack.pop(); buf = ""; i++; continue; }
+      buf += ch; i++;
+    } }
+  const last = h => h.split(",")[0].trim().split(/[\s>]+/).filter(Boolean).pop() || "";
+  const pinned = b => /position\s*:\s*fixed/.test(b) &&
+    ["top", "left", "right"].every(k => new RegExp(`(^|;)\\s*${k}\\s*:\\s*0`).test(b));
+  const BARS = [...new Set(RULES.filter(r => pinned(r.body)).map(r => last(r.head)).filter(Boolean))];
+  if (!BARS.length)
+    fail("no full-width fixed top bar found in the sheet — re-anchor this assertion, do not delete it");
+  const paints = RULES.filter(r => BARS.includes(last(r.head)) &&
+    /background(-image|-color)?\s*:\s*(?!none|transparent)[^;]+/.test(r.body));
+  if (BARS.length && !paints.length)
+    pass(`the top bar (${BARS.join(", ")}) paints nothing of its own — the page's 5-gradient ground shows through it at every width`);
+  for (const p of paints)
+    fail(`${last(p.head)} paints its own background (${((p.body.match(/background[^;]*/) || [])[0] || "").replace(/\s+/g, " ").slice(0, 58)}…)${p.media ? " in " + p.media : ""} — that is the slab over the page surround Wyatt circled in red on 2026-08-28`);
+}
+
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
   : `\nPASSED — nothing paints over the page surround: body itself, nor any of the board's ${BLEED.length} wrapper(s) (${BLEED.join(", ") || "none"})`);
 process.exit(fails ? 1 : 0);
