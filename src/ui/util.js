@@ -1940,7 +1940,7 @@ export const SESSION_SCHEMA_V=1;
 // trade, so replaying it would run every decision after the first such trade against the wrong
 // prompt — the exact failure the new entry exists to stop. The stamp is what makes an old blob
 // "no resume" instead of a mis-aligned one.
-export const SOLO_SCHEMA_V=2;
+export const SOLO_SCHEMA_V=3;   // 2->3 at A-1: the bake-day reorder changes replay — a v2 save must be refused, never desynced
 export function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}

@@ -299,7 +299,7 @@ first to win!"* line and then a board with no explanation of how anything works.
       See `.planning/phases/02.3-the-two-hour-playtest/TRIAGE.md`.
 - [ ] **Large empty gap in the desktop right-hand column** at 1890x960 — pre-existing, taste, his call.
 
-## 🔴 THE DETERMINISM CORPUS IS UNBOUND — removed from `npm test` at the cutover
+## 🔴 THE DETERMINISM CORPUS IS UNBOUND — ⚠ AND A-1 (2026-08-28) REORDERED THE BAKE DAY, so the re-record must be against the one-phase loop; the 2026-07-26 fixtures can never verify again — removed from `npm test` at the cutover
 
 **This is a REMOVED GATE, named loudly rather than left red or quietly made to pass.**
 

@@ -950,12 +950,13 @@ async function runLiveDayBakeoff(order){
   const g=appState.game;
   for(const i of order){
     const p=g.players[i];
-    if(p.done||p.baking)continue;
+    if(p.done)continue;
+    /* A-1: one phase — the attempt rides the captain's own turn slot, byte-for-byte the same
+       order as the engine's playBakeoff (live and headless must consume identical randomness).
+       endBakeDay still closes the day at the end, so same-day arrivals keep their fair race. */
+    if(p.baking){await bakeTurnLive(p);continue;}
     await (p.strategy==="human"?humanTurn(p):botTurn(p));
-    if(g.lightOvens(p)){liveRender();await narrateLastEvent();}
-  }
-  for(const i of g.bakersToday(order)){
-    await bakeTurnLive(g.players[i]);
+    if(g.lightOvens(p)){liveRender();await narrateLastEvent();await bakeTurnLive(p);}
   }
   liveRender();
   return g.endBakeDay();
