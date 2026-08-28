@@ -44,6 +44,36 @@ own ideas.**
 
 ## Wave 1 — the guest/host split (4 bugs, ONE cause) · HIS PICK
 
+> ### ⚠ SCOPE SET BY WYATT, 2026-08-28. THIS IS BIGGER THAN THE FOUR BUGS BELOW.
+>
+> *"fix all the described architecture so both host and guest listen to one game activity engine"*
+> and, when told the prompt forks were blocked on the 30-second clock:
+> *"i'd prefer to do it even if it breaks shot clock, and to temporarily remove the shot clock from
+> the game. include the bakeoff in this work too — everything should come from one game activity
+> engine."*
+>
+> **THREE RULINGS, and the second one is what makes the rest possible:**
+> 1. **ALL of it**, not the event half. The four open prompt forks (2, 3, 4, 5 in
+>    `docs/DISPLAY-RULES.md` §4) are in scope, and so is the bake-off.
+> 2. **THE SHOT CLOCK COMES OUT, temporarily.** Rule C — *"`withShotClock()` needs a plain Promise,
+>    nothing else"* — is the single constraint that made a prompt unable to simply loop back like an
+>    event, and it is the reason four forks stayed open. He chose to remove the obstacle rather than
+>    engineer around it. **It is already off in play** (`startShotClock` returns early on
+>    `timerOff`, `src/ui/util.js:1896`; the clock pill reads "⏱ off" in every screenshot), so this
+>    removes something no player currently meets.
+> 3. **Temporarily.** It goes back afterwards, against a converged dispatch, which is a much easier
+>    problem than racing two.
+>
+> **THE SHAPE, in his words: ONE GAME ACTIVITY ENGINE.** One consumer, three producers:
+> `Game.ev()` is where every event is born (`src/engine/index.js:316`); `pushEvents()`
+> (`src/orchestrator.js:1484`) is where the host drains them to Firebase; `watchEvents()`
+> (`:1573`) is the guest's consumer and already holds the whole drawing sequence — sweep, render,
+> pops, audio, end-meta. Converging means **the host reads its own mail through that same
+> consumer**, and solo/pass-and-play — which have no wire at all — feed the identical consumer from
+> the drain. **The host's inline drawing in the game loop is what has to GO**, and that is where
+> the regressions will be.
+
+
 **The cause, in one line: the host has a script; the guest has a news feed.** The host's screen is
 drawn by a loop that walks the whole performance in order. The guest's is drawn by nine independent
 Firebase listeners reacting to published facts. **Anything the host does BETWEEN two publishes never
