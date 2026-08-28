@@ -709,7 +709,15 @@ export function checkOrchestrationParity(root, { strict = false } = {}) {
      the consumer landed, on a convergence that was real. */
   const consumer = fnBody(orch, "consumeEvent");
   if (consumer && consumer.length < 200) fail(res, `PARITY-ORCH-VACUITY: consumeEvent exists but is ${consumer.length} chars — too small to be the real consumer`);
-  const listenerSrc = found.map(([, b]) => b).join("\n") + (consumer ? "\n" + consumer : "");
+  // …and the ONE ask renderer (fork 2, same day): watchPrompt names renderAskPrompt and the
+  // slider builders live inside it, so the scan must read through that delegation too. Guarded
+  // the same way: it only extends the path if watchPrompt actually reaches it — a renderer no
+  // listener calls must NOT smuggle its callees into the listener path.
+  const askRenderer = fnBody(flow, "renderAskPrompt");
+  const wpBody = fnBody(orch, "watchPrompt") || "";
+  const askReached = askRenderer && /renderAskPrompt\(/.test(wpBody) ? askRenderer : "";
+  if (askRenderer && askRenderer.length < 200) fail(res, `PARITY-ORCH-VACUITY: renderAskPrompt exists but is ${askRenderer.length} chars — too small to be the real renderer`);
+  const listenerSrc = found.map(([, b]) => b).join("\n") + (consumer ? "\n" + consumer : "") + (askReached ? "\n" + askReached : "");
   if (listenerSrc.length < 500) { fail(res, `PARITY-ORCH-VACUITY: the listener path is ${listenerSrc.length} chars — too small to be the real one. Refusing to report parity against an empty listener set`); return res; }
 
   const driven = orch + "\n" + flow;   // where the host's loop reaches its renderers

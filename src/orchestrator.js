@@ -104,7 +104,7 @@ import {
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
-  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, wireRestoreFail,
+  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, wireRestoreFail,
   startPassAndPlay,
   endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
@@ -1584,104 +1584,34 @@ export function watchPrompt(){
         return;
       }
       appState.inBattlePrompt=false;
-      // mirror localAsk: a flip option arms the flippenator coin, a `back` option renders the
-      // small circular apBack escape hatch, and any remaining options are the normal button row.
-      // (These used to be host-only — remote players got a stray "FLIP!" button in the panel and
-      // never saw the back affordance.)
-      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[];
+      /* FORK 2 CONVERGED (W1, 2026-08-28). Everything that stood here — the guest's own flip
+         branch (whose early return meant a guest NEVER saw the other options on a flip-bearing
+         prompt), its own back-button build, its own panel() markup, its own slider build and its
+         own click wiring — is gone. The ONE renderer draws this seat's prompt from the wire
+         payload, and the ONLY thing this tier keeps is its response mechanism: sendResponse puts
+         the answer on the wire where localAsk resolves a promise. keepPanel=true because the
+         renderer's own done() already tore the panel down — sendResponse's clear is for callers
+         that render nothing.
+         BEHAVIOUR CHANGE, NAMED (the map said this needs Wyatt; convergence IS the call rule 23
+         makes, and it is flagged on the checklist): a guest's flip-bearing prompt now renders
+         exactly what the host's does — the coin AND the full option row — instead of an early
+         return that hid the options; and a PURE flip shows the ceremony title/stakes (flipMsg,
+         fixed 2d19a15e) instead of a floating narration bubble the host never drew.
+         "" from the wire normalizes to null inside the rebuild (seat 0 is a real captain — the
+         !=null tests stay). */
       const flipIdx=(p.flipIdx!=null&&p.flipIdx>=0)?p.flipIdx:(p.flip?0:-1);
       const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
-      const backHtml=backIdx>=0?backButtonHTML(backIdx):"";
-      if(flipIdx>=0){
-        /* THE GUEST'S FLIP CEREMONY HAD NO WORDS, AND ITS COIN DID NOT SPIN. Both fixed here, and
-           both are the same fault: two orchestrations drawing one moment, so a fix made on the
-           host's path in playtest 22 never reached the guest's.
-
-           WORDS. `window.__pp4.flipMsg` is stamped in exactly two places, both in flow.js on the
-           HOST's local path. src/ui/stage.js writes `fm ? emojify(String(fm.m)) : ""` for the
-           ceremony title and the same for the stakes — so a guest got an EMPTY title over EMPTY
-           stakes for the whole ceremony. The wire already carried msg and sub; nobody assigned them.
-
-           THE SPIN. flow.js paints setFlipCoin("spin") inside the tap's own frame, which IS the
-           playtest-22 fix for Wyatt's "the coin disappears, the word FLIP remains, which looks
-           messy and bad, then after a second or two the coin starts to flip". A guest never called
-           it, so a guest still saw the fault the host had stopped seeing: blank coin, then a spin a
-           beat later when the host's broadcast landed. Idempotent, so the broadcast that follows is
-           a no-op — the same reasoning as the host's.
-
-           GUARDED ON !p.battle, AND THE GUARD IS THE POINT. stage.js falls back to "⚔️ Broadside!"
-           when `!fm && btl` — a battle flip borrows no words. Stamping unconditionally would
-           silently blank the battle ceremony's title. The battle sub-branch above already returns
-           before this line, so the guard is belt-and-braces rather than the only thing holding. */
-        if(!p.battle&&window.__pp4)window.__pp4.flipMsg={m:p.msg||"",s:p.sub||""};
-        setNeedsAction(true);
-        setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);sendResponse(p.id,flipIdx);});
-        if(backIdx>=0){
-          // @copy prompt.net.promptrerender
-          panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
-          $("actionPanel").querySelectorAll(".apBack").forEach(b=>{
-            b.onclick=()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,+b.dataset.i);};});
-        }else showNarration(p.msg);
-        return;
-      }
-      setFlipActive(null);
-      const dis=p.disabled||[];
-      // playtest 21 item 5: aria-disabled so a greyed circle can be TAPPED for its reason, and
-      // data-why so it has one to give.
-      //
-      // THIS IS NO LONGER A SECOND COPY OF THE BUTTON MARKUP (02.1-03). The comment that used to
-      // sit here said it out loud — "a genuine second copy... so a change to one that skips the
-      // other reintroduces the bug on whichever side was forgotten" — and six fields had already
-      // proved it one at a time. The row is now built by optionButtonsHTML (util.js), the same
-      // function localAsk calls, so there is nothing left to keep in step by hand. The local escW
-      // closure went with it; the shared builder escapes through escHtml, which also escapes ">".
-      // What stays here, and must, is this tier's own click wiring: sendResponse(p.id,i) writes an
-      // answer to Firebase where localAsk resolves a promise in this browser.
-      const why=p.why||[];
-      // The seventh and last field of that drift class. `seat` anchors an option's circle over the
-      // boat it NAMES rather than the boat choosing (stage.js:1174 reads it back off data-seat) —
-      // the battle side-bet's "Call Dough Hook" is what needs it, and until now a spectating guest
-      // got the ordinary fan while the host got the anchored one. "" means "no seat"; SEAT 0 IS A
-      // REAL CAPTAIN, so this is an explicit ""/null test and never a truthiness one.
-      const seats=p.seats||[];
-      const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
-      const grid=cls.some(c=>c)?" recipes":"";
-      const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
-      /* MP-08 — THE COIN SLIDER, ON THIS SEAT TOO (05-01 Task 3, D-55). Until this build a remote
-         captain got coinStepper's +/- pair instead: three round trips per coin, and — measured in a
-         real crew room on 2026-08-23, shots/t2/03-mid-round-guest1.png — those +/- circles rendered
-         IN THE RADIAL ARC, which is precisely what playtest 21 took out of the host's arc ("THE ARC
-         IS FOR ACTIONS ONLY"). Same gesture, two behaviours, on the one axis rule 23 forbids.
-         IT NAMES sliderWrapHTML AND wireSlider DIRECTLY, not through a guest-only wrapper — that is
-         what lets the orchestration parity gate SEE the convergence rather than a lookalike.
-         `ref` is built HERE and read at click time; the number rides home as {i,n} and ask() lands
-         it in the HOST's own ref before resolveOpt, so coinSlider's single logQuantity() records a
-         dragged number identically whoever dragged it. */
+      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[],dis=p.disabled||[],why=p.why||[],seats=p.seats||[],shorts=p.shorts||[];
+      const opts=labels.map((l,i)=>({label:l,cls:cls[i]||"",disabled:!!dis[i],why:why[i]||"",
+        seat:(seats[i]===""||seats[i]==null)?null:seats[i],
+        short:(shorts[i]===""||shorts[i]==null)?null:shorts[i],
+        flip:i===flipIdx,back:i===backIdx,stage:!!p.stage}));
+      // belt: a flip prompt whose labels never crossed the wire still arms the coin
+      if(flipIdx>=0&&!opts.length)opts.push({label:"",flip:true,stage:!!p.stage});
       const sl=p.slider?Object.assign({},p.slider,{ref:{value:p.slider.start}}):null;
-      const slHtml=sl?sliderWrapHTML(sl):"";
-      // The guest half of the two fields added to this payload in util.js's ask(). Stamped BEFORE
-      // panel() so the stage loop sees it on the same tick localAsk's does (flow.js:214).
-      if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
-      // @copy prompt.net.promptrerenderbuttons
-      panel(`${backHtml}<div class="apMsg">${p.msg}</div>${slHtml}<div class="apBtns${grid}">`+
-        optionButtonsHTML(rest.map(x=>({i:x.i,label:x.l,cls:cls[x.i],disabled:dis[x.i],why:why[x.i],seat:(seats[x.i]===""||seats[x.i]==null)?null:seats[x.i],color:cols[x.i]})))+`</div>${subHtml}`,true);
-      // ...wired by the same function localAsk wires it with. The slider sits BETWEEN the message
-      // and the buttons on both tiers, which is also where the top-to-bottom reveal rule puts it.
-      if(sl)wireSlider($("actionPanel"),sl);
-      // menuButtons() reads _shortHtml off the BUTTON, so the guest has to hang it on the same way
-      // localAsk does (flow.js:271) — an empty string means "this option had no short label",
-      // which is not the same as having one, so it must not be assigned.
-      const shorts=p.shorts||[];
-      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
-        const i=+b.dataset.i;
-        if(shorts[i])b._shortHtml=shorts[i];
-        if(isDisabledBtn(b)){b.onclick=()=>showWhy(b);return;}
-        /* {i,n} WHEN THERE IS A NUMBER TO SEND, a bare index when there is not. sendResponse puts
-           `choice` on the wire unchanged and remotePrompt resolves it unchanged, so an OBJECT needs
-           no new node and no new listener — 04-01 established that for the bake's {g:[...],w:n}. */
-        b.onclick=()=>sendResponse(p.id,sl?{i,n:sl.ref.value}:i);
-      });
-    }else if(p.kind==="pick"){
+      renderAskPrompt({msg:p.msg,opts,colors:p.colors||null,sub:p.sub||null,slider:sl,battle:false},
+        v=>sendResponse(p.id,v,true));
+        }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
       // THE TRACER (02.15-02 Task 3, D-25/PAR-14): names the ONE converged renderer DIRECTLY —

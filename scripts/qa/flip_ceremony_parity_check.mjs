@@ -35,31 +35,47 @@ let fails = 0;
 const ok  = (m) => console.log("  PASS  " + m);
 const bad = (m) => { fails++; console.log("  FAIL  " + m); };
 
-// the guest's flip branch: from `if(flipIdx>=0){` to its closing `return;`
-const lines = orch.split("\n");
-const s = lines.findIndex(l => /if\(flipIdx>=0\)\{/.test(l));
-const e = s < 0 ? -1 : s + lines.slice(s).findIndex(l => /^\s*return;\s*$/.test(l));
-const guestFlip = s < 0 ? "" : lines.slice(s, e + 1).join("\n");
-
-console.log("\nThe guest's flip prompt says what the host's says");
-if (!guestFlip) bad("could not find the guest flip branch in orchestrator.js — check pointed at nothing");
-else {
-  /flipMsg/.test(guestFlip)      ? ok("it stamps window.__pp4.flipMsg, so the ceremony has a title and stakes")
-                                 : bad("no flipMsg — the guest's ceremony draws an EMPTY title and EMPTY stakes (stage.js writes `fm ? … : \"\"`)");
-  /setFlipCoin\("spin"\)/.test(guestFlip) ? ok('it paints setFlipCoin("spin") in the tap\'s own frame, like the host')
-                                 : bad('no setFlipCoin("spin") — the guest sees the blank-coin-then-spin fault playtest 22 fixed for the host');
-  /p\.battle|!p\.battle/.test(guestFlip) || /battle/.test(guestFlip)
-    ? ok("the stamp is guarded so a BATTLE flip is excluded")
-    : bad("nothing excludes a battle flip — stamping unconditionally kills stage.js's `!fm && btl` \"⚔️ Broadside!\" title");
+/* RE-ANCHORED BY FORK 2's CONVERGENCE (W1, 2026-08-28). The guest flip branch this gate used to
+   read line-by-line is GONE — watchPrompt's ask branch now renders through renderAskPrompt, the
+   ONE ask-class renderer, which is the same code the host runs. So the parity this gate exists
+   for is now asserted at its new home: the renderer stamps flipMsg (battle-guarded) and paints
+   the tap's own spin, and watchPrompt actually reaches it. The original two bugs stay described
+   in the header — they are why this gate exists at all. */
+function fnBody(src, name) {
+  let h = src.indexOf(`export function ${name}(`);
+  if (h < 0) h = src.indexOf(`export async function ${name}(`);
+  if (h < 0) return "";
+  let i = src.indexOf("{", h), depth = 0, j = i;
+  for (; j < src.length; j++) {
+    if (src[j] === "{") depth++;
+    else if (src[j] === "}") { depth--; if (!depth) break; }
+  }
+  return src.slice(i, j + 1);
 }
+const renderer = fnBody(flow, "renderAskPrompt");
+const watchP = fnBody(orch, "watchPrompt");
+
+console.log("\nThe guest's flip prompt says what the host's says — because it IS the host's renderer");
+if (!renderer) bad("renderAskPrompt not found in flow.js — check pointed at nothing");
+else {
+  /flipMsg/.test(renderer)       ? ok("the ONE renderer stamps window.__pp4.flipMsg, so the ceremony has a title and stakes on every tier")
+                                 : bad("no flipMsg in renderAskPrompt — the ceremony draws an EMPTY title and EMPTY stakes (stage.js writes `fm ? … : \"\"`)");
+  /setFlipCoin\("spin"\)/.test(renderer) ? ok('the ONE renderer paints setFlipCoin("spin") in the tap\'s own frame')
+                                 : bad('no setFlipCoin("spin") in renderAskPrompt — the blank-coin-then-spin fault playtest 22 fixed');
+  /battle/.test(renderer)        ? ok("the stamp is guarded so a BATTLE flip is excluded")
+                                 : bad("nothing excludes a battle flip — stamping unconditionally kills stage.js's `!fm && btl` \"⚔️ Broadside!\" title");
+}
+if (!watchP) bad("watchPrompt not found in orchestrator.js — check pointed at nothing");
+else /renderAskPrompt\(/.test(watchP) ? ok("watchPrompt reaches the renderer — the guest draws through the same code, not a copy")
+                                       : bad("watchPrompt does not call renderAskPrompt — the guest's flip has no renderer at all");
 
 console.log("\nThe battle ceremony still borrows no words");
 /if\s*\(\s*!fm\s*&&\s*btl\s*\)/.test(stage) ? ok("stage.js still has the `!fm && btl` fallback the battle title depends on")
                                             : bad("the `!fm && btl` fallback is gone — the battle ceremony title will be blank");
 
-console.log("\nThe host path is unchanged");
-(flow.match(/flipMsg/g) || []).length >= 2 ? ok("the host still stamps flipMsg on both its flip paths")
-                                           : bad("the host's flipMsg stamps were disturbed");
+console.log("\nThe renderer stamps both flip shapes");
+((fnBody(flow, "renderAskPrompt").match(/flipMsg/g) || []).length >= 2) ? ok("flipMsg is stamped on both the pure-flip and flip-with-options paths")
+                                           : bad("one of the renderer's two flip paths lost its flipMsg stamp");
 
 console.log(fails ? `\nFAIL — ${fails}\n` : "\nPASS — both sides of the wire draw the same ceremony\n");
 process.exit(fails ? 1 : 0);

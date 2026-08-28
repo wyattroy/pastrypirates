@@ -186,108 +186,88 @@ export function showWhy(b){
   // immediately close it again.
   setTimeout(()=>document.addEventListener("pointerdown",clearWhy,{once:true}),0);
 }
-export function localAsk(msg,opts,colors,sub,extra){
-  // a decision is landing in front of the player — the skip is over. When a recap is owed, it
-  // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule); the
-  // re-entry finds appState.ff already false and falls straight through.
-  const pre=ffEndNow();
-  if(pre)return pre.then(()=>localAsk(msg,opts,colors,sub));
-  return new Promise(res=>{
-    if(opts.length===1&&opts[0].flip){
-      // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
-      // the DOM — stash message + helper on the bridge for the ceremony title/stakes
-      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
-      setNeedsAction(true);
-      // THE TAP IS THE FLIP — playtest 22 (Wyatt: "the coin disappears, the word FLIP remains,
-      // which looks messy and bad, then after a second or two the coin starts to flip"). The spin
-      // used to arrive only from the far side of this promise: localAsk resolves, ask()'s
-      // (formerly clock-)wrapped promise resolves, and only then does humanFlip call broadcastFlip("spin").
-      // None of that is a deliberate pause, so the gap is scheduling latency — the same thing this
-      // build has been caught losing whole timers to — and until it landed the coin sat blank with
-      // a stale caption on it. There is no state between armed and spinning, so the tap paints the
-      // spin itself, in its own frame. setFlipCoin AFTER the disarm (which clears the art), and
-      // through setFlipCoin so there is one spelling of a spinning coin; the broadcastFlip("spin")
-      // that follows finds it already spinning and is a no-op (setFlipCoin is idempotent for it).
-      setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);res(0);});
+/* ═════════ FORK 2 CONVERGED (W1, 2026-08-28): ONE ASK RENDERER ═════════
+   renderAskPrompt(spec, answer) is the ask-class renderPickPrompt: it draws EVERYTHING an ask
+   prompt is — back button, message, coin slider, button row, helper text, in the narration box's
+   top-to-bottom reveal order — and knows nothing about promises, Firebase or seats. `answer`
+   fires exactly once with the chosen index (or {i,n} when a slider rode along). localAsk passes
+   its promise resolver; watchPrompt passes sendResponse. The body below is localAsk's own,
+   moved, not rewritten — its comments (playtest 21 items 5/7, MP-08, 02.1-03) moved with it.
+   Gate: scripts/qa/ask_render_convergence_check.mjs; parity DECL row watched red first.
+   spec = { msg, opts, colors, sub, slider, battle } — opts carry label/cls/disabled/why/seat/
+   short/flip/back/stage exactly as ask() builds them; the guest rebuilds the same shape from the
+   wire payload ("" from RTDB's null-hole convention normalizes back to null here, not at the
+   call sites — the fork-2 map's cosmetic divergence #4 closes with it). */
+export function renderAskPrompt(spec,answer){
+  const {msg,opts,colors,sub}=spec;
+  if(opts.length===1&&opts[0].flip){
+    // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
+    // the DOM — stash message + helper on the bridge for the ceremony title/stakes.
+    // GUARDED ON !spec.battle (belt and braces — battleAsk never reaches this renderer, and
+    // stage.js's `!fm && btl` "⚔️ Broadside!" fallback needs fm null for battles).
+    if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
+    setNeedsAction(true);
+    // THE TAP IS THE FLIP — playtest 22: the tap paints the spin in its own frame; the
+    // broadcastFlip("spin") that follows finds it already spinning and is a no-op.
+    setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);answer(0);});
+    return;
+  }
+  const backIdx=opts.findIndex(o=>o&&o.back);
+  const flipIdx=opts.findIndex(o=>o&&o.flip);
+  const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");answer(v);};
+  if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
+  if(flipIdx!==-1){
+    if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
+    // same rule as the pure-flip path above: choosing the coin paints the spin at once
+    setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
+  }
+  else setFlipActive(null);
+  const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
+  const grid=rest.some(x=>x.o.cls)?" recipes":"";
+  const backHtml=backIdx!==-1?backButtonHTML(backIdx):"";
+  const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
+  /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY: a quantity is a slider, and it sits
+     BETWEEN the message and the buttons — the narration-box reveal order (back, message, THIS,
+     buttons, helper text), and a control that edits the message belongs with the message.
+     sliderWrapHTML/wireSlider are the ONE definition (05-01 Task 3, MP-08). */
+  const sl=spec.slider;
+  const slHtml=sl?sliderWrapHTML(sl):"";
+  // @copy prompt.plumbing.localask
+  /* playtest 21 item 5 — aria-disabled, NOT the `disabled` attribute: a real <button disabled>
+     fires no click at all, so the greyed circle could never say WHY when tapped. The row itself
+     is optionButtonsHTML (02.1-03) — the one definition of what an option button is. */
+  panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
+    optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
+    true);
+  if(sl)wireSlider($("actionPanel"),sl);
+  $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+    // an option may carry a `short` label — the radial bloom shows the compact form (element
+    // property, never a data-attribute: the short form is HTML with icon imgs in it)
+    const o=opts[+b.dataset.i];
+    if(o&&o.short!=null)b._shortHtml=o.short;
+    if(isDisabledBtn(b)){
+      // display-only for the DECISION (a greyed option can never be chosen), but not mute:
+      // it answers for itself when asked.
+      b.onclick=()=>showWhy(b);
       return;
     }
-    // an option flagged `back` renders as a small circular "‹" button of its own, above the
-    // message — a consistent, low-emphasis escape hatch instead of competing with the real
-    // choices in the main button row (see notes/edits — every back-able decision gets this).
-    // Can coexist with a `flip` option (arms the flippenator coin as usual) and/or ordinary
-    // choices, which still render as the normal button row.
-    const backIdx=opts.findIndex(o=>o.back);
-    const flipIdx=opts.findIndex(o=>o.flip);
-    const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");res(v);};
-    if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
-    if(flipIdx!==-1){
-      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
-      // same rule as the pure-flip path above: choosing the coin paints the spin at once
-      setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
-    }
-    else setFlipActive(null);
-    const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
-    const grid=rest.some(x=>x.o.cls)?" recipes":"";
-    const backHtml=backIdx!==-1?backButtonHTML(backIdx):"";
-    const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
-    /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY. Wyatt, on tapping "Ask it!" expecting a
-       stepper: "Keep the arc logic consistent by having all the buttons that are in the ark
-       actions. Move the plus minus coins out of the arc instead and style those differently,
-       potentially with a slider or some other mechanic."
-       So a quantity is no longer a pair of circles indistinguishable from Attack and Trade. It is a
-       slider, and it sits BETWEEN the message and the buttons — which is also exactly where the
-       narration-box rule puts it, since content is revealed in the order it appears top to bottom
-       (back, message, THIS, buttons, helper text) and a control that edits the message belongs
-       with the message rather than among the answers. */
-    /* 05-01 Task 3 (MP-08): the markup is no longer built here. sliderWrapHTML (util.js) is the ONE
-       definition of what a coin slider IS, named directly by this tier and by watchPrompt's ask
-       branch — the same shape optionButtonsHTML has, and for the same recorded reason: stage.js
-       needs the class names too and flow.js must not be imported there (module_graph_check.js
-       forbids the cycle). */
-    const sl=extra&&extra.slider;
-    const slHtml=sl?sliderWrapHTML(sl):"";
-    // @copy prompt.plumbing.localask
-    /* playtest 21 item 5 — a greyed circle now SAYS WHY when ye tap it (Wyatt's pick), and the
-       reason appears at the circle itself rather than in a line floating near the top of the
-       board. His screenshot: "Their holds are empty – nothin' to plunder." hovering a long way
-       from the Attack button it explains.
-
-       aria-disabled, NOT the `disabled` attribute — this is the load-bearing detail. A real
-       <button disabled> fires no click event at all, so the reason could never be asked for. It
-       also stays focusable this way, which is what lets a keyboard or screen-reader user reach the
-       explanation instead of hitting a dead control; aria-disabled is still announced as dimmed.
-       The two places that read the DOM property (below, and the stay-put finder in stage.js) move
-       to the same test in this change, and the CSS gains the matching selector.
-
-       THE ROW ITSELF IS NO LONGER BUILT HERE (02.1-03). optionButtonsHTML (util.js) is the one
-       definition of what an option button is, shared with the guest's watchPrompt and with the
-       draft channel's watchDraftPrompt, so a field added on one side can no longer go missing on
-       another. The local `esc` closure went with it — the shared builder escapes through escHtml,
-       which also escapes ">" where this one never did. What stays HERE is this path's own click
-       wiring (done(v) -> res(v)): a local promise and a network round trip are not the same thing
-       and must not be shared. */
-    panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
-      optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
-      true);
-    // ...and neither is the wiring. wireSlider writes the running position into sl.ref (which is
-    // where coinSlider reads its answer), repaints the readout, and re-states the whole deal in the
-    // ask itself as ye drag — so the number is never read in isolation (TRADE-SYSTEM §4).
-    if(sl)wireSlider($("actionPanel"),sl);
-    $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
-      // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
-      // in its circle while the card fallback keeps the full sentence (element property, never a
-      // data-attribute: the short form is HTML with icon imgs in it)
-      const o=opts[+b.dataset.i];
-      if(o&&o.short!=null)b._shortHtml=o.short;
-      if(isDisabledBtn(b)){
-        // display-only for the DECISION (notes/edits #5d — a greyed option can never be chosen),
-        // but no longer mute: it answers for itself when asked.
-        b.onclick=()=>showWhy(b);
-        return;
-      }
-      b.onclick=()=>done(+b.dataset.i);
-    });
+    /* {i,n} WHEN A SLIDER RODE ALONG, a bare index when not — one shape for both tiers. The
+       host's ask() unpacks {i,n} and writes n into its own live ref (a no-op there, since
+       wireSlider already wrote it); the guest's sendResponse puts it on the wire unchanged. */
+    b.onclick=()=>done(sl?{i:+b.dataset.i,n:sl.ref.value}:+b.dataset.i);
   });
+}
+export function localAsk(msg,opts,colors,sub,extra){
+  // a decision is landing in front of the player — the ff skip is over; when a recap is owed it
+  // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule).
+  const pre=ffEndNow();
+  // `extra` rides the re-entry too — the pre-W1 line dropped it, which silently lost a coin
+  // slider if the skip recap fired on exactly that prompt (latent, never reported; fixed in the
+  // move because leaving a known fault in a freshly-shared path helps nobody).
+  if(pre)return pre.then(()=>localAsk(msg,opts,colors,sub,extra));
+  // THE LOCAL RESPONSE MECHANISM — renderPickPrompt's localPickCell shape: a promise around the
+  // ONE renderer, nothing else. The drawing all lives in renderAskPrompt above.
+  return new Promise(res=>{renderAskPrompt({msg,opts,colors,sub,slider:extra&&extra.slider},res);});
 }
 export async function humanFlip(p,label,allowBack,sub){
   setActor(p.idx);
