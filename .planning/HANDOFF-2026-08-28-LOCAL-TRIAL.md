@@ -6,11 +6,35 @@ The point of this run is twofold: prove the **local half** of "the full trial ru
 Chrome at the three sizes, cloud or local" (the cloud half is proven in the cloud session's
 report), and produce a **timed, like-for-like comparison** of the two environments.
 
-## 0. Before anything — the standing rules
+## 0. ⚠ YOU ARE NOT ALONE ON THIS BRANCH — read this first
+
+**A cloud session is running a 24-hour autonomous window on this same branch right now.** That was
+not foreseen when the first draft of this handoff was written, and it is a real collision: both
+machines run `scripts/sea_trial.mjs`, which used to write `.planning/SEA-TRIAL.md` at a hardcoded
+path. Whoever finished last silently overwrote the other's verdict — leaving one
+authoritative-looking report describing a run that happened on the **other machine**. Rule 24
+stands on being able to open that file and believe it.
+
+**Fixed, and this handoff depends on the fix** (`scripts/qa/trial_report_ownership_check.mjs`
+holds it): `--report=` names where a run writes, and **every report now states the machine it
+sailed on**, derived from the environment — so even a forgotten flag cannot produce a report that
+passes for the other's.
+
+**The three rules while both sessions are live:**
+
+1. **`git pull --rebase` before you commit anything**, every time. Two sessions append to
+   `.planning/CTO-LEDGER.md`; a rebase turns that into a clean stack instead of a conflict.
+2. **Write to your own files.** This run's report goes to `.planning/SEA-TRIAL-LOCAL.md`
+   (the `--report=` flag below) and your notes to `.planning/LOCAL-TRIAL-LOG.md` — **never**
+   `.planning/SEA-TRIAL.md`, which the cloud run owns while its window is open.
+3. **Do not touch game code** (`index.html`, `src/**`). The cloud session has claimed Waves 4+6 in
+   the ledger and is editing there. This session's whole job is to sail and time a trial.
+
+## 0b. Then the standing rules
 
 ```bash
 cd /Users/wyattroy/Documents/Projects/pastrypirates
-git fetch origin && git checkout claude/cloud-handoff-planning-a9ay1u && git pull
+git fetch origin && git checkout claude/cloud-handoff-planning-a9ay1u && git pull --rebase
 ```
 
 - **This branch, not main.** The tablet legs, the ten-leg FULL list, and the WebKit recovery
@@ -34,8 +58,13 @@ since 2026-08-27 — it should already be there. Never install it to `/tmp`.
 ## 2. The run — timed
 
 ```bash
-caffeinate -i node scripts/sea_trial.mjs
+caffeinate -i node scripts/sea_trial.mjs --report=.planning/SEA-TRIAL-LOCAL.md
 ```
+
+**The `--report=` flag is not optional while the cloud window is open** — without it this run
+overwrites the authoritative report with a local verdict (§0). The report it writes states
+`sailed on **local Mac (<hostname>)**` in its header, and the cloud's says `cloud container`, so
+the two can always be told apart afterwards.
 
 - `caffeinate -i` keeps the Mac awake for the duration; a sleep mid-trial is a fake stall.
 - **The trial times itself** — no stopwatch needed. The header of `.planning/SEA-TRIAL.md`
@@ -82,5 +111,9 @@ for freshness; the 2026-08-28 8-leg cloud run was 62 min, as an older reference 
 - A leg that captured no screens **did not run** — say so; never fold it into a pass.
 - The judge is a witness, not a verdict — known bias families are listed in the checklist's
   "do NOT spend yer eyes" note and the ledger's 13:20 triage entry.
-- Record the comparison table + anything surprising in `.planning/CTO-LEDGER.md` with a
-  timestamped entry, and leave `.planning/SEA-TRIAL.md` as the local run wrote it — commit both.
+- Record the comparison table + anything surprising in **`.planning/LOCAL-TRIAL-LOG.md`** (your own
+  file — see §0 rule 2), then add **one** timestamped line to `.planning/CTO-LEDGER.md` pointing at
+  it. `git pull --rebase` immediately before that commit.
+- Commit `.planning/SEA-TRIAL-LOCAL.md` as the run wrote it. **Never** `git checkout`/overwrite
+  `.planning/SEA-TRIAL.md` — if it shows as modified on your machine, that is the cloud run's
+  verdict arriving through a pull, not something to fix.

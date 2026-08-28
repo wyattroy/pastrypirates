@@ -23,12 +23,32 @@
  * column that matters — WHAT DID NOT RUN. A leg that could not start is never silently absent.
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
+
+/* WHERE THIS RAN, AND WHERE THE REPORT GOES — two machines, one repo (2026-08-28).
+   A handoff sent a session on Wyatt's Mac to sail this same branch for a cloud-vs-local
+   comparison, while a 24-hour run sailed it in a cloud container. Both wrote
+   `.planning/SEA-TRIAL.md` at a hardcoded path, so the second to finish would silently overwrite
+   the first — leaving one authoritative-looking report describing the OTHER machine's run. Rule
+   24 stands on being able to open this file and believe it, so:
+     --report=<path>   a comparison run names its own file and never touches the authoritative one
+     WHERE             derived, never typed: every report says which machine sailed it, so even a
+                       forgotten flag cannot produce a report that is mistaken for the other's.
+   `whereRan()` reads the environment the same way the runbooks do (docs/QA-PROCESS.md §5b): the
+   cloud container is the one with the pre-provisioned browser wrapper and no macOS. */
+function whereRan() {
+  if (process.platform === "darwin") return `local Mac (${os.hostname()})`;
+  if (process.env.CLAUDE_PROJECT_DIR || fs.existsSync("/opt/pw-browsers")) return "cloud container";
+  return `${process.platform} (${os.hostname()})`;
+}
+const WHERE = whereRan();
+const REPORT = path.resolve(REPO, arg("report", path.join(".planning", "SEA-TRIAL.md")));
 const say = (...a) => console.log(...a);
 
 /* ---- what build is this? -------------------------------------------------- */
@@ -70,10 +90,11 @@ const legs = LEGS[gear] || LEGS.FULL;
    killed. THE ARTIFACT OUTLIVED THE RUN AND KEPT ITS VERDICT.
    Stamping it IN PROGRESS first means the only way to get a green report is to finish. A crash, a
    kill, a laptop lid closing -- all of them now leave the truth. */
-fs.writeFileSync(path.join(REPO, ".planning", "SEA-TRIAL.md"),
+fs.mkdirSync(path.dirname(REPORT), { recursive: true });
+fs.writeFileSync(REPORT,
 `# Sea trial — build \`${STAMP}\`
 
-**IN PROGRESS — no verdict yet.**  ·  started ${started.toISOString()}  ·  gear **${gear}**
+**IN PROGRESS — no verdict yet.**  ·  started ${started.toISOString()}  ·  gear **${gear}**  ·  sailed on **${WHERE}**
 
 If this is still what the file says, the trial did not finish. **A trial that did not finish is not
 a trial that passed.** Nothing here has been proven about build \`${STAMP}\`.
@@ -151,7 +172,7 @@ const verdict = !unitOk ? "FAILED"
 
 const report = `# Sea trial — build \`${STAMP}\`
 
-**${verdict}** — ${ranLegs.length} of ${legs.length} voyage(s) sailed${notRun.length ? `, ${notRun.length} NOT RUN` : ""}  ·  ${started.toISOString()}  ·  ${mins} min  ·  gear **${gear}**
+**${verdict}** — ${ranLegs.length} of ${legs.length} voyage(s) sailed${notRun.length ? `, ${notRun.length} NOT RUN` : ""}  ·  ${started.toISOString()}  ·  ${mins} min  ·  gear **${gear}**  ·  sailed on **${WHERE}**
 
 > Gear chosen because: ${gearWhy}
 
@@ -177,9 +198,8 @@ Screenshots and contact sheets: \`sea-trial-shots/\` (not committed — 100MB+ p
 *Written by \`scripts/sea_trial.mjs\`. To check whether a sea trial was actually run for what is
 live, compare the build stamp above with the one in the game's ☰ menu.*
 `;
-const dir = path.join(REPO, ".planning");
-fs.writeFileSync(path.join(dir, "SEA-TRIAL.md"), report);
-say(`\n⚓ ${verdict}  —  report: .planning/SEA-TRIAL.md  (build ${STAMP}, ${mins} min)`);
+fs.writeFileSync(REPORT, report);
+say(`\n⚓ ${verdict}  —  report: ${path.relative(REPO, REPORT)}  (build ${STAMP}, ${mins} min, ${WHERE})`);
 if (notRun.length) say(`   ${notRun.length} leg(s) did NOT run — read the report, they are not passes.`);
 /* INCOMPLETE and NOTHING SAILED both exit non-zero. Only a trial that actually sailed every leg
    it promised, and passed, is allowed to be green. */

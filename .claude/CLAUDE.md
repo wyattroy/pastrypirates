@@ -63,7 +63,7 @@ documents; the rules themselves are all here, in full.
 | 13 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
 | 14 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 15 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 16 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 16 | **Work in the main checkout — worktrees are retired**, and **assume a SECOND SESSION is on the branch**: pull --rebase before every commit, claim the item in the ledger before editing it | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 17 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 18 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 19 | **PLAY THE GAME in two tabs to find what's wrong, and screenshot your own work before handing it over** | [§1](#1-working-with-wyatt) |
@@ -763,7 +763,30 @@ Local `main` once sat **457 commits behind** — a v1.0 snapshot with no `src/` 
 produced a confident, entirely wrong conclusion handed to four parallel sessions as instructions.
 **Never report git state from memory or from earlier in the session.** Re-run the command.
 
-### Work in the main checkout — worktrees are retired
+### TWO SESSIONS ON ONE BRANCH — assume it, and write for it
+
+**Earned 2026-08-28, by not foreseeing it.** A handoff was written sending a session on Wyatt's Mac
+to sail this branch, and an hour later a 24-hour autonomous run was set up on the same branch.
+Nobody asked what happens when both are live. A third session was already pushing to it.
+
+**The silent one, which is the dangerous one:** `scripts/sea_trial.mjs` wrote
+`.planning/SEA-TRIAL.md` at a hardcoded path, so whichever machine finished last overwrote the
+other's verdict — leaving an authoritative-looking report describing a run from somewhere else.
+Rule 24 stands on opening that file and believing it. Fixed by `--report=` plus a derived
+`sailed on <machine>` line in every report (`scripts/qa/trial_report_ownership_check.mjs`).
+
+**The rules, whenever more than one session may be live:**
+
+- **`git pull --rebase` before every commit.** Two sessions appending to `.planning/CTO-LEDGER.md`
+  conflict on every push otherwise; rebased, they stack cleanly.
+- **CLAIM THE ITEM IN THE LEDGER BEFORE EDITING IT.** An unclaimed item is available; a claimed one
+  belongs to that session until it closes. This is the whole coordination mechanism — there is no
+  lock across machines and a lock file in git would lie.
+- **Shared artifacts are owned, not shared.** A run that is not the authoritative one writes its
+  own file (`--report=`, its own log) and never the file the process tells Wyatt to open.
+- **When you write a handoff, name what the other session must not touch** — branch, files,
+  and whether it may change game code at all. A handoff that assumes it is the only session is the
+  bug this rule exists to stop.
 
 **The only working directory is `/Users/wyattroy/Documents/Projects/pastrypirates`.** `.planning/` is
 a tracked directory, so it is **branch-scoped**: a worktree on a stale branch reports an older
