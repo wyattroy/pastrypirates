@@ -1499,7 +1499,23 @@
     flex: 0 0 auto; padding-left: 8px; }
 
   /* ================= /4 stage ================= */
-  body.pp4Stage { overflow:hidden; background:#3d7d99; }
+  /* W4-3 (Wyatt): "The centre div has its own blue background, layered on top of the page
+     gradient under the board and the captains box. The gradient should be the only background."
+     He was exactly right, and MEASURED: `background:#3d7d99` lived here, GLOBALLY, while the
+     page's own surround — five radial gradients sampled from the board art — is painted on
+     `html` inside @media(min-width:601px). Body is max-width:430px and centred while the stage is
+     up, so on any wide screen this flat colour covered the gradient in precisely the centre
+     column: a flat band behind the board and captains box with the real gradient showing either
+     side of it. Seen in a screenshot before it was touched, not inferred.
+     IT IS SCOPED, NOT DELETED. Below 601px the html surround does not exist ("the phone's board
+     fills the viewport, so there is no surround to paint"), so there this flat colour IS the only
+     ground and removing it would drop the phone onto the pale default gradient.
+     AND IT IS `none`, NOT MERELY "NOT BLUE": simply deleting the flat colour left body painting
+     its OWN base `linear-gradient(160deg,#dcece9,#e6efe1,#f5f0dd)` from the top of this file —
+     which would have swapped his blue band for a PALE one, in the same place, and read as a worse
+     bug. Measured after the first cut, before the screenshot could show it. */
+  body.pp4Stage { overflow:hidden; background:none; }
+  @media (max-width: 600px) { body.pp4Stage { background:#3d7d99; } }
   /* D-31 (2026-08-21) — REPLACES the item-22 stopgap (D-18). Wyatt's ruling: two real desktop
      sizes, both DERIVED from the window's own geometry, never a breakpoint table. The mechanism
      item 22 built stays — it is exactly right, just fed a computed number instead of a literal one.
