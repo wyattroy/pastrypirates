@@ -6,7 +6,7 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
-## Review 8 — 2026-08-28, the Wave 1 window (one game activity engine) — VERBATIM
+## Review 8 — 2026-08-28, the Wave 1 window (ledger item W1, one game activity engine) — VERBATIM
 
 **One sentence to read first:** *The convergence you asked for genuinely happened — one engine now feeds both screens, the clock is out cleanly, and nothing shipped to production — but the checklist you are about to read contains one false sentence: "crew-phone finished the voyage — both screens, identical End of Voyage" is proven by screenshots of the PREVIOUS build, and on THIS build that leg stalled at day 8 for 28 minutes and nobody knows why.*
 
