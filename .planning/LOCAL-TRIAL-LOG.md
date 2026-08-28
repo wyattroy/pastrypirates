@@ -112,8 +112,13 @@ The judge shells out to a child `claude -p` per screenshot. That child inherited
 loaded this project's `.claude/settings.json`, and ran this project's hooks. Every call is a new
 session id, so `playtest-checklist-last.cjs`'s once-per-session guard never applied: it fired on
 all of them, blocked the Stop, and sent each judge off to write a staging checklist instead of
-returning its verdict. Fingerprint: **75 `checklist-asked` marker dirs** in
-`.claude/hooks/.read-state/`, stamped inside the trial window.
+returning its verdict. Fingerprint: **73 `checklist-asked` marker dirs** in
+`.claude/hooks/.read-state/`, stamped inside the failed run's window and none after it.
+
+> *(That number read **75** until CEO Review 14 checked it. It had been typed from a coarser
+> `ls | wc -l` rather than counted; the 73 above comes from actually testing each directory for
+> the marker file. The repo's own rule — never hand-type a number that can be counted — and it
+> was broken in the very finding that exists to warn about unverified claims.)*
 
 Red-proofed both directions, same call, same image, cwd the only difference — from the repo it was
 still running at 40 s; from a temp dir it answered in 37 s. Fixed by running the judge from
@@ -192,6 +197,17 @@ bump mid-window). **Filed loudly instead**, and every claim in this document is 
 - **Not a clean timing comparison.** Busy machine vs idle container (above). The 119 vs 91 is real
   but it does not measure the environments.
 - **Not a verdict on `crew-desktop`.** Unfinished locally, finished in the cloud, cause unproven.
-- **Two screens were never judged** (`passplay-desktop-005`, `crew-phone-guest-009`). Not cleared.
+- **84 screens were never looked at — not 2.** ⚠ **CORRECTED 2026-08-28 after CEO Review 14 caught
+  this line understating the gap by a factor of forty.** The original sentence read *"Two screens
+  were never judged"*, naming only the two that timed out. It ignored the cap: the judge looks at
+  the **first 30 distinct screens of a leg only** (`JUDGE_CAP`, `scripts/playtest_gate.mjs:58`,
+  applied at `:481`). The run **captured 349** screens and **submitted 267**, so **82 were never
+  shown to the judge at all**, plus the 2 that errored.
+  **The sharpest case is the leg that most needed eyes:** `crew-desktop` — the only leg that did
+  not finish its voyage — captured **60** screens, had **30** judged, and all 30 came back PASS.
+  It reads as visually clean. Half of it was never opened.
+  **And the report cannot show you this**, because its per-leg lines say *"vision judge FAILED 4
+  screen(s)"* with **no denominator**. The fix is one word of arithmetic — *"judged 30 of 60"* —
+  and it is not this session's to make mid-window; filed here instead.
 - **The judge is a witness, not a verdict** — its 26 findings here are untriaged by this session
   and map, on inspection, to families already triaged in the ledger's 13:20 entry.

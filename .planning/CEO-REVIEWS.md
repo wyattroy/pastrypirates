@@ -6,6 +6,58 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 14 — 2026-08-28, the local 10-leg sea trial on Wyatt's Mac (ledger item LOCAL-TRIAL) — VERBATIM
+
+**Wyatt — YES. He did the thing you asked for, and he did it more honestly than most runs on this branch.** The one real catch is that his report says two screens went unlooked-at when the true number is eighty-four — which is the same fault the last CEO flagged, wearing a different coat.
+
+### 1. Each thing the handoff asked for
+
+**Sail the full trial on your Mac — DONE.** All ten voyages genuinely sailed. I did not take the report's word for it: `sea-trial-shots/report.json` is the run's own record of what it captured, and every leg has real screens in it (23, 24, 28, 39, 47, 60, 55, 21, 21, 31 — 349 in total). "None did not run" is therefore an earned line, not a phrase that slipped through. `/Users/wyattroy/Documents/Projects/pastrypirates/scripts/sea_trial.mjs:159-168` is where that gets decided by evidence rather than by wording, and it worked.
+
+**Time it — DONE.** 119 minutes in the header of `/Users/wyattroy/Documents/Projects/pastrypirates/.planning/SEA-TRIAL-LOCAL.md:3`, plus a per-leg table built from the log's own stamps.
+
+**Fill in the cloud-vs-local comparison — DONE, including the cell the handoff called the most valuable.** The cloud needed 14 browser restarts to get through its three Safari legs (11 + 2 + 1, at `.planning/SEA-TRIAL.md:64,70,76`). Your Mac needed zero. I checked that from both directions: the machine record shows `recoveries: 0` on all ten legs, and the words "WPEWebProcess", "Target crashed", "relaunch", "Recovery #" and the ✱ symbol appear **zero times** across the whole 7,127-second log. I also checked the obvious cheat — that the Safari legs quietly ran in Chrome instead — and they didn't: there is no fallback, the code throws if Safari's driver is missing (`scripts/lib/wk.mjs:74-79`), and the driver and browsers are both installed on your machine. **So the Safari crash really is a container problem, not something your players would ever meet.** That is a genuinely useful answer and it was the point of the run.
+
+**Obey the mid-run rules from the other session — DONE.** He was told to write to his own report file, not touch game code, rebase before committing, and push. His only two commits are `1db8e2ad` (one tooling file, 14 lines) and `af318837` (three planning documents). No `index.html`, no `src/`. Cleanly stacked on top of the cloud's work and pushed — nothing sitting unpushed.
+
+**Rule 17 — clean.** No leftover browsers or servers running on your laptop. I checked.
+
+### 2. The tooling fix: legitimate, not a substitution
+
+I went looking for rule 7 here — building tools instead of doing the job — and it isn't that. His first attempt at the trial produced *zero* visual verdicts on *every* screen, silently, while the legs looked healthy. That is the trial's eyes being shut. Fixing it was the difference between a run worth having and a run that lies to you.
+
+And this is the strongest-verified claim in the whole set. His theory was that each screenshot-checking call was being ambushed by this repo's own end-of-session hook. The fingerprint is on disk and I counted it myself: **73 hook markers** stamped between 14:20 and 15:40 — the failed run — arriving in threes, exactly matching the three-at-a-time judging. And **zero** markers after 15:42:58, when the good run started. Before and after, both measurable, both mine rather than his. The fix itself is one line, and one file: `scripts/lib/vision.mjs`.
+
+His "267 screens judged, 2 timed out" is exact. I recounted from the machine record: 267, of which 246 passed, 19 failed, 2 errored.
+
+### 3. Where he announces more than he checked — THE CATCH
+
+`.planning/LOCAL-TRIAL-LOG.md:195` says, under what the run does *not* establish: **"Two screens were never judged."**
+
+That is wrong, and it undersells by a factor of forty. The visual judge only ever looks at the first **30 screens of a leg** — a hard cap at `scripts/playtest_gate.mjs:58`, applied at `:481`. The run captured 349 screens and submitted 267. **Eighty-two screens were never shown to the judge at all**, on top of the two that timed out. Eighty-four unlooked-at, not two.
+
+The worst instance is the leg that most needed looking at. `crew-desktop` — the one leg that **did not finish its voyage** — captured 60 screens, had 30 judged, and every one of those 30 came back PASS. In the report it reads as visually clean. Half of it was never opened. And the cap appears nowhere in `SEA-TRIAL-LOCAL.md`; the report's per-leg lines say "vision judge FAILED 4 screens" with no denominator, so there is nothing on the page to tell you how much was actually seen.
+
+To be fair to him: he did not invent the cap, and he was told not to change machinery mid-run. But the sentence he wrote is his, and it states a smaller gap than the one that exists.
+
+### 4. Smaller things, none of them reasons to reopen
+
+- **"75 markers" is actually 73.** A typed number that didn't match the countable one. Harmless here, but this project has a rule about exactly that.
+- **The cloud's own report cannot say which machine ran it.** `.planning/SEA-TRIAL.md:3` has no "sailed on" line — the fix that adds it landed after that run began. His table labels the cloud column correctly, but by inference, not from the file. So the promise that "every report now states the machine it sailed on" is not yet true of the report on disk today.
+- **The 0-vs-14 headline is slightly tighter than the evidence.** He says himself the cloud's per-leg times can't be recovered, so the two aren't matched for exposure — his Safari legs ran about 52 minutes total. Given one cloud leg crashed eleven times, 52 crash-free minutes is still decisive. The conclusion holds; the framing is a shade neater than the data.
+- **One claim I could not verify at all:** that the `physical-board` staging-leak catch was a *different* local session. Both local sessions commit under the same identity, and those commits sit in one unbroken 15:16–15:34 run right before his trial. Plausible, uncheckable from the repo. Nothing turns on it — but don't read it as established.
+- **Two things he filed and did not fix are both real, and I verified both.** The screenshot folder is still one shared path, so two runs on one machine erase each other's evidence — which is precisely why the *before* half of his own judge story is gone from disk. And `a4069ed2` changes `index.html` while the build stamp reads `2026.08.28.4` on both sides of it: same label, two different games. That second one quietly breaks your "compare the stamp in the menu to the stamp in the report" check.
+
+### 5. The recurrence question
+
+**Review 13's fault has recurred, in new clothing.** Its criticism was: *the instrument announces more than it actually checked.* There it was a layout gate that guarded one line while printing a claim about the whole idea. Here it is a trial report that prints per-leg visual verdicts with no denominator, and a write-up that names two unjudged screens when eighty-four were never looked at. Different code, same fault: **the summary is broader than the coverage underneath it, and nothing on the page says so.** The narrow fix is one sentence in the log and one denominator in the report — "judged 30 of 60" instead of "FAILED 4 screens."
+
+Review 13's other two points did not recur. He explicitly declined to fold the unfinished leg into a pass, gave it its own section, and disqualified his own timing comparison as busy-machine-versus-idle-container rather than defending it.
+
+**One sentence to hold onto:** the Safari crash is confirmed a cloud-container artefact and does not touch your players — but the trial report is still telling you it looked at more of your game than it did, which is the third time in three reviews that the same fault has surfaced somewhere new.
+
+**ACTED ON, same session:** the `.planning/LOCAL-TRIAL-LOG.md` sentence is corrected in the open (84, with the cap cited and the `crew-desktop` 30-of-60 case named); the marker count is recounted to 73 with a note on how the wrong number got typed; the missing denominator in the trial report is filed as machinery this session was told not to change mid-window.
+
 ## Review 13 — 2026-08-28, W4-3 the stage background (one layout item) — VERBATIM
 
 **Verdict, for Wyatt:** Yes — this one is done, and it is the thing you actually asked for. I reproduced it myself rather than taking the word for it: with the old code the centre column really was painting a flat blue slab 430 pixels wide straight down the middle of your gradient, and with the new code the gradient runs edge to edge with no seam. Desktop and tablet are both fixed, and your phone is untouched — I proved that one to the byte, not by eye. Three things worth holding onto, none of them a reason to reopen it. First, on the phone the gradient still isn't the background, because there isn't one down there at all — the flat blue stays as the only ground, which I think is right but is a call somebody made for you rather than one you gave. Second, the automated check that is meant to stop this coming back is real — I broke the code four different ways and it caught all four — but it guards one line rather than the idea, and I put the same blue band back three other ways without it noticing, while it still prints "one background behind the stage" as though it had checked the whole thing; that sentence should be narrowed to what it actually watches. Third, the before-and-after screenshots you were shown are two different moments of the game, not a clean comparison, so I made a proper matched pair myself to be sure — the finding held, but the evidence as offered was weaker than the claim resting on it. And a small housekeeping note: the git entry explaining this fix lost two words to a shell quoting slip, which was spotted and openly recorded rather than quietly rewritten, correctly, because another session is working on the same branch.
