@@ -2646,32 +2646,40 @@
 </div>
 
 <!-- ===================== HOW TO PLAY (modal) ===================== -->
+<!-- A-7 (Wyatt, 2026-08-28): EVERY TUNED NUMBER IN HERE IS AN EMPTY data-rule SPAN, filled at
+     runtime from rulesFacts(cfg) — the same cfg the engine plays by (fillRulesFacts, wired in
+     orchestrator.js). Never type an amount into this prose: scripts/qa/rules_page_check.mjs
+     fails the build on a digit glued to 🌕 or "squares" outside a span, on a live mechanic this
+     page skips, and on a dead one it still teaches. The words are Wyatt's register — new
+     sentences here are drafts for his rewrite, not settled copy. -->
 <div id="howToPlayModal" class="modalOverlay" style="display:none">
   <div class="modalCard" style="max-width:480px;text-align:left">
     <div class="modalTitle" style="text-align:center">📖 How to play</div>
     <div style="margin-top:14px;max-height:60vh;overflow-y:auto">
       <h4>🎯 The goal</h4>
-      <p>Collect every ingredient on yer recipe map, then sail home and dock at the Isle of Tortuga. First baker home fires up the ovens!</p>
+      <p>Collect every ingredient on yer recipe map, then sail home and dock at the Isle of Tortuga. That fires up yer ovens — and the bake-off begins!</p>
       <h4>⚓ Setting sail</h4>
-      <p>Each captain gets a recipe map (5 ingredients), 3 gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — and the fewer that are left, the dearer they get.</p>
+      <p>Each captain gets a recipe map (<b data-rule="recipeSize"></b> ingredients), <b data-rule="startCoins"></b> gold coins, and a ship docked at the Isle of Tortuga. Each island holds only a few crates — and the fewer that are left, the dearer they get.</p>
       <h4>Yer turn: sail → act</h4>
       <p><b>🌬️ Wind.</b> Each day the wind picks a direction and holds it for the whole table. Look at the compass: the big needle is this day's wind, and the ghost needle behind it is <b>next</b> day's — storms and all. That forecast is never wrong, so ye can plan around it.</p>
-      <p><b>⛵ Sail.</b> Sailing is <b>free</b>. Move up to <b>4 squares</b> in any mix of directions — but the moment yer route bites into the wind, even for one square, the whole move is capped at <b>2</b>. Across the wind doesn't count against ye. Sail past other ships, but don't end on one.</p>
+      <p><b>⛵ Sail.</b> Sailing is <b>free</b>. Move up to <b data-rule="sailRange"></b> squares in any mix of directions — but the moment yer route bites into the wind, even for one square, the whole move is capped at <b data-rule="sailUpwind"></b>. Across the wind doesn't count against ye. Sail past other ships, but don't end on one.</p>
       <p><b>⚓ Act</b> — choose one:</p>
-      <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip for yer fortune: <b>heads</b> ye strike buried treasure and take <b>3🌕</b>; <b>tails</b> ye spend the turn workin' the docks for <b>1🌕</b>. Either way ye may then <b>buy</b> a crate, with the coin ye just earned. Stay as long as ye like and keep flipping.</p>
-      <p><b>💰 Crate prices rise.</b> A crate costs <b>6🌕 minus however many are left on that island</b> — so the first off a full island is 3🌕, the next 4🌕, and the last one 5🌕. Get there first, or pay for dawdling. Ye may buy crates that aren't on yer recipe — they make excellent trade bait...</p>
-      <p><b>Attack</b> — fight an adjacent ship! Pay 2🌕 for powder, then <b>one broadside each</b>. Heads beats tails. Both heads? The captain firing <b>downwind</b> lands the shot — a crosswind clash and the cannonballs collide. Both tails and the defender may slip away, <b>free</b>. If the shot doesn't tell, the attacker may pay <b>2🌕 to load another broadside</b> and fire alone — heads and it lands — as often as they can pay. Break off and the battle ends with <b>nobody gaining a thing</b>. The winner takes <b>one crate</b> of their choosing. Nobody changes squares. <b>Every dock is raidable</b> — a berth protects nobody, not even a captain who's already fired up the ovens. Ye can't attack a ship with an empty hold; there's nothing to take.</p>
-      <p><b>🔭 Callin' the fight.</b> Any captain not in it may call the winner from the crow's nest. It's <b>free</b>, it costs ye nothing to be wrong, and ye get <b>2🌕</b> from the bank if yer right. Nobody's paid on a battle that ends with no winner.</p>
+      <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip for yer fortune: <b>heads</b> ye strike buried treasure and take <b data-rule="dockHeads"></b>🌕; <b>tails</b> ye spend the turn workin' the docks for <b data-rule="dockTails"></b>🌕. Either way ye may then <b>buy</b> a crate, with the coin ye just earned. Stay as long as ye like and keep flipping.</p>
+      <p><b>💰 Crate prices rise.</b> A crate costs <b data-rule="crateBase"></b>🌕 <b>minus however many are left on that island</b> — so the first off a full island is <b data-rule="priceFirst"></b>🌕, the next <b data-rule="priceNext"></b>🌕, and the last one <b data-rule="priceLast"></b>🌕. Get there first, or pay for dawdling. Ye may buy crates that aren't on yer recipe — they make excellent trade bait...</p>
+      <p><b>🕯️ The black market.</b> A sold-out island always has ONE more crate under the counter — a flat <b data-rule="blackMarket"></b>🌕, forever. Steep, but no recipe is ever truly dead. Skint? The black market'll also take <b>any two crates</b> from yer hold in trade for it — even two of the same.</p>
+      <p><b>Attack</b> — fight an adjacent ship! Pay <b data-rule="powder"></b>🌕 for powder, then <b>one broadside each</b>. Heads beats tails. Both heads? The captain firing <b>downwind</b> lands the shot — a crosswind clash and the cannonballs collide. Both tails and the defender may slip away, <b>free</b>. If the shot doesn't tell, the attacker may pay <b data-rule="refire"></b>🌕 to load another broadside and fire alone — heads and it lands — as often as they can pay. Break off and the battle ends with <b>nobody gaining a thing</b>. The winner takes <b>one crate</b> of their choosing. Nobody changes squares. <b>Every dock is raidable</b> — a berth protects nobody, not even a captain who's already fired up the ovens. Ye can't attack a ship with an empty hold; there's nothing to take.</p>
+      <p><b>🔭 Callin' the fight.</b> Any captain not in it may call the winner from the crow's nest. It's <b>free</b>, it costs ye nothing to be wrong, and ye get <b data-rule="callBounty"></b>🌕 from the bank if yer right. Nobody's paid on a battle that ends with no winner.</p>
       <p><b>Trade</b> — hail the <b>whole table</b> at once. Say what ye <b>want</b> and what ye'll <b>give</b> — crates, coins, or both. Every captain holding it answers: accept, deny, or name their price. Ye see every answer together, then take one or walk away. One round of haggling, and no bonus for shaking hands.</p>
-      <p><b>Start yer bakery!</b> — at the Isle of Tortuga with yer whole recipe? Declare victory! <img class="narrIcon" src="assets/icons/cupcake.png" alt=""></p>
+      <p><b>Muse</b> — do none of it. Sit back, dream o' pastry, and pocket <b data-rule="passCoin"></b>🌕 for yer patience.</p>
       <h4><img class="narrIcon" src="assets/icons/current-swirl.png" alt=""> The trade winds</h4>
       <p>The sea around the rim of the world flows in a mighty clockwise current, in arcs of varying length each game. Sail (or get blown) into it and yer instantly swept to the far corner of that stretch — a daring shortcut for captains in a hurry!</p>
       <h4>⛈️ Storms</h4>
-      <p>The compass warns ye a full day ahead, so a storm is never a surprise. At the top of the day it blows <b>every ship at once</b>, <b>3 squares</b>, all the <b>same direction</b>, before anyone acts. <b>Land and other ships stop ye short</b> — that's the whole of it. Nobody loses a turn, and a dock is just water the storm can push ye onto or off. Mind the rim, though: blown into the trade winds and yer swept clean across the sea.</p>
-      <h4>⏰ The shot clock</h4>
-      <p>Take too long on yer turn and ye'll lose a random ingredient from yer hold (or 5🌕 if yer out of ingredients) and miss the turn.</p>
+      <p>The compass warns ye a full day ahead, so a storm is never a surprise. At the top of the day it blows <b>every ship at once</b>, <b data-rule="stormPush"></b> squares, all the <b>same direction</b>, before anyone acts. <b>Land and other ships stop ye short</b> — that's the whole of it. Nobody loses a turn, and a dock is just water the storm can push ye onto or off. Mind the rim, though: blown into the trade winds and yer swept clean across the sea.</p>
+      <h4><img class="narrIcon" src="assets/icons/cupcake.png" alt=""> The bake-off</h4>
+      <p>Dock at Tortuga holdin' yer whole recipe and yer ovens light <b>that very turn</b>. Yer recipe's revealed, yer ingredient crates get shuffled before yer eyes — and ye must name them back <b>in the recipe's own order</b>, from memory. Pay <b data-rule="bakeRewatch"></b>🌕 to watch the shuffle again, as often as yer purse allows.</p>
+      <p>Crates ye place right <b>lock in</b>; the rest get shuffled again tomorrow, and ye bake again — yer attempt IS yer turn. The whole table watches every bake, so make it a show. Get every crate in its place and ye've baked it!</p>
       <h4><img class="narrIcon" src="assets/icons/crown.png" alt=""> Winning</h4>
-      <p>When the first baker docks home, everyone else gets one last turn. If more than one makes it, there's no contest — they <b>bake together</b>. <b>Best Baker</b> goes to whoever brought the most to the bench: most crates in the hold, then most coin, then whoever got home first.</p>
+      <p>First captain to bake their full recipe wins the voyage. Two captains bakin' it on the same day? No contest — they <b>bake together</b>. <b>Best Baker</b> goes to whoever brought the most to the bench: most crates in the hold, then most coin, then whoever got home first.</p>
       <p><i>May yer flips be heads and yer rivals be broke.</i></p>
     </div>
   </div>

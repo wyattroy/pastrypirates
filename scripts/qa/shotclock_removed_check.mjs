@@ -31,6 +31,7 @@ const read = f => fs.readFileSync(path.join(REPO, f), "utf8");
    strip, every tombstone comment read as a failure. */
 const strip = src => src
   .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/<!--[\s\S]*?-->/g, "")   // index.html's tombstones are HTML comments — same rule as /* */
   .split("\n").map(l => l.replace(/(^|[^:])\/\/.*$/, "$1")).join("\n");
 // every shipped module that could carry clock code — src/ recursively, plus index.html
 const srcFiles = [];

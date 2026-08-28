@@ -73,6 +73,7 @@ import { applyResult } from "./engine/bakeoff.js";
 import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg, man,
   ilabelImg, ovensNowEnabled, bake2Enabled, endCardEnabled,
+  rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
@@ -2325,7 +2326,23 @@ export function wireLobby(){
   };
   $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
-  $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
+  /* A-7 — THE RULES PAGE DERIVES ITS NUMBERS (Wyatt, 2026-08-28: the rules page must update
+     "according to the latest rules" automatically). Every amount in the How-to-Play modal is an
+     empty <b data-rule="key"> span; this fills them from rulesFacts(cfg) — the LIVE game's cfg
+     when a voyage is running (a 2-player table's crate prices are genuinely different), else the
+     4-seat default. Filled once here so the modal is never blank, and again on every open so a
+     modal read mid-voyage tells the truth about THIS voyage. rules_page_check.mjs reads the same
+     rulesFacts, which is what keeps this filler and the gate from drifting apart. */
+  const fillRulesFacts=()=>{
+    const facts=rulesFacts((appState.game&&appState.game.cfg&&appState.game.cfg.recipeSize)
+      ?appState.game.cfg:roundCfg(["human","bot","bot","bot"]));
+    document.querySelectorAll("#howToPlayModal [data-rule]").forEach(el=>{
+      const v=facts[el.dataset.rule];
+      el.textContent=v===undefined?"?":String(v);
+    });
+  };
+  fillRulesFacts();
+  $("btnShowHow").onclick=()=>{fillRulesFacts();$("howToPlayModal").style.display="flex";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
   // KOFI-01: two doors onto one embedded panel — footer, and the Credits modal.
   $("btnKofi").onclick=openKofi;
