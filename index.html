@@ -1695,7 +1695,18 @@
      (D-18/D-31). */
   @media (min-width: 601px) {
     body.pp4Stage:not(.pp4Side) #pp4Cap {
-      left:var(--pp4CapGap); right:var(--pp4CapGap); bottom:auto; height:auto;
+      /* W4-4 (Wyatt, playtest list): "at tablet width the captains box is narrower than the board,
+         leaving a ~10px dead strip." Measured before changing, at three sizes: 14px per side, 28px
+         total, at tablet AND desktop; the phone was already flush because this rule is gated behind
+         min-width:601px.
+         THE CAUSE WAS ONE VARIABLE DOING TWO UNRELATED JOBS. This used to read
+         `left:var(--pp4CapGap); right:var(--pp4CapGap)`, and --pp4CapGap is declared above as "the
+         gap between board and captains column" — a SEPARATION, for the side-by-side layout, which
+         computeStageGeometry() reads as exactly that. A separation and a horizontal inset are
+         different quantities that wanted the same number once. This panel's containing block IS the
+         board's box, so any inset here is the panel disagreeing with the board about how wide the
+         stage is. It does not inset. Held by scripts/qa/w44_captains_width_check.mjs. */
+      left:0; right:0; bottom:auto; height:auto;
       border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.28); }
   }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
@@ -1877,6 +1888,23 @@
 
      Once buildStage() moves the panel, this selector stops matching, so the sheet opens and closes
      exactly as before. Scoped to body.pp4Stage, so the classic layout is untouched. */
+  /* W4-4, SECOND HALF — THE ROWS FILL THE BOX. Wyatt: the captain rows end short of the panel's
+     own right edge. MEASURED at tablet 768x954, after the box itself was widened above:
+       --boardW               632px   the CLASSIC layout's board width
+       #pp4Cap                754px   the STAGE board's width
+       #captainsPanel.panel   632px   max-width:632px  <- still wearing the classic cap
+       #players/.player-row   606px
+     111px of the box sat empty to the right of every row. The shared classic rule
+     `#controlsRow, #actionPanel, #captainsPanel, … { max-width: var(--boardW) }` keeps governing a
+     panel that has been RE-PARENTED into a stage container sized by a different computation, so the
+     panel obeys the old layout while its box obeys the new one.
+     WIDENING THE BOX ALONE MADE IT WORSE — the empty strip grew from 84px to 111px — which is why
+     both halves are one change. Scoped to the captains box on purpose: the same cap also sizes the
+     recipe card, and widening THAT is a taste call Wyatt has not made (parked as a question), not a
+     bug he reported. Held by scripts/qa/w44_captains_width_check.mjs. */
+  body.pp4Stage #pp4Cap > .panel,
+  body.pp4Stage #pp4Cap > #captainsPanel { max-width:none; width:100%; }
+
   body.pp4Stage #layout > #chatPanel { display:none; }
   body.pp4Stage #chatBubbles { display:none; }
   body.pp4Stage .fcChip, body.pp4Stage .ppHud { display:none; }  /* the pill is the instrument now */
