@@ -6,6 +6,55 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 11 — 2026-08-28, the staging checklist item + the leak its own publish step caused — VERBATIM
+
+**I checked every claim against the live repo and the live staging site myself — commands and outputs below, not the write-up's word.**
+
+### 1. Item-by-item
+
+**1. "No game file changed since 78565c55, checklist still accurate" — DONE.**
+`git log 78565c55..HEAD -- index.html about.html src/ package.json` returns nothing — zero commits touched a game file in that window. Confirmed independently, not copied from the other session's commit.
+
+**2. "Ran deploy-staging.sh, it leaked physical-board/ onto public staging" — DONE.**
+`.git/info/exclude` (a personal, un-shared git setting — never seen by any other checkout or by GitHub) lists `physical-board/`; `.gitignore` (the shared, tracked one everyone gets) does not. `physical-board/` is sitting on disk in this checkout right now while `git status` says the tree is clean — proof the folder was invisible to git but real on disk, exactly the mechanism claimed. `scripts/deploy-staging.sh`'s EXCLUDES block (before the fix) only derives from `.gitignore` — it genuinely never reads `.git/info/exclude`. Root-cause claim holds.
+
+**3. "Fixed the script, scrubbed the leak, verified 404/200" — DONE.**
+`scripts/deploy-staging.sh:93` now reads `--exclude=physical-board/`. Live checks I ran myself, right now: `staging.playpastrypirates.com/physical-board/HANDOFF.md` → **404**; `staging.playpastrypirates.com/physical-board/v3-round/chests.dxf` → **404**; `staging.playpastrypirates.com/` → **200**; stage.js on staging → `PP4_STAMP = "2026.08.28.4-staging@25158042"` — matches exactly what the checklist now tells Wyatt to expect.
+
+**4. "Leak window was real, write-up doesn't overclaim" — DONE, and it's honest.**
+Neither the ledger entry nor the checklist claims "no one could have fetched it." Both say the files "were served at HTTP 200 for several minutes" (a fact) and separately flag, as an open, unresolved risk, that the files are still recoverable from the staging repo's git history — the opposite of overclaiming closure.
+
+**5. "Found a real 3-way collision risk, rebased clean, left the call to Wyatt" — DONE.**
+`git reflog` shows an actual `pull --rebase` with a clean pick and finish — no conflict markers. The ledger entry states, verbatim, that whether to rewrite the staging repo's git history is "Wyatt's call, not mine to decide" — it does not claim a decision was made for him.
+
+**6. "Checklist updated to the new sha, plain-English disclosure added" — DONE.**
+`.planning/staging-checklist.html` now points at `@25158042` and carries a note that says "kept off the working tree only by a LOCAL, untracked git setting the deploy script never read" — no "rsync," no "mtime," no jargon. It reads like something a designer, not an engineer, would say to Wyatt.
+
+**7. "Touched nothing else — no game code, no trial" — DONE.**
+`git diff --stat HEAD~5 HEAD` touches exactly three files: `.planning/CTO-LEDGER.md`, `.planning/staging-checklist.html`, `scripts/deploy-staging.sh`. Nothing under `src/`, `index.html`, or the trial's own files. `.planning/SEA-TRIAL.md` still reads "IN PROGRESS — no verdict yet," untouched by this branch.
+
+**8. "Left the history-rewrite call to Wyatt, didn't chase the mystery commit, didn't touch the trial" — DONE**, consistent with everything above.
+
+**One honest ding, not on the substance:** the ledger entry's own internal timestamp says `19:35:00Z`, but the git commit that added that line was made at `19:26:23Z` — nine minutes earlier than the time the entry claims. Doesn't change any fact reported, just a small sloppy detail in an append-only record that's supposed to be exact.
+
+### 2. What Wyatt didn't ask for, and whether it was safe
+
+He asked for a fresh checklist. What actually happened: following his own hook's instruction to "publish to staging first" is *what caused the leak* — this session's own re-publish put the private files on the public site, not a pre-existing exposure it merely stumbled on. It then found that immediately and fixed it within the same run. That's the right order of events (fix what your own action broke, before handing anything to Wyatt), but it's worth him knowing plainly: the security incident wasn't discovered by inspection, it was triggered live by doing exactly what he told the process to do.
+
+Did it endanger the concurrent 24-hour cloud session's work? No. Zero file overlap with anything under `src/`, the rebase was clean with no conflicts, and the session explicitly declined to claim any wave work, leaving that to the cloud session as its ledger entry says.
+
+### 3. Any claim not backed by the repo?
+
+None found false. Everything independently checkable — the exclude-file split, the script's blind spot, the 404s, the 200, the stamp, the rebase, the diffstat scope — matched. The only thing genuinely unverifiable after the fact is the exact leak duration ("several minutes"), and the write-up correctly does not claim more certainty about it than that.
+
+### 4. Is Review 10's fault (batched reviews) recurring here?
+
+No: Review 9 was thirteen *unrelated* items reviewed once at the end of a window. This is one causal chain — verify the checklist → publish to staging (as ordered) → that publish leaks a private folder → fix the script → scrub staging → update the checklist to match — all inside one continuous response to one Stop-hook-triggered task, reviewed once, immediately, not batched with anything else.
+
+### 5. One line for Wyatt
+
+The staging checklist is current and safe to hand out — but the deploy script itself briefly put your private board-design files on the public staging site, and that's now fixed and scrubbed except for one call only you can make: whether to rewrite the staging repo's git history to fully erase the leak window.
+
 ## Review 10 — 2026-08-28, "CEO after every item" recorded durably (small item, short verdict) — VERBATIM
 
 YES — the thing you asked for happened. Your order is now written in the two places every session is forced to read: the rulebook that loads into every session (`.claude/CLAUDE.md`, lines 417–425, directly inside the CEO rule) and the top of the CEO brief itself (`.claude/CEO-BRIEF.md`, lines 5–11), and both say the same thing in plain terms — every item you ask for closes with its own fresh CEO verdict, written into the record before the next item starts, and a batch review at the end is named as the failure, not an option. Both quote you word for word, twice, so the next session also learns this is the second time you had to say it. One caution: this repo's strongest rules are enforced by machinery that physically interrupts a session, and this one is still only words on a page — words that have now failed you twice. If a third session batches its reviews anyway, the next step is a mechanical fence (a check that notices work landing while the review file sits untouched), and I would not wait for a fourth occurrence to build it.
