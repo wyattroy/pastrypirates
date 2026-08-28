@@ -2,6 +2,14 @@
 
 **Rule 25.** After work, before Wyatt sees it: a fresh agent judges whether **the ask was executed**.
 
+## WHEN: after EVERY item, not once per window
+
+Wyatt, 2026-08-28: *"I want CEO to review after every item."* His second time saying it — CEO
+Review 9 caught the once-at-the-end pattern recurring across two windows. **Each thing he asked
+for closes with its own fresh-context verdict, appended to `.planning/CEO-REVIEWS.md` before the
+next item starts.** A short item gets a short verdict; no item gets none. A batch review at the
+end is the documented failure, not a substitute.
+
 ## The three things it must be given
 
 1. **His request, VERBATIM.** Not a summary. The summary is where the drift already happened.

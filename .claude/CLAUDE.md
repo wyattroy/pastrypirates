@@ -412,7 +412,17 @@ a lie."* Every claim in it was verified before being acted on, and every one hel
   whole mechanism theatre — and the paraphraser is the one with the motive.
 
 **Where the line is:** it runs after *work* — something built, fixed, measured or shipped. Not after
-a question answered or a file handed over. He can move that line; he has only to say so.
+a question answered or a file handed over.
+
+**AFTER EVERY ITEM, NOT ONCE PER WINDOW.** Wyatt, 2026-08-28: *"I want CEO to review after every
+item."* This is the second time he has had to say it (2026-08-28 04:14: *"CEO after every item, not
+just at the end"*), and CEO Review 9 caught it recurring: two windows running, one review ran at
+the end, after everything had shipped. **The unit is the ITEM — each thing he asked for, closed with
+its own fresh-context CEO verdict before the next item starts.** A batch of thirteen asks is
+thirteen reviews, not one. Sizing is honest, not theatrical: a one-line copy change gets a short
+verdict, an architecture change a long one — but every item gets one, appended to
+[`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) as it lands, so the recurrence check
+never has a gap again.
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 
