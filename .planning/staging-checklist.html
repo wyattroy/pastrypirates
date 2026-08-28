@@ -61,9 +61,9 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — staging checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026.08.28.1-staging@9179ff66</strong> ·
+  <div class="sub">Build <strong id="stamp">2026.08.28.4-staging@5f4fc83b</strong> ·
    <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
-   — <strong>The browser tab must read “[STAGING]”</strong>, and the ☰ stamp must end <code>-staging@9179ff66</code>.
+   — <strong>The browser tab must read “[STAGING]”</strong>, and the ☰ stamp must end <code>-staging@5f4fc83b</code>.
    Verified serving on the wire before this sheet was written. A different stamp = a different build; stop and tell me.</div>
   <div class="bar">
     <span class="count" id="count">0 / 0</span>
@@ -88,7 +88,7 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 const DATA = [
  {h:"Start here"},
  {note:"<strong>This build is Wave 1 + all thirteen of yer answers (A-1..A-13).</strong> The pause button is gone entirely (A-10), the bake-off starts the turn ye dock (A-1), ye can WATCH the bots bake (A-2), and the How-to-Play page now fills its numbers from the game itself (A-7). One thing worth knowing: my first cut of the pause removal broke the page layout wholesale — caught on a screenshot before it ever reached staging, fixed, and the gate now checks for that whole fault class. Production is untouched."},
- {n:1,look:"Open staging on yer laptop, ☰ menu, read the stamp",right:"“Build 2026.08.28.3” with the <code>@sha</code> on its OWN line beneath it (A-4). The tab reads [STAGING].",why:"No build step — a different stamp is a different build. The two-line stamp is yer A-4 ask; the .3 is the new bump counter (A-5) doing its job."},
+ {n:1,look:"Open staging on yer laptop, ☰ menu, read the stamp",right:"“Build 2026.08.28.4-staging” with <code>@5f4fc83b</code> on its OWN line beneath it (A-4). The tab reads [STAGING].",why:"No build step — a different stamp is a different build. The two-line stamp is yer A-4 ask; the .4 is the new bump counter (A-5) doing its job — .3 lived and died in one trial (the End-of-Voyage regression it caught)."},
 
  {h:"The clock and pause are gone — check nothing is left behind"},
  {n:2,look:"Start a solo game. Look at the whole controls row, ribbon, and menus.",right:"No ⏱ chip, no clock panel, no ▶/⏸ pause button anywhere. Just the flip coin and mute.",why:"A-10: “simply remove play/pause from this latest work — if we need to put it in again later, we'll re-engineer it.” Every removed piece is in git for its return."},
