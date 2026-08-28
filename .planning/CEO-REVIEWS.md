@@ -6,6 +6,63 @@ moment a session ended, the mechanism that catches RECURRING faults quietly stop
 This file is where verdicts live now. `scripts/qa/ceo_brief.mjs` reads the newest entry
 automatically.
 
+## Review 9 — 2026-08-28, the A-1..A-13 batch (ledger item W1B) — VERBATIM
+
+### 1. Item by item — did each thing happen?
+
+**A-1 (measure the bake-day, then let a docked captain bake NOW) — DONE.** Measured first, as you ordered: the old day ran everyone's turns, then all bakes — exactly your Crustbeard observation — and the commit says so before it changes anything (`4bd4baef`). The rule now: docking at Tortuga lights the ovens and the bake happens in that same turn slot, on both the solo loop and the live loop (`/home/user/pastrypirates/src/engine/index.js`, `src/orchestrator.js`). The gate `scripts/qa/a1_bake_now_check.mjs` was run red first (6 failures) and I ran it green myself. Old solo saves are refused rather than desynced (SOLO_SCHEMA_V 2→3). The measurement reaches you in checklist row 12 (`.planning/staging-checklist.html:98`).
+
+**A-2 (watch a bot's bake-off) — DONE.** `botBakePerform` (`src/orchestrator.js:1043`) publishes the bot's bake through the SAME `benchPublish` pipeline a human baker uses (`:1050-1059`) — one display path, your rule 23 — so every screen watches the bench open, shuffle, and pick, then sees the verdict. Gate green (I ran it); the .4 trial ran full voyages with it in and no leg stalled on it.
+
+**A-4 (commit code on its own line) — DONE.** `src/ui/stage.js:1990-1992`: the stamp splits at the `@`, `@<sha>` on its own line, plain builds unchanged.
+
+**A-5 (build counter) — DONE.** `scripts/bump-build.mjs` / `npm run bump`: same day increments, new day resets to .1. The stamp itself is the counter — no twin file to rot — and it already did real work today: .3 lived and died in one trial, .4 is the fixed build.
+
+**A-6 (drop "after dark" from the dock recap) — DONE.** No live string says "after dark" or "under cover o' dark" anywhere in `src/` or `index.html`; only graveyard comments explaining the cut remain (`src/ui/panel.js:1101`).
+
+**A-7 (rules page auto-updates) — DONE, and your suspicion was right.** The How-to-Play page now fills every number from `rulesFacts(cfg)` — the same config the engine plays by (`src/orchestrator.js:2339-2345`, `index.html:2650`). The gate `scripts/qa/rules_page_check.mjs` was run red first and its red run confirmed what you guessed: the old page still taught the shot clock, had no black market at all, and hand-typed every number. Green now, in the chain.
+
+**A-8 (Muse is the button text, no tooltip) — DONE.** `src/ui/flow.js:2162` — wave image, "Muse", +1🌕, no tooltip; the `w27` gate holds it.
+
+**A-9 (option b, directions in ALL CAPS) — DONE.** CAPS are baked into `DIRNAME` itself (`src/shared/index.js:238`: NORTH/SOUTH/EAST/WEST) so every wind surface agrees; calm days are short, and a storm day keeps its own sentence carrying the rule in your shape — "It'll blow every ship N squares WEST" — with the distance derived from `STORM_PUSH`, never typed (`src/ui/util.js:443-453`).
+
+**A-10 (remove play/pause) — DONE.** The removal gate passes and says it plainly: "the shot clock and play/pause are both out" (I ran `scripts/qa/shotclock_removed_check.mjs`). Only explanatory comments remain. The self-inflicted layout break (a deleted line took a CSS closing brace, another took a comment opener — the whole game collapsed to a ~300px stack) is real, was caught by a screenshot, and was fixed at `d3884abb` at 11:36 — before any deploy. **But see §3: the fence built for that fault guards the wrong file.**
+
+**A-11 (guest's full flip row — approved) — DONE.** Nothing to build; the convergence stands and its gate is in the chain.
+
+**A-12 (option a — nobody glows in a simultaneous pick) — DONE.** Your (a) was already the shipped state (`.planning/CTO-QUESTIONS.md:226-227`); your answer ratified it. No change was needed and none was made.
+
+**A-13 (option b — host drains every event, parity first) — DONE, and it earned its keep.** The host now drains every event through the one consumption frontier `appState.evConsumed` (`src/ui/panel.js:154-155`), matching the guest exactly. It also caused the day's one real regression: End of Voyage stopped rendering in every mode on build .3 — and **the sea trial caught it**, the .3 run was killed, the fix (`a5a6c731`: endVoyage renders explicitly) was gated (`scripts/qa/one_event_consumer_check.mjs:100-105`, run red first, green now — I ran it), runtime-proven, and the .4 re-trial proved all six Chrome legs reached a drawn End of Voyage.
+
+**"Run the sea trial successfully" — PARTIAL, honestly reported.** The trial ran end to end at FULL gear, 8 of 8 legs, NOT-RUN empty (`.planning/SEA-TRIAL.md:3,13`), and it did the best possible day's work — killing a broken build before you saw it. But the verdict is **FAILED**, and both WebKit legs did not finish their voyages (Target crashed, the known container pattern — `SEA-TRIAL.md:66-77`). Every failure is triaged against the earlier baseline as pre-existing; I found no claim in that triage the report contradicts. A clean PASS has still never happened on any build — the word "successfully" should not be read as one.
+
+**"Tell me within 10 minutes if stalled" — DONE as a mechanism, never triggered.** The rule is codified with your exact ask quoted (`docs/QA-PROCESS.md:313-317`: log quiet 10 minutes = stalled, tell you, name the local fallback). The first monitor watched the wrong output (trial stdout goes quiet mid-leg) — self-caught and corrected on the .4 relaunch (ledger 12:12). No stall occurred, so no report was owed.
+
+**"Write the cloud and local runbooks" — DONE.** `docs/QA-PROCESS.md` §5b (lines 261-317): the cloud-container steps, the Mac steps, which to prefer, and the stalled-run rule — with your sentence quoted at the top as the reason it exists.
+
+### 2. What you did not ask for
+
+Almost nothing. Every new gate serves an A-item; the checklist and ledger are the standing process. Nothing displaced your asks. Production is untouched by construction — all 107 commits sit on a branch ahead of `main`.
+
+### 3. Claims the repo does not support
+
+**One real one: the safety net built after the layout break is pointed at the wrong game.** The ledger says "ui_contract_check now balance-checks index.html comments AND style-block braces" (`.planning/CTO-LEDGER.md:99`). The code exists and works — I pointed it at a deliberately broken copy and it caught the exact fault. But `npm test` runs that gate with `--tree=classic` (`package.json:11`), so in the build chain it balance-checks `classic/index.html` — the frozen v1 page that will never change — and **never the live `index.html` that actually broke**. Run bare against the live tree the gate fails on unrelated stale assertions (COIN-NOBRK anchors for functions that no longer exist), which is presumably why nobody re-pointed it. This is your own hard-won lesson recurring in the same repo that wrote it down: *a gate aimed at the wrong tree is not silent, it is reassuring.* The fault class A-10 created is, today, fenced by nothing automated.
+
+**Two smaller ones.** (a) The checklist says staging was "verified serving on the wire" at `2026.08.28.4-staging@5f4fc83b` (`.planning/staging-checklist.html:66-67`), but the ledger's last entry stops at "Deploying to staging on this verdict" (`CTO-LEDGER.md:103`) with no post-deploy record — I have no network access, so this rests entirely on the checklist's assertion; your ☰ menu is the only proof. (b) Your thirteen answers were never recorded into `.planning/CTO-QUESTIONS.md` — every answer field for Q-1..Q-13 except Q-3 is still blank (lines 56-240) in the file that calls itself "THE ONLY CHANNEL" and demands your words verbatim. A future session reading it will believe thirteen questions you already answered are still open.
+
+### 4. The last verdict's faults — fixed or recurred?
+
+**Fixed:** Review 8's core catch — a conclusion relayed as a measurement — did not recur anywhere I checked. The .3 regression was measured live on the stuck legs (CDP), the fix was runtime-proven before the re-trial, and every trial claim I spot-checked matches the committed report. The crew-phone class of false evidence has no sibling this window.
+
+**Recurred in form:** the per-item CEO. `.planning/CEO-REVIEWS.md` has no review between Review 8 and this one; the W1B plan itself lists "CEO" last (`CTO-LEDGER.md:97`). I am again the first reviewer to see the work, at the end. Your A-message did not restate the per-item order, so this may match your current intent — but the 04:14 standing order ("CEO after every item, not just at the end") was never revoked, and for the second window running the review arrived after everything had shipped. Decide which you want; right now the record supports both readings.
+
+### 5. The verdict, for Wyatt
+
+Wyatt — all thirteen of your answers genuinely shipped, and I verified each one in the code, not the report: the bake starts the turn you dock, you can watch the bots bake, the rules page fills itself from the live game, the pause button and "after dark" are gone, the storm sentence carries your rule in CAPS, and the host now drains every event like the guest. The day's best moment is that the process worked exactly as designed — the sea trial caught the one real regression (End of Voyage vanishing), killed that build before you ever saw it, and the fixed build re-sailed all eight legs. Three things temper it: the trial's verdict is still FAILED (pre-existing faults, honestly triaged, both Safari-family legs still crash in the container — there has never yet been a clean PASS); the "staging serves .4" claim rests on one checklist sentence with no ledger record behind it, so read the ☰ stamp yourself before playtesting; and the new gate built to stop the layout-break fault class is wired to check the frozen old game's page instead of the live one — the exact "gate aimed at the wrong tree" mistake this project already paid for once, which means that fault class is currently guarded by nothing but screenshots. Fix the gate's aim, record your thirteen answers into the questions file, and this window is one of the honest ones.
+
+*(Session note, appended with the verdict per rule 25: all three §3 findings were acted on the same hour — the balance gate now always reads the LIVE index.html whatever `--tree` says, red-proved by breaking the live page and watching the chain fail (commit after this review); the twelve outstanding answers are recorded verbatim in CTO-QUESTIONS.md with resolved stamps; and the staging deploy's wire verification (`✅ LIVE — serving 2026.08.28.4-staging@5f4fc83b`, the deploy script's own poll) is now in the ledger. The verdict above is untouched.)*
+
+
 ## Review 8 — 2026-08-28, the Wave 1 window (ledger item W1, one game activity engine) — VERBATIM
 
 **One sentence to read first:** *The convergence you asked for genuinely happened — one engine now feeds both screens, the clock is out cleanly, and nothing shipped to production — but the checklist you are about to read contains one false sentence: "crew-phone finished the voyage — both screens, identical End of Voyage" is proven by screenshots of the PREVIOUS build, and on THIS build that leg stalled at day 8 for 28 minutes and nobody knows why.*
