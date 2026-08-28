@@ -228,3 +228,20 @@ made the call. He comes back to a batch of QUESTIONS, not a batch of decisions s
   on the host too, matching the guest exactly — one small edit, but it changes what you hear.
 - **answer:** (b) BECAUSE host and guest parity is the #1 goal of this work. If we need to change the game to fix pace, we want to fix pace for ALL PLAYERS EQUALLY. *(Wyatt, 2026-08-28)*
 - **resolved:** 2026-08-28
+
+### Q-14 — On a PHONE, should the page have the board-art surround gradient at all?
+- **kind:** TASTE (his)
+- **asked:** 2026-08-28 (raised by CEO Review 13 against W4-3)
+- **default:** none — TASTE, parks instead
+- **why it matters:** W4-3 asked that "the gradient should be the only background". On desktop and
+  tablet that now holds. **On a phone there is no gradient to be the background** — the five
+  radial gradients are painted only at >=601px, on the stated reasoning that "the phone's board
+  fills the viewport, so there is no surround to paint", so the flat #3d7d99 remains the only
+  ground there. That is a sensible reading, but it is a scope decision taken on his behalf against
+  a sentence he wrote without a size qualifier. **Two answers are both defensible:** leave the
+  phone as it is (no visible surround, so nothing to see), or extend the gradient below 601px so
+  the ground is the same one everywhere (consistency, rule 8) — the phone does show a sliver of
+  ground above and below the board on some viewports.
+- **answer:**
+- **resolved:**
+

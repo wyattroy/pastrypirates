@@ -33,6 +33,30 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1];
    body.pp4Stage together with a background declaration. Comment-stripped first: the graveyard
    note explaining the removal names the old colour and must not read as the rule surviving. */
 const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
+/* THE BOARD'S OWN ANCESTORS — derived from the markup, so this list cannot rot when the layout
+   moves. Anything that wraps #board is a box wide enough to cover the page's surround, which is
+   what makes it a candidate "ground" (CEO Review 13). */
+const BLEED = (() => {
+  /* A REAL STACK WALK. The first version pushed every open tag and then sliced by the count of
+     closers, which invented two elements that are not ancestors at all and MISSED #game, which is
+     — so `body.pp4Stage #game { background: … }` sailed straight through the gate. Walk the tags
+     in order, push on open, pop on close, and whatever is still on the stack when #board appears
+     IS the ancestor chain. */
+  const upto = html.slice(0, html.indexOf('id="board"'));
+  const stack = [];
+  for (const m of upto.matchAll(/<(\/?)(div|main|section|body)\b([^>]*)>/g)) {
+    const [, slash, , attrs] = m;
+    if (slash) stack.pop();
+    else if (!/\/\s*$/.test(attrs)) stack.push(attrs);
+  }
+  const out = new Set();
+  for (const attrs of stack) {
+    const id = (attrs.match(/id="([^"]+)"/) || [])[1];
+    if (id) out.add("#" + id);
+  }
+  return [...out];
+})();
+
 const found = [];
 /* A CHARACTER-ACCURATE CONTEXT WALK. The first version of this tracked @media by peeking at the
    text after a rule's closing brace, which mis-popped and reported a phone media context for a
@@ -46,13 +70,21 @@ const found = [];
     const ch = clean[i];
     if (ch === "{") {
       const head = buf.replace(/\s+/g, " ").trim();
-      /* ONLY THE PAGE GROUND. `body.pp4Stage #someChild { background: ... }` paints a child
-         element and is nobody's business here; what this gate is about is the rule that paints
-         BODY ITSELF, because that is the box sitting between the board and the page's surround.
-         Narrowed after the corrected scanner flagged four legitimate descendant rules alongside
-         the one true finding — the finding survived the narrowing, which is how you tell a
-         narrowing from a fudge. */
-      if (/^body\.pp4Stage(\.[\w-]+)*$/.test(head)) {
+      /* WHAT COUNTS AS "THE GROUND", and this is wider than the one rule that was at fault.
+         CEO Review 13 broke the first version three ways it did not notice — `html body.pp4Stage`,
+         `body.pp4Stage #boardwrap` and `body.pp4Stage #game` each put the identical flat band back
+         while the gate printed PASS. A fence around one selector, announcing the whole idea.
+         So a rule is "the ground" if it paints EITHER:
+           (a) body itself, however the selector reaches it (`body.pp4Stage`, `html body.pp4Stage`,
+               `body.pp4Stage.foo`) — the last compound is body.pp4Stage and nothing follows it; or
+           (b) any FULL-BLEED ANCESTOR OF THE BOARD. That list is DERIVED from the markup below,
+               never typed: the elements that wrap #board are exactly the boxes big enough to cover
+               the surround, so when the layout changes the list changes with it. */
+      const lastCompound = head.split(",")[0].trim().split(/\s+|>/).filter(Boolean).pop() || "";
+      const isBodyGround = /^body\.pp4Stage(\.[\w-]+)*$/.test(lastCompound);
+      const isBleedGround = /body\.pp4Stage/.test(head) &&
+        BLEED.some(sel => new RegExp(`(^|[\\s>])${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([.:#\\s]|$)`).test(head));
+      if (isBodyGround || isBleedGround) {
         // capture this rule's declarations up to its matching close
         let d = 1, j = i + 1;
         for (; j < clean.length && d; j++) { if (clean[j] === "{") d++; else if (clean[j] === "}") d--; }
@@ -83,5 +115,6 @@ if (/background-color:#0c3442/.test(clean) && (clean.match(/radial-gradient\(ell
   pass("the page's own art-derived surround gradient is still there");
 else fail("the html surround gradient is gone — that is the background he wants VISIBLE, not removed");
 
-console.log(fails ? `\nFAILED — ${fails} assertion(s)` : "\nPASSED — one background behind the stage, and it is the page's own");
+console.log(fails ? `\nFAILED — ${fails} assertion(s)`
+  : `\nPASSED — nothing paints over the page surround: body itself, nor any of the board's ${BLEED.length} wrapper(s) (${BLEED.join(", ") || "none"})`);
 process.exit(fails ? 1 : 0);
