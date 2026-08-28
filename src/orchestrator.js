@@ -77,7 +77,7 @@ import {
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip,
-  netSetPaused, netWatchPaused, netDeleteRoom,
+  netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
@@ -119,9 +119,9 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
-  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
+  rawName, pn, pname, updateRecipeBanner, describe, seatLocal,
   decisionIsLocal, resolveOpt, setActor, applyActiveSeat, stepDelay, ask, pickNarrVariant,
-  waitWhilePaused, sleepMs, BOARD_LAST_LOOK_MS,
+  sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
@@ -136,7 +136,7 @@ const $=id=>document.getElementById(id);
 // ⏩ fast-forward: same collapse as flow.js's sleep — beats that reach here without a player
 // prompt (storm holds, bot-only pacing) race by; anything that asks ends the skip first.
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(appState.ff?Math.min(ms||0,40):ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 const MAX_CHAT_LEN=140;
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once
@@ -161,42 +161,12 @@ export function watchFlip(){
   netWatchFlip(appState.db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
 
-/* broadcastClock() stood here — the host-authoritative clock write (deadline + pause payload).
-   Removed 2026-08-28 with the shot clock (see src/ui/util.js's ask()). Pause now syncs solely
-   over its own /paused flag via togglePause()/watchPause() below. */
+/* broadcastClock() stood here (the clock write), then togglePause()/watchPause() (the whole-table
+   pause) — the clock left with the shot-clock removal, pause with Wyatt's A-10, both 2026-08-28. */
 /* toggleTimer() stood here — the ⏱ off/on toggle, every mode. Left with the clock 2026-08-28. */
-// CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
-// bot captains and every awaited beat — via the ▶/⏸ button (D-05 once paired it with the ⏱
-// toggle; the toggle left with the clock). Multiplayer: write the flag; every client's
-// watchPause() mirrors it. Solo/pass-and-play (no db/room): the local toggleShotClockPause().
-export function togglePause(){
-  if(appState.db&&appState.room){
-    netSetPaused(appState.db,appState.room,!appState.shotClockPaused,netFail("pause"));
-  }else{
-    toggleShotClockPause();
-  }
-}
-// AUDIO-02 (phase 21): the mute button beside the clock. Pure client-side state — isMuted()/
-// setMuted() (src/ui/audio.js) are the whole store, backed by their own localStorage key; no
-// Firebase write, no net* writer, no appState field, so muting never reaches another player's
-// browser (D-13, T-21-12). setClockUI() is called directly (main tier may call it, unlike ui-tier
-// code) so the icon/tooltip refresh immediately rather than waiting for the next 500ms tick.
 export function toggleMute(){
   setMuted(!isMuted());
   setClockUI();
-}
-// Every client (host and guest) attaches this so the shared paused flag is tracked table-wide.
-// Only the host branch runs applyPauseState — a guest just mirrors the boolean for rendering (D-06).
-export function watchPause(){
-  netWatchPaused(appState.db,appState.room,s=>{
-    const v=!!s.val();
-    if(appState.isHost){
-      applyPauseState(v);
-      // (The CLOCK-02 re-broadcast that stood here synced the frozen countdown to guests. With
-      // the clock out the /paused flag itself is the whole shared state — nothing else to send.)
-    }else appState.shotClockPaused=v;
-    setClockUI();
-  });
 }
 /* expireShotClock() and watchClock() stood here — the 30s auto-skip (turnExpired, the forced
    default answer, the activePickCleanup teardown, the `shotclockskip` event and its narration)
@@ -2203,7 +2173,6 @@ export function beginGame(cfg,seed){
      attach a listener to rooms/null/battle. */
   if(appState.db&&appState.room)watchBattle();
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
-  watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
   /* The pp4_timerOff read and the host's room-seed of the shared timer flag stood here
      (D-19/P8/FIX-01 — the per-device preference and its cross-game carry). Left with the shot
      clock 2026-08-28; the localStorage key is untouched on players' devices, so their preference
@@ -2291,7 +2260,6 @@ export function wireLobby(){
       try{localStorage.setItem("pp_rematch",JSON.stringify(appState.soloMeta.names));}catch(e){}
     leaveGame();
   };
-  $("scPause").onclick=togglePause;
   $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
   $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};

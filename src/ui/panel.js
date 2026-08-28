@@ -33,14 +33,14 @@
 
 import { appState } from "../state/index.js";
 import {
-  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
+  SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
 } from "../shared/index.js";
 import {
   boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
-  waitWhilePaused, sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER,
+  pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
+  sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER,
   pickNarrVariant, eventCeremony, voyageAground,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
@@ -49,7 +49,7 @@ import { isMuted } from "./audio.js";
 
 const $=id=>document.getElementById(id);
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(ms));
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 // Writes only what has actually CHANGED. This is a performance fix, not tidiness — see the note
 // on the welcome-screen early return below for what unconditional writes were costing.
@@ -60,8 +60,11 @@ function setStyleIf(el,prop,val){ if(el&&el.style[prop]!==val)el.style[prop]=val
 // this game is played on iOS. Compares first for the same reason setIf does: this runs on the 500ms
 // tick, and unconditional DOM writes are what made Safari burn 137% CPU behind the welcome blur.
 function setAttrIf(el,name,val){ if(el&&el.getAttribute(name)!==val)el.setAttribute(name,val); }
+/* Once the whole-table clock display, then the pause panel; both are gone (the clock 2026-08-28
+   morning, play/pause at Wyatt's A-10 the same day). What remains on the 500ms tick is exactly
+   what still draws: the mute button and the end-of-voyage Play again swap. The name stays until
+   something bigger renames the seam (main.js's interval and the onSetClockUI handler point here). */
 export function setClockUI(){
-  const wrap=$("shotClockPanel");if(!wrap)return;
   // ⚠ SAFARI CPU (Wyatt, 2026-08-01: "Safari rendering is killing my computer when I open
   // pastrypirates — even without running the game", 137% CPU on Safari Graphics and Media).
   //
@@ -83,7 +86,7 @@ export function setClockUI(){
   if(gameEl&&gameEl.classList.contains("bg-blurred"))return;
   // AUDIO-02/D-15/D-16 (phase 21): #btnMute is a #controlsRow sibling (index.html), not a third
   // corner icon on the clock face — rendered here, above the end-of-voyage early return below,
-  // so the same tick that hides #shotClockPanel at the win screen also hides #btnMute (D-16),
+  // so the same tick that swaps in Play again at the win screen also hides #btnMute (D-16),
   // one code path, no second branch. Its click is bound exactly once in wireLobby()
   // (src/orchestrator.js) — this block only ever writes display/innerHTML/title, exactly like
   // the #scTimerToggle block below, and must never touch that binding (CLOCK-03 discipline:
@@ -123,62 +126,8 @@ export function setClockUI(){
     setAttrIf(muteEl,"aria-label",muteLabel);
     setAttrIf(muteEl,"aria-pressed",isMuted()?"true":"false");
   }
-  wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
-  if(appState.liveDone){
-    wrap.classList.remove("idle","urgent","paused");
-    wrap.style.display="none";
-    $("btnPlayAgain").style.display="";
-    return;
-  }
-  wrap.style.display="";
-  $("btnPlayAgain").style.display="none";
-  // With the shot clock out (2026-08-28, see src/ui/util.js's ask()) the panel has exactly two
-  // subjects left: PAUSE, and "is a bot playing". The clock-state derivation, the CLOCK-02
-  // guest-desync fallback and the countdown branches that stood here are all in git history and
-  // ride back in with the clock.
-  const paused=appState.shotClockPaused;
-  const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  // CLOCK-03: defensive reset, once per tick, BEFORE any branch below. setClockUI() re-runs on
-  // the 500ms interval, so a click-to-resume handler set in a prior PAUSED tick must never
-  // survive into a later non-paused tick (RESEARCH Anti-Pattern 4) — only the two paused
-  // branches below re-arm it. The .tappable affordance class is reset here for the same reason.
-  numEl.onclick=null;numEl.style.cursor="";numEl.classList.remove("tappable");
-  // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
-  // every player in both solo and multiplayer (a guest's click reaches togglePause() via
-  // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
-  pauseEl.style.display=(!appState.liveDone)?"":"none";
-  setIf($("scPauseImg"),"src",paused?PLAY_IMG:PAUSE_IMG);
-  // The button GLOWS AND BREATHES while paused (Wyatt, 2026-08-06: "flash or glow or pulsate to
-  // attract attention whenever the game is paused"). Set here, right beside the icon swap that is
-  // the button's other paused tell, so the two can never disagree — every branch below returns at a
-  // different point, and hanging this off any one of them would leave some path un-pulsed.
-  pauseEl.classList.toggle("scPulse",!!paused);
-  // @copy misc.timer.pausetooltip
-  const pauseLabel=paused?"The game is paused — tap to resume":"Pause the game";
-  setIf(pauseEl,"title",pauseLabel);
-  setAttrIf(pauseEl,"aria-label",pauseLabel);
-  // PAUSED IS THE ONE STATE THE PANEL MUST REPORT (Wyatt, 2026-08-06: "players don't know why
-  // the game has stopped if they go away from the tab") — with the countdown gone it is also the
-  // only state with anything to say.
-  if(paused){
-    wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
-    labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";
-    subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
-    // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
-    // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
-    // src/orchestrator.js (main-tier) directly.
-    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
-    return;
-  }
-  // notes/edits #5a: while a bot plays, say so — an idle label under a moving board reads as a
-  // stall. (This branch survived the clock: it never read the countdown.)
-  const activeSeat=currentTurnSeat();
-  const botPlaying=activeSeat!=null&&activeSeat!==appState.mySeat&&!(appState.game.players[activeSeat]&&appState.game.players[activeSeat].done);
-  wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
-  // "waiting" is the pre-existing spectator copy; the truly-idle label is left BLANK on purpose
-  // rather than the old "turn clock" (a feature that is not there) or invented new copy — what
-  // this panel says while the clock is away is Wyatt's call, flagged on the staging checklist.
-  labelEl.textContent=botPlaying?"waiting":"";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
+  // the end-of-voyage swap: the panel that once hid here is gone; only Play again remains to show
+  $("btnPlayAgain").style.display=appState.liveDone?"":"none";
 }
 
 export function liveRender(){

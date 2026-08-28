@@ -59,7 +59,7 @@ import {
 } from "./panel.js";
 import {
   pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
-  decisionIsLocal, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
+  decisionIsLocal, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
@@ -77,7 +77,7 @@ const $=id=>document.getElementById(id);
 // by. Prompts are never touched by this: any decision involving the player ends the skip first
 // (ffEndNow below), so his interactions always play at full speed.
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(appState.ff?Math.min(ms||0,40):ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 /* ================= ⏩ fast-forward: how a skip ends ================= */
 // Called, synchronously, at the top of EVERY entry point that puts a decision in front of the
@@ -1179,7 +1179,7 @@ const sailRouteEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
    rAF stops completely in a backgrounded tab, so an rAF-only loop would hang the voyage the moment
    the phone locked, mid-glide, with the turn loop awaiting it. sleepMs carries the sweeper that
    catches a dropped timer, so whichever clock is alive wins the race and the glide always finishes. */
-const routeTick=(ms)=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>Promise.race([
+const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
   new Promise(res=>requestAnimationFrame(()=>res())),
   sleepMs(appState.ff?Math.min(ms||SAIL_ROUTE_TICK_MS,40):(ms||SAIL_ROUTE_TICK_MS)*8),
 ]));
