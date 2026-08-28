@@ -331,6 +331,14 @@ const legDefs = {
   "crew-phone":    { W: 390, H: 664, mobile: true, dsf: 2, guestW: 390, guestH: 664 },
   /* Pass-and-play on a desktop — the other empty square in the matrix. */
   "passplay-desktop": { W: 1890, H: 960 },
+  /* THE THIRD SIZE — tablet portrait (Wyatt, 2026-08-28: the trial must run "at the three sizes";
+     his pick from the offered options was tablet portrait). 768×954, and 954 is D-42's honest-
+     viewport rule applied to an iPad: the screen is 1024 tall, Safari's top chrome takes ~70px,
+     and emulating the full 1024 would hand the layout room no player has — the exact fault the
+     phone legs already paid for at 844. dsf 2 and touch, because the device is a touch device.
+     SOLO, matching the WebKit argument below: a size exercises rendering and layout, not the
+     wire, so one mode covers what the size can differ on. */
+  "solo-tablet":   { W: 768, H: 954, mobile: true, dsf: 2 },
 
   /* THE WEBKIT LEGS — the same modes, the same player, the other engine.
      WHY NOT ALL FOUR MODES IN WEBKIT: the two engines diverge on RENDERING, ANIMATION and LAYOUT
@@ -338,10 +346,13 @@ const legDefs = {
      Safari's storm behaviour has always been the risk. They do not diverge on whether a bot passes
      correctly or whether a room code works. Running the wire twice buys nothing and doubles the
      load on the machine Wyatt plays on.
-     So: WebKit plays SOLO at both sizes, which exercises every prompt, every ceremony, every
-     animation and every layout the game has — and Chrome carries the multiplayer legs. */
+     So: WebKit plays SOLO at every size, which exercises every prompt, every ceremony, every
+     animation and every layout the game has — and Chrome carries the multiplayer legs.
+     (Wyatt ratified exactly this depth on 2026-08-28 — "Safari covers solo at every size" — when
+     the third size was added.) */
   "solo-desktop-wk": { W: 1890, H: 960, engine: "webkit" },
   "solo-phone-wk":   { W: 390, H: 664, mobile: true, dsf: 2, engine: "webkit" },
+  "solo-tablet-wk":  { W: 768, H: 954, mobile: true, dsf: 2, engine: "webkit" },
 };
 
 /* One door for both engines. A leg says which it wants; nothing below this line knows the

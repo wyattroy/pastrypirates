@@ -893,7 +893,7 @@ change it → show it fixed (that SAME check passes) → sweep.
 |---|---|---|
 | **COSMETIC** | words, colours, comments | step 1 waived; `npm test` + a screenshot |
 | **PLUMBING** | how a mode *serves the game up* — the device hand-off, room codes, joining | that mode, **and the others once** |
-| **FULL** | **everything else — the default** | three modes, two sizes, **both engines**, real mouse |
+| **FULL** | **everything else — the default** | three modes, **three sizes** (desktop / tablet / phone), **both engines**, real mouse |
 
 **The middle gear is a different SUBJECT, not a smaller size.** Wyatt, 2026-08-26: *"Each mode
 should be structurally different just about who the player is playing against, but the game itself
