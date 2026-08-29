@@ -1624,7 +1624,7 @@ export function ask(msg,opts,colors,sub,extra){
        shorts:opts.map(o=>o&&o.short!=null?o.short:""),
        //   `seats` — the SEVENTH field of this exact class, and the last one still missing when
        // 02.1-03 went looking. An option carrying `seat` blooms its circle over the boat it NAMES
-       // rather than around the boat choosing (stage.js:1174 reads it back off data-seat) — the
+       // rather than around the boat choosing (stage.js's radial placement reads it back off data-seat — named, not line-numbered, because the line moves and the citation rots) — the
        // battle side-bet's "Call Dough Hook" is the case that needs it. Without this the spectating
        // guest got the ordinary fan while the host got the anchored one: same words, different
        // game, which is the same sentence the `stage` fix five lines up had to be written in.

@@ -2950,7 +2950,54 @@ function promptTick(){
          few times lets a pair that is pinned against one edge walk along that edge instead of
          through it. */
       const clampSpot = s => [Math.min(Math.max(s[0], xMin), xMax), Math.min(Math.max(s[1], yMin), yMax)];
-      let spots = anchors.map(([ax, ay]) => clampSpot([ax - D / 2, ay + 26]));   // just off the stern
+      /* BESIDE THE BOAT, NEVER ON IT — W5-2 (Wyatt): "The buttons to call other battling captains
+         sit on top of their boats… They should be directly beside the boats — side, top or bottom
+         — so the player can read the wind and the situation."
+         The seed was `ay + 26`, and 26 IS A CONSTANT STANDING IN FOR HALF A BOAT (rule 9). A boat
+         is drawn `cell` wide, so it grows with the board: measured with the real prompt posed in
+         Chromium, the circle covered 0–5% of its own hull on a 390px phone (35px boats), 12% on a
+         1200px desktop (67px) and 24–27% on a 768px tablet (83–88px). The bigger the board, the
+         more of the hull the answer hides — which is the half of his complaint about reading the
+         wind, because what the circle covers is the hull and its flag.
+         So the offset is DERIVED from the boat the button names: its own rendered half-size, plus
+         half a petal AT THE TOP OF ITS PULSE (--pp4GrowPeak, the same swell every other spacing in
+         this function already reserves), plus the 6px of air every stacked floater here leaves.
+         The SIDE is chosen rather than assumed — the four cardinals scored on staying inside the
+         band, clearing every hull, and pointing AWAY from the other captains in the fight, so two
+         circles open outward instead of colliding over the water between the boats. */
+      const ships = boardShipEls() || [];
+      // the boat's own rendered size. A translate cannot change a box's WIDTH, so this is the one
+      // number that is safe to read off a ship mid-glide; its position comes from the anchors.
+      const boatRad = i => { const el = ships[i]; if (!el) return D / 2;
+        const r = fixedRect(el); return Math.max(r.width, r.height) / 2 || D / 2; };
+      // every hull, projected through the SAME camera the anchors used — a rect read straight off
+      // a gliding ship would disagree with a target-transform anchor by however far it has left to go
+      const hulls = ships.map((_, i) => { const u = boatUXY(i); if (!u) return null;
+        const [bx, by] = toScreen(u[0], u[1]); const rad = boatRad(i);
+        return { l: bx - rad, t: by - rad, r: bx + rad, b: by + rad }; }).filter(Boolean);
+      const AIR = 6;
+      const HALF = Math.round(D * S.growPeak) / 2;
+      const onHull = (l, t) => hulls.some(h => l < h.r && l + D > h.l && t < h.b && t + D > h.t);
+      const inBand = (l, t) => l >= xMin && l <= xMax && t >= yMin && t <= yMax;
+      let spots = anchors.map(([ax, ay], k) => {
+        const rad = boatRad(anchorSeats[k]);
+        // the heading away from everyone else this question is about
+        let away = [0, 1];
+        if (anchors.length > 1){
+          const o = anchors.filter((_, j) => j !== k);
+          const cx = o.reduce((t2, p) => t2 + p[0], 0) / o.length, cy = o.reduce((t2, p) => t2 + p[1], 0) / o.length;
+          const dx = ax - cx, dy = ay - cy, m = Math.hypot(dx, dy);
+          if (m > 1) away = [dx / m, dy / m];
+        }
+        let best = null;
+        for (const [ux, uy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+          const l = ax + ux * (rad + HALF + AIR) - D / 2, t = ay + uy * (rad + HALF + AIR) - D / 2;
+          // whole-band and clear-of-every-hull first; the away heading only breaks the tie
+          const score = (inBand(l, t) ? 2 : 0) + (onHull(l, t) ? 0 : 2) + (ux * away[0] + uy * away[1]);
+          if (!best || score > best.score) best = { score, spot: [l, t] };
+        }
+        return clampSpot(best.spot);
+      });
       const NEED = SEP;   // D-44: derived, never typed — swollen petal + quarter-gap, see the SEP note above
       for (let pass = 0; pass < 4; pass++){
         let moved = false;
@@ -2979,7 +3026,36 @@ function promptTick(){
         const rowY = Math.min(Math.max(spots.reduce((t, p) => t + p[1], 0) / n, yMin), yMax);
         spots = spots.map((_, i) => [startX + (n > 1 ? (span / (n - 1)) * i : 0), rowY]);
       }
-      spots = lastLowest(spots);   // D-48, and it holds for the anchored-boats fan too
+      /* …AND ONE LAST PUSH OFF ANY HULL THE SEPARATION OR THE CLAMP LANDED ON. The passes above
+         only know about each other; the band clamp and the even-row fallback know about neither.
+         Out along whichever edge is nearest — the smallest disturbance that satisfies the rule. */
+      for (let pass = 0; pass < 3; pass++){
+        let shifted = false;
+        spots = spots.map(sp => {
+          const h = hulls.find(hh => sp[0] < hh.r && sp[0] + D > hh.l && sp[1] < hh.b && sp[1] + D > hh.t);
+          if (!h) return sp;
+          shifted = true;
+          const outs = [[h.l - D - AIR - sp[0], 0], [h.r + AIR - sp[0], 0], [0, h.t - D - AIR - sp[1]], [0, h.b + AIR - sp[1]]];
+          outs.sort((a, b2) => (Math.abs(a[0]) + Math.abs(a[1])) - (Math.abs(b2[0]) + Math.abs(b2[1])));
+          for (const [dx, dy] of outs){
+            const c = clampSpot([sp[0] + dx, sp[1] + dy]);
+            if (!onHull(c[0], c[1])) return c;
+          }
+          return sp;
+        });
+        if (!shifted) break;
+      }
+      /* D-48 IS DELIBERATELY NOT APPLIED HERE, AND THAT IS THE SECOND HALF OF W5-2. Wyatt: the
+         call buttons are "often on the WRONG boat". lastLowest() is a SWAP between two spots, which
+         is harmless while every spot is interchangeable — a fan around your own ship, where "Pass"
+         may take any of them. These spots are NOT interchangeable: each one is anchored to the boat
+         its label names. Whenever the LAST option's captain was not already the rightmost (or, on a
+         vertical spread, the lowest), the swap moved each circle to the other captain's boat.
+         MEASURED, by posing the same prompt with the options in the order that fires the swap: on a
+         768px tablet "Call Captain 2" landed 425px from Captain 2 and sat 24% on Captain 1's hull,
+         and vice versa — both circles beside the wrong boat, in one prompt. It fires whenever the
+         attacker's boat is right of the defender's, which is about half of all fights. "Often."
+         D-48 still governs the ordinary fan below, where it belongs. */
       menu.forEach((b, i) => {
         b.style.position = "fixed";
         b.style.left = spots[i][0] + "px";
