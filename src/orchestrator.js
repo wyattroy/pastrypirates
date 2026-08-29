@@ -196,7 +196,11 @@ export function netNarrate(html,variants,opts){if(appState.replaying)return;
      which is the fault this line exists to close (W4-2, CEO Review 20). */
   const subj = (window.__pp4 && window.__pp4.subjectSet) ? window.__pp4.subject : undefined;
   showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);
-  if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj);}
+  /* Q-18: the serial of the event this line is about — the last one the engine produced. The guest
+     holds the line until its own feed has reached it, so the words and the numbers can never be
+     drawn out of order. */
+  const evN=appState.game?appState.game.events.length-1:null;
+  if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,evN);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
 export function netBroadcast(html,variants,opts){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
@@ -1395,7 +1399,16 @@ export function watchRecoveryState(){
 export function pushEvents(){
   if(!appState.db||!appState.room)return;
   while(appState.evPushed<appState.game.events.length){
-    netPushEvent(appState.db,appState.room,JSON.parse(JSON.stringify(appState.game.events[appState.evPushed])),netFail("event feed"));
+    /* Q-18 — THE SERIAL IS STAMPED ON THE WIRE COPY, NEVER ON THE ENGINE'S OWN EVENT. Adding a
+       field inside Game.ev would change what the engine emits into the event stream, which
+       invalidates the whole determinism corpus and forces a gated re-record (PROJECT.md). This is
+       the deep copy that already exists for the broadcast, so the engine's array is untouched and
+       `n` is simply what index this event went out as — appState.evPushed is already that number,
+       monotonic and host-owned. flow.js's re-entry-guard note warns against stamping fields on the
+       event OBJECT for exactly this reason; the copy is the safe place. */
+    const wire=JSON.parse(JSON.stringify(appState.game.events[appState.evPushed]));
+    wire.n=appState.evPushed;
+    netPushEvent(appState.db,appState.room,wire,netFail("event feed"));
     appState.evPushed++;
   }
 }
@@ -1539,6 +1552,10 @@ export function watchEvents(){
     appState.game.events.push(e);
     appState.evIdx=appState.game.events.length-1;
     appState.evConsumed=appState.game.events.length;   // A-13: the wire IS this tier's drain — keep the one frontier true
+    /* Q-18: how far this seat's own feed has actually reached, in the host's numbering. A narration
+       that names a later event must not be drawn yet — see watchNarr. Older hosts send no `n`, and
+       then this stays null and the wait below never engages. */
+    if(e&&e.n!=null)appState.evSeen=e.n;
     /* THE HISTORY THIS CALLBACK EARNED, preserved with it (2026-08-19, measured on a real driven
        guest): the guest's appState.game used to be a photograph taken the instant the voyage
        began — round stayed 0, windNow null, every pos at spawn — so the BOARD (drawn from
@@ -1738,6 +1755,12 @@ let _liveBakePromptId=null;
    appState.room is set, so handing it v.html + v.variants picks exactly once, as before. An old
    payload with no `variants` key still degrades to v.html.
    `wait` is item 19's flag — a wait line registers no dismissal deadline (see stageFlash). */
+/* Q-18's two clocks. A GRACE PERIOD, not a deadline: the guest is waiting for a message already in
+   flight over the same connection that just delivered the sentence, so the gap it covers is one
+   round trip, not a retry budget. Long enough to absorb an ordinary reorder, short enough that a
+   line drawn anyway is not perceived as a pause — and if the event never comes at all, the story
+   carries on exactly as it does today. */
+const NARR_EVENT_GRACE_MS=450, NARR_EVENT_POLL_MS=30;
 export function watchNarr(){
   netWatchNarr(appState.db,appState.room,s=>{const v=s.val();
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
@@ -1750,7 +1773,25 @@ export function watchNarr(){
            which would anchor it to whichever single captain the sentence happens to name. A payload
            with no `subj` at all is an older host, and keeps the old sniff behaviour. */
         if(v.subj!=null&&window.__pp4){window.__pp4.subject=(v.subj===-1?null:v.subj);window.__pp4.subjectSet=true;}
-        Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});
+        /* Q-18 — DO NOT DRAW A LINE AHEAD OF ITS OWN EVENT. The sentence and the event that caused
+           it arrive on two independent listeners, so this seat can be handed "test2 trades 1 to ye
+           for Fresh Milk" before the trade itself has landed — and the captains box then shows the
+           pre-trade purse under the post-trade sentence. Measured in a real two-browser game: twice
+           in twelve minutes, and twice the mirror image.
+           BOUNDED, AND THAT BOUND IS THE WHOLE SAFETY OF IT. A wait that could last forever would
+           turn a dropped write into a stalled story, which is far worse than a one-coin flicker. It
+           gives the feed a short grace period and then draws regardless — so the worst case is
+           exactly today's behaviour, and the common case is in step. An older host sends no evN and
+           this never engages at all. */
+        const drawIt=()=>Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});
+        if(v.evN!=null&&(appState.evSeen==null||appState.evSeen<v.evN)){
+          const until=Date.now()+NARR_EVENT_GRACE_MS;
+          const tick=()=>{
+            if((appState.evSeen!=null&&appState.evSeen>=v.evN)||Date.now()>=until){drawIt();return;}
+            setTimeout(tick,NARR_EVENT_POLL_MS);
+          };
+          tick();
+        } else drawIt();
       }});
 }
 

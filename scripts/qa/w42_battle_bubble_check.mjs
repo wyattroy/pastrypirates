@@ -85,7 +85,11 @@ const stage = strip(fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8"))
   const writers = strip(fs.readFileSync(path.join(REPO, "src/net/writers.js"), "utf8"));
   const orch = strip(fs.readFileSync(path.join(REPO, "src/orchestrator.js"), "utf8"));
   const sends = /function netSetNarr\([^)]*subj[^)]*\)/.test(writers) && /payload\.subj\s*=/.test(writers);
-  const passes = /netSetNarr\([^;]*subj\s*\)/.test(orch);
+  /* `subj` ANYWHERE IN THE ARGUMENT LIST, not pinned to the end. This required it to be the LAST
+     argument, so Q-18 appending `evN` failed the gate on a tree that still passes the subject
+     perfectly. A position is not the requirement; being sent is. `[^;]*` cannot cross a statement
+     boundary, so this still fails outright if the argument is dropped — verified by removing it. */
+  const passes = /netSetNarr\([^;]*\bsubj\b[^;]*\)/.test(orch);
   const guestHonours = /v\.subj\s*!=\s*null/.test(orch) && /subjectSet\s*=\s*true/.test(orch);
   if (sends && passes && guestHonours)
     pass("the host's decision crosses the wire and the guest draws from it — one decision, both seats, rather than two rules deciding the same thing (rule 23)");
