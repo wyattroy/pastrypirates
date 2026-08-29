@@ -1,5 +1,46 @@
 # CEO reviews — the standing record
 
+## CEO Review 21 — 2026-08-29, W5-2 the call-the-winner circles (commit 6c4166ff) — VERBATIM
+
+**VERDICT: YES. Both halves of what he reported are fixed, and I could see it in the pictures myself — the circles now stand clear beside the boat each one names, at all three sizes, in either option order. Two things hold it back from a clean bill: the gate that is supposed to keep it fixed can be walked straight past, and this change has not been sailed.**
+
+**What he asked for, item by item.**
+
+*"…sit on top of their boats"* — **DONE.** The cause is real and correctly named: the circle's starting spot was the literal `ay + 26` — twenty-six pixels below the boat's centre — while a boat is drawn as wide as a board cell, so it grows with the screen and the 26 does not. That is the "nothing is a constant" rule in one line. The replacement (`src/ui/stage.js:2982-3001`) walks out from the boat's own measured half-width plus half a swollen circle plus six pixels of air, so the distance grows with the boat. I did the arithmetic: at a 70px circle that is 46.5px of travel against a 35px half-boat, which leaves about 11px of clear water — exactly what the report claims. I then opened the three screenshots the probe left behind (`mp-rig-shots/w52-phone.png`, `-desktop.png`, `-tablet.png`) and read them: on every one, both circles sit wholly off every hull, one to the left of its boat, one to the right, opening away from each other.
+
+*"…and often on the WRONG boat"* — **DONE, and the diagnosis is the good part.** D-48 ("Pass is always the lowest circle") is implemented as a straight swap of two positions. Harmless when the positions are interchangeable — a fan of choices around your own ship. Fatal here, where each position belongs to a named captain: the swap handed each circle to the other captain's boat. `stage.js:3048-3059` removes it from this one branch and says why, at length. I checked the blast radius: the anchored branch only ever runs when *every* option carries a seat, and the only prompt in the game that does is the side-bet call (`src/ui/flow.js:2813`). So nothing else in the game moved. And the proof is in the pictures: the two tablet shots are the same prompt posed in the two opposite option orders, and the circles are in identical places. Before the fix they would have swapped.
+
+*"…so the player can read the wind and the situation"* — **DONE in the sense that matters.** What the circle used to cover was the hull and its flag; it now covers neither, and every other boat's hull is an obstacle too, not just its own.
+
+**What he did not ask for.** Almost nothing, and this is a marked improvement on the last review. One line of `src/ui/util.js:1627` was corrected — it pointed at `stage.js:1174`, which today is a comment about the stats panel. The correction is right and costs nothing, but it is not mentioned anywhere in the commit message. The new six-pixel air gap is a typed number in a fix whose whole argument is against typed numbers — I checked before saying so, and six pixels of air is already the house figure at `stage.js:491` and `stage.js:1628`, so it is consistent rather than careless.
+
+**RULE 23 — and this time the "by construction" claim is TRUE. I traced it rather than taking it.** The last review was a NO precisely because a "both seats" claim was an argument, not a measurement. Here the argument holds all the way through: the host's own spectator gets the prompt from `localAsk` → `renderAskPrompt` (`flow.js:270`, `flow.js:201`); a guest spectator gets it as a wire payload whose `seats` field was already there (`util.js:1633`), which `src/orchestrator.js:1603-1607` unpacks back into the same `seat` on each option and hands to **the same `renderAskPrompt`**; that one builder writes `data-seat` (`util.js:1451`); and the placement reads it back in `stage.js:2591`. One supplier, one builder, one placement. There is no second path to drift.
+
+**But it was never measured on a guest.** All twelve circles were measured in a single solo browser. I believe the construction, having read it; I am telling him it is reasoning, not a photograph.
+
+**THE GATE CAN BE WALKED PAST, AND ITS LAST LINE CLAIMS MORE THAN IT LOOKED AT.** `scripts/qa/w52_call_beside_boat_check.mjs` reads the text of `stage.js` and checks that certain words are present. It prints: *"PASSED — the call circles sit beside their own boat, clear of every hull."* It cannot know that. I replayed its four checks against deliberately broken copies of the file and four separate breakages stayed green:
+
+1. Delete the swollen-circle term so the offset is `rad + AIR` — every circle lands back on its own boat's hull by about 29px, at every screen size. **GREEN.**
+2. Put the flat 26 back, keeping the boat measurement alive but multiplied by zero. **GREEN.**
+3. Make the hull test always answer "no" (`=> false && hulls.some(…)`). **GREEN.**
+4. Re-introduce the wrong-boat swap by hand, three lines above where the positions are written out, without using the name `lastLowest`. **GREEN — the exact fault he reported, fully restored, gate still passing.**
+
+The one thing it does catch is the original spelling of the old constant. **This is the seventh consecutive review to find a gate whose pass line asserts something it never measured.** The honest closing line here would be: "the placement is derived from the boat and the swap is not applied — see `w52_call_beside_boat.mjs` for whether it looks right."
+
+**And the probe that CAN see it never runs on its own.** `scripts/qa/w52_call_beside_boat.mjs` is committed and is the real measurement, but it needs a browser and is not in `npm test`, so nothing re-runs it. Its posing is honest but not the real scene: it calls the prompt up directly on top of an unanswered sail prompt on day one, rather than playing to a fight. I checked whether the sail squares could flatter the result — they cannot; the anchored branch ignores them entirely (the obstacle list is only built after it returns). Its "nearest boat" test is weaker than it sounds, because the placement and the measurement look up boats through the same list, so what it really proves is "no other boat is closer" — which is still the useful half.
+
+**Two boundaries he should know about, neither of them a defect.** (a) The band clamp and the last-resort even row can still drag a circle away from its own boat; the repair pass afterwards only pushes circles off hulls, never back toward the boat they name. It did not happen in any of the twelve, and with only two circles there is plenty of room, but nothing forbids it. (b) The whole beside-the-boat treatment only runs when every button's text is 16 characters or shorter (`stage.js:2236`). "Call Davy Scones" is exactly 16. A human captain who types a longer name than that turns this prompt into a plain centred card — not the wrong boat, but not beside the boat either.
+
+**NOT SAILED.** `node scripts/qa/gear.mjs` says **FULL** for this change. `npm test` passes, 44 gates, exit 0 — I ran it. The sea trial on record is `2026.08.28.4`, stamped 2026-08-28T18:44, **FAILED**, and it predates this commit by twelve hours. So the four-step contract is three-quarters done: broken shown, changed, fixed shown; the sweep is outstanding.
+
+**RECURRENCE: PARTIAL.** Review 20's substance — a fix that reached one seat and a report that said both — has **not** recurred; I checked the seat path myself and it genuinely converges. Review 20's *other* finding, the gate whose pass line claims more than the gate checks, **has** recurred, and it is the seventh in a row. The pattern is now specific enough to state as a rule: a gate that reads source text may only claim things about source text.
+
+**BULK READING: NONE FOUND.** The account is roughly 280 lines across three files — `stage.js` (the file being edited, twice), about 90 lines of `flow.js` and 30 of `board.js`, all of it the code immediately under the change, plus two screenshots of the game it had just rendered. The screenshots are rule 19 and belong in the main thread; handing those to a subagent would have been the worse mistake, and it did not. Nothing here should have been delegated.
+
+**ONE SENTENCE FOR WYATT:** The call buttons now stand clear beside the right boat at every screen size — I looked at the pictures myself and they do — but the automatic check meant to keep them there can be walked straight past, and this change has not yet been through a sea trial.
+
+---
+
 ## CEO Review 20 — 2026-08-29, W4-2 the battle narration bubble (commit fed07ee6) — VERBATIM
 
 **VERDICT: NO. The fix lands on the host's screen. The guest — the seat Wyatt actually reported — still anchors its battle bubble, and nothing in the gate looks at the guest path.**
