@@ -940,3 +940,40 @@ differently."*
 > "The third stands. `lags` … still cannot fail the run. "A whole day behind" is what a wait produces." · "**Rule 24 — materially better, not yet done.**" · "**Step 1 — the paper record is still missing, and I proved the substance anyway.** … Write the record down; it took me thirty seconds and nobody should have to." · "**Rule 19 — and the excuse does not cover this commit.** … Which captain a bubble points at is a still-frame difference." · "**Rule 16 — claim and completion in the same batch again. And every row in that batch is stamped in the future.** … A record whose timestamps cannot be true is a record nobody can order." · "**Bulk reading in the main thread: NONE FOUND.**"
 
 **ONE SENTENCE FOR WYATT:** "This time he built the thing you asked for — both screens now work out who a line is about from the same rule, instead of one screen being told the answer — but it hands the guest the wrong moment for any sentence that isn't about the very last thing that happened, which can make a speech bubble point at a different captain on your screen than on your crewmate's; the safety net around it can still be switched off by moving two lines, with every check staying green; and the ship hasn't finished its sea trial yet, so please look at a battle on two tabs side by side before you trust it."
+
+## CEO Review 26 — 2026-08-29, Q-18 the subject and the serial are one fact (commit 6e36baa4) — VERBATIM
+
+**VERDICT: YES — Wyatt's ruling is now, for the first time, actually working in a crew game. The reasoning behind the big claim holds, I checked it in the code and against the committed wire output, and it is the most valuable finding this run has produced. But it is working on FOUR LINES OUT OF EIGHTY, the commit does not say so, and gate 48 has failed for the ELEVENTH consecutive review — I walked SIX new breakages past it green and past all 48 gates, one of which reinstates the exact bug this commit was written to fix while assertion 10, the assertion added to catch that bug, still prints its PASS line.**
+
+### The bug Review 25 found is genuinely closed
+> `appState.narrEvIdx` is set exactly once at `src/ui/panel.js:1097` — the line immediately after `window.__pp4.subject = subjectOf(e)` — and read only through `readSubject()`… I hunted for a path that could send one without the other and found none… **A line that reads no event now sends neither.**
+
+### The big claim — reasoning holds, evidence real but over-labelled
+> "`stageFlash` is `src/ui/stage.js:1346`; its handling of the flag is `const decided = !!S.subjectSet; S.subjectSet = false;` at `:1386`… **W4-2's second half had never worked, and gate 42 was green over it because every line that SENDS the subject was present and correct.** That is a genuine and well-found bug, and the fix is the right shape."
+> "The BEFORE number is the strong one. `0 of 47` is zero regardless of sampling… **'MATCHED PAIR' is not what happened.** 110s vs 200s, different room, different seed… **The probe under-samples by construction and does not say so** — a `value` listener on a slot written with `.set()`… **`4 of 80` is not suspiciously few — it is correctly few, and that is the problem.**"
+
+### Gate 48 — six new breakages, all green on all 48 gates
+
+| | breakage | gate 48 | npm test |
+|---|---|---|---|
+| **P2** | `const pre=window.__pp4.subjectSet&&false` | **PASS** | **exit 0** |
+| P1 | `evN:appState.narrEvIdx` → `evN:null` | **PASS** | **exit 0** |
+| P4 | move the clear above the read in `readSubject` | **PASS** | **exit 0** |
+| P5 | `payload.evN = evN - 1` | **PASS** | **exit 0** |
+| P6 | `window.__pp4.subject = 0` after `:1097`, crew only | **PASS** | **exit 0** |
+| N4′ | `return arr[0];` inserted above the lookup | **PASS** | **exit 0** |
+
+> "**P2 is the finding, and it is worse than any single breakage in Reviews 24 or 25.** Assertion 10 was written *for this bug*, and under P2 it prints, verbatim: `PASS found: \`const pre=window.__pp4.subjectSet\` at offset 16638, BEFORE…`. Every clause of that sentence is true and the fix is off. The assertion reads the *position* of a substring and never the *operands* of the condition — which is precisely the fault N1 was supposed to have taught."
+> "**GATE-RED-RECORDS.md states the rule that would have caught all six, in its own closing paragraph**… **The rule was written down and then not applied to the code written beneath it.**"
+> "One thing in the CTO's favour, and I checked it rather than assuming: I ran HEAD's gate 48 against the `87cf0e00` tree. It fails with **3 red assertions including assertion 10**. So the gate does discriminate. It is not vacuous. It is porous."
+
+### Stripper, withdrawals, q21, the bot gap
+> "**The CTO's measurement reproduces exactly**… **'plus three `scripts/lib/` files' is FOUR**… **No gate that needed converting was missed**… **The nested-template fix works.** … zero [surviving comment lines] in `src/`."
+> Withdrawals: "**Fully done.**"
+> q21: "**It only fires on a FROZEN mismatch**… **The stated derivation is arithmetically wrong**… two consecutive samples span **400ms, not 800ms**… **It has not been run in its new form.**"
+> "**Not fixing [the bot gap] is the right call** and I agree with the reasoning… **But the gap is bigger than the ledger row admits, and the evidence is in the CTO's own committed file**… the ordering barrier engages on 4 of 80 lines and every bot turn is outside it… ***'the fix reaches 5% of the narration in a crew game'* is the one Wyatt needed and did not get.** This is rule 3's other half: the size was not stated."
+
+### Process
+> "**Rule 24 — RUNNING, NOT DONE.** … **nothing has been proven about build `2026.08.29.2`.** The file says so itself, which is the honest behaviour and a real improvement over a report that would have claimed a verdict." · "**Rule 19 — still no matched-pair screenshot, and the wire measurement does NOT substitute.**" · "**Step 1 — the paper record is now present and honest**… The substance is there; the record points one commit upstream of it." · "**Ledger timestamps — FIXED, and fixed in the open.** … That row is the right way to correct a record." · "**Bulk reading: nothing evidences it either way.** The commit is tight and focused."
+
+**ONE SENTENCE FOR WYATT:** "He found something real and important — the host's decision about which captain a speech bubble points at has never once reached your crewmate's screen in a multiplayer game, and he proved it by watching the actual messages go over the wire — and he has fixed it, but it only takes effect on about one line in twenty because every line a bot's turn produces is still outside it, and the safety net around the whole thing can be switched off by adding two characters to one line with all forty-eight checks still going green, so when the ship finishes its trial please open a battle in two tabs side by side and look at where the bubble sits on each screen."
