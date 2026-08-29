@@ -2115,8 +2115,14 @@
      already drew; it does not ask for a better one. Multiplying the flippenator's own size tokens
      by the same 2.2 asks the browser to rasterise the coin and its socket at the size they will
      actually be painted. Same painted size, a real raster behind it. */
+  /* EVERYTHING THE TRANSFORM USED TO CARRY IS NOW CARRIED DELIBERATELY (CEO Review 22). A
+     `transform:scale(2.2)` magnifies shadows, rings and flares for free; sizing the element does
+     not. So the panel's drop-shadow, the coin's attention ring and the landing flare are all
+     multiplied by the same --pp4CerZoom the sizes are, and there is one number each. */
   #pp4CerSlot #flipPanel { margin:0 !important; transform-origin:center;
-    filter:drop-shadow(0 16px 34px rgba(0,0,0,.55)); }
+    filter:drop-shadow(0 calc(16px * var(--pp4CerZoom)) calc(34px * var(--pp4CerZoom)) rgba(0,0,0,.55)); }
+  #pp4CerSlot #flipCoinWrap { --pp4GlowR: calc(10px * var(--pp4CerZoom)); }
+  #pp4CerSlot { --pp4LandFlare: var(--pp4CerZoom); }
   #pp4CerSlot .flipPlank { padding: calc(var(--flipPad) * var(--pp4CerZoom)); }
   #pp4CerSlot #flipCoinWrap.coin { width: calc(var(--flipCoinD) * var(--pp4CerZoom));
     height: calc(var(--flipCoinD) * var(--pp4CerZoom));
@@ -2146,9 +2152,9 @@
   #pp4CerSlot #flipCoinWrap.pp4Land { animation:pp4LandFx .62s ease-out; }
   @keyframes pp4LandFx {
     0%   { transform:none; filter:none; }
-    16%  { transform:scale(1.14) rotate(-2.5deg); filter:drop-shadow(0 0 18px rgba(255,205,90,.95)); }
-    34%  { transform:scale(1.06) rotate(2deg);    filter:drop-shadow(0 0 13px rgba(255,205,90,.8)); }
-    52%  { transform:scale(1.1)  rotate(-1deg);   filter:drop-shadow(0 0 9px rgba(255,205,90,.6)); }
+    16%  { transform:scale(1.14) rotate(-2.5deg); filter:drop-shadow(0 0 calc(18px * var(--pp4LandFlare,1)) rgba(255,205,90,.95)); }
+    34%  { transform:scale(1.06) rotate(2deg);    filter:drop-shadow(0 0 calc(13px * var(--pp4LandFlare,1)) rgba(255,205,90,.8)); }
+    52%  { transform:scale(1.1)  rotate(-1deg);   filter:drop-shadow(0 0 calc(9px  * var(--pp4LandFlare,1)) rgba(255,205,90,.6)); }
     100% { transform:none; filter:none; }
   }
   /* playtest 10 item 1: the recipe chooser is a BOTTOM sheet — the sea it asks you to read stays
@@ -2524,9 +2530,16 @@
      The stage owns the whole screen, so the glow needs no motion — it IS the coin's ceremony cue,
      now shared by every stage control: the coin itself, the Ahoy barrier button, centre-stage
      circles, battle buttons, and the Start-the-voyage buttons of every mode's setup screen. */
+  /* --pp4GlowR is a token for one reason: the flip CEREMONY draws the coin 2.2x, and until W5-1
+     the whole panel was TRANSFORMED, so this ring came along for free at 22px. Sizing the coin
+     properly (which is what made it sharp) left the ring at its literal 10px round a 167px coin —
+     the single call-to-action on a full-screen ceremony, shrunk by more than half. Caught by CEO
+     Review 22, and it is the same class of fault as the coin's own border: everything a transform
+     used to carry has to be carried deliberately once the transform is gone. */
+  :root { --pp4GlowR: 10px; }
   @keyframes pp4Glow {
     0%,100% { box-shadow: 0 0 0 0 rgba(245,159,45,.55); }
-    50%     { box-shadow: 0 0 0 10px rgba(245,159,45,0); } }
+    50%     { box-shadow: 0 0 0 var(--pp4GlowR) rgba(245,159,45,0); } }
 
   /* ============================ THE REVEAL RACE (2026-08-25) ============================
      WHY EVERY ATTENTION RULE BELOW SAYS `#actionPanel:not(.pendingReveal)`.

@@ -1021,6 +1021,11 @@ function wireEovDrag(){
     // normal scroll down to see below the fold stays a normal scroll) — or the card is already
     // parked, so pulling up from the strip can restore it from anywhere on the strip
     if (!wrap.classList.contains("pp4EovParked") && eovScroller(wrap).scrollTop > 0) return;
+    /* A FINGER LANDING WITHIN THE WHEEL'S QUIET WINDOW CANCELS ITS RELEASE (CEO Review 23). The two
+       paths share the release rule's timing, not just its arithmetic: without this, a wheel notch
+       followed inside 110ms by a drag lets wheelRelease fire DURING the drag — settle() strips
+       pp4EovDrag, jumps the card to one end, and the next pointermove yanks it back. */
+    if (wheelIdle){ clearTimeout(wheelIdle); wheelIdle = null; wheelNet = 0; }
     eovDrag = { id: e.pointerId, startY: e.clientY, base: eovTranslateY(wrap), moved: 0 };
     wrap.setPointerCapture(e.pointerId);
   });
@@ -1062,15 +1067,27 @@ function wireEovDrag(){
      class, same live transform — and when the wheel goes quiet the SAME release rule the pointer
      drag uses decides which end it settles to. One rule, two input devices, so they cannot drift
      apart (rule 23); before this they were two rules that already had. */
-  let wheelIdle = null;
+  let wheelIdle = null, wheelNet = 0;
+  /* A WHEEL HAS NO POSITION, ONLY A DIRECTION — CEO Review 23, and it caught a regression I put in.
+     The finger's release rule asks WHERE the card ended up: an unparked card parks only if the drag
+     carried it past (dY - threshold), which is fine for one continuous swipe. A trackpad is also
+     one continuous swipe, so it inherits that happily. A CLICK-WHEEL MOUSE IS NOT: one detent is
+     about 100px against the 688px of travel measured on a 1200px desktop, and the 110ms of quiet
+     that stands in for a finger lifting falls BETWEEN detents. So every notch sprang straight back
+     and the card could no longer be parked or unparked at all — I had traded a slam for a shrug.
+     The shared parts are real and stay shared: both paths accumulate into the same transform, use
+     the same clamp, and commit on release. What differs is only the commit TEST, because the two
+     devices report different things — a finger reports a position and a wheel reports a rate. So
+     the wheel commits on the NET DIRECTION of the gesture it just made, which is the only thing a
+     wheel actually tells you, and the distance threshold stays where it belongs, on the finger.
+     Saying they share one rule outright would be the tidier sentence and it would not be true. */
   const wheelRelease = () => {
     wheelIdle = null;
+    const net = wheelNet; wheelNet = 0;
     const g = eovParkGeometry(wrap);
-    if (g.dY <= 0) return;
-    const y = eovTranslateY(wrap);
+    if (g.dY <= 0){ wrap.classList.remove("pp4EovDrag"); return; }
     const wasParked = wrap.classList.contains("pp4EovParked");
-    const threshold = g.dY * EOV_PARK_RELEASE_FRACTION;
-    const park = wasParked ? y > threshold : y > (g.dY - threshold);
+    const park = wasParked ? !(net < 0) : net > 0;
     settle(park ? g.dY : 0, park);
   };
   wrap.addEventListener("wheel", e => {
@@ -1085,6 +1102,7 @@ function wireEovDrag(){
     wrap.style.transform = y ? `translateY(${y}px)` : "";
     e.preventDefault();
     // the wheel has no "finger up", so quiet stands in for it
+    wheelNet += e.deltaY;
     if (wheelIdle) clearTimeout(wheelIdle);
     wheelIdle = setTimeout(wheelRelease, WHEEL_QUIET_MS);
   }, { passive: false });
