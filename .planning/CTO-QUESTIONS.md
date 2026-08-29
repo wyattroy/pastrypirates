@@ -373,3 +373,43 @@ The cutover converged the engine and left the render path forked.
 **NOT STARTED, deliberately:** raised at 06:00 inside a window he asked to end in a playable build.
 Starting an architectural change there would be the "adjacent, competent, misses the ask" failure
 rule 25 exists to catch.
+
+---
+
+## Q-19 — the flip art's masters are the PRE-CUTOUT renders. Are there cut-out ones?
+
+**Your ruling on W5-1 was "try repo assets else park". Tried. Parked, with the reason.**
+
+`art-review/` holds 2048x2048 masters of all four flip images — the coin's heads and tails faces,
+the mid-spin coin, and the wooden socket — against the 382–512px files the game ships. On the
+arithmetic that is a straight win: on your phone the ceremony coin paints 502 real pixels and the
+socket 687, so the shipped art is short by about a quarter even now that the ceremony has stopped
+stretching it.
+
+**They cannot be used as they are.** Every corner of every master is SOLID, over a near-black
+background; every corner of the shipped files is transparent. They are the renders as they came out,
+before somebody cut the coin and the plank out of their background. Exported at 768px they put a
+hard black square behind the flippenator — I have the screenshot.
+
+**What I would need from you (any one of these unblocks it):**
+1. the cut-out versions of those four files, at any size above 768px, or
+2. permission to re-cut them here (the background is close to a flat colour, so it is a plausible
+   automatic job — but a bad cut leaves a dark halo round the rope, and that is your call, not mine), or
+3. "leave it" — the art is now drawn sharp at the size it ships, which was the bigger half.
+
+**Worth knowing either way, measured while I was in there:** as WebP these files come to about 55KB
+each at 768px against 217KB at 382px today — four times the resolution at a quarter of the weight,
+and it decodes in WebKit, which is Safari's engine. So if we ever get cut-out masters, the upgrade
+makes the game *lighter*, not heavier.
+
+## Q-20 — the End of Voyage award list still cannot be scrolled with a wheel
+
+Found by a CEO review while checking W3-4, and **it is not something I broke — it has always been
+this way.** The pull-down-to-dock gesture owns the first downward wheel notch at the top of the
+card, so the awards below the fold are reachable by dragging or by the scrollbar, but never by
+scrolling. On a laptop that is the natural thing to try.
+
+**The two ways out, and it is a taste call:** give the gesture a small dead zone so the first inch
+of scrolling reads the list and only a scroll at the very bottom docks the card; or leave docking on
+the first notch and accept that the list is dragged, not scrolled. I have not touched it because
+your sentence was about the card slamming and this is a different gesture.
