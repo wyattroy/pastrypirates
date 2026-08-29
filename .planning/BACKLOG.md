@@ -119,41 +119,51 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | W2-8 | **"Tap to sail" → "Tap square again to sail trade winds"** to confirm trade-wind movement. |
 | W2-9 | **"Would ye offer any coin on top?" is context-blind.** If coin is the ONLY thing being offered it makes no sense — should read `How many coins?`. **And the slider itself should pulse** to show what to touch. `sliderWrapHTML`/`wireSlider`, `src/ui/util.js`. |
 
+> **SWEPT 2026-08-29 (the night run).** Every closed row in Waves 3–6 now carries a strikethrough
+> and a pointer into `.planning/CTO-LEDGER.md` rather than a copy of its verdict — a pointer cannot
+> go stale, a copy always can. **Waves 4, 5 and 6 are fully closed. Wave 3 has three rows open:
+> W3-1, W3-3, W3-5.**
+>
+> **Waves 0, 1 and 2 were NOT swept and their rows are not to be read as open or closed from this
+> pass.** Their statuses are recorded inline in the rows themselves and I did not re-verify them
+> tonight; saying "swept" over work I had not checked is exactly the copy-that-rots this note
+> exists to remove.
+
 ## Wave 3 — glitches a player sees constantly (5)
 
 | # | Item |
 |---|---|
 | W3-1 | **The battle box choreography is glitchy, in ALL modes.** It appears for an instant, the stage deletes it, it moves down to centre, then it is removed and replaced by the stage with the coin flipper. **And after the flip the coin disappears from the flippenator BEFORE the stage does** — it should stay until the stage goes. ⚠️ **All modes means this is NOT a host/guest fault** — do not fold it into Wave 1. |
-| W3-2 | **Bake-off attempt 2+ : the boxes jitter after being shuffled** instead of settling smoothly. Wyatt's own hypothesis: the open crates, or the borders around them. `src/ui/bakeoff.js`. |
+| ~~W3-2~~ | ✅ **CLOSED — the frozen pitch in bakeoff.js — Wyatt diagnosed it from the description alone.** See `.planning/CTO-LEDGER.md` (search `W3-2`) for the measurement and its CEO verdict. **Bake-off attempt 2+ : the boxes jitter after being shuffled** instead of settling smoothly. Wyatt's own hypothesis: the open crates, or the borders around them. `src/ui/bakeoff.js`. |
 | W3-3 | **The drumroll fires AFTER the narration that names the winner.** It should come first. Found in the solo voyage, 2026-08-27, on a two-captain tie broken by crates/coins. |
-| W3-4 | **The End of Voyage card "SLAMS" down to the captains box.** It should scroll smoothly. |
+| ~~W3-4~~ | ✅ **CLOSED — the End of Voyage slam, and Q-20's scrolling ruling on top of it.** See `.planning/CTO-LEDGER.md` (search `W3-4`) for the measurement and its CEO verdict. **The End of Voyage card "SLAMS" down to the captains box.** It should scroll smoothly. |
 | W3-5 | **A trade-wind square's preview stays on screen** after you click a trade-wind square and then click a yellow sailing square. It should be removed. |
 
 ## Wave 4 — layout (6)
 
 | # | Item |
 |---|---|
-| W4-1 | **"Choose yer recipe card" is not horizontally centred.** Seen in pass-and-play. ⚠️ **Wyatt: *"Don't apply this fix only for pass-and-play, it should apply to all games architecturally."*** |
-| W4-2 | **Guest battle narration box is not centred.** ⚠️ **NARROWED 2026-08-27:** his screenshot shows the guest's *tap-to-sail* narration box correctly centred, so this is specific to the BATTLE box, not all guest narration. |
-| W4-3 | **The centre div has its own blue background**, layered on top of the page gradient under the board and the captains box. **The gradient should be the only background.** ⚠️ **STATIC READ 2026-08-28, NOT YET MEASURED — two candidates, and they are different bugs:** (a) `body.pp4Stage { background:#3d7d99 }` (`index.html:1502`) paints FLAT BLUE over the page gradient whenever the centre stage is up — deliberate for the stage, but it is the page's own body, so it also covers the board and captains box; (b) the page gradient itself is `body { linear-gradient(160deg,#dcece9,#e6efe1,#f5f0dd) }` (`:51`) — pale, so any blue seen in ordinary play is NOT it. **Measure which is on screen at the moment he saw it before changing either** — a stage-only blue and a persistent blue are different fixes, and (a) is load-bearing for the ceremonies. |
+| ~~W4-1~~ | ✅ **CLOSED — measured after the fix: card centre 0px off both the window centre and the board centre.** See `.planning/CTO-LEDGER.md` (search `W4-1`) for the measurement and its CEO verdict. **"Choose yer recipe card" is not horizontally centred.** Seen in pass-and-play. ⚠️ **Wyatt: *"Don't apply this fix only for pass-and-play, it should apply to all games architecturally."*** |
+| ~~W4-2~~ | ✅ **CLOSED — the battle bubble takes no subject; the rule now lives once in src/shared/index.js.** See `.planning/CTO-LEDGER.md` (search `W4-2`) for the measurement and its CEO verdict. **Guest battle narration box is not centred.** ⚠️ **NARROWED 2026-08-27:** his screenshot shows the guest's *tap-to-sail* narration box correctly centred, so this is specific to the BATTLE box, not all guest narration. |
+| ~~W4-3~~ | ✅ **CLOSED — measured, not a defect as filed.** See `.planning/CTO-LEDGER.md` (search `W4-3`) for the measurement and its CEO verdict. **The centre div has its own blue background**, layered on top of the page gradient under the board and the captains box. **The gradient should be the only background.** ⚠️ **STATIC READ 2026-08-28, NOT YET MEASURED — two candidates, and they are different bugs:** (a) `body.pp4Stage { background:#3d7d99 }` (`index.html:1502`) paints FLAT BLUE over the page gradient whenever the centre stage is up — deliberate for the stage, but it is the page's own body, so it also covers the board and captains box; (b) the page gradient itself is `body { linear-gradient(160deg,#dcece9,#e6efe1,#f5f0dd) }` (`:51`) — pale, so any blue seen in ordinary play is NOT it. **Measure which is on screen at the moment he saw it before changing either** — a stage-only blue and a persistent blue are different fixes, and (a) is load-bearing for the ceremonies. |
 | ~~W4-7~~ | ✅ **NOT A DEFECT — MEASURED 2026-08-29, closed.** Board right edge and captains card may run past the right edge of the phone viewport at 390px.** ⚠️ **OBSERVED, NOT MEASURED** — spotted by CEO Review 13 in a W4-3 verification screenshot, raised so it is not lost. Related to W4-4 (the captains box not matching the board's width) but a different symptom: overflow rather than a short row. Measure the rects at 390px before believing it. | **MEASURED across 22 samples on a real voyage at 390x844: innerWidth 390 / documentScrollWidth 390 / bodyScrollWidth 390 in EVERY sample — the page never scrolls sideways in any state, and the captains card is exactly flush at 0..390. What extends past the viewport is BOARD ARTWORK (the rain layer at 624, island SVGs at 564), which this project's own vision rubric names as designed: "the board is a camera view of a larger map, so its contents are cut off by design." Scope of the measurement, stated honestly: SOLO at 390px. If Wyatt sees it, the state matters and the screenshot should say which.**
-| W4-4 | **At tablet width the captains box is narrower than the board**, leaving a ~10px dead strip. ⚠️ **ALSO ON A PHONE** — his screenshot shows the captain rows ending ~200px short of the panel's own right edge. Wider than "tablet". |
-| W4-5 | **Move the "Tap and hold the sea to reveal the board" tooltip** closer to the recipe card, **and give it the same pulse as the buttons** — Wyatt: *"in a way, it is a button — a button that reveals the sea."* |
+| ~~W4-4~~ | ✅ **CLOSED — the captains box against the board width.** See `.planning/CTO-LEDGER.md` (search `W4-4`) for the measurement and its CEO verdict. **At tablet width the captains box is narrower than the board**, leaving a ~10px dead strip. ⚠️ **ALSO ON A PHONE** — his screenshot shows the captain rows ending ~200px short of the panel's own right edge. Wider than "tablet". |
+| ~~W4-5~~ | ✅ **CLOSED — the sea hint beside the card, on the shared pulse.** See `.planning/CTO-LEDGER.md` (search `W4-5`) for the measurement and its CEO verdict. **Move the "Tap and hold the sea to reveal the board" tooltip** closer to the recipe card, **and give it the same pulse as the buttons** — Wyatt: *"in a way, it is a button — a button that reveals the sea."* |
 | ~~W4-6~~ | ✅ **CLOSED 2026-08-29 — NOT REPRODUCIBLE ON EITHER SEAT.** The `🦜Start` button has no glow**, on host or guest. It should glow consistently with the other stage buttons. | **MEASURED in a real two-browser crew game (room NJCU): at the turn-order barrier the button computes `animation-name: pp4Glow` on BOTH host and guest. Also pp4Glow in solo. Cured by T-16 (2026-08-26), which restated the glow at a specificity that beats the two GROW rules. Closed without a code change — the record is the measurement, on the seats he named.**
 
 ## Wave 5 — art and asset (3)
 
 | # | Item |
 |---|---|
-| W5-1 | **The coin flip is low-res** while the rest of the game is not. |
-| W5-2 | **The buttons to call other battling captains sit on top of their boats**, and often on the WRONG boat. They should be directly beside the boats — side, top or bottom — so the player can read the wind and the situation. |
-| W5-3 | **The black market flags are not attached to the docks.** For every dock orientation, set the base of the flag on the dock. |
+| ~~W5-1~~ | ✅ **CLOSED — the coin at ceremony scale; the art question parked as Q-19, Wyatt ruled LEAVE IT.** See `.planning/CTO-LEDGER.md` (search `W5-1`) for the measurement and its CEO verdict. **The coin flip is low-res** while the rest of the game is not. |
+| ~~W5-2~~ | ✅ **CLOSED — the call buttons derived beside each boat, bound to the nearest hull.** See `.planning/CTO-LEDGER.md` (search `W5-2`) for the measurement and its CEO verdict. **The buttons to call other battling captains sit on top of their boats**, and often on the WRONG boat. They should be directly beside the boats — side, top or bottom — so the player can read the wind and the situation. |
+| ~~W5-3~~ | ✅ **CLOSED — the black market flags seated on every dock orientation.** See `.planning/CTO-LEDGER.md` (search `W5-3`) for the measurement and its CEO verdict. **The black market flags are not attached to the docks.** For every dock orientation, set the base of the flag on the dock. |
 
 ## Wave 6 — the slider edge case (1)
 
 | # | Item |
 |---|---|
-| W6-1 | **"Would ye offer any coin on top?" appears with NO SLIDER** when the player has no money left. **Expectation: the slider appears greyed out, and the button reads "Nah" instead of "Offer it!"** |
+| ~~W6-1~~ | ✅ **CLOSED — the slider is drawn dead rather than omitted, on BOTH seats.** See `.planning/CTO-LEDGER.md` (search `W6-1`) for the measurement and its CEO verdict. **"Would ye offer any coin on top?" appears with NO SLIDER** when the player has no money left. **Expectation: the slider appears greyed out, and the button reads "Nah" instead of "Offer it!"** |
 
 ## ⛔ PARKED — needs Wyatt's ruling, the CTO may NOT default these
 
