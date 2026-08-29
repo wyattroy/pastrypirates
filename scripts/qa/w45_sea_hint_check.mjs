@@ -24,7 +24,14 @@ let fails = 0;
 const pass = m => console.log("PASS " + m);
 const fail = m => { console.log("FAIL " + m); fails++; };
 
-const js = fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8");
+const jsRaw = fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8");
+/* COMMENTS ARE STRIPPED BEFORE ANYTHING IS COUNTED, and this is not housekeeping — it is the same
+   rule as "a comment is not a measurement", turned on the instrument itself. This gate counts how
+   many places write the hint's position. The graveyard note that records the REMOVED pin quotes
+   that line verbatim, as graveyard notes in this repo are supposed to, and the first version
+   counted it as a third writer and failed a correct tree. An instrument that cannot tell code from
+   a comment about code is measuring the wrong thing. */
+const js = jsRaw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 const html = fs.readFileSync(path.join(REPO, "index.html"), "utf8");
 const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -35,10 +42,18 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace
   if (!m) fail("could not find the hint's candidate list in peekHintTick — re-anchor this assertion, do not delete it");
   else {
     const order = m[1].split(",").map(s => s.trim());
-    if (/card/i.test(order[0]))
-      pass(`the search tries the card-adjacent spot FIRST — [${order.join(", ")}] — so the hint lands beside the thing it is about`);
+    /* A NAME IS NOT A BEHAVIOUR. The first version tested /card/i against the variable's NAME, so
+       renaming `head` to `cardTop` would have passed it with nothing moved (CEO Review 18). What
+       must be true is that the first candidate is DERIVED FROM THE CARD'S OWN RECT — so the gate
+       finds where that identifier is assigned and reads the expression. */
+    const first = order[0];
+    const asg = js.match(new RegExp(`const\\s+${first}\\s*=([\\s\\S]{0,240}?);`));
+    const fromCard = !!asg && /getBoundingClientRect|\bcardR\b/.test(asg[1]) &&
+                     /actionPanel|card/i.test(asg[1] + (js.match(/const\s+cardEl\s*=([^;]+);/) || ["", ""])[1]);
+    if (fromCard)
+      pass(`the first candidate (${first}) is computed from the card's own measured rect — [${order.join(", ")}] — so the hint lands beside the thing it is about, at any size`);
     else
-      fail(`the hint's search still prefers [${order.join(", ")}] — nothing card-adjacent is tried first, so with a card up it falls through to the far end of the board (measured 295px away at 1200 and 768, 222px at 390)`);
+      fail(`the hint's first candidate (${first}) is not derived from the card's rect — order [${order.join(", ")}]. Measured before this item: with a card up the hint fell to the far end of the board, 295px away at 1200 and 768, 222px at 390`);
   }
 }
 
@@ -62,14 +77,23 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace
      The function is allowed EXACTLY TWO writes: the fallback taken when the span has no measurable
      size (there is nothing to test for clearance yet), and the guarded one inside the loop. A third
      is a pin, whatever it is called. */
-  const writes = (body.match(/hint\.style\.top\s*=/g) || []).length;
-  const guarded = loopGuarded && writes === 2;
+  /* AND IT COUNTS THE WHOLE FILE, NOT ONE FUNCTION. The first version counted writes inside
+     peekHintTick only — and there WAS a third write, in promptTick, pinning the hint over the sea
+     every tick and being overwritten a moment later. Two writers for one position is two things
+     kept in step by nothing (rule 23), and the gate could not see it (CEO Review 18).
+     EXACTLY TWO WRITES IN THE WHOLE OF stage.js: the fallback taken when the span has no measurable
+     size, and the guarded one inside the loop. Both are inside peekHintTick. A third anywhere is a
+     second writer or a pin. */
+  const writesAll = (js.match(/hint\.style\.top\s*=/g) || []).length;
+  const writesHere = (body.match(/hint\.style\.top\s*=/g) || []).length;
+  const writes = writesAll;
+  const guarded = loopGuarded && writesAll === 2 && writesHere === 2;
   const hides = /hint\.style\.display\s*=\s*"none"/.test(body);
   const air = /const AIR\s*=\s*\d+/.test(body);
   if (guarded && hides && air)
     pass("every candidate is still tested by clear(), the 6px air is still declared, and hiding is still the last resort — the yield the 2026-08-21 findings bought is intact");
   else
-    fail(`the hint no longer yields (clear-guarded:${loopGuarded} position-writes:${writes} (must be exactly 2) hides-as-last-resort:${hides} air-declared:${air}) — pinning it re-opens the five judge findings of 2026-08-21: drawn across "Stay put", across a trade's ✓, and over "Call Flaky Jack"`);
+    fail(`the hint no longer yields (clear-guarded:${loopGuarded} position-writes-in-stage.js:${writesAll} (must be exactly 2, all inside peekHintTick — found ${writesHere} there) hides-as-last-resort:${hides} air-declared:${air}) — pinning it re-opens the five judge findings of 2026-08-21: drawn across "Stay put", across a trade's ✓, and over "Call Flaky Jack"`);
 }
 
 /* (3) IT PULSES LIKE A BUTTON, AND FROM THE ONE VOCABULARY. Rule 8: same gesture, same behaviour,
@@ -83,9 +107,14 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace
   else
     fail("the sea hint is not in the attention-vocabulary rule — Wyatt: \"in a way, it is a button, a button that reveals the sea\", and it measured animation-name:none at all three sizes");
   /* and it must not have grown a private animation instead */
+  /* BEING NAMED IN THE RULE IS NOT THE SAME AS ANIMATING. A later `animation:none` on the hint
+     would leave assertion 3 green and the pulse gone (CEO Review 18), so both a competing animation
+     AND a cancelling one fail here. */
   const own = /\.pp4PeekHint[^{}]*\{[^}]*animation\s*:\s*(?!pp4Glow)[a-zA-Z]/.test(css);
+  const cancelled = /\.pp4PeekHint[^{}]*\{[^}]*animation[^:;}]*:\s*none/.test(css);
   if (own) fail("the sea hint has been given an animation of its own instead of the shared one — that is a second gesture for one cue, and the two will drift (rule 8)");
-  else pass("the hint has no private animation competing with the shared vocabulary");
+  else if (cancelled) fail("the sea hint is named in the vocabulary but a later rule cancels its animation — it is in the list and does not pulse, which is worse than being out of the list");
+  else pass("the hint has no private animation competing with the shared vocabulary, and nothing later cancels it");
 }
 
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`

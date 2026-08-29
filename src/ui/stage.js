@@ -2362,9 +2362,18 @@ function peekHintLast(){
      condition is DERIVED from what is on screen — a visible panel — not from a list of prompt class
      names that would need editing every time a new prompt kind appears. */
   if (!box) return;
-  const card = box.querySelector("#actionPanel");
-  const cardUp = !!card && card.getBoundingClientRect().height > 2;
-  if (!box.classList.contains("radial") && !cardUp) return;
+  /* ⚠ NARROWED AFTER CEO REVIEW 18, WHICH CAUGHT A REGRESSION THIS FUNCTION HAD JUST INTRODUCED.
+     The first cut ran for ANY prompt with a visible panel. But promptTick() deliberately REMOVES
+     the hint for plain card prompts (`if (hint) hint.remove()`), and peekHintTick() re-creates one
+     when it does not find it — so the hint reappeared on prompts that had chosen not to show it,
+     INCLUDING "Stay put", a trade's ✓ and "Call Flaky Jack": the exact three screens the five judge
+     findings of 2026-08-21 were about. Nobody measured that; it was a side effect.
+     THE RULE NOW: this function PLACES a hint, it never decides one should exist. It runs for the
+     radial bloom (which creates its own), or when a hint is ALREADY in the box because something
+     upstream chose to show it. Whoever owns "should the gesture be taught on this screen" keeps
+     that decision; this only answers "where". */
+  const already = !!box.querySelector(".pp4PeekHint");
+  if (!box.classList.contains("radial") && !already) return;
   peekHintTick(box);
 }
 function promptTick(){
@@ -2487,11 +2496,19 @@ function promptTick(){
       hint.innerHTML = `<span>${peekHintText()}</span>`;   // D-40: one sentence, device-correct verb
       box.insertBefore(hint, ap);
     }
-    // over the SEA, high on the board — measured off the board's own rect rather than a guessed
-    // viewport fraction, so it lands on water at any screen height
-    const bw = document.getElementById("boardwrap");
-    const br = bw ? bw.getBoundingClientRect() : null;
-    hint.style.top = Math.round(br && br.height ? br.top + br.height * 0.10 : vhPx() * 0.20) + "px";
+    /* ⚠ THE PIN THAT USED TO BE HERE IS GONE, AND THIS REVERSES AN EARLIER RULING OF WYATT'S.
+       It read `hint.style.top = br.top + br.height * 0.10` — "over the SEA, high on the board" —
+       and the comment above records that HE ASKED FOR THAT in playtest 21 item 2: "a pill over the
+       water… away from the sheet entirely."
+       W4-5 IS HIM CHANGING HIS MIND, IN HIS OWN WORDS: "move the tooltip closer to the recipe card,
+       and give it the same pulse as the buttons — in a way, it is a button, a button that reveals
+       the sea." His newer ruling wins; the older one is recorded here rather than quietly deleted,
+       because CEO Review 15 caught exactly this reversal-without-saying-so one item ago and CEO
+       Review 18 caught it again here.
+       IT IS ALSO A ONE-WRITER FIX. For a while both this line and peekHintTick() set the hint's
+       position — this one first, overwritten a moment later — which is two things kept in step by
+       nothing (rule 23). peekHintTick() is now the only writer, so the placement cannot disagree
+       with itself, and the comment above no longer describes something the screen contradicts. */
     const msg = ap.querySelector(".apMsg");
     if (msg && !ap.querySelector(".pp4RecipeHint")){
       const rh = document.createElement("div");

@@ -1,5 +1,39 @@
 # CEO reviews — the standing record
 
+## CEO Review 18 — 2026-08-29, W4-5 the sea hint (commit f1c5a662) — VERBATIM
+
+**VERDICT: YES on the ask, NO on the account of it.** Both halves he asked for really happened. But the story explaining *why* is wrong, and the gate's headline claim is false of the code as it stands.
+
+**What genuinely happened**
+- The hint now tries a card-adjacent spot first, derived from the card's own rect — `src/ui/stage.js:514-518`. Not a typed offset.
+- It pulses from the *one* shared rule, not a copy — `index.html:2533` adds `.pp4PeekHint span` to the same selector list `#flipCoinWrap.active` reads. That is rule 8 done correctly.
+- **"6px is AIR, not a number invented here" is TRUE.** `AIR = 6` already existed at `src/ui/stage.js:490` with its own justification. Nothing new was invented.
+- **The yield survives.** Every candidate, the new one included, still goes through `clear()` (`stage.js:517-519`), and `display:none` is still the last resort (`stage.js:521`). The five 2026-08-21 findings are not re-opened by this loop.
+
+**The diagnosis is wrong, and it matters**
+The CTO says the hint "was not mis-placed — it was UNPLACED, stranded at a stale position." That is false for the recipe picker, which is the screen Wyatt photographed. **The 295px position was written deliberately, every tick, at `src/ui/stage.js:2491`**: `hint.style.top = br.top + br.height * 0.10` — "over the SEA, high on the board." The comment above it, `stage.js:2482-2488`, records that **you asked for that**, in playtest 21 items 2 and 4: *"a pill over the water… away from the sheet entirely."*
+
+So this item **reverses your own earlier ruling** — which is entirely your right, you have seen it and changed your mind. But it was reversed silently: that pinning line still runs, is now overwritten a moment later by the new placement, and the comment describing it now says the opposite of what the screen does. **That is exactly the rotting comment the commit message blames for misleading its own first attempt.**
+
+**A change you did not ask for, and nobody measured**
+`peekHintLast()` (`stage.js:2360-2367`) now runs for *any* prompt with a visible panel, not just the radial bloom. `promptTick` removes the hint for plain card prompts at `stage.js:2526`; `peekHintTick` then re-creates it (`stage.js:455-459`). **So the hint now appears on prompts where it never appeared before — including "Stay put", a trade's ✓, and "Call Flaky Jack", the three screens the graveyard is about.** `clear()` should stop it covering them, but nothing was measured there: the only measurements taken were the recipe picker at three sizes.
+
+**Can the gate fail?**
+Partly.
+- `scripts/qa/w45_sea_hint_check.mjs:68-72` announces *"nothing writes the position outside that loop"* and counts writes **inside `peekHintTick` only**. The live pin at `stage.js:2491` is a third write, in another function, and the gate cannot see it. The pass line claims more than the check covers.
+- `w45_sea_hint_check.mjs:37` tests `/card/i` against the **variable's name**. Rename `head` to `cardTop` and it passes with nothing moved.
+- Assertion 3 checks the hint is *named* in the vocabulary rule; a later `animation:none` on `.pp4PeekHint span` would still go green.
+
+**Recurrence: YES, both faults from Review 17 return.** The gate is again defeatable by what it does not watch, and the report again claims more ground than the change proved — "the placement search never ran" is true of plain cards and false of the recipe picker, and the widening onto new prompts is unmeasured.
+
+> **CTO RESPONSE, appended without altering the verdict above. Every finding was correct and every one is acted on.**
+> 1. **The reversal is now written down** where the pin used to be (`stage.js`), naming his playtest-21 ruling and his W4-5 ruling and saying plainly which wins and why. Second review running to catch me reversing a recorded decision silently.
+> 2. **The pin is deleted, so there is ONE writer.** Two rules setting the same position, one overwriting the other, is two things kept in step by nothing (rule 23).
+> 3. **The unmeasured widening was a real regression and is closed.** `peekHintLast()` no longer runs for "any visible panel" — it PLACES a hint, it never decides one should exist, so it runs for the radial bloom or when a hint is already in the box because something upstream chose to show it. MEASURED across 28 prompt samples on a real voyage: hint present only on the radial bloom (zero overlaps) and the recipe card; absent on centre-stage and plain prompts, as before.
+> 4. **All three gate holes closed and red-proofed seven ways, all seven caught** — including the two that escaped the first attempt. The write count now covers the whole file rather than one function; the first-candidate assertion reads where the identifier is ASSIGNED rather than what it is NAMED; and a later `animation:none` now fails instead of passing. A fourth hole surfaced while fixing them: the gate counted a `hint.style.top` inside the graveyard COMMENT quoting the removed pin, and failed a correct tree. Comments are now stripped before anything is counted — the same rule as "a comment is not a measurement", turned on the instrument itself.
+
+---
+
 ## CEO Review 17 — 2026-08-28, W4-1 the prompt card centring (commit 9b501b25) — VERBATIM
 
 **YES on the fix, NO on the proof.**
