@@ -681,8 +681,12 @@
        before, padding 30px -> VS sits  9.1px above the coin's centre
        after,  padding  9px -> VS sits  8.5px above the coin's centre  */
   .btl-mid { align-self: center; font-weight: 800; font-size: 12px; opacity: .35; padding-top: 9px; }
+  /* --coinRing is a token because the flip ceremony has to multiply it (W5-1). Under the old
+     `transform:scale(2.2)` the ring came along for free at 6.6px; sizing the coin properly leaves
+     a literal 3px hairline round a 167px coin unless the ring is scaled with it. */
+  :root { --coinRing: 3px; }
   .coin { width: 74px; height: 74px; margin: 0 auto 9px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px; letter-spacing: .5px; border: 3px solid; position: relative; }
+    font-weight: 800; font-size: 13px; letter-spacing: .5px; border: var(--coinRing) solid; position: relative; }
   .coin.wait { background: #f4f4f4; border-color: #dcdcdc; color: #c2c2c2; font-size: 24px; }
   /* the flippenator's wood socket art already reads as "empty, waiting for a flip" on its own —
      no placeholder circle/mark needed on top of it (unlike the battle scoreboard's bare .coin.wait
@@ -696,13 +700,26 @@
   .coin .bs { position: absolute; top: -9px; right: -9px; font-size: 16px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
   /* ---- flippenator: the one physical spot every coin flip happens — the coin IS the
      button, so the whole thing is a single circle on the wood plank, not two elements ---- */
+  /* THE FLIPPENATOR'S SIZE IS ONE SET OF TOKENS, BECAUSE TWO PLACES NEED IT (W5-1, rule 23).
+     The flip CEREMONY draws this same panel much bigger, and it used to do it with
+     `transform:scale(2.2)` — which stretches the RASTER rather than asking for a bigger one, so
+     the plank's rope border stair-stepped while the rest of the game stayed crisp. Measured on a
+     390px phone at DPR 3: a 76px layout box painted at 167px = 502 device pixels, drawn from a
+     raster made for 76px. The art was never the problem — flip-heads.png is 384x384 and the
+     socket 512x512.
+     So the ceremony multiplies these tokens instead (--pp4CerZoom below) and the browser
+     rasterises at the size it will actually paint. Hoisting them means the magnified copy can
+     never drift from the ordinary one: there is one clamp per dimension, not two. */
+  :root { --flipCoinD: clamp(36px,13cqw,64px); --flipPad: clamp(6px,2.4cqw,11px);
+          --flipFont: clamp(6px,1.9cqw,11px); --flipSpinFont: clamp(11px,3.5cqw,22px);
+          --pp4CerZoom: 2.2; }
   .flipPlank { display: flex; align-items: center; justify-content: center; width: fit-content;
     border-radius: 14%; background: var(--flip-socket-img) center/cover; background-color: #8a5f2f;
-    padding: clamp(6px,2.4cqw,11px); box-shadow: 0 2px 5px rgba(0,0,0,.28); overflow: hidden; }
+    padding: var(--flipPad); box-shadow: 0 2px 5px rgba(0,0,0,.28); overflow: hidden; }
   .flipPlank:has(#flipCoinWrap.active) { animation: plankglow 1s ease-in-out infinite; }
-  #flipCoinWrap.coin { width: clamp(36px,13cqw,64px); height: clamp(36px,13cqw,64px);
-    font-size: clamp(6px,1.9cqw,11px); margin: 0; }
-  #flipCoinWrap.coin.spin { font-size: clamp(11px,3.5cqw,22px); }
+  #flipCoinWrap.coin { width: var(--flipCoinD); height: var(--flipCoinD);
+    font-size: var(--flipFont); margin: 0; }
+  #flipCoinWrap.coin.spin { font-size: var(--flipSpinFont); }
   /* UI-09: the coin shows its plain heads art now (no orange wash). Only the word FLIP is orange,
      with a dark outline so it stays legible over the gold coin. */
   #flipCoinWrap.active { border-color: var(--accent); background-color: #f5a623;
@@ -1238,10 +1255,10 @@
   /* super-narrow phones: the flippenator + shot clock read as too small to tap accurately —
      bump every dimension here ~1.5x over their normal clamp() ranges */
   @media (max-width: 480px) {
-    .flipPlank { padding: clamp(9px,3.6cqw,16.5px); }
-    #flipCoinWrap.coin { width: clamp(54px,19.5cqw,96px); height: clamp(54px,19.5cqw,96px);
-      font-size: clamp(9px,2.85cqw,16.5px); }
-    #flipCoinWrap.coin.spin { font-size: clamp(16.5px,5.25cqw,33px); }
+    /* the ~1.5x bump is now a re-declaration of the same four tokens, so the ceremony's
+       magnified copy follows it here too without a second set of numbers to keep in step */
+    :root { --flipCoinD: clamp(54px,19.5cqw,96px); --flipPad: clamp(9px,3.6cqw,16.5px);
+            --flipFont: clamp(9px,2.85cqw,16.5px); --flipSpinFont: clamp(16.5px,5.25cqw,33px); }
     /* AUDIO-02 (phase 21): #btnMute joins the same narrow-viewport bump — 21-03 made the timer
        toggle visible in solo for the first time, so this row now carries one more control than
        it ever has at this width. */
@@ -2093,9 +2110,24 @@
   .pp4CerSub { color:#e8f4ee; font-weight:700; font-style:italic; font-size:14px; text-align:center;
     transition:opacity .3s; }
   #pp4Veil.resolving .pp4CerSub { opacity:0; }
-  #pp4CerSlot #flipPanel { margin:0 !important; transform:scale(2.2); transform-origin:center;
+  /* SIZED, NOT SCALED — W5-1 (Wyatt: "the coin flip is low-res while the rest of the game is
+     not"). This carried `transform:scale(2.2)`, and a transform stretches the picture the browser
+     already drew; it does not ask for a better one. Multiplying the flippenator's own size tokens
+     by the same 2.2 asks the browser to rasterise the coin and its socket at the size they will
+     actually be painted. Same painted size, a real raster behind it. */
+  #pp4CerSlot #flipPanel { margin:0 !important; transform-origin:center;
     filter:drop-shadow(0 16px 34px rgba(0,0,0,.55)); }
-  #pp4CerSlot { padding:56px 0; }
+  #pp4CerSlot .flipPlank { padding: calc(var(--flipPad) * var(--pp4CerZoom)); }
+  #pp4CerSlot #flipCoinWrap.coin { width: calc(var(--flipCoinD) * var(--pp4CerZoom));
+    height: calc(var(--flipCoinD) * var(--pp4CerZoom));
+    font-size: calc(var(--flipFont) * var(--pp4CerZoom));
+    border-width: calc(var(--coinRing) * var(--pp4CerZoom)); }
+  #pp4CerSlot #flipCoinWrap.coin.spin { font-size: calc(var(--flipSpinFont) * var(--pp4CerZoom)); }
+  /* THE 56px WAS THE TRANSFORM'S OVERFLOW, NOT AIR SOMEBODY CHOSE. A scaled element lays out at
+     its small size and paints past it — about 125px of overhang here, which 56px top and bottom
+     very nearly covers. Now that the panel lays out at the size it paints, that reservation is
+     counted twice and the ceremony column grows by the whole of it. */
+  #pp4CerSlot { padding:0; }
   /* playtest 10 item 5: the old prompt card never shows through the veil — its words move onto it */
   body.pp4Cer #pp4Prompt { visibility:hidden; }
   /* ITEM 7 (Wyatt, 2026-08-23c): "shouldn't all narration boxes only appear after the veil
