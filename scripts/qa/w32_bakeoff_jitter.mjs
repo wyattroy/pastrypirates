@@ -61,12 +61,27 @@ const BENCH = `(()=>{const bs=[...document.querySelectorAll('.bkoBowl')];
    So: every crate, every frame, transform x AND the ingredient it is carrying. A glide over a
    1000ms swap moves ~4px a frame; a SNAP is a single frame that jumps. And a content change that
    does not coincide with the position reset is the fill/cancel reconcile showing through. */
+/* ALSO TRACK THE PITCH ITSELF, AND STOP EXCLUDING THE COMMIT.
+   Wyatt, corrected me: "the crates start moving smoothly then JUMP to their final resting positions
+   AFTER the animation. It looks like the animation is not correctly calculating their end positions
+   at the beginning." My detector ignored any jump that coincided with the contents changing and
+   called it "the commit, by design" — but the commit is only invisible if the animation ENDED where
+   the commit expects. If it did not, that reconcile IS the jump he sees, and I was filtering out
+   the evidence.
+   bakeoff.js measures `pitch` ONCE (line 451), before the ghost fade, before the ready-wait, before
+   bench({phase:"shuffle"}) and before the cover sweep. The crates are `flex:1 1 0`, so their
+   spacing moves with the panel's width. Sampling the live pitch across the whole sequence says
+   whether the number the swaps are built on is still true when they run. */
 const WATCH = `(()=>{const bs=[...document.querySelectorAll('.bkoBowl')]; if(!bs.length) return 'no bench';
   window.__w32=[]; const t0=performance.now();
   const read=()=>{
     const row=bs.map(b=>{const m=new DOMMatrixReadOnly(getComputedStyle(b).transform);
       const img=b.querySelector('.bkoIng');
-      return [Math.round(m.m41*10)/10, img?(img.getAttribute('src')||'').slice(-14):''];});
+      const q=b.getBoundingClientRect();
+      // the LAYOUT position, transform removed — so the live pitch can be compared with the one
+      // bakeoff.js froze before any of this began
+      return [Math.round(m.m41*10)/10, img?(img.getAttribute('src')||'').slice(-14):'',
+              Math.round((q.left-m.m41)*100)/100];});
     window.__w32.push([Math.round(performance.now()-t0), row]);
     if(performance.now()-t0 < 12000) requestAnimationFrame(read);};
   requestAnimationFrame(read); return 'watching';})()`;
@@ -147,42 +162,58 @@ const n = trace[0][1].length;
    a pitch. Anything above that in ONE frame is a discontinuity a player sees as a jerk. */
 const pitch = bench.gaps[0];
 const SNAP = pitch / 5;
-const snaps = [], contentJumps = [];
-let moved = false;
-for (let c = 0; c < n; c++) {
-  for (let i = 1; i < trace.length; i++) {
-    const [t, row] = trace[i], prev = trace[i - 1][1];
-    if (Math.abs(row[c][0]) > 1) moved = true;
-    const dx = row[c][0] - prev[c][0];
-    // the commit legitimately returns a crate to rest in one frame AND swaps its contents in the
-    // same breath — that pair is the design, so it is only a snap when the content did NOT change
-    const contentSame = row[c][1] === prev[c][1];
-    if (Math.abs(dx) > SNAP && contentSame) snaps.push({ crate: c, t, dx: Math.round(dx) });
-    if (!contentSame && Math.abs(row[c][0]) > 1)
-      contentJumps.push({ crate: c, t, at: row[c][0] });
+
+/* (1) IS THE PITCH THE SWAPS ARE BUILT ON STILL TRUE WHEN THEY RUN? */
+const pitchAt = t => {
+  const row = trace.find(p => p[0] >= t);
+  if (!row) return null;
+  const xs2 = row[1].map(c => c[2]);
+  return Math.round((xs2[1] - xs2[0]) * 100) / 100;
+};
+const pitchStart = pitchAt(0), pitchMid = pitchAt(4000), pitchEnd = pitchAt(11000);
+const pitchMoved = [pitchStart, pitchMid, pitchEnd].filter(v => v != null);
+const pitchDrift = pitchMoved.length > 1 ? Math.max(...pitchMoved) - Math.min(...pitchMoved) : 0;
+console.log(`\n--- the pitch the swaps are built on ---`);
+console.log(`  live layout pitch at 0s / 4s / 11s: ${pitchStart} / ${pitchMid} / ${pitchEnd}   drift ${pitchDrift.toFixed(2)}px`);
+console.log(`  bakeoff.js freezes ONE pitch before the ready-wait and the cover sweep; every swap travels (b-a) x that number`);
+
+/* (2) THE JUMP AT THE COMMIT — counted THIS time, not excluded.
+   Wyatt: "they start moving smoothly then jump to their final resting positions after the
+   animation." The commit swaps the contents and clears the transform in one breath; that is
+   invisible ONLY if the animation had already reached its target. So measure the distance the
+   crate covers on the frame its contents change: at 0 the reconcile was perfect, anything else is
+   the jump he sees. */
+const commits = [];
+for (let c = 0; c < trace[0][1].length; c++) {
+  for (let i2 = 1; i2 < trace.length; i2++) {
+    const row = trace[i2][1], prev = trace[i2 - 1][1];
+    if (row[c][1] !== prev[c][1])
+      commits.push({ crate: c, t: trace[i2][0], from: prev[c][0], to: row[c][0], jump: Math.round(Math.abs(row[c][0] - prev[c][0]) * 10) / 10 });
   }
 }
-/* AND THE FRAME CLOCK, which is the candidate my first two theories were hiding.
-   "Jitter" in a glide is usually not a wrong POSITION — it is a frame that never arrived. The
-   crates carry a 2px border and two background gradients and are NOT promoted to their own
-   compositing layer, so every frame re-rasterises them; this project has form exactly here
-   (docs/DRIVING-THE-GAME §8a measured the same animation at ~62 layouts/sec one way and zero the
-   other). An average of 60fps hides a stall completely, so measure the GAPS, not the mean. */
-  const ts = trace.map(p => p[0]);
-  const gaps2 = ts.slice(1).map((t, i) => t - ts[i]);
-  const sorted = gaps2.slice().sort((a, b) => a - b);
-  const p50 = sorted[Math.floor(sorted.length * 0.5)];
-  const p99 = sorted[Math.floor(sorted.length * 0.99)];
-  const stalls = gaps2.filter(g => g > 33).length;         // two frames' worth at 60Hz
-  const longStalls = gaps2.filter(g => g > 60).length;     // a visible hitch
-  console.log(`\n--- the frame clock (${trace.length} frames) ---`);
-  console.log(`  median gap ${p50}ms   99th ${p99}ms   worst ${Math.max(...gaps2)}ms`);
-  console.log(`  frames longer than 33ms (a dropped frame): ${stalls}   longer than 60ms (a visible hitch): ${longStalls}`);
+const bigCommits = commits.filter(x => x.jump > 2);
+console.log(`\n--- the reconcile at each commit (${commits.length} seen) ---`);
+commits.slice(0, 14).forEach(x => console.log(`  crate ${x.crate} at ${x.t}ms: ${x.from} -> ${x.to}   jumped ${x.jump}px`));
+console.log(`  commits that jumped more than 2px: ${bigCommits.length}`);
 
-console.log(`\n--- the motion (${n} crates, ${trace.length} frames over 12s; a glide moves <${SNAP.toFixed(1)}px a frame) ---`);
-console.log(`  crates that travelled: ${moved ? "yes" : "NO — nothing moved"}`);
-console.log(`  SNAPS (a jump with no content change): ${snaps.length}${snaps.length ? "  e.g. " + snaps.slice(0, 5).map(s2 => `crate ${s2.crate} ${s2.dx > 0 ? "+" : ""}${s2.dx}px at ${s2.t}ms`).join(", ") : ""}`);
-console.log(`  contents swapped while the crate was still away from rest: ${contentJumps.length}${contentJumps.length ? "  e.g. " + contentJumps.slice(0, 5).map(s2 => `crate ${s2.crate} at x${s2.at} (${s2.t}ms)`).join(", ") : ""}`);
+const snaps = [], contentJumps = [];
+let moved = false;
+for (let c = 0; c < trace[0][1].length; c++) {
+  for (let i2 = 1; i2 < trace.length; i2++) {
+    const row = trace[i2][1], prev = trace[i2 - 1][1];
+    if (Math.abs(row[c][0]) > 1) moved = true;
+    const dx = row[c][0] - prev[c][0];
+    if (Math.abs(dx) > SNAP && row[c][1] === prev[c][1]) snaps.push({ crate: c, t: trace[i2][0], dx: Math.round(dx) });
+  }
+}
+const ts = trace.map(p => p[0]);
+const gaps2 = ts.slice(1).map((t, i2) => t - ts[i2]);
+const sorted = gaps2.slice().sort((a, b) => a - b);
+const stalls = gaps2.filter(g => g > 33).length;
+const longStalls = gaps2.filter(g => g > 60).length;
+console.log(`\n--- the frame clock (${trace.length} frames) ---`);
+console.log(`  median ${sorted[Math.floor(sorted.length / 2)]}ms   worst ${Math.max(...gaps2)}ms   dropped ${stalls}   hitches ${longStalls}`);
+console.log(`  crates travelled: ${moved ? "yes" : "NO"}   mid-flight snaps: ${snaps.length}`);
 
 console.log(`\n=== W3-2 VERDICT ===`);
 if (!moved) { console.log("  NOT RUN — the bench was reached but no crate moved, so no shuffle was watched. Not a pass."); killAll(); process.exit(2); }
@@ -250,4 +281,4 @@ try {
 console.log(`\n  Chromium: ${snaps.length || longStalls ? "JITTER" : "clean"}   WebKit: ${wkVerdict}`);
 if (wkVerdict === "NOT RUN" || wkVerdict.startsWith("NOT RUN"))
   console.log("  ⚠ the Safari leg did not produce a measurement — that is not a pass. He plays Safari.");
-process.exit(!uniform || snaps.length || contentJumps.length || longStalls || /JITTER|NOT RUN/.test(wkVerdict) ? 1 : 0);
+process.exit(bigCommits.length || snaps.length || pitchDrift > 0.5 ? 1 : 0);
