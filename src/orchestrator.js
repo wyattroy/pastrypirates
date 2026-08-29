@@ -195,29 +195,48 @@ export function netNarrate(html,variants,opts){if(appState.replaying)return;
   /* READ THE SUBJECT BEFORE DRAWING, because showNarration CONSUMES it (`S.subject = null` on the
      way through). Reading it after would always send nothing, and the guest would keep sniffing —
      which is the fault this line exists to close (W4-2, CEO Review 20). */
-  const subj = (window.__pp4 && window.__pp4.subjectSet) ? window.__pp4.subject : undefined;
+  const {subj,evN}=readSubject();
   showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);
-  sendNarr(html,variants,opts,subj);}
-/* Q-18 — THE SERIAL OF THE EVENT A LINE IS ABOUT, or nothing.
-   -1 IS NOT A SERIAL, AND SENDING IT COST EVERY CREW GAME HALF A SECOND. `events.length-1` is -1
-   before the engine has produced anything, and the recipe draft broadcasts its line right there —
-   so "Everyone's choosing their recipe" named event -1, the guest's own frontier was still
-   undefined, and the guard held the line for the full grace period at the start of every single
-   voyage. A fix against divergence was manufacturing a guaranteed one. Found by CEO Review 24 and
-   reproduced before it was believed: `evN=-1`, `-1 != null` -> sent; `evSeen===undefined`,
-   `undefined == null` -> held. */
-function narrEvN(){const n=appState.game?appState.game.events.length-1:null;return n!=null&&n>=0?n:null;}
+  sendNarr(html,variants,opts,subj,evN);}
+/* THE SUBJECT AND THE SERIAL ARE ONE FACT, READ IN ONE PLACE, AND SPENT ONCE.
+   BOTH HALVES WERE EARNED THE HARD WAY. `subj` must be read BEFORE showNarration, because
+   showNarration CONSUMES it (`S.subjectSet = false`, src/ui/stage.js) — reading it after would
+   always send nothing and the guest would keep sniffing (W4-2, CEO Review 20). And the SERIAL must
+   name the event the subject was actually read from, not simply the newest event in the array:
+   `events.length-1` went out with every line in the game, so a prompt or a dock line carried the
+   serial of an event it had nothing to do with, and the guest anchored its bubble to whichever
+   captain that unrelated event named (CEO Review 25). Only src/ui/panel.js's narrateLastEvent
+   reads an event for its line, and it now says so by setting appState.narrEvIdx.
+   -1 IS NOT A SERIAL EITHER, and sending it cost every crew game half a second: before the engine
+   has produced anything `events.length-1` is -1, `-1 != null` so it was sent, and the guest's own
+   frontier was still undefined so the guard held the recipe-draft line for the full grace period
+   at the start of every voyage (CEO Review 24, reproduced before it was believed).
+   SPENT ONCE, because the flag is one-shot. netBroadcast draws nothing locally, so nothing else
+   would ever clear it — and a battle play-by-play line would then inherit whatever subject the
+   previous event happened to decide. */
+function readSubject(){
+  const has=!!(window.__pp4&&window.__pp4.subjectSet);
+  const subj=has?window.__pp4.subject:undefined;
+  const raw=has?appState.narrEvIdx:null;
+  const evN=(typeof raw==="number"&&raw>=0)?raw:null;
+  appState.narrEvIdx=null;
+  return {subj,evN};}
 /* ONE PAYLOAD ASSEMBLY, because two writers to one Firebase slot that disagree about what they put
    in it is the same fault in miniature. netBroadcast used to send neither the subject nor the
    serial, which left the battle play-by-play — the place coins move MOST — outside both fixes. */
-function sendNarr(html,variants,opts,subj){
+function sendNarr(html,variants,opts,subj,evN){
   if(!(appState.isHost&&appState.db&&appState.room))return;
-  netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,narrEvN());}
+  netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,evN);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html,variants,opts){if(appState.replaying)return;
-  const subj=(window.__pp4&&window.__pp4.subjectSet)?window.__pp4.subject:undefined;
-  sendNarr(html,variants,opts,subj);}
+export function netBroadcast(html,variants,opts,pre){if(appState.replaying)return;
+  /* `pre` IS THE DECISION CAPTURED BEFORE THE LOCAL DRAW SPENT IT (src/ui/panel.js's flash). On the
+     stage path — every crew game — the bubble is drawn first and stageFlash clears the flag, so
+     reading it here finds nothing: measured on the wire, 47 of 47 lines carried no subject. When a
+     caller hands the decision over, it is used; when none does, the flag is read here as before. */
+  const {subj,evN}=pre?{subj:pre.subj,evN:(typeof pre.evN==="number"&&pre.evN>=0)?pre.evN:null}:readSubject();
+  if(window.__pp4)window.__pp4.subjectSet=false;   // nothing renders here, so nothing else spends it
+  sendNarr(html,variants,opts,subj,evN);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -2316,7 +2335,7 @@ export function beginGame(cfg,seed){
   // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
   appState.game.seaSeat=appState.mySeat;
   appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
-  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.appliedMeta=false;
+  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.narrEvIdx=null;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;

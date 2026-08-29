@@ -93,7 +93,16 @@ const gaps = pairs.map(p => p.gap).sort((a, b) => a - b);
 const median = gaps[Math.floor(gaps.length / 2)];
 const byGap = [...pairs].sort((a, b) => b.gap - a.gap);
 console.log(`  ${pairs.length} sentence(s) drawn on BOTH seats; ${missed.length} only the host drew (expected for lines with a per-seat wording)`);
-console.log(`  guest behind host by: median ${median}ms   min ${gaps[0]}ms   max ${gaps[gaps.length - 1]}ms`);
+/* THE MEDIAN IS NOT A RESULT AND MUST NOT BE QUOTED AS ONE (CEO Review 25). Two 100-second games,
+   two rooms, two seeds, n=1 each side, on a stochastic game — a median that moves from 82 to 61 is
+   wire noise, and quoting it as an improvement is exactly the unearned confidence rule 6 exists to
+   stop. It is printed as the BASELINE the held-line count is read against, and labelled as such. */
+console.log(`  guest behind host by: median ${median}ms (this run's wire baseline — NOT a result, n=1)   min ${gaps[0]}ms   max ${gaps[gaps.length - 1]}ms`);
+/* AND `missed` IS WHERE A REGRESSION WOULD HIDE, so it is reported beside the headline rather than
+   only in the list below. This probe's own subject — the generation counter — DROPS lines by
+   design when a newer one overtakes them, so "the host drew it and the guest never did" is the
+   number that would show that going wrong. The first version computed it and never surfaced it. */
+console.log(`  host-only lines: ${missed.length} of ${hLog.length} — the number a dropped-line regression would show up in`);
 console.log(`\n  the five slowest lines to reach the guest:`);
 byGap.slice(0, 5).forEach(p => console.log(`    ${String(p.gap).padStart(6)}ms   "${p.text.slice(0, 60)}"`));
 if (missed.length) { console.log(`\n  drawn on the host only (check these read as per-seat wordings, not losses):`); missed.slice(0, 8).forEach(t => console.log(`    "${t.slice(0, 60)}"`)); }

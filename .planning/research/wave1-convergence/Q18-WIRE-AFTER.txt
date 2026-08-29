@@ -1,0 +1,25 @@
+Q-18 — the wire itself, 200s.
+
+  room FJMN
+  wire listener: listening
+  both seats driving
+
+  80 narration line(s) crossed the wire
+    carrying a SERIAL (evN): 4
+    carrying a SUBJECT:      4
+    carrying exactly ONE of the two — the fault: 0
+
+  a sample of the lines that DO carry a serial (these are the ordered ones):
+    evN=10 subj=1   "test2 trades 4 to Dough Hook for Fresh Milk"
+    evN=13 subj=-1   "test1 attacks Flaky Jack, but both shots miss wildly and F"
+    evN=34 subj=0   "test1 trades 1 to test2 for Fresh Milk"
+    evN=41 subj=-1   "Dough Hook wins 1–0. Dough Hook takes Fresh Milk."
+
+  a sample of the lines that carry NEITHER (both seats fall back identically):
+    "⚓ Everyone's choosing their recipe…"
+    "Day 1: Wind NORTH. Tomorrow: a storm."
+    "🧭 Flaky Jack takes the wheel…"
+    "HEADS! Flaky Jack digs deep at Cocoa Cabana and strikes bu"
+    "🧭 Dough Hook takes the wheel…"
+
+=== PASS — every line carries both or neither, and 4 of 80 are ordered against their own event.

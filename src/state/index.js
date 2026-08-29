@@ -79,6 +79,11 @@ export const appState = {
   // line so a held one that resolves late can tell it has been superseded and drop, rather than
   // repainting an older sentence over a newer one (CEO Review 24).
   narrGen: 0,
+  // Q-18 / CEO Review 25: the index of the event the CURRENT narration line was read from — set by
+  // src/ui/panel.js's narrateLastEvent, which is the only narration that is about an event, and
+  // spent once by readSubject(). Null for every other line in the game, so those send no serial and
+  // the guest falls back to exactly what the host does. THE SUBJECT AND THE SERIAL ARE ONE FACT.
+  narrEvIdx: null,
   // A-13 (Wyatt, 2026-08-28: "host and guest parity is the #1 goal of this work"): the ONE
   // consumption frontier. Events at index < evConsumed have been handed to consumeEvent — the
   // host's drain advances it as it drains, the guest's wire feed advances it as events arrive,

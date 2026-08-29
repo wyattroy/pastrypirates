@@ -22,6 +22,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+/* ONE STRIPPER (2026-08-29). Every gate carried its own copy that deletes BLOCK comments
+   first — so a LINE comment containing the characters that open one swallowed 152 lines of
+   src/orchestrator.js, the whole import block included. MEASURED: it also blinded 10 lines
+   of src/shared/index.js and 10 of src/ui/util.js. scripts/qa/lib/strip_comments.mjs. */
+import { stripComments as sharedStrip } from "./lib/strip_comments.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 let fails = 0;
 const pass = m => console.log("PASS " + m);
@@ -32,7 +37,7 @@ const fail = m => { console.log("FAIL " + m); fails++; };
 const files = ["src/ui/flow.js", "src/ui/util.js", "src/ui/panel.js", "src/ui/board.js", "src/orchestrator.js"];
 const specs = [];
 for (const f of files) {
-  const src = fs.readFileSync(path.join(REPO, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const src = sharedStrip(fs.readFileSync(path.join(REPO, f), "utf8"));
   /* ONE LEVEL OF NESTING, because the real spec carries `ref:{value:min}` and a flat `[^{}]*`
      stops dead at it — the first run of this gate reported "no greyed slider exists any more"
      about the tree that has one, which is the instrument-cannot-reach-its-subject fault this

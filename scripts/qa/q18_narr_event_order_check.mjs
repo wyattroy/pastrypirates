@@ -70,7 +70,7 @@ const shared = read("src/shared/index.js");
   /* any assignment INTO the events array, however indexed — `events[i].x =`, `events[i] =` */
   const writesThrough = [...orch.matchAll(/\bgame\.events\s*\[[^\]]*\]\s*(?:\.[\w$]+\s*)?=[^=]/g)].map(m => m[0].trim());
   if (stampsCopy && !writesThrough.length)
-    pass("the serial is written onto the deep copy (`wire.n = appState.evPushed`) and no text anywhere in the orchestrator assigns into game.events[...] — the engine's own array is only ever pushed to");
+    pass(`found: \`wire.n = appState.evPushed\` on a JSON deep copy passed to netPushEvent, and 0 matches for an assignment into game.events[...] in src/orchestrator.js`);
   else
     fail(`the engine's array is not protected (stamps the copy:${stampsCopy} writes found into game.events[...]:[${writesThrough}]) — a field written onto the engine's own event object is a field the corpus was not recorded with`);
 }
@@ -90,20 +90,40 @@ const shared = read("src/shared/index.js");
     fail(`the serial field is not sound (in the signature:${inSignature} guarded write present:${guarded} total writes to payload.evN:${writes}, must be 1) — a second assignment can pin every line to one serial and silently disable the wait while every other assertion here still matches`);
 }
 
-/* (4) -1 IS NOT A SERIAL. `events.length-1` is -1 before the engine has produced anything, and
-   `-1 != null`, so the first version sent it — while the guest's own frontier was still undefined,
-   which made the guard true regardless. The recipe draft broadcasts its line exactly there, so
-   EVERY crew game began with the guest's screen held for the full grace period. A fix against
-   divergence was manufacturing a guaranteed one (CEO Review 24; reproduced before it was believed).
-   Both ends are held: the host must not send a negative serial, and the guest must not wait on one. */
+/* (4) THE SERIAL NAMES THE EVENT THE SUBJECT WAS READ FROM — NOT SIMPLY THE NEWEST EVENT.
+   CEO REVIEW 25's FINDING, and it is the fix introducing the fault it exists to cure. The first
+   cut sent `events.length-1` with EVERY narration line. Only src/ui/panel.js's narrateLastEvent is
+   about the last event; every other flash() in the game — prompts, dock lines, ceremonies, bot
+   turn banners, the battle play-by-play — carried the serial of an event it had nothing to do
+   with. The guest resolved that unrelated event, anchored the bubble to whichever captain it
+   named and marked the subject DECIDED, while the host left the same sentence to the colour
+   sniff: a host/guest divergence in bubble placement, in the exact family Wyatt reported.
+   -1 IS NOT A SERIAL EITHER (CEO Review 24): before the first event `events.length-1` is -1,
+   `-1 != null` so it went out, and the guest's frontier was still undefined so the guard was true
+   regardless — holding the recipe-draft line for the full grace period in every crew game.
+   Both ends are held, because either alone leaves an older client holding. */
 {
-  const hostRefuses = /function narrEvN\(\)\s*\{[\s\S]*?n\s*>=\s*0[\s\S]*?\}/.test(orch)
-    && /events\.length\s*-\s*1/.test(orch);
+  const panel = read("src/ui/panel.js");
+  const boundToSubject = /appState\.narrEvIdx\s*=\s*appState\.game\.events\.length\s*-\s*1/.test(panel)
+    && /window\.__pp4\.subject\s*=\s*subjectOf\(e\)/.test(panel);
+  /* ONE SET AND ONE SPEND. panel.js sets it beside the subject and clears it once the line has
+     been handed to the broadcast — a second SET would be a second opinion about which event a
+     sentence belongs to, which is the fault this assertion exists to stop; the clear is the
+     one-shot lifetime and is required, not merely tolerated. */
+  const setsIt = (panel.match(/appState\.narrEvIdx\s*=\s*appState\.game\.events\.length\s*-\s*1/g) || []).length;
+  const clearsIt = (panel.match(/appState\.narrEvIdx\s*=\s*null/g) || []).length;
+  const onlyWriter = setsIt === 1 && clearsIt === 1;
+  /* readSubject() must take BOTH from the same one-shot flag, refuse a negative, and spend it. */
+  const rs = (orch.match(/function readSubject\(\)\{[\s\S]*?return \{subj,evN\};\}/) || [""])[0];
+  const gatedOnFlag = /const has=!!\(window\.__pp4&&window\.__pp4\.subjectSet\)/.test(rs)
+    && /const raw=has\?appState\.narrEvIdx:null/.test(rs);
+  const refusesNegative = /raw>=0/.test(rs);
+  const spent = /appState\.narrEvIdx=null;/.test(rs);
   const guestRefuses = /v\.evN\s*!=\s*null\s*&&\s*v\.evN\s*>=\s*0/.test(orch);
-  if (hostRefuses && guestRefuses)
-    pass("the host's narrEvN() returns null below zero and the guest's guard reads `v.evN >= 0` — neither end treats -1 as an address, so a line sent before the first event draws at once");
+  if (boundToSubject && onlyWriter && rs && gatedOnFlag && refusesNegative && spent && guestRefuses)
+    pass("found: panel.js sets appState.narrEvIdx beside `subject = subjectOf(e)` once, and spends it once when the line has gone; readSubject() reads it only when subjectSet is true, requires `raw>=0`, and assigns it null before returning; the guest guard text is `v.evN != null && v.evN >= 0`");
   else
-    fail(`a negative serial can still be treated as an address (host clamps it:${hostRefuses} guest guard requires >= 0:${guestRefuses}) — the recipe-draft line names event -1 and the guest holds it for the full grace period in every crew game`);
+    fail(`the serial is not bound to the subject (panel sets it beside the subject:${boundToSubject} panel sets it once and spends it once:${onlyWriter} (sets:${setsIt} clears:${clearsIt}) readSubject found:${!!rs} gated on the subjectSet flag:${gatedOnFlag} refuses a negative:${refusesNegative} spends it:${spent} guest guard requires >= 0:${guestRefuses}) — a serial sent with a line that never read an event points the guest at an unrelated event, and it anchors the bubble to whichever captain that event names while the host does not`);
 }
 
 /* (5) THE GUEST'S OWN FRONTIER IS RECORDED, AND NOTHING ELSE SETS IT.
@@ -122,26 +142,35 @@ const shared = read("src/shared/index.js");
     fail(`the guest's frontier is not trustworthy (records from the feed:${records} reset at voyage start:${resets} total assignments:${writes}, must be 2) — any extra write can park it past every serial and switch the wait off entirely`);
 }
 
-/* (6) THE WAIT IS ACTUALLY STARTED, IS BOUNDED, AND FALLS BACK TO TODAY.
-   BREAKAGE 5, THE WORST ONE: delete the single `tick();` that starts the loop. The block still
-   contained `setTimeout(tick`, the deadline test and the else-branch, so every old assertion
-   matched — while a guest silently lost every narration line whose event had not landed, forever.
-   `node --check` passed too. The loop being STARTED is now its own assertion.
+/* (6) THE WAIT IS STARTED, GUARDED ON ITS REAL OPERANDS, BOUNDED, AND FALLS BACK TO TODAY.
+   BREAKAGE 5 (CEO 24), THE WORST OF THE FIRST SIX: delete the single `tick();` that starts the
+   loop. The block still contained `setTimeout(tick`, the deadline test and the else-branch, so
+   every assertion matched — while a guest silently lost every narration line whose event had not
+   landed, forever. `node --check` passed too. The loop being STARTED is its own assertion.
    BREAKAGE 6: `NARR_EVENT_GRACE_MS = 2000`, inside the old 1..2000 window, and the pass line
-   obligingly printed "for at most 2000ms". The ceiling is now 600ms — above that it is not a
-   hand-off, it is a stall a player would feel. */
+   obligingly printed "for at most 2000ms". The ceiling is 600ms — above that it is a stall.
+   BREAKAGE N1 (CEO 25): rewrite the engage condition to `(false)`. Every other assertion still
+   matched and the ordering barrier never engaged again, on any line, ever. The condition's own
+   OPERANDS are now read, not merely its presence. */
 {
   const blk = (orch.match(/if\(v\.evN!=null[\s\S]*?\} else drawIt\(\);/) || [""])[0];
+  const engage = (blk.match(/if\(v\.evN!=null&&v\.evN>=0&&\(([^)]*)\)\)/) || [, ""])[1];
+  const realGuard = /appState\.evSeen==null/.test(engage) && /appState\.evSeen<v\.evN/.test(engage)
+    && !/\bfalse\b/.test(engage) && !/\btrue\b/.test(engage);
   const started = /\n\s*tick\(\);\s*\n/.test(blk);
   const loops = /setTimeout\(tick/.test(blk);
   const deadline = /Date\.now\(\)>=until/.test(blk);
   const grace = (orch.match(/NARR_EVENT_GRACE_MS\s*=\s*(\d+)/) || [, null])[1];
   const bounded = grace != null && +grace > 0 && +grace <= 600;
   const fallsBack = /\} else drawIt\(\);/.test(blk);
-  if (blk && started && loops && deadline && bounded && fallsBack)
-    pass(`the held-line block starts its loop with a bare tick(), re-arms with setTimeout, carries a deadline test, caps the grace at ${grace}ms (<= 600), and ends in an else that draws immediately`);
+  /* N2: `drawIt` must actually invoke applySubject. Deleting that one call left every other
+     assertion here green while Wyatt's whole ruling — and W4-2's subject fix with it — was off. */
+  const drawIt = (orch.match(/const drawIt=\(\)=>\{[\s\S]*?\};/) || [""])[0];
+  const appliesSubject = /applySubject\(\);/.test(drawIt);
+  if (blk && realGuard && started && loops && deadline && bounded && fallsBack && appliesSubject)
+    pass(`found: the engage condition tests both \`appState.evSeen==null\` and \`appState.evSeen<v.evN\` with no literal true/false in it; a bare \`tick();\` statement inside the block; \`setTimeout(tick\`; \`Date.now()>=until\`; NARR_EVENT_GRACE_MS = ${grace} (<= 600); a closing \`} else drawIt();\`; and \`applySubject();\` inside drawIt's body`);
   else
-    fail(`the wait is not safe (block found:${!!blk} loop actually started:${started} re-arms:${loops} deadline test:${deadline} grace ${grace}ms within 1..600:${bounded} else-draws:${fallsBack}) — a block that never calls tick() drops every held line silently, and a grace above 600ms is a stall rather than a hand-off`);
+    fail(`the wait is not safe (block found:${!!blk} guard reads its real operands:${realGuard} (\`${engage.slice(0,60)}\`) loop started:${started} re-arms:${loops} deadline test:${deadline} grace ${grace}ms within 1..600:${bounded} else-draws:${fallsBack} drawIt calls applySubject:${appliesSubject}) — a block that never calls tick() drops every held line silently, a guard rewritten to a constant switches the barrier off on every line, and a drawIt that never calls applySubject switches Wyatt's ruling off entirely`);
 }
 
 /* (7) A HELD LINE CANNOT REPAINT OVER A NEWER ONE. `narr` is a single slot written with .set(), so
@@ -149,28 +178,37 @@ const shared = read("src/shared/index.js");
    24 found: a line naming a held event, then a battle line 200ms later drawn at once, then the
    event lands and the older sentence paints over the newer. The generation counter is the guard. */
 {
-  const bumps = /appState\.narrGen\s*=\s*\(appState\.narrGen\|\|0\)\s*\+\s*1/.test(orch);
-  const captured = /const myGen\s*=\s*appState\.narrGen/.test(orch);
+  const bumpAt = orch.search(/appState\.narrGen\s*=\s*\(appState\.narrGen\|\|0\)\s*\+\s*1/);
+  const capAt  = orch.search(/const myGen\s*=\s*appState\.narrGen/);
   const drops = /if\(appState\.narrGen!==myGen\)return;/.test(orch);
-  if (bumps && captured && drops)
-    pass("every arriving line bumps appState.narrGen, each held loop captures the value it started with, and the tick returns early when they differ — the text that stops an older sentence painting over a newer one");
+  /* BREAKAGE N3 (CEO 25), AND IT IS BREAKAGE 5's CATASTROPHE WEARING A NEW COAT: swap the two
+     adjacent lines so `myGen` is captured BEFORE the bump. Every assertion above still matches,
+     the whole 48-gate chain stays green — and `narrGen !== myGen` is then true on the very first
+     tick of every held line, so the guest silently loses all of them, forever. Reachable by
+     reordering two lines. ORDER IS THE REQUIREMENT, so order is what is read. */
+  const rightOrder = bumpAt >= 0 && capAt >= 0 && bumpAt < capAt;
+  if (rightOrder && drops)
+    pass(`found: \`appState.narrGen = (appState.narrGen||0)+1\` at offset ${bumpAt}, BEFORE \`const myGen = appState.narrGen\` at ${capAt}, and \`if(appState.narrGen!==myGen)return;\` inside the tick`);
   else
-    fail(`two lines can still be drawn out of order (bumps a generation:${bumps} captures it:${captured} tick drops when superseded:${drops}) — a line held for its event repaints over the newer line that overtook it, up to the whole grace window later`);
+    fail(`the superseded-line guard is not in a working order (bump found at:${bumpAt} capture at:${capAt} bump precedes capture:${rightOrder} tick returns on mismatch:${drops}) — captured before the bump, every held line mismatches on its first tick and the guest loses all of them silently`);
 }
 
-/* (8) EVERY WRITER TO THE SLOT SENDS THE SAME FIELDS. netBroadcast — the battle play-by-play, which
-   is where coins move MOST — used to send neither the subject nor the serial, so the fault this
-   whole item exists to close stayed fully live for battle spoils (CEO Review 24). Two writers to
-   one Firebase slot that disagree about what they put in it is the same fault in miniature. */
+/* (8) EVERY WRITER TO THE SLOT SENDS THE SAME FIELDS, AND SPENDS THE ONE-SHOT FLAG.
+   netBroadcast — the battle play-by-play, where coins move MOST — used to send neither the subject
+   nor the serial, so the fault this whole item exists to close stayed fully live for battle spoils
+   (CEO Review 24). And it renders nothing locally, so nothing else ever clears `subjectSet` for it:
+   without clearing it here a battle line inherits whatever subject the previous event decided
+   (CEO Review 25). Two writers to one Firebase slot that disagree is the same fault in miniature. */
 {
-  const one = /function sendNarr\(html,variants,opts,subj\)\{[\s\S]*?netSetNarr\([\s\S]*?narrEvN\(\)\)/.test(orch);
-  const narrateUses = /export function netNarrate\([\s\S]{0,900}?sendNarr\(html,variants,opts,subj\)/.test(orch);
-  const broadcastUses = /export function netBroadcast\([\s\S]{0,400}?sendNarr\(html,variants,opts,subj\)/.test(orch);
+  const one = /function sendNarr\(html,variants,opts,subj,evN\)\{[\s\S]*?netSetNarr\([\s\S]*?evN\)/.test(orch);
+  const narrateUses = /export function netNarrate\([\s\S]{0,900}?sendNarr\(html,variants,opts,subj,evN\)/.test(orch);
+  const bBlk = (orch.match(/export function netBroadcast\([\s\S]{0,500}?sendNarr\(html,variants,opts,subj,evN\);\}/) || [""])[0];
+  const broadcastClears = /window\.__pp4\.subjectSet=false/.test(bBlk);
   const noStragglers = (orch.match(/netSetNarr\(/g) || []).length === 1;
-  if (one && narrateUses && broadcastUses && noStragglers)
-    pass("netNarrate and netBroadcast both go through one sendNarr(), and `netSetNarr(` appears exactly once in the orchestrator — one payload assembly, so the battle play-by-play carries the same subject and serial every other line does");
+  if (one && narrateUses && bBlk && broadcastClears && noStragglers)
+    pass("found: one sendNarr(html,variants,opts,subj,evN) reaching netSetNarr; both netNarrate and netBroadcast call it with that exact argument list; netBroadcast's body contains `window.__pp4.subjectSet=false`; `netSetNarr(` appears exactly 1 time in src/orchestrator.js");
   else
-    fail(`the two narration writers do not share their payload (single assembler:${one} netNarrate uses it:${narrateUses} netBroadcast uses it:${broadcastUses} netSetNarr called exactly once:${noStragglers}) — a second call site is a second opinion about what a line carries, and battles are where coins move most`);
+    fail(`the two narration writers do not share their payload (single assembler:${one} netNarrate uses it:${narrateUses} netBroadcast uses it:${!!bBlk} netBroadcast spends the flag:${broadcastClears} netSetNarr called exactly once:${noStragglers}) — a second call site is a second opinion about what a line carries, and an unspent flag leaks one line's subject onto the next`);
 }
 
 /* (9) AND THE GUEST PREFERS THE REAL EVENT — Wyatt's ruling in text. The first cut of this item
@@ -181,12 +219,43 @@ const shared = read("src/shared/index.js");
 {
   const ruleIsShared = /function subjectOf\(e\)\{/.test(shared) && /\bexport\s*\{[^}]*\bsubjectOf\b/.test(shared);
   const guestComputes = /window\.__pp4\.subject=subjectOf\(ev\)/.test(orch);
-  const fromItsOwnFeed = /const evAt=n=>\{[\s\S]*?appState\.game\.events[\s\S]*?\};/.test(orch);
+  const evAt = (orch.match(/const evAt=n=>\{[\s\S]*?return null;\};/) || [""])[0];
+  /* N4: `evAt` rewritten to return arr[0] — the guest then computes the subject from the wrong
+     event on every line, and every assertion still matched. The lookup must be BY the serial. */
+  const looksUpByN = /arr\[n\]&&arr\[n\]\.n===n/.test(evAt) && /arr\[i\]\.n===n/.test(evAt);
+  /* N5: `arr[n].n=n` inside evAt — the engine's own array dirtied through the alias evAt itself
+     creates, which assertion (2)'s `game.events[...]` search cannot see by construction. A lookup
+     has no business assigning anything, so the requirement is the strong one: evAt's body contains
+     no assignment at all. Comparisons and arrow heads are removed before looking. */
+  const writesInto = [...evAt.matchAll(/(?:\]|\.[\w$]+)\s*=(?!=)/g)].map(m => m[0].trim());
+  const readOnly = !!evAt && !writesInto.length;
   const fallsBack = /if\(v\.subj!=null\)\{window\.__pp4\.subject=\(v\.subj===-1\?null:v\.subj\)/.test(orch);
-  if (ruleIsShared && guestComputes && fromItsOwnFeed && fallsBack)
-    pass("subjectOf lives once in src/shared/index.js and is exported; the guest looks the event up in its OWN feed and runs that same function over it, keeping the host's wire answer only for a line with no event");
+  if (ruleIsShared && guestComputes && looksUpByN && readOnly && fallsBack)
+    pass("found: subjectOf declared and exported in src/shared/index.js; `window.__pp4.subject=subjectOf(ev)` in the guest path; evAt tests `arr[n].n===n` and scans on `arr[i].n===n`; evAt's body contains no assignment; and the `v.subj` fallback with its -1 case is still present");
   else
-    fail(`the guest does not prefer the real event (rule shared and exported:${ruleIsShared} guest calls subjectOf on it:${guestComputes} looks it up in its own feed:${fromItsOwnFeed} still falls back to v.subj:${fallsBack}) — that is the shape Wyatt approved, and reading the host's pre-drawn answer instead is one field per decision, forever`);
+    fail(`the guest does not prefer the real event (rule shared and exported:${ruleIsShared} guest calls subjectOf:${guestComputes} evAt found:${!!evAt} looks up BY the serial:${looksUpByN} evAt assigns into something:[${writesInto}] still falls back to v.subj:${fallsBack}) — a lookup that ignores the serial hands the guest the wrong event, and one that assigns can dirty the engine's own array through its own alias`);
+}
+
+/* (10) THE DECISION IS CAPTURED BEFORE THE LOCAL DRAW SPENDS IT.
+   MEASURED ON THE WIRE before this was written, two real browsers, 47 narration lines in one crew
+   game: NOT ONE carried a subject. On the v2 stage path — every crew game — src/ui/panel.js's
+   flash() calls window.__pp4.flash() first, and stageFlash's own act is to read the flag and clear
+   it; only then does it reach netBroadcast, which finds it spent. W4-2's second half had therefore
+   never worked in a crew game, and gate 42 could not see it because every line of code that SENDS
+   the subject is present and correct. Two lines apart, and only a clock on the wire could show it.
+   ORDER IS THE REQUIREMENT, so order is what is read. */
+{
+  const panel2 = read("src/ui/panel.js");
+  const capAt = panel2.search(/const pre=window\.__pp4\.subjectSet/);
+  const drawAt = panel2.search(/const h=window\.__pp4\.flash\(shown/);
+  const handedOver = /onNetBroadcast\(msg,variants,opts,pre\)/.test(panel2);
+  const accepted = /export function netBroadcast\(html,variants,opts,pre\)/.test(orch)
+    && /pre\?\{subj:pre\.subj,evN:\(typeof pre\.evN==="number"&&pre\.evN>=0\)\?pre\.evN:null\}:readSubject\(\)/.test(orch);
+  const inOrder = capAt >= 0 && drawAt >= 0 && capAt < drawAt;
+  if (inOrder && handedOver && accepted)
+    pass(`found: \`const pre=window.__pp4.subjectSet\` at offset ${capAt}, BEFORE \`window.__pp4.flash(shown\` at ${drawAt}; \`onNetBroadcast(msg,variants,opts,pre)\`; and netBroadcast's signature taking \`pre\` with a >= 0 test on its evN`);
+  else
+    fail(`the decision is not captured before the draw (capture at:${capAt} local draw at:${drawAt} capture precedes draw:${inOrder} handed to the broadcast:${handedOver} broadcast accepts it:${accepted}) — stageFlash clears the flag as its first act, so a capture after the draw sends nothing and the guest sniffs the sentence while the host does not`);
 }
 
 console.log(fails ? `\nFAILED — ${fails} failure(s)`

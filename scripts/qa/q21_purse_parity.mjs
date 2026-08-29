@@ -55,7 +55,7 @@ await driver(H, url); await driver(G, url);
 console.log("  both seats driving\n");
 
 const t0 = Date.now();
-let samples = 0, blind = 0, rollovers = 0, lastDay = null;
+let samples = 0, blind = 0, rollovers = 0, lastDay = null, lastSig = null;
 const lags = [], desyncs = [];
 /* BOUNDED, never while(true) — rule 17. */
 const CAP = Math.ceil((MINUTES * 60 * 1000) / 400);
@@ -80,6 +80,7 @@ for (let i = 0; i < CAP; i++) {
     if (a == null || b == null || a === "" || b === "") return false;
     return a !== b;
   });
+  if (!diff.length) lastSig = null;
   if (diff.length) {
     const rec = { t: Date.now() - t0, day: [h.day, g.day],
       who: diff.map(n => `${n}: host ${h.purses[n] ?? "(absent)"} vs guest ${g.purses[n] ?? "(absent)"}`),
@@ -96,6 +97,16 @@ for (let i = 0; i < CAP; i++) {
        says which kind of disagreement it is — but it never excuses one. */
     rec.bothDrawing = !!(h.narr && g.narr && h.narr.trim() && g.narr.trim());
     rec.guestBlank = !!(h.narr && h.narr.trim() && !(g.narr && g.narr.trim()));
+    /* A LAG THAT PERSISTS IS NOT A LAG, IT IS A STALL — CEO Review 25's last open point. A
+       disagreement while the two seats are on DIFFERENT days was excused as "the guest is painting
+       an older moment", and could never fail this probe. But "a whole day behind" is precisely
+       what a wait-based fix produces if it goes wrong, so the excuse was pointed away from the
+       change under test. A single sample is a transient; the SAME disagreement still there on the
+       next sample is the guest stuck. Derived from the sampling interval rather than a typed
+       threshold: two consecutive 400ms samples means it outlived the wait's own 450ms ceiling. */
+    const sig = rec.who.join("|");
+    rec.held = sig === lastSig;
+    lastSig = sig;
     (h.day === g.day ? desyncs : lags).push(rec);
   }
   if (Date.now() - t0 > MINUTES * 60 * 1000) break;
@@ -121,7 +132,11 @@ const bothDrawing = desyncs.filter(d => d.bothDrawing).length;
 const guestBlank  = desyncs.filter(d => d.guestBlank).length;
 console.log(`\n  ...of those: ${bothDrawing} with both seats drawing a line, ${guestBlank} with the guest showing NOTHING`);
 console.log(`     (the second number is the state a wait-based fix CREATES — it is reported, never excused)`);
+const heldLags = lags.filter(r => r.held).length;
+console.log(`\n  LAGS THAT SURVIVED INTO THE NEXT SAMPLE (a stall, not a transient): ${heldLags} of ${lags.length}`);
+console.log(`     A lag used to be excused outright, which pointed the excuse away from the very change`);
+console.log(`     under test — a wait going wrong looks exactly like a guest a whole day behind.`);
 if (!lags.length && !desyncs.length)
   console.log(`\n  Nothing disagreed. The sighting was 1 in 10 voyages, so this is "not seen in ${rollovers} rollover(s)" — not "fixed", and not "not a bug".`);
 killAll();
-process.exit(desyncs.length ? 1 : 0);
+process.exit((desyncs.length || heldLags) ? 1 : 0);

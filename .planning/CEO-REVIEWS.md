@@ -903,3 +903,40 @@ differently."*
   following the rules exactly was a complete bypass.
 - `rec.finished = recA || recB` → a host finishing while the guest sat stuck reported "finished".
 - Crew-on-a-phone — the square he actually playtests — had no leg at all.
+
+## CEO Review 25 — 2026-08-29, Q-18 the ruling's actual shape (commit 87cf0e00) — VERBATIM
+
+**VERDICT: YES on the ask. This time the thing Wyatt approved actually shipped.** `subjectOf` lives once, in `src/shared/index.js:105-109`, is exported at `:740`, and both seats run it — the host through `src/ui/panel.js:1087`, the guest through `src/orchestrator.js:1810` over an event it looks up in **its own** feed (`:1799-1806`, filled at `:1567`), with the host's `subj` surviving only as the fallback at `:1811`. That is the shape of his sentence, clause by clause. The `-1` hold CEO 24 found is closed at both ends (`:209`, `:1830`) and I proved the rebuilt gate genuinely fails on the pre-fix tree — 5 red assertions on `87cf0e00^`, not a claim, a run. Credit where it is due: the CTO was told NO, agreed, withdrew its own wire-cost defence in the open, and did the harder thing.
+
+**And three things are wrong, one of them new and none of them small.** The fix introduces a fresh host/guest divergence in exactly the family Wyatt reported. The gate claims more than it checks for the **tenth** consecutive review — I walked six NEW breakages past it green, five of which walk past the entire 48-gate suite, including two that switch his ruling completely off. And the headline on the comment-stripper fix is false as written.
+
+### THE NEW BUG THIS COMMIT INTRODUCES, and nothing in the repo can see it
+
+> "`narrEvN()` returns the index of the last event that EXISTS, not the event the sentence is about. Only `narrateLastEvent` is about that event… Every *other* narration line does not… the host sends `subj = undefined` **but still sends a real `evN`**. The guest's `applySubject` then resolves that unrelated event, anchors the bubble to whichever captain it names, and sets `subjectSet = true` — while the host leaves the same sentence to the colour sniff. **That is a host/guest divergence in bubble placement, created by the fix meant to end host/guest divergence.** It is the W4-2 family — a bubble pointing at the wrong captain — which is what Wyatt reported in the first place. Gate 48 reads text and cannot see it… No instrument in this repo would catch it."
+
+### Six new breakages; five green on gate 48 AND on all 48 gates
+
+| | breakage | effect | gate 48 | npm test |
+|---|---|---|---|---|
+| N1 | the engage condition → `(false)` | the ordering barrier never engages, ever | **PASS** | **exit 0** |
+| N2 | delete the single `applySubject();` | **Wyatt's ruling entirely off**, and W4-2's fix with it | **PASS** | **exit 0** |
+| N3 | capture `myGen` before the bump | **every held line dropped forever** | **PASS** | **exit 0** |
+| N4 | `evAt` returns `arr[0]` | the subject computed from the wrong event | **PASS** | **exit 0** |
+| N5 | `arr[n].n=n` on evAt's own alias | the engine's array dirtied through an alias | **PASS** | **exit 0** |
+| N6 | invert `subjectOf`'s rule | battles anchor to a fighter again | FAIL ✓ | exit 1 ✓ |
+
+> "**N3 is the finding.** It is Breakage 5's exact catastrophe — the guest swallows every held line forever — reappearing in the very assertion added to stop Breakage 5, reachable by reordering two adjacent lines. **N2 is the second.** … **The rule that would end this run is one the CTO can apply mechanically: if a pass line contains a verb the code performs at runtime, it is claiming behaviour** — "stops", "runs", "looks up", "assigns anywhere". Name the string, the count, and the location, and stop there."
+
+### The comment stripper — a real fix with a false headline
+
+> "The 152-line measurement is TRUE and I reproduced it independently… **But "every text gate carried its own copy… now one" is false.** At least four others still read `src/orchestrator.js` through their own block-comments-first stripper, three of them inside `npm test`… **And the disclosed gap is understated.** The new stripper desynchronises on a **nested template literal** — `src/ui/flow.js:1490` — and leaks the three comment lines at `:1492-1494`… 7 leaked comment lines in `src/ui/recipe.js` and 20 in `index.html`. I did **not** find an assertion currently flipped by it, and the direction is the safer one."
+
+### The BEFORE/AFTER measurement
+
+> "**"8 of 26 → 0 of 21 lines at 400ms or later" is the defensible claim.** … **"median 82ms → 61ms" is not a result.** Two 100-second games, two rooms, two seeds, n=1 each side, on a stochastic game. That is wire noise quoted as an outcome… **The number that would show a regression was not reported.** The probe prints `missed` … and it appears nowhere… The AFTER tree deliberately **drops** lines, so `missed` is precisely where a regression would hide… **The raw output was never committed.** … **And `scripts/qa/q18_draft_hold_probe.mjs` has never been run.** … it reads only `.pp4Bub`, when its own sibling's header records that the opening lines render in `#actionPanel`… An instrument aimed at the wrong surface, written in the same commit that documents that exact mistake."
+
+### q21, and process
+
+> "The third stands. `lags` … still cannot fail the run. "A whole day behind" is what a wait produces." · "**Rule 24 — materially better, not yet done.**" · "**Step 1 — the paper record is still missing, and I proved the substance anyway.** … Write the record down; it took me thirty seconds and nobody should have to." · "**Rule 19 — and the excuse does not cover this commit.** … Which captain a bubble points at is a still-frame difference." · "**Rule 16 — claim and completion in the same batch again. And every row in that batch is stamped in the future.** … A record whose timestamps cannot be true is a record nobody can order." · "**Bulk reading in the main thread: NONE FOUND.**"
+
+**ONE SENTENCE FOR WYATT:** "This time he built the thing you asked for — both screens now work out who a line is about from the same rule, instead of one screen being told the answer — but it hands the guest the wrong moment for any sentence that isn't about the very last thing that happened, which can make a speech bubble point at a different captain on your screen than on your crewmate's; the safety net around it can still be switched off by moving two lines, with every check staying green; and the ship hasn't finished its sea trial yet, so please look at a battle on two tabs side by side before you trust it."
