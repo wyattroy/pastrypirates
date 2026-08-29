@@ -207,6 +207,36 @@ unacceptable outcome*, and crew-on-a-phone is the square Wyatt actually playtest
 - **Where to start:** `boardBand()` and `capBandBottom()` in the promoted `src/ui/stage.js`, and
   `docs/BOARD-RENDERING.md`.
 
+### ⚠ MEASURED 2026-08-29, IN A REAL CREW GAME — and it corrects the entry above
+
+`scripts/qa/w14_guest_sail_reach.mjs`, guest at 390×844, 18 captures over 8 minutes. Raw:
+`.planning/research/wave1-convergence/W14-GUEST-SAIL-REACH.txt`.
+
+**OF THE SEVEN CAPTURES THAT WERE ACTUALLY JUDGED, SIX FAILED — and every one of the six reads
+`covered 0`.** They fail on `off-screen` and `clipped`. **Nothing was covering them at all.**
+
+| what actually made a square untappable | how often |
+|---|---|
+| **off the screen edge** — including six at **x = −57 to −116, past the LEFT edge** by more than a full square | the whole of it |
+| covered by anything (bubble, captains panel, rows) | **0 of the six judged failures** |
+
+**SO THE `#pp4Cap` CAUSE IN THE ENTRY ABOVE IS NOT THE CAUSE**, and the ⚠ on the W1-4 row that
+said so was right. Coverings appear only in *on-sight* captures that were clear again 400ms later —
+the existing D-38 avoidance re-places the bubble on its own, which is visible on prompt 1 of the
+before-run: 7 squares under the bubble on sight, **0 at +400ms, before any change was made.**
+
+**Wyatt's own words are the accurate description and always were** — *"cut off at the screen edge"*,
+and `BACKLOG.md`'s own `"the board's left column cut by the screen edge"`. **It is a framing
+problem: the camera's window puts legal moves outside the viewport.** `boardBand()` /
+`capBandBottom()` remains the right place to start, but for the BAND and the CAMERA, not for
+occlusion.
+
+**A CTO CORRECTION ON THE RECORD:** on 2026-08-29 I reported the narration bubble as the biggest
+cause and shipped a widening of its avoidance on that basis. **That was false** — CEO Review 27
+caught it, and I verified it against my own evidence file. The probe counted captures it never
+judged as passes and printed them as "corrected themselves". The bubble change is harmless and
+provably cannot worsen placement, but it fixed nothing that was measured to be broken.
+
 ---
 
 ## 🔴 SEO — MEASURED BROKEN, and it is a BRAND COLLISION, not a tags problem
