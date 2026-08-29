@@ -19,6 +19,7 @@
  * very little. This reports HOW MANY ROLLOVERS IT ACTUALLY WATCHED, and "no disagreement across N
  * rollovers" is the finding — never "fixed", never "not a bug".
  */
+import fs from "node:fs";
 import { serve, launch, attach, killAll, sleep, makeHost, makeGuest, startVoyage, driver } from "../mp_rig.mjs";
 
 const PORT = 8510, DBG_H = 9410, DBG_G = 9411;
@@ -55,7 +56,12 @@ await driver(H, url); await driver(G, url);
 console.log("  both seats driving\n");
 
 const t0 = Date.now();
-let samples = 0, blind = 0, rollovers = 0, lastDay = null, lastSig = null;
+let samples = 0, blind = 0, rollovers = 0, lastDay = null, lastWho = null, lastWhoAt = 0;
+/* THE GRACE PERIOD, READ FROM THE GAME RATHER THAN TYPED HERE (rule 9). If the wait's ceiling
+   moves, this probe's idea of "longer than the wait" moves with it — a number copied into a probe
+   is a number that goes stale silently. */
+const GRACE_MS = Number((fs.readFileSync(new URL("../../src/orchestrator.js", import.meta.url), "utf8")
+  .match(/NARR_EVENT_GRACE_MS\s*=\s*(\d+)/) || [, 450])[1]);
 const lags = [], desyncs = [];
 /* BOUNDED, never while(true) — rule 17. */
 const CAP = Math.ceil((MINUTES * 60 * 1000) / 400);
@@ -80,7 +86,7 @@ for (let i = 0; i < CAP; i++) {
     if (a == null || b == null || a === "" || b === "") return false;
     return a !== b;
   });
-  if (!diff.length) lastSig = null;
+  if (!diff.length) { lastWho = null; lastWhoAt = 0; }
   if (diff.length) {
     const rec = { t: Date.now() - t0, day: [h.day, g.day],
       who: diff.map(n => `${n}: host ${h.purses[n] ?? "(absent)"} vs guest ${g.purses[n] ?? "(absent)"}`),
@@ -97,16 +103,25 @@ for (let i = 0; i < CAP; i++) {
        says which kind of disagreement it is — but it never excuses one. */
     rec.bothDrawing = !!(h.narr && g.narr && h.narr.trim() && g.narr.trim());
     rec.guestBlank = !!(h.narr && h.narr.trim() && !(g.narr && g.narr.trim()));
-    /* A LAG THAT PERSISTS IS NOT A LAG, IT IS A STALL — CEO Review 25's last open point. A
-       disagreement while the two seats are on DIFFERENT days was excused as "the guest is painting
-       an older moment", and could never fail this probe. But "a whole day behind" is precisely
-       what a wait-based fix produces if it goes wrong, so the excuse was pointed away from the
-       change under test. A single sample is a transient; the SAME disagreement still there on the
-       next sample is the guest stuck. Derived from the sampling interval rather than a typed
-       threshold: two consecutive 400ms samples means it outlived the wait's own 450ms ceiling. */
-    const sig = rec.who.join("|");
-    rec.held = sig === lastSig;
-    lastSig = sig;
+    /* A DISAGREEMENT THAT PERSISTS IS NOT A TRANSIENT, IT IS A STALL — CEO Reviews 25 and 26.
+       A disagreement while the two seats are on DIFFERENT days was excused outright as "the guest
+       is painting an older moment", and could never fail this probe. But "a whole day behind" is
+       precisely what a wait-based fix produces if it goes wrong, so the excuse was pointed away
+       from the change under test.
+       AND MY FIRST CUT OF THE FIX WAS TOO NARROW, WHICH CEO 26 CAUGHT: it compared the joined
+       purse VALUES between samples, so it only fired on a FROZEN mismatch. A guest genuinely stuck
+       a day behind while the game carried on around it — purses moving on the host every sample —
+       changed the signature every time and still could not fail. What persists is the DISAGREEMENT,
+       so what is compared is WHO disagrees, not what their numbers happen to be.
+       AND THE ARITHMETIC I JUSTIFIED IT WITH WAS WRONG, which is the same fault as quoting a
+       comment as a measurement. I wrote "two consecutive 400ms samples means it outlived the 450ms
+       ceiling". Two consecutive samples span ONE interval, not two — about 400ms plus two CDP round
+       trips, which is around the ceiling rather than safely past it. So the run is MEASURED rather
+       than assumed: the real gap between samples is timed, and a disagreement must outlive the
+       grace period in wall-clock time before it counts as held. */
+    const who = diff.slice().sort().join("|");
+    rec.held = who === lastWho && (rec.t - lastWhoAt) >= GRACE_MS;
+    if (who !== lastWho) { lastWho = who; lastWhoAt = rec.t; }
     (h.day === g.day ? desyncs : lags).push(rec);
   }
   if (Date.now() - t0 > MINUTES * 60 * 1000) break;
@@ -133,7 +148,7 @@ const guestBlank  = desyncs.filter(d => d.guestBlank).length;
 console.log(`\n  ...of those: ${bothDrawing} with both seats drawing a line, ${guestBlank} with the guest showing NOTHING`);
 console.log(`     (the second number is the state a wait-based fix CREATES — it is reported, never excused)`);
 const heldLags = lags.filter(r => r.held).length;
-console.log(`\n  LAGS THAT SURVIVED INTO THE NEXT SAMPLE (a stall, not a transient): ${heldLags} of ${lags.length}`);
+console.log(`\n  LAGS WHERE THE SAME CAPTAINS DISAGREED FOR LONGER THAN THE ${GRACE_MS}ms GRACE PERIOD (a stall, not a transient): ${heldLags} of ${lags.length}`);
 console.log(`     A lag used to be excused outright, which pointed the excuse away from the very change`);
 console.log(`     under test — a wait going wrong looks exactly like a guest a whole day behind.`);
 if (!lags.length && !desyncs.length)

@@ -16,6 +16,12 @@
  * other is the fault itself, on the wire, in a real game.
  *
  * IT CAN FAIL HONESTLY: no lines at all, or zero carrying a serial, both exit 1 and say so.
+ *
+ * WHAT IT UNDER-COUNTS, SAID HERE RATHER THAN LEFT TO BE DISCOVERED (CEO Review 26). `narr` is a
+ * single slot written with `.set()`, and this attaches a `value` listener to it — so two lines
+ * written inside one round trip are delivered as ONE callback. **Every count below is a lower
+ * bound.** That does not weaken a ZERO (0 of 47 is zero at any sample rate), and it does mean the
+ * RATIO of serialled lines to total lines is not a census and must not be quoted as one.
  */
 import { serve, launch, attach, killAll, sleep, makeHost, makeGuest, startVoyage, driver } from "../mp_rig.mjs";
 

@@ -229,35 +229,67 @@ const shared = read("src/shared/index.js");
      no assignment at all. Comparisons and arrow heads are removed before looking. */
   const writesInto = [...evAt.matchAll(/(?:\]|\.[\w$]+)\s*=(?!=)/g)].map(m => m[0].trim());
   const readOnly = !!evAt && !writesInto.length;
+  /* BREAKAGE N4' (CEO Review 26): rather than REPLACING the lookup, insert `return arr[0];` above
+     it. Every presence test still matches — the lookup text is all still there, just unreachable —
+     and the guest computes every subject from event 0. So the ORDER of the returns is read: the
+     first return after the null guard must be the indexed lookup, and a fixed index must appear
+     nowhere. Presence was never the requirement; being reached is. */
+  const guardAt = evAt.search(/if\(n==null/);
+  const lookupAt = evAt.search(/if\(arr\[n\]&&arr\[n\]\.n===n\)return arr\[n\];/);
+  const between = guardAt >= 0 && lookupAt > guardAt ? evAt.slice(guardAt, lookupAt) : "";
+  const noEarlyReturn = lookupAt > guardAt && !/\breturn\b/.test(between.replace(/if\(n==null[^;]*;/, ""));
+  const noFixedIndex = !/arr\[\s*\d+\s*\]/.test(evAt);
   const fallsBack = /if\(v\.subj!=null\)\{window\.__pp4\.subject=\(v\.subj===-1\?null:v\.subj\)/.test(orch);
-  if (ruleIsShared && guestComputes && looksUpByN && readOnly && fallsBack)
-    pass("found: subjectOf declared and exported in src/shared/index.js; `window.__pp4.subject=subjectOf(ev)` in the guest path; evAt tests `arr[n].n===n` and scans on `arr[i].n===n`; evAt's body contains no assignment; and the `v.subj` fallback with its -1 case is still present");
+  if (ruleIsShared && guestComputes && looksUpByN && noEarlyReturn && noFixedIndex && readOnly && fallsBack)
+    pass("found: subjectOf declared and exported in src/shared/index.js; `window.__pp4.subject=subjectOf(ev)` in the guest path; evAt tests `arr[n].n===n` and scans on `arr[i].n===n`, with no return statement and no fixed index between its null guard and that test; evAt's body contains no assignment; and the `v.subj` fallback with its -1 case is still present");
   else
-    fail(`the guest does not prefer the real event (rule shared and exported:${ruleIsShared} guest calls subjectOf:${guestComputes} evAt found:${!!evAt} looks up BY the serial:${looksUpByN} evAt assigns into something:[${writesInto}] still falls back to v.subj:${fallsBack}) — a lookup that ignores the serial hands the guest the wrong event, and one that assigns can dirty the engine's own array through its own alias`);
+    fail(`the guest does not prefer the real event (rule shared and exported:${ruleIsShared} guest calls subjectOf:${guestComputes} evAt found:${!!evAt} looks up BY the serial:${looksUpByN} reachable (no earlier return):${noEarlyReturn} no fixed index:${noFixedIndex} evAt assigns into something:[${writesInto}] still falls back to v.subj:${fallsBack}) — a lookup that ignores the serial hands the guest the wrong event, and one that assigns can dirty the engine's own array through its own alias`);
 }
 
-/* (10) THE DECISION IS CAPTURED BEFORE THE LOCAL DRAW SPENDS IT.
-   MEASURED ON THE WIRE before this was written, two real browsers, 47 narration lines in one crew
-   game: NOT ONE carried a subject. On the v2 stage path — every crew game — src/ui/panel.js's
+/* (10) THE DECISION IS CAPTURED — REALLY CAPTURED — BEFORE THE LOCAL DRAW SPENDS IT.
+   MEASURED ON THE WIRE before this was written, two real browsers: of 47 narration lines in one
+   crew game, NOT ONE carried a subject. On the v2 stage path — every crew game — src/ui/panel.js's
    flash() calls window.__pp4.flash() first, and stageFlash's own act is to read the flag and clear
-   it; only then does it reach netBroadcast, which finds it spent. W4-2's second half had therefore
-   never worked in a crew game, and gate 42 could not see it because every line of code that SENDS
-   the subject is present and correct. Two lines apart, and only a clock on the wire could show it.
-   ORDER IS THE REQUIREMENT, so order is what is read. */
+   it (src/ui/stage.js:1386); only then does it reach netBroadcast, which finds it spent. W4-2's
+   second half had therefore never worked in a crew game, and gate 42 could not see it because
+   every line of code that SENDS the subject is present and correct.
+   BREAKAGE P2 (CEO Review 26), AND IT IS THE WORST ONE YET: `const pre=window.__pp4.subjectSet&&false`.
+   Two characters. `pre` is then always null, netBroadcast falls back to reading a flag that is
+   already spent, and the wire carries nothing again — while THIS ASSERTION, written for exactly
+   this bug, printed its PASS line word for word, because it read the POSITION of a substring and
+   never the OPERANDS of the condition. That is the fault N1 was supposed to have taught, committed
+   again in the assertion added to stop it. So the capture EXPRESSION is now read whole. */
 {
   const panel2 = read("src/ui/panel.js");
+  const cap = (panel2.match(/const pre=([\s\S]*?);\n/) || [, ""])[1];
+  /* the whole expression, not its opening: a ternary on the flag, yielding the subject and the
+     serial, with no literal that can short-circuit it to a constant. */
+  const capSound = /window\.__pp4\.subjectSet\s*$|window\.__pp4\.subjectSet\s*\n/.test(cap.split("?")[0])
+    && /\bsubj:\s*window\.__pp4\.subject\b/.test(cap)
+    && /\bevN:\s*appState\.narrEvIdx\b/.test(cap)            /* P1: evN:null instead */
+    && !/\bfalse\b|\btrue\b|&&|\|\|/.test(cap);              /* P2: &&false, ||null */
   const capAt = panel2.search(/const pre=window\.__pp4\.subjectSet/);
   const drawAt = panel2.search(/const h=window\.__pp4\.flash\(shown/);
+  const inOrder = capAt >= 0 && drawAt >= 0 && capAt < drawAt;
   const handedOver = /onNetBroadcast\(msg,variants,opts,pre\)/.test(panel2);
   const accepted = /export function netBroadcast\(html,variants,opts,pre\)/.test(orch)
     && /pre\?\{subj:pre\.subj,evN:\(typeof pre\.evN==="number"&&pre\.evN>=0\)\?pre\.evN:null\}:readSubject\(\)/.test(orch);
-  const inOrder = capAt >= 0 && drawAt >= 0 && capAt < drawAt;
-  if (inOrder && handedOver && accepted)
-    pass(`found: \`const pre=window.__pp4.subjectSet\` at offset ${capAt}, BEFORE \`window.__pp4.flash(shown\` at ${drawAt}; \`onNetBroadcast(msg,variants,opts,pre)\`; and netBroadcast's signature taking \`pre\` with a >= 0 test on its evN`);
+  /* P6: exactly one write to the subject on the host side. A second one, crew-only, anchors every
+     bubble to one seat on the host while the guest computes correctly — pure divergence. */
+  const subjWrites = (panel2.match(/window\.__pp4\.subject\s*=(?!=)/g) || []).length;
+  /* P4: inside readSubject the CLEAR must come after the READ, or no line ever carries a serial. */
+  const rs2 = (orch.match(/function readSubject\(\)\{[\s\S]*?return \{subj,evN\};\}/) || [""])[0];
+  const readAt = rs2.search(/const raw=has\?appState\.narrEvIdx:null/);
+  const clearAt = rs2.search(/appState\.narrEvIdx=null;/);
+  const spentAfterRead = readAt >= 0 && clearAt >= 0 && readAt < clearAt;
+  /* P5: the wire writes the serial it was given, not an arithmetic of it. */
+  const writesVerbatim = /payload\.evN\s*=\s*evN\s*;/.test(writers);
+  if (capSound && inOrder && handedOver && accepted && subjWrites === 1 && spentAfterRead && writesVerbatim)
+    pass(`found: the capture expression is \`${cap.replace(/\s+/g, " ").slice(0, 72)}\` — a ternary on window.__pp4.subjectSet yielding window.__pp4.subject and appState.narrEvIdx, with no true/false/&&/|| in it; it sits at offset ${capAt}, before the local draw at ${drawAt}; window.__pp4.subject is assigned exactly 1 time in panel.js; readSubject reads narrEvIdx before assigning it null; and writers.js contains \`payload.evN = evN;\``);
   else
-    fail(`the decision is not captured before the draw (capture at:${capAt} local draw at:${drawAt} capture precedes draw:${inOrder} handed to the broadcast:${handedOver} broadcast accepts it:${accepted}) — stageFlash clears the flag as its first act, so a capture after the draw sends nothing and the guest sniffs the sentence while the host does not`);
+    fail(`the decision is not captured intact before the draw (capture expression sound:${capSound} (\`${cap.replace(/\s+/g, " ").slice(0, 60)}\`) capture precedes draw:${inOrder} handed over:${handedOver} broadcast accepts it:${accepted} panel writes the subject ${subjWrites}x (must be 1) readSubject reads before it spends:${spentAfterRead} writers writes evN verbatim:${writesVerbatim}) — two characters appended to that expression switch this whole fix off and put the wire back to carrying nothing, which is how it sat for days`);
 }
 
 console.log(fails ? `\nFAILED — ${fails} failure(s)`
-  : "\nPASSED — the TEXT found: ev(o)'s field set is unchanged and nothing writes into the engine's array; the serial is stamped on the wire copy, written once, and never negative at either end; the guest's frontier has exactly two writers; the held-line loop is started, capped at 600ms and falls through to an immediate draw; a superseded line drops; both narration writers share one payload; and the guest computes the subject from its own copy of the event with the one shared rule. Whether the two SCREENS agree is measured by scripts/qa/q21_purse_parity.mjs, in two real browsers.");
+  : "\nPASSED — the TEXT found: ev(o)'s field set is unchanged and nothing writes into the engine's array; the serial is stamped on the wire copy, written once, and never negative at either end; the guest's frontier has exactly two writers; the held-line loop is started, capped at 600ms and falls through to an immediate draw; a superseded line drops; both narration writers share one payload; and the guest path contains a reachable lookup by serial into its own events array feeding the one shared subjectOf. Whether the two SCREENS agree is measured by scripts/qa/q21_purse_parity.mjs, in two real browsers.");
 process.exit(fails ? 1 : 0);

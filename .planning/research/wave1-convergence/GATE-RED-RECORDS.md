@@ -46,3 +46,27 @@ thing is not an assertion.* B1 was one property-access spelling. N1 was the pres
 rather than its operands. N3 was two lines in the right order, which no presence test can see. N5
 was the same write under a different name. Read the SET, the COUNT, the ORDER, or the OPERANDS —
 never merely the presence.
+
+### Six more, from CEO Review 26 — and the rule above was written and then not applied
+
+The paragraph immediately above says *"read the SET, the COUNT, the ORDER, or the OPERANDS — never
+merely the presence."* Assertions 9 and 10, written in the same commit as that paragraph, were
+**presence tests**. All six of these were green on gate 48 **and on all 48 gates**:
+
+| | breakage | what a player gets |
+|---|---|---|
+| **P2** | `const pre=window.__pp4.subjectSet` **`&&false`** | **two characters reverse the whole fix** — the wire carries nothing again, exactly as it did for days, while assertion 10 (written for this bug) prints its PASS line word for word |
+| P1 | `evN:appState.narrEvIdx` → `evN:null` | the subject and the serial split back into two facts; the barrier is off on every line |
+| P4 | `appState.narrEvIdx=null;` moved above the read in `readSubject` | no line ever carries a serial |
+| P5 | `payload.evN = evN - 1` | every serial off by one — the guest resolves the wrong event and anchors bubbles to the wrong captain |
+| P6 | a second `window.__pp4.subject = 0`, crew only | the host anchors every bubble to seat 0 while the guest computes correctly — pure host/guest divergence, W4-2's own family |
+| N4′ | `return arr[0];` inserted **above** the lookup instead of replacing it | N4's catastrophe respelled — every presence test still matches, over code that can never run |
+
+**P2 and N4′ are the ones to learn from, and they teach the same thing from two sides.** P2 leaves
+the *position* of every required substring untouched and changes what the expression *evaluates to*.
+N4′ leaves every required substring *present* and changes whether it is *reached*. A gate that asks
+"is this text here, and is it before that text" answers yes to both.
+
+**So: an assertion must read the OPERANDS of a condition and the REACHABILITY of a statement, not
+the presence or the position of either.** Seventeen breakages are now on this page across three
+reviews, and every single one of them is an instance of that one sentence.
