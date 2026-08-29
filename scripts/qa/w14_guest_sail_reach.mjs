@@ -111,25 +111,58 @@ if (!prompts.length) {
 }
 console.log(`  ${prompts.length} tap-to-sail prompt(s) seen on the GUEST\n`);
 const score = c => (c ? { off: c.cells.filter(x => x.off), clip: c.cells.filter(x => x.clipped && !x.off), cov: c.cells.filter(x => x.covered && !x.off) } : null);
-let badPrompts = 0, transient = 0;
+/* THE NOT-MEASURED COLUMN. CEO Review 27, and the rule was already written down for the sea trial:
+   "What the report must never lose: the NOT-RUN column. A leg that could not start is not a leg
+   that passed." THIS PROBE HAD NO SUCH COLUMN, and it cost a false headline.
+   `judge()` returns null once the driver has tapped, so a capture with no settle reading COULD NOT
+   FAIL — and the first version counted every one of them in the denominator and printed them as
+   "corrected themselves", which the probe never observed. 11 of 18 captures in the before-run and
+   9 of 11 in the after-run were unjudged. Folding them onto the pass side turned 6-of-7 into
+   6-of-18 and produced a "33% -> 18%" improvement out of two runs that simply generated different
+   numbers of long-lived prompts. THE RATE IS NOW OVER WHAT WAS ACTUALLY JUDGED, and everything
+   else is reported separately, in its own column, never averaged in. */
+let judged = 0, unjudged = 0, badPrompts = 0, firstFrameOnly = 0;
 prompts.forEach((p, i) => {
   const f = score(p.first), s2 = score(p.settled);
-  const nBad = s2 ? s2.off.length + s2.clip.length + s2.cov.length : 0;
   const nFirst = f ? f.off.length + f.clip.length + f.cov.length : 0;
-  if (nBad) badPrompts++; else if (nFirst) transient++;
+  if (!s2) { unjudged++; }
+  else {
+    judged++;
+    const nBad = s2.off.length + s2.clip.length + s2.cov.length;
+    if (nBad) badPrompts++; else if (nFirst) firstFrameOnly++;
+  }
   const c = p.settled || p.first;
-  console.log(`  prompt ${i + 1} at ${p.t}ms — ${c ? c.n : "?"} square(s), viewport ${c ? c.viewport.join("x") : "?"}${c && c.cap ? `, captains panel y ${c.cap[0]}..${c.cap[1]}` : ""}`);
+  console.log(`  capture ${i + 1} at ${p.t}ms — ${c ? c.n : "?"} square(s), viewport ${c ? c.viewport.join("x") : "?"}${c && c.cap ? `, captains panel y ${c.cap[0]}..${c.cap[1]}` : ""}`);
   console.log(`    on sight:  off-screen ${f ? f.off.length : "-"}  clipped ${f ? f.clip.length : "-"}  covered ${f ? f.cov.length : "-"}`);
-  console.log(`    at +400ms: off-screen ${s2 ? s2.off.length : "(gone — the driver had already tapped)"}  clipped ${s2 ? s2.clip.length : ""}  covered ${s2 ? s2.cov.length : ""}`);
-  const show = s2 && nBad ? [...s2.off, ...s2.clip, ...s2.cov] : (f && nFirst ? [...f.off, ...f.clip, ...f.cov] : []);
-  show.slice(0, 6).forEach(x =>
-    console.log(`      square at ${x.x},${x.y} ${x.w}x${x.h}${x.off ? " OFF-SCREEN" : ""}${x.clipped ? " CLIPPED" : ""}${x.covered ? ` COVERED by ${x.by}` : ""}${x.inCap ? " (centre inside the captains panel)" : ""}`));
-  if (nBad || nFirst) {
+  console.log(`    at +400ms: ${s2 ? `off-screen ${s2.off.length}  clipped ${s2.clip.length}  covered ${s2.cov.length}` : "NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass."}`);
+  const show = s2 ? [...s2.off, ...s2.clip, ...s2.cov] : (f ? [...f.off, ...f.clip, ...f.cov] : []);
+  /* EVERY BAD SQUARE, NOT THE FIRST SIX. The cap of six was ordered [off, clipped, covered], so on
+     a prompt with many failures the coverers were truncated away — and a tally taken off that
+     truncated list read as "which element covers most often" when it was measuring print order. */
+  show.forEach(x =>
+    console.log(`      square at ${x.x},${x.y} ${x.w}x${x.h}${x.off ? " OFF-SCREEN" : ""}${x.clipped ? " CLIPPED" : ""}${x.covered ? ` COVERED by ${x.by || "(an element with no id or class)"}` : ""}${x.inCap ? " (centre inside the captains panel)" : ""}`));
+  if (show.length) {
     console.log(`    the sequence BEFORE the squares appeared — a snapshot cannot show a race:`);
     p.hist.forEach(h => console.log(`      ${String(h.t).padStart(7)}ms  stage:${h.stage}  viewBox:${h.vb}`));
   }
 });
-console.log(`\n=== ${badPrompts ? "FAIL" : "PASS"} — ${badPrompts} of ${prompts.length} prompt(s) still offered an unreachable square 400ms in, with the driver about to tap.`);
-console.log(`    ${transient} more were wrong ONLY on the first frame and corrected themselves — the player sees those slide into place.`);
-if (!badPrompts) console.log(`    An acquittal is as suspect as a conviction: the FULL trial failed this exact leg, so check the probe reached its subject before believing this.`);
-process.exit(badPrompts ? 1 : 0);
+/* AND WHY EACH JUDGED FAILURE FAILED, because "2 prompts failed" says nothing about which of the
+   three causes is which — and reading the wrong one off a truncated list is what went wrong. */
+const tally = { off: 0, clipped: 0, coveredBub: 0, coveredCap: 0, coveredOther: 0 };
+for (const p of prompts) { const s2 = score(p.settled); if (!s2) continue;
+  tally.off += s2.off.length; tally.clipped += s2.clip.length;
+  for (const c of s2.cov) {
+    if (/pp4Bub/.test(c.by)) tally.coveredBub++;
+    else if (c.inCap || /pp4Cap|captainsPanel|prow|chips/.test(c.by)) tally.coveredCap++;
+    else tally.coveredOther++;
+  } }
+console.log(`\n  ${prompts.length} capture(s): ${judged} JUDGED at +400ms, ${unjudged} NOT MEASURED (the driver tapped first).`);
+console.log(`  NOT-MEASURED captures are neither pass nor fail. They are excluded from the rate below, never folded into it.`);
+console.log(`\n  of the ${judged} judged: ${badPrompts} offered an unreachable square, ${firstFrameOnly} were wrong only on the first frame and were clear by +400ms.`);
+console.log(`\n  WHY the judged failures failed — squares, not prompts, and every one counted:`);
+console.log(`    off the screen entirely: ${tally.off}   clipped at an edge: ${tally.clipped}`);
+console.log(`    covered by the narration bubble: ${tally.coveredBub}   by the captains panel: ${tally.coveredCap}   by something else: ${tally.coveredOther}`);
+console.log(`\n=== ${badPrompts ? "FAIL" : judged ? "PASS" : "NOT RUN"} — ${badPrompts} of ${judged} JUDGED capture(s) offered the guest a square it could not tap.`);
+if (!judged) console.log(`    Nothing was judged at all. That is not a pass — raise --minutes, or the driver is answering faster than the settle window.`);
+else if (!badPrompts) console.log(`    An acquittal is as suspect as a conviction: the FULL trial has failed this exact leg, so check the probe reached its subject before believing this.`);
+process.exit(badPrompts || !judged ? 1 : 0);

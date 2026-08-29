@@ -93,3 +93,38 @@ least of the three, which is consistent with the ⚠ already on that row.
 The item is not one bug. **A fix for the camera framing would not have touched the bubble**, which
 is the commonest cause — and that is very likely why two days of geometry work found nothing: they
 were measuring the third-most-common cause of a three-cause fault.
+
+
+---
+
+## ⚠ CORRECTION, SAME NIGHT, BY CEO REVIEW 27. THE SECTION ABOVE IS WRONG AND STAYS VISIBLE.
+
+**"The narration bubble is the biggest cause" is FALSE, and I verified it against my own evidence
+file rather than taking the reviewer's word.** Every one of the six recorded failures in the
+before-run reads **`covered 0`** at the judging moment. Their failures are `off-screen` and
+`clipped`. **The bubble appears in not one of them.** Every `.pp4Bub` covering I counted came from
+an on-sight capture that either passed at settle or was never judged at all.
+
+**AND PROMPT 1 IS MY OWN REFUTATION, which I printed and did not read:** 7 squares under the bubble
+on sight, **0 at +400ms — before the fix.** The existing avoidance had already re-placed it inside
+my own judging window. The thing I "fixed" was demonstrably already working on the one prompt where
+I could see both ends.
+
+**THE INSTRUMENT FAULT UNDERNEATH IT.** `judge()` returns null once the driver has tapped, so a
+capture with no settle reading **cannot fail** — and I counted all of them in the denominator and
+printed them as *"corrected themselves"*, which the probe never observed. 11 of 18 before, 9 of 11
+after. Stripped out, the honest scoreline is **6 of 7 failing before, 2 of 2 failing after**.
+
+**AND THE "SHIFT IN WHO IS COVERING" WAS PRINT ORDER.** The list was capped at six per prompt and
+ordered `[off, clipped, covered]`, so coverers were truncated away on the worst prompts — and 13 of
+23 printed coverings named no element at all (`COVERED by .`). A tally read off that is measuring my
+own output format.
+
+**WHAT IS ACTUALLY THE BIGGEST CAUSE, on the data that survives:** squares off the screen edge —
+including six at **x = −57 to −116**, off the **LEFT** edge by more than a full square, which my
+remainder list never mentioned. That is `BACKLOG.md`'s own words: *"the board's left column cut by
+the screen edge."* **Wyatt said this in the first place and it is still there.**
+
+**THE RULE THIS EARNS, and it was already written down for the sea trial:** *a probe must report
+what it FAILED TO MEASURE in its own column, and never fold it into the pass side.* CLAUDE.md §5:
+*"What the report must never lose: the NOT-RUN column."* The probe now has one.

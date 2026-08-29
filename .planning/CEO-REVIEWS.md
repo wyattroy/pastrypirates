@@ -1,5 +1,126 @@
 # CEO reviews — the standing record
 
+## CEO Review 27 — 2026-08-29, W1-4 the guest's sail squares (commit 27489324, measured in 56004d93, claimed in b114bab5) — VERBATIM
+
+**VERDICT: NO. The biggest cause of the top backlog item is not fixed, because the narration bubble was never shown to be the biggest cause. The diagnosis rests entirely on captures the probe's own design labels as *not* failures — and not one of the six recorded failures in the before-run involved the bubble at all. Every one of those six reads `covered 0` at the judging moment; they are squares off the screen edge, which is exactly what Wyatt reported and exactly what this commit leaves unfixed. The probe silently discards 11 of its 18 before-run measurements and 9 of its 11 after-run measurements, counts them all in the denominator, and prints them as "corrected themselves". Strip that out and the honest scoreline is 6-of-7 failing before and 2-of-2 failing after. The code change itself is careful, correct, and provably cannot make placement worse — I tried to break it and could not. It is a good fix aimed by a broken instrument at the third-largest problem. And it is not on staging: Wyatt's morning build is still `2026.08.29.2`.**
+
+### The diagnosis — refuted
+
+> "**A. The probe drops most of its own measurements onto the pass side.** `judge()` returns `null` when no `.sailCell` is left… So a prompt the driver answered before the 400ms judgement **cannot fail, but still counts in the denominator.**"
+
+| | captures | never judged at +400ms | actually judged | failed |
+|---|---|---|---|---|
+| before | 18 | **11** | 7 | 6 → **86%** |
+| after | 11 | **9** | 2 | 2 → **100%** |
+
+> "The headline 33% → 18% is produced by the after-run generating fewer long-lived prompts, not by the fix."
+
+> "**B.** …the summary line calls that a self-correction… That sentence propagated, unchecked, into `.planning/CTO-LEDGER.md:264`, into the prediction record, into the commit message, and into **shipped source** at `src/ui/stage.js:1544-1546`. That is a behavioural claim written into a comment, which CLAUDE.md §1 forbids by name, and it is false: the probe did not observe a correction, it observed nothing."
+
+> "**C. n is not n.** The watcher re-fires whenever squares exist… 18 captures = 11 distinct prompts… 11 captures = 9 distinct. Every single failure in both runs is the *first* of a pair."
+
+> "**D. The bubble is absent from every recorded failure.** The six before-run failures… all reading **`covered 0`** at +400ms. Their failures are `off-screen` and `clipped`. **And prompt 1 is the CTO's own refutation** — 7 squares under the bubble on sight, **0 at +400ms, before the fix**. On the one prompt where the bubble was seen covering *and* a settle reading exists, the existing avoidance had already re-placed it inside the probe's own judging window."
+
+> "**E. The 'shift in who is covering' is a print-order artifact.** `show.slice(0, 6)` prints at most six bad squares per prompt… **13 of the 23 printed coverings in the before-run name no element at all** — `COVERED by .`… Calling the bubble 'dominant' at 10 of 23 with 13 unidentified is not a finding."
+
+> "**F.** *'what remains is entirely #captainsPanel / #prow / #chips'* — the after file still prints **5 `.pp4BubIn` coverings**. *'the captains panel, TWO coverings — the least of the three'* — the before file prints **6**; the after file prints **17**… On the data that survives the probe's own filter, it is the only covering cause there is."
+
+> "**G. The dominant real failure is the one left unfixed, and it is the one Wyatt described.** Before-run prompts 15 and 17 each had six squares at x = −57, −58, −114, −115, −116 — off the **left** edge by more than a full square. The commit's remainder list names only squares past the *right* edge and never mentions the left-edge squares at all."
+
+> "One thing the probe gets right and I want on the record: `#pp4Fx > * { pointer-events:auto }` means the bubble genuinely eats a tap, so `elementFromPoint` is the correct instrument. Its weakness is that it samples only the square's centre."
+
+### The fix itself — sound, and I could not break it
+
+> "**It never crosses the boat.** … **It cannot land on the ribbon, the wind pill or the captains panel** — `boardBand()` already excludes all three. **It cannot regress the common case, and that is provable rather than hoped**: the new candidate set is a strict superset of the old, and selection is (lowest cost, then nearest the boat). **The one real risk, and it is untested:** 48 candidates instead of 16 means the search can far more often buy its way off a 1000-weight sail square by sitting on the 40-weight question text or the 60-weight buttons. Nobody looked at a picture of where it now lands."
+
+### The named collision — not yet real
+
+> "Naming a conflict between Wyatt's rulings instead of quietly picking one is right… But it has not been earned here: three cheaper moves were available and none was tried — narrow the box (`CAP()` is 74% of a 390px phone); let it sit further out over the sea, which D-38 explicitly permits; move the tail, not the box. And the cheapest of all: both remaining causes are geometry. Fix the framing and the crowding that creates the collision largely goes away."
+
+### Process
+
+> "**Rule 16 — honoured, cleanly.** … **The prediction discipline is the best thing in this item and I will say so plainly.** Three falsifiers named in advance, one fired, and the CTO reported its own theory dead in the open rather than reframing it. That is the rule working. **Four steps — step 3 did not happen.** After the fix the same probe **still exits 1**. The commit ships and bumps the stamp with its own gate red. **Rule 19 — no matched-pair screenshot, and here it is not defensible.** For Q-18 I let this go, because a still frame cannot show a timing barrier. This is the opposite: a pure placement change on a phone, the single most screenshot-shaped thing in the repo. **`.planning/CEO-REVIEWS.md` ordering is broken, and it degraded this review** — Reviews 25 and 26 were appended at the bottom, so `ceo_brief.mjs` handed me Review 24 as 'the previous verdict' and the recurrence check ran two generations stale. **Bulk reading: none found.**"
+
+### Has the recurring fault recurred?
+
+> "**YES — eleventh consecutive, in a new place.** Reviews 17–26 found a *gate's* pass line asserting more than it checked. This time it is a *measurement's* summary line… **The rule that would end the run:** *a probe must report what it FAILED TO MEASURE in its own column, and never fold it into the pass side.* CLAUDE.md §5 already demands exactly this of the sea trial — 'What the report must never lose: the NOT-RUN column.' This probe has no such column. Add one, and the 6/18 → 2/11 headline could never have been written."
+
+**ONE SENTENCE FOR WYATT:** "The sail squares you cannot tap are still not fixed — the change made tonight moves the speech bubble out of the way, which is real and safe, but the measurement behind it quietly threw away most of what it recorded, and when you put the discarded part back the squares you actually could not reach were the ones falling off the left and right edges of your phone, which is exactly what you said in the first place and is still there."
+
+## CEO Review 26 — 2026-08-29, Q-18 the subject and the serial are one fact (commit 6e36baa4) — VERBATIM
+
+**VERDICT: YES — Wyatt's ruling is now, for the first time, actually working in a crew game. The reasoning behind the big claim holds, I checked it in the code and against the committed wire output, and it is the most valuable finding this run has produced. But it is working on FOUR LINES OUT OF EIGHTY, the commit does not say so, and gate 48 has failed for the ELEVENTH consecutive review — I walked SIX new breakages past it green and past all 48 gates, one of which reinstates the exact bug this commit was written to fix while assertion 10, the assertion added to catch that bug, still prints its PASS line.**
+
+### The bug Review 25 found is genuinely closed
+> `appState.narrEvIdx` is set exactly once at `src/ui/panel.js:1097` — the line immediately after `window.__pp4.subject = subjectOf(e)` — and read only through `readSubject()`… I hunted for a path that could send one without the other and found none… **A line that reads no event now sends neither.**
+
+### The big claim — reasoning holds, evidence real but over-labelled
+> "`stageFlash` is `src/ui/stage.js:1346`; its handling of the flag is `const decided = !!S.subjectSet; S.subjectSet = false;` at `:1386`… **W4-2's second half had never worked, and gate 42 was green over it because every line that SENDS the subject was present and correct.** That is a genuine and well-found bug, and the fix is the right shape."
+> "The BEFORE number is the strong one. `0 of 47` is zero regardless of sampling… **'MATCHED PAIR' is not what happened.** 110s vs 200s, different room, different seed… **The probe under-samples by construction and does not say so** — a `value` listener on a slot written with `.set()`… **`4 of 80` is not suspiciously few — it is correctly few, and that is the problem.**"
+
+### Gate 48 — six new breakages, all green on all 48 gates
+
+| | breakage | gate 48 | npm test |
+|---|---|---|---|
+| **P2** | `const pre=window.__pp4.subjectSet&&false` | **PASS** | **exit 0** |
+| P1 | `evN:appState.narrEvIdx` → `evN:null` | **PASS** | **exit 0** |
+| P4 | move the clear above the read in `readSubject` | **PASS** | **exit 0** |
+| P5 | `payload.evN = evN - 1` | **PASS** | **exit 0** |
+| P6 | `window.__pp4.subject = 0` after `:1097`, crew only | **PASS** | **exit 0** |
+| N4′ | `return arr[0];` inserted above the lookup | **PASS** | **exit 0** |
+
+> "**P2 is the finding, and it is worse than any single breakage in Reviews 24 or 25.** Assertion 10 was written *for this bug*, and under P2 it prints, verbatim: `PASS found: \`const pre=window.__pp4.subjectSet\` at offset 16638, BEFORE…`. Every clause of that sentence is true and the fix is off. The assertion reads the *position* of a substring and never the *operands* of the condition — which is precisely the fault N1 was supposed to have taught."
+> "**GATE-RED-RECORDS.md states the rule that would have caught all six, in its own closing paragraph**… **The rule was written down and then not applied to the code written beneath it.**"
+> "One thing in the CTO's favour, and I checked it rather than assuming: I ran HEAD's gate 48 against the `87cf0e00` tree. It fails with **3 red assertions including assertion 10**. So the gate does discriminate. It is not vacuous. It is porous."
+
+### Stripper, withdrawals, q21, the bot gap
+> "**The CTO's measurement reproduces exactly**… **'plus three `scripts/lib/` files' is FOUR**… **No gate that needed converting was missed**… **The nested-template fix works.** … zero [surviving comment lines] in `src/`."
+> Withdrawals: "**Fully done.**"
+> q21: "**It only fires on a FROZEN mismatch**… **The stated derivation is arithmetically wrong**… two consecutive samples span **400ms, not 800ms**… **It has not been run in its new form.**"
+> "**Not fixing [the bot gap] is the right call** and I agree with the reasoning… **But the gap is bigger than the ledger row admits, and the evidence is in the CTO's own committed file**… the ordering barrier engages on 4 of 80 lines and every bot turn is outside it… ***'the fix reaches 5% of the narration in a crew game'* is the one Wyatt needed and did not get.** This is rule 3's other half: the size was not stated."
+
+### Process
+> "**Rule 24 — RUNNING, NOT DONE.** … **nothing has been proven about build `2026.08.29.2`.** The file says so itself, which is the honest behaviour and a real improvement over a report that would have claimed a verdict." · "**Rule 19 — still no matched-pair screenshot, and the wire measurement does NOT substitute.**" · "**Step 1 — the paper record is now present and honest**… The substance is there; the record points one commit upstream of it." · "**Ledger timestamps — FIXED, and fixed in the open.** … That row is the right way to correct a record." · "**Bulk reading: nothing evidences it either way.** The commit is tight and focused."
+
+**ONE SENTENCE FOR WYATT:** "He found something real and important — the host's decision about which captain a speech bubble points at has never once reached your crewmate's screen in a multiplayer game, and he proved it by watching the actual messages go over the wire — and he has fixed it, but it only takes effect on about one line in twenty because every line a bot's turn produces is still outside it, and the safety net around the whole thing can be switched off by adding two characters to one line with all forty-eight checks still going green, so when the ship finishes its trial please open a battle in two tabs side by side and look at where the bubble sits on each screen."
+
+## CEO Review 25 — 2026-08-29, Q-18 the ruling's actual shape (commit 87cf0e00) — VERBATIM
+
+**VERDICT: YES on the ask. This time the thing Wyatt approved actually shipped.** `subjectOf` lives once, in `src/shared/index.js:105-109`, is exported at `:740`, and both seats run it — the host through `src/ui/panel.js:1087`, the guest through `src/orchestrator.js:1810` over an event it looks up in **its own** feed (`:1799-1806`, filled at `:1567`), with the host's `subj` surviving only as the fallback at `:1811`. That is the shape of his sentence, clause by clause. The `-1` hold CEO 24 found is closed at both ends (`:209`, `:1830`) and I proved the rebuilt gate genuinely fails on the pre-fix tree — 5 red assertions on `87cf0e00^`, not a claim, a run. Credit where it is due: the CTO was told NO, agreed, withdrew its own wire-cost defence in the open, and did the harder thing.
+
+**And three things are wrong, one of them new and none of them small.** The fix introduces a fresh host/guest divergence in exactly the family Wyatt reported. The gate claims more than it checks for the **tenth** consecutive review — I walked six NEW breakages past it green, five of which walk past the entire 48-gate suite, including two that switch his ruling completely off. And the headline on the comment-stripper fix is false as written.
+
+### THE NEW BUG THIS COMMIT INTRODUCES, and nothing in the repo can see it
+
+> "`narrEvN()` returns the index of the last event that EXISTS, not the event the sentence is about. Only `narrateLastEvent` is about that event… Every *other* narration line does not… the host sends `subj = undefined` **but still sends a real `evN`**. The guest's `applySubject` then resolves that unrelated event, anchors the bubble to whichever captain it names, and sets `subjectSet = true` — while the host leaves the same sentence to the colour sniff. **That is a host/guest divergence in bubble placement, created by the fix meant to end host/guest divergence.** It is the W4-2 family — a bubble pointing at the wrong captain — which is what Wyatt reported in the first place. Gate 48 reads text and cannot see it… No instrument in this repo would catch it."
+
+### Six new breakages; five green on gate 48 AND on all 48 gates
+
+| | breakage | effect | gate 48 | npm test |
+|---|---|---|---|---|
+| N1 | the engage condition → `(false)` | the ordering barrier never engages, ever | **PASS** | **exit 0** |
+| N2 | delete the single `applySubject();` | **Wyatt's ruling entirely off**, and W4-2's fix with it | **PASS** | **exit 0** |
+| N3 | capture `myGen` before the bump | **every held line dropped forever** | **PASS** | **exit 0** |
+| N4 | `evAt` returns `arr[0]` | the subject computed from the wrong event | **PASS** | **exit 0** |
+| N5 | `arr[n].n=n` on evAt's own alias | the engine's array dirtied through an alias | **PASS** | **exit 0** |
+| N6 | invert `subjectOf`'s rule | battles anchor to a fighter again | FAIL ✓ | exit 1 ✓ |
+
+> "**N3 is the finding.** It is Breakage 5's exact catastrophe — the guest swallows every held line forever — reappearing in the very assertion added to stop Breakage 5, reachable by reordering two adjacent lines. **N2 is the second.** … **The rule that would end this run is one the CTO can apply mechanically: if a pass line contains a verb the code performs at runtime, it is claiming behaviour** — "stops", "runs", "looks up", "assigns anywhere". Name the string, the count, and the location, and stop there."
+
+### The comment stripper — a real fix with a false headline
+
+> "The 152-line measurement is TRUE and I reproduced it independently… **But "every text gate carried its own copy… now one" is false.** At least four others still read `src/orchestrator.js` through their own block-comments-first stripper, three of them inside `npm test`… **And the disclosed gap is understated.** The new stripper desynchronises on a **nested template literal** — `src/ui/flow.js:1490` — and leaks the three comment lines at `:1492-1494`… 7 leaked comment lines in `src/ui/recipe.js` and 20 in `index.html`. I did **not** find an assertion currently flipped by it, and the direction is the safer one."
+
+### The BEFORE/AFTER measurement
+
+> "**"8 of 26 → 0 of 21 lines at 400ms or later" is the defensible claim.** … **"median 82ms → 61ms" is not a result.** Two 100-second games, two rooms, two seeds, n=1 each side, on a stochastic game. That is wire noise quoted as an outcome… **The number that would show a regression was not reported.** The probe prints `missed` … and it appears nowhere… The AFTER tree deliberately **drops** lines, so `missed` is precisely where a regression would hide… **The raw output was never committed.** … **And `scripts/qa/q18_draft_hold_probe.mjs` has never been run.** … it reads only `.pp4Bub`, when its own sibling's header records that the opening lines render in `#actionPanel`… An instrument aimed at the wrong surface, written in the same commit that documents that exact mistake."
+
+### q21, and process
+
+> "The third stands. `lags` … still cannot fail the run. "A whole day behind" is what a wait produces." · "**Rule 24 — materially better, not yet done.**" · "**Step 1 — the paper record is still missing, and I proved the substance anyway.** … Write the record down; it took me thirty seconds and nobody should have to." · "**Rule 19 — and the excuse does not cover this commit.** … Which captain a bubble points at is a still-frame difference." · "**Rule 16 — claim and completion in the same batch again. And every row in that batch is stamped in the future.** … A record whose timestamps cannot be true is a record nobody can order." · "**Bulk reading in the main thread: NONE FOUND.**"
+
+**ONE SENTENCE FOR WYATT:** "This time he built the thing you asked for — both screens now work out who a line is about from the same rule, instead of one screen being told the answer — but it hands the guest the wrong moment for any sentence that isn't about the very last thing that happened, which can make a speech bubble point at a different captain on your screen than on your crewmate's; the safety net around it can still be switched off by moving two lines, with every check staying green; and the ship hasn't finished its sea trial yet, so please look at a battle on two tabs side by side before you trust it."
+
 ## CEO Review 24 — 2026-08-29, Q-18 send the event too (commit c7663afc, measured in 1e37c2e4) — VERBATIM
 
 **VERDICT: NO on the ask, YES on a different and genuinely useful fix. He approved a change with a specific shape — "the guest prefers the real event and falls back to today's picture when it's absent… kills this whole class of bug at the source" — and the CTO's own written plan (`.planning/Q18-PLAN.md`, committed two hours before the code) spelled that shape out correctly: move the rule into `src/shared/index.js` so ONE function decides for both seats, put the event on the wire, let the guest compute from it. NONE of those three things shipped. `subjectOf` is not in `src/shared/index.js` — the rule is still inlined host-side at `src/ui/panel.js:1082-1083`, and the guest still reads the host's pre-drawn answer at `src/orchestrator.js:1775`. What shipped instead is an ordering barrier: the line carries a NUMBER, and the guest pauses up to 450ms before drawing. That fixes the symptom he was shown and does not build the floor he bought. The wire-cost argument for the substitution does not survive contact, because the serial the CTO chose ALREADY lets the guest prefer the real event for free — the guest holds every event object at `src/orchestrator.js:1552` — and the code stops one line short of doing it. Gate 48 is the ninth in a row claiming more than it checks: I walked SIX working breakages past it green, including one where the guest silently swallows narration lines forever. And the after-measurement is weaker than the commit title says.**
@@ -903,77 +1024,3 @@ differently."*
   following the rules exactly was a complete bypass.
 - `rec.finished = recA || recB` → a host finishing while the guest sat stuck reported "finished".
 - Crew-on-a-phone — the square he actually playtests — had no leg at all.
-
-## CEO Review 25 — 2026-08-29, Q-18 the ruling's actual shape (commit 87cf0e00) — VERBATIM
-
-**VERDICT: YES on the ask. This time the thing Wyatt approved actually shipped.** `subjectOf` lives once, in `src/shared/index.js:105-109`, is exported at `:740`, and both seats run it — the host through `src/ui/panel.js:1087`, the guest through `src/orchestrator.js:1810` over an event it looks up in **its own** feed (`:1799-1806`, filled at `:1567`), with the host's `subj` surviving only as the fallback at `:1811`. That is the shape of his sentence, clause by clause. The `-1` hold CEO 24 found is closed at both ends (`:209`, `:1830`) and I proved the rebuilt gate genuinely fails on the pre-fix tree — 5 red assertions on `87cf0e00^`, not a claim, a run. Credit where it is due: the CTO was told NO, agreed, withdrew its own wire-cost defence in the open, and did the harder thing.
-
-**And three things are wrong, one of them new and none of them small.** The fix introduces a fresh host/guest divergence in exactly the family Wyatt reported. The gate claims more than it checks for the **tenth** consecutive review — I walked six NEW breakages past it green, five of which walk past the entire 48-gate suite, including two that switch his ruling completely off. And the headline on the comment-stripper fix is false as written.
-
-### THE NEW BUG THIS COMMIT INTRODUCES, and nothing in the repo can see it
-
-> "`narrEvN()` returns the index of the last event that EXISTS, not the event the sentence is about. Only `narrateLastEvent` is about that event… Every *other* narration line does not… the host sends `subj = undefined` **but still sends a real `evN`**. The guest's `applySubject` then resolves that unrelated event, anchors the bubble to whichever captain it names, and sets `subjectSet = true` — while the host leaves the same sentence to the colour sniff. **That is a host/guest divergence in bubble placement, created by the fix meant to end host/guest divergence.** It is the W4-2 family — a bubble pointing at the wrong captain — which is what Wyatt reported in the first place. Gate 48 reads text and cannot see it… No instrument in this repo would catch it."
-
-### Six new breakages; five green on gate 48 AND on all 48 gates
-
-| | breakage | effect | gate 48 | npm test |
-|---|---|---|---|---|
-| N1 | the engage condition → `(false)` | the ordering barrier never engages, ever | **PASS** | **exit 0** |
-| N2 | delete the single `applySubject();` | **Wyatt's ruling entirely off**, and W4-2's fix with it | **PASS** | **exit 0** |
-| N3 | capture `myGen` before the bump | **every held line dropped forever** | **PASS** | **exit 0** |
-| N4 | `evAt` returns `arr[0]` | the subject computed from the wrong event | **PASS** | **exit 0** |
-| N5 | `arr[n].n=n` on evAt's own alias | the engine's array dirtied through an alias | **PASS** | **exit 0** |
-| N6 | invert `subjectOf`'s rule | battles anchor to a fighter again | FAIL ✓ | exit 1 ✓ |
-
-> "**N3 is the finding.** It is Breakage 5's exact catastrophe — the guest swallows every held line forever — reappearing in the very assertion added to stop Breakage 5, reachable by reordering two adjacent lines. **N2 is the second.** … **The rule that would end this run is one the CTO can apply mechanically: if a pass line contains a verb the code performs at runtime, it is claiming behaviour** — "stops", "runs", "looks up", "assigns anywhere". Name the string, the count, and the location, and stop there."
-
-### The comment stripper — a real fix with a false headline
-
-> "The 152-line measurement is TRUE and I reproduced it independently… **But "every text gate carried its own copy… now one" is false.** At least four others still read `src/orchestrator.js` through their own block-comments-first stripper, three of them inside `npm test`… **And the disclosed gap is understated.** The new stripper desynchronises on a **nested template literal** — `src/ui/flow.js:1490` — and leaks the three comment lines at `:1492-1494`… 7 leaked comment lines in `src/ui/recipe.js` and 20 in `index.html`. I did **not** find an assertion currently flipped by it, and the direction is the safer one."
-
-### The BEFORE/AFTER measurement
-
-> "**"8 of 26 → 0 of 21 lines at 400ms or later" is the defensible claim.** … **"median 82ms → 61ms" is not a result.** Two 100-second games, two rooms, two seeds, n=1 each side, on a stochastic game. That is wire noise quoted as an outcome… **The number that would show a regression was not reported.** The probe prints `missed` … and it appears nowhere… The AFTER tree deliberately **drops** lines, so `missed` is precisely where a regression would hide… **The raw output was never committed.** … **And `scripts/qa/q18_draft_hold_probe.mjs` has never been run.** … it reads only `.pp4Bub`, when its own sibling's header records that the opening lines render in `#actionPanel`… An instrument aimed at the wrong surface, written in the same commit that documents that exact mistake."
-
-### q21, and process
-
-> "The third stands. `lags` … still cannot fail the run. "A whole day behind" is what a wait produces." · "**Rule 24 — materially better, not yet done.**" · "**Step 1 — the paper record is still missing, and I proved the substance anyway.** … Write the record down; it took me thirty seconds and nobody should have to." · "**Rule 19 — and the excuse does not cover this commit.** … Which captain a bubble points at is a still-frame difference." · "**Rule 16 — claim and completion in the same batch again. And every row in that batch is stamped in the future.** … A record whose timestamps cannot be true is a record nobody can order." · "**Bulk reading in the main thread: NONE FOUND.**"
-
-**ONE SENTENCE FOR WYATT:** "This time he built the thing you asked for — both screens now work out who a line is about from the same rule, instead of one screen being told the answer — but it hands the guest the wrong moment for any sentence that isn't about the very last thing that happened, which can make a speech bubble point at a different captain on your screen than on your crewmate's; the safety net around it can still be switched off by moving two lines, with every check staying green; and the ship hasn't finished its sea trial yet, so please look at a battle on two tabs side by side before you trust it."
-
-## CEO Review 26 — 2026-08-29, Q-18 the subject and the serial are one fact (commit 6e36baa4) — VERBATIM
-
-**VERDICT: YES — Wyatt's ruling is now, for the first time, actually working in a crew game. The reasoning behind the big claim holds, I checked it in the code and against the committed wire output, and it is the most valuable finding this run has produced. But it is working on FOUR LINES OUT OF EIGHTY, the commit does not say so, and gate 48 has failed for the ELEVENTH consecutive review — I walked SIX new breakages past it green and past all 48 gates, one of which reinstates the exact bug this commit was written to fix while assertion 10, the assertion added to catch that bug, still prints its PASS line.**
-
-### The bug Review 25 found is genuinely closed
-> `appState.narrEvIdx` is set exactly once at `src/ui/panel.js:1097` — the line immediately after `window.__pp4.subject = subjectOf(e)` — and read only through `readSubject()`… I hunted for a path that could send one without the other and found none… **A line that reads no event now sends neither.**
-
-### The big claim — reasoning holds, evidence real but over-labelled
-> "`stageFlash` is `src/ui/stage.js:1346`; its handling of the flag is `const decided = !!S.subjectSet; S.subjectSet = false;` at `:1386`… **W4-2's second half had never worked, and gate 42 was green over it because every line that SENDS the subject was present and correct.** That is a genuine and well-found bug, and the fix is the right shape."
-> "The BEFORE number is the strong one. `0 of 47` is zero regardless of sampling… **'MATCHED PAIR' is not what happened.** 110s vs 200s, different room, different seed… **The probe under-samples by construction and does not say so** — a `value` listener on a slot written with `.set()`… **`4 of 80` is not suspiciously few — it is correctly few, and that is the problem.**"
-
-### Gate 48 — six new breakages, all green on all 48 gates
-
-| | breakage | gate 48 | npm test |
-|---|---|---|---|
-| **P2** | `const pre=window.__pp4.subjectSet&&false` | **PASS** | **exit 0** |
-| P1 | `evN:appState.narrEvIdx` → `evN:null` | **PASS** | **exit 0** |
-| P4 | move the clear above the read in `readSubject` | **PASS** | **exit 0** |
-| P5 | `payload.evN = evN - 1` | **PASS** | **exit 0** |
-| P6 | `window.__pp4.subject = 0` after `:1097`, crew only | **PASS** | **exit 0** |
-| N4′ | `return arr[0];` inserted above the lookup | **PASS** | **exit 0** |
-
-> "**P2 is the finding, and it is worse than any single breakage in Reviews 24 or 25.** Assertion 10 was written *for this bug*, and under P2 it prints, verbatim: `PASS found: \`const pre=window.__pp4.subjectSet\` at offset 16638, BEFORE…`. Every clause of that sentence is true and the fix is off. The assertion reads the *position* of a substring and never the *operands* of the condition — which is precisely the fault N1 was supposed to have taught."
-> "**GATE-RED-RECORDS.md states the rule that would have caught all six, in its own closing paragraph**… **The rule was written down and then not applied to the code written beneath it.**"
-> "One thing in the CTO's favour, and I checked it rather than assuming: I ran HEAD's gate 48 against the `87cf0e00` tree. It fails with **3 red assertions including assertion 10**. So the gate does discriminate. It is not vacuous. It is porous."
-
-### Stripper, withdrawals, q21, the bot gap
-> "**The CTO's measurement reproduces exactly**… **'plus three `scripts/lib/` files' is FOUR**… **No gate that needed converting was missed**… **The nested-template fix works.** … zero [surviving comment lines] in `src/`."
-> Withdrawals: "**Fully done.**"
-> q21: "**It only fires on a FROZEN mismatch**… **The stated derivation is arithmetically wrong**… two consecutive samples span **400ms, not 800ms**… **It has not been run in its new form.**"
-> "**Not fixing [the bot gap] is the right call** and I agree with the reasoning… **But the gap is bigger than the ledger row admits, and the evidence is in the CTO's own committed file**… the ordering barrier engages on 4 of 80 lines and every bot turn is outside it… ***'the fix reaches 5% of the narration in a crew game'* is the one Wyatt needed and did not get.** This is rule 3's other half: the size was not stated."
-
-### Process
-> "**Rule 24 — RUNNING, NOT DONE.** … **nothing has been proven about build `2026.08.29.2`.** The file says so itself, which is the honest behaviour and a real improvement over a report that would have claimed a verdict." · "**Rule 19 — still no matched-pair screenshot, and the wire measurement does NOT substitute.**" · "**Step 1 — the paper record is now present and honest**… The substance is there; the record points one commit upstream of it." · "**Ledger timestamps — FIXED, and fixed in the open.** … That row is the right way to correct a record." · "**Bulk reading: nothing evidences it either way.** The commit is tight and focused."
-
-**ONE SENTENCE FOR WYATT:** "He found something real and important — the host's decision about which captain a speech bubble points at has never once reached your crewmate's screen in a multiplayer game, and he proved it by watching the actual messages go over the wire — and he has fixed it, but it only takes effect on about one line in twenty because every line a bot's turn produces is still outside it, and the safety net around the whole thing can be switched off by adding two characters to one line with all forty-eight checks still going green, so when the ship finishes its trial please open a battle in two tabs side by side and look at where the bubble sits on each screen."
