@@ -437,3 +437,18 @@ holding the previous day's picture a beat longer than the host across the rollov
 **Telling them apart needs a live two-browser game watched at a day boundary** — half an hour,
 not a guess. **Do you want me to spend that?** The alternative is to leave it: it is rare, brief,
 and self-correcting. I would rather you decide than have me quietly rank it for you.
+
+---
+
+# ANSWERED BY WYATT, 2026-08-29 (asked in the question UI, from his phone)
+
+| | his ruling | what it means |
+|---|---|---|
+| **Q-18** wire carries pictures, not events | **Send the event TOO** — additive, reversible | `netSetEv` carries the event alongside today's rendered html; the guest prefers it and falls back when it is absent. Every future divergence of this class dies at the source. Does not touch the engine or the determinism corpus. ~half a day. |
+| **Q-21** one-coin host/guest divergence | **Spend the half hour** | Coins are game state, not decoration. Live two-browser game, watched at a day rollover. |
+| **Q-19** flip art masters | **Leave it** | The masters are the pre-cutout renders and cannot be used. The ceremony no longer stretches a small picture, which was the bigger half. CLOSED. |
+| **Q-20** award list will not scroll | **Give scrolling the first inch** | The list scrolls normally; only a scroll at the very bottom docks the card. Docking stays available by dragging. |
+
+Q-15 (bulk-read hook) was parked by him on 2026-08-28 and stays parked. Q-16 (wind pill wash) and
+Q-17 (counter-offer word) were not asked this round — both have a stated default and neither blocks
+anything.

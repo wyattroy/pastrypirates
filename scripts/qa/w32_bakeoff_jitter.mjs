@@ -191,10 +191,21 @@ for (let c = 0; c < trace[0][1].length; c++) {
       commits.push({ crate: c, t: trace[i2][0], from: prev[c][0], to: row[c][0], jump: Math.round(Math.abs(row[c][0] - prev[c][0]) * 10) / 10 });
   }
 }
-const bigCommits = commits.filter(x => x.jump > 2);
-console.log(`\n--- the reconcile at each commit (${commits.length} seen) ---`);
-commits.slice(0, 14).forEach(x => console.log(`  crate ${x.crate} at ${x.t}ms: ${x.from} -> ${x.to}   jumped ${x.jump}px`));
-console.log(`  commits that jumped more than 2px: ${bigCommits.length}`);
+/* THE RECONCILE IS SUPPOSED TO BE A WHOLE NUMBER OF PITCHES, AND THAT IS THE WHOLE TEST.
+   A crate that has arrived sits exactly where its neighbour does — an exact multiple of the pitch
+   away from its own seat. Swapping the contents and clearing the offset in the same frame is then
+   a true no-op: identical pixels. So the jump the PLAYER sees is not the reconcile's size, it is
+   the REMAINDER: how far the crate still was from a whole number of seats.
+   The first version of this counted "any commit that moved more than 2px" and would have called
+   the fixed build broken — the fixed build's reconciles are 66.8 and 133.6, which is precisely
+   what makes them invisible. Measuring the size of a legitimate hand-off instead of its error is
+   the same class of mistake as the detector that excluded the commit entirely. */
+const residual = j => { const k = Math.round(j / pitch); return Math.round(Math.abs(j - k * pitch) * 10) / 10; };
+commits.forEach(x => { x.seats = Math.round(x.jump / pitch); x.short = residual(x.jump); });
+const bigCommits = commits.filter(x => x.short > 1);
+console.log(`\n--- the reconcile at each commit (${commits.length} seen; one seat is ${pitch}px) ---`);
+commits.slice(0, 14).forEach(x => console.log(`  crate ${x.crate} at ${x.t}ms: ${x.from} -> ${x.to}   travelled ${x.jump}px = ${x.seats} seat(s)   ${x.short ? `STOPPED ${x.short}px SHORT — the player sees this jump` : "exact — invisible hand-off"}`));
+console.log(`  commits that did not land on a whole seat: ${bigCommits.length}${bigCommits.length ? `   worst ${Math.max(...bigCommits.map(x => x.short))}px` : ""}`);
 
 const snaps = [], contentJumps = [];
 let moved = false;
