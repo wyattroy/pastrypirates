@@ -274,3 +274,25 @@ built during a fix window and the game got no better (rule 7).
 
 **What would un-park it:** two or more CEO verdicts naming real instances. Build it against those,
 not against a guess.
+
+## Q-16 — the wind pill still paints its own wash, inside the bar he circled
+
+**Raised by CEO Review 16, 2026-08-28.** The top-bar gradient is gone. But `#pp4Pill` — the
+`WIND NOW: … · FORECAST: …` chip — still carries `background:rgba(9,42,52,.34)` when it rides inside
+the ribbon at ≥601px (`index.html`, `#pp4Ribbon > #pp4Pill`), and `rgba(9,42,52,.62)` in its own
+fixed position below the bar on a phone.
+
+**Why it is a real question and not a loose end:** on the desktop screenshot he annotated, the wind
+pill sits INSIDE the red rectangle he drew. So his "remove this gradient from the top bar" either
+covers it or does not, and only he can say. The ☰ menu button is not in doubt — it is a light chip
+(`rgba(255,255,255,.16)`), plainly a button, and nobody would read it as part of the bar's wash. The
+pill is the ambiguous one because it is dark, wide, and the same colour family as the gradient that
+was just removed.
+
+**Not decided here on purpose.** Removing it is a taste call about whether the wind reads as a chip
+or as text on the page, and taste is his. The measurement he would want beside the question: at
+1200px the pill spans roughly the middle third of the bar at 34% opacity; on a phone it is a separate
+pill below the bar at 62%.
+
+**Default if he never answers:** leave it. He wrote "this gradient", singular, and the bar-wide wash
+is what is gone.

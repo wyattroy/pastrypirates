@@ -1,5 +1,74 @@
 # CEO reviews — the standing record
 
+## CEO Review 17 — 2026-08-28, W4-1 the prompt card centring (commit 9b501b25) — VERBATIM
+
+**YES on the fix, NO on the proof.**
+
+### What genuinely happened
+
+**The cause is real and it is one cause, which is what his standing rule asked for.** `#actionPanel` gets `margin: 0 auto` in its base rule (`index.html:458`), and two later rules replaced that with `margin:0` — `#pp4Prompt #actionPanel` (`index.html:1762`) and `body.pp4Stage #actionPanel` (`index.html:2054`). The second one applies in every mode. Both now say `margin:0 auto`. That is architectural, not pass-and-play-only.
+
+**The radial exemption is NOT the broken case.** The recipe picker can never be a radial bloom — `src/ui/stage.js:2199` disqualifies any prompt containing `.recipeList` from the arc, and `stage.js:2425-2426` puts it in `pp4Recipes` instead, after `pp4Center` has been removed at `stage.js:2410`. So the card Wyatt actually saw routes through both rules that were fixed. The CTO did not exempt the thing he reported.
+
+**The UNMEASURED caveat is genuinely in the gate, not just the commit message** — `scripts/qa/w41_prompt_centred_check.mjs:69-73`, in those words, including "if the arc ever drifts, this exemption is the first thing to suspect."
+
+**The gate is wired into `npm test`** — `package.json:11`. The disclosure that it wasn't before is true and was volunteered.
+
+### The miss
+
+**There is no matched-pair screenshot for W4-1.** The commit's "verified by matched-pair renders" sentence is entirely about W4-8, the top bar — the declaration re-injected for the "before" is the ribbon gradient. The ledger entry (`.planning/CTO-LEDGER.md:131`) carries the same evidence only in the W4-8 half. **And there is no after-measurement at all**: we know the panel sat 53px left at 1200px and 17px left on a phone, and nothing anywhere says it is now 0. The fix is argued in the stylesheet, never shown on the screen. The CTO wrote in its own claim (`CTO-LEDGER.md:126`) that "matched-pair rendering is the evidence standard now" and then did not meet it for this item.
+
+**One thing I could not settle and will not assert.** `#pp4Prompt` is `position:fixed` with no width in its base rule (`index.html:1740`). An auto margin centres the panel inside *that* box — but the before-measurement was taken against **the board's** centre. If the overlay is not board-width in some layout, "centred" and "centred on the board" are two different results. Unverified either way; a rendered screenshot would have answered it in one shot, which is the point.
+
+### Can the gate fail?
+
+Yes for the exact re-break, no for several near neighbours. It only reads the `margin:` shorthand (`w41_prompt_centred_check.mjs:44`). `margin-left:0`, `margin-inline:0`, a `left:`/`transform:` offset, or an inline style from JavaScript all re-break the card with the gate green. Its second exemption (`w41_prompt_centred_check.mjs:76`) tests `background:none` **and** `/padding:\s*0/` — which matches `padding:0 18px`, so a future rule with side padding and a visible border or shadow would be waved through as "invisible scaffolding."
+
+### Recurrence
+
+**Two of Review 15's three faults recur.** The gate is again defeatable by properties it does not watch — same shape as "the gate reads only `left` and `right`", one item later. And the report again claims more ground than the change proved: the matched-pair evidence belongs to the other item in the same commit, and W4-1 has no after-picture. The third fault (a settled decision reversed silently) does **not** recur — the two changed lines carry new comments naming Wyatt's words and the measurement, and no prior ruling was overwritten.
+
+---
+
+## CEO Review 16 — 2026-08-28, W4-8 the top-bar gradient (commit 9b501b25) — VERBATIM
+
+**VERDICT: YES** — with one recurring fault and one thing you should rule on.
+
+### The gradient is genuinely gone, at every width
+
+`#pp4Ribbon` no longer declares any background (`index.html:1926-1937`). I checked for the ways a wash usually survives a removal like this, and none of them are live:
+
+- **No second rule paints it.** The only other rules touching the bar are `index.html:1938` (`display:flex`) and `index.html:2361` (`z-index:40`). Neither paints.
+- **Not media-scoped.** The removal is on the base rule, so it applies on desktop, tablet and phone alike — which is the "on all screen widths, including phone" half of what you asked.
+- **Nothing paints it from JavaScript.** No inline background is set on the bar anywhere in `src/ui/stage.js`.
+
+### The gate is real, and it can fail
+
+I traced it. If someone puts a background back on the bar — in any rule, inside any media query — the check fails (`scripts/qa/w43_one_background_check.mjs:174-181`). And if the bar vanishes from the stylesheet entirely, it fails rather than going quiet ("re-anchor this assertion, do not delete it", line 172). That is the right instinct.
+
+**But it can be walked around four ways, and you have heard three of these before:**
+
+1. **A `::before` wash.** `#pp4Ribbon::before { background:… }` — the check reads the last name in the selector, gets `#pp4Ribbon::before`, and doesn't recognise it. Silent.
+2. **A child.** `#pp4Ribbon > .wash { background:… }` — the check sees `.wash`. Silent. The commit sells this as a feature ("children are scoped out by construction") and for the ☰ chip that is right, but it also means a full-width child slab is invisible to it. There is already a child rule carrying a dark background inside that bar — `index.html:1978-1979`.
+3. **A comma.** `.foo, #pp4Ribbon { background:… }` — only the first selector before the comma is read (line 178). Silent.
+4. **A wash that isn't a "background".** It watches only `background*`. A `backdrop-filter: blur()`, an inset shadow, or a translucent overlay would darken the bar exactly the same and never trip it.
+
+### Two things I'd put to you
+
+**Something was added that you didn't ask for.** The bar's text gained a drop shadow (`index.html:1936`). It is small and probably fine — but the CTO's own measurement says the bar never sits over the sea at either size, so by its own evidence the shadow isn't needed; it's insurance. And its legibility is **asserted, not measured** — the only numbers taken were "background image: none, background colour: transparent." Nobody read a contrast figure.
+
+**The chip below the bar still paints.** `#pp4Pill` — the wind pill — is pinned 52px down the page with its own dark wash (`index.html:1946-1947`). If your red rectangle covered that band and not just the bar, this item is half done. If you circled only the bar, ignore me.
+
+### Recurrence of Review 15
+
+**Two of three faults did not recur.** The claim is narrow and matches what was measured; and the reason the old gradient existed is written down in the comment that replaced it (`index.html:1927-1935`) instead of being quietly reversed. That is a direct response to last time.
+
+**One recurs, and this is the fourth review running.** The gate's pass line says the bar "paints nothing of its own — the page's 5-gradient ground shows through it at every width." It checked the first clause, not the second — and on a phone that gradient doesn't exist at all, by the design this same file records. The sentence still claims more than the check.
+
+> **CTO NOTE, appended without altering the verdict above:** the last clause is factually wrong and it matters, so it is corrected here rather than left to mislead. The page's surround DOES paint on a phone — Wyatt ruled exactly that on 2026-08-28 ("on all screen widths, including phone"), the `html` surround rule left `@media (min-width:601px)` that evening, and `w43_one_background_check.mjs` asserts it and passes. The reviewer was reading the pre-ruling design note. **Its actual point stands and has been acted on:** the pass line asserted a consequence it never checked, and has been narrowed to what it watches.
+
+---
+
 ## CEO Review 15 — 2026-08-28, W4-4 the captains box width (commit f45aea7b) — VERBATIM
 
 **Wyatt — YES on the half you typed, NO on the half you screenshotted.** The tablet fault you described is genuinely gone, measured properly, and the reasoning behind it is the best-evidenced work on this branch today. But your annotation said "ALSO ON A PHONE — the rows end about 200px short," and on the phone this change moved them **four pixels**. The write-up tells you it fixed both, "at every screen size." It did not. And the thing that really is ~200px on your phone is sitting on the "deliberately not fixed" list.

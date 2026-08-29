@@ -42,14 +42,34 @@ const offenders = [], centred = [];
       let d = 1, j = i + 1;
       for (; j < css.length && d; j++) { if (css[j] === "{") d++; else if (css[j] === "}") d--; }
       const body = css.slice(i + 1, j - 1);
-      if (/#actionPanel\s*$/.test(head.split(",")[0].trim()) || /#actionPanel[^ ]*\s*$/.test(head)) {
-        const m = body.match(/(?:^|;)\s*margin\s*:\s*([^;]+)/);
-        if (m) {
-          const parts = m[1].trim().split(/\s+/);
-          // horizontal margin is parts[1] for 2-value, parts[1]/parts[3] for 4-value, parts[0] for 1
-          const horiz = parts.length === 1 ? parts[0] : parts.length === 4 ? parts[3] : parts[1];
-          (horiz === "auto" ? centred : offenders).push({ head, margin: m[1].trim(), body });
+      /* EVERY SELECTOR IN THE LIST, not just the text before the first comma. */
+      const targetsPanel = head.split(",").some(sel => /#actionPanel[^\s>+~]*\s*$/.test(sel.trim()));
+      if (targetsPanel) {
+        /* THE SHORTHAND IS NOT THE ONLY WAY TO KILL A CENTRING. CEO Review 17 named four routes the
+           first version could not see: `margin-left:0`, `margin-inline:0`, and a `left:`/`transform:`
+           offset. Each re-breaks the card while the gate stays green — the same shape of hole the
+           previous review found in the W4-4 gate, one item later, which is why they are all read
+           here rather than one at a time as they get discovered. */
+        const decl = k => { const m = body.match(new RegExp(`(?:^|;)\\s*${k}\\s*:\\s*([^;]+)`)); return m ? m[1].trim() : null; };
+        const sh = decl("margin");
+        let horiz = null, via = null;
+        if (sh) { const parts = sh.split(/\s+/);
+          horiz = parts.length === 1 ? parts[0] : parts.length === 4 ? parts[3] : parts[1]; via = `margin:${sh}`; }
+        /* the longhands win over the shorthand when they come after it, and either way a non-auto
+           one is a killed centring */
+        for (const k of ["margin-left", "margin-right", "margin-inline", "margin-inline-start", "margin-inline-end"]) {
+          const v = decl(k); if (v === null) continue;
+          const x = k === "margin-inline" ? (v.split(/\s+/)[0]) : v;
+          horiz = x; via = `${k}:${v}`;
         }
+        if (horiz !== null) (horiz === "auto" ? centred : offenders).push({ head, margin: via, body });
+        /* A POSITION OR TRANSFORM OFFSET SHIFTS THE CARD JUST AS FAR. An auto margin that is then
+           translated is not centred, whatever the margin says. */
+        const tf = decl("transform"), lf = decl("left"), rt = decl("right");
+        const shifted = (tf && /translate/i.test(tf) && !/translate[XY]?\(\s*(0(px|%)?|\s*)\s*[,)]/.test(tf)) ||
+                        (lf && !/^(0(px|%)?|auto)$/.test(lf) && rt === null) ||
+                        (rt && !/^(0(px|%)?|auto)$/.test(rt) && lf === null);
+        if (shifted) offenders.push({ head, margin: `offset (${tf ? "transform:" + tf : lf ? "left:" + lf : "right:" + rt})`, body });
       }
       stack.push(head); buf = ""; i++; continue;
     }
@@ -73,7 +93,11 @@ const flexCentred = sel => {
    an arc). There is no visible box there to centre. Stated as UNMEASURED: the radial arc geometry
    was not re-measured under a centred panel, so this is reasoning, not evidence. If the arc ever
    drifts, this exemption is the first thing to suspect. */
-const nonVisual = body => /background\s*:\s*none/.test(body) && /padding\s*:\s*0/.test(body);
+/* `padding:0` MEANS ZERO ON ALL FOUR SIDES — the first version tested /padding:\s*0/, which also
+   matches `padding:0 18px`, so a future rule with real side padding plus a visible border or shadow
+   would have been waved through as "invisible scaffolding" (CEO Review 17). */
+const nonVisual = body => /background\s*:\s*none/.test(body) &&
+  /(?:^|;)\s*padding\s*:\s*0(px)?\s*(;|$)/.test(body);
 const real = offenders.filter(o => !flexCentred(o.head) && !nonVisual(o.body || ""));
 if (!real.length) pass(`no rule strips #actionPanel's centring (${offenders.length} margin-0 rule(s), all inside a flex-centred container)`);
 else for (const o of real)
@@ -82,5 +106,6 @@ else for (const o of real)
 if (centred.length) pass(`${centred.length} rule(s) keep the auto horizontal margin`);
 else fail("nothing gives #actionPanel an auto horizontal margin at all — it can only ever be left-aligned");
 
-console.log(fails ? `\nFAILED — ${fails} assertion(s)` : "\nPASSED — the prompt card is centred in every mode, not just the stage");
+console.log(fails ? `\nFAILED — ${fails} assertion(s)`
+  : "\nPASSED — no rule reaching #actionPanel kills its horizontal centring by margin shorthand, margin longhand, margin-inline, or a transform/left/right offset, and at least one still grants it");
 process.exit(fails ? 1 : 0);

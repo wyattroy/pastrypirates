@@ -168,18 +168,45 @@ else fail("the html surround gradient is gone — that is the background he want
       if (ch === "}") { stack.pop(); buf = ""; i++; continue; }
       buf += ch; i++;
     } }
-  const last = h => h.split(",")[0].trim().split(/[\s>]+/).filter(Boolean).pop() || "";
+  /* EVERY SELECTOR IN THE LIST, AND PSEUDO-ELEMENTS COUNT AS THE ELEMENT. CEO Review 16 broke the
+     first version three ways with one line each: `.foo, #pp4Ribbon { background:… }` was invisible
+     because only the text before the first comma was read; `#pp4Ribbon::before { background:… }`
+     was invisible because the last compound came back as "#pp4Ribbon::before" and matched nothing;
+     and a full-bleed CHILD could paint the same slab while the commit sold "children are scoped out
+     by construction" as a feature. */
+  const bare = c => c.replace(/::?[a-z-]+(\([^)]*\))?/g, "");   // strip pseudo-elements/classes
+  const heads = h => h.split(",").map(x => x.trim()).filter(Boolean);
+  const lastOf = sel => bare(sel.split(/[\s>+~]+/).filter(Boolean).pop() || "");
+  const last = h => lastOf(heads(h)[0] || "");
   const pinned = b => /position\s*:\s*fixed/.test(b) &&
     ["top", "left", "right"].every(k => new RegExp(`(^|;)\\s*${k}\\s*:\\s*0`).test(b));
   const BARS = [...new Set(RULES.filter(r => pinned(r.body)).map(r => last(r.head)).filter(Boolean))];
   if (!BARS.length)
     fail("no full-width fixed top bar found in the sheet — re-anchor this assertion, do not delete it");
-  const paints = RULES.filter(r => BARS.includes(last(r.head)) &&
-    /background(-image|-color)?\s*:\s*(?!none|transparent)[^;]+/.test(r.body));
-  if (BARS.length && !paints.length)
-    pass(`the top bar (${BARS.join(", ")}) paints nothing of its own — the page's 5-gradient ground shows through it at every width`);
+  /* A WASH IS NOT ONLY A `background`. A backdrop-filter, a filter, or an INSET box-shadow darkens
+     the bar exactly the same way and would never have tripped the first version (CEO Review 16). */
+  const WASH = /(?:^|;)\s*(?:background(?:-image|-color)?\s*:\s*(?!none|transparent)[^;]+|backdrop-filter\s*:\s*(?!none)[^;]+|filter\s*:\s*(?!none)[^;]+|box-shadow\s*:\s*[^;]*inset[^;]*)/;
+  const onBar = r => heads(r.head).some(sel => BARS.includes(lastOf(sel)));
+  const paints = RULES.filter(r => onBar(r) && WASH.test(r.body));
+  /* AND A FULL-BLEED CHILD IS THE BAR WEARING A DISGUISE. A chip inside the bar may paint — the ☰
+     and the wind pill both do, and Wyatt circled neither — but a descendant that also declares a
+     full-width shape is a slab across the top of the page by another name. "Full-bleed" is read
+     from the declaration, not guessed: width:100%, both left and right pinned, or an absolute inset. */
+  const bleedKids = RULES.filter(r => {
+    if (onBar(r)) return false;
+    if (!heads(r.head).some(sel => { const c = sel.split(/[\s>+~]+/).filter(Boolean).map(bare);
+      return c.length > 1 && c.slice(0, -1).some(x => BARS.includes(x)); })) return false;
+    if (!WASH.test(r.body)) return false;
+    return /(?:^|;)\s*width\s*:\s*100%/.test(r.body) ||
+           (/(?:^|;)\s*left\s*:\s*0/.test(r.body) && /(?:^|;)\s*right\s*:\s*0/.test(r.body)) ||
+           /(?:^|;)\s*inset\s*:\s*0/.test(r.body);
+  });
+  if (BARS.length && !paints.length && !bleedKids.length)
+    pass(`the top bar (${BARS.join(", ")}) declares no wash of its own in any rule that reaches it — no background, backdrop-filter, filter or inset shadow, on the element or its pseudo-elements, and no full-bleed child painting one for it`);
   for (const p of paints)
-    fail(`${last(p.head)} paints its own background (${((p.body.match(/background[^;]*/) || [])[0] || "").replace(/\s+/g, " ").slice(0, 58)}…)${p.media ? " in " + p.media : ""} — that is the slab over the page surround Wyatt circled in red on 2026-08-28`);
+    fail(`the top bar paints a wash of its own — ${p.head} { ${(p.body.match(WASH) || [""])[0].replace(/\s+/g, " ").trim().slice(0, 62)}… }${p.media ? " in " + p.media : ""}. That is the slab over the page surround Wyatt circled in red on 2026-08-28`);
+  for (const k of bleedKids)
+    fail(`a FULL-BLEED CHILD of the top bar paints the slab instead — ${k.head}${k.media ? " in " + k.media : ""}. A chip inside the bar may paint (the menu and the wind pill do, and he circled neither); something spanning its whole width is the bar's wash by another name`);
 }
 
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
