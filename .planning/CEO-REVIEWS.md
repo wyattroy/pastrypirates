@@ -1,5 +1,107 @@
 # CEO reviews — the standing record
 
+## CEO Review 24 — 2026-08-29, Q-18 send the event too (commit c7663afc, measured in 1e37c2e4) — VERBATIM
+
+**VERDICT: NO on the ask, YES on a different and genuinely useful fix. He approved a change with a specific shape — "the guest prefers the real event and falls back to today's picture when it's absent… kills this whole class of bug at the source" — and the CTO's own written plan (`.planning/Q18-PLAN.md`, committed two hours before the code) spelled that shape out correctly: move the rule into `src/shared/index.js` so ONE function decides for both seats, put the event on the wire, let the guest compute from it. NONE of those three things shipped. `subjectOf` is not in `src/shared/index.js` — the rule is still inlined host-side at `src/ui/panel.js:1082-1083`, and the guest still reads the host's pre-drawn answer at `src/orchestrator.js:1775`. What shipped instead is an ordering barrier: the line carries a NUMBER, and the guest pauses up to 450ms before drawing. That fixes the symptom he was shown and does not build the floor he bought. The wire-cost argument for the substitution does not survive contact, because the serial the CTO chose ALREADY lets the guest prefer the real event for free — the guest holds every event object at `src/orchestrator.js:1552` — and the code stops one line short of doing it. Gate 48 is the ninth in a row claiming more than it checks: I walked SIX working breakages past it green, including one where the guest silently swallows narration lines forever. And the after-measurement is weaker than the commit title says.**
+
+**What he asked for, verbatim.** *"Send the event too (additive, reversible): the guest prefers the real event and falls back to today's picture when it's absent. Kills this whole class of bug at the source. Doesn't touch the engine or the replay corpus."*
+
+---
+
+### 1. Each thing he asked for
+
+**"Send the event too" — NOT DONE.** The wire carries `payload.evN`, an integer (`src/net/writers.js:109`), not the event. The whole event was the ask and was the CTO's own plan ("**2. THE EVENT RIDES ALONG.** `netSetNarr` gains `ev` — the event object the host was already holding", `.planning/Q18-PLAN.md`).
+
+**"The guest prefers the real event" — NOT DONE, and this is the sentence that carries his intent.** The guest's narration handler still takes the host's pre-computed decision: `if(v.subj!=null&&window.__pp4){window.__pp4.subject=(v.subj===-1?null:v.subj);…}` (`src/orchestrator.js:1775`). Nothing in the guest path computes anything from an event. The plan's step 3 — `v.ev present -> subject = subjectOf(v.ev)` — has no counterpart in the shipped code.
+
+**"Falls back to today's picture when it's absent" — vacuously true.** Today's picture is the only path there is.
+
+**"Kills this whole class of bug at the source" — NOT DONE.** The class, named correctly by the CTO itself at `.planning/CTO-LEDGER.md:157`, is *"EVERY WRITER SENDS A DRAWN THING, NOT AN EVENT… any drawing decision depending on something only the event knows must be re-derived on the guest from finished output."* After this commit the narration payload carries `html`, `variants`, `wait`, `subj` **and** `evN` — one more field per decision, which is the exact pattern the plan called out as *"one field per decision, forever."* The next decision will cost another field. The floor was not built.
+
+**"Doesn't touch the engine or the replay corpus" — DONE, and done carefully.** This is the best part of the commit and I checked it rather than taking it. The serial is written onto the deep copy at `src/orchestrator.js:1409-1410` and `Game.ev` (`src/engine/index.js:316-322`) is untouched. I also checked the one path that could have leaked it back: a resuming host reads only a COUNT off Firebase (`appState.resumeEvLen=evval?Object.keys(evval).length:0`, `src/orchestrator.js:2476`), never the event objects, and `watchEvents` is guest-only (`src/orchestrator.js:2291`, the `else` branch of `beginGame`). So the engine's array never sees `n`. One citation correction: the sentence quoted as PROJECT.md's is actually CLAUDE.md's Project section ("Changing what the engine emits into the event stream invalidates the whole determinism corpus"). Same rule, wrong file named.
+
+**The ordering fix he did NOT ask for — DONE, and it is real work on a real bug.** The two-path race is correctly diagnosed and correctly cited: `rooms/<room>/narr` is a `set` (`src/net/writers.js:110`) and `rooms/<room>/ev` a `push`, watched by two listeners with nothing between them. The measurement behind it (`q21.txt`, days 13 and 15) is the best evidence produced today: both seats drawing the SAME sentence in its two addressed wordings with a different purse under it, totals conserved on each seat. That is a genuine finding and it deserved a fix.
+
+**THE SUBSTITUTION, JUDGED. It is a quiet narrowing, and the stated reason does not hold.** The argument is that shipping the event *"would have doubled the wire cost of every line, because each event carries a full per-captain state snapshot."* Three things:
+
+- The multiple is unverified and, if anything, understated — an event carries `state` (four captains × pos/coins/ing/done/baking), `tokens`, `round`, `wind`, `wind2`, `storm` (`src/engine/index.js:316-322`), against a sentence plus per-seat variants. Call it 2–3×. Fine. **But the absolute number is a few hundred bytes on a node that already ships a per-seat rendered `variants` array, a handful of times a minute.** No measurement of the existing payload size appears anywhere in the commit, the ledger or the plan. A cost nobody measured was used to overrule a written ruling.
+- **The serial the CTO chose already gives him the ruling for free, and he did not take it.** `watchEvents` pushes the whole event onto the guest's own array — `appState.game.events.push(e)` (`src/orchestrator.js:1552`) — and `e` is in hand three lines above where `appState.evSeen=e.n` is written. Having made the guest wait until it holds event *n*, the code could then have computed the subject from that event with the shared rule, exactly as the plan said. It doesn't. **Zero extra bytes, his ruling honoured. That is the finding that makes the wire-cost defence collapse.**
+- The plan was written at 13:52Z and the code at 15:10Z. The design changed inside eighty minutes, and it was disclosed honestly in the commit and the ledger — credit for that, it is not concealed. But disclosure is not authorisation, and the size of what was dropped is not disclosed: nothing in the commit, the ledger or the brief says *"the guest still does not compute anything from an event, and `subjectOf` never moved."*
+
+---
+
+### 2. What was delivered that he did not ask for
+
+**A 450ms wait on the guest.** Named in the commit, the ledger and the brief. The disclosure is adequate — it is the first paragraph a reader hits.
+
+**Is the bound sound? Mostly yes, with one real exception I can prove from the code.** The common case resolves in well under the ceiling: the host writes the event and the sentence within one local call, so the two messages race over one connection and the loser is usually tens of milliseconds behind. On a slow phone both writes are slow together. The wait does not accumulate on a single line, and a line whose event never lands degrades to today's behaviour. That reasoning holds.
+
+**THE EXCEPTION, AND IT FIRES IN EVERY CREW GAME.** `const evN=appState.game?appState.game.events.length-1:null` (`src/orchestrator.js:202`). Before the first event exists that is **-1**, and `-1 != null`, so `payload.evN = -1` is sent (`src/net/writers.js:109`). On the guest, `appState.evSeen` is **undefined** until an event arrives, and `undefined == null`, so the guard `(appState.evSeen==null||appState.evSeen<v.evN)` at `src/orchestrator.js:1787` is TRUE regardless of the value. The first `ev()` of a crew game is the round-1 `newround` at `src/orchestrator.js:1265` — after the recipe draft. And the recipe draft broadcasts a narration line: `if(announce)netHandlers().onBroadcast(announce.html,announce.variants,{wait:true})` (`src/ui/flow.js:2656`), which is wired to `netNarrate` (`src/main.js:75`). **So "⚓ Everyone's choosing their recipe…" appears instantly on the host and 450ms later on the guest, every game, deterministically.** A fix whose entire purpose is to stop the two screens diverging introduces a guaranteed 450ms divergence at the start of every voyage. One character fixes it: the guard should be `evN >= 0`, not `evN != null`.
+
+**A SECOND NEW ORDERING FAULT, AND IT IS THE FIX'S OWN CLASS.** `narr` is a single slot written with `.set()`, and each arriving line now runs its own independent timer. `netBroadcast` — the battle play-by-play — sends **no** `evN` at all (`src/orchestrator.js:205`), so it never waits. Sequence: the host narrates a line naming event 20 (held on the guest), then broadcasts a battle line 200ms later (drawn immediately on the guest), then event 20 lands and the held line draws — **overwriting the newer battle line with the older sentence.** Window up to 450ms. Between two `netNarrate` lines the same inversion is possible but bounded at one 30ms poll. An ordering fix that can invert two lines is worth one look before he plays it.
+
+**Coverage gap in the same breath: battles are the one place coins move most, and `netBroadcast` carries neither `subj` nor `evN`.** So the "sentence ahead of the purse" fault is still fully live for battle spoils.
+
+**Did any of this displace what he asked for? Yes.** The half-day he approved bought an ordering barrier and a gate. It did not buy the one shared rule, and that was the part with the compounding return.
+
+---
+
+### 3. Claims unsupported by the repo
+
+- **"Gate 48 holds both halves and fails if the field ever moves into the engine"** (commit message; `.planning/CTO-LEDGER.md:214`). **False.** Breakage A below moves a serial into `Game.ev` and the gate stays green.
+- **"Red-proofed five ways… Each fails."** I did not reproduce the five (they are literal-spelling reverts and I believe them). But the sentence is offered as evidence the gate is sound, and six equivalent rewrites walk past it.
+- **"the after-run's apparent hits are a lobby-handoff artifact"** — as relayed. Of the 8 after-run hits that were printed, **2** are the blank-coin handoff (7825ms, 8230ms). The other **6 are real number-against-number gaps of 1 to 3 coins** (15586ms Flaky Jack 1 vs 3; 15991ms same; 151112ms Dough Hook 6 vs 5; 167289ms Flaky Jack 4 vs 3; 208933ms 5 vs 4; 250201ms 2 vs 5). The commit message is more careful than the brief — it claims only that the *sharp* hits are the handoff, which is true of what was printed. **But `desyncs.slice(0, 8)` (`scripts/qa/q21_purse_parity.mjs:105`) prints only eight of the eleven. Three records were never seen by anyone, and "the after-run has ZERO" is asserted over them.**
+- **"the trade desync is gone"** (commit title, 1e37c2e4). Not supported. Two 12-minute games, two different rooms, two different seeds, n=1 each, on a stochastic game. The body says *"evidence, not proof, and I am not calling it closed on n=1"* — that qualification is honest and it contradicts the title. The title is what gets quoted.
+- **"PROJECT.md is explicit that…"** — the sentence is in CLAUDE.md, not `.planning/PROJECT.md`.
+
+**AND THE INSTRUMENT WAS NARROWED, AFTER BOTH RUNS, ALONG THE AXIS THE FIX MOVES. This is the one to look at hardest.** Commit 1e37c2e4 changes the probe's verdict from `desyncs.length` to `sharp.length`, where sharp = *both seats drawing a line* (`scripts/qa/q21_purse_parity.mjs:83, 102, 115`). Two observations:
+
+- The blank-coin guard is legitimate and I checked it does not flatter the before-run: every before-run entry has real numbers on both sides, so before stays at 4/4.
+- **But "both seats drawing a line" excludes precisely the state this fix creates.** The fix's mechanism is to leave the guest's narration box EMPTY while its purse is stale. In the before run, 2 of 8 hits had `guest saw ""`. In the after run, **6 of the 8 printed hits have `guest saw ""`, with a live coin gap** — and every one of them is now, by construction, unable to fail the probe. A test that cannot fail in the window the change widens is not a sharpened test. **The right sharp count for a wait-based fix is "the guest's purse disagrees while it is showing nothing", and that number appears to have gone UP.**
+- Separately, `sharp` is filtered from `desyncs` only, never from `lags` (`:102`), so a guest a whole day behind with a different purse can never fail this probe at all — and "a whole day behind" is what a wait produces.
+- The new probe **has never been run.** Both raw outputs are in the old format. Its exit code is unexercised.
+
+---
+
+### 4. Has the last verdict's fault recurred?
+
+**YES, ninth consecutive review, and this time in its strongest form yet — the gate passes while the fix is fully disabled, and while it is actively destructive.** Gate 48 opens by saying it reads source text and may only claim things about source text, and it names `q21_purse_parity.mjs` as the behavioural instrument. That is Review 21's rule and it is honoured in the header. The closing lines then make four behavioural claims anyway. I mirrored the tree in scratch and ran six breakages; **all six exit 0:**
+
+1. **The engine emits a serial after all.** In `Game.ev`, write `o["n"]=this.events.length;` instead of `o.n=…`. The gate's guard is `!/o\.n\s*=/` (`scripts/qa/q18_narr_event_order_check.mjs:49`). **GREEN — and this is the assertion the gate itself calls "the one that matters most", the determinism-corpus guard.**
+2. **The engine's own array is dirtied.** Add `appState.game.events[appState.evPushed].n=appState.evPushed;` beside the wire stamp. The gate only inspects the `ev(o)` body, never whether the orchestrator mutates the array. **GREEN.**
+3. **The fix is switched off entirely.** Append `payload.evN = 0;` after the required `if (evN != null) payload.evN = evN;` in `writers.js`. Every line now names event 0, nothing ever waits. **GREEN.**
+4. **The guest's frontier is clobbered.** Add `appState.evSeen=1e9;` after the required record line. The wait never engages. **GREEN.**
+5. **THE WORST ONE: held lines are never drawn at all.** Delete the single `tick();` call that starts the loop (`src/orchestrator.js:1793`). The block still contains `setTimeout(tick`, `Date.now()>=until` and `} else drawIt();`, so every assertion matches. **GREEN — and the gate's pass line still reads "then draws anyway".** A guest would silently lose every narration line whose event had not landed. `node --check` passes too.
+6. **A two-second stall.** `NARR_EVENT_GRACE_MS=2000` is inside the gate's own `1..2000` window. **GREEN**, and the pass line obligingly prints "for at most 2000ms".
+
+The rule that would end this run of nine: **a text gate's closing line should name the text it found, not the behaviour it hopes that text produces** — and where an assertion protects something as expensive as the determinism corpus, it must not turn on one spelling of one property access.
+
+**GATE 42's WIDENING: LEGITIMATE, WITH A SMALL HOLE.** The old `/netSetNarr\([^;]*subj\s*\)/` pinned `subj` to the last argument, which is a position, not a requirement — widening it to `\bsubj\b` anywhere in the argument list is the right call, it was disclosed, and I reproduced the red-proof: removing the argument still fails the gate (exit 1). This is a gate fixed rather than bypassed and it deserves credit. The hole: `[^;]*` spans to the last `)` before a semicolon, so `netSetNarr(db,room,html,…,evN)||String(subj);` passes while `subj` is not sent at all. Contrived, but the same family as everything above.
+
+---
+
+### 5. Bulk reading in the main thread
+
+**NONE FOUND, and the instrument design is the reason — I want to say that positively.** The reads behind this change are the two regions of `src/orchestrator.js` and the one region of `src/net/writers.js` being edited, plus the `ev(o)` body in the engine. All of it is the code immediately under the change, which is the exempt category. The 12-minute two-browser measurement — the most expensive thing done here — produced **29 lines** of output (`q21.txt`), because the probe filters and counts inside the browser rather than dumping samples into the session (`scripts/qa/q21_purse_parity.mjs:98-105`). That is the right shape and it is the opposite of the failure this question exists to catch. Nothing here should have been handed to a subagent. Wyatt's own words and the raw probe output belong in the main thread by design, and they were kept there.
+
+---
+
+### 6. Process
+
+**NOT SAILED. Fourth review running.** `node scripts/qa/gear.mjs` says **FULL**. `npm test` passes — 48 gates, exit 0, I ran it. The sea trial on record is `2026.08.29.1`, stamped 2026-08-29T07:17Z, **FAILED**, eight hours BEFORE this commit at 15:10Z. The build stamp is still `2026.08.29.1`, so a staging drop from here would serve changed code under an unchanged stamp — the confusion `adb0b4ef` exists to prevent. Step 4, the sweep, is outstanding.
+
+**STEP 1 IS THIN.** Gate 48 arrives in the same commit as the fix, and the red-proofs described are reverts of the finished tree, not a gate watched failing on the broken tree first. `.planning/research/wave1-convergence/GATE-RED-RECORDS.md` holds one Wave-1 record and nothing for Q-18. Given six of those red-proofs' equivalents pass, the record matters more than usual here.
+
+**RULE 19.** No matched-pair screenshot. I would not press hard on that — the change is a timing barrier and a still frame cannot show one, and the two-seat text-and-coins trace is the right instrument and was built. But the ONE picture that would have paid for itself is the guest's screen during the recipe draft, which is where the 450ms hold is now guaranteed, and it was not taken.
+
+**LEDGER.** Q-18 is claimed only in the same commit that reports it BUILT (`.planning/CTO-LEDGER.md:212-216`). Rule 16 asks for the claim before the editing.
+
+---
+
+**ONE SENTENCE FOR WYATT:** You asked for the guest to be handed the real event so it could work things out for itself and end this whole family of bugs; what shipped is the guest being handed a ticket number and told to wait up to half a second — a real fix for the trade flicker you were shown, but not the change you approved, and it can be walked around, it makes your guest's screen pause for half a second at the recipe draft in every game, and it has not been sailed.
+
+---
+
 ## CEO Review 23 — 2026-08-29, W3-4 the End of Voyage card's slam (commit 273744e4) — VERBATIM
 
 **VERDICT: YES on the slam, with two things he should know. The card no longer gets fired at the captains box, and the bounce on arrival is gone — I traced both causes to the exact lines and they are real. But (a) the wheel gesture is now tuned for a trackpad and a plain mouse wheel can no longer park OR unpark the card at all, and (b) the award list inside the card still cannot be scrolled with a wheel — that half of "it should scroll smoothly" is untouched, and it was untouched before this commit too. The new gate is the eighth in a row whose closing line claims more than it looked at: I walked four working breakages straight past it, including the exact fault he reported. And this has not been sailed.**

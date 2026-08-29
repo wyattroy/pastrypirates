@@ -33,7 +33,7 @@
 
 import { appState } from "../state/index.js";
 import {
-  SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
+  SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify, subjectOf,
 } from "../shared/index.js";
 import {
   boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
@@ -1079,8 +1079,12 @@ export async function narrateLastEvent(){
      the player calling the battle." Anchoring the result to one fighter was the same fault one
      layer down. Held by scripts/qa/w42_battle_bubble_check.mjs. */
   if(window.__pp4){
-    const twoCaptains = e.d!=null && e.a!=null && e.d!==e.a;
-    window.__pp4.subject = twoCaptains ? null : (e.p!=null?e.p:(e.a!=null?e.a:null));
+    /* ONE RULE, ONE PLACE (Wyatt's Q-18 ruling, 2026-08-29; CEO Review 24). This test used to be
+       spelled out here and its ANSWER shipped to the guest as a wire field, which is two things
+       kept in step by nothing — rule 23's exact shape. `subjectOf` lives in src/shared/index.js,
+       the one module both this tier and the orchestrator already import, and the guest now runs
+       the SAME function over the event it already holds. Neither seat owns the rule any more. */
+    window.__pp4.subject = subjectOf(e);
     /* DECIDED IS NOT THE SAME AS ABSENT, and conflating them is why the first cut of W4-2 changed
        nothing on either seat. stageFlash falls back to sniffing the sentence for captain colours
        whenever the subject is null — a fallback that exists for turn-start lines, which carry no

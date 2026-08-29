@@ -103,9 +103,13 @@ export function netSetNarr(db, room, html, onError, variants, wait, subj, evN) {
      the pre-trade purse, and twice the mirror image. Both totals were right on both screens —
      each had applied a COMPLETE trade, at a different moment. Rule 23 in its plainest form: two
      things kept in step by nothing.
-     SENDING THE WHOLE EVENT WOULD DOUBLE THE WIRE COST OF EVERY LINE (each event carries a full
-     per-captain state snapshot). Sending its SERIAL costs one number and is enough: the guest
-     already has the event coming, and only needs to know not to draw ahead of it. */
+     WHY A SERIAL AND NOT THE EVENT ITSELF, and this is the part the first cut of it got wrong.
+     Wyatt's ruling was "the guest PREFERS THE REAL EVENT" — and it already holds every event:
+     watchEvents pushes each one onto the guest's own array. So the serial is not a substitute for
+     the event, it is the ADDRESS OF an event the guest already has. It waits until it holds that
+     event, then runs the same shared rule over it that the host ran. Zero extra bytes, and the
+     rule lives in exactly one place (src/shared/index.js). `subj` below survives only as the
+     fallback for a line that has no event at all. */
   if (evN != null) payload.evN = evN;
   return withReporter(db.ref("rooms/" + room + "/narr").set(payload), onError);
 }

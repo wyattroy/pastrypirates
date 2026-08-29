@@ -74,6 +74,7 @@ import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg, man,
   ilabelImg, ovensNowEnabled, bake2Enabled, endCardEnabled,
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
+  subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
@@ -196,14 +197,27 @@ export function netNarrate(html,variants,opts){if(appState.replaying)return;
      which is the fault this line exists to close (W4-2, CEO Review 20). */
   const subj = (window.__pp4 && window.__pp4.subjectSet) ? window.__pp4.subject : undefined;
   showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);
-  /* Q-18: the serial of the event this line is about — the last one the engine produced. The guest
-     holds the line until its own feed has reached it, so the words and the numbers can never be
-     drawn out of order. */
-  const evN=appState.game?appState.game.events.length-1:null;
-  if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,evN);}
+  sendNarr(html,variants,opts,subj);}
+/* Q-18 — THE SERIAL OF THE EVENT A LINE IS ABOUT, or nothing.
+   -1 IS NOT A SERIAL, AND SENDING IT COST EVERY CREW GAME HALF A SECOND. `events.length-1` is -1
+   before the engine has produced anything, and the recipe draft broadcasts its line right there —
+   so "Everyone's choosing their recipe" named event -1, the guest's own frontier was still
+   undefined, and the guard held the line for the full grace period at the start of every single
+   voyage. A fix against divergence was manufacturing a guaranteed one. Found by CEO Review 24 and
+   reproduced before it was believed: `evN=-1`, `-1 != null` -> sent; `evSeen===undefined`,
+   `undefined == null` -> held. */
+function narrEvN(){const n=appState.game?appState.game.events.length-1:null;return n!=null&&n>=0?n:null;}
+/* ONE PAYLOAD ASSEMBLY, because two writers to one Firebase slot that disagree about what they put
+   in it is the same fault in miniature. netBroadcast used to send neither the subject nor the
+   serial, which left the battle play-by-play — the place coins move MOST — outside both fixes. */
+function sendNarr(html,variants,opts,subj){
+  if(!(appState.isHost&&appState.db&&appState.room))return;
+  netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,narrEvN());}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html,variants,opts){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
+export function netBroadcast(html,variants,opts){if(appState.replaying)return;
+  const subj=(window.__pp4&&window.__pp4.subjectSet)?window.__pp4.subject:undefined;
+  sendNarr(html,variants,opts,subj);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -1401,7 +1415,8 @@ export function pushEvents(){
   while(appState.evPushed<appState.game.events.length){
     /* Q-18 — THE SERIAL IS STAMPED ON THE WIRE COPY, NEVER ON THE ENGINE'S OWN EVENT. Adding a
        field inside Game.ev would change what the engine emits into the event stream, which
-       invalidates the whole determinism corpus and forces a gated re-record (PROJECT.md). This is
+       invalidates the whole determinism corpus and forces a gated re-record (CLAUDE.md's Project
+       section — NOT .planning/PROJECT.md, which an earlier version of this comment named). This is
        the deep copy that already exists for the broadcast, so the engine's array is untouched and
        `n` is simply what index this event went out as — appState.evPushed is already that number,
        monotonic and host-owned. flow.js's re-entry-guard note warns against stamping fields on the
@@ -1772,7 +1787,35 @@ export function watchNarr(){
            subject" (a fight, a table-wide report) and must NOT fall through to the colour sniff,
            which would anchor it to whichever single captain the sentence happens to name. A payload
            with no `subj` at all is an older host, and keeps the old sniff behaviour. */
-        if(v.subj!=null&&window.__pp4){window.__pp4.subject=(v.subj===-1?null:v.subj);window.__pp4.subjectSet=true;}
+        /* Q-18, WYATT'S RULING IN ITS ACTUAL SHAPE (2026-08-29): "the guest prefers the real event
+           and falls back to today's picture when it's absent." The guest ALREADY HOLDS the whole
+           event — watchEvents pushes it onto this seat's own array — so preferring it costs zero
+           extra bytes on the wire, and the first cut of this fix stopped one line short of taking
+           it (CEO Review 24). Both seats now run the SAME `subjectOf` out of src/shared/index.js
+           over the SAME event, which is the only honest answer to "what makes these two agree?".
+           THE FALLBACK IS TODAY'S PICTURE, EXACTLY: no event in hand (an older host, a dropped
+           write, a line with no event at all) and the host's own `subj` decision is used, -1 still
+           meaning "deliberately no subject" and must not fall through to the colour sniff. */
+        const evAt=n=>{
+          if(n==null||!appState.game||!appState.game.events)return null;
+          const arr=appState.game.events;
+          /* the guest's array is filled in arrival order, so index === serial in the ordinary case;
+             the scan is the honest fallback rather than an assumption about Firebase ordering. */
+          if(arr[n]&&arr[n].n===n)return arr[n];
+          for(let i=arr.length-1;i>=0;i--)if(arr[i]&&arr[i].n===n)return arr[i];
+          return null;};
+        const applySubject=()=>{
+          if(!window.__pp4)return;
+          const ev=evAt(v.evN);
+          if(ev){window.__pp4.subject=subjectOf(ev);window.__pp4.subjectSet=true;window.__pp4.evType=ev.t;return;}
+          if(v.subj!=null){window.__pp4.subject=(v.subj===-1?null:v.subj);window.__pp4.subjectSet=true;}};
+        /* ONE SLOT, ONE LIVE LINE. `narr` is written with .set(), so only the newest sentence is
+           real — but each arriving line now runs its own timer, and a held line firing after a
+           newer one had already drawn would repaint the OLDER sentence over it (CEO Review 24: an
+           ordering fix that could invert two lines). The generation counter is the whole guard:
+           a tick that is no longer the current line simply drops. */
+        appState.narrGen=(appState.narrGen||0)+1;
+        const myGen=appState.narrGen;
         /* Q-18 — DO NOT DRAW A LINE AHEAD OF ITS OWN EVENT. The sentence and the event that caused
            it arrive on two independent listeners, so this seat can be handed "test2 trades 1 to ye
            for Fresh Milk" before the trade itself has landed — and the captains box then shows the
@@ -1783,10 +1826,11 @@ export function watchNarr(){
            gives the feed a short grace period and then draws regardless — so the worst case is
            exactly today's behaviour, and the common case is in step. An older host sends no evN and
            this never engages at all. */
-        const drawIt=()=>Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});
-        if(v.evN!=null&&(appState.evSeen==null||appState.evSeen<v.evN)){
+        const drawIt=()=>{applySubject();return Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});};
+        if(v.evN!=null&&v.evN>=0&&(appState.evSeen==null||appState.evSeen<v.evN)){
           const until=Date.now()+NARR_EVENT_GRACE_MS;
           const tick=()=>{
+            if(appState.narrGen!==myGen)return;                       // a newer line owns the slot
             if((appState.evSeen!=null&&appState.evSeen>=v.evN)||Date.now()>=until){drawIt();return;}
             setTimeout(tick,NARR_EVENT_POLL_MS);
           };
@@ -2272,7 +2316,7 @@ export function beginGame(cfg,seed){
   // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
   appState.game.seaSeat=appState.mySeat;
   appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
-  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.appliedMeta=false;
+  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;
