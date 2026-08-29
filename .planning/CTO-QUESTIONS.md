@@ -319,3 +319,57 @@ so no answer-word fits it.
 is no room to choose — same mechanism, and it keeps "Ask it!". That is a screen Wyatt did not ask to
 change. It is kept because rule 8 says one gesture behaves one way everywhere and the counter's
 sentence still reads correctly with its own label; but it is his to rule on, alongside the word.
+
+## Q-18 — THE WIRE CARRIES DRAWN OUTPUT, NOT EVENTS. This is why host/guest keeps diverging.
+
+**Wyatt, 2026-08-29, angry and right:** *"Why are guest and host rendering different things?????? You
+fixed this!!! One engine!! They both read from it!! Did you regress??"*
+
+**THE HONEST ANSWER ON REGRESSION, checked against git rather than memory.** One, mine, in this
+session: the W6-1 greyed slider (`disabled` added to the host's markup, not to the wire payload).
+Introduced `db7d4ac8`, caught by CEO Review 19, fixed `2dbc8a19` — same session, ~30 minutes,
+**never deployed to staging**. The other divergence he saw named in these notes — the battle bubble's
+anchor — is NOT a regression: `git log -S` puts the guest's colour-sniff in `fb74eedc`, the cutover
+of 2026-08-26. It was found and closed on 2026-08-29.
+
+**BUT THE CLASS KEEPS RECURRING AND HE IS RIGHT TO BE ANGRY ABOUT IT.** Six consecutive CEO reviews
+have found a host/guest divergence of some kind. That is not six coincidences; it is one structural
+cause.
+
+**THE CAUSE — every writer in `src/net/writers.js` sends a DRAWN THING, not an event:**
+
+| what is sent | what it is |
+|---|---|
+| `netSetNarr(**html**)` | a rendered sentence |
+| `netSetPrompt(**payload**)` | a rendered prompt |
+| `netSetBattle(**snapshot**)` | a rendered scoreboard |
+| `netSetFlip(**state**)` | a rendered coin |
+
+**There is no `netSetEvent`.** The host runs the engine, renders the result, and broadcasts the
+render. So whenever a drawing decision depends on something only the EVENT knows — who a line is
+about, whether a control is live — the guest must re-derive it from the finished output. That
+re-derivation is a second rule for one decision, which is the second director rule 23 names as
+emergent. `variants` exists precisely because of this: the host has to pre-render each seat's
+phrasing, because the guest cannot phrase anything itself.
+
+**AND THE FIX IS NOT A REWRITE, WHICH IS THE PART WORTH KNOWING.** `orchestrator.js:2097` — the guest
+path, fired when the room state turns `playing` — calls `beginGame(r.cfg, r.seed)`, which constructs
+`new Game(cfg, seed, true)`. **THE GUEST ALREADY BUILDS THE SAME ENGINE FROM THE SAME SEED.** The
+engine is deterministic (`mulberry32`) and the project already depends on that for lockstep replay.
+The guest has everything it needs to render an event itself; it is simply never handed one.
+
+**So "one engine, they both read from it" is TRUE of the game state and FALSE of the presentation.**
+The cutover converged the engine and left the render path forked.
+
+**THE OPTIONS, sized honestly, and this is HIS call — it is architecture, not a bug fix:**
+
+1. **Send the event alongside the render** (additive, reversible). `netSetEv` carries the event; the
+   guest prefers it and falls back to the rendered html when absent. Every future divergence of this
+   class dies at the source. Does not touch the engine or the determinism corpus.
+2. **Send the event INSTEAD of the render.** `variants` disappears — the guest phrases its own line
+   from its own Game. Cleanest, and the biggest change: every narration path is touched.
+3. **Keep patching instances.** What we have been doing. Six reviews, six divergences.
+
+**NOT STARTED, deliberately:** raised at 06:00 inside a window he asked to end in a playable build.
+Starting an architectural change there would be the "adjacent, competent, misses the ask" failure
+rule 25 exists to catch.
