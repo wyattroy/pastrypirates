@@ -942,6 +942,10 @@ function gestures(wrap){
        captains and the screen size.
    Pointer Events cover touch, mouse-drag and pen in one listener set; wheel is handled separately
    below because a trackpad/mouse scroll never fires a pointer drag. */
+// how long the wheel must be quiet before it counts as "let go" — the wheel's stand-in for a
+// pointerup, since a trackpad never sends one. An interaction feel, on the same footing as
+// EOV_PARK_RELEASE_FRACTION below.
+const WHEEL_QUIET_MS = 110;
 const EOV_PARK_RELEASE_FRACTION = 0.32; // a UI-feel ratio (how much of the travel counts as "let
   // go of it"), not a game quantity — CLAUDE.md rule 9 governs prices, thresholds and caps the
   // economy computes, not an interaction's own release feel. What IS derived is the pixel distance
@@ -993,8 +997,21 @@ const eovScroller = wrap => wrap.querySelector("#statsScroll") || wrap;
 function wireEovDrag(){
   const wrap = $("statsWrap"); if (!wrap || wrap._pp4DragWired) return;
   wrap._pp4DragWired = true;
+  /* THE FULL-TRAVEL TIME IS THE STYLESHEET'S, READ ONCE, NOT RE-TYPED HERE. index.html owns
+     `transition:transform var(--pp4EovSettle,.25s)`; this reads that computed value before
+     anything has set the variable, so the two can never drift. Cached because the moment settle()
+     writes --pp4EovSettle, reading it back would return this function's own last answer. */
+  const fullMs = Math.round((parseFloat(getComputedStyle(wrap).transitionDuration) || 0.25) * 1000);
   const settle = (y, park) => {
     wrap.classList.remove("pp4EovDrag");
+    /* THE GLIDE IS AS LONG AS THE JOURNEY (W3-4). A flat quarter-second is right for the full
+       park and far too fast for the 30px correction a released drag usually needs — the same
+       distance-blind constant that made one wheel notch look like a slam. The floor keeps a tiny
+       settle from reading as an instant jump; it is an interaction feel, like
+       EOV_PARK_RELEASE_FRACTION above, not a game quantity. */
+    const g = eovParkGeometry(wrap);
+    const frac = g.dY > 0 ? Math.min(1, Math.abs(y - eovTranslateY(wrap)) / g.dY) : 1;
+    wrap.style.setProperty("--pp4EovSettle", Math.round(fullMs * Math.max(0.4, frac)) + "ms");
     wrap.style.transform = y ? `translateY(${y}px)` : "";
     wrap.classList.toggle("pp4EovParked", park);
   };
@@ -1036,17 +1053,40 @@ function wireEovDrag(){
   };
   wrap.addEventListener("pointerup", up);
   wrap.addEventListener("pointercancel", up);
-  // desktop wheel: scrolling further down while already at the top of the content parks it;
-  // scrolling up while parked restores it — same rule as the drag, driven by delta instead of a
-  // pointer position, because a trackpad/mouse wheel never fires a pointer drag at all
+  /* THE WHEEL DRAGS THE CARD, IT DOES NOT FIRE IT — W3-4, and this is the half Wyatt actually
+     hit, because he is at a laptop. The old handler took the FIRST wheel notch past the top of the
+     content and called settle() for the entire journey: measured, one 4px trackpad notch threw the
+     card 688px in 250ms while his fingers were still moving, then bounced 28px past the captains
+     box. From where he sits that is not a scroll at all, it is a slam.
+     A wheel is now accumulated into the card's position exactly as a finger is — same clamp, same
+     class, same live transform — and when the wheel goes quiet the SAME release rule the pointer
+     drag uses decides which end it settles to. One rule, two input devices, so they cannot drift
+     apart (rule 23); before this they were two rules that already had. */
+  let wheelIdle = null;
+  const wheelRelease = () => {
+    wheelIdle = null;
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0) return;
+    const y = eovTranslateY(wrap);
+    const wasParked = wrap.classList.contains("pp4EovParked");
+    const threshold = g.dY * EOV_PARK_RELEASE_FRACTION;
+    const park = wasParked ? y > threshold : y > (g.dY - threshold);
+    settle(park ? g.dY : 0, park);
+  };
   wrap.addEventListener("wheel", e => {
     const parked = wrap.classList.contains("pp4EovParked");
-    if (!parked && eovScroller(wrap).scrollTop <= 0 && e.deltaY > 0){
-      const g = eovParkGeometry(wrap);
-      if (g.dY > 0){ settle(g.dY, true); e.preventDefault(); }
-    } else if (parked && e.deltaY < 0){
-      settle(0, false); e.preventDefault();
-    }
+    const moving = wrap.classList.contains("pp4EovDrag");
+    // an ordinary scroll through the card's own content is left entirely alone
+    if (!(moving || parked || (eovScroller(wrap).scrollTop <= 0 && e.deltaY > 0))) return;
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0) return;
+    const y = Math.max(0, Math.min(g.dY, eovTranslateY(wrap) + e.deltaY));
+    wrap.classList.add("pp4EovDrag");
+    wrap.style.transform = y ? `translateY(${y}px)` : "";
+    e.preventDefault();
+    // the wheel has no "finger up", so quiet stands in for it
+    if (wheelIdle) clearTimeout(wheelIdle);
+    wheelIdle = setTimeout(wheelRelease, WHEEL_QUIET_MS);
   }, { passive: false });
 }
 

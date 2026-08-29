@@ -2390,7 +2390,18 @@
        content stays free and native) while the JS only takes over once the pull goes PAST the top —
        the same shape as a native pull-to-refresh. transform is the only thing either gesture ever
        animates, so this never triggers layout mid-drag (HARD-WON-LESSONS: compositor-only motion). */
-    touch-action:pan-y; transition:transform .25s cubic-bezier(.2,.9,.3,1.15); }
+    /* W3-4 (Wyatt: "The End of Voyage card SLAMS down to the captains box. It should scroll
+       smoothly."). TWO THINGS MADE IT A SLAM, and both are here or beside here.
+       (1) The curve ENDED ABOVE 1 — cubic-bezier(...,1.15) overshoots its destination and springs
+       back. Measured: the card travelled 688px on a 1200px desktop and went 28px PAST the
+       captains box before returning; 762px and 31px on a tablet. A bounce on arrival is the
+       definition of a slam, so the curve now lands on 1 and decelerates into place.
+       (2) The DURATION is no longer a flat quarter-second for every journey. --pp4EovSettle is
+       set by stage.js in proportion to how far the card actually has to travel, so a short
+       correction is quick and the full park keeps exactly the timing it has always had. The
+       fallback here is that same .25s, and it is the ONE place the number is written. */
+    touch-action:pan-y;
+    transition:transform var(--pp4EovSettle,.25s) cubic-bezier(.2,.9,.3,1); }
   /* mid-drag: no transition, or the card would lag a live finger/mouse by 250ms */
   body.pp4Stage #statsWrap.pp4EovDrag { transition:none; }
   /* parked: freeze the internal scroll so the strip's own content can't drift under it while it
