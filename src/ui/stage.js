@@ -2979,6 +2979,22 @@ function promptTick(){
       const HALF = Math.round(D * S.growPeak) / 2;
       const onHull = (l, t) => hulls.some(h => l < h.r && l + D > h.l && t < h.b && t + D > h.t);
       const inBand = (l, t) => l >= xMin && l <= xMax && t >= yMin && t <= yMax;
+      /* NOT ON A HULL IS NOT THE SAME AS NOT BESIDE ONE — found by re-running the probe on the
+         shipped tree, which is the whole reason it is committed. A circle placed 11px above the
+         boat it names sat 4px from a THIRD captain's hull, diagonally up-left: nothing covered,
+         nothing overlapping, and a player reading the board is still told the wrong thing. So the
+         side is also scored on how much clear water it leaves round every OTHER hull — edge to
+         edge, because "beside" is about adjacency, not about which centre is closer. A full petal
+         of clearance is treated as unambiguous; beyond that there is nothing left to buy. */
+      const clearOfOthers = (l, t, mine) => {
+        let worst = Infinity;
+        hulls.forEach((h, i) => {
+          if (i === mine) return;
+          const dx = Math.max(h.l - (l + D), l - h.r, 0), dy = Math.max(h.t - (t + D), t - h.b, 0);
+          worst = Math.min(worst, Math.hypot(dx, dy));
+        });
+        return worst === Infinity ? D : worst;
+      };
       let spots = anchors.map(([ax, ay], k) => {
         const rad = boatRad(anchorSeats[k]);
         // the heading away from everyone else this question is about
@@ -2992,8 +3008,13 @@ function promptTick(){
         let best = null;
         for (const [ux, uy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
           const l = ax + ux * (rad + HALF + AIR) - D / 2, t = ay + uy * (rad + HALF + AIR) - D / 2;
-          // whole-band and clear-of-every-hull first; the away heading only breaks the tie
-          const score = (inBand(l, t) ? 2 : 0) + (onHull(l, t) ? 0 : 2) + (ux * away[0] + uy * away[1]);
+          /* whole-band and clear-of-every-hull first, then how much water it leaves round the
+             OTHER boats, and the away heading breaks what is left. The clearance term outweighs
+             the heading deliberately: opening outward is a nicety, standing unambiguously beside
+             one boat is the ask. */
+          const score = (inBand(l, t) ? 2 : 0) + (onHull(l, t) ? 0 : 2)
+            + 1.5 * Math.min(1, clearOfOthers(l, t, anchorSeats[k]) / D)
+            + (ux * away[0] + uy * away[1]);
           if (!best || score > best.score) best = { score, spot: [l, t] };
         }
         return clampSpot(best.spot);
@@ -3056,10 +3077,37 @@ function promptTick(){
          and vice versa — both circles beside the wrong boat, in one prompt. It fires whenever the
          attacker's boat is right of the defender's, which is about half of all fights. "Often."
          D-48 still governs the ordinary fan below, where it belongs. */
+      /* EACH CIRCLE TAKES THE SPOT NEAREST ITS OWN BOAT — the answer to "what makes these two
+         agree?" (rule 23), one scale down. Everything above was still index-matched: spot i was
+         option i's only because nothing upstream had reordered the array, and the wrong-boat bug
+         was precisely something upstream reordering the array. A CEO review made that concrete by
+         re-introducing the swap BY HAND, three lines above this one, without using the name the
+         gate was watching for — the exact fault Wyatt reported, fully restored, and every source
+         check still green. A gate that reads text can always be walked past by writing different
+         text; this cannot, because the assignment is decided by distance to the named boat rather
+         than by position in a list.
+         Greedy nearest-pair, which is optimal at the two-to-four options this branch ever sees and
+         is deterministic — the same prompt always lays out the same way. */
+      const claim = spots.map(() => -1);
+      const taken = spots.map(() => false);
+      for (let n = 0; n < spots.length; n++){
+        let bi = -1, bj = -1, bd = Infinity;
+        for (let i = 0; i < anchors.length; i++){
+          if (claim[i] >= 0) continue;
+          for (let j = 0; j < spots.length; j++){
+            if (taken[j]) continue;
+            const d = Math.hypot(spots[j][0] + D / 2 - anchors[i][0], spots[j][1] + D / 2 - anchors[i][1]);
+            if (d < bd){ bd = d; bi = i; bj = j; }
+          }
+        }
+        if (bi < 0) break;
+        claim[bi] = bj; taken[bj] = true;
+      }
       menu.forEach((b, i) => {
+        const sp = spots[claim[i] >= 0 ? claim[i] : i];
         b.style.position = "fixed";
-        b.style.left = spots[i][0] + "px";
-        b.style.top = spots[i][1] + "px";
+        b.style.left = sp[0] + "px";
+        b.style.top = sp[1] + "px";
       });
       return;
     }

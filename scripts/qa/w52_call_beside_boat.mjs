@@ -81,9 +81,12 @@ const MEASURE = `(async()=>{try{
       const a={l:rr.left,t:rr.top,r:rr.right,b:rr.bottom};
       const area=Math.max(1,rr.width*rr.height);
       const seat=bt.dataset&&bt.dataset.seat!=null?+bt.dataset.seat:null;
-      const acx=rr.left+rr.width/2, acy=rr.top+rr.height/2;
+      /* NEAREST BY EDGE, NOT BY CENTRE. Centre-to-centre called a false alarm on the shipped
+         tree: a circle 11px above the boat it names, with a third boat's centre 4px closer, was
+         reported as being on the wrong boat when a player would read it as beside the right one.
+         "Beside" is adjacency, so the gap between the boxes is the honest measure. */
       let nearest=null,nd=1e9;
-      boats.forEach((bo,i)=>{const d=Math.hypot(acx-bo.cx,acy-bo.cy); if(d<nd){nd=d;nearest=i;}});
+      boats.forEach((bo,i)=>{const d=gap(a,bo); if(d<nd){nd=d;nearest=i;}});
       const mine=seat!=null&&boats[seat]?boats[seat]:null;
       return {label:(bt.textContent||'').trim().slice(0,22), seat,
         x:Math.round(rr.left), y:Math.round(rr.top), w:Math.round(rr.width),

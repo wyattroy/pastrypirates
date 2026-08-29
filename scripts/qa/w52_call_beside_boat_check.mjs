@@ -18,6 +18,18 @@
  * 425px from Captain 2, sitting 24% on Captain 1's hull, and vice versa. It fires whenever the
  * attacker's boat is right of the defender's: about half of all fights. "Often."
  *
+
+ * WHAT THIS GATE IS, AND IS NOT. It reads the TEXT of stage.js, so every line it prints is a claim
+ * about the text and nothing more. CEO Review 21 walked the first version of it past FOUR working
+ * breakages — dropping the swollen-petal term, keeping boatRad alive but multiplied by zero,
+ * neutering the hull test with `=> false && …`, and re-introducing the wrong-boat swap by hand
+ * without using the name it was watching for — each of which restored the reported fault with the
+ * gate still green. Its closing line nonetheless said "the call circles sit beside their own boat",
+ * which no source-text check can know. Both are fixed here: the assertions now read the EXPRESSIONS
+ * rather than looking for words, and the pass lines say what was read.
+ * The picture is measured by scripts/qa/w52_call_beside_boat.mjs, in a browser. That probe is the
+ * evidence; this gate is the tripwire.
+ *
  * WHAT THIS MUST NOT BREAK: D-48 itself. The ordinary fan around your own ship still has to run
  * lastLowest(), or "Pass is always the lowest circle" is silently repealed — so this gate requires
  * it to survive OUTSIDE the anchored-boats branch, not merely to be absent inside it.
@@ -51,25 +63,58 @@ else {
      verdict through a reason that is not true is the fault this project keeps paying for. */
   const seedAt = branch.indexOf("let spots = anchors.map(");
   const seed = seedAt < 0 ? null : branch.slice(seedAt, branch.indexOf("\n      const NEED", seedAt) + 1 || undefined);
-  const derived = !!seed && /boatRad\s*\(/.test(seed) && /growPeak/.test(branch);
-  const constantStern = !!seed && /ay\s*[+-]\s*\d+\s*\]/.test(seed);
+  /* READ THE OFFSET EXPRESSION ITSELF, not the presence of a word. CEO Review 21 defeated the
+     first version twice here: once by deleting the `rad + AIR` terms while leaving boatRad called
+     elsewhere in the branch, and once by putting the flat 26 back with the boat measurement
+     multiplied by zero. Both kept every word the gate was looking for. So: find what each spot is
+     actually displaced BY, and require all three terms in that one expression — the boat's radius,
+     the petal at its pulse peak, and the air — with nothing zeroing them. */
+  const offset = (seed || "").match(/\(\s*rad\s*\+[^)]*\)/g) || [];
+  const whole = offset.find(o => /\brad\b/.test(o) && /\bHALF\b/.test(o) && /\bAIR\b/.test(o));
+  const halfDef = (branch.match(/const HALF\s*=\s*([^;]+);/) || [, ""])[1];
+  const airDef  = (branch.match(/const AIR\s*=\s*([^;]+);/) || [, ""])[1];
+  const radDef  = (branch.match(/const boatRad\s*=\s*([^;]*?)fixedRect[^;]*;/) || [, ""])[1] !== "" ||
+                  /const boatRad\s*=[\s\S]{0,180}fixedRect\(/.test(branch);
+  const live = t => t && !/^\s*0\s*$/.test(t) && !/\*\s*0\b/.test(t) && !/\b0\s*\*/.test(t);
+  const derived = !!whole && live(halfDef) && live(airDef) && radDef && /growPeak/.test(halfDef);
+  const constantStern = !!seed && /ay\s*[+-]\s*\d+(?!\s*\*)/.test(seed);
   if (seed === null) fail("could not find `let spots = anchors.map(` in the anchored-boats branch — the seed has moved; re-anchor this assertion rather than trusting its silence");
   else if (derived && !constantStern)
-    pass("the circle is offset by the boat's OWN rendered half-size plus the petal at its pulse peak — no typed stand-in for half a boat");
+    pass(`the source displaces each circle by \`${whole.replace(/\s+/g, " ")}\` — the boat's own measured half-size (fixedRect), the petal at --pp4GrowPeak (${halfDef.trim()}) and ${airDef.trim()}px of air, none of them zeroed`);
   else
-    fail(`the offset is not derived from the boat (boatRad used:${derived}, a literal ay±N survives:${constantStern}) — a constant is right for exactly one board scale, and the board scales`);
+    fail(`the offset expression is not all three live terms (found:${whole ? "`" + whole.replace(/\s+/g, " ") + "`" : "none"}, HALF=\`${halfDef.trim()}\`, AIR=\`${airDef.trim()}\`, boatRad measures a rect:${radDef}, a literal ay±N survives:${constantStern}) — CEO Review 21 got past this by keeping the words and deleting the arithmetic`);
 
   /* (2) NOTHING MAY COME TO REST ON A HULL — seed, separation, clamp or fallback row. */
   const guards = (branch.match(/onHull\s*\(/g) || []).length;   // call sites; the `const onHull =` definition does not match
+  /* AND THE PREDICATE MUST BE ABLE TO SAY YES. CEO Review 21 neutered it with `=> false && …`,
+     which keeps every word and answers "no hull, anywhere, ever". Read its body: it has to test
+     all four edges against the hull list, with nothing short-circuiting it to a constant. */
+  const onHullBody = (branch.match(/const onHull\s*=\s*\([^)]*\)\s*=>\s*([^;]+);/) || [, ""])[1];
+  const realTest = /hulls\.some\s*\(/.test(onHullBody) &&
+    (onHullBody.match(/[<>]/g) || []).length >= 4 &&
+    !/(^|[^!=<>])\b(false|true)\b/.test(onHullBody);
   const hullsBuilt = /const onHull\s*=/.test(branch) && /const hulls\s*=/.test(branch) && /boatUXY\s*\(\s*i\s*\)/.test(branch);
   // the repair loop is the half that catches what the clamp and the even-row fallback do AFTER seeding
   const repairs = /for \(let pass[\s\S]*?hulls\.find\(/.test(branch);
-  if (hullsBuilt && guards >= 2 && repairs)
+  if (hullsBuilt && realTest && guards >= 2 && repairs)
     pass(`every hull is an obstacle, projected through the same camera as the anchors — ${guards} onHull call site(s) (choosing the side, and the retry) plus a repair pass over what the clamp and the fallback row did`);
   else
-    fail(`the hulls are not guarded (defined+built:${hullsBuilt}, onHull call sites:${guards}, repair pass:${repairs}) — the band clamp and the even-row fallback know nothing about boats and will put a circle back on one`);
+    fail(`the hulls are not guarded (defined+built:${hullsBuilt}, the predicate can answer YES:${realTest}, onHull call sites:${guards}, repair pass:${repairs}) — the band clamp and the even-row fallback know nothing about boats and will put a circle back on one`);
 
   /* (3) D-48 IS NOT APPLIED TO SPOTS THAT ARE NOT INTERCHANGEABLE. */
+  /* (3a) AND THE BINDING THAT MAKES A SWAP HARMLESS. Watching for the NAME `lastLowest` is the
+     assertion CEO Review 21 walked past: it re-introduced the swap by hand, three lines above the
+     write-out, and every check stayed green. The durable answer is not a better pattern — it is
+     that each circle now takes the spot NEAREST ITS OWN BOAT rather than the one at its own index,
+     so any reordering upstream, named or not, is undone by construction. */
+  const bound = /const claim\s*=/.test(branch) &&
+    /Math\.hypot\([^)]*anchors\[i\]\[0\][\s\S]{0,90}anchors\[i\]\[1\]/.test(branch) &&
+    /spots\[claim\[i\]\s*>=\s*0\s*\?\s*claim\[i\]\s*:\s*i\]/.test(code);
+  if (bound)
+    pass("each circle is assigned the spot NEAREST THE BOAT IT NAMES, not the spot at its own index — a reordering upstream, by any name, cannot put it beside the wrong captain");
+  else
+    fail("the circles are still index-matched to the spots — a swap anywhere above the write-out puts each one beside the other captain's boat, which is the fault Wyatt reported and a CEO review restored by hand in three lines");
+
   if (/lastLowest\s*\(/.test(branch))
     fail("lastLowest() is applied inside the anchored-boats branch — it SWAPS two spots, and these spots name specific boats, so it puts each circle beside the wrong captain (measured: 425px off, at 768px)");
   else
@@ -83,5 +128,10 @@ if (/=\s*lastLowest\s*\(/.test(after))
 else
   fail("lastLowest() is no longer applied to the ordinary fan — 'the Pass button is always the lowest one' has been repealed by a fix aimed at a different prompt");
 
-console.log(fails ? `\nFAILED — ${fails} failure(s)` : "\nPASSED — the call circles sit beside their own boat, clear of every hull, and D-48 still owns the ordinary fan");
+/* THE PASS LINE SAYS WHAT WAS READ. This gate reads source text; it cannot see a circle. The
+   picture is scripts/qa/w52_call_beside_boat.mjs's job, in a browser, and its numbers are in the
+   commit. Seven consecutive CEO reviews have found a pass line claiming more than its gate looked
+   at; this is the sentence that stops being one. */
+console.log(fails ? `\nFAILED — ${fails} failure(s)`
+  : "\nPASSED — stage.js's source still displaces each circle by its own boat's measured size, guards every hull, binds each circle to the nearest named boat, and leaves D-48 to the ordinary fan. What a player SEES is measured by scripts/qa/w52_call_beside_boat.mjs, not here.");
 process.exit(fails ? 1 : 0);
