@@ -10,8 +10,20 @@ gates: "scripts/qa/w44_captains_width_check.mjs (chain 37 -> 38)"
 
 ## What Wyatt gets
 
-The captains box now runs edge-to-edge with the board instead of sitting inside it, and the captain
-rows fill the box instead of stopping short of its right edge. Both at every screen size.
+**Corrected after CEO Review 15 and his own ruling.** The first version of this line said the box and
+the rows were fixed "both at every screen size", which was not true — on the phone the box was
+already flush and the rows moved four pixels, and the phone is the size he personally flagged.
+
+- **The card runs wall-to-wall with the board on a tablet**, and keeps its air on desktop. That split
+  is HIS RULING, 2026-08-28: *"I want tablet view to go wall to wall in line with the board. I want
+  desktop view to have some padding around it like it currently is."* It also settles the open
+  consistency question the CEO raised, rather than us inheriting an answer.
+- **The captain rows fill the card** at every size — 13px from its inner edge at 768, 390 and 1200,
+  where they had been 84px, 17px and 84px short and would have grown to 111px had only the box been
+  widened.
+- **Still open, and it is the thing he pointed at on his phone:** the row CONTENT sits in the left
+  ~90px of a 606px row. The argument that this is day-one emptiness is an argument, not a
+  measurement — see "what was NOT fixed" below.
 
 ## Two faults, not one — and fixing only the first made the second worse
 

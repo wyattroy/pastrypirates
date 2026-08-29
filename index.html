@@ -1695,19 +1695,33 @@
      (D-18/D-31). */
   @media (min-width: 601px) {
     body.pp4Stage:not(.pp4Side) #pp4Cap {
-      /* W4-4 (Wyatt, playtest list): "at tablet width the captains box is narrower than the board,
-         leaving a ~10px dead strip." Measured before changing, at three sizes: 14px per side, 28px
-         total, at tablet AND desktop; the phone was already flush because this rule is gated behind
-         min-width:601px.
-         THE CAUSE WAS ONE VARIABLE DOING TWO UNRELATED JOBS. This used to read
-         `left:var(--pp4CapGap); right:var(--pp4CapGap)`, and --pp4CapGap is declared above as "the
-         gap between board and captains column" — a SEPARATION, for the side-by-side layout, which
-         computeStageGeometry() reads as exactly that. A separation and a horizontal inset are
-         different quantities that wanted the same number once. This panel's containing block IS the
-         board's box, so any inset here is the panel disagreeing with the board about how wide the
-         stage is. It does not inset. Held by scripts/qa/w44_captains_width_check.mjs. */
-      left:0; right:0; bottom:auto; height:auto;
+      /* W4-4 — AND WYATT RULED THE TRADE HIMSELF, 2026-08-28: "I want tablet view to go wall to
+         wall in line with the board. I want desktop view to have some padding around it like it
+         currently is."
+
+         SO THE INSET STAYS HERE, and the comment directly above is why it should: the card is
+         spaced by the same --pp4CapGap the side-by-side column uses, "so the two desktop branches
+         draw the same component with the same air around it (rule 8), instead of one floating card
+         and one wall-to-wall slab." That was a deliberate consistency choice. An earlier version of
+         this fix deleted it at every width and never mentioned the reversal — caught by CEO Review
+         15, and it was rule 10 (read the graveyard) missed. His ruling keeps it for desktop and
+         overrides it for tablet, which is the half he actually reported.
+
+         WHICH CASE APPLIES IS DERIVED, NEVER TYPED (rule 9). There is no "tablet ends here" number:
+         computeStageGeometry() already measures the board's own surround — (window - board) / 2 —
+         and adds `.pp4CapBleed` when there is less of it per side than the air we would inset by.
+         On a tablet the board fills the window, so there is nothing for the card to sit inside and
+         it goes wall-to-wall; on desktop the page's gradient shows either side and the card keeps
+         its air. Measured: 7px of surround per side at 768, 225px at 1200.
+
+         --pp4CapGap therefore keeps its ONE meaning — a separation, which computeStageGeometry()
+         reads as exactly that — and the JS no longer uses one number for both the side inset and
+         the air beneath the card. Held by scripts/qa/w44_captains_width_check.mjs. */
+      left:var(--pp4CapGap); right:var(--pp4CapGap); bottom:auto; height:auto;
       border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.28); }
+    /* HIS TABLET HALF: no surround to sit inside, so the card runs flush with the board. Same card,
+       same elevation, same corner radius — simply wider. */
+    body.pp4Stage:not(.pp4Side).pp4CapBleed #pp4Cap { left:0; right:0; }
   }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
     border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);

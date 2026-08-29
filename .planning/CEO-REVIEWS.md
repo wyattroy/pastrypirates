@@ -1,5 +1,66 @@
 # CEO reviews — the standing record
 
+## CEO Review 15 — 2026-08-28, W4-4 the captains box width (commit f45aea7b) — VERBATIM
+
+**Wyatt — YES on the half you typed, NO on the half you screenshotted.** The tablet fault you described is genuinely gone, measured properly, and the reasoning behind it is the best-evidenced work on this branch today. But your annotation said "ALSO ON A PHONE — the rows end about 200px short," and on the phone this change moved them **four pixels**. The write-up tells you it fixed both, "at every screen size." It did not. And the thing that really is ~200px on your phone is sitting on the "deliberately not fixed" list.
+
+### 1. What genuinely happened
+
+**The box now matches the board — real, and correctly diagnosed as two faults.** The captains box was pulled 14px inside the board on each side, and separately the rows inside it were still obeying the old layout's 632px width while sitting in a 754px box. Both are fixed in one change (`index.html:1707` and `index.html:1905-1906`), and the CTO is right that fixing only the first made the second worse — that is an honest and non-obvious call.
+
+**The side-by-side desktop layout is not damaged.** I checked this specifically. The rule that changed only applies when the layout is *not* side-by-side (`index.html:1697`), and the gap variable is still doing its real job in the column beside the board (`index.html:1607`) and in the geometry maths (`src/ui/stage.js:2105-2122`). Nothing was deleted that the wide layout needs.
+
+**No side effects inside the box.** Only two things live in the captains box — the hidden controls row and the captains card (`src/ui/stage.js:1924-1925`) — and the controls row is hidden anyway (`index.html:1911`). Nothing else gets stretched.
+
+### 2. THE MISS — your phone
+
+Your annotation is the part that didn't happen. The CTO's own before-measurement says the phone box was **already flush**, and the row gap there went from 17px to 13px. That is a four-pixel change. Your screenshot showed roughly two hundred.
+
+What *is* ~200px short on your phone is the **content inside each row** — the CTO measured it at about 90px of text inside a 606px row pill (`.planning/CTO-LEDGER.md:135`). That is the same thing the sea trial flagged as "rows filling only the left 15%." And that is precisely what got put on the not-fixed list, argued away as "day one, nobody has collected anything yet."
+
+**That argument may well be right, but nobody measured it.** No one looked at a row on day ten with a full recipe to confirm it fills. It is an explanation, not a measurement — and this file has a rule about exactly that. I am not saying it is a defect; I am saying it is still open, and it is the specific thing you pointed at.
+
+There is also a number that does not add up inside the dismissal. It says "the row pills are 83% of the panel" as evidence the pills are fine — but 83% *is* the fault that was just fixed. After the fix the pills are about 97% of the panel. The sentence is using a before-number to close an after-question.
+
+### 3. A settled decision was reversed without saying so
+
+This is the finding I most want you to see. The 14px inset was **not** an accident. Directly above the line that was changed, `index.html:1688-1692` records why it exists, in someone's own words: the card is spaced by the same gap the side-by-side column uses "so the two desktop branches draw the same component with the same air around it (rule 8), instead of one floating card and one wall-to-wall slab."
+
+The CTO wrote a new comment immediately underneath that one saying the opposite — that this was one variable accidentally doing two unrelated jobs — and never mentions the contradiction in the commit, the ledger, or the summary. **You asked for flush, so you outrank that old decision. But you were owed the trade:** the stacked desktop card and the side-by-side card now have different air around them, which is the consistency rule this project treats as a core value. You should get to decide that, not inherit it.
+
+**And the code still believes the old rule.** `src/ui/stage.js:2145-2154` measures the card's height at 28px narrower than it now actually renders, and its comment states the reason as "so it is measured at the width it will actually have." That is now backwards. The consequence is mild — the board loses a few pixels of height to air it no longer needs — but the stylesheet and the JavaScript now disagree, and nothing in the new gate connects them.
+
+### 4. The gate — the brief asked me to try to break it, and it breaks
+
+The two tests you were told to suspect are actually **sound**. I traced both: stripping `:not(...)` before asking "is this the side layout" works correctly, and the ancestor test correctly rejects a rule that clears the cap on the box itself rather than the panel inside it. Those two corrections were real.
+
+The hole is elsewhere, and it is wide. The gate reads only `left` and `right`, on one selector:
+
+- Put `left:14px; right:14px` on the **base** rule at `index.html:1706` instead — the strip comes back at every size including your phone, and the gate stays green, because that rule doesn't carry the words the gate looks for.
+- Or leave `left` and `right` alone and widen the padding on that same line (it already carries `padding:10px 12px`). Identical dead strip, gate silent. This one matters: 12 of the 13px still sitting beside every row *is* that padding.
+- Or use `margin:0 14px`, or `width:calc(100% - 28px)`. Same result, gate silent.
+- The rows half is looser still: it is satisfied by **any** element inside the box having its cap cleared. A rule clearing the hidden controls row would satisfy it while the captains card stayed capped at the old width.
+
+Meanwhile the gate prints "the stacked captains panel does not inset itself — **it fills the same box as the board**," and "the cap is cleared inside the stage captains box, **so its rows fill it**." Neither sentence is what was checked.
+
+### 5. Recurrence — YES, and this is the third review running
+
+**Review 13 said: the gate guarded one selector while its pass line announced the whole idea. Review 14 said: the instrument announces more than it checked. It has happened again, twice in one item.** Once in the gate, whose two pass lines both claim a whole idea while watching one property on one selector. And once in the summary you would actually read, which says the box and the rows are fixed "**both at every screen size**" when the phone — the size you personally flagged — moved four pixels.
+
+To be fair to the CTO: it caught three of its own unfailable assertions this session and wrote that down unprompted (`.planning/CTO-LEDGER.md:136`). That is the right instinct and it is why the two tests I was told to suspect are clean. It just stopped one layer short — it checked whether each assertion could fail, and not whether the sentence printed above it was true.
+
+### What I would ask for before calling this closed
+
+1. **Say plainly which of your two complaints was fixed.** The tablet box: yes. The phone rows: no — and here is what is actually short on your phone.
+2. **Answer the day-one question by looking at a late-voyage row**, rather than reasoning about it.
+3. **Tell you the consistency trade you just made** between the two desktop layouts, and let you rule on it.
+4. **Narrow the two pass lines to what they watch**, and widen the check to padding, margin and width — the current one can be defeated by moving one number four lines down the same file.
+
+**One sentence to hold onto:** the box fix is real and well measured, but the phone half of your note is unaddressed and the write-up says otherwise — which is the third review in a row where the report has claimed more ground than the change actually covers.
+
+---
+
+
 **Rule 25 says hand each new CEO "the previous CEO's verdict", so it can say whether the same fault
 is recurring. Until 2026-08-26 that verdict lived only in the running session's context — so the
 moment a session ended, the mechanism that catches RECURRING faults quietly stopped working.**

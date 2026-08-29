@@ -51,94 +51,126 @@ const RULES = [];
   }
 }
 
-/* THE PANEL IS FOUND BY ROLE, NOT BY ID — the rule that positions the stage's captains panel while
-   it is STACKED under the board (i.e. explicitly not the side-by-side column). If the element is
-   renamed the selector below still finds it, and if nothing matches the gate says so loudly rather
-   than passing on an empty set. */
-const stacked = RULES.filter(r => /pp4Stage/.test(r.head) && /:not\(\.pp4Side\)/.test(r.head) &&
-                                  /#pp4Cap|captains/i.test(r.head));
-if (!stacked.length) {
-  fail("could not find the rule that positions the stacked captains panel — re-anchor this assertion, do not delete it");
-} else {
-  for (const r of stacked) {
-    const decl = k => {
-      const m = r.body.match(new RegExp(`(?:^|;)\\s*${k}\\s*:\\s*([^;]+)`));
-      return m ? m[1].trim() : null;
-    };
-    const bad = [];
-    for (const side of ["left", "right"]) {
-      const v = decl(side);
-      /* auto / 0 / 0px / unset are all "do not inset". Anything else — a length, a var(), a calc()
-         — pushes the panel inside the board's box. */
-      if (v !== null && !/^(0(px|%)?|auto|unset|initial)$/.test(v)) bad.push(`${side}: ${v}`);
-    }
-    if (bad.length)
-      fail(`the stacked captains panel insets itself from the board's box (${r.head} { ${bad.join("; ")} }${r.media ? " in " + r.media : ""}) — that is the dead strip either side of the box Wyatt reported; measured at 14px per side, 28px total, at tablet and desktop`);
-    else
-      pass(`the stacked captains panel does not inset itself — it fills the same box as the board (${r.head}${r.media ? ", " + r.media : ""})`);
+/* ============================ WHAT THIS GATE HOLDS ============================
+   WYATT'S RULING, 2026-08-28, in his words: "I want tablet view to go wall to wall in line with the
+   board. I want desktop view to have some padding around it like it currently is."
+   So this is NOT "the card must never inset" — an earlier version of this gate asserted exactly
+   that, which was one session's reading of half his complaint, and it would now fail the behaviour
+   he asked for. It holds the ruling: FLUSH where the board has no surround beside it, AIR where it
+   does, and the choice between them DERIVED rather than typed. ============================== */
+const last = h => h.split(",")[0].trim().replace(/:not\([^)]*\)/g, "").split(/[\s>+~]+/).filter(Boolean).pop() || "";
+const positive = h => h.replace(/:not\([^)]*\)/g, "");
+const stacked = RULES.filter(r => last(r.head) === "#pp4Cap" && !/\.pp4Side/.test(positive(r.head)));
+
+/* (1) HIS TABLET HALF — a rule must take the card flush when the board fills the window. */
+{
+  const bleed = stacked.filter(r => /\.pp4CapBleed/.test(r.head));
+  const flush = bleed.filter(r => /(?:^|;)\s*left\s*:\s*0/.test(r.body) && /(?:^|;)\s*right\s*:\s*0/.test(r.body));
+  if (flush.length) pass(`the card runs flush with the board where there is no surround beside it — his tablet half (${flush[0].head})`);
+  else fail("nothing takes the captains card flush with the board when the board fills the window — that is the dead strip Wyatt reported at tablet width, and his ruling was \"wall to wall in line with the board\"");
+}
+
+/* (2) HIS DESKTOP HALF — and it is the older decision this restores, not a leftover. The comment
+   above the rule in index.html records why: both desktop branches draw the same component with the
+   same air (rule 8). CEO Review 15 caught that being deleted silently; the gate now stops it being
+   deleted at all. */
+{
+  const air = stacked.filter(r => !/\.pp4CapBleed/.test(r.head) &&
+    /(?:^|;)\s*left\s*:\s*[^;]*--pp4CapGap/.test(r.body) && /(?:^|;)\s*right\s*:\s*[^;]*--pp4CapGap/.test(r.body));
+  if (air.length) pass(`the card keeps its air where the board IS letterboxed — his desktop half, spaced by the same --pp4CapGap the side-by-side column uses (${air[0].head}${air[0].media ? ", " + air[0].media : ""})`);
+  else fail("the stacked card no longer keeps its --pp4CapGap air on desktop — Wyatt ruled \"I want desktop view to have some padding around it like it currently is\", and the comment above that rule records it as the rule-8 reason both desktop branches match");
+}
+
+/* (3) AND THE CHOICE IS DERIVED, NOT TYPED (rule 9). The whole point is that no "tablet ends here"
+   number exists to drift. stage.js must compute the board's own surround and toggle the class from
+   it; a hand-typed pixel breakpoint deciding the same thing is the failure this asserts against. */
+{
+  const js = fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8");
+  const derives = /surroundPerSide\s*=\s*\(\s*iw\s*-\s*boardSideStacked\s*\)\s*\/\s*2/.test(js) &&
+                  /classList\.toggle\("pp4CapBleed"/.test(js);
+  if (derives) pass("the flush-vs-air choice is derived from the board's own surround in stage.js — (window - board) / 2 against the gap — with no typed breakpoint to drift");
+  else fail("stage.js no longer derives the flush-vs-air choice from the board's surround — if it has been replaced by a typed viewport breakpoint, that is the constant rule 9 exists to stop");
+  /* (3b) AND THE TWO QUANTITIES STAY SEPARATE. `capInset` used to be BOTH the horizontal side inset
+     (doubled) and the vertical air under the card — one number, two jobs, the same fault this item
+     fixed one layer up in the stylesheet. */
+  if (/capGapBelow/.test(js) && !/\bcapInset\b/.test(js))
+    pass("stage.js keeps the side inset and the air BENEATH the card as separate quantities");
+  else
+    fail("stage.js is back to one variable serving both the card's side inset and the vertical air under it — that is the exact conflation W4-4 fixed in the stylesheet");
+}
+
+/* (4) THE CARD'S SIDE PADDING IS DECLARED ONCE. CEO Review 15: it is the easiest way to recreate a
+   dead strip while every width assertion stays green — 12 of the 13px beside every row IS this. */
+{
+  const CANON = "12px";
+  const padRules = RULES.filter(r => last(r.head) === "#pp4Cap" && /(?:^|;)\s*padding\s*:/.test(r.body));
+  const bad = [];
+  for (const r of padRules) {
+    const v = (r.body.match(/(?:^|;)\s*padding\s*:\s*([^;]+)/) || [])[1].trim();
+    const parts = v.split(/\s+/);
+    if ((parts.length === 1 ? parts[0] : parts[1]) !== CANON) bad.push(`${r.head} { padding: ${v} }`);
   }
+  if (!padRules.length) fail("the captains card declares no padding at all — re-anchor this assertion");
+  else if (bad.length) bad.forEach(b => fail(`the captains card's side padding is no longer the agreed ${CANON} — ${b}. Growing it puts a dead strip back where the width assertions cannot see it`));
+  else pass(`the captains card's side padding is the one agreed value (${CANON}) in all ${padRules.length} rule(s) that set it`);
 }
 
-/* THE GAP VARIABLE MUST STILL MEAN ONE THING. --pp4CapGap is the SEPARATION between the board and
-   the captains column in the side-by-side layout, and computeStageGeometry() reads it as that. A
-   future edit that puts it back into a left/right inset would recreate this exact fault under a
-   different number, so the gate holds the meaning rather than the value. */
+/* (5) NOTHING SNEAKS AN EXTRA INSET IN BY ANOTHER ROUTE. Everything the CEO used to defeat the
+   first version: margin, a subtracting width, the logical-inset properties. left/right are governed
+   by (1) and (2) above and are deliberately not re-checked here. */
 {
-  /* STRIP `:not(...)` BEFORE ASKING WHETHER THIS IS THE SIDE LAYOUT. The first version of this
-     tested for ".pp4Side" anywhere in the selector — and `body.pp4Stage:not(.pp4Side) #pp4Cap`
-     CONTAINS that string, inside the negation. So the one rule at fault was excluded from the very
-     check written to catch it, and this assertion printed PASS against the broken tree. A gate that
-     cannot fail is worse than no gate; caught by running it RED and reading which lines passed. */
-  const positive = head => head.replace(/:not\([^)]*\)/g, "");
-  const misuse = RULES.filter(r => /#pp4Cap/.test(r.head) && !/\.pp4Side/.test(positive(r.head)) &&
-    /(?:^|;)\s*(?:left|right)\s*:\s*[^;]*--pp4CapGap/.test(r.body));
-  if (!misuse.length) pass("--pp4CapGap is used as a separation, never as a left/right inset on the stacked panel");
-  else for (const m of misuse)
-    fail(`--pp4CapGap is being used as a horizontal INSET in ${m.head} — it means "the gap between board and captains column", a separation, and reusing it here is what made the panel narrower than the board`);
+  const offenders = [];
+  const ZERO = /^(0(px|%|em|rem)?|auto|unset|initial|revert)$/;
+  for (const r of stacked) {
+    const decl = k => { const m = r.body.match(new RegExp(`(?:^|;)\\s*${k}\\s*:\\s*([^;]+)`)); return m ? m[1].trim() : null; };
+    for (const k of ["margin-left", "margin-right", "inset-inline-start", "inset-inline-end"]) {
+      const v = decl(k); if (v !== null && !ZERO.test(v)) offenders.push({ r, k, v });
+    }
+    const mg = decl("margin");
+    if (mg) { const parts = mg.split(/\s+/); const x = parts.length === 1 ? parts[0] : parts[1];
+      if (x && !ZERO.test(x)) offenders.push({ r, k: "margin (horizontal)", v: x }); }
+    for (const k of ["width", "max-width"]) { const v = decl(k);
+      if (v && /calc\([^)]*-/.test(v)) offenders.push({ r, k, v }); }
+  }
+  if (offenders.length)
+    for (const o of offenders)
+      fail(`the captains card takes horizontal space by a route other than the two ruled cases — ${o.r.head} { ${o.k}: ${o.v} }${o.r.media ? " in " + o.r.media : ""}`);
+  else
+    pass(`across all ${stacked.length} rule(s) that size the stacked card, no margin, logical inset, or subtracting width adds space beyond the two cases Wyatt ruled on`);
 }
 
-/* And the side-by-side column must keep using it, or the "fix" has deleted a real gap. */
+/* (6) The side-by-side column must keep reading --pp4CapGap for its real job. */
 {
-  const sideUse = RULES.some(r => /\.pp4Side/.test(r.head) && /--pp4CapGap/.test(r.body));
-  if (sideUse) pass("the side-by-side column still reads --pp4CapGap for its real job — the gap between board and column");
+  const sideUse = RULES.some(r => /\.pp4Side/.test(positive(r.head)) && /--pp4CapGap/.test(r.body));
+  if (sideUse) pass("the side-by-side column still reads --pp4CapGap as the gap between board and column");
   else fail("nothing reads --pp4CapGap as a separation any more — the side-by-side gap has been deleted, which is not what this item asked for");
 }
 
-/* AND THE ROWS MUST FILL THE BOX — the second half of what Wyatt reported, and it is a SECOND
-   fault with a second cause. His words: the captain rows end short of the panel's own right edge.
-   MEASURED at tablet 768x954, with the panel already widened by the fix above:
-     --boardW              = 632px   (the CLASSIC layout's board width)
-     #pp4Cap               = 7..761  (754 wide — the STAGE board's width)
-     #captainsPanel.panel  = 19..651 (632 wide, max-width 632px)   <- capped by --boardW
-     #players / .player-row= 606 wide
-   So 111px of the box sat empty to the right of every row. The shared classic rule
-   `#controlsRow, #actionPanel, #captainsPanel, … { max-width: var(--boardW) }` still governs a
-   panel that has been RE-PARENTED into a stage container whose width is computed differently.
-   FIXING ONLY THE BOX WOULD HAVE MADE THIS WORSE, and did in measurement — widening the box grew
-   the empty strip from 84px to 111px. Both halves ship together or neither does.
-   Scoped deliberately to the captains box: the same cap also sizes the recipe card, and widening
-   THAT is a taste decision Wyatt has not made (parked as a question), not a bug he reported. */
+/* (7) THE ROWS FILL THE CARD — the second half of what he reported, and the rule must clear the cap
+   on THE CARD THAT HOLDS THE ROWS. CEO Review 15: the first version was satisfied by any element in
+   the box, so a rule clearing the hidden controls row would have passed while the captains card
+   stayed at the old layout's width. The holder is DERIVED from the markup, never typed. */
 {
-  /* #pp4Cap MUST BE AN ANCESTOR HERE, NOT THE TARGET — and this is the THIRD time in one session
-     that an assertion in this repo passed by matching something adjacent to its subject. The first
-     version accepted `body.pp4Stage.pp4Side #pp4Col > #pp4Cap { max-width:none }`, which clears the
-     cap on the SIDE layout's own box and says nothing whatever about the panel INSIDE the stacked
-     one. It printed PASS against the tree it was written to condemn. So: strip :not(...), split the
-     selector into compounds, and require #pp4Cap to appear somewhere BEFORE the last one. */
-  const compounds = head => head.replace(/:not\([^)]*\)/g, "").split(/[\s>+~]+/).filter(Boolean);
-  const cleared = RULES.filter(r => {
-    if (!/pp4Stage/.test(r.head)) return false;
-    if (!/(?:^|;)\s*max-width\s*:\s*none/.test(r.body)) return false;
-    const c = compounds(r.head.split(",")[0]);
-    const at = c.findIndex(x => x.includes("#pp4Cap"));
-    return at >= 0 && at < c.length - 1;          // #pp4Cap is an ancestor of the thing being sized
-  });
-  if (cleared.length)
-    pass(`the classic --boardW cap is cleared inside the stage captains box, so its rows fill it (${cleared[0].head})`);
-  else
-    fail("nothing clears the classic `max-width: var(--boardW)` cap inside the stage captains box — the rows stay at the OLD layout's board width while the box is at the new one, leaving an empty strip to their right that the width fix above makes wider, not narrower");
+  const holder = (() => {
+    const rows = html.indexOf('id="players"');
+    if (rows < 0) return null;
+    const ids = [...html.slice(0, rows).matchAll(/<div[^>]*\bid="([^"]+)"/g)].map(m => m[1]);
+    return ids.length ? ids[ids.length - 1] : null;
+  })();
+  if (!holder) fail("could not find the element that holds the captain rows in index.html — re-anchor this assertion, do not delete it");
+  else {
+    const cleared = RULES.filter(r => /pp4Stage/.test(r.head) && /(?:^|;)\s*max-width\s*:\s*none/.test(r.body) &&
+      r.head.split(",").some(sel => {
+        const c = sel.trim().replace(/:not\([^)]*\)/g, "").split(/[\s>+~]+/).filter(Boolean);
+        const at = c.findIndex(x => x.includes("#pp4Cap"));
+        const tgt = c[c.length - 1] || "";
+        return at >= 0 && at < c.length - 1 && (tgt.includes("#" + holder) || tgt.includes(".panel"));
+      }));
+    if (cleared.length) pass(`the classic --boardW cap is cleared on #${holder}, the card that actually holds the captain rows`);
+    else fail(`nothing clears the classic \`max-width: var(--boardW)\` cap on #${holder} — the card that holds the captain rows — so they stay at the OLD layout's board width inside a card sized by the new one`);
+  }
 }
 
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
-  : `\nPASSED — the captains box and the board agree on one width, and the gap variable means one thing`);
+  : `\nPASSED — the card goes wall-to-wall where the board fills the window and keeps its air where the board is letterboxed (Wyatt's ruling, derived not typed), its rows fill it, and no other route adds space`);
 process.exit(fails ? 1 : 0);

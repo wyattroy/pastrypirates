@@ -72,7 +72,7 @@ export function hideStageLayer(){
     const e=document.getElementById(id);
     if(e)e.style.display="none";
   }
-  document.body.classList.remove("pp4Stage","pp4Side");
+  document.body.classList.remove("pp4Stage","pp4Side","pp4CapBleed");
 }
 /* The other half. Clears the inline display rather than setting one, so each element goes back
    under CSS control and whatever the game logic wanted for it (a pill hidden in a mode that has no
@@ -2112,6 +2112,9 @@ function computeStageGeometry(){
     // captains column sits beside it, level with the board's top, at a fixed comfortable width and
     // hugging its own content height (index.html).
     body.classList.add("pp4Side");
+    /* the wall-to-wall rule is a STACKED-layout question only — beside the board the card is a
+       column with its own gap, and Wyatt's ruling was about the card UNDER the board. */
+    body.classList.remove("pp4CapBleed");
     mountColumn(true);
     body.style.setProperty("--pp4W", boardSideFull + "px");
     body.style.setProperty("--pp4Top", topBand + "px");
@@ -2142,20 +2145,41 @@ function computeStageGeometry(){
   mountColumn(false);
   body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
   const candidate = Math.max(240, Math.min(boardSideFull, iw));
-  /* THE VOID HAS TO HOLD THE CARD *AND* THE AIR UNDER IT (D-52). On desktop the stacked card is
-     inset by --pp4CapGap on three sides (index.html), so it is measured at the width it will
-     actually have — a card measured 28px wider than it renders is a card that wraps a row nobody
-     reserved space for — and the board is narrowed by the gap as well, so the air beneath the card
-     can never be squeezed to nothing. The phone is byte-identical: it has no inset, and its own
-     media query is the one that decides that, so `gapBelow` reads the same boundary the CSS does
-     rather than a second copy of it. */
+  /* THE VOID HAS TO HOLD THE CARD *AND* THE AIR UNDER IT (D-52), and the card's SIDES follow a
+     separate rule that Wyatt set on 2026-08-28: "I want tablet view to go wall to wall in line with
+     the board. I want desktop view to have some padding around it like it currently is."
+
+     WHAT SEPARATES HIS TWO CASES IS ALREADY COMPUTED HERE, so nothing needs a typed breakpoint
+     (rule 9). On a tablet the board fills the window and there is no surround beside it; on desktop
+     it is letterboxed with the page's gradient showing either side. The board's own surround IS
+     that difference: (iw - board) / 2. When there is less surround per side than the air we would
+     inset by, there is nothing for the card to sit inside and it goes wall-to-wall with the board.
+     When there is more, the card keeps its air and the two desktop branches still draw the same
+     component the same way — which is the rule-8 reason the inset existed in the first place, one
+     comment up, and which his ruling deliberately preserves for desktop only.
+
+     TWO PASSES, BECAUSE THE MEASUREMENT AND THE DECISION DEPEND ON EACH OTHER. The card's natural
+     height depends on how wide it is; how wide it is depends on whether it insets; whether it
+     insets depends on the board size, which depends on the card's height. So: measure once at the
+     full width to get an honest board size, decide from that, and re-measure only if the card turns
+     out to be inset after all. Deterministic, no loop.
+     `capGapBelow` is the VERTICAL air under the card and is a different quantity from the side
+     inset — they were one variable before, which is exactly the fault W4-4 was fixing one layer up.
+     It still reads the same @media (min-width:601px) boundary the CSS uses, not a second copy. */
   const insetCard = pillRidesRibbon();                 // the same @media (min-width:601px) boundary
-  const capInset = insetCard ? capGap : 0;
-  const capH = measureCapNaturalHeight(Math.max(240, candidate - capInset * 2));
+  const capGapBelow = insetCard ? capGap : 0;          // vertical air under the card — NOT a side inset
+  let capH = measureCapNaturalHeight(Math.max(240, candidate));
+  let boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capGapBelow));
+  const surroundPerSide = (iw - boardSideStacked) / 2;
+  const capBleeds = !insetCard || surroundPerSide < capGap;
+  body.classList.toggle("pp4CapBleed", capBleeds);
+  if (!capBleeds) {                                    // desktop: the card really is inset, so measure it that way
+    capH = measureCapNaturalHeight(Math.max(240, boardSideStacked - capGap * 2));
+    boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capGapBelow));
+  }
   S.capNeed = capH;   // camFrame's band reservation reads the same measurement (D-46 fault 3)
-  const boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capInset));
   body.style.setProperty("--pp4W", boardSideStacked + "px");
-  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked - capInset) + "px");
+  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked - capGapBelow) + "px");
   refreshNameMarquees();   // same reason as the side-by-side branch above — the board (and with
                            // it the name column, which spans the same derived width) just resized
 }
