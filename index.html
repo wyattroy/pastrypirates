@@ -544,6 +544,11 @@
     box-shadow: 0 3px 10px rgba(0,0,0,.32); cursor: grab; }
   .apSlider::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: #fffdf2;
     border: 3px solid #f5a623; box-shadow: 0 3px 10px rgba(0,0,0,.32); cursor: grab; }
+  /* W6-1 — A DEAD PURSE'S SLIDER READS AS DEAD. Drawn (the question makes no sense without the
+     control it refers to) but plainly not draggable. `:disabled` is the same signal the browser
+     already honours, so there is no second state to keep in step with the markup. */
+  .apSlider:disabled { opacity: .38; cursor: not-allowed; }
+  .apSliderWrap.apSliderDead .apSliderOut { opacity: .38; }
   .apSliderOut { min-width: 2.2em; text-align: center; font-weight: 900; font-size: 15px;
     color: #8a5a12; font-variant-numeric: tabular-nums; }
   .apBtns { display: flex; gap: 8px; flex-wrap: wrap; }

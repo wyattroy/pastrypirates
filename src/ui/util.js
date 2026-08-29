@@ -1491,7 +1491,14 @@ export function backButtonHTML(idx){return `<button class="apBack" data-i="${idx
        decision-log requirement satisfied BY CONSTRUCTION rather than by care, which is the point,
        because HARD-WON-LESSONS §5 is the account of this very control replaying at its floor. */
 export function sliderWrapHTML(sl){
-  return `<div class="apSliderWrap"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1" aria-label="${escHtml(sl.aria||"Amount")}"><output class="apSliderOut">${sl.start}</output></div>`;
+  /* W6-1 (Wyatt): "'Would ye offer any coin on top?' appears with NO SLIDER when the player has no
+     money left. Expectation: the slider appears greyed out." A dead purse still gets the control —
+     the question makes no sense without it — but it must LOOK dead, because a live-looking bar that
+     cannot move invites a drag that does nothing. `disabled` does both jobs at once: the browser
+     stops the drag and stops the keyboard, and the stylesheet greys it, so there is no second
+     mechanism to keep in step. */
+  const dead = sl.disabled ? " disabled" : "";
+  return `<div class="apSliderWrap${sl.disabled ? " apSliderDead" : ""}"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1"${dead} aria-label="${escHtml(sl.aria||"Amount")}"><output class="apSliderOut">${sl.start}</output></div>`;
 }
 /* The deal re-stated at THIS stop. `fmt` on the tier that has the game, `texts` on the tier that was
    handed the strings — one function so the two can never say different things at the same stop. */

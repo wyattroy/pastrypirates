@@ -296,3 +296,21 @@ pill below the bar at 62%.
 
 **Default if he never answers:** leave it. He wrote "this gradient", singular, and the bar-wide wash
 is what is gone.
+
+## Q-17 — the counter-offer's empty-purse button has no word from Wyatt
+
+**W6-1 gave the offer one.** When the purse is empty, *"Would ye offer any coin on top?"* now ends in
+**"Nah"** — his word, and already the game's decline word at another prompt (`flow.js:1459`), so it
+is the consistent choice rather than a new one.
+
+**`coinSlider` has a second caller and its sentence is different.** The counter-offer says *"ye're
+ASKIN' X for yer Y"* — a statement, not a question — and confirms with "Ask it!". "Nah" there would
+read as cancelling the whole counter rather than declining the coin, so it was NOT applied.
+
+**Why this is a question and not a loose end:** rule 8 says an interaction behaving differently in
+two places is a bug unless he chose the exception. The *mechanism* is now identical in both — a
+greyed slider, and a decline label supplied by the caller. Only the word differs. That is either the
+right call or an exception he wants closed, and it is copy, which is his.
+
+**Default if he never answers:** leave the counter reading "Ask it!". Its sentence is not a question,
+so no answer-word fits it.
