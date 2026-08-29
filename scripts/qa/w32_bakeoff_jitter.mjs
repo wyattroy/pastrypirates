@@ -204,7 +204,7 @@ const residual = j => { const k = Math.round(j / pitch); return Math.round(Math.
 commits.forEach(x => { x.seats = Math.round(x.jump / pitch); x.short = residual(x.jump); });
 const bigCommits = commits.filter(x => x.short > 1);
 console.log(`\n--- the reconcile at each commit (${commits.length} seen; one seat is ${pitch}px) ---`);
-commits.slice(0, 14).forEach(x => console.log(`  crate ${x.crate} at ${x.t}ms: ${x.from} -> ${x.to}   travelled ${x.jump}px = ${x.seats} seat(s)   ${x.short ? `STOPPED ${x.short}px SHORT — the player sees this jump` : "exact — invisible hand-off"}`));
+commits.slice(0, 14).forEach(x => console.log(`  crate ${x.crate} at ${x.t}ms: travelled ${x.from}px = ${x.pitches.toFixed(3)} seat(s)   ${x.residual > 1 ? `STOPPED ${x.residual}px SHORT — the player sees this jump` : `exact to within ${x.residual}px, which is this probe's own sampling precision — invisible hand-off`}`));
 console.log(`  commits that did not land on a whole seat: ${bigCommits.length}${bigCommits.length ? `   worst ${Math.max(...bigCommits.map(x => x.short))}px` : ""}`);
 
 const snaps = [], contentJumps = [];
