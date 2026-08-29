@@ -497,8 +497,25 @@ function peekHintTick(box){
   // because a hint nobody sees teaches nobody (D-39).
   const blockers = busy.filter(r => r.bottom > foot - AIR && r.top < foot + sr.height + AIR);
   const above = blockers.length ? Math.round(Math.min(...blockers.map(r => r.top)) - sr.height - AIR) : foot;
-  for (const y of [foot, above, head]){
-    if (clear(y)){ hint.style.top = y + "px"; return; }
+  /* W4-5 — NEAREST THE CARD IS TRIED FIRST. Wyatt: "move the tooltip closer to the recipe card…
+     in a way, it is a button — a button that reveals the sea."
+     MEASURED at the recipe picker before changing: the hint sat 295px above the card at 1200 and
+     768, and 222px at 390 — the far end of the board from the thing it is about. The cause was this
+     very list: with a card up, the card blocks `foot` and `above`, so the search fell through to
+     `head` every time. The old order was written when the hint's job was to sit "over the sea it
+     names", which is right when nothing is asking a question and wrong the moment something is.
+     THIS IS A CHANGE OF PREFERENCE, NOT A NEW FIXED POSITION, and that distinction is the whole
+     safety of it. The hint used to be pinned at band.bottom - 44 and the 2026-08-21 gate caught it
+     drawn across "Stay put", across a trade's ✓ and over the second line of "Call Flaky Jack" —
+     five judge findings, one cause. Every candidate below, this one included, still goes through
+     clear(), and hiding is still the last resort, so none of that can return.
+     Derived from the card's own rect, never a typed offset, so it is right at every size. */
+  const cardEl = box.querySelector("#actionPanel");
+  const cardR = cardEl ? cardEl.getBoundingClientRect() : null;
+  const nearCard = (cardR && cardR.width > 2 && cardR.height > 2)
+    ? Math.round(cardR.top - sr.height - AIR) : null;
+  for (const y of [nearCard, foot, above, head]){
+    if (y !== null && clear(y)){ hint.style.top = y + "px"; return; }
   }
   hint.style.display = "none";          // taught nothing this tick beats covering the answer
 }
@@ -2332,7 +2349,22 @@ function retireEchoBubble(){
 }
 function peekHintLast(){
   const box = $("pp4Prompt");
-  if (!box || !box.classList.contains("radial")) return;
+  /* W4-5 — IT ALSO RUNS WHEN A CARD IS UP, and until 2026-08-29 it did not. The guard was
+     radial-only, so with the recipe picker on screen the placement search NEVER RAN: the hint stayed
+     wherever the last radial prompt had put it, which is why Wyatt saw it stranded at the far end of
+     the board from the card (measured 295px at 1200 and 768, 222px at 390). It was not mis-placed —
+     it was UNPLACED, a stale position from a previous prompt.
+     THE COMMENT ON peekHintTick SAID "inside whichever prompt box is up" AND THAT WAS INTENT, NOT
+     RUNTIME — rule 6, again, and the reason the first attempt at this item changed the preference
+     order and moved nothing at all.
+     A card prompt is over the board exactly as the radial one is, so D-39's rule ("a prompt IS over
+     the board here, so the gesture is taught until it has been learned") applies unchanged. The
+     condition is DERIVED from what is on screen — a visible panel — not from a list of prompt class
+     names that would need editing every time a new prompt kind appears. */
+  if (!box) return;
+  const card = box.querySelector("#actionPanel");
+  const cardUp = !!card && card.getBoundingClientRect().height > 2;
+  if (!box.classList.contains("radial") && !cardUp) return;
   peekHintTick(box);
 }
 function promptTick(){

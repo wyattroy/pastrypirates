@@ -2524,6 +2524,13 @@
      tell you so. ========================================================================== */
   #flipCoinWrap.active,
   .ahoyGlow,
+  /* W4-5 — THE SEA HINT PULSES LIKE A BUTTON, from THIS rule and not a copy of it. Wyatt:
+     "give it the same pulse as the buttons — in a way, it is a button, a button that reveals the
+     sea." It measured animation-name:none at all three sizes. Named here rather than given its own
+     @keyframes because rule 8 is that one gesture has one definition; a second copy is how the
+     dock coin's glow and the stage's drifted apart before. It stays pointer-events:none — the
+     gesture is holding the SEA, so this is the attention cue for that, not a new tap target. */
+  .pp4PeekHint span,
   #pp4Prompt.pp4Center #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]),
   #actionPanel .btlBtn:not(:disabled):not([aria-disabled="true"]),
   #btnStart:not(:disabled),
