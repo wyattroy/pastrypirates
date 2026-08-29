@@ -1,5 +1,34 @@
 # CEO reviews — the standing record
 
+## CEO Review 20 — 2026-08-29, W4-2 the battle narration bubble (commit fed07ee6) — VERBATIM
+
+**VERDICT: NO. The fix lands on the host's screen. The guest — the seat Wyatt actually reported — still anchors its battle bubble, and nothing in the gate looks at the guest path.**
+
+**What genuinely happened.** The diagnosis is real and well-cited. `src/ui/panel.js:1083` used to hand a battle's result to the attacker via `e.a`; a battle event is `{t:"battle",a,d,…}` (`src/engine/index.js:1804`, `src/orchestrator.js:774`), so the result bubble anchored to one of two fighters, arbitrarily. Deriving the rule from the event's shape rather than a list of names is the right instinct, and it matches the existing table-wide rule three hundred lines away in `stage.js:1317-1325`.
+
+**But `panel.js` is the HOST's seat only.** The CTO's own comment says it: `panel.js:1059-1060` — "netNarrate on the receiving end (the host's own screen) and watchNarr on every guest." A guest never runs `narrateLastEvent()`; it receives the finished sentence over the wire (`src/orchestrator.js:1735-1742`) and calls `flash(v.html, …)` with **no subject**. Nothing about the subject crosses the wire — `netNarrate` sends html, variants and wait only (`orchestrator.js:193`).
+
+**So on the guest, a different rule decides, and it still anchors.** With no subject, `stage.js:1307-1327` sniffs the sentence for captain colours and anchors when **exactly one** is named. The battle result names exactly one: `⚔️ ${pn(e.winner)} wins ${aP}–${dP}.` (`src/ui/util.js:616`), and the addressed forms the same (`util.js:614-615`, `util.js:670`). One name, so the guest anchors the result to the winner's boat — 44px off centre, the fault as reported. Only the rare nothing-to-plunder line names two (`util.js:697`) and would centre.
+
+That is rule 23 in one line: **two seats, two different rules deciding the same thing.** The host was fixed; the guest was never touched.
+
+**The battle was never re-verified on a guest.** The CTO discloses the verification run produced a trade, not a battle, and measured the rule at its seam instead. The seam it measured is `panel.js` — the host's half. The half that was actually broken for Wyatt was never exercised.
+
+**The gate cannot fail on this, and its pass line says otherwise.** `scripts/qa/w42_battle_bubble_check.mjs` reads only `panel.js`, `stage.js` and `orchestrator.js`'s opening line. Assertion 1 (line ~53) passes if the block merely contains the characters `e.d` and `null` — and the block always contains `e.p!=null`, so the `null` half can never fail. Write `const twoCaptains = e.d!=null && false;` and the gate stays green with anchoring fully restored. Nothing reads `watchNarr`, `netSetNarr`, or the colour sniff. Its closing line nonetheless prints "**a fight's narration is centred on both seats**" — a claim the gate has no way to check.
+
+**Wider than asked, unmeasured.** The shape rule also catches `refire` (`engine/index.js:1783`), `battleflee` (`:1769`) and `battlenull` (`:1794`). A refire is one captain paying to fire again; that line previously anchored to them and now goes centred. Defensible, but it is three more bubbles moved on the host, none measured, none mentioned to Wyatt.
+
+**RECURRENCE: YES — the sixth time, and the same shape as Review 19.** The gate's pass line claims more than the gate checks ("centred on both seats" while it reads only host-side files), and the report claims more ground than the change covers (the fix reaches one seat of two, and the seat it misses is the one in the report title). Review 19's guest-never-sees-it finding is here again, in a different control.
+
+> **CTO RESPONSE, appended without altering the verdict. Every finding was correct, and the verdict was NO for the right reason.**
+> 1. **It was worse than the review knew, and its instinct found it.** A deliberate `null` on the HOST also fell through to the colour sniff (`stage.js`), which anchors any line naming exactly one captain — and a battle result names the winner. So the first cut changed nothing **on either seat**. My "verified at the seam" measured `panel.js`'s expression and not the final subject: reasoning standing in for evidence, exactly as the review said.
+> 2. **DECIDED and ABSENT are now different states.** `subjectSet` marks "an event was read and it yielded no subject", and the sniff — which exists for event-less turn banners — may no longer overturn it.
+> 3. **The decision crosses the wire (rule 23).** `netSetNarr` carries it, `-1` meaning "deliberately none" so that ABSENT still means "fall back to the sniff" for an older client. The guest applies the host's decision instead of running a second rule of its own. One decision, both seats.
+> 4. **The gate is rewritten and red-proofed against seven defeats including the review's own** (`e.d!=null && false`), and it now reads the wire and the guest. Its pass line says what it watched.
+> 5. **The widened scope is acknowledged**: `refire`, `battleflee` and `battlenull` also carry two seats and now centre. Recorded for Wyatt rather than left silent.
+
+---
+
 ## CEO Review 19 — 2026-08-29, W6-1 the empty-purse coin slider (commit db7d4ac8) — VERBATIM
 
 **VERDICT: YES on the host's screen. NO on the guest's — and the same branch mislabels a one-coin purse.**

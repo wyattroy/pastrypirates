@@ -93,6 +93,7 @@ const S = {
   lock: false,              // a player gesture holds the camera until the next sail prompt
   battle: null,             // [attacker, defender] while a fight is live — the camera holds on it
   subject: null,            // seat index the next flash() line is about (stashed by panel.js)
+  subjectSet: false,        // …and whether that was DECIDED from an event (so the colour sniff must not override it)
   evType: null,
   hurry: null,              // resolver for tap-to-hurry on the live bubble
   bubPlace: null,           // live bubble's positioner — run every tick, same loop as the camera
@@ -1304,7 +1305,14 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      question itself. Everyone else still reads "…is deciding…". */
   if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
   let subj = S.subject; S.subject = null;
-  if (subj == null && typeof msg === "string"){
+  /* DECIDED BEATS SNIFFED. `subjectSet` means an event was actually read and yielded this subject —
+     including a deliberate null for a line about two captains or the whole table. The sniff below
+     is a FALLBACK for lines that carry no event (turn-start banners), and it must not overturn a
+     decision that was made. Consumed here with the subject, so it cannot leak into the next line.
+     Both seats read this one flag: the host sets it from the event, the guest sets it from the
+     host's decision on the wire — one decision, drawn the same way on both screens (rule 23). */
+  const decided = !!S.subjectSet; S.subjectSet = false;
+  if (!decided && subj == null && typeof msg === "string"){
     /* turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour.
        ONE CAPTAIN NAMED, OR NOBODY. T-08 — his checklist #32 (Wyatt, 2026-08-26): "the storm narration that reported
        how players were moved appeared connected to the player 1; it shouldn't -- it should appear
@@ -1813,8 +1821,15 @@ function sweepGuard(){
   document.addEventListener("click", e => {
     if (!S.active) return;
     const cell = e.target.closest && e.target.closest(".sailCell");
-    // any tap that is NOT on a previewed square clears the preview and forgets it
-    if (!cell || !cell.classList.contains("sailSwept")){ if (!cell) { clearSweep(); sweepBtn = null; } return; }
+    /* ANY TAP THAT IS NOT ON A PREVIEWED SQUARE CLEARS THE PREVIEW AND FORGETS IT — and until
+       2026-08-29 that sentence was true only of the comment. The teardown was nested inside
+       `if (!cell)`, so it fired only when the tap missed EVERY sail square; tap a plain yellow one
+       and `cell` exists, the guard returned, and the dashed track, the end circle and the ghost hull
+       all stayed on the board. That is Wyatt's W3-5, and it is rule 6 in the shape the rulebook
+       names: a comment is a statement of intent by somebody who has since left the room.
+       The teardown is unconditional now. The two-tap gesture is untouched — the SAME square still
+       commits on its second tap, one line below. */
+    if (!cell || !cell.classList.contains("sailSwept")){ clearSweep(); sweepBtn = null; return; }
     if (sweepBtn === cell){ clearSweep(); sweepBtn = null; return; }   // second tap: let it through
     e.stopPropagation(); e.preventDefault();                           // first tap: show the ride
     sweepBtn = cell;
@@ -3414,6 +3429,15 @@ export function initStage(){
        stageFlash the same five arguments and any rule about a payload is written exactly once. */
     narr: (html, opts, variants) => (S.active ? stageFlash(html, undefined, undefined, variants, opts) : null),
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
+    /* subjectSet NEEDS ITS OWN ACCESSOR, and forgetting it made W4-2's fix a no-op that MEASURED as
+       working. This object is a BRIDGE, not the state — `subject` and `evType` reach S only through
+       the pairs above. panel.js writes `window.__pp4.subjectSet = true`; without this line that set
+       a plain property on the bridge and never arrived, so `decided` was always false, the colour
+       sniff always ran, and a battle result naming one captain was re-anchored exactly as before.
+       Caught by driving the real flash() path and reading the bubble's class — the seam test that
+       matters, as opposed to the one I ran first, which evaluated panel.js's expression alone and
+       reported success on a fix that did nothing. */
+    set subjectSet(v){ S.subjectSet = v; }, get subjectSet(){ return S.subjectSet; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
     sailCells: (seat) => { if (S.active) camFitSail(seat); },
     /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening

@@ -36,56 +36,87 @@ const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]
 const panel = strip(fs.readFileSync(path.join(REPO, "src/ui/panel.js"), "utf8"));
 const stage = strip(fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8"));
 
-/* (1) THE SUBJECT IS WITHHELD WHEN AN EVENT NAMES TWO CAPTAINS. Read the assignment itself. */
+/* (1) THE SUBJECT IS WITHHELD WHEN AN EVENT NAMES TWO CAPTAINS.
+   CEO Review 20 broke the first version of this: it passed if the block merely CONTAINED the
+   characters `e.d` and `null` — and the block always contains `e.p!=null`, so the `null` half could
+   never fail. `const twoCaptains = e.d != null && false;` kept it green with anchoring fully
+   restored. It now reads the two-captain test itself and requires it to consult BOTH fighters and
+   compare them. */
 {
-  /* READ THE WHOLE BLOCK, NOT ONE LINE. The first version captured only the text after
-     `__pp4.subject =` up to the semicolon, and went red on a CORRECT tree the moment the two-captain
-     test was hoisted to its own `const` on the line above — the logic spans two lines, the
-     assertion read one. An assertion that fails a safe refactor teaches sessions to loosen it. */
-  const blk = panel.match(/if\s*\(\s*window\.__pp4\s*\)\s*\{[\s\S]*?\n  \}/);
-  const m = blk ? [blk[0], (blk[0].match(/__pp4\.subject\s*=\s*([^;]+);/) || [, blk[0]])[1]] : null;
-  if (!m) fail("could not find where the narration subject is set in panel.js — re-anchor this assertion, do not delete it");
+  const blk = (panel.match(/if\s*\(\s*window\.__pp4\s*\)\s*\{[\s\S]*?\n  \}/) || [""])[0];
+  if (!blk) fail("could not find where the narration subject is set in panel.js — re-anchor this assertion, do not delete it");
   else {
-    const expr = m[1];
-    const block = m[0];
-    /* it must consult the DEFENDER — the only way to know two captains are named — and yield null
-       when one is present. Checked by shape, so renaming the event type cannot defeat it. */
-    const consultsBoth = /\be\.d\b/.test(block) && /null/.test(block);
-    if (consultsBoth)
-      pass(`the narration subject is withheld when an event names two captains — it consults the defender, so a fight is not anchored to one fighter (${expr.replace(/\s+/g, " ").slice(0, 96)})`);
+    const test = (blk.match(/twoCaptains\s*=\s*([^;]+);/) || [, ""])[1];
+    const real = /\be\.d\b/.test(test) && /\be\.a\b/.test(test) && /!==|!=/.test(test) && !/\bfalse\b/.test(test);
+    const used = /twoCaptains\s*\?\s*null/.test(blk);
+    if (real && used)
+      pass(`a fight takes no subject — the test consults both fighters and compares them (${test.replace(/\s+/g, " ").slice(0, 76)})`);
     else
-      fail(`the narration subject is still \`${expr.replace(/\s+/g, " ").slice(0, 72)}\` — it never looks at the defender, so a battle event {t:"battle",a,d} anchors its result bubble to the ATTACKER. Measured in a real crew game: the result sat 44px off centre on BOTH seats while the opening line of the same battle sat centred`);
+      fail(`the two-captain test is not real (consults both and compares:${real} actually yields null:${used}; test = \`${test.replace(/\s+/g, " ").slice(0, 60)}\`) — a battle event {t:"battle",a,d} would anchor its result to the ATTACKER. Measured in a crew game: 44px off centre on BOTH seats`);
   }
 }
 
-/* (2) AND ORDINARY LINES STILL ANCHOR. Without this, "make battles centred" passes on a tree where
-   every bubble is ambient and the tail/boat design is gone. */
+/* (2) A DECIDED SUBJECT BEATS THE COLOUR SNIFF — and this is the half that made the first fix
+   change nothing at all. stageFlash falls back to sniffing the sentence for captain colours whenever
+   the subject is null. That fallback exists for turn-start lines, which carry no event. A battle
+   result names exactly ONE captain (the winner), so the sniff re-anchored the very line the rule had
+   just decided to centre. "Decided" and "absent" must be different states. */
 {
-  /* BOTH ENDS, because either alone is defeatable. Red-proofing found it: setting the subject to a
-     bare `null` strips anchoring from EVERY line, and a check that only looks at stage.js's
-     machinery still passes — the machinery is intact, nothing feeds it. So stage.js must still be
-     able to anchor AND panel.js must still supply a subject for a single-captain event. */
+  /* THE BRIDGE ACCESSOR, because forgetting it made this whole fix a NO-OP that still measured as
+     working. `window.__pp4` is a bridge object, not the state: `subject` reaches S only through a
+     getter/setter pair. panel.js writes `window.__pp4.subjectSet = true`; without a matching pair
+     that set a plain property on the bridge, never arrived, `decided` was always false, the colour
+     sniff always ran, and the battle result was re-anchored exactly as before. */
+  const bridged = /set subjectSet\(v\)\s*\{\s*S\.subjectSet\s*=\s*v/.test(stage);
+  const marks = /__pp4\.subjectSet\s*=\s*true/.test(panel) && bridged;
+  const honours = /const\s+decided\s*=\s*!!S\.subjectSet/.test(stage) && /!decided\s*&&\s*subj\s*==\s*null/.test(stage);
+  const consumed = /S\.subjectSet\s*=\s*false/.test(stage);
+  if (marks && honours && consumed)
+    pass("a subject DECIDED from an event beats the colour sniff, and the flag is consumed with it so it cannot leak into the next line");
+  else
+    fail(`a deliberate "no subject" still falls through to the colour sniff (host marks it:${marks} bridged to the real state:${bridged} stage honours it:${honours} flag consumed:${consumed}) — the sniff anchors any line naming exactly one captain, and a battle result names the winner, so the fix would change nothing on screen`);
+}
+
+/* (3) AND BOTH SEATS READ ONE DECISION — rule 23, and the fault CEO Review 20 found still live on
+   the seat Wyatt actually reported. A guest never runs panel.js: it receives the finished sentence
+   over the wire. If the host's decision does not travel, the guest falls back to the sniff and
+   anchors the fight while the host centres it — the same line drawn two ways. */
+{
+  const writers = strip(fs.readFileSync(path.join(REPO, "src/net/writers.js"), "utf8"));
+  const orch = strip(fs.readFileSync(path.join(REPO, "src/orchestrator.js"), "utf8"));
+  const sends = /function netSetNarr\([^)]*subj[^)]*\)/.test(writers) && /payload\.subj\s*=/.test(writers);
+  const passes = /netSetNarr\([^;]*subj\s*\)/.test(orch);
+  const guestHonours = /v\.subj\s*!=\s*null/.test(orch) && /subjectSet\s*=\s*true/.test(orch);
+  if (sends && passes && guestHonours)
+    pass("the host's decision crosses the wire and the guest draws from it — one decision, both seats, rather than two rules deciding the same thing (rule 23)");
+  else
+    fail(`the guest does not get the host's decision (writer carries it:${sends} host passes it:${passes} guest honours it:${guestHonours}) — a guest with no subject sniffs the sentence and anchors any line naming exactly one captain, so the battle result stays 44px off centre on the seat Wyatt reported`);
+}
+
+/* (4) ORDINARY LINES STILL ANCHOR, at BOTH ends. Without this, "make fights centred" passes on a
+   tree where nothing anchors and the tail/boat design is gone. */
+{
   const drawsAnchored = /subj\s*==\s*null\s*\?\s*" ambient"/.test(stage) && /boatUXY\(subj\)/.test(stage);
   const blk2 = (panel.match(/if\s*\(\s*window\.__pp4\s*\)\s*\{[\s\S]*?\n  \}/) || [""])[0];
   const stillSupplies = /e\.p\s*!=\s*null/.test(blk2) && /e\.a\s*!=\s*null/.test(blk2);
-  const anchors = drawsAnchored && stillSupplies;
-  if (anchors) pass("a single-captain line still anchors to that captain's boat and grows a tail — stage.js can draw it AND panel.js still supplies the seat, so the design is intact and only fights are exempt");
-  else fail(`bubbles no longer anchor to a boat at all (stage can draw anchored:${drawsAnchored} panel still supplies a seat:${stillSupplies})`.slice(0,0) + "bubbles no longer anchor to a boat at all — that is the design for single-captain lines (\"Flaky Jack takes the wheel\"), not a bug, and this item did not ask for it to go");
+  const sniffSurvives = /named\.length\s*===\s*1/.test(stage);
+  if (drawsAnchored && stillSupplies && sniffSurvives)
+    pass("a single-captain line still anchors — stage can draw it, panel still supplies the seat, and the colour-sniff fallback for event-less turn banners survives");
+  else
+    fail(`anchoring is broken for ordinary lines (draws:${drawsAnchored} supplies:${stillSupplies} sniff-fallback:${sniffSurvives}) — that is the design for "Flaky Jack takes the wheel", not a bug, and this item did not ask for it to go`);
 }
 
-/* (3) THE TWO HALVES OF ONE BATTLE ARE DRAWN THE SAME WAY (rule 8). The opening line is emitted
-   with no subject; the result must match it. If the opening ever gains one, this fails too — the
-   assertion is about them AGREEING, not about either one's value. */
+/* (5) THE TWO HALVES OF ONE BATTLE ARE DRAWN ALIKE (rule 8). */
 {
-  const orch = strip(fs.readFileSync(path.join(REPO, "src/orchestrator.js"), "utf8"));
-  const open = orch.match(/await flash\(`[^`]*attacks \$\{pn\(def\.idx\)\}[^`]*`[^;]*\)/);
+  const orch2 = strip(fs.readFileSync(path.join(REPO, "src/orchestrator.js"), "utf8"));
+  const open = orch2.match(/await flash\(`[^`]*attacks \$\{pn\(def\.idx\)\}[^`]*`[^;]*\)/);
   if (!open) fail("could not find the battle's opening narration in orchestrator.js — re-anchor this assertion");
   else if (/subject/.test(open[0]))
-    fail("the battle's OPENING line now sets a subject while the result withholds one — the two halves of one fight are drawn two ways again, which is the fault this item is about");
+    fail("the battle's OPENING line now sets a subject while the result withholds one — the two halves of one fight drawn two ways again");
   else
     pass("the battle's opening line and its result are both subject-less, so one fight is drawn one way (rule 8)");
 }
 
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
-  : "\nPASSED — a fight's narration is centred on both seats, ordinary lines still anchor to their captain's boat, and both halves of a battle are drawn alike");
+  : "\nPASSED — a fight takes no subject, that decision beats the colour sniff AND crosses the wire so both seats draw it alike, and single-captain lines still anchor");
 process.exit(fails ? 1 : 0);

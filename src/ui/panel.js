@@ -1081,6 +1081,13 @@ export async function narrateLastEvent(){
   if(window.__pp4){
     const twoCaptains = e.d!=null && e.a!=null && e.d!==e.a;
     window.__pp4.subject = twoCaptains ? null : (e.p!=null?e.p:(e.a!=null?e.a:null));
+    /* DECIDED IS NOT THE SAME AS ABSENT, and conflating them is why the first cut of W4-2 changed
+       nothing on either seat. stageFlash falls back to sniffing the sentence for captain colours
+       whenever the subject is null — a fallback that exists for turn-start lines, which carry no
+       event at all. A battle result names exactly ONE captain (the winner), so the sniff cheerfully
+       re-anchored the very line this rule had just decided to centre. The flag says "an event was
+       read and it yielded no subject", which the sniff must not override. */
+    window.__pp4.subjectSet = true;
     window.__pp4.evType=e.t;
   }
   const variants=narrationVariants(e);
