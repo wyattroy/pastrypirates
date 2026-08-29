@@ -17,6 +17,32 @@
 
 ## The voyages, in full
 
+> ⚠ **TWO OF THE TEN LEGS WERE MISSING FROM THIS FILE AND ARE RESTORED BELOW, BY HAND.**
+> `solo-desktop` and `solo-phone` both sailed and both FAILED. Their verdicts were in the run's
+> own final summary (`sea-trial-shots/log.txt:2421` and `:2427`) and never reached this report,
+> because the writer printed only the last 60 lines of the gate's output and the summary is
+> longer than that — while the table above went on saying "voyages that did NOT run: none".
+> Fixed in `scripts/sea_trial.mjs` (print from the final summary, and check the report's own
+> output for a missing leg), and held by `scripts/qa/trial_honesty_check.mjs`. The two blocks
+> below are copied verbatim from the log; everything after them is as the run wrote it.
+
+```
+== solo-desktop: FAIL
+[5728s]    ✗ 1 dead control(s): slider drag
+[5728s]    ✗ vision judge errored on 25 screen(s) — those screens are NOT cleared
+[5728s]    ✗ 6 screen(s) never stopped moving before being checked
+[5728s]    coverage: arrgh:2/2  cinnamonsugar churroscri:2/2  mexican chocolate potssi:0/2  start:1/1  sail square:28/28  muse#:11/24  menu:0/1  trade:12/23  vanilla beans:1/12  coins only:9/12  slider:11/12  offer it:12/12  toasty wheat:2/10  attack #:1/1  flip coin:2/2  fire again #:1/1  break off:0/1  cacao pods:4/11  fresh milk:2/9  speckled eggs:3/10  hot cinnamon:2/8  call crustbeard:1/2  call flaky jack:1/2  dough hook#:1/1  walk away:0/2  dough hook:1/1  crystal sugar:1/1
+[5728s]
+
+== solo-phone: FAIL
+[5728s]    ✗ 3 dead control(s): slider drag, slider drag, slider drag
+[5728s]    ✗ offered but never exercised: deny
+[5728s]    ✗ vision judge errored on 25 screen(s) — those screens are NOT cleared
+[5728s]    ✗ 7 screen(s) never stopped moving before being checked
+[5728s]    coverage: arrgh:2/2  chocolate fudge tortea p:2/2  cocoa cloud souffléan ai:0/2  start:1/1  sail square:23/23  attack #:4/4  trade:9/21  muse#:9/22  flip coin:4/4  menu:0/1  menu open:1/0  menu close:1/0  call flaky jack:1/2  call crustbeard:1/3  toasty wheat:2/10  crystal sugar:2/11  coins only:9/9  slider:7/10  offer it:9/9  fresh milk:2/10  hot cinnamon:1/7  vanilla beans:1/5  dough hook:1/1  walk away:0/1  accept:1/2  counter:1/2  deny:0/3  coin:1/1  ask it:1/1  speckled eggs:1/4  cacao pods:1/4  call dough hook:1/1
+[5728s]
+```
+
 ```
 == solo-tablet: FAIL
 [5728s]    ✗ offered but never exercised: vanilla beans
