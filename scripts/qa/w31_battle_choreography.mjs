@@ -51,15 +51,38 @@ const WATCH = `(()=>{
     if(btl){ let n=btl.parentElement, seen=[];
       while(n&&seen.length<6){ if(n.id){host=n.id;break;} seen.push(n); n=n.parentElement; }
       if(host==="none"&&btl.closest("#pp4CerSlot"))host="pp4CerSlot"; }
+    /* VISIBILITY FIRST, BECAUSE A HIDDEN ELEMENT REPORTS top:0 AND THAT IS NOT "AT THE TOP".
+       The first cut of this probe rounded that 0 to "y0" and I very nearly recorded a visible jump
+       from the top of the screen that was really the box being display:none while it was measured.
+       An instrument that cannot tell "not laid out" from "laid out at zero" is measuring something
+       other than what it names (rule 6). So a frame now says SHOWN or HIDDEN, and a position is
+       only reported for a frame that is actually on screen with area. */
     const r=btl?btl.getBoundingClientRect():null;
+    const vis=(()=>{ if(!btl) return "-";
+      if(!r||!r.width||!r.height) return "HIDDEN:noarea";
+      let n=btl; while(n&&n.nodeType===1){ const cs=getComputedStyle(n);
+        if(cs.display==="none") return "HIDDEN:display";
+        if(cs.visibility==="hidden") return "HIDDEN:visibility";
+        if(parseFloat(cs.opacity)===0) return "HIDDEN:opacity";
+        n=n.parentElement; }
+      return "SHOWN"; })();
     return [
       btl?"card":"-",
       "in:"+host,
       ap&&ap.dataset.pp4Stage?"apStage":"-",
       document.body.classList.contains("pp4Stage")?"bodyStage":"-",
       cer?"cerSlot":"-",
-      coin?("coin:"+((coin.textContent||"").trim()?"full":"empty")):"-",
-      r?("y"+Math.round(r.top/40)*40):"-"
+      /* THE COIN'S STATE IS ITS CLASS AND ITS FACE, NEVER ITS TEXT. The first cut read
+         textContent and called an empty string "empty" — but setFlipCoin() sets textContent to ""
+         for heads, tails, spin AND wait, painting the face as a background-image, and only the
+         ARMED coin carries the word "FLIP" (setFlipActive, src/ui/board.js). So "coin:empty" meant
+         "the caption was replaced by the coin face", which is the correct behaviour, and I nearly
+         recorded it as the coin vanishing. Wyatt's report is about the FACE going, so the face is
+         what is read. */
+      coin?("coin:"+(["heads","tails","spin","wait","active"].filter(c=>coin.classList.contains(c)).join("+")||"none")
+            +((coin.style.backgroundImage||"").indexOf("url")>=0?"+face":"+noface")):"-",
+      vis,
+      (r&&vis==="SHOWN")?("y"+Math.round(r.top/20)*20):"-"
     ].join(" ");
   };
   window.__w31={log:[],last:null,frames:0};
