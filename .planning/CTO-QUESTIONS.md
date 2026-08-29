@@ -413,3 +413,27 @@ scrolling. On a laptop that is the natural thing to try.
 of scrolling reads the list and only a scroll at the very bottom docks the card; or leave docking on
 the first notch and accept that the list is dragged, not scrolled. I have not touched it because
 your sentence was about the card slamming and this is a different gesture.
+
+---
+
+## Q-21 — one captain's coins differed between the two screens, once, for about a second
+
+**This is the real one from the overnight trial, and it is your hot button, so here it is straight.**
+
+In one crew game on a phone, for at least three-quarters of a second, **Dough Hook's purse read 6 on
+the host's screen and 7 on the guest's.** Everything else on both screens agreed. It happened once
+in ten voyages, right before the day rolled over, and it fixed itself.
+
+**What I can prove:** it was not the tooling blinking. The check only compares once both screens
+have been completely still for three readings in a row, so both really were showing those numbers.
+
+**What I will not guess at:** *why*. There are two candidates and they call for different fixes.
+One is a deliberate trade already written into the code — when a captain pays for a bake re-watch,
+their own screen drops the coin immediately and the real charge catches up a moment later; that
+code's own note asks for exactly this sighting to be reported with the number. But the captain here
+is a **bot**, and that path is for a human, so it may be innocent. The other is simply the guest
+holding the previous day's picture a beat longer than the host across the rollover.
+
+**Telling them apart needs a live two-browser game watched at a day boundary** — half an hour,
+not a guess. **Do you want me to spend that?** The alternative is to leave it: it is rare, brief,
+and self-correcting. I would rather you decide than have me quietly rank it for you.
