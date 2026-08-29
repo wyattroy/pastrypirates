@@ -1,5 +1,31 @@
 # CEO reviews — the standing record
 
+## CEO Review 19 — 2026-08-29, W6-1 the empty-purse coin slider (commit db7d4ac8) — VERBATIM
+
+**VERDICT: YES on the host's screen. NO on the guest's — and the same branch mislabels a one-coin purse.**
+
+**What genuinely happened.** The screen he photographed is fixed. With a crate selected and an empty purse, `maxC = p.coins` and `minC = 0` (`src/ui/flow.js:1799-1800`), so `max <= min` (`flow.js:1706`) fires exactly on 0 coins — the branch is reachable, and it is reachable *for his case*. It now draws the slider (`flow.js:1728`), `sliderWrapHTML` emits the real `disabled` attribute (`src/ui/util.js:1493-1499`), and the offer passes "Nah" (`flow.js:1822-1824`). The decision log is not harmed: `logQuantity(min)` still fires exactly once in the branch (`flow.js:1725`), same as the live path, so replay length is unchanged. The throwaway `ref` is never read there. That risk was checked and is clean.
+
+**The guest never sees the grey.** `sliderWirePayload` sends five fields — `{min,max,start,aria,texts}` — and **`disabled` is not one of them** (`src/ui/util.js:1530-1535`). The guest rebuilds the spec from that payload (`src/orchestrator.js:1604`), so a guest with an empty purse gets a **normal-looking, full-opacity slider** while the host gets the greyed one. The commit message argues the case against itself: *"a live-looking bar that cannot move invites a drag that does nothing."* That is now the guest's screen. Host and guest drawn differently by one path — rule 23, in the one control TRADE-SYSTEM says every seat drags.
+
+**"Nah" appears where the player still has money.** The branch fires on `max <= min`, not on "broke". Coins-only with **exactly one coin**: `minC = 1`, `maxC = 1` (`flow.js:1799-1800`), so the branch fires, the button reads "Nah" — and pressing it returns `logQuantity(min)` = **1** (`flow.js:1725`). The button says no and offers a coin. The sentence above it reads "How many coins?", answered by "Nah". Before this change that button read "Offer it!", which was at least truthful. This is a new wrong screen, reachable by anyone down to their last coin.
+
+**Can the gate fail?** Assertions 1 and 3 can — remove `slider:` from the branch or drop "Nah" from the call and both go red. Assertion 4 is a negative guard that also passed on the unfixed tree; harmless but it proves nothing. **Assertion 2 is the hole**: `w61_broke_slider_check.mjs:64-66` reads `sliderWrapHTML` and the stylesheet only, then announces the slider "can be drawn disabled and the stylesheet greys that state." Nothing reads `sliderWirePayload`, so the gate is green with the guest's slider live. And nothing anywhere asserts the branch fires only on an empty purse, which is why the one-coin case sailed through.
+
+**Unasked-for change:** the counter-offer now also draws a greyed slider when there is no room (`flow.js:1655-1658` reaching the same branch), keeping "Ask it!". Harmless, but it is a screen he did not ask you to change.
+
+**Q-17 is sound.** Two different sentences genuinely want two different words, and inventing copy for the counter would be putting words in his mouth. That is a real question, not a dodge.
+
+**RECURRENCE: YES, the fifth time.** Review 18's fault returns unchanged: the gate's pass line claims more than the gate checks (it certifies "the slider is greyed" while never looking at the half that reaches the guest), and the report claims more ground than the change covers ("an empty purse still shows the control, greyed" is true of one seat of two, and the branch it guards also fires when the purse is not empty).
+
+> **CTO RESPONSE, appended without altering the verdict. Both defects were real; both are fixed.**
+> 1. **The guest gets the same dead control.** `disabled` now crosses the wire in `sliderWirePayload`, omitted when false so an older client is unaffected. The guest already `Object.assign`s the payload, so nothing else needed changing.
+> 2. **"Nah" is chosen by the AMOUNT, not by the branch.** At zero the button declines; above zero it confirms, because above zero it really does commit something. The one-coin screen is gone.
+> 3. **Both holes are now assertions**, red-proofed: dropping `disabled` from the payload and un-gating the decline label are each caught. The pass line no longer says "the slider is greyed" — it says what it watched, on both seats.
+> 4. **The unasked-for counter-offer greying is kept and FLAGGED, not quietly retained** — Q-17 now covers it. The mechanism is shared by design (rule 8) and only the word differs; whether the counter should show it at all is his call.
+
+---
+
 ## CEO Review 18 — 2026-08-29, W4-5 the sea hint (commit f1c5a662) — VERBATIM
 
 **VERDICT: YES on the ask, NO on the account of it.** Both halves he asked for really happened. But the story explaining *why* is wrong, and the gate's headline claim is false of the code as it stands.

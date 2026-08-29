@@ -1717,7 +1717,17 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
        read as cancelling the whole counter rather than declining the coin. Same mechanism, different
        sentence, so the word travels with the sentence. That rule-8 exception is recorded for him in
        .planning/CTO-QUESTIONS.md rather than decided here. */
-    const opts=[{label:declineLabel||confirmLabel,value:"ok",cls:"primary"}];
+    /* ⚠ THE DECLINE WORD ONLY FITS WHEN NOTHING IS ACTUALLY OFFERED, and the first cut of W6-1 got
+       this wrong — caught by CEO Review 19, which put it plainly: "the button says no and offers a
+       coin." This branch fires on `max<=min`, which is NOT the same as "broke". A coins-only offer
+       from a captain holding exactly ONE coin has minC=1, maxC=1, so it lands here too — and the
+       button read "Nah" while pressing it returned logQuantity(1) and offered that coin. A new wrong
+       screen, reachable by anyone down to their last coin, where the old label had at least been
+       truthful.
+       So the word is chosen by the AMOUNT, not by the branch: at zero the button declines, above
+       zero it confirms, because above zero it really does commit something. */
+    const nothingOffered = min === 0;
+    const opts=[{label:(nothingOffered && declineLabel) || confirmLabel,value:"ok",cls:"primary"}];
     if(extraOpt)opts.push(extraOpt);
     opts.push({label:"← Back",back:true,value:"__back__"});
     const v0=await ask(msgFor(min),opts,null,null,{slider:{min,max:min,start:min,ref:{value:min},fmt:msgFor,aria:"Coins",disabled:true}});

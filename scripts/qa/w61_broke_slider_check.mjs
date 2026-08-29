@@ -90,6 +90,35 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace
   else pass("the decline label is supplied by the caller, so each sentence keeps its own answer (the rule-8 exception is recorded in CTO-QUESTIONS.md, not decided in code)");
 }
 
+/* (5) THE GUEST SEES THE SAME DEAD CONTROL. CEO Review 19: `sliderWirePayload` sent five fields and
+   `disabled` was not one of them, so the host got a greyed bar and the GUEST got a live-looking one
+   — rule 23, in the one control TRADE-SYSTEM.md says every seat drags. A gate that reads only
+   sliderWrapHTML and the stylesheet certifies "the slider is greyed" while looking at one seat of
+   two, which is the fault five consecutive reviews have named. */
+{
+  const wire = util.match(/export function sliderWirePayload\([\s\S]*?\n\}/)?.[0] || "";
+  if (!wire) fail("could not find sliderWirePayload — re-anchor this assertion, do not delete it");
+  else if (/disabled/.test(wire))
+    pass("the disabled flag crosses the wire, so a guest with an empty purse sees the same dead control the host does (rule 23)");
+  else
+    fail("sliderWirePayload does not carry `disabled` — the host would see a greyed bar and the guest a live-looking one, in the one control TRADE-SYSTEM.md says every seat drags");
+}
+
+/* (6) AND THE DECLINE WORD ONLY APPEARS WHEN NOTHING IS OFFERED. The branch fires on `max<=min`,
+   which is NOT "broke": a coins-only offer from a captain holding exactly one coin lands here with
+   min=max=1, and the first cut showed "Nah" on a button that then offered that coin. The word must
+   be chosen by the AMOUNT, not by the branch. */
+{
+  const fn = (flow.match(/async function coinSlider\([\s\S]*?\n\}/) || [""])[0];
+  const branch = (fn.match(/if\s*\(\s*max\s*<=\s*min\s*\)\s*\{[\s\S]*?\n  \}/) || [""])[0];
+  const gatedOnZero = /min\s*===\s*0/.test(branch) &&
+                      /(nothingOffered|min\s*===\s*0)[^;]*declineLabel|declineLabel[^;]*(nothingOffered|min\s*===\s*0)/.test(branch);
+  if (gatedOnZero)
+    pass("the decline word is used only when the fixed amount is zero — above zero the button confirms, because above zero it really does commit something");
+  else
+    fail("the decline label is used for the whole `max<=min` branch, which also fires when the captain has exactly one coin — the button would say \"Nah\" and then offer that coin (CEO Review 19: \"the button says no and offers a coin\")");
+}
+
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
-  : "\nPASSED — an empty purse still shows the control, greyed, and the offer's button declines in his word");
+  : "\nPASSED — with nothing to choose the control is still drawn and dead on BOTH seats, and the button declines only when the amount is actually zero");
 process.exit(fails ? 1 : 0);

@@ -314,3 +314,8 @@ right call or an exception he wants closed, and it is copy, which is his.
 
 **Default if he never answers:** leave the counter reading "Ask it!". Its sentence is not a question,
 so no answer-word fits it.
+
+**Q-17 addendum (CEO Review 19).** The greyed slider now also appears on the COUNTER-offer when there
+is no room to choose — same mechanism, and it keeps "Ask it!". That is a screen Wyatt did not ask to
+change. It is kept because rule 8 says one gesture behaves one way everywhere and the counter's
+sentence still reads correctly with its own label; but it is his to rule on, alongside the word.

@@ -1531,7 +1531,17 @@ export function sliderWirePayload(sl){
   if(!sl)return null;
   const texts=[];
   for(let n=sl.min;n<=sl.max;n++){const t=sliderText(sl,n);texts.push(t==null?"":String(t));}
-  return {min:sl.min,max:sl.max,start:sl.start,aria:sl.aria||"Amount",texts};
+  /* `disabled` CROSSES THE WIRE, and leaving it off was a rule-23 fault caught by CEO Review 19.
+     W6-1 greys the control when there is nothing to choose; the guest rebuilds its spec from THIS
+     payload alone (orchestrator.js Object.assigns it), so a flag missing here means the host sees a
+     dead bar and the guest sees a live one — in the exact control TRADE-SYSTEM.md says every seat
+     drags. The commit that added the greying argued the case against itself: "a live-looking bar
+     that cannot move invites a drag that does nothing." That was the guest's screen for one commit.
+     Omitted when false so an older client reading a newer payload is unaffected, the same additive
+     shape the rest of this payload uses. */
+  const out={min:sl.min,max:sl.max,start:sl.start,aria:sl.aria||"Amount",texts};
+  if(sl.disabled)out.disabled=true;
+  return out;
 }
 // opts[i] can come back missing — a remote seat's answer can resolve to null (remotePrompt
 // resolves null when Firebase gives back a response with no `choice` field, e.g. a dropped
