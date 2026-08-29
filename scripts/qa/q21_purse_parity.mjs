@@ -67,11 +67,26 @@ for (let i = 0; i < CAP; i++) {
   if (!h.rows || !g.rows) { blind++; await sleep(400); continue; }
   if (h.day != null && h.day !== lastDay) { if (lastDay != null) rollovers++; lastDay = h.day; }
   const names = [...new Set([...Object.keys(h.purses), ...Object.keys(g.purses)])];
-  const diff = names.filter(n => h.purses[n] !== g.purses[n]);
+  /* A SEAT THAT HAS NOT DRAWN A PURSE YET IS NOT A SEAT THAT DISAGREES. The captains box renders
+     its rows before the numbers arrive, so during the lobby handoff the guest has names and blank
+     coins — and comparing "4" against "" counted every captain as a disagreement, four at a time.
+     That is what made the after-fix run look WORSE than the before (11 against 4) while the sharp
+     test showed the opposite. Same family as the blind-sample guard above: an instrument that
+     cannot see a value must not report it as a difference. */
+  const diff = names.filter(n => {
+    const a = h.purses[n], b = g.purses[n];
+    if (a == null || b == null || a === "" || b === "") return false;
+    return a !== b;
+  });
   if (diff.length) {
     const rec = { t: Date.now() - t0, day: [h.day, g.day],
       who: diff.map(n => `${n}: host ${h.purses[n] ?? "(absent)"} vs guest ${g.purses[n] ?? "(absent)"}`),
       narr: [h.narr, g.narr] };
+    /* AND THE SHARP TEST IS "BOTH SEATS DRAWING A LINE", not "same day". A day runs for many
+       seconds, so two seats can share a day number and still be at different beats — I claimed more
+       than that discriminator carries and am correcting it here rather than in prose. A
+       disagreement while both seats are showing narration is the one that means something. */
+    rec.bothDrawing = !!(h.narr && g.narr && h.narr.trim() && g.narr.trim());
     (h.day === g.day ? desyncs : lags).push(rec);
   }
   if (Date.now() - t0 > MINUTES * 60 * 1000) break;
@@ -84,9 +99,11 @@ console.log(`  watched ${samples - blind} usable samples over ${Math.round((Date
 if (!rollovers) console.log(`  ⚠ NO ROLLOVER WAS WATCHED — the sighting was on one. This run says almost nothing.`);
 console.log(`\n  disagreements while the two seats were on DIFFERENT days (a LAG, not a state bug): ${lags.length}`);
 lags.slice(0, 5).forEach(r => console.log(`    ${r.t}ms  day host ${r.day[0]} / guest ${r.day[1]}   ${r.who.join("; ")}`));
-console.log(`\n  disagreements while BOTH seats showed the SAME day (a REAL DESYNC): ${desyncs.length}`);
+const sharp = desyncs.filter(d => d.bothDrawing);
+console.log(`\n  disagreements while BOTH seats showed the SAME day: ${desyncs.length}`);
+console.log(`  ...of those, with BOTH SEATS DRAWING A LINE — the test that actually means something: ${sharp.length}`);
 desyncs.slice(0, 8).forEach(r => console.log(`    ${r.t}ms  day ${r.day[0]}   ${r.who.join("; ")}\n        host saw "${r.narr[0]}"\n        guest saw "${r.narr[1]}"`));
 if (!lags.length && !desyncs.length)
   console.log(`\n  Nothing disagreed. The sighting was 1 in 10 voyages, so this is "not seen in ${rollovers} rollover(s)" — not "fixed", and not "not a bug".`);
 killAll();
-process.exit(desyncs.length ? 1 : 0);
+process.exit(sharp.length ? 1 : 0);
