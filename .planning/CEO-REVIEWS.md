@@ -1,5 +1,80 @@
 # CEO reviews — the standing record
 
+## CEO Review 34 — 2026-08-30, "As part of the storm trade winds fix, also look at the last bug the measurer found — the flee movement" — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"The storm half is the strongest work on this repo: the host's private shortcut is genuinely deleted, there is now one door to the ride, and I broke the fix two different ways in a scratch copy and watched both alarms ring in exactly the right places. The flee half — the half he NAMED — is built and gated and has never been watched. Nobody has seen a ship flee. And the pictures that are supposed to prove the storm fix worked are written down nowhere on disk; they exist only in one session's memory, so when that session ends the evidence ends with it."*
+
+### A. THE FLEE — his named half. NOT WATCHED. This is the one thing I would not let past.
+
+He wrote *"also look at the last bug the measurer found — the flee movement."* The flee is not a footnote in his sentence; it is the subject of it.
+
+**What is genuinely proven:** the gate does not read the code and nod at it — it *runs* the real animator over posed engine events. When I put the old flee back in a scratch copy, five separate legs went red, including a real flee from [1,7] to [2,4] whose straight line crosses an island. That is a good gate.
+
+**What is not proven:** that a person watching a bot run away from a fight now sees a boat sail round the island instead of gliding through it. No screenshot, no game, nothing. The crew says so itself, which is why this is not a NOT-DONE.
+
+**And this is the cheap one.** Rule 26 covers it exactly: pose the board, don't go looking for a rate. One seeded flee across an island corner, one picture before, one picture after. Minutes. The 600 posed flees measuring 3.93 squares and 13.3% through land are a good reason to care — they are not a picture of the fix.
+
+### B. THE GUEST'S 774ms PAUSE MID-MOVE. Not a timing complaint — a picture complaint. And I could not verify the number.
+
+**First, a finding about the evidence, not the code:** the figures in the report — 1.32s late, 774ms pause, 2.40s behind, 319px against 329px, ship on screen 44 of 44 samples, minimum x 92 — **appear nowhere in this repository.** I grepped `.planning/` and `.claude-team/` for their own digits and found nothing. `.planning/CTO-LEDGER.md:465-468` records the determinism measurement in full and records no after-picture at all. So the best evidence that the storm fix works is currently a sentence in a chat window. *(Finding, by absence: no file under `.planning/` or `.claude-team/` contains these numbers.)*
+
+**On the substance, and I mark this an opinion because I measured nothing myself:** his standing position is that perfect simultaneity is not the goal — same sequence, a moment apart. A guest that *starts* 1.32s late is inside that ruling. A guest that plays the first leg of a move, **stops dead for three quarters of a second, and then finishes the move** is not a moment apart — it is a different picture. One ship glides; the other stutters. That is the kind of thing he spots in two tabs in five seconds, and it is worth a posed look before anyone calls it acceptable.
+
+### C. THE CAMERA PULLS WIDE LATE. Same answer, same caveat.
+
+Unverified for the same reason as B. If the wide shot arrives at 4.1s and the sweep is already underway, the guest watches part of the ride through a narrower window than the host. Worth one posed pair, not worth a stopwatch.
+
+### D. THE HEADLESS TWIN AT `src/engine/index.js:1797`. LEAVING IT IS JUSTIFIED — I checked rather than took it.
+
+All three faults are really there, and they are adjacent: `this.tradewind(def)` at **:1808** fires *before* `this.ev({t:"battleflee",a:att.idx,d:def.idx,...})` at **:1811**, the event carries no `route`, and it names its captains `a` and `d` with no `p` — so even a route added later would bake to nothing.
+
+**And it draws on nobody's screen.** The live battle is the orchestrator's own block at `src/orchestrator.js:747-753`, which is the one that got fixed. The only callers of the engine's `Game.battle(` are headless scripts — `scripts/real_game_test.js:65`, `scripts/battle_two_shots.js:75`, `scripts/bot_ladder.js:66`. The `__pp4.battle(a,d)` calls at `src/ui/flow.js:2878` and `src/orchestrator.js:618` looked like a live caller and are not: `src/ui/stage.js:3673` shows `__pp4.battle` is the **camera**, the thing that frames a fight. So the justification holds.
+
+**One line for the record, not a change I am asking for:** there are now two flees in the codebase that emit differently-shaped events for the same move. That is a second source of truth, and second sources of truth are how this project's last three defects were born. Whether they even pick the same destination square I did not check *(unmeasured)*.
+
+### E. RULE 23 — THE HOST'S PRIVATE DOOR IS REALLY GONE. VERIFIED BY READING, NOT BY BELIEVING.
+
+`animateRimSweepRun` is defined at `src/ui/flow.js:1086` and **called from exactly one place in the whole tree**: `src/ui/flow.js:1077`, the last line of `animateRimSweepIfAny`. Every other hit in the tree is a comment or a gate fixture. `runStormLive` — the host-only driver that used to rebuild the entry square by hand — now goes through the same front door as everyone else at `src/ui/flow.js:1370`. The host no longer has a private route to the ride. That is the fault repaired in the right direction: the shortcut deleted rather than copied to the guest.
+
+**But two tail-reads survive, and they are the exact shape W7 proved fragile.** `src/ui/flow.js:1370` and `src/ui/flow.js:2653` both pass `g.events[g.events.length-1]` — *the top of the pile* — where every other call site now hands over the event it is actually drawing. On the host these two emit and ride in the same breath, so the top of the pile is almost certainly the right event today. "Almost certainly, today" is precisely what W7's post-mortem says about the code it replaced. *(Finding, unmeasured: I did not construct a sequence that breaks them.)*
+
+### F. CAN THE TWO NEW GATES FAIL? YES — BOTH, AND IN THE RIGHT PLACES. I broke them myself.
+
+I copied `src/` to a scratch tree and ran the repo's gates against the copy with `--tree=`. **The repository was never touched.**
+
+| what I broke in the copy | result |
+|---|---|
+| nothing (shipped code) | both gates exit 0 |
+| removed the engine's rim-entry `windmove` emit | **derivation gate FAILED, 2 legs** — "the guest watches a ship TELEPORT to the whirlpool", plus the host/guest divergence leg |
+| put the old flee back (sweep before the record, no route, no seat) | **flee gate FAILED, 5 legs** — missing seat, missing route, nothing recorded at the destination, a real posed flee drawn through an island, and a flee onto the rim losing its ride |
+
+Each break turns red the legs that describe it and leaves the controls green. These are real alarms, not decorations — which matters, because a gate that could not fail shipped twice in this session already.
+
+**The one leg that cannot fail, disclosed by the crew before I found it:** the flee gate's "WHY IT MATTERS" leg (13.3% of flees drawn across land) stayed green through both breaks. It is evidence about the world, not an assertion about the fix, and the commit message says so in plain words. Correctly labelled.
+
+### G. RECURRENCE OF CEO 32 AND 33's CHARGE — claiming more than the evidence supports? MOSTLY AVOIDED. One thing is being inherited for the second time.
+
+**Avoided, and deliberately.** The crew volunteered A through D unprompted, before anyone asked. The commit message itself says *"Flee gate leg C, which cannot fail by design, did not hold the gate red"* — that is a session naming the weakness in its own instrument. The determinism note volunteers the unflattering reading of its own result: identical hashes could mean the change is harmless **or** that the corpus never exercises a storm rim sweep at all. That is the opposite of the fault CEO 32 charged.
+
+**The determinism repair is adequate.** The builder lost the ability to compare against its own starting point because the coordinator committed underneath it. Measuring it from git instead — archiving `4631b0d1`, confirming that tree's `stormStep` has no emit, running both — is a better measurement than the one that was destroyed, and the cost was recorded as a cost rather than smoothed over.
+
+**What IS recurring:** CEO 33's required change #3 was a FULL sea trial or Wyatt's explicit ruling instead. `node scripts/qa/gear.mjs` still says **FULL**. `.planning/SEA-TRIAL.md` still describes build `2026.08.30.2` — a build that no longer exists, carrying its own FAILED verdict — while the served stamp is `2026.08.30.1`. **The same gap is now being handed forward a second time.** Nobody is claiming it was done; it is simply going unmentioned, which is how it survives.
+
+### The changes I require
+
+1. **WATCH A FLEE.** Posed, seeded, before and after, two pictures. He named the flee; the flee has never been seen. This is minutes of work and it closes the ask.
+2. **Write the after-picture numbers into `.planning/CTO-LEDGER.md`.** They are the strongest evidence the storm fix worked and they are on no disk anywhere. Evidence that lives only in a session's memory has already half-expired.
+3. **Pose the guest's 774ms stutter rather than timing it again.** The question "does the guest's move look like the host's move" is a picture, not a rate.
+4. **Fix or explain the two remaining top-of-pile reads** at `src/ui/flow.js:1370` and `:2653` — hand them the event, or write down in one line why the host cannot be overtaken there.
+5. **Sail a FULL trial, or get his ruling.** Second time of asking. The trial report on disk currently describes a dead build and says FAILED.
+
+### One sentence Wyatt should read first
+
+The storm ride is properly fixed — the host's private shortcut is deleted, there is one way to draw it now, and I broke the new alarms myself to prove they ring — but the flee, which is the thing you actually named, has been built and tested and never once *watched*, and that is one seeded before-and-after screenshot away.
+
+---
+
+
 ## CEO Review 33 — 2026-08-30, "W7's fix is real but only works about 5 times in 8. Finish it." — VERBATIM
 
 **VERDICT: SOUND-WITH-CHANGES.** *"This is the best-evidenced piece of work I have reviewed on this repo. The cause of the three sails that slid is found, named, and fixed in nine lines of game code, and I broke the fix twice in a scratch copy and watched the new gate go red both times — it is a real gate, not a decoration. But 'finish it' was a number he measured in two real browsers, and that number has not been taken again. Five walked out of eight is still the only thing anybody has actually seen. The fix is right; the finish is one measurement away and has not happened."*
