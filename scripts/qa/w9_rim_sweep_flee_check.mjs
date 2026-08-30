@@ -270,12 +270,15 @@ let site = { route: false, entryEvent: false, seat: false };
   console.log(`    the sailing route is longer than the chord . ${detour}/${n}  ${pc(detour, n)}`);
   console.log(`    the STRAIGHT LINE DRAWN CROSSES LAND ...... ${crossesLand}/${n}  ${pc(crossesLand, n)}`);
   console.log(`    a HUMAN's offered squares (3+ squares of sailing): ${humanCross}/${humanAny} ${pc(humanCross, humanAny)} would be drawn through land\n`);
+  /* EVIDENCE, NOT A VERDICT. This leg answers "does it matter" — it is a fact about the boards,
+     not about the code, so it must NOT hold the gate red after a fix. The faults above are the
+     verdict; these numbers are why they are worth fixing. */
   if (crossesLand > 0)
-    fail(`${pc(crossesLand, n)} of bot flees (${crossesLand}/${n}) are drawn along a straight line that crosses LAND, and `
-       + `${pc(nonAdj, n)} travel more than one square. This is not a footnote: it is the same picture playtest 21 item 6 `
-       + `was raised about, at the one site the route fix never reached (src/orchestrator.js:732).`);
+    pass(`WHY IT MATTERS (evidence): ${pc(crossesLand, n)} of bot flees (${crossesLand}/${n}) are drawn along a straight `
+       + `line that CROSSES LAND, and ${pc(nonAdj, n)} travel more than one square (mean ${(sum / n).toFixed(2)}). Not a `
+       + `footnote — the same picture playtest 21 item 6 was raised about, at the one site the route fix never reached.`);
   else
-    pass("no posed flee is drawn across land — the flee route is a footnote, not a picture problem");
+    pass("no posed flee is drawn across land — the flee route would be a footnote, not a picture problem");
 }
 
 /* ─── D. FAULT 2 — THE RIM RIDE, ON BOTH TIERS. ────────────────────────────────────────────── */
