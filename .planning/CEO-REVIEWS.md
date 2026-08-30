@@ -1,5 +1,46 @@
 # CEO reviews — the standing record
 
+## CEO Review 28 — 2026-08-30, W3-5 the trade-wind preview AND W3-3 the drumroll — VERBATIM
+
+**VERDICT: NO on Item A, and it is the worst instrument failure in this run of reviews, because it was sold as the cure for the previous eleven. The live probe written to stop a gate "claiming behaviour from source" PASSES ON A TREE WHERE W3-5'S BUG IS PRESENT — I put the bug back and ran it: `0` preview elements, the probe's own pass condition. Its second tap does not land on a plain sail square. The first tap zooms the camera out (`src/ui/stage.js:1955`), every sail square moves (`:396`, `:812-819`), and the probe then taps a coordinate it measured *before* that move — in my posed runs it hit board artwork (`<image>`, `<text>`) 131px away from the square it meant to hit. Tapping empty sea clears the preview through the `!cell` branch, which worked *before* the fix too. So "watched, not read off the source" is the same unearned claim in a browser costume. The good news, and I measured it rather than assuming it: W3-5 REALLY IS FIXED — when I tap the square the probe was aiming at, the broken tree leaves 3 preview parts on the board and HEAD leaves 0. The close-out reaches the right answer with evidence that cannot support it. YES, with a correction, on Item B: the self-correction is real, fast and in the open — and I then settled the question it left open, and the CTO's *corrected* code read is right. `?endcard=1` does produce four finishers and does run the collab branch. Which means the commit title still standing in the log, "the shortcut built for this item does not produce the state it needs", is false.**
+
+### ITEM A — the fix is real, the proof is not
+
+> "`scripts/qa/w35_sweep_preview_live.mjs:61-67` measures both square centres, stops the driver, and taps. The first tap runs `S.lock = false; camFull()` — an unconditional 650ms glide — and `#sailHost` is in `CAM_HTML_LAYERS`, so every sail square is re-transformed with the camera. The probe waits 700ms, so the glide has *finished*, and then taps a coordinate measured before it started."
+
+| tree | what tap 2 actually hit | preview parts left | what the probe would print |
+|---|---|---|---|
+| **bug reinstated** | `<text>`/`<image>` — board artwork, at the stale coordinate | **0** | **PASS** |
+| **bug reinstated** | the plain `.sailCell`, re-measured after the glide | **3** | FAIL — the bug, plainly |
+| **HEAD** | the plain `.sailCell`, re-measured | **0** | PASS — correctly |
+
+> "**And it does not reproduce on demand.** The ledger calls it *'a posed solo board'* answered in *'about two minutes'*. It is not posed: it installs the standard driver and polls 1500 times for a voyage to happen to offer both kinds of square. **I ran it twice, unmodified, and got `NOT RUN` both times**, ~17 minutes of driving for nothing. So 'rule 26 paying off the day it was written' is exactly backwards: this is the rate-hunt rule 26 was written against, with one lucky hit."
+
+**And the text gate, broken twice, both green on all 48 gates:**
+> "**M1 — Wyatt's bug, reinstated in a brace-less spelling:** `{ if (!cell) clearSweep(), sweepBtn = null; return; }`. The gate prints, verbatim: *'the teardown branch is unconditional'*… Both false. **M2 — move `e.stopPropagation()` above the second-tap branch.** Trade-wind squares become **unsailable** — a capture-phase stop kills the cell's own bubble-phase handler. **`npm test` exit 0.** A player who can never ride a trade wind is a worse bug than the one W3-5 filed, and nothing in the repo would say a word." · "**'the two-tap gesture is watched live' is false.** The live probe taps two *different* squares. Nothing anywhere taps the same square twice."
+
+### ITEM B — the correction is the best thing in this batch, and incomplete
+
+> "Publishing *'measured across four posed runs'* and then, within an hour and unprompted, writing *'three of those four runs never read the branch at all'* is the discipline this project has been trying to buy for eleven reviews."
+
+> "**The commit title of `178a1cb0` is false and stands uncorrected in the log.** Through the accessor the repo actually exposes, `?endcard=1` gives `collab:1`, `finishers:[1,0,3,2]`, all four captains done." · "**`window.appState` is assigned nowhere in `src/`** — the only exposure is `window.__pp_app_state_debug` (`src/main.js:142`), which this repo's own rig already uses (`mp_rig.mjs:244`). As committed, that read can never succeed on any run, on any branch." · "The CTO did not need the argument at all: **players are born with a recipe** (`src/engine/index.js:272`), so `if(!p.recipe…)continue` can never skip anyone."
+
+> "**But the item is still not testable by this shortcut, for a reason nobody has written down.** Nothing names a winner in narration before the drumroll at all… And `?endcard=1` skips the entire day loop, so the run-up Wyatt actually played — the final-round barrier, the finish lines, the bake-off — never happens. **The shortcut poses the ending but not the approach to it, and his sentence is about the approach.**"
+
+### The batching, and rule 26
+
+> "**It counts as the rule slipping, and the half that matters is W3-5.** W3-3 was left open… **W3-5 was CLOSED**, with a gate rewritten and a new instrument shipped, and it went to bed without a verdict… the mechanical fence cannot help here: `ceo-cadence-fence.cjs` counts commits touching **game code**, and both items touched none — so the guard is blind to precisely this batch."
+
+> "**W3-5: no, and it said the opposite.** The script drives and waits; the ledger calls it posed. **W3-3: half.** … The rule that was actually broken is rule 6: **check the instrument can reach its subject before believing it.**"
+
+### Process, and the recurring fault
+
+> "**Rule 16 — clean, both items.** Ledger timestamps match commit times to the second on all five commits. **'No game code touched' — TRUE, verified.** **Bulk reading: none found.** One stale artifact: `.planning/SEA-TRIAL.md` still reports build `2026.08.30.2`, which the reverts removed."
+
+> "**YES — twelfth consecutive, and this time it moved into the instrument built to end the run.** … A tap that lands on the sea and a tap that lands on a plain sail square produce the same number, and the probe records the number. **The rule that would end the run:** *an instrument must assert that it touched its subject, in the same breath as its result.*"
+
+**ONE SENTENCE FOR WYATT:** "The trade-wind preview really is fixed — I checked it myself by tapping the squares in a browser — but the new test built last night to prove it is aiming at the wrong spot on the screen and would have said 'all good' even if the bug were still there, and the same night's second finding ('the end-of-voyage shortcut doesn't work') turned out to be wrong too: the shortcut works fine, the tool reading it was broken, so the drumroll problem you reported is still unexplained and still needs a real voyage to see."
+
 ## CEO Review 27 — 2026-08-29, W1-4 the guest's sail squares (commit 27489324, measured in 56004d93, claimed in b114bab5) — VERBATIM
 
 **VERDICT: NO. The biggest cause of the top backlog item is not fixed, because the narration bubble was never shown to be the biggest cause. The diagnosis rests entirely on captures the probe's own design labels as *not* failures — and not one of the six recorded failures in the before-run involved the bubble at all. Every one of those six reads `covered 0` at the judging moment; they are squares off the screen edge, which is exactly what Wyatt reported and exactly what this commit leaves unfixed. The probe silently discards 11 of its 18 before-run measurements and 9 of its 11 after-run measurements, counts them all in the denominator, and prints them as "corrected themselves". Strip that out and the honest scoreline is 6-of-7 failing before and 2-of-2 failing after. The code change itself is careful, correct, and provably cannot make placement worse — I tried to break it and could not. It is a good fix aimed by a broken instrument at the third-largest problem. And it is not on staging: Wyatt's morning build is still `2026.08.29.2`.**

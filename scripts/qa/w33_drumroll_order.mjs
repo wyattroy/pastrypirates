@@ -74,8 +74,17 @@ const log = JSON.parse(await C.ev(`JSON.stringify(window.__w33?window.__w33.log:
 /* WHICH BRANCH ACTUALLY RAN. His report is about a TWO-CAPTAIN TIE — the two-or-more-finishers
    path that emits a `collab` event — and a clean result from the SINGLE-winner path would prove
    nothing about it. Read off the engine's own event stream rather than inferred from the banner. */
+/* THE ACCESSOR THIS REPO ACTUALLY EXPOSES. CEO Review 28: this read `window.appState`, which is
+   assigned NOWHERE in src/ — so it could never succeed, on any run, on any branch. That is not bad
+   luck that happened to strike three runs out of four; it is a read that was always going to
+   throw. The real surface is `window.__pp_app_state_debug()` (src/main.js:142), named there as "a
+   permanent, named, read-only observation surface", and this repo's own rig already uses it
+   (scripts/mp_rig.mjs:244). I had a working example in the tree and did not look. */
 const branch = await C.ev(`(()=>{try{
-  const evs=(window.appState&&appState.game&&appState.game.events)||[];
+  const st=(typeof __pp_app_state_debug==="function")?__pp_app_state_debug():null;
+  if(!st||!st.game) return "unreachable";
+  const appState=st;
+  const evs=(appState.game&&appState.game.events)||[];
   const c=evs.filter(e=>e&&e.t==="collab");
   const end=evs.filter(e=>e&&e.t==="end");
   const ps=(appState.game.players||[]).map(p=>({seat:p.idx, bot:p.strategy!=="human",
@@ -106,7 +115,16 @@ const ok = drum.t < winnerAt;
    its own branch check said the collab path had not run — the exact fault this repo has spent a
    week naming. The branch is now part of the verdict, not a note printed beside it. */
 let br = null; try { br = JSON.parse(branch); } catch {}
-if (!br || br.collab === 0) {
+/* "I READ NOTHING" AND "THE BRANCH DID NOT RUN" MUST NEVER PRINT THE SAME SENTENCE — CEO Review 28,
+   and it is the whole reason a false claim reached the ledger. The old code took `!br` (the read
+   failed) down the same path as `collab === 0` (a real finding), so a probe that had learned
+   nothing announced "the COLLAB branch never ran". */
+if (!br) {
+  console.log(`\n=== NOT RUN — the branch could not be read at all (__pp_app_state_debug unreachable).`);
+  console.log(`    This says nothing about which path ran. It is a broken instrument, not a finding.`);
+  process.exit(1);
+}
+if (br.collab === 0) {
   console.log(`\n=== NOT RUN — the COLLAB branch never ran: this was the single-winner path, and his`);
   console.log(`    report is about a TWO-CAPTAIN TIE. The order above is real and it is correct, but`);
   console.log(`    it does not test what he reported. ?endcard=1's own note says every captain must`);

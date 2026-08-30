@@ -1,5 +1,11 @@
 # Sea trial — build `2026.08.30.2`
 
+> ⚠ **THIS REPORT DESCRIBES A BUILD THAT NO LONGER EXISTS.** `2026.08.30.2` carried the bubble
+> tail-avoidance change, which was REVERTED the same night when three full trials read
+> 22 → 26 → 31 structural failures on the same ten legs. The served build is `2026.08.30.1`, whose
+> game code is byte-identical to the sailed `2026.08.29.2`. Do not read the verdict below as
+> describing what a player has. (Flagged by CEO Review 28; rule 24 stands on opening this file.)
+
 **FAILED** — 10 of 10 voyage(s) sailed  ·  2026-08-30T02:04:20.568Z  ·  85 min  ·  gear **FULL**  ·  sailed on **cloud container**
 
 > Gear chosen because: nothing uncommitted, so this reads what is AHEAD OF origin/main: about.html, index.html, package.json, src/engine/index.js, src/main.js, src/net/index.js, src/net/watchers.js, src/net/writers.js, src/orchestrator.js, src/shared/index.js, src/state/index.js, src/ui/audio.js, src/ui/bakeoff.js, src/ui/board.js, src/ui/flow.js, src/ui/panel.js, src/ui/stage.js, src/ui/util.js
