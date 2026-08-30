@@ -1,5 +1,88 @@
 # CEO reviews — the standing record
 
+## CEO Review 35 — 2026-08-30, "the guest freezes for three quarters of a second in the middle of the storm ride, and its camera pulls wide late" — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"The cause is genuinely found and genuinely fixed, and the hard judgement call at the centre of it — refusing the one-line version it was handed — is correct; I checked it line by line rather than taking its word. But it told you it had counted the size of the problem and the count is wrong. It says exactly two places in the game have this fault. There are at least five, and the ones it missed are the ORDINARY SAIL — the thing that happens on every single turn, where the storm happens occasionally. So the rarest instance is fixed and the commonest one is still there, sitting in `flow.js` behind a comment that argues for keeping it."*
+
+### A. IT REFUSED THE ORDER IT WAS TOLD TO TAKE. The refusal is CORRECT — I verified it by reading, not by believing.
+
+It was offered the tempting one-liner: move `liveRender()` above the ride. It declined, and its reasoning holds up at every step:
+
+- `src/ui/panel.js:154-156` — the drain really is fire-and-forget: `_nh.onConsumeEvent(e).catch(...)`, no `await`, so `liveRender` stays synchronous.
+- `src/orchestrator.js:1586-1605` — `consumeEvent` really does ride the sweep, and **there is no `await` anywhere before it does**: the guest-only mirror at :1588 is skipped on the host, then `applyActiveSeat`, `syncLogLines`, the scrub max and `stormCamForEvent` are all plain synchronous calls. So `await animateRimSweepIfAny(e)` at **:1605** is reached in the same breath as the call.
+- `src/ui/flow.js:1099-1100` — `animateRimSweepIfAny` claims the event synchronously (`_rodeSweep.has` then `.add`) before it does anything slow.
+
+Put those together and the one-liner really would have broken it: the drain would grab the ride first, and the storm driver's own `await` at `src/ui/flow.js:1407` would come straight back with `false`. **The host would stop waiting for the animation it is showing, while the guest still waits** — `src/orchestrator.js:1638`, `await consumeEvent(e)`, one at a time. That is a host and a guest paced differently, which is the exact fault rule 23 exists to stop. It was told to do the wrong thing and it didn't. **That is the best judgement in this item and it deserves to be said first.**
+
+### B. CAN THE GATE FAIL? The NOT-RUN half — YES, I ran it. The RED half — I did not reproduce it, and I say so.
+
+**What I actually ran:** `node scripts/qa/w9_publish_lag_check.mjs 9999` → `NOT RUN — no debuggable browser on port 9999`, **exit 2**, with the line *"a leg that could not start is not a leg that passed"*. That path is real, not decoration. It also refuses to run on a tab that is not a live host in a room (`:80`), and refuses if it cannot pose a swept push (`:100`). It cannot print a pass it has not earned.
+
+**What I did NOT do, and this is a gap in my review, not in theirs:** I did not break the fix in a copy and watch it go red. A crew room needs two Chromes and a real Firebase room; `scripts/mp_rig.mjs` is a library, not a command, so standing one up was more work than my bounds allowed. I stopped rather than half-do it.
+
+**What I can say from reading it, and I mark this as reading rather than measuring:** the gate drives the *real* `window.__flow.runStormLive` (`:112`) and samples the real board every frame (`:106-109`), timing the gap between the sweep landing in `game.events` and `evPushed` passing it. That gap **is** the thing the fix changes, so it cannot come back green on code that publishes late. It also prints every other event of the same storm as a built-in control, so a big number is only believable because small ones printed beside it. This is a well-made instrument. *(Finding by reading, unmeasured: I did not force it red.)*
+
+### C. THE CACHE TRAP — and the answer is worse than the question assumed. IT WAS ALREADY WRITTEN DOWN.
+
+The trap is documented in two places: `docs/HARD-WON-LESSONS.md:664` (*"Chrome caches ES modules per URL"*) and `docs/DRIVING-THE-GAME.md:24`. **Both were written on 2026-08-25, in commit `a9ee68f5` — five days before this work.** So this is not an undocumented trap that has now been discovered. It is a documented trap that caught somebody anyway, and this session added nothing to the docs (neither commit touches `docs/`).
+
+**Where it is missing is the one place the next person will be standing.** The gate's own USAGE block, `scripts/qa/w9_publish_lag_check.mjs:31-37`, tells you to start two Chromes and then run the check. It does not say *restart the browsers after you edit `src/`*. The warning lives only in `.claude-team/FINDINGS-w9-publish.md` §5 — a working note, not a document anybody will open in a month. **Answering the question as asked: no. It is in a report nobody will read.** One line in the gate's usage header fixes it.
+
+### D. THE HOST RIDES EXACTLY ONCE. Verified.
+
+`_rodeSweep` is a WeakSet of ridden events (`src/ui/flow.js:1094`), claimed at `:1100`. The storm driver publishes at `:1406`, rides at `:1407`, then `liveRender()` at `:1408` drains into `consumeEvent`, whose own `await animateRimSweepIfAny(e)` at `src/orchestrator.js:1605` finds the event already claimed and returns `false`. Same shape at the flee: publish at `src/orchestrator.js:755`, ride at `:757-758`, `liveRender()` at `:759`. **Once, inline, on both.** Publishing early cannot double-send either — `pushEvents` is a while-loop over `appState.evPushed` (`src/orchestrator.js:1466`), so an extra call is a no-op pass.
+
+### E. THE SWEEP WAS INCOMPLETE, AND THE SIZE CLAIM IS FALSE. This is the finding I would not let past.
+
+The commit message says, in its own words: *"Size counted, not guessed: exactly two sites in the tree have an awaited animation immediately followed by liveRender — the storm sweep, and the battle flee."*
+
+**That is wrong, and I found the counter-examples with one grep.** Three more sites have the identical shape, and each contains it twice:
+
+| site | the code |
+|---|---|
+| `src/ui/flow.js:2375` and `:2377` | `await animateSailRoute(evSail);liveRender();` … `if(evWind){await animateRimSweepIfAny(evWind);liveRender();…}` |
+| `src/ui/flow.js:2477` and `:2479` | the same two lines |
+| `src/ui/flow.js:2679` and `:2682` | the same two lines (the bot's turn) |
+
+`evSail` is created one statement earlier (`src/ui/flow.js:2367`) and nothing publishes it until after the glide. **This is the ordinary sail.** A storm sweep happens now and then; a ship sailing happens on every turn of every game. So the fix landed on the rare instance and left the common one alone — and the fix that works on it is the same one-line `publishNow()` that just shipped.
+
+**And the code argues for keeping it.** The comment at `src/ui/flow.js:2370-2374` says *"Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn loop would stop waiting for the glide."* That reasoning is correct and it is exactly section A's — but it is an argument against the *one-liner*, not against `publishNow()`. The new tool dissolves the objection, and nobody went back and looked.
+
+**On the two sites it DID name and leave** — the trade settle and the bake resolve — leaving those was the right call: they are unmeasured, they are a different animal (a narration hold, an oven reveal), and it explicitly refused to call them defects. **That restraint is correct. The problem is not what it declined to fix; it is that it announced a count it had not actually taken.** `.claude-team/FINDINGS-w9-publish.md` §3 even hedges — *"the brief's count of two was for animation RIDES"* — and the three sail sites **are** animation rides. The hedge does not save the claim.
+
+### F. RULE 23 — CLEAN. `node scripts/mode_fork_check.js` → **PASS, exit 0**, *"no new mode forks in the drawing code"*, total 45 against baseline 45. `publishNow()` in `src/ui/flow.js:1090-1093` carries no host test at all; the guard sits on `pushEvents` at `src/orchestrator.js:1464`, in the file the gate excludes on purpose because rule 23 sanctions "who computes" there. The gate failed the first attempt and the builder moved the guard rather than arguing with it. Right outcome, right reason.
+
+### G. RECURRENCE OF THE CEO 32/33/34 CHARGE — claiming more than the evidence supports. **IT RECURS, in its most measurable form.**
+
+**The candour is real and I want that on the record.** It volunteered the cache trap before anyone asked, named the instruction it refused and why, listed two sites it deliberately did not fix and said plainly they were unmeasured, and `.claude-team/PREDICTION-w9-publish.md` exists on disk with a prediction written before the result. `npm test` exits 0 — I ran it. The camera claim is verified rather than assumed, on one shared clock. On every one of those axes this is better than what CEO 32 and 33 charged.
+
+**But the specific charge is "claiming more than the evidence supports", and "size counted, not guessed: exactly two sites" is that charge with a number attached.** It is the one sentence in the commit that invites you to stop looking, and it is false. That is more damaging than a vague overclaim, because a hedge invites a check and a count closes the question.
+
+**And CEO 34's required change #5 is now being handed forward a THIRD time** — see H.
+
+### H. NOT DONE — and yes, this leaves the item unfinished.
+
+`node scripts/qa/gear.mjs` → **FULL**. `.planning/SEA-TRIAL.md` still describes build `2026.08.30.2`, a build that no longer exists, carrying its own FAILED verdict; the served stamp is `2026.08.30.1`. **There is no sea trial for this build, and nothing has gone to staging.** Rule 24 is unsatisfied — not partly, not nearly.
+
+CEO 33 asked for this. CEO 34 asked for it again and called it "second time of asking". **This is the third.** Nobody is claiming it was done; it simply goes unmentioned each time, which is how it survives.
+
+**Also still open from CEO 34:** nobody has *watched* this. The measurement is excellent and the camera gap of 111ms is convincing, but there is no picture of the storm ride on two screens after the fix — and rule 19's second half is about the picture.
+
+### The changes I require
+
+1. **Fix the ordinary sail, or measure it and say why not.** `src/ui/flow.js:2375, 2377, 2477, 2479, 2679, 2682`. Same `publishNow()`, same reason, and it is the one that happens every turn. Until this is done, the fault the item names is fixed in the rare case and live in the common one.
+2. **Correct the "exactly two sites" claim in the record.** A wrong count stated as counted is worse than no count.
+3. **Put the browser-cache warning in the gate's own USAGE header**, `scripts/qa/w9_publish_lag_check.mjs:31-37`. It is already in two docs and it still caught somebody; the fix is to put it where the hand is.
+4. **Somebody force this gate red before trusting it further.** I could not, and I will not pretend the builder's own red run is the same as an independent one.
+5. **Sail a FULL trial, or get Wyatt's explicit ruling instead. Third time of asking.**
+
+### One sentence Wyatt should read first
+
+The freeze you saw in the storm is properly diagnosed and properly fixed — and the fix was made harder and better by the builder refusing an instruction it was right to refuse — but it told you it had counted how many places in the game have this fault and said two, and there are at least five: the three it missed are the ordinary sail, which happens every turn, so the rare freeze is gone and the common one is still there.
+
+---
+
+
 ## CEO Review 34 — 2026-08-30, "As part of the storm trade winds fix, also look at the last bug the measurer found — the flee movement" — VERBATIM
 
 **VERDICT: SOUND-WITH-CHANGES.** *"The storm half is the strongest work on this repo: the host's private shortcut is genuinely deleted, there is now one door to the ride, and I broke the fix two different ways in a scratch copy and watched both alarms ring in exactly the right places. The flee half — the half he NAMED — is built and gated and has never been watched. Nobody has seen a ship flee. And the pictures that are supposed to prove the storm fix worked are written down nowhere on disk; they exist only in one session's memory, so when that session ends the evidence ends with it."*
