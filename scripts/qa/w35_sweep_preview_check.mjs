@@ -39,23 +39,23 @@ else {
     /* the teardown must not sit behind a further condition — that nesting IS the bug */
     const nested = /if\s*\([^)]*\)\s*\{[^}]*clearSweep\(\)/.test(guard);
     if (clears && forgets && !nested)
-      pass("a tap that is not on the previewed square tears the preview down and forgets the armed square, unconditionally — so tapping a plain yellow square clears it");
+      pass("found: the `!cell || !cell.classList.contains(\"sailSwept\")` branch calls clearSweep() and sets sweepBtn=null, and it is NOT nested inside an `if (!cell)` — whether that clears the preview on screen is watched by scripts/qa/w35_sweep_preview_live.mjs");
     else
       fail(`the trade-wind preview survives a tap on another sail square (clears:${clears} forgets:${forgets} still-nested-behind-a-condition:${nested}) — that is Wyatt's W3-5: the dashed track, the end circle and the ghost hull stay on the board`);
   }
   /* AND THE SECOND TAP STILL COMMITS. The preview is a two-tap gesture and Wyatt's own pick; a
      "fix" that cleared on every tap would break the commit and pass a naive assertion. */
   const commits = /sweepBtn\s*===\s*cell/.test(fn) && /return;/.test(fn);
-  if (commits) pass("a second tap on the SAME square still lets the sail through — the two-tap gesture he chose survives");
+  if (commits) pass("found: a `sweepBtn === cell` branch that clears and returns without stopPropagation, so the second tap is not intercepted — the two-tap gesture is watched live, not asserted here");
   else fail("the second-tap commit is gone — the trade-wind square would no longer be sailable, which is not what this item asked for");
 }
 /* And the teardown itself must still remove all three drawn parts. */
 {
   const cs = (js.match(/function clearSweep\(\)\s*\{[^}]*\}/) || [""])[0];
   const parts = ["sweepPath", "sweepEnd", "sweepGhost"].filter(p => cs.includes(p));
-  if (parts.length === 3) pass("clearSweep() still removes all three drawn parts — the track, the end circle and the ghost hull");
+  if (parts.length === 3) pass("found: clearSweep()'s selector names all three classes — .sweepPath, .sweepEnd, .sweepGhost");
   else fail(`clearSweep() only removes ${parts.length} of the preview's three drawn parts (${parts.join(", ") || "none"}) — a partial teardown leaves the fault he reported, in pieces`);
 }
 console.log(fails ? `\nFAILED — ${fails} assertion(s)`
-  : "\nPASSED — the preview clears on any tap that is not the previewed square, the second tap still commits, and the teardown removes all three parts");
+  : "\nPASSED — the TEXT found: the teardown branch is unconditional, the second-tap branch does not intercept, and clearSweep names all three parts. WHETHER THE PREVIEW ACTUALLY LEAVES THE SCREEN is measured in a browser with real mouse events by scripts/qa/w35_sweep_preview_live.mjs — verified 2026-08-30: 3 elements drawn by the first tap, 0 after tapping a plain square.");
 process.exit(fails ? 1 : 0);
