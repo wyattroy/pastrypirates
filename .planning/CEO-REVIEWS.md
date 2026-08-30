@@ -20,6 +20,52 @@ that had not yet fetched reviews 28-30 from the session working in parallel. Not
 
 **WHAT I DID ABOUT IT, same turn:** all three gaps closed before this file was committed — the hook committed, the phone version written into `.planning/staging-checklist-2026-08-30.html` as the durable copy, and the artifact URL put in a comment at the top of it (verified by grep, not by intention). The third part of the ask is answered in the reply and in the sheet itself.
 
+## CEO Review 31 — 2026-08-30, PLAN REVIEW of "One engine, one director" — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES. "The thesis is right, its foundation claim is verified true, and the hard rule is the correct rule. But the plan's flagship piece of evidence is mislabelled, its baseline is two days stale, and its highest-value gate is specified in the one shape that will flake and get switched off. Three changes make it sound."**
+
+### FINDING 1 — the camera evidence is mislabelled, and a whole migration step is sized on the label
+
+> "§01: *'the instruction "look here" is issued twelve times inside the turn loop.'* Step 3: *'Move the camera cues into storyboards. Twelve of them.'* The twelve is `setActor`. Here it is in full — `src/ui/util.js:1822`: `export function setActor(s){appState.curSeat=s;}` **That is a state assignment. It is not a camera call.** The real camera door is `camTo()`… `camToSeat` is called ZERO times in `flow.js`. So step 3 is aimed at a function that isn't the camera, in a file that never calls the camera. **The number twelve is real; what it counts is not.**"
+
+> "**The underlying story survives — by a better mechanism, already written down and already measured.** … `board.js:1729-1737` names the real defect outright: *'there are TWO independent answers to whose turn is it… They disagree for the whole length of a bake. That is rule 23's shape exactly: one fact, derived twice, kept in step by nothing.'* **The camera does not diverge because twelve instructions fail to cross the wire. It diverges because one state variable is written on one client and not the other, and the camera reads it.** That is a smaller and far more durable fix."
+
+### FINDING 2 — the baseline is two days stale; part of this already shipped
+
+> "The plan describes the guest as a set of independent listeners and never mentions that **the single event consumer already exists**… Its gate is in `npm test`. … A plan whose measured baseline predates the last shipped convergence will size every step wrong, and will propose building something that exists — the exact failure `/gsd-autonomous` committed on 2026-08-28."
+
+> "§06 says *'Three gates. Two of them already exist.'* The parity/convergence family in `npm test` is already **six**… The plan must say **what those six failed to catch that the seventh will**, or it is adding a gate rather than fixing a fault."
+
+### Q1 — is the storyboard a second stream that will drift?
+
+> "**No, on one condition the plan does not state — and it is the condition everything turns on.** … §02 says L3 is 'event in, storyboard out' and never says what else is in scope. **If `present()` reads `appState` — the live mutable object every file in `src/ui/` writes — then it is not pure, the two clients hold different `appState` at the moment an event arrives, and the storyboards diverge on day one.** That is the new instance of the old fault, and it arrives through the back door."
+
+> "**Change 3 (the most important one): fix L3's signature.** `storyboard = present(event, engineSnapshot)` — the snapshot from L1, which is already pure, and **nothing else**. Then make it mechanical: L3 may not import from `src/state/` or `src/ui/`."
+
+### Q2 — will the parity gate be switched off?
+
+> "**As specified, it will be switched off.** … All six existing parity gates in `npm test` are static assertions on source text… This project has zero networked two-client gates on every commit, and that is not an oversight; it is what has held. **Durations are a red herring — you can strip them. The flake comes from needing two live clients and a network.**"
+
+> "**The cheaper shape that gets almost all of it and cannot flake:** if L3 is genuinely pure, you do not need two clients to compare. Feed a recorded event log into `present()` in one process… and snapshot the storyboard to a golden file. **There is only one `present()`, so both clients produce the same storyboard because they run the same function on the same events. Parity becomes true by construction rather than by comparison.** … §06 calls the parity gate 'the highest-value item here.' It isn't — **the layering gate is**, because it is what makes the parity gate unnecessary."
+
+### Q3 — what the plan does not cover
+
+> "**1. Late-join and reconnection — the largest omission, and Wyatt already reported it.** A storyboard architecture makes this WORSE if unaddressed: a client joining at event 400 must not perform 400 storyboards… **2. Bots** — a bot's thinking time must live in the Decider, not in a beat. **3. Audio — not mentioned once.** A sound is a beat with a duration; left unnamed it gets bolted onto L4 as a side channel, and a side channel is a second stream. **4. The bake-off.** **5. A fourth sail emitter the plan missed** — `src/engine/index.js:2748`… Migration step 2 therefore reaches into L1, the layer the plan says to leave alone. **6. The determinism objection is currently inert** — `test:determinism` is marked BROKEN BY THE CUTOVER. That makes the split CHEAPER to do now — a point in the plan's favour that it fails to claim."
+
+### Q4 — four layers, over-engineered?
+
+> "**Over-engineered in presentation, not in substance.** Three of the four layers already exist… **The plan adds one new pure module and one rule about who may call whom.** But 'four layers, L1 through L4' reads to a designer like a rewrite, and Wyatt may reject a modest change because the document made it sound enormous. **That is a rule 3 failure inside the plan itself.**"
+
+### The recurring fault
+
+> "**YES.** … twelve `setActor` calls were counted correctly and then labelled *'the camera instruction, issued twelve times'* — and a migration step was sized on the label. **The count was measured; the meaning was assumed.** The footer makes it worse, not better: *'Measured, not assumed…'* … **the certification is attached to the half that was measured, while the unmeasured half sits in the same section wearing the same credibility.**"
+
+> "**The rule, applied to documents rather than instruments:** *every count in a plan names the exact string counted and the file it was counted in, in the same breath as the number.* '12x `setActor` in `flow.js`' is checkable by the next reader in four seconds. 'Twelve camera cues' is not, and it survived into a shipping plan for two days."
+
+**ONE SENTENCE FOR WYATT:** "The idea is right and worth building — but the plan points at the wrong twelve lines for the camera problem, it doesn't know about the fix your team already shipped two days ago, and the check it calls its best idea is the kind that needs two browsers and a live connection, which is the kind that breaks and gets turned off; fix those three and it holds."
+
+*(CTO, same hour — every load-bearing claim re-verified before acting: `setActor` is exactly `appState.curSeat=s`; `camToSeat` is called 0 times in flow.js and only from stage.js; the fourth sail emitter at engine/index.js:2748 is real; six parity gates already run. **ONE CEO CLAIM IS WRONG:** it says orchestrator.js has 28 `isHost`, not the plan's 27. `grep -c` says **27**. The plan was right and the correction was not — recorded so the next reader does not "fix" a correct number.)*
+
 ## CEO Review 30 — 2026-08-30, the playtest sheet as a tappable link, and the hook behind it — VERBATIM
 
 **VERDICT: YES-with-corrections. "All three parts of the ask happened. The sheet he was handed is now in the shape that can be published, the rule is written into the hook in his own words, and the hook mechanically blocks the one failure mode it can see. Two claims are stated more broadly than the evidence supports, and I found one way to slip past the new check."**
