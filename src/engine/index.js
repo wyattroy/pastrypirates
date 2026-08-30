@@ -318,8 +318,32 @@ class Game{
     // EVENT rather than from live state — which is what keeps the scrubber honest when you drag it
     // back to before the ovens were lit. It consumes no r() and is not part of the baseline
     // fingerprint's key set, so the flag-off stream is unchanged (bakeoff_baseline.js proves it).  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]
-    o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));
+    /* PRESENTATION vs GAME FACT — why `draw` is a lane of its own and nothing here goes in `state`.
+       `state` is what the move WAS: where each captain now is, what they hold, whether they are
+       baking. The rules read it, the scrubber replays from it, and a wrong value in it is a wrong
+       game. `draw` is only how that move should be DRAWN — here, the squares a boat crossed on its
+       way to the pos baked beside it. NO RULE MAY EVER READ IT: delete the whole lane and the game
+       plays out move for move identically, only uglier. That is the test for whatever visual detail
+       is added next to it — if a rule would have to read it, it is not presentation and it does not
+       belong here.
+       It is baked in the SAME breath as the snapshot on purpose: bakeDraw checks the route against
+       the pos it was baked beside and refuses one that does not land there, so the drawn line and
+       the recorded move can never be published disagreeing. Same refusal sailPath and rimSweepPath
+       make — no route is better than an invented one. */
+    o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));const draw=this.bakeDraw(o.route,o.state[o.p]);delete o.route;if(draw)o.draw=draw;
     o.tokens={...this.tokens};this.events.push(o);}
+  /* The presentation lane's ONE builder, so every emitter's route reaches the wire in one shape.
+     `route` is the whole drawn line INCLUDING the square left behind — self-contained, so a far
+     side never has to reconstruct the start out of a previous event's snapshot. Returns null on
+     anything it cannot vouch for, and a null lane means the far side draws exactly what it draws
+     today. */
+  bakeDraw(route,snap){
+    if(!Array.isArray(route)||route.length<2||!snap||!Array.isArray(snap.pos))return null;
+    const end=route[route.length-1];
+    if(!Array.isArray(end)||end[0]!==snap.pos[0]||end[1]!==snap.pos[1])return null;
+    if(route.some(c=>!Array.isArray(c)||c.length<2))return null;
+    return {route:route.map(c=>[c[0],c[1]])};
+  }
   // during a reload-replay, fast-forwarding has no real delays between turns, and a bot's turn
   // can occasionally run a beat before its own recipe assignment has landed — treat "no recipe
   // yet" as "needs nothing" rather than throwing, since it resolves itself a tick later anyway
@@ -2745,7 +2769,11 @@ class Game{
     // sailing is free now (rule 2) — no coin gate, no refund, no "too poor to sail"
     if(man(p.pos,plan.cell)>0){
       const moved=this.sailPlan(p,plan);
-      if(moved){this.ev({t:"sail",p:p.idx});this.tradewind(p);}
+      // The drawn route rides WITH the move (see ev/bakeDraw above). sailPlan has already written
+      // p.pos, so the search is told the pre-move square outright via `from`, and `before` heads
+      // the polyline — the wire then carries the whole line instead of a destination that the far
+      // side would have to guess a line to.
+      if(moved){this.ev({t:"sail",p:p.idx,route:[[...before],...this.sailPath(p,[...p.pos],{throughRim:false,from:before})]});this.tradewind(p);}
       else if(this.boxedIn(p)&&this.rimEscape(p)){/* rim sweep recorded its own event */}
     }
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1])p.justDocked=false;

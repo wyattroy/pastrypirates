@@ -130,6 +130,11 @@ import {
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
   voyageAground, // the visible stall guard — a throw in the turn chain must never be silent again
 } from "./ui/index.js";
+/* W7 — NAMED FROM ITS OWN FILE, not through the ui barrel, and that is deliberate: this is the one
+   sail stepper both tiers walk, and the import says where it lives so the next reader looking for
+   "what draws the guest's boat" lands on it in one hop. Everything else this file needs from the ui
+   tier comes through the barrel above; nothing here reaches past the ui tier's own boundary. */
+import { animateSailRoute } from "./ui/flow.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
 // own headers for the full precedent this mirrors. Reproduced verbatim as private module-locals;
@@ -1570,6 +1575,7 @@ export async function consumeEvent(e){
   syncLogLines();
   $("scrub").max=Math.max(0,appState.game.events.length-1);
   await animateRimSweepIfAny();   // idempotent (_lastSweptEvIdx) — a host call site that already awaited the ride makes this a no-op
+  await animateSailRoute();       // W7: the guest walks the squares the boat crossed instead of gliding across the islands; idempotent (_lastRoutedEvIdx) the same way
   render();
   spawnPops(e,boardCell());
   playForEvent(e);                // AUDIO-01/D-07: the per-event sound moment, every tier, no isLocalTo gate

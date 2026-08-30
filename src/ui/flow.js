@@ -1183,7 +1183,34 @@ const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
   new Promise(res=>requestAnimationFrame(()=>res())),
   sleepMs(appState.ff?Math.min(ms||SAIL_ROUTE_TICK_MS,40):(ms||SAIL_ROUTE_TICK_MS)*8),
 ]));
-export async function animateSailRoute(seat,from,path){
+/* THE ONE SAIL STEPPER, called identically by the host's turn loop and by the guest's consumer —
+   the same split animateRimSweepIfAny/animateRimSweepRun already proved above. TAKES NO PARAMETERS
+   ON PURPOSE: no call site can hand it something another call site cannot, so the two tiers cannot
+   be aimed or paced differently. Everything it needs is on the EVENT, which both tiers hold — the
+   engine bakes the drawn line into the sail event's presentation lane (Game.ev / bakeDraw), and
+   that lane is self-contained, starting with the square the boat left.
+   Returns true only when a route actually walked. */
+let _lastRoutedEvIdx=-1;
+export async function animateSailRoute(){
+  const g=appState.game;
+  if(!g||appState.replaying)return false;
+  const n=g.events.length;
+  if(!n)return false;
+  const last=g.events[n-1];
+  if(!last||last.t!=="sail")return false;
+  /* RE-ENTRY GUARD: a module-local index, NEVER a flag stamped on the event object — the host
+     broadcasts events verbatim, so an extra field would leak straight into the Firebase payload.
+     This is what makes the host's inline call and the drain's call the same ride rather than two. */
+  if(_lastRoutedEvIdx===n-1)return false;
+  _lastRoutedEvIdx=n-1;
+  const route=last.draw&&last.draw.route;
+  // <3 is a straight one-square hop: no corner to draw, and the plain render says it better
+  if(!Array.isArray(route)||route.length<3)return false;
+  return animateSailRouteRun(last.p,route[0],route.slice(1));
+}
+/* The walker itself: squares in hand, no derivation. Kept separate for the same reason
+   animateRimSweepRun is — one place decides WHETHER to ride, one place performs the ride. */
+export async function animateSailRouteRun(seat,from,path){
   if(appState.replaying)return false;
   if(!Array.isArray(path)||path.length<2||!from)return false;   // no corner to draw
   const pts=[from,...path];
@@ -2247,9 +2274,15 @@ export async function humanAct(p,sailCtx){
       // before p.pos is written. sailPath asks the same search that made `dest` legal in the first
       // place, so the drawn line and the rule can never disagree.
       const from=[...p.pos];
-      const route=appState.game.sailPath(p,dest,{throughRim:true});
-      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      await animateSailRoute(p.idx,from,route);
+      // the drawn line INCLUDES the square being left, so what lands on the wire is self-contained
+      const route=[from,...appState.game.sailPath(p,dest,{throughRim:true})];
+      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx,route});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
+         SAME no-argument entry, so the host walks identical code off the identical event the guest
+         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
+         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
+         this turn loop would stop waiting for the glide. */
+      await animateSailRoute();liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
@@ -2343,9 +2376,14 @@ export async function humanTurn(p){
       // ship that sails honestly on one of them and cuts the corner on the other is the same
       // inconsistency in a new place.
       const fromSail=[...p.pos];
-      const routeSail=appState.game.sailPath(p,dest,{throughRim:true});
-      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx});liveRender();
-      await animateSailRoute(p.idx,fromSail,routeSail);
+      const routeSail=[fromSail,...appState.game.sailPath(p,dest,{throughRim:true})];
+      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx,route:routeSail});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
+         SAME no-argument entry, so the host walks identical code off the identical event the guest
+         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
+         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
+         this turn loop would stop waiting for the glide. */
+      await animateSailRoute();liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
       // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
       // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
@@ -2535,12 +2573,18 @@ export async function botTurn(p){
     // which is the one square sailPath can no longer be asked about from p. Hence the explicit
     // `dest` read. A bot that cut corners while the human sailed honestly would be the same
     // inconsistency wearing a different hat, and bots do most of the sailing a player watches.
-    if(g.sailPlan(p,plan)){p.justDocked=false;g.ev({t:"sail",p:p.idx});
+    if(g.sailPlan(p,plan)){p.justDocked=false;
       // `from:b` — sailPlan has already written p.pos, so the search is told the pre-move square
       // outright rather than p.pos being temporarily rewound to read the route back out of it.
-      const route=g.sailPath(p,[...p.pos],{throughRim:false,from:b});
-      liveRender();
-      await animateSailRoute(p.idx,b,route);
+      // The route is now taken BEFORE the event, because it rides ON the event (Game.ev/bakeDraw).
+      const route=[b,...g.sailPath(p,[...p.pos],{throughRim:false,from:b})];
+      g.ev({t:"sail",p:p.idx,route});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
+         SAME no-argument entry, so the host walks identical code off the identical event the guest
+         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
+         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
+         this turn loop would stop waiting for the glide. */
+      await animateSailRoute();liveRender();
       await botBeat();
       if(g.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
