@@ -157,7 +157,7 @@ let poseCorner = null;    // a real cornering flee, reused by leg B
 /* What the flee site actually does today, read once in B0 and POSED by legs B and D. A behavioural
    leg has to build the event the site emits; hardcoding today's shape would leave this gate red
    forever after a fix. */
-let site = { route: false, entryEvent: false };
+let site = { route: false, entryEvent: false, seat: false };
 
 /* ─── B0. THE SITE ITSELF, READ — THE REQUIREMENT, so this gate tracks a fix instead of staying
        red forever. The legs around it are behavioural; a behavioural leg has to POSE the emit,
@@ -179,6 +179,16 @@ let site = { route: false, entryEvent: false };
 
   site.route = /sailPath\(/.test(block) && /\broute\b/.test(emit);
   site.entryEvent = /\.ev\(/.test(block.slice(posIdx, twIdx));
+  /* THE SEAT. Game.ev bakes the draw lane against o.state[o.p] — an event with no `p` can never
+     carry a route, however carefully the route is computed. The battleflee emit names its captains
+     `a` and `d` and has no `p` at all, so FAULT 1 is two missing things, not one. */
+  site.seat = /\bp:/.test(emit);
+  if (site.seat)
+    pass(`FAULT 1b, at the site: the flee event names a seat (\`p\`), so Game.ev can bake a route onto it (src/orchestrator.js:${at(emitIdx)})`);
+  else
+    fail(`FAULT 1b, at the site: the event emitted at src/orchestrator.js:${at(emitIdx)} carries no \`p\` — it names its `
+       + `captains \`a\` and \`d\`. Game.ev bakes the drawn route against o.state[o.p] (src/engine/index.js), so a route `
+       + `added to this event would still bake to null. Whoever fixes FAULT 1 must give the event a seat as well as a route.`);
   if (site.route)
     pass(`FAULT 1, at the site: the flee asks sailPath for its route and puts it on the emitted event (src/orchestrator.js:${at(s0 + posIdx)})`);
   else
@@ -203,7 +213,8 @@ let site = { route: false, entryEvent: false };
   g.ev({ t: "newround", p: DEF });
   def.pos = [...poseCorner.dest];                              // orchestrator.js:732 — def.pos=dest
   const ev = site.route                                          // POSED AS THE SITE EMITS IT TODAY
-    ? g.ev({ t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a", route: [poseCorner.from, ...poseCorner.route] })
+    ? g.ev(site.seat ? { t: "battleflee", p: DEF, a: ATT, d: DEF, rounds: 1, downwind: "a", route: [poseCorner.from, ...poseCorner.route] }
+                     : { t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a", route: [poseCorner.from, ...poseCorner.route] })
     : g.ev({ t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a" });   // orchestrator.js:735
   useGame(g);
   const walked = await flow.animateSailRoute(ev, g.events.length - 1) === true;
