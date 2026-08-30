@@ -121,7 +121,13 @@ const ROUTE_KEY = /\b(route|path|legs|via|squares|waypoints)\b/;
   if (/animateSailRoute/.test(body)) pass(`${subj.consumer} walks the route (animateSailRoute reached from the one event consumer)`);
   else fail(`${subj.consumer} never reaches animateSailRoute — it assigns p.pos from the baked state and calls render(), so the guest's boat slides straight from where it was to the destination`);
 
-  const imports = strip(orch).match(/import[^;]*from\s*["'][^"']*flow\.js["']/g) || [];
+  /* WIDENED 2026-08-30, because the first version made the code worse. It demanded the specifier
+     end in "flow.js", so the builder had to import this ONE function directly while every other ui
+     function in that file arrives through the ./ui/index.js barrel — an inconsistency (rule 8) that
+     a GATE invented rather than a developer. What this assertion actually cares about is whether the
+     walker is IN SCOPE on the tier that draws the guest; which door it came through is not its
+     business. It now accepts either, so the code can be consistent. */
+  const imports = strip(orch).match(/import[^;]*from\s*["'][^"']*(?:flow|index)\.js["']/g) || [];
   if (imports.some(s => /animateSailRoute/.test(s))) pass("src/orchestrator.js imports animateSailRoute — the guest tier can reach the walker");
   else fail("src/orchestrator.js does not import animateSailRoute from src/ui/flow.js — the walker is not even in scope on the tier that draws the guest");
 }

@@ -109,7 +109,7 @@ import {
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, draftDispatch, wireRestoreFail,
   startPassAndPlay,
-  endReplay, animateRimSweepIfAny,
+  endReplay, animateRimSweepIfAny, animateSailRoute,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
@@ -130,11 +130,6 @@ import {
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
   voyageAground, // the visible stall guard — a throw in the turn chain must never be silent again
 } from "./ui/index.js";
-/* W7 — NAMED FROM ITS OWN FILE, not through the ui barrel, and that is deliberate: this is the one
-   sail stepper both tiers walk, and the import says where it lives so the next reader looking for
-   "what draws the guest's boat" lands on it in one hop. Everything else this file needs from the ui
-   tier comes through the barrel above; nothing here reaches past the ui tier's own boundary. */
-import { animateSailRoute } from "./ui/flow.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
 // own headers for the full precedent this mirrors. Reproduced verbatim as private module-locals;

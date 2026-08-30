@@ -48,7 +48,18 @@ const shared = read("src/shared/index.js");
    called and however it is written. */
 {
   const body = (engine.match(/\bev\(o\)\s*\{[\s\S]*?this\.events\.push\(o\);\}/) || [""])[0];
-  const RECORDED = ["round", "wind", "storm", "wind2", "state", "tokens"];
+  /* "draw" ADDED 2026-08-30, and the reason travels with it because this list is the only place
+     that knows the engine's emitted field set is deliberate rather than accidental. THIS GATE DID
+     ITS JOB: it fired the moment the sail route joined the event, which is exactly the change
+     Wyatt authorised that day — "it's cheap for us to change the engine right now -- that's WHY
+     WE'RE DOING THIS!!!! change it!" — over CLAUDE.md's standing "prefer UI-tier fixes", because
+     the determinism corpus is currently inert (package.json marks test:determinism BROKEN BY THE
+     CUTOVER) and a field added now costs nothing that works today.
+     `draw` IS A PRESENTATION LANE, NOT A GAME FACT. It carries how a move is drawn — the route a
+     boat sails — and never what the move was. Anything that decides the OUTCOME of a game belongs
+     in `state`, and a future re-record of the corpus may hash `state` while ignoring `draw`. Do
+     not let that distinction rot: adding a field here is a decision, not a formality. */
+  const RECORDED = ["round", "wind", "storm", "wind2", "state", "tokens", "draw"];
   const assigned = [...body.matchAll(/\bo(?:\.([A-Za-z_$][\w$]*)|\[\s*["'`]([^"'`]+)["'`]\s*\])\s*=/g)]
     .map(m => m[1] || m[2]);
   const extra = [...new Set(assigned)].filter(k => !RECORDED.includes(k));
