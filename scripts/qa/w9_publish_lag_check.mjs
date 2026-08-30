@@ -206,7 +206,7 @@ async function pageState(H){
 async function startSampler(H){
   const frames = Math.ceil(WINDOW_MS / 16) + 240;
   await H.evalJS("(()=>{window.__P=[];window.__run=true;const t0=performance.now();"
-    + "const tick=()=>{const s=window.__st;window.__P.push([+(performance.now()-t0).toFixed(1),s.game.events.length,s.evPushed]);"
+    + "const tick=()=>{const s=window.__st;window.__P.push([+(performance.now()-t0).toFixed(1),s.game.events.length,s.evPushed,s.evConsumed]);"
     + "if(window.__P.length<" + frames + "&&window.__run)requestAnimationFrame(tick);};requestAnimationFrame(tick);return 1})()");
   await sleep(300);
 }
@@ -229,14 +229,15 @@ async function waitForPublish(H, before, kind){
   return false;
 }
 
-async function measure(H, before, kind, label, settled){
+async function measure(H, before, kind, label, settled, forceIdx){
   await sleep(400);                     // let a few more frames land past the publish
   await H.evalJS('window.__run=false;1');
   const P     = JSON.parse(await H.evalJS('JSON.stringify(window.__P)'));
   const kinds = JSON.parse(await H.evalJS('JSON.stringify(window.__st.game.events.map(e=>e.t))'));
   if(OUT) fs.writeFileSync(OUT, JSON.stringify({ label, before, settled, kinds, P }));
 
-  const idx = kinds.map((t, i) => [t, i]).filter(([t, i]) => t === kind && i >= before).map(([, i]) => i).pop();
+  const idx = forceIdx != null ? forceIdx
+    : kinds.map((t, i) => [t, i]).filter(([t, i]) => t === kind && i >= before).map(([, i]) => i).pop();
   if(idx == null) NOTRUN('the posed ' + label + ' emitted no `' + kind + '`. Events after it: ' + (kinds.slice(before).join(',') || '(none)'));
 
   const at    = pred => { for(const p of P) if(pred(p)) return p[0]; return null; };
@@ -255,6 +256,23 @@ async function measure(H, before, kind, label, settled){
   /* A check that cannot print PASS is not a check (CLAUDE.md rule 6: red-proof the instrument).
      The control events are the proof that this instrument is able to print a small number. */
   if(!controls) NOTRUN('no control events were measurable — the instrument has not shown it can print a small number, so its big number means nothing yet');
+
+  /* DID THE PUBLISH CLAIM THE RIDE? This is the question that decides whether publishNow() is the
+     fix or is secretly the REJECTED fix (moving liveRender above the ride) wearing a new name.
+     appState.evConsumed is how far the LOCAL drain has got. publishNow() must not move it — it
+     calls only the broadcast half (src/ui/panel.js). So: if evConsumed advances at the same frame
+     the event is published, the host has handed its own ride to the un-awaited drain and stopped
+     waiting for it, and this whole change must be reverted (CLAUDE.md rule 23). */
+  const pubFrame = P.find(p => p[2] > idx), conFrame = P.find(p => p[3] > idx);
+  if(pubFrame && conFrame){
+    const gap = +(conFrame[0] - pubFrame[0]).toFixed(0);
+    console.log('\nRIDE OWNERSHIP — published at ' + pubFrame[0] + 'ms, locally consumed at ' + conFrame[0] + 'ms (gap ' + gap + 'ms)');
+    if(gap <= 0) console.log('   ⚠ the local drain advanced AT the publish — the publish claimed the ride. That is the');
+    else         console.log('   the drain advanced AFTER the publish, so the ride is still this call site\'s own and still awaited.');
+    if(gap <= 0) console.log('   rejected fix in disguise (rule 23). REVERT.');
+  } else {
+    console.log('\nRIDE OWNERSHIP — not measurable in this sample (no frame showed the local drain passing #' + idx + ').');
+  }
 
   console.log('\n' + label.toUpperCase() + ' PUBLISH LAG = ' + T.lag + 'ms   (budget ' + BUDGET_MS + 'ms)');
   if(T.lag > BUDGET_MS){
@@ -306,19 +324,36 @@ async function legStorm(H){
 async function legSail(H){
   console.log('LEG sail — MEASURED, host tab only, no network in the number.');
   await pageState(H);
-  const pick = JSON.parse(await H.evalJS("(()=>{const g=window.__st.game;"
-    + "const bot=g.players.find(q=>!q.done&&!q.baking&&q.strategy!=='human');"
-    + "if(!bot)return JSON.stringify(null);"
-    + "return JSON.stringify({seat:bot.idx,at:[...bot.pos],strategy:bot.strategy})})()") || 'null');
-  if(!pick) NOTRUN('no bot captain is still on the board in this room — a sail leg needs one seat that will sail without a prompt');
-  console.log('posed:', JSON.stringify(pick));
   await startSampler(H);
   const before = await H.evalJS('window.__st.game.events.length');
-  const kick = await H.evalJS("(async()=>{const g=window.__st.game;"
-    + "await window.__flow.botTurn(g.players[" + pick.seat + "]);return 'turn done'})()");
-  console.log('botTurn:', kick);
+  /* THE INSTRUMENT MUST REACH ITS SUBJECT, and the first version of this leg did not.
+     animateSailRoute CULLS a short straight hop — it draws nothing and returns at once — so a
+     one- or two-square bot sail publishes instantly whether or not the publish was moved, and the
+     leg printed a confident 0ms GREEN against the KNOWN-BROKEN build. A measurement that cannot
+     fail is not a measurement (CLAUDE.md rule 6). So: take turns until a sail lands whose route is
+     long enough to actually be ridden, and if none does, print NOT RUN rather than that 0ms. */
+  const MIN_ROUTE = 4;   // squares INCLUDING the one being left; below this the walker culls
+  let idx = null;
+  for(let attempt = 0; attempt < 8 && idx === null; attempt++){
+    const seat = JSON.parse(await H.evalJS("(()=>{const g=window.__st.game;"
+      + "const b=g.players.filter(q=>!q.done&&!q.baking&&q.strategy!=='human');"
+      + "return JSON.stringify(b.length?b[" + '${attempt}'.replace('${attempt}', attempt) + " % b.length].idx:null)})()") || 'null');
+    if(seat === null) NOTRUN('no bot captain is still on the board — a sail leg needs one seat that will sail without a prompt');
+    await H.evalJS("(async()=>{await window.__flow.botTurn(window.__st.game.players[" + seat + "]);return 1})()");
+    const found = JSON.parse(await H.evalJS("(()=>{const g=window.__st.game;const out=[];"
+      + "for(let i=" + before + ";i<g.events.length;i++){const e=g.events[i];"
+      + "if(e.t==='sail')out.push([i,((e.draw||e.route||[]).length),Object.keys(e).join('|')]);}return JSON.stringify(out)})()") || '[]');
+    const ridden = found.filter(([, len]) => len >= MIN_ROUTE);
+    if(found.length && attempt === 0) console.log('  sail event fields: ' + found[0][2]);
+    console.log('  turn ' + (attempt + 1) + ' (seat ' + seat + '): sails so far ' + JSON.stringify(found.map(f => [f[0], f[1]]))
+      + (ridden.length ? '  <- ridden' : '  (all culled by the walker — no ride to hold)'));
+    if(ridden.length) idx = ridden[ridden.length - 1][0];
+  }
+  if(idx === null) NOTRUN('eight bot turns produced no sail long enough to be RIDDEN (route >= ' + MIN_ROUTE
+    + ' squares). A culled hop publishes instantly on the broken build too, so measuring one would be a 0ms that means nothing.');
+  console.log('subject: event #' + idx + ', a sail the walker actually rides');
   const settled = await waitForPublish(H, before, 'sail');
-  return measure(H, before, 'sail', 'the ordinary sail', settled);
+  return measure(H, before, 'sail', 'the ordinary sail', settled, idx);
 }
 
 /* WORST VERDICT WINS, and NOT RUN is never rounded up into a pass. */
