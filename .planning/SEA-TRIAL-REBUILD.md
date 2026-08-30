@@ -89,3 +89,42 @@ same game?*
   session. Kill by debug port.
 - **Do not touch game code.** This is the instrument, not the game. If a game bug is found, it is
   written down, not fixed here.
+
+---
+
+## FINDINGS MADE WHILE BUILDING — recorded here, not in the shared ledger, so the session that is
+## mid-flight on `cloud-handoff-planning-a9ay1u` gets no merge conflict from me
+
+### 1. The vision judge is not deterministic on borderline screens
+
+`crew-desktop-guest-001..005-settled.png` came back **FAIL** — *"large empty dead space in the right
+sidebar between the player list and the menu"* — in one batched run, and **PASS** in another, same
+five images, minutes apart, same model and rubric. The blatant planted fault (overlapping text, a
+clipped card, a button off the right edge) was caught in **every** run, alone and hidden among real
+screenshots.
+
+**So: a single FAIL on a borderline screen is a thing to look at, not yet a finding.** Nobody has
+measured the flip rate, and I am not designing around a stability I have not shown. It also means a
+FAIL that vanishes on a re-run is not proof the screen was fixed.
+
+**What it does NOT undermine:** the judge's ability to catch a real, gross layout fault. That held
+every time it was tested tonight.
+
+### 2. This container had no WebKit at all — so three legs could not have run
+
+`npm test` failed on `no playwright found` before I touched anything (verified by stashing). This
+container ships `/opt/pw-browsers/chromium` and **no webkit, and no playwright package**.
+`QA-PROCESS.md` §5b says the cloud has both; that was true of the container the 2026-08-28 session
+was in, and false of this one. **Cloud containers are not identical, and "WebKit works in the cloud"
+is not a property you can assume from a document.** Installed here: `playwright` into `~/.pw`,
+`webkit-2336` into `/opt/pw-browsers`, plus `npx playwright install-deps webkit` for a long list of
+missing system libraries (libgtk-4, libgraphene, libevent, flite, …). `npm test` is now 0 failures.
+
+**The check that caught it was already there and already right** — `no playwright found — if it IS
+installed, this resolver is the thing that is wrong`. It said the true thing and had been failing.
+
+### 3. crew-desktop's contact sheet, measured
+
+END OF VOYAGE at 938s; the leg did not return until 1066s. **123 of those seconds were the contact
+sheet**, which opened a third browser and a second web server, hit its own two-minute cap, and was
+abandoned having produced nothing. That is the whole justification for moving sheets out of the leg.

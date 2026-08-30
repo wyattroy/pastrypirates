@@ -20,6 +20,7 @@
 //        [--dbg=9800] [--judge=on|off] [--model=claude-sonnet-5] [--max-min=35] [--parallel=2]
 // Exit 1 on any failure. Keeps every screenshot + a contact sheet per leg. Read them.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO, gameURL } from "./lib/chrome.mjs";
@@ -54,7 +55,19 @@ const JUDGE_MODE = arg("judge", "on");            // on | queue | off
 const JUDGE = JUDGE_MODE !== "off";
 const MODEL = arg("model", "claude-sonnet-5");
 const MAX_MS = +arg("max-min", 35) * 60_000;
-const PAR = Math.max(1, +arg("parallel", 2));
+/* HOW MANY LEGS AT ONCE — DERIVED FROM THE MACHINE, NOT TYPED (CLAUDE.md rule 9).
+   A flat `2` was right for the laptop it was written on and wrong everywhere else: it leaves a
+   16-core box idle and it would thrash a 2-core one. And the ceiling is not opinion, it is
+   measured — 2026-08-30, this container: ONE crew-desktop leg (two browsers, a parity sampler and
+   node) held a load average of 2.75 on 4 cores. Two browsers is most of four cores, so the honest
+   conversion is roughly two cores per leg, and a fleet of ten wants about sixteen.
+   WHY OVER-SUBSCRIBING IS NOT MERELY SLOWER: this gate judges by wall clock. waitSettled asks "has
+   the screen stopped moving", and a dead control is one that changed nothing within 9 seconds. On a
+   thrashed box both of those go wrong in the direction of INVENTING findings — screens that
+   "never settled", buttons that look dead. Speed bought that way is paid for in false alarms, and
+   a gate that cries wolf is the failure this repo has already paid for twice. */
+const CORES = (os.cpus() || []).length || 2;
+const PAR = Math.max(1, +arg("parallel", Math.max(1, Math.floor(CORES / 2))));
 /* THE EYES SEE EVERY SCREEN NOW. `JUDGE_CAP = 30` used to stop the vision judge at the first
    thirty distinct screens of a leg while the structural rules ran on all of them — and the verdict
    said nothing about the gap, so a 60-screen leg came back "30 judged, all PASS" and read as
@@ -443,17 +456,14 @@ async function runLeg(name, idx) {
       }
     }
   }
-  /* THE CONTACT SHEET MUST NOT BE ABLE TO HANG THE WHOLE RUN. 2026-08-22: after the judge failed,
-     the gate stopped here and never exited — 0% CPU, no log line, and its two sheet browsers left
-     alive at 47% of Wyatt's CPU for three hours until a human noticed. A step that only PRESENTS
-     results may never outlive the run that produced them, so it is bounded and its failure is
-     reported rather than fatal. The kill is scoped to this sheet's own port, never a bare pkill. */
-  const sheetPort = DBG0 + 90 + idx;
-  await Promise.race([
-    contactSheet(rec, name, idx),
-    sleep(120000).then(() => { log(`[${name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
-      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
-  ]);
+  /* THE CONTACT SHEET NO LONGER RUNS HERE — it is a PRESENTATION step and it was standing in the
+     fleet's way. MEASURED 2026-08-30, crew-desktop alone on an idle container: the voyage reached
+     END OF VOYAGE at 938s and the leg did not finish until 1066s, because the sheet spent 123s
+     opening a THIRD browser and a SECOND web server, then hit its own 2-minute cap and was
+     abandoned having produced nothing. Ten legs is twenty minutes of a ninety-minute trial spent
+     on an image that gets thrown away, on the same cores the voyages are trying to use.
+     It now runs after the whole fleet is home (see `sheets` below), where being slow costs the
+     trial nothing and a failure still cannot outlive the run that produced it. */
   rec.verdict = legVerdict(rec);
   if (rec.error) rec.verdict.push("leg error: " + rec.error);
   return rec;
@@ -463,6 +473,20 @@ async function runLeg(name, idx) {
 const results = [];
 { let next = 0; await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
     while (next < LEGS.length) { const i = next++; results[i] = await runLeg(LEGS[i], i); } })); }
+
+/* THE SHEETS, ONCE THE FLEET IS HOME. Same bound as before (two minutes, killed by its own debug
+   port, never a bare pkill — this container's shell wrapper matches `chromium` and a bare pkill
+   kills the session itself). Sequential on purpose: nothing is waiting on these, and one browser
+   at a time cannot take cores from a leg that is still finishing in a future wider fleet. */
+for (const [i, r] of results.entries()) {
+  if (!r || r.notRun || !(r.screens || []).length) continue;
+  const sheetPort = DBG0 + 90 + i;
+  await Promise.race([
+    contactSheet(r, r.name, i),
+    sleep(120000).then(() => { log(`[${r.name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
+      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
+  ]);
+}
 
 let anyFail = false;
 for (const r of results) {
