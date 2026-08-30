@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pastry Pirates — playtest checklist</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style></head><body>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — staging checklist</h1>
+  <div class="sub">Build <strong id="stamp">2026.08.30.1-staging@2cac247d</strong> ·
+   <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
+   — <strong>The browser tab must read “[STAGING]”</strong>, and the ☰ stamp must end <code>-staging@2cac247d</code>.
+   Read off the wire at 04:2xZ on 2026-08-30, not from a working tree. A different stamp = a different build; stop and tell me.
+   <em>(Production is untouched and still reads <code>2026-08-26k-CUTOVER</code>.)</em></div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Read this first — who wrote this sheet, and what it does NOT cover"},
+ {note:"<strong>This sheet was written by the sea-trial session, and that session did NOT publish this build.</strong> Staging already carried <code>2026.08.30.1-staging@2cac247d</code> when this was written, published by the session called <em>Cloud: Edits</em>, which is still working. I read the stamp off the live site to be sure. I have changed <strong>no game code at all</strong> tonight — every game change on my branch arrived by merging that session's work so I could build the trial on top of it."},
+ {note:"<strong>Why I did not publish, since a hook asked me to.</strong> Publishing my branch would have overwritten the build ye are meant to open in the morning, with a newer game change (<code>2026.08.30.2</code>, a narration-bubble tail fix) that <strong>has not been through a sea trial on my branch</strong>. Two rulings on the record say don't: <em>CLOUD-VS-LOCAL.md</em> — “the single most expensive thing found on 2026-08-28 was two environments running at once and overwriting each other” — and that session's own ledger last night: “pushing an unsailed build to gain that would be trading the one rule that has caught me all night.” <strong>So: staging stays where it is, and this sheet describes what staging actually serves.</strong>"},
+ {n:1,look:"Open staging, ☰ menu, read the stamp.",right:"Ends “-staging@2cac247d”, and the tab reads [STAGING].",why:"There is no build step — a different stamp is a different build, not a cache. If it ends @907c5a09, or the version reads 2026.08.30.2, the other session published while ye slept and this sheet describes the wrong build; tell me and I will rewrite it."},
+
+ {h:"What is new in THIS build — the other session's work, their measurements"},
+ {n:2,look:"Crew game, two devices. Read the narration line as each captain acts, on BOTH screens.",right:"Each line is clearly about the right captain, and both screens agree about who it is about.",why:"Q-18: the subject and the serial are one fact, so both seats decide who a line is about with ONE shared rule instead of two. Their measurement, not mine: the wire half had NEVER worked in a crew game — 0 of 47 narration lines carried a subject before, 4 of 80 carry one now and none carries half of one."},
+ {n:3,look:"Same crew game — watch a purse (a captain's coins) as a trade or a battle resolves.",right:"The number lands once and stays. A brief beat of stillness before it moves is the intended behaviour, not a stall.",why:"YER DECISION, not a defect. To stop the numbers flickering, the guest now WAITS up to 450ms for the event its line names. That session flagged it as new behaviour ye did not sanction and put it to ye directly: the trade is “a beat of stillness” against “numbers that flicker”, and the flicker is what ye have complained about for weeks. Their words: “it is his call and I am naming it.” TELL THEM WHICH YE PREFER."},
+ {n:4,look:"A sail prompt on a phone-sized crew guest. Look at the narration bubble over the board.",right:"Same as it was two days ago — no wider, no different.",why:"A bubble-widening change went in and was REVERTED before this build. Their reason is worth yer trust: it was built on a premise they later verified FALSE, it showed no improvement anywhere, and the fleet number it was meant to help got WORSE (no-cover-ask 10 → 12). Nothing to test here — this row exists so ye are not hunting for a change that was withdrawn."},
+
+ {h:"Already known — please do NOT spend yer eyes"},
+ {note:"<strong>1. Sail squares a guest cannot tap (W1-4)</strong> — diagnosed, NOT fixed. It is three faults, not one, and the biggest is not the recorded one: <strong>the narration bubble sits on top of the squares it is asking ye about</strong> (10 of the coverings name the bubble), a square drawn past the right edge, and the captains panel a distant third. Two geometry theories are already measured dead.<br><strong>2.</strong> W3-1 diagnosed but not fixed; W3-3 and W3-5 untouched.<br><strong>3.</strong> The captains panel row order differs between host and guest — <strong>that is yer own rule</strong> (2026-08-20: the viewer's captain on top, then sailing order). Not a bug.<br><strong>4.</strong> WebKit legs crash mid-voyage in a cloud container (a real Linux-WebKit segfault, diagnosed by core dump). Safari on yer real phone shares none of it.<br><strong>5.</strong> The trial's crew screenshots are numbered per seat, so host and guest images are DIFFERENT MOMENTS — the trial cannot yet show a host/guest divergence in pictures. I am rebuilding that tonight."},
+ {note:"<strong>And one about the instrument, because it changes how ye should read a report.</strong> The vision judge is not deterministic on borderline screens: the same five screenshots came back FAIL in one run and PASS in another, minutes apart, same model and rubric. A blatant planted fault was caught every single time. So a lone borderline FAIL in a trial report is a thing to look at, not yet a finding — and a FAIL that vanishes on a re-run is not proof anything was fixed. Rate unmeasured; I am not designing around it."}
+];
+
+const KEY="pp4-staging-2026-08-30-a";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; localStorage.removeItem(KEY); location.reload(); };
+</script></body></html>
