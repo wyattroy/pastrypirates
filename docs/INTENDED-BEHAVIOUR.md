@@ -162,6 +162,38 @@ dead branch is still a false statement about the game.**
 
 ---
 
+### Docking pauses because it IS a coin flip — a treasure hunt, not a stall
+
+**What it looks like:** a measured 1601ms gap between a dock happening and the rest of the table
+being told about it. Reported as the same "one client holds the table" fault as the storm and the
+sail.
+
+**What is actually true:** **docking is a treasure hunt, then a purchase** — v2 rule 10. The flip
+decides the payday: heads you turn up buried treasure, tails you spend the turn working the dock.
+So a docking captain is *answering a prompt*, and the pause is a decision being made, not a frozen
+board. **Wyatt, 2026-08-30, correcting a report on his own game:** *"I think this is because that
+captain is flipping to see if they will find buried treasure or not. If my thinking is correct,
+then this isn't a bug."*
+
+**And the other captains are told.** While any captain answers, every other screen holds a
+*"…is deciding…"* line. That line was genuinely broken once — measured live on a guest, **2516
+narration lines contained it ZERO times** — because it branched on the local viewer while being
+sent from the host. It was fixed by broadcasting the spectator line as the neutral content with the
+actor's own prompt as that seat's variant.
+
+**Citations:** `src/engine/index.js:965-978` (the rule, and `treasure`/`dockhand` outcomes);
+`src/ui/util.js:1580-1592` (the broken-then-fixed spectator line, with its measurement);
+`src/ui/stage.js:1398` — *"Everyone else still reads '…is deciding…'"*.
+
+**⚠ THE PART THAT IS STILL OPEN, and it must not be read as settled:** what other captains see in
+the window **after** the flip resolves, while the dock ceremony plays on the docking captain's
+screen and before the event reaches the wire. The "…is deciding…" line covers the *decision*. It
+has not been measured whether it still covers that *animation*. **Two tabs would answer it in
+minutes; reading will not.** Wyatt's ruling stands — parked — and this note exists so the next
+session neither re-reports it as a bug nor assumes it is proven fine.
+
+---
+
 ## 1. Captains, recipes and holds
 
 | Looks like | Actually | Citation |
