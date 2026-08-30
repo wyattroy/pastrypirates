@@ -1,6 +1,3 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pastry Pirates — playtest checklist</title>
 <style>
 :root{
@@ -57,7 +54,7 @@ dialog::backdrop{background:rgba(6,20,26,.55)}
 dialog .in{padding:16px}
 dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
 @media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
-</style></head><body>
+</style>
 
 <header><div class="wrap">
   <h1>Pastry Pirates — playtest checklist</h1>
@@ -136,8 +133,17 @@ const DATA = [
 ];
 
 const KEY="pp4-playtest-2026-08-25f";
-let state=JSON.parse(localStorage.getItem(KEY)||"{}");
-const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+/* GUARDED, for the same reason as its two siblings: this sheet is opened as a hosted page on his
+   PHONE, and in a private tab the accessor itself THROWS rather than returning null -- an
+   unguarded read here would take the whole page down and leave him a blank screen instead of a
+   checklist. A storage failure costs him his saved marks and nothing else. */
+const store = {
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
+  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+};
+let state=store.read();
+const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
 const list=document.getElementById("list");
 
 for(const d of DATA){
@@ -199,5 +205,5 @@ document.getElementById("docopy").onclick=async()=>{
 };
 document.getElementById("close").onclick=()=>document.getElementById("out").close();
 document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
-  state={}; localStorage.removeItem(KEY); location.reload(); };
-</script></body></html>
+  state={}; store.drop(); location.reload(); };
+</script>

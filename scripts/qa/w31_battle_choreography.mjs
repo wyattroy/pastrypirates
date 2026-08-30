@@ -82,7 +82,39 @@ const WATCH = `(()=>{
       coin?("coin:"+(["heads","tails","spin","wait","active"].filter(c=>coin.classList.contains(c)).join("+")||"none")
             +((coin.style.backgroundImage||"").indexOf("url")>=0?"+face":"+noface")):"-",
       vis,
-      (r&&vis==="SHOWN")?("y"+Math.round(r.top/20)*20):"-"
+      (r&&vis==="SHOWN")?("y"+Math.round(r.top/20)*20):"-",
+      /* WHICH THING MOVES — the card inside its box, or the whole box? Three geometry guesses have
+         died on this codebase in a week, so this asks the question instead of assuming an answer:
+         the card's offset WITHIN #apGridInner, and the panel's own screen position, side by side.
+         If the offset is constant while the panel's top changes, the mover is the PANEL's layout,
+         not the content's. */
+      (r&&vis==="SHOWN")?("off"+Math.round((btl.offsetTop||0)/10)*10):"-",
+      /* THE CLASS I FAILED TO RECORD LAST TIME, and it decides everything: runHeightSequence
+         early-returns on centreStaged(), which tests the pp4Center class on #pp4Prompt -- NOT the
+         ap.dataset.pp4Stage I had been recording. If it is set while the card is up, the panel's
+         own height sequence never runs and the grow is driven by the stage's layout instead: a
+         different file and a different fix.
+         NO BACKTICKS ANYWHERE IN THIS BLOCK. It is a template literal handed to the page, and
+         quoting a selector in backticks ends the literal and throws. That is the THIRD time in one
+         session -- so the rule is now written where the mistake gets made, not in a ledger. */
+      (()=>{const b=document.getElementById("pp4Prompt");
+        return b?("prompt:"+(b.classList.contains("pp4Center")?"CENTER":"-")+(b.classList.contains("radial")?"+radial":"")):"noPrompt";})(),
+      /* THE BOX ITSELF, beside the panel. If #pp4Prompt's rect is the same in both frames while
+         the panel's top moves, the panel is moving INSIDE a static box and the mover is the
+         panel's own layout. If the BOX moves, it is the stage's. Two readings this morning were
+         wrong from reading code; both were settled by adding one line here. */
+      (()=>{const b=document.getElementById("pp4Prompt");
+        if(!b||vis!=="SHOWN")return "-";
+        const q=b.getBoundingClientRect(); const cs=getComputedStyle(b);
+        /* THE FALSIFIER I NAMED IN THE LEDGER, run rather than left standing. The hypothesis is
+           that #pp4Prompt is fixed with top:auto, so it sits at its STATIC position and its top is
+           a layout consequence that resolves a frame late. If cs.top reads auto in BOTH frames the
+           hypothesis holds; if it reads a px value, something is assigning it and I am wrong. */
+        return "box"+Math.round(q.top/20)*20+"h"+Math.round(q.height/20)*20+":"+cs.display+":"+cs.position+":top="+cs.top+":inline="+(b.style.top||"UNSET")+":tr="+(cs.transform==="none"?"none":"yes");})(),
+      (()=>{const ap=document.getElementById("actionPanel");
+        if(!ap||vis!=="SHOWN")return "-";
+        const q=ap.getBoundingClientRect();
+        return "ap"+Math.round(q.top/20)*20+"h"+Math.round(q.height/20)*20;})()
     ].join(" ");
   };
   window.__w31={log:[],last:null,frames:0};
@@ -150,8 +182,21 @@ if (!cardFrames.length) {
 console.log(`  ${log.length} regime change(s) over the run; ${cardFrames.length} of them with the battle card on screen\n`);
 console.log(`  the sequence, one line per CHANGE (this is the choreography a player sees):`);
 log.forEach(r => console.log(`    ${String(r.t).padStart(7)}ms  ${r.g}`));
-const distinct = [...new Set(cardFrames.map(r => r.g))];
-console.log(`\n  DISTINCT regimes while the battle card was on screen: ${distinct.length}`);
-distinct.forEach(g => console.log(`    ${g}`));
-console.log(`\n  One beat should be one regime. ${distinct.length > 1 ? "It is not." : "It is."}`);
-process.exit(0);
+/* THE VERDICT IS ABOUT POSITION WHILE SHOWN, which is the only part of the regime a player can see
+   move. Wyatt: "It appears for an instant, the stage deletes it, it moves down to centre." A card
+   that occupies TWO vertical positions while visible has been painted before it was placed.
+   THIS IS A GEOMETRIC QUESTION, NOT A RATE (rule 26): one battle answers it. The run DRIVES to a
+   battle because there is no ?battle=1 shortcut, but reaching a state is not sampling for one —
+   the answer is "did it move", and n=1 settles that. */
+const shownPos = cardFrames.filter(r => / SHOWN /.test(r.g)).map(r => (r.g.match(/ y(-?\d+)/) || [, null])[1]).filter(v => v != null);
+const positions = [...new Set(shownPos)];
+console.log(`\n  vertical positions the card occupied WHILE VISIBLE: ${positions.length ? positions.map(p => "y" + p).join(", ") : "(never visible)"}`);
+if (!positions.length) {
+  console.log(`\n=== NOT RUN — the card was never visible with area, so nothing about its placement was measured.`);
+  process.exit(1);
+}
+const moved = positions.length > 1;
+console.log(moved
+  ? `\n=== FAIL — the battle card occupied ${positions.length} different vertical positions while on screen. It is painted before it is placed, which is exactly what he reported.`
+  : `\n=== PASS — the battle card was drawn at one position and stayed there.`);
+process.exit(moved ? 1 : 0);

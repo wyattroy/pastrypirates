@@ -1,8 +1,9 @@
 # CEO reviews — the standing record
 
-## CEO Review 28 — 2026-08-30, the clickable-HTML item (hook + artifact delivery) — VERBATIM
+## CEO Review 31 — 2026-08-30, the clickable-HTML item (hook + artifact delivery) — VERBATIM
 
-*(The reviewer numbered itself 15; renumbered to 28 to follow this file. Nothing else altered.)*
+*(The reviewer numbered itself 15. Renumbered to 31 on merge: this was written as 28 in a container
+that had not yet fetched reviews 28-30 from the session working in parallel. Nothing else altered.)*
 
 **One sentence:** *"The hook rule is real and well-written, but the two claims about the artifact and the durable copy do not survive contact with the disk — the .planning file carries no URL, the phone rebuild is not in the repo at all, and the rule itself is sitting uncommitted."*
 
@@ -18,6 +19,121 @@
 **Does the standing charge recur? Yes, in its exact form.** *"This session writes its best guess in the voice of a finding."* Claim 3 is stated as an accomplished fact and is contradicted by a one-line grep. It is not a lie; it is a step the session intended and did not perform, reported as though it had. The fix is two commands, not an argument.
 
 **WHAT I DID ABOUT IT, same turn:** all three gaps closed before this file was committed — the hook committed, the phone version written into `.planning/staging-checklist-2026-08-30.html` as the durable copy, and the artifact URL put in a comment at the top of it (verified by grep, not by intention). The third part of the ask is answered in the reply and in the sheet itself.
+
+## CEO Review 30 — 2026-08-30, the playtest sheet as a tappable link, and the hook behind it — VERBATIM
+
+**VERDICT: YES-with-corrections. "All three parts of the ask happened. The sheet he was handed is now in the shape that can be published, the rule is written into the hook in his own words, and the hook mechanically blocks the one failure mode it can see. Two claims are stated more broadly than the evidence supports, and I found one way to slip past the new check."**
+
+### It ran the hook rather than reading it — five states
+
+> "I ran the real hook file five times with faked inputs (only the sheet's *content* or the directory listing was substituted; git, mtimes and the hook's own code were real, and the probe printed whether the hook actually read the sheet — it did in every content case)"
+
+| state | result |
+|---|---|
+| the sheet as it stands | silent pass, exit 0 |
+| the wrapper put back | **blocks** |
+| BOM + doctype | **blocks** |
+| `.planning/` with no sheets at all | falls through, no crash |
+| an HTML comment BEFORE the doctype | **PASSES — this is a hole** |
+
+> "**The hole, cited:** `playtest-checklist-last.cjs:99` — the regex is anchored to the start of the file, so anything at all ahead of the doctype defeats it… Contrived, but it is the check's only test and it is one character of regex from being robust."
+
+### The structural gap it named, and it is the better finding
+
+> "when the freshest sheet is fresh *and* unwrapped the hook exits silently. The instruction 'PUBLISH IT AND HAND HIM THE LINK, NOT THE PATH' therefore only ever reaches a session through one of the two *blocking* paths. **A session that inherits a good sheet from an earlier session, or writes one before the hook fires, is never told to publish it.**"
+
+> "**Not swept:** `.planning/playtest-checklist.html` is still fully wrapped… and its three `localStorage` touches are unguarded… **one of the three checklist files in that directory still fails his ask exactly as the original did, and the commit message does not mention it.**"
+
+### What it verified as sound
+
+> "Neither sheet contains a `<!doctype>`, `<html>`, `<head>`, `<body>` or `<meta>` tag; both begin with `<title>Pa…`; the `<script>` block of each parses cleanly under `new Function()`. The template still carries what a future sheet needs." · "**localStorage guard is real and complete for these two.**"
+
+> "I could **not** independently reproduce `scrollWidth === 390`… I red-proofed that with a trivial control page whose script sets the title, and the title stayed `ORIG`… Supporting evidence instead: the sheet's CSS is fluid throughout… And the CTO's own capture, `phone390.png`, is 780 x 11972 px — 390 CSS pixels at device scale 2, full page height, which is what a genuine CDP 390x844 capture looks like. **The instrument reached its subject.**"
+
+### Overstated
+
+> "`playtest-checklist-last.cjs:108` — *'It still opens fine from disk in a browser.'* An unmeasured behavioural claim in a comment, which is the thing rule 6's second half exists to stop, and it is wrong in the details: with no doctype the file renders from disk in **quirks mode**… it is written as a standing fact and it will mislead the next reader." · "The commit message's *'every localStorage touch is guarded'* is true of the two files it edited and false of the third checklist sitting beside them."
+
+### The recurring fault
+
+> "**Narrowly, yes — in the scope of the claims rather than in the measurement.** The red-proof held exactly as described when I replayed it independently, and the instrument-failure call on the 390px screenshot survived my own check. That is the substantive part and it is honest. But two sentences claim more ground than was walked… Review 29's rule was followed by the checks. **It was not followed by the prose around them.**"
+
+**ONE SENTENCE FOR WYATT:** "Your checklist is now a real page you can tap and use on your phone, and the hook will stop a future session from handing you a file that can only be read as code — with two gaps worth knowing: the older playtest checklist in the same folder was left in the broken shape, and the hook only speaks up when something is wrong, so a session that already has a good sheet is never reminded to actually send you the link."
+
+*(CTO, same hour — all four acted on, none argued: the regex is no longer anchored and now blocks the comment-before-doctype file it built, re-proofed five ways; `.planning/playtest-checklist.html` is unwrapped and guarded like its siblings; the quirks-mode comment is deleted rather than corrected, since it was a behavioural claim nobody ran; and the "never reminded" gap is closed where a hook cannot reach — CLAUDE.md rule 27, loaded into every session.)*
+
+## CEO Review 29 — 2026-08-30, the playtest checklist for `2026.08.30.1-staging@2cac247d` — VERBATIM
+
+**VERDICT: YES. "Every load-bearing claim in the sheet was checked against the wire, the git history, or the file itself, and all of them held. The one place the wording is slightly stronger than the diff is noted below and is not a defect."**
+
+### The hook's contract — met on every named requirement
+
+> "Three fields per item — all 10 items carry `look`, `right` and `why`… Full stamp including @sha — header and item 1 both read `2026.08.30.1-staging@2cac247d`… HIS DECISION marked — the captains-panel row order is called out as *'That is YER OWN RULE (2026-08-20…) Not a defect - do not report it'*… `KEY="pp4-staging-2026-08-30"` vs the old `"pp4-staging-2026-08-28-w1b"`, so his old marks cannot bleed into the new sheet."
+
+> "**'Publish to staging first'** — no publish happened, but staging already serves `2cac247d` and the sheet is written against that, with the divergence stated in its own words. The requirement's purpose (never describe your working tree while staging carries something else) is satisfied, and the deviation is disclosed rather than hidden."
+
+### The claims, checked rather than taken
+
+> "**Stamp claim: TRUE.** `curl https://staging.playpastrypirates.com/src/ui/stage.js` → `PP4_STAMP = "2026.08.30.1-staging@2cac247d"`. Exactly what the sheet names."
+
+> "**'Staging and HEAD differ only by comments': TRUE.** 29 insertions and 1 deletion, every one of them a comment… No stamp change, no executable line."
+
+> "**Items 2-6 are all in the build staging serves, and all new since the last sheet.** … Item 6 is the one that mattered most, given CEO 28. I read the code on both builds rather than trusting the commit subjects. At `25158042` the bug is present — `git show 25158042:src/ui/stage.js:1800` reads `if (!cell || !cell.classList.contains("sailSwept")){ if (!cell) { clearSweep(); sweepBtn = null; } return; }`, the nested teardown. At `2cac247d` it is unconditional. **So the row asks him to check a fix that is genuinely on the build he opens and genuinely was not on the last one.**"
+
+> "**Rendering: clean.** … Programmatic scan for `<tag>` patterns across all 30 textContent fields returns zero — the `<strong>` the CTO caught is gone with no residue."
+
+### The one imprecision, and it was fixed on receipt
+
+> "**'All four reverted, net game-code change zero': the result is verified, the count is not.** … yields comments only — plus one string, `PP4_STAMP` moving `2026.08.29.2` → `2026.08.30.1`… **This is the only place the sheet is marginally stronger than its evidence** — 'zero' is true of gameplay and false of the stamp string, which is the very thing item 1 asks him to read. Self-consistent, not misleading, worth one word's precision next time."
+
+*(CTO, same hour: the sheet now says "zero — apart from the build stamp itself", and names why staging reads 08.30.1 rather than 08.29.2, since that is the number item 1 sends him to look at.)*
+
+### The recurring fault
+
+> "**No — and it is the first clean break in thirteen reviews.** CEO 28's fault was a claim asserting more than the evidence supported. This sheet does the opposite, twice, unprompted: item 5's `why` ends *'THIS IS THE ROW MOST LIKELY TO STILL BE WRONG, because it was fixed last and seen least'*, and item 6's volunteers that *'the FIRST probe that certified this could not tell the fixed tree from the broken one, and a review caught it'* — i.e. it hands Wyatt the exact failure CEO 28 found rather than quietly repairing it. … Every instrument here says what it touched in the same breath as its result, which was the rule proposed to end the run."
+
+**ONE SENTENCE FOR WYATT:** "The checklist is honest and points at the right build — the ten things it asks you to look at are all genuinely on the version staging is serving right now, and it tells you up front which one is most likely still broken and which three problems it already knows it hasn't fixed."
+
+## CEO Review 28 — 2026-08-30, W3-5 the trade-wind preview AND W3-3 the drumroll — VERBATIM
+
+**VERDICT: NO on Item A, and it is the worst instrument failure in this run of reviews, because it was sold as the cure for the previous eleven. The live probe written to stop a gate "claiming behaviour from source" PASSES ON A TREE WHERE W3-5'S BUG IS PRESENT — I put the bug back and ran it: `0` preview elements, the probe's own pass condition. Its second tap does not land on a plain sail square. The first tap zooms the camera out (`src/ui/stage.js:1955`), every sail square moves (`:396`, `:812-819`), and the probe then taps a coordinate it measured *before* that move — in my posed runs it hit board artwork (`<image>`, `<text>`) 131px away from the square it meant to hit. Tapping empty sea clears the preview through the `!cell` branch, which worked *before* the fix too. So "watched, not read off the source" is the same unearned claim in a browser costume. The good news, and I measured it rather than assuming it: W3-5 REALLY IS FIXED — when I tap the square the probe was aiming at, the broken tree leaves 3 preview parts on the board and HEAD leaves 0. The close-out reaches the right answer with evidence that cannot support it. YES, with a correction, on Item B: the self-correction is real, fast and in the open — and I then settled the question it left open, and the CTO's *corrected* code read is right. `?endcard=1` does produce four finishers and does run the collab branch. Which means the commit title still standing in the log, "the shortcut built for this item does not produce the state it needs", is false.**
+
+### ITEM A — the fix is real, the proof is not
+
+> "`scripts/qa/w35_sweep_preview_live.mjs:61-67` measures both square centres, stops the driver, and taps. The first tap runs `S.lock = false; camFull()` — an unconditional 650ms glide — and `#sailHost` is in `CAM_HTML_LAYERS`, so every sail square is re-transformed with the camera. The probe waits 700ms, so the glide has *finished*, and then taps a coordinate measured before it started."
+
+| tree | what tap 2 actually hit | preview parts left | what the probe would print |
+|---|---|---|---|
+| **bug reinstated** | `<text>`/`<image>` — board artwork, at the stale coordinate | **0** | **PASS** |
+| **bug reinstated** | the plain `.sailCell`, re-measured after the glide | **3** | FAIL — the bug, plainly |
+| **HEAD** | the plain `.sailCell`, re-measured | **0** | PASS — correctly |
+
+> "**And it does not reproduce on demand.** The ledger calls it *'a posed solo board'* answered in *'about two minutes'*. It is not posed: it installs the standard driver and polls 1500 times for a voyage to happen to offer both kinds of square. **I ran it twice, unmodified, and got `NOT RUN` both times**, ~17 minutes of driving for nothing. So 'rule 26 paying off the day it was written' is exactly backwards: this is the rate-hunt rule 26 was written against, with one lucky hit."
+
+**And the text gate, broken twice, both green on all 48 gates:**
+> "**M1 — Wyatt's bug, reinstated in a brace-less spelling:** `{ if (!cell) clearSweep(), sweepBtn = null; return; }`. The gate prints, verbatim: *'the teardown branch is unconditional'*… Both false. **M2 — move `e.stopPropagation()` above the second-tap branch.** Trade-wind squares become **unsailable** — a capture-phase stop kills the cell's own bubble-phase handler. **`npm test` exit 0.** A player who can never ride a trade wind is a worse bug than the one W3-5 filed, and nothing in the repo would say a word." · "**'the two-tap gesture is watched live' is false.** The live probe taps two *different* squares. Nothing anywhere taps the same square twice."
+
+### ITEM B — the correction is the best thing in this batch, and incomplete
+
+> "Publishing *'measured across four posed runs'* and then, within an hour and unprompted, writing *'three of those four runs never read the branch at all'* is the discipline this project has been trying to buy for eleven reviews."
+
+> "**The commit title of `178a1cb0` is false and stands uncorrected in the log.** Through the accessor the repo actually exposes, `?endcard=1` gives `collab:1`, `finishers:[1,0,3,2]`, all four captains done." · "**`window.appState` is assigned nowhere in `src/`** — the only exposure is `window.__pp_app_state_debug` (`src/main.js:142`), which this repo's own rig already uses (`mp_rig.mjs:244`). As committed, that read can never succeed on any run, on any branch." · "The CTO did not need the argument at all: **players are born with a recipe** (`src/engine/index.js:272`), so `if(!p.recipe…)continue` can never skip anyone."
+
+> "**But the item is still not testable by this shortcut, for a reason nobody has written down.** Nothing names a winner in narration before the drumroll at all… And `?endcard=1` skips the entire day loop, so the run-up Wyatt actually played — the final-round barrier, the finish lines, the bake-off — never happens. **The shortcut poses the ending but not the approach to it, and his sentence is about the approach.**"
+
+### The batching, and rule 26
+
+> "**It counts as the rule slipping, and the half that matters is W3-5.** W3-3 was left open… **W3-5 was CLOSED**, with a gate rewritten and a new instrument shipped, and it went to bed without a verdict… the mechanical fence cannot help here: `ceo-cadence-fence.cjs` counts commits touching **game code**, and both items touched none — so the guard is blind to precisely this batch."
+
+> "**W3-5: no, and it said the opposite.** The script drives and waits; the ledger calls it posed. **W3-3: half.** … The rule that was actually broken is rule 6: **check the instrument can reach its subject before believing it.**"
+
+### Process, and the recurring fault
+
+> "**Rule 16 — clean, both items.** Ledger timestamps match commit times to the second on all five commits. **'No game code touched' — TRUE, verified.** **Bulk reading: none found.** One stale artifact: `.planning/SEA-TRIAL.md` still reports build `2026.08.30.2`, which the reverts removed."
+
+> "**YES — twelfth consecutive, and this time it moved into the instrument built to end the run.** … A tap that lands on the sea and a tap that lands on a plain sail square produce the same number, and the probe records the number. **The rule that would end the run:** *an instrument must assert that it touched its subject, in the same breath as its result.*"
+
+**ONE SENTENCE FOR WYATT:** "The trade-wind preview really is fixed — I checked it myself by tapping the squares in a browser — but the new test built last night to prove it is aiming at the wrong spot on the screen and would have said 'all good' even if the bug were still there, and the same night's second finding ('the end-of-voyage shortcut doesn't work') turned out to be wrong too: the shortcut works fine, the tool reading it was broken, so the drumroll problem you reported is still unexplained and still needs a real voyage to see."
 
 ## CEO Review 27 — 2026-08-29, W1-4 the guest's sail squares (commit 27489324, measured in 56004d93, claimed in b114bab5) — VERBATIM
 

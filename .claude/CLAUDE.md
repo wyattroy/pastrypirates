@@ -72,9 +72,11 @@ documents; the rules themselves are all here, in full.
 | 22 | **READ EVERY SCREENSHOT HE SENDS, PIXEL BY PIXEL. Never skip one** — he built it for you at real cost | [§1](#1-working-with-wyatt) |
 | 23 | **ONE DISPLAY PATH** — host/guest decides who *computes*, never what is *drawn*. Ask: what makes these two agree? | [§2](#2-design-rules) |
 | 24 | **Every change to the game goes through a SEA TRIAL** — and "did you run it" is answered by opening the report, not by asking me | [§5](#5-project-status-and-planning) |
+| 26 | **POSE THE BOARD — when the question is a picture, don't go looking for a rate**: same seed, before and after, two screenshots | [§1](#1-working-with-wyatt) |
 | 25 | **Show the work to a CEO before showing it to him** — a fresh agent judges whether the ASK was executed, and its verdict reaches him in ITS words | [§1](#1-working-with-wyatt) |
+| 27 | **Hand him a LINK he can tap, never a file path** — anything you build for him to read or use is published and given as a URL | [§1](#1-working-with-wyatt) |
 
-> **25 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **27 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -424,6 +426,34 @@ verdict, an architecture change a long one — but every item gets one, appended
 [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) as it lands, so the recurrence check
 never has a gap again.
 
+### Hand him a LINK he can tap. Never a file path.
+
+Wyatt, 2026-08-30: *"your html files must always be clickable for me to open on a phone — this link
+opens github and is useless. the whole point of the html is that i have no friction when giving you
+feedback."*
+
+**A session had just met every requirement of the playtest-checklist hook and then handed him
+`.planning/staging-checklist-2026-08-30.html`.** What he tapped was GitHub's *source view*: a
+syntax-highlighted listing of the CSS, on a phone, with no checkboxes and no notes boxes. The sheet
+was correct, current, and honest, and it was worthless — **because a repo path is not a page.**
+
+**The fault was one line of instruction, and that is the reusable part.** The hook's last line read
+*"Then hand him the file path."* **An instruction that ends at the ARTIFACT instead of at HIM
+produces a session that stops one step short and believes it finished.** When you write a process
+step, end it at the person.
+
+- **PUBLISH IT AND GIVE HIM THE URL** — for a checklist, a report, a comparison, anything he is meant
+  to read or use. Not a path, not a GitHub blob URL, not "it's in `.planning/`".
+- **Write it in the shape that can be published**: no `<!doctype>`, `<html>`, `<head>` or `<body>` of
+  its own — the host supplies those — so the file begins with `<title>` then `<style>`.
+- **Assume the phone.** Guard every `localStorage` touch: in a private tab the accessor *throws*
+  rather than returning null, and an unguarded read at the top of a script takes the whole page down
+  and hands him a blank screen instead of the thing he asked for.
+- **`.claude/hooks/playtest-checklist-last.cjs` enforces the shape**, which is the part a hook can
+  see, and blocks on a sheet that cannot be published. **It cannot see whether you pasted the URL
+  into your reply — that half is this rule.** A CEO review found exactly that gap: a session that
+  inherits a good sheet is never blocked, so it is never reminded. **You are the reminder.**
+
 ### Hold the whole game, not the current ticket — engineer AND designer
 
 Wyatt, 2026-08-20: *"I want to be able to direct you to think holistically about the project as both
@@ -519,6 +549,37 @@ day it was adopted.
   before believing it: three times in one day a probe measured a state it had never actually
   created — a settle trace begun after the reveal had finished, an emoji with no custom art
   standing in for an icon, a "card" that resolved to the full-screen container.
+
+### POSE THE BOARD — do not go looking for a rate when the question is a picture
+
+Wyatt, 2026-08-30, after a night that spent itself on this: *"don't touch bubble placement again
+without a posed comparison — the same seeded sail prompt, before and after, two screenshots. Three
+probe runs and three 85-minute trials couldn't settle a question that two pictures would have.
+That's the lesson of the night, and it cost the night to learn it."*
+
+**A driven voyage is a terrible instrument for a layout question.** It yields a handful of samples
+an hour, and they swing wildly: three 8-minute runs of one probe gave **7, 12 and 5** judged
+captures with completely different cause mixes, and three 85-minute full trials gave **22 → 26 →
+31** structural failures on the same ten legs. Nothing in that can tell a fix from a coin flip —
+and three changes were shipped on it that same night, and all three reverted.
+
+**A POSED BOARD ANSWERS IN MINUTES AND CANNOT BE ARGUED WITH.** `docs/DRIVING-THE-GAME.md` §5e —
+inject the state you want instead of playing your way to it. Same seed, same prompt, before and
+after, two screenshots side by side.
+
+- **WHEN THE QUESTION IS "IS THIS DRAWN WRONG", DO NOT GO LOOKING FOR A RATE.** Ask a geometric
+  question instead. The trade-wind lead was settled by one prompt in about a minute
+  (`scripts/qa/w14_swept_geometry.mjs`: every square sits where its grid coordinate predicts, to
+  0.0px) after a 12-minute crew run had offered four such squares and settled nothing.
+- **A small sample and a large one that disagree are not a puzzle.** The large one wins. An
+  8-minute probe said coverings went to zero; a 10-voyage trial said they went up. The probe was
+  believed, and it was wrong.
+- **This is rule 6's other face.** Rule 6 says do not report what you have not measured. This says
+  *measuring the wrong quantity is not measuring* — and a rate over a stochastic voyage is the
+  wrong quantity for anything you could photograph.
+
+**Enforced, not remembered:** `.claude/hooks/qa-gear-first.cjs` prints it as STEP 0b, at the moment
+you are about to change game code.
 
 ### WIDEN THE TIME HORIZON — what happened immediately BEFORE the bug?
 

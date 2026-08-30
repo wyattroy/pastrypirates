@@ -119,6 +119,19 @@ function main() {
                       were drawn; the cause was 180ms earlier, in the order they were drawn
                       and framed. Wyatt: "what happens right before the bug each time?"
 
+  0b. PICK THE RIGHT KIND OF EVIDENCE
+                      DON'T TOUCH BUBBLE PLACEMENT — OR ANY LAYOUT — WITHOUT A POSED
+                      COMPARISON: the same seeded prompt, before and after, two screenshots.
+                      Wyatt, 2026-08-30, and these are his words: "Three probe runs and three
+                      85-minute trials couldn't settle a question that two pictures would
+                      have. That's the lesson of the night, and it cost the night to learn
+                      it." A driven voyage yields a handful of samples an hour and they swing
+                      wildly; a posed board answers in minutes and cannot be argued with.
+                      WHEN THE QUESTION IS "IS THIS DRAWN WRONG", DO NOT GO LOOKING FOR A
+                      RATE. How to pose one: docs/DRIVING-THE-GAME.md §5e.
+                      Earned the hard way: three changes shipped on run-to-run counts on the
+                      night of 2026-08-29, and all three reverted.
+
 THE FOUR STEPS. They never change and are never skipped:
 
   1. SHOW IT BROKEN   ${g.step1}

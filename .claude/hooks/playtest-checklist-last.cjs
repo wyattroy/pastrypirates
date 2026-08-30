@@ -25,6 +25,24 @@
 //
 // It BLOCKS rather than warns, because a warning at the end of a session is read by nobody: the
 // session is over. Blocking gives the model one more turn to write the sheet.
+//
+// ============================================================================
+//  A SHEET HE CANNOT TAP IS A SHEET THAT DOES NOT EXIST
+// ============================================================================
+// Wyatt, 2026-08-30: "your html files must always be clickable for me to open on a phone -- this
+// link opens github and is useless. the whole point of the html is that i have no friction when
+// giving you feedback."
+//
+// The last line of this hook used to read "Then hand him the file path." A session did exactly
+// that, and what he tapped was GitHub's SOURCE VIEW of the file: a syntax-highlighted listing of
+// the CSS, on a phone, with no checkboxes and no notes boxes. Every requirement below was met and
+// the deliverable was still worthless, because a repo path is not a page.
+//
+// SO THE SHEET IS PUBLISHED AND HE IS GIVEN A URL, and the file is written in the shape that can
+// be published: NO <!doctype>, <html>, <head> or <body> of its own -- the host supplies those --
+// so the file begins with <title> and <style>. The check below enforces the SHAPE, which is the
+// part a hook can see; the wording enforces the rest. A wrapped file cannot be published at all,
+// which is why that one is worth blocking on.
 // It fires ONCE per session — the same marker discipline qa-gear-first.cjs uses, so a session
 // cannot be trapped in a loop by a hook it has already answered.
 const fs = require("node:fs");
@@ -130,7 +148,35 @@ function main() {
     if (t && !dirty.includes(f)) return +t * 1000;
     try { return fs.statSync(path.join(repo, f)).mtimeMs; } catch { return 0; }
   }));
-  if (newestSheet > newestGame) process.exit(0);          // a fresh sheet already exists
+  /* A FRESH SHEET IS NOT ENOUGH -- IT MUST BE PUBLISHABLE. The Artifact host wraps the file in its
+     own <!doctype>/<head>/<body>, so a file carrying its own document wrapper cannot be published,
+     and an unpublishable sheet is one he can only reach as source on GitHub. That is the whole
+     2026-08-30 failure. The check reads the file rather than trusting a name. */
+  const sheetsByAge = sheets.slice().sort((a, b) => b.m - a.m);
+  const freshest = sheetsByAge[0];
+  if (newestSheet > newestGame) {
+    let head = "";
+    try { head = fs.readFileSync(path.join(planning, freshest.f), "utf8").slice(0, 2000); } catch {}
+    /* NOT ANCHORED TO THE START OF THE FILE, and that is the correction. The first version tested
+       /^\s*<!doctype/ — so a single HTML comment, or anything else, ahead of the doctype defeated
+       it and the sheet sailed through unpublishable. CEO review 30 found it by constructing exactly
+       that file and watching the check pass. One character of regex, and it was the check's only
+       job. It now looks for the wrapper tags ANYWHERE in the opening 2000 bytes, which is where a
+       document wrapper lives and where a legitimate sheet has only <title> and the top of <style>. */
+    if (!/<!doctype|<html[\s>]|<head[\s>]|<body[\s>]/i.test(head)) process.exit(0);   // fresh AND publishable
+    try { fs.mkdirSync(stateDir, { recursive: true }); fs.writeFileSync(marker, new Date().toISOString()); } catch {}
+    process.stdout.write(JSON.stringify({ decision: "block", reason:
+`.planning/${freshest.f} IS FRESH BUT CANNOT BE PUBLISHED, so he can only reach it as source on
+GitHub -- a syntax-highlighted listing of the CSS, on a phone, with no checkboxes. That is the
+exact thing he called useless on 2026-08-30.
+
+STRIP ITS DOCUMENT WRAPPER: delete the <!doctype>, <html>, <head>, the two <meta> tags and the
+<body>/</body>/</html> tags. The file must BEGIN with <title> and <style>; the Artifact host
+supplies the charset, the viewport and the document around it.
+
+THEN PUBLISH IT and give him the https:// link -- not the path, not the GitHub URL.` }));
+    process.exit(0);
+  }
 
   try { fs.mkdirSync(stateDir, { recursive: true }); fs.writeFileSync(marker, new Date().toISOString()); } catch {}
 
@@ -164,19 +210,22 @@ AND THE PARTS THAT ARE NOT DECORATION:
   - Mark anything that is HIS DECISION rather than a defect, and say so in the item.
   - List what is ALREADY KNOWN so he does not spend his eyes re-finding it.
 
-  - GIVE HIM A LINK HE CAN TAP ON A PHONE, AND IT MUST RENDER THE PAGE, NOT ITS SOURCE.
+  - WRITE IT WITH NO DOCUMENT WRAPPER: no <!doctype>, <html>, <head> or <body> of its own. The
+    file starts with <title> then <style>. This is not style -- it is what makes the file
+    publishable, and a file that cannot be published is a file he can only read as source.
+
+  - THEN PUBLISH IT AND HAND HIM THE LINK, NOT THE PATH.
     Wyatt, 2026-08-30: "your html files must always be clickable for me to open on a phone --
     this link opens github and is useless. the whole point of the html is that i have no
     friction when giving you feedback."
-    A REPO PATH IS NOT A DELIVERY. .planning/foo.html on a branch resolves, on a phone, to
-    GitHub's SOURCE VIEW -- he gets a doctype and a wall of CSS, and the sheet he was
-    supposed to tap through is unusable. He sent a screenshot of exactly that. The friction the
-    sheet exists to remove is the friction the delivery reintroduced.
-    SO: publish it as an Artifact and put the https://claude.ai/code/artifact/... URL in the
-    reply. That renders, it works on a phone, it is private to him, and he can comment straight
-    back on it. Commit the file to .planning/ as well -- that is the durable copy for the next
-    session -- but THE LINK IS THE DELIVERABLE. Naming a file path and stopping there does not
-    count as handing it over.
+    A repo path and a GitHub blob URL are the SAME failure: both show him the CSS, not the
+    checklist. He sent a screenshot of exactly that -- a syntax-highlighted listing on a phone,
+    no checkboxes, no notes boxes. Every requirement above was met and the sheet was still
+    worthless.
+    So: publish it with the Artifact tool and put the https:// URL it returns in the reply he
+    reads. Commit the file to .planning/ as well -- that is the durable copy for the next
+    session -- but THE LINK IS THE DELIVERABLE. Naming a path and stopping there does not count
+    as handing it over.
 
 Then give him the LINK (and the file path beside it). Run again and this will not fire; it asks
 once per session.`;
