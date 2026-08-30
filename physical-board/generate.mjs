@@ -57,6 +57,10 @@ function polyCmds(pts) {
   return { cmds: c };
 }
 function poly(layer, pts) { return item(layer, [polyCmds(pts)]); }
+// an OPEN polyline — no closing Z, so flatten() reports closed:false and the DXF gets an open
+// LWPOLYLINE. Needed by the one-piece board, whose seams are cut lines that do not enclose anything.
+function openCmds(pts) { return { cmds: [["M", pts[0][0], pts[0][1]], ...pts.slice(1).map(p => ["L", p[0], p[1]])] }; }
+function openPoly(layer, pts) { return item(layer, [openCmds(pts)]); }
 function circ(layer, cx, cy, r, ccw = false) { return item(layer, [{ circle: { cx, cy, r, ccw } }]); }
 function ring(layer, cx, cy, ro, ri) { return item(layer, [{ circle: { cx, cy, r: ro, ccw: false } }, { circle: { cx, cy, r: ri, ccw: true } }]); }
 function rect(layer, x, y, w, h, rx = 0) {
@@ -343,7 +347,13 @@ const ING = ["wheat", "dairy", "sugar", "eggs", "cocoa", "spice", "vanilla"];
 const ING_NAME = { wheat: "TOASTY WHEAT", dairy: "FRESH MILK", sugar: "CRYSTAL SUGAR", eggs: "SPECKLED EGGS", cocoa: "CACAO PODS", vanilla: "VANILLA BEANS", spice: "HOT CINNAMON" };
 const CAPTAINS = ["CRUMBLE", "BISCOTTI", "GINGERSNAP", "SHORTBREAD"]; // pink, teal, green, orange in the app
 // the game's own recipe book — 21 named recipes, one per 5-of-7 combination (4/src/ui/recipe.js)
-const RECIPE_BOOK = (await import(path.join(HERE, "..", "4", "src", "ui", "recipe.js"))).RECIPE_BOOK;
+// the game's own recipe book. The v2.0 cutover promoted 4/ to the repo root; this line still pointed
+// at 4/ and only broke on 2026-08-25 when that leftover directory was finally cleaned off the disk —
+// a dependency on a tree the cutover had already deleted, invisible for as long as the stale copy sat
+// there. Resolve the root first and keep the old path as a fallback for a pre-cutover checkout.
+const RECIPE_SRC = [path.join(HERE, "..", "src", "ui", "recipe.js"), path.join(HERE, "..", "4", "src", "ui", "recipe.js")].find(p => fs.existsSync(p));
+if (!RECIPE_SRC) throw new Error("cannot find src/ui/recipe.js — the generator reads the game's own 21 recipes from it");
+const RECIPE_BOOK = (await import(RECIPE_SRC)).RECIPE_BOOK;
 const MAT3 = opt("material3", 3.1); // the thin material: spinner, crates, chests, sails — Wyatt calipered the NEW "3 mm" sheet
                                     // at 3.1 (2026-08-25, evening, at the laser). The first batch measured 2.6 — a 0.5 mm spread
                                     // between sheets with the same label, so CALIPER EVERY NEW SHEET and pass --material3.
@@ -1231,7 +1241,42 @@ function boardFivePiece() {
   const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([k === 0 ? canonNW : canon], k), `seam-${q.id}`)), ...raster, ...tag(gridLines(valid), "grid"), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga")];
   const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
     notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four quadrants lock with three puzzle knobs per seam; the north-west one carries the centre square. Tortuga is a ONE-square 6 mm island with its four T-docks baked into the cut — a big anchor in the middle, no name — sitting on the board over a dotted outline of its silhouette; ships berth broadside against the dock heads in the four squares around it, where the water now runs. Seams run along the grid lines, so every square is whole on one piece. Rim marks are the app's own wind chevron; the water is the art's brush strokes.` };
-  return { assembled, quadrants, plug, Rb };
+  // ---- THE ONE-PIECE CUT (Wyatt, 2026-08-25) ----
+  // "the wood grain doesn't match up between the four quarters." So: cut the whole circle from ONE
+  // continuous sheet and split it in place. Every quadrant then comes from exactly where it belongs
+  // and the grain, colour and figure run unbroken across all four seams — the way a wooden jigsaw
+  // puzzle has always been made.
+  //
+  // THE TRADE, written here because it cannot be tuned later: one cut line makes BOTH faces of a
+  // seam, so the play is exactly ONE KERF and no drawing can tighten it. That is why the seams carry
+  // a SINGLE profile (JIGB.nub) instead of the nub/socket pair the four-piece files use — a pair
+  // would mean two lines where the wood has only one. Tightening the fit would mean cutting the
+  // quadrants separately, which is the thing that breaks the grain.
+  const h = CELL / 2, sr = Math.sqrt(Rb * Rb - h * h);
+  // one seam ray: down the grid line at x = C + h, from the rim to Tortuga's square, carrying the
+  // three knobs. Rotated four times it draws every seam exactly once — EDGE_B is this ray at k=3.
+  const ray = [[C + h, C - sr]];
+  for (const [d, s] of EDGE_A) ray.push(...mushroomPts([C + h, C - d], [0, 1], [-1, 0], JIGB.nub, s === "out" ? -1 : 1));
+  ray.push([C + h, C - h]);
+  const seamCuts = [];
+  for (let k = 0; k < 4; k++) seamCuts.push(...tag(aboutCentre([openPoly(CU, ray)], k), `seam-${QUAD[k].id}`));
+  // Tortuga's square belongs to the north-west piece, so three of its sides part it from the
+  // neighbours; the fourth lies inside that piece and is not a cut.
+  seamCuts.push(...tag([openPoly(CU, [[C + h, C - h], [C + h, C + h], [C - h, C + h], [C - h, C - h]])], "seam-centre"));
+  // the rim: the ONE outline that encloses kept wood, so it is the one line that gets compensated —
+  // pushed out half a beam. The seams are NOT compensated (see the trade above), which is why this
+  // file opts out of the automatic pass and does its own.
+  const rimCut = tag([circ(CU, C, C, Rb + KERF / 2)], "rim");
+  // grid.flat(), NOT gridLines(valid): gridForQuadrants drops the runs that lie ON a seam, because
+  // the cut itself draws that line. The plain version would engrave a grid line exactly where the
+  // beam is about to travel — scorching both faces of the seam for no reason. Caught by looking at
+  // the rendered board, where the seams are invisible precisely because they follow grid lines.
+  const oneItems = [...raster, ...tag(grid.flat(), "grid"), ...seamCuts, ...rimCut];
+  const onePiece = { id: "board-one-piece", title: "The board, cut from one circle", kind: "insitu", mat: MAT, kerf: KERF,
+    kerfNote: `The RIM is kerf-compensated (pushed out ${KERF / 2} mm). The SEAMS are deliberately NOT — one cut line makes both faces, so the beam itself is the fit.`,
+    items: xf(oneItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 4,
+    notes: `The whole board as ONE ${r3(2 * Rb)} mm circle, split in place, so the grain runs unbroken across every seam (Wyatt, 2026-08-25: "the wood grain doesn't match up between the four quarters"). Needs ${r3(2 * Rb)} mm in BOTH directions of the bed. CUT ORDER MATTERS: engrave first, then the four seams, then the rim LAST — the surrounding sheet holds every piece in register until that final cut, and cutting the rim early lets the quadrants shift mid-job. The seams carry no kerf compensation on purpose: one line cuts both faces, so the fit is exactly one kerf (${KERF} mm) of play — a puzzle fit, snug but not a press fit, and it cannot be tightened without cutting the pieces separately and losing the grain match. Tortuga is NOT in this file; it sits on top and is cut from its own wood (one-tortuga).` };
+  return { assembled, quadrants, plug, Rb, onePiece };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
 function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
@@ -1507,7 +1552,7 @@ const VERSIONS = [
 function buildVersion(V) {
   const v = V.id, docs = [], cutParts = [];
   let five = null;
-  if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled); cutParts.push(...five.quadrants, five.plug); }
+  if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled, five.onePiece); cutParts.push(...five.quadrants, five.plug); }
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
   const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
@@ -1672,7 +1717,7 @@ function svgPathD(sub) {
 function emitSVG(doc, V, forPage = false) {
   const layers = [[RA, "RASTER", `fill="#000000" fill-rule="nonzero" stroke="none"`], [CU, "CUT", `fill="none" stroke="#ff0000" stroke-width="0.1"`], ...(forPage ? [[GU, "GUIDE", `fill="#1d63d6" fill-rule="nonzero" stroke="none"`]] : [])];
   let out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${doc.w}mm" height="${doc.h}mm" viewBox="0 0 ${doc.w} ${doc.h}">\n`;
-  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${CELL} mm squares, ${MAT} mm material. ${doc.kerf ? `KERF-COMPENSATED: cut lines offset ${KERF / 2} mm away from the kept wood (kerf ${KERF} mm) — cut exactly on the line.` : "No kerf compensation — this is the assembled-board design view, not a cutting file."} RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
+  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${CELL} mm squares, ${MAT} mm material. ${doc.kerfNote ? doc.kerfNote : doc.kerf ? `KERF-COMPENSATED: cut lines offset ${KERF / 2} mm away from the kept wood (kerf ${KERF} mm) — cut exactly on the line.` : "No kerf compensation — this is the assembled-board design view, not a cutting file."} RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
   for (const [L, name, attrs] of layers) {
     out += `<g id="${name}" class="layer-${name.toLowerCase()}" inkscape:label="${name}" inkscape:groupmode="layer" ${attrs}>\n`;
     let curPiece = null;
@@ -1727,7 +1772,9 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
     // Wyatt's first test cut (2026-08-25) was from the GROUP files, which carried no kerf compensation — the only
     // warning lived in an SVG <desc> his Rhino flow never shows, and the docks wiggled ~0.5 mm. Now EVERY cut file
     // is compensated; only the assembled-board design view is not. Page previews stay uncompensated.
-    const cuttable = doc.kind !== "sheet" && doc.kind !== "design";
+    // "insitu" opts out too: the one-piece board compensates its own rim and leaves its seams bare
+    // on purpose — one cut line makes both faces, so a blanket pass would be wrong on every seam.
+    const cuttable = doc.kind !== "sheet" && doc.kind !== "design" && doc.kind !== "insitu";
     const diskDoc = cuttable ? { ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) } : doc;
     const svg = emitSVG(diskDoc, V), pageSvg = emitSVG(doc, V, true);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
