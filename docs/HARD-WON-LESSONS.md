@@ -1412,3 +1412,39 @@ something other than what it named.*
 **All three were caught, but only because something else disagreed with them.** The last is the
 worst: it broke *"never hand-type a number that can be counted"* **inside the very finding written
 to warn about unverified claims.**
+
+## POSE THE BOARD — when the question is a picture, don't go looking for a rate
+
+**Wyatt, 2026-08-30, and these are his words:** *"don't touch bubble placement again without a
+posed comparison — the same seeded sail prompt, before and after, two screenshots. Three probe runs
+and three 85-minute trials couldn't settle a question that two pictures would have. That's the
+lesson of the night, and it cost the night to learn it."*
+
+**What it cost, so nobody has to pay it twice.** One night, on one item (W1-4, sail squares a guest
+cannot tap):
+
+| instrument | what it gave |
+|---|---|
+| three 8-minute probe runs | **7, 12 and 5** judged captures, completely different cause mixes |
+| three 85-minute full trials | **22 → 26 → 31** structural failures, same ten legs |
+| **one posed prompt, ~1 minute** | every square sits where its grid coordinate predicts, **to 0.0px** |
+
+**Three changes were shipped on those rates and all three were reverted.** Net game-code change for
+the night: zero. The posed check answered a question the rates could not, in about a minute
+(`scripts/qa/w14_swept_geometry.mjs`).
+
+- **A driven voyage is a terrible instrument for a layout question.** It yields a handful of
+  samples an hour and they swing wildly. `docs/DRIVING-THE-GAME.md` §5e poses the state instead of
+  playing your way to it.
+- **When a small sample and a large one disagree, the large one is not the one to explain away.**
+  An 8-minute probe said coverings had gone to zero; a 10-voyage trial said they had gone up. The
+  probe was believed and it was wrong.
+- **Ask a geometric question, not a statistical one.** "Is this drawn where it says it is" needs
+  one prompt containing both cases. "How often is this wrong" needs a hundred and still won't say.
+- **This is rule 6's other face.** Rule 6 says don't report what you haven't measured. This says
+  *measuring the wrong quantity is not measuring* — and a rate over a stochastic voyage is the
+  wrong quantity for anything you could photograph.
+
+**Enforced at the trigger**, not left to memory: `.claude/hooks/qa-gear-first.cjs` prints it as
+STEP 0b at the moment you are about to change game code, and `src/ui/stage.js` carries it at both
+the framing and the placement sites.

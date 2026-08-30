@@ -200,6 +200,11 @@ function camFitCells(cells, maxZoom, reservePx){
    the fit is not what fails. What fails is that containment in BOARD coordinates is not
    containment on SCREEN, and no amount of reasoning about the projection has survived contact:
    two geometry theories were measured dead over two days before this one.
+   ⚠ BEFORE YOU CHANGE ANYTHING IN THIS FILE'S PLACEMENT OR FRAMING, READ THIS. Wyatt, 2026-08-30,
+   in his own words: "don't touch bubble placement again without a posed comparison — the same
+   seeded sail prompt, before and after, two screenshots. Three probe runs and three 85-minute
+   trials couldn't settle a question that two pictures would have. That's the lesson of the night,
+   and it cost the night to learn it." Pose one with docs/DRIVING-THE-GAME.md §5e.
    A CONTAINMENT PASS THAT RE-FITS AGAINST THE RENDERED RECTS WAS BUILT AND THEN REMOVED, 2026-08-30,
    and the reason is worth more than the code was. It is Wyatt's ruling ("zoom out until they all
    fit") and it is the right shape. But three 8-minute runs of the same probe produced 7, 12 and 5
@@ -1544,6 +1549,13 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          TIE-BREAK rather than a cost of its own: among equally clear spots the nearest wins, and no
          amount of distance can buy covering a square. That is what stops a wider search wandering,
          which is the risk the narrower version was written to avoid. */
+      /* ⚠ POSE THE BOARD BEFORE YOU TOUCH THIS. Wyatt, 2026-08-30: "don't touch bubble placement
+         again without a posed comparison — the same seeded sail prompt, before and after, two
+         screenshots. Three probe runs and three 85-minute trials couldn't settle a question that
+         two pictures would have. That's the lesson of the night, and it cost the night to learn
+         it." Two changes to this search were shipped on run-to-run counts that night and both
+         were reverted; the trials read 22 -> 26 -> 31 on the same ten legs. §5e of
+         docs/DRIVING-THE-GAME.md poses the state; two screenshots settle it in minutes. */
       const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
         .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)

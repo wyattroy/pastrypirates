@@ -72,9 +72,10 @@ documents; the rules themselves are all here, in full.
 | 22 | **READ EVERY SCREENSHOT HE SENDS, PIXEL BY PIXEL. Never skip one** — he built it for you at real cost | [§1](#1-working-with-wyatt) |
 | 23 | **ONE DISPLAY PATH** — host/guest decides who *computes*, never what is *drawn*. Ask: what makes these two agree? | [§2](#2-design-rules) |
 | 24 | **Every change to the game goes through a SEA TRIAL** — and "did you run it" is answered by opening the report, not by asking me | [§5](#5-project-status-and-planning) |
+| 26 | **POSE THE BOARD — when the question is a picture, don't go looking for a rate**: same seed, before and after, two screenshots | [§1](#1-working-with-wyatt) |
 | 25 | **Show the work to a CEO before showing it to him** — a fresh agent judges whether the ASK was executed, and its verdict reaches him in ITS words | [§1](#1-working-with-wyatt) |
 
-> **25 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **26 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -519,6 +520,37 @@ day it was adopted.
   before believing it: three times in one day a probe measured a state it had never actually
   created — a settle trace begun after the reveal had finished, an emoji with no custom art
   standing in for an icon, a "card" that resolved to the full-screen container.
+
+### POSE THE BOARD — do not go looking for a rate when the question is a picture
+
+Wyatt, 2026-08-30, after a night that spent itself on this: *"don't touch bubble placement again
+without a posed comparison — the same seeded sail prompt, before and after, two screenshots. Three
+probe runs and three 85-minute trials couldn't settle a question that two pictures would have.
+That's the lesson of the night, and it cost the night to learn it."*
+
+**A driven voyage is a terrible instrument for a layout question.** It yields a handful of samples
+an hour, and they swing wildly: three 8-minute runs of one probe gave **7, 12 and 5** judged
+captures with completely different cause mixes, and three 85-minute full trials gave **22 → 26 →
+31** structural failures on the same ten legs. Nothing in that can tell a fix from a coin flip —
+and three changes were shipped on it that same night, and all three reverted.
+
+**A POSED BOARD ANSWERS IN MINUTES AND CANNOT BE ARGUED WITH.** `docs/DRIVING-THE-GAME.md` §5e —
+inject the state you want instead of playing your way to it. Same seed, same prompt, before and
+after, two screenshots side by side.
+
+- **WHEN THE QUESTION IS "IS THIS DRAWN WRONG", DO NOT GO LOOKING FOR A RATE.** Ask a geometric
+  question instead. The trade-wind lead was settled by one prompt in about a minute
+  (`scripts/qa/w14_swept_geometry.mjs`: every square sits where its grid coordinate predicts, to
+  0.0px) after a 12-minute crew run had offered four such squares and settled nothing.
+- **A small sample and a large one that disagree are not a puzzle.** The large one wins. An
+  8-minute probe said coverings went to zero; a 10-voyage trial said they went up. The probe was
+  believed, and it was wrong.
+- **This is rule 6's other face.** Rule 6 says do not report what you have not measured. This says
+  *measuring the wrong quantity is not measuring* — and a rate over a stochastic voyage is the
+  wrong quantity for anything you could photograph.
+
+**Enforced, not remembered:** `.claude/hooks/qa-gear-first.cjs` prints it as STEP 0b, at the moment
+you are about to change game code.
 
 ### WIDEN THE TIME HORIZON — what happened immediately BEFORE the bug?
 
