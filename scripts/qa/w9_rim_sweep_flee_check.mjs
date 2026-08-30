@@ -154,6 +154,46 @@ let poseCorner = null;    // a real cornering flee, reused by leg B
   else missed("an event carrying no route reported a walk. This instrument cannot fail and must not be trusted.");
 }
 
+/* What the flee site actually does today, read once in B0 and POSED by legs B and D. A behavioural
+   leg has to build the event the site emits; hardcoding today's shape would leave this gate red
+   forever after a fix. */
+let site = { route: false, entryEvent: false };
+
+/* ─── B0. THE SITE ITSELF, READ — THE REQUIREMENT, so this gate tracks a fix instead of staying
+       red forever. The legs around it are behavioural; a behavioural leg has to POSE the emit,
+       and a pose is a copy of today's shape. These two read what the site actually does, and go
+       green the moment it does it. Both are reported with the file:line they matched. ─────── */
+{
+  const orch = fs.readFileSync(path.join(TREE, "src/orchestrator.js"), "utf8");
+  const at = i => orch.slice(0, i).split("\n").length;
+  const s0 = orch.indexOf("const cells=reachable(def);");
+  const emitIdx = orch.indexOf('t:"battleflee"');
+  if (s0 < 0 || emitIdx < 0 || emitIdx < s0)
+    missed("the battle-flee site (reachable(def) ... battleflee) is not where this gate expects it in src/orchestrator.js — re-anchor, do not delete");
+  const block = orch.slice(s0, orch.indexOf("\n", emitIdx));
+  const emit = block.slice(block.indexOf('t:"battleflee"'));
+  const posIdx = block.indexOf("def.pos=dest");
+  const twIdx = block.indexOf("tradewind(def)");
+  if (posIdx < 0 || twIdx < 0) missed("def.pos=dest / tradewind(def) not found in the flee block — re-anchor this gate");
+  console.log(`  SUBJECT — flee block src/orchestrator.js:${at(s0)}-${at(emitIdx)}, def.pos=dest at :${at(s0 + posIdx)}\n`);
+
+  site.route = /sailPath\(/.test(block) && /\broute\b/.test(emit);
+  site.entryEvent = /\.ev\(/.test(block.slice(posIdx, twIdx));
+  if (site.route)
+    pass(`FAULT 1, at the site: the flee asks sailPath for its route and puts it on the emitted event (src/orchestrator.js:${at(s0 + posIdx)})`);
+  else
+    fail(`FAULT 1, at the site: src/orchestrator.js:${at(s0 + posIdx)} assigns def.pos=dest with no sailPath call in the block `
+       + `(sailPath present: ${/sailPath\(/.test(block)}) and the event emitted at :${at(emitIdx)} carries no route lane `
+       + `(route present: ${/\broute\b/.test(emit)}). Nothing reaches the wire for either screen to walk.`);
+
+  const between = block.slice(posIdx, twIdx);
+  if (/\.ev\(/.test(between))
+    pass(`FAULT 2, at the site: an event is recorded at the flee destination before tradewind(def) (src/orchestrator.js:${at(s0 + twIdx)})`);
+  else
+    fail(`FAULT 2, at the site: nothing is recorded between def.pos=dest and tradewind(def) (src/orchestrator.js:${at(s0 + posIdx)}-${at(s0 + twIdx)}), `
+       + `so the rim entry never enters the event stream and the animator's derivation (src/ui/flow.js:1042-1043) has nothing to find.`);
+}
+
 /* ─── B. FAULT 1 — THE FLEE ITSELF, POSED EXACTLY AS src/orchestrator.js:731-735 DOES IT. ─── */
 {
   const flow = await freshFlow();
@@ -162,7 +202,9 @@ let poseCorner = null;    // a real cornering flee, reused by leg B
   def.pos = [...poseCorner.from]; att.pos = [...poseCorner.attPos];
   g.ev({ t: "newround", p: DEF });
   def.pos = [...poseCorner.dest];                              // orchestrator.js:732 — def.pos=dest
-  const ev = g.ev({ t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a" });   // orchestrator.js:735
+  const ev = site.route                                          // POSED AS THE SITE EMITS IT TODAY
+    ? g.ev({ t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a", route: [poseCorner.from, ...poseCorner.route] })
+    : g.ev({ t: "battleflee", a: ATT, d: DEF, rounds: 1, downwind: "a" });   // orchestrator.js:735
   useGame(g);
   const walked = await flow.animateSailRoute(ev, g.events.length - 1) === true;
   const onWire = !!(ev.draw && Array.isArray(ev.draw.route));
@@ -245,10 +287,30 @@ let poseCorner = null;    // a real cornering flee, reused by leg B
   g.ev({ t: "newround", p: DEF });
   g.ev({ t: "battle", a: ATT, d: DEF });                 // the PRE-BATTLE snapshot, taken inland
   def.pos = [...entry];                                  // orchestrator.js:732 — def.pos=dest
+  if (site.entryEvent) g.ev({ t: "battleflee", a: ATT, d: DEF });   // POSED AS THE SITE RECORDS IT TODAY
   if (!g.tradewind(def)) missed("tradewind() refused the posed flee destination — no ride exists to measure");
   useGame(g);
   const e = g.events[g.events.length - 1];
-  if (await flow.animateRimSweepIfAny(e, g.events.length - 1) === true)
+  const rode = await flow.animateRimSweepIfAny(e, g.events.length - 1) === true;
+
+  /* THE MATCHED GREEN TWIN, on the same board and the same rim entry: record ONE event at the
+     destination before tradewind — what the site does not do — and the ride happens. So the red
+     below is about the flee site, not about this animator or this harness. */
+  const f2 = await freshFlow();
+  const g2 = newGame(4242);
+  const d2 = g2.players[DEF];
+  g2.players.forEach((q, i) => { if (i !== DEF) q.pos = [...g2.home]; });
+  d2.pos = [...inland];
+  g2.ev({ t: "newround", p: DEF });
+  d2.pos = [...entry];
+  g2.ev({ t: "battleflee", a: ATT, d: DEF });            // recorded AT the destination
+  if (!g2.tradewind(d2)) missed("tradewind() refused the posed twin — the green control cannot be built");
+  useGame(g2);
+  const twin = await f2.animateRimSweepIfAny(g2.events[g2.events.length - 1], g2.events.length - 1) === true;
+  if (twin) pass(`CONTROL (must ride): the SAME flee with one event recorded at the destination [${entry}] DOES ride — this leg can go green`);
+  else missed(`the matched twin did not ride either (twin=${twin}) — this leg cannot pass and its red verdict means nothing`);
+
+  if (rode)
     pass("a ship that FLEES onto the rim rides the sweep");
   else
     fail(`a ship that FLEES onto the rim at [${entry}] DID NOT RIDE, on BOTH tiers. events[n-2] still holds the `
