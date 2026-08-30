@@ -10,6 +10,32 @@ import { execFile } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 
+/* ⚠ THE ACCEPTED LIST IS NOT WRITTEN HERE. It is read from docs/INTENDED-BEHAVIOUR.md.
+ *
+ * WHY. This rubric used to carry its own two-item list of designed behaviours, and the repo also
+ * grew a document of the same thing — because four separate sessions reported a deliberate
+ * behaviour to Wyatt as a bug and he finally said "you need to figure out a system... so that you
+ * stop asking me every single time". Two lists of designed behaviour, kept in step by whoever
+ * remembers, is precisely the drift rule 23 exists to prevent: the judge would have gone on
+ * failing screens the document already excused.
+ *
+ * So there is ONE list and this file READS it. If the fence is missing or empty that is a fault in
+ * itself — a judge running with no accepted list would fail every scrollable sheet on the board —
+ * so this throws rather than quietly falling back to nothing.
+ */
+function loadAccepted() {
+  const doc = new URL("../../docs/INTENDED-BEHAVIOUR.md", import.meta.url);
+  const md = fs.readFileSync(doc, "utf8");
+  const m = md.match(/```accepted\n([\s\S]*?)```/);
+  const lines = m ? m[1].split("\n").map(l => l.trim()).filter(l => l.startsWith("- ")) : [];
+  if (lines.length < 2) {
+    throw new Error("vision.mjs: docs/INTENDED-BEHAVIOUR.md has no usable ```accepted fence — "
+      + "the judge will not run without its accepted list, because it would fail designed behaviour.");
+  }
+  return lines.join("\n");
+}
+const ACCEPTED = loadAccepted();
+
 export const RUBRIC = `You are a meticulous UI reviewer looking at ONE screenshot of the browser board game "Pastry Pirates".
 Judge ONLY the visual layout and presentation — NOT the gameplay, and NOT which islands/ships/recipes appear (those are randomized and always fine).
 Mark FAIL if you can see ANY of these:
@@ -19,8 +45,7 @@ Mark FAIL if you can see ANY of these:
 - a button, message, prompt, or bubble jammed into a corner or against an edge, floating detached from what it belongs to, or off-screen;
 - anything unreadable, misaligned, doubled, or obviously broken.
 ACCEPTED — these are DESIGNED behaviour, never a FAIL and never worth listing as an issue:
-- a scrollable card or sheet may run past the bottom of the screen; being cut off at the bottom edge is how it tells you to scroll;
-- board artwork (the map, islands, ships, logo, decorative art) may be clipped at the edge of the board itself — the board is a camera view of a larger map, so its contents are cut off by design.
+${ACCEPTED}
 Mark PASS if the screen looks clean, balanced and intentional.
 Reply with ONLY a JSON object, no prose:
 {"verdict":"PASS"|"FAIL","issues":["short concrete phrase", "..."],"confidence":0.0-1.0}`;

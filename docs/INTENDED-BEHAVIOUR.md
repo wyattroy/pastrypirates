@@ -78,6 +78,55 @@ be.
 
 **Citation:** `src/ui/board.js:1671`.  **Standing rule.**
 
+### The CAPTAINS panel lists a different captain first on each screen — and that is one rule, not two
+
+**What it looks like:** the host's panel reads HostCap, Dough Hook, Flaky Jack, GuestCap; the
+guest's reads GuestCap, HostCap, Dough Hook, Flaky Jack. Two screens, two orders — a textbook
+host/guest divergence.
+
+**What is actually true:** **whoever is looking sees their own captain on top**, then sailing order.
+Two screens showing different orders is that single rule working correctly on both.
+
+**Wyatt, 2026-08-20, correcting a session that had filed it as a sanctioned host/guest exception:**
+***"a rule that takes the viewer as an input is not two rules."*** That sentence resolves a whole
+class of report and is worth memorising.
+
+**Citations:** `docs/DISPLAY-RULES.md` §2 "The captains list order"; `src/ui/util.js:79`
+(`seatDisplayOrder`) → `:84` (`seatOrderFrom`).
+
+**REPORTED WRONG AT LEAST THREE TIMES** — a sea-trial finding (corrected in
+`.planning/CTO-LEDGER.md:92`, *"BY DESIGN … the previous trial finding was a false positive"*), an
+earlier framing that filed it as an exception, and it is **already on the current playtest sheet**
+saying *"That is YER OWN RULE. Not a defect — do not report it."*  **Standing rule.**
+
+### Board artwork runs past the edge of the screen
+
+**What it looks like:** the board overflows the phone viewport.
+
+**What is actually true:** the page never scrolls sideways — measured `innerWidth 390 /
+documentScrollWidth 390` across 22 samples. What extends past the edge is **board artwork**: the
+rain layer at 624px, island SVGs at 564px. **The board is a camera view of a larger map, so its
+contents are cut off by design.**
+
+**Citations:** `scripts/lib/vision.mjs` ACCEPTED list; `.planning/CTO-LEDGER.md:147` (W4-7 closed NOT
+A DEFECT, 2026-08-29); `.planning/BACKLOG.md:149`.  **Standing rule.**
+
+### Two recipe cards look asymmetric — one highlighted, one not
+
+**That is the two-tap SELECTION state.** The chosen card is highlighted and carries its "Bake this!"
+pill. Named a **false-positive family in three separate trial triages** —
+`.planning/CTO-LEDGER.md:86`, `:103`, `:119`.  **Standing rule.**
+
+### An "empty speech bubble", or a captains row that looks 85% empty
+
+Two different innocent things. The "empty bubble" is the **active-seat ring** misread by an
+automated judge (which also hallucinated the wind direction in the same pass). The near-empty
+captain row is **day-1 content** — nobody has collected anything yet; the pills fill to the right
+edge as ingredients arrive.
+
+**Citations:** `.planning/CTO-LEDGER.md:119`, `:135`, `:140` — settled by opening it and looking,
+after two instruments lied.  **Standing rule, a known false-positive family.**
+
 ### The wind FORECAST is the pill, not the hidden chip
 
 **What it looks like:** a `.fcChip` element exists in the CSS and is never visible — "a forecast
@@ -188,8 +237,36 @@ row up into the body the moment he rules, with the date and his words.
 
 | Observed | Suspicion | Status |
 |---|---|---|
-| The CAPTAINS panel lists a different captain first on each screen — each client appears to list itself first | Looks like deliberate viewer-first ordering | Observed in every frame of one posed run, 2026-08-30. **Not measured, not confirmed** |
 | The hint *"Click and hold the sea to reveal the board"* appeared on a guest and not on a host | May be correct (the host had already used the gesture) or may be a divergence | Observed once, 2026-08-30. **Not measured** |
+| The greyed chip's **red backing** specifically | The rule is cited; the visual treatment is described nowhere | No ruling found |
+| The FORECAST ribbon text clipping mid-word | Triaged as "pre-existing" repeatedly and carried as a known item | **Known is not the same as intended.** No ruling found |
+| Duplicate ingredients sorted together in a rival's hold | `src/ui/board.js:1694` says *"easier to spot a tradeable double"* | **Code intent, not his ruling.** Cite it as such |
+
+**And three sounds are silent BY ACCIDENT, not by decision** — `storm`, `testhold` and `rewatch`
+have no entry at all (`docs/AUDIO.md:86-92`). Listed here only so nobody files them under
+"intended".
+
+---
+
+## THE ACCEPTED LIST — read by the vision judge, not copied by it
+
+**These lines are the single source for what an automated screenshot judge must never call a
+fault.** `scripts/lib/vision.mjs` READS them from this file at runtime rather than carrying its own
+copy — because a second list of designed behaviours, kept in step by discipline, is exactly the
+drift rule 23 exists to prevent, and it had already started.
+
+**Edit them here and nowhere else.** Keep each on one line, inside the fence, beginning with `- `.
+
+```accepted
+- a scrollable card or sheet may run past the bottom of the screen; being cut off at the bottom edge is how it tells you to scroll;
+- board artwork (the map, islands, ships, logo, decorative art) may be clipped at the edge of the board itself — the board is a camera view of a larger map, so its contents are cut off by design;
+- each viewer's own captain is listed FIRST in the captains panel, so two screens legitimately show different row orders;
+- a captain's own row shows their RECIPE (greyed chips are ingredients still needed, not cargo); every other row shows only what that captain actually holds, or "empty hold";
+- one recipe card highlighted and another not is the two-tap selection state, not a rendering failure;
+- a ship drawn at reduced opacity is BAKING and deliberately off the board, not disabled or broken;
+- a coin slider drawn greyed and undraggable is a captain with an empty purse — the disabled control IS the answer;
+- a narration bubble sits off-centre because it is anchored to a captain's ship with a tail; only a battle result is deliberately centred.
+```
 
 ---
 
@@ -197,6 +274,12 @@ row up into the body the moment he rules, with the date and his words.
 
 **Point, do not restate.** This file is the index of *things that look wrong and are not*. The
 subsystems themselves are documented where they always were:
+
+**This file owns MISREADINGS — "it looks wrong and is not".**
+[`DISPLAY-RULES.md`](DISPLAY-RULES.md) **owns the MECHANISM** — how the game decides what to draw,
+which channels are converged and which are half-done. When a row here needs the mechanism, it links
+there rather than restating it. Two documents describing the same thing would drift; two documents
+answering different questions do not.
 
 | Subject | Read |
 |---|---|
