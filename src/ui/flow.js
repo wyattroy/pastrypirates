@@ -1184,29 +1184,41 @@ const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
   sleepMs(appState.ff?Math.min(ms||SAIL_ROUTE_TICK_MS,40):(ms||SAIL_ROUTE_TICK_MS)*8),
 ]));
 /* THE ONE SAIL STEPPER, called identically by the host's turn loop and by the guest's consumer —
-   the same split animateRimSweepIfAny/animateRimSweepRun already proved above. TAKES NO PARAMETERS
-   ON PURPOSE: no call site can hand it something another call site cannot, so the two tiers cannot
-   be aimed or paced differently. Everything it needs is on the EVENT, which both tiers hold — the
-   engine bakes the drawn line into the sail event's presentation lane (Game.ev / bakeDraw), and
-   that lane is self-contained, starting with the square the boat left.
-   Returns true only when a route actually walked. */
-let _lastRoutedEvIdx=-1;
-export async function animateSailRoute(){
+   the same split animateRimSweepIfAny/animateRimSweepRun already proved above. Everything it needs
+   is on the EVENT, which both tiers hold: the engine bakes the drawn line into the sail event's
+   presentation lane (Game.ev / bakeDraw), and that lane is self-contained, starting with the square
+   the boat left. Returns true only when a route actually walked.
+
+   IT TAKES THE EVENT TO RIDE, AND THIS IS THE FIX W7b MEASURED. The first cut took no parameters
+   on the reasoning that a shared no-argument entry is what keeps the two tiers from being aimed
+   differently — and it did the opposite, because "no argument" still had to mean SOMETHING, and
+   what it meant was `events[events.length-1]`. That is not one subject: it is the sail on the host,
+   where the turn loop emits and rides with nothing in between, and whatever landed last on a guest,
+   where watchEvents pushes each arriving event before awaiting consumeEvent and the engine emits a
+   sail and calls tradewind(p) in the same breath. Measured on eight sails in two real crew rooms:
+   the host walked all eight, the guest walked five and slid across the islands on three.
+   Handing it the event is the STRONGER version of the same principle — every call site now hands it
+   exactly one thing, the event being drawn, and no call site can mean a different event by it.
+   No argument now rides nothing; there is no silent fall back to the pile.
+
+   RE-ENTRY GUARD: a WeakSet of events already ridden, NEVER a flag stamped on the event object —
+   the host broadcasts events verbatim, so an extra field would leak straight into the Firebase
+   payload. This is what makes the host's inline call and the drain's call the same ride rather than
+   two. It replaces a module-local index, which had a second defect of its own: an index survives a
+   new Game, so "Play again" in the same page load silently dropped the ride for whichever sail
+   landed on the index the last voyage finished on (W7b case C). A fresh voyage's events are fresh
+   objects, so this cannot happen and there is no frontier for anyone to remember to reset. */
+const _rodeRoute=new WeakSet();
+export async function animateSailRoute(ev){
   const g=appState.game;
   if(!g||appState.replaying)return false;
-  const n=g.events.length;
-  if(!n)return false;
-  const last=g.events[n-1];
-  if(!last||last.t!=="sail")return false;
-  /* RE-ENTRY GUARD: a module-local index, NEVER a flag stamped on the event object — the host
-     broadcasts events verbatim, so an extra field would leak straight into the Firebase payload.
-     This is what makes the host's inline call and the drain's call the same ride rather than two. */
-  if(_lastRoutedEvIdx===n-1)return false;
-  _lastRoutedEvIdx=n-1;
-  const route=last.draw&&last.draw.route;
+  if(!ev||ev.t!=="sail")return false;
+  if(_rodeRoute.has(ev))return false;
+  _rodeRoute.add(ev);
+  const route=ev.draw&&ev.draw.route;
   // <3 is a straight one-square hop: no corner to draw, and the plain render says it better
   if(!Array.isArray(route)||route.length<3)return false;
-  return animateSailRouteRun(last.p,route[0],route.slice(1));
+  return animateSailRouteRun(ev.p,route[0],route.slice(1));
 }
 /* The walker itself: squares in hand, no derivation. Kept separate for the same reason
    animateRimSweepRun is — one place decides WHETHER to ride, one place performs the ride. */
@@ -2276,13 +2288,13 @@ export async function humanAct(p,sailCtx){
       const from=[...p.pos];
       // the drawn line INCLUDES the square being left, so what lands on the wire is self-contained
       const route=[from,...appState.game.sailPath(p,dest,{throughRim:true})];
-      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx,route});
-      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
-         SAME no-argument entry, so the host walks identical code off the identical event the guest
-         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
-         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
-         this turn loop would stop waiting for the glide. */
-      await animateSailRoute();liveRender();
+      p.pos=dest;p.justDocked=false;const evSail=appState.game.ev({t:"sail",p:p.idx,route});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
+         object the guest is handed, so both tiers walk identical code on an identical subject.
+         liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
+         no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
+         loop would stop waiting for the glide. */
+      await animateSailRoute(evSail);liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
@@ -2377,13 +2389,13 @@ export async function humanTurn(p){
       // inconsistency in a new place.
       const fromSail=[...p.pos];
       const routeSail=[fromSail,...appState.game.sailPath(p,dest,{throughRim:true})];
-      p.pos=dest;p.justDocked=false;appState.game.ev({t:"sail",p:p.idx,route:routeSail});
-      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
-         SAME no-argument entry, so the host walks identical code off the identical event the guest
-         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
-         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
-         this turn loop would stop waiting for the glide. */
-      await animateSailRoute();liveRender();
+      p.pos=dest;p.justDocked=false;const evSail=appState.game.ev({t:"sail",p:p.idx,route:routeSail});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
+         object the guest is handed, so both tiers walk identical code on an identical subject.
+         liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
+         no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
+         loop would stop waiting for the glide. */
+      await animateSailRoute(evSail);liveRender();
       if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
       // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
       // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
@@ -2578,13 +2590,13 @@ export async function botTurn(p){
       // outright rather than p.pos being temporarily rewound to read the route back out of it.
       // The route is now taken BEFORE the event, because it rides ON the event (Game.ev/bakeDraw).
       const route=[b,...g.sailPath(p,[...p.pos],{throughRim:false,from:b})];
-      g.ev({t:"sail",p:p.idx,route});
-      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — and through the
-         SAME no-argument entry, so the host walks identical code off the identical event the guest
-         is handed. liveRender()'s drain then finds the ride already walked (re-entry guard) and its
-         call is a no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and
-         this turn loop would stop waiting for the glide. */
-      await animateSailRoute();liveRender();
+      const evSail=g.ev({t:"sail",p:p.idx,route});
+      /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
+         object the guest is handed, so both tiers walk identical code on an identical subject.
+         liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
+         no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
+         loop would stop waiting for the glide. */
+      await animateSailRoute(evSail);liveRender();
       await botBeat();
       if(g.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.

@@ -331,7 +331,14 @@ class Game{
        the recorded move can never be published disagreeing. Same refusal sailPath and rimSweepPath
        make — no route is better than an invented one. */
     o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));const draw=this.bakeDraw(o.route,o.state[o.p]);delete o.route;if(draw)o.draw=draw;
-    o.tokens={...this.tokens};this.events.push(o);}
+    o.tokens={...this.tokens};this.events.push(o);
+    /* RETURNS THE EVENT IT PUSHED, so a caller that wants to draw this move can hold the event
+       itself instead of reaching back for the last one on the pile. That reach is what W7b found:
+       the walker took its subject from events[length-1], and the engine emits a sail and calls
+       tradewind(p) in the same breath, so by the time anything drew, the top of the pile was no
+       longer the sail. Adds nothing to what is EMITTED — the wire payload and the determinism
+       corpus are untouched. */
+    return o;}
   /* The presentation lane's ONE builder, so every emitter's route reaches the wire in one shape.
      `route` is the whole drawn line INCLUDING the square left behind — self-contained, so a far
      side never has to reconstruct the start out of a previous event's snapshot. Returns null on

@@ -1570,7 +1570,7 @@ export async function consumeEvent(e){
   syncLogLines();
   $("scrub").max=Math.max(0,appState.game.events.length-1);
   await animateRimSweepIfAny();   // idempotent (_lastSweptEvIdx) — a host call site that already awaited the ride makes this a no-op
-  await animateSailRoute();       // W7: the guest walks the squares the boat crossed instead of gliding across the islands; idempotent (_lastRoutedEvIdx) the same way
+  await animateSailRoute(e);      // W7: the guest walks the squares the boat crossed instead of gliding across the islands. THE EVENT BEING CONSUMED, not the top of the pile — W7b measured the guest sliding on 3 of 8 sails because watchEvents pushes each arriving event before awaiting this consumer, so the pile's top is regularly not the sail. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   render();
   spawnPops(e,boardCell());
   playForEvent(e);                // AUDIO-01/D-07: the per-event sound moment, every tier, no isLocalTo gate
