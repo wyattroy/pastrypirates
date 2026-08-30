@@ -1,5 +1,37 @@
 # CEO reviews — the standing record
 
+## CEO Review 29 — 2026-08-30, the playtest checklist for `2026.08.30.1-staging@2cac247d` — VERBATIM
+
+**VERDICT: YES. "Every load-bearing claim in the sheet was checked against the wire, the git history, or the file itself, and all of them held. The one place the wording is slightly stronger than the diff is noted below and is not a defect."**
+
+### The hook's contract — met on every named requirement
+
+> "Three fields per item — all 10 items carry `look`, `right` and `why`… Full stamp including @sha — header and item 1 both read `2026.08.30.1-staging@2cac247d`… HIS DECISION marked — the captains-panel row order is called out as *'That is YER OWN RULE (2026-08-20…) Not a defect - do not report it'*… `KEY="pp4-staging-2026-08-30"` vs the old `"pp4-staging-2026-08-28-w1b"`, so his old marks cannot bleed into the new sheet."
+
+> "**'Publish to staging first'** — no publish happened, but staging already serves `2cac247d` and the sheet is written against that, with the divergence stated in its own words. The requirement's purpose (never describe your working tree while staging carries something else) is satisfied, and the deviation is disclosed rather than hidden."
+
+### The claims, checked rather than taken
+
+> "**Stamp claim: TRUE.** `curl https://staging.playpastrypirates.com/src/ui/stage.js` → `PP4_STAMP = "2026.08.30.1-staging@2cac247d"`. Exactly what the sheet names."
+
+> "**'Staging and HEAD differ only by comments': TRUE.** 29 insertions and 1 deletion, every one of them a comment… No stamp change, no executable line."
+
+> "**Items 2-6 are all in the build staging serves, and all new since the last sheet.** … Item 6 is the one that mattered most, given CEO 28. I read the code on both builds rather than trusting the commit subjects. At `25158042` the bug is present — `git show 25158042:src/ui/stage.js:1800` reads `if (!cell || !cell.classList.contains("sailSwept")){ if (!cell) { clearSweep(); sweepBtn = null; } return; }`, the nested teardown. At `2cac247d` it is unconditional. **So the row asks him to check a fix that is genuinely on the build he opens and genuinely was not on the last one.**"
+
+> "**Rendering: clean.** … Programmatic scan for `<tag>` patterns across all 30 textContent fields returns zero — the `<strong>` the CTO caught is gone with no residue."
+
+### The one imprecision, and it was fixed on receipt
+
+> "**'All four reverted, net game-code change zero': the result is verified, the count is not.** … yields comments only — plus one string, `PP4_STAMP` moving `2026.08.29.2` → `2026.08.30.1`… **This is the only place the sheet is marginally stronger than its evidence** — 'zero' is true of gameplay and false of the stamp string, which is the very thing item 1 asks him to read. Self-consistent, not misleading, worth one word's precision next time."
+
+*(CTO, same hour: the sheet now says "zero — apart from the build stamp itself", and names why staging reads 08.30.1 rather than 08.29.2, since that is the number item 1 sends him to look at.)*
+
+### The recurring fault
+
+> "**No — and it is the first clean break in thirteen reviews.** CEO 28's fault was a claim asserting more than the evidence supported. This sheet does the opposite, twice, unprompted: item 5's `why` ends *'THIS IS THE ROW MOST LIKELY TO STILL BE WRONG, because it was fixed last and seen least'*, and item 6's volunteers that *'the FIRST probe that certified this could not tell the fixed tree from the broken one, and a review caught it'* — i.e. it hands Wyatt the exact failure CEO 28 found rather than quietly repairing it. … Every instrument here says what it touched in the same breath as its result, which was the rule proposed to end the run."
+
+**ONE SENTENCE FOR WYATT:** "The checklist is honest and points at the right build — the ten things it asks you to look at are all genuinely on the version staging is serving right now, and it tells you up front which one is most likely still broken and which three problems it already knows it hasn't fixed."
+
 ## CEO Review 28 — 2026-08-30, W3-5 the trade-wind preview AND W3-3 the drumroll — VERBATIM
 
 **VERDICT: NO on Item A, and it is the worst instrument failure in this run of reviews, because it was sold as the cure for the previous eleven. The live probe written to stop a gate "claiming behaviour from source" PASSES ON A TREE WHERE W3-5'S BUG IS PRESENT — I put the bug back and ran it: `0` preview elements, the probe's own pass condition. Its second tap does not land on a plain sail square. The first tap zooms the camera out (`src/ui/stage.js:1955`), every sail square moves (`:396`, `:812-819`), and the probe then taps a coordinate it measured *before* that move — in my posed runs it hit board artwork (`<image>`, `<text>`) 131px away from the square it meant to hit. Tapping empty sea clears the preview through the `!cell` branch, which worked *before* the fix too. So "watched, not read off the source" is the same unearned claim in a browser costume. The good news, and I measured it rather than assuming it: W3-5 REALLY IS FIXED — when I tap the square the probe was aiming at, the broken tree leaves 3 preview parts on the board and HEAD leaves 0. The close-out reaches the right answer with evidence that cannot support it. YES, with a correction, on Item B: the self-correction is real, fast and in the open — and I then settled the question it left open, and the CTO's *corrected* code read is right. `?endcard=1` does produce four finishers and does run the collab branch. Which means the commit title still standing in the log, "the shortcut built for this item does not produce the state it needs", is false.**
