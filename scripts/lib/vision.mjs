@@ -33,6 +33,28 @@ function extractJSON(text) {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+/* A TRANSIENT TLS FAILURE IS NOT AN EXPIRED LOGIN — ONE PLACE, BOTH PATHS.
+   The single-screen path learned this on 2026-08-28 and grew its own two retries. The batched path
+   shipped without them on 2026-08-30 and was caught by its own verification run within the hour:
+   at 457s a `claude -p` came back "Self-signed certificate detected", the whole pass went FATAL,
+   and all 16 screens of a leg were deferred to the queue — the same shape as the hiccup that lost
+   the ENTIRE picture half of the 2026.08.29.2 trial. NODE_EXTRA_CA_CERTS was correctly set the
+   whole time; the proxy's TLS interception simply hiccups.
+   So the retry lives HERE, once, and both callers go through it. Two things that must agree are
+   one thing, or they drift (CLAUDE.md rule 23) — and this one drifted inside a single session.
+   A FATAL that is NOT cert-flavoured (expired OAuth, missing CLI) still stops everything at once,
+   because there every further call genuinely fails the same way. */
+export async function withCertRetry(attempt, isFatal, tries = 2) {
+  let r = await attempt();
+  for (let i = 0; i < tries; i++) {
+    const f = isFatal(r);
+    if (!f || !/certificate|SSL|TLS/i.test(String((f.issues && f.issues[0]) || ""))) break;
+    await new Promise(w => setTimeout(w, 3000 * (i + 1)));
+    r = await attempt();
+  }
+  return r;
+}
+
 /* WHERE A JUDGE CALL RUNS AND WHAT IT TRUSTS — ONE DOOR, because two callers now need it.
    Both judgeScreen (one image) and judgeBatch (several) shell out to `claude -p`, and both must
    get the cwd and the CA right or they fail in the two ways this file has already paid for. Kept
@@ -182,21 +204,11 @@ export async function judgeAllOneByOne(items, { concurrency = 3, model = "claude
     while (next < items.length) {
       if (fatal) return;
       const i = next++;
-      results[i] = await judgeScreen(items[i].path, items[i].context || "", { model });
-      /* A TRANSIENT TLS FAILURE IS NOT AN EXPIRED LOGIN. Measured on the 2026-08-28 trial: the
-         SAME run judged dozens of screens and then hit "Self-signed certificate detected" three
-         separate times — with NODE_EXTRA_CA_CERTS correctly inherited (verified in the parent
-         env), so the proxy's TLS interception simply hiccuped. Treating one hiccup as FATAL
-         deferred 45 judged-able screens to the queue. So a cert-flavoured FATAL gets exactly TWO
-         bounded retries with a short breath between; a FATAL that repeats or is not cert-flavoured
-         (expired OAuth, missing CLI) still stops the whole pass, because there every further call
-         genuinely fails the same way. */
-      if (results[i] && results[i].verdict === "FATAL" && /certificate|SSL|TLS/i.test(String(results[i].issues && results[i].issues[0] || ""))) {
-        for (let r = 0; r < 2 && results[i].verdict === "FATAL"; r++) {
-          await new Promise(w => setTimeout(w, 3000 * (r + 1)));
-          results[i] = await judgeScreen(items[i].path, items[i].context || "", { model });
-        }
-      }
+      /* The cert-flavoured retry that used to be written out here now lives in withCertRetry(),
+         above, because the batched path needs exactly the same protection and did not have it. */
+      results[i] = await withCertRetry(
+        () => judgeScreen(items[i].path, items[i].context || "", { model }),
+        x => (x && x.verdict === "FATAL") ? x : null);
       if (results[i] && results[i].verdict === "FATAL" && !fatal) fatal = results[i];
       if (onEach) onEach(items[i], results[i], i);
     }
@@ -230,7 +242,7 @@ export async function judgeAll(items, { concurrency = 3, batch = 5, model = "cla
     while (nextG < groups.length) {
       if (fatal) return;
       const g = groups[nextG++];
-      const r = await judgeBatch(g.items, { model });
+      const r = await withCertRetry(() => judgeBatch(g.items, { model }), x => x && x.fatal);
       if (r.fatal) { if (!fatal) fatal = r.fatal; return; }
       if (r.unparseable) {
         // the safety net: these screens have NOT been seen, so look at them singly rather than lose them
