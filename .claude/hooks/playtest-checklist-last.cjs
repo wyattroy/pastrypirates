@@ -78,16 +78,67 @@ function main() {
   const session = String(input.session_id || "nosession").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64) || "nosession";
   const sh = (c) => { try { return execSync(c, { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); } catch { return ""; } };
 
-  /* WHAT CHANGED, committed or not. origin/main is the shipped game, so this is "everything this
-     branch would put in front of a player". Uncommitted work counts: a session that edits and does
-     not commit still changed what staging would carry. */
-  const changed = [
-    ...sh("git diff --name-only origin/main...HEAD").split("\n"),
+  /* WHAT *THIS SESSION* CHANGED — not what the branch contains.
+     ────────────────────────────────────────────────────────────────────────────────────────────
+     THIS IS THE SECOND ATTEMPT AT THIS TEST AND THE FIRST ONE WAS WRONG TWICE.
+
+     It used to be `git diff --name-only origin/main...HEAD` — the whole branch, every session that
+     ever touched it. On 2026-08-27 that produced a false demand and somebody CORRECTED THE WORDING
+     rather than the trigger: the message started saying "THIS BRANCH" instead of "THIS SESSION",
+     which made it honest about being wrong and left it wrong. On 2026-08-30 it fired again on a
+     session that had changed ZERO lines of game code — the 17 game files were another session's,
+     merged in so the sea trial could be rebuilt on the current game — and a sheet describing that
+     other session's work reached Wyatt. His words: "that's duplicative and confusing."
+
+     TWO TESTS NOW, and the second is what makes the first safe to be wrong:
+
+       1. SESSION SCOPE. session-base.cjs stamps HEAD at SessionStart; the range is base..HEAD.
+          Exact, and a merge cannot inflate it.
+       2. OWNERSHIP. Whatever the range, a game file whose last change here sits on ANOTHER remote
+          branch was written by another session and is theirs to describe. This holds even with no
+          base stamped, which is why a missing stamp degrades the test instead of breaking it.
+
+     Uncommitted work always counts as ours: nobody else could have written it. */
+  const base = (() => {
+    try { return fs.readFileSync(path.join(repo, ".claude", "hooks", ".read-state", session, "session-base"), "utf8").trim(); }
+    catch { return ""; }
+  })();
+  const range = /^[0-9a-f]{7,40}$/.test(base) && sh(`git cat-file -e ${base}^{commit} && echo ok`).trim()
+    ? `${base}..HEAD` : "origin/main...HEAD";
+
+  const dirty = [
     ...sh("git diff --name-only").split("\n"),
     ...sh("git diff --name-only --cached").split("\n"),
   ].map((s) => s.trim()).filter(Boolean);
-  const game = [...new Set(changed.filter(isGameCode))];
-  if (!game.length) process.exit(0);                      // nothing a player could see
+  const committed = sh(`git diff --name-only ${range}`).split("\n").map((s) => s.trim()).filter(Boolean);
+
+  const ours = new Set(dirty);                            // uncommitted is ours by definition
+  const mine = sh("git rev-parse --abbrev-ref --symbolic-full-name @{u}").trim();
+  const foreign = new Map();                              // file -> the branch that owns it
+  for (const f of committed) {
+    if (ours.has(f)) continue;
+    const sha = sh(`git log -1 --format=%H ${range} -- "${f}"`).trim();
+    if (!sha) { ours.add(f); continue; }
+    /* Which OTHER published branches carry the commit that last touched this file? If any does,
+       that work was pushed by somebody else and this session merely has it in its history. */
+    const owners = sh(`git branch -r --contains ${sha}`).split("\n")
+      .map((s) => s.trim().replace(/^\*\s*/, ""))
+      .filter((b) => b && !b.includes("->") && b !== mine);
+    if (owners.length) foreign.set(f, owners[0]); else ours.add(f);
+  }
+
+  const game = [...ours].filter(isGameCode);
+  const notMine = [...foreign.keys()].filter(isGameCode);
+  if (!game.length) {
+    /* NOTHING A PLAYER COULD SEE, FROM THIS SESSION. Silence is the correct output — but say so on
+       stderr when game code IS present and belongs elsewhere, so the next reader of a transcript
+       can tell "this hook decided not to fire" from "this hook never ran". */
+    if (notMine.length) process.stderr.write(
+      `[checklist hook] ${notMine.length} game file(s) changed on this branch, none by this session ` +
+      `(${notMine.slice(0, 3).join(", ")}${notMine.length > 3 ? ", …" : ""} — from ${foreign.get(notMine[0])}). ` +
+      `No sheet asked for: that work belongs to the session that wrote it.\n`);
+    process.exit(0);
+  }
 
   const stateDir = path.join(repo, ".claude", "hooks", ".read-state", session);
   const marker = path.join(stateDir, "checklist-asked");
@@ -102,7 +153,17 @@ function main() {
         .map((f) => ({ f, m: fs.statSync(path.join(planning, f)).mtimeMs }))
     : [];
   const newestSheet = sheets.length ? Math.max(...sheets.map((s) => s.m)) : 0;
+  /* HOW OLD IS THE WORK — BY COMMIT TIME, NOT FILE MTIME.
+     mtime is when the file was last WRITTEN TO DISK, and a merge or a checkout rewrites it. On
+     2026-08-30, merging another branch stamped every game file with the merge time (src/ui/stage.js
+     read 03:47:16, nine seconds before the merge commit), so every game file was newer than every
+     checklist that had ever existed — and no sheet could ever have satisfied this hook again on
+     that branch. A staleness test that a merge can reset is not a staleness test.
+     Uncommitted work has no commit time, so it falls back to mtime, which is correct there: it
+     really was just written. */
   const newestGame = Math.max(...game.map((f) => {
+    const t = sh(`git log -1 --format=%ct ${range} -- "${f}"`).trim();
+    if (t && !dirty.includes(f)) return +t * 1000;
     try { return fs.statSync(path.join(repo, f)).mtimeMs; } catch { return 0; }
   }));
   /* A FRESH SHEET IS NOT ENOUGH -- IT MUST BE PUBLISHABLE. The Artifact host wraps the file in its
@@ -140,14 +201,15 @@ THEN PUBLISH IT and give him the https:// link -- not the path, not the GitHub U
   const list = game.slice(0, 8).join(", ") + (game.length > 8 ? `, +${game.length - 8} more` : "");
   const latest = sheets.length ? sheets.sort((a, b) => b.m - a.m)[0].f : "(none)";
   const reason =
-`THIS BRANCH CHANGES THE GAME AND HAS NO CHECKLIST NEWER THAN THAT WORK.
+`THIS SESSION CHANGED GAME CODE, AND THERE IS NO CHECKLIST NEWER THAN THAT WORK.
 
-(Wording corrected 2026-08-27: this said "THIS SESSION CHANGED THE GAME", which it cannot know. It
-compares origin/main...HEAD — the whole BRANCH, across every session that touched it. A session that
-changed only docs was told it had changed the game, which is the kind of false statement from an
-instrument this project has been burned by repeatedly. What is true is the line above.)
+It really is yours: the range is this session's own start commit to HEAD, and any file whose last
+change here is already published on another branch has been excluded as that session's to describe.
+(Before 2026-08-30 this compared the whole BRANCH and demanded sheets for other sessions' merged-in
+work. If you believe the list below is not yours, that is a bug in this hook worth fixing, not a
+sheet worth writing.)
 
-  changed: ${list}
+  changed by this session: ${list}${notMine.length ? `\n  (excluded, not yours: ${notMine.length} file(s) from ${foreign.get(notMine[0])})` : ""}
   newest checklist in .planning/: ${latest}${sheets.length ? " — older than the work above" : ""}
 
 WRITE ONE, in the established format. Copy .planning/staging-checklist.html and replace the
@@ -182,13 +244,21 @@ AND THE PARTS THAT ARE NOT DECORATION:
     file starts with <title> then <style>. This is not style -- it is what makes the file
     publishable, and a file that cannot be published is a file he can only read as source.
 
-THEN PUBLISH IT AND HAND HIM THE LINK, NOT THE PATH. Wyatt, 2026-08-30: "your html files must
-always be clickable for me to open on a phone -- this link opens github and is useless. the whole
-point of the html is that i have no friction when giving you feedback." A repo path and a GitHub
-blob URL are both the same failure: they show him the CSS, not the checklist. Publish it with the
-Artifact tool and give him the https:// URL it returns, in the reply he reads.
+  - THEN PUBLISH IT AND HAND HIM THE LINK, NOT THE PATH.
+    Wyatt, 2026-08-30: "your html files must always be clickable for me to open on a phone --
+    this link opens github and is useless. the whole point of the html is that i have no
+    friction when giving you feedback."
+    A repo path and a GitHub blob URL are the SAME failure: both show him the CSS, not the
+    checklist. He sent a screenshot of exactly that -- a syntax-highlighted listing on a phone,
+    no checkboxes, no notes boxes. Every requirement above was met and the sheet was still
+    worthless.
+    So: publish it with the Artifact tool and put the https:// URL it returns in the reply he
+    reads. Commit the file to .planning/ as well -- that is the durable copy for the next
+    session -- but THE LINK IS THE DELIVERABLE. Naming a path and stopping there does not count
+    as handing it over.
 
-Run again and this will not fire; it asks once per session.`;
+Then give him the LINK (and the file path beside it). Run again and this will not fire; it asks
+once per session.`;
 
   process.stdout.write(JSON.stringify({ decision: "block", reason }));
   process.exit(0);

@@ -20,6 +20,7 @@
 //        [--dbg=9800] [--judge=on|off] [--model=claude-sonnet-5] [--max-min=35] [--parallel=2]
 // Exit 1 on any failure. Keeps every screenshot + a contact sheet per leg. Read them.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { REPO, gameURL } from "./lib/chrome.mjs";
@@ -36,7 +37,7 @@ import { makePlayer, sideQuests, GATE_SRC } from "./lib/player.mjs";
 /* DO THE TWO CAPTAINS SEE THE SAME GAME? This leg already played both seats and threw the
    comparison away — each was judged against the universal rules ALONE, which cannot see "both
    screens are individually fine and they disagree". That is seven of Wyatt's 35 findings. */
-import { legVerdictLine } from "./lib/leg_verdict.mjs";
+import { legVerdictLine, legVerdict } from "./lib/leg_verdict.mjs";
 import { compareWhenSettled } from "./lib/seat_parity.mjs";
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -54,8 +55,29 @@ const JUDGE_MODE = arg("judge", "on");            // on | queue | off
 const JUDGE = JUDGE_MODE !== "off";
 const MODEL = arg("model", "claude-sonnet-5");
 const MAX_MS = +arg("max-min", 35) * 60_000;
-const PAR = Math.max(1, +arg("parallel", 2));
-const JUDGE_CAP = 30;                     // distinct screens judged per leg (all get structural checks)
+/* HOW MANY LEGS AT ONCE — DERIVED FROM THE MACHINE, NOT TYPED (CLAUDE.md rule 9).
+   A flat `2` was right for the laptop it was written on and wrong everywhere else: it leaves a
+   16-core box idle and it would thrash a 2-core one. And the ceiling is not opinion, it is
+   measured — 2026-08-30, this container: ONE crew-desktop leg (two browsers, a parity sampler and
+   node) held a load average of 2.75 on 4 cores. Two browsers is most of four cores, so the honest
+   conversion is roughly two cores per leg, and a fleet of ten wants about sixteen.
+   WHY OVER-SUBSCRIBING IS NOT MERELY SLOWER: this gate judges by wall clock. waitSettled asks "has
+   the screen stopped moving", and a dead control is one that changed nothing within 9 seconds. On a
+   thrashed box both of those go wrong in the direction of INVENTING findings — screens that
+   "never settled", buttons that look dead. Speed bought that way is paid for in false alarms, and
+   a gate that cries wolf is the failure this repo has already paid for twice. */
+const CORES = (os.cpus() || []).length || 2;
+const PAR = Math.max(1, +arg("parallel", Math.max(1, Math.floor(CORES / 2))));
+/* THE EYES SEE EVERY SCREEN NOW. `JUDGE_CAP = 30` used to stop the vision judge at the first
+   thirty distinct screens of a leg while the structural rules ran on all of them — and the verdict
+   said nothing about the gap, so a 60-screen leg came back "30 judged, all PASS" and read as
+   visually clean with half of it never opened (one fleet: 349 captured, 267 judged, 82 unseen).
+   Wyatt, 2026-08-30: "everything must be seen visually, or else you don't catch your own code
+   errors." The cap existed because each screen was a separate `claude -p` session boot; batching
+   five screens per call (lib/vision.mjs, measured $0.103/31s per five against $0.049/9-43s EACH)
+   is what makes looking at all of them affordable. If a cap is ever needed again, the leg's
+   verdict already prints "N screen(s) NOT looked at" — so it can never be silent again. */
+const JUDGE_BATCH = +arg("judge-batch", 5);
 fs.mkdirSync(OUT, { recursive: true });
 const T0 = Date.now();
 const log = (...a) => { const s = `[${((Date.now() - T0) / 1000 | 0) + ""}s] ` + a.join(" "); console.log(s); fs.appendFileSync(path.join(OUT, "log.txt"), s + "\n"); };
@@ -220,86 +242,7 @@ async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
 }
 
 // ---------- verdicts --------------------------------------------------------------------------
-function legVerdict(rec) {
-  const v = [];
-  if (!rec.finished) v.push("did not finish the voyage");
-  /* A RESCUE IS NOT A FREE PASS — CEO Review 12, 2026-08-28: "nothing bounds the recoveries…
-     A leg needing eleven relaunches should not produce the same shaped verdict as one needing
-     none," and this repo has already paid once for an instrument that was reassuring rather than
-     silent. The mount absorbs ANY WebKit death, so without this a future crash caused by OUR OWN
-     game code would relaunch, resume, and report finished:true with a small asterisk.
-     TWO RULES, both derived rather than typed:
-       - ANY recovery on a NON-WebKit leg fails outright. The crash we sanction is WebKit's own
-         (diagnosed by core dump); Chrome has never once needed one, so a Chrome relaunch is by
-         definition not the known bug.
-       - A WebKit leg gets a budget of ONE RESCUE PER FOUR GAME-DAYS SAILED (floor 2). A voyage
-         that has to be restarted more often than that is not sailing, it is crash-looping, and
-         the verdict should say so. The divisor is the honest knob: the 2026-08-28 fleet ran
-         11 rescues over 29 days (budget 7 — FAILS, correctly: the CEO called that leg a limp),
-         2 over 19 and 1 over 16 (budgets 4 and 4 — both pass). Change it when observation
-         changes, and say what you observed. */
-  const rescues = rec.recoveries || 0;
-  if (rescues) {
-    const wk = /-wk$/.test(rec.name);
-    const budget = Math.max(2, Math.ceil((rec.days || 1) / 4));
-    if (!wk) v.push(`${rescues} browser relaunch(es) on a Chrome leg — Chrome has never needed one; this is NOT the sanctioned WebKit crash`);
-    else if (rescues > budget) v.push(`${rescues} WebKit relaunch(es) over ${rec.days || "?"} day(s) — above the ${budget} this voyage's length allows; that is a crash loop being ridden out, not a voyage`);
-  }
-  const structFails = rec.screens.flatMap(s => s.fails);
-  /* NAME THEM. A COUNT IS NOT ACTIONABLE, AND THIS ONE HID THE BIGGEST FINDING IN THE FLEET.
-     Every other line in this verdict names its subject — dead controls list their labels,
-     unreachable controls their `what`, unexercised kinds their names — and this one alone said
-     only "2 structural check failure(s)". Rule 24 stands on Wyatt being able to OPEN THE REPORT
-     and see what happened; a bare number sends him to a 5,000-line log or nowhere.
-     WHAT IT COST, 2026-08-29: the FULL trial for build 2026.08.29.2 reported "1" and "2"
-     structural failures per leg. Behind those numbers were 22 failures, 14 of them on
-     crew-phone-guest, and they say `on-screen: clickable off-screen: sailCell` and
-     `sail-clickable: 2 sail square(s) covered ... <- #pp4Cap` — the trial had independently
-     reproduced "sail squares a guest cannot tap", the TOP item on the backlog, and the summary
-     line threw the evidence away. Grouped by RULE rather than listed flat, because one broken
-     screen trips the same rule repeatedly and a flat list would be its own kind of noise. */
-  if (structFails.length) {
-    const byRule = new Map();
-    for (const k of structFails) byRule.set(k.rule, (byRule.get(k.rule) || 0) + 1);
-    const named = [...byRule.entries()].sort((a, b) => b[1] - a[1]).map(([r, n]) => `${r}×${n}`).join(", ");
-    const first = (structFails[0] && structFails[0].what) ? ` — first: ${String(structFails[0].what).slice(0, 110)}` : "";
-    v.push(`${structFails.length} structural check failure(s): ${named}${first}`);
-  }
-  for (const seat of rec.seats || [rec]) {
-    const P = seat.player; if (!P) continue;
-    if (P.deadButtons.length) v.push(`${P.deadButtons.length} dead control(s): ${P.deadButtons.map(d => d.label).slice(0, 5).join(", ")}`);
-    if (P.findings.length) v.push(`${P.findings.length} unreachable control(s): ${P.findings.map(f => f.what).slice(0, 3).join("; ")}`);
-    // coverage: a kind the game OFFERED but the player never successfully exercised
-    const unexercised = [...P.coverage.entries()].filter(([k, r]) => r.seen > 2 && r.clicked === 0 && !/back|menu close|chat close/.test(k)).map(([k]) => k);
-    if (unexercised.length) v.push(`offered but never exercised: ${unexercised.join(", ")}`);
-  }
-  /* THE TWO SEATS DISAGREEING IS A FAILURE, not a note. This is the class Wyatt's 2026-08-26
-     playtest was mostly made of — seven findings where both screens were individually fine and they
-     showed different games — and until this line the leg had no way to say so. */
-  if (rec.parity && rec.parity.length)
-    v.push(`${rec.parity.length} moment(s) where the two captains saw different games: ` +
-           rec.parity.slice(0, 3).map(p => `${p.field} (${p.why})`).join("; "));
-  if (rec.consoleErrs && rec.consoleErrs.length) v.push(`${rec.consoleErrs.length} console error(s): ${rec.consoleErrs[0]}`);
-  /* A JUDGED SLOT CAN BE EMPTY, AND EVERY READER MUST COPE. judgeAll stops the whole pass on the
-     first FATAL, so screens it never reached come back `undefined` — deliberately, because an
-     unreached screen has NOT been cleared and must never be defaulted to PASS. This crashed a real
-     run of Wyatt's on 2026-08-22 (`Cannot read properties of undefined (reading 'verdict')`, twice:
-     here and in the contact sheet) because the producer learned to leave holes and its consumers
-     did not. Count the holes and say so, rather than assuming a dense array. */
-  const judged = (rec.judged || []).filter(j => j && j.r);
-  const judgeHoles = (rec.judged || []).length - judged.length;
-  const judgeFails = judged.filter(j => j.r.verdict === "FAIL");
-  if (judgeFails.length) v.push(`vision judge FAILED ${judgeFails.length} screen(s)`);
-  const judgeErrs = judged.filter(j => j.r.verdict === "ERROR" || j.r.verdict === "FATAL");
-  if (judgeErrs.length) v.push(`vision judge errored on ${judgeErrs.length} screen(s) — those screens are NOT cleared`);
-  if (judgeHoles) v.push(`${judgeHoles} screen(s) never judged — NOT cleared`);
-  const motionOnly = rec.screens.reduce((n, s) => n + ((s.motionOnly || []).length), 0);
-  if (motionOnly) v.push(`${motionOnly} observation(s) seen only DURING an animation — not failures, read them in the log`);
-  const unsettled = rec.screens.filter(s => s.settle && !s.settle.settled).length;
-  if (unsettled) v.push(`${unsettled} screen(s) never stopped moving before being checked`);
-  if ((rec.queued || []).length) v.push(`vision pass DEFERRED for ${rec.queued.length} screen(s) — queued for a session, NOT cleared`);
-  return v;
-}
+/* legVerdict now lives in lib/verdict.mjs so it can be tested without sailing a fleet. */
 
 async function contactSheet(rec, tag, idx) {
   try {
@@ -496,13 +439,13 @@ async function runLeg(name, idx) {
   }
   // vision judge over every distinct screen (capped)
   if (JUDGE && rec.screens.length) {
-    const items = rec.screens.slice(0, JUDGE_CAP).map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
+    const items = rec.screens.map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
     if (JUDGE_MODE === "queue") {
       rec.queued = (rec.queued || []).concat(items);
       log(`[${name}] ${items.length} screen(s) queued for a session to judge`);
     } else {
       log(`[${name}] vision-judging ${items.length} screen(s)…`);
-      const results = await judgeAll(items, { concurrency: 3, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
+      const results = await judgeAll(items, { concurrency: 3, batch: JUDGE_BATCH, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
       if (results.fatal) {
         /* THE JUDGE IS DEAD, NOT THE SCREENS. Defer rather than forfeit — see the JUDGE_MODE note. */
         log(`[${name}] !! the vision judge cannot run: ${results.fatal.issues[0]}`);
@@ -513,17 +456,14 @@ async function runLeg(name, idx) {
       }
     }
   }
-  /* THE CONTACT SHEET MUST NOT BE ABLE TO HANG THE WHOLE RUN. 2026-08-22: after the judge failed,
-     the gate stopped here and never exited — 0% CPU, no log line, and its two sheet browsers left
-     alive at 47% of Wyatt's CPU for three hours until a human noticed. A step that only PRESENTS
-     results may never outlive the run that produced them, so it is bounded and its failure is
-     reported rather than fatal. The kill is scoped to this sheet's own port, never a bare pkill. */
-  const sheetPort = DBG0 + 90 + idx;
-  await Promise.race([
-    contactSheet(rec, name, idx),
-    sleep(120000).then(() => { log(`[${name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
-      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
-  ]);
+  /* THE CONTACT SHEET NO LONGER RUNS HERE — it is a PRESENTATION step and it was standing in the
+     fleet's way. MEASURED 2026-08-30, crew-desktop alone on an idle container: the voyage reached
+     END OF VOYAGE at 938s and the leg did not finish until 1066s, because the sheet spent 123s
+     opening a THIRD browser and a SECOND web server, then hit its own 2-minute cap and was
+     abandoned having produced nothing. Ten legs is twenty minutes of a ninety-minute trial spent
+     on an image that gets thrown away, on the same cores the voyages are trying to use.
+     It now runs after the whole fleet is home (see `sheets` below), where being slow costs the
+     trial nothing and a failure still cannot outlive the run that produced it. */
   rec.verdict = legVerdict(rec);
   if (rec.error) rec.verdict.push("leg error: " + rec.error);
   return rec;
@@ -533,6 +473,20 @@ async function runLeg(name, idx) {
 const results = [];
 { let next = 0; await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
     while (next < LEGS.length) { const i = next++; results[i] = await runLeg(LEGS[i], i); } })); }
+
+/* THE SHEETS, ONCE THE FLEET IS HOME. Same bound as before (two minutes, killed by its own debug
+   port, never a bare pkill — this container's shell wrapper matches `chromium` and a bare pkill
+   kills the session itself). Sequential on purpose: nothing is waiting on these, and one browser
+   at a time cannot take cores from a leg that is still finishing in a future wider fleet. */
+for (const [i, r] of results.entries()) {
+  if (!r || r.notRun || !(r.screens || []).length) continue;
+  const sheetPort = DBG0 + 90 + i;
+  await Promise.race([
+    contactSheet(r, r.name, i),
+    sleep(120000).then(() => { log(`[${r.name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
+      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
+  ]);
+}
 
 let anyFail = false;
 for (const r of results) {
