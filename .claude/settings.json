@@ -18,6 +18,12 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/cloud-session-start.sh\"",
             "timeout": 300,
             "statusMessage": "Cloud QA browser setup (no-op on the laptop)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-base.cjs\"",
+            "timeout": 15,
+            "statusMessage": "Marking where this session started"
           }
         ]
       }
@@ -36,7 +42,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
-            "statusMessage": "Checking CLAUDE.md \u00a74 \u2014 read the doc first"
+            "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
           },
           {
             "type": "command",
