@@ -109,7 +109,7 @@ import {
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, draftDispatch, wireRestoreFail,
   startPassAndPlay,
-  endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent,
+  endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent, publishNow,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
@@ -749,6 +749,11 @@ async function asyncBattleRun(att,def){
           fled=true;
           appState.game.recordSkirmish(att,def,null);
           const evFlee=appState.game.ev({t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds,downwind,route:fleeRoute}),evWind=dest?appState.game.tradewind(def):null;
+          /* W9: same shape, same fix as the storm sweep (src/ui/flow.js runStormLive). Both events
+             exist by now; the two rides below are this tier's own drawing and used to run BEFORE
+             the liveRender() underneath them, which is the only publisher — so the flee held every
+             other browser still for a full sail plus a rim ride. Publish, then ride. */
+          publishNow();
           await animateSailRoute(evFlee);
           if(evWind)await animateRimSweepIfAny(evWind);
           liveRender();
@@ -1448,6 +1453,15 @@ export function watchRecoveryState(){
 }
 // host: broadcast new events to the shared feed
 export function pushEvents(){
+  /* W9: THE HOST GUARD LIVES HERE, on the publisher itself, not on each caller. It used to sit
+     only in liveRender (src/ui/panel.js), so every future call site had to remember it — and the
+     first new one, publishNow() in src/ui/flow.js, could not carry it without putting a
+     who-is-playing conditional into a file that DRAWS, which mode_fork_check.js failed on sight and
+     was right to. A guest in a live room has both `db` and `room`, so the two lines below are not
+     enough on their own: without this, a guest calling in would broadcast its own mirrored copy of
+     the feed over the authority's. liveRender keeps its own check as well — belt and braces on the
+     one thing that must never happen twice. */
+  if(!appState.isHost)return;
   if(!appState.db||!appState.room)return;
   while(appState.evPushed<appState.game.events.length){
     /* Q-18 — THE SERIAL IS STAMPED ON THE WIRE COPY, NEVER ON THE ENGINE'S OWN EVENT. Adding a

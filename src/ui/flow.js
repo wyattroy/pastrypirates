@@ -1059,6 +1059,38 @@ export function stormCamForEvent(ev){
    The ride's STARTING square still has to come from the event before this one — a sweep records
    where the ship ended, not where it entered the channel — so the previous event is found by
    IDENTITY (indexOf the event handed over), never by a position a caller passed in. */
+/* W9 — PUT THE EVENTS ON THE WIRE BEFORE ANYBODY RIDES THEM.
+   `liveRender()` does two unrelated jobs in one call: it drains the local consumer AND (on the
+   host) publishes. Every call site that awaited an animation and THEN called liveRender was
+   therefore holding the whole table still for the length of its own animation. Measured in a real
+   two-browser crew room, 2026-08-30: the host emitted the storm sweep at t=2326ms, rode it inline
+   for 1447ms, and the event did not reach the wire until t=3989ms. The guest received it 47ms later
+   and started its own ride 64ms after that. THE NETWORK WAS 47ms; nothing on the guest was slow —
+   it simply had not been told yet. (A guest being a moment behind is expected and is NOT what this
+   fixes, docs/INTENDED-BEHAVIOUR.md §3. What is being removed is an artificial hold that grows with
+   the host's own animation.)
+   This is the publish half on its own, so an animating call site can hand the table the event at
+   the moment it is recorded and then take its own time drawing it. Host-guarded and handler-seamed
+   exactly as liveRender's publish line is (ui-tier may never import src/net/, D-07), and pushEvents
+   is a monotonic while-loop over appState.evPushed, so an early call costs one extra no-op pass and
+   can never double-send or reorder.
+   WHY NOT SIMPLY MOVE liveRender() ABOVE THE RIDE — the tempting one-line version: liveRender's
+   drain is FIRE-AND-FORGET (`_nh.onConsumeEvent(e).catch(...)`, deliberately not awaited, because
+   liveRender must stay synchronous for its 57 call sites). consumeEvent itself rides the sweep, and
+   _rodeSweep below is idempotent — so draining first would make the call site's own `await` return
+   false immediately, and the host would stop WAITING for the ride it is showing while a guest
+   (whose watchEvents awaits consumeEvent serially) still waits. That trades a publish-order defect
+   for a pacing divergence between the tiers, which is the fault rule 23 exists to prevent. Publish
+   early, ride unchanged: nothing about what is drawn, or about who waits for it, moves.
+   NO "AM I THE HOST" TEST LIVES HERE, and that is not an oversight — mode_fork_check.js failed the
+   build when one did, correctly: this file DRAWS, and a conditional on who is playing has no
+   business in it. The publish is host-only because PUBLISHING is host-only, so the guard sits on
+   pushEvents itself (src/orchestrator.js), where rule 23 sanctions "who computes" and where it
+   protects every caller rather than this one. */
+export function publishNow(){
+  const h=netHandlers();
+  if(h.onEvents)h.onEvents();
+}
 const _rodeSweep=new WeakSet();
 export async function animateRimSweepIfAny(ev){
   const g=appState.game;
@@ -1367,6 +1399,11 @@ export async function runStormLive(dirKey){
            the wire and DELETE the hatch — never to give the guest a matching one.
            The emitter holds its own moment: stormStep pushed the sweep one synchronous statement
            ago, so the top of the pile is that event (and if it swept nowhere, the guard declines). */
+        /* W9: THE TABLE IS TOLD BEFORE THIS TIER RIDES. The sweep event exists as of the
+           stormStep one statement above; the ride below takes ~1.4s, and until this line the only
+           publisher was the liveRender() underneath it — so every other browser sat on a frozen
+           board for exactly the length of the host's own animation. Publish, then ride. */
+        publishNow();
         await animateRimSweepIfAny(g.events[g.events.length-1]);
         liveRender();
       }
