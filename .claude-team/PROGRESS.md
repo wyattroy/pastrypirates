@@ -95,3 +95,26 @@ an already-ridden index. `_lastSweptEvIdx` (`src/ui/flow.js:1023`) has the ident
    proves the DECISION. `w7b_sail_route_frontier_check.mjs` needs chromium and ~50s, so it is not
    in the suite; it proves the PICTURE, which a stubbed module cannot see. Run it at gear time.
    **If it stops being run it will rot** — that is the known cost of keeping it out.
+
+## The sweep (port-lead's pass, and where it agrees with the sweeper's)
+
+Swept every place on the presentation tier that reads the top of the event pile
+(`grep -rn "events\[...length-1\]" src/`). The honest yield is **one real twin, not a list**:
+
+- **`animateRimSweepIfAny` — `src/ui/flow.js:1026`. The same two faults, in the same family of
+  function.** It derives from `g.events[n-1]`, and its `_lastSweptEvIdx` is a module-local index
+  that survives a new Game. **Left unbuilt on purpose**: it is unmeasured, and a fix with no
+  before-picture cannot be shown to have fixed anything. It also needs a harder pose than the sail
+  did — a valid sweep requires the ship on a rim square with `rimSweepPath` landing exactly on the
+  baked destination — which is why it was not folded in. **A sweeper working independently, before
+  this fix existed, reached the same file for the same reason, and went further: the storm's rim
+  ride has a HOST-ONLY escape hatch at `src/ui/flow.js:1313-1318`, reconstructing the rim-entry
+  square from `was` plus the wind direction because no rim-entry event exists to read — so on a
+  guest the ship teleports to the whirlpool with no ride at all.** Two independent reads landing on
+  one file is worth more than either alone. It is a **finding for Wyatt, not work the crew gives
+  itself.**
+- **`narrateLastEvent` (`src/ui/panel.js:1053`) and the two `describe(events[length-1])` flashes
+  (`src/orchestrator.js:968`, `:1302`) read the tail too, and they are NOT the same fault.** They
+  are host-side: the host emits and narrates with nothing in between, and a guest is narrated
+  through the wire (`watchNarr`), not through these. `src/orchestrator.js:1058` documents that
+  tail-read as deliberate. Reported here so nobody re-finds them and reports them as defects.
