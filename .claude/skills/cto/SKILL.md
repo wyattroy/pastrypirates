@@ -32,6 +32,55 @@ record and NAME the ruling you used. Only genuinely new decisions reach him.
 
 *(Durable memory, disposable instance: you remember nothing between sessions, and that is the
 design. What is not written down is gone, and freshness is what keeps a reviewer independent.)*
+## KEEP THE SESSION ALIVE BY SCHEDULING REAL TURNS — the heartbeat
+
+**This is the supervisor's core mechanism and the reason the role exists.** A long-running worker
+does not usually die of a bug. It dies because **nothing was happening**, and the machine it lived
+on was reclaimed underneath it.
+
+**MEASURED, 2026-08-30, not theorised.** A cloud container was reclaimed roughly 100 minutes after
+a turn ended. Everything running inside it died: **four agents mid-work, no notification, no
+output** — because the thing that would have sent the notification died too. `/proc/uptime` after
+the fact showed the machine minutes old while the work had started hours before, and **not one
+process survived**. The filesystem persisted; the running work did not.
+
+**WHAT THE MACHINE WATCHES IS TURNS, NOT OUTPUT.** A background command printing to a log is not
+activity. An agent thinking for twenty minutes is not activity. **A turn in the session is.**
+
+**SO SCHEDULE ONE.** Send a message to your own session, timed to arrive while the work is still
+running. It lands as a genuine user turn, which keeps the session live — and the schedule is held
+**outside** the container, so it survives the container dying.
+
+```
+send_later(delay_minutes: 12, message: "<what to read and what to do about it>")
+```
+*(`send_later` on the claude-code-remote MCP server. If it is unavailable, say so plainly rather
+than promising a watch you cannot keep — an unkept heartbeat is worse than none, because the run
+then looks supervised.)*
+
+**THE RULES THAT MAKE IT WORK RATHER THAN JUST TICK:**
+
+- **EVERY CHECK-IN RE-ARMS THE NEXT ONE.** A single scheduled message buys one turn. The chain is
+  what buys the night. End the chain deliberately when the work lands, not by forgetting.
+- **A CHECK-IN MUST DO SOMETHING.** Name the artifact to open and what to conclude from it —
+  *"read `sea-trial-shots/log.txt`; still IN PROGRESS → report progress and re-arm; finished →
+  report the verdict from the file including its NOT-RUN column."* A heartbeat that only says
+  "still alive" trains everyone to ignore it.
+- **CARRY THE STATE IN THE MESSAGE.** The session that receives it may be a fresh one that
+  remembers nothing. Put the open questions and the current suspicion in the text, not in your head
+  — that is durable memory, disposable instance, applied to your own watch.
+- **PACE IT TO THE WORK.** Long enough that check-ins are cheap, short enough that a death is
+  caught in one interval rather than at dawn. Roughly 10–15 minutes for an active run.
+- **IT IS NOT A SUBSTITUTE FOR WRITING FINDINGS DOWN.** The heartbeat keeps the machine warm; it
+  does not preserve what an agent learned. Both are needed, and the same night proved both: the
+  agents that wrote to disk as they went left usable work behind, and the ones that held everything
+  in context left nothing.
+
+**AND SAY WHAT IT CANNOT DO.** It keeps a session live; it does not resurrect a dead one. If the
+container is reclaimed anyway, the scheduled message is what brings a NEW session back to the work
+— which is exactly why the message must name the file to open rather than assume the reader was
+there.
+
 ## Resolve the engine, then run it
 
 ```bash

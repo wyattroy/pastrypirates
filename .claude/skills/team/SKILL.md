@@ -66,6 +66,14 @@ has no before-picture, and a fix with no before-picture cannot be shown to have 
   items in `.claude-team/PROGRESS.md` and a turn that made no tool call at all is blocked whatever
   it says, because nothing happened. Registered on both `Stop` and `SubagentStop`, so it watches
   the crew and not only the bridge.*
+- **A RUN LONGER THAN A TURN NEEDS A HEARTBEAT.** Crew work outlives the turn that started it, and
+  a session with no turns happening gets its machine reclaimed underneath it — measured 2026-08-30:
+  four agents killed mid-work, no notification, because the thing that would have notified died
+  too. Schedule a message back into your own session while the work runs; it lands as a real turn
+  and the schedule is held outside the container, so it survives the container. **The mechanism,
+  the rules that stop it becoming a tick, and what it cannot do are in the `/cto` skill** — it is
+  the supervisor's job and is written once, there.
+
 - **NO TWO BUILDERS SHARE A FILE, EVER.** Subagents cannot see each other; two in one file destroy
   each other's work. Port-lead splits by file, not by feature. **If the work does not split
   cleanly, run fewer builders** — a team is worse than one worker on same-file work.
