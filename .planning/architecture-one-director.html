@@ -213,14 +213,33 @@ askDecision(seat, question) → answer
 <div class="thesis"><p><strong>The rule:</strong> the shell may differ; the <strong>stage</strong> may not. And nothing in the shell may be a precondition for what happens on the stage.</p></div>
 
 <h3>The one-question test</h3>
-<p>For any mode-specific thing, ask:</p>
-<div class="thesis"><p><strong>If I removed this, would any <em>other</em> player&rsquo;s screen change?</strong></p></div>
-<ul>
-  <li><strong>Fast-forward</strong> &mdash; no. Legitimate.</li>
-  <li><strong>The hand-over modal</strong> &mdash; there is no other player in pass-and-play. Legitimate.</li>
-  <li><strong>The guest&rsquo;s camera pointing somewhere else</strong> &mdash; yes. That is a fork, and it is the bug.</li>
-</ul>
-<p>And the mechanical form of the same question, which a gate can run: <strong>does it emit an event?</strong> A mode-specific thing that emits no event is local by construction and cannot make two screens disagree. One that does emit an event is a fork wearing a feature&rsquo;s clothes.</p>
+
+<div class="warn">
+  <p class="lbl">Corrected — the first version of this test was wrong</p>
+  <p>It asked whether any other <em>player</em> would be affected, and said that pass-and-play has no other player. That is plainly false: in pass-and-play the other players are sitting next to you, waiting for the device. The question is not about other players. It is about other <strong>screens</strong>.</p>
+</div>
+
+<p>A fork is two screens showing the same game, at the same moment, and disagreeing about it. So the test is:</p>
+
+<div class="thesis"><p><strong>Would this make two screens showing the same game, at the same moment, show different things?</strong></p></div>
+
+<p><strong>Fast-forward: no.</strong> It changes how quickly one screen gets through the script. Every screen still shows the same beats in the same order, and any screen that hurried arrives at the same place.</p>
+
+<p><strong>The hand-over modal: no, and for a reason worth understanding.</strong> Pass-and-play has only one screen, so it cannot have two screens disagreeing. What it has instead is a rule about who is allowed to look at that screen right now.</p>
+
+<p>And here is the part that makes this a rule rather than an exception. <strong>That secrecy is not a pass-and-play feature at all — it is a game rule that already applies in every mode.</strong> The code says so directly: your own recipe is shown to you everywhere, and every other captain&rsquo;s is private everywhere. Pass-and-play carries one extra condition, that you must tap <em>check my recipe</em> during your own turn:</p>
+
+<pre>canReveal = spectator || (i===mySeat &amp;&amp; (!passAndPlay || recipeRevealed))</pre>
+
+<p>In a crew game, separate devices enforce that rule for free — a rival simply cannot see your screen. In pass-and-play there is one screen, so the same rule needs a gate. <strong>The rule is identical; only the enforcement differs, because the hardware differs.</strong> That is exactly what a Decider is for.</p>
+
+<p><strong>The guest&rsquo;s camera pointing somewhere else: yes.</strong> Two screens, the same game, the same moment, looking at different parts of the board. That is a fork, and it is the bug you reported.</p>
+
+<h3>The mechanical version</h3>
+
+<p>The question above needs a person to answer it. This one does not, which is why it can live in a build gate: <strong>does the mode-specific thing emit an event?</strong></p>
+
+<p>If it emits no event, it is local by construction and cannot make two screens disagree, because the only thing screens share is the event stream. If it does emit an event, it is a fork wearing a feature&rsquo;s clothes, and it will drift.</p>
 
 <h2><span class="num">05</span><span>And then there is no guest</span></h2>
 
