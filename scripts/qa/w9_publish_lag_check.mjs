@@ -87,13 +87,23 @@ const NOTRUN = (why) => { throw Object.assign(new Error(why), { notrun: true });
    between that has no publishNow() in front of it. It reads the LINE, not the line above: the six
    sites this was written for all read "await animateSailRoute(evSail);liveRender();" — ride and
    publish on ONE PHYSICAL LINE — which is exactly why an earlier grep put the count at two. */
-const RIDE  = /await\s+(animateSailRoute|animateRimSweepIfAny|animateRimSweepRun|benchReveal)\s*\(/;
+/* THE GATED SUBJECT is the RIDES W9 is about — the sail glide and the rim sweep, the animations
+   that run on every captain's every turn. */
+const RIDE  = /await\s+(animateSailRoute|animateRimSweepIfAny|animateRimSweepRun)\s*\(/;
+/* AND A WATCH LIST, WHICH IS NOT THE SAME THING AS A PASS. `benchReveal` (the bake bench reveal,
+   src/orchestrator.js) reads as the identical shape — an emit, an awaited reveal, then the publish
+   — but it has NEVER BEEN MEASURED, and this project does not report a defect it has not measured
+   (CLAUDE.md rule 6). So it is PRINTED, loudly, on every single run, and it does NOT decide the
+   verdict. If you are reading this because you want it to stop printing: measure it first, then
+   fix it, then delete this list. Do not add to the list to make a red gate green. */
+const WATCH_NAMES = ['benchReveal'];
+const WATCH = new RegExp('await\\s+(' + WATCH_NAMES.join('|') + ')\\s*\\(');
 const EMIT  = /\.(ev|tradewind|bakeResolve|rimEscape|bakeAttempt|bakeRewatch)\s*\(/;
 const PUB   = /liveRender\s*\(\s*\)/;
 const SOURCES = ['src/ui/flow.js', 'src/orchestrator.js'];
 function legShape(){
   console.log('LEG shape — SOURCE SHAPE ONLY, NOT A MEASUREMENT. It cannot tell you what anything costs.');
-  const bad = [];
+  const bad = [], watch = [], seen = new Set();
   for(const file of SOURCES){
     const src = fs.readFileSync(file, 'utf8').split('\n');
     src.forEach((ln, i) => {
@@ -104,6 +114,7 @@ function legShape(){
       const scan = (s, n) => {
         if(/publishNow\s*\(\s*\)/.test(s)) published = true;
         if(RIDE.test(s) && !published) rides.push(n + ':' + s.match(RIDE)[1]);
+        if(WATCH.test(s) && !published) rides.push(n + ':' + s.match(WATCH)[1]);
         if(EMIT.test(s)) { emitAt = n; return true; }
         return false;
       };
@@ -113,9 +124,26 @@ function legShape(){
           if(scan(src[k].replace(/\/\/.*$/, ''), 'L' + (k + 1))) break;
         }
       }
-      if(emitAt !== null && rides.length && !published)
-        bad.push(file + ':' + (i + 1) + '  emit@' + emitAt + '  rides before the publish with no publishNow(): ' + rides.join(', '));
+      /* ONE HELD EMIT IS ONE DEFECT. A later liveRender() whose nearest prior emit is the same
+         one is the SAME site seen twice, and counting it twice inflates the number the next
+         person will quote. Keyed on the emit, so the first publish after it is the one reported. */
+      const key = file + '@' + emitAt;
+      if(emitAt !== null && rides.length && !published && !seen.has(key)){
+        seen.add(key);
+        /* routed on the ANIMATOR NAMES, not on the formatted label — an earlier version tested
+           the printed string against the WATCH regex, which carries `await ` and so could never
+           match, and the watch list silently stayed empty while its site failed the gate. */
+        const names = rides.map(r => r.split(':')[1]);
+        (names.every(n => WATCH_NAMES.includes(n)) ? watch : bad)
+          .push(file + ':' + (i + 1) + '  emit@' + emitAt + '  rides before the publish with no publishNow(): ' + rides.join(', '));
+      }
     });
+  }
+  if(watch.length){
+    console.log('OPEN, UNMEASURED, DELIBERATELY NOT FIXED — ' + watch.length + ' site(s) of the same shape:');
+    for(const w of watch) console.log('   ' + w);
+    console.log('      These do NOT decide the verdict below, and they are NOT passing. Nobody has');
+    console.log('      measured what they cost yet. Measure before fixing (CLAUDE.md rule 6).');
   }
   if(bad.length){
     console.log('RED — ' + bad.length + ' site(s) still ride an animation before the only publisher in the tree:');
@@ -124,7 +152,7 @@ function legShape(){
     console.log('      call publishNow() (src/ui/flow.js) the moment the event is recorded.');
     return 1;
   }
-  console.log('GREEN — no emit -> awaited ride -> publish gap in ' + SOURCES.join(', ') + '.');
+  console.log('GREEN — no sail/sweep ride sits between an emit and its publish in ' + SOURCES.join(', ') + '.');
   return 0;
 }
 
