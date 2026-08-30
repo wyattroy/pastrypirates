@@ -33,6 +33,19 @@ function extractJSON(text) {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+/* WHERE A JUDGE CALL RUNS AND WHAT IT TRUSTS — ONE DOOR, because two callers now need it.
+   Both judgeScreen (one image) and judgeBatch (several) shell out to `claude -p`, and both must
+   get the cwd and the CA right or they fail in the two ways this file has already paid for. Kept
+   as one function rather than two copies: a second copy is two things kept in step by discipline
+   (CLAUDE.md rule 23), and the whole reason these two comments exist is that getting either wrong
+   is silent — the run keeps going and produces nothing. */
+function judgeEnv() {
+  const CA = "/root/.ccr/ca-bundle.crt";
+  const env = { ...process.env };
+  if (!env.NODE_EXTRA_CA_CERTS && fs.existsSync(CA)) env.NODE_EXTRA_CA_CERTS = CA;
+  return { cwd: os.tmpdir(), env };
+}
+
 // judge ONE screenshot. Returns {verdict, issues, confidence, raw} or {verdict:"ERROR", ...}.
 // context is a short label ("desktop 1920 — sail prompt") folded into the prompt so the model knows
 // the size/mode without it changing the layout rules.
@@ -59,12 +72,9 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
        from a temp dir it answered in 37s.
        imgPath is absolute (playtest_gate passes it that way), so the judge has no need of the
        repo cwd at all. Do not "restore" it. */
-    const CWD = os.tmpdir();
-    const CA = "/root/.ccr/ca-bundle.crt";
-    const env = { ...process.env };
-    if (!env.NODE_EXTRA_CA_CERTS && fs.existsSync(CA)) env.NODE_EXTRA_CA_CERTS = CA;
+    const { cwd: CWD, env } = judgeEnv();
     const child = execFile("claude", ["-p", prompt, "--model", model, "--output-format", "json"],
-      { maxBuffer: 8 * 1024 * 1024, env, cwd: CWD }, (err, stdout) => {
+      { maxBuffer: 16 * 1024 * 1024, env, cwd: CWD }, (err, stdout) => {
         if (err && !stdout) return resolve({ verdict: "ERROR", issues: ["vision call failed: " + String(err.message || err).slice(0, 120)], confidence: 0 });
         let text = stdout;
         let outer = null;
@@ -88,8 +98,78 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
   });
 }
 
+/* JUDGE SEVERAL SCREENS IN ONE CALL — because one call per screenshot is most of what the eyes cost.
+ *
+ * MEASURED 2026-08-30, this container, real trial screenshots:
+ *     one screen, one call     $0.049   8.7s   (another, same size, took 42.6s)
+ *     five screens, one call   $0.103   31.3s
+ * Every call is a whole `claude -p` session boot — a fresh system prompt and tool table — for a
+ * ~500-token rubric and one image. A ten-leg fleet is ~300 of those: roughly $15, 25-40 minutes,
+ * and 300 separate chances to be hit by the proxy hiccup that lost the ENTIRE picture half of the
+ * 2026.08.29.2 trial. Batching is 5x fewer calls and ~2.4x cheaper, and it is what makes looking
+ * at EVERY screen affordable rather than the first thirty (see JUDGE_CAP's removal).
+ *
+ * RED-PROOFED BEFORE BEING BELIEVED: a deliberately broken layout hidden among four real
+ * screenshots came back FAIL, naming the overlap and the clipping. Batching did not make it lazy
+ * on the one that mattered. (n=1 planted fault — evidence, not proof, and worth re-testing if the
+ * batch size is ever raised.)
+ *
+ * A SCREEN THE REPLY DOES NOT MENTION IS NOT A PASS. It is left undefined, exactly as judgeAll
+ * leaves screens it never reached, because the one thing this whole file exists to prevent is a
+ * screen nobody looked at being counted as a screen that was fine.
+ */
+export function judgeBatch(items, { model = "claude-sonnet-5", timeoutMs = 300000 } = {}) {
+  const list = items.map((it, i) => `${i + 1}. ${it.path}${it.context ? `   (context, informational only: ${it.context})` : ""}`).join("\n");
+  const prompt = `${RUBRIC}
+
+You are judging ${items.length} screenshots, listed below. Read EVERY image file and judge each one
+SEPARATELY against the rules above. Do not let one screen's verdict influence another's.
+Reply with ONLY a JSON array, one object per image, in the same order, no prose:
+[{"file":"<the file's basename>","verdict":"PASS"|"FAIL","issues":["short concrete phrase"],"confidence":0.0-1.0}]
+
+Images:
+${list}`;
+  return new Promise((resolve) => {
+    const { cwd, env } = judgeEnv();
+    const child = execFile("claude", ["-p", prompt, "--model", model, "--output-format", "json"],
+      { maxBuffer: 32 * 1024 * 1024, env, cwd }, (err, stdout) => {
+        if (err && !stdout) return resolve({ unparseable: "batch call failed: " + String(err.message || err).slice(0, 120) });
+        let text = stdout, outer = null;
+        try { outer = JSON.parse(stdout); text = outer.result ?? stdout; } catch {}
+        if (outer && outer.is_error === true)
+          return resolve({ fatal: { verdict: "FATAL", issues: ["the judge cannot run: " + String(text).slice(0, 160)], confidence: 0 } });
+        const fence = String(text).match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
+        const raw = fence ? fence[1] : (String(text).match(/\[[\s\S]*\]/) || [null])[0];
+        let arr = null;
+        try { arr = raw ? JSON.parse(raw) : null; } catch {}
+        if (!Array.isArray(arr)) return resolve({ unparseable: "batch reply was not a JSON array", raw: String(text).slice(0, 200) });
+        /* MATCH BY BASENAME, NOT BY POSITION. The model is asked for the same order and usually
+           obeys, but a verdict attached to the wrong screenshot is worse than no verdict at all —
+           it would send a reader to the wrong picture. Position is used only as a fallback when a
+           row carries no recognisable filename. */
+        const byName = new Map();
+        for (const row of arr) {
+          if (!row || !row.verdict) continue;
+          const name = String(row.file || "").split("/").pop();
+          if (name) byName.set(name, row);
+        }
+        const out = new Map();
+        items.forEach((it, i) => {
+          const base = it.path.split("/").pop();
+          const row = byName.get(base) || (byName.size === 0 && arr[i] && arr[i].verdict ? arr[i] : null);
+          if (!row) return;                       // never mentioned -> NOT judged, NOT cleared
+          out.set(it.path, { verdict: /fail/i.test(row.verdict) ? "FAIL" : "PASS",
+            issues: Array.isArray(row.issues) ? row.issues : [], confidence: +row.confidence || 0 });
+        });
+        resolve({ results: out });
+      });
+    const t = setTimeout(() => { try { child.kill("SIGKILL"); } catch {} resolve({ unparseable: "batch call timed out" }); }, timeoutMs);
+    child.on("exit", () => clearTimeout(t));
+  });
+}
+
 // judge many screenshots with bounded concurrency (each call is a full CLI/account inference).
-export async function judgeAll(items, { concurrency = 3, model = "claude-sonnet-5", onEach } = {}) {
+export async function judgeAllOneByOne(items, { concurrency = 3, model = "claude-sonnet-5", onEach } = {}) {
   const results = new Array(items.length);
   let next = 0;
   /* ONE FATAL STOPS THE WHOLE PASS. A FATAL means the judge cannot run at all (an expired login, a
@@ -119,6 +199,52 @@ export async function judgeAll(items, { concurrency = 3, model = "claude-sonnet-
       }
       if (results[i] && results[i].verdict === "FATAL" && !fatal) fatal = results[i];
       if (onEach) onEach(items[i], results[i], i);
+    }
+  }));
+  results.fatal = fatal;
+  return results;
+}
+
+/* THE PASS THE TRIAL ACTUALLY CALLS — batched, with one-by-one as the safety net.
+ *
+ * Same contract as before: an array parallel to `items`, holes left undefined for anything not
+ * judged, and `.fatal` set when the judge cannot run at all. Only the vehicle changed.
+ *
+ * WHY A FALLBACK RATHER THAN A RETRY. If a batch's reply cannot be parsed, the five screens in it
+ * have still not been looked at, and quietly dropping them is the failure this file was written
+ * against. So that batch is re-judged ONE AT A TIME — slower, but it is the difference between
+ * five screens seen and five screens silently missing. A FATAL is different and is not retried
+ * here: it means no call can work, and judgeAllOneByOne's own cert-flavoured retry has already
+ * had its two attempts inside the batch path's caller.
+ *
+ * BATCH SIZE: 5, measured (see judgeBatch). Not a magic number to tune blind — if it changes,
+ * re-run the planted-fault red-proof, because the risk of a bigger batch is a lazier look at each
+ * screen, which would be invisible in the timings and fatal to the point of the whole pass.
+ */
+export async function judgeAll(items, { concurrency = 3, batch = 5, model = "claude-sonnet-5", onEach } = {}) {
+  const results = new Array(items.length);
+  const groups = [];
+  for (let i = 0; i < items.length; i += batch) groups.push({ at: i, items: items.slice(i, i + batch) });
+  let fatal = null, nextG = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, groups.length) }, async () => {
+    while (nextG < groups.length) {
+      if (fatal) return;
+      const g = groups[nextG++];
+      const r = await judgeBatch(g.items, { model });
+      if (r.fatal) { if (!fatal) fatal = r.fatal; return; }
+      if (r.unparseable) {
+        // the safety net: these screens have NOT been seen, so look at them singly rather than lose them
+        const one = await judgeAllOneByOne(g.items, { concurrency: Math.min(3, g.items.length), model });
+        if (one.fatal && !fatal) fatal = one.fatal;
+        g.items.forEach((it, k) => { results[g.at + k] = one[k]; if (onEach && one[k]) onEach(it, one[k], g.at + k); });
+        continue;
+      }
+      g.items.forEach((it, k) => {
+        const v = r.results.get(it.path);
+        if (!v) return;                              // not mentioned -> stays undefined, NOT cleared
+        results[g.at + k] = v;
+        if (onEach) onEach(it, v, g.at + k);
+      });
     }
   }));
   results.fatal = fatal;

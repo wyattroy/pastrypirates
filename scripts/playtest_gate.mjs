@@ -55,7 +55,16 @@ const JUDGE = JUDGE_MODE !== "off";
 const MODEL = arg("model", "claude-sonnet-5");
 const MAX_MS = +arg("max-min", 35) * 60_000;
 const PAR = Math.max(1, +arg("parallel", 2));
-const JUDGE_CAP = 30;                     // distinct screens judged per leg (all get structural checks)
+/* THE EYES SEE EVERY SCREEN NOW. `JUDGE_CAP = 30` used to stop the vision judge at the first
+   thirty distinct screens of a leg while the structural rules ran on all of them — and the verdict
+   said nothing about the gap, so a 60-screen leg came back "30 judged, all PASS" and read as
+   visually clean with half of it never opened (one fleet: 349 captured, 267 judged, 82 unseen).
+   Wyatt, 2026-08-30: "everything must be seen visually, or else you don't catch your own code
+   errors." The cap existed because each screen was a separate `claude -p` session boot; batching
+   five screens per call (lib/vision.mjs, measured $0.103/31s per five against $0.049/9-43s EACH)
+   is what makes looking at all of them affordable. If a cap is ever needed again, the leg's
+   verdict already prints "N screen(s) NOT looked at" — so it can never be silent again. */
+const JUDGE_BATCH = +arg("judge-batch", 5);
 fs.mkdirSync(OUT, { recursive: true });
 const T0 = Date.now();
 const log = (...a) => { const s = `[${((Date.now() - T0) / 1000 | 0) + ""}s] ` + a.join(" "); console.log(s); fs.appendFileSync(path.join(OUT, "log.txt"), s + "\n"); };
@@ -417,13 +426,13 @@ async function runLeg(name, idx) {
   }
   // vision judge over every distinct screen (capped)
   if (JUDGE && rec.screens.length) {
-    const items = rec.screens.slice(0, JUDGE_CAP).map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
+    const items = rec.screens.map(s => ({ path: s.shot, context: `${name} — ${s.sig.slice(0, 60)}`, shot: s.shot }));
     if (JUDGE_MODE === "queue") {
       rec.queued = (rec.queued || []).concat(items);
       log(`[${name}] ${items.length} screen(s) queued for a session to judge`);
     } else {
       log(`[${name}] vision-judging ${items.length} screen(s)…`);
-      const results = await judgeAll(items, { concurrency: 3, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
+      const results = await judgeAll(items, { concurrency: 3, batch: JUDGE_BATCH, model: MODEL, onEach: (it, r) => { if (r.verdict !== "PASS") log(`  [judge ${r.verdict}] ${path.basename(it.shot)}: ${(r.issues || []).slice(0, 2).join("; ")}`); } });
       if (results.fatal) {
         /* THE JUDGE IS DEAD, NOT THE SCREENS. Defer rather than forfeit — see the JUDGE_MODE note. */
         log(`[${name}] !! the vision judge cannot run: ${results.fatal.issues[0]}`);
