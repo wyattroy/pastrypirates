@@ -1,0 +1,192 @@
+# Handoff — the night of 2026-08-26 → 27
+
+> ## ⚠ SUPERSEDED by [`HANDOFF-2026-08-27.md`](HANDOFF-2026-08-27.md)
+>
+> Written for the 8am read; accurate for that moment. Since then: the script tree moved out of
+> `4/`, two more instruments were found broken, the release process was written down, and the
+> work moved to staging for review. Start with the newer file.
+
+
+> ## THE ONE-LINE VERSION
+> **Four separate instruments were broken by the cutover, and one of them was the sea trial itself.**
+> Every gate this project relies on has been unable to see the game since the promotion. They can
+> now. One real game bug is fixed and measured; a staging tier exists; 7.7 GB deleted.
+
+**Branch: `aug26-night-fixes`.** `main` carries only `staging/`, the deploy scripts and the
+gear-picker fix — **the game real players are in the middle of is untouched.**
+
+---
+
+## 0. WHAT TO DO FIRST IN THE MORNING
+
+1. **Play it.** **`staging.playpastrypirates.com`** — build stamp
+   **`2026-08-26k-CUTOVER-STAGING/aug26-night-fixes`**. Production still reads
+   `2026-08-26k-CUTOVER`. If you see the second one you are on staging.
+2. **Add the DNS record**, if you want the real subdomain — it is the only thing blocking it, and
+   only you can do it. At **Squarespace**: `CNAME` · host `staging` · value `wyattroy.github.io`.
+   Everything else is already built and waiting.
+3. **Read `SEA-TRIAL.md`** — the first honest full trial since the cutover.
+
+---
+
+## 1. THE PATTERN OF THE NIGHT — a hand-written path outlives the tree it names
+
+**Four instruments, one cause.** The cutover promoted `4/` to the repo root. Every one of these
+still named the old tree, and none of them said so:
+
+| | what it did | consequence |
+|---|---|---|
+| **the browser fleet** | navigated to `/4/` | 77 dead references; every driver loaded a **directory listing** and reported "solo card not clickable" |
+| **the docs** | cited `4/src/…` in 35 lines | CLAUDE.md told every session to bump the build stamp in a file that does not exist |
+| **the gear picker** | `files.filter(f => f.startsWith("4/"))` | **every change to the live game reported GEAR: NONE** — "nothing to prove". Tooling reported FULL |
+| **the sea trial** | read the stamp from `4/src/ui/stage.js` | **crashed with ENOENT before sailing a leg.** Dead since the cutover. `ceo_brief.mjs` identically |
+
+**None of these failed loudly.** A directory listing answers 200. A missing file makes a gear picker
+say "nothing changed". `HARD-WON-LESSONS.md` §3 already names it: *a gate aimed at the wrong tree is
+not silent, it is reassuring.*
+
+**The guard added:** `4/scripts/game_url_check.js`, in `npm test` (19 gates). Five cases, each
+red-proofed **both** directions. Its load-bearing one is not "does a file exist" but **"does
+`GAME_PATH` resolve to an index.html that actually contains `#choiceSolo`"** — a directory listing
+passes a mere existence check.
+
+> **The lesson, three times over: a hand-kept list of what to guard rots exactly like the thing it
+> guards, and nothing says so. Derive it.** The doc-check's five-file list, the preview script's
+> exclude list, and the gear picker's tree filter were all the same bug.
+
+---
+
+## 2. THE ONE GAME FIX — T-32, and its four sea-trial steps
+
+**"The 1st turned pink instantly, then the 5th lagged as if 2, 3 and 4 were being revealed
+invisibly."** That is exactly what it was.
+
+A crate locked from an earlier attempt is never `covered`, so revealing it changed nothing on
+screen — and still cost a full `REVEAL_MS`. **Measured by posing the bench (§5e) rather than playing
+two attempts to reach it:**
+
+| | before | after |
+|---|---|---|
+| 0 locked | 6309 ms | 6309 ms |
+| 3 locked | **6310 ms** (identical) | **4743 ms** |
+| dead time on invisible crates | **1561 ms** ( = 3 × 520 ) | **−6 ms**, i.e. zero |
+
+**AND THE PROBE LIED FIRST — this is the part to keep.** Run 2 said the fix had changed nothing.
+The fix was on disk, the served module had it, the *loaded function* had it. It was the instrument:
+the probe appended a synthetic `#actionPanel` and then removed `"actionPanel"` **by id**, which
+removes **the game's** panel (first in the DOM) and leaves the synthetic one behind — so the second
+measurement silently re-timed the first one's all-unlocked bench. Two runs, one bench, identical
+numbers, a working fix that looked dead. Caught by red-proofing the instrument instead of the code.
+
+---
+
+## 3. THE STAGING TIER
+
+**Why it is not a branch of this repo:** GitHub Pages serves **one branch per repo at one domain**.
+Pointing this repo's Pages at a staging branch takes production down. Two live sites need two repos.
+
+| | |
+|---|---|
+| `wyattroy/pastrypirates-staging` | renamed from the stale `-v13-preview`; owns a CNAME for `staging.playpastrypirates.com`; Pages configured |
+| **blocked on** | one DNS record at Squarespace — `CNAME staging → wyattroy.github.io`. **Only Wyatt can add it** |
+| ~~interim path~~ | ~~`playpastrypirates.com/staging`~~ — **RETIRED 2026-08-27** the moment the subdomain worked. It existed only while DNS blocked the real thing; keeping both meant two staging surfaces kept in step by nothing, and they drifted within twelve hours |
+
+**The subdomain is safe and the reasoning is not optional.** Rule 14 is about two repos claiming
+**one** hostname. `staging.playpastrypirates.com` and `playpastrypirates.com` are different
+hostnames. The staging repo's CNAME is a **new file naming the subdomain, never a copy of ours** —
+and `deploy-staging.sh`'s guard changed shape to enforce exactly that: it used to fail if *any*
+CNAME appeared (which would now block every deploy, since staging legitimately owns one), and now
+checks **content** — must be the staging host, must never be the production host, must not be missing.
+
+**Verified after every step:** production's Pages cname still reads `playpastrypirates.com`, the
+live site answers 200, and `/classic` answers 200.
+
+> **`staging/` IS GENERATED. Never edit it by hand.** It is a second tree with the same internal
+> layout — the CLAUDE.md §3 hazard exactly. It stamps itself `<stamp>-STAGING/<branch>` so a
+> screenshot of it can never be mistaken for production.
+
+---
+
+## 4. THE 7.7 GB
+
+32,238 files of probe output deleted — none tracked, all gitignored, all regenerated by any trial.
+`.gitignore`'s own rule: *evidence lives in the gate's log and the commit messages, never in the repo.*
+
+**1.7 MB kept**, in `.planning/phases/02.3-the-two-hour-playtest/evidence-2026-08-26-seed-drill/`,
+because it is the ARGUMENT behind the drill's corrected scoring — three screenshots showing T-12's
+and T-02's "catches" were the §0 bug rather than their seeds, and the report pair that measures the
+noise floor. **They were about to be destroyed anyway:** the drill wipes each output directory
+before reusing it, so the next run would have deleted exactly the evidence the claim rests on.
+
+**`deploy-preview.sh` would have pushed all 7.7 GB** into the preview repo — it rsyncs the working
+tree, so `.gitignore` does not protect it, and its exclude list predated every directory today
+created. Now derived from `.gitignore`. Measured: **12 GB → 92 MB**.
+
+---
+
+## 5. §0 — NOT FIXED, but two theories are dead
+
+Measured on a real phone at a live sail prompt. Both hypotheses **falsified**, and the mechanism
+located. Full detail in `BACKLOG.md`; the short version:
+
+- **The HTML sail layer and the SVG board do NOT drift** — both put a board unit at 1.188595 px,
+  agreement to **0.000 px** across the width. That was the better theory and it is wrong.
+- **The captains panel does not overlap the board** — board ends y=476, panel begins y=476.
+- **Nothing clips the camera-mapped HTML layers.** `#boardwrap` has no `overflow` rule; the
+  `overflow:hidden` nearby belongs to the SVG and clips only its own content. `#sailHost` measures
+  −48.6 → 712.1 against a board of 86 → 476. So a square outside the camera frame paints outside the
+  board entirely — which is what `sailCell <- covered by #pp4Cap` reports.
+
+**The open question is what puts a square outside the frame**, since `camFitCells` fits every legal
+cell and clamps into the board. Two unmeasured candidates are written down with the measurement that
+would settle them — and it needs a **crew guest**, which tonight's solo probe could not make.
+
+> **Do not "fix" this by clipping `#sailHost`.** That hides a legal move instead of showing an
+> unreachable one. The fault is the frame, not the paint.
+
+---
+
+## 5b. THE SEA TRIAL RAN — 81 minutes, 8 legs, and it FAILED
+
+**That is the point.** Until last night it crashed before sailing a leg, so this is the first real
+result the gate has produced since the cutover. Full detail in `BACKLOG.md`.
+
+- **The ONLY structural failure across all 8 legs is §0** — same leg, same seat, same screen as
+  every previous trial. Everything else in the game is structurally clean.
+- **Three attempts to reproduce §0 under measurement, on a real two-phone crew rig, all failed.**
+  It is intermittent, which the drill's null test independently measured.
+- **"Play again!" covering the award cards is now on its EIGHTH flag** across three trials. It is
+  documented design and the third option (a footer outside the scroller) is unbuilt — **his call**.
+- **NEW: a ghosted rounded-box edge** above the "tap and hold the sea" bubble on crew-phone. A
+  floating box is placed with its top above `boardBand().top`, so the clipped host cuts it and
+  leaves a sliver. **The fix is the placement, not the clip.** Not attempted unattended — retuning
+  bubble placement without his eye is a taste change.
+- **One judge OVER-report, recorded as a non-bug:** two trade circles it called overlapping measure
+  **~11 CSS px apart**. The structural `no-pile` rule was right to stay quiet. Nobody should "fix" it.
+- **A standing backlog entry is now wrong and is corrected:** *"`deny` is never exercised in crew
+  games"* — this trial exercised it (`deny:1/7`, `deny:1/4`). It was very likely never exercised
+  because **the crew legs could not run at all**. Rule 6 applies to inherited claims too.
+- **`menu:0/1` on every leg** — nothing behind ☰ is being exercised by the driver at all.
+
+### Safari: the two WebKit legs did NOT run, and that is now fixed
+
+Both died with *"playwright not found"*, so **Safari coverage in that trial was ZERO** — the report
+says so in its NOT-RUN column, which is the one thing that column exists for.
+
+**The browsers were already on this machine** (`~/Library/Caches/ms-playwright/webkit-2287`,
+`webkit-2336`); only the npm package directory was missing. That is what `/tmp/pw` loses on every
+reboot, so **this will recur**. If you want Safari legs to just work, install the package once
+somewhere durable and export `PW_DIR` — e.g. `~/.pw` instead of `/tmp/pw`. Left as your call
+rather than writing into your home directory unasked.
+
+---
+
+## 6. STILL OPEN
+
+- **§0**, above — and it is what makes `crew-phone` gradeable, so it blocks trusting crew results.
+- **T-06** — Wyatt ruled the bench SHOULD be there, so it is a bug in the watch path, not a design
+  question. Not started.
+- **T-05, T-10, T-14, T-23, T-24, T-26** — untouched. T-23 (nobody can watch a bot bake) is the
+  biggest player-visible one and is **solo**, the mode a new player meets first.
+- **The drill's crew noise floor is 3**, so a `crew-phone` CAUGHT still means nothing. Fixing §0 is
+  the fix for that too.

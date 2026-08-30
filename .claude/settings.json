@@ -28,15 +28,37 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cto-staging-only.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "CTO lock held? then main is unreachable"
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
-            "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
+            "statusMessage": "Checking CLAUDE.md \u00a74 \u2014 read the doc first"
           },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-gear-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Which QA gear is this change in? (docs/QA-PROCESS.md)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/playtest-checklist-last.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Did this session change the game? Wyatt needs a checklist"
           }
         ]
       }

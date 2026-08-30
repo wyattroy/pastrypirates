@@ -77,10 +77,20 @@ trap 'rm -rf "$WORK"' EXIT
 # purpose (they identify the live site), and .planning/, .claude/ and
 # art-review/ are tracked on purpose too. Deriving these away would be the
 # outage this script exists to prevent.
+#
+# physical-board/ joined this list 2026-08-28, the hard way: it is kept out of the main
+# checkout's tree only via .git/info/exclude — a LOCAL, untracked file this script never reads,
+# because the derived half above only walks the shared .gitignore. rsync copies the working tree,
+# not what git ignores, so a deploy run from a checkout that has the folder on disk (any session
+# that ever worked the physical-board branch in-place) pushed it straight onto the PUBLIC
+# staging.playpastrypirates.com. It is the CNAME hazard's own shape — a hand-kept ignore list two
+# directories away from the one this script actually consults — for a folder that is meant to
+# live ONLY on the physical-board branch, never on main, never public.
 EXCLUDES=(
   --exclude=CNAME          # ← THE ONE THAT MATTERS. See the header.
   --exclude=robots.txt     # preview must stay Disallow:/ — do not publish the live Allow:/
   --exclude=sitemap.xml    # lists playpastrypirates.com URLs; meaningless on the preview
+  --exclude=physical-board/  # never public — see the note above
   --exclude=.git/
   --exclude=.planning/
   --exclude=.claude/
@@ -107,7 +117,19 @@ echo "==> staging deploy: $STAGING_REPO"
 
 git -C "$SRC" diff --quiet || echo "    note: working tree has uncommitted changes; deploying them as-is"
 
-gh repo clone "$STAGING_REPO" "$WORK/staging" -- -q
+# GET THE STAGING CHECKOUT. `gh` when it exists, plain git when it does not.
+# The CLOUD CONTAINER HAS NO `gh` (measured 2026-08-27) — so this line, which is the CTO's only
+# route to publishing anything, failed on the only platform the CTO runs on. Plain HTTPS git does
+# reach the repo there, through the session's authenticated proxy.
+# THIS IS NOT HAND-ROLLING THE SYNC, and the difference matters: only the way the CHECKOUT is
+# fetched changes. The rsync, the EXCLUDES, and every CNAME guard below are untouched — they are
+# the parts that stop a preview deploy taking the live game down, and nothing here goes near them.
+if command -v gh >/dev/null 2>&1; then
+  gh repo clone "$STAGING_REPO" "$WORK/staging" -- -q
+else
+  echo "    no gh — cloning over https"
+  git clone -q "https://github.com/$STAGING_REPO" "$WORK/staging"
+fi
 rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/staging/"
 
 # --- THE GUARD. Never remove; this is the whole reason the script exists. ---
@@ -156,18 +178,59 @@ echo "    guard passed: staging CNAME is '$GOT' (not the production host)"
 # production, which is worse than no stamp at all: the one tell Wyatt relies on to
 # know which build he is looking at was actively lying.
 # Stamped on the COPY, never the source, so the working tree stays clean.
+# IN-PLACE sed, ON BOTH PLATFORMS. The BSD/macOS form needs an empty backup suffix as a separate
+# argument; GNU sed (every Linux box, and every cloud container this project now runs in) reads
+# that empty string as the SCRIPT and the real script as a FILENAME, and dies. Found 2026-08-27
+# from a cloud session, where this script — the CTO's only sanctioned output channel — could not
+# have published anything at all.
+# Feature-detected, never guessed from `uname`: GNU sed answers --version, BSD sed does not.
+if sed --version >/dev/null 2>&1; then sed_i(){ sed -i "$@"; }
+else                                  sed_i(){ sed -i '' "$@"; }; fi
+
 STAMPFILE="$WORK/staging/src/ui/stage.js"
 if [ -f "$STAMPFILE" ]; then
   STAMP="$(grep -o 'PP4_STAMP = "[^"]*"' "$STAMPFILE" | head -1 | sed 's/.*= "//; s/"//')"
   BRANCH="$(git -C "$SRC" branch --show-current)"
+  # ...AND THE COMMIT, because the branch name alone is not a build identity. Caught 2026-08-27:
+  # staging carried the bake-off fix but NOT the End of Voyage footer, and its stamp was byte
+  # identical to the build that had both — the branch had advanced and the stamp had not. Wyatt
+  # would have played a stale build with no tell. The short SHA changes with every commit, so a
+  # screenshot now names the exact build it came from.
+  SHA="$(git -C "$SRC" rev-parse --short HEAD)"
   case "$STAMP" in
-    *-STAGING/*) echo "    stamp already marked: $STAMP" ;;
-    *) sed -i '' "s|const PP4_STAMP = \"$STAMP\";|const PP4_STAMP = \"$STAMP-STAGING/$BRANCH\";|" "$STAMPFILE"
-       echo "    stamped: $STAMP-STAGING/$BRANCH" ;;
+  # W0-3 (Wyatt, 2026-08-27): "staging appends -staging". The old suffix `-STAGING/<branch>@<sha>`
+  # made the very stamp he asked to SHORTEN the longest thing on the line. The short SHA STAYS —
+  # it was added this morning because staging once served different code under a stamp
+  # byte-identical to production's, and he would have played a stale build with no tell. The
+  # BRANCH name is what leaves the SCREEN; the deploy log below still prints it, so the log keeps
+  # the full identity while the ☰ menu keeps the short one.
+    *-staging@*) echo "    stamp already marked: $STAMP" ;;
+    *) sed_i "s|const PP4_STAMP = \"$STAMP\";|const PP4_STAMP = \"$STAMP-staging@$SHA\";|" "$STAMPFILE"
+       echo "    stamped: $STAMP-staging@$SHA   (from branch $BRANCH)" ;;
   esac
 else
   echo "FATAL: $STAMPFILE missing — refusing to publish an unstampable staging build." >&2
   exit 1
+fi
+
+# THE BROWSER TAB SAYS STAGING TOO — because the build stamp lives in the ☰ menu, and on
+# 2026-08-27 Wyatt played PRODUCTION for a while believing it was staging. The cause was not
+# carelessness: typing a bare domain makes a modern browser try https://, staging has no
+# certificate yet, that fails, and he lands back on his production bookmark. A tell that requires
+# opening a menu is a tell that gets skipped.
+#
+# DELIBERATELY THE TITLE AND NOTHING ELSE. A banner ON the page was considered and rejected: the
+# entire value of staging is being IDENTICAL to production, and an overlay could itself produce a
+# false finding ("something is covering the board") — testing a game that differs from the one
+# that ships is the failure this whole tier exists to prevent. The tab is outside the game.
+INDEX="$WORK/staging/index.html"
+if [ -f "$INDEX" ]; then
+  if grep -q "<title>\[STAGING\]" "$INDEX"; then
+    echo "    title already marked"
+  else
+    sed_i 's|<title>|<title>[STAGING] |' "$INDEX"
+    echo "    tab title: $(grep -o '<title>[^<]*</title>' "$INDEX" | head -1)"
+  fi
 fi
 
 cd "$WORK/staging"
@@ -180,4 +243,47 @@ git status --short | sed 's/^/    /'
 git commit -q -m "$MSG"
 git push -q origin HEAD:main
 echo "==> pushed. https://$STAGING_HOST/"
-echo "    (GitHub Pages takes a minute or two to rebuild.)"
+
+# ============================================================================
+#  PROVE IT LANDED. The push is not the deploy.
+# ============================================================================
+# This script had NO post-publish check at all, and that is how staging served
+# DIFFERENT CODE under a stamp identical to production's for a day without one
+# thing in the loop noticing. "We deployed it" is a claim; the stamp on the wire
+# is the evidence. Never fails the deploy — Pages genuinely takes minutes — but
+# it always says which of the three things happened, in words.
+STAMP_NOW="$(grep -o 'PP4_STAMP = "[^"]*"' "$STAMPFILE" | head -1 | sed 's/.*= "//; s/"//')"
+echo "    waiting for Pages to serve $STAMP_NOW ..."
+LANDED=no
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  sleep 12
+  GOT="$(curl -s --max-time 20 "https://$STAGING_HOST/src/ui/stage.js" 2>/dev/null \
+         | grep -o 'PP4_STAMP = "[^"]*"' | head -1 | sed 's/.*= "//; s/"//')"
+  if [ "$GOT" = "$STAMP_NOW" ]; then LANDED=yes; break; fi
+  [ -n "$GOT" ] && echo "    still serving: $GOT"
+done
+
+if [ "$LANDED" = yes ]; then
+  echo "    ✅ LIVE — https://$STAGING_HOST/  serving $STAMP_NOW"
+else
+  # THE TWO FAILURES LOOK IDENTICAL FROM A SCRIPT AND ARE NOT THE SAME PROBLEM,
+  # so name both rather than printing one guess. Measured from a cloud container
+  # 2026-08-27: the egress proxy permits HTTPS CONNECT to this host but refuses
+  # plain http:// outright, and https:// then dies AFTER the tunnel opens with no
+  # HTTP status — which is what an origin with no certificate looks like from
+  # behind a re-terminating proxy.
+  echo "    ⚠️  COULD NOT CONFIRM. The push succeeded; the SERVE is unverified."
+  echo "        Do not report this as deployed. Two things it can be:"
+  echo "        1. Pages is still rebuilding — re-run the curl above in a few minutes."
+  echo "        2. GitHub has issued NO CERTIFICATE for $STAGING_HOST, so https fails."
+  echo "           DNS is not the problem if 'getent hosts $STAGING_HOST' names"
+  echo "           wyattroy.github.io. The fix is in the staging repo's"
+  echo "           Settings -> Pages: clear the Custom domain, save, re-enter it,"
+  echo "           save. That re-runs the check and re-requests the certificate."
+  echo "           Then tick Enforce HTTPS. A CAA record on the apex that omits"
+  echo "           letsencrypt.org blocks this permanently — check that first if"
+  echo "           re-adding the domain never issues a cert."
+  echo "        Meanwhile the push IS verifiable from git:"
+  echo "           git clone --depth 1 https://github.com/$STAGING_REPO /tmp/stgchk"
+  echo "           grep -o 'PP4_STAMP = \"[^\"]*\"' /tmp/stgchk/src/ui/stage.js"
+fi

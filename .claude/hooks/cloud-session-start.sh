@@ -61,7 +61,7 @@ if command -v certutil >/dev/null 2>&1; then
 fi
 
 # 3. TLS 1.2 wrapper, installed as `chromium` on PATH so the QA scripts' resolver
-#    (4/scripts/lib/chrome.mjs: CHROME_BIN, then PATH) finds it with no env var needed.
+#    (scripts/lib/chrome.mjs: CHROME_BIN, then PATH) finds it with no env var needed.
 cat > "$WRAPPER" <<WRAP
 #!/bin/bash
 # Pastry Pirates cloud QA wrapper (installed by .claude/hooks/cloud-session-start.sh).

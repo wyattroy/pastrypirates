@@ -1,0 +1,2448 @@
+[
+  {
+    "name": "crew-phone",
+    "screens": [
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001.png",
+        "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 491,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001.png",
+        "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002.png",
+        "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002.png",
+        "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 367,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003.png",
+        "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 367,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003.png",
+        "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004.png",
+        "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Chocolat,pp4Bake:Bake thi",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 366,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004.png",
+        "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:French P,pp4Bake:Bake thi",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 365,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005.png",
+        "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 369,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005.png",
+        "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 369,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 369,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007.png",
+        "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2601,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008.png",
+        "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 493,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007.png",
+        "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2602,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008.png",
+        "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009.png",
+        "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2609,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 372,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011.png",
+        "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 1000,
+          "samples": 9
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012.png",
+        "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 495,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009.png",
+        "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2602,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 370,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011.png",
+        "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 493,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012.png",
+        "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 375,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013.png",
+        "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2702,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014.png",
+        "sig": "radial pp4Stage ~ Flaky Jack+5|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Vanilla Beans the table answers",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2707,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013.png",
+        "sig": "radial pp4Stage ~ Dock|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2613,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014.png",
+        "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ Docking at  the Flour Patch — dig for tr",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015.png",
+        "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016.png",
+        "sig": "radial pp4Stage ~ Buy  −4|Nah ~ sail:0 ~  ~  ~ sel: ~ TAILS — a turn on the docks. Buy a sack ",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2612,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015.png",
+        "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 372,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2708,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018.png",
+        "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: test1 offers  Vanilla Beans + 1 c",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2704,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016.png",
+        "sig": "radial pp4Stage ~ test2|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+        "fails": [
+          {
+            "ok": false,
+            "rule": "no-cover-ask",
+            "what": "control covering the question it answers: \"test2\" over \"Fer yer  Toasty Wheat the tabl\""
+          }
+        ],
+        "settle": {
+          "settled": false,
+          "ms": 2702,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019.png",
+        "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2712,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2711,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020.png",
+        "sig": "radial pp4Stage ~ Call test1|Call Dough H ~ sail:0 ~  ~  ~ sel: ~ test2 — a battle's brewing! Call the win",
+        "fails": [
+          {
+            "ok": false,
+            "rule": "no-cover-ask",
+            "what": "control covering the question it answers: \"Call test1\" over \"test2 — a battle's brewing! Ca\""
+          }
+        ],
+        "settle": {
+          "settled": false,
+          "ms": 2704,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018.png",
+        "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 615,
+          "samples": 6
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021.png",
+        "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 738,
+          "samples": 7
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019.png",
+        "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 366,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022.png",
+        "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Cacao Pods the table answers: D",
+        "fails": [
+          {
+            "ok": false,
+            "rule": "no-cover-ask",
+            "what": "control covering the question it answers: \"Dough Hook\" over \"Fer yer  Cacao Pods the table \""
+          }
+        ],
+        "settle": {
+          "settled": false,
+          "ms": 2707,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Coin|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: what o' test1's will ye have inst",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2605,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024.png",
+        "sig": "radial pp4Stage ~ Ask it! ~ sail:0 ~  ~  ~ sel: ~ test2: ye're ASKIN' 1 for yer  Cacao Pod",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2600,
+          "samples": 21
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025.png",
+        "sig": "radial pp4Stage ~ Stay put ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2708,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026.png",
+        "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2704,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027.png",
+        "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 614,
+          "samples": 6
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028.png",
+        "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 373,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020.png",
+        "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 368,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021.png",
+        "sig": "radial pp4Stage ~ Toasty Wheat|Cacao Pods|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+        "fails": [],
+        "settle": {
+          "settled": false,
+          "ms": 2709,
+          "samples": 22
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 492,
+          "samples": 5
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-eov.png",
+        "sig": "end of voyage",
+        "fails": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022-settled.png",
+        "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022.png",
+        "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+        "fails": [],
+        "settle": {
+          "settled": true,
+          "ms": 367,
+          "samples": 4
+        },
+        "motionOnly": []
+      },
+      {
+        "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-eov.png",
+        "sig": "end of voyage",
+        "fails": []
+      }
+    ],
+    "consoleErrs": [
+      "ERR [src/net/registry.js] duplicate attach refused for key \"session|https://pastry-pirates-default-rtdb.firebaseio.com/.info/connected|value|connected\" — was the caller's setup entry point invoked twice?"
+    ],
+    "seats": [
+      {
+        "screens": [
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 491,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002.png",
+            "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002.png",
+            "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003.png",
+            "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004.png",
+            "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Chocolat,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 366,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004.png",
+            "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:French P,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 365,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2601,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2602,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2609,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 372,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1000,
+              "samples": 9
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 495,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009.png",
+            "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2602,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 375,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2702,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014.png",
+            "sig": "radial pp4Stage ~ Flaky Jack+5|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Vanilla Beans the table answers",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2707,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013.png",
+            "sig": "radial pp4Stage ~ Dock|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2613,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014.png",
+            "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ Docking at  the Flour Patch — dig for tr",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015.png",
+            "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016.png",
+            "sig": "radial pp4Stage ~ Buy  −4|Nah ~ sail:0 ~  ~  ~ sel: ~ TAILS — a turn on the docks. Buy a sack ",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2612,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015.png",
+            "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 372,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018.png",
+            "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: test1 offers  Vanilla Beans + 1 c",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016.png",
+            "sig": "radial pp4Stage ~ test2|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"test2\" over \"Fer yer  Toasty Wheat the tabl\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2702,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019.png",
+            "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2712,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2711,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020.png",
+            "sig": "radial pp4Stage ~ Call test1|Call Dough H ~ sail:0 ~  ~  ~ sel: ~ test2 — a battle's brewing! Call the win",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"Call test1\" over \"test2 — a battle's brewing! Ca\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018.png",
+            "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 615,
+              "samples": 6
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021.png",
+            "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 738,
+              "samples": 7
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 366,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022.png",
+            "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Cacao Pods the table answers: D",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"Dough Hook\" over \"Fer yer  Cacao Pods the table \""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2707,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Coin|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: what o' test1's will ye have inst",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2605,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024.png",
+            "sig": "radial pp4Stage ~ Ask it! ~ sail:0 ~  ~  ~ sel: ~ test2: ye're ASKIN' 1 for yer  Cacao Pod",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2600,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025.png",
+            "sig": "radial pp4Stage ~ Stay put ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026.png",
+            "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 614,
+              "samples": 6
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 373,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Cacao Pods|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2709,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 492,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-eov.png",
+            "sig": "end of voyage",
+            "fails": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-eov.png",
+            "sig": "end of voyage",
+            "fails": []
+          }
+        ],
+        "finished": true,
+        "player": {
+          "coverage": {
+            "arrgh": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "french pots de crèmeluxu": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "crispy cocoa snapsthin h": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "start": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "sail square": {
+              "seen": 33,
+              "clicked": 33
+            },
+            "pass #": {
+              "seen": 21,
+              "clicked": 10
+            },
+            "menu": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "menu open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "menu close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "chat open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "trade": {
+              "seen": 20,
+              "clicked": 10
+            },
+            "toasty wheat": {
+              "seen": 16,
+              "clicked": 4
+            },
+            "coins only": {
+              "seen": 10,
+              "clicked": 4
+            },
+            "slider": {
+              "seen": 10,
+              "clicked": 10
+            },
+            "offer it": {
+              "seen": 10,
+              "clicked": 10
+            },
+            "vanilla beans": {
+              "seen": 11,
+              "clicked": 3
+            },
+            "flaky jack#": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "walk away": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "hot cinnamon": {
+              "seen": 8,
+              "clicked": 1
+            },
+            "test#": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "fresh milk": {
+              "seen": 6,
+              "clicked": 2
+            },
+            "crystal sugar": {
+              "seen": 5,
+              "clicked": 2
+            },
+            "speckled eggs": {
+              "seen": 5,
+              "clicked": 1
+            },
+            "attack #": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "flip coin": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "cacao pods": {
+              "seen": 6,
+              "clicked": 3
+            }
+          },
+          "deadButtons": [],
+          "findings": [],
+          "screens": [
+            {
+              "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:French P,pp4Bake:Bake thi",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Flaky Jack+5|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Vanilla Beans the table answers",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ test2|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017.png"
+            },
+            {
+              "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018.png"
+            },
+            {
+              "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019.png"
+            },
+            {
+              "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Cacao Pods|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022.png"
+            }
+          ],
+          "days": {},
+          "pending": {},
+          "_steppedThisPrompt": false
+        }
+      },
+      {
+        "screens": [
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 491,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-001.png",
+            "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-002.png",
+            "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002.png",
+            "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-003.png",
+            "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel: ~ test1, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003.png",
+            "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004.png",
+            "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Chocolat,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 366,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-004.png",
+            "sig": "pp4Recipes pp4Stage ~ French Pots |Crispy Cocoa ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:French P,pp4Bake:Bake thi",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 365,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-005.png",
+            "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-006.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 369,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2601,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-007.png",
+            "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test1: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2602,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-008.png",
+            "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2609,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 372,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 1000,
+              "samples": 9
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 495,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-009.png",
+            "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2602,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-010.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 370,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-011.png",
+            "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 493,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-012.png",
+            "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 375,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-013.png",
+            "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test1, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2702,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-014.png",
+            "sig": "radial pp4Stage ~ Flaky Jack+5|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Vanilla Beans the table answers",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2707,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013.png",
+            "sig": "radial pp4Stage ~ Dock|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2613,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014.png",
+            "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ Docking at  the Flour Patch — dig for tr",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015.png",
+            "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016.png",
+            "sig": "radial pp4Stage ~ Buy  −4|Nah ~ sail:0 ~  ~  ~ sel: ~ TAILS — a turn on the docks. Buy a sack ",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2612,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-015.png",
+            "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 372,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018.png",
+            "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: test1 offers  Vanilla Beans + 1 c",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-016.png",
+            "sig": "radial pp4Stage ~ test2|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Toasty Wheat the table answers:",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"test2\" over \"Fer yer  Toasty Wheat the tabl\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2702,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019.png",
+            "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2712,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-017.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2711,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020.png",
+            "sig": "radial pp4Stage ~ Call test1|Call Dough H ~ sail:0 ~  ~  ~ sel: ~ test2 — a battle's brewing! Call the win",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"Call test1\" over \"test2 — a battle's brewing! Ca\""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-018.png",
+            "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 615,
+              "samples": 6
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021.png",
+            "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 738,
+              "samples": 7
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-019.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 366,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022.png",
+            "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Cacao Pods the table answers: D",
+            "fails": [
+              {
+                "ok": false,
+                "rule": "no-cover-ask",
+                "what": "control covering the question it answers: \"Dough Hook\" over \"Fer yer  Cacao Pods the table \""
+              }
+            ],
+            "settle": {
+              "settled": false,
+              "ms": 2707,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Coin|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: what o' test1's will ye have inst",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2605,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024.png",
+            "sig": "radial pp4Stage ~ Ask it! ~ sail:0 ~  ~  ~ sel: ~ test2: ye're ASKIN' 1 for yer  Cacao Pod",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2600,
+              "samples": 21
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025.png",
+            "sig": "radial pp4Stage ~ Stay put ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2708,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026.png",
+            "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2704,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 614,
+              "samples": 6
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 373,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-020.png",
+            "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 368,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-021.png",
+            "sig": "radial pp4Stage ~ Toasty Wheat|Cacao Pods|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Fresh Milk?",
+            "fails": [],
+            "settle": {
+              "settled": false,
+              "ms": 2709,
+              "samples": 22
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 492,
+              "samples": 5
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-eov.png",
+            "sig": "end of voyage",
+            "fails": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022-settled.png",
+            "motionShot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-022.png",
+            "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+            "fails": [],
+            "settle": {
+              "settled": true,
+              "ms": 367,
+              "samples": 4
+            },
+            "motionOnly": []
+          },
+          {
+            "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-host-eov.png",
+            "sig": "end of voyage",
+            "fails": []
+          }
+        ],
+        "finished": true,
+        "player": {
+          "coverage": {
+            "arrgh": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "chocolate fudge tortea p": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "cinnamonchocolate fudgea": {
+              "seen": 2,
+              "clicked": 0
+            },
+            "start": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "sail square": {
+              "seen": 24,
+              "clicked": 24
+            },
+            "pass #": {
+              "seen": 21,
+              "clicked": 9
+            },
+            "menu": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "menu open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "menu close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "chat open": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "chat close": {
+              "seen": 0,
+              "clicked": 1
+            },
+            "trade": {
+              "seen": 20,
+              "clicked": 10
+            },
+            "toasty wheat": {
+              "seen": 12,
+              "clicked": 2
+            },
+            "coins only": {
+              "seen": 10,
+              "clicked": 6
+            },
+            "slider": {
+              "seen": 11,
+              "clicked": 11
+            },
+            "offer it": {
+              "seen": 10,
+              "clicked": 10
+            },
+            "vanilla beans": {
+              "seen": 14,
+              "clicked": 4
+            },
+            "dock": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "flip coin": {
+              "seen": 2,
+              "clicked": 2
+            },
+            "buy #": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "nah": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "hot cinnamon": {
+              "seen": 8,
+              "clicked": 2
+            },
+            "accept": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "counter": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "deny": {
+              "seen": 3,
+              "clicked": 0
+            },
+            "fresh milk": {
+              "seen": 5,
+              "clicked": 2
+            },
+            "crystal sugar": {
+              "seen": 6,
+              "clicked": 2
+            },
+            "speckled eggs": {
+              "seen": 6,
+              "clicked": 1
+            },
+            "call test#": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "call dough hook": {
+              "seen": 1,
+              "clicked": 0
+            },
+            "cacao pods": {
+              "seen": 4,
+              "clicked": 1
+            },
+            "dough hook": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "walk away": {
+              "seen": 2,
+              "clicked": 1
+            },
+            "coin": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "ask it": {
+              "seen": 1,
+              "clicked": 1
+            },
+            "attack #": {
+              "seen": 1,
+              "clicked": 1
+            }
+          },
+          "deadButtons": [],
+          "findings": [],
+          "screens": [
+            {
+              "sig": "pp4Center pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-001.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Arrgh! ~ sail:0 ~  ~  ~ sel: ~ Ahoy! Choose a recipe, gather each ingre",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-002.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel: ~ test2, choose yer recipe:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-003.png"
+            },
+            {
+              "sig": "pp4Recipes pp4Stage ~ Chocolate Fu|Cinnamon-Cho ~ sail:0 ~  ~  ~ sel:apBtn recipeCard pp4Focus:Chocolat,pp4Bake:Bake thi",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-004.png"
+            },
+            {
+              "sig": "pp4Center pp4Stage ~ Start ~ sail:0 ~  ~  ~ sel: ~ The crew draws lots for sailing order — ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-005.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-006.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-007.png"
+            },
+            {
+              "sig": "radial pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-008.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-009.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Fresh Milk|Crystal Suga|Speckled Egg|Cacao Pods|Hot Cinnamon|Vanilla Bean ~ sail:0 ~  ~  ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-010.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ — coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Toasty Wheat?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-011.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Offer it! ~ sail:0 ~  ~  ~ sel: ~ Would ye offer any coin on top?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-012.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Dock|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-013.png"
+            },
+            {
+              "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ Docking at  the Flour Patch — dig for tr",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-014.png"
+            },
+            {
+              "sig": "pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-015.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Buy  −4|Nah ~ sail:0 ~  ~  ~ sel: ~ TAILS — a turn on the docks. Buy a sack ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-016.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-017.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Accept|Counter|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: test1 offers  Vanilla Beans + 1 c",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-018.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Vanilla Bean|— coins only ~ sail:0 ~  ~  ~ sel: ~ What will ye GIVE for  Hot Cinnamon?",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-019.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Call test1|Call Dough H ~ sail:0 ~  ~  ~ sel: ~ test2 — a battle's brewing! Call the win",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-020.png"
+            },
+            {
+              "sig": "centered pp4Stage ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-021.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Dough Hook|Walk away ~ sail:0 ~  ~  ~ sel: ~ Fer yer  Cacao Pods the table answers: D",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-022.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Toasty Wheat|Coin|Deny ~ sail:0 ~  ~  ~ sel: ~ test2: what o' test1's will ye have inst",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-023.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Ask it! ~ sail:0 ~  ~  ~ sel: ~ test2: ye're ASKIN' 1 for yer  Cacao Pod",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-024.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Stay put ~ sail:1 ~  ~  ~ sel: ~ test2: tap to sail",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-025.png"
+            },
+            {
+              "sig": "radial pp4Stage ~ Attack −2|Trade|Pass +1 ~ sail:0 ~  ~  ~ sel: ~ test2, what'll ye do:",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-026.png"
+            },
+            {
+              "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~ FLIP ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-027.png"
+            },
+            {
+              "sig": "centered pp4Stage pp4Cer ~  ~ sail:0 ~  ~  ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-028.png"
+            },
+            {
+              "sig": "pp4Stage ~  ~ sail:0 ~  ~ EOV ~ sel: ~ ",
+              "shot": "/Users/wyattroy/Documents/Projects/pastrypirates/crew-phone-shots/crew-phone-guest-029.png"
+            }
+          ],
+          "days": {},
+          "pending": {},
+          "_steppedThisPrompt": false
+        }
+      }
+    ],
+    "parity": [
+      {
+        "key": "battle card|host has no battle card, guest has",
+        "field": "battle card",
+        "why": "host has no battle card, guest has"
+      },
+      {
+        "key": "battle card|host has battle card, guest has no",
+        "field": "battle card",
+        "why": "host has battle card, guest has no"
+      }
+    ],
+    "finished": true,
+    "verdict": [
+      "3 structural check failure(s)",
+      "offered but never exercised: deny",
+      "2 moment(s) where the two captains saw different games: battle card (host has no battle card, guest has); battle card (host has battle card, guest has no)",
+      "1 console error(s): ERR [src/net/registry.js] duplicate attach refused for key \"session|https://pastry-pirates-default-rtdb.firebaseio.com/.info/connected|value|connected\" — was the caller's setup entry point invoked twice?",
+      "20 screen(s) never stopped moving before being checked"
+    ]
+  }
+]

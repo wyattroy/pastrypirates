@@ -70,6 +70,26 @@ export const appState = {
   turnOrder: null,
   numSeats: 4,
   evPushed: 0,
+  // Q-18: how far THIS seat's own event feed has reached, in the host's numbering — set by
+  // watchEvents from each arriving event's `n`, read by watchNarr so a sentence is never drawn
+  // ahead of the event that caused it. Null until the first serialled event lands, and an older
+  // host that sends no `n` leaves it null forever, which is exactly today's behaviour.
+  evSeen: null,
+  // Q-18: which narration line owns the single `narr` slot right now. Bumped on every arriving
+  // line so a held one that resolves late can tell it has been superseded and drop, rather than
+  // repainting an older sentence over a newer one (CEO Review 24).
+  narrGen: 0,
+  // Q-18 / CEO Review 25: the index of the event the CURRENT narration line was read from — set by
+  // src/ui/panel.js's narrateLastEvent, which is the only narration that is about an event, and
+  // spent once by readSubject(). Null for every other line in the game, so those send no serial and
+  // the guest falls back to exactly what the host does. THE SUBJECT AND THE SERIAL ARE ONE FACT.
+  narrEvIdx: null,
+  // A-13 (Wyatt, 2026-08-28: "host and guest parity is the #1 goal of this work"): the ONE
+  // consumption frontier. Events at index < evConsumed have been handed to consumeEvent — the
+  // host's drain advances it as it drains, the guest's wire feed advances it as events arrive,
+  // so neither tier can double-draw and neither can skip. Reset with evPushed; jumped past the
+  // rebuilt history at endReplay so a resumed voyage never replays its pops and sounds.
+  evConsumed: 0,
   promptCounter: 0,
   gameStarted: false,
   appliedMeta: false,
@@ -84,43 +104,22 @@ export const appState = {
   curSeat: 0,
   inBattlePrompt: false,
   spectatingBattle: false,
-  shotClockSeat: null,
-  shotClockDeadline: 0,
-  shotClockTimer: null,
-  shotClockForce: null,
-  shotClockStash: null,
-  shotClockPaused: false,
-  // /4: true only while the CURRENT pause was created by the hide-tab auto-pause (src/main.js) —
-  // the visibility handler auto-resumes exactly that pause on return and never a player's own ⏸
-  autoPausedByHide: false,
+  // The clock's six fields left with the shot clock; shotClockPaused and autoPausedByHide left
+  // with play/pause (Wyatt's A-10, same day). Re-engineered pause starts from git history here.
   // /4 fast-forward: true while a one-shot ⏩ skip runs (armed by the ribbon chip, stage.js;
   // ended by ANY prompt involving the player — flow.js ffEndNow). ffFromEv marks the event index
   // when the skip armed, so the recap covers exactly what played unwitnessed. Pure UI pacing —
   // the engine never reads either field.
   ff: false,
   ffFromEv: null,
-  shotClockPauseElapsed: 0,
-  timerOff: false,
-  shotClockFired: {},
+  // turnExpired is KEEP-BUT-NEUTER (2026-08-28): the clock's expiry was its only true-writer,
+  // so it is now permanently false — its ~20 abort-guard readers across humanTurn/humanAct/
+  // humanTrade/humanDock are provably dead but stay for a separate sweep, because ripping out
+  // twenty `if`s across the turn flow is a far larger and riskier diff than one dormant field.
   turnExpired: false,
-  clockState: null,
-  // 18-05 (D-02): a one-shot continuation ask() (src/ui/util.js) publishes so the reveal-
-  // completion gate (panel(), src/ui/panel.js) can defer starting the shot clock until the
-  // button row is actually clickable, instead of at prompt-render — follows the
-  // activePickCleanup precedent below (a function stored on appState, read-and-nulled by
-  // whichever call takes ownership of it). In declaration order: the seat whose button row is
-  // currently gated (drives the frozen pending display on host AND guest alike, cleared once
-  // that reveal resolves); the continuation itself (the arming function plus the resolver that
-  // unblocks ask()'s force-resolver wrap, read-and-nulled at most once per decision); whether
-  // this seat's decision renders on the host's own browser directly (tells the reveal gate
-  // whether to defer onto its own reveal, or — for a seat rendering elsewhere — to schedule an
-  // estimate instead); and the deciding actor's own prompt HTML (never this browser's shorter
-  // spectator line), read to size that estimate.
-  clockPendingSeat: null,
-  clockPendingArm: null,
-  clockPendingLocal: false,
-  clockPendingText: "",
-  activePickCleanup: null,
+  // The clock's other bookkeeping (timerOff, clockState, shotClockFired/PauseElapsed, the
+  // clockPending* arm continuation, activePickCleanup) left with it — activePickCleanup's only
+  // reader was the clock's expiry (inventory D4).
   // 02.15-02 Task 3: the "one current prompt" of Wyatt's shape for this whole plan — the spec
   // renderPickPrompt() is CURRENTLY drawing. Set inside the renderer, cleared inside its teardown,
   // on every tier alike. null while a captain is visibly being asked is the signature of an

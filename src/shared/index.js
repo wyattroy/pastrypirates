@@ -38,6 +38,19 @@ const DOCK_IMG=`${ASSET_BASE}dock.png`;
 const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
 const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;
 const PLAY_IMG=`${ASSET_BASE}icons/play.png`,PAUSE_IMG=`${ASSET_BASE}icons/pause.png`;
+/* W5-1, THE ART HALF: TRIED, AND THE REPO'S MASTERS CANNOT BE USED. Wyatt's ruling was "try repo
+   assets else park". art-review/ holds 2048x2048 masters of all four flip images and the shipped
+   files are 382-512, so on the arithmetic they looked like a straight win. THEY ARE OPAQUE.
+   Sampled in a browser: every corner of every master reads alpha 255 over a near-black ground
+   (rgba 1,5,8,255) while the shipped files read 0,0,0,0. They are the PRE-CUTOUT renders —
+   somebody cut the coin and the plank out by hand to make the art the game ships.
+   Re-exported at 768 they put a hard black square behind the flippenator. Measured AND SEEN: the
+   decode check passed in both Chromium and WebKit at 768x768 and the screenshot showed the black
+   square, which is rule 19's whole point — the numbers were right and the picture was wrong.
+   So the art stays as it is and the question goes to Wyatt (CTO-QUESTIONS Q-19): are there
+   cut-out masters somewhere, or should these be re-cut? scripts/qa/w51_reexport_coin_art.mjs is
+   kept, and now refuses an opaque master rather than shipping one. What DID ship for W5-1 is the
+   other half: the ceremony no longer stretches a small raster, so the same art is drawn sharp. */
 const FLIP_HEADS_IMG=`${ASSET_BASE}icons/flip-heads.png`,FLIP_TAILS_IMG=`${ASSET_BASE}icons/flip-tails.png`;
 const CROWN_IMG=`${ASSET_BASE}icons/crown.png`,CRATE_OVERBOARD_IMG=`${ASSET_BASE}icons/crate-overboard.png`,
   CURRENT_SWIRL_ICON_IMG=`${ASSET_BASE}icons/current-swirl.png`,CUPCAKE_IMG=`${ASSET_BASE}icons/cupcake.png`,
@@ -82,6 +95,20 @@ const SCROLL_IMG=`${ASSET_BASE}icons/scroll.png`,DOOR_IMG=`${ASSET_BASE}icons/do
   GLOBE_IMG=`${ASSET_BASE}icons/globe.png`,PIRATE_CHEF_IMG=`${ASSET_BASE}icons/pirate-chef.png`,
   PIRATE_FLAG_IMG=`${ASSET_BASE}icons/pirate-flag.png`;
 const CLOCK_IMG=`${ASSET_BASE}clock/clock.png`;
+/* WHO A NARRATION LINE IS ABOUT — ONE RULE, CALLED BY BOTH SEATS (Q-18, rule 23).
+   An event that names TWO captains is not about either of them: a battle result centred on the
+   winner would anchor a fight to one fighter, which is the fault CEO Review 20 found still live on
+   the seat Wyatt reported. Everything else is about whoever it names.
+
+   IT LIVES HERE BECAUSE THIS IS THE ONE MODULE BOTH TIERS ALREADY IMPORT — src/orchestrator.js and
+   src/ui/panel.js each pull from it, and src/ui/ may never import the orchestrator. Before this the
+   host inlined the test and shipped its ANSWER to the guest as a wire field; now both compute it,
+   which is what "what makes these two agree?" is supposed to be answered with. */
+function subjectOf(e){
+  if(!e) return undefined;
+  const twoCaptains = e.d!=null && e.a!=null && e.d!==e.a;
+  return twoCaptains ? null : (e.p!=null ? e.p : (e.a!=null ? e.a : null));
+}
 const FLIP_SOCKET_IMG=`${ASSET_BASE}icons/flip-socket.png`;
 const COMPASS_DIAL_IMG=`${ASSET_BASE}compass/compass-dial.png`,COMPASS_NEEDLE_IMG=`${ASSET_BASE}compass/compass-needle.png`;
 // every emoji in the game that has dedicated custom art — the single source of truth emojify()
@@ -225,8 +252,17 @@ const dockFlavorIcon=x=>{
 };
 // ORDER IS LOAD-BEARING — its Object.values iteration order builds the candidate dock-cell array that the constructor then indexes with an this.r()-derived index; a reorder changes every dock position for an identical RNG draw, and also flips seat-spawn assignment and Dijkstra tie-breaks.
 const DIRS={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+/* CAPS, by Wyatt's ruling of 2026-08-27: "write directions in all caps, eg, SOUTH for all storm
+   and wind." CHANGED IN THE TABLE RATHER THAN AT EACH CALL SITE, which is rule 23's question —
+   what makes these agree? There are exactly four consumers and every one of them is player-facing
+   wind or storm prose (the day-start line and its forecast, the storm summary, and the turn
+   banner), so a fifth surface added later inherits the ruling instead of re-deciding it.
+
+   ONLY THE VALUES CHANGED. THE KEY ORDER IS UNTOUCHED, and the line below says why that matters —
+   it was momentarily deleted by this very edit and `engine_contract_check.js` (ENGINE-04) caught
+   it, which is the whole reason that gate pins nine of these annotations by name. */
 // ORDER IS LOAD-BEARING — parallel table keyed to DIRS; must stay in lockstep with it.
-const DIRNAME={N:"north",S:"south",E:"east",W:"west"};
+const DIRNAME={N:"NORTH",S:"SOUTH",E:"EAST",W:"WEST"};
 // a storm's 2nd gust always veers 90° off the 1st (never the same direction, never reversing)
 // ORDER IS LOAD-BEARING — consumed only by the classic live turn loop, where PERP[windNow][Math.floor(game.r()*2)] indexes directly by RNG draw. The headless corpus cannot catch a reorder here.
 const PERP={N:["E","W"],S:["E","W"],E:["N","S"],W:["N","S"]};
@@ -421,6 +457,24 @@ const BAKE_ATTENTION=0.24;
 // gives coins a use at the very end of a voyage, where they had none — every other way to spend
 // them is out at sea.
 const BAKE_REWATCH_COST=1;
+/* rulesFacts(cfg) — EVERY NUMBER THE HOW-TO-PLAY PAGE TEACHES, computed from the same cfg the
+   engine plays by (A-7 — Wyatt, 2026-08-28: the rules page must update "according to the latest
+   rules" automatically). The page holds no copy of any amount: each one is an empty
+   <b data-rule="key"> span filled from this object at boot and again on every modal open, so a
+   retuned constant cannot disagree with the page (rule 9's todo in roundCfg's own comment, paid).
+   scripts/qa/rules_page_check.mjs reads THIS SAME function, which is what stops the gate and the
+   filler drifting apart. Takes cfg as an argument because shared/ sits below engine/ in the
+   module graph — the caller passes the live game's cfg, or roundCfg's default. */
+function rulesFacts(cfg){
+  return {recipeSize:cfg.recipeSize,startCoins:cfg.startCoins,
+    sailRange:SAIL_RANGE,sailUpwind:SAIL_RANGE_UPWIND,stormPush:STORM_PUSH,
+    dockHeads:cfg.dockHeads,dockTails:cfg.dockTails,
+    crateBase:cfg.crateBase,
+    // the worked price ladder: first crate off a full shelf, the next, and the last one
+    priceFirst:cfg.crateBase-cfg.crates,priceNext:Math.min(cfg.crateBase-cfg.crates+1,cfg.crateBase-1),priceLast:cfg.crateBase-1,
+    powder:cfg.powder,refire:cfg.refire,callBounty:cfg.callBounty,passCoin:cfg.passCoin,
+    blackMarket:cfg.blackMarket,bakeRewatch:BAKE_REWATCH_COST};
+}
 // bakeoffEnabled() — the live switch, same memoize-and-guard shape as windPrototypeEnabled():
 // `?bakeoff=0` / `?bakeoff=1` overrides the constant for one session so both rulesets can be
 // A/B'd on a phone without a redeploy. Guarded so a file:// page or a storage-blocked context
@@ -465,7 +519,13 @@ function bakeoffEnabled(){
 function devHost(){
   try{
     const h = location.hostname;
-    return h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === "" || h.endsWith(".local");
+    // STAGING COUNTS AS A DEVELOPER'S MACHINE (W0-1, 2026-08-27). staging.playpastrypirates.com is
+    // where Wyatt plays work in progress; it did not exist on the day this gate was written, so the
+    // gate is not wrong, it is older than the environment. An EXACT match, never endsWith(): a
+    // suffix test would also admit evil-staging.playpastrypirates.com, and the whole value of this
+    // function is that the list of who counts is short enough to read.
+    return h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === ""
+        || h.endsWith(".local") || h === "staging.playpastrypirates.com";
   }catch(err){ return false; }
 }
 
@@ -480,6 +540,45 @@ function ovensNowEnabled(){
   }catch(err){}
   ovensNowOn=on;
   return ovensNowOn;
+}
+/* ================= THE TWO ENDGAME SKIPS (W0-1, 2026-08-27) =================
+
+   Wyatt's playtest of 2026-08-27 marked four items PROBLEM that were problems only because he
+   could not GET to them on a phone: the bake-off's second attempt and the End of Voyage card both
+   sit at the far end of a sixteen-day voyage. `?ovens=1` already solves half of it — it puts a
+   captain at the ovens on day one — but it lands on attempt ONE, and the jitter he reported is an
+   attempt-TWO fault. Neither flag could reach the end card at all.
+
+   Both ride on devHost(), so they are dead on playpastrypirates.com. Both IMPLY ?ovens=1 (see
+   testFlagOn in orchestrator.js): stocking the holds and lighting the ovens is the shared first
+   half of every route to the endgame, and two flags that stock holds their own way would be two
+   things kept in step by memory.
+
+   NEITHER DRAWS A RANDOM NUMBER, which is what makes them safe to bolt onto a seeded game — the
+   board, the recipes, the wind and every bot decision are unchanged. */
+const BAKE2_NOW=false;
+let bake2On=null;
+function bake2Enabled(){
+  if(bake2On!==null)return bake2On;
+  let on=BAKE2_NOW;
+  try{
+    if(devHost() && location.search.indexOf("bake2=1")!==-1)on=true;
+    else if(location.search.indexOf("bake2=0")!==-1)on=false;
+  }catch(err){}
+  bake2On=on;
+  return bake2On;
+}
+const ENDCARD_NOW=false;
+let endCardOn=null;
+function endCardEnabled(){
+  if(endCardOn!==null)return endCardOn;
+  let on=ENDCARD_NOW;
+  try{
+    if(devHost() && location.search.indexOf("endcard=1")!==-1)on=true;
+    else if(location.search.indexOf("endcard=0")!==-1)on=false;
+  }catch(err){}
+  endCardOn=on;
+  return endCardOn;
 }
 const NAMES=["Capt. Davy Scones","Capt. Crustbeard","Capt. Dough Hook","Capt. Flaky Jack"];
 // default captain names in seat order (no "Capt. " prefix) — the pool a player who leaves the
@@ -638,4 +737,4 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, devHost, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, seatHeldName, withoutSeat, applyNameClaim, buildRoster, COLORS, HEXCOL, man };
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, devHost, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, rulesFacts, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, BAKE2_NOW, bake2Enabled, ENDCARD_NOW, endCardEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, seatHeldName, withoutSeat, applyNameClaim, buildRoster, COLORS, HEXCOL, man, subjectOf };

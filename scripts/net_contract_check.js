@@ -57,7 +57,7 @@
 // comment" — but that cost is now "rewrite the paragraph explaining WHY the
 // host-gone path works", i.e. the gate makes writing the explanation an
 // offence. HARD-WON-LESSONS §1b records the same thing happening to
-// 4/scripts/seat_arg_check.js, whose first run failed on the comment
+// scripts/seat_arg_check.js, whose first run failed on the comment
 // documenting the bug it exists to catch.
 //
 // So assertions 2 and 3 now match against source with COMMENT CHARACTERS
@@ -248,7 +248,7 @@ function checkNoAppStateDependency() {
   for (const file of netJsFiles) {
     const rel = path.relative(REPO_ROOT, file);
     // STRIPS COMMENTS (03-01 Task 2). This is the assertion that reported
-    // 4/src/net/writers.js:174 and :193 — both prose inside the host-gone comment block.
+    // src/net/writers.js:174 and :193 — both prose inside the host-gone comment block.
     const lines = stripCommentSegments(fs.readFileSync(file, "utf8")).split("\n");
     lines.forEach((line, i) => {
       for (const { name, re } of APP_STATE_PATTERNS) {
@@ -304,12 +304,13 @@ function checkDirectionalImports() {
 // against it, and the check would still pass. This is what makes D-01's
 // corrected count of eighteen (the roadmap's original figure was stale by
 // four) permanent.
+// netWatchTimerOff/netWatchClock left with the clock; netWatchPaused with play/pause (A-10) — sixteen now.
 const WATCHER_INVENTORY = [
-  "netWatchFlip", "netWatchConnected", "netWatchPresence", "netWatchTimerOff",
-  "netWatchClock", "netWatchChat", "netWatchBattle", "netWatchRecovery",
+  "netWatchFlip", "netWatchConnected", "netWatchPresence",
+  "netWatchChat", "netWatchBattle", "netWatchRecovery",
   "netWatchDraftPrompt", "netWatchEvents", "netWatchPrompt", "netWatchNarr",
   "netWatchSeats", "netWatchStatus", "netWatchTurnOrder", "netWatchRecipes",
-  "netWatchResponse", "netWatchDraftResponse", "netWatchPaused",
+  "netWatchResponse", "netWatchDraftResponse",
 ];
 const WATCHERS_FILE = path.join(NET_DIR, "watchers.js");
 
@@ -333,9 +334,9 @@ async function checkWatcherInventory() {
 
   const content = fs.readFileSync(WATCHERS_FILE, "utf8");
   const attachCount = (content.match(/registry\.attach\(/g) || []).length;
-  if (attachCount !== 19) {
+  if (attachCount !== 16) {
     ok = false;
-    failures.push(`INVENTORY: expected exactly 19 registry.attach() calls in src/net/watchers.js, found ${attachCount}`);
+    failures.push(`INVENTORY: expected exactly 16 registry.attach() calls in src/net/watchers.js, found ${attachCount}`);
   }
 
   return ok;
@@ -366,7 +367,7 @@ async function main() {
 
   const inventoryOk = await checkWatcherInventory();
   console.log(
-    `${inventoryOk ? "PASS" : "FAIL"} watcher inventory completeness (NET-01, D-01) — all nineteen watchers exported, exactly nineteen registry.attach() calls`
+    `${inventoryOk ? "PASS" : "FAIL"} watcher inventory completeness (NET-01, D-01) — all sixteen watchers exported, exactly sixteen registry.attach() calls`
   );
 
   if (failures.length) {

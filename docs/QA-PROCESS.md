@@ -39,7 +39,7 @@ so nobody knows whether it can.)*
 ## The three gears — chosen by the files you touched, not by how the change feels
 
 ```bash
-node 4/scripts/qa/gear.mjs
+node scripts/qa/gear.mjs
 ```
 
 It reads what you actually changed and tells you the gear and the sweep. **It is mechanical on
@@ -90,9 +90,9 @@ testing**, and it is what every professional team does.)*
 ## The robot that plays the game
 
 ```bash
-node 4/scripts/sea_trial.mjs                  # the whole thing: modes, sizes, both engines
-node 4/scripts/sea_trial.mjs --gear=PLUMBING  # one mode, plus the others once
-node 4/scripts/playtest_gate.mjs --legs=crew-phone   # one leg, when you know which
+node scripts/sea_trial.mjs                  # the whole thing: modes, sizes, both engines
+node scripts/sea_trial.mjs --gear=PLUMBING  # one mode, plus the others once
+node scripts/playtest_gate.mjs --legs=crew-phone   # one leg, when you know which
 ```
 
 It opens real browsers, plays real voyages, and after every move looks at ten specific things. Then
@@ -152,6 +152,30 @@ the thorough pass existed and nobody ran it.
 ---
 
 # THE WHOLE LOOP, END TO END — added 2026-08-26
+
+> ### STEP 0 — WIDEN THE TIME HORIZON. What happened immediately BEFORE the bug?
+>
+> **Before you write the failing check, ask what preceded the fault** — and if one step back is not
+> enough, ask what preceded *that*. A bug you cannot explain from its own moment is usually the
+> consequence of a preceding one, and **a snapshot cannot show you a race**.
+>
+> **INTERMITTENT IS THE TELL.** A fault that appears in some runs and not others is almost never a
+> wrong constant; it is two things happening in an order nobody fixed.
+>
+> **Earned 2026-08-27.** Sail squares were being drawn off the edge of a phone. Two days went into
+> measuring WHERE they were — rects, transforms, the camera's scale — and two geometry theories were
+> measured dead. Wyatt asked *"what happens right before the bug each time?"* and it moved in
+> minutes: the squares are drawn, then the camera is asked to frame them **180ms later**, and the
+> camera is allowed to refuse while a centre-stage card holds attention. The squares were correct;
+> the ORDER was not.
+>
+> **It applies to instruments as much as to the game.** *"The trial says NOT RUN"* — what happened
+> just before? A reboot cleared `/tmp`. *"The gear says NONE"* — what happened just before? A cutover
+> moved the tree.
+>
+> Stated in full in `.claude/CLAUDE.md` (rule 6's family) and printed by
+> `.claude/hooks/qa-gear-first.cjs` as step 0, so it arrives when you are about to change game code
+> rather than in a file somebody read this morning.
 
 **Everything above describes the sea trial. This describes the process the sea trial sits inside.**
 It was refined across one long session in which **five separate instruments were wrong** and two of
@@ -220,8 +244,8 @@ where a central fix exists; when you fix at a call site, say why the central one
 ## 5. RUN THE SEA TRIAL — and read the NOT-RUN column first
 
 ```bash
-node 4/scripts/qa/gear.mjs --since=HEAD~1   # AFTER a push, or it reports NONE. See below.
-node 4/scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
+node scripts/qa/gear.mjs --since=HEAD~1   # AFTER a push, or it reports NONE. See below.
+node scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
 ```
 
 > **AFTER A PUSH THE GEAR PICKER GOES BLIND.** It diffs against `origin/main`, and rule 24's own
@@ -233,6 +257,109 @@ node 4/scripts/sea_trial.mjs                # writes .planning/SEA-TRIAL.md
 said *"voyages that did NOT run: none"* while both Safari legs had died instantly — it matched
 `NOT RUN —` and the gate had printed `ERROR:`. It now decides from `report.json`: **a leg that
 captured no screens did not sail.**
+
+## 5b. RUNNING THE TRIAL — cloud container vs Wyatt's Mac, written down so it stops being re-derived
+
+*(Wyatt, 2026-08-28: "Add to Sea Trial's process document the steps to run it from a cloud
+container and the steps to run it from local, because it seems like those are different and you
+re-derive them each time at great time and cost." Every line below was paid for at least once.)*
+
+**The command is the same everywhere.** What differs is the environment around it, and every
+difference is listed here — if you are about to fight one that is not, add it to this section in
+the same session.
+
+> **WHICH environment to pick, and what each costs, is a separate question with its own document:
+> [`CLOUD-VS-LOCAL.md`](CLOUD-VS-LOCAL.md)** — the measured 10-leg comparison, the traps unique to
+> each, and the one thing only a Mac can answer (Safari). This section is the *how*; that one is
+> the *where*.
+
+### IS IT PROVEN? — the honest answer, 2026-08-28
+
+He asked: *"Make sure the full Sea Trial can run in safari and chrome, at the three sizes, whether
+in a cloud container or local… can you confirm this is the case?"*
+
+| | status |
+|---|---|
+| **Chrome, all three sizes, cloud** | ✅ **proven** — build 2026.08.28.4, 10/10 voyages `finished=true` |
+| **Safari (WebKit), all three sizes, cloud** | ✅ **proven, with a caveat that must be read** |
+| **Either engine, local Mac** | ⏳ **not yet run here.** The runbook below is written and a session on his Mac holds `HANDOFF-2026-08-28-LOCAL-TRIAL.md`; until that run reports, the local half is documented, not demonstrated. Do not claim it. |
+
+**THE SAFARI CAVEAT, stated plainly because it is the difference between "works" and "survives":**
+Playwright's Linux WebKit (`WPEWebProcess`) **segfaults mid-voyage in the cloud container** —
+diagnosed by core dump on 2026-08-28: SIGSEGV inside `libWPEWebKit`'s own compositing walk. Not
+load (5/5 isolated runs died), not memory (cgroup `oom_kill` 0), and
+`WEBKIT_DISABLE_DMABUF_RENDERER=1` does not stop it. **No flag of ours reaches it.** So the mount
+does not prevent the crash — it *rides it out*: a persistent context keeps the game's own solo
+save on disk, and on a crash it relaunches, reloads, lets the game's boot-resume replay the
+voyage, and retries the failed call. That run's three WebKit legs took **11, 2 and 1** relaunches
+and all three still finished. **Every recovery is counted and printed (`✱ N WebKit relaunch(es)`)
+in the leg summary — a recovered leg must never read as an untroubled one.**
+
+**Real Safari on real devices shares none of this**, and a local Mac run uses a macOS WebKit
+build: **zero relaunches there confirms the crash is container-only; any relaunch there overturns
+the diagnosis.** That row is the most valuable cell in the cloud-vs-local comparison.
+
+### The matrix a FULL trial sails (Wyatt's 2026-08-28 ruling)
+
+| | desktop 1890×960 | tablet 768×954 | phone 390×664 |
+|---|---|---|---|
+| **Chrome** | solo, passplay, crew | solo | solo, passplay, crew |
+| **Safari (WebKit)** | solo | solo | solo |
+
+Ten legs. **Three sizes** — desktop, tablet portrait, phone — with the tablet's 954 being D-42's
+honest-viewport rule applied to an iPad (1024 screen minus browser chrome). **Both engines play
+solo at every size**; Chrome alone carries the multiplayer modes, on the recorded argument that
+the engines diverge on rendering/animation/layout, never on the wire. The leg table itself is
+`legDefs` in `scripts/playtest_gate.mjs`; the FULL list is in `scripts/sea_trial.mjs` — change
+either only with a matching edit to this table.
+
+### From a Claude Code cloud container
+
+```bash
+nohup node scripts/sea_trial.mjs > "$SCRATCH/trial.log" 2>&1 &   # DETACHED — see below
+```
+
+- **Launch it detached (`nohup … &`) and watch the log.** The Bash tool's hard ceiling is 10
+  minutes and a FULL trial runs longer — a foreground or background-tool run is killed mid-sail
+  and reports nothing. Watch the log with a monitor/until-loop; a foreground `sleep` is blocked
+  by the harness.
+- **Chrome is pre-wired**: `$CHROME_BIN` → `/usr/local/bin/chromium` (a wrapper over the
+  Playwright chromium in `/opt/pw-browsers`). Never run `playwright install` — the image sets
+  `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` and re-fetching is both slow and unnecessary.
+- **WebKit legs work**: browsers live durably in `$PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`;
+  the package resolves via `playwrightDir()` (`$PW_DIR` → `~/.pw` → global).
+- **The vision judge needs the proxy's CA.** Outbound HTTPS goes through the agent proxy;
+  `scripts/lib/vision.mjs` sets `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt` itself when unset,
+  but exporting it on the trial command is harmless belt. Never disable TLS verification.
+- **Never `pkill -f chromium`** — the container's own shell wrapper matches and you kill your own
+  session. The browsers are processes named `chrome`; kill by debug port (mp_rig's `killAll()`
+  does this correctly, scoped to its own ports).
+- **`/tmp` does not survive a container recycle.** A trial whose evidence directory vanished may
+  be a reboot, not a failure — check mtimes before reporting NOT RUN (§10's "what happened just
+  before"). Keep evidence under `.planning/` or the session scratchpad.
+- **Firebase is reachable**, so the crew legs sail real rooms. Wyatt cannot see this machine's
+  browser — the report, the screenshots, and the build stamp are the only evidence that leaves it.
+
+### From Wyatt's Mac (local)
+
+```bash
+cd /Users/wyattroy/Documents/Projects/pastrypirates    # the ONLY checkout — worktrees are retired
+node scripts/sea_trial.mjs
+```
+
+- Chrome resolves from the PATH; WebKit's durable home is `~/.pw` (package) +
+  `~/Library/Caches/ms-playwright` (browsers) — both survive reboots; never install to `/tmp/pw`.
+- No CA override needed; the judge reaches the API directly.
+- **Rule 17 is live here in a way it is not in the cloud**: this is the laptop he is sitting at.
+  `--mute-audio` always (his speakers are in the room), and every headless Chrome and
+  `http.server` dies before you reply — the trial's own cleanup plus §8's pkill.
+- Foreground is fine; there is no 10-minute tool ceiling.
+
+**Which to prefer:** the cloud, whenever the session is already there — it costs his laptop
+nothing. Fall back to local when the cloud run is STALLED (measured: the log stops growing for
+minutes while legs sit unfinished — an environmental stall, seen 2026-08-28, cleared by re-running
+the leg) — and per his standing order, **tell him within 10 minutes of launching if the trial is
+stalled and whether it needs to run locally**, rather than silently retrying past the window.
 
 ## 6. READ THE JUDGE AS A WITNESS, NOT A VERDICT
 

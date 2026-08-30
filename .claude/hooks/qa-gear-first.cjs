@@ -42,7 +42,7 @@ const path = require("path");
 
    PLUMBING MUST BE EARNED. Everything else is FULL. */
 const PLUMBING = [
-  { re: /^4\/src\/ui\/lobby\.js$/, mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
+  { re: /^src\/ui\/lobby\.js$/,   mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
   { re: /\bpassGate\b/,             mode: "passplay", what: "pass-and-play's hand-the-device gate" },
   { re: /\bnetCreateRoom\b|\bnetJoinRoom\b|\bnetLeaveRoom\b|\bgenCode\b|\bhostGoneGrace\b/,
                                      mode: "crew",     what: "crew's room lifecycle and the host-gone grace" },
@@ -55,11 +55,11 @@ const NOT_PLUMBING = /\bspec\b|\bpayload\b|renderPickPrompt|playBakeoffLive|show
 const GEARS = {
   FULL: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: () => "npm test\n     node 4/scripts/sea_trial.mjs          (all modes, all sizes, both engines, a real two-browser crew game)",
+    sweep: () => "npm test\n     node scripts/sea_trial.mjs          (all modes, all sizes, both engines, a real two-browser crew game)",
   },
   PLUMBING: {
     step1: "REQUIRED — write the check that FAILS before you touch the code.",
-    sweep: m => `npm test\n     node 4/scripts/sea_trial.mjs --gear=PLUMBING   (${m}, plus the others once)\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
+    sweep: m => `npm test\n     node scripts/sea_trial.mjs --gear=PLUMBING   (${m}, plus the others once)\n     ...AND the other modes once, to prove the serving change did not leak into the game.`,
   },
 };
 
@@ -82,11 +82,12 @@ function main() {
   const rel = filePath.startsWith(repo) ? filePath.slice(repo.length + 1) : filePath;
   const content = String(ti.content || ti.new_string || "");
 
-  // only the game the milestone ships
-  const isGame = /^4\/(src\/|index\.html$)/.test(rel);
-  if (!isGame) process.exit(0);
-  // writing a check is STEP ONE. Never stand in front of it.
-  if (/^4\/scripts\//.test(rel)) process.exit(0);
+  /* WHAT COUNTS AS GAME CODE lives in ONE place now — .claude/hooks/lib/game-code.cjs — because
+     it was written twice, both copies said `4/src/`, and both were wrong for a day and a half after
+     the cutover: this hook never fired on a single game edit and the picker reported GEAR: NONE for
+     every change to the live game. Rule 23: what makes these two agree? Now, nothing has to. */
+  const { isGameCode } = require(path.join(__dirname, "lib", "game-code.cjs"));
+  if (!isGameCode(rel)) process.exit(0);
 
   let gear = "FULL", mode = null;
   let why = `${rel} can change what a captain sees or can do`;
@@ -107,6 +108,17 @@ function main() {
 `QA PROCESS — this change is GEAR: ${gear}
 (${why})
 
+  0. WIDEN THE TIME HORIZON
+                      WHAT HAPPENED IMMEDIATELY BEFORE THE BUG? And if that is not enough,
+                      what happened before THAT? A bug you cannot explain from its own
+                      moment is usually the consequence of a preceding one, and a snapshot
+                      cannot show you a race. INTERMITTENT IS THE TELL: a fault that appears
+                      in some runs and not others is almost never a wrong constant — it is
+                      two things happening in an order nobody fixed.
+                      Earned 2026-08-27. Two days went into measuring WHERE some sail squares
+                      were drawn; the cause was 180ms earlier, in the order they were drawn
+                      and framed. Wyatt: "what happens right before the bug each time?"
+
 THE FOUR STEPS. They never change and are never skipped:
 
   1. SHOW IT BROKEN   ${g.step1}
@@ -117,7 +129,7 @@ THE FOUR STEPS. They never change and are never skipped:
   4. SWEEP            ${g.sweep(mode)}
 
 Which gear you are in is decided by the files you touch, not by how the change feels:
-     node 4/scripts/qa/gear.mjs
+     node scripts/qa/gear.mjs
 
 Full contract: docs/QA-PROCESS.md
 

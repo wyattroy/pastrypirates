@@ -233,6 +233,33 @@ later read can miss it.
 
 ## 5c. Driving a GUEST seat while a human hosts
 
+> ### ⚠ `#btnStart` DOES NOT START THE GAME. IT OPENS A CONFIRM MODAL.
+>
+> **Four crew attempts died here on 2026-08-28/29, three of them producing no output at all.**
+>
+> Pressing `Start the voyage!` opens `#startConfirmModal` — *"⛵ Set sail? Is everyone at the table?
+> Once the voyage starts, no one else can join — empty seats sail with bots."* The voyage begins only
+> when **`#btnConfirmStart`** ("Everyone's aboard?") is pressed. A driver that clicks Start and then
+> waits sits in the lobby for as long as you let it, with the board blurred behind a modal.
+>
+> **AND THE OBVIOUS PROBE CANNOT SEE IT.** The modal's buttons live in a `.modalCard`, not in
+> `#actionPanel` or `#pp4Prompt`, so a probe reading the prompt panel reports an empty screen and
+> says nothing about why — "no buttons, no day, no stage" for twenty-six samples running. A
+> screenshot is what finally showed it. **If a crew rig reports an empty screen, take the picture
+> before theorising.**
+>
+> **Use the helper, do not re-roll it:** `startVoyage(C)` in `scripts/mp_rig.mjs` clicks both buttons
+> and returns only once a seat is genuinely on the stage — so a caller cannot mistake *clicked* for
+> *started*, which is the distinction all four attempts turned on.
+>
+> ```js
+> const code = await makeHost(H, url, "HostCap");
+> await makeGuest(G, url, code, "GuestCap");
+> await startVoyage(H);          // clicks Start AND the confirm, waits for the stage
+> await driver(H, ""); await driver(G, "");
+> ```
+
+
 This is the setup for verifying multiplayer without a second person. The human hosts in one browser;
 this drives the other seat.
 
@@ -290,7 +317,7 @@ snap.state.map(s => s.pos.join(','));                  // the positions actually
 |---|---|---|
 | `turnOrder` | both sides | must be identical on both clients |
 | `game.events.length` | both sides | the broadcast frontier — should track the host's |
-| `timerOff` / `shotClockPaused` | both sides | the host's clock changes must propagate to the guest |
+| `shotClockPaused` | both sides | a pause toggled anywhere must propagate to every client *(`timerOff` left with the shot clock, 2026-08-28)* |
 | `turnExpired` | both sides | must NOT be stuck true after a pause/resume cycle (that was BUG-02) |
 | `events[last].state[].pos` | both sides | the rendered board — **use this, not `game.players`** |
 | `game.players[].pos` / `.ing` / `round` | **HOST ONLY** | stale on a guest; never compare these across clients |
@@ -677,6 +704,34 @@ returns success but does not move `window.innerWidth` when `outerWidth` is 0, so
 `@media (max-width: 480px)` breakpoints and any 320/375/390 sweep are **not testable** from a hidden
 tab. That work needs a real visible window — or Wyatt's own browser. Say so rather than reporting a
 width-dependent check as passed.
+
+## 8c. SAFARI/WEBKIT — it finds Playwright on its own now
+
+**Do not put it in `/tmp`.** `/tmp` is cleared on reboot, and that is exactly what silently
+disabled every Safari leg: on 2026-08-27 a full sea trial reported **2 legs NOT RUN** with
+*"playwright not found"*, while the WebKit **browsers** sat perfectly intact in
+`~/Library/Caches/ms-playwright/`. Only the little npm package directory had evaporated, and
+nothing said so until a trial refused to sail.
+
+`scripts/lib/wk.mjs` now searches, in order:
+
+1. **`$PW_DIR`** — an explicit override still wins, for a one-off or a CI image
+2. **`~/.pw`** — the durable home. 18 MB, survives reboots, created 2026-08-27
+3. **bare `playwright`** — a global or workspace install, if one exists
+
+So the normal case needs no environment variable at all. If it is ever missing again:
+
+```bash
+mkdir -p ~/.pw && cd ~/.pw && npm i playwright && npx playwright install webkit
+```
+
+*(`npm init -y` fails in `~/.pw` — npm rejects a package name beginning with a dot. It is not
+needed; `npm i` works regardless, and a hand-written `package.json` is already there.)*
+
+**Verified 2026-08-27 with `PW_DIR` explicitly unset:** `solo-phone-wk` launched and played to
+DAY 2 with no environment variable in sight.
+
+---
 
 ## 9. Never verify against production
 

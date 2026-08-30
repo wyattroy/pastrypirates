@@ -21,7 +21,7 @@
 // ui->net import would. That asymmetry is why the many still-existing bare-identifier calls FROM
 // src/ui/flow.js and src/ui/util.js INTO the functions below (broadcastFlip, netNarrate,
 // netBroadcast, renderBattle, battleAsk, asyncBattle, remotePrompt, remoteDraftPrompt,
-// logDecision, beginGame, broadcastClock, expireShotClock, and others — RESEARCH.md's own
+// logDecision, beginGame, and others — RESEARCH.md's own
 // 11-04/11-05 SUMMARYs record these as deliberately left bare, "orchestration... homed in 11-06")
 // are NOT converted to `import`s here — they stay bare, resolved through src/main.js's PP bridge
 // exactly like every other still-bridged cross-reference this whole phase, now extended with this
@@ -69,14 +69,17 @@
 import { appState } from "./state/index.js";
 import { pingVisit, pingStart, pingFin, usageGid } from "./ui/usage.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
+import { applyResult } from "./engine/bakeoff.js";
 import {
   PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg, man,
-  ilabelImg, ovensNowEnabled,
+  ilabelImg, ovensNowEnabled, bake2Enabled, endCardEnabled,
+  rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
+  subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, setMuted } from "./ui/audio.js";
 import {
-  netSetFlip, netWatchFlip, netSetClock, netSetTimerOff, netWatchTimerOff, netWatchClock,
-  netSetPaused, netWatchPaused, netDeleteRoom,
+  netSetFlip, netWatchFlip,
+  netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
@@ -97,13 +100,14 @@ import {
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
+  benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
   setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
-  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, wireRestoreFail,
+  reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, draftDispatch, wireRestoreFail,
   startPassAndPlay,
   endReplay, animateRimSweepIfAny,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
@@ -118,9 +122,9 @@ import {
   encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
-  rawName, pn, pname, updateRecipeBanner, toggleShotClockPause, applyPauseState, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, armClock, withShotClock, stepDelay, ask, pickNarrVariant,
-  stopShotClock, waitWhilePaused, sleepMs, applyTimerOff, BOARD_LAST_LOOK_MS,
+  rawName, pn, pname, updateRecipeBanner, describe, seatLocal,
+  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, stepDelay, ask, pickNarrVariant,
+  sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
@@ -135,7 +139,7 @@ const $=id=>document.getElementById(id);
 // ⏩ fast-forward: same collapse as flow.js's sleep — beats that reach here without a player
 // prompt (storm holds, bot-only pacing) race by; anything that asks ends the skip first.
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(appState.ff?Math.min(ms||0,40):ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 const MAX_CHAT_LEN=140;
 // Firebase Spark's free tier caps at 100 simultaneous connections (see ONLINE_SETUP.md) — once
@@ -160,145 +164,19 @@ export function watchFlip(){
   netWatchFlip(appState.db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
 }
 
-export function broadcastClock(){
-  setClockUI();
-  if(!appState.db||!appState.room)return;
-  // CLOCK-02 FIX (mp-pause-clock-desync): the payload now also carries the whole-table pause
-  // state, so a guest flips frozen<->running AND reads its frozen remaining from the SAME
-  // authoritative clock write that carries the deadline — never a round-trip apart from the
-  // /paused flag. That round-trip gap WAS the desync: guests rendered the stale pre-pause
-  // deadline and a host-only pauseElapsed they never received. `paused` rides every write (so a
-  // running broadcast clears it); `pauseElapsed` (the host's frozen elapsed, D-07) is only
-  // meaningful while paused, so it is included only then. Host stays the sole deadline writer.
-  const payload=appState.shotClockSeat==null?null:{
-    seat:appState.shotClockSeat,
-    deadline:appState.shotClockDeadline,
-    paused:!!appState.shotClockPaused,
-  };
-  if(payload&&appState.shotClockPaused)payload.pauseElapsed=appState.shotClockPauseElapsed;
-  netSetClock(appState.db,appState.room,payload,netFail("clock"));
-}
-// #7 / FIX-02/N-03 (phase 21): any player may switch the turn timer off/on, in EVERY mode — the
-// early return that used to make this a silent no-op with no Firebase connection (the D-20 "dead
-// control" bug) is gone. Persisted locally FIRST, before either branch, so solo and pass-and-play
-// (which never used to reach this line at all) actually remember the preference too (D-19). Then,
-// exactly like togglePause() immediately below: multiplayer (db && room) writes Firebase so the
-// whole table stays in sync via watchTimer(); solo/pass-and-play calls applyTimerOff() directly —
-// the SAME body watchTimer() calls, carrying the BUG-02 re-arm fix verbatim (D-17/D-18), so neither
-// direction can drift between the networked and local path.
-export function toggleTimer(){
-  const next=!appState.timerOff;
-  try{localStorage.setItem("pp4_timerOff",next?"1":"0");}catch(e){}
-  if(appState.db&&appState.room){
-    netSetTimerOff(appState.db,appState.room,next,netFail("timerOff"));
-  }else{
-    applyTimerOff(next);
-  }
-}
-// CLOCK-02: any player (host or guest) may trigger a true play/pause of the WHOLE game —
-// countdown AND bot captains — not just the ⏱ timer-off toggle above (D-05: the two coexist).
-// Multiplayer: write the flag; every client's watchPause() mirrors it, and only the host's
-// branch mutates shotClockDeadline/shotClockPauseElapsed (D-06/D-07 — see applyPauseState).
-// Solo/pass-and-play (no db/room): fall back to the local toggleShotClockPause() unchanged.
-export function togglePause(){
-  if(appState.db&&appState.room){
-    netSetPaused(appState.db,appState.room,!appState.shotClockPaused,netFail("pause"));
-  }else{
-    toggleShotClockPause();
-  }
-}
-// AUDIO-02 (phase 21): the mute button beside the clock. Pure client-side state — isMuted()/
-// setMuted() (src/ui/audio.js) are the whole store, backed by their own localStorage key; no
-// Firebase write, no net* writer, no appState field, so muting never reaches another player's
-// browser (D-13, T-21-12). setClockUI() is called directly (main tier may call it, unlike ui-tier
-// code) so the icon/tooltip refresh immediately rather than waiting for the next 500ms tick.
+/* broadcastClock() stood here (the clock write), then togglePause()/watchPause() (the whole-table
+   pause) — the clock left with the shot-clock removal, pause with Wyatt's A-10, both 2026-08-28. */
+/* toggleTimer() stood here — the ⏱ off/on toggle, every mode. Left with the clock 2026-08-28. */
 export function toggleMute(){
   setMuted(!isMuted());
   setClockUI();
 }
-// Structurally identical to watchTimer() below: every client (host and guest) attaches this so
-// the shared paused flag is tracked table-wide. Only the host branch runs applyPauseState (the
-// deadline/pauseElapsed math) — a guest just mirrors the boolean for rendering (D-06).
-export function watchPause(){
-  netWatchPaused(appState.db,appState.room,s=>{
-    const v=!!s.val();
-    if(appState.isHost){
-      applyPauseState(v);
-      // CLOCK-02 FIX (mp-pause-clock-desync): applyPauseState() recomputes the host-authoritative
-      // deadline (resume) / stashes pauseElapsed (pause) but is PURELY LOCAL. Without this
-      // re-broadcast the guests keep rendering the stale pre-pause deadline — freezing at a
-      // different number and racing to 0 on resume. broadcastClock() is the single deadline writer
-      // (host authority preserved) and now also carries the pause state for the guest render.
-      broadcastClock();
-    }else appState.shotClockPaused=v;
-    setClockUI();
-  });
-}
-// notes/edits BUG-02 / D-18 (phase 21): the state-mutation body (including the re-arm fix) now
-// lives in src/ui/util.js's applyTimerOff(), shared verbatim with toggleTimer()'s new local
-// branch below — this callback is reduced to just the Firebase wiring.
-export function watchTimer(){
-  netWatchTimerOff(appState.db,appState.room,s=>applyTimerOff(!!s.val()));
-}
-// notes/edits #1 audit: this was a bare netNarrate() with no hold/fade at all — the shot-clock
-// penalty text could get clobbered the instant the next event fires, with no guaranteed read
-// time whatsoever. async + flash() now gives it the same length-aware timing as every other
-// narration. Called from a setInterval tick (shotClockTick) that doesn't await it — fine, since
-// this is a one-shot side effect with nothing downstream depending on its completion order.
-export async function expireShotClock(){
-  // notes/edits #9: shotClockTick() is a setInterval that keeps ticking every 500ms while this
-  // async function is mid-flight (its awaits below routinely run well past 500ms) — without
-  // clearing the interval and blocking re-entry synchronously, right here, before any await, the
-  // still-running tick fires this function again on top of itself and strips a second resource
-  // for the same expiry ("snoozing pirates lose their treasure" firing more than once).
-  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-  const p=appState.game.players[appState.shotClockSeat];
-  appState.shotClockSeat=null;
-  appState.turnExpired=true;
-  // BUG-02: a null resolver here is a real, distinguishable state, not an ordinary no-op — it
-  // means the decision in flight was created before a timer-off and its resolver was never
-  // handed back (see stopShotClock/rearmShotClock). Degrade loudly rather than silently letting
-  // the countdown expire while nothing actually resolves the promise.
-  if(appState.shotClockForce){appState.shotClockForce();appState.shotClockForce=null;}
-  else if(appState.shotClockStash)console.warn("shot clock expired with a stashed resolver for seat",appState.shotClockStash.seat,"— auto-skip degraded");
-  if(appState.activePickCleanup){appState.activePickCleanup();appState.activePickCleanup=null;}
-  if(p){
-    // NARR-01 audit finding: this used to hand-write text byte-identical to
-    // EVENT_NARRATION.shotclockskip (src/ui/util.js) — narrate through the table instead, exactly
-    // as every other event in the codebase is narrated, so the duplicate can never drift again.
-    //
-    // WYATT, 2026-07-30: **running out the 30s clock now costs the TURN AND NOTHING ELSE.**
-    // *"when the shot clock runs out, you just lose your turn, but you don't lose a crate. Let's
-    // get rid of that crate losing business altogether."* Asked whether the coin fallback went too,
-    // he chose both 30s penalties. DO NOT RESTORE EITHER. What used to be here:
-    //
-    //   - holding crates -> a RANDOM crate spliced out and returned to tokens[]
-    //   - holding none   -> up to 5🌕 taken
-    //
-    // The 20-second penalty (applyShotClockPenalty in src/ui/util.js — 1🌕 to each other captain) is
-    // a DIFFERENT mechanic at a different threshold and deliberately still runs. He was asked
-    // about it specifically and kept it.
-    //
-    // This also removes CR-02's root cause rather than guarding its symptom. The confiscation ran
-    // AFTER shotClockForce() had already resolved the pending `ask()` promise, and `ask()` forces
-    // default index 0 — Accept — so a partner who timed out auto-accepted a trade for a crate the
-    // clock had just taken, and the trade then spliced on indexOf === -1. With no confiscation
-    // there is no vanishing crate. The moveCrate() invariant and the turnExpired guard in
-    // humanTrade stay regardless: a timed-out partner must not auto-accept in the first place.
-    //
-    // Determinism: the crate branch consumed one appState.game.r() call (the random crate index).
-    // Removing it changes RNG draw counts in LIVE games only — the 31 fixtures are all-bot engine
-    // replays where no shot clock ever fires, and src/engine/index.js is untouched. Verified green.
-    appState.game.ev({t:"shotclockskip",p:p.idx});
-    await narrateLastEvent();
-    liveRender();
-    if(!seatLocal(p.idx)&&appState.db&&appState.room)netRemovePrompt(appState.db,appState.room,netFail("prompt clear"));
-  }
-  stopShotClock();
-}
-export function watchClock(){
-  netWatchClock(appState.db,appState.room,s=>{appState.clockState=s.val();setClockUI();});
-}
+/* expireShotClock() and watchClock() stood here — the 30s auto-skip (turnExpired, the forced
+   default answer, the activePickCleanup teardown, the `shotclockskip` event and its narration)
+   and the guest's mirror of the clock broadcast. Removed 2026-08-28 with the shot clock (see
+   src/ui/util.js's ask()). Wyatt's rulings that shaped the penalty (2026-07-30: "you just lose
+   your turn... get rid of that crate losing business altogether") are preserved in git history
+   at this file and must ride back in WITH the clock. */
 
 // ---- narration: shown to everyone in the yellow action panel (no separate banner) ----
 // D-10: `variants` is additive — the host's OWN screen now selects from the exact same payload
@@ -313,10 +191,52 @@ export function watchClock(){
 // asks the payload one question the picked STRING cannot answer — is this wait line about a
 // question arriving at this browser. Handing the render seam what a guest's watchNarr already
 // hands it is the convergence PAR-14 names; the picked line it draws is unchanged.
-export function netNarrate(html,variants,opts){if(appState.replaying)return;showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
+export function netNarrate(html,variants,opts){if(appState.replaying)return;
+  /* READ THE SUBJECT BEFORE DRAWING, because showNarration CONSUMES it (`S.subject = null` on the
+     way through). Reading it after would always send nothing, and the guest would keep sniffing —
+     which is the fault this line exists to close (W4-2, CEO Review 20). */
+  const {subj,evN}=readSubject();
+  showNarration(pickNarrVariant({html,variants},appState.mySeat),opts,variants);
+  sendNarr(html,variants,opts,subj,evN);}
+/* THE SUBJECT AND THE SERIAL ARE ONE FACT, READ IN ONE PLACE, AND SPENT ONCE.
+   BOTH HALVES WERE EARNED THE HARD WAY. `subj` must be read BEFORE showNarration, because
+   showNarration CONSUMES it (`S.subjectSet = false`, src/ui/stage.js) — reading it after would
+   always send nothing and the guest would keep sniffing (W4-2, CEO Review 20). And the SERIAL must
+   name the event the subject was actually read from, not simply the newest event in the array:
+   `events.length-1` went out with every line in the game, so a prompt or a dock line carried the
+   serial of an event it had nothing to do with, and the guest anchored its bubble to whichever
+   captain that unrelated event named (CEO Review 25). Only src/ui/panel.js's narrateLastEvent
+   reads an event for its line, and it now says so by setting appState.narrEvIdx.
+   -1 IS NOT A SERIAL EITHER, and sending it cost every crew game half a second: before the engine
+   has produced anything `events.length-1` is -1, `-1 != null` so it was sent, and the guest's own
+   frontier was still undefined so the guard held the recipe-draft line for the full grace period
+   at the start of every voyage (CEO Review 24, reproduced before it was believed).
+   SPENT ONCE, because the flag is one-shot. netBroadcast draws nothing locally, so nothing else
+   would ever clear it — and a battle play-by-play line would then inherit whatever subject the
+   previous event happened to decide. */
+function readSubject(){
+  const has=!!(window.__pp4&&window.__pp4.subjectSet);
+  const subj=has?window.__pp4.subject:undefined;
+  const raw=has?appState.narrEvIdx:null;
+  const evN=(typeof raw==="number"&&raw>=0)?raw:null;
+  appState.narrEvIdx=null;
+  return {subj,evN};}
+/* ONE PAYLOAD ASSEMBLY, because two writers to one Firebase slot that disagree about what they put
+   in it is the same fault in miniature. netBroadcast used to send neither the subject nor the
+   serial, which left the battle play-by-play — the place coins move MOST — outside both fixes. */
+function sendNarr(html,variants,opts,subj,evN){
+  if(!(appState.isHost&&appState.db&&appState.room))return;
+  netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait,subj,evN);}
 // broadcast narration to spectators WITHOUT touching this screen's panel — used during
 // battles so the local scoreboard (coins) stays put while others still get the play-by-play
-export function netBroadcast(html,variants,opts){if(appState.replaying)return;if(appState.isHost&&appState.db&&appState.room)netSetNarr(appState.db,appState.room,html,netFail("narration"),variants,opts&&opts.wait);}
+export function netBroadcast(html,variants,opts,pre){if(appState.replaying)return;
+  /* `pre` IS THE DECISION CAPTURED BEFORE THE LOCAL DRAW SPENT IT (src/ui/panel.js's flash). On the
+     stage path — every crew game — the bubble is drawn first and stageFlash clears the flag, so
+     reading it here finds nothing: measured on the wire, 47 of 47 lines carried no subject. When a
+     caller hands the decision over, it is used; when none does, the flag is read here as before. */
+  const {subj,evN}=pre?{subj:pre.subj,evN:(typeof pre.evN==="number"&&pre.evN>=0)?pre.evN:null}:readSubject();
+  if(window.__pp4)window.__pp4.subjectSet=false;   // nothing renders here, so nothing else spends it
+  sendNarr(html,variants,opts,subj,evN);}
 
 // ---- chat: free-text messages between human players. Unlike narr/ev (host-authoritative),
 // every client sends and listens directly — there's no single "who computes this" owner. Nothing
@@ -340,6 +260,19 @@ export function watchChat(){
   });
 }
 
+/* FORK 3, STEP A (W1, 2026-08-28) — THE PUBLISH LEAVES THE RENDERER. renderBattle used to write
+   the wire from inside itself; watchBattle's host guard existed purely to stop the host reading
+   its own write (the fork-3 map's ECHO LOOP landmine). This is benchPublish/applyBenchSnap's
+   shape: LOCAL RENDER ALWAYS, then the write under its own Rule A guard. Every scoreboard moment
+   in the host loop now goes through here; renderBattle stays reachable directly only for the
+   GUEST's render path (renderBattleFromSnap via the handler table), which must never publish.
+   Gate: scripts/qa/battle_publish_seam_check.mjs. */
+export function battlePublish(o){
+  renderBattle(o);
+  // broadcast the read-only scoreboard (never buttons) so every connected client — not just
+  // whoever's deciding — sees the same battle unfold in real time
+  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
+}
 // The battle scoreboard: names, a static result circle per fighter, and pips. The coin never
 // spins here — every flip in the game (battles included) physically happens on the shared
 // flippenator; this just displays whatever it last landed on for each fighter.
@@ -387,9 +320,6 @@ export function renderBattle(o){
     <div class="btl-wind">${windTag}</div>
     ${battleFooter(o)}
   </div>`,!!o.prompt);
-  // broadcast the read-only scoreboard (never buttons) so every connected client — not just
-  // whoever's deciding — sees the same battle unfold in real time
-  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netSetBattle(appState.db,appState.room,battleSnapshot(o),netFail("battle"));
 }
 // battleSnapshot/renderBattleFromSnap moved verbatim to src/ui/flow.js (11-05).
 
@@ -432,8 +362,15 @@ let _bench=null;
 /* Publish one moment of a bench. `spec` is the SAME object the choreography is running from, so a
    watcher cannot be handed a bench that disagrees with the one being played. */
 export function benchPublish(spec,seat,patch){
+  /* `baker` rides the snapshot (A-2 sweep, closing a T-25 gap): the spec has carried the baker's
+     name since T-25 ("one field, built once, read by baker and watcher alike"), but this assign
+     dropped it — so every WATCHER titled the bench with bakeTitle's generic fallback while the
+     baker's own screen said whose bake it was. Forwarding it is what makes a watched bench read
+     "Crustbeard's Bake-Off". */
   const snap=Object.assign({seat,order:spec.order,before:spec.before,swaps:spec.swaps||[],
-    locked:spec.locked||[],attempts:spec.attempts||0,epoch:0},patch||{});
+    locked:spec.locked||[],attempts:spec.attempts||0,baker:spec.baker||null,epoch:0},patch||{});
+  // `||null`, not bare: RTDB rejects a set() carrying `undefined`, and a spec without a baker
+  // (an older client's) must degrade to bakeTitle's fallback, not kill the whole publish.
   applyBenchSnap(snap);                                   // LOCAL RENDER ALWAYS
   if(appState.db&&appState.room&&!appState.replaying)
     netSetBattle(appState.db,appState.room,{title:BENCH_TITLE,bake:snap},netFail("bake bench"));
@@ -467,7 +404,7 @@ function benchWatch(snap){
     setPicks:(p)=>{picks=p||[];if(pickCb)pickCb(picks);}};
   _bench=sess;
   playBakeoffLive({order:snap.order,before:snap.before,swaps:snap.swaps||[],
-                   locked:snap.locked||[],attempts:snap.attempts||0},{watch:ctl})
+                   locked:snap.locked||[],attempts:snap.attempts||0,baker:snap.baker},{watch:ctl})
     .catch(e=>{console.error("bench watch",e);})
     .then(()=>{if(_bench===sess)_bench=null;});
   // A watcher that arrives after the shuffle has begun does not sit on a Ready that will never be
@@ -561,7 +498,7 @@ export function watchBattle(){
     if(v){
       // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
       // trigger — this callback fires on every write to the battle node (many times per fight,
-      // once per renderBattle()), so without the read-then-assign order the clash would re-fire
+      // once per battlePublish()), so without the read-then-assign order the clash would re-fire
       // on every scoreboard update instead of once per battle.
       //
       // `!v.title` — REWRITTEN 04-01 Task 3 TO SAY WHAT IT NOW DOES rather than what it was left
@@ -596,9 +533,6 @@ export function battleAsk(p,o,msg,opts,colors){
   setActor(p.idx);
   const seat=p.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
-  // every battle decision — flip or yes/no — re-arms the clock to whoever's actually
-  // being asked, same as ask(); a forced timeout just resolves to the flip itself
-  armClock(seat);
   // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
   // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
   // turn, the table can see it's the human's defend flip and nudge them (see #11).
@@ -620,24 +554,25 @@ export function battleAsk(p,o,msg,opts,colors){
     idxP=new Promise(res=>{
       if(isFlip){
         // the scoreboard just shows state — the flippenator is the actual control
-        renderBattle(o);
+        battlePublish(o);
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});
       }else{
-        renderBattle(Object.assign({},o,{prompt:{msg,opts,colors}}));
+        battlePublish(Object.assign({},o,{prompt:{msg,opts,colors}}));
         $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{
           b.onclick=()=>res(+b.dataset.i);
         });
       }
     });
   }else{
-    renderBattle(Object.assign({},o,{waiting:pn(seat)}));
+    battlePublish(Object.assign({},o,{waiting:pn(seat)}));
     idxP=remotePrompt(seat,{kind:"ask",msg,labels:opts.map(x=>x.label),
       colors:colors?colors.map(c=>c||""):null,classes:opts.map(()=>""),
       flip:isFlip,battle:battleSnapshot(o)});
   }
-  const wrapped=withShotClock(seat,idxP,opts.length-1);
-  return wrapped.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
+  // resolveOpt's opts.length-1 fallback is NOT clock residue — it is also the null-answer
+  // fallback for a disconnected guest, and it stays (fork-3 map, landmine 4).
+  return idxP.then(i=>{const r=resolveOpt(opts,i,opts.length-1);logDecision(r.i);return r.opt.value;});
 }
 // collectSideBets/settleSideBets moved verbatim to src/ui/flow.js (11-05).
 /* ================= v2 rule 9 (and rule 13): the one-round battle =================
@@ -660,7 +595,7 @@ export function battleAsk(p,o,msg,opts,colors){
    attacked at all, so there is always a crate to take.
 
    `need` is gone along with the scoreboard race: the battle-UI's a/d counters now only ever read
-   0 or 1, and exist so the shared renderBattle() scoreboard keeps working unchanged. */
+   0 or 1, and exist so the shared battlePublish() scoreboard keeps working unchanged. */
 /* THE CAMERA IS ARMED AND DISARMED AROUND THE WHOLE FIGHT, not around the battle card, because a
    battle asks its questions before the card exists — collectSideBets runs first, and playtest 22
    found the crow's-nest call being made with the camera parked on the caller's own boat (Wyatt:
@@ -717,12 +652,12 @@ async function asyncBattleRun(att,def){
     // playtest 11: the battle card's own coin spins through the beat — before this, only the
     // (hidden-under-the-stage) flippenator got the spin state and the card coin jumped
     // wait -> face with no motion at all
-    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));
     await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
     netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
-    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
     // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
     // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
     await sleep(FLIP_LAND_HOLD_MS);
@@ -732,25 +667,25 @@ async function asyncBattleRun(att,def){
   const bFlip=async(side,p,extra)=>{
     extra=extra||{};
     const key=side==="a"?"atState":"dfState";
-    renderBattle(base(Object.assign({live:side,[key]:"wait"},extra)));
+    battlePublish(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
-    renderBattle(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
+    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
     await sleep(flipSpinLeftMs());
     const h=appState.game.flip(p);
     broadcastFlip(h?"H":"T");
-    renderBattle(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
+    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
     await sleep(FLIP_LAND_HOLD_MS);   // playtest 13 / T-34: the landed face holds, same as every other flip
     broadcastFlip("wait");
     return h;
   };
   // ---- THE round ----
   round=1;
-  renderBattle(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
+  battlePublish(base({atState:"wait",dfState:"wait",live:"a",result:`${nm(att.idx)} loads the cannon…`}));
   await sleep(beat*0.5);
   const ah=hA?await hFlip("a",att,`⚔️ ${nm(att.idx)} (attacker) — fire!`,{dfState:"wait"}):await bFlip("a",att,{dfState:"wait"});
-  renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
+  battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
   await sleep(beat*0.6);
-  renderBattle(base({atState:ah?"H":"T",dfState:"wait",live:"d",
+  battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"d",
     result:`${nm(att.idx)} shows ${ah?"HEADS":"TAILS"} — ${nm(def.idx)} must answer…`}));
   await sleep(beat);
   const dh=hD?await hFlip("d",def,`⚔️ ${nm(att.idx)} attacks ye — defend! FLIP`,{atState:ah?"H":"T"}):await bFlip("d",def,{atState:ah?"H":"T"});
@@ -762,9 +697,9 @@ async function asyncBattleRun(att,def){
       if(downwind==="a"){a++;winner=att;}else{d++;winner=def;}
       const dwName=downwind==="a"?nm(att.idx):nm(def.idx);
       // @copy misc.battleline.bothheadsdownwind
-      rmsg=`<span class="score">Both fire ⚪️ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`;
+      rmsg=`<span class="score">Both fire ⚪ HEADS — but ${dwName}'s firing downwind and the shot hits!</span>`;
     // @copy misc.battleline.bothheadscrosswind
-    }else rmsg=`<span class="cancel">Both fire ⚪️ HEADS — but in the crosswind, the cannonballs collide.</span>`;
+    }else rmsg=`<span class="cancel">Both fire ⚪ HEADS — but in the crosswind, the cannonballs collide.</span>`;
   }else if(ah||dh){
     scorer=ah?"a":"d";
     if(ah){a++;winner=att;}else{d++;winner=def;}
@@ -773,9 +708,9 @@ async function asyncBattleRun(att,def){
     rmsg=`<span class="score">${hitName} lands a hit!</span>`;
   }
   // @copy misc.battleline.bothmiss
-  else rmsg=`<span class="cancel">Both miss — ⚫️ TAILS all round.</span>`;
+  else rmsg=`<span class="cancel">Both miss — ⚫ TAILS all round.</span>`;
   rounds.push([ah?1:0,dh?1:0,0,scorer]);
-  renderBattle(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
+  battlePublish(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
   await sleep(hold);
 
   if(!winner){
@@ -828,10 +763,10 @@ async function asyncBattleRun(att,def){
         rounds.push([rh?1:0,null,0,rh?"a":null]);
         if(rh){a++;winner=att;
           // @copy misc.battleline.refirehits
-          renderBattle(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:`<span class="score">The second broadside tells — ${nm(att.idx)} lands it!</span>`}));
+          battlePublish(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:`<span class="score">The second broadside tells — ${nm(att.idx)} lands it!</span>`}));
         }else{
           // @copy misc.battleline.refiremisses
-          renderBattle(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">The shot goes wide.</span>`}));
+          battlePublish(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">The shot goes wide.</span>`}));
         }
         await sleep(hold);
       }
@@ -976,78 +911,29 @@ export async function recipeDraftNet(){
     pending.push(p);
   }
   if(pending.length){
-    // G4 (Wyatt-approved 2026-07-30): one short line. The trailing clause explaining how to win
-    // duplicated the Ahoy intro that closed moments earlier (and, after G5, immediately before) —
-    // the prompt's job is to ask, not to re-teach. The two recipe cards below it carry the detail.
-    // Not an extracted @copy site: the message reaches localAsk/remoteDraftPrompt via a variable,
-    // so it drifts no baseline. D-29 (`yer`, not `your`) satisfied.
+    // G4 (Wyatt-approved 2026-07-30): one short line — the prompt's job is to ask, not re-teach.
+    // Not an extracted @copy site: the message reaches the dispatcher via a variable. D-29 (`yer`).
     const msgFor=p=>`${pn(p.idx)}, choose yer recipe:`;
     const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
                        {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
-    if(appState.passAndPlay){
-      // one device, secret options: draft in turn, each gated by the pass-the-device screen
-      // so nobody's two recipe choices are ever on screen for the seat that comes next
-      for(const p of pending){
-        await passGate(p.idx);
-        setActor(p.idx);
-        const i=await localAsk(msgFor(p),optsFor(p));
-        picks[p.idx]=i;logDecision(i);
-      }
-    }else{
-      /* 17b — ONE MOMENT, ONE SENTENCE, FROM ONE PLACE, ON BOTH SIDES (D-07).
-         This was netBroadcast, which is "broadcast to spectators WITHOUT touching this screen's
-         panel" — so every guest read "⚓ Everyone's choosing their recipe…" and the host read
-         NOTHING for this beat, and was left holding netIntroBarrier's older "⚓ Waiting for yer
-         mateys…" from the moment before. That is exactly the pair in his screenshot 17b: not two
-         wordings for one moment, but the host stranded a moment behind because it was the one
-         screen the line was never delivered to. netNarrate draws locally AND mirrors, so the host
-         now reads the same sentence at the same beat, and stageFlash's S.hurry() retires the stale
-         wait line as it lands. `wait` because this line's whole subject is that nothing is
-         happening yet — item 19. */
-      /* MY OWN REGRESSION, SAME DAY, AND THE VARIANTS ARE THE FIX. Wyatt, 2026-08-20, with a
-         screenshot of a SOLO game: "wy is choosing a recipe…" floating over wy's own screen while
-         wy's recipe card was open in front of him. Told about himself, in the third person, in a
-         game with no one else in it.
-
-         The netBroadcast -> netNarrate change above is right and stays: the host WAS the one screen
-         never told. But netBroadcast never touched the sending screen, so the actor was silenced by
-         accident — and netNarrate draws locally, which removed that accident and exposed that this
-         call passes NO variants. The variants list is what silences a line for the captain it is
-         about; every sibling line already has one (flow.js:543's sail line, util.js:1573's "is
-         deciding"). This one was simply never given one, because until today it never needed one.
-
-         Every PENDING captain is an actor here, not just the first — in the multi-player wording
-         they are all choosing at once — so the whole pending set is silenced, not `pending[0]`. */
-      // @copy misc.draftwait.recipechoosing
-      netNarrate(pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
-        pending.map(q=>({seat:q.idx,html:""})),{wait:true});
-      const results={};
-      /* THE SAME LINE FOR EVERY CAPTAIN, WRITTEN ONCE. Wyatt, 2026-08-20: "when both host and guest
-         are on recipe choice, the waiting card only appears to host. this is a parity problem."
-
-         It was, and it was one missing ARGUMENT. remoteDraftPrompt(seat,msg,opts,waitMsg) carries
-         the wait line to a remote captain in the payload, and watchDraftPrompt shows it the moment
-         they answer — that channel has always worked; the intro barrier (ui/flow.js) passes one and
-         a guest sees it there. This call simply never passed one, so the host got the line from its
-         own localAsk branch and the guest got silence.
-
-         Hoisted to a const so the two branches cannot drift again: whatever a local captain is told
-         is by construction what a remote captain is told. MEASURED before and after in a real
-         two-window game — host saw both wait lines, guest saw only the intro one. */
-      // @copy misc.draftwait.recipechosen
-      // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
-      const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
-      const jobs=pending.map(p=>{
-        setActor(p.idx);
-        if(seatLocal(p.idx))return localAsk(msgFor(p),optsFor(p)).then(i=>{
-          results[p.idx]=i;
-          if(draftWait)showNarration(draftWait,{wait:true});
-        });
-        return remoteDraftPrompt(p.idx,msgFor(p),optsFor(p),draftWait).then(i=>{results[p.idx]=i;});
-      });
-      await Promise.all(jobs);
-      for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
-    }
+    /* FORK 4 CONVERGED (W1, 2026-08-28): the pass-and-play/networked branch pair that stood here
+       — with its 17b one-moment-one-sentence lesson, the solo third-person regression and its
+       variants fix, and the draftWait argument a guest once never received — lives in
+       draftDispatch (src/ui/flow.js) now, where fork 5 shares every line of it. The recipe draft
+       is the PRIVATE case: recipe cards are secret, so a shared device walks every seat behind
+       the pass gate, serially. The announce line and its variants ride in unchanged; decisions
+       are logged below in seat-index order exactly as before, whichever mode ran, so a reload-
+       replay reconstructs the identical stream. */
+    const byIdx={};pending.forEach(p=>{byIdx[p.idx]=p;});
+    // @copy misc.draftwait.recipechoosing
+    const announce={html:pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
+      variants:pending.map(q=>({seat:q.idx,html:""}))};
+    // @copy misc.draftwait.recipechosen
+    // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
+    const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
+    const results=await draftDispatch({seats:pending.map(p=>p.idx),isPublic:false,
+      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
+    for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
   }
   appState.game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
   if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
@@ -1116,18 +1002,18 @@ async function runLiveDayBakeoff(order){
   const g=appState.game;
   for(const i of order){
     const p=g.players[i];
-    if(p.done||p.baking)continue;
+    if(p.done)continue;
+    /* A-1: one phase — the attempt rides the captain's own turn slot, byte-for-byte the same
+       order as the engine's playBakeoff (live and headless must consume identical randomness).
+       endBakeDay still closes the day at the end, so same-day arrivals keep their fair race. */
+    if(p.baking){await bakeTurnLive(p);continue;}
     await (p.strategy==="human"?humanTurn(p):botTurn(p));
-    if(g.lightOvens(p)){liveRender();await narrateLastEvent();}
-  }
-  for(const i of g.bakersToday(order)){
-    await bakeTurnLive(g.players[i]);
+    if(g.lightOvens(p)){liveRender();await narrateLastEvent();await bakeTurnLive(p);}
   }
   liveRender();
   return g.endBakeDay();
 }
-/* One captain's attempt. The UI half lands in a later step; for now every seat plays with the
-   engine's own botGuess, which is exactly what a forfeited human turn will use too. */
+/* One captain's attempt. */
 async function bakeTurnLive(p){
   const g=appState.game;
   /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
@@ -1135,10 +1021,20 @@ async function bakeTurnLive(p){
      then does the human path get to look at the bench. */
   const {setup,fallback}=g.bakeSetup(p);
   const human=p.strategy==="human";
-  // bakeoffPrompt owns replay, the decision log and the shot clock (see its note in flow.js). It is
-  // called for a human seat even under replay — that is the whole point, since it is what returns
-  // the guess the player ACTUALLY made rather than re-deriving one from the bot.
-  const dec=human?await bakeoffPrompt(p,setup,fallback):{g:fallback,w:0};
+  /* A-2 (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming to life."): a bot's bake
+     PLAYS on every screen now, where it used to resolve invisibly in one tick. `perform` is when
+     any bench is worth drawing at all — never under replay (its sleeps no-op but the watcher's
+     animations would run in real time), and for a bot never under fast-forward either (a human's
+     bake ends the skip itself, via bakeoffPrompt's ffEndNow). When it is false the bot bakes
+     silently, exactly as it always did. */
+  const perform=!appState.replaying&&(human||!appState.ff);
+  // bakeoffPrompt owns replay and the decision log (see its note in flow.js). It is called for a
+  // human seat even under replay — that is the whole point, since it is what returns the guess the
+  // player ACTUALLY made rather than re-deriving one from the bot. The bot's guess is the engine's
+  // own fallback either way: the performance publishes a decision already made, it never makes one.
+  let dec;
+  if(human)dec=await bakeoffPrompt(p,setup,fallback);
+  else{ if(perform)await botBakePerform(p,setup,fallback); dec={g:fallback,w:0}; }
   /* WHERE A RE-WATCH IS ACTUALLY PAID FOR — three cases, one debit site, and the engine is the
      only thing that ever moves a coin.
        LOCAL, LIVE      already charged, one click at a time, by flow.js's onRewatch — so the purse
@@ -1155,12 +1051,57 @@ async function bakeTurnLive(p){
      is also what reconciles the buyer's optimistic figure back to the settled one. */
   if(dec.w&&(appState.replaying||!decisionIsLocal(p.idx)))g.bakeRewatch(p,dec.w);
   const out=g.bakeResolve(p,dec.g);
-  if(human&&!appState.replaying)await benchReveal(p,out.res);
+  // A-2: the verdict reveals for EVERY performed bake, not only a human's — the crates a bot's
+  // watchers just studied come off the same way, through the same one publish.
+  if(perform)await benchReveal(p,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
   // evIdx to narrate both was a mistake; that field drives the scrubber, not this.
   await narrateLastEvent();
+}
+/* A-2 — THE BOT'S BAKE, PERFORMED (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming
+   to life.").
+
+   T-23's trace was right and is now closed: the entire watcher pipeline already existed — a bot
+   seat is never decisionIsLocal, so benchPublish -> applyBenchSnap -> benchWatch draws a bench on
+   EVERY screen, the publisher's own included (that is what solo is). The one missing thing was a
+   publisher, and this is it: the same discrete moments a human baker's onBench publishes, through
+   the same benchPublish, so a bot's bake and a human's bake are one display path (rule 23).
+
+   IT DECIDES NOTHING AND DRAWS NOTHING FROM THE SEEDED STREAM (BOT-DESIGN-PRINCIPLES; the race
+   planner's determinism contract). bakeSetup already shuffled and already computed `fallback`
+   before this runs; this function reads those and paces them out loud. Whether anyone watched can
+   never change what the bot guessed.
+
+   THE PACING IS THE CHOREOGRAPHY'S OWN (rule 9 — nothing is a constant): bakeoff.js answers how
+   long its cover-and-swap animation takes (benchChoreoMs, from the same COVER/SWAP/SETTLE numbers
+   the animation runs on), the study window is the game's original PREVIEW_MS, and picks land one
+   per SETTLE_MS — the beat that file already defends as the line between trackable and blur. The
+   added seconds on a bot's bake day are the point, not a cost: this is the game coming to life.
+
+   THE TAP LIST IS THE ENGINE'S OWN DATA: fallback[k] is null exactly at steps already locked
+   (botGuess's expansion), so "which crates does the bot tap, in what order" is read straight off
+   the guess — no re-derivation that could disagree with what scoreAttempt will be handed. */
+async function botBakePerform(p,setup,fallback){
+  const spec={order:p.bake.order.slice(),
+    before:(setup.before||p.bake.slots).slice(),
+    swaps:(setup.swaps||[]).map(sw=>[sw[0],sw[1]]),
+    locked:p.bake.locked.slice(),
+    attempts:p.bake.attempts,
+    baker:pn(p.idx)};
+  benchPublish(spec,p.idx,{phase:"open"});      // the bench appears; the bot "studies"
+  await sleep(BENCH_STUDY_MS);
+  benchPublish(spec,p.idx,{phase:"shuffle"});   // Ready — every watcher's crates cover and swap
+  await sleep(benchChoreoMs(spec));
+  const picks=[];
+  for(let k=0;k<spec.order.length;k++){
+    if(fallback[k]==null)continue;              // a locked step is never tapped
+    await sleep(BENCH_BEAT_MS);
+    picks.push(fallback[k]);
+    benchPublish(spec,p.idx,{phase:"pick",picks:picks.slice()});
+  }
+  await sleep(BENCH_BEAT_MS);                   // the last badge lands before the crates lift
 }
 /* THE VERDICT — the one bench moment the HOST publishes, because the host is the only thing that
    scores (04-01 Task 3, MP-05).
@@ -1207,23 +1148,34 @@ async function benchReveal(p,res){
    and only the contents of a hold differ. It emits a real `hold` event so the move shows up in the
    captain's log rather than crates silently materialising, and says plainly on screen that this is
    a test game — a shortcut nobody can see is one somebody eventually mistakes for a real result. */
-async function stockHoldsForBakeTest(){
-  // THE SAVE OUTRANKS THE URL. On a resume the query string may be gone (a bookmark without it, a
-  // shared link, a cleared address bar) while the decision log being replayed was recorded in a
-  // stocked game — so what the voyage was PLAYED under wins, and the URL only decides for a game
-  // that does not exist yet. Old saves predate the field and fall back to the URL, which is what
-  // they behaved like anyway.
+/* testFlagOn(name,urlFn) — THE SAVE OUTRANKS THE URL, asked once instead of three times.
+   On a resume the query string may be gone (a bookmark without it, a shared link, a cleared
+   address bar) while the decision log being replayed was recorded in a stocked game — so what the
+   voyage was PLAYED under wins, and the URL only decides for a game that does not exist yet.
+
+   Precedence: the solo save, then the game's own cfg, then the URL. The cfg leg is the CREW game's
+   equivalent of the same rule — roundCfg() threads the flag onto cfg, startGame writes that cfg
+   into the room, and a host-reload replay rebuilds from it, so a test room stays a test room across
+   a resume even when the query string is gone. The bare URL fallback only decides for a game whose
+   cfg predates the field, which is what old saves behaved like anyway.
+
+   CONVERGED, NOT COPIED (rule 23). W0-1 added a second and third caller of this exact chain. Three
+   copies of a precedence rule are three things kept in step by discipline; the design-time question
+   is "what makes these agree?" and the only durable answer is that there is one of them. */
+function testFlagOn(name,urlFn){
   const meta=appState.soloMeta;
-  // Precedence: the solo save, then the game's own cfg, then the URL. The cfg leg is the CREW
-  // game's equivalent of "the save outranks the URL": roundCfg() threads ovensNowEnabled() onto
-  // cfg, startGame writes that cfg into the room, and a host-reload replay rebuilds from it — so
-  // a test room stays a test room across a resume even when the query string is gone. The bare
-  // URL fallback only decides for a game whose cfg predates the field.
   const cfg=appState.game&&appState.game.cfg;
-  const on=(meta&&meta.ovens!==undefined)?!!meta.ovens
-          :(cfg&&cfg.ovens!==undefined)?!!cfg.ovens
-          :ovensNowEnabled();
-  if(!on)return;
+  if(meta&&meta[name]!==undefined)return !!meta[name];
+  if(cfg&&cfg[name]!==undefined)return !!cfg[name];
+  return urlFn();
+}
+async function stockHoldsForBakeTest(){
+  // ?bake2=1 IMPLIES this shortcut — a second attempt needs a captain standing at a lit oven with
+  // a full hold, which is exactly what this does. One route to the ovens, two doors onto it.
+  // ?endcard=1 does NOT: it never bakes, so lighting an oven for it would pose a state the card it
+  // is trying to reach never comes from.
+  const bake2=testFlagOn("bake2",bake2Enabled);
+  if(!testFlagOn("ovens",ovensNowEnabled)&&!bake2)return;
   const g=appState.game;
   const humans=g.players.filter(p=>p.strategy==="human");
   if(!humans.length)return;
@@ -1235,12 +1187,65 @@ async function stockHoldsForBakeTest(){
     // this cannot conjure a bake out of an ineligible captain — it just satisfies the gate in the
     // one window where everyone provably still meets it.
     g.lightOvens(p);
+    /* ?bake2=1 — LAND ON THE SECOND ATTEMPT, NOT THE FIRST (W0-1).
+       The jitter Wyatt reported (W3-2) is an attempt-TWO fault, and `?ovens=1` lands on attempt
+       one, so the shortcut that existed could not reach the bug it was needed for. lightOvens has
+       just built a fresh bake; spend one attempt on it.
+
+       THROUGH THE ENGINE'S OWN applyResult, never by hand-setting attempts and locked. It is the
+       function a real attempt goes through, so this state is one a real voyage can actually
+       produce — including the forced-last-bowl rule, which hand-setting would miss. It draws no
+       random numbers, so the seeded stream is untouched.
+
+       HOW MANY STEPS THE PRETEND ATTEMPT GOT RIGHT IS DERIVED, NOT TYPED (rule 9): enough to leave
+       THREE bowls open. A recipe length is not a constant — leaving a fixed two locked would solve
+       a short recipe outright via the forced-last-bowl rule and hand him a bake with nothing left
+       to play. Three open is the smallest bench that still shuffles and still has to be read. */
+    if(bake2&&p.bake&&p.bake.order.length){
+      const n=p.bake.order.length;
+      const solved=Math.max(0,n-3);
+      applyResult(p.bake,{correct:p.bake.order.map((_,k)=>k<solved)});
+    }
   }
   liveRender();
   // @copy adhoc.test.ovensnow
   // "Stay put, then Pass" is MEASURED, not assumed: a turn is two prompts, the sail picker and then
   // the action menu, so "pass on day one" would have sent him looking for one button that does both.
-  await flash(`${iconImg(FLAME_IMG)} <b>TEST GAME</b> — holds stocked and the ovens are lit. The bake-off begins at the end of day one.`,3000);
+  await flash(bake2
+    ? `${iconImg(FLAME_IMG)} <b>TEST GAME</b> — holds stocked, ovens lit, and one attempt already spent. The bake-off resumes at attempt 2 at the end of day one.`
+    : `${iconImg(FLAME_IMG)} <b>TEST GAME</b> — holds stocked and the ovens are lit. The bake-off begins at the end of day one.`,3000);
+}
+/* ?endcard=1 — LAND ON THE END OF VOYAGE CARD (W0-1, 2026-08-27).
+
+   Four of Wyatt's 2026-08-27 PROBLEM marks are problems only because the card sits at the far end
+   of a sixteen-day voyage and he could not get to it on a phone. Two of them (W3-3, the drumroll
+   firing after the winner is named; W3-4, the card slamming down) are faults IN the ending itself,
+   so a shortcut that produces anything other than the real ending would be worse than useless.
+
+   SO IT DOES NOT DRAW A CARD. It poses the state the ending reads — every captain home with a full
+   recipe — and then lets the voyage end through liveResolveEndNet(), the same and only function
+   that ends every other voyage. ONE DISPLAY PATH (rule 23): the card he inspects is the card
+   players get, because nothing here draws one.
+
+   EVERY captain, not only the humans. With one finisher the ending takes its single-winner branch
+   and never emits `collab` — and the collaborative bakery, the ranked finishers and the drumroll
+   are exactly what W3-3 is about. The richer ending is the one worth reaching.
+
+   IT DRAWS NO RANDOM NUMBERS, like the ovens shortcut it sits beside, and it emits a real
+   `testhold` per captain so the crates do not silently materialise in the captain's log. */
+async function skipToEndCard(){
+  if(!testFlagOn("endcard",endCardEnabled))return false;
+  const g=appState.game;
+  for(const p of g.players){
+    if(!p.recipe||!p.recipe.length)continue;
+    p.ing=[...p.recipe];
+    g.ev({t:"testhold",p:p.idx});
+    p.done=true;p.baking=false;
+    if(g.finishOrder.indexOf(p.idx)<0)g.finishOrder.push(p.idx);
+  }
+  liveRender();
+  await flash(`${iconImg(FLAME_IMG)} <b>TEST GAME</b> — every captain is home with a full recipe. Skipping to the end of the voyage.`,2600);
+  return true;
 }
 export async function runLiveNet(){
   await showAhoyIntro();
@@ -1275,8 +1280,16 @@ export async function runLiveNet(){
   // the RNG stream, which is the one thing this swap must not do.
   await recipeDraftNet();
   await stockHoldsForBakeTest();
-  await showTurnOrderIntro(order);
-  let ended=false;
+  /* ?endcard=1 skips straight past the day loop into liveResolveEndNet() below — the one function
+     that ends every voyage. Nothing here draws the card; the real ending does.
+
+     BEFORE the turn-order intro, and that placement was MEASURED, not chosen (2026-08-27). Placed
+     after it, the shortcut sat behind netIntroBarrier's "🦜 Start" button waiting for a tap — so a
+     URL whose whole purpose is to remove taps between him and the card added one. The intro draws
+     lots for a sailing order that this voyage will never use. */
+  const toEnd=await skipToEndCard();
+  if(!toEnd)await showTurnOrderIntro(order);
+  let ended=toEnd;
   while(appState.game.round<150&&!ended){
     appState.game.round++;
     // v2 rule 6: the wind that blows this round was forecast on the compass LAST round, and rule
@@ -1351,6 +1364,14 @@ export async function liveResolveEndNet(){
   appState.liveDone=true;
   playWinScreen(); // D-05: the host's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
   liveRender();
+  /* A STATE CHANGE IS NOT AN EVENT (found by the 2026-08-28 sea trial, both solo legs stuck on a
+     silent board with the voyage over). Since A-13 the drain consumes each event exactly once, so
+     the liveRender() above draws NOTHING here — the `end` event was consumed lines ago, while
+     liveDone was still false, and board.js's showStats gate re-hid the stats on that render. The
+     redraw for the FLAG has to be explicit, exactly as applyEndMeta (this function's guest twin)
+     has always done: liveDone=true, playWinScreen(), render(). one_event_consumer_check §5 holds
+     both twins to it. */
+  render();
   // The victory box that used to be flashed here is GONE, deliberately — do not restore it. Its
   // three pieces (the "wins!" line, the recipe picture, the Best Baker sentence) now render in the
   // gold End of Voyage banner via showStats(), which liveRender() has just called. Flashing them
@@ -1392,7 +1413,7 @@ export function logDecision(v){
 }
 // D-08: tell the crew their captain is mid-repair. Guests watch only ev/prompt/narr/flip/battle/
 // clock/timerOff/draftPrompts/response/chat — none of which can carry this — so it gets its own
-// small node rather than overloading prompt's payload shape. Host-only, guarded like broadcastClock.
+// small node rather than overloading prompt's payload shape. Host-only, guarded on isHost+db+room.
 export function setRecoveryState(state){
   if(!appState.isHost||!appState.db||!appState.room)return;
   if(state)netSetRecovery(appState.db,appState.room,{state,at:Date.now()},netFail("recovery"));
@@ -1411,7 +1432,17 @@ export function watchRecoveryState(){
 export function pushEvents(){
   if(!appState.db||!appState.room)return;
   while(appState.evPushed<appState.game.events.length){
-    netPushEvent(appState.db,appState.room,JSON.parse(JSON.stringify(appState.game.events[appState.evPushed])),netFail("event feed"));
+    /* Q-18 — THE SERIAL IS STAMPED ON THE WIRE COPY, NEVER ON THE ENGINE'S OWN EVENT. Adding a
+       field inside Game.ev would change what the engine emits into the event stream, which
+       invalidates the whole determinism corpus and forces a gated re-record (CLAUDE.md's Project
+       section — NOT .planning/PROJECT.md, which an earlier version of this comment named). This is
+       the deep copy that already exists for the broadcast, so the engine's array is untouched and
+       `n` is simply what index this event went out as — appState.evPushed is already that number,
+       monotonic and host-owned. flow.js's re-entry-guard note warns against stamping fields on the
+       event OBJECT for exactly this reason; the copy is the safe place. */
+    const wire=JSON.parse(JSON.stringify(appState.game.events[appState.evPushed]));
+    wire.n=appState.evPushed;
+    netPushEvent(appState.db,appState.room,wire,netFail("event feed"));
     appState.evPushed++;
   }
 }
@@ -1497,44 +1528,34 @@ export function watchDraftPrompt(){
   });
 }
 // remote: render the game purely from the broadcast event feed
-export function watchEvents(){
-  netWatchEvents(appState.db,appState.room,async snap=>{
-    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
-    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
-    // reorder the feed. Everything after the await is presentation only.
-    const e=fixEv(snap.val());
-    appState.game.events.push(e);
-    appState.evIdx=appState.game.events.length-1;
-    /* THE GUEST'S OWN COPY OF THE GAME USED TO BE A PHOTOGRAPH TAKEN THE INSTANT THE VOYAGE BEGAN.
+/* ═════════ THE ONE EVENT CONSUMER (W1, 2026-08-28) ═════════
+   Wyatt: "fix all the described architecture so both host and guest listen to one game activity
+   engine." This is the event channel's half of that sentence. Everything an event DRAWS —
+   active seat, captain's log, rim sweep, render, pops, sound, end-meta — happens HERE and only
+   here, whichever tier the event reaches this browser on:
+     · a GUEST gets it from the Firebase listener (watchEvents below);
+     · the HOST and solo/pass-and-play get it from the local drain (liveRender, src/ui/panel.js,
+       through the onConsumeEvent handler seam) — Rule A: the host's own screen never round-trips
+       through Firebase, so the host calls this locally and never reads its own write back.
+   The comments that taught this body its steps were written in watchEvents and are preserved
+   there; the ORDER is the guest's proven order and is gated (one_event_consumer_check.mjs):
+   ANIMATE BEFORE render(), or the ship has already jumped to its destination.
 
-       beginGame() constructs `appState.game` on both tiers, but only the host's runLiveNet() ever
-       mutates it again — so on a guest, round stayed 0, windNow stayed null, and every captain's
-       pos/coins/ing stayed at their spawn values for the entire voyage while `events[]` filled up
-       with everything that actually happened. render() has always known that and draws from
-       `events[evIdx].state` (board.js:1567), which is why the BOARD was right and the RIBBON, the
-       WIND PILL and every CAMERA CUT were wrong: those read `appState.game` directly
-       (stage.js ribbonTick :403, pillHTML :381, camToSeat :72, camFitSail :97, camFitSeats :111).
-       Measured on a real driven guest, 2026-08-19, on day 2 of a live crew game:
-           appState.game.players pos: 7,6 · 7,8 · 8,7 · 6,7   (spawn, frozen)
-           events[last].state    pos: 8,9 · 9,10 · 9,9 · 6,7   (what was actually on screen)
-           host ribbon "DAY 2" / pill "WIND NOW: W← · FORECAST: N↑"
-           guest ribbon "DAY 1" / pill blank, because pillHTML()'s own !g.windNow guard hides it
+   WHO COMPUTES IS STILL A BRANCH, AND THAT IS SANCTIONED: the state-sync block below runs on a
+   guest only. It is Rule A's "who computes" fork — a guest mirrors the authoritative snapshot
+   baked onto every event; the host IS the authority, and (measured risk, not style) writing a
+   drained event's older snapshot back onto live engine objects mid-loop would corrupt the game.
+   Nothing in the branch decides what is DRAWN.
 
-       THE FIX IS TO STOP THE LIE, NOT TO PATCH THE SIX PLACES THAT READ IT. Game.ev()
-       (engine/index.js:316) already bakes round/wind/storm and a full per-seat snapshot onto EVERY
-       event that crosses the wire, and `newround` additionally carries next/nextStorm — so this
-       needs no engine change, no wire-format change, and raises no determinism question. It is the
-       same move applyEndMeta() (:757) has always made for the end-of-voyage fields, run on every
-       event instead of once at the finish line. Not one renderer changed to make the ribbon, the
-       pill and the sail camera correct.
-
-       MUTATED IN PLACE, NEVER REASSIGNED: renderBattleFromSnap holds `appState.game.players[i]`
-       object references across the fight (flow.js:2283-2285). Replacing the array would strand
-       them; writing their fields makes those same references simply become true.
-
-       The arrays are COPIED, not aliased, exactly as Game.ev() copies them on the way out —
-       `events[i].state` is the scrubber's history, and history must not be reachable for writing
-       through a live player object. */
+   THE FEED-RATE DIVERGENCE IS CLOSED (A-13, Wyatt 2026-08-28: "host and guest parity is the #1
+   goal"): the host's drain (liveRender) now hands this consumer EVERY unconsumed event in order,
+   exactly as the guest's wire does — the shared evConsumed frontier is what makes double-draws
+   and skips both impossible. */
+export async function consumeEvent(e){
+  if(!e)return;
+  if(!appState.isHost){
+    // the guest's mirror of the host-authoritative state — see watchEvents' preserved history
+    // below for the day the ribbon said DAY 1 while the board played day 2 (2026-08-19).
     if(e.state)e.state.forEach((s,i)=>{
       const p=appState.game.players[i];if(!p||!s)return;
       p.pos=Array.isArray(s.pos)?[...s.pos]:p.pos;
@@ -1543,41 +1564,44 @@ export function watchEvents(){
     if(e.round!=null)appState.game.round=e.round;
     if(e.wind!=null)appState.game.windNow=e.wind;
     if(e.storm!=null)appState.game.stormNow=e.storm;
-    // next/nextStorm ride on the `newround` event ONLY (engine/index.js:2940), and they are already
-    // forecastWind()'s own output — a storm-bound forecast arrives as null and Firebase drops the
-    // key, so windNext lands undefined and g.forecastWind() returns null through its own stormNext
-    // branch, which is exactly what the host shows. pillHTML() calls forecastWind() unmodified.
     if(e.t==="newround"){appState.game.windNext=e.next;appState.game.stormNext=e.nextStorm;}
-    /* 21 AND 20 — WHOSE TURN IT IS, learned from the same place on both tiers (02.15-01 Stage 2).
-       Measured before it was written, fourteen consecutive samples of a real two-tab crew game:
-       host curSeat=1 with the ribbon glowing boat 1, guest curSeat=0 with the glow on boat 0 and
-       never moving. Nothing on this tier had ever written it. Same shared renderer, two sets of
-       callers, one of which did not exist on a guest — D-24 in one figure.
-       `p` rides `turn`, `sail`, `dock`, `pass` and `attack` already; applyActiveSeat skips the
-       events that carry no seat rather than blanking the indicator, and bounds the seat before it
-       is used as an index. Nothing is asked of the engine, so the event schema and the determinism
-       corpus are untouched — the same move this callback already makes for round, wind and storm. */
-    applyActiveSeat(e.p);
-    syncLogLines();
-    $("scrub").max=Math.max(0,appState.game.events.length-1);
-    // ANIMATE BEFORE render(), or the ship has already jumped to its destination and there is
-    // nothing left to watch. The same shared stepper the host calls — one function, both tiers, so
-    // they cannot be paced or aimed differently (that is what scripts/host_guest_parity_check.js
-    // assertion 3 pins). This tier does NOT read rimCellInfo or rimHead itself.
-    //
-    // KNOWN, ACCEPTED DEGRADATION, stated rather than discovered later: the guest's coin/crate
-    // panels lag by the sweep's duration (~95ms per square) because render() now runs after it, and
-    // an event arriving mid-sweep harmlessly snaps the ship to its true square on the next paint.
-    // Degradation, not breakage.
-    await animateRimSweepIfAny();
-    render();
-    // (the re-fetch of events[evIdx] that used to sit here is gone — `e` is declared once, at the
-    // top of this callback, and evIdx was set to events.length-1 the instant after `e` was pushed,
-    // so the line was already handing back the identical object. It is now also a redeclaration
-    // this scope would refuse to parse.)
-    spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
-    playForEvent(e); // AUDIO-01/D-07: the guest's mirror of the host's per-event sound moment — rival and bot captains audible here too, no isLocalTo gate
-    if(e.t==="end")applyEndMeta();
+  }
+  applyActiveSeat(e.p);
+  syncLogLines();
+  $("scrub").max=Math.max(0,appState.game.events.length-1);
+  await animateRimSweepIfAny();   // idempotent (_lastSweptEvIdx) — a host call site that already awaited the ride makes this a no-op
+  render();
+  spawnPops(e,boardCell());
+  playForEvent(e);                // AUDIO-01/D-07: the per-event sound moment, every tier, no isLocalTo gate
+  if(e.t==="end")applyEndMeta();  // self-guarded: host/already-applied return immediately
+}
+
+// remote: feed the broadcast event stream into the ONE consumer
+export function watchEvents(){
+  netWatchEvents(appState.db,appState.room,async snap=>{
+    // G14 (Wyatt-approved 2026-07-30): the guest half of the trade-wind sweep. THE PUSH AND THE
+    // evIdx ASSIGNMENT HAPPEN FIRST, BEFORE ANY await — so a second event arriving mid-sweep cannot
+    // reorder the feed. Everything after the await is presentation only.
+    const e=fixEv(snap.val());
+    appState.game.events.push(e);
+    appState.evIdx=appState.game.events.length-1;
+    appState.evConsumed=appState.game.events.length;   // A-13: the wire IS this tier's drain — keep the one frontier true
+    /* Q-18: how far this seat's own feed has actually reached, in the host's numbering. A narration
+       that names a later event must not be drawn yet — see watchNarr. Older hosts send no `n`, and
+       then this stays null and the wait below never engages. */
+    if(e&&e.n!=null)appState.evSeen=e.n;
+    /* THE HISTORY THIS CALLBACK EARNED, preserved with it (2026-08-19, measured on a real driven
+       guest): the guest's appState.game used to be a photograph taken the instant the voyage
+       began — round stayed 0, windNow null, every pos at spawn — so the BOARD (drawn from
+       events[evIdx].state) was right while the RIBBON, the WIND PILL and every CAMERA CUT (which
+       read appState.game directly) were wrong. The fix was to stop the lie at the source: bake
+       the state onto every event (Game.ev already did) and mirror it here — MUTATED IN PLACE,
+       never reassigned, because renderBattleFromSnap holds player object references across a
+       fight. That mirror now lives in consumeEvent's guest branch, where the host's drain shares
+       every line AFTER it. `p` rides turn/sail/dock/pass/attack for applyActiveSeat (02.15-01
+       Stage 2); the rim sweep's known, accepted degradation stands: the guest's coin panels lag
+       by the sweep's duration, an event arriving mid-sweep snaps the ship true on the next paint. */
+    await consumeEvent(e);
   });
 }
 export function watchPrompt(){
@@ -1610,83 +1634,34 @@ export function watchPrompt(){
         return;
       }
       appState.inBattlePrompt=false;
-      // mirror localAsk: a flip option arms the flippenator coin, a `back` option renders the
-      // small circular apBack escape hatch, and any remaining options are the normal button row.
-      // (These used to be host-only — remote players got a stray "FLIP!" button in the panel and
-      // never saw the back affordance.)
-      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[];
+      /* FORK 2 CONVERGED (W1, 2026-08-28). Everything that stood here — the guest's own flip
+         branch (whose early return meant a guest NEVER saw the other options on a flip-bearing
+         prompt), its own back-button build, its own panel() markup, its own slider build and its
+         own click wiring — is gone. The ONE renderer draws this seat's prompt from the wire
+         payload, and the ONLY thing this tier keeps is its response mechanism: sendResponse puts
+         the answer on the wire where localAsk resolves a promise. keepPanel=true because the
+         renderer's own done() already tore the panel down — sendResponse's clear is for callers
+         that render nothing.
+         BEHAVIOUR CHANGE, NAMED (the map said this needs Wyatt; convergence IS the call rule 23
+         makes, and it is flagged on the checklist): a guest's flip-bearing prompt now renders
+         exactly what the host's does — the coin AND the full option row — instead of an early
+         return that hid the options; and a PURE flip shows the ceremony title/stakes (flipMsg,
+         fixed 2d19a15e) instead of a floating narration bubble the host never drew.
+         "" from the wire normalizes to null inside the rebuild (seat 0 is a real captain — the
+         !=null tests stay). */
       const flipIdx=(p.flipIdx!=null&&p.flipIdx>=0)?p.flipIdx:(p.flip?0:-1);
       const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
-      const backHtml=backIdx>=0?backButtonHTML(backIdx):"";
-      if(flipIdx>=0){
-        setNeedsAction(true);
-        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,flipIdx);});
-        if(backIdx>=0){
-          // @copy prompt.net.promptrerender
-          panel(`${backHtml}<div class="apMsg">${p.msg}</div>`,true);
-          $("actionPanel").querySelectorAll(".apBack").forEach(b=>{
-            b.onclick=()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,+b.dataset.i);};});
-        }else showNarration(p.msg);
-        return;
-      }
-      setFlipActive(null);
-      const dis=p.disabled||[];
-      // playtest 21 item 5: aria-disabled so a greyed circle can be TAPPED for its reason, and
-      // data-why so it has one to give.
-      //
-      // THIS IS NO LONGER A SECOND COPY OF THE BUTTON MARKUP (02.1-03). The comment that used to
-      // sit here said it out loud — "a genuine second copy... so a change to one that skips the
-      // other reintroduces the bug on whichever side was forgotten" — and six fields had already
-      // proved it one at a time. The row is now built by optionButtonsHTML (util.js), the same
-      // function localAsk calls, so there is nothing left to keep in step by hand. The local escW
-      // closure went with it; the shared builder escapes through escHtml, which also escapes ">".
-      // What stays here, and must, is this tier's own click wiring: sendResponse(p.id,i) writes an
-      // answer to Firebase where localAsk resolves a promise in this browser.
-      const why=p.why||[];
-      // The seventh and last field of that drift class. `seat` anchors an option's circle over the
-      // boat it NAMES rather than the boat choosing (stage.js:1174 reads it back off data-seat) —
-      // the battle side-bet's "Call Dough Hook" is what needs it, and until now a spectating guest
-      // got the ordinary fan while the host got the anchored one. "" means "no seat"; SEAT 0 IS A
-      // REAL CAPTAIN, so this is an explicit ""/null test and never a truthiness one.
-      const seats=p.seats||[];
-      const rest=labels.map((l,i)=>({l,i})).filter(x=>x.i!==backIdx);
-      const grid=cls.some(c=>c)?" recipes":"";
-      const subHtml=p.sub?`<div class="apSub">${p.sub}</div>`:"";
-      /* MP-08 — THE COIN SLIDER, ON THIS SEAT TOO (05-01 Task 3, D-55). Until this build a remote
-         captain got coinStepper's +/- pair instead: three round trips per coin, and — measured in a
-         real crew room on 2026-08-23, shots/t2/03-mid-round-guest1.png — those +/- circles rendered
-         IN THE RADIAL ARC, which is precisely what playtest 21 took out of the host's arc ("THE ARC
-         IS FOR ACTIONS ONLY"). Same gesture, two behaviours, on the one axis rule 23 forbids.
-         IT NAMES sliderWrapHTML AND wireSlider DIRECTLY, not through a guest-only wrapper — that is
-         what lets the orchestration parity gate SEE the convergence rather than a lookalike.
-         `ref` is built HERE and read at click time; the number rides home as {i,n} and ask() lands
-         it in the HOST's own ref before resolveOpt, so coinSlider's single logQuantity() records a
-         dragged number identically whoever dragged it. */
+      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[],dis=p.disabled||[],why=p.why||[],seats=p.seats||[],shorts=p.shorts||[];
+      const opts=labels.map((l,i)=>({label:l,cls:cls[i]||"",disabled:!!dis[i],why:why[i]||"",
+        seat:(seats[i]===""||seats[i]==null)?null:seats[i],
+        short:(shorts[i]===""||shorts[i]==null)?null:shorts[i],
+        flip:i===flipIdx,back:i===backIdx,stage:!!p.stage}));
+      // belt: a flip prompt whose labels never crossed the wire still arms the coin
+      if(flipIdx>=0&&!opts.length)opts.push({label:"",flip:true,stage:!!p.stage});
       const sl=p.slider?Object.assign({},p.slider,{ref:{value:p.slider.start}}):null;
-      const slHtml=sl?sliderWrapHTML(sl):"";
-      // The guest half of the two fields added to this payload in util.js's ask(). Stamped BEFORE
-      // panel() so the stage loop sees it on the same tick localAsk's does (flow.js:214).
-      if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
-      // @copy prompt.net.promptrerenderbuttons
-      panel(`${backHtml}<div class="apMsg">${p.msg}</div>${slHtml}<div class="apBtns${grid}">`+
-        optionButtonsHTML(rest.map(x=>({i:x.i,label:x.l,cls:cls[x.i],disabled:dis[x.i],why:why[x.i],seat:(seats[x.i]===""||seats[x.i]==null)?null:seats[x.i],color:cols[x.i]})))+`</div>${subHtml}`,true);
-      // ...wired by the same function localAsk wires it with. The slider sits BETWEEN the message
-      // and the buttons on both tiers, which is also where the top-to-bottom reveal rule puts it.
-      if(sl)wireSlider($("actionPanel"),sl);
-      // menuButtons() reads _shortHtml off the BUTTON, so the guest has to hang it on the same way
-      // localAsk does (flow.js:271) — an empty string means "this option had no short label",
-      // which is not the same as having one, so it must not be assigned.
-      const shorts=p.shorts||[];
-      $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
-        const i=+b.dataset.i;
-        if(shorts[i])b._shortHtml=shorts[i];
-        if(isDisabledBtn(b)){b.onclick=()=>showWhy(b);return;}
-        /* {i,n} WHEN THERE IS A NUMBER TO SEND, a bare index when there is not. sendResponse puts
-           `choice` on the wire unchanged and remotePrompt resolves it unchanged, so an OBJECT needs
-           no new node and no new listener — 04-01 established that for the bake's {g:[...],w:n}. */
-        b.onclick=()=>sendResponse(p.id,sl?{i,n:sl.ref.value}:i);
-      });
-    }else if(p.kind==="pick"){
+      renderAskPrompt({msg:p.msg,opts,colors:p.colors||null,sub:p.sub||null,slider:sl,battle:false},
+        v=>sendResponse(p.id,v,true));
+        }else if(p.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
       // THE TRACER (02.15-02 Task 3, D-25/PAR-14): names the ONE converged renderer DIRECTLY —
@@ -1814,13 +1789,73 @@ let _liveBakePromptId=null;
    appState.room is set, so handing it v.html + v.variants picks exactly once, as before. An old
    payload with no `variants` key still degrades to v.html.
    `wait` is item 19's flag — a wait line registers no dismissal deadline (see stageFlash). */
+/* Q-18's two clocks. A GRACE PERIOD, not a deadline: the guest is waiting for a message already in
+   flight over the same connection that just delivered the sentence, so the gap it covers is one
+   round trip, not a retry budget. Long enough to absorb an ordinary reorder, short enough that a
+   line drawn anyway is not perceived as a pause — and if the event never comes at all, the story
+   carries on exactly as it does today. */
+const NARR_EVENT_GRACE_MS=450, NARR_EVENT_POLL_MS=30;
 export function watchNarr(){
   netWatchNarr(appState.db,appState.room,s=>{const v=s.val();
     // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
     // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
     // letting them overwrite the panel made the battle box flicker away between flips (#9)
     if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)
-      Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});});
+      {
+        /* THE HOST'S DECISION WINS OVER THE SNIFF. -1 means "the host deliberately gave this line no
+           subject" (a fight, a table-wide report) and must NOT fall through to the colour sniff,
+           which would anchor it to whichever single captain the sentence happens to name. A payload
+           with no `subj` at all is an older host, and keeps the old sniff behaviour. */
+        /* Q-18, WYATT'S RULING IN ITS ACTUAL SHAPE (2026-08-29): "the guest prefers the real event
+           and falls back to today's picture when it's absent." The guest ALREADY HOLDS the whole
+           event — watchEvents pushes it onto this seat's own array — so preferring it costs zero
+           extra bytes on the wire, and the first cut of this fix stopped one line short of taking
+           it (CEO Review 24). Both seats now run the SAME `subjectOf` out of src/shared/index.js
+           over the SAME event, which is the only honest answer to "what makes these two agree?".
+           THE FALLBACK IS TODAY'S PICTURE, EXACTLY: no event in hand (an older host, a dropped
+           write, a line with no event at all) and the host's own `subj` decision is used, -1 still
+           meaning "deliberately no subject" and must not fall through to the colour sniff. */
+        const evAt=n=>{
+          if(n==null||!appState.game||!appState.game.events)return null;
+          const arr=appState.game.events;
+          /* the guest's array is filled in arrival order, so index === serial in the ordinary case;
+             the scan is the honest fallback rather than an assumption about Firebase ordering. */
+          if(arr[n]&&arr[n].n===n)return arr[n];
+          for(let i=arr.length-1;i>=0;i--)if(arr[i]&&arr[i].n===n)return arr[i];
+          return null;};
+        const applySubject=()=>{
+          if(!window.__pp4)return;
+          const ev=evAt(v.evN);
+          if(ev){window.__pp4.subject=subjectOf(ev);window.__pp4.subjectSet=true;window.__pp4.evType=ev.t;return;}
+          if(v.subj!=null){window.__pp4.subject=(v.subj===-1?null:v.subj);window.__pp4.subjectSet=true;}};
+        /* ONE SLOT, ONE LIVE LINE. `narr` is written with .set(), so only the newest sentence is
+           real — but each arriving line now runs its own timer, and a held line firing after a
+           newer one had already drawn would repaint the OLDER sentence over it (CEO Review 24: an
+           ordering fix that could invert two lines). The generation counter is the whole guard:
+           a tick that is no longer the current line simply drops. */
+        appState.narrGen=(appState.narrGen||0)+1;
+        const myGen=appState.narrGen;
+        /* Q-18 — DO NOT DRAW A LINE AHEAD OF ITS OWN EVENT. The sentence and the event that caused
+           it arrive on two independent listeners, so this seat can be handed "test2 trades 1 to ye
+           for Fresh Milk" before the trade itself has landed — and the captains box then shows the
+           pre-trade purse under the post-trade sentence. Measured in a real two-browser game: twice
+           in twelve minutes, and twice the mirror image.
+           BOUNDED, AND THAT BOUND IS THE WHOLE SAFETY OF IT. A wait that could last forever would
+           turn a dropped write into a stalled story, which is far worse than a one-coin flicker. It
+           gives the feed a short grace period and then draws regardless — so the worst case is
+           exactly today's behaviour, and the common case is in step. An older host sends no evN and
+           this never engages at all. */
+        const drawIt=()=>{applySubject();return Promise.resolve(flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined)).catch(()=>{});};
+        if(v.evN!=null&&v.evN>=0&&(appState.evSeen==null||appState.evSeen<v.evN)){
+          const until=Date.now()+NARR_EVENT_GRACE_MS;
+          const tick=()=>{
+            if(appState.narrGen!==myGen)return;                       // a newer line owns the slot
+            if((appState.evSeen!=null&&appState.evSeen>=v.evN)||Date.now()>=until){drawIt();return;}
+            setTimeout(tick,NARR_EVENT_POLL_MS);
+          };
+          tick();
+        } else drawIt();
+      }});
 }
 
 /* ================= welcome modal ================= */
@@ -2300,7 +2335,7 @@ export function beginGame(cfg,seed){
   // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
   appState.game.seaSeat=appState.mySeat;
   appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
-  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.appliedMeta=false;
+  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.narrEvIdx=null;appState.appliedMeta=false;
   // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
   appState.turnOrder=null;
@@ -2316,7 +2351,7 @@ export function beginGame(cfg,seed){
      stopped the game with an empty panel and, measured, NOTHING in the console. See
      voyageAground()'s note in util.js for why that is worse than a crash. */
   if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchClock();watchTurnOrder();watchRecoveryState();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchTurnOrder();watchRecoveryState();}
   /* EVERY CLIENT WATCHES THE BENCH NODE, THE HOST INCLUDED — watchChat's shape, one line below,
      and for the same reason (04-01 Task 3, MP-05). A bake-off bench is published by whoever is
      BAKING, and the baker may be a guest, so a host that only ever wrote to this node could never
@@ -2327,37 +2362,12 @@ export function beginGame(cfg,seed){
      attach a listener to rooms/null/battle. */
   if(appState.db&&appState.room)watchBattle();
   watchChat(); // unlike narr/ev, every client (including the host) both sends and listens for chat
-  watchTimer(); // #7: every client tracks the shared timer-off flag
-  watchPause(); // CLOCK-02: every client tracks the shared whole-game pause flag
-  // D-19 (phase 21): this used to be read ONLY inside the isHost&&db&&room branch below, which
-  // never runs in solo or pass-and-play — so appState.timerOff silently kept its `false` default
-  // there and a player who switched the timer off last game got it back on every new game. Read
-  // unconditionally, in every mode, before that branch — guarded by !appState.replaying so a
-  // reload-replay keeps whatever the live game already had, exactly like the dlog reset above.
-  // P8 (Wyatt, 2026-08-01: "i turned the timer off, refreshed the page, and the timer was turned
-  // on"). D-19 above fixed the fresh-game case; a RELOAD still lost it, because a solo/pass-and-play
-  // reload resumes through replay, `appState.replaying` is true, and this read was skipped — so
-  // appState.timerOff fell back to its `false` default in src/state/index.js.
-  //
-  // pp4_timerOff is a PER-DEVICE preference, not game state (see src/ui/util.js's note that it is
-  // structurally excluded from the versioned-blob mechanism, and never cleared) — confirmed by
-  // Wyatt 2026-08-01: "per-device in local storage". So on replay it should still be honoured.
-  // FIX-01 (D-01): this key was pp_timerOff until 2026-08-19, un-namespaced and therefore SHARED
-  // with the live game at the same origin — so this read, and the room push below, were reading and
-  // broadcasting the other game's preference. The per-game key is the fix; the one-time removal of
-  // the legacy key lives in cleanupLegacyTimerKey() in src/ui/stage.js.
-  // The !replaying guard is kept ONLY for networked games, where the room's shared flag is the
-  // authority and watchTimer() delivers it; overriding that from one device's localStorage mid-
-  // replay is what the original guard was protecting against.
-  if(!appState.replaying||!(appState.db&&appState.room)){
-    try{appState.timerOff=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
-  }
-  // host seeds the shared flag from its own last choice so the preference carries across games
-  // (but not on a reload-replay, which must keep whatever the live game already had)
-  if(appState.isHost&&appState.db&&appState.room&&!appState.replaying){
-    let off=false;try{off=localStorage.getItem("pp4_timerOff")==="1";}catch(e){}
-    netSetTimerOff(appState.db,appState.room,off,netFail("timerOff"));
-  }
+  /* The pp4_timerOff read and the host's room-seed of the shared timer flag stood here
+     (D-19/P8/FIX-01 — the per-device preference and its cross-game carry). Left with the shot
+     clock 2026-08-28; the localStorage key is untouched on players' devices, so their preference
+     survives to be honoured when the clock returns. cleanupLegacyTimerKey() in src/ui/stage.js
+     still removes the LEGACY pp_ key exactly once — that hygiene is about the classic game's
+     namespace, not the clock. */
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
@@ -2439,11 +2449,25 @@ export function wireLobby(){
       try{localStorage.setItem("pp_rematch",JSON.stringify(appState.soloMeta.names));}catch(e){}
     leaveGame();
   };
-  $("scPause").onclick=togglePause;
-  $("scTimerToggle").onclick=toggleTimer;
   $("btnMute").onclick=toggleMute;
   $("btnShowLog").onclick=()=>{$("logModal").style.display="flex";const box=$("log");box.scrollTop=box.scrollHeight;};
-  $("btnShowHow").onclick=()=>{$("howToPlayModal").style.display="flex";};
+  /* A-7 — THE RULES PAGE DERIVES ITS NUMBERS (Wyatt, 2026-08-28: the rules page must update
+     "according to the latest rules" automatically). Every amount in the How-to-Play modal is an
+     empty <b data-rule="key"> span; this fills them from rulesFacts(cfg) — the LIVE game's cfg
+     when a voyage is running (a 2-player table's crate prices are genuinely different), else the
+     4-seat default. Filled once here so the modal is never blank, and again on every open so a
+     modal read mid-voyage tells the truth about THIS voyage. rules_page_check.mjs reads the same
+     rulesFacts, which is what keeps this filler and the gate from drifting apart. */
+  const fillRulesFacts=()=>{
+    const facts=rulesFacts((appState.game&&appState.game.cfg&&appState.game.cfg.recipeSize)
+      ?appState.game.cfg:roundCfg(["human","bot","bot","bot"]));
+    document.querySelectorAll("#howToPlayModal [data-rule]").forEach(el=>{
+      const v=facts[el.dataset.rule];
+      el.textContent=v===undefined?"?":String(v);
+    });
+  };
+  fillRulesFacts();
+  $("btnShowHow").onclick=()=>{fillRulesFacts();$("howToPlayModal").style.display="flex";};
   $("btnShowCredits").onclick=()=>{$("creditsModal").style.display="flex";};
   // KOFI-01: two doors onto one embedded panel — footer, and the Credits modal.
   $("btnKofi").onclick=openKofi;

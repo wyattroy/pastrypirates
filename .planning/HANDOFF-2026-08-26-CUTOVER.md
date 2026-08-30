@@ -1,5 +1,12 @@
 # Handoff — 2026-08-26, after the cutover
 
+> ## ⚠ SUPERSEDED by [`HANDOFF-2026-08-27.md`](HANDOFF-2026-08-27.md)
+>
+> Still accurate about the cutover itself. **But the repo has since changed shape** — `4/` is
+> deleted, the scripts live in `scripts/`, and there is a staging tier with a release process.
+> Six instruments this file could not know were broken have been found and fixed. Start there.
+
+
 > ## THE CUTOVER SHIPPED. `/4` IS NOW THE GAME.
 > `playpastrypirates.com` serves it. v1 is at `/classic`. Live build **`2026-08-26k-CUTOVER`**,
 > verified in a browser on the real domain. `main` level with `origin/main`, working tree clean.

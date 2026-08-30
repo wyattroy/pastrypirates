@@ -10,9 +10,9 @@ current_phase: "02.2"
 current_phase_name: a-captain-who-cannot-take-their-turn
 status: in-progress
 stopped_at: "2026-08-25. THE PULSE BUG IS SOLVED and confirmed green by Wyatt on his own iPhone — live as PP4_STAMP 2026-08-25f. Full account in HANDOFF-2026-08-25.md; ledgers closed in .planning/debug-pulse/. Also shipped: the narration bubble no longer flips sides mid-run, two placements stopped measuring a pulsing button, and every shared grey helper line is gone except the dock coin flip's, which he kept. CLOSED 2026-08-25 (D-57): the camera-anchor rewrite is NOT happening. Wyatt approved the current architecture — \"i like that the narration arrives before the camera settles\" — so :not(.pendingReveal) is the DESIGN, not a stopgap, and the early-build path stays. Do not plan it; do not re-ask it. Handoff §2 has the full ruling. THE ROADMAP'S OWN STATUS TABLE IS STALE and no phase-level percentage should be trusted until somebody audits it: 02.15 reads Planning with 2/2 plans summarised, 05 reads Not started with 1/1, and 04 reads In Progress while the 2026-08-23 note reports it complete."
-last_updated: "2026-08-25T18:00:00.000Z"
-last_activity: 2026-08-25
-last_activity_desc: the pulse bug is solved — the swell is granted at reveal, the narration bubble stops flipping sides, and every shared helper line is gone
+last_updated: "2026-08-28T08:20:00.000Z"
+last_activity: 2026-08-28
+last_activity_desc: "Wave 1 shipped to staging (2026.08.28.1-staging@9179ff66): one game activity engine — the shot clock temporarily OUT at Wyatt's word, one event consumer (consumeEvent) fed by all three producers with the host's inline drawing deleted, one ask renderer (renderAskPrompt), one draft dispatcher (draftDispatch, public/private as input), the battle publish out of its renderer (step A). 31 gates. CEO Review 8 recorded — read it: it caught a false crew-phone claim (corrected) and the per-item-CEO order not followed. Open: crew-phone day-8 stall under re-measurement, fork 3 full convergence, the clock's return, Q-10..Q-13."
 progress:
   # COUNTED, not typed (conventions §2 — never hand-type a number that can be counted):
   #   find .planning/phases -name '*PLAN.md'    -> 30
@@ -102,7 +102,7 @@ button — now guards the fallback `doPass(p)` in `4/src/engine/index.js`'s head
 `4/src/ui/flow.js`'s animated `botTurn()`; a bake-eligible bot ends its turn silently and
 `lightOvens(p)` still fires unconditionally from the day loop, exactly as it already did for a human
 who pressed "Fire up the ovens!" **Proven from the event stream, not asserted**: the new
-`4/scripts/bot_bake_pass_check.js` was red-proofed against the pre-fix commit (99 violations across
+`scripts/bot_bake_pass_check.js` was red-proofed against the pre-fix commit (99 violations across
 60 seeded games, exit 1) before being trusted green (0 violations, exit 0). A live, screenshotted
 solo session (state-injected per DRIVING-THE-GAME.md §5e — multiplayer injection is forbidden)
 confirmed it directly: a pirate-personality bot's full turn history was `pass` (not yet home-adjacent)
@@ -241,7 +241,7 @@ both sides before any group is handed to him** (rule 19).
 
 *02.1 remains closed on his ruling, and its own must-have — "Wyatt has played a stretch of the
 voyage himself and said it holds together" — remains NOT met. Nothing below changes that.*
-Last activity: 2026-08-24 - Completed quick task 260824-wkw: the pulse-debug system (build 2026-08-24g)
+Last activity: 2026-08-28 - Completed quick task 260828-vhv: W4-4 captains box width
 negative result.
 
 **The build:** `PP4_STAMP` is **`2026-08-20a`** (commit `54806c6`) — the sound fix, the six
@@ -482,7 +482,7 @@ Decisions are logged in `PROJECT.md` § Key Decisions. The ones that shape v2.0:
 - [Phase ?]: The layout gate's contact-sheet SCREENSHOT is deleted: it had never once succeeded on a real multi-size run, only photographed its own 404
 - [Phase ?]: 03-01: TEST-03 deferred — the determinism door stays OPEN for Phases 4 and 5. Reasoning AND its alternative in docs/DETERMINISM-CAPTURE-4.md §2; one sentence from Wyatt overturns it.
 - [Phase ?]: 03-01: scripts/lib/ twins are GATED, never deduped — deduping would re-root the engine loader at the root tree and measure the old game, green (HARD-WON-LESSONS §3).
-- [Phase ?]: 03-01: the ten existing 4/scripts/ gates all exit 0 but were NOT wired into npm test — none was red-proofed tonight, and an unproven gate in the chain is worse than no gate. Cheapest coverage win available to 03-02.
+- [Phase ?]: 03-01: the ten existing scripts/ gates all exit 0 but were NOT wired into npm test — none was red-proofed tonight, and an unproven gate in the chain is worse than no gate. Cheapest coverage win available to 03-02.
 
 ### Pending Todos
 
@@ -521,7 +521,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
   `fbf1088`).** All five `4/`-side sites now read and write the namespaced `pp4_timerOff`, and the old
   shared key is removed exactly once per browser behind the `pp4_timerOffCleaned` marker. The OFF
   default in `4/` was intentional and was **not** changed (Wyatt, 2026-08-18). Gated by
-  `4/scripts/pp4_timeroff_check.js`, which checks the source shape *and* the cleanup's real behaviour.
+  `scripts/pp4_timeroff_check.js`, which checks the source shape *and* the cleanup's real behaviour.
   **Still open, and only a person can check it:** confirm on a real browser that setting the live
   game's clock, opening `/4`, and coming back leaves the live setting intact.
 
@@ -561,6 +561,7 @@ misfiled in `pending/`. Triage them at the next opportunity — detail in
 | 260824-txl | His stepping-away notes: 30s host grace, one-tap recipe confirm, Enter submits names, the stay-put redesign — build 2026-08-24f | 2026-08-24 | d890b30 | [260824-txl-his-stepping-away-playtest-notes-30s-hos](./quick/260824-txl-his-stepping-away-playtest-notes-30s-hos/) |
 | 260824-vg9 | THE PULSE BUG, SOLVED. The freeze is one prompt (the turn menu) and the trigger is SAILING: the reveal gate holds buttons hidden for the boat's glide, and iOS 18.7 WebKit never creates an animation granted to a not-yet-drawn element. Fixed by granting the swell at reveal — build 2026-08-25a, confirmed green by Wyatt | 2026-08-25 | 4a7181c | [260824-vg9-ingest-the-pulse-video-and-run-the-webkit](./quick/260824-vg9-ingest-the-pulse-video-and-run-the-webkit/) |
 | 260824-wkw | The pulse-debug system: ledgers, the ?debug=pulse beacon, the WebKit runner, and the /oracle-debug handoff plan — build 2026-08-24g | 2026-08-24 | (this commit) | [260824-wkw-the-pulse-debug-system-hypothesis-eviden](./quick/260824-wkw-the-pulse-debug-system-hypothesis-eviden/) |
+| 260828-vhv | W4-4: captains box now fills the board width, and its rows fill the box. Two faults — a gap variable reused as an inset, and the classic --boardW still capping a re-parented panel | 2026-08-28 | f45aea7b | [260828-vhv-w4-4-captains-box-narrower-than-the-boar](./quick/260828-vhv-w4-4-captains-box-narrower-than-the-boar/) |
 
 ### Roadmap Evolution
 

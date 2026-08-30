@@ -63,7 +63,7 @@ documents; the rules themselves are all here, in full.
 | 13 | **Bots and humans have identical rules and affordances** | [§2](#2-design-rules) |
 | 14 | **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 15 | **`git fetch` before you trust any ref; keep `main` synced both ways** — *and if the pull moved this file, re-read it* | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
-| 16 | **Work in the main checkout — worktrees are retired** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
+| 16 | **Work in the main checkout — worktrees are retired**, and **assume a SECOND SESSION is on the branch**: pull --rebase before every commit, claim the item in the ledger before editing it | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 17 | **Kill every headless Chrome and server you start, before you reply** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 18 | **Absolute paths always — two trees share one internal layout** | [§3](#3-safety--where-getting-it-wrong-costs-real-damage) |
 | 19 | **PLAY THE GAME in two tabs to find what's wrong, and screenshot your own work before handing it over** | [§1](#1-working-with-wyatt) |
@@ -378,7 +378,7 @@ after you've done your work, show it to CEO before you show it to me."*
 **The sequence: do the work → spawn a CEO → give him the CEO's verdict → then your own account.**
 
 ```bash
-node 4/scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
+node scripts/qa/ceo_brief.mjs --ask="<his request, VERBATIM>"   # prints the whole brief
 ```
 
 **It is a COMMAND, not a memory exercise** — Wyatt, 2026-08-26: *"I need to be able to ask you to run
@@ -412,7 +412,17 @@ a lie."* Every claim in it was verified before being acted on, and every one hel
   whole mechanism theatre — and the paraphraser is the one with the motive.
 
 **Where the line is:** it runs after *work* — something built, fixed, measured or shipped. Not after
-a question answered or a file handed over. He can move that line; he has only to say so.
+a question answered or a file handed over.
+
+**AFTER EVERY ITEM, NOT ONCE PER WINDOW.** Wyatt, 2026-08-28: *"I want CEO to review after every
+item."* This is the second time he has had to say it (2026-08-28 04:14: *"CEO after every item, not
+just at the end"*), and CEO Review 9 caught it recurring: two windows running, one review ran at
+the end, after everything had shipped. **The unit is the ITEM — each thing he asked for, closed with
+its own fresh-context CEO verdict before the next item starts.** A batch of thirteen asks is
+thirteen reviews, not one. Sizing is honest, not theatrical: a one-line copy change gets a short
+verdict, an architecture change a long one — but every item gets one, appended to
+[`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) as it lands, so the recurrence check
+never has a gap again.
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 
@@ -509,6 +519,42 @@ day it was adopted.
   before believing it: three times in one day a probe measured a state it had never actually
   created — a settle trace begun after the reveal had finished, an emoji with no custom art
   standing in for an icon, a "card" that resolved to the full-screen container.
+
+### WIDEN THE TIME HORIZON — what happened immediately BEFORE the bug?
+
+Wyatt, 2026-08-27, after watching a session measure the same broken screen for two days: *"think
+like a top-tier software architect, creatively expanding your pattern recognition scope in time.
+what happens right before the bug each time?"*
+
+**A bug you cannot explain from its own moment is usually the consequence of a preceding one.**
+When something is INTERMITTENT, or the code at the scene of the crime looks correct, stop asking
+*what does this look like* and start asking **what happened just before it — and if that is not
+enough, what happened before THAT.**
+
+**The case that earned it.** Sail squares a guest cannot tap: some are drawn off the edge of the
+phone. Two days went into measuring WHERE the squares were — their rects, the board's transform,
+the camera's scale — and two separate geometry theories were measured dead. One question moved it
+in minutes. The answer was 180 milliseconds earlier: `src/ui/flow.js` draws the squares, then asks
+the camera to frame them **on a `setTimeout`** — and the camera is allowed to REFUSE while a
+centre-stage card holds the player's attention. The squares were correct. The order was not.
+
+**Why measuring harder could never have found it:** every measurement was taken at the moment of
+the symptom, and the cause had already finished happening. **A snapshot cannot show you a race.**
+
+- **Ask it of the SEQUENCE, not the screen.** What rendered before this? What resolved, arrived,
+  timed out or was torn down in the second before? Whose turn ended?
+- **Go back TWO steps when one is not enough.** The sail squares needed: squares drawn → camera
+  asked late → camera refused because a card was still up. Stopping at step one finds nothing.
+- **Intermittent is the tell.** A bug that appears in some runs and not others is almost never a
+  wrong constant; it is two things happening in an order nobody fixed.
+- **Put it in the prediction.** The prediction note (below) gets a line: *what happened immediately
+  before?* If you cannot answer it, you are not ready to measure yet.
+- **It applies to instruments too.** "The trial says NOT RUN" — what happened just before? A reboot
+  cleared `/tmp`. "The gear says NONE" — what happened just before? A cutover moved the tree.
+
+**This is enforced, not remembered.** `.claude/hooks/qa-gear-first.cjs` prints it as STEP 0 of the
+four steps, so it arrives at the moment you are about to change game code rather than at the top of
+a file somebody read this morning.
 
 ### Do not build tooling when the ask is to fix the game
 
@@ -717,7 +763,30 @@ Local `main` once sat **457 commits behind** — a v1.0 snapshot with no `src/` 
 produced a confident, entirely wrong conclusion handed to four parallel sessions as instructions.
 **Never report git state from memory or from earlier in the session.** Re-run the command.
 
-### Work in the main checkout — worktrees are retired
+### TWO SESSIONS ON ONE BRANCH — assume it, and write for it
+
+**Earned 2026-08-28, by not foreseeing it.** A handoff was written sending a session on Wyatt's Mac
+to sail this branch, and an hour later a 24-hour autonomous run was set up on the same branch.
+Nobody asked what happens when both are live. A third session was already pushing to it.
+
+**The silent one, which is the dangerous one:** `scripts/sea_trial.mjs` wrote
+`.planning/SEA-TRIAL.md` at a hardcoded path, so whichever machine finished last overwrote the
+other's verdict — leaving an authoritative-looking report describing a run from somewhere else.
+Rule 24 stands on opening that file and believing it. Fixed by `--report=` plus a derived
+`sailed on <machine>` line in every report (`scripts/qa/trial_report_ownership_check.mjs`).
+
+**The rules, whenever more than one session may be live:**
+
+- **`git pull --rebase` before every commit.** Two sessions appending to `.planning/CTO-LEDGER.md`
+  conflict on every push otherwise; rebased, they stack cleanly.
+- **CLAIM THE ITEM IN THE LEDGER BEFORE EDITING IT.** An unclaimed item is available; a claimed one
+  belongs to that session until it closes. This is the whole coordination mechanism — there is no
+  lock across machines and a lock file in git would lie.
+- **Shared artifacts are owned, not shared.** A run that is not the authoritative one writes its
+  own file (`--report=`, its own log) and never the file the process tells Wyatt to open.
+- **When you write a handoff, name what the other session must not touch** — branch, files,
+  and whether it may change game code at all. A handoff that assumes it is the only session is the
+  bug this rule exists to stop.
 
 **The only working directory is `/Users/wyattroy/Documents/Projects/pastrypirates`.** `.planning/` is
 a tracked directory, so it is **branch-scoped**: a worktree on a stale branch reports an older
@@ -822,8 +891,8 @@ artifacts.
 ### Every change to the game goes through a SEA TRIAL
 
 ```bash
-node 4/scripts/qa/gear.mjs      # how deep does THIS change have to go?
-node 4/scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
+node scripts/qa/gear.mjs      # how deep does THIS change have to go?
+node scripts/sea_trial.mjs    # run it; writes .planning/SEA-TRIAL.md
 ```
 
 **Full contract: [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md)** — read its *"THE WHOLE LOOP, END TO
@@ -847,13 +916,13 @@ change it → show it fixed (that SAME check passes) → sweep.
 |---|---|---|
 | **COSMETIC** | words, colours, comments | step 1 waived; `npm test` + a screenshot |
 | **PLUMBING** | how a mode *serves the game up* — the device hand-off, room codes, joining | that mode, **and the others once** |
-| **FULL** | **everything else — the default** | three modes, two sizes, **both engines**, real mouse |
+| **FULL** | **everything else — the default** | three modes, **three sizes** (desktop / tablet / phone), **both engines**, real mouse |
 
 **The middle gear is a different SUBJECT, not a smaller size.** Wyatt, 2026-08-26: *"Each mode
 should be structurally different just about who the player is playing against, but the game itself
 should remain consistent for every player in every mode."* An earlier draft had a gear meaning
 "behaviour changed inside one mode" and he threw it out — **that sentence presumes the fork it is
-supposed to prevent**, then looks only where the fork is. `4/scripts/mode_fork_check.js` now fails
+supposed to prevent**, then looks only where the fork is. `scripts/mode_fork_check.js` now fails
 the build when a new fork appears in code that draws.
 
 **What the report must never lose: the NOT-RUN column.** A leg that could not start is not a leg
@@ -862,7 +931,7 @@ that passed. "We tested it" becomes a lie precisely there.
 ### Run the health check before reporting status or closing a phase
 
 ```bash
-node ~/.claude/gsd-core/bin/gsd-tools.cjs validate health
+node .claude/gsd-core/bin/gsd-tools.cjs validate health
 ```
 
 1. **Before answering "where are we"** or any status question.
@@ -887,17 +956,46 @@ check can see: [`docs/PLANNING-HEALTH.md`](../docs/PLANNING-HEALTH.md).**
 
 <!-- GSD:workflow-start source:GSD defaults -->
 
-### GSD Workflow Enforcement
+### GSD — WHICH HALF, AND WHEN. Wyatt's ruling, 2026-08-28.
 
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+He asked what integrating GSD costs and buys, and the honest measured answer was that **GSD is two
+systems under one name, in opposite health here.** The one-small-task half is alive — 24 folders in
+`.planning/quick/`, 13 of them in one week. The phase/roadmap half had been dead for **215 commits**
+and was actively misleading: `/gsd-autonomous` read `ROADMAP.md` on 2026-08-28 and proposed
+re-planning the cutover, which shipped a week earlier. `ROADMAP.md` now carries a banner saying so.
 
-Use these entry points:
+**THE TWO SYSTEMS ARE NOT COMPETING — THEY GUARD DIFFERENT FAILURES.** GSD's phase loop guards
+against *building the wrong thing*. The sea trial and the CEO guard against *shipping the broken
+thing*. This project's pain has been almost entirely the second kind, which is why the ledger loop
+grew where it did. Neither is a superset of the other.
 
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
+| the work | the loop |
+|---|---|
+| **an item** — a playtest-list bug, a copy fix, a layout item | **`/gsd-quick`, then the four steps**: claim it in the ledger, gate RED first, fix, gate green, matched-pair screenshot, per-item CEO. His pick, 2026-08-28: the quick artifact is worth the extra step for the cross-session paper trail. |
+| **a milestone** — a cutover, a new mode, the tutorial | a real GSD phase (discuss → plan → execute). Thinking first pays where the thing is big and hard to undo. |
 
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+**`ROADMAP.md` AND `STATE.md` ARE NOT AUTHORITATIVE AND NO COMMAND SHOULD PLAN FROM THEM.** The live
+record is [`CTO-LEDGER.md`](../.planning/CTO-LEDGER.md) plus
+[`BACKLOG.md`](../.planning/BACKLOG.md)'s wave list. Reconciliation is deferred to the start of the
+next milestone, when the phase list is rewritten anyway — his call, over spending a fix window on it.
+
+> **⚠ CORRECTION, 2026-08-28, SAME DAY, BY THE SESSION THAT GOT IT WRONG.** The paragraph that was
+> here said *"rule 21's health check CANNOT RUN in a cloud session"*, and that was **false**. What
+> was actually checked was the `~/.claude/…` path this file used to print — a path that exists on
+> Wyatt's Mac and not in a container. **The tool is in the repo**, at
+> `.claude/gsd-core/bin/gsd-tools.cjs`, and the check runs fine in the cloud: 0 errors, 36 warnings,
+> 33 of them the known W019 noise, plus a phase folder the roadmap does not list, a missing
+> validation doc, and a stale worktree this session had left in scratch (since removed).
+>
+> **The real fault was one character of documentation**, and it is worth more than the wrong claim
+> was: a home-rooted path in a doc is a command that works for exactly ONE machine and silently
+> misleads every other one. `doc_command_check.js` could not see it, twice over — `~` was not in its
+> path pattern, so such a command never matched at all, and behind that sat a `startsWith("~")` skip
+> calling it *"outside the repo on purpose"*, which could therefore never fire. **It now FAILS a
+> home-rooted command instead of skipping it**, and it caught this one in two files, not one.
+>
+> **The lesson is rule 6's, again: an instrument that reports NOT FOUND has told you something about
+> ITSELF, not about the world.** Ask what it actually looked at before repeating it to him.
 <!-- GSD:workflow-end -->
 
 <!-- GSD:skills-start source:skills/ -->
@@ -909,48 +1007,61 @@ No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skill
 
 ---
 
-## 6. How the work reaches Wyatt's phone
+## 6. THE RELEASE PROCESS — staging, then production
 
-Wyatt, 2026-08-14: *"playpastrypirates.com continues serving its normal version; but
-playpastrypirates.com/4 is serving the version that we are working on."*
+**Full contract: [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) §5. The shape, in one screen:**
 
-`playpastrypirates.com` is GitHub Pages serving **`main`, from the repo root, no build step, no
-deploy workflow.** What is on `main` *is* what is live.
+| environment | address | what it is |
+|---|---|---|
+| **staging** | `staging.playpastrypirates.com` | where Wyatt plays work in progress. Published from ANY branch |
+| **production** | `playpastrypirates.com` | the game real players are in the middle of — `main`, repo root, **no build step** |
+| frozen | `playpastrypirates.com/classic` | v1 |
 
-| URL | Served from |
-|---|---|
-| `playpastrypirates.com` | repo root — **the game under development AND the game real players play. The same files.** |
-| `playpastrypirates.com/classic` | `classic/` — v1, frozen |
+**TWO ENVIRONMENTS, ONE SOURCE TREE. Promotion is a MERGE, never a copy.**
 
-> ### ⚠ THE CUTOVER INVERTED THIS SECTION'S OLD REASSURANCE. READ THIS BEFORE YOU PUSH.
->
-> Until 2026-08-26 this table had two rows and the rule underneath it said: *"Merging does not touch
-> the root game; they are different files. Treat the diff as the thing to check, not the push."*
-> **That was true only while `4/` was a separate tree, and it is now false.** There is no separate
-> dev tree. **Every push to `main` changes the game real players are in the middle of, immediately,
-> with no build step in between.**
->
-> The diff is still the thing to check — but it is no longer the thing that makes a push *safe*.
-> Nothing does. **Sail the trial before you push, not after.**
+1. **ONE SOURCE TREE** — `index.html` + `src/`. **Never a second folder holding "the staging
+   version".** That is two things kept in step by memory, and it drifted within twelve hours the one
+   day it existed.
+2. **PROMOTE THE ARTIFACT** — production changes because the SAME COMMITS moved onto `main`. Copying
+   files at release time ships something nobody tested.
+3. **ENVIRONMENTS DIFFER BY CONFIGURATION, NOT CONTENT** — same game, different address, its own
+   `robots.txt`.
+4. **A RELEASE IS REVERSIBLE** — undo a bad one by reverting the merge.
 
-**Pushing to `main` is still how he playtests, and it is his only route when he is away from the
-laptop** — so this is not a reason to push less. It is a reason to know what is in the push.
+> **Staging is a STAGE, not a copy.** A release does not consume it and no new one is made
+> afterwards. It is a permanent address whose contents are replaced each time you publish.
 
-Every time: commit → **bump `PP4_STAMP` in `src/ui/stage.js`** → read the diff → push, pull, verify
-zero → tell him the build stamp to look for.
-
-> **`4/src/ui/stage.js` DOES NOT EXIST.** This line said so until 2026-08-26 and would have sent a
-> session to a path the cutover deleted — the deploy loop's single most-run step, pointing at
-> nothing. `4/` holds only `scripts/` now.
+```bash
+git checkout -b aug28-topic                  # dated branch: monthDD-topic
+npm test                                     # 19 gates, exit 0
+node scripts/qa/gear.mjs                     # how deep must this be tested?
+node scripts/sea_trial.mjs                   # sail it at that gear
+./scripts/deploy-staging.sh "what changed"   # -> staging.playpastrypirates.com
+#  ...Wyatt plays staging. Stamp must read <stamp>-STAGING/<branch>.
+#  ...ON HIS APPROVAL ONLY:
+git checkout main && git merge aug28-topic && git push origin main && git pull origin main
+curl -s https://playpastrypirates.com/src/ui/stage.js | grep -o 'PP4_STAMP = "[^"]*"'
+```
 
 **The tell that a session skipped this: he reports an old build stamp.** It is never a cache — there
 is no build step. **If he cannot see it, it is not on `main`.**
 
-Full loop and the incident that earned it: [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) §5.
+> ### ⚠ EVERY PUSH TO `main` IS SERVED TO REAL PLAYERS IMMEDIATELY
+> There is no separate dev tree any more and nothing stands between `main` and the domain.
+> **Sail the trial and publish to staging BEFORE you merge, not after.**
+
+### The gates that stop this rotting — one cutover broke SIX instruments and none of them said so
+
+`tree_health_check` (the chain's own paths resolve) · `game_url_check` (the fleet points at a page
+that really contains the game) · `doc_command_check` (every `node …` command and link in the docs
+exists) · `gate_count_check` (declared gates = gates run) · `gear.mjs` + `qa-gear-first.cjs` (what
+counts as game code, by EXCLUSION, strict by default).
+
+**The reusable lesson: a hand-kept list of what to guard rots exactly like the thing it guards.**
+Every one of these DERIVES its answer — from `.gitignore`, from the directory, from `package.json`'s
+own chain — rather than from a list somebody typed.
 
 ---
-
-<!-- GSD:project-start source:PROJECT.md -->
 
 ## Project
 

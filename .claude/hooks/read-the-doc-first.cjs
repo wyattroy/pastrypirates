@@ -32,7 +32,7 @@ const SUBSYSTEMS = [
     why: "testing, measuring, or trusting any instrument",
     // Added 2026-08-26 by the commit that also added the row to CLAUDE.md §4 — because the commit
     // BEFORE it added the prose row and skipped this one, and a CEO review is what noticed.
-    // 4/scripts/doc_command_check.js now fails the build when these two tables disagree.
+    // scripts/doc_command_check.js now fails the build when these two tables disagree.
     match: (f) => /(^|\/)(4\/)?scripts\/.*(check|test|gate|trial|drill|probe)/i.test(f)
                 || /(^|\/)4\/scripts\/lib\//.test(f),
   },

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pastry Pirates — playtest checklist</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style></head><body>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — staging checklist</h1>
+  <div class="sub">Build <strong id="stamp">2026.08.28.4-staging@25158042</strong> ·
+   <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
+   — <strong>The browser tab must read “[STAGING]”</strong>, and the ☰ stamp must end <code>-staging@25158042</code>.
+   Verified serving on the wire before this sheet was written. A different stamp = a different build; stop and tell me.
+   <em>(The @sha moved from @5f4fc83b to @25158042 on a re-publish after this was first written — the game itself did not change; a private folder that leaked onto this address by mistake was found and removed, see the note below.)</em></div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Start here"},
+ {note:"<strong>This build is Wave 1 + all thirteen of yer answers (A-1..A-13).</strong> The pause button is gone entirely (A-10), the bake-off starts the turn ye dock (A-1), ye can WATCH the bots bake (A-2), and the How-to-Play page now fills its numbers from the game itself (A-7). One thing worth knowing: my first cut of the pause removal broke the page layout wholesale — caught on a screenshot before it ever reached staging, fixed, and the gate now checks for that whole fault class. Production is untouched."},
+ {note:"<strong>Re-checked 2026-08-28 evening, no new content below.</strong> Verified by git history (not disk time — a checkout had stamped this file and the game source within the same second, which would have misread as stale): zero commits have touched game code since this sheet was written against build 2026.08.28.4. What has run since is QA-harness work only (a hardened WebKit recovery mount, a wider 3-size/2-engine trial) — no gameplay or layout changed. That 10-leg trial is IN PROGRESS as this note is written (no verdict yet in <code>.planning/SEA-TRIAL.md</code>), part of the 24-hour scope Wyatt approved before stepping away (Waves 3-6 + guest sail-squares + SEO). <strong>His own ruling: he will not play staging until that whole scope clears with zero new findings.</strong> Nothing below is a request to test early — it is this same build, confirmed still current."},
+ {note:"<strong>⚠ SECURITY NOTE, unrelated to the game, already fixed — you do not need to act on this, just know it happened.</strong> A re-publish to re-verify this build accidentally copied yer PRIVATE physical-board folder (the laser-cut design — HANDOFF.md, ingredient art, every .dxf/.svg) onto this public staging address; it was served for a few minutes before it was caught. Cause: that folder is kept off the working tree only by a LOCAL, untracked git setting the deploy script never read. Fixed: the script now excludes it by name like CNAME already is; the leaked files were removed from the staging repo directly (confirmed 404 on every path). <strong>One thing only ye can decide:</strong> the files sat in that repo's PUBLIC git history for the leak window and are technically still fetchable from that one old commit (not from the live site) unless ye want the staging repo's history rewritten or the repo made private — say the word if either matters to ye, otherwise this is closed. Full account: <code>.planning/CTO-LEDGER.md</code>, entry timestamped 19:35Z."},
+ {n:1,look:"Open staging on yer laptop, ☰ menu, read the stamp",right:"“Build 2026.08.28.4-staging” with <code>@25158042</code> on its OWN line beneath it (A-4). The tab reads [STAGING].",why:"No build step — a different stamp is a different build. The two-line stamp is yer A-4 ask; the .4 is the new bump counter (A-5) doing its job — .3 lived and died in one trial (the End-of-Voyage regression it caught). The @sha changed from @5f4fc83b since this was first written — a re-publish, not a game change; see the security note below."},
+
+ {h:"The clock and pause are gone — check nothing is left behind"},
+ {n:2,look:"Start a solo game. Look at the whole controls row, ribbon, and menus.",right:"No ⏱ chip, no clock panel, no ▶/⏸ pause button anywhere. Just the flip coin and mute.",why:"A-10: “simply remove play/pause from this latest work — if we need to put it in again later, we'll re-engineer it.” Every removed piece is in git for its return."},
+ {n:3,look:"Play to End of Voyage. Read the award cards.",right:"No “Barnacle Brain” (slowest to decide) card. Every captain still gets an award.",why:"It tallied clock events that can no longer occur. Verified drawn correctly in an earlier trial; unchanged since."},
+
+ {h:"The bake-off — yer three biggest answers, on screen"},
+ {n:12,look:"Solo, dock at Tortuga with yer full recipe.",right:"Yer ovens light and the bake-off begins THAT SAME TURN — nobody else gets a turn between yer docking and yer bake.",why:"A-1. Measured before changing: the old day ran every captain's turn first, then all bakes — exactly yer “Crustbeard started the ovens, but everyone got another turn” observation. Old solo saves are refused (not desynced) across this change."},
+ {n:13,look:"Stay in that game. When a BOT's turn to bake comes, watch.",right:"“<em>Their name</em>'s Bake-Off” card comes up for ye: their recipe, the crates shuffling, their picks landing one at a time, then the crates lifting green and pink. Same show in a crew game, both screens.",why:"A-2: “Bakeoff IS the game coming to life.” The bot's guess is unchanged — this is a performance of a decision the engine already made. It adds real seconds to bot bake turns; ye sanctioned that, but say if the pacing feels wrong — every beat derives from the animation's own timings, so it tunes in one place."},
+ {n:14,look:"Open ☰ → How to play. Read the bake-off and black market sections, and any number.",right:"The bake-off and black market are IN there; the shot clock is NOT; every price and distance shows a real number (no blanks).",why:"A-7. The numbers are filled from the live game's own config at open — the page holds no copy of any amount, and a gate fails the build if the prose skips a live mechanic or teaches a dead one. The new sentences are my drafts in yer register — rewrite anything that reads wrong."},
+
+ {h:"Small copy — one glance each"},
+ {n:15,look:"Dock overnight; read the morning recap.",right:"No “under cover o' dark.”",why:"A-6."},
+ {n:16,look:"The pass button on an action menu.",right:"Reads “Muse”. No tooltip.",why:"A-8, exactly as ordered."},
+ {n:17,look:"A storm morning's narration.",right:"Directions in ALL CAPS: “It'll blow every ship 3 squares WEST.” Wind-only days: “Day N: Wind WEST.” — no square count.",why:"A-9, option (b) with yer caps rule; the push count derives from the same constant the storm uses."},
+
+ {h:"One engine, two screens — the point of the wave"},
+ {n:5,look:"Crew game, two browsers. A coin-flip moment taken BY THE GUEST (dock dig, fishing).",right:"The guest's ceremony has the TITLE and STAKES words, same as the host's would; tapping the coin spins it INSTANTLY. Battle flips still say “⚔️ Broadside!” on both screens.",why:"For three phases a guest's ceremony was an empty title over empty stakes, and the coin sat blank a beat after the tap. Fixed, and now drawn by literally the same code as the host. I verified the battle case in trial screenshots (both screens, correct); the DOCK-flip-by-guest moment never got captured by the robot — yer eyes close that gap."},
+ {n:6,look:"Same crew game: a flip prompt that ALSO has other choices, on the guest.",right:"The guest sees the coin AND the other buttons — identical to the host.",why:"Q-11 — this is NEW on the guest. The old guest code hid the other options entirely on any flip-bearing prompt (a declared gap three phases old). Convergence means the guest now gets the host's rendering. If ye prefer the old guest look, that is a deliberate exception to state, not a revert."},
+ {n:7,look:"Recipe pick at voyage start, both screens side by side.",right:"Both say the same sentence at the same moment; “Recipe chosen! Waiting for the rest of the crew…” holds until the crew finishes; the picker card is identical on both.",why:"The draft channel now runs through one dispatcher. The robot's crew legs answered these correctly, but robot eyes are not yer eyes."},
+ {n:8,look:"The opening Ahoy and turn-order cards, both screens.",right:"Same card, centre stage, both sides; whoever answers first sits on “Waiting for yer mateys…”.",why:"Same dispatcher, public branch."},
+ {n:9,look:"A battle, both screens, start to finish.",right:"Scoreboard identical on both at every beat; the clash sting plays once; coins, pips and the wind tag agree.",why:"The battle publish left the renderer this wave (the echo-loop landmine from the fork map). Nothing should LOOK different — this row exists because that is exactly the class of change that breaks quietly."},
+ {n:10,look:"Pass-and-play: recipe picks, then the opening Ahoy.",right:"Recipe picks still pass the device seat by seat (nobody's two secret cards ever on screen for the next player). The Ahoy shows ONCE for the table.",why:"The two OPPOSITE pass-and-play behaviours are both yer recorded decisions — the converged dispatcher carries public/private as an input. This row proves yer decisions survived the convergence. The robot's pass-and-play legs sailed clean on it."},
+ {n:11,look:"During the simultaneous recipe pick (online), look at the boats.",right:"No boat glows during the pick.",why:"A-12, yer (a) — confirming it holds on this build."},
+
+ {h:"Already known — please do NOT spend yer eyes"},
+ {note:"<strong>1.</strong> Sail square cut off / covered at the screen edge on crew-phone GUEST — the known camera-refuses-while-a-card-is-up bug; cause known since 2026-08-27, not fixed this wave.<br><strong>2.</strong> The captains panel shows a DIFFERENT row order on host and guest — <strong>that is yer own rule</strong> (2026-08-20: the viewer's captain sits on top, then sailing order).<br><strong>3.</strong> A sliver of a white card peeks from behind the phone End of Voyage sheet's bottom-left — real, pre-existing.<br><strong>4.</strong> The FORECAST text in the ribbon can clip mid-word — pre-existing.<br><strong>5.</strong> WebKit trial legs can crash the browser tab in the cloud container (resources suspected) — Safari on yer real phone is still the only real Safari.<br><strong>6.</strong> Q-13 is CLOSED by yer A-13: host and guest now drain the same event frontier, “fix pace for ALL PLAYERS EQUALLY” — no separate check row because every two-screen row above exercises it."}
+];
+
+const KEY="pp4-staging-2026-08-28-w1b";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; localStorage.removeItem(KEY); location.reload(); };
+</script></body></html>

@@ -50,21 +50,6 @@ export function netSetFlip(db, room, state, onError) {
   return withReporter(db.ref("rooms/" + room + "/flip").set({ state, t: Date.now() }), onError);
 }
 
-export function netSetClock(db, room, payload, onError) {
-  return withReporter(db.ref("rooms/" + room + "/clock").set(payload), onError);
-}
-
-export function netSetTimerOff(db, room, val, onError) {
-  return withReporter(db.ref("rooms/" + room + "/timerOff").set(val), onError);
-}
-
-// CLOCK-02: host-authoritative whole-table pause/resume flag, same
-// withReporter(db.ref(...).set(val), onError) shape as netSetTimerOff above —
-// any client (host or guest) may write it, but only the host's watchPause
-// branch reacts to it authoritatively (src/orchestrator.js).
-export function netSetPaused(db, room, val, onError) {
-  return withReporter(db.ref("rooms/" + room + "/paused").set(val), onError);
-}
 
 /* ---------- prompt / response (the shared singular prompt node) -------------------------------- */
 
@@ -91,9 +76,41 @@ export function netSetResponse(db, room, payload, onError) {
 // reading a new payload simply never sees the key. A wait line registers no dismissal deadline on
 // the client that draws it (see stageFlash); without this field the guest's copy would expire on
 // the hold curve while the host's sat there, which is a NEW divergence in the act of closing four.
-export function netSetNarr(db, room, html, onError, variants, wait) {
+export function netSetNarr(db, room, html, onError, variants, wait, subj, evN) {
   const payload = variants && variants.length ? { html, t: Date.now(), variants } : { html, t: Date.now() };
   if (wait) payload.wait = 1;
+  /* W4-2 / rule 23 — THE SUBJECT CROSSES THE WIRE, because otherwise two seats decide it two ways.
+     A narration bubble anchors to a captain's boat when it has a subject and is centred when it does
+     not. The HOST computes that from the event itself (panel.js: an event naming two captains is not
+     about one of them, so a battle is centred). A GUEST never sees the event — it receives this
+     payload and, with no subject in it, falls back to sniffing the sentence for captain colours,
+     which anchors whenever exactly ONE captain is named. A battle result names exactly one, the
+     winner. So the host centred it and the guest anchored it: the same line drawn two ways, which
+     CEO Review 20 found still broken on the seat Wyatt actually reported.
+     Sent as -1 rather than omitted when the host decided "no subject", because ABSENT and
+     DELIBERATELY NONE are different: absent must keep meaning "fall back to the sniff", or every
+     turn-start line an older client draws would lose its anchor. Additive and omitted when there is
+     nothing to say, the same shape `wait` and `variants` already use. */
+  if (subj != null) payload.subj = subj;
+  else if (subj === null) payload.subj = -1;
+  /* Q-18 — THE LINE SAYS WHICH EVENT IT BELONGS TO. Wyatt's ruling, 2026-08-29: "send the event
+     too", so the guest stops having to guess what a drawn sentence implies.
+     THE SENTENCE AND THE EVENT TRAVEL ON TWO SEPARATE PATHS — `rooms/<room>/narr` (here) and
+     `rooms/<room>/ev` (netPushEvent) — watched by two independent listeners with NO ordering
+     between them. On the host both happen inside one local call and are always in step; on the
+     guest they are two messages that can land in either order. MEASURED, 12 minutes of a real
+     two-browser game: twice the guest drew a trade sentence while its captains box still showed
+     the pre-trade purse, and twice the mirror image. Both totals were right on both screens —
+     each had applied a COMPLETE trade, at a different moment. Rule 23 in its plainest form: two
+     things kept in step by nothing.
+     WHY A SERIAL AND NOT THE EVENT ITSELF, and this is the part the first cut of it got wrong.
+     Wyatt's ruling was "the guest PREFERS THE REAL EVENT" — and it already holds every event:
+     watchEvents pushes each one onto the guest's own array. So the serial is not a substitute for
+     the event, it is the ADDRESS OF an event the guest already has. It waits until it holds that
+     event, then runs the same shared rule over it that the host ran. Zero extra bytes, and the
+     rule lives in exactly one place (src/shared/index.js). `subj` below survives only as the
+     fallback for a line that has no event at all. */
+  if (evN != null) payload.evN = evN;
   return withReporter(db.ref("rooms/" + room + "/narr").set(payload), onError);
 }
 

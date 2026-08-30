@@ -274,7 +274,7 @@ the decision log. All of that is downstream of a prompt **that never rendered**.
 reported *at a tap*, the first thing to prove is that the next prompt appears at all. Everything
 about what it decides is unreachable until that is true.
 
-`4/scripts/seat_arg_check.js` is the gate: the four name renderers (`pn`/`poss`/`pname`/`rawName`)
+`scripts/seat_arg_check.js` is the gate: the four name renderers (`pn`/`poss`/`pname`/`rawName`)
 take a seat index, and it rejects any call site handed a rendered name or a string literal.
 `no_undef_check.js` cannot see this class at all — `poss` is defined and imported, and it is the
 ARGUMENT that is wrong.
@@ -721,7 +721,7 @@ Immune to params, bodies, template literals and nesting alike.
 Wyatt's 7am solo playtest found the radial fan, the ask pill, the apSub tooltip and every narration
 bubble+pointer pushed off toward a corner on desktop, with Dock/Trade/Attack stacked invisibly
 under Pass — game-stopping, could not dock. The build that shipped it had passed every existing
-`4/scripts/*_check.js` gate and the overnight QA that preceded it, because **every one of those
+`scripts/*_check.js` gate and the overnight QA that preceded it, because **every one of those
 checks asks whether a renderer FUNCTION ran, never where on screen the thing it drew actually
 landed.** A driven-game QA pass would have missed it too, for a related but distinct reason:
 
@@ -775,7 +775,7 @@ where the answer is written down before you ask how it looks.
 
 Three things this cost that are worth copying:
 
-- **The gate counts, it does not pattern-match.** `4/scripts/dlog_quantity_check.js`'s first version
+- **The gate counts, it does not pattern-match.** `scripts/dlog_quantity_check.js`'s first version
   looked for `=== "ok") return <expr>;` and read the expression — then I reformatted that branch into
   a block and the gate went green while silently covering half of what it claimed. Counting confirm
   branches against `logQuantity()` calls is immune to how the branch is written.
@@ -985,7 +985,7 @@ the note's name in brackets. CLAUDE.md already carries the big ones (ask with th
   other agent's probe on the machine. `pkill -f "remote-debugging-port=${DBG}"`, `"http.server
   ${PORT}"`. *(same)*
 - **Real-mouse QA is the instrument he trusts, and a DOM clicker is not** — he asked for it by name
-  after an off-screen Dock button sailed through headless QA. `4/scripts/mouse_qa.mjs`: trusted
+  after an off-screen Dock button sailed through headless QA. `scripts/mouse_qa.mjs`: trusted
   `Input.dispatchMouseEvent` at screen coordinates, gated on inside-viewport + inside-the-column +
   `elementFromPoint` hits it, a screenshot per action that you then READ. **And KEEP the
   screenshots** — the build-u desktop pass was declared clean with none kept, and the layout was
@@ -1017,7 +1017,7 @@ the note's name in brackets. CLAUDE.md already carries the big ones (ask with th
 - **On the laptop only: `find` is `bfs`**, which rejects relative `-newermt` timestamps; with
   `2>/dev/null` the error looks like "found nothing". The cloud image has GNU find. Either way,
   never `2>/dev/null` an exploratory `find`. *(project_find_is_bfs)*
-- **`4/scripts/mp_rig.mjs` is the two-window crew rig**, with three corrections baked in that each
+- **`scripts/mp_rig.mjs` is the two-window crew rig**, with three corrections baked in that each
   cost real time: visibility is the painted rectangle, never `offsetParent` (always null for
   `position:fixed`); the driver carries the liveness filter / prefer-the-committing-circle / rotate-
   after-5-failures fixes; a remote seat gets `coinStepper()`'s ± fallback, not the slider, so a
@@ -1266,7 +1266,7 @@ so no word ever hops a line mid-reveal. It also means:
 
 Only the **painted** pixels differ. A first fix using `textContent` did nothing, and a 40-sample
 trace is what caught it. **If you need to know whether text has finished arriving, walk the nodes
-and skip anything under `visibility:hidden`** — see `SETTLE_PROBE` in `4/scripts/lib/checks.mjs`.
+and skip anything under `visibility:hidden`** — see `SETTLE_PROBE` in `scripts/lib/checks.mjs`.
 
 ### 10e. The vision judge has TWO named biases — calibrate before acting
 
@@ -1306,7 +1306,7 @@ that caught it was writing the plan down before executing it. See
 
 ### 10h. Following the mandated workflow disarmed the gate that enforces it
 
-`4/scripts/qa/gear.mjs` compares against `origin/main`. **Rule 24 requires you to commit AND push so
+`scripts/qa/gear.mjs` compares against `origin/main`. **Rule 24 requires you to commit AND push so
 Wyatt can play it — and pushing empties that diff, so the picker then reports `GEAR: NONE`.** Doing
 exactly what the rules say produces "nothing to prove". Use `--since=HEAD~N` after a push, and treat
 a `NONE` verdict on a day you changed game code as the tell.
@@ -1314,3 +1314,101 @@ a `NONE` verdict on a day you changed game code as the tell.
 **This is the third time this shape has appeared** (the working-tree version, the origin/main
 version, and now the post-push version). A gate whose subject can vanish will eventually report on
 an empty set and call it a pass.
+
+---
+
+## 11. 2026-08-28 — the tool that got judged, and three ways a number lied about its own coverage
+
+**§10 was the day every instrument lied. This is the day an instrument was *silenced by this repo's
+own safety rules* and still filed a report.** Environment-and-coordination lessons, from the first
+day two machines and three sessions worked one branch at once.
+
+**The decision guide these produced is [`CLOUD-VS-LOCAL.md`](CLOUD-VS-LOCAL.md)** — where to run a
+long job and what it costs. This section is why.
+
+### 11a. A CHILD `claude -p` INHERITS THIS REPO'S HOOKS — and fails silently, and intermittently
+
+The vision judge shells out to a second `claude` per screenshot. Run from the repo, that child
+loads `.claude/settings.json` and runs **this project's hooks**. A FULL local trial therefore
+returned `judge ERROR: vision call timed out` on **every screen — 75 calls, zero verdicts** — while
+the legs sailed on looking perfectly healthy.
+
+The mechanism: each call is a **new session id**, so `playtest-checklist-last.cjs`'s
+once-per-session guard never applied. It fired on all of them, blocked the Stop, and sent each
+judge off to write a staging checklist instead of returning JSON. Fingerprint: **73
+`checklist-asked` marker dirs**, all inside the failed window, none after the fix.
+
+Red-proofed both directions — same call, same image, **cwd the only difference**: from the repo,
+still running at 40 s; from a temp dir, answered in 37 s.
+
+**The reusable rule: ANY tool that shells out to a second `claude` must run from OUTSIDE the tree.**
+Our own guard rails are indiscriminate — they cannot tell a subprocess doing one narrow job from a
+session that should be held to the full process.
+
+**And it is worse than a consistent break.** The hook decides by comparing **file mtimes**, which a
+`git checkout` resets in whatever order it writes files. The cloud got 14 judge findings on this
+same code hours earlier. **So the eyes can be open on one run and shut on the next, with nothing
+announcing the difference.** An intermittent silent instrument is harder than a broken one.
+
+### 11b. A PER-ITEM RESULT WITH NO DENOMINATOR HIDES ITS OWN COVERAGE
+
+The trial prints `vision judge FAILED 4 screen(s)` per leg. It never prints **out of how many**.
+
+The judge only ever looks at the **first 30 distinct screens of a leg** (`JUDGE_CAP`,
+`scripts/playtest_gate.mjs:58`, applied `:481`). One run captured **349** and submitted **267** —
+**82 screens never shown to the judge at all.** The write-up then said *"two screens were never
+judged"*, counting only the timeouts: **wrong by a factor of forty, in the section headed *what
+this run does NOT establish*.**
+
+The sharpest case: `crew-desktop`, **the one leg that did not finish its voyage**, captured 60
+screens, had 30 judged, and all 30 came back PASS. **It reads as visually clean. Half of it was
+never opened.**
+
+**CEO Review 14 called this a recurrence of Review 13's *"the instrument announces more than it
+actually checked"* — third review running, third surface.** The fix is arithmetic: print
+`judged 30 of 60`. **Whenever a check samples, the sample size belongs in the output, beside the
+result, every time.**
+
+### 11c. A HARDCODED OUTPUT PATH IS A SILENT OVERWRITE THE MOMENT THERE ARE TWO OF YOU
+
+`sea_trial.mjs` wrote `.planning/SEA-TRIAL.md` at a fixed path. With two machines sailing, whoever
+finished last **silently replaced** the other's verdict — leaving one authoritative-looking report,
+real build stamp and all, describing a run from the **other machine**. Rule 24 stands on opening
+that file and believing it.
+
+**A merge conflict is loud; this was silent.** Fixed by `--report=<path>` plus a machine name
+derived from `os.hostname()` in every report, gated by
+`scripts/qa/trial_report_ownership_check.mjs`. It was **not theoretical** — one run stamped
+`19:35:09Z` over another's `18:44:08Z` before it was caught.
+
+**The half still open, and the general form:** that fix separated the **reports**, not the
+**evidence**. `sea-trial-shots/` — including the `report.json` that decides *which legs sailed* — is
+still one shared path, and two Claude sessions can share one checkout on one machine. **When you
+fix a shared-path collision, fix it for every artifact the process writes, not the one that
+collided.**
+
+### 11d. A BUILD STAMP THAT DOES NOT MOVE MAKES TWO GAMES ONE LABEL
+
+`a4069ed2` changed `index.html` while `PP4_STAMP` read `2026.08.28.4` on both sides of it. So that
+string names at least two different games.
+
+**This breaks rule 24's check by making it pass.** "Compare the report's stamp with the one in the
+game's ☰ menu" silently stops working when one stamp covers two builds: the two will match while
+describing different code. `GIT-AND-DEPLOY.md` §5 already made this argument for staging — *"the
+sha stayed because it is what makes it a build identity"*. **Bump the stamp in the same commit as
+the game change, and pin any claim to a sha.**
+
+### 11e. THREE SMALL INSTRUMENT FAULTS, ALL THE SAME SHAPE
+
+Each cost a wrong answer on the day, and each is the §2 lesson in miniature — *the check measured
+something other than what it named.*
+
+| the check | what it actually measured |
+|---|---|
+| `ps ax \| grep -c "remote-debugging-port"` | **its own command text.** The grep's arguments contain the pattern, so a clean machine reports live probes. Use `pgrep -x`, and confirm a hit is real before acting |
+| `find … -newermt '-60 minutes'` | **nothing** — macOS `find` rejects a relative `-newermt` and errors out. With `2>/dev/null` that is indistinguishable from "no matches". It reported 0 marker dirs when 73 existed |
+| `ls .planning/hooks/.read-state \| wc -l` | **directories, not markers.** Typed into a report as "75"; counting the ones that actually held the marker file gave **73** |
+
+**All three were caught, but only because something else disagreed with them.** The last is the
+worst: it broke *"never hand-type a number that can be counted"* **inside the very finding written
+to warn about unverified claims.**

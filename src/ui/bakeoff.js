@@ -52,6 +52,30 @@ const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 // and the two crates arc over/under each other while crossing (see runSwaps).
 const PREVIEW_MS=2500, COVER_MS=280, SWAP_MS=1000, SETTLE_MS=700, REVEAL_MS=520, VERDICT_MS=1300;
 
+/* A-2 (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming to life.") — a BOT's bake now
+   plays on every screen through the same watcher choreography a human's bake feeds. The publisher
+   (orchestrator's botBakePerform) has to know how long THIS file will spend animating before it may
+   send the next moment, and the only way those two can never disagree is for this file to answer
+   from the same constants the animation runs on (rule 23: what makes these two agree? — one source).
+     benchChoreoMs(spec)  the cover sweep plus every swap-and-settle for the bench this spec
+                          describes, plus the ghost allowance playBakeoffLive itself waits out
+     BENCH_STUDY_MS       the bot's study window. PREVIEW_MS is not a new number: it is the study
+                          window the game itself used before the Ready button existed (rule 9 —
+                          derived from what the game already computed, not invented)
+     BENCH_BEAT_MS        one beat between published picks. SETTLE_MS is the number this file
+                          already defends as what decides whether the bench is trackable or a blur;
+                          a pick landing faster than a swap settles would be unreadable by the same
+                          argument */
+export const BENCH_STUDY_MS=PREVIEW_MS;
+export const BENCH_BEAT_MS=SETTLE_MS;
+export function benchChoreoMs(spec){
+  const locked=spec.locked||[];
+  const bowls=(spec.before||[]).length;
+  const uncovered=bowls-locked.filter(Boolean).length;   // locked crates take no cover beat
+  const swaps=(spec.swaps||[]).length;
+  return GHOST_FADE_MS+80+uncovered*COVER_MS+swaps*(SWAP_MS+SETTLE_MS);
+}
+
 // Reduced motion is read in JS, not CSS, for the same reason panel() does it: a media query cannot
 // reach a setTimeout. It does NOT collapse to zero — the swaps have to stay countable or the game
 // becomes unplayable, so they become instant repositions with a visible flash instead.
@@ -420,11 +444,34 @@ export async function playBakeoffLive(spec,io){
     });
   }
 
-  // MEASURED ONCE, never per frame: the centre-to-centre distance between two bowls, used for the
-  // swap translate. Horizontal, so it is a left-to-left distance and the swap animates translateX.
-  // These two must be changed together — a vertical build measured pitch off .top; leaving one and
-  // not the other yields a pitch of 0 and a shuffle in which nothing visibly moves.
-  const pitch=bowls.length>1?(bowls[1].getBoundingClientRect().left-bowls[0].getBoundingClientRect().left):0;
+  /* THE PITCH IS READ WHEN THE CRATES MOVE, NOT WHEN THE SHELL IS BUILT — W3-2, and Wyatt named
+     the symptom exactly: "the crates start moving smoothly then jump to their final resting
+     positions after the animation. It looks like the animation is not correctly calculating their
+     end positions at the beginning."
+
+     IT WAS MEASURED ONCE, HERE, and this line runs before the ghost fade, before the ready-wait,
+     before `bench({phase:"shuffle"})` re-renders and before the cover sweep. `.bkoBowl` is
+     `flex:1 1 0` inside a panel whose CONTENT changes across all of that, so the crates are not the
+     same width when they move as when they were first drawn.
+     MEASURED, on attempt 2 at 1200x950: the frozen pitch was 62.1px and the crates were 66.8px
+     apart when they actually moved. A one-crate swap therefore travelled 62.1 and stopped 4.7px
+     short of its destination; a two-crate swap travelled 124.2 against 133.6 and stopped 9.4px
+     short. The commit then swaps the contents and clears the transform in a single frame, which is
+     invisible ONLY if the crate had arrived — so instead of an invisible reconcile a player sees
+     the crate jump the last 5-9px. That is his sentence, in numbers.
+     (`d` for a one-crate swap IS the pitch, which is how the frozen value could be read straight
+     off the animation's own travel and compared with the live layout.)
+
+     WHY ATTEMPT 2+ AND NOT THE FIRST: the bench carries more on a later attempt — the attempt
+     label, the locked crates, the rewatch line — so there is more for the panel to reflow between
+     the two moments. On the first attempt the two numbers happen to agree.
+
+     SO IT IS DERIVED AT USE (rule 9), not frozen at build. It is still read ONCE per shuffle rather
+     than per frame — the crates do not resize mid-shuffle — but that once is now inside
+     shuffleSlots, after every phase that can move them. The vertical-build warning below still
+     stands: a vertical bench must measure `.top` here AND animate translateY there, together. */
+  const readPitch=()=>{const bs=[...row.querySelectorAll(".bkoBowl")];
+    return bs.length>1?(bs[1].getBoundingClientRect().left-bs[0].getBoundingClientRect().left):0;};
 
   // ---- phase 0: let the previous line's GHOST finish fading ----
   // panel() clones the outgoing .apMsg and cross-fades it over GHOST_FADE_MS as an absolutely
@@ -492,6 +539,9 @@ export async function playBakeoffLive(spec,io){
   await runSwaps();
 
   async function runSwaps(){
+  /* READ IT HERE, once, at the moment the crates are about to move — every phase that can reflow
+     the panel has already run by now. This is the whole of W3-2's fix. */
+  const pitch=readPitch();
   for(const [a,b] of swaps){
     const A=bowls[a],B=bowls[b];
     if(!A||!B)continue;
@@ -500,7 +550,7 @@ export async function playBakeoffLive(spec,io){
       await sleep(340);
       A.classList.remove("flash");B.classList.remove("flash");
     }else{
-      const d=(b-a)*pitch;
+      const d=(b-a)*pitch;   // pitch read at the top of this shuffle — see readPitch()
       /* THE ARC (Wyatt, 2026-08-10, confirmed in his words before building: "move up/down
          vertically smoothly in an arc as they travel — not linearly — reaching the apex at the
          halfway point of their travel before vertically moving back down to baseline as they
@@ -782,12 +832,33 @@ export async function bakeoffReveal(view,result){
     const bowl=bake.slots.indexOf(bake.order[k]);
     const el=bowls[bowl];
     if(!el)continue;
+    /* T-32 (his checklist #22b) — A CRATE ALREADY SOLVED HAS NOTHING TO REVEAL, SO IT COSTS NOTHING.
+       Wyatt, from a second attempt with two crates left: "the 1st turned pink instantly, then the
+       5th lagged as if 2, 3 and 4 were being revealed invisibly." That is exactly what it was.
+
+       A locked bowl is never `covered` (see the reveal-cover pass in playBakeoffLive), so this loop
+       was removing a class it does not have, restamping a number it already shows, and then pausing
+       a full REVEAL_MS in front of a crate that visibly did not change. MEASURED before the fix, by
+       posing a five-step bench with three locked and timing the whole reveal: 0 locked -> 6309ms,
+       3 locked -> 6310ms. Identical. 1561ms — 3 x 520 — spent on nothing, which is his "lagged as
+       if 2, 3 and 4 were being revealed" to the millisecond.
+
+       THE PAUSE IS THE REVEAL. It exists to let a player watch one crate be judged before the next
+       is, so it belongs only to a crate whose state actually changes on screen. The classes are
+       still written for the locked ones — they are already right, and writing them keeps this loop
+       one path rather than two (rule 23) — but the beat is not spent.
+
+       Read from the DOM rather than from a `locked` array because `view` is {order,slots} and does
+       not carry one; the bowl itself is the thing that knows, and it is the same class the cover
+       pass keys on, so the two cannot disagree about what "locked" means. */
+    const alreadyLocked=el.classList.contains("locked");
     el.classList.remove("covered","picked");
     // Stamp the step number as the bowl comes off. A row of green and pink outlines says HOW MANY
     // landed but not WHICH — and "which" is the only thing the player can act on next attempt.
     const num=el.querySelector(".bkoNum");
     if(num)num.textContent=String(k+1);
     el.classList.add(result.correct[k]?"right":"wrong");
+    if(alreadyLocked)continue;
     await sleep(reduced?Math.round(REVEAL_MS*0.5):REVEAL_MS);
   }
   if(hint){

@@ -1,0 +1,454 @@
+# CTO questions — what the marathon worker needs from Wyatt
+
+**Wyatt, 2026-08-27:** *"CTO asks for my input at critical junctures, and if that input is not given
+within 10 minutes, it makes its best call and continues with the work."*
+
+**AND THE EXEMPTION THAT MAKES THAT SAFE.** He is stepping away for DAYS. If every question defaults
+after ten minutes, then every question defaults — and the CTO's "best call" quietly becomes the
+entire design of the game while he is asleep. So questions come in two kinds and they are treated
+differently:
+
+| kind | what it covers | after 10 minutes |
+|---|---|---|
+| **MECHANISM** | which function, which file, what order, how to structure a fix | **takes the stated default and continues.** Logged, reversible, and named in the log so he can undo it. |
+| **TASTE** | anything a player SEES and cannot un-see — wording, pacing, art, rules, difficulty | **NEVER defaults.** The item is PARKED and the CTO moves to the next backlog item. |
+
+**Why taste never defaults:** CLAUDE.md is explicit that *"Taste, placement, wording and 'how much is
+enough' are his. Mechanism is yours."* A ten-minute timer does not transfer taste; it only hides who
+made the call. He comes back to a batch of QUESTIONS, not a batch of decisions somebody made for him.
+
+> ### ⚠ THIS FILE IS THE ONLY CHANNEL. NOTHING PUSHES A QUESTION TO HIS PHONE.
+>
+> **Until 2026-08-27 this line read *"Every question is pushed to his phone when it is asked."* That
+> was never true — no such code has ever existed.** Searching every script and hook for anything
+> that reads this file finds exactly one program, `scripts/qa/cto_supervise.mjs`, and it only
+> COUNTS the questions. (Its `push` calls are JavaScript array appends, which is presumably how the
+> claim survived a reading.)
+>
+> Found by the CEO review of 2026-08-27, which put it plainly: *"If you are away for days, that is
+> the difference between 'he has four questions waiting' and 'he never heard.'"*
+>
+> **So a parked question waits here until Wyatt opens this file, or until a session tells him.**
+> Every CTO report must therefore name the open questions out loud rather than assuming he has seen
+> them. If a real push is ever built, this warning is what should be deleted to make room for it.
+
+## The format
+
+```
+### <ITEM-ID> — <one-line question>
+- **kind:** MECHANISM | TASTE
+- **asked:** <ISO8601>
+- **default:** <what will happen at +10 min, or "none — TASTE, parks instead">
+- **why it matters:** <one plain sentence>
+- **answer:** <blank until Wyatt answers; then his words, verbatim>
+- **resolved:** <ISO8601, or blank>
+```
+
+## Open questions
+
+### Q-1 — Crustbeard started the ovens, but everyone got another turn before the bake-off. Is that right?
+- **kind:** TASTE (rules — his)
+- **asked:** 2026-08-27 (from his playtest notes)
+- **default:** none — TASTE, parks instead
+- **why it matters:** He is not sure whether he is misremembering his own rules. **Measure what the
+  engine actually does and show him; do not change it.** A rule changed on a guess is a game he no
+  longer recognises.
+- **answer:** You need to measure this and tell me the current behavior. I want: player to immediately be able to start their bake-off when they dock at tortuga. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-2 — Should a player be able to watch a bot's bake-off?
+- **kind:** TASTE (pacing — his)
+- **asked:** 2026-08-27 (from his playtest notes: *"I didn't get to watch crustbeard's bakeoff, but i want to."*)
+- **default:** none — TASTE, parks instead
+- **why it matters:** Traced to ONE missing publish, so it is cheap to build — but it adds time to
+  **every** bot turn, in every game, forever. That is a pacing decision, and pacing is taste.
+- **answer:** Yes. Build it. Bakeoff IS the game coming to life. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-3 — The "End of voyage" heading now stays put instead of scrolling away. Keep or revert? ✅ RESOLVED
+- **kind:** TASTE
+- **asked:** 2026-08-26 (checklist item #5)
+- **default:** none — TASTE, parks instead
+- **why it matters:** Nobody set out to change it; it fell out of moving "Play again!" outside the
+  scroller. One line either way.
+- **answer:** **"Keep it — stays put."** Wyatt, 2026-08-27.
+- **resolved:** 2026-08-27
+
+  *Worth noting for the record: this question sat open for a day and cost one line of a question
+  form to close. **Front-loading works.** Two of the three parked questions below are still open
+  only because they need a MEASUREMENT put in front of him first, not because he is slow.*
+
+### Q-4 — The staging build stamp drops the BRANCH name. Keep it that way?
+- **kind:** TASTE (wording of something he reads on every playtest)
+- **asked:** 2026-08-27 by the cloud CTO, while shipping W0-3
+- **default:** none needed — **already shipped one way and trivially reversible**, one line in
+  `scripts/deploy-staging.sh`. Flagged rather than parked because it does not block anything.
+- **why it matters:** He decided W0-3 as *"date-based build number, staging appends `-staging`"*.
+  Taken literally that also deletes the `@<sha>` added this morning — and that was added because
+  staging once served different code under a stamp byte-identical to production's, so he would
+  have played a stale build with no tell. **The sha was kept.** What was dropped instead is the
+  branch name, which the commit already implies. The ☰ menu now reads:
+
+      Build 2026.08.27.3-staging@0ad2e83     (was: v4 · build 2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42)
+
+  The deploy log still prints the branch, so nothing is lost from the record — only from the screen.
+- **answer:** Put the commit code (@0ad2e83 ) on its own line *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-5 — Today's build is numbered `.3`. Is that the right count?
+- **kind:** MECHANISM, but **named as a guess** rather than defaulted quietly
+- **asked:** 2026-08-27 by the cloud CTO
+- **why it matters:** `YYYY.MM.DD.N` needs N = the Nth build published that day, and nothing in the
+  repo counts publishes. **`2026.08.27.3` was taken verbatim from the number he wrote in the
+  backlog**, not derived. If a different count is right, it is one character.
+- **answer:** I don't know. But you should create a counter to increment the build and track it. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-6 — You cut "after dark" from the black-market card. Should the dock recap lose it too?
+- **kind:** TASTE (wording — yours). **PARKED, not defaulted.**
+- **asked:** 2026-08-27 by the cloud CTO, surfaced by two agents independently while shipping W2-2
+- **why it matters:** Your new line is *"Sold-out islands fly the black market flag. They'll find ye
+  one more ingredient — for 10🌕."* You deliberately dropped "after dark". But four lines in
+  `src/ui/util.js:758-764` still narrate a black-market purchase as happening
+  **"under cover o' dark"** — so the card that teaches the rule and the recap that reports it now
+  use different imagery for the same act. Rule 8 says that is a defect *unless you chose it*.
+- **the options, none taken:** (a) drop "under cover o' dark" from the recap to match the card;
+  (b) keep it — the card states a rule, the recap narrates a moment, and flavour is welcome there;
+  (c) something else.
+- **nothing was changed either way.** This is wording a player sees, so it never defaults.
+- **answer:** Yes, drop "after dark" -- (a) *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-7 — The How-to-Play rulebook types `3🌕` and `1🌕` by hand
+- **kind:** MECHANISM, but reported rather than fixed because the fix is not small
+- **asked:** 2026-08-27, found by the W2-3 audit at `index.html:2724`
+- **why it matters:** Every other place in the game now DERIVES the dock payouts from
+  `cfg.dockHeads` / `cfg.dockTails` — that is rule 9, and it is why a stale comment claiming
+  "TREASURE PAYS 5" survived next to code paying 3. The rulebook modal is static HTML with no
+  access to `cfg`, so making it derive needs a real mechanism, not a copy edit. `.planning/todos`
+  already records this ("How-to-Play modal hardcodes economy numbers"). **Left alone deliberately:
+  it is the one surface where the numbers can silently go wrong, and it deserves its own item.**
+- **answer:** Add a mechanism (perhaps a hook? please suggest the most efficient, durable method) to the build process that automatically updates the rules page according to the latest rules (eg. i'm not sure if black market is in there either) *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-8 — "Muse" wants a tooltip, and the game has no tooltip for an ENABLED button
+- **kind:** MECHANISM (reported, not defaulted — it is bigger than the copy change it serves)
+- **asked:** 2026-08-27 by the cloud CTO. This ANSWERS the open question the backlog attaches to
+  W2-7: *"is there a tooltip mechanism for this button at all today?"*
+- **the answer is no, and here is the evidence.** The only tap-to-explain mechanism in the prompt
+  system is `data-why` (`src/ui/util.js:1730-1737`), and it is written **only when a button is
+  DISABLED** — `it.disabled&&it.why`. It exists to explain why a greyed control cannot be pressed.
+  There is nothing that attaches an explanation to a button a captain CAN press. The only other
+  `title=` in the prompt path is on a captain ROW (`util.js:157`), not a button.
+- **so W2-7 is two jobs, not one.** Renaming Pass → Muse is a copy change. Giving it the tooltip
+  *"Watch the water and write a recipe about what you see."* needs a new affordance that does not
+  exist — and rule 8 says whatever is built becomes the way EVERY enabled button explains itself,
+  everywhere, forever. That is a design decision, not a rename.
+- **also in the graveyard (rule 10), so nobody re-runs it silently:** this label already read
+  *"Look into the ocean"* on 2026-08-05 and **was changed back to "Pass"** (`src/ui/util.js:558`
+  records it). "Muse" is a different word and the rename is Wyatt's call; the history is here only
+  so the argument is not repeated by accident.
+- **nothing was changed.** The rename was not shipped on its own, because shipping half of it
+  leaves a button whose whole point is a hint nobody can see.
+- **answer:** "Muse" should be the text on the new "pass" button. Do not create a tooltip for it. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-9 — The short weather line would delete three bits of your approved copy. All seven days, or only the calm ones?
+- **kind:** TASTE (wording + scope — yours). **PARKED, not defaulted.**
+- **asked:** 2026-08-27 by the cloud CTO, from the W2-1 measurement
+- **the ambiguity in W2-1 is RESOLVED first:** you meant the **day-start narration line**
+  (`src/ui/util.js:412-441`), not the wind pill. Decisive: your template `Day 12: Wind south.
+  Tomorrow: a storm.` is **38 characters** and the pill is already **27**, so "too long" cannot be
+  about the pill — and the pill carries no day number, while the narration line is the only surface
+  with a day, a wind and a next-day wind in one sentence.
+- **what is actually on screen today, all seven branches, measured:**
+
+  | chars | line |
+  |---|---|
+  | 57 | `— Day 1: wind is blowin' north — 🧭 Next day: wind south.` |
+  | 82 | `— Day 4: wind still blows west, this westerly is gusting — 🧭 Next day: wind east.` |
+  | 84 | `— Day 7: wind still to the east, this easterly won't quit — 🧭 Next day: wind north.` |
+  | 101 | `— Day 5: wind is blowin' south — 🧭 Next day: ⛈️ a storm's comin' — no tellin' which way she'll blow.` |
+  | 91 | `Day 6: A ⛈️ storm be ragin'! It'll blow every ship 3 squares west. 🧭 Next day: wind north.` |
+  | 139 | `— Day 9: ⛈️ The storm's baked in and won't cool down! It's aiming north...` |
+  | 165 | `— Day 11: ⛈️ The storm's baked in and won't cool down! It's still aiming south. Fie, Poseidon!...` |
+
+- **WHY IT WAS NOT SHIPPED.** Your template has no slot for a storm, so applying it to all seven
+  deletes three things that are **your own approved copy** (`11cbf345`, 2026-07-29, from the 209
+  reviewed dispositions, re-approved at D-49):
+  1. **the storm's rule** — *"It'll blow every ship 3 squares west"* is the ONLY place a player is
+     ever told how far a storm moves them;
+  2. **the wind-streak flavour** — *"this westerly is gusting"*, *"won't quit"*;
+  3. **"no tellin' which way she'll blow"** — the v2.1 rule (`4749bcd2`) that a FORECAST storm names
+     no direction. Rendering it as `Tomorrow: a storm.` is a guess at your wording, not your wording.
+- **the options:** (a) all seven days take the short form, and those three go; (b) the calm days go
+  short and storms keep a sentence of their own — cuts 57→~33 chars on the common case and keeps
+  the rule on screen (**the CTO's recommendation**); (c) short form plus your own storm wording.
+- **the edit is ready either way** and derives day and both directions from the event (rule 9);
+  nothing about the weather would be typed. `windHoldPhrase` (`util.js:336`) becomes dead code if
+  the streak flavour goes.
+- **⚠️ NO GATE PROTECTS THIS COPY.** Nothing under `scripts/` contains any of those literals, and
+  the narration tests that did are in the parked `test:v1` chain.
+- **answer:** Use option(b) but make sure all directions are in ALL CAPS eg. :"It'll blow every ship 3 squares WEST" *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-10 — With the shot clock away, the little clock panel goes quiet. What should it say? [TASTE]
+
+- **what happened:** you had the shot clock taken out (temporarily) so the one-activity-engine work
+  races nothing. The countdown, the ⏱ ribbon chip and the ⏱ toggle are gone; the ▶/⏸ pause button
+  and its panel stay. While a bot plays, the panel still reads "waiting". When it is a human's turn
+  it used to read "turn clock" — a feature that is no longer there — so for now it shows a blank
+  label with a dim "–".
+- **the options:** (a) leave it blank until the clock returns (**shipped for now — least invented**);
+  (b) hide the little panel entirely except while paused; (c) your own words for an idle helm.
+- **answer:** I haven't seen the play/pause panel ever in the latest build. screenshot proves it. you can simply remove play/pause from this latest work -- if we need to put it in again later, we'll re-engineer it. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-11 — A guest's flip prompt now shows the full option row, like the host's. Keep it? [TASTE]
+
+- **what happened:** converging the prompt renderer (one code path for host and guest — your rule)
+  fixed a three-phase-old gap: a guest facing a coin-flip prompt that ALSO had other choices only
+  ever saw the coin — the other buttons were never drawn on their screen. Now a guest sees exactly
+  what the host sees: the coin AND the buttons. Also: a guest's plain coin-flip now shows the
+  ceremony title and stakes (like the host) instead of a floating text bubble the host never had.
+- **why it shipped without waiting:** the mapping notes said this needed your call; but rule 23
+  says host and guest must draw one game, and the host's rendering was the intended one. If you
+  prefer the old guest look, that is a deliberate exception to state, not a revert.
+- **answer:** your decision is approved *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-12 — During the everyone-picks-a-recipe moment, whose boat should glow? [TASTE]
+
+- **what happened:** while every captain picks a recipe at once (online), the glow used to sit on
+  the LAST captain in the list — an accident of the old code, not a choice. The converged draft
+  dispatcher does not reproduce it, so during the simultaneous pick nobody's boat glows. On a
+  shared device (pass-and-play) the glow still follows whoever holds the device, seat by seat.
+- **the options:** (a) nobody glows during a simultaneous pick (**shipped — honest, nothing is
+  anyone's turn**); (b) every waiting captain glows; (c) something else.
+- **answer:** (a) *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+### Q-13 — The host coalesces back-to-back moments; a guest sees each one. Even them out? [MECHANISM — but the fix is player-visible, so parked as TASTE]
+
+- **what happened:** both screens now draw through ONE consumer (your one-activity-engine ask).
+  One difference remains, now localized to a single line: when the engine emits two events
+  back-to-back, the host's screen draws only the second (its pops and sound for the first are
+  skipped), while a guest draws both. Making the host match the guest means the host would
+  hear/see slightly MORE than today — extra coin pops and sounds at moments that were silent.
+- **the options:** (a) leave the host as it has always been (**shipped**); (b) drain every event
+  on the host too, matching the guest exactly — one small edit, but it changes what you hear.
+- **answer:** (b) BECAUSE host and guest parity is the #1 goal of this work. If we need to change the game to fix pace, we want to fix pace for ALL PLAYERS EQUALLY. *(Wyatt, 2026-08-28)*
+- **resolved:** 2026-08-28
+
+### ~~Q-14~~ — On a PHONE, should the page have the board-art surround gradient at all? ✅ ANSWERED
+- **kind:** TASTE (his)
+- **asked:** 2026-08-28 (raised by CEO Review 13 against W4-3)
+- **default:** none — TASTE, parks instead
+- **why it matters:** W4-3 asked that "the gradient should be the only background". On desktop and
+  tablet that now holds. **On a phone there is no gradient to be the background** — the five
+  radial gradients are painted only at >=601px, on the stated reasoning that "the phone's board
+  fills the viewport, so there is no surround to paint", so the flat #3d7d99 remains the only
+  ground there. That is a sensible reading, but it is a scope decision taken on his behalf against
+  a sentence he wrote without a size qualifier. **Two answers are both defensible:** leave the
+  phone as it is (no visible surround, so nothing to see), or extend the gradient below 601px so
+  the ground is the same one everywhere (consistency, rule 8) — the phone does show a sliver of
+  ground above and below the board on some viewports.
+- **answer:** "i want the page's 5-gradient background to show up behind it. On all screen widths, including phone." *(Wyatt, 2026-08-28, with a screenshot marking four strips of flat blue either side of the board and the captains box)* — SHIPPED the same hour; the gradient rule left @media(min-width:601px) and the flat #3d7d99 is gone at every width.
+- **resolved:** 2026-08-28
+
+
+## Q-15 — PARKED BY WYATT 2026-08-28: a hook that fires when a session is about to read something bulky
+
+**His ask that raised it:** *"are you compressing your context as efficiently as gsd would? if not,
+could we add that behavior to one of our team (eg ceo or the agent that keeps ceo running?)"* — and,
+earlier in the same message, *"compress your context more aggressively so you don't get stupid and
+stale."*
+
+**What was answered, and what shipped:** GSD compresses harder, and by one specific habit — its
+commands are orchestrators that spawn subagents to do the READING, write an artifact to disk, and
+return a paragraph. The main thread never sees the 400 lines. The CTO does that for the CEO and not
+for its own work. **The half that shipped** is check 5 in `scripts/qa/ceo_brief.mjs` (commit
+`b2d43644`): every reviewer is now asked to name bulk reading done in the main thread that a
+subagent could have done — with the exceptions stated as exceptions so it cannot punish the right
+behaviour (Wyatt's own words and screenshots, the rendered game, a file being actively edited).
+
+**The parked half:** a PreToolUse hook in the shape of `qa-gear-first.cjs` — fires the first time a
+session is about to read a file over ~200 lines, names the subagent alternative, lets it proceed.
+That is the only form of this rule the project has ever made stick; a line in CLAUDE.md is the form
+it has watched fail five times (§5's GSD rule, rule 21's uninstallable health check, "ask with the
+question UI" repeated daily, "CEO after every item" said three times, HARD-WON-LESSONS §0).
+
+**Why parked, in his words' spirit rather than mine:** he chose *"not now"* over building it, so the
+CEO check can produce EVIDENCE about how often this actually happens before machinery is built for
+it. That is the right order and it is the opposite of what happened on 2026-08-19, when a hook was
+built during a fix window and the game got no better (rule 7).
+
+**What would un-park it:** two or more CEO verdicts naming real instances. Build it against those,
+not against a guess.
+
+## Q-16 — the wind pill still paints its own wash, inside the bar he circled
+
+**Raised by CEO Review 16, 2026-08-28.** The top-bar gradient is gone. But `#pp4Pill` — the
+`WIND NOW: … · FORECAST: …` chip — still carries `background:rgba(9,42,52,.34)` when it rides inside
+the ribbon at ≥601px (`index.html`, `#pp4Ribbon > #pp4Pill`), and `rgba(9,42,52,.62)` in its own
+fixed position below the bar on a phone.
+
+**Why it is a real question and not a loose end:** on the desktop screenshot he annotated, the wind
+pill sits INSIDE the red rectangle he drew. So his "remove this gradient from the top bar" either
+covers it or does not, and only he can say. The ☰ menu button is not in doubt — it is a light chip
+(`rgba(255,255,255,.16)`), plainly a button, and nobody would read it as part of the bar's wash. The
+pill is the ambiguous one because it is dark, wide, and the same colour family as the gradient that
+was just removed.
+
+**Not decided here on purpose.** Removing it is a taste call about whether the wind reads as a chip
+or as text on the page, and taste is his. The measurement he would want beside the question: at
+1200px the pill spans roughly the middle third of the bar at 34% opacity; on a phone it is a separate
+pill below the bar at 62%.
+
+**Default if he never answers:** leave it. He wrote "this gradient", singular, and the bar-wide wash
+is what is gone.
+
+## Q-17 — the counter-offer's empty-purse button has no word from Wyatt
+
+**W6-1 gave the offer one.** When the purse is empty, *"Would ye offer any coin on top?"* now ends in
+**"Nah"** — his word, and already the game's decline word at another prompt (`flow.js:1459`), so it
+is the consistent choice rather than a new one.
+
+**`coinSlider` has a second caller and its sentence is different.** The counter-offer says *"ye're
+ASKIN' X for yer Y"* — a statement, not a question — and confirms with "Ask it!". "Nah" there would
+read as cancelling the whole counter rather than declining the coin, so it was NOT applied.
+
+**Why this is a question and not a loose end:** rule 8 says an interaction behaving differently in
+two places is a bug unless he chose the exception. The *mechanism* is now identical in both — a
+greyed slider, and a decline label supplied by the caller. Only the word differs. That is either the
+right call or an exception he wants closed, and it is copy, which is his.
+
+**Default if he never answers:** leave the counter reading "Ask it!". Its sentence is not a question,
+so no answer-word fits it.
+
+**Q-17 addendum (CEO Review 19).** The greyed slider now also appears on the COUNTER-offer when there
+is no room to choose — same mechanism, and it keeps "Ask it!". That is a screen Wyatt did not ask to
+change. It is kept because rule 8 says one gesture behaves one way everywhere and the counter's
+sentence still reads correctly with its own label; but it is his to rule on, alongside the word.
+
+## Q-18 — THE WIRE CARRIES DRAWN OUTPUT, NOT EVENTS. This is why host/guest keeps diverging.
+
+**Wyatt, 2026-08-29, angry and right:** *"Why are guest and host rendering different things?????? You
+fixed this!!! One engine!! They both read from it!! Did you regress??"*
+
+**THE HONEST ANSWER ON REGRESSION, checked against git rather than memory.** One, mine, in this
+session: the W6-1 greyed slider (`disabled` added to the host's markup, not to the wire payload).
+Introduced `db7d4ac8`, caught by CEO Review 19, fixed `2dbc8a19` — same session, ~30 minutes,
+**never deployed to staging**. The other divergence he saw named in these notes — the battle bubble's
+anchor — is NOT a regression: `git log -S` puts the guest's colour-sniff in `fb74eedc`, the cutover
+of 2026-08-26. It was found and closed on 2026-08-29.
+
+**BUT THE CLASS KEEPS RECURRING AND HE IS RIGHT TO BE ANGRY ABOUT IT.** Six consecutive CEO reviews
+have found a host/guest divergence of some kind. That is not six coincidences; it is one structural
+cause.
+
+**THE CAUSE — every writer in `src/net/writers.js` sends a DRAWN THING, not an event:**
+
+| what is sent | what it is |
+|---|---|
+| `netSetNarr(**html**)` | a rendered sentence |
+| `netSetPrompt(**payload**)` | a rendered prompt |
+| `netSetBattle(**snapshot**)` | a rendered scoreboard |
+| `netSetFlip(**state**)` | a rendered coin |
+
+**There is no `netSetEvent`.** The host runs the engine, renders the result, and broadcasts the
+render. So whenever a drawing decision depends on something only the EVENT knows — who a line is
+about, whether a control is live — the guest must re-derive it from the finished output. That
+re-derivation is a second rule for one decision, which is the second director rule 23 names as
+emergent. `variants` exists precisely because of this: the host has to pre-render each seat's
+phrasing, because the guest cannot phrase anything itself.
+
+**AND THE FIX IS NOT A REWRITE, WHICH IS THE PART WORTH KNOWING.** `orchestrator.js:2097` — the guest
+path, fired when the room state turns `playing` — calls `beginGame(r.cfg, r.seed)`, which constructs
+`new Game(cfg, seed, true)`. **THE GUEST ALREADY BUILDS THE SAME ENGINE FROM THE SAME SEED.** The
+engine is deterministic (`mulberry32`) and the project already depends on that for lockstep replay.
+The guest has everything it needs to render an event itself; it is simply never handed one.
+
+**So "one engine, they both read from it" is TRUE of the game state and FALSE of the presentation.**
+The cutover converged the engine and left the render path forked.
+
+**THE OPTIONS, sized honestly, and this is HIS call — it is architecture, not a bug fix:**
+
+1. **Send the event alongside the render** (additive, reversible). `netSetEv` carries the event; the
+   guest prefers it and falls back to the rendered html when absent. Every future divergence of this
+   class dies at the source. Does not touch the engine or the determinism corpus.
+2. **Send the event INSTEAD of the render.** `variants` disappears — the guest phrases its own line
+   from its own Game. Cleanest, and the biggest change: every narration path is touched.
+3. **Keep patching instances.** What we have been doing. Six reviews, six divergences.
+
+**NOT STARTED, deliberately:** raised at 06:00 inside a window he asked to end in a playable build.
+Starting an architectural change there would be the "adjacent, competent, misses the ask" failure
+rule 25 exists to catch.
+
+---
+
+## Q-19 — the flip art's masters are the PRE-CUTOUT renders. Are there cut-out ones?
+
+**Your ruling on W5-1 was "try repo assets else park". Tried. Parked, with the reason.**
+
+`art-review/` holds 2048x2048 masters of all four flip images — the coin's heads and tails faces,
+the mid-spin coin, and the wooden socket — against the 382–512px files the game ships. On the
+arithmetic that is a straight win: on your phone the ceremony coin paints 502 real pixels and the
+socket 687, so the shipped art is short by about a quarter even now that the ceremony has stopped
+stretching it.
+
+**They cannot be used as they are.** Every corner of every master is SOLID, over a near-black
+background; every corner of the shipped files is transparent. They are the renders as they came out,
+before somebody cut the coin and the plank out of their background. Exported at 768px they put a
+hard black square behind the flippenator — I have the screenshot.
+
+**What I would need from you (any one of these unblocks it):**
+1. the cut-out versions of those four files, at any size above 768px, or
+2. permission to re-cut them here (the background is close to a flat colour, so it is a plausible
+   automatic job — but a bad cut leaves a dark halo round the rope, and that is your call, not mine), or
+3. "leave it" — the art is now drawn sharp at the size it ships, which was the bigger half.
+
+**Worth knowing either way, measured while I was in there:** as WebP these files come to about 55KB
+each at 768px against 217KB at 382px today — four times the resolution at a quarter of the weight,
+and it decodes in WebKit, which is Safari's engine. So if we ever get cut-out masters, the upgrade
+makes the game *lighter*, not heavier.
+
+## Q-20 — the End of Voyage award list still cannot be scrolled with a wheel
+
+Found by a CEO review while checking W3-4, and **it is not something I broke — it has always been
+this way.** The pull-down-to-dock gesture owns the first downward wheel notch at the top of the
+card, so the awards below the fold are reachable by dragging or by the scrollbar, but never by
+scrolling. On a laptop that is the natural thing to try.
+
+**The two ways out, and it is a taste call:** give the gesture a small dead zone so the first inch
+of scrolling reads the list and only a scroll at the very bottom docks the card; or leave docking on
+the first notch and accept that the list is dragged, not scrolled. I have not touched it because
+your sentence was about the card slamming and this is a different gesture.
+
+---
+
+## Q-21 — one captain's coins differed between the two screens, once, for about a second
+
+**This is the real one from the overnight trial, and it is your hot button, so here it is straight.**
+
+In one crew game on a phone, for at least three-quarters of a second, **Dough Hook's purse read 6 on
+the host's screen and 7 on the guest's.** Everything else on both screens agreed. It happened once
+in ten voyages, right before the day rolled over, and it fixed itself.
+
+**What I can prove:** it was not the tooling blinking. The check only compares once both screens
+have been completely still for three readings in a row, so both really were showing those numbers.
+
+**What I will not guess at:** *why*. There are two candidates and they call for different fixes.
+One is a deliberate trade already written into the code — when a captain pays for a bake re-watch,
+their own screen drops the coin immediately and the real charge catches up a moment later; that
+code's own note asks for exactly this sighting to be reported with the number. But the captain here
+is a **bot**, and that path is for a human, so it may be innocent. The other is simply the guest
+holding the previous day's picture a beat longer than the host across the rollover.
+
+**Telling them apart needs a live two-browser game watched at a day boundary** — half an hour,
+not a guess. **Do you want me to spend that?** The alternative is to leave it: it is rare, brief,
+and self-correcting. I would rather you decide than have me quietly rank it for you.
+
+---
+
+# ANSWERED BY WYATT, 2026-08-29 (asked in the question UI, from his phone)
+
+| | his ruling | what it means |
+|---|---|---|
+| **Q-18** wire carries pictures, not events | **Send the event TOO** — additive, reversible | `netSetEv` carries the event alongside today's rendered html; the guest prefers it and falls back when it is absent. Every future divergence of this class dies at the source. Does not touch the engine or the determinism corpus. ~half a day. |
+| **Q-21** one-coin host/guest divergence | **Spend the half hour** | Coins are game state, not decoration. Live two-browser game, watched at a day rollover. |
+| **Q-19** flip art masters | **Leave it** | The masters are the pre-cutout renders and cannot be used. The ceremony no longer stretches a small picture, which was the bigger half. CLOSED. |
+| **Q-20** award list will not scroll | **Give scrolling the first inch** | The list scrolls normally; only a scroll at the very bottom docks the card. Docking stays available by dragging. |
+
+Q-15 (bulk-read hook) was parked by him on 2026-08-28 and stays parked. Q-16 (wind pill wash) and
+Q-17 (counter-offer word) were not asked this round — both have a stated default and neither blocks
+anything.

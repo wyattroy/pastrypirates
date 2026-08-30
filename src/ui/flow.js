@@ -49,8 +49,8 @@ import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
-  DIRS, DIRNAME, STORM_PUSH, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, BAKE_REWATCH_COST,
+  DIRS, DIRNAME, STORM_PUSH, WAVE_IMG, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
@@ -58,8 +58,8 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, armClock, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
-  decisionIsLocal, stopShotClock, withShotClock, waitWhilePaused, sleepMs, seatStrat, saveSoloState,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
+  decisionIsLocal, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
   msgHoldMs, BOT_STORM_STEP_MS, RIM_SWEEP_ARRIVE_MS, RIM_SWEEP_TICK_MS,
@@ -77,7 +77,7 @@ const $=id=>document.getElementById(id);
 // by. Prompts are never touched by this: any decision involving the player ends the skip first
 // (ffEndNow below), so his interactions always play at full speed.
 // sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>sleepMs(appState.ff?Math.min(ms||0,40):ms));
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(appState.ff?Math.min(ms||0,40):ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 /* ================= ⏩ fast-forward: how a skip ends ================= */
 // Called, synchronously, at the top of EVERY entry point that puts a decision in front of the
@@ -186,108 +186,88 @@ export function showWhy(b){
   // immediately close it again.
   setTimeout(()=>document.addEventListener("pointerdown",clearWhy,{once:true}),0);
 }
-export function localAsk(msg,opts,colors,sub,extra){
-  // a decision is landing in front of the player — the skip is over. When a recap is owed, it
-  // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule); the
-  // re-entry finds appState.ff already false and falls straight through.
-  const pre=ffEndNow();
-  if(pre)return pre.then(()=>localAsk(msg,opts,colors,sub));
-  return new Promise(res=>{
-    if(opts.length===1&&opts[0].flip){
-      // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
-      // the DOM — stash message + helper on the bridge for the ceremony title/stakes
-      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
-      setNeedsAction(true);
-      // THE TAP IS THE FLIP — playtest 22 (Wyatt: "the coin disappears, the word FLIP remains,
-      // which looks messy and bad, then after a second or two the coin starts to flip"). The spin
-      // used to arrive only from the far side of this promise: localAsk resolves, ask()'s
-      // withShotClock wrapper resolves, and only then does humanFlip call broadcastFlip("spin").
-      // None of that is a deliberate pause, so the gap is scheduling latency — the same thing this
-      // build has been caught losing whole timers to — and until it landed the coin sat blank with
-      // a stale caption on it. There is no state between armed and spinning, so the tap paints the
-      // spin itself, in its own frame. setFlipCoin AFTER the disarm (which clears the art), and
-      // through setFlipCoin so there is one spelling of a spinning coin; the broadcastFlip("spin")
-      // that follows finds it already spinning and is a no-op (setFlipCoin is idempotent for it).
-      setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);res(0);});
+/* ═════════ FORK 2 CONVERGED (W1, 2026-08-28): ONE ASK RENDERER ═════════
+   renderAskPrompt(spec, answer) is the ask-class renderPickPrompt: it draws EVERYTHING an ask
+   prompt is — back button, message, coin slider, button row, helper text, in the narration box's
+   top-to-bottom reveal order — and knows nothing about promises, Firebase or seats. `answer`
+   fires exactly once with the chosen index (or {i,n} when a slider rode along). localAsk passes
+   its promise resolver; watchPrompt passes sendResponse. The body below is localAsk's own,
+   moved, not rewritten — its comments (playtest 21 items 5/7, MP-08, 02.1-03) moved with it.
+   Gate: scripts/qa/ask_render_convergence_check.mjs; parity DECL row watched red first.
+   spec = { msg, opts, colors, sub, slider, battle } — opts carry label/cls/disabled/why/seat/
+   short/flip/back/stage exactly as ask() builds them; the guest rebuilds the same shape from the
+   wire payload ("" from RTDB's null-hole convention normalizes back to null here, not at the
+   call sites — the fork-2 map's cosmetic divergence #4 closes with it). */
+export function renderAskPrompt(spec,answer){
+  const {msg,opts,colors,sub}=spec;
+  if(opts.length===1&&opts[0].flip){
+    // /4 ceremony: a PURE flip renders no panel at all, so the veil cannot read its ask from
+    // the DOM — stash message + helper on the bridge for the ceremony title/stakes.
+    // GUARDED ON !spec.battle (belt and braces — battleAsk never reaches this renderer, and
+    // stage.js's `!fm && btl` "⚔️ Broadside!" fallback needs fm null for battles).
+    if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
+    setNeedsAction(true);
+    // THE TAP IS THE FLIP — playtest 22: the tap paints the spin in its own frame; the
+    // broadcastFlip("spin") that follows finds it already spinning and is a no-op.
+    setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);answer(0);});
+    return;
+  }
+  const backIdx=opts.findIndex(o=>o&&o.back);
+  const flipIdx=opts.findIndex(o=>o&&o.flip);
+  const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");answer(v);};
+  if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
+  if(flipIdx!==-1){
+    if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
+    // same rule as the pure-flip path above: choosing the coin paints the spin at once
+    setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
+  }
+  else setFlipActive(null);
+  const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
+  const grid=rest.some(x=>x.o.cls)?" recipes":"";
+  const backHtml=backIdx!==-1?backButtonHTML(backIdx):"";
+  const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
+  /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY: a quantity is a slider, and it sits
+     BETWEEN the message and the buttons — the narration-box reveal order (back, message, THIS,
+     buttons, helper text), and a control that edits the message belongs with the message.
+     sliderWrapHTML/wireSlider are the ONE definition (05-01 Task 3, MP-08). */
+  const sl=spec.slider;
+  const slHtml=sl?sliderWrapHTML(sl):"";
+  // @copy prompt.plumbing.localask
+  /* playtest 21 item 5 — aria-disabled, NOT the `disabled` attribute: a real <button disabled>
+     fires no click at all, so the greyed circle could never say WHY when tapped. The row itself
+     is optionButtonsHTML (02.1-03) — the one definition of what an option button is. */
+  panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
+    optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
+    true);
+  if(sl)wireSlider($("actionPanel"),sl);
+  $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
+    // an option may carry a `short` label — the radial bloom shows the compact form (element
+    // property, never a data-attribute: the short form is HTML with icon imgs in it)
+    const o=opts[+b.dataset.i];
+    if(o&&o.short!=null)b._shortHtml=o.short;
+    if(isDisabledBtn(b)){
+      // display-only for the DECISION (a greyed option can never be chosen), but not mute:
+      // it answers for itself when asked.
+      b.onclick=()=>showWhy(b);
       return;
     }
-    // an option flagged `back` renders as a small circular "‹" button of its own, above the
-    // message — a consistent, low-emphasis escape hatch instead of competing with the real
-    // choices in the main button row (see notes/edits — every back-able decision gets this).
-    // Can coexist with a `flip` option (arms the flippenator coin as usual) and/or ordinary
-    // choices, which still render as the normal button row.
-    const backIdx=opts.findIndex(o=>o.back);
-    const flipIdx=opts.findIndex(o=>o.flip);
-    const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");res(v);};
-    if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
-    if(flipIdx!==-1){
-      if(window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
-      // same rule as the pure-flip path above: choosing the coin paints the spin at once
-      setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
-    }
-    else setFlipActive(null);
-    const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
-    const grid=rest.some(x=>x.o.cls)?" recipes":"";
-    const backHtml=backIdx!==-1?backButtonHTML(backIdx):"";
-    const subHtml=sub?`<div class="apSub">${sub}</div>`:"";
-    /* playtest 21 item 7 — THE ARC IS FOR ACTIONS ONLY. Wyatt, on tapping "Ask it!" expecting a
-       stepper: "Keep the arc logic consistent by having all the buttons that are in the ark
-       actions. Move the plus minus coins out of the arc instead and style those differently,
-       potentially with a slider or some other mechanic."
-       So a quantity is no longer a pair of circles indistinguishable from Attack and Trade. It is a
-       slider, and it sits BETWEEN the message and the buttons — which is also exactly where the
-       narration-box rule puts it, since content is revealed in the order it appears top to bottom
-       (back, message, THIS, buttons, helper text) and a control that edits the message belongs
-       with the message rather than among the answers. */
-    /* 05-01 Task 3 (MP-08): the markup is no longer built here. sliderWrapHTML (util.js) is the ONE
-       definition of what a coin slider IS, named directly by this tier and by watchPrompt's ask
-       branch — the same shape optionButtonsHTML has, and for the same recorded reason: stage.js
-       needs the class names too and flow.js must not be imported there (module_graph_check.js
-       forbids the cycle). */
-    const sl=extra&&extra.slider;
-    const slHtml=sl?sliderWrapHTML(sl):"";
-    // @copy prompt.plumbing.localask
-    /* playtest 21 item 5 — a greyed circle now SAYS WHY when ye tap it (Wyatt's pick), and the
-       reason appears at the circle itself rather than in a line floating near the top of the
-       board. His screenshot: "Their holds are empty – nothin' to plunder." hovering a long way
-       from the Attack button it explains.
-
-       aria-disabled, NOT the `disabled` attribute — this is the load-bearing detail. A real
-       <button disabled> fires no click event at all, so the reason could never be asked for. It
-       also stays focusable this way, which is what lets a keyboard or screen-reader user reach the
-       explanation instead of hitting a dead control; aria-disabled is still announced as dimmed.
-       The two places that read the DOM property (below, and the stay-put finder in stage.js) move
-       to the same test in this change, and the CSS gains the matching selector.
-
-       THE ROW ITSELF IS NO LONGER BUILT HERE (02.1-03). optionButtonsHTML (util.js) is the one
-       definition of what an option button is, shared with the guest's watchPrompt and with the
-       draft channel's watchDraftPrompt, so a field added on one side can no longer go missing on
-       another. The local `esc` closure went with it — the shared builder escapes through escHtml,
-       which also escapes ">" where this one never did. What stays HERE is this path's own click
-       wiring (done(v) -> res(v)): a local promise and a network round trip are not the same thing
-       and must not be shared. */
-    panel(`${backHtml}<div class="apMsg">${msg}</div>${slHtml}<div class="apBtns${grid}">`+
-      optionButtonsHTML(rest.map(x=>({i:x.i,label:x.o.label,cls:x.o.cls,disabled:x.o.disabled,why:x.o.why,seat:x.o.seat,color:colors&&colors[x.i]})))+`</div>${subHtml}`,
-      true);
-    // ...and neither is the wiring. wireSlider writes the running position into sl.ref (which is
-    // where coinSlider reads its answer), repaints the readout, and re-states the whole deal in the
-    // ask itself as ye drag — so the number is never read in isolation (TRADE-SYSTEM §4).
-    if(sl)wireSlider($("actionPanel"),sl);
-    $("actionPanel").querySelectorAll(".apBtn,.apBack").forEach(b=>{
-      // /4 stage: an option may carry a `short` label — the radial bloom shows that compact form
-      // in its circle while the card fallback keeps the full sentence (element property, never a
-      // data-attribute: the short form is HTML with icon imgs in it)
-      const o=opts[+b.dataset.i];
-      if(o&&o.short!=null)b._shortHtml=o.short;
-      if(isDisabledBtn(b)){
-        // display-only for the DECISION (notes/edits #5d — a greyed option can never be chosen),
-        // but no longer mute: it answers for itself when asked.
-        b.onclick=()=>showWhy(b);
-        return;
-      }
-      b.onclick=()=>done(+b.dataset.i);
-    });
+    /* {i,n} WHEN A SLIDER RODE ALONG, a bare index when not — one shape for both tiers. The
+       host's ask() unpacks {i,n} and writes n into its own live ref (a no-op there, since
+       wireSlider already wrote it); the guest's sendResponse puts it on the wire unchanged. */
+    b.onclick=()=>done(sl?{i:+b.dataset.i,n:sl.ref.value}:+b.dataset.i);
   });
+}
+export function localAsk(msg,opts,colors,sub,extra){
+  // a decision is landing in front of the player — the ff skip is over; when a recap is owed it
+  // plays FIRST and the prompt builds after it resolves (no bubble/pill overlap, his rule).
+  const pre=ffEndNow();
+  // `extra` rides the re-entry too — the pre-W1 line dropped it, which silently lost a coin
+  // slider if the skip recap fired on exactly that prompt (latent, never reported; fixed in the
+  // move because leaving a known fault in a freshly-shared path helps nobody).
+  if(pre)return pre.then(()=>localAsk(msg,opts,colors,sub,extra));
+  // THE LOCAL RESPONSE MECHANISM — renderPickPrompt's localPickCell shape: a promise around the
+  // ONE renderer, nothing else. The drawing all lives in renderAskPrompt above.
+  return new Promise(res=>{renderAskPrompt({msg,opts,colors,sub,slider:extra&&extra.slider},res);});
 }
 export async function humanFlip(p,label,allowBack,sub){
   setActor(p.idx);
@@ -388,9 +368,44 @@ export function sailSelfCheck(p,cells){
   console.error("[sail self-check]",{wind,dialWind,pos:p.pos,bad,cells});
   return `⚠️ SAIL BUG — screenshot this: wind ${wind} at ${p.pos.join(",")} · ${problems.join(" · ")}`;
 }
-export function sailPickMsg(seat){
+/* W2-8 (Wyatt, 2026-08-27): "'Tap to sail' -> 'Tap square again to sail trade winds'". A blue
+   square is the ONE square in the set that does not commit on the first tap — sweepGuard()
+   (src/ui/stage.js) swallows that tap to draw the ride preview, and only a second tap sails. That
+   is a deliberate exception to the one-tap gesture and his own pick (2026-08-13), but nothing on
+   screen said so, so the confirming tap had to be found by accident.
+
+   WHY THE CLAUSE IS CONDITIONAL rather than replacing the line outright. `cells` is a whole SET and
+   it is usually mixed: an amber square commits at once, a blue one does not. A line that told every
+   prompt to "tap the square again" would be false for every amber square in it — worse than saying
+   nothing. So the clause is added only where a blue square is actually on offer, which is only
+   within reach of the rim rather than every turn.
+
+   THE GRAVEYARD, because this is the SECOND sentence written on this card (rule 10). The first —
+   sailGuideLine()'s "Blue squares are the trade winds — land there and the current carries ye on" —
+   was deleted at playtest 22 item 2: "Remove it entirely — it's too long, it blocks the board, and
+   it appears every time." All three objections are answered on purpose: this clause is short, it
+   rides the existing line instead of adding a second one, and it appears only beside a blue square.
+   It also carries only the fact the BOARD CANNOT TEACH — the channel is tinted and the arrows flow
+   along it, so what blue MEANS is already shown; that it takes two taps is not.
+
+   ONE PREDICATE, NOT TWO. `g.onRim` is the same call sailHighlightRect() makes to decide whether to
+   paint the square blue at all, asked of the same `cells`, so the sentence and the colour cannot
+   disagree — there is nothing left to keep in step. And the line is built ONCE, here, on the
+   deciding device and shipped in spec.msg, so host and guest read the identical words.
+
+   `cells` is optional: renderPickPrompt's version-skew fallback calls this with a seat alone (see
+   its comment below), and that path degrades to the plain line rather than guessing.
+
+   STILL "tap", NOT "click", and that is a KNOWN GAP rather than a choice: D-40's verb helper
+   (holdVerb(), src/ui/stage.js:445) is private to that module, so there is no shared way to say
+   tap-or-click from here. Re-testing `matchMedia("(pointer: coarse)")` in this file would be a
+   second copy of the same rule to keep in step. Export holdVerb() and both lines can read it. */
+export function sailPickMsg(seat,cells){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
-  return `${pn(seat)}: tap to sail`;   // /4 playtest 6: one line — the card must stay small
+  const g=appState.game;
+  const swept=!!(g&&g.onRim&&(cells||[]).some(c=>c&&g.onRim(c)));
+  // /4 playtest 6: one line — the card must stay small
+  return `${pn(seat)}: tap to sail${swept?" — blue squares take two taps":""}`;
 }
 /* THE SAIL CARD, BUILT ONCE. 02.15-01, the narrow half — see renderPickPrompt (02.15-02 Task 3,
    THE TRACER) for the wide one, which converged the ORCHESTRATION around this same builder.
@@ -544,10 +559,10 @@ export function sailHighlightRect(c,cellPx,svg){
 // channel. Knows nothing about Firebase, promises or seats: it imports nothing from src/net/, by
 // construction (T-02.15-01) — the local caller below never lets this renderer anywhere near a
 // writer, which is what keeps a solo game (db===null) alive on this path.
-// Returns its own teardown so a caller that owns a shot clock (localPickCell only — activePickCleanup
-// stays a LOCAL-caller concern, per Task 3's ruling: registering it on the guest tier too would be a
-// behaviour change on a path only the host's own shot clock reads) can register it and abandon an
-// unanswered prompt without waiting for or forcing this renderer's own promise.
+// Returns its own teardown so a caller that needs to abandon an unanswered prompt can do so
+// without waiting for or forcing this renderer's own promise. (While the shot clock lived, its
+// expiry was the one registered caller — activePickCleanup, a LOCAL-caller concern; the clock
+// left 2026-08-28 and the teardown return survives it for the clock's return.)
 export function renderPickPrompt(spec,answer){
   const svg=$("board"),hs=[];
   appState.currentPrompt=spec;
@@ -631,7 +646,6 @@ export function pickCell(p,cells){
   // and wired it to the recipe draft; this per-turn line never got it. Fire-and-forget, so it meets
   // the flag's stated safety condition (see stageFlash's note: a wait line must never be awaited).
   netHandlers().onBroadcast(`${pn(p.idx)} is choosing where to sail…`,[{seat:p.idx,html:""}],{wait:true});
-  armClock(p.idx);
   /* EVERY CAPTAIN'S SQUARES ARE CHECKED, NOT JUST THE ONES ON THIS DEVICE. G6 (Wyatt-approved
      2026-07-30) is "yes, build this check and apply it to all situations", and it was applied to
      one: sailSelfCheck ran inside localPickCell, so it covered a captain whose decision is LOCAL
@@ -649,11 +663,12 @@ export function pickCell(p,cells){
   // (orchestrator.js), never added here. `pos` (item 21) is the captain's own square, carried so
   // the renderer can draw the stay square on BOTH tiers from the same authoritative value — a
   // guest's game.players[].pos is a stale render shell and must never be read for this.
-  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
+  // `cells` is handed to sailPickMsg for W2-8: the line says a blue square takes two taps only
+  // when one of THESE squares is a blue one. Same list the renderer is about to colour.
+  const spec={kind:"pick",cells,msg:sailPickMsg(p.idx,cells),hint:bug||null,pos:[p.pos[0],p.pos[1]]};
   const base=decisionIsLocal(p.idx)?localPickCell(p,spec)
     :netHandlers().onRemotePrompt(p.idx,spec);
-  const cellP=withShotClock(p.idx,base,null);
-  return cellP.then(c=>{netHandlers().onLogDecision(c);return c;});
+  return base.then(c=>{netHandlers().onLogDecision(c);return c;});
 }
 /* ================= the bake-off's decision seam =================
 
@@ -807,13 +822,10 @@ export function localPickCell(p,spec){
   const pre=ffEndNow();
   if(pre)return pre.then(()=>localPickCell(p,spec));
   return new Promise(res=>{
-    // activePickCleanup is a LOCAL-caller concern, exactly as it was before this task: the host's
-    // own shot clock (expireShotClock, src/orchestrator.js) reads it to abandon an unanswered
-    // prompt's DOM without waiting for or forcing this promise. It is renderPickPrompt's own
-    // teardown, returned — registering it on the guest tier too would be a behaviour change on a
-    // path only the host reads, which tonight's pure-plumbing constraint forbids.
-    const teardown=renderPickPrompt(spec,v=>{appState.activePickCleanup=null;res(v);});
-    appState.activePickCleanup=teardown;
+    // The activePickCleanup registration stood here — the shot clock's expireShotClock was its
+    // ONLY reader (inventory D4), so the registration left with the clock 2026-08-28. The
+    // renderer still returns its teardown; nothing registers it until the clock's return does.
+    renderPickPrompt(spec,v=>{res(v);});
   });
 }
 // v2 rules 2 and 8 delete three v1 helpers outright rather than leaving them dormant:
@@ -1167,7 +1179,7 @@ const sailRouteEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
    rAF stops completely in a backgrounded tab, so an rAF-only loop would hang the voyage the moment
    the phone locked, mid-glide, with the turn loop awaiting it. sleepMs carries the sweeper that
    catches a dropped timer, so whichever clock is alive wins the race and the glide always finishes. */
-const routeTick=(ms)=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>Promise.race([
+const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
   new Promise(res=>requestAnimationFrame(()=>res())),
   sleepMs(appState.ff?Math.min(ms||SAIL_ROUTE_TICK_MS,40):(ms||SAIL_ROUTE_TICK_MS)*8),
 ]));
@@ -1391,7 +1403,7 @@ export async function humanDock(p,port){
   // already puts explanatory text (and, per the standing top-to-bottom rule, is revealed last).
   // @copy misc.paramprompt.dockflip
   const h=await humanFlip(p,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — dig for treasure!`,true,
-    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn's work on the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
+    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn workin' the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
   if(h==="back")return "back";
   p.coins+=h?g.cfg.dockHeads:g.cfg.dockTails;
   let got=h?"treasure":"dockhand";
@@ -1455,7 +1467,27 @@ export async function humanDock(p,port){
          a second copy of a sentence the button says while pointing at itself. The price and the
          barter alternative are both on the two buttons' own labels. */
       const sub=null;
-      const v=await ask(`${h?"⚪️ TREASURE!":"⚫️ TAILS — a turn on the docks."} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
+      /* W2-4 (Wyatt, 2026-08-27): "Money must be explicit wherever it changes hands."
+         This prompt is the ONE place in the dock flow that had gone quiet about it. The line
+         BEFORE the flip already names both payouts (:1394) and the recap AFTER it already names
+         what landed (util.js:769-773) — so the amount was stated on the way in and on the way out,
+         and vanished at the exact moment the coin landed and the captain was asked to spend.
+
+         DERIVED FROM cfg, NEVER TYPED (rule 9). dockHeads/dockTails are cfg FIELDS precisely so
+         they can move — a "+3" written into this sentence is a price list standing in for a
+         quantity that shifts, and it would go silently wrong the day the payout is retuned. That
+         is not hypothetical here: the comment above those very fields claimed 5 while the code
+         paid 3, and it took a playtest to catch it (W2-10).
+
+         AND THE SAME EDIT SWEEPS TWO CONSISTENCY FAULTS (rule 8), both surfaced by the W2-3 audit:
+         the tails outcome is ONE action and was named three ways — "haulin' crates" (util.js, now
+         "workin' the docks"), "a turn's work on the docks" (:1394) and "a turn on the docks" here.
+         A player read a different name for the thing they had just done every time they did it.
+         And this was the ONLY dock line in the tree spelling the coins with the variation selector
+         (U+FE0F) — every other flip, here and in util.js, uses the bare ⚪/⚫. Same family as the
+         minus sign that must be U+2212: a character nobody can see is still a difference the font
+         renders. */
+      const v=await ask(`${h?`⚪ TREASURE <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span>!`:`⚫ TAILS <span class="nobrk">(+${g.cfg.dockTails}🌕)</span> — a turn workin' the docks.`} Buy ${dockFlavorIcon(ing)}?`,opts,null,sub);
       if(appState.turnExpired)break;
       // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
       // await, and the shot clock's penalty can take a coin while this prompt sits open. One
@@ -1670,13 +1702,35 @@ function logQuantity(n){
    {i,n} unpack. That means the ONE logQuantity() call below fires for a remote drag exactly as it
    does for a local one, and for the first time the decision log's LENGTH does not depend on how the
    trade was routed: an N-coin counter cost N+2 entries on the stepper and costs 2 either way now. */
-async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt){
+async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declineLabel){
   if(max<=min){
-    // nothing to choose — do not present a slider with one stop on it
-    const opts=[{label:confirmLabel,value:"ok",cls:"primary"}];
+    /* W6-1 (Wyatt): "'Would ye offer any coin on top?' appears with NO SLIDER when the player has no
+       money left. Expectation: the slider appears greyed out, and the button reads 'Nah' instead of
+       'Offer it!'"
+       THIS BRANCH USED TO SAY "nothing to choose — do not present a slider with one stop on it",
+       and for a range like 3..3 that is still right reasoning. It is wrong for an EMPTY PURSE,
+       because there the missing control is the answer to the question: the sentence asks whether to
+       add coin and the screen shows nothing to add it with. So the slider is drawn, DISABLED, at its
+       one stop — the browser refuses the drag and greys it, one mechanism doing both.
+       THE DECLINE LABEL IS THE CALLER'S. "Nah" answers "would ye offer any coin on top?"; the
+       counter-offer's sentence STATES a fact ("ye're ASKIN' X for yer Y"), where the same word would
+       read as cancelling the whole counter rather than declining the coin. Same mechanism, different
+       sentence, so the word travels with the sentence. That rule-8 exception is recorded for him in
+       .planning/CTO-QUESTIONS.md rather than decided here. */
+    /* ⚠ THE DECLINE WORD ONLY FITS WHEN NOTHING IS ACTUALLY OFFERED, and the first cut of W6-1 got
+       this wrong — caught by CEO Review 19, which put it plainly: "the button says no and offers a
+       coin." This branch fires on `max<=min`, which is NOT the same as "broke". A coins-only offer
+       from a captain holding exactly ONE coin has minC=1, maxC=1, so it lands here too — and the
+       button read "Nah" while pressing it returned logQuantity(1) and offered that coin. A new wrong
+       screen, reachable by anyone down to their last coin, where the old label had at least been
+       truthful.
+       So the word is chosen by the AMOUNT, not by the branch: at zero the button declines, above
+       zero it confirms, because above zero it really does commit something. */
+    const nothingOffered = min === 0;
+    const opts=[{label:(nothingOffered && declineLabel) || confirmLabel,value:"ok",cls:"primary"}];
     if(extraOpt)opts.push(extraOpt);
     opts.push({label:"← Back",back:true,value:"__back__"});
-    const v0=await ask(msgFor(min),opts);
+    const v0=await ask(msgFor(min),opts,null,null,{slider:{min,max:min,start:min,ref:{value:min},fmt:msgFor,aria:"Coins",disabled:true}});
     if(appState.turnExpired)return null;
     if(v0==="ok")return logQuantity(min);
     if(v0==="__back__"||v0==null)return "__back__";
@@ -1770,9 +1824,14 @@ export async function humanTrade(p){
          top?'"  His sentence, verbatim. The line now asks the question the control answers; the
          running amount is not lost, because the slider draws its own value beside the handle.
          The deal itself is still on screen — this prompt sits under the offer being built. */
+      /* W2-9 (Wyatt, 2026-08-27): "context-blind. If coin is the ONLY thing being offered it makes
+         no sense — should read 'How many coins?'" Right: "on top" of nothing is not a question.
+         THE SIGNAL ALREADY EXISTED, one line up. `st.baseIng` is null exactly when the captain
+         picked "— coins only —" (:1806), and `minC` at :1812 was already branching on it to raise
+         the floor to 1. The control knew; only the sentence did not. Nothing new is computed here. */
       const n=await coinSlider(p.idx,
-        k=>`Would ye offer any coin on top?`,
-        minC,minC,maxC,"Offer it!");
+        k=>st.baseIng?`Would ye offer any coin on top?`:`How many coins?`,
+        minC,minC,maxC,"Offer it!",null,"Nah");
       if(n==null)return false;
       if(n==="__back__"){step=1;continue;}
       st.extraCoins=n;step=3;
@@ -2101,7 +2160,30 @@ export async function humanAct(p,sailCtx){
   // the flat label agree with the fan rather than inventing a style.
   // NOT changed: the parentheticals in NARRATION (e.g. the sailing-order line, :2260) — item 1 says
   // action prompt BUTTONS, and narration is prose where a bracket reads normally.
-  if(!canOvens)opts.push({label:`🌊 Pass${appState.game.cfg.passCoin?` <span class="nobrk">+${appState.game.cfg.passCoin}🌕</span>`:""}`,value:"pass"});
+  /* MUSE, not Pass (Wyatt, 2026-08-27). "Pass" named the absence of a move; "Muse" names what the
+     captain is actually doing — watching the water and thinking about a recipe — so the quietest
+     turn in the game stops reading as a forfeit.
+
+     GRAVEYARD, so nobody re-runs this argument by accident (rule 10): this label was briefly
+     "Look into the ocean" on 2026-08-05 and was changed BACK to "Pass". "Muse" is a different word
+     and a later ruling of his, not a repeat of that one.
+
+     NO TOOLTIP, and that is his call too, made the same day: "don't build the tooltip, ignore this
+     and let the idea go." The backlog had asked for hover text explaining the button; the game has
+     no mechanism for one on an ENABLED button (data-why is disabled-buttons-only, util.js), and he
+     chose not to build one rather than have half the item ship quietly.
+
+     THREE STACKED LINES — "a wave image above 'Muse' and a +1🌕 below it", his words. The <br>
+     idiom is the house form for exactly this and is already what crateOpt() uses for the radial
+     fan ("icon above, words below"); `short` and `label` carry the same shape so the circle and
+     the list button read identically rather than being two spellings kept in step (rule 8).
+     A real WAVE_IMG, not the 🌊 emoji, because he asked for an image and the asset already exists.
+     The coin still comes off cfg.passCoin — a payout is not a constant (rule 9). */
+  if(!canOvens){
+    const museCoin=appState.game.cfg.passCoin?`<br><span class="nobrk">+${appState.game.cfg.passCoin}🌕</span>`:"";
+    const museFace=`${iconImg(WAVE_IMG)}<br>Muse${museCoin}`;
+    opts.push({label:museFace,short:museFace,value:"pass"});
+  }
   // #5c/D-41: helper text under the buttons explains why a greyed button is greyed — Attack's own
   // powder gate, and now Trade's cargo gate, follow the same pattern.
   //
@@ -2220,7 +2302,7 @@ export async function humanTurn(p){
   await passGate(p.idx);
   applyActiveSeat(p.idx); // ...and again after the gate, exactly as setActor was called before it
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
-  // flag only ever gets cleared by armClock() deep inside a decision, which is too late to
+  // flag only ever got cleared by the clock's arming deep inside a decision, too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
   // fresh the moment a new human turn actually begins
   appState.turnExpired=false;
@@ -2240,7 +2322,7 @@ export async function humanTurn(p){
   await flash(neutralBanner,1500,undefined,[{seat:p.idx,html:addressedBanner}]);
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
-  // eats no time. Each ask()/pickCell() call re-arms it fresh via armClock().
+  // eats no time. (Each ask()/pickCell() call re-armed it fresh while the clock lived.)
   if(appState.turnExpired){appState.activeTurnSeat=null;appState.recipeRevealed=false;return;}
   // normal turns no longer get force-moved by the wind (see #7) — only a storm still shoves
   // ships around; otherwise the wind only shapes this player's own sail budget below
@@ -2274,7 +2356,6 @@ export async function humanTurn(p){
   if(!appState.game.adjPort(p))p.dockedNow.clear();
   await humanAct(p,{preSailPos,preSailCoins});
   appState.recipeRevealed=false; // the TURN is over — the reveal ends with it (playtest 18: no mid-turn re-locks)
-  stopShotClock();
   appState.activeTurnSeat=null;
   // refresh now, not at the next turn's render — otherwise this seat's "check my recipe"
   // button sits frozen (blurred but visible) behind the next pass-the-device screen
@@ -2530,6 +2611,58 @@ export async function botTurn(p){
 // blocks until every human seat (not just the host) has read msg and clicked through — same
 // per-seat localAsk/remoteDraftPrompt barrier recipeDraftNet() uses, so remote players get a
 // real button instead of read-only narration text they can't dismiss
+/* ═════════ THE ONE DRAFT DISPATCHER (W1, 2026-08-28) — forks 4 and 5 converge here ═════════
+   One dispatcher, and the PUBLIC/PRIVATE distinction is an INPUT, because the two forks' pass-
+   and-play branches meant OPPOSITE things and both were Wyatt's decisions:
+     · PRIVATE (fork 4, the recipe draft): every seat in turn behind the pass-the-device gate,
+       serially — "nobody's two recipe choices are ever on screen for the seat that comes next".
+       Collapsing this is an INFORMATION LEAK, and (with no shot clock left to force it) three
+       concurrent localAsk calls into ONE #actionPanel would strand two promises and hang the
+       voyage at Promise.all forever — the fork-4/5 map's exact warning.
+     · PUBLIC (fork 5, the intro barriers): ONE showing for the whole table. Wyatt, 2026-08-08:
+       "Dont require passing to the next player for the opening narration… Just show those once."
+       A pass-the-device gate exists to keep private information off the next player's screen;
+       a public card has none.
+   Networked (and solo): every seat concurrently — a local seat through localAsk, a remote seat
+   through the draft-prompt channel (the netHandlers seam: this file is ui-tier and may not
+   import the orchestrator). `waitMsg` (item 19: a wait line has no deadline) shows on a LOCAL
+   seat's answer only in the concurrent mode — on a shared device there is no one to wait for.
+   `announce` (the "everyone's choosing…" broadcast) fires only in the concurrent mode for the
+   same reason. Returns {seatIdx: choice}; the CALLER logs decisions in seat-index order, so the
+   reload-replay stream is identical whichever mode ran (both modes resolve in seat order here —
+   serial by construction, concurrent by the post-join loop the caller already had).
+   DELIBERATE DROP, flagged on the checklist: fork 4's concurrent branch used to call raw
+   setActor once per seat inside its map — net effect, the actor glow pointed at the LAST pending
+   seat while every prompt was open (the map called it a wart: neither converged applyActiveSeat
+   nor meaningful). The dispatcher does not reproduce it; the serial branch DOES set the actor,
+   because there the device genuinely follows one seat at a time.
+   Gate: scripts/qa/draft_dispatch_convergence_check.mjs. */
+export async function draftDispatch({seats,isPublic,msgFor,optsFor,waitMsg,announce}){
+  const results={};
+  if(appState.passAndPlay){
+    if(isPublic){
+      // ONE DEVICE, ONE SHOWING — the table reads it together, off one screen.
+      results[seats[0]]=await localAsk(msgFor(seats[0]),optsFor(seats[0]));
+      return results;
+    }
+    // one device, secret options: draft in turn, each behind the pass-the-device screen
+    for(const seat of seats){
+      await passGate(seat);
+      setActor(seat);
+      results[seat]=await localAsk(msgFor(seat),optsFor(seat));
+    }
+    return results;
+  }
+  if(announce)netHandlers().onBroadcast(announce.html,announce.variants,{wait:true});
+  await Promise.all(seats.map(seat=>{
+    if(decisionIsLocal(seat))return localAsk(msgFor(seat),optsFor(seat)).then(i=>{
+      results[seat]=i;
+      if(waitMsg)showNarration(waitMsg,{wait:true}); // item 19: no deadline on a wait line
+    });
+    return netHandlers().onRemoteDraftPrompt(seat,msgFor(seat),optsFor(seat),waitMsg).then(i=>{results[seat]=i;});
+  }));
+  return results;
+}
 /* 17a AND 17c — THE SAME TEXT ARRIVING TWICE ON A GUEST, AND THIS LINE WAS THE SECOND COPY.
    It used to read `netHandlers().onNetBroadcast(msg);` — a third, redundant delivery of a message
    the barrier below already hands to EVERY human seat: localAsk for a local one, onRemoteDraftPrompt
@@ -2552,29 +2685,15 @@ export async function netIntroBarrier(msg,btnLabel){
   // message and button centred — instead of a bubble at the top and a lone circle mid-sea
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow",stage:true}];
   const humans=appState.game.players.filter(p=>p.strategy==="human");
-  if(appState.passAndPlay){
-    // ONE DEVICE, ONE SHOWING (Wyatt, 2026-08-08: "Dont require passing to the next player for the
-    // opening narration, or the lots drawing narration. Just show those once").
-    //
-    // This used to walk every human seat — pass the device, read, click, pass again — for two
-    // screens that say the SAME PUBLIC THING to everybody: the ahoy welcome, and who drew first
-    // lot. A pass-the-device gate exists to keep one player's private information off another
-    // player's screen; neither of these has any. So the gate was pure ceremony, and four players
-    // paid it twice before the first turn.
-    //
-    // Nothing is skipped and nothing is hidden — the table reads it together, once, off one screen.
-    // The FIRST REAL TURN still gates normally, via humanTurn's own passGate, so the device still
-    // reaches the right hands before anybody acts.
-    await localAsk(msg,opts);
-    return;
-  }
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
-  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat
+  // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat.
+  // (On a shared device the dispatcher never shows it: nobody is waiting for anybody.)
   // @copy misc.draftwait.introwait
   const waitMsg=humans.length>1?"⚓ Waiting for yer mateys…":null;
-  await Promise.all(humans.map(p=>seatLocal(p.idx)
-    ?localAsk(msg,opts).then(i=>{if(waitMsg)showNarration(waitMsg,{wait:true});return i;}) // item 19: no deadline on a wait line
-    :netHandlers().onRemoteDraftPrompt(p.idx,msg,opts,waitMsg)));
+  // FORK 5 IS THE PUBLIC CASE — one showing for a shared device (Wyatt 2026-08-08), every human
+  // concurrently when each has their own screen. The whole pass-and-play/networked branch pair that
+  // stood here lives in draftDispatch now, where fork 4 shares it.
+  await draftDispatch({seats:humans.map(p=>p.idx),isPublic:true,msgFor:()=>msg,optsFor:()=>opts,waitMsg});
 }
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
@@ -2817,7 +2936,7 @@ export function startSinglePlayer(){
   // v2.1: the ruleset this voyage is being played under is recorded WITH the save, so a resume can
   // never replay the log against the other one. See resumeSoloGame (util.js) for what that costs.
   const cfg=roundCfg(strategies);
-  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();pingStart(1,"solo");
+  appState.soloMeta={name,strategies,seed,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled(),bake2:bake2Enabled(),endcard:endCardEnabled()};appState.dlog=[];saveSoloState();pingStart(1,"solo");
   netHandlers().onBeginGame(cfg,seed);
 }
 // Pass & Play: `names` holds one entry per human seat (2-4), in seat order; any remaining
@@ -2829,7 +2948,7 @@ export function startPassAndPlay(names){
   appState.roster=buildRoster(names,strategies);   // playtest 19: bots get a collision-free name
   const seed=Math.floor(Math.random()*1e9);
   const cfg=roundCfg(strategies);
-  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled()};appState.dlog=[];saveSoloState();pingStart(names.length,"pass");
+  appState.soloMeta={names,strategies,seed,passAndPlay:true,seaBase:getSeaBase(),bakeoff:!!cfg.bakeoff,ovens:ovensNowEnabled(),bake2:bake2Enabled(),endcard:endCardEnabled()};appState.dlog=[];saveSoloState();pingStart(names.length,"pass");
   netHandlers().onBeginGame(cfg,seed);
 }
 // pass & play: reveal the active turn-holder's own recipe on demand — see render()'s
@@ -2858,6 +2977,10 @@ export function revealMyRecipe(){appState.recipeRevealed=true;liveRender();}
 export function endReplay(){
   if(!appState.replaying)return;
   appState.replaying=false;
+  // A-13: the rebuilt history was drawn silently (liveRender returns early while replaying) —
+  // the consumption frontier must jump past it, or the first live drain would replay every pop
+  // and sound of the whole voyage at once.
+  appState.evConsumed=appState.game.events.length;
   // BUG-04: this used to set evPushed=resumeEvLen unconditionally. When a replay came up short,
   // that silently moved the broadcast frontier PAST events that were never rebuilt, so every
   // future event was suppressed and guests saw a permanently frozen board. Only advance the
