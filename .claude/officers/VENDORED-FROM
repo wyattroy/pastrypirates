@@ -1,0 +1,6 @@
+claude-kit 067c53084dc9bbfc6361c3debd056113a48b5255
+vendored 2026-08-30T16:29:00Z
+Do not edit these files here. Edit them in claude-kit and re-run:
+  bash /home/user/claude-kit/install.sh vendor /home/user/pastrypirates
+Check for drift with:
+  bash /home/user/claude-kit/install.sh check /home/user/pastrypirates
