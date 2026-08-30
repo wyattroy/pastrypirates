@@ -89,6 +89,16 @@ const WATCH = `(()=>{
          If the offset is constant while the panel's top changes, the mover is the PANEL's layout,
          not the content's. */
       (r&&vis==="SHOWN")?("off"+Math.round((btl.offsetTop||0)/10)*10):"-",
+      /* THE CLASS I FAILED TO RECORD LAST TIME, and it decides everything: runHeightSequence
+         early-returns on centreStaged(), which tests the pp4Center class on #pp4Prompt -- NOT the
+         ap.dataset.pp4Stage I had been recording. If it is set while the card is up, the panel's
+         own height sequence never runs and the grow is driven by the stage's layout instead: a
+         different file and a different fix.
+         NO BACKTICKS ANYWHERE IN THIS BLOCK. It is a template literal handed to the page, and
+         quoting a selector in backticks ends the literal and throws. That is the THIRD time in one
+         session -- so the rule is now written where the mistake gets made, not in a ledger. */
+      (()=>{const b=document.getElementById("pp4Prompt");
+        return b?("prompt:"+(b.classList.contains("pp4Center")?"CENTER":"-")+(b.classList.contains("radial")?"+radial":"")):"noPrompt";})(),
       (()=>{const ap=document.getElementById("actionPanel");
         if(!ap||vis!=="SHOWN")return "-";
         const q=ap.getBoundingClientRect();
