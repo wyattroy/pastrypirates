@@ -401,7 +401,10 @@ class Game{
     if(!this.isRound)return false;
     const head=this.rimHead[p.pos[0]+","+p.pos[1]];
     if(head&&(head[0]!==p.pos[0]||head[1]!==p.pos[1])){
-      p.pos=[...head];this.ev({t:"tradewind",p:p.idx,blown:!!blown});return true;
+      /* RETURNS THE EVENT IT PUSHED, for the same reason ev() does: a caller that wants to draw
+         this sweep can hold the event itself instead of reaching back for the top of the pile.
+         Still falsy when no sweep happened, so every `if(tradewind(...))` reads the same. */
+      p.pos=[...head];return this.ev({t:"tradewind",p:p.idx,blown:!!blown});
     }
     return false;
   }
@@ -466,7 +469,15 @@ class Game{
     // anchor rather than be driven onto the rocks, and it was silent until now.
     if(this.isIsland(nx)||this.isHome(nx))return "landHeld";
     p.pos=nx;
-    if(this.onRim(nx)){this.tradewind(p,true);return "swept";}   // the storm put him there
+    /* THE RIM ENTRY GOES ON THE WIRE (W9). This stepped onto the rim and swept in the same
+       breath, emitting nothing in between — so the square the ship entered the channel at
+       existed in NO event, and the one animator that carries a ship around the rim had no
+       starting square on the rim to derive its arc from. The host worked around it by
+       reconstructing the square by hand inside its own storm driver; the guest, whose only
+       route is that animator, could not, and watched the ship teleport to the whirlpool.
+       rimEscape (below) has always emitted `windmove` AT the rim cell and THEN swept, which
+       is exactly why its ride is drawn on every tier. Same emit, same shape, one picture. */
+    if(this.onRim(nx)){this.ev({t:"windmove",p:p.idx});this.tradewind(p,true);return "swept";}   // the storm put him there
     return "moved";
   }
   stormPush(p,dirKey,dist){

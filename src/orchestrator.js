@@ -729,10 +729,28 @@ async function asyncBattleRun(att,def){
         else flee=(downwind==="a")||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&appState.game.cnt(def.ing,i)<=1);
         if(flee){
           const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-          if(dest){def.pos=dest;appState.game.tradewind(def);await animateRimSweepIfAny();}
+          /* A FLEE IS VERY NEARLY A FULL SAIL, and it was the one move the route fix never reached.
+             Measured over 600 posed flees on 25 seeded boards: mean 3.93 squares, max 4, every
+             single one further than one square, and 13.3% of them drawn along a straight line that
+             crosses an island — the same picture playtest 21 item 6 was raised about. It now asks
+             the same sailPath the chosen sail asks, puts the squares on the SAME presentation lane
+             (o.route -> Game.bakeDraw -> o.draw), and the ONE walker walks them on every tier.
+             THE EVENT ALSO NEEDS A SEAT. Game.ev bakes the drawn route against o.state[o.p], so a
+             route on an event that names only `a` and `d` bakes to null however carefully it was
+             computed. `p` is the captain the move belongs to — the one who fled.
+             AND IT IS RECORDED AT THE DESTINATION, BEFORE THE TRADE WINDS TAKE IT. The flee used to
+             be recorded after the sweep, so the last snapshot before the sweep still held the
+             PRE-BATTLE square, onRim(from) was false, and a ship that fled into the channel got no
+             ride ON EITHER TIER — it simply appeared at the whirlpool. The emit and the sweep sit
+             on one line because that order is the whole point of them: record where the ship
+             actually got to, THEN let the current carry it on. */
+          const fleeFrom=[...def.pos],fleeRoute=dest?[fleeFrom,...appState.game.sailPath(def,dest,{throughRim:true})]:null;
+          if(dest)def.pos=dest;
           fled=true;
           appState.game.recordSkirmish(att,def,null);
-          appState.game.ev({t:"battleflee",a:att.idx,d:def.idx,rounds,downwind});
+          const evFlee=appState.game.ev({t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds,downwind,route:fleeRoute}),evWind=dest?appState.game.tradewind(def):null;
+          await animateSailRoute(evFlee);
+          if(evWind)await animateRimSweepIfAny(evWind);
           liveRender();
         }
       }
@@ -1569,7 +1587,7 @@ export async function consumeEvent(e){
   applyActiveSeat(e.p);
   syncLogLines();
   $("scrub").max=Math.max(0,appState.game.events.length-1);
-  await animateRimSweepIfAny();   // idempotent (_lastSweptEvIdx) — a host call site that already awaited the ride makes this a no-op
+  await animateRimSweepIfAny(e);  // W9: THE EVENT BEING CONSUMED, not the top of the pile — same correction, same reason, as the sail walker on the line below. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   await animateSailRoute(e);      // W7: the guest walks the squares the boat crossed instead of gliding across the islands. THE EVENT BEING CONSUMED, not the top of the pile — W7b measured the guest sliding on 3 of 8 sails because watchEvents pushes each arriving event before awaiting this consumer, so the pile's top is regularly not the sail. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   render();
   spawnPops(e,boardCell());

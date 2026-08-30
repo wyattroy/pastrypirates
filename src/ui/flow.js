@@ -1020,25 +1020,37 @@ export function rimSweepPointAt(curve,t){
 // Both render exactly as they do today — no regression, and no invented path. Closing that residue
 // would require the ENTRY CELL in the event stream, i.e. the STORM-02 class of change, which stays
 // parked on its own merits and is NOT added to the re-record batch.
-let _lastSweptEvIdx=-1;
-// Returns true only when a ride actually animated — runStormLive uses that to know whether its
-// own reconstructed-entry fallback (animateRimSweepRun below) still needs to play the ride.
-export async function animateRimSweepIfAny(){
+/* IT RIDES THE EVENT IT IS HANDED — the same correction W7 made to animateSailRoute, made here
+   because it is the same fault. This used to take no arguments and read g.events[n-1], so any
+   event that landed behind a sweep before its consumer ran cost that player the ride (watchEvents
+   pushes each arriving event BEFORE awaiting consumeEvent, so the top of the pile is regularly not
+   the event being consumed). Every call site now hands over exactly one thing, the event being
+   drawn, and no call site can mean a different event by it. No argument now rides nothing.
+
+   RE-ENTRY GUARD: a WeakSet of events already ridden, NEVER a flag stamped on the event object —
+   the host broadcasts events verbatim (pushEvents -> JSON.parse(JSON.stringify(...))), so an extra
+   field would leak straight into the Firebase payload and can trip scripts/net_contract_check.js.
+   It replaces a module-local ARRAY POSITION, which had the second defect W7b measured on the sail
+   walker: an index survives a new Game, so "Play again" in one page load silently dropped the ride
+   for whichever sweep landed on the index the last voyage finished on. A fresh voyage's events are
+   fresh objects, so this cannot happen and there is no frontier for anyone to remember to reset.
+
+   The ride's STARTING square still has to come from the event before this one — a sweep records
+   where the ship ended, not where it entered the channel — so the previous event is found by
+   IDENTITY (indexOf the event handed over), never by a position a caller passed in. */
+const _rodeSweep=new WeakSet();
+export async function animateRimSweepIfAny(ev){
   const g=appState.game;
   if(!g||appState.replaying)return false;
-  const n=g.events.length;
-  if(n<2)return false;
-  const last=g.events[n-1];
-  if(!last||last.t!=="tradewind")return false;
-  // RE-ENTRY GUARD: a module-local index, NEVER a flag stamped on the event object. The host
-  // broadcasts events verbatim (pushEvents -> JSON.parse(JSON.stringify(...))), so an extra field
-  // would leak straight into the Firebase payload and can trip scripts/net_contract_check.js.
-  if(_lastSweptEvIdx===n-1)return false;
-  _lastSweptEvIdx=n-1;
-  const seat=last.p;
-  const prev=g.events[n-2];
-  if(!last.state||!prev||!prev.state)return false;
-  const to=last.state[seat]&&last.state[seat].pos;
+  if(!ev||ev.t!=="tradewind")return false;
+  if(_rodeSweep.has(ev))return false;
+  _rodeSweep.add(ev);
+  const i=g.events.indexOf(ev);
+  if(i<1)return false;
+  const prev=g.events[i-1];
+  const seat=ev.p;
+  if(!ev.state||!prev||!prev.state)return false;
+  const to=ev.state[seat]&&ev.state[seat].pos;
   const from=prev.state[seat]&&prev.state[seat].pos;
   if(!to||!from||!g.onRim(from))return false;
   return animateRimSweepRun(seat,from,to);
@@ -1212,7 +1224,14 @@ const _rodeRoute=new WeakSet();
 export async function animateSailRoute(ev){
   const g=appState.game;
   if(!g||appState.replaying)return false;
-  if(!ev||ev.t!=="sail")return false;
+  /* ANY EVENT CARRYING A BAKED ROUTE, not one event name. This used to demand t==="sail", which
+     is a second place that has to be told about every move a boat makes — and it had already been
+     missed once: a ship fleeing a battle sails on average 3.93 squares, 13.3% of them straight
+     through an island, and this walker refused it purely because of what the event was called.
+     The presentation lane IS the test: Game.bakeDraw only ever produces draw.route for a move it
+     could vouch for (the route must land exactly on the pos baked beside it), so an event that
+     carries one is by construction a move worth walking. */
+  if(!ev)return false;
   if(_rodeRoute.has(ev))return false;
   _rodeRoute.add(ev);
   const route=ev.draw&&ev.draw.route;
@@ -1319,14 +1338,17 @@ export async function runStormLive(dirKey){
         await sleep(STORM_STEP_MS);
       }
       if(outcome==="swept"){
-        // The event-derived animator declines a storm sweep (no rim-entry event exists to read —
-        // its own documented fallback), so reconstruct the entry square the driver knows
-        // first-hand: stormStep moved exactly one straight square downwind from `was` before
-        // tradewind() fired. animateRimSweepRun re-derives the path and refuses to guess.
-        if(!await animateRimSweepIfAny()){
-          const entry=[was[0]+DIRS[dirKey][0],was[1]+DIRS[dirKey][1]];
-          if(g.onRim(entry))await animateRimSweepRun(p.idx,entry,[...p.pos]);
-        }
+        /* THE HOST-ONLY ESCAPE HATCH IS GONE (W9, rule 23). This used to reconstruct the rim-entry
+           square by hand — from `was` plus the wind — because the event stream did not contain it,
+           and then call animateRimSweepRun directly. runStormLive is host-only, and that was
+           animateRimSweepRun's ONLY call site in the tree, so the host watched a ship carried
+           around the rim and the guest watched it appear at the whirlpool: one game, two pictures.
+           stormStep now emits AT the entry square (src/engine/index.js), so the ONE event-derived
+           animator draws this on every tier. The fix was to put what the hatch reconstructed onto
+           the wire and DELETE the hatch — never to give the guest a matching one.
+           The emitter holds its own moment: stormStep pushed the sweep one synchronous statement
+           ago, so the top of the pile is that event (and if it swept nowhere, the guard declines). */
+        await animateRimSweepIfAny(g.events[g.events.length-1]);
         liveRender();
       }
       // stormStep records its own `blocked` event when a ship holds the square ahead.
@@ -2295,7 +2317,8 @@ export async function humanAct(p,sailCtx){
          no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
          loop would stop waiting for the glide. */
       await animateSailRoute(evSail);liveRender();
-      if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
+      const evWind=appState.game.tradewind(p);
+      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="pass"){
@@ -2396,7 +2419,8 @@ export async function humanTurn(p){
          no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
          loop would stop waiting for the glide. */
       await animateSailRoute(evSail);liveRender();
-      if(appState.game.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}
+      const evWind=appState.game.tradewind(p);
+      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}
       // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
       // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
       else if(appState.game.onRim(p.pos))await flash(`🌀 ${pn(p.idx)} rides at the head o' the current — she's got nowhere to carry ye from here.`);
@@ -2598,10 +2622,16 @@ export async function botTurn(p){
          loop would stop waiting for the glide. */
       await animateSailRoute(evSail);liveRender();
       await botBeat();
-      if(g.tradewind(p)){await animateRimSweepIfAny();liveRender();await narrateLastEvent();}}
+      const evWind=g.tradewind(p);
+      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
     // rimEscape() records its own events (windmove, then tradewind's sweep line).
-    else if(g.boxedIn(p)&&g.rimEscape(p)){await animateRimSweepIfAny();await botBeat();}
+    /* rimEscape returns whether the ship escaped, not the event, so the sweep it just pushed is
+       read off the top of the pile. That is safe HERE and is not the fault W7/W9 fixed: the fault
+       is a CONSUMER guessing which event it is drawing, and this is the EMITTER, one synchronous
+       statement after its own emit with nothing awaited in between. If the escape found no head to
+       sweep to, the top of the pile is the windmove and the call is a no-op by its own guard. */
+    else if(g.boxedIn(p)&&g.rimEscape(p)){await animateRimSweepIfAny(g.events[g.events.length-1]);await botBeat();}
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
