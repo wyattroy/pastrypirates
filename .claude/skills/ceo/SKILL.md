@@ -11,6 +11,19 @@ The user invoked this with: $ARGUMENTS
 
 **The sequence is: do the work → run a CEO → give Wyatt the CEO's verdict → then your own account.**
 
+
+## The organisation's memory — read it before you act, append to it when he rules
+
+**`.claude/memory/README.md` is the map**: what kind of memory lives in which file, and where a new
+one gets written. **`.claude/memory/DECISIONS.md` is what he has already decided** — read it so you
+never re-open a settled question, and **append to it the moment he rules on something**, that same
+turn, with the date and the reason.
+
+**A checkpoint his existing rulings already answer is not a reason to stop.** Resolve it from the
+record and NAME the ruling you used. Only genuinely new decisions reach him.
+
+*(Durable memory, disposable instance: you remember nothing between sessions, and that is the
+design. What is not written down is gone, and freshness is what keeps a reviewer independent.)*
 ## Why this exists, and it is not about honesty
 
 A session once answered a 35-item playtest by shipping 22 fixes, verifying 4, and reporting

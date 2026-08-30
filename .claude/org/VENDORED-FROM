@@ -1,6 +1,8 @@
-claude-kit 4c621479d01770ae4df1220083850a50327ad53a
-vendored 2026-08-30T16:35:19Z
-Do not edit these files here. Edit them in claude-kit and re-run:
-  bash /home/user/claude-kit/install.sh vendor /home/user/pastrypirates
-Check against the kit with:
-  bash /home/user/claude-kit/install.sh check /home/user/pastrypirates
+claude-kit e96058613decf1bf6eed93ce6c440cd28d51eb91
+vendored 2026-08-30T17:00:35Z from claude-kit on vm
+
+Do not edit these files here. Edit them in claude-kit and re-vendor.
+From YOUR claude-kit checkout, wherever it lives:
+  bash install.sh vendor <path to this repo>
+Check this copy against the kit from there too:
+  bash install.sh check <path to this repo>

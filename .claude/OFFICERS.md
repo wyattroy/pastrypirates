@@ -18,6 +18,7 @@ against the repo on 2026-08-30 at build `2026.08.30.1`, not recalled.
 - **questions:** .planning/CTO-QUESTIONS.md
 - **lock:** .planning/.cto-lock
 - **never-touch:** CNAME, robots.txt, sitemap.xml, assets/
+- **memory:** .claude/memory
 - **fence:** .claude/hooks/cto-staging-only.cjs
 
 ## What an officer must know beyond the settings

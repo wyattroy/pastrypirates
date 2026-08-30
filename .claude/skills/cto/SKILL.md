@@ -19,6 +19,19 @@ long-running worker stops without warning and nobody notices.
 > **YOU DO NO BACKLOG WORK. NONE.** If you find yourself editing product code, you have
 > misunderstood the job and should stop.
 
+
+## The organisation's memory — read it before you act, append to it when he rules
+
+**`.claude/memory/README.md` is the map**: what kind of memory lives in which file, and where a new
+one gets written. **`.claude/memory/DECISIONS.md` is what he has already decided** — read it so you
+never re-open a settled question, and **append to it the moment he rules on something**, that same
+turn, with the date and the reason.
+
+**A checkpoint his existing rulings already answer is not a reason to stop.** Resolve it from the
+record and NAME the ruling you used. Only genuinely new decisions reach him.
+
+*(Durable memory, disposable instance: you remember nothing between sessions, and that is the
+design. What is not written down is gone, and freshness is what keeps a reviewer independent.)*
 ## Resolve the engine, then run it
 
 ```bash

@@ -26,6 +26,7 @@ Format is `- **key:** value`. Lines inside code fences are ignored, so examples 
 - **ledger:** .claude/CTO-LEDGER.md
 - **questions:** .claude/CTO-QUESTIONS.md
 - **lock:** .claude/.cto-lock
+- **memory:** .claude/memory
 - **never-touch:** CNAME, robots.txt, sitemap.xml
 
 ## What each one is for
@@ -44,6 +45,7 @@ Format is `- **key:** value`. Lines inside code fences are ignored, so examples 
 | `ledger` | the CTO's append-only progress record, and the heartbeat that separates a slow item from a dead worker |
 | `questions` | where the CTO parks what needs Wyatt. **Taste never times out** |
 | `lock` | its presence says a CTO is driving, and is what arms the production fence |
+| `memory` | where the organisation's memory lives — its README is the map, and DECISIONS.md is what has already been ruled on. **An officer that does not read this re-asks a settled question** |
 | `never-touch` | files no officer or worker may modify, whatever the reason |
 
 ## The questions to ask Wyatt if this file is missing
