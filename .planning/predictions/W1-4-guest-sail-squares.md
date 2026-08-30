@@ -128,3 +128,70 @@ the screen edge."* **Wyatt said this in the first place and it is still there.**
 **THE RULE THIS EARNS, and it was already written down for the sea trial:** *a probe must report
 what it FAILED TO MEASURE in its own column, and never fold it into the pass side.* CLAUDE.md §5:
 *"What the report must never lose: the NOT-RUN column."* The probe now has one.
+
+---
+
+## WYATT'S LEAD, 2026-08-30: "the zoom out problem may happen because sailable trade winds squares are rendered differently than normal yellow squares"
+
+**PREDICTION, WRITTEN BEFORE MEASURING.**
+
+**What is already dead on inspection, so I do not spend the run on it:**
+- `.sailSwept` (the trade-wind square's class) is **styling only** — `background:#59c3d8` and a dashed
+  outline (`index.html:1030`). Same `left/top/width/height` as any other square: they are built by
+  the same function, `sailHighlightRect` (`src/ui/flow.js:528-548`).
+- Rim cells are **inside** the grid. `this.rim` is built out of `this.valid`, which only ever holds
+  `0 <= x,y < n` (`src/engine/index.js:127-137`). So there are no out-of-grid coordinates for the
+  camera's clamp to swallow.
+
+**BUT HIS LEAD SURVIVES IN A SHARPER FORM, and this is what I will test.** A trade-wind square is a
+**rim** square by construction — `onRim()` is true only for cells on the outermost ring of the
+circular board. **So trade-wind squares are exactly the squares at the extreme edge of the board.**
+If anything displaces the sail layer relative to the viewport — and something does, because squares
+are landing at screen x = −57 to −116 — **the rim squares are the ones that fall off first, and on
+a narrow phone they may be the only ones that fall off at all.** That would make "the trade-wind
+squares are the broken ones" a true observation with a cause that is not about how they are drawn.
+
+**PREDICTION: the off-screen and clipped squares will be disproportionately `.sailSwept`.**
+
+**FALSIFIERS, named before the run:**
+- **If the off-screen squares are a mix with no rim bias**, his hypothesis is wrong as stated and
+  the displacement is uniform across the whole layer — a projection fault, not a trade-wind one.
+- **If `.sailSwept` squares have different rects than their grid coordinates predict** (compared
+  against a non-swept square in the same row/column), then they really ARE rendered differently and
+  I am wrong about `.sailSwept` being cosmetic.
+- **If no trade-wind square appears in the run at all**, nothing is measured and I say so.
+
+## THE ANSWER TO HIS LEAD — MEASURED, and it splits into a right half and a wrong half
+
+`scripts/qa/w14_swept_geometry.mjs`, solo at 390×844, one sail prompt containing both kinds:
+
+```
+  18 square(s): 17 ordinary, 1 trade-wind
+  scale fitted from the ORDINARY squares alone: 49.40px per grid-x, 49.40px per grid-y
+    grid  7, 0 TRADE-WIND  drawn at 175,87   off by 0.0,0.0px
+  worst disagreement, ordinary squares:   0.0px
+  worst disagreement, trade-wind squares: 0.0px
+```
+
+**"RENDERED DIFFERENTLY" IS NOT SUPPORTED.** Every square, both kinds, sits exactly where its grid
+coordinate predicts — to **0.0px**, against a scale fitted from the ordinary squares alone so the
+trade-wind one was judged by a rule it had no part in setting. `.sailSwept` really is cosmetic:
+`background:#59c3d8` and a dashed outline, nothing geometric.
+
+**BUT THE INSTINCT BEHIND IT IS RIGHT, AND IT IS THE USEFUL HALF.** The trade-wind square in that
+snapshot is at **grid y = 0 — the top row of the board.** That is what a trade-wind square IS:
+`onRim()` is true only on the outermost ring of the circular board (`src/engine/index.js:127-137`).
+**So trade-wind squares are the edge squares, always.** Anything that displaces or crops the sail
+layer takes them first, and on a narrow phone it may take only them. "The trade-wind ones are the
+broken ones" can be a true observation with a cause that is not about how they are drawn.
+
+**WHAT THIS CHANGES ABOUT THE FIX.** Containment has to be judged AT THE RIM, which is exactly
+where the camera's own clamp bites: `camTo` does `Math.max(0, Math.min(640 - w, x))`, so a padded
+window that would show water beyond the board's edge is pulled back — and a rim square sits on that
+very edge. That is the next thing to measure, and it is cheap: a posed board with the ship beside
+the rim.
+
+**AND THE CHEAP PROBE IS THE LESSON.** A 12-minute crew run offered FOUR trade-wind squares and
+settled nothing. This one asks a geometric question instead of a statistical one, needs a single
+prompt, and answers in about a minute. **When a question is "is this drawn wrong", do not go
+looking for a rate.**
