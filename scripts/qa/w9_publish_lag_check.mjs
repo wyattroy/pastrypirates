@@ -25,12 +25,40 @@
    NOT IN `npm test`. Deliberate: whether browser-driven gates join the suite is Q-22, parked for
    Wyatt. Run it by hand against a live crew room.
 
+   TWO LEGS, AND THEY ARE NOT THE SAME KIND OF EVIDENCE.
+     --leg=shape   SOURCE SHAPE ONLY — NOT A MEASUREMENT. Reads src/ui/flow.js and
+                   src/orchestrator.js and fails if any awaited ride (animateSailRoute /
+                   animateRimSweepIfAny) sits between an emit and its publish without a
+                   publishNow() in front of it. It exists because the six ordinary-sail sites were
+                   MISSED BY A GREP: the ride and the publish are on ONE PHYSICAL LINE
+                   (`await animateSailRoute(evSail);liveRender();`), so a search that reads the
+                   FOLLOWING line could never match. Runs with no browser. It cannot tell you what
+                   any of it COSTS — only leg `sail`/`storm` can.
+     --leg=storm   MEASURED. The posed swept storm (below). The original W9 subject.
+     --leg=sail    MEASURED. The ORDINARY SAIL — every captain, every turn. Poses a bot with a
+                   clear route, runs the real botTurn() path, and measures the publish lag of the
+                   `sail` event it emits. The two HUMAN sail sites (humanAct, humanTurn) are the
+                   same text as the bot's and are NOT reached by this leg — they sit behind a
+                   prompt. `--leg=shape` is what covers them.
+     --leg=all     shape, then storm, then sail. Worst verdict wins.
+
+   ⚠ RESTART THE BROWSER AFTER EDITING src/ — A RELOAD IS NOT ENOUGH.
+   A green result here has already almost lied once: the browser served src/ui/flow.js out of its
+   OWN HTTP cache while the server served the new file, so the number described the OLD build and
+   read as a pass. Before believing ANY number from this check, make the page prove it has your
+   change — e.g.
+       (await import('/src/ui/flow.js')).publishNow   // must be a function, not undefined
+   and better, check the source text itself. This trap is written up in docs/HARD-WON-LESSONS.md:664
+   and docs/DRIVING-THE-GAME.md:24 and it STILL caught someone, so it is repeated here, which is
+   where the next person will actually be standing.
+
    USAGE
      1. serve the tree            python3 -m http.server 8548 --bind 127.0.0.1
      2. two chromes with          --remote-debugging-port=9631   (host)
                                   --remote-debugging-port=9632   (guest)
+        ...restarted since your last edit to src/. See the warning above.
      3. get them into a room      see docs/DRIVING-THE-GAME.md §5c, or scripts/mp_rig.mjs
-     4. node scripts/qa/w9_publish_lag_check.mjs [hostDebugPort] [gamePortSubstring]
+     4. node scripts/qa/w9_publish_lag_check.mjs [hostDebugPort] [gamePortSubstring] [--leg=all]
 
    EXIT CODES — 0 GREEN, 1 RED, 2 NOT RUN.
    **NOT RUN IS NEVER A PASS.** A leg that could not start is not a leg that passed, and this

@@ -2372,9 +2372,15 @@ export async function humanAct(p,sailCtx){
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
          no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
          loop would stop waiting for the glide. */
-      await animateSailRoute(evSail);liveRender();
+      /* W9: THE TABLE IS TOLD BEFORE THIS TIER RIDES — same fault, same fix as the storm sweep
+         above and the battle flee (src/orchestrator.js). liveRender() is the ONLY publisher in the
+         tree, so awaiting the glide before it held every other browser's board still for exactly
+         the length of THIS captain's own animation. Publish, then ride: nothing about what is
+         drawn, or about who waits for it, moves. publishNow() calls only the broadcast half of
+         liveRender (src/ui/panel.js), never the local drain, so no ride is claimed by it. */
+      publishNow();await animateSailRoute(evSail);liveRender();
       const evWind=appState.game.tradewind(p);
-      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
+      if(evWind){publishNow();await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
     await humanAct(p,sailCtx);return;
   }
   if(v==="pass"){
@@ -2474,9 +2480,15 @@ export async function humanTurn(p){
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
          no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
          loop would stop waiting for the glide. */
-      await animateSailRoute(evSail);liveRender();
+      /* W9: THE TABLE IS TOLD BEFORE THIS TIER RIDES — same fault, same fix as the storm sweep
+         above and the battle flee (src/orchestrator.js). liveRender() is the ONLY publisher in the
+         tree, so awaiting the glide before it held every other browser's board still for exactly
+         the length of THIS captain's own animation. Publish, then ride: nothing about what is
+         drawn, or about who waits for it, moves. publishNow() calls only the broadcast half of
+         liveRender (src/ui/panel.js), never the local drain, so no ride is claimed by it. */
+      publishNow();await animateSailRoute(evSail);liveRender();
       const evWind=appState.game.tradewind(p);
-      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}
+      if(evWind){publishNow();await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}
       // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
       // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
       else if(appState.game.onRim(p.pos))await flash(`🌀 ${pn(p.idx)} rides at the head o' the current — she's got nowhere to carry ye from here.`);
@@ -2676,10 +2688,16 @@ export async function botTurn(p){
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
          no-op. Putting liveRender first would hand the ride to that UNAWAITED drain, and this turn
          loop would stop waiting for the glide. */
-      await animateSailRoute(evSail);liveRender();
+      /* W9: THE TABLE IS TOLD BEFORE THIS TIER RIDES — same fault, same fix as the storm sweep
+         above and the battle flee (src/orchestrator.js). liveRender() is the ONLY publisher in the
+         tree, so awaiting the glide before it held every other browser's board still for exactly
+         the length of THIS captain's own animation. Publish, then ride: nothing about what is
+         drawn, or about who waits for it, moves. publishNow() calls only the broadcast half of
+         liveRender (src/ui/panel.js), never the local drain, so no ride is claimed by it. */
+      publishNow();await animateSailRoute(evSail);liveRender();
       await botBeat();
       const evWind=g.tradewind(p);
-      if(evWind){await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
+      if(evWind){publishNow();await animateRimSweepIfAny(evWind);liveRender();await narrateLastEvent();}}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
     // rimEscape() records its own events (windmove, then tradewind's sweep line).
     /* rimEscape returns whether the ship escaped, not the event, so the sweep it just pushed is
@@ -2687,7 +2705,7 @@ export async function botTurn(p){
        is a CONSUMER guessing which event it is drawing, and this is the EMITTER, one synchronous
        statement after its own emit with nothing awaited in between. If the escape found no head to
        sweep to, the top of the pile is the windmove and the call is a no-op by its own guard. */
-    else if(g.boxedIn(p)&&g.rimEscape(p)){await animateRimSweepIfAny(g.events[g.events.length-1]);await botBeat();}
+    else if(g.boxedIn(p)&&g.rimEscape(p)){publishNow();await animateRimSweepIfAny(g.events[g.events.length-1]);await botBeat();}
   }
   if(!g.adjPort(p))p.dockedNow.clear();
   liveRender();
