@@ -1,0 +1,240 @@
+W1-4 — a guest on a 390x844 phone, 8 minutes.
+
+  room CGKF
+  guest watcher: watching
+  both seats driving
+
+  15 tap-to-sail prompt(s) seen on the GUEST
+
+  capture 1 at 18540ms — 8 square(s), viewport 390x844, captains panel y 650..844
+    on sight:  off-screen 0  clipped 0  covered 3
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 224,247 40x40 COVERED by .pp4Bub
+      square at 274,296 40x40 COVERED by .pp4Bub
+      square at 274,247 40x40 COVERED by .pp4Bub
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+        15633ms  stage:-  viewBox:62.394815550586884 0 515.2103688988262 640
+        15645ms  stage:-  viewBox:70.93007057197957 0 498.13985885604086 640
+        15664ms  stage:-  viewBox:83.22749416572839 0 473.5450116685432 640
+        15689ms  stage:-  viewBox:96.72414295856228 0 446.55171408287543 640
+        15714ms  stage:-  viewBox:110.446174123531 30.681952451497864 419.107651752938 609.3180475485021
+        15752ms  stage:-  viewBox:120.40521809861946 59.63978800983193 399.1895638027611 580.3602119901681
+        15772ms  stage:-  viewBox:131.50992784716192 82.98204288235416 376.98014430567616 548.0711328751753
+        15821ms  stage:-  viewBox:140.32508967375088 98.27923680991927 359.34982065249824 522.4393546409398
+        15867ms  stage:-  viewBox:147.76387705723116 111.18797012979906 344.4722458855377 500.80964978743555
+        15906ms  stage:-  viewBox:150.30282061831772 115.5938690558898 339.39435876336455 493.42718312519924
+        15939ms  stage:-  viewBox:151.34531004061506 117.40292975993913 337.3093799187699 490.39594465113464
+        15955ms  stage:-  viewBox:151.55102022140497 117.75990432153208 336.89795955719006 489.7978027408378
+        15970ms  stage:-  viewBox:151.57822208778862 117.80710847200015 336.84355582442276 489.7187080831992
+        15983ms  stage:-  viewBox:151.57894736842104 117.80836707152491 336.8421052631579 489.71659919028343
+  capture 2 at 47015ms — 3 square(s), viewport 390x844, captains panel y 642..844
+    on sight:  off-screen 0  clipped 0  covered 1
+    at +400ms: off-screen 0  clipped 0  covered 0
+  capture 3 at 47431ms — 3 square(s), viewport 390x844, captains panel y 642..844
+    on sight:  off-screen 0  clipped 0  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+  capture 4 at 90848ms — 16 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 0  clipped 0  covered 8
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 175,284 40x40 COVERED by .pp4Tail
+      square at 175,235 40x40 COVERED by .pp4Bub
+      square at 224,284 40x40 COVERED by .pp4Bub
+      square at 224,235 40x40 COVERED by .pp4Bub
+      square at 125,235 40x40 COVERED by .pp4Bub
+      square at 274,284 40x40 COVERED by .pp4Bub
+      square at 274,235 40x40 COVERED by .pp4Bub
+      square at 76,235 40x40 COVERED by .pp4Bub
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+        88560ms  stage:-  viewBox:200.28498743183047 133.78026408500187 336.8421052631579 469.8515519568151
+        88576ms  stage:-  viewBox:198.9320362965518 132.42731294972322 336.8421052631579 469.8515519568151
+        88593ms  stage:-  viewBox:197.84582237254796 131.34109902571936 336.8421052631579 469.8515519568151
+        88611ms  stage:-  viewBox:196.94689090307625 130.44216755624763 336.8421052631579 469.8515519568151
+        88626ms  stage:-  viewBox:196.12455664461885 129.61983329779025 336.8421052631579 469.8515519568151
+        88642ms  stage:-  viewBox:195.59525403630144 129.0905306894728 336.8421052631579 469.8515519568151
+        88659ms  stage:-  viewBox:195.15186357688242 128.64714023005382 336.8421052631579 469.8515519568151
+        88676ms  stage:-  viewBox:194.81455384856662 128.30983050173802 336.8421052631579 469.8515519568151
+        88693ms  stage:-  viewBox:194.56379822565054 128.05907487882195 336.8421052631579 469.8515519568151
+        88709ms  stage:-  viewBox:194.39953138155926 127.89480803473066 336.8421052631579 469.8515519568151
+        88725ms  stage:-  viewBox:194.30972423992176 127.80500089309317 336.8421052631579 469.8515519568151
+        88742ms  stage:-  viewBox:194.2625616318855 127.75783828505689 336.8421052631579 469.8515519568151
+        88759ms  stage:-  viewBox:194.247212011402 127.74248866457339 336.8421052631579 469.8515519568151
+        88775ms  stage:-  viewBox:194.24561403508767 127.74089068825907 336.8421052631579 469.8515519568151
+  capture 5 at 131703ms — 17 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 0  clipped 0  covered 6
+    at +400ms: off-screen 0  clipped 0  covered 0
+  capture 6 at 132120ms — 17 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 0  clipped 0  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+  capture 7 at 196265ms — 21 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 1  clipped 0  covered 3
+    at +400ms: off-screen 1  clipped 2  covered 0
+      square at 400,359 47x47 OFF-SCREEN CLIPPED
+      square at 342,358 49x49 CLIPPED
+      square at 343,416 47x47 CLIPPED
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       142340ms  stage:-  viewBox:203.32498144462906 27.800705905109794 300.6279290045364 419.33741891914815
+       142358ms  stage:-  viewBox:206.5107044015737 33.606580235304136 298.39841838148027 416.22753743468013
+       142394ms  stage:-  viewBox:210.82957030336357 41.47756996468172 295.3758839245511 412.0114893716815
+       142419ms  stage:veil  viewBox:212.37313691313366 44.290668868047845 294.29562735472757 410.50466995120973
+       142445ms  stage:veil  viewBox:214.4979759501138 48.16311747306713 292.8085704859234 408.4304162675444
+       142480ms  stage:veil  viewBox:215.68495305174451 50.32634383581885 291.9778711146422 407.2716971445265
+       142509ms  stage:veil  viewBox:216.7908155481179 52.3417415233117 291.20393935201696 406.19216155768515
+       142541ms  stage:veil  viewBox:217.14671586551324 52.990358036674564 290.9548644798118 405.8447340436349
+       142557ms  stage:veil  viewBox:217.20435817791594 53.0954092374333 290.91452382571975 405.78846400305525
+       142579ms  stage:veil  viewBox:217.2119042255623 53.109161658757046 290.90924276593614 405.78109760171606
+       142597ms  stage:veil  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       144524ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       149475ms  stage:-  viewBox:217.2121212121212 50.125874125874134 290.9090909090909 411.74825174825173
+       177058ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+  capture 8 at 196677ms — 21 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 1  clipped 2  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 400,359 47x47 OFF-SCREEN CLIPPED
+      square at 342,358 49x49 CLIPPED
+      square at 343,416 47x47 CLIPPED
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       142340ms  stage:-  viewBox:203.32498144462906 27.800705905109794 300.6279290045364 419.33741891914815
+       142358ms  stage:-  viewBox:206.5107044015737 33.606580235304136 298.39841838148027 416.22753743468013
+       142394ms  stage:-  viewBox:210.82957030336357 41.47756996468172 295.3758839245511 412.0114893716815
+       142419ms  stage:veil  viewBox:212.37313691313366 44.290668868047845 294.29562735472757 410.50466995120973
+       142445ms  stage:veil  viewBox:214.4979759501138 48.16311747306713 292.8085704859234 408.4304162675444
+       142480ms  stage:veil  viewBox:215.68495305174451 50.32634383581885 291.9778711146422 407.2716971445265
+       142509ms  stage:veil  viewBox:216.7908155481179 52.3417415233117 291.20393935201696 406.19216155768515
+       142541ms  stage:veil  viewBox:217.14671586551324 52.990358036674564 290.9548644798118 405.8447340436349
+       142557ms  stage:veil  viewBox:217.20435817791594 53.0954092374333 290.91452382571975 405.78846400305525
+       142579ms  stage:veil  viewBox:217.2119042255623 53.109161658757046 290.90924276593614 405.78109760171606
+       142597ms  stage:veil  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       144524ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       149475ms  stage:-  viewBox:217.2121212121212 50.125874125874134 290.9090909090909 411.74825174825173
+       177058ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+  capture 9 at 233769ms — 17 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 0  clipped 0  covered 4
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 229,244 47x47 COVERED by .pp4BubIn
+      square at 114,244 47x47 COVERED by .
+      square at 286,244 47x47 COVERED by .pp4BubIn
+      square at 57,244 47x47 COVERED by .
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       142419ms  stage:veil  viewBox:212.37313691313366 44.290668868047845 294.29562735472757 410.50466995120973
+       142445ms  stage:veil  viewBox:214.4979759501138 48.16311747306713 292.8085704859234 408.4304162675444
+       142480ms  stage:veil  viewBox:215.68495305174451 50.32634383581885 291.9778711146422 407.2716971445265
+       142509ms  stage:veil  viewBox:216.7908155481179 52.3417415233117 291.20393935201696 406.19216155768515
+       142541ms  stage:veil  viewBox:217.14671586551324 52.990358036674564 290.9548644798118 405.8447340436349
+       142557ms  stage:veil  viewBox:217.20435817791594 53.0954092374333 290.91452382571975 405.78846400305525
+       142579ms  stage:veil  viewBox:217.2119042255623 53.109161658757046 290.90924276593614 405.78109760171606
+       142597ms  stage:veil  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       144524ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       149475ms  stage:-  viewBox:217.2121212121212 50.125874125874134 290.9090909090909 411.74825174825173
+       177058ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       197871ms  stage:veil  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       200472ms  stage:-  viewBox:217.2121212121212 53.10955710955713 290.9090909090909 405.78088578088574
+       228588ms  stage:-  viewBox:217.2121212121212 53.48251748251752 290.9090909090909 405.03496503496496
+  capture 10 at 306400ms — 19 square(s), viewport 390x844, captains panel y 473..844
+    on sight:  off-screen 0  clipped 0  covered 1
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 80,188 21x21 COVERED by .pp4BubIn
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       265349ms  stage:-  viewBox:129.72394995831831 0 431.51508042413127 609.653357214606
+       265377ms  stage:-  viewBox:100.97259414514757 0 477.72261655244137 640
+       265414ms  stage:-  viewBox:72.47012298180718 0 523.5301594935241 640
+       265437ms  stage:-  viewBox:52.7068008936254 0 555.2926414209592 640
+       265461ms  stage:-  viewBox:40.174288551173845 0 575.4341791141849 640
+       265486ms  stage:-  viewBox:29.215978062117784 0 593.045749543025 640
+       265509ms  stage:-  viewBox:20.325542570712486 0 607.3339494399263 640
+       265536ms  stage:-  viewBox:13.080642862746714 0 618.9775382562999 640
+       265564ms  stage:-  viewBox:6.450030062500474 0 629.6338802566956 640
+       265591ms  stage:-  viewBox:3.1732640426755268 0 634.9001113599858 640
+       265623ms  stage:-  viewBox:1.0944988625541612 0 638.2409839708951 640
+       265645ms  stage:-  viewBox:0.4147583279760738 0 639.3334241157527 640
+       265671ms  stage:-  viewBox:0.021022169138120717 0 639.966214371028 640
+       265697ms  stage:-  viewBox:0 0 640 640
+  capture 11 at 359226ms — 22 square(s), viewport 390x844, captains panel y 473..844
+    on sight:  off-screen 0  clipped 0  covered 4
+    at +400ms: off-screen 0  clipped 0  covered 0
+  capture 12 at 359635ms — 22 square(s), viewport 390x844, captains panel y 473..844
+    on sight:  off-screen 0  clipped 0  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+  capture 13 at 400218ms — 15 square(s), viewport 390x844, captains panel y 473..844
+    on sight:  off-screen 0  clipped 0  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+  capture 14 at 479552ms — 21 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 12  clipped 0  covered 2
+    at +400ms: off-screen 12  clipped 5  covered 0
+      square at 400,245 47x47 OFF-SCREEN CLIPPED
+      square at 400,187 47x47 OFF-SCREEN CLIPPED
+      square at 398,300 51x51 OFF-SCREEN CLIPPED
+      square at 456,243 51x51 OFF-SCREEN CLIPPED
+      square at 399,129 49x49 OFF-SCREEN CLIPPED
+      square at 457,301 49x49 OFF-SCREEN CLIPPED
+      square at 514,244 49x49 OFF-SCREEN CLIPPED
+      square at 398,71 51x51 OFF-SCREEN CLIPPED
+      square at 457,130 47x47 OFF-SCREEN CLIPPED
+      square at 400,416 47x47 OFF-SCREEN CLIPPED
+      square at 515,302 47x47 OFF-SCREEN CLIPPED
+      square at 572,245 47x47 OFF-SCREEN CLIPPED
+      square at 342,187 49x49 CLIPPED
+      square at 341,357 51x51 CLIPPED
+      square at 342,415 49x49 CLIPPED
+      square at 343,473 47x47 CLIPPED
+      square at 343,245 47x47 CLIPPED
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       445482ms  stage:-  viewBox:63.293443421171354 62.01334739517665 392.3300040041121 546.244082498033
+       445496ms  stage:-  viewBox:67.61550068774767 74.82051374362686 375.41760600446565 522.696820667756
+       445519ms  stage:-  viewBox:72.24076607031627 88.5261496264221 357.3187414639798 497.4976323460026
+       445539ms  stage:-  viewBox:76.06249688796028 99.85074328673184 342.3641426123293 476.67622932947387
+       445568ms  stage:-  viewBox:80.42557143495185 112.77945247948946 325.291242211058 452.9054987707807
+       445600ms  stage:-  viewBox:83.41739021691814 121.64484191367717 313.5841252381464 436.60558975464994
+       445637ms  stage:-  viewBox:87.03893998852377 132.37625695596006 299.41284352316785 416.874805213026
+       445657ms  stage:-  viewBox:87.93596764024204 135.0343388938276 295.902735320792 411.98765456202574
+       445684ms  stage:-  viewBox:88.77966365470932 137.5343879534196 292.6013161337461 407.3910632323695
+       445712ms  stage:-  viewBox:89.13796868170094 138.59612124410378 291.19925298464847 405.4389599247798
+       445733ms  stage:-  viewBox:89.20320860854333 138.78944089354314 290.94396631439565 405.08352233004314
+       445755ms  stage:-  viewBox:89.2121212108218 138.81585081200038 290.9090909141755 405.03496504204435
+       445764ms  stage:-  viewBox:89.21212121212122 138.81585081585084 290.9090909090909 405.03496503496496
+       466357ms  stage:-  viewBox:89.21212121212122 138.44289044289044 290.9090909090909 405.78088578088574
+  capture 15 at 479965ms — 21 square(s), viewport 390x844, captains panel y 626..844
+    on sight:  off-screen 12  clipped 5  covered 0
+    at +400ms: NOT MEASURED — the driver tapped before the settle reading. This capture cannot fail and is NOT counted as a pass.
+      square at 400,245 47x47 OFF-SCREEN CLIPPED
+      square at 400,187 47x47 OFF-SCREEN CLIPPED
+      square at 398,300 51x51 OFF-SCREEN CLIPPED
+      square at 456,243 51x51 OFF-SCREEN CLIPPED
+      square at 399,129 49x49 OFF-SCREEN CLIPPED
+      square at 456,301 49x49 OFF-SCREEN CLIPPED
+      square at 514,244 49x49 OFF-SCREEN CLIPPED
+      square at 398,71 51x51 OFF-SCREEN CLIPPED
+      square at 457,130 47x47 OFF-SCREEN CLIPPED
+      square at 400,416 47x47 OFF-SCREEN CLIPPED
+      square at 514,302 47x47 OFF-SCREEN CLIPPED
+      square at 572,244 47x47 OFF-SCREEN CLIPPED
+      square at 342,186 49x49 CLIPPED
+      square at 341,357 51x51 CLIPPED
+      square at 342,415 49x49 CLIPPED
+      square at 343,473 47x47 CLIPPED
+      square at 343,244 47x47 CLIPPED
+    the sequence BEFORE the squares appeared — a snapshot cannot show a race:
+       445482ms  stage:-  viewBox:63.293443421171354 62.01334739517665 392.3300040041121 546.244082498033
+       445496ms  stage:-  viewBox:67.61550068774767 74.82051374362686 375.41760600446565 522.696820667756
+       445519ms  stage:-  viewBox:72.24076607031627 88.5261496264221 357.3187414639798 497.4976323460026
+       445539ms  stage:-  viewBox:76.06249688796028 99.85074328673184 342.3641426123293 476.67622932947387
+       445568ms  stage:-  viewBox:80.42557143495185 112.77945247948946 325.291242211058 452.9054987707807
+       445600ms  stage:-  viewBox:83.41739021691814 121.64484191367717 313.5841252381464 436.60558975464994
+       445637ms  stage:-  viewBox:87.03893998852377 132.37625695596006 299.41284352316785 416.874805213026
+       445657ms  stage:-  viewBox:87.93596764024204 135.0343388938276 295.902735320792 411.98765456202574
+       445684ms  stage:-  viewBox:88.77966365470932 137.5343879534196 292.6013161337461 407.3910632323695
+       445712ms  stage:-  viewBox:89.13796868170094 138.59612124410378 291.19925298464847 405.4389599247798
+       445733ms  stage:-  viewBox:89.20320860854333 138.78944089354314 290.94396631439565 405.08352233004314
+       445755ms  stage:-  viewBox:89.2121212108218 138.81585081200038 290.9090909141755 405.03496504204435
+       445764ms  stage:-  viewBox:89.21212121212122 138.81585081585084 290.9090909090909 405.03496503496496
+       466357ms  stage:-  viewBox:89.21212121212122 138.44289044289044 290.9090909090909 405.78088578088574
+
+  15 capture(s): 5 JUDGED at +400ms, 10 NOT MEASURED (the driver tapped first).
+  NOT-MEASURED captures are neither pass nor fail. They are excluded from the rate below, never folded into it.
+
+  of the 5 judged: 2 offered an unreachable square, 3 were wrong only on the first frame and were clear by +400ms.
+
+  WHY the judged failures failed — squares, not prompts, and every one counted:
+    off the screen entirely: 13   clipped at an edge: 7
+    covered by the narration bubble: 0   by the captains panel: 0   by something else: 0
+
+=== FAIL — 2 of 5 JUDGED capture(s) offered the guest a square it could not tap.

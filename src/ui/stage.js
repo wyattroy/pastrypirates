@@ -191,7 +191,23 @@ function camFitCells(cells, maxZoom, reservePx){
   camTo((x0 - P) * cp + bw / 2 - side / 2, (y0 - P) * cp + bh / 2 - side / 2, side);
 }
 // frame the whole sail window: bbox of every highlighted cell + my ship, padded; zoom is
-// whatever that window allows, capped at 2.2x — a legal move is never off screen.
+// whatever that window allows, capped at 2.2x.
+/* THAT LINE USED TO END "— a legal move is never off screen." IT WAS NOT TRUE, and it is the kind
+   of claim CLAUDE.md forbids a comment from making: a statement about runtime behaviour, written
+   as a standing fact, that nothing was checking. MEASURED 2026-08-29 in a real crew game on a
+   390x844 guest: six sail squares at x = -57 to -116 (off the LEFT edge by more than a full
+   square) and one at x=400 on a 390-wide screen. The bbox below genuinely contains every square —
+   the fit is not what fails. What fails is that containment in BOARD coordinates is not
+   containment on SCREEN, and no amount of reasoning about the projection has survived contact:
+   two geometry theories were measured dead over two days before this one.
+   A CONTAINMENT PASS THAT RE-FITS AGAINST THE RENDERED RECTS WAS BUILT AND THEN REMOVED, 2026-08-30,
+   and the reason is worth more than the code was. It is Wyatt's ruling ("zoom out until they all
+   fit") and it is the right shape. But three 8-minute runs of the same probe produced 7, 12 and 5
+   judged captures with completely different cause mixes — a driven crew game yields too few
+   samples in that window to tell a fix from a coin flip, and a change had already been shipped on
+   exactly that kind of noise the night before and withdrawn. THE COMPARISON THIS NEEDS IS A POSED
+   ONE: docs/DRIVING-THE-GAME.md §5e, the same seeded board before and after, not two different
+   voyages. Do not re-add it on run-to-run counts. */
 /* FRAME THE CAPTAIN BEING ASKED, NOT THE CAPTAIN LOOKING — Wyatt, 2026-08-20, from a two-window
    screenshot: "on guest's turn the host's director moved back up to the host's boat while waiting
    for guest to sail... it should not center on host at the beginning of their turn at all."
@@ -1533,8 +1549,23 @@ function stageFlash(msg, ms, holdMs, variants, opts){
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
           .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
       if (OBST.length){
-        const cost = (x, y) => OBST.reduce((n, o) =>
-          n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);
+        /* THE TAIL IS PART OF THE BUBBLE AND THE SEARCH DID NOT KNOW IT.
+           MEASURED 2026-08-30, guest at 390x844 after the director began zooming out to fit every
+           sail square (Wyatt's ruling): squares stopped falling off the screen and started being
+           covered instead — and `.pp4Tail` was the single commonest coverer, 11 of them. The
+           squares got smaller, so the ~9-11px the tail reaches past the box on its latched side
+           stopped being negligible. The cost function tested the BOX; a player's thumb meets the
+           box AND the tail.
+           DERIVED FROM THE DRAWN ELEMENT, never typed: the tail's own rendered height. Over-
+           estimating is the safe direction — it can only make the search more careful. */
+        const tailEl = b.querySelector(".pp4Tail");
+        const tailPad = tailEl ? Math.ceil(tailEl.getBoundingClientRect().height) : 0;
+        const cost = (x, y) => {
+          const yTop = y - (side === "below" ? tailPad : 0);
+          const yBot = y + bh + (side === "above" ? tailPad : 0);
+          return OBST.reduce((n, o) =>
+            n + ((x < o.r.right && x + W > o.r.left && yTop < o.r.bottom && yBot > o.r.top) ? o.w : 0), 0);
+        };
         /* CANDIDATES ON THE LATCHED SIDE ONLY. The search may still slide the box along, and step
            to the band's edge on its own side to clear a sail square — it may never cross the boat,
            because crossing IS the flip he asked us to remove. */
