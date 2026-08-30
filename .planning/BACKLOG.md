@@ -737,3 +737,24 @@ been changed in the game.**
 | ~~**P-1**~~ | ~~The shot-clock narration says you lost a coin when you lost nothing~~ **WITHDRAWN 2026-08-28 by Wyatt: *"p1 is stale, you dont lose money from shot clock."* HE IS RIGHT ABOUT THE GAME HE PLAYS.** | **And the code I cited is also real, which is why this needed measuring rather than arguing.** `applyShotClockPenalty` (`src/ui/util.js:2012`) genuinely does `take=Math.min(1,p.coins)`. What I never checked is whether it can be REACHED: `startShotClock` (`:1896`) returns immediately when `appState.timerOff`, and the timer is off — **the clock pill reads "⏱ off" in every phone screenshot this session took, including the ones I read pixel by pixel and drew other conclusions from.** So the penalty is unreachable in the game as played. | **THE LESSON IS RULE 6 WITH A TWIST: I did measure, and I measured the wrong thing.** I read the function and proved what it computes; I never asked whether anything calls it under the conditions he plays in. **A correct reading of a dead branch is still a false statement about the game.** Ask "can a player reach this?" before "what does it do?" — and the evidence was already on my own screen. |
 | **P-2** | **Give the coin slider a pulse** — the second half of W2-9. The wording fix shipped; the pulse did not. | `index.html:2429` carries Wyatt's standing order: *"To make a new surface glow or grow, add its selector here — never write a new `@keyframes` or a per-surface animation rule elsewhere."* The slider is not an `.apBtn`, so no existing rule reaches it and it has never pulsed. | **Glow vs. grow is taste.** His documented rule is glow on a stage, swell over the board — and this prompt is over the board, but scaling a 170px track is likely to read badly beside the petals. Also unverified: nobody has confirmed WebKit animates a range-thumb pseudo-element, and his phone is the only real Safari. |
 | ~~**P-3**~~ | ~~A wind forecast chip nobody can see~~ **WITHDRAWN 2026-08-27, SAME DAY, BY WYATT: *"what do you mean? I see the forecast chip just fine."* HE IS RIGHT AND THE CLAIM WAS FALSE.** What he sees is the **wind pill** (`WIND NOW: S↓ · FORECAST: W←`, `src/ui/stage.js:1043`) — that IS the forecast and it works. The hidden `.fcChip` is the OLD SVG needle the pill replaced, and it was retired **on purpose**: `index.html:1905` ends with `/* the pill is the instrument now */` and `src/ui/board.js:402` says `// the wind pill supersedes the chip on the stage`. **Two comments state the intent and neither was read before the claim was written.** Nothing to do. | **HOW IT HAPPENED, because it is rule 6 exactly.** A subagent measured the CSS correctly and then narrated it as "maintained for nobody"; the coordinator relayed that to Wyatt without checking. The CSS fact was true; the CONCLUSION was never measured, and the evidence against it was one line further along the same line of code. **An agent's finding is not a measurement either — verify it before it reaches him.** |
+
+## 🟡 THE HOLD AND THE RECIPE READ AS THE SAME THING — his own observation, 2026-08-30
+
+**Wyatt, having just explained for the third time that the greyed red-backed chips are ingredients a
+captain STILL NEEDS rather than cargo it holds:** *"If this is unclear to you, then it's probably
+unclear to players as well, and we may need to, at some point, add to the backlog a way to make this
+clearer."*
+
+**HIS ARGUMENT IS THE STRONGEST KIND OF EVIDENCE AVAILABLE FOR A UI PROBLEM.** Four sessions have
+now read this display and drawn the wrong conclusion from it — including one that compared two
+screens and reported a sync bug that did not exist. A reader who has the source open and still gets
+it wrong is a bad sign for a player who has only the screen.
+
+**What the display actually does today** (`src/ui/board.js:1671`, `:1697`): your own row draws your
+RECIPE — one chip per ingredient needed, greyed and red-backed where you have not collected it yet.
+A rival's row draws only what they actually HOLD, and reads *"empty hold"* when empty. **So the same
+row position means two different things depending on whose it is**, and a captain with nothing can
+show five chips while a rival with nothing shows a word.
+
+**NOT SCOPED, AND DELIBERATELY NOT DESIGNED HERE.** Wording, placement and how much is enough are
+his. Recorded because he asked for it to be recorded, at the moment he noticed it.

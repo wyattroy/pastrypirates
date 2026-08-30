@@ -27,6 +27,18 @@ const path = require("path");
 /* The §4 table, as data. Add a row here in the same commit that adds a doc to CLAUDE.md §4. */
 const SUBSYSTEMS = [
   {
+    id: "intent",
+    docs: ["docs/INTENDED-BEHAVIOUR.md"],
+    why: "anything that draws — several host/guest differences are DELIBERATE and are listed there",
+    // WHY THIS FIRES ON THE DRAWING TIER RATHER THAN ON A KEYWORD. The failure it prevents is not
+    // "edited the wrong file", it is "looked at two screens and concluded the game was broken".
+    // That happens while working in the UI, so the reminder belongs at the first edit there.
+    // Wyatt, 2026-08-30, having explained the same deliberate behaviour to a third session:
+    // "you need to figure out a system... so that you stop asking me every single time."
+    paths: [/(^|\/)src\/ui\/[^/]+\.js$/],
+    code: [/chips\d|prowRecipe|canReveal|empty hold|isHost|passAndPlay/],
+  },
+  {
     id: "qa",
     docs: ["docs/QA-PROCESS.md", "docs/HARD-WON-LESSONS.md"],
     why: "testing, measuring, or trusting any instrument",

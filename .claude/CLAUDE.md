@@ -75,8 +75,9 @@ documents; the rules themselves are all here, in full.
 | 26 | **POSE THE BOARD — when the question is a picture, don't go looking for a rate**: same seed, before and after, two screenshots | [§1](#1-working-with-wyatt) |
 | 25 | **Show the work to a CEO before showing it to him** — a fresh agent judges whether the ASK was executed, and its verdict reaches him in ITS words | [§1](#1-working-with-wyatt) |
 | 27 | **Hand him a LINK he can tap, never a file path** — anything you build for him to read or use is published and given as a URL | [§1](#1-working-with-wyatt) |
+| 28 | **Check `docs/INTENDED-BEHAVIOUR.md` BEFORE calling anything a bug** — several host/guest differences are the game working, and he has explained the same one three times | [§4](#4-before-you-touch-a-subsystem) |
 
-> **27 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **28 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -906,6 +907,7 @@ and ask before writing code.
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
 | Reviewing work before he sees it (rule 25) | [`.claude/CEO-BRIEF.md`](CEO-BRIEF.md) + [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) |
 | **Testing, measuring, or trusting any instrument** | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) — *THE WHOLE LOOP, END TO END*, and [`docs/HARD-WON-LESSONS.md` §10](../docs/HARD-WON-LESSONS.md) — the day five instruments lied |
+| **Reporting a discrepancy, or anything that looks like a host/guest bug** | [`docs/INTENDED-BEHAVIOUR.md`](../docs/INTENDED-BEHAVIOUR.md) — *the things that look wrong and are NOT. Three sessions have now made Wyatt explain the same one* |
 | **Everything — read at session start** | [`docs/HARD-WON-LESSONS.md`](../docs/HARD-WON-LESSONS.md) |
 
 ### Two facts that save the most time

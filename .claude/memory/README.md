@@ -28,6 +28,7 @@ survives across sessions, read by fresh ones — "the format matters less than t
 | **Verdicts on the work** — newest at the TOP | [`../../.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md) | the CEO, after every item |
 | **What is open** — the wave list and its evidence | [`../../.planning/BACKLOG.md`](../../.planning/BACKLOG.md) | the CTO |
 | **What is waiting on him** — parked questions | [`../../.planning/CTO-QUESTIONS.md`](../../.planning/CTO-QUESTIONS.md) | anyone who needs him |
+| **How the game is MEANT to behave** — the things that look wrong and are not | [`../../docs/INTENDED-BEHAVIOUR.md`](../../docs/INTENDED-BEHAVIOUR.md) | **anyone, the moment he says something is deliberate** |
 | **Facts about this repo the officers need** | [`../OFFICERS.md`](../OFFICERS.md) | when the repo changes |
 | **How the crew runs and verifies this product** | [`../TEAM.md`](../TEAM.md) | when the product changes |
 
@@ -56,9 +57,10 @@ verdicts), or a rule about how to work with him (CLAUDE.md).
 
 1. `.claude/CLAUDE.md` — in full. Every rule was paid for.
 2. `DECISIONS.md` — so you do not re-open a settled question.
-3. The tail of `CTO-LEDGER.md` — what is happening right now.
-4. The top of `CEO-REVIEWS.md` — the last verdict, and whether a fault is recurring.
-5. `OFFICERS.md` or `TEAM.md`, depending on which you are.
+3. [`docs/INTENDED-BEHAVIOUR.md`](../../docs/INTENDED-BEHAVIOUR.md) — **so you do not report the game working as a bug.** Four separate sessions have now made him explain a deliberate behaviour; every one of those answers was already in the repo.
+4. The tail of `CTO-LEDGER.md` — what is happening right now.
+5. The top of `CEO-REVIEWS.md` — the last verdict, and whether a fault is recurring.
+6. `OFFICERS.md` or `TEAM.md`, depending on which you are.
 
 **A checkpoint his existing rulings already answer is NOT a reason to stop.** Resolve it from this
 record, name the ruling you used, and keep going. Only genuinely new decisions reach him.
