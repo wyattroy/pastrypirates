@@ -53,3 +53,45 @@ an already-ridden index. `_lastSweptEvIdx` (`src/ui/flow.js:1023`) has the ident
 - [ ] Step 2 — the fix in `src/ui/flow.js` + `src/orchestrator.js` (one builder's worth of files)
 - [ ] Step 3 — same check green, `npm test` exit 0 (53 gates)
 - [ ] Step 4 — sweep: two real browsers, the same 8-sail host/guest comparison, new walked/slid split
+
+## Status at the two-browser handoff (port-lead, 2026-08-30)
+
+- [x] **Step 1 — shown broken.** `scripts/qa/w7b_sail_route_frontier_check.mjs`, posed, no Firebase.
+      It drives the guest's real door (`consumeEvent`) and counts how many positions the boat is
+      actually painted at — the same signal the tester read off two real rooms. On the shipped code:
+      A control (sail at the tail) WALKED at 42 positions / 727ms; **B (a later event landed behind
+      the sail) SLID at 2 positions / 16ms**; **C (second voyage, sail on the index the last voyage
+      rode) SLID**. My first cut of C passed and proved nothing — it aimed at
+      `old.events.length-1`, which case B never advanced because B is a dropped ride. Fixed to take
+      the frontier from a ride that actually happened. A case that cannot fail is not a case.
+- [x] **Step 2 — the fix.** `animateSailRoute(ev)` now rides **the event it is handed**, and the
+      re-entry guard is a **WeakSet of ridden events** instead of a module-local index.
+      `Game.ev` returns the event it pushed (`src/engine/index.js`) so a call site can hold its own
+      event instead of reaching for the top of the pile; `consumeEvent` passes `e`
+      (`src/orchestrator.js`); the three host turn-loop sites pass the sail they just emitted
+      (`src/ui/flow.js`). No guest-only branch — rule 23 holds, and it holds harder than before:
+      "no argument" used to mean the sail on the host and whatever landed last on a guest.
+      The WeakSet also deletes the sibling defect outright — a new voyage's events are new objects,
+      so there is no frontier for anyone to remember to reset.
+- [x] **Step 3 — green.** Same check, all three cases WALKED (39-43 positions / ~710ms each).
+      `npm test` exits 0 at 54 gates.
+- [x] **Red-proofed DOWNWARD, both instruments.** Reinstating only the tail-derivation turns B red
+      (2 positions / 16ms) while A stays green. Separately, smuggling `o.sneaky=1` in after the
+      push turns the re-anchored q18 gate red.
+- [ ] **Step 4 — the sweep.** Two real browsers, the same 8-sail host/guest comparison. Requested
+      from the bridge; baseline to beat is 5 walked / 3 slid.
+
+### Two things a fresh lead must not lose
+
+1. **`q18_narr_event_order_check.mjs` was re-anchored, and it had to be.** It matched
+   `ev(o){...this.events.push(o);}` — literally requiring the function to END on the push. Adding
+   `return o;` broke the match, and it did not report "ev() changed shape": it reported
+   `body:false` and therefore *missing: every field*, which reads as the determinism corpus having
+   been torn up. It now brace-matches the whole body, which is **strictly stronger** — the old
+   anchor stopped reading at the push, so `this.events.push(o); o.sneaky=1;` would have been
+   emitted and invisible to it. Red-proofed with exactly that.
+2. **Two checks now cover this defect and only one is in `npm test`, on purpose.**
+   `w7_route_derivation_check.mjs` (node-only, ~1s, fresh module per case) is registered — it
+   proves the DECISION. `w7b_sail_route_frontier_check.mjs` needs chromium and ~50s, so it is not
+   in the suite; it proves the PICTURE, which a stubbed module cannot see. Run it at gear time.
+   **If it stops being run it will rot** — that is the known cost of keeping it out.

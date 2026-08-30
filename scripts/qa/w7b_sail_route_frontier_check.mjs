@@ -32,6 +32,7 @@
  * g.events[g.events.length-1] turns B red again while A stays green.
  */
 import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
+import { gameURL } from "../lib/chrome.mjs";   // never a hand-typed URL: game_url_check exists because a probe once pointed at a page with no game on it
 import { spawn } from "node:child_process";
 import path from "node:path";
 
@@ -48,7 +49,7 @@ const url = (() => {
   const root = path.resolve(treeArg.slice(7));
   altServer = spawn("python3", ["-m", "http.server", String(PORT)], { cwd: root, stdio: "ignore" });
   console.log(`TREE UNDER TEST — ${root}`);
-  return `http://127.0.0.1:${PORT}/`;
+  return gameURL(PORT);
 })();
 // kill the alt server BY PID, never a bare pattern that can match this command line
 const stopAlt = () => { if (altServer && altServer.pid) { try { process.kill(altServer.pid); } catch {} altServer = null; } };
