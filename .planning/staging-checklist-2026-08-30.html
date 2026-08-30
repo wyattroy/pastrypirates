@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pastry Pirates — playtest checklist, 2026-08-30</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style></head><body>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — staging checklist</h1>
+  <div class="sub">Build <strong id="stamp">2026.08.30.1-staging@2cac247d</strong> ·
+   <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
+   — <strong>The browser tab must read “[STAGING]”</strong>, and the ☰ stamp must end <code>-staging@2cac247d</code>.
+   Read off the wire at 12:32Z on 2026-08-30, before this sheet was written. A different stamp is a different build — stop and tell me.</div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Start here"},
+ {note:"<strong>What is new since the sheet ye last had.</strong> That one was written against build <code>2026.08.28.4</code>. Two builds landed after it (<code>2026.08.29.1</code> and <code>.2</code>) and everything a player can see in them is items 2-6 below. <strong>The size of it, plainly:</strong> five visible changes, all in the crew game and the two ceremonies. <strong>The three biggest things on yer own list are NOT fixed</strong> - the sail squares ye cannot tap on a phone, the glitchy battle box, and the drumroll arriving after the winner's name. They are listed at the bottom with what is known about each, so ye do not spend yer eyes re-finding them."},
+ {note:"<strong>And an honest word about last night, because it changes what this sheet is worth.</strong> I wrote four changes to the sail-square framing and reverted all four. <strong>Net game-code change from the night: zero.</strong> Two of them shipped and made the measured problem WORSE across three full trials - 22, then 26, then 31 bad squares on the same ten legs - so they came back out. Yer own instruction is now written into the two places in the code a session must read before touching that again. The only difference between what staging is serving and the branch tip is COMMENTS; no game code. So this sheet is really a chance to play the two crew-game builds ye have not seen, not to check last night's work - there is none to check."},
+ {n:1,look:"Open staging on yer laptop, hamburger menu, read the stamp.",right:"Build 2026.08.30.1-staging with @2cac247d beneath it. The tab reads [STAGING].",why:"I read that stamp off the wire at 12:32Z on 2026-08-30, before writing a word of this sheet. There is no build step, so a different stamp is a different build - stop and tell me rather than playing on."},
+
+ {h:"New since the sheet ye last had"},
+ {n:2,look:"Solo. Reach a bake-off and let it go to a SECOND attempt, then watch the crates settle.",right:"After a reshuffle the crates glide to their new places and stop clean. No twitch or jump on the last frame.",why:"W3-2, and ye diagnosed it from the description alone - “the open crates, or the borders around them.” The crates were told how far to travel before they had their final size, so the last frame corrected itself where ye could see it. Verified in a browser, not only in numbers."},
+ {n:3,look:"Play to End of Voyage. Put yer pointer on the award list and scroll.",right:"The first inch of scrolling moves the AWARD LIST. The card is dragged down by the scroll rather than fired at the captains box.",why:"Yer Q-20 ruling sitting on top of W3-4 - the card used to slam. Both halves verified in a browser."},
+ {n:4,look:"Crew game, two tabs. Read the narration on BOTH screens through a busy turn - a battle, or a storm morning.",right:"The guest never shows a sentence about something that has not happened yet on its own screen. Both screens name the same event at the same moment.",why:"Q-18. A narration line now carries the event it is about, so the guest will not draw ahead of it. The first cut of this bound the sentence to whatever event existed last rather than to its own - caught by a review, fixed, and that is the version on staging."},
+ {n:5,look:"Same crew game: fight a battle and look at the narration BUBBLE on both screens.",right:"The battle bubble is centred on both screens and belongs to the fight, not to one captain.",why:"W4-2. Worth knowing why this is new: the rule was right locally for a week, and the WIRE half never worked at all - the local draw spent the decision before it was broadcast, so 0 of 47 broadcast lines carried a subject. Now the decision is captured before the draw. THIS IS THE ROW MOST LIKELY TO STILL BE WRONG, because it was fixed last and seen least."},
+ {n:6,look:"Tap a TRADE-WIND square to raise the sweep preview, then tap an ordinary yellow one.",right:"The dotted path and the ghost ship clear completely.",why:"W3-5. The teardown had been nested so it only fired when a tap missed EVERY sail square. Measured in a browser with real mouse events: 0 preview parts, 3 after tapping the trade-wind square, 0 after tapping a plain one. Flagging one thing honestly - the FIRST probe that certified this could not tell the fixed tree from the broken one, and a review caught it; the second one fails on the bug before it passes on the fix."},
+
+ {h:"Worth one look - the robot checked these, yer eyes have not"},
+ {n:7,look:"Take a coin flip. Look at the coin's face, and then after End of Voyage try to park yer mouse where ye normally would.",right:"The coin is sharp - big because the ceremony asked for a big coin, not because a small one was stretched. The mouse still parks after the voyage ends.",why:"Two small fixes from the 08.28.4 batch that never got a human look."},
+ {n:8,look:"Trade with an EMPTY purse, and watch the same trade on the guest's screen.",right:"The coin slider still shows, greyed out; the button declines rather than doing nothing; “Nah” offers no coin; the guest sees the same dead slider ye do.",why:"Rule 23 in practice - the guest and host draw the trade from one place now. Three separate trade fixes, none of them played by a person yet."},
+ {n:9,look:"The sea hint - the little line that tells ye what to do next.",right:"It sits beside the card it is about, pulses like a button, and does not reappear in a place it was removed from.",why:"There were two writers for that one line; there is one now."},
+ {n:10,look:"Look at the black market flag, and at the call buttons beside the boats.",right:"The flag stands on its dock at every board orientation. A call button stands beside its OWN boat, and the ring around a boat belongs to that boat.",why:"A circle now belongs to its boat by distance rather than by its place in a list."},
+
+ {h:"Already known - please do NOT spend yer eyes"},
+ {note:"<strong>1. Sail squares ye cannot tap, crew, phone (W1-4).</strong> Still open. New this week and worth yer knowing: they go off the LEFT edge too, by up to 116px on a 390-wide guest - it is not only the bottom. <strong>Yer ruling stands</strong> (“zoom out until they all fit”) and is deliberately UNSHIPPED, because the version I built on run-to-run counts made it measurably worse three trials running. It needs the same seeded board photographed before and after, which is exactly what ye told me last night.<br><strong>2. The glitchy battle box (W3-1).</strong> Still open, and now located to ONE LINE - the box keeps an inline position left over from the previous prompt for a frame before the centring runs. <strong>Yer ruling stands</strong> (“place it before painting”); two attempts at it changed nothing on screen and were reverted rather than shipped on a guess.<br><strong>3. The drumroll after the winner's name (W3-3).</strong> Still open. What was learned: the fault is on the APPROACH to the ending, not in the ending itself, so it needs a posed final day rather than another whole voyage.<br><strong>4. The captains panel shows a DIFFERENT row order on host and guest.</strong> <strong>That is YER OWN RULE</strong> (2026-08-20: the viewer's captain sits on top, then sailing order). Not a defect - do not report it.<br><strong>5.</strong> A sliver of a white card peeks from behind the phone End of Voyage sheet's bottom-left - real, pre-existing.<br><strong>6.</strong> The FORECAST text in the ribbon can clip mid-word - pre-existing.<br><strong>7.</strong> Safari crashes in the cloud test container only; Safari on yer real phone is the only real Safari and is unaffected."}
+];
+
+const KEY="pp4-staging-2026-08-30";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}");
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(state));const s=document.getElementById("saved");s.textContent="saved ✓";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; localStorage.removeItem(KEY); location.reload(); };
+</script></body></html>
