@@ -35,6 +35,18 @@ overrides nothing in the project's CLAUDE.md; it operationalizes it for the crew
 will see it, then **keep working on everything that does not depend on the answer**. Stopping to
 wait wastes the hours they were away for; deferring the question silently wastes their morning.
 
+**YOU HOLD THE SEQUENCE SO THAT NOBODY HAS TO DECIDE IT MID-RUN.** When a role reports to you,
+**spawn the next role in that same turn.** Do not report upward and wait to be told to continue —
+the loop above already says what comes next, so there is nothing to be told. A message that ends
+with the crew idle and the loop unfinished is a stalled run, whatever it says in it.
+
+**And never close a message with an offer.** *"Starting the checker unless you want the tester
+first"* stopped a run dead on 2026-08-30 and nothing noticed for hours. Either the next step is
+already in the loop — **take it** — or you need a genuinely new decision, which goes to the bridge
+as a written question **while you carry on with everything else**. There is no third shape.
+*(A Stop hook, `no-idle-offer.cjs`, blocks a turn that closes on one. Taking the step clears it;
+rewording does not.)*
+
 **Handoff discipline (both):** keep `.claude-team/PROGRESS.md` current — done, in flight and by
 whom, blocked and why. Write it so a fresh lead with zero context could take over from it
 alone. That file IS your restartability.

@@ -104,10 +104,68 @@ const ROUTE_KEY = /\b(route|path|legs|via|squares|waypoints)\b/;
     else fail(`${where} publishes the seat and nothing else — ${e.text} — so no guest can know which squares the boat sailed through`);
   }
 
-  /* the per-event snapshot: the other half of what lands on the wire */
+  /* ⚠ THE PRESENTATION LANE, ASSERTED BY NAME — AND THE FIRST VERSION OF THIS COULD NOT FAIL.
+     A fresh checker found it the same day it shipped. The old assertion tested the physical bake
+     LINE against ROUTE_KEY, and that line also contains `delete o.route`. So a tree that computed
+     the route and then threw it away again — WHICH IS THE ORIGINAL DEFECT, EXACTLY — matched the
+     word "route" and was blessed, with every other gate green beside it.
+
+     The lesson is this repo's oldest one and it was committed inside the gate written to end it:
+     A GATE THAT GOES GREEN ON THE BUG IT GUARDS IS NOT SILENT, IT IS REASSURING. And the
+     red-proof that missed it was run UPWARDS — break the tree, patch until green — which only
+     ever proves a gate can turn green. Every assertion below was proved DOWNWARDS: break the
+     shipped fix one way at a time, watch this file go red, restore. */
   const bakeLine = engine.slice(engine.indexOf("o.state=this.players.map(")).split("\n")[0];
-  if (ROUTE_KEY.test(bakeLine)) pass(`${subj.bake} bakes the route into the per-event snapshot`);
-  else fail(`${subj.bake} bakes only each captain's FINAL pos into the snapshot (${bakeLine.trim().slice(0, 120)}…) — the guest is handed a destination, never a journey`);
+
+  if (/o\.draw\s*=/.test(bakeLine) && /this\.bakeDraw\s*\(/.test(bakeLine))
+    pass(`${subj.bake} hands the route to bakeDraw and assigns the o.draw lane beside the snapshot`);
+  else fail(`${subj.bake} does not assign o.draw from this.bakeDraw(…) — ${bakeLine.trim().slice(0, 140)}… — so the route is computed and dropped, which is the defect this item exists to remove`);
+
+  /* the builder itself, by body — the one place that decides what the far side is handed */
+  /* THE DEFINITION, NOT THE CALL SITE — and the first draft got this wrong, went red on a tree
+     whose bakeDraw plainly does both things, and was corrected because rule 6 says a check that
+     condemns something known to work is the suspect. `this.bakeDraw(o.route,…)` is a call and is
+     followed by `;`; the definition is the occurrence with no dot before it and a body after it. */
+  const bi = engine.search(/(?<![.\w])bakeDraw\s*\([^)]*\)\s*\{/);
+  if (bi < 0) fail(`src/engine/index.js has no bakeDraw — nothing builds the presentation lane, so o.draw can only ever be undefined`);
+  else {
+    let o = engine.indexOf("{", bi), d = 0, c = o;
+    for (; c < engine.length; c++) { if (engine[c] === "{") d++; else if (engine[c] === "}") { d--; if (!d) break; } }
+    const bd = engine.slice(o, c + 1);
+    /* ⚠ THIS ONE IS RUN, NOT READ, AND THAT DISTINCTION IS THE WHOLE FINDING.
+       The draft above it asserted `return {route:` and `return null` appear in the body — and a
+       downward red-proof walked straight through it: inserting `return null;` as bakeDraw's FIRST
+       line kills the guest's boat on every sail, and both text assertions stayed green because
+       both strings are still in the body underneath. TEXT CANNOT SEE CONTROL FLOW. A one-line
+       change would have shipped the original bug back with 53 gates green.
+
+       The engine is pure — no DOM, no network, no isHost — so it simply imports and runs here,
+       and bakeDraw does not use `this`. Two calls settle it: one route that lands where the
+       snapshot says, one that does not. */
+    const mod = await import(new URL("file://" + path.join(TREE, "src/engine/index.js")).href + "?t=" + Date.now());
+    const proto = mod.Game && mod.Game.prototype;
+    if (!proto || typeof proto.bakeDraw !== "function") missed(`Game.bakeDraw is not a function on the imported engine — this gate cannot run its subject.`);
+    const vouched = proto.bakeDraw.call(null, [[1, 1], [1, 2], [2, 2]], { pos: [2, 2] });
+    const refused = proto.bakeDraw.call(null, [[1, 1], [1, 2], [9, 9]], { pos: [2, 2] });
+    if (vouched && Array.isArray(vouched.route) && vouched.route.length === 3)
+      pass(`src/engine/index.js:${lineOf(engine, bi)} bakeDraw RUN with a 3-square route landing on the baked pos → returned all 3 squares`);
+    else fail(`src/engine/index.js:${lineOf(engine, bi)} bakeDraw RUN with a good route returned ${JSON.stringify(vouched)} — the lane is empty on every sail, and the guest glides straight`);
+    if (refused === null)
+      pass(`src/engine/index.js:${lineOf(engine, bi)} bakeDraw RUN with a route ending away from the baked pos → refused (null). No route beats an invented one`);
+    else fail(`src/engine/index.js:${lineOf(engine, bi)} bakeDraw RUN with a route that does not land on the baked pos returned ${JSON.stringify(refused)} — a drawn line that disagrees with the recorded move would be published as truth`);
+  }
+
+  /* NO RULE MAY READ THE LANE. Until now this was only prose, in a comment — and a comment is not
+     a measurement. If a rule ever reads o.draw, presentation has become a game fact, the scrubber
+     and the far side can disagree, and deleting the lane stops being free. */
+  const drawReads = [...engine.matchAll(/\b(?:ev|e|evt|last|prev)\.draw\b/g)];
+  if (!drawReads.length) pass(`src/engine/index.js never READS a draw lane — presentation stays presentation, and deleting it changes no move`);
+  else fail(`src/engine/index.js reads a draw lane at line(s) ${drawReads.map(m => lineOf(engine, m.index)).join(", ")} — a rule is reading presentation, so the lane is no longer free to delete`);
+
+  /* and the walker must read what the baker wrote — the two ends of one wire */
+  if (/\.draw\s*&&\s*\w+\.draw\.route|\.draw\?\.route|\.draw\.route/.test(flow))
+    pass(`src/ui/flow.js reads draw.route off the event — the lane the engine writes is the lane the walker walks`);
+  else fail(`src/ui/flow.js never reads draw.route — the engine publishes a lane nothing consumes, so the guest still glides straight`);
 }
 
 /* ─── 2. THE GUEST. The one event consumer must walk the route. ────────────────────────────────

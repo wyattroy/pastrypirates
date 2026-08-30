@@ -52,6 +52,16 @@ has no before-picture, and a fix with no before-picture cannot be shown to have 
 
 ## Step 3 — the standing rules
 
+- **NEVER END A TURN ON AN OFFER. This is the one that has actually failed.** A closing sentence
+  like *"starting the checker now unless you want the tester first"* reads as finished from the
+  inside and spawns nothing. On 2026-08-30 exactly that sentence stopped a run dead; nobody noticed
+  until the user read *"resumed session"* in the desktop app hours later, and the container had
+  been reclaimed in between. **There are two correct shapes and no third:**
+  **(a)** the work is already authorised — **take it in this turn and say what you took**; or
+  **(b)** you genuinely need a decision — **ask through the question UI**, which does not stop the
+  run, and keep working on everything that does not depend on the answer.
+  *Enforced, not remembered: `no-idle-offer.cjs` is a Stop hook that blocks a turn whose closing
+  sentences offer to do work. Rewriting the sentence does not clear it — taking the step does.*
 - **NO TWO BUILDERS SHARE A FILE, EVER.** Subagents cannot see each other; two in one file destroy
   each other's work. Port-lead splits by file, not by feature. **If the work does not split
   cleanly, run fewer builders** — a team is worse than one worker on same-file work.
@@ -68,8 +78,24 @@ has no before-picture, and a fix with no before-picture cannot be shown to have 
 - **Everything they read is plain English with the size stated** — what they get, how much of the
   problem it covers, what it leaves undone.
 
-## Step 4 — spawn, then stay the bridge
+## Step 4 — spawn the LEADS, and never a role
 
-Spawn the two leads first and let them build the task list from the scope. Keep your own context
-for decisions and relay. **Do not start doing tasks yourself** — the moment the bridge starts
-building, nobody is steering.
+Spawn the two leads and let them build the task list from the scope. Keep your own context for
+decisions and relay. **Do not start doing tasks yourself** — the moment the bridge starts building,
+nobody is steering.
+
+**AND DO NOT RUN THE LOOP YOURSELF EITHER — this is the structural half, and it is the one that
+failed.** A bridge that spawns the measurer, waits, spawns the builder, waits, spawns the checker
+**is holding the sequence in its own head**, and between every two roles there is a moment where it
+composes a message instead of acting. That moment is where a run dies. It died there on
+2026-08-30: three roles in, the bridge wrote *"starting the checker now unless you want the tester
+first"* and stopped.
+
+**The leads hold the sequence so that no such moment exists.** They run measure → build → check →
+see → sweep without being asked, and they spawn the next role in the same turn they receive a
+report. If you find yourself deciding which role comes next, **you have taken the run back from the
+leads** — hand it to them rather than continuing by hand.
+
+**The one exception, and it is narrow:** a single role on a single question, where there is no
+sequence to hold — a lone sweeper, a lone checker on work already finished. The moment there are
+two roles in an order, the leads own it.
