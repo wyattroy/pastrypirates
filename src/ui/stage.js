@@ -39,7 +39,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 //   YYYY.MM.DD.N  —  N is the Nth build published that day, bumped by hand exactly as the letter was.
 //
 // Staging appends its own suffix at publish time and never here — see scripts/deploy-staging.sh.
-const PP4_STAMP = "2026.08.30.2";
+const PP4_STAMP = "2026.08.30.1";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1549,23 +1549,8 @@ function stageFlash(msg, ms, holdMs, variants, opts){
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
           .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
       if (OBST.length){
-        /* THE TAIL IS PART OF THE BUBBLE AND THE SEARCH DID NOT KNOW IT.
-           MEASURED 2026-08-30, guest at 390x844 after the director began zooming out to fit every
-           sail square (Wyatt's ruling): squares stopped falling off the screen and started being
-           covered instead — and `.pp4Tail` was the single commonest coverer, 11 of them. The
-           squares got smaller, so the ~9-11px the tail reaches past the box on its latched side
-           stopped being negligible. The cost function tested the BOX; a player's thumb meets the
-           box AND the tail.
-           DERIVED FROM THE DRAWN ELEMENT, never typed: the tail's own rendered height. Over-
-           estimating is the safe direction — it can only make the search more careful. */
-        const tailEl = b.querySelector(".pp4Tail");
-        const tailPad = tailEl ? Math.ceil(tailEl.getBoundingClientRect().height) : 0;
-        const cost = (x, y) => {
-          const yTop = y - (side === "below" ? tailPad : 0);
-          const yBot = y + bh + (side === "above" ? tailPad : 0);
-          return OBST.reduce((n, o) =>
-            n + ((x < o.r.right && x + W > o.r.left && yTop < o.r.bottom && yBot > o.r.top) ? o.w : 0), 0);
-        };
+        const cost = (x, y) => OBST.reduce((n, o) =>
+          n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);
         /* CANDIDATES ON THE LATCHED SIDE ONLY. The search may still slide the box along, and step
            to the band's edge on its own side to clear a sail square — it may never cross the boat,
            because crossing IS the flip he asked us to remove. */
