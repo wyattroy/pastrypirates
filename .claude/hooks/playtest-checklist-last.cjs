@@ -43,6 +43,24 @@
 // so the file begins with <title> and <style>. The check below enforces the SHAPE, which is the
 // part a hook can see; the wording enforces the rest. A wrapped file cannot be published at all,
 // which is why that one is worth blocking on.
+//
+// ============================================================================
+//  AND TELL HIM HOW TO GET THERE -- PER ITEM
+// ============================================================================
+// Wyatt, 2026-08-30, asking for this rule: "whenever a checklist item asks me to test a specific
+// part of the game, the item must tell me HOW to jump straight to that part. I don't remember the
+// flags, and I shouldn't have to play a whole voyage to reach the thing you changed."
+//
+// THE EVIDENCE IS THE REQUEST ITSELF, and it is better than any argument for the rule. He asked
+// for it while misremembering the bake-off shortcut as "?bakeoff2=1". THAT FLAG DOES NOT EXIST.
+// The real one is ?ovens=1 -- and its own comment in src/shared/index.js says a whole voyage to
+// reach the ovens is "16-odd days, and the thing being tested at the end of it takes ninety
+// seconds". HE BUILT THAT SHORTCUT HIMSELF AND COULD NOT RECALL ITS NAME. If the person who
+// commissioned it cannot remember it, no sheet may assume he will.
+//
+// THE FLAG LIST IS DELIBERATELY NOT IN THIS FILE. A hand-kept list of flags rots exactly the way
+// everything else this file warns about rots, and it would rot in the one place a session goes
+// looking for the truth. The bullet points at the grep instead.
 // It fires ONCE per session — the same marker discipline qa-gear-first.cjs uses, so a session
 // cannot be trapped in a loop by a hook it has already answered.
 const fs = require("node:fs");
@@ -145,6 +163,18 @@ AND THE PARTS THAT ARE NOT DECORATION:
   - PUBLISH TO STAGING FIRST, then write the sheet against what staging actually serves. A sheet
     describing your working tree while staging carries something older is how he tests the wrong
     build and reports it green.
+  - GIVE HIM THE EXACT URL THAT LANDS ON THE THING, PER ITEM. Not once at the top -- different
+    items need different entry points, so the URL belongs in the item, beside what to do.
+    Never a feature name, and never "start a game and play until you reach it".
+    READ THE CURRENT FLAGS FROM SOURCE rather than reciting them: grep -rn "location.search" src/
+    Half of them also ride on devHost(), so they are dead on the production domain -- check that
+    too before writing one into a sheet.
+    IF THE STATE AN ITEM NEEDS HAS NO ENTRY POINT AT ALL, BUILD ONE in the same change. His eyes
+    are the scarcest thing in this project; spending them on sixteen days of sailing to reach a
+    ninety-second bake-off is the waste this bullet exists to stop.
+    WHY IT IS NOT DECORATION: a half-remembered flag loads a URL that silently does NOTHING --
+    no error, no hint -- so he plays the default path, sees the old behaviour, and reports the
+    item green. That is the stale-sheet failure arriving by a different road.
   - Mark anything that is HIS DECISION rather than a defect, and say so in the item.
   - List what is ALREADY KNOWN so he does not spend his eyes re-finding it.
 
