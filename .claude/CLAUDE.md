@@ -74,8 +74,9 @@ documents; the rules themselves are all here, in full.
 | 24 | **Every change to the game goes through a SEA TRIAL** — and "did you run it" is answered by opening the report, not by asking me | [§5](#5-project-status-and-planning) |
 | 26 | **POSE THE BOARD — when the question is a picture, don't go looking for a rate**: same seed, before and after, two screenshots | [§1](#1-working-with-wyatt) |
 | 25 | **Show the work to a CEO before showing it to him** — a fresh agent judges whether the ASK was executed, and its verdict reaches him in ITS words | [§1](#1-working-with-wyatt) |
+| 27 | **Hand him a LINK he can tap, never a file path** — anything you build for him to read or use is published and given as a URL | [§1](#1-working-with-wyatt) |
 
-> **26 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
+> **27 rules, and three of them used to be six.** *Ask* and *ask with the UI* were one instruction
 > split in two. *Plain English* and *state the size* were the same rule — he can only steer what he
 > can size, so they belong together. *QA your own change* and *play the game* competed for the same
 > slot so hard that the file had to say "this is NOT rule 19" out loud. **If you ever need to write
@@ -424,6 +425,34 @@ thirteen reviews, not one. Sizing is honest, not theatrical: a one-line copy cha
 verdict, an architecture change a long one — but every item gets one, appended to
 [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) as it lands, so the recurrence check
 never has a gap again.
+
+### Hand him a LINK he can tap. Never a file path.
+
+Wyatt, 2026-08-30: *"your html files must always be clickable for me to open on a phone — this link
+opens github and is useless. the whole point of the html is that i have no friction when giving you
+feedback."*
+
+**A session had just met every requirement of the playtest-checklist hook and then handed him
+`.planning/staging-checklist-2026-08-30.html`.** What he tapped was GitHub's *source view*: a
+syntax-highlighted listing of the CSS, on a phone, with no checkboxes and no notes boxes. The sheet
+was correct, current, and honest, and it was worthless — **because a repo path is not a page.**
+
+**The fault was one line of instruction, and that is the reusable part.** The hook's last line read
+*"Then hand him the file path."* **An instruction that ends at the ARTIFACT instead of at HIM
+produces a session that stops one step short and believes it finished.** When you write a process
+step, end it at the person.
+
+- **PUBLISH IT AND GIVE HIM THE URL** — for a checklist, a report, a comparison, anything he is meant
+  to read or use. Not a path, not a GitHub blob URL, not "it's in `.planning/`".
+- **Write it in the shape that can be published**: no `<!doctype>`, `<html>`, `<head>` or `<body>` of
+  its own — the host supplies those — so the file begins with `<title>` then `<style>`.
+- **Assume the phone.** Guard every `localStorage` touch: in a private tab the accessor *throws*
+  rather than returning null, and an unguarded read at the top of a script takes the whole page down
+  and hands him a blank screen instead of the thing he asked for.
+- **`.claude/hooks/playtest-checklist-last.cjs` enforces the shape**, which is the part a hook can
+  see, and blocks on a sheet that cannot be published. **It cannot see whether you pasted the URL
+  into your reply — that half is this rule.** A CEO review found exactly that gap: a session that
+  inherits a good sheet is never blocked, so it is never reminded. **You are the reminder.**
 
 ### Hold the whole game, not the current ticket — engineer AND designer
 

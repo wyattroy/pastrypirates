@@ -1,5 +1,47 @@
 # CEO reviews — the standing record
 
+## CEO Review 30 — 2026-08-30, the playtest sheet as a tappable link, and the hook behind it — VERBATIM
+
+**VERDICT: YES-with-corrections. "All three parts of the ask happened. The sheet he was handed is now in the shape that can be published, the rule is written into the hook in his own words, and the hook mechanically blocks the one failure mode it can see. Two claims are stated more broadly than the evidence supports, and I found one way to slip past the new check."**
+
+### It ran the hook rather than reading it — five states
+
+> "I ran the real hook file five times with faked inputs (only the sheet's *content* or the directory listing was substituted; git, mtimes and the hook's own code were real, and the probe printed whether the hook actually read the sheet — it did in every content case)"
+
+| state | result |
+|---|---|
+| the sheet as it stands | silent pass, exit 0 |
+| the wrapper put back | **blocks** |
+| BOM + doctype | **blocks** |
+| `.planning/` with no sheets at all | falls through, no crash |
+| an HTML comment BEFORE the doctype | **PASSES — this is a hole** |
+
+> "**The hole, cited:** `playtest-checklist-last.cjs:99` — the regex is anchored to the start of the file, so anything at all ahead of the doctype defeats it… Contrived, but it is the check's only test and it is one character of regex from being robust."
+
+### The structural gap it named, and it is the better finding
+
+> "when the freshest sheet is fresh *and* unwrapped the hook exits silently. The instruction 'PUBLISH IT AND HAND HIM THE LINK, NOT THE PATH' therefore only ever reaches a session through one of the two *blocking* paths. **A session that inherits a good sheet from an earlier session, or writes one before the hook fires, is never told to publish it.**"
+
+> "**Not swept:** `.planning/playtest-checklist.html` is still fully wrapped… and its three `localStorage` touches are unguarded… **one of the three checklist files in that directory still fails his ask exactly as the original did, and the commit message does not mention it.**"
+
+### What it verified as sound
+
+> "Neither sheet contains a `<!doctype>`, `<html>`, `<head>`, `<body>` or `<meta>` tag; both begin with `<title>Pa…`; the `<script>` block of each parses cleanly under `new Function()`. The template still carries what a future sheet needs." · "**localStorage guard is real and complete for these two.**"
+
+> "I could **not** independently reproduce `scrollWidth === 390`… I red-proofed that with a trivial control page whose script sets the title, and the title stayed `ORIG`… Supporting evidence instead: the sheet's CSS is fluid throughout… And the CTO's own capture, `phone390.png`, is 780 x 11972 px — 390 CSS pixels at device scale 2, full page height, which is what a genuine CDP 390x844 capture looks like. **The instrument reached its subject.**"
+
+### Overstated
+
+> "`playtest-checklist-last.cjs:108` — *'It still opens fine from disk in a browser.'* An unmeasured behavioural claim in a comment, which is the thing rule 6's second half exists to stop, and it is wrong in the details: with no doctype the file renders from disk in **quirks mode**… it is written as a standing fact and it will mislead the next reader." · "The commit message's *'every localStorage touch is guarded'* is true of the two files it edited and false of the third checklist sitting beside them."
+
+### The recurring fault
+
+> "**Narrowly, yes — in the scope of the claims rather than in the measurement.** The red-proof held exactly as described when I replayed it independently, and the instrument-failure call on the 390px screenshot survived my own check. That is the substantive part and it is honest. But two sentences claim more ground than was walked… Review 29's rule was followed by the checks. **It was not followed by the prose around them.**"
+
+**ONE SENTENCE FOR WYATT:** "Your checklist is now a real page you can tap and use on your phone, and the hook will stop a future session from handing you a file that can only be read as code — with two gaps worth knowing: the older playtest checklist in the same folder was left in the broken shape, and the hook only speaks up when something is wrong, so a session that already has a good sheet is never reminded to actually send you the link."
+
+*(CTO, same hour — all four acted on, none argued: the regex is no longer anchored and now blocks the comment-before-doctype file it built, re-proofed five ways; `.planning/playtest-checklist.html` is unwrapped and guarded like its siblings; the quirks-mode comment is deleted rather than corrected, since it was a behavioural claim nobody ran; and the "never reminded" gap is closed where a hook cannot reach — CLAUDE.md rule 27, loaded into every session.)*
+
 ## CEO Review 29 — 2026-08-30, the playtest checklist for `2026.08.30.1-staging@2cac247d` — VERBATIM
 
 **VERDICT: YES. "Every load-bearing claim in the sheet was checked against the wire, the git history, or the file itself, and all of them held. The one place the wording is slightly stronger than the diff is noted below and is not a defect."**

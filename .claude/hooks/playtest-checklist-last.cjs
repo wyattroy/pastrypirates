@@ -95,8 +95,14 @@ function main() {
   const freshest = sheetsByAge[0];
   if (newestSheet > newestGame) {
     let head = "";
-    try { head = fs.readFileSync(path.join(planning, freshest.f), "utf8").slice(0, 400); } catch {}
-    if (!/^\s*<!doctype|^\s*<html[\s>]/i.test(head)) process.exit(0);   // fresh AND publishable
+    try { head = fs.readFileSync(path.join(planning, freshest.f), "utf8").slice(0, 2000); } catch {}
+    /* NOT ANCHORED TO THE START OF THE FILE, and that is the correction. The first version tested
+       /^\s*<!doctype/ — so a single HTML comment, or anything else, ahead of the doctype defeated
+       it and the sheet sailed through unpublishable. CEO review 30 found it by constructing exactly
+       that file and watching the check pass. One character of regex, and it was the check's only
+       job. It now looks for the wrapper tags ANYWHERE in the opening 2000 bytes, which is where a
+       document wrapper lives and where a legitimate sheet has only <title> and the top of <style>. */
+    if (!/<!doctype|<html[\s>]|<head[\s>]|<body[\s>]/i.test(head)) process.exit(0);   // fresh AND publishable
     try { fs.mkdirSync(stateDir, { recursive: true }); fs.writeFileSync(marker, new Date().toISOString()); } catch {}
     process.stdout.write(JSON.stringify({ decision: "block", reason:
 `.planning/${freshest.f} IS FRESH BUT CANNOT BE PUBLISHED, so he can only reach it as source on
@@ -105,7 +111,7 @@ exact thing he called useless on 2026-08-30.
 
 STRIP ITS DOCUMENT WRAPPER: delete the <!doctype>, <html>, <head>, the two <meta> tags and the
 <body>/</body>/</html> tags. The file must BEGIN with <title> and <style>; the Artifact host
-supplies the rest. It still opens fine from disk in a browser.
+supplies the charset, the viewport and the document around it.
 
 THEN PUBLISH IT and give him the https:// link -- not the path, not the GitHub URL.` }));
     process.exit(0);
