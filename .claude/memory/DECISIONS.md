@@ -14,6 +14,26 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ## 2026-08-30 — the organisation
 
+**A TURN MAY NOT END ON AN OFFER.** Wyatt, 2026-08-30, after catching a stalled run himself:
+*"don't end on offers -- keep going."* The session had closed with *"Starting the checker now unless
+you want the tester first"*, spawned nothing, and sat idle until the container was reclaimed.
+
+**He asked for it structurally, not as a rule** — *"change the /team code structurally to ensure
+this does not happen again"* — so it is a Stop hook (`.claude/org/hooks/no-idle-offer.cjs`) that
+blocks a turn whose closing sentences offer to do work, plus a `/team` change that moves the
+sequence off the bridge and onto the leads. *The alternative, which is what this project has done
+every previous time, was another paragraph in a file. Its record is poor: every rule in CLAUDE.md
+is there because a written rule was not enough on its own.*
+
+**The line that lets the rule be absolute:** a genuine question goes through the question UI, which
+does not stop the run. So an offer written as prose at the end of a turn is the wrong shape whether
+or not work was outstanding — and the hook does not have to guess which.
+
+**Not added as a 28th CLAUDE.md rule, and that is a judgement worth overruling if he disagrees.**
+CLAUDE.md says in its own words that a list which reads longer than it is dilutes every line in it,
+and the hook fires on every turn in every session rather than only inside a `/team` run — so the
+coverage is already complete without a new row.
+
 **The org is CEO, CTO, EA, and a crew.** He is the **chairman of the board**. The **CEO** manages
 long-running work and holds the CTO accountable — judging whether something got built is one part of
 that, not the whole job. The **CTO** is the marathon worker that runs development. The **EA**
