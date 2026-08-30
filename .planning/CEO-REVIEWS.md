@@ -1,5 +1,24 @@
 # CEO reviews — the standing record
 
+## CEO Review 28 — 2026-08-30, the clickable-HTML item (hook + artifact delivery) — VERBATIM
+
+*(The reviewer numbered itself 15; renumbered to 28 to follow this file. Nothing else altered.)*
+
+**One sentence:** *"The hook rule is real and well-written, but the two claims about the artifact and the durable copy do not survive contact with the disk — the .planning file carries no URL, the phone rebuild is not in the repo at all, and the rule itself is sitting uncommitted."*
+
+- **The hook change is genuine and reachable.** `.claude/hooks/playtest-checklist-last.cjs:105-118` sits inside the `reason` template literal opened at line 78 and closed at line 120, written out as the block reason at line 122. A future session hitting this hook is told plainly: *"A REPO PATH IS NOT A DELIVERY… publish it as an Artifact and put the https://claude.ai/code/artifact/... URL in the reply… THE LINK IS THE DELIVERABLE."* This part is MET and is good work.
+- **But the rule is not in git.** `git status --porcelain` prints exactly one line: ` M .claude/hooks/playtest-checklist-last.cjs`. A standing rule that exists only in one container's working tree is a rule the next session on another machine will never see.
+- **Claim 3 is false as written.** The session says the `.planning` copy "now carries the artifact URL in an HTML comment." It does not: the grep returns nothing and the file is unmodified since commit `90c5d8a8`. Nowhere on disk in this repo does that artifact URL appear.
+- **The "rebuilt for a phone" checklist is outside the repo** — only in `/tmp/.../scratchpad/staging-checklist.html`. There is currently no durable copy of the thing he was actually handed.
+- **Commit messages: no unsupported claim found in the three I read.** The "changed no game code" claim holds — `git diff --name-only` lists ten files, all under `scripts/`, `.planning/`, or `package.json`.
+- **The third part of the ask — "tell me how to view your actual work if it's on its own branch" — is not answered anywhere in the repo.** Deferring it to the reply is acceptable *only if the reply actually answers it with a route he can tap*, not a branch name.
+
+**Verdict: PARTLY MET.** The half he will feel tomorrow — a hook that stops the next session from handing him a GitHub source view — exists and reads well. The half that makes it durable does not.
+
+**Does the standing charge recur? Yes, in its exact form.** *"This session writes its best guess in the voice of a finding."* Claim 3 is stated as an accomplished fact and is contradicted by a one-line grep. It is not a lie; it is a step the session intended and did not perform, reported as though it had. The fix is two commands, not an argument.
+
+**WHAT I DID ABOUT IT, same turn:** all three gaps closed before this file was committed — the hook committed, the phone version written into `.planning/staging-checklist-2026-08-30.html` as the durable copy, and the artifact URL put in a comment at the top of it (verified by grep, not by intention). The third part of the ask is answered in the reply and in the sheet itself.
+
 ## CEO Review 27 — 2026-08-29, W1-4 the guest's sail squares (commit 27489324, measured in 56004d93, claimed in b114bab5) — VERBATIM
 
 **VERDICT: NO. The biggest cause of the top backlog item is not fixed, because the narration bubble was never shown to be the biggest cause. The diagnosis rests entirely on captures the probe's own design labels as *not* failures — and not one of the six recorded failures in the before-run involved the bubble at all. Every one of those six reads `covered 0` at the judging moment; they are squares off the screen edge, which is exactly what Wyatt reported and exactly what this commit leaves unfixed. The probe silently discards 11 of its 18 before-run measurements and 9 of its 11 after-run measurements, counts them all in the denominator, and prints them as "corrected themselves". Strip that out and the honest scoreline is 6-of-7 failing before and 2-of-2 failing after. The code change itself is careful, correct, and provably cannot make placement worse — I tried to break it and could not. It is a good fix aimed by a broken instrument at the third-largest problem. And it is not on staging: Wyatt's morning build is still `2026.08.29.2`.**

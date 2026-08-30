@@ -102,7 +102,22 @@ AND THE PARTS THAT ARE NOT DECORATION:
   - Mark anything that is HIS DECISION rather than a defect, and say so in the item.
   - List what is ALREADY KNOWN so he does not spend his eyes re-finding it.
 
-Then hand him the file path. Run again and this will not fire; it asks once per session.`;
+  - GIVE HIM A LINK HE CAN TAP ON A PHONE, AND IT MUST RENDER THE PAGE, NOT ITS SOURCE.
+    Wyatt, 2026-08-30: "your html files must always be clickable for me to open on a phone --
+    this link opens github and is useless. the whole point of the html is that i have no
+    friction when giving you feedback."
+    A REPO PATH IS NOT A DELIVERY. `.planning/foo.html` on a branch resolves, on a phone, to
+    GitHub's SOURCE VIEW -- he gets `<!doctype html>` and a wall of CSS, and the sheet he was
+    supposed to tap through is unusable. He sent a screenshot of exactly that. The friction the
+    sheet exists to remove is the friction the delivery reintroduced.
+    SO: publish it as an Artifact and put the https://claude.ai/code/artifact/... URL in the
+    reply. That renders, it works on a phone, it is private to him, and he can comment straight
+    back on it. Commit the file to `.planning/` as well -- that is the durable copy for the next
+    session -- but THE LINK IS THE DELIVERABLE. Naming a file path and stopping there does not
+    count as handing it over.
+
+Then give him the LINK (and the file path beside it). Run again and this will not fire; it asks
+once per session.`;
 
   process.stdout.write(JSON.stringify({ decision: "block", reason }));
   process.exit(0);
