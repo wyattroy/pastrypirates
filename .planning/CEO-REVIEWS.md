@@ -1,5 +1,88 @@
 # CEO reviews — the standing record
 
+## CEO Review 32 — 2026-08-30, "don't end on offers — change the /team code structurally" — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"The hook is real, it fires on a real transcript, and it is honest about its own limits — that part is good work. But it is a list of thirteen phrasings, and I got past it four times out of four in about two minutes with sentences that are unmistakably offers. And the part he actually asked for — the structural change to /team — moved the risk one level down onto the leads, which is the one place the hook does not run at all. It is a real speed bump sold as a wall."*
+
+### A. Did the thing he asked for happen? — PARTLY. One mechanism, three pieces of memory.
+
+He asked for a **structural** change. Sorting what shipped:
+
+- **MECHANISM (1 piece):** `.claude/org/hooks/no-idle-offer.cjs` — a real Stop hook, registered at `.claude/settings.json` under `hooks.Stop`, second entry. This runs whether or not anybody remembers it.
+- **MEMORY (3 pieces):** `.claude/skills/team/SKILL.md:55-64` (the standing rule), `SKILL.md:81-101` (step 4 rewritten), `.claude/agents/team-lead.md:38-48`. All three are sentences in a file that a future session has to read and choose to obey. They are well-written sentences. They are not mechanism.
+
+And note which half the session itself calls structural. `SKILL.md:87` — *"AND DO NOT RUN THE LOOP YOURSELF EITHER — **this is the structural half**, and it is the one that failed."* **That paragraph is prose.** The half labelled structural is the half with no machinery behind it.
+
+### B. Can the hook fire? YES — and I defeated it 4 out of 4 in about two minutes.
+
+**It fires, and I proved it the strong way.** I appended an offer sentence to *this session's own real transcript* (`/root/.claude/projects/-home-user-pastrypirates/205edaad-….jsonl`), piped it in, and got `{"decision":"block",…}`. It is not a hook that only works on a hand-made fixture.
+
+**Then I tried to get past it. Four attempts, four passes, exit 0 and silent:**
+
+| closing sentence I fed it | result |
+|---|---|
+| *"Next up is the checker — tell me if you'd rather see the tester run first."* | **passes** |
+| *"I'll hold here for your call on whether the checker or the tester goes next."* | **passes** |
+| *"Ready to spawn the checker on your go-ahead."* | **passes** |
+| *"Just confirm and I'll kick off the checker."* | **passes** |
+
+Every one of those is the 2026-08-30 failure wearing a different coat. `no-idle-offer.cjs:104-118` is a list of thirteen phrasings; the number of ways to end a turn on an offer is not thirteen. **It catches the exact sentence that caused the incident and its close neighbours.** A model rewording naturally will step over it without noticing — and a guard you cross without noticing is a guard that reports nothing when it fails.
+
+It is not decorative — it will catch the careless case, and that has value. But it is a **phrasebook, not a rule**, and it is being described as a rule (see F).
+
+### C. Registered and will it run? YES, and the missing `2>/dev/null || true` is CORRECT.
+
+`.claude/settings.json`, `hooks.Stop`, entry 2: `node "$CLAUDE_PROJECT_DIR/.claude/org/hooks/no-idle-offer.cjs"`, timeout 10. The sibling `playtest-checklist-last.cjs` carries `2>/dev/null || true` and this one does not. **That difference is right, and for a reason worth keeping:**
+
+- `|| true` forces exit 0 and throws the error away. For an *advisory* hook that is fine — a crash costs a reminder nobody was owed.
+- For a *guard*, a crash that vanishes leaves you unprotected **and silent about it**. Loud failure is the correct choice for something whose whole job is to stop you.
+- It costs nothing on the blocking path: this hook signals a block by printing JSON to stdout and exiting 0 (`:145-146`), so `|| true` would not have suppressed the block either way.
+- And the file is genuinely crash-shy — every read is wrapped and exits 0 (`:49, :51, :58, :61`), so the loud path should almost never fire.
+
+### D. The false-positive cost — the right trade AS WRITTEN, and the danger is in the fix.
+
+**As it stands, low risk of being switched off, for three reasons that are all in the code:**
+1. It blocks **at most once per turn** (`:55`, `stop_hook_active`). It cannot trap a session in a loop — which matters, because a hung session is the very thing being prevented.
+2. A question asked through the **question UI is exempt** (`:83, :91`). So it does not fight rule 1; it enforces it. That is the design decision that makes this hook survivable.
+3. The escape is one sentence long.
+
+**But here is where it will get switched off, and it is the fix, not the hook.** The obvious way to close my four defeats is to widen the patterns — `/\blet me know\b/` generalised, `/\byou\b/`, anything second-person. **Do not.** Wyatt has thrown out gates before that banned things he deliberately wants, and a hook that blocks *"which of these two do you want?"* is exactly that. **Close the holes with specific phrases, never by widening.**
+
+### E. Does the /team change remove the gap? NO — it RELOCATES it, onto the one party the hook does not watch.
+
+This is the biggest finding and it is checkable in one grep.
+
+**The hook is registered under `Stop`. `Stop` is the *main* session ending a turn. A subagent ending its turn is `SubagentStop` — a different event.** This repo already knows that: `.claude/settings.local.json:206` registers a `SubagentStop` hook (`gsd-context-monitor.js`). And `grep -c no-idle-offer .claude/settings.local.json` returns **0**.
+
+So follow the change through:
+- Before: **the bridge** held the sequence. The bridge is the main session. The hook watches it.
+- After (`SKILL.md:94-97`, `team-lead.md:38-41`): **the leads** hold the sequence. The leads are subagents. **Nothing watches them.**
+
+The work moved the risk from the guarded party to the unguarded one. `SKILL.md:94` claims *"The leads hold the sequence so that no such moment exists."* **The moment still exists — at every lead→role boundary — and it is now less visible, not more, because a stalled subagent shows the user nothing at all.**
+
+**And a second problem underneath it, which I could not settle and which the work does not settle either.** `team-lead.md:62` says *"If you cannot spawn agents yourself, tell the bridge."* **That sentence concedes that nobody knows whether a lead can spawn a role.** If it cannot, step 4's entire structural claim collapses — the bridge is back to running the loop by hand, exactly as before, with a file telling it not to. *(Marked as unverified — I did not measure it. But the whole step-4 rewrite rests on it, and shipping the rewrite without measuring it is the recurring fault in its plainest form.)*
+
+### F. Recurrence — BOTH. It defends against the standing charge in one place and commits it in two.
+
+**Avoided, and this is the best thing in the work.** `no-idle-offer.cjs:32-40` writes out, unprompted, exactly what the instrument CAN and CANNOT see — *"CANNOT see: whether any work was actually left undone"* — and `:93-100` records that the first draft was aimed one level too wide (it read the last 420 characters, so a short reply quoting the forbidden shape blocked itself) and was caught by red-proofing before it ever ran. **That is the standing charge being met head-on inside the very file, and it should be the house style.**
+
+**Committed again, twice, in the same shipment:**
+1. `SKILL.md:63` and `team-lead.md:47` both say **"Enforced, not remembered"** — a hook that *"blocks a turn whose closing sentences offer to do work."* It blocks turns matching **thirteen phrasings**. I beat it four times in two minutes. **The claim is broader than the thing.** And this one is worse than a stale number, because a future session will read "enforced" and stop being careful.
+2. `SKILL.md:94` — *"so that no such moment exists."* See E. The moment exists.
+3. Third instance, same window, already on the record: the W7 gate that could not fail, shipped and then repaired after a checker caught it.
+
+**The charge is unchanged and this is its fourteenth-plus sighting: a check described by what it was meant to cover rather than by what it actually touches.**
+
+### THE CHANGES I REQUIRE
+
+1. **Register it under `SubagentStop` as well as `Stop`, in `.claude/settings.json`.** Without this, the /team change is a net loss — it moves the sequence to the only party with no guard. This is the single highest-value line in this list.
+2. **Add the four sentences I got past as patterns** — `you'd rather/prefer/like`, `your call / your go-ahead / on your go`, `tell me if/which/whether`, `just confirm`, `I'll hold`. Specific phrases only. **Do not widen.**
+3. **Fix the two overstatements.** `SKILL.md:63` and `team-lead.md:47` must say what it is: *"a Stop hook that blocks the known phrasings — it is a backstop, not the rule."* `SKILL.md:94` must drop *"so that no such moment exists."*
+4. **Measure whether a lead can actually spawn a role, and write the answer down.** One run. If it cannot, step 4 is fiction and needs rewriting before anyone relies on it.
+5. **The durable version, when there is a window for it — and it is what "structural" actually means here.** A phrase list can always be reworded past. A **state** check cannot: at Stop, if `.claude-team/PROGRESS.md` shows a task in flight and `ListAgents` shows nobody running, block — regardless of how the sentence was phrased. That guards the *fault* (a stalled run) instead of guarding the *wording*. Items 1-3 are today; this is the one that ends it.
+
+**ONE SENTENCE FOR WYATT:** *"The hook is real and it does fire, but it only knows thirteen ways of saying 'shall I?' — I got past it four times in two minutes — and the change to /team handed the job of not stalling to the team leads, who are the one part of the system this hook doesn't watch at all; five fixes, and the first two take about ten minutes."*
+
 ## CEO Review 31 — 2026-08-30, the clickable-HTML item (hook + artifact delivery) — VERBATIM
 
 *(The reviewer numbered itself 15. Renumbered to 31 on merge: this was written as 28 in a container

@@ -74,6 +74,18 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/org/hooks/no-idle-offer.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Does this turn end on an offer? An offer ends the run"
+          }
+        ]
+      }
     ]
   }
 }

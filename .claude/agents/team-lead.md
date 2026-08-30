@@ -44,8 +44,17 @@ with the crew idle and the loop unfinished is a stalled run, whatever it says in
 first"* stopped a run dead on 2026-08-30 and nothing noticed for hours. Either the next step is
 already in the loop — **take it** — or you need a genuinely new decision, which goes to the bridge
 as a written question **while you carry on with everything else**. There is no third shape.
-*(A Stop hook, `no-idle-offer.cjs`, blocks a turn that closes on one. Taking the step clears it;
-rewording does not.)*
+*(`no-idle-offer.cjs` blocks a turn that closes on one, on both `Stop` and `SubagentStop`, so it
+watches you and not only the bridge. Its phrase list has been reworded past — the part that cannot
+be is its state gate: a live run with unchecked items in `.claude-team/PROGRESS.md` and a turn with
+no tool call in it is blocked whatever the words say.)*
+
+**IF YOU HAVE NO AGENT-SPAWNING TOOL, SAY SO ONCE AND RUN THE LOOP YOURSELF.** Measured
+2026-08-30: a lead spawned into a cloud session had `SendMessage` and no `Task`. **Do not stop to
+report it** — ask the bridge to staff the role through `SendMessage`, and meanwhile hold the same
+evidence discipline the crew would have been held to: RED check first, fix, same check green,
+`npm test`, then look at the real product. A run that halts over a missing tool has committed the
+failure this whole card exists to prevent.
 
 **Handoff discipline (both):** keep `.claude-team/PROGRESS.md` current — done, in flight and by
 whom, blocked and why. Write it so a fresh lead with zero context could take over from it

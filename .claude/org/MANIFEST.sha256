@@ -10,11 +10,11 @@ f819cbe1663a20801d572d7ff7a2d5dc924d6069b1780072b5d6fe8aa0d4fab1  .claude/org/te
 28d3e2dddd882b99058ffa62cb0d1e930ff474616026f244aa6b6748fe3b55c8  .claude/org/templates/memory-README-template.md
 0706e1f4feb1c674bc19e43163135f17c941ee51d6b0308d44a4de1cf761634b  .claude/skills/ceo/SKILL.md
 91da3b79bc85754875cd6d7dae5f9d129caeae4c83d3bc2984880fd31fd9c9e5  .claude/skills/cto/SKILL.md
-cc97887669684a4292e693615b703200387627fb726872daf12c886b79073acc  .claude/skills/team/SKILL.md
+8d12bad51f0501bd1a62dd2e3042eeb2b807085d282d2e0c81676ab684437cef  .claude/skills/team/SKILL.md
 761d77a5ea82fff284f3fdaae5f4eacfb36ebc872f6fe85aa319d216f6318b96  .claude/agents/team-builder.md
 46e28829e7d0e8016c7dbb819f16ee385db48226ba0412449f377fcabf192546  .claude/agents/team-checker.md
-467d69222ab7960c05e53457b3660a28546bb92328926462051b6f596298084e  .claude/agents/team-lead.md
+20de1bfb54060f1fcce902c3226e52af678b7e5aa134fe4f50d136c72d6b4cb7  .claude/agents/team-lead.md
 3020e91a07bf86f725d6416560261017594ed3221129b06c24100439bcebcdb1  .claude/agents/team-measurer.md
 369f69dd93e328aac44b7869e851bb1bc4e6c461c9d6a8d0d82fd5f9c04a2203  .claude/agents/team-sweeper.md
 a12afc8b028afa8c6e6eab7a44e1936d1166836734ce3c1b1a132889113784b9  .claude/agents/team-tester.md
-48e0b1b6385eca84a366d33cd2ded0fdfc84bf917a68129a3a35d102aae7f1e2  .claude/org/hooks/no-idle-offer.cjs
+47b2dbe5259c4e98a9a1b74a58f2d0a684d9d8eac3c1d39df1f5eeca03729ad4  .claude/org/hooks/no-idle-offer.cjs

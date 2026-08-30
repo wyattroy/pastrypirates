@@ -60,8 +60,12 @@ has no before-picture, and a fix with no before-picture cannot be shown to have 
   **(a)** the work is already authorised — **take it in this turn and say what you took**; or
   **(b)** you genuinely need a decision — **ask through the question UI**, which does not stop the
   run, and keep working on everything that does not depend on the answer.
-  *Enforced, not remembered: `no-idle-offer.cjs` is a Stop hook that blocks a turn whose closing
-  sentences offer to do work. Rewriting the sentence does not clear it — taking the step does.*
+  *Guarded two ways by `no-idle-offer.cjs`, and be clear which is which. A PHRASE LIST catches the
+  common shapes — and a CEO reworded past it four times in two minutes the day it shipped, so it is
+  a help, not a guarantee. THE GUARANTEE is the state gate beside it: a live run with unchecked
+  items in `.claude-team/PROGRESS.md` and a turn that made no tool call at all is blocked whatever
+  it says, because nothing happened. Registered on both `Stop` and `SubagentStop`, so it watches
+  the crew and not only the bridge.*
 - **NO TWO BUILDERS SHARE A FILE, EVER.** Subagents cannot see each other; two in one file destroy
   each other's work. Port-lead splits by file, not by feature. **If the work does not split
   cleanly, run fewer builders** — a team is worse than one worker on same-file work.
@@ -91,11 +95,32 @@ composes a message instead of acting. That moment is where a run dies. It died t
 2026-08-30: three roles in, the bridge wrote *"starting the checker now unless you want the tester
 first"* and stopped.
 
-**The leads hold the sequence so that no such moment exists.** They run measure → build → check →
-see → sweep without being asked, and they spawn the next role in the same turn they receive a
-report. If you find yourself deciding which role comes next, **you have taken the run back from the
-leads** — hand it to them rather than continuing by hand.
+> ### ⚠ CORRECTED WITHIN THE HOUR, BY MEASUREMENT, AND THE CORRECTION IS THE USEFUL PART
+>
+> The first version of this section said *"the leads hold the sequence so that no such moment
+> exists"* and told the bridge to stop spawning roles. **A CEO called that unverified, and it was
+> then measured: a `team-lead` subagent HAS NO AGENT-SPAWNING TOOL.** Port-lead's own progress file
+> reported it in the first minutes of the very run this rule was written for — *"ToolSearch returns
+> no `Task` and no `ListAgents`; the only inter-agent tool present is `SendMessage`."*
+>
+> **So the rule as first written moved the spawning duty onto the one party that cannot spawn.** It
+> did not remove the gap; it would have made a run that could not staff itself at all.
+>
+> **A rule that says a gap "does not exist" is the recurring fault this whole file is against:
+> asserting more than the evidence supports.** Below is what the evidence actually supports.
 
-**The one exception, and it is narrow:** a single role on a single question, where there is no
-sequence to hold — a lone sweeper, a lone checker on work already finished. The moment there are
-two roles in an order, the leads own it.
+**THE BRIDGE IS THE ONLY THING THAT CAN SPAWN, SO THE BRIDGE SPAWNS — AND THAT IS EXACTLY WHY THE
+DUTY IS ON IT.** The gap is real and it is yours. Close it with a rule about YOUR turn, not by
+handing the job somewhere it cannot go:
+
+**When a role reports to you, spawn the next role IN THAT SAME TURN.** The loop already says what
+comes next — measure → build → check → see → sweep — so there is nothing to decide and nothing to
+ask. A turn that ends with the crew idle and the loop unfinished is a stalled run, whatever it says
+in it.
+
+**The leads plan, split and verify; they ask you for a spawn through `SendMessage`.** Treat such a
+request as the loop speaking, not as a question — staff it and say you staffed it.
+
+**And if you cannot raise a lead at all, run the loop single-handed rather than stopping.** That is
+what port-lead did the hour this was written, and it was the right call: *"a run that stops to
+report a missing tool is the exact failure this run already had today."*

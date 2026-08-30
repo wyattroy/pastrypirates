@@ -26,8 +26,12 @@
  *   So an offer written as PROSE at the end of a turn is never the right shape. Either the work
  *   is already authorised — take it — or a decision is genuinely needed, and it belongs in the UI.
  *
- * That is what makes this hook honest instead of a guess: it does not try to infer whether work
- * was outstanding. It does not need to. It asserts a shape, and the shape is wrong either way.
+ * That is what makes the word-gate honest instead of a guess: it does not try to infer whether
+ * work was outstanding. It asserts a shape, and the shape is wrong either way.
+ *
+ * BUT THE WORD-GATE IS NOT THE GUARANTEE, and saying it was would be this project's own recurring
+ * fault. A CEO defeated the phrase list four times in two minutes on the day it shipped. The
+ * guarantee is the STATE gate below it, which reads no words at all.
  *
  * ⚠ WHAT IT CAN AND CANNOT SEE — stated here because an instrument that reports a result without
  * naming what it touched is the recurring fault this whole organisation was built to end:
@@ -65,6 +69,7 @@ try { lines = fs.readFileSync(tp, "utf8").split("\n").filter(Boolean); } catch {
    is the boundary the model itself is working within. */
 let text = "";
 let usedQuestionUI = false;
+let turnUsedAnyTool = false;
 for (let i = lines.length - 1; i >= 0; i--) {
   let e;
   try { e = JSON.parse(lines[i]); } catch { continue; }
@@ -80,7 +85,7 @@ for (let i = lines.length - 1; i >= 0; i--) {
   if (!Array.isArray(content)) continue;
   for (const b of content) {
     if (!b) continue;
-    if (b.type === "tool_use" && b.name === "AskUserQuestion") usedQuestionUI = true;
+    if (b.type === "tool_use") { turnUsedAnyTool = true; if (b.name === "AskUserQuestion") usedQuestionUI = true; }
     if (b.type === "text" && typeof b.text === "string" && !text) text = b.text;
   }
 }
@@ -115,15 +120,56 @@ const OFFERS = [
   /\bi can .{0,60}\bif you(?:'d| would)? (?:like|want|prefer)\b/,
   /\bwhich (?:one )?(?:do you want|would you like|should i)\b/,
   /\bor (?:do you want|would you rather|shall i)\b/,
+  /* ADDED 2026-08-30 AFTER A CEO DEFEATED THE LIST ABOVE FOUR TIMES IN TWO MINUTES. Its four
+     sentences are the four comments beside these — every one an unmistakable offer to do work
+     already asked for, every one silently passing. Kept SPECIFIC on purpose: a pattern broad
+     enough to catch "which do you want?" would also catch legitimate prose and get this hook
+     switched off inside a week, which is worse than the hole. */
+  /\btell me if you'?d (?:rather|prefer|like)\b/,          // "tell me if you'd rather see the tester run first"
+  /\byour (?:call|go-?ahead|say-?so|word|green light)\b/,   // "I'll hold here for your call on..."
+  /\bready to \w+ .{0,40}\b(?:on your|when you|once you)\b/, // "Ready to spawn the checker on your go-ahead"
+  /\bjust (?:confirm|say|tell me|give me)\b/,               // "Just confirm and I'll kick off the checker"
+  /\bi'?ll (?:hold|wait|stand by|pause|park)\b/,
+  /\b(?:standing by|awaiting your|on standby)\b/,
+  /\bi'?(?:ll|m happy to) .{0,60}\b(?:when|once|if) you (?:say|confirm|decide|tell|want|give)\b/,
 ];
 
+/* ⚠ THE PHRASE LIST ABOVE IS A PHRASEBOOK, AND A PHRASEBOOK IS ALWAYS REWORDED PAST. It was
+   defeated four times in two minutes the day it shipped. It is kept because it catches the common
+   shapes cheaply and names them in its refusal — but it is NOT the guarantee.
+
+   THE GUARANTEE IS THIS SECOND GATE, WHICH DOES NOT READ THE WORDS AT ALL. If a team run is live
+   — `.claude-team/PROGRESS.md`, recently touched, with unchecked items on it — and the turn about
+   to end contains NO TOOL CALL WHATSOEVER, then nothing happened this turn while work was open.
+   That is a stall however elegantly it is phrased, and there is no sentence that gets past it. */
+let stateBlock = null;
+try {
+  const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const prog = require("path").join(root, ".claude-team", "PROGRESS.md");
+  if (fs.existsSync(prog)) {
+    const st = fs.statSync(prog);
+    const freshMs = Date.now() - st.mtimeMs;
+    // A PROGRESS.md left behind by last week's run is not a live run. Six hours is generous
+    // enough for an overnight window and short enough that a stale file cannot wedge a session.
+    if (freshMs < 6 * 60 * 60 * 1000) {
+      const body = fs.readFileSync(prog, "utf8");
+      const open = (body.match(/^\s*[-*]\s*\[ \]/gm) || []).length;
+      if (open > 0 && !turnUsedAnyTool) {
+        stateBlock = `a team run is live (${open} unchecked item(s) in .claude-team/PROGRESS.md, ` +
+                     `touched ${Math.round(freshMs / 60000)} min ago) and THIS TURN MADE NO TOOL CALL AT ALL`;
+      }
+    }
+  }
+} catch { /* the guard must never be the thing that breaks a session */ }
+
 const hit = OFFERS.find(re => re.test(tail));
-if (!hit) process.exit(0);
+if (!hit && !stateBlock) process.exit(0);
 
 const reason = [
   "STOP BLOCKED — this turn ends on an OFFER, and an offer ends the run.",
   "",
-  "The closing text matched: " + String(hit),
+  hit ? "The closing text matched: " + String(hit)
+      : "No offer phrasing matched — this is the STATE gate, which does not read words: " + stateBlock,
   "",
   "This is the 2026-08-30 failure exactly. A session closed with \"Starting the checker now",
   "unless you want the tester first\", spawned nothing, and sat idle until the container was",
