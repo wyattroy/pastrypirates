@@ -56,6 +56,27 @@ const stampSrc = fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8");   
 const STAMP = (stampSrc.match(/PP4_STAMP\s*=\s*"([^"]+)"/) || [])[1] || "unknown";
 const started = new Date();
 
+/* WHICH SEA TRIAL THIS IS. Wyatt, 2026-08-30: "Call it sea trial v2 so we can increment it."
+ *
+ * The build stamp says which GAME was tested. This says which TRIAL tested it — and the two are
+ * independent, which is exactly why a second number is needed: the same build can be sailed by a
+ * weaker instrument and a stronger one, and until now both reports looked identical. A report that
+ * cannot name its own instrument cannot be compared with an older one.
+ *
+ * WHEN TO INCREMENT — when the SHAPE of the trial changes: what it looks at, how much of it it
+ * looks at, or how it decides. NOT when a check is added or a bug is fixed; those are the trial
+ * doing its job, and bumping for them would make the number mean nothing within a week.
+ *
+ * v1  the ten-leg fleet as it stood on 2026-08-29: three modes, three sizes, both engines, judged
+ *     one screenshot per `claude -p` call and only the first 30 distinct screens of each leg.
+ * v2  (2026-08-30) THE EYES SEE EVERYTHING. No judge cap — every distinct screen is looked at, five
+ *     to a call — and the leg verdict prints the denominator, so a half-seen leg can never again
+ *     read as a clean one. Contact sheets moved out of the legs (measured: 123s per leg, abandoned
+ *     at its own cap, producing nothing). Leg concurrency derived from the machine's cores rather
+ *     than typed. Its own rebuild note: .planning/SEA-TRIAL-REBUILD.md
+ */
+const TRIAL_VERSION = "v2";
+
 /* ---- which gear? ---------------------------------------------------------- */
 let gear = arg("gear");
 let gearWhy = "**FORCED ON THE COMMAND LINE — this overrode the mechanical picker.** Treat this report as weaker evidence than one whose gear was derived.";
@@ -92,7 +113,7 @@ const legs = LEGS[gear] || LEGS.FULL;
    kill, a laptop lid closing -- all of them now leave the truth. */
 fs.mkdirSync(path.dirname(REPORT), { recursive: true });
 fs.writeFileSync(REPORT,
-`# Sea trial — build \`${STAMP}\`
+`# Sea trial ${TRIAL_VERSION} — build \`${STAMP}\`
 
 **IN PROGRESS — no verdict yet.**  ·  started ${started.toISOString()}  ·  gear **${gear}**  ·  sailed on **${WHERE}**
 
@@ -100,7 +121,7 @@ If this is still what the file says, the trial did not finish. **A trial that di
 a trial that passed.** Nothing here has been proven about build \`${STAMP}\`.
 `);
 
-say(`\n⚓ SEA TRIAL — build ${STAMP}`);
+say(`\n⚓ SEA TRIAL ${TRIAL_VERSION} — build ${STAMP}`);
 say(`   gear: ${gear}  (${gearWhy})`);
 say(`   legs: ${legs.length ? legs.join(", ") : "none — this gear needs no voyage"}\n`);
 
@@ -198,11 +219,15 @@ const verdict = !unitOk ? "FAILED"
   : legs.length ? "PASSED"
   : "NOTHING SAILED";
 
-const report = `# Sea trial — build \`${STAMP}\`
+const report = `# Sea trial ${TRIAL_VERSION} — build \`${STAMP}\`
 
 **${verdict}** — ${ranLegs.length} of ${legs.length} voyage(s) sailed${notRun.length ? `, ${notRun.length} NOT RUN` : ""}  ·  ${started.toISOString()}  ·  ${mins} min  ·  gear **${gear}**  ·  sailed on **${WHERE}**
 
 > Gear chosen because: ${gearWhy}
+>
+> Sailed by **sea trial ${TRIAL_VERSION}** — the eyes see EVERY distinct screen (no judge
+> cap), five to a call, and each leg says how many of its screens were actually looked at. A report
+> from an older trial version looked at less; do not compare their silences.
 
 ## What ran
 
@@ -227,7 +252,7 @@ Screenshots and contact sheets: \`sea-trial-shots/\` (not committed — 100MB+ p
 live, compare the build stamp above with the one in the game's ☰ menu.*
 `;
 fs.writeFileSync(REPORT, report);
-say(`\n⚓ ${verdict}  —  report: ${path.relative(REPO, REPORT)}  (build ${STAMP}, ${mins} min, ${WHERE})`);
+say(`\n⚓ ${verdict}  —  report: ${path.relative(REPO, REPORT)}  (sea trial ${TRIAL_VERSION}, build ${STAMP}, ${mins} min, ${WHERE})`);
 if (notRun.length) say(`   ${notRun.length} leg(s) did NOT run — read the report, they are not passes.`);
 /* INCOMPLETE and NOTHING SAILED both exit non-zero. Only a trial that actually sailed every leg
    it promised, and passed, is allowed to be green. */
