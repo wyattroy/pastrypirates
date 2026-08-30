@@ -111,6 +111,44 @@ const legs = LEGS[gear] || LEGS.FULL;
    killed. THE ARTIFACT OUTLIVED THE RUN AND KEPT ITS VERDICT.
    Stamping it IN PROGRESS first means the only way to get a green report is to finish. A crash, a
    kill, a laptop lid closing -- all of them now leave the truth. */
+/* NO REPORT IS EVER OVERWRITTEN — Wyatt, 2026-08-30: "don't overwrite any reports -- increment them!!!"
+ *
+ * WHY IT MATTERED ENOUGH TO SHOUT. The very first thing a run used to do was lay an "in progress"
+ * placeholder ON TOP of the previous report, before sailing a single leg. So starting a trial
+ * destroyed the last one — and if the run then died, was killed, or the container was reclaimed,
+ * the repo held a placeholder and nothing else. That happened tonight: the report on disk described
+ * build 2026.08.30.2, a build that no longer exists, and THREE CONSECUTIVE CEO REVIEWS asked about
+ * it. Rule 24 stands on being able to open the report; it stands just as much on being able to open
+ * the PREVIOUS one and compare.
+ *
+ * THE NUMBER IS DERIVED, NEVER TYPED. It is one more than the highest already in the folder, counted
+ * at run time — a hand-kept counter rots exactly like the thing it counts. The build stamp goes in
+ * the filename too, so the history is readable without opening anything.
+ *
+ * ARCHIVE ONCE, AT THE START. The final write at the end of the run deliberately replaces this same
+ * run's own placeholder and must NOT archive, or every trial would leave a junk copy of its own
+ * "in progress" stub behind. */
+function archivePrevious(reportPath) {
+  if (!fs.existsSync(reportPath)) return null;
+  const dir = path.join(path.dirname(reportPath), "sea-trials");
+  fs.mkdirSync(dir, { recursive: true });
+  const base = path.basename(reportPath, ".md");
+  const seen = fs.readdirSync(dir)
+    .map(f => (f.match(new RegExp("^" + base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "-(\\d+)-")) || [])[1])
+    .filter(Boolean).map(Number);
+  const next = String((seen.length ? Math.max(...seen) : 0) + 1).padStart(3, "0");
+  // name it by the build the OLD report describes, not by today's — the filename should say what is
+  // inside it. Falls back to the file's own mtime when the header cannot be read.
+  const prev = fs.readFileSync(reportPath, "utf8");
+  const oldStamp = (prev.match(/build\s+`([^`]+)`/) || [])[1]
+    || new Date(fs.statSync(reportPath).mtimeMs).toISOString().slice(0, 10);
+  const dest = path.join(dir, `${base}-${next}-${oldStamp}.md`);
+  fs.renameSync(reportPath, dest);
+  say(`  archived the previous report -> ${path.relative(REPO, dest)}  (nothing overwritten)`);
+  return dest;
+}
+archivePrevious(REPORT);
+
 fs.mkdirSync(path.dirname(REPORT), { recursive: true });
 fs.writeFileSync(REPORT,
 `# Sea trial ${TRIAL_VERSION} — build \`${STAMP}\`
