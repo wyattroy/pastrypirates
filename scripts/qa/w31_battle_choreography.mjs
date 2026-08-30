@@ -99,6 +99,14 @@ const WATCH = `(()=>{
          session -- so the rule is now written where the mistake gets made, not in a ledger. */
       (()=>{const b=document.getElementById("pp4Prompt");
         return b?("prompt:"+(b.classList.contains("pp4Center")?"CENTER":"-")+(b.classList.contains("radial")?"+radial":"")):"noPrompt";})(),
+      /* THE BOX ITSELF, beside the panel. If #pp4Prompt's rect is the same in both frames while
+         the panel's top moves, the panel is moving INSIDE a static box and the mover is the
+         panel's own layout. If the BOX moves, it is the stage's. Two readings this morning were
+         wrong from reading code; both were settled by adding one line here. */
+      (()=>{const b=document.getElementById("pp4Prompt");
+        if(!b||vis!=="SHOWN")return "-";
+        const q=b.getBoundingClientRect(); const cs=getComputedStyle(b);
+        return "box"+Math.round(q.top/20)*20+"h"+Math.round(q.height/20)*20+":"+cs.display+":"+cs.position;})(),
       (()=>{const ap=document.getElementById("actionPanel");
         if(!ap||vis!=="SHOWN")return "-";
         const q=ap.getBoundingClientRect();
