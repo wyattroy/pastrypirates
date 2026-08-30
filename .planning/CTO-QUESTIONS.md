@@ -452,3 +452,29 @@ and self-correcting. I would rather you decide than have me quietly rank it for 
 Q-15 (bulk-read hook) was parked by him on 2026-08-28 and stays parked. Q-16 (wind pill wash) and
 Q-17 (counter-offer word) were not asked this round — both have a stated default and neither blocks
 anything.
+
+---
+
+# OPEN, 2026-08-30, from starboard-lead (W7 verification)
+
+**Q-22 — two gates now guard the guest's sail route, and only the weaker one runs.**
+
+W7's derivation fix is guarded twice. `scripts/qa/w7_route_derivation_check.mjs` (mine, in
+`npm test`, gates.total 54) runs the real walker in node under a stubbed browser. Every ship
+painter in `src/ui/board.js` returns early when there is no board, so **that gate can only see
+that the function said "I rode"; it cannot see the boat move.** A change that reports a ride and
+paints nothing passes it. `scripts/qa/w7b_sail_route_frontier_check.mjs` counts the boat's actual
+painted positions on a real board — and is **not** in `npm test`, so nothing runs it.
+
+I red-proved the browser one downward three ways (revert the derivation → its guest-order case goes
+red; restore the position-based guard → its second-voyage case goes red; `return false` on the first
+line → it aborts, exit 2). It works and it is the honest instrument.
+
+**My recommendation: put the browser gate in the chain and delete mine** — it is a ~45s browser
+gate, solo, single page, no Firebase, so it is not the flaky two-browser thing the suite has
+rightly refused before. **What makes it your call and not mine:** it is the first browser gate in
+`npm test`, and that changes what a green suite costs and what it can fail on. The alternative is
+to keep both, which is two things doing one job — the drift this project keeps paying for.
+
+*Not blocking: the fix itself is verified either way, and this only decides which check guards it
+tomorrow.*

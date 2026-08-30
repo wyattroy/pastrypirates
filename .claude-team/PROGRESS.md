@@ -1,120 +1,65 @@
-# W7 remainder — run progress
+# W7 — PROGRESS. Written so a fresh lead with zero context could take over from this file alone.
 
-**Branch:** `claude/cloud-handoff-planning-a9ay1u` · **Leads:** port-lead (this file's author), starboard-lead
-**Scope:** W7's guest sail-route ride works ~5 times in 8. Finish it.
+Branch `claude/cloud-handoff-planning-a9ay1u`. **Never push to `main`** — it is production, served
+to real players the moment it moves.
 
-## ⚠ THE RUN HAS NO CREW, AND THIS IS THE FIRST THING A FRESH LEAD MUST KNOW
+## The item
+The guest's boat slid straight across the islands instead of walking the route the engine chose.
+W7 put the route on the wire; a tester then measured the fixed build in two real crew rooms and
+found it worked on **5 sails in 8** — 3 still slid, 2 of those 3 corner routes.
 
-**port-lead's session has NO agent-spawning tool.** ToolSearch returns no `Task` and no `ListAgents`;
-the only inter-agent tool present is `SendMessage`. So there is no builder, checker, tester or
-sweeper to route work to, and no way to see whether starboard-lead is alive.
+## The cause, and it is a RACE, not a wrong constant
+`animateSailRoute()` took no parameters and read `g.events[g.events.length-1]`, while its callers
+each consume a SPECIFIC event:
+- guest — `src/orchestrator.js` `watchEvents`: the Firebase callback pushes its event and sets
+  `evIdx` before its first `await`, then awaits `consumeEvent(e)`. Firebase does not await that
+  callback, so the next event's callback pushes while the first is suspended.
+- host — `src/ui/panel.js` `liveRender`: the drain starts every unconsumed event **without
+  awaiting**, so a whole burst sees the same `events[n-1]`.
+Anything landing behind a sail therefore made `last.t!=="sail"` and the ride was skipped.
+Second defect, same root: the re-entry guard compared a module-local index against `n-1`, an array
+POSITION, so a second voyage in one page load could refuse a brand-new sail.
 
-**Decision (port-lead, taken rather than stalling):** run the loop single-handed, with the same
-evidence discipline the crew would have been held to — RED check written first, fix, same check
-green, `npm test`, then a real two-browser crew game for the walked/slid split. The bridge has been
-told the crew could not be raised. A run that stops to report a missing tool is the exact failure
-this run already had today.
+## The fix (port-lead's builder, committed)
+`src/ui/flow.js` — `animateSailRoute(ev)` now takes the event being drawn, and the guard is a
+`WeakSet` of ridden events rather than an index. `appState.evIdx` was no escape: both call sites
+set it to `events.length-1`, so it carries the identical race.
 
-## The defect (already measured — do NOT re-measure it)
-A tester drove two real crew rooms (host + guest Chromium, real Firebase) over 8 sails:
-- guest **walked** the route on 5 sails (including a corner route matching the host)
-- guest **slid** start→destination in one step on 3 sails, 2 of them corner routes
-- red-proofed: on the clearest failure the guest's frame timeline was unbroken (225 frames /
-  3954ms, no gap >60ms) and the drawn position changed exactly once. Host showed 17–35 steps on
-  every sail, so the instrument reads both answers.
+## Verification — what is DONE
+- `npm test` **exit 0, 54 gates** (baseline before the work was exit 0 / 53 gates / 307 PASS).
+- Defect reproduced by RUNNING the pre-fix walker, not by reading it: a sail consumed with a later
+  event at `events[n-1]` returned no ride; the second sail of a two-sail burst returned no ride.
+- `scripts/qa/w7b_sail_route_frontier_check.mjs` **red-proved DOWNWARD three ways**, each on a
+  scratch copy at `/tmp/.../scratchpad/redproof` so the shared working tree was never broken:
+  1. derivation reverted to `events[n-1]` → case B red (boat painted at **2 positions in 16ms**
+     against **43 over 710ms** for the same sail at the tail); A and C stay green.
+  2. `WeakSet` swapped back for the index guard → case C red; A and B green.
+  3. `return false;` as the walker's first line — the break that walked past an earlier TEXT draft
+     → the gate ABORTS, **exit 2**. It does not silently pass.
+- That gate gained a `--tree=` flag so this red-proof is repeatable without breaking the tree.
 
-## The cause (named independently by a checker and by the tester; confirmed by reading)
-`animateSailRoute()` — `src/ui/flow.js:1194` — derives what to walk from **the last event in the
-array**, not from the event being consumed:
+## Verification — what is NOT DONE (do not report the item closed without it)
+- **The crew re-measure.** Every gate above is SOLO, one browser. The 5/3 baseline came from two
+  real crew rooms and nothing green so far reproduces that setting.
+  `scripts/qa/w7b_crew_sail_measure.mjs` (new) runs a real host+guest Firebase room, counts painted
+  ship positions per sail on BOTH sides, names the slid routes, keeps a NOT-OBSERVED column and
+  writes matched host/guest screenshots. **Running now; result not yet in.**
+- No CEO verdict has been appended to `.planning/CEO-REVIEWS.md` for this item yet.
 
-    const n=g.events.length; const last=g.events[n-1];
-    if(!last||last.t!=="sail")return false;
+## Open question — Q-22 in `.planning/CTO-QUESTIONS.md`
+Two gates guard one thing and only the weaker runs. `w7_route_derivation_check.mjs` (mine, in the
+chain) can only see that the walker RETURNED true — under a stubbed browser every ship painter
+early-returns, so it cannot see the boat move. The browser gate that counts painted positions is
+NOT in the chain. Recommend swapping; it is a call about putting the first browser gate into
+`npm test`, so it is not mine to make alone. **Not blocking.**
 
-On a guest, `watchEvents` (`src/orchestrator.js:1585-1605`) pushes each arriving event synchronously
-then awaits `consumeEvent`. A second event landing while `consumeEvent` is parked on
-`await animateRimSweepIfAny()` (`src/orchestrator.js:1572`) moves the tail, and the ride is skipped.
-`src/engine/index.js:2776` emits a sail then calls `this.tradewind(p)` immediately, which can push
-that second event before any drain runs.
+## Claim I am NOT making
+That a two-sail burst occurs in a real voyage. My node gate asserts it as robustness; I never
+measured it happening. It must not be reported as a fixed bug.
 
-**Host is not exposed the same way:** its three inline call sites (`src/ui/flow.js:2285`, `:2386`,
-`:2587`) call `g.ev({sail})` and then `animateSailRoute()` with nothing in between, so the tail IS
-the sail. That asymmetry is exactly the rule-23 fault: the two tiers disagree about what "the last
-event" means.
-
-## The sibling defect (same family)
-`_lastRoutedEvIdx` (`src/ui/flow.js:1193`) is module-local and **never reset**. `beginGame`
-(`src/orchestrator.js:2332`) builds a fresh `Game` and resets the other frontiers at `:2339` but not
-this one, so "Play again" in the same page load silently drops the ride for whichever sail lands at
-an already-ridden index. `_lastSweptEvIdx` (`src/ui/flow.js:1023`) has the identical defect.
-
-## Status
-- [x] Read TEAM.md, CLAUDE.md, the code, the gate. Gear = **FULL** (`node scripts/qa/gear.mjs`).
-- [ ] Step 1 — RED check `scripts/qa/w7b_sail_route_frontier_check.mjs` (posed, no Firebase)
-- [ ] Step 2 — the fix in `src/ui/flow.js` + `src/orchestrator.js` (one builder's worth of files)
-- [ ] Step 3 — same check green, `npm test` exit 0 (53 gates)
-- [ ] Step 4 — sweep: two real browsers, the same 8-sail host/guest comparison, new walked/slid split
-
-## Status at the two-browser handoff (port-lead, 2026-08-30)
-
-- [x] **Step 1 — shown broken.** `scripts/qa/w7b_sail_route_frontier_check.mjs`, posed, no Firebase.
-      It drives the guest's real door (`consumeEvent`) and counts how many positions the boat is
-      actually painted at — the same signal the tester read off two real rooms. On the shipped code:
-      A control (sail at the tail) WALKED at 42 positions / 727ms; **B (a later event landed behind
-      the sail) SLID at 2 positions / 16ms**; **C (second voyage, sail on the index the last voyage
-      rode) SLID**. My first cut of C passed and proved nothing — it aimed at
-      `old.events.length-1`, which case B never advanced because B is a dropped ride. Fixed to take
-      the frontier from a ride that actually happened. A case that cannot fail is not a case.
-- [x] **Step 2 — the fix.** `animateSailRoute(ev)` now rides **the event it is handed**, and the
-      re-entry guard is a **WeakSet of ridden events** instead of a module-local index.
-      `Game.ev` returns the event it pushed (`src/engine/index.js`) so a call site can hold its own
-      event instead of reaching for the top of the pile; `consumeEvent` passes `e`
-      (`src/orchestrator.js`); the three host turn-loop sites pass the sail they just emitted
-      (`src/ui/flow.js`). No guest-only branch — rule 23 holds, and it holds harder than before:
-      "no argument" used to mean the sail on the host and whatever landed last on a guest.
-      The WeakSet also deletes the sibling defect outright — a new voyage's events are new objects,
-      so there is no frontier for anyone to remember to reset.
-- [x] **Step 3 — green.** Same check, all three cases WALKED (39-43 positions / ~710ms each).
-      `npm test` exits 0 at 54 gates.
-- [x] **Red-proofed DOWNWARD, both instruments.** Reinstating only the tail-derivation turns B red
-      (2 positions / 16ms) while A stays green. Separately, smuggling `o.sneaky=1` in after the
-      push turns the re-anchored q18 gate red.
-- [ ] **Step 4 — the sweep.** Two real browsers, the same 8-sail host/guest comparison. Requested
-      from the bridge; baseline to beat is 5 walked / 3 slid.
-
-### Two things a fresh lead must not lose
-
-1. **`q18_narr_event_order_check.mjs` was re-anchored, and it had to be.** It matched
-   `ev(o){...this.events.push(o);}` — literally requiring the function to END on the push. Adding
-   `return o;` broke the match, and it did not report "ev() changed shape": it reported
-   `body:false` and therefore *missing: every field*, which reads as the determinism corpus having
-   been torn up. It now brace-matches the whole body, which is **strictly stronger** — the old
-   anchor stopped reading at the push, so `this.events.push(o); o.sneaky=1;` would have been
-   emitted and invisible to it. Red-proofed with exactly that.
-2. **Two checks now cover this defect and only one is in `npm test`, on purpose.**
-   `w7_route_derivation_check.mjs` (node-only, ~1s, fresh module per case) is registered — it
-   proves the DECISION. `w7b_sail_route_frontier_check.mjs` needs chromium and ~50s, so it is not
-   in the suite; it proves the PICTURE, which a stubbed module cannot see. Run it at gear time.
-   **If it stops being run it will rot** — that is the known cost of keeping it out.
-
-## The sweep (port-lead's pass, and where it agrees with the sweeper's)
-
-Swept every place on the presentation tier that reads the top of the event pile
-(`grep -rn "events\[...length-1\]" src/`). The honest yield is **one real twin, not a list**:
-
-- **`animateRimSweepIfAny` — `src/ui/flow.js:1026`. The same two faults, in the same family of
-  function.** It derives from `g.events[n-1]`, and its `_lastSweptEvIdx` is a module-local index
-  that survives a new Game. **Left unbuilt on purpose**: it is unmeasured, and a fix with no
-  before-picture cannot be shown to have fixed anything. It also needs a harder pose than the sail
-  did — a valid sweep requires the ship on a rim square with `rimSweepPath` landing exactly on the
-  baked destination — which is why it was not folded in. **A sweeper working independently, before
-  this fix existed, reached the same file for the same reason, and went further: the storm's rim
-  ride has a HOST-ONLY escape hatch at `src/ui/flow.js:1313-1318`, reconstructing the rim-entry
-  square from `was` plus the wind direction because no rim-entry event exists to read — so on a
-  guest the ship teleports to the whirlpool with no ride at all.** Two independent reads landing on
-  one file is worth more than either alone. It is a **finding for Wyatt, not work the crew gives
-  itself.**
-- **`narrateLastEvent` (`src/ui/panel.js:1053`) and the two `describe(events[length-1])` flashes
-  (`src/orchestrator.js:968`, `:1302`) read the tail too, and they are NOT the same fault.** They
-  are host-side: the host emits and narrates with nothing in between, and a guest is narrated
-  through the wire (`watchNarr`), not through these. `src/orchestrator.js:1058` documents that
-  tail-read as deliberate. Reported here so nobody re-finds them and reports them as defects.
+## Operational
+starboard-lead has **no `Task`/`ListAgents` tool** in this session — it cannot spawn a checker,
+tester or sweeper, and `SendMessage` to `port-lead` returns "no agent reachable". Verification is
+therefore being run directly by starboard-lead. The **sweeper pass has not happened**: the sibling
+worth checking is the trade-wind rim sweep (`animateRimSweepIfAny`), whose `_lastSweptEvIdx` guard
+is the same position-based shape the WeakSet just replaced here.

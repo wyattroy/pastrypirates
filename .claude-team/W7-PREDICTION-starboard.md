@@ -41,3 +41,34 @@ CANNOT be in that 5/3 split, and a fix for it must not be credited with moving t
 ## What I will NOT accept as proof of the fix
 Reading the new code. The claim is about control flow under interleaving, so the check
 must RUN it with two events in the array and assert the sail's route was walked.
+
+---
+
+# THE RESULT, written after. Which parts of the above were WRONG.
+
+**RIGHT — the race, and it was measured rather than argued.** Running the pre-fix walker: a sail
+consumed with a later event at `events[n-1]` did not ride. Reverting the shipped fix on a scratch
+copy turned the browser gate's case B red — the boat painted at 2 positions in 16ms against 43 over
+710ms for the same sail at the tail. The mechanism named in the prediction is the mechanism.
+
+**RIGHT — defect 2 is real and is NOT what the tester measured.** The position-based guard fails
+across voyages; restoring it turns case C red on its own. It could not have been in the 5/3 split,
+and it must not be credited with moving that number.
+
+**WRONG — my first attempt to prove defect 2 proved nothing.** Case D "passed" because module state
+carried over from an earlier case in the same import, so the guard never collided. The instrument
+was wrong, not the code. Fixed by giving each case a fresh copy of flow.js — and only flow.js,
+because cache-busting the state module too hands the harness a second appState the walker never
+sees. A control case is what caught both mistakes.
+
+**WRONG, AND THIS IS THE ONE THAT MATTERED — falsifier 4 fired.** I listed it in advance:
+*"if `route.length<3` is culling them, the cause is the route CONTENT, not which event was read."*
+The first crew run reported the guest at 4 walked / 4 slid — WORSE than the 5/3 baseline, on a
+build where the fix is real. Every "slid" sail was a **2-square straight hop**, culled on purpose,
+and **the host painted 1 position on those same sails too**. My probe was calling a deliberate
+design decision a failure. Writing the falsifier down before the run is the only reason that was
+caught in minutes instead of being reported to Wyatt as a regression.
+
+**The lesson worth keeping:** the tell was that the HOST failed identically. A defect that appears
+on both screens at once is not a host/guest defect, and a check that condemns something known to
+work is the suspect.
