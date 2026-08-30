@@ -1,0 +1,241 @@
+<title>One Engine, One Director</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f2f5f6; --card:#fbfcfc; --ink:#16232b; --muted:#5c6e77; --line:#dce4e7;
+  --accent:#0b5d75; --accent-soft:#e3eef2; --rust:#a8452f; --rust-soft:#f7e9e5;
+  --good:#1c7a5e; --shadow:0 1px 2px rgba(16,40,50,.05),0 8px 24px rgba(16,40,50,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --paper:#0c1519; --card:#132228; --ink:#e4edf0; --muted:#93a9b2; --line:#25404a;
+  --accent:#5ac8e0; --accent-soft:#12313c; --rust:#ff8a6b; --rust-soft:#3a1f18;
+  --good:#4fc79b; --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);
+}}
+/* The toggle must win in both directions, so the same palette is repeated for an explicit
+   data-theme stamp. One palette, two places: change a colour and change it in both. */
+:root[data-theme=dark]{
+  --paper:#0c1519; --card:#132228; --ink:#e4edf0; --muted:#93a9b2; --line:#25404a;
+  --accent:#5ac8e0; --accent-soft:#12313c; --rust:#ff8a6b; --rust-soft:#3a1f18;
+  --good:#4fc79b; --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16.5px/1.65 "IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px 100px}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em}
+code{background:var(--accent-soft);padding:.1em .35em;border-radius:4px}
+
+header{padding:56px 0 34px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(34px,6.5vw,52px);
+  line-height:1.04;letter-spacing:-.015em;margin:0 0 16px;text-wrap:balance}
+.standfirst{font-size:19px;line-height:1.5;color:var(--muted);margin:0;max-width:56ch;text-wrap:pretty}
+
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:26px;line-height:1.2;
+  margin:52px 0 6px;letter-spacing:-.01em;text-wrap:balance;display:flex;gap:14px;align-items:baseline}
+h2 .num{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;color:var(--accent);
+  flex:0 0 auto;letter-spacing:.04em}
+h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:19px;margin:30px 0 4px;letter-spacing:-.005em}
+p{margin:12px 0;max-width:68ch}
+ul,ol{max-width:68ch;padding-left:22px}
+li{margin:7px 0}
+strong{font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+
+.thesis{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:2px 12px 12px 2px;padding:20px 22px;margin:26px 0;box-shadow:var(--shadow)}
+.thesis p{margin:0;font-family:Fraunces,Georgia,serif;font-size:21px;line-height:1.4;font-weight:400}
+.thesis p+p{margin-top:12px}
+
+.warn{background:var(--rust-soft);border:1px solid var(--rust);border-radius:10px;
+  padding:16px 18px;margin:22px 0}
+.warn p{margin:6px 0}
+.warn .lbl{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--rust);font-weight:500;margin:0 0 4px}
+
+/* ---- the layer stack: the one picture that carries the whole idea ---- */
+.stack{margin:30px 0;display:grid;grid-template-columns:34px 1fr 34px;gap:0 12px;align-items:stretch}
+.arrowcol{display:flex;align-items:center;justify-content:center}
+.arrowcol svg{height:100%;width:26px}
+.layers{display:flex;flex-direction:column;gap:10px}
+.layer{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;
+  box-shadow:var(--shadow)}
+.layer .tag{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;
+  color:var(--accent);text-transform:uppercase}
+.layer .nm{font-family:Fraunces,Georgia,serif;font-size:18px;font-weight:600;margin:1px 0 3px}
+.layer .ds{font-size:14.5px;color:var(--muted);line-height:1.45}
+.layer .ds em{color:var(--ink);font-style:normal;font-weight:500}
+.layer.new{border-color:var(--accent);border-width:2px;background:var(--accent-soft)}
+.layer.new .tag::after{content:" — MISSING TODAY";color:var(--rust);font-weight:500}
+.axis{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;color:var(--muted);
+  writing-mode:vertical-rl;text-orientation:mixed;text-align:center;white-space:nowrap}
+.axis.up{transform:rotate(180deg)}
+
+.tbl{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1.5px solid var(--ink)}
+.tbl td:first-child{white-space:nowrap;font-weight:500}
+.scroller{overflow-x:auto}
+
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+  overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:13.5px;line-height:1.55;margin:16px 0}
+pre .c{color:var(--muted)}
+
+.steps{list-style:none;padding:0;margin:20px 0;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding-left:44px;margin:16px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:var(--paper);display:flex;align-items:center;
+  justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500}
+.steps .t{font-weight:600}
+
+.q{border-left:3px solid var(--muted);padding-left:16px;margin:20px 0;color:var(--muted);font-style:italic}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:13.5px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Pastry Pirates · back-end direction · 2026-08-30</p>
+  <h1>One engine, one director</h1>
+  <p class="standfirst">How to structure the game so that solo, pass-and-play, host and guest cannot drift apart — and so they still cannot drift apart after two years of new features.</p>
+</header>
+
+<h2><span class="num">00</span><span>The thesis</span></h2>
+
+<div class="thesis">
+  <p>The turn loop should <strong>produce a script</strong>. The client should <strong>perform it</strong>.</p>
+  <p>Today the turn loop performs it directly — and only one client runs the turn loop.</p>
+</div>
+
+<p>Everything below follows from that one sentence. It is not a rewrite: measured this afternoon, <strong>the rules engine is already completely pure</strong> — <code>src/engine/index.js</code> contains zero references to host, guest, mode, the DOM or the network. The foundation is sound. What is tangled sits one storey up.</p>
+
+<h2><span class="num">01</span><span>What is actually wrong, measured</span></h2>
+
+<p>The problem is not that the guest has different code. It is that <strong>two jobs are being done by one file.</strong> <code>src/ui/flow.js</code> is simultaneously the <em>turn director</em> (whose go is it, what are they asked, what happens next) and the <em>screen director</em> (look here, hold this for 400ms, animate the boat along this path). Those are different jobs with different lifetimes, and only the authority runs that file.</p>
+
+<div class="scroller">
+<table class="tbl">
+  <tr><th>File</th><th><code>isHost</code></th><th><code>passAndPlay</code></th><th>What that means</th></tr>
+  <tr><td>engine/index.js</td><td>0</td><td>0</td><td>Pure. Correct. Leave it alone.</td></tr>
+  <tr><td>orchestrator.js</td><td>27</td><td>1</td><td>The authority layer. Some of this is legitimate; 27 is not.</td></tr>
+  <tr><td>ui/flow.js</td><td>4</td><td>4</td><td><strong>The leak.</strong> Presentation decisions made inside the turn loop.</td></tr>
+  <tr><td>ui/panel.js, stage.js, board.js</td><td>2</td><td>3</td><td>Violations. Nothing that draws should know who is host.</td></tr>
+</table>
+</div>
+
+<p>Two consequences you have already seen with your own eyes. <strong>The camera:</strong> the instruction "look here" is issued twelve times inside the turn loop and is not an event, so it never crosses the wire — the host's camera is directed, the guest's is nudged. <strong>The route:</strong> the engine computes the real legal path through the water, hands it to the host's animation, and publishes an event containing the seat number and nothing else. The path is dropped on the floor.</p>
+
+<h2><span class="num">02</span><span>Four layers, and one hard rule</span></h2>
+
+<div class="stack">
+  <div class="arrowcol"><span class="axis">DECISIONS GO DOWN</span></div>
+  <div class="layers">
+    <div class="layer">
+      <div class="tag">L4 · Performer</div>
+      <div class="nm">The only thing that touches the screen</div>
+      <div class="ds">Plays storyboards. Owns the DOM, timers and animation. <em>Identical on every client, in every mode.</em></div>
+    </div>
+    <div class="layer new">
+      <div class="tag">L3 · Presentation</div>
+      <div class="nm">Event in, storyboard out</div>
+      <div class="ds">A <em>pure function</em>: given an event, return an ordered list of beats — draw this, look there, hold 400ms, clear that. No DOM, no timers, no network. This is where the camera cues and the sail route belong.</div>
+    </div>
+    <div class="layer">
+      <div class="tag">L2 · Authority</div>
+      <div class="nm">Whose turn, what are they asked, in what order</div>
+      <div class="ds">Owns the clock and produces the ordered event stream. <em>Exactly one instance per game</em>, wherever it happens to live.</div>
+    </div>
+    <div class="layer">
+      <div class="tag">L1 · Rules</div>
+      <div class="nm">State + decision → new state + facts</div>
+      <div class="ds">Already pure today. Knows nothing about time, screens, players or the network.</div>
+    </div>
+  </div>
+  <div class="arrowcol"><span class="axis up">FACTS COME UP</span></div>
+</div>
+
+<div class="thesis">
+  <p><strong>The hard rule:</strong> calls only go down, facts only come up. L4 never calls L2. L3 never touches the DOM. L1 never learns a screen exists.</p>
+</div>
+
+<p>That rule is what makes the structure survive people — including future sessions of me. A layer violation becomes a <em>mechanical</em> fault a gate can fail the build on, rather than a judgement call somebody has to notice in review.</p>
+
+<h3>Why L3 must be pure, specifically</h3>
+<p>Because a pure function can be <strong>compared</strong>. If presentation is a function from events to storyboards, then two clients given the same events must produce byte-identical storyboards — and that is a fast headless test, not a two-browser expedition. It turns "do the screens agree?" from a thing you hope about into a thing the build knows.</p>
+
+<h2><span class="num">03</span><span>Where the modes go to die</span></h2>
+
+<p>Solo, pass-and-play, host and guest differ in exactly one respect: <strong>who answers a question.</strong> Nothing else. Not the rules, not the drawing, not the pacing.</p>
+
+<pre><span class="c">// one interface, four implementations, zero branches anywhere else</span>
+askDecision(seat, question) → answer
+
+  solo           human at this device  |  bot
+  pass-and-play  human at this device, behind a hand-over gate  |  bot
+  crew (host)    human here  |  remote human, over the wire  |  bot
+  crew (guest)   — does not decide at all; it watches
+</pre>
+
+<p><strong>Mode becomes a table of Deciders, not a set of <code>if</code>s scattered through the code.</strong> The authority layer does not branch on mode; it asks. This is the whole structural answer to "how do all modes stay consistent" — you delete the concept of mode from every layer except the one line that chooses a Decider.</p>
+
+<h2><span class="num">04</span><span>And then there is no guest</span></h2>
+
+<p>Once L2 produces an ordered event stream and L4 consumes storyboards, the network is merely <em>a way to move events from L2 to L4</em>.</p>
+
+<ul>
+  <li><strong>Solo</strong> is a client whose authority is local.</li>
+  <li><strong>A guest</strong> is a client whose authority is remote.</li>
+  <li><strong>A spectator, a replay, a second device</strong> — all the same client, with a different event source.</li>
+</ul>
+
+<p>There is no guest code path to keep in sync, because there is no guest code path. That is the property you actually asked for, and it is the only version of it that survives a year of new features: not "we remember to update both," but "there is one."</p>
+
+<h2><span class="num">05</span><span>How it stays true — programmatically, not by hand</span></h2>
+
+<p>Three gates. Two of them already exist and only need re-pointing.</p>
+
+<div class="scroller">
+<table class="tbl">
+  <tr><th>Gate</th><th>What it fails the build on</th><th>Status</th></tr>
+  <tr><td>Layering</td><td>L4 importing L2. L3 referencing <code>document</code>. L1 importing anything from <code>ui/</code>.</td><td>Extend <code>module_graph_check.js</code></td></tr>
+  <tr><td>Storyboard parity</td><td>Same seed through a solo client and a host+guest pair produces different <strong>storyboard sequences</strong>.</td><td>New — and the highest-value item here</td></tr>
+  <tr><td>No mode fork</td><td>Any <code>isHost</code> / <code>passAndPlay</code> branch inside L3 or L4.</td><td>Re-point <code>mode_fork_check.js</code></td></tr>
+</table>
+</div>
+
+<p><strong>The middle one deserves emphasis.</strong> It compares scripts, not pixels — so it is deterministic, fast, and runs on every commit. Every one of the fourteen problems from this morning's playtest would have failed it. That is the difference between a rule you believe in and a rule the repository enforces while you sleep.</p>
+
+<h2><span class="num">06</span><span>Migration — six steps that each ship</span></h2>
+
+<p>A big-bang rewrite is how this dies. Strangler fig instead: the new path grows alongside the old one, and the old one is deleted last.</p>
+
+<ol class="steps">
+  <li><span class="t">Define the storyboard, and teach L4 to play one.</span> Route exactly one event kind — <code>sail</code> — through it, on every client. Nothing else changes.</li>
+  <li><span class="t">Put the route on the event.</span> Delete the host-only animation call sites. The guest's boat starts sailing the actual water. First visible win.</li>
+  <li><span class="t">Move the camera cues into storyboards, one at a time.</span> Twelve of them. Each is small and independently verifiable.</li>
+  <li><span class="t">Stand up the storyboard-parity gate</span> as soon as two event kinds are converted — early enough that it guards the rest of the migration rather than certifying it afterwards.</li>
+  <li><span class="t">Introduce the Decider interface.</span> Convert solo first (simplest), then pass-and-play, then crew. Mode branches start disappearing.</li>
+  <li><span class="t">Delete the old paths and turn the layering gate on strict.</span> Only now.</li>
+</ol>
+
+<h2><span class="num">07</span><span>Three things I would push back on</span></h2>
+
+<h3>The determinism corpus will object, and it has a point</h3>
+<p>Putting the route onto an event changes what the engine emits, which by this project's own rules invalidates the replay corpus and forces a gated re-record. <strong>My recommendation is to avoid that entirely by splitting the event in two:</strong> a <em>canonical</em> part that determinism hashes, and a <em>presentation</em> payload attached to it that determinism ignores. That is a better distinction anyway — it stops presentation detail leaking into the definition of a legal game. But it is a decision, not a detail, and it is yours.</p>
+
+<div class="warn">
+  <p class="lbl">Worth disagreeing with</p>
+  <p><strong>Perfect simultaneity is not achievable and should not be the goal.</strong> The network guarantees a guest is always roughly a tenth of a second behind. Chasing literal "same thing at the same instant" leads to lockstep with stalls, which plays worse than what you have. The invariant I would hold instead: <strong>both screens show the same sequence, and neither can show a beat the other never receives.</strong> Same script, possibly a moment apart — never a different script.</p>
+</div>
+
+<h3>The host's tab is your server, and one day that will matter</h3>
+<p>Not now. But today the authority lives in one player's browser, so the host closing a tab ends everybody's game. The layering above is precisely what makes moving the authority elsewhere — a dedicated tab, or a real server — a change of <em>where L2 runs</em> rather than a rewrite. Worth knowing the door is being left open, and worth <em>not</em> walking through it yet.</p>
+
+<footer>
+  Measured, not assumed: the file counts in §01 and the purity of the engine were read from the working tree on 2026-08-30, at build <span class="mono">2026.08.30.1</span>. Nothing in this document has been built.
+</footer>
+
+</div>
