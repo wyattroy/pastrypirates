@@ -39,7 +39,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 //   YYYY.MM.DD.N  —  N is the Nth build published that day, bumped by hand exactly as the letter was.
 //
 // Staging appends its own suffix at publish time and never here — see scripts/deploy-staging.sh.
-const PP4_STAMP = "2026.08.29.3";
+const PP4_STAMP = "2026.08.30.1";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1538,30 +1538,11 @@ function stageFlash(msg, ms, holdMs, variants, opts){
         /* CANDIDATES ON THE LATCHED SIDE ONLY. The search may still slide the box along, and step
            to the band's edge on its own side to clear a sail square — it may never cross the boat,
            because crossing IS the flip he asked us to remove. */
-        /* THE VERTICAL SEARCH IS AS WIDE AS THE HORIZONTAL ONE, AND IT WAS NOT.
-           MEASURED 2026-08-29, a real crew guest at 390x844 over 18 tap-to-sail prompts
-           (scripts/qa/w14_guest_sail_reach.mjs): SIX of them still had the player being asked to
-           tap a square this bubble was sitting on, 400ms in. Eleven more corrected themselves
-           within 400ms — those are the ones where the squares were drawn after the bubble had
-           already placed itself, and the per-frame re-placement caught up.
-           THE SIX THAT DID NOT CORRECT ARE THIS LOOP. The x search already tries eight columns;
-           the y search tried TWO rows — the boat-adjacent spot and the band edge — so on a full
-           phone board every candidate covered something and "least-bad" was, in the words of the
-           note above, genuinely bad. It anticipated exactly this: "six candidate spots on a board
-           that full are not enough".
-           STEPPING, NOT CROSSING. The extra rows lie BETWEEN those two spots, on the latched side
-           only, so this buys candidates without touching either of Wyatt's rulings — D-38 (a sail
-           square outranks everything, because you cannot make a move you cannot tap) and the
-           removal of the flip (crossing the boat). If a full board ever leaves no clear spot on
-           the latched side, those two rulings collide, and that is HIS call, not a default taken
-           here. */
         const ys = [];
-        const yFar = side === "above" ? band.top + 4 : band.bottom - bh - 4;
-        const yNear = side === "above" ? above : belowY;
-        const push = y => { const yy = Math.max(band.top, Math.min(y, band.bottom - bh - 4));
-          if (!ys.some(v => Math.abs(v - yy) < 6)) ys.push(yy); };
-        push(yNear); push(yFar);
-        for (let k = 1; k <= 4; k++) push(Math.round(yNear + (yFar - yNear) * k / 5));
+        for (const y of (side === "above" ? [above, band.top + 4] : [belowY, band.bottom - bh - 4])) {
+          const yy = Math.max(band.top, Math.min(y, band.bottom - bh - 4));
+          if (!ys.some(v => Math.abs(v - yy) < 6)) ys.push(yy);
+        }
         const xLo = band.left, xHi = Math.max(band.left, band.right - W), span = xHi - xLo;
         const xs = [left, xLo, xHi];
         for (let k = 1; k <= 5; k++) { const x = Math.round(xLo + span * k / 6); if (!xs.some(v => Math.abs(v - x) < 8)) xs.push(x); }
