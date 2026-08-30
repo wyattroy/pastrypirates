@@ -38,13 +38,53 @@ set it to `events.length-1`, so it carries the identical race.
      → the gate ABORTS, **exit 2**. It does not silently pass.
 - That gate gained a `--tree=` flag so this red-proof is repeatable without breaking the tree.
 
-## Verification — what is NOT DONE (do not report the item closed without it)
-- **The crew re-measure.** Every gate above is SOLO, one browser. The 5/3 baseline came from two
-  real crew rooms and nothing green so far reproduces that setting.
-  `scripts/qa/w7b_crew_sail_measure.mjs` (new) runs a real host+guest Firebase room, counts painted
-  ship positions per sail on BOTH sides, names the slid routes, keeps a NOT-OBSERVED column and
-  writes matched host/guest screenshots. **Running now; result not yet in.**
-- No CEO verdict has been appended to `.planning/CEO-REVIEWS.md` for this item yet.
+## Verification — the crew re-measure, DONE
+`scripts/qa/w7b_crew_sail_measure.mjs` (new) runs a real host+guest Firebase room, counts the
+DISTINCT PAINTED POSITIONS of the sailing ship on BOTH sides per sail — the tester's own
+discriminator, deliberately unchanged so the numbers compare — names the slid routes, keeps a
+NOT-OBSERVED column, and shoots both screens MID-WALK on a corner route.
+
+Two rooms (MEYZ and one before it), 16 sails measured:
+- **Routes that must walk (>=3 squares): 6 of 6 walked on the guest. 0 slid.**
+- **Host and guest drawn the same way: 16 of 16 sails agree.**
+- The other 10 sails were 2-square straight hops, culled BY DESIGN on both sides
+  (`route.length<3` — "no corner to draw, and the plain render says it better").
+- Baseline before the fix: 5 walked / 3 slid of 8, two of the three slid being corner routes.
+
+**HONEST SIZE — this is not "8 of 8".** Only 6 of the 16 sails were routes that needed a walk;
+the driver's voyages threw mostly straight hops. So the corner-route sample is 6, not 8. Every
+corner route measured walked, and none slid, but a larger sample has not been taken.
+
+### The first run of that probe was WRONG, and the correction is the useful part
+It reported the guest at 4 walked / 4 slid — WORSE than the pre-fix baseline. Every "slid" sail
+was a 2-square straight hop, and **the host painted 1 position on those same sails too**. The probe
+was calling a deliberate design decision a failure. The tell was the host failing identically: a
+fault on both screens at once is not a host/guest fault, and a check that condemns something known
+to work is the suspect. This was named in advance as falsifier 4 in
+`.claude-team/W7-PREDICTION-starboard.md`, which is the only reason it took minutes.
+
+## Matched pair, mid-walk (the picture the item needed)
+`w7b-crew-shots/w7b-crew-corner-ev49-{host,guest}-2026-08-30T18-35-12-738Z.png`
+Both screens: day 4, wind N↑ forecast S↓, Flaky Jack active in the ribbon, and the orange ship
+caught BETWEEN grid squares with its active ring on it, in the same board position on both. Same
+coins, same holds for both rivals. That is the guest walking a route, not sliding across it.
+
+## FINDINGS — reported, deliberately NOT fixed here
+1. **The trade-wind rim sweep has the IDENTICAL fault, untouched.**
+   `animateRimSweepIfAny()` (`src/ui/flow.js:1026`) takes no parameters, reads
+   `g.events[g.events.length-1]`, and guards with `_lastSweptEvIdx===n-1` — the exact two defects
+   W7 just removed from the sail walker, in the same file, called from the same `consumeEvent`
+   one line above it. **Measured, not read:** with a spy on `g.onRim`, it considers the ride when
+   the tradewind is the last event and does NOT when anything lands behind it. The W7 fix was
+   copied FROM this function's shape, so the child was fixed and the parent left alone.
+2. **A camera divergence, OBSERVED ONCE AND NOT MEASURED.** In an earlier matched pair
+   (`w7b-crew-corner-ev55-*`) the guest walked its route correctly while its camera was framed on
+   another part of the board — the moving ship was cropped at the top edge of the guest's screen.
+   Not reproduced in the later run. **My on-screen check cannot settle it**: it counts any pixel
+   overlap with the viewport, so a partially cropped ship reads as 100% visible. Needs its own
+   measurement before anyone calls it real or dead.
+3. **Not a claim:** I never measured that a two-sail burst occurs in a real voyage. The node gate
+   asserts it as robustness. It must not be reported as a fixed bug.
 
 ## Open question — Q-22 in `.planning/CTO-QUESTIONS.md`
 Two gates guard one thing and only the weaker runs. `w7_route_derivation_check.mjs` (mine, in the
@@ -63,3 +103,26 @@ tester or sweeper, and `SendMessage` to `port-lead` returns "no agent reachable"
 therefore being run directly by starboard-lead. The **sweeper pass has not happened**: the sibling
 worth checking is the trade-wind rim sweep (`animateRimSweepIfAny`), whose `_lastSweptEvIdx` guard
 is the same position-based shape the WeakSet just replaced here.
+
+## IN FLIGHT — the sea trial (rule 24), started by starboard-lead
+`node scripts/sea_trial.mjs --report=.planning/SEA-TRIAL-w7-starboard.md` — gear **FULL**, 10 legs
+(solo/passplay/crew × desktop/phone/tablet, plus the webkit legs), build `2026.08.30.1`. ~85 min.
+
+**It writes its OWN report path on purpose.** `.planning/SEA-TRIAL.md` is the shared artifact and
+whichever machine finishes last overwrites it — the exact failure the two-sessions rule records.
+Do not point a second trial at the shared path while this one runs.
+
+**Why it is running:** CEO 33 listed three things needed to call W7 finished. Items 1 (the crew
+re-measure) and 2 (the browser gate) are now DONE — see above. Item 3 was *"a sea trial at FULL,
+or an explicit ruling from Wyatt that he will take the two-browser count instead."* This is item 3.
+
+**If this session ends before it finishes:** the report file is the artifact; read it, and check
+its NOT-RUN column before believing any verdict. A leg that could not start is not a leg that
+passed. The stale `.planning/SEA-TRIAL.md` on disk describes build `2026.08.30.2`, which no longer
+exists and carries its own FAILED banner — do not read it as this build.
+
+## Gate composition still unresolved (Q-22, parked for Wyatt, NOT blocking)
+`npm test` is at 54 gates and runs the node derivation gate. The two BROWSER gates that look at the
+picture — `w7b_sail_route_frontier_check.mjs` and the crew probe `w7b_crew_sail_measure.mjs` — are
+deliberately outside the chain and must be run by hand. `w9_rim_sweep_derivation_check.mjs` exists
+and is also outside the chain.
