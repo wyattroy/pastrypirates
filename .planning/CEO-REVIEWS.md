@@ -1,5 +1,88 @@
 # CEO reviews — the standing record
 
+## CEO Review 33 — 2026-08-30, "W7's fix is real but only works about 5 times in 8. Finish it." — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"This is the best-evidenced piece of work I have reviewed on this repo. The cause of the three sails that slid is found, named, and fixed in nine lines of game code, and I broke the fix twice in a scratch copy and watched the new gate go red both times — it is a real gate, not a decoration. But 'finish it' was a number he measured in two real browsers, and that number has not been taken again. Five walked out of eight is still the only thing anybody has actually seen. The fix is right; the finish is one measurement away and has not happened."*
+
+### A. Is "finish it" finished? NO — and the worker says so itself, which is the reason this is not a NOT-DONE.
+
+**What is proven:** the boat now walks its route in every posed situation the old code dropped it in — behind a later event, in a two-sail burst, and on the first sail of a second voyage in one page load. I ran that check myself against the shipped tree: 6 of 6 pass (`scripts/qa/w7_route_derivation_check.mjs`).
+
+**What is not proven:** that a real guest in a real room now walks eight sails out of eight. `.claude-team/PROGRESS.md` step 4 is the only unticked box in the file, and the commit message says it in plain words: *"the two-browser 8-sail comparison is NOT yet re-run — 5 walked / 3 slid is still the last real-product measurement on record."*
+
+**And the gear says the same thing louder.** `node scripts/qa/gear.mjs` returns **FULL** for this change. The newest sea trial on disk is `.planning/SEA-TRIAL.md`, dated 06:37 for build `2026.08.30.2` — a build that no longer exists, carrying its own FAILED verdict and a banner saying so. The fix landed at 18:18. **There is no sea trial for this build at all.** Rule 24 is unsatisfied, not partially satisfied.
+
+**What would have to be true for this to count as done, and it is a short list:**
+1. The same 8-sail host/guest comparison, in two real browsers, re-run on this build, reported as a count — 8 of 8, or whatever it actually is.
+2. `scripts/qa/w7b_sail_route_frontier_check.mjs` run once (it needs chromium, ~50s, and is deliberately outside `npm test`). It is the only check that looks at the picture rather than the decision.
+3. A sea trial at FULL, or an explicit ruling from Wyatt that he will take the two-browser count instead.
+
+Until 1 happens, the honest sentence is *"the cause is fixed at the bench and unconfirmed on the water."* That is a partial result reported honestly — not a partial result dressed as a finish. The distinction matters and the worker landed on the right side of it.
+
+### B. Was adjacent work substituted for the ask? NO. Both instrument changes were forced by the fix, and I verified the stronger claim rather than believing it.
+
+**The q18 re-anchor was not optional.** Making `Game.ev` return the event it pushed broke an anchor that literally required the function to end on `this.events.push(o);`. It did not report "this function changed shape" — it reported that ev()'s emitted field set was *entirely missing*, which in this repo's vocabulary means the determinism corpus has been torn up. A gate that lies in the language of the thing it guards had to be fixed before anything could ship.
+
+**And the "strictly stronger" claim is true — I tested it both ways in a scratch copy.** I smuggled `o.sneaky=1;` in immediately after the push:
+- the **new** brace-matching anchor caught it: `FAIL … found body:true unexpected:[sneaky]`
+- the **old** ends-on-push anchor passed it green, with the cheerful line *"ev(o) assigns exactly {round, wind, storm, wind2, state, tokens, draw} onto the event and nothing else."*
+
+So the old gate would have let a new emitted field reach the wire and told you the field set was unchanged. **The re-anchor is genuinely stronger, not merely different**, and it closed a hole nobody was looking for.
+
+**The new gate is not scope creep either** — it is step 1 of the four steps, the RED-first check, which the process requires. It cost 170 lines and one second of runtime.
+
+### C. Can the new gate fail? YES — I broke the fix twice and it went red both times, in the right places.
+
+This is the finding I would most want Wyatt to trust, because the exact fault it guards against — a gate that could not fail for the half that mattered — shipped on this same item earlier today.
+
+I copied `src/` to a scratch tree (the repo was not touched) and ran the repo's gate against it with `--tree=`:
+
+| what I broke in the copy | result |
+|---|---|
+| restored the tail derivation (`ev = g.events[n-1]`) | **FAIL ×2** — the race case and the burst case, exit 1 |
+| replaced the WeakSet with the old module-local index | **FAIL ×1** — the second-voyage case, exit 1 |
+| nothing (shipped code) | 6 PASS, exit 0 |
+
+**Each defect turns red exactly the case that describes it, and the three controls stay green throughout.** The gate also carries two controls that check it can return *false* at all, and a note recording that its own first draft of the voyage-2 case passed by luck of module caching and was rewritten. That is the recurring fault being caught by the worker before I got to it.
+
+I also ran `npm test` myself: **exit 0, and the count in `package.json` was raised 53 → 54** in the same edit, which is what `gate_count_check.js` requires.
+
+### D. Does the WeakSet remove the sibling defect or relocate it? It removes it — and I could not construct a sequence where it misfires.
+
+The claim holds where it is checkable: `src/ui/flow.js:1211` keys on the event object, so a new voyage's fresh objects cannot collide with an old voyage's, and there is no frontier for a future session to forget to reset. The old `_lastRoutedEvIdx` compared array *positions*, which two sails in one burst share — that is why the burst case exists and why it goes red when I put the index back.
+
+**The one path I probed and could not settle** (marked as an opinion, not a finding): `src/net/watchers.js:91` listens with `child_added`, and each firing builds a fresh object via `fixEv(snap.val())`. If that listener were ever detached and re-attached mid-voyage, Firebase re-fires every existing child, the whole history arrives as *new* objects, and the WeakSet would not recognise them — so the sails would ride again. **But the old index guard fails the same way in that scenario, and the events array would be duplicated wholesale, which is a far larger pre-existing problem than a re-ridden animation.** The WeakSet neither creates nor worsens it. I did not measure this and nobody should act on it as a defect.
+
+### E. Rule 23, one display path? IMPROVED, not endangered — and the honest reading is that the old code was the violation.
+
+Four call sites now pass an argument (`src/orchestrator.js:1573`, `src/ui/flow.js:2297`, `:2398`, `:2599`), and the fair worry is four ways to be wrong. **It is the opposite.** The old signature took no parameter *on the stated grounds that "no call site can hand it something another call site cannot"* — and "no argument" still had to mean something, and what it meant was `events[n-1]`: **the sail on the host, and whatever landed last on a guest.** That is precisely rule 23's failure — two tiers aimed at different subjects by a path that looked shared. The old comment claiming parity is quoted in the new one and corrected, which is the right way to retire a wrong argument.
+
+There is still exactly one walker and one guest consumer. `grep` finds no fifth call site and no guest-only branch (`src/ui/flow.js:1212` is the sole definition). `host_guest_parity_check.js` and `one_event_consumer_check.mjs` both ran green inside my `npm test`.
+
+### F. Recurrence of CEO 32's charge — claiming more than the evidence supports? AVOIDED, and deliberately.
+
+CEO 32's charge was a claim broader than the mechanism behind it ("enforced, not remembered" for a thirteen-phrase list). I looked for the same shape here and did not find it:
+
+- The commit's headline result is stated as **"5 walked / 3 slid is still the last real-product measurement on record"** — the *failing* number, volunteered, in the same paragraph as `npm test 0 at 54 gates`.
+- `.claude-team/PREDICTION-w7b.md` was written before the measurement, names what would prove it wrong, and reports P3 as right *only after* fixing a case of its own that could not fail.
+- The sweep (`.claude-team/PROGRESS.md`) reports **one real twin, and explicitly demotes three other tail-reads** that look like the same bug and are not — a list of four would have read as more thorough and been less true.
+- Every "stronger" claim I chose to test independently turned out to be true.
+
+**One thing to hold onto rather than a criticism:** `w7b_sail_route_frontier_check.mjs` is out of `npm test` on purpose and the file says *"if it stops being run it will rot."* That sentence is correct and it is the only thing standing between this check and rot. It is a known cost, recorded, not a hidden one.
+
+### The changes I require
+
+1. **Take the number again before anyone calls this finished.** The same 8-sail host/guest comparison, two real browsers, on this build, reported as a count. Nothing else closes the ask he wrote.
+2. **Run `node scripts/qa/w7b_sail_route_frontier_check.mjs` once** (chromium, ~50s). It is the only check that looks at the painted boat rather than the decision, and it is outside the suite by design.
+3. **Sail a FULL trial, or get Wyatt's ruling that the two-browser count is enough.** Right now `gear.mjs` says FULL and the newest trial report on disk describes a dead build with a FAILED verdict. That gap should not be inherited by the next session as if it were satisfied.
+4. **Put the rim-sweep twin in front of Wyatt as a finding, not into the crew's own backlog.** `src/ui/flow.js:1026` has both the same faults (`events[n-1]` and a module-local `_lastSweptEvIdx` that survives a new Game), and two people found it independently; `src/ui/flow.js:1313-1318` reportedly has a host-only rim-entry reconstruction, which would mean a guest sees the ship teleport into the whirlpool with no ride. **That second one is a rule 23 violation on its face and is bigger than the item just fixed.** It is his call whether it is next.
+
+### One sentence Wyatt should read first
+
+The three sails that slid have a proven cause and a nine-line fix, and I broke that fix twice myself to confirm the new alarm actually rings — but nobody has yet sailed a real crew game to see eight out of eight, so treat this as fixed at the bench and unconfirmed on the water.
+
+---
+
 ## CEO Review 32 — 2026-08-30, "don't end on offers — change the /team code structurally" — VERBATIM
 
 **VERDICT: SOUND-WITH-CHANGES.** *"The hook is real, it fires on a real transcript, and it is honest about its own limits — that part is good work. But it is a list of thirteen phrasings, and I got past it four times out of four in about two minutes with sentences that are unmistakably offers. And the part he actually asked for — the structural change to /team — moved the risk one level down onto the leads, which is the one place the hook does not run at all. It is a real speed bump sold as a wall."*
