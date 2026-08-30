@@ -109,7 +109,7 @@ import {
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, humanTurn, botTurn, runStormLive, renderPickPrompt, renderAskPrompt, draftDispatch, wireRestoreFail,
   startPassAndPlay,
-  endReplay, animateRimSweepIfAny, animateSailRoute,
+  endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
@@ -1587,6 +1587,7 @@ export async function consumeEvent(e){
   applyActiveSeat(e.p);
   syncLogLines();
   $("scrub").max=Math.max(0,appState.game.events.length-1);
+  stormCamForEvent(e);            // W9: the storm's wide shot, the SAME cue the host's storm driver fires, off the same event — not a guest-only camera call. Self-guarded: any event that is not a storm returns immediately.
   await animateRimSweepIfAny(e);  // W9: THE EVENT BEING CONSUMED, not the top of the pile — same correction, same reason, as the sail walker on the line below. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   await animateSailRoute(e);      // W7: the guest walks the squares the boat crossed instead of gliding across the islands. THE EVENT BEING CONSUMED, not the top of the pile — W7b measured the guest sliding on 3 of 8 sails because watchEvents pushes each arriving event before awaiting this consumer, so the pile's top is regularly not the sail. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   render();

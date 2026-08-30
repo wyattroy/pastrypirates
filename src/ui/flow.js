@@ -998,28 +998,49 @@ export function rimSweepPointAt(curve,t){
   return [curve[i][0]+(curve[i+1][0]-curve[i][0])*f,curve[i][1]+(curve[i+1][1]-curve[i][1])*f];
 }
 // G14 (Wyatt-approved 2026-07-30): THE ONE TRADE-WIND STEPPER, called identically by the host sites
-// and by the guest's watchEvents(). Takes NO PARAMETERS on purpose — no call site can pass something
-// a different call site doesn't, so the two tiers cannot be paced or aimed differently.
+// and by the guest's watchEvents(). It takes exactly ONE argument — the event being drawn — and
+// every call site hands over that one thing, so no call site can mean a different event by it and
+// the two tiers cannot be paced or aimed differently.
 //
-// Derives its path from the EVENT STREAM, which both tiers have: the last event must be a
-// `tradewind`; `to` is that event's own state snapshot, `from` is the PREVIOUS event's. It then
-// refuses to animate unless rimSweepPath(from) is non-empty AND lands exactly on `to`. NEVER
-// INVENTS A PATH — if the derivation does not check out, it returns and today's instant render
-// stands.
+// Derives its path from the EVENT STREAM, which both tiers have: the event must be a `tradewind`;
+// `to` is that event's own state snapshot, `from` is the PREVIOUS event's. It then refuses to
+// animate unless rimSweepPath(from) is non-empty AND lands exactly on `to`. NEVER INVENTS A PATH —
+// if the derivation does not check out, it returns and today's instant render stands.
 //
-// WHERE THE DERIVATION HOLDS (an event exists AT the entry cell):
+// WHERE THE DERIVATION HOLDS — an event exists AT the entry cell, which is now every way a ship
+// reaches the rim:
 //   - a human sailing into the rim — the `sail` event is emitted at the entry cell
-//   - a human storm push onto the rim — `windmove`/`blownOut` likewise
-//   - the engine's rimEscape() — `windmove` at the rim cell, THEN the sweep. That is exactly the
-//     bot-teaching case G18 just turned on.
-// WHERE IT FALLS BACK to today's instant render, honestly listed rather than overclaimed:
-//   - the engine's INTERNAL windPush sweep (a bot storm), which emits nothing between stepping onto
-//     the rim and sweeping, so there is no `from` to read
-//   - the battle-flee sweep (src/orchestrator.js), where `def.pos=dest` is not recorded before
-//     tradewind() runs
-// Both render exactly as they do today — no regression, and no invented path. Closing that residue
-// would require the ENTRY CELL in the event stream, i.e. the STORM-02 class of change, which stays
-// parked on its own merits and is NOT added to the re-record batch.
+//   - a storm push onto the rim — stormStep emits `windmove` AT the entry square before it sweeps
+//     (src/engine/index.js). It did not until W9, and that omission is what left the guest — whose
+//     ONLY route into this animator is consumeEvent — watching a teleport while the host rode.
+//   - the engine's rimEscape() — `windmove` at the rim cell, THEN the sweep. The shape the other
+//     two were converged onto.
+//   - a ship fleeing a battle into the channel — the flee is recorded AT the destination before
+//     tradewind() runs (src/orchestrator.js).
+// THERE IS NO LONGER A HOST-ONLY FALLBACK. runStormLive used to reconstruct the entry square by
+// hand and call animateRimSweepRun directly, because the stream did not carry it; that hatch is
+// deleted, and animateRimSweepRun is now reached only from here. The entry cell went ON THE WIRE
+// instead — which does change what the engine emits, so it belongs in the determinism re-record
+// batch (`npm run test:determinism`, itself already broken by the cutover — see .planning/BACKLOG.md).
+/* THE STORM'S WIDE SHOT IS A FUNCTION OF THE EVENT, NOT OF WHO YOU ARE (W9, rule 23).
+   playtest 22 item 1 (Wyatt): "The director should zoom out to show all boats and their end squares
+   before moving them in a storm." That cue used to be one line inside runStormLive, which is
+   host-only (src/orchestrator.js) — so the host framed the whole table for a storm and the guest
+   sat at whatever zoom it happened to be at. A tester measured what that costs now that the guest
+   RIDES the sweep instead of sliding: on a posed storm the swept ship's destination sat at screen
+   x = -292, off the left edge of the guest's own viewport. A ride nobody can watch is not a fix.
+   A camera cue that exists on one tier and not the other is the same display-path fork the ride
+   itself was, so the cue is now ONE function of the `storm` event, entered from wherever: the host
+   calls it with the event it just emitted, the guest with the event it is consuming. The window is
+   computed from the players' positions at that moment, and a `storm` event is emitted BEFORE any
+   hull moves on either tier, so both tiers compute the same window from the same board.
+   Returns whether the cue fired — false off the /4 stage, where there is no director to ask. */
+export function stormCamForEvent(ev){
+  if(!ev||ev.t!=="storm"||!ev.dir)return false;
+  if(!(window.__pp4&&window.__pp4.stormCam))return false;
+  window.__pp4.stormCam(ev.dir);
+  return true;
+}
 /* IT RIDES THE EVENT IT IS HANDED — the same correction W7 made to animateSailRoute, made here
    because it is the same fault. This used to take no arguments and read g.events[n-1], so any
    event that landed behind a sweep before its consumer ran cost that player the ride (watchEvents
@@ -1309,11 +1330,9 @@ export async function animateSailRouteRun(seat,from,path){
    function only animates it, square by square, so the board is never behind the narration. */
 export async function runStormLive(dirKey){
   const g=appState.game;
-  g.ev({t:"storm",dir:dirKey,dist:STORM_PUSH});
+  const evStorm=g.ev({t:"storm",dir:dirKey,dist:STORM_PUSH});
   liveRender();
-  // playtest 22 item 1: pull the shot wide BEFORE the first hull moves, so the whole table and the
-  // water it is about to be driven across are on screen for the announcement. See stage.js stormCam.
-  if(window.__pp4&&window.__pp4.stormCam)window.__pp4.stormCam(dirKey);
+  stormCamForEvent(evStorm);
   await narrateLastEvent();
   // furthest downwind moves first, so the lead ship clears its square before the ship behind it
   // arrives — the engine owns that ordering too (rule 7b)
