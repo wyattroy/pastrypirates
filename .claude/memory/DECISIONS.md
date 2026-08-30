@@ -14,6 +14,15 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ## 2026-08-30 — the organisation
 
+**NEW INFORMATION ONLY. A SECOND RECAP IS MUCH SHORTER THAN THE FIRST.** Wyatt, 2026-08-30, after
+reading back through a run: *"you tend to verbosely repeat yourself multiple times when reporting
+back to me. This isn't necessary. Please only state new information to me. And if you need to recap
+something, recap it much shorter the second time."*
+
+**This does not loosen rule 3 — it sharpens it.** Plain English with the size stated is still the
+bar; saying the same thing three ways is not thoroughness, it is a reply he has to search for the
+new part of. **The one thing worth repeating is a correction of something already reported wrong.**
+
 **A TURN MAY NOT END ON AN OFFER.** Wyatt, 2026-08-30, after catching a stalled run himself:
 *"don't end on offers -- keep going."* The session had closed with *"Starting the checker now unless
 you want the tester first"*, spawned nothing, and sat idle until the container was reclaimed.
