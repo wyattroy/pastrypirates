@@ -92,7 +92,22 @@ console.log(`  before any tap: ${await C.ev(PREVIEW)}`);
 
 /* STEP 1 — tap the trade-wind square. The preview must APPEAR. This is the half that makes the
    next assertion meaningful: without a drawn preview, "it cleared" is vacuously true. */
-await tap(spot.sx, spot.sy);
+/* THE SAME RULE FOR THE FIRST TAP, WHICH I HAD APPLIED ONLY TO THE SECOND. CEO Review 28's rule is
+   that an instrument must assert it touched its subject in the same breath as its result — and I
+   guarded tap 2 and left tap 1 on a coordinate measured earlier in the loop. On a tree with the bug
+   reinstated that made the difference between a clean FAIL and an unhelpful NOT RUN: the first tap
+   missed, no preview was drawn, and the probe correctly refused — but refused about the wrong
+   thing. Re-measured and checked here, so "no preview appeared" can only ever mean the code did
+   not draw one. */
+const sw = await C.ev(`(()=>{const c=document.querySelector('.sailCell.sailSwept'); if(!c) return "gone";
+  const r=c.getBoundingClientRect();
+  const x=Math.round(r.left+r.width/2), y=Math.round(r.top+r.height/2);
+  const el=document.elementFromPoint(x,y), hit=el&&el.closest&&el.closest('.sailCell');
+  return JSON.stringify({x:x,y:y,onSwept:!!(hit&&hit.classList.contains('sailSwept'))});})()`);
+if (sw === "gone") { killAll(); console.log("\n=== NOT RUN — the trade-wind square vanished before it could be tapped."); process.exit(1); }
+const SW = JSON.parse(sw);
+if (!SW.onSwept) { killAll(); console.log(`\n=== NOT RUN — the point to be tapped is not on the trade-wind square, so a missing preview would prove nothing.`); process.exit(1); }
+await tap(SW.x, SW.y);
 await sleep(700);
 const shown = JSON.parse(await C.ev(PREVIEW));
 console.log(`  after tapping the trade-wind square: ${shown.n} preview element(s) ${shown.kinds.length ? "— " + shown.kinds.join(", ") : ""}`);
