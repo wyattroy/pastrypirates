@@ -106,7 +106,11 @@ const WATCH = `(()=>{
       (()=>{const b=document.getElementById("pp4Prompt");
         if(!b||vis!=="SHOWN")return "-";
         const q=b.getBoundingClientRect(); const cs=getComputedStyle(b);
-        return "box"+Math.round(q.top/20)*20+"h"+Math.round(q.height/20)*20+":"+cs.display+":"+cs.position;})(),
+        /* THE FALSIFIER I NAMED IN THE LEDGER, run rather than left standing. The hypothesis is
+           that #pp4Prompt is fixed with top:auto, so it sits at its STATIC position and its top is
+           a layout consequence that resolves a frame late. If cs.top reads auto in BOTH frames the
+           hypothesis holds; if it reads a px value, something is assigning it and I am wrong. */
+        return "box"+Math.round(q.top/20)*20+"h"+Math.round(q.height/20)*20+":"+cs.display+":"+cs.position+":top="+cs.top+":inline="+(b.style.top||"UNSET")+":tr="+(cs.transform==="none"?"none":"yes");})(),
       (()=>{const ap=document.getElementById("actionPanel");
         if(!ap||vis!=="SHOWN")return "-";
         const q=ap.getBoundingClientRect();
