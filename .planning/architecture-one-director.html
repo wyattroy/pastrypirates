@@ -168,7 +168,7 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
 
 <h2><span class="num">03</span><span>Where the modes go to die</span></h2>
 
-<p>Solo, pass-and-play, host and guest differ in exactly one respect: <strong>who answers a question.</strong> Nothing else. Not the rules, not the drawing, not the pacing.</p>
+<p><strong>Corrected 2026-08-30, by Wyatt.</strong> An earlier draft said the modes differ in exactly one respect. That was too clean and it was wrong: pass-and-play has a hand-over gate no other mode needs, and solo has a fast-forward that would be meaningless elsewhere. Those are real, intentional, and they are not going away. <strong>The corrected claim: modes differ in who answers, in how that answer is obtained, and in how the script is played &mdash; never in the script itself.</strong> Section 04 is where those three live.</p><p>The <em>first</em> of the three is the Decider, and it is the one that removes mode from the rules and the drawing entirely.</p>
 
 <pre><span class="c">// one interface, four implementations, zero branches anywhere else</span>
 askDecision(seat, question) → answer
@@ -181,7 +181,48 @@ askDecision(seat, question) → answer
 
 <p><strong>Mode becomes a table of Deciders, not a set of <code>if</code>s scattered through the code.</strong> The authority layer does not branch on mode; it asks. This is the whole structural answer to "how do all modes stay consistent" — you delete the concept of mode from every layer except the one line that chooses a Decider.</p>
 
-<h2><span class="num">04</span><span>And then there is no guest</span></h2>
+<h2><span class="num">04</span><span>Where intentional mode differences live</span></h2>
+
+<p>A mode difference is legitimate. A mode <em>fork</em> is not. The distinction has to be mechanical or it becomes a matter of taste, and taste does not survive two years of features. <strong>There are exactly three homes, and the codebase is already using two of them without having named them.</strong></p>
+
+<h3>1 &middot; The Decider &mdash; how an answer is obtained</h3>
+<p>Pass-and-play&rsquo;s hand-over modal belongs here. It is not a look; it is a <em>precondition on getting a decision from a seat</em>. Solo obtains an answer instantly, pass-and-play obtains it after the device changes hands, crew obtains it over the wire, a bot obtains it by thinking.</p>
+<p><strong>This is already how it is written.</strong> <code>src/ui/lobby.js:353</code> is a gate awaited before a seat acts that resolves immediately in every other mode:</p>
+<pre>if(!appState.passAndPlay || seatIdx===appState.mySeat) return Promise.resolve();</pre>
+<p>That is the Decider shape exactly. It only needs to move behind the interface and be named.</p>
+<div class="thesis"><p><strong>The rule:</strong> a Decider may draw whatever it needs &mdash; but it must <strong>emit no event</strong>. What leaves it, upward, is only the answer.</p></div>
+<p>A comment in <code>src/ui/audio.js:320</code> already observes this about the pass-and-play path, in these words: <span class="mono">&ldquo;no new event at all&rdquo;</span>. The invariant was discovered before it was written down.</p>
+
+<h3>2 &middot; Performer capabilities &mdash; how the script is played</h3>
+<p>Solo&rsquo;s fast-forward belongs here, and the measurement is unambiguous. Every site that reads <code>appState.ff</code> is a <strong>hold or a tick</strong> &mdash; a duration:</p>
+<div class="scroller">
+<table class="tbl">
+  <tr><th>Site</th><th>What fast-forward changes</th></tr>
+  <tr><td>flow.js:80</td><td><code>sleep()</code> &mdash; caps any wait at 40ms</td></tr>
+  <tr><td>flow.js:1184</td><td>the sail route tick</td></tr>
+  <tr><td>util.js:1049, 1117</td><td>narration and message holds &rarr; 0</td></tr>
+  <tr><td>stage.js:1388</td><td>a settle wait resolves at once</td></tr>
+</table>
+</div>
+<p><strong>Not one of them changes what is drawn, or in what order.</strong> Fast-forward is a playback rate, and playback rate is a property of the performer.</p>
+<div class="thesis"><p><strong>The rule:</strong> a capability may change <strong>rate, scale or emphasis &mdash; never content or order</strong>.</p></div>
+<p>Which yields something better than an exception. <strong>The capability is universal; only its <em>offer</em> is mode-gated</strong> &mdash; which is, again, already true: <code>stage.js:1229</code> shows the chip only when bots are up and the game is neither pass-and-play nor networked. So a replay, a spectator, and any future &ldquo;watch the recap&rdquo; get fast-forward for free rather than needing it built again. That is the difference between a special case and a capability.</p>
+
+<h3>3 &middot; The shell around the stage</h3>
+<p>The lobby, the room code, Leave game, the device-handover chrome. These may differ freely.</p>
+<div class="thesis"><p><strong>The rule:</strong> the shell may differ; the <strong>stage</strong> may not. And nothing in the shell may be a precondition for what happens on the stage.</p></div>
+
+<h3>The one-question test</h3>
+<p>For any mode-specific thing, ask:</p>
+<div class="thesis"><p><strong>If I removed this, would any <em>other</em> player&rsquo;s screen change?</strong></p></div>
+<ul>
+  <li><strong>Fast-forward</strong> &mdash; no. Legitimate.</li>
+  <li><strong>The hand-over modal</strong> &mdash; there is no other player in pass-and-play. Legitimate.</li>
+  <li><strong>The guest&rsquo;s camera pointing somewhere else</strong> &mdash; yes. That is a fork, and it is the bug.</li>
+</ul>
+<p>And the mechanical form of the same question, which a gate can run: <strong>does it emit an event?</strong> A mode-specific thing that emits no event is local by construction and cannot make two screens disagree. One that does emit an event is a fork wearing a feature&rsquo;s clothes.</p>
+
+<h2><span class="num">05</span><span>And then there is no guest</span></h2>
 
 <p>Once L2 produces an ordered event stream and L4 consumes storyboards, the network is merely <em>a way to move events from L2 to L4</em>.</p>
 
@@ -193,7 +234,7 @@ askDecision(seat, question) → answer
 
 <p>There is no guest code path to keep in sync, because there is no guest code path. That is the property you actually asked for, and it is the only version of it that survives a year of new features: not "we remember to update both," but "there is one."</p>
 
-<h2><span class="num">05</span><span>How it stays true — programmatically, not by hand</span></h2>
+<h2><span class="num">06</span><span>How it stays true — programmatically, not by hand</span></h2>
 
 <p>Three gates. Two of them already exist and only need re-pointing.</p>
 
@@ -202,13 +243,13 @@ askDecision(seat, question) → answer
   <tr><th>Gate</th><th>What it fails the build on</th><th>Status</th></tr>
   <tr><td>Layering</td><td>L4 importing L2. L3 referencing <code>document</code>. L1 importing anything from <code>ui/</code>.</td><td>Extend <code>module_graph_check.js</code></td></tr>
   <tr><td>Storyboard parity</td><td>Same seed through a solo client and a host+guest pair produces different <strong>storyboard sequences</strong>.</td><td>New — and the highest-value item here</td></tr>
-  <tr><td>No mode fork</td><td>Any <code>isHost</code> / <code>passAndPlay</code> branch inside L3 or L4.</td><td>Re-point <code>mode_fork_check.js</code></td></tr>
+  <tr><td>No mode fork</td><td>Any <code>isHost</code> / <code>passAndPlay</code> branch inside L3, or one inside L4 that changes storyboard <em>content or order</em> rather than rate. The three homes in &sect;04 are permitted by name.</td><td>Re-point <code>mode_fork_check.js</code></td></tr>
 </table>
 </div>
 
 <p><strong>The middle one deserves emphasis.</strong> It compares scripts, not pixels — so it is deterministic, fast, and runs on every commit. Every one of the fourteen problems from this morning's playtest would have failed it. That is the difference between a rule you believe in and a rule the repository enforces while you sleep.</p>
 
-<h2><span class="num">06</span><span>Migration — six steps that each ship</span></h2>
+<h2><span class="num">07</span><span>Migration — six steps that each ship</span></h2>
 
 <p>A big-bang rewrite is how this dies. Strangler fig instead: the new path grows alongside the old one, and the old one is deleted last.</p>
 
@@ -221,7 +262,7 @@ askDecision(seat, question) → answer
   <li><span class="t">Delete the old paths and turn the layering gate on strict.</span> Only now.</li>
 </ol>
 
-<h2><span class="num">07</span><span>Three things I would push back on</span></h2>
+<h2><span class="num">08</span><span>Three things I would push back on</span></h2>
 
 <h3>The determinism corpus will object, and it has a point</h3>
 <p>Putting the route onto an event changes what the engine emits, which by this project's own rules invalidates the replay corpus and forces a gated re-record. <strong>My recommendation is to avoid that entirely by splitting the event in two:</strong> a <em>canonical</em> part that determinism hashes, and a <em>presentation</em> payload attached to it that determinism ignores. That is a better distinction anyway — it stops presentation detail leaking into the definition of a legal game. But it is a decision, not a detail, and it is yours.</p>
