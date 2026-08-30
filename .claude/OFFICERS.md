@@ -18,6 +18,7 @@ against the repo on 2026-08-30 at build `2026.08.30.1`, not recalled.
 - **questions:** .planning/CTO-QUESTIONS.md
 - **lock:** .planning/.cto-lock
 - **never-touch:** CNAME, robots.txt, sitemap.xml, assets/
+- **fence:** .claude/hooks/cto-staging-only.cjs
 
 ## What an officer must know beyond the settings
 
@@ -42,13 +43,14 @@ wording, placement or "how much is enough" waits for him, however long that is.*
 **The trial report keeps a NOT-RUN column.** A leg that could not start is not a leg that passed,
 and the moment that column is dropped, "we tested it" becomes a lie.
 
-## The fence, and the fact that there are currently two
+## The fence
 
-This repo has its own production fence at `.claude/hooks/cto-staging-only.cjs`, registered in
-`settings.json`, and it works — measured 2026-08-30 against four spellings of the same push
-(`main`, `refs/heads/main`, `HEAD:refs/heads/main`, `main:refs/heads/main`), all four denied.
+**This repo runs its own**, at `.claude/hooks/cto-staging-only.cjs`, registered in `settings.json`.
+Wyatt's ruling, 2026-08-30: it survives and the portable one is not vendored here. It earned that
+— measured the same day against four spellings of the same push with a lock held (`main`,
+`refs/heads/main`, `HEAD:refs/heads/main`, `main:refs/heads/main`), all four denied.
 
-The vendored officers carry a second one at `.claude/officers/hooks/production-fence.mjs`, which
-is **not registered**. It is the portable one that receives fixes centrally. **Two fences doing one
-job is the drift this kit exists to prevent** — see the note in the ledger; which one survives is
-Wyatt's call, not a decision to make quietly.
+**The `fence:` key above is what makes that a mechanism rather than a memory.** `install.sh vendor`
+reads it, does not copy the portable fence into this repo, and deletes one if a previous run left
+it. Two fences doing one job is the drift this kit exists to prevent, so the choice is declared in
+the adapter rather than re-made by whoever vendors next.
