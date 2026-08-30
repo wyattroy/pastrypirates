@@ -110,6 +110,8 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
   <p>Today the turn loop performs it directly — and only one client runs the turn loop.</p>
 </div>
 
+<p><strong>The size of it, because "four layers" reads like a rewrite and is not one:</strong> three of the four layers already exist — the engine is pure, the orchestrator is the authority, <code>src/ui/</code> draws. <strong>This adds ONE new pure module and ONE rule about who may call whom</strong>, enforced by a gate that already runs. That is the whole change.</p>
+
 <p>Everything below follows from that one sentence. It is not a rewrite: measured this afternoon, <strong>the rules engine is already completely pure</strong> — <code>src/engine/index.js</code> contains zero references to host, guest, mode, the DOM or the network. The foundation is sound. What is tangled sits one storey up.</p>
 
 <h2><span class="num">01</span><span>What is actually wrong, measured</span></h2>
@@ -126,7 +128,18 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
 </table>
 </div>
 
-<p>Two consequences you have already seen with your own eyes. <strong>The camera:</strong> the instruction "look here" is issued twelve times inside the turn loop and is not an event, so it never crosses the wire — the host's camera is directed, the guest's is nudged. <strong>The route:</strong> the engine computes the real legal path through the water, hands it to the host's animation, and publishes an event containing the seat number and nothing else. The path is dropped on the floor.</p>
+<div class="warn">
+  <p class="lbl">Corrected 2026-08-30 by CEO review 31 — and it is the fault this document exists to prevent</p>
+  <p>This paragraph said <em>"the instruction 'look here' is issued <strong>twelve times</strong> inside the turn loop"</em>, and migration step 3 was sized on that sentence. <strong>The count was real and the meaning was invented.</strong> The twelve is <code>setActor</code>, which is one line — <code>src/ui/util.js:1822</code>, <code>export function setActor(s){appState.curSeat=s;}</code> — a state assignment, not a camera call. The camera door is <code>camToSeat</code>, and it is called <strong>zero</strong> times in <code>flow.js</code>.</p>
+  <p><strong>The rule that would have caught it, and now applies to every number in this document:</strong> a count names the exact string counted and the file it was counted in, in the same breath as the number. "12&times; <code>setActor</code> in <code>flow.js</code>" is checkable in four seconds. "Twelve camera cues" is not.</p>
+</div>
+
+<p><strong>The camera, correctly.</strong> It does not diverge because instructions fail to cross the wire. It diverges because <strong>there are two independent answers to "whose turn is it"</strong> — <code>appState.curSeat</code>, written only by <code>setActor</code> and therefore only on the client running the turn loop, and the engine's own <code>activeSeat</code>. The ribbon and the camera both read <code>curSeat</code>. <code>src/ui/board.js:1729-1737</code> already names it exactly: <em>"one fact, derived twice, kept in step by nothing."</em> That is a smaller and far more durable fix than moving twelve things onto the wire: <strong>derive whose turn it is from the event stream once, and the camera follows on both screens for free.</strong></p>
+
+<p><strong>The route:</strong> the engine computes the real legal path through the water, hands it to the host's animation, and publishes an event containing the seat number and nothing else. The path is dropped on the floor. <strong>And there are FOUR emitters, not three</strong> — the fourth is inside the pure engine at <code>src/engine/index.js:2748</code>, which means step 2 reaches into L1, the layer this plan says to leave alone. Named here so it does not stall the work on contact.</p>
+
+<h3>What already shipped, two days before this plan</h3>
+<p><strong>The single event consumer exists.</strong> <code>consumeEvent()</code> in <code>src/orchestrator.js:1554</code> is the one thing that draws an event, on every client, and the host's inline drawing was deleted. Its gate — <code>scripts/qa/one_event_consumer_check.mjs</code> — runs in <code>npm test</code>. <strong>An earlier draft of this document did not say so</strong>, which would have sized every step wrong and risked proposing something that already exists. What is <em>not</em> converged is everything the engine does not emit as an event: prompts, narration, the draft, turn order, recovery — and the two things above.</p>
 
 <h2><span class="num">02</span><span>Four layers, and one hard rule</span></h2>
 
@@ -159,6 +172,13 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
 
 <div class="thesis">
   <p><strong>The hard rule:</strong> calls only go down, facts only come up. L4 never calls L2. L3 never touches the DOM. L1 never learns a screen exists.</p>
+  <p><strong>And L3's inputs are pinned, which is the condition everything else rests on:</strong><br><code>storyboard = present(event, engineSnapshot)</code> — and <strong>nothing else</strong>.</p>
+</div>
+
+<div class="warn">
+  <p class="lbl">Added by CEO review 31 — without this the plan recreates its own fault</p>
+  <p>An earlier draft said L3 was "event in, storyboard out" and never said what else was in scope. <strong>If <code>present()</code> may read <code>appState</code></strong> — the live mutable object every file in <code>src/ui/</code> writes to — <strong>then it is not pure, the two clients hold different <code>appState</code> at the moment an event arrives, and the storyboards diverge on day one.</strong> The same fault, entering through the back door.</p>
+  <p>So the rule is mechanical, not a promise: <strong>L3 may not import from <code>src/state/</code> or <code>src/ui/</code></strong>, enforced in <code>scripts/module_graph_check.js</code>, which already exists and already runs.</p>
 </div>
 
 <p>That rule is what makes the structure survive people — including future sessions of me. A layer violation becomes a <em>mechanical</em> fault a gate can fail the build on, rather than a judgement call somebody has to notice in review.</p>
@@ -257,16 +277,23 @@ askDecision(seat, question) → answer
 
 <p>Three gates. Two of them already exist and only need re-pointing.</p>
 
+<p><strong>Six parity and convergence gates already run in <code>npm test</code></strong> — host/guest parity, mode fork, flip ceremony, one event consumer, ask-render convergence, draft-dispatch convergence. <strong>A seventh must say what those six cannot see, or it is decoration.</strong> What they cannot see: every one is an assertion about <em>source text</em>, so none can tell whether the two clients' <em>sequence of beats</em> agrees.</p>
+
 <div class="scroller">
 <table class="tbl">
   <tr><th>Gate</th><th>What it fails the build on</th><th>Status</th></tr>
-  <tr><td>Layering</td><td>L4 importing L2. L3 referencing <code>document</code>. L1 importing anything from <code>ui/</code>.</td><td>Extend <code>module_graph_check.js</code></td></tr>
-  <tr><td>Storyboard parity</td><td>Same seed through a solo client and a host+guest pair produces different <strong>storyboard sequences</strong>.</td><td>New — and the highest-value item here</td></tr>
+  <tr><td><strong>Layering</strong> &mdash; the highest-value item here</td><td>L3 importing <code>src/state/</code> or <code>src/ui/</code>. L4 importing L2. L1 importing anything from <code>ui/</code>.</td><td>Extend <code>module_graph_check.js</code>, which already runs</td></tr>
+  <tr><td>Storyboard golden file</td><td>A recorded event log fed through <code>present()</code> <strong>in one process</strong> produces a different storyboard than the snapshot on record. No browser, no network, no Firebase.</td><td>New</td></tr>
   <tr><td>No mode fork</td><td>Any <code>isHost</code> / <code>passAndPlay</code> branch inside L3, or one inside L4 that changes storyboard <em>content or order</em> rather than rate. The three homes in &sect;04 are permitted by name.</td><td>Re-point <code>mode_fork_check.js</code></td></tr>
 </table>
 </div>
 
-<p><strong>The middle one deserves emphasis.</strong> It compares scripts, not pixels — so it is deterministic, fast, and runs on every commit. Every one of the fourteen problems from this morning's playtest would have failed it. That is the difference between a rule you believe in and a rule the repository enforces while you sleep.</p>
+<div class="warn">
+  <p class="lbl">Respecified by CEO review 31 — the first version would have been switched off within a month</p>
+  <p>It was defined as <em>"the same seed through a solo client and a host+guest pair"</em>: a live, two-client, networked comparison needing Firebase, real timing and two browsers. <strong>All six existing parity gates are static assertions on source text, and that is not an oversight — it is what has held.</strong> A gate that flakes gets disabled, and a disabled gate is worse than no gate, because it was believed for a while.</p>
+  <p><strong>The version that cannot flake, and is stronger:</strong> if L3 is genuinely pure you do not need two clients to compare at all. Feed a recorded event log through <code>present()</code> in one process and snapshot the result. <strong>There is one <code>present()</code>, so both clients produce the same storyboard because they run the same function on the same events — parity becomes true by construction rather than by comparison.</strong></p>
+  <p>Which inverts the ordering: <strong>the layering gate is the highest-value item, because it is what makes the parity gate unnecessary.</strong> Keep the two-client byte comparison — but run it in the sea trial, not on every commit.</p>
+</div>
 
 <h2><span class="num">07</span><span>Migration — six steps that each ship</span></h2>
 
@@ -275,13 +302,26 @@ askDecision(seat, question) → answer
 <ol class="steps">
   <li><span class="t">Define the storyboard, and teach L4 to play one.</span> Route exactly one event kind — <code>sail</code> — through it, on every client. Nothing else changes.</li>
   <li><span class="t">Put the route on the event.</span> Delete the host-only animation call sites. The guest's boat starts sailing the actual water. First visible win.</li>
-  <li><span class="t">Move the camera cues into storyboards, one at a time.</span> Twelve of them. Each is small and independently verifiable.</li>
+  <li><span class="t">Make "whose turn is it" one fact, derived from the event stream.</span> <strong>Re-scoped by CEO 31</strong> — this said "move the camera cues into storyboards, twelve of them", which pointed at a function that is not the camera. The camera reads <code>appState.curSeat</code>; <code>curSeat</code> is written on one client only. Fix the fact and the camera follows on both screens.</li>
   <li><span class="t">Stand up the storyboard-parity gate</span> as soon as two event kinds are converted — early enough that it guards the rest of the migration rather than certifying it afterwards.</li>
   <li><span class="t">Introduce the Decider interface.</span> Convert solo first (simplest), then pass-and-play, then crew. Mode branches start disappearing.</li>
   <li><span class="t">Delete the old paths and turn the layering gate on strict.</span> Only now.</li>
 </ol>
 
-<h2><span class="num">08</span><span>Three things I would push back on</span></h2>
+<h2><span class="num">08</span><span>What this does not cover, named rather than discovered later</span></h2>
+
+<p>CEO review 31's list. A plan that names its own gaps is worth more than one that reads complete.</p>
+
+<ul>
+  <li><strong>Late-join and reconnection — the largest omission, and one Wyatt has already reported</strong> (a guest's director recovering only after a page refresh). A storyboard architecture makes this <em>worse</em> if unaddressed: a client joining at event 400 must not perform four hundred storyboards. It needs a hard distinction between <strong>catching up</strong> — apply the state, draw nothing — and <strong>performing live</strong>. <code>watchRecoveryState()</code> is the prior art.</li>
+  <li><strong>Bots.</strong> A bot's thinking time lives in the <em>Decider</em>, never in a beat. A duration invented inside L3 is the first crack in its purity.</li>
+  <li><strong>Audio.</strong> A sound is a beat with a duration. Unnamed, it gets bolted onto L4 as a side channel — and a side channel is a second stream. <strong>Make it a beat kind on day one.</strong></li>
+  <li><strong>The bake-off</strong> has its own choreography in <code>src/engine/bakeoff.js</code>; End of Voyage has its own card and award list, both under live rulings.</li>
+</ul>
+
+<p><strong>And one point in the plan's favour that it failed to claim:</strong> the determinism objection below is currently <em>inert</em> — <code>package.json</code> marks <code>test:determinism</code> "BROKEN BY THE CUTOVER". The corpus is not a working guard today, which makes the canonical/presentation split <strong>cheaper to do now, not more expensive.</strong></p>
+
+<h2><span class="num">09</span><span>Three things I would push back on</span></h2>
 
 <h3>The determinism corpus will object, and it has a point</h3>
 <p>Putting the route onto an event changes what the engine emits, which by this project's own rules invalidates the replay corpus and forces a gated re-record. <strong>My recommendation is to avoid that entirely by splitting the event in two:</strong> a <em>canonical</em> part that determinism hashes, and a <em>presentation</em> payload attached to it that determinism ignores. That is a better distinction anyway — it stops presentation detail leaking into the definition of a legal game. But it is a decision, not a detail, and it is yours.</p>
