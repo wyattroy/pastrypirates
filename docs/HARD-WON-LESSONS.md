@@ -1638,3 +1638,47 @@ gets quoted back, and it is the one nobody measured.
 before the fix shipped. The matched-pair screenshots caught #2. A fresh-context CEO opening a file
 the author never opened caught #3 — *after* two honest self-corrections had already been made in
 the same document, which is precisely why rule 25 cannot be replaced by being careful.
+
+### §12i — A GATE BUILT INSTEAD OF THE WORK MUST BE THE HARDEST GATE YOU WRITE, NOT THE EASIEST
+
+**2026-08-31.** Asked to build the Decider interface, I measured first, found most of its machinery
+already present, decided the rename carried risk with no player gain, and **wrote a gate to lock
+the existing structure instead.** That decision is defensible. What happened next is not, and it is
+the reusable part:
+
+**The gate could not fail for the change it named.** It typed the rule and its seven expected rows
+in as literals and asserted against its own private copy. A fresh reviewer broke it in one line —
+appending `|| appState.isHost` to the real `decisionIsLocal` left every case green while the single
+row the gate existed to protect was broken. I planted it myself to check: green.
+
+**THE PATTERN, AND IT IS SPECIFIC ENOUGH TO WATCH FOR.** When you substitute a gate for work you
+were asked to do, the gate is carrying the *entire* argument for the substitution. That is the
+moment to make it the strictest thing in the suite — and it is exactly the moment the temptation
+runs the other way, because a gate over code you are not changing is easy to write green and there
+is no failing behaviour pushing back on it. **A gate written to justify not doing something has no
+natural adversary. You have to be its adversary.**
+
+**The fix was not a better regex — it was making the rule RUNNABLE.** The predicate lived in a file
+that reaches `appState` and the DOM, so no headless gate could import it; typing out a copy was the
+path of least resistance and the root cause. Extracting it into the pure tier let the gate import
+and run *the same function the game runs*. **If a gate cannot execute its subject, it is asserting
+about a copy — and a copy is the thing that drifts.**
+
+**Three smaller things fell out of it, each worth its own line:**
+
+- **The purity gate then caught the extraction carrying a MODE'S NAME into the pure tier**
+  (`passAndPlay` as a parameter). It is `sharedDevice` now — a capability, not a mode. Mode leaking
+  one tier down, on the day a plan about removing that leak was being built, caught by a counter
+  that did not know why it was right.
+- **"Delegates to the pure rule" was not a strong enough assertion.** `return isDecisionLocal({…})
+  || appState.isHost;` delegates *and* changes the answer. The assertion has to be that the wrapper
+  returns the pure call **and nothing else** — read by paren balance, because the brace-naive regex
+  that replaced it failed a perfectly good wrapper.
+- **A fixture without its recorder is data nobody can re-make.** The events were committed; the
+  script that produced them was not. It can be re-compared forever and never refreshed, so the day
+  the engine legitimately changes the only options are hand-editing recorded data or deleting the
+  gate. **Commit the recorder with the recording.**
+
+**And the honest report is the other half.** *"Step 5 is done"* and *"step 5 should not be built as
+written, here is the weaker thing I put in its place"* are different sentences, and only the second
+one was true. The first is what I wrote until a reviewer with fresh eyes read the tree.
