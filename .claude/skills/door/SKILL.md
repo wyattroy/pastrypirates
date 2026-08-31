@@ -49,6 +49,13 @@ node scripts/wyclau/glass.mjs --note "<what this session is starting>"
   answer: answer from the record, name the ruling, keep going.
 - **Pulse at least every 20 minutes** while working (`glass.mjs --note`), and at every item
   boundary. The watchdog reads the pulse; a silent session is a dead session.
+- **HARVEST BEFORE EVERY GLASS REPUBLISH (v2 — the page is two-way).** Wyatt writes ideas
+  directly on the Glass; they live in the page's `glassState.ideas` until moved. Before
+  republishing: read the live artifact (Artifact tool, `action: "read"`, the URL glass.mjs
+  prints), copy every `ideas[]` entry into the Chart's IDEA INBOX with a recommendation, commit
+  — THEN regenerate and republish. **A republish without the harvest deletes his words.** An
+  artifact-changed notification for the Glass means he wrote something: harvest it promptly and
+  give it a fate.
 - **AND REPUBLISH THE GLASS at every item boundary** — writing `glass.html` is only half of it.
   The page Wyatt reads is an artifact, and only a session can push the file to it; `glass.mjs`
   prints the URL every run. On 2026-08-31 the local page was minutes old while the published one

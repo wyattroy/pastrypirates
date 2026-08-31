@@ -36,7 +36,7 @@ step 2). Wyatt's five-item bar is step 3.
 - [ ] Memory consolidation: five homes → one + pointers *(same quiet moment)*
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record *(same quiet moment)*
 - [ ] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling)
-- [ ] **Glass v2 — the two-way interface** (ideas/feedback box on the page; page saves itself; sessions woken by his writes) *(SCHEDULED: today, after the Razer hour — his pick 2026-08-31)*
+- [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
 - [ ] wyclau source moves to claude-kit as the kit's first module; pastrypirates vendors it *(his pick 2026-08-31)*
 
 ## BLOCKED ON WYATT

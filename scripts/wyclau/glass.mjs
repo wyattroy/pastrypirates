@@ -12,6 +12,24 @@
 //
 // Honesty rule: a source that cannot be read renders as "unreadable: <why>" — never as empty
 // success. (A status page that fails open is a gate aimed at the wrong tree.)
+//
+// V2 — THE PAGE IS TWO-WAY (Wyatt's ruling, 2026-08-31: "it becomes our interface").
+// The page carries a JSON state block and, when Wyatt writes an idea on it, rebuilds its own
+// full document with the idea appended and SAVES ITSELF as the new artifact version (the
+// "artifact" runtime capability). Sessions watching the artifact are woken by that save.
+//
+// ⚠ THE HARVEST RULE, AND WHY IT IS LOAD-BEARING: an idea Wyatt writes on the page lives ONLY
+// in the page's state until a session moves it into .planning/CHART.md ("THE IDEA INBOX").
+// This script regenerates the page with an EMPTY page-ideas list — it cannot read the live
+// artifact. So: REPUBLISHING WITHOUT HARVESTING FIRST DELETES HIS UNHARVESTED IDEAS. Before
+// any republish: read the artifact (Artifact tool, action "read"), copy every entry of the
+// page's glassState.ideas into the Chart inbox, commit, THEN regenerate and republish. The
+// Door states this step; this comment is for whoever reads the code instead.
+//
+// Publishing note: the page needs the "artifact" capability to save itself. The declaration is
+// stored with the artifact and carries forward automatically on every later publish that omits
+// `capabilities` — it only needs passing once (capabilities: {artifact: {}}), or again if the
+// page reports it cannot save.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -51,9 +69,9 @@ const commits = logRaw === null
   : logRaw === "" ? [] : logRaw.split("\n").map((l) => { const [h, ...s] = l.split("\t"); return { h, s: s.join("\t") }; });
 const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git failed";
 
-// --- the Chart: checklist tallies + blocked-on-Wyatt + inbox ---
+// --- the Chart: checklist tallies + blocked-on-Wyatt + inbox items ---
 const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
-let checklist = null, blocked = null, inboxCount = null;
+let checklist = null, blocked = null, inboxItems = null;
 if (chart !== null) {
   const done = (chart.match(/^- \[x\]/gim) || []).length;
   const open = (chart.match(/^- \[ \]/gim) || []).length;
@@ -65,7 +83,7 @@ if (chart !== null) {
     .filter((c) => c.length >= 2)
     .map(([q, rec, since]) => ({ q, rec, since: since ?? "" }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
-  inboxCount = /\(empty/.test(inboxSec) ? 0 : (inboxSec.match(/^[-*] /gm) || []).length;
+  inboxItems = /\(empty/.test(inboxSec) ? [] : (inboxSec.match(/^[-*] .*$/gm) || []).map((l) => l.replace(/^[-*] /, ""));
 }
 
 // --- restarts (the watchdog appends here) ---
@@ -77,7 +95,17 @@ const rows = (list, empty) => list === null
   : list.length === 0 ? `<p class="muted">${empty}</p>`
   : `<ul>${list.map((x) => `<li>${x}</li>`).join("")}</ul>`;
 
-const html = `<title>The Glass</title>
+// --- v2 state: what the page needs to rebuild itself. A fresh generation always starts with an
+// EMPTY ideas list — page-born ideas must already have been harvested to the Chart (see header).
+const state = { v: 2, generatedAt: nowIso, ideas: [] };
+
+/* THE PAGE, WITH TWO TOKENS. __GLASS_STATE__ is replaced by the state JSON; __GLASS_TPL__ by a
+   JS string literal holding the FULL-DOCUMENT template (tokens intact) so the page can rebuild
+   and save itself. Substitution order and document order are load-bearing: the state block sits
+   BEFORE the client script, and .replace() takes the first occurrence, so the copies of the
+   tokens embedded inside the TPL string are never touched by mistake. The client script uses no
+   backticks and no ${} so this outer template literal stays honest. */
+const PAGE = `<title>The Glass</title>
 <style>
   :root{--bg:#eef0ea;--surface:#f8f9f5;--ink:#182720;--muted:#57675c;--line:#c9d0c5;
     --accent:#0f6b52;--ok:#0f6b52;--stale:#8a3b2a;--warn-bg:#f3e2dc;--signal:#8a6d1a;}
@@ -104,7 +132,14 @@ const html = `<title>The Glass</title>
   td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top;}
   .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:2.2rem;}
   .count{font-weight:700;color:var(--signal);}
+  #ideaText{width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:.7rem;font:inherit;resize:vertical;}
+  #ideaSend{margin-top:.5rem;background:var(--accent);color:var(--bg);border:none;border-radius:8px;
+    padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;}
+  #ideaSend:disabled{opacity:.5;cursor:default;}
+  #ideaText:focus-visible,#ideaSend:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 </style>
+<script type="application/json" id="glassState">__GLASS_STATE__</script>
 <div class="sheet">
   <h1>The Glass</h1>
   <p class="muted">Pastry Pirates — the engine's one honest window. Branch <code>${esc(branch)}</code>.</p>
@@ -114,6 +149,15 @@ const html = `<title>The Glass</title>
     <div class="age" id="age">—</div>
     <div class="note">Now: ${esc(note)}</div>
   </div>
+
+  <h2>Write to Claude</h2>
+  <p class="muted" id="ideaCapNote">Checking whether this view can save…</p>
+  <div id="ideaForm" hidden>
+    <textarea id="ideaText" rows="3" placeholder="An idea, feedback, a bug you noticed — any words. It lands on the Chart and gets a fate."></textarea>
+    <button id="ideaSend" type="button">Send to the Chart</button>
+    <p class="muted" id="ideaStatus"></p>
+  </div>
+  <div id="ideaList"></div>
 
   <h2>Shipped today (${commits === null ? "?" : commits.length} commits)</h2>
   ${commits === null ? `<p class="bad">unreadable: git log failed</p>`
@@ -129,8 +173,9 @@ const html = `<title>The Glass</title>
   ${checklist === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
     : `<p><span class="count">${checklist.done}</span> done · <span class="count">${checklist.open}</span> open — detail in <code>.planning/CHART.md</code></p>`}
 
-  <h2>Idea inbox</h2>
-  <p>${inboxCount === null ? `<span class="bad">unreadable</span>` : inboxCount === 0 ? `<span class="muted">Empty — drop ideas into any session in any words.</span>` : `<span class="count">${inboxCount}</span> waiting for a fate.`}</p>
+  <h2>On the Chart, awaiting a fate</h2>
+  ${inboxItems === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+    : rows(inboxItems.map(esc), "The Chart inbox is empty.")}
 
   <h2>Watchdog restarts (last 5)</h2>
   ${rows(restarts.map(esc), "None recorded — either no stalls, or the watchdog isn't live yet (see the Chart).")}
@@ -139,7 +184,13 @@ const html = `<title>The Glass</title>
 </div>
 <script>
   (function(){
-    var t = new Date("${nowIso}");
+    "use strict";
+    var state;
+    try { state = JSON.parse(document.getElementById("glassState").textContent); }
+    catch (e) { state = { v: 2, generatedAt: "${nowIso}", ideas: [] }; }
+
+    // --- freshness (the engine's clock, untouched by page saves: an idea is not engine progress)
+    var t = new Date(state.generatedAt);
     function tick(){
       var m = Math.floor((Date.now() - t.getTime())/60000);
       var el = document.getElementById("age"), v = document.getElementById("verdict"), p = document.getElementById("pulse");
@@ -149,26 +200,107 @@ const html = `<title>The Glass</title>
       p.className = stale ? "pulse stale" : "pulse";
     }
     tick(); setInterval(tick, 30000);
+
+    // --- the two-way half: the page rebuilds and saves itself with a new idea appended.
+    var TPL = __GLASS_TPL__;
+    function jsEsc(s){ return JSON.stringify(s).replace(/</g, "\\u003c"); }
+    // Function-form replacements, both here and in the generator: a plain string replacement
+    // interprets "$&"-style sequences inside the inserted value, and idea text is user text.
+    function buildDoc(st){
+      var d = TPL;
+      d = d.replace("__GLASS_TPL__", function(){ return jsEsc(TPL); });
+      // The state block is a JSON <script>, so it takes raw JSON text with "<" made safe —
+      // < is a legal escape inside JSON strings, and "<" can only occur inside strings.
+      d = d.replace("__GLASS_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\u003c"); });
+      return d;
+    }
+
+    function renderIdeas(){
+      var box = document.getElementById("ideaList");
+      while (box.firstChild) box.removeChild(box.firstChild);
+      if (!state.ideas.length) return;
+      var h = document.createElement("p"); h.className = "muted";
+      h.textContent = "Written here, waiting for a session to harvest to the Chart:";
+      box.appendChild(h);
+      var ul = document.createElement("ul");
+      state.ideas.forEach(function(i){
+        var li = document.createElement("li");
+        li.textContent = i.text + "  (" + i.at.slice(0, 16).replace("T", " ") + "Z)";
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    renderIdeas();
+
+    // Draft guard: a save that conflicts reloads the page and drops the edit; the draft brings
+    // his words back instead of eating them. Every touch is try/caught — storage can throw.
+    var DRAFT = "glassIdeaDraft";
+    function getDraft(){ try { return localStorage.getItem(DRAFT) || ""; } catch (e) { return ""; } }
+    function setDraft(v){ try { v ? localStorage.setItem(DRAFT, v) : localStorage.removeItem(DRAFT); } catch (e) {} }
+
+    var capNote = document.getElementById("ideaCapNote");
+    var form = document.getElementById("ideaForm");
+    var text = document.getElementById("ideaText");
+    var send = document.getElementById("ideaSend");
+    var status = document.getElementById("ideaStatus");
+
+    var saved = state.ideas.some(function(i){ return i.text === getDraft(); });
+    if (saved) setDraft("");
+    text.value = getDraft();
+    text.addEventListener("input", function(){ setDraft(text.value); });
+
+    var cap = null;
+    var useFn = (window.claude && window.claude.use) ? window.claude.use.bind(window.claude) : null;
+    (useFn ? useFn("artifact") : Promise.resolve(null)).then(function(a){
+      cap = a;
+      if (cap) { capNote.hidden = true; form.hidden = false; }
+      else { capNote.textContent = "This view can’t save to the page (preview, or the grant is missing) — but any idea still reaches Claude if you say it in any session."; }
+    });
+
+    send.addEventListener("click", function(){
+      var v = text.value.trim();
+      if (!v || !cap) return;
+      send.disabled = true; status.textContent = "Saving to the page…";
+      var st = JSON.parse(JSON.stringify(state));
+      st.ideas.push({ id: "i" + Date.now(), text: v, at: new Date().toISOString() });
+      cap.publish(buildDoc(st)).then(function(){
+        // Success reloads every open view to the new version; the draft clears itself on load.
+      }).catch(function(e){
+        send.disabled = false;
+        status.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your words are kept as a draft here — try again, or just tell a session.";
+      });
+    });
   })();
 </script>
 `;
+
+/* The full-document shape, for the page's own saves — the artifact capability requires a complete
+   document, doctype first. The tool-published fragment and this wrapper share PAGE by
+   construction, so the two shapes cannot drift. */
+const FULLDOC = `<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+${PAGE}
+</body></html>`;
+
+const jsEsc = (s) => JSON.stringify(s).replace(/</g, "\\u003c");
+const stateJson = JSON.stringify(state).replace(/</g, "\\u003c");
+// Order is load-bearing (see the PAGE comment): TPL first, then the first state token.
+// Function-form replacements so "$&"-style sequences in the values are inserted literally.
+const html = PAGE
+  .replace("__GLASS_TPL__", () => jsEsc(FULLDOC))
+  .replace("__GLASS_STATE__", () => stateJson);
+
 writeFileSync(OUT, html);
 console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}`);
 console.log(`note: ${note}`);
 
-/* WRITING THE PAGE IS NOT PUBLISHING IT, AND THAT GAP HAD NO OWNER UNTIL 2026-08-31.
-   This script writes glass.html to disk. The page WYATT reads lives at the URL below, and only a
-   session holding the Artifact tool can push one to the other -- a hook cannot, so this cannot be
-   automated the way LAST-ACTIVITY was. For most of that day the local page was minutes old while
-   the published one sat at 12:16Z, and Wyatt is the one who noticed: "the published page is stale
-   from 12:16Z while the local one is fresh."
-
-   TWO THINGS WENT WRONG AND ONLY ONE WAS FORGETFULNESS. The republish step existed solely as a
-   sentence in a comment at the top of this file, and THE URL WAS WRITTEN DOWN NOWHERE IN THE REPO
-   -- so a session that did remember still could not act without going and listing every artifact
-   on the account. An instruction whose target cannot be found is not an instruction. */
 console.log(`
 REPUBLISH THE GLASS -- writing the file is only half of it:`);
 console.log(`  ${GLASS_URL}`);
+console.log(`  ⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas entries into`);
+console.log(`  .planning/CHART.md's IDEA INBOX before republishing — a republish without the`);
+console.log(`  harvest DELETES his unharvested ideas (this page always regenerates with none).`);
 console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). Do it at every item`);
 console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);
+console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
+console.log(`  capabilities {artifact:{}} on a fresh publish, or if the page says it can't save.)`);
