@@ -46,3 +46,45 @@ I have not yet looked at what the game PRODUCES.
 
 A check that asserts both ring sites derive the seat from the same event list. On the tree as it
 stands it must FAIL, naming the two lists. If it passes now, my reading of the code is wrong.
+
+---
+
+## THE RESULT — 2026-08-31
+
+**Falsifier 1 (can both sites draw the ring in one session?) — DID NOT HOLD.** `:1479` is inside
+`renderLiveShips()` (exported, called from `src/ui/flow.js:1388` for storm-square ship moves);
+`:1776` is inside `render()` (exported). Both are live. The divergence is real.
+
+**Falsifier 3 (is the wider list load-bearing elsewhere?) — DID NOT HOLD.** After the fix,
+`grep` finds **no consumer in `src/` naming `TURN_ESTABLISHING` at all.** Nothing else read it.
+
+**THE RULE DIVERGENCE IS MEASURED, not reasoned about.** On the stream
+`[newround, turn p1, sail p1, ovens p3, bake p3]`:
+
+```
+renderLiveShips() (TURN_ONLY)              -> seat 1
+render()          (no option -> default)   -> seat 3
+```
+
+The ring sat on a **different boat** depending on which path last drew it.
+
+**FALSIFIER 2 IS STILL OPEN, AND I AM SAYING SO RATHER THAN QUIETLY DROPPING IT.** I have NOT
+proven what a player sees during a bake — whether the ring is visible at that moment at all. My
+pose attempt **never started a game** (the name modal did not submit), and it reported
+`NEVER REACHED A BAKE — instrument did not reach its subject` rather than measuring the title
+screen and calling it a bake. That guard is there because the last item was caught doing exactly
+that.
+
+**Why the fix is still right with F2 open:** it implements Wyatt's ruling, and it removes a state
+where one visual had two answers — which cannot be correct under any ruling. What F2 would change
+is only **how big I am allowed to say the player-visible impact is**, and the honest answer today
+is *unproven on screen*. That is precisely the distinction HARD-WON-LESSONS §12h was written for
+this morning: "this is broken" and "every player sees this" are different claims needing different
+evidence.
+
+## AND THE TRAP WAS CLOSED AT SOURCE, not just at the two call sites
+
+`render()` did not pass the wrong list — **it passed no list**, and an omitted option was silently
+the wider one. `deriveActiveSeat` now THROWS if you do not say which question you are asking.
+A default nobody deliberately chose is a trap with no user; every caller in `src/` already states
+its list, so nothing legitimate loses anything.

@@ -36,11 +36,15 @@ export const TURN_BOUNDARY = Object.freeze(["newround"]);
    Two callers ask only "who last took the wheel", ignoring the bake: board.js's activeTurnSeat()
    (the ripple ring that follows a ship) and util.js's currentTurnSeat(). Passing this keeps their
    answer byte-for-byte what it was while giving them the SAME WALK as everyone else.
-   WHETHER THEY SHOULD BE WIDENED TO TURN_ESTABLISHING IS A DESIGN CALL FOR WYATT, NOT A PATCH.
-   Widening the ring means it would move to the captain at the ovens during a bake. That may well
-   be right — board.js's own note at render() calls the split "rule 23's shape exactly" — but it
-   changes what a player sees during a bake and nobody has measured it. Left visible here, at one
-   call site each, rather than buried in three private copies where nobody could see the split. */
+   RULED, 2026-08-31. Wyatt: **"no ripple ring in the ovens."** So TURN_ONLY is the ring's answer,
+   and this is no longer an open question — do not reopen it as a patch.
+   WHAT THE RULING FIXED, because the split was worse than the note above realised: render() was
+   NOT passing a list at all, and an omitted option is not "no answer" — it is the DEFAULT answer,
+   TURN_ESTABLISHING. So one of the two ring sites already counted the bake. On the stream
+   [newround, turn p1, sail p1, ovens p3, bake p3] the two sites returned seat 1 and seat 3.
+   The ring sat on a different boat depending on which path last drew it. Both now pass TURN_ONLY
+   explicitly, and scripts/qa/ripple_one_answer_check.mjs fails the build if they come apart —
+   asserting AGREEMENT first and his ruling second, so a reversal moves both together. */
 export const TURN_ONLY = Object.freeze(["turn"]);
 
 /* HOW FAR BACK. Also carried over from board.js unchanged. A bound, not a tuning constant:
@@ -81,7 +85,16 @@ export function normalizeSeat(seat, seatCount) {
 export function deriveActiveSeat(events, playhead, opts) {
   if (!Array.isArray(events)) return null;
   const lookback = (opts && Number.isInteger(opts.lookback)) ? opts.lookback : DEFAULT_LOOKBACK;
-  const establishing = (opts && Array.isArray(opts.establishing)) ? opts.establishing : TURN_ESTABLISHING;
+  /* NO SILENT DEFAULT. Every caller in src/ states its list, and the one that DIDN'T is the whole
+     reason the ripple ring had two answers (2026-08-31): an omitted option looked like "no opinion"
+     and was in fact an opinion, the wider one. A default that is never deliberately chosen is a
+     trap with no user, so asking without saying which question you mean is now an ERROR rather
+     than a guess. This is the same lesson as rule 9 from the other side: the danger is not only a
+     hardcoded constant, it is a constant nobody realises they are using. */
+  if (!opts || !Array.isArray(opts.establishing)) {
+    throw new TypeError("deriveActiveSeat: say which events establish a turn — pass {establishing: TURN_ONLY} or {establishing: TURN_ESTABLISHING}. An omitted list used to mean TURN_ESTABLISHING silently, and that is how the ripple ring came to have two answers.");
+  }
+  const establishing = opts.establishing;
   const start = Number.isInteger(playhead) ? Math.min(playhead, events.length - 1) : -1;
   for (let i = start; i >= 0 && i > start - lookback; i--) {
     const e = events[i];

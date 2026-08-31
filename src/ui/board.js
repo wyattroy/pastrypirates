@@ -1775,7 +1775,17 @@ export function render(){
      establish a turn, the round boundary that stops the walk, and the 80-event bound are all
      unchanged; they now have one spelling instead of a copy per reader. The `done` filter below
      stays here, because it reads render state and the derivation must not. */
-  let active=deriveActiveSeat(appState.game.events,appState.evIdx);
+  /* TURN_ONLY, EXPLICITLY — Wyatt, 2026-08-31: "no ripple ring in the ovens."
+     THIS LINE USED TO OMIT THE OPTION, and an omitted option is not "no answer", it is the DEFAULT
+     answer: TURN_ESTABLISHING, which counts `ovens` and `bake`. renderLiveShips() passed TURN_ONLY.
+     So the ring sat on a DIFFERENT BOAT depending on which path last drew it — measured, not
+     reasoned about: on the stream [newround, turn p1, sail p1, ovens p3, bake p3] this line
+     returned seat 3 and activeTurnSeat() returned seat 1.
+     One thing a player looks at, two answers, kept in step by nobody — rule 23, and the reason the
+     option is now SPELLED OUT here rather than inherited. The gate that forbids it coming apart
+     again is scripts/qa/ripple_one_answer_check.mjs, and it asserts AGREEMENT first and his ruling
+     second: if he reverses himself, both sites move together and it stays green. */
+  let active=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
   if(active!=null&&st[active].done)active=null;
   if(activeRing){
     if(active!=null){
