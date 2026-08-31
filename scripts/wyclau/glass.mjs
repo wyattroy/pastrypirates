@@ -133,12 +133,21 @@ const tryReadTimestamp = (p) => {
    STATIC once published — its numbers tick forward from references frozen at generation time, and
    no reference computed here can retroactively reflect work that happens AFTER this run. So this
    fix cannot make an unpublished-for-hours page stop looking stale; only actually republishing can
-   (see mark_glass_published.mjs and scripts/qa/glass_publish_lag_check.mjs — the mechanical half of
-   "make publishing part of pulsing"). What THIS fix does: "last progress" is read from REAL
-   evidence — the watchdog's own signal, the newer of HEARTBEAT and LAST-ACTIVITY — read BEFORE
-   this run overwrites HEARTBEAT, so the act of running glass.mjs itself is never mistaken for
-   progress. An administrative re-run with no real work behind it now correctly shows an OLDER
-   "last progress" than "page published", instead of both reading falsely fresh together. */
+   (see mark_glass_published.mjs, and the publish-lag brake in
+   .claude/hooks/wyclau-stop-keep-working.cjs — the mechanical half of "make publishing part of
+   pulsing", moved there from npm test by CEO Review 52: it had been wired into the game's own
+   release gate, so a stale DASHBOARD could block a real GAME fix from reaching players).
+   ⚠ CORRECTED, CEO Review 52: an earlier version of this comment claimed an administrative re-run
+   "now correctly shows an OLDER last progress than page published" as a settled behaviour. Measured
+   instead of assumed: `.claude/hooks/wyclau-pulse.cjs` stamps LAST-ACTIVITY on EVERY tool call by
+   ANY session, rate-limited to once a minute — so on any page a LIVE session generates, the two
+   numbers are typically within about a minute of each other, and the distinction is real but small
+   in the common case. It matters for the case this was actually built for: a page regenerated after
+   real work had already gone quiet for a while (lastActivityAt genuinely old), not as a general
+   "narration vs evidence" gap during active work. What THIS fix does: "last progress" is read from
+   REAL evidence — the newer of HEARTBEAT and LAST-ACTIVITY, read BEFORE this run overwrites
+   HEARTBEAT, so the act of running glass.mjs itself is never, by construction, mistaken for
+   progress on its own. */
 const prevHeartbeatAt = tryReadTimestamp(HEARTBEAT);
 const lastActivityAt = tryReadTimestamp(LAST_ACTIVITY);
 const lastProgressMs = Math.max(prevHeartbeatAt ?? 0, lastActivityAt ?? 0) || null;
@@ -635,3 +644,7 @@ console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). D
 console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);
 console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
 console.log(`  capabilities {artifact:{}} on a fresh publish, or if the page says it can't save.)`);
+console.log(`  ⚠ THEN RUN: node scripts/wyclau/mark_glass_published.mjs`);
+console.log(`  This is the OTHER HALF of "publishing is part of pulsing" (CEO Review 52) — the`);
+console.log(`  keep-working Stop hook checks the gap it records and will block a stale, unpublished`);
+console.log(`  pulse. Skipping this step is skipping the whole mechanism, not a shortcut past it.`);

@@ -60,6 +60,10 @@ node scripts/wyclau/glass.mjs --note "<what this session is starting>"
   The page Wyatt reads is an artifact, and only a session can push the file to it; `glass.mjs`
   prints the URL every run. On 2026-08-31 the local page was minutes old while the published one
   sat at 12:16Z all day, and HE is the one who noticed. A pulse he cannot see is not a pulse.
+- **THEN RUN `node scripts/wyclau/mark_glass_published.mjs`** — the other half of the same fix.
+  A plain script cannot call the Artifact publish tool itself, so this is how a real publish gets
+  recorded; the keep-working Stop hook checks the gap it leaves and blocks a stale, unpublished
+  pulse (CEO Review 52 moved this OUT of `npm test` — it must never gate the game's own release).
 
 ## 5. Close
 

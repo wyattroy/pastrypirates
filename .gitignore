@@ -83,6 +83,7 @@ w1-crewphone-recheck/
 .planning/wyclau/LAST-LAUNCH
 .planning/wyclau/LAST-ACTIVITY
 .planning/wyclau/LAST-PUBLISH
+.planning/wyclau/STOP-HOOK-STATE.json
 
 # Claude Code local settings are MACHINE-LOCAL by design (the file even points at
 # /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history

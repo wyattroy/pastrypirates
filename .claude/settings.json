@@ -117,6 +117,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/org/hooks/no-idle-offer.cjs\"",
             "timeout": 10,
             "statusMessage": "Does this turn end on an offer? An offer ends the run"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/wyclau-stop-keep-working.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Is there unblocked Chart work, a preemption, or a stale Glass pulse?"
           }
         ]
       }
