@@ -73,6 +73,7 @@ import { hostname } from "node:os";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
 const HEARTBEAT = join(WY, "HEARTBEAT");
+const LAST_ACTIVITY = join(WY, "LAST-ACTIVITY");
 const RESTARTS = join(WY, "restarts.log");
 /* THE PAGE WYATT ACTUALLY READS. Recorded here because it was recorded nowhere, and a session
    cannot republish what it cannot find. If this ever moves, change it here and nowhere else. */
@@ -115,11 +116,37 @@ const note = (() => {
    never be mistaken for a page that has actually been published with fake blockers. */
 const DEMO = argv.includes("--demo");
 
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const tryReadTimestamp = (p) => {
+  let raw;
+  try { raw = readFileSync(p, "utf8"); } catch { return null; }
+  const iso = raw.split("\t")[0]?.trim();
+  const t = iso ? Date.parse(iso) : NaN;
+  return Number.isFinite(t) ? t : null;
+};
+
+/* LAST PROGRESS VS PAGE PUBLISHED — Wyatt, 2026-08-31: the Glass was showing the page's own AGE
+   as if it were the WORKER's age. At 19:55Z it read "🔴 54 min ago" while a commit had landed 12
+   minutes earlier — a false alarm on a healthy engine, because the old code drove the dot from
+   `state.generatedAt` (when this HTML was written), not from any evidence that work happened.
+   ⚠ WHAT THIS CAN AND CANNOT FIX, so nobody re-derives false confidence from it: this page is
+   STATIC once published — its numbers tick forward from references frozen at generation time, and
+   no reference computed here can retroactively reflect work that happens AFTER this run. So this
+   fix cannot make an unpublished-for-hours page stop looking stale; only actually republishing can
+   (see mark_glass_published.mjs and scripts/qa/glass_publish_lag_check.mjs — the mechanical half of
+   "make publishing part of pulsing"). What THIS fix does: "last progress" is read from REAL
+   evidence — the watchdog's own signal, the newer of HEARTBEAT and LAST-ACTIVITY — read BEFORE
+   this run overwrites HEARTBEAT, so the act of running glass.mjs itself is never mistaken for
+   progress. An administrative re-run with no real work behind it now correctly shows an OLDER
+   "last progress" than "page published", instead of both reading falsely fresh together. */
+const prevHeartbeatAt = tryReadTimestamp(HEARTBEAT);
+const lastActivityAt = tryReadTimestamp(LAST_ACTIVITY);
+const lastProgressMs = Math.max(prevHeartbeatAt ?? 0, lastActivityAt ?? 0) || null;
+
 const nowIso = new Date().toISOString();
+const lastProgressIso = lastProgressMs ? new Date(lastProgressMs).toISOString() : nowIso;
 mkdirSync(WY, { recursive: true });
 writeFileSync(HEARTBEAT, `${nowIso}\t${note}\n`);
-
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tryRead = (p) => { try { return readFileSync(p, "utf8"); } catch (e) { return null; } };
 
 // --- pick up whatever another session left in GLASS-NOTE.md, then reset it. Absent, unreadable,
@@ -246,7 +273,7 @@ const rows = (list, empty) => list === null
 // EMPTY ideas list — page-born ideas must already have been harvested to the Chart (see header).
 // `rulings` is keyed by the question id above: {id: {choice, note, at}}. Same harvest contract
 // as ideas — the generator always starts empty, so a republish without harvesting loses them.
-const state = { v: 2, generatedAt: nowIso, ideas: [], rulings: {} };
+const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, ideas: [], rulings: {} };
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
@@ -296,11 +323,15 @@ const PAGE = `<meta charset="utf-8">
     margin:0 0 .7rem;font-family:ui-monospace,monospace;font-weight:700;}
   /* ITEM 2 — one line, no box: an emoji and the age, at a glance. The note (what is happening)
      rides beside it, muted, so context is still there without competing for attention. */
-  .pulseline{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin:0 0 1.3rem;
+  .pulseline{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin:0 0 .25rem;
     font-size:.95rem;}
   .pulseline .age{font-weight:700;color:var(--ink);}
   .pulseline .pulsenote{color:var(--muted);}
   .pulseline.stale .age{color:var(--stale);}
+  /* ITEM (a) of the age fix — a second, quieter line: when was this PAGE last regenerated and
+     published, as distinct from when real WORK last happened (the line above). The two can
+     legitimately differ; showing both is the point. */
+  .publishedline{font-size:.78rem;color:var(--muted);margin:0 0 1.3rem;}
   .relayNote{font-size:.88rem;color:var(--muted);margin:-.7rem 0 1.3rem;font-style:italic;}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(31,66,73,.05);}
@@ -349,6 +380,7 @@ const PAGE = `<meta charset="utf-8">
     <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
     <span class="pulsenote" id="noteText">${esc(note)}</span>
   </div>
+  <p class="publishedline" id="publishedLine">page published —</p>
   ${relayedNote ? `<p class="relayNote">From another session, folded in on this pulse: ${esc(relayedNote)}</p>` : ""}
 
   <section class="card accentCard">
@@ -412,18 +444,29 @@ const PAGE = `<meta charset="utf-8">
     "use strict";
     var state;
     try { state = JSON.parse(document.getElementById("glassState").textContent); }
-    catch (e) { state = { v: 2, generatedAt: "${nowIso}", ideas: [] }; }
+    catch (e) { state = { v: 2, generatedAt: "${nowIso}", lastProgressAt: "${nowIso}", ideas: [] }; }
 
-    // --- freshness (the Bosun's clock, untouched by page saves: an idea is not progress)
-    var t = new Date(state.generatedAt);
+    // --- freshness (the Bosun's clock, untouched by page saves: an idea is not progress).
+    // TWO clocks, on purpose (Wyatt, 2026-08-31): tProgress answers "is the worker alive", read
+    // from real evidence (HEARTBEAT/LAST-ACTIVITY at generation time); tPublished answers "how
+    // old is THIS page" — the two can legitimately disagree, and showing both is the fix. Neither
+    // can see work that happens after this page was generated; only republishing closes that gap.
+    var tProgress = new Date(state.lastProgressAt || state.generatedAt);
+    var tPublished = new Date(state.generatedAt);
+    function fmtAge(ms){
+      var m = Math.floor(ms/60000);
+      return m < 1 ? "moments ago" : m + " min ago";
+    }
     function tick(){
-      var m = Math.floor((Date.now() - t.getTime())/60000);
       var age = document.getElementById("age"), emoji = document.getElementById("pulseEmoji"),
-          p = document.getElementById("pulse");
-      age.textContent = m < 1 ? "moments ago" : m + " min ago";
-      var stale = m > 45;
+          p = document.getElementById("pulse"), pub = document.getElementById("publishedLine");
+      var progressMs = Date.now() - tProgress.getTime();
+      var publishedMs = Date.now() - tPublished.getTime();
+      age.textContent = "last progress " + fmtAge(progressMs);
+      var stale = Math.floor(progressMs/60000) > 45;
       emoji.textContent = stale ? "🔴" : "🟢";
       p.className = stale ? "pulseline stale" : "pulseline";
+      if (pub) pub.textContent = "page published " + fmtAge(publishedMs);
     }
     tick(); setInterval(tick, 30000);
 
