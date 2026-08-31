@@ -183,6 +183,38 @@ async function hostStart(c) {
 }
 
 // ---------- one seat's play loop: tick, capture every distinct screen, structural-check it -------
+/* ONE CAPTURE PATH FOR EVERY SCREEN, INCLUDING THE LAST ONE.
+   Extracted 2026-08-31. It used to be the body of the loop below, which meant the End of Voyage
+   branch — an early `return`, written as a teardown rather than as a screen — stepped over all of
+   it and pushed `{ fails: [] }`, a hardcoded literal indistinguishable in every report from
+   "checked, and clean". CLAUDE.md rule 23: two things that must agree are ONE thing, or they drift.
+   The moment a SECOND consumer of the capture appeared, the answer was to converge, not to branch.
+
+   The settle wait matters MORE on that last screen than anywhere else, and this is the part that is
+   easy to get backwards. The vision judge already read the EOV shot (it maps over rec.screens), so
+   the eyes were being handed the one frame guaranteed to be mid-flight: w34_eov_park_glide measured
+   that card travelling 688px on desktop and 762px on tablet in 250ms. A card caught in the air is
+   exactly what produces a judge complaint that reads as a real layout defect and is not one. */
+async function settleAndCheck(c, tag, rec, f, sig) {
+  const mMotion = await c.ev(MEASURE);
+  const motionFails = (mMotion && !mMotion.__err) ? structuralChecks(mMotion).filter(k => !k.ok) : [];
+
+  const settle = await waitSettled(c);
+  const fSettled = f.replace(/\.png$/, "-settled.png");
+  await c.shot(fSettled);
+
+  const m = await c.ev(MEASURE);
+  const checks = (m && !m.__err) ? structuralChecks(m) : [{ ok: false, rule: "measure", what: String(m && m.__err) }];
+  const fails = checks.filter(k => !k.ok);
+  /* A screen that never fully stopped is RECORDED, not failed — see the note in waitSettled. */
+  if (!settle.settled) log(`  [${tag}] note: still moving at the cap (${settle.ms}ms) — checked anyway`);
+  rec.screens.push({ shot: fSettled, motionShot: f, sig, fails, settle,
+    motionOnly: motionFails.filter(k => !fails.some(x => x.rule === k.rule)) });
+  if (fails.length) for (const k of fails) log(`  [${tag}] STRUCT FAIL ${k.rule}: ${k.what}`);
+  for (const k of (rec.screens.at(-1).motionOnly || [])) log(`  [${tag}] during-animation only (not a failure) ${k.rule}: ${k.what}`);
+  return fails;
+}
+
 async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
   const player = makePlayer(c, { log: (m) => log(`  [${tag}] ${m}`) });
   rec.player = player.P;
@@ -206,28 +238,14 @@ async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
        The settled shot REPLACES the motion shot in `rec.screens`, so the judge and the contact sheet
        see the screen as a player leaves it, and the motion frame is kept beside it for reading. */
     const f = await player.captureIfNew(OUT, tag, ++shotN);
-    if (f) {
-      const mMotion = await c.ev(MEASURE);
-      const motionFails = (mMotion && !mMotion.__err) ? structuralChecks(mMotion).filter(k => !k.ok) : [];
-
-      const settle = await waitSettled(c);
-      const fSettled = f.replace(/\.png$/, "-settled.png");
-      await c.shot(fSettled);
-
-      const m = await c.ev(MEASURE);
-      const checks = (m && !m.__err) ? structuralChecks(m) : [{ ok: false, rule: "measure", what: String(m && m.__err) }];
-      const fails = checks.filter(k => !k.ok);
-      /* A screen that never fully stopped is RECORDED, not failed — see the note in waitSettled. */
-      if (!settle.settled) log(`  [${tag}] note: still moving at the cap (${settle.ms}ms) — checked anyway`);
-      rec.screens.push({ shot: fSettled, motionShot: f, sig: player.P.screens.at(-1).sig, fails, settle,
-        motionOnly: motionFails.filter(k => !fails.some(x => x.rule === k.rule)) });
-      if (fails.length) for (const k of fails) log(`  [${tag}] STRUCT FAIL ${k.rule}: ${k.what}`);
-      for (const k of (rec.screens.at(-1).motionOnly || [])) log(`  [${tag}] during-animation only (not a failure) ${k.rule}: ${k.what}`);
-    } else shotN--;
+    if (f) await settleAndCheck(c, tag, rec, f, player.P.screens.at(-1).sig);
+    else shotN--;
     const st = await player.state();
     if (st && st.day !== lastDay) { lastDay = st.day; rec.days = st.day; log(`  [${tag}] DAY ${st.day}`); }
     if (st && st.over) { log(`  [${tag}] END OF VOYAGE at day ${st.day}`);
-      const f2 = `${OUT}/${tag}-eov.png`; await c.shot(f2); rec.screens.push({ shot: f2, sig: "end of voyage", fails: [] });
+      const f2 = `${OUT}/${tag}-eov.png`; await c.shot(f2);            // the motion frame, as for any screen
+      const eovFails = await settleAndCheck(c, tag, rec, f2, "end of voyage");
+      if (!eovFails.length) log(`  [${tag}] end of voyage: settled and structurally clean`);
       rec.finished = true; return; }
     // side quests once the game is properly underway (day 2+, between prompts)
     if (quests && !questsDone && st && st.day >= 2) { questsDone = true; await sideQuests(c, player, (m) => log(`  [${tag}] ${m}`)); }

@@ -86,5 +86,69 @@ const trialCode = fs.readFileSync(path.join(ROOT, "scripts/sea_trial.mjs"), "utf
   ? ok("the report checks its OWN output for a missing leg and says so in the file, rather than trusting the slice")
   : bad("the report does not verify that every leg it says sailed actually has a verdict in it — a silent drop is exactly how this was missed");
 
-console.log(fails ? `\nFAIL — ${fails}\n` : "\nPASS — the trial can no longer call a missing leg a pass, nor lose one out of the bottom of its own report\n");
+/* ── AND EVERY SCREEN IT PHOTOGRAPHS IS A SCREEN IT CHECKED ────────────────────────────────────
+   2026-08-31. The End of Voyage branch was an early `return` written as a TEARDOWN — grab a final
+   photo and stop — so it stepped over the whole capture block above it and pushed
+   `{ shot, sig: "end of voyage", fails: [] }`. That literal is indistinguishable in every report
+   from "checked, and clean", on the last screen of every leg of every trial. It produced a PASS,
+   which is why nothing noticed: this file's own first lesson, in a new place.
+
+   It also skipped `waitSettled`, and that half is worse than it looks. The vision judge DOES read
+   that screenshot (playtest_gate maps over rec.screens), so the eyes were handed the one frame
+   guaranteed to be mid-flight — w34_eov_park_glide measured that card travelling 688px on desktop
+   and 762px on tablet in 250ms.
+
+   CHECKED STRUCTURALLY, NOT BY NAME: a screen enters the record through `rec.screens.push`, so the
+   assertion is that there is exactly ONE such push and it lives inside the one function that
+   settles and checks. That is rule 23 stated as an arithmetic fact — a SECOND push is a second
+   capture path, whatever it is called, and no hand-kept list of branches has to be maintained. */
+console.log("\nEvery screen the gate photographs is a screen it checked");
+{
+  const gateCode = gate.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  /* "EXACTLY ONE PUSH" WAS THE FIRST DRAFT AND IT WAS TOO STRICT — the gate said so on its first
+     run, which is the point of writing it before believing it. The crash handler pushes a screen
+     too, and legitimately does NOT settle it: the page has just thrown, so waitSettled and MEASURE
+     may not answer at all. What makes that one honest is that it records a REAL finding
+     (`fails: [{ ok: false, rule: "run", … }]`), so it can never read as "checked, and clean".
+     THE FAULT IS NOT A SECOND PUSH. It is a push that enters the record with NOTHING against it
+     while standing outside the function that checks. That is the thing to count. */
+  const pushArgs = [...gateCode.matchAll(/rec\.screens\.push\s*\(\s*\{([\s\S]{0,300}?)\}\s*\)/g)].map(m => m[1]);
+  const settlerBody = (gateCode.match(/async function settleAndCheck\(([\s\S]*?)\n\}/) || [, ""])[1];
+  const unchecked = pushArgs.filter(a => {
+    if (settlerBody.includes(a)) return false;                    // the one that settles and checks
+    return !/fails:\s*\[\s*\{/.test(a);                          // …or one that records a real finding
+  });
+  const inSettler = /async function settleAndCheck\([\s\S]*?rec\.screens\.push\s*\(/.test(gateCode);
+  const settles   = /async function settleAndCheck\([\s\S]*?waitSettled\s*\(/.test(gateCode);
+  const eovRoutes = /st\.over[\s\S]{0,400}?settleAndCheck\s*\(/.test(gateCode);
+  unchecked.length === 0
+    ? ok(`all ${pushArgs.length} screen record(s) either go through settleAndCheck or carry a real finding — none enters with nothing against it`)
+    : bad(`${unchecked.length} screen(s) enter the record outside settleAndCheck with no finding against them — that reads as "checked, and clean" in every report (rule 23)`);
+  inSettler ? ok("that path is inside settleAndCheck") : bad("the screen record is written outside settleAndCheck — the check and the record have come apart");
+  settles   ? ok("settleAndCheck waits for the screen to stop moving before reading it") : bad("settleAndCheck no longer calls waitSettled — every screen would be judged mid-animation");
+  eovRoutes ? ok("the End of Voyage branch routes through it, like every other screen") : bad("the End of Voyage branch no longer goes through settleAndCheck — that is exactly the fault this case was written for");
+  /\bfails:\s*\[\]/.test(gateCode)
+    ? bad("a screen is still recorded with a hardcoded empty `fails: []` — that reads as \"checked, and clean\" in every report and can never fail")
+    : ok("no screen is recorded with a hardcoded empty findings list");
+}
+
+/* RED-PROOF. Each pattern must be able to say NO — proven against the code as it stood this
+   morning, quoted verbatim from the commit that fixed it. */
+{
+  const before = `const f2 = OUT + "/" + tag + "-eov.png"; await c.shot(f2); rec.screens.push({ shot: f2, sig: "end of voyage", fails: [] });\n` +
+                 `if (f) { rec.screens.push({ shot: fSettled, motionShot: f, fails }); }`;
+  const crash  = `rec.screens.push({ shot: f, sig: "ERROR", fails: [{ ok: false, rule: "run", what: rec.error }] });`;
+  const pick = src => [...src.matchAll(/rec\.screens\.push\s*\(\s*\{([\s\S]{0,300}?)\}\s*\)/g)].map(m => m[1]);
+  /* goes RED on the pre-fix EOV push (nothing against it, no settler to be inside of) … */
+  const redsOnBefore  = pick(before).filter(a => !/fails:\s*\[\s*\{/.test(a)).length >= 1;
+  /* … and STAYS QUIET on the crash handler, which is outside the settler on purpose and honest. */
+  const sparesCrash   = pick(crash).filter(a => !/fails:\s*\[\s*\{/.test(a)).length === 0;
+  const noSettler = !/async function settleAndCheck\(/.test(before);
+  const catchesLiteral = /\bfails:\s*\[\]/.test(before);
+  redsOnBefore && sparesCrash && noSettler && catchesLiteral
+    ? ok("red-proof: goes red on the pre-fix End of Voyage push and on a missing settler, and stays quiet on the crash handler, which is outside it on purpose")
+    : bad(`red-proof FAILED (redOnBefore:${redsOnBefore} sparesCrash:${sparesCrash} noSettler:${noSettler} literal:${catchesLiteral}) — these cases may be unable to fail`);
+}
+
+console.log(fails ? `\nFAIL — ${fails}\n` : "\nPASS — the trial can no longer call a missing leg a pass, lose one out of the bottom of its own report, or photograph a screen it never checked\n");
 process.exit(fails ? 1 : 0);
