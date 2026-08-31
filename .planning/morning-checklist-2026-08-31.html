@@ -125,12 +125,12 @@
 
 <header>
   <p class="eyebrow">Night watch → morning · 31 August</p>
-  <h1>Nine questions, and one I got wrong</h1>
-  <p class="standfirst">You asked for steps 1, 3, 4 and 5 of the engine rebuild. <strong>Three are done. Step 5 is not</strong> — I talked myself into calling it finished and a reviewer caught it. That correction is question 01, and it is the one I most want you to check.</p>
+  <h1>Ten questions, and one I got wrong</h1>
+  <p class="standfirst">You asked for steps 1, 3, 4 and 5 of the engine rebuild. <strong>Three are done. Step 5 is not</strong> — I talked myself into calling it finished and a reviewer caught it. That correction is question 01. The most useful thing I found is question 10 — the failure that has been failing your trials for weeks turns out to be one component and a four-hundred-millisecond deadline.</p>
   <div class="tally">
     <div><span class="n">3/4</span><span class="k">steps done</span></div>
     <div><span class="n">60</span><span class="k">gates green</span></div>
-    <div><span class="n">4</span><span class="k">need a ruling</span></div>
+    <div><span class="n">5</span><span class="k">need a ruling</span></div>
     <div><span class="n">0</span><span class="k">player-visible</span></div>
   </div>
 </header>
@@ -201,6 +201,31 @@
     <div class="answers">
       <label><input type="radio" name="q3"> Yes, do it</label>
       <label><input type="radio" name="q3"> Not yet</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<div class="item blocks">
+  <div class="mark">10</div>
+  <div>
+    <p class="q">Your prompts take up to 3.2 seconds to stop moving. Is that intended?</p>
+    <div class="body">
+      <p>Every trial fails legs on "<em>N screens never stopped moving before being checked</em>". It has been reported as 1, 3, 4, 8, 11, 13, 14, 18, 22 across runs and <strong>never once broken down</strong>. I broke it down from data already sitting on disk.</p>
+      <p>It is <strong>one component</strong>, and the split is total: the radial prompt — the circle of options — fails to settle <strong>94 times out of 191</strong>. Everything else in the game: <strong>zero times out of 137.</strong> Not mostly. Zero.</p>
+      <p>And they do all settle. The checker gives up after 2.6 seconds; the slowest prompt takes 3.2. Waiting 3 seconds instead finds one straggler, 3.5 seconds finds none.</p>
+      <p><strong>So there are two different answers and they point opposite ways.</strong> Either the checker is too impatient — in which case it has cried wolf 94 times a run, and a check that cries wolf is one people stop believing. Or your radial prompt genuinely takes three seconds to stop moving, which is a long time to sit waiting for buttons, and is a thing a player feels.</p>
+      <p>I did not raise the limit. Doing that alone would make 94 failures a run disappear, and that is what switching a check off looks like from the outside.</p>
+    </div>
+    <div class="meta">
+      <span class="chip stop">fails legs on every trial</span>
+      <span class="chip size">you may be waiting 3s for buttons</span>
+    </div>
+    <div class="rec"><b>My recommendation</b>Let me pose one radial prompt and record what is still moving between 2.4 and 3.2 seconds. If it is the bloom's own arrival, the limit is simply wrong and I raise it. If something is still drifting at 3.1 seconds, that is a real bug and I have just found it. One recording answers it.</div>
+    <div class="answers">
+      <label><input type="radio" name="q10"> Record it and find out</label>
+      <label><input type="radio" name="q10"> Just raise the limit</label>
+      <label><input type="radio" name="q10"> The prompt is too slow — speed it up</label>
     </div>
     <textarea placeholder="Notes"></textarea>
   </div>
