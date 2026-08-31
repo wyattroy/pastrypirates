@@ -67,3 +67,38 @@ a semaphore rather than anything about prompts or JSON.
 **Second, regardless of the outcome: rename the failure.** *"empty reply from the vision call
 (process returned nothing)"* points at the real thing. And the pre-flight check should report the
 rate it observes, not a boolean.
+
+
+---
+
+## THE CONCURRENCY HYPOTHESIS IS DEAD — tested 2026-08-31, before building anything
+
+I wrote above that concurrency was "the first thing to test" and named the fix as a semaphore.
+**It is not the cause.** The same six screenshots, judged twice with nothing else running:
+
+```
+concurrency 1:  6 real verdict(s), 0 empty replies, 36s
+concurrency 6:  6 real verdict(s), 0 empty replies, 38s
+```
+
+**Six of six, both times.** The judge works perfectly in isolation at the exact concurrency the
+trial uses. Had I skipped this and gone straight to the semaphore, I would have shipped a fix for a
+cause that does not exist and then reported the next run's failures as a mystery.
+
+## What that leaves, stated as open rather than replaced with a new guess
+
+The difference between this test and a trial run is **not** how many calls are in flight. It is:
+
+- **SUSTAINED VOLUME** — ~300 calls across 100 minutes, against 2 here.
+- **CONTENDING WORK** — two headless browsers driving voyages throughout, against an idle machine.
+- **A LONGER `context` STRING** — the trial passes `${leg} — ${screen signature}`, and a signature
+  is pipe-and-tilde separated button labels, not the short phrase used here.
+
+**Any of those could do it and none has been tested.** The honest next step is to reproduce the
+failure rather than to theorise a third time: judge a long run of screens WHILE a leg is driving,
+which is the only condition under which the empty replies have ever been observed.
+
+**What IS now established, and it is worth having:** the judge, the CLI, the account, the image
+staging and the prompt are all sound. The failure is environmental or load-related, which removes
+the entire "the prompt or the JSON is wrong" family — the family the name "unparseable judge reply"
+had everyone searching.
