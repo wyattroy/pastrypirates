@@ -1,12 +1,38 @@
 {
   "permissions": {
+    "permissions": {
     "allow": [
       "Bash(node --check *)",
       "Bash(git rev-list *)",
       "Bash(git fetch *)",
       "Bash(curl -s -o /dev/null *)",
       "mcp__github__actions_list",
-      "mcp__github__actions_get"
+      "mcp__github__actions_get",
+      "Bash(node scripts/*)",
+      "Bash(node .claude/gsd-core/bin/gsd-tools.cjs *)",
+      "Bash(npm test*)",
+      "Bash(git status*)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git pull *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push origin claude/*)",
+      "Bash(git rev-parse *)",
+      "Bash(pkill -f remote-debugging-port*)",
+      "Bash(pkill -f http.server*)",
+      "Bash(curl -s https://playpastrypirates.com/*)",
+      "Bash(curl -s https://staging.playpastrypirates.com/*)",
+      "Edit",
+      "Write"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(.secrets)"
+    ]
+  },
     ]
   },
   "hooks": {
