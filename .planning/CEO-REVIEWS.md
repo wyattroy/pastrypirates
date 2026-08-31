@@ -1,5 +1,118 @@
 # CEO reviews — the standing record
 
+## CEO Review 54 — 2026-08-31, the Glass corruption bug fix — VERBATIM
+
+**PARTIALLY.** The two things Wyatt could point at — the button that stuck and the silence about
+whether his idea landed — are genuinely fixed and verified; the page-corruption root cause is not
+measured, it is a guess wearing the word "measured", and I proved the browser half of it wrong in
+about a minute.
+
+**What actually holds up.** The comment fix is real — the produced page contains exactly two
+script opens and two closes, all legitimate. The Send button fix is real and correct: local
+`state` updated, draft cleared, box cleared, list repainted, honest status text, button
+re-enabled. `saveRuling` got the same fix. The new gate is genuine and I red-proofed it myself:
+checked out the pre-fix `glass.mjs` over the current one and ran
+`scripts/qa/glass_script_tag_purity_check.mjs` — exit 1, naming the stray substring. Restored:
+PASS. 73/73, exit 0. The gate's own bug (an earlier version stripped each block's content before
+checking it) is documented honestly in the file, the commit, CHART.md and the ledger — that
+self-correction is the best thing in this commit and it was not glossed.
+
+**What is wrong.** "Root cause measured, not guessed" is false — it was guessed. The stray
+`<script>` was already in the page BEFORE any self-publish (present in the file the Bosun
+publishes with the Artifact tool, from `d = TPL` — the raw document — so the round-trip neither
+adds nor removes it), which cannot explain a symptom that was "fine before I pressed Send, broken
+after." A real browser does not break on it: rendered the pre-fix page in headless Chrome
+(`--dump-dom`) — no source leaked outside the script elements. That is what the HTML spec
+predicts. The claimed verification (render the fixed document, look clean) could not have failed
+— the broken document renders equally clean too. Step 1 of the four steps was done for the
+substring count, never for the rendering defect. Nobody showed this page broken and then showed
+it fixed. Whether Wyatt's corruption is gone is unknown.
+
+Smaller: the gate's stated invariant ("ZERO" tag-shaped characters anywhere) was wider than its
+code (only checked two known blocks' interiors — a stray `</script` in ordinary body markup would
+be read as the state block's own close and never flagged). A comment in the gate misdescribed its
+own runtime ("throwaway working directory" — it overwrites the real `.planning/wyclau/glass.html`).
+The UX half shipped with no gate at all. "Added to the chart" is deliberately not delivered — the
+page says "will harvest ... soon," honest and defensible, but partial against his literal words.
+
+**What to tell him:** the button and the confirmation are fixed and verified. The CSS break: a
+real defect was removed, and it may well have been the one, but it was present before he ever
+pressed Send and does not break Chrome, so the story that explains his exact screenshot is still
+missing.
+
+**Acted on, same session, before this record was written:** re-generated and screenshotted the
+exact pre-fix page in a real browser myself — confirmed CEO Review 54's finding directly (clean
+render, no corruption); ran a 4-round simulation of the real client-side self-publish escaping
+(jsEsc/JSON.stringify) — no drift found either, ruling out a compounding-nesting theory too.
+Widened `glass_script_tag_purity_check.mjs` to check the whole document (not just known blocks),
+red-proofed against a planted stray substring in body markup. Corrected the gate's own
+"throwaway working directory" comment. Built `scripts/qa/glass_send_confirms_check.mjs`, the
+missing UX gate, red-proofed against the exact pre-fix empty handler. Corrected `CHART.md` in the
+open — the "root cause measured" claim retracted, the real open question ("does it still corrupt
+the page?") parked in BLOCKED ON WYATT rather than closed. npm test 74/74.
+
+## CEO Review 53 — 2026-08-31, the Stop hook scoped to watchdog-started sessions (Quartermaster's change) — VERBATIM
+
+**YES, with three real defects worth fixing.** The hook he asked for is real, wired,
+unconditional, and independently provable — broken in a throwaway tree and it behaved as
+specified — but when its give-up brake fires, the sentence explaining why was thrown into
+`/dev/null` by its own registration, so the half of that brake where he said "stop and say what's
+blocking" did not reach anybody.
+
+**Verified directly, not from the account:** the hook writes `{"decision":"block","reason":...}`
+to stdout, exit 0. Registered once, in `Stop`, no matcher, not duplicated into `SubagentStop`. The
+only `process.env` read is `CLAUDE_PROJECT_DIR` — no launch-context branch anywhere, matching
+"fires in every session." Built a Chart where every open line carried `GATED:` — allowed the stop.
+Three runs against one fixture: block, block, then give up; a commit landing in between resets it.
+`npm test` 72/72, exit 0, including the new gate's 14 cases.
+
+**The three defects.** (1) The give-up message is thrown into `/dev/null` by the hook's own
+registration (`2>/dev/null`) — the session just silently stops, no idea an item was declared
+stuck, and a comment claiming the message "went to stderr for the transcript" was false. (2)
+Indented checklist items are invisible — the regex only matched column-zero list items, and
+CHART.md genuinely has indented sub-items; fed the hook a Chart whose only actionable work was
+indented and it allowed the stop. (3) Off-by-one in its own message — "block 2 of 3" implies a
+3rd block, but the 3rd invocation gives up instead.
+
+**Acted on, same session:** stderr suppression removed from the registration; the give-up message
+now ALSO appends a durable line to `.planning/CTO-LEDGER.md` (a Stop hook exiting 0 does not feed
+stderr back to the session that produced it, so a durable file write is the only channel that
+survives the stop). Count math rewritten so blocks 1/2/3 actually happen and the 4th check gives
+up. Checklist regex widened to match any leading whitespace. A separate false claim caught in the
+same pass (Start-Process "has no environment-isolation switch" — it does, `-UseNewEnvironment`,
+verified via `Get-Command`) was corrected in both comments that carried it. Gate now 17 cases.
+npm test 73/73.
+
+## CEO Review 52 — 2026-08-31, the Glass age fix ("last progress" vs "page published") — VERBATIM
+
+**PARTIALLY.** All three parts were genuinely built, red-proofed and published — reproduced the
+red both ways independently — but part (c) was still a step a session could skip, and it pointed
+a loaded gun at the game's release gate.
+
+**(a) Two numbers — DONE.** Verified in the published page, not just the local file: the live
+artifact's state block read `generatedAt` and `lastProgressAt` as two genuinely separate values.
+
+**(b) Dot driven by evidence — DONE literally, weaker than it sounds.** The read-before-write
+order was correct, so running the generator could not fake its own progress. But
+`.claude/hooks/wyclau-pulse.cjs` stamps `LAST-ACTIVITY` on every tool call by any session,
+rate-limited to once a minute — so on any page a live session generates, `lastProgressAt` is
+typically within about a minute of `generatedAt`. The dot therefore still tracked page age in
+practice, and a comment claiming otherwise as settled behaviour was the exact comment-rot rule 6
+warns about.
+
+**(c) Publishing folded into pulsing — PARTIAL, and it had a bite.** `mark_glass_published.mjs`
+wrote "now" and checked nothing — a session *saying* it published, not evidence. Nothing told a
+session to run it — the Door and glass.mjs's own printed instructions didn't name it. Worst: the
+new lag-check gate was wired into `npm test` — which is also the game's own release gate
+(`npm test` required green before staging/merge). A stale wyclau DASHBOARD could have blocked a
+real GAME fix from reaching players.
+
+**Acted on, same session:** wired the mark-published step into `door/SKILL.md` and glass.mjs's own
+printed instructions. The lag check was later (same day, a separate item) moved entirely out of
+`npm test` into the keep-working Stop hook, per this review's own finding — never reachable from
+the game's release gate again. The comment overclaim was corrected to state what was actually
+measured (LAST-ACTIVITY's real stamping rate) rather than a settled behaviour. npm test 72/72.
+
 ## CEO Review 51 — 2026-08-31, gate retirement policy (suite ceiling + quiet-gate report) — VERBATIM
 
 **YES — delivered.** The reviewer re-ran every claim rather than reading the account.

@@ -4,21 +4,38 @@
 // THE GLASS'S REAL SCRIPT TAGS, AND ONLY THEM. Wyatt, 2026-08-31, reported the Glass "css breaks"
 // right after he saved an idea through the Ideas box, and sent two screenshots. The second showed
 // raw JS SOURCE CODE rendering as visible page text, in the exact spot the client's own script
-// block should have been running silently. Root cause, measured: a comment inside that very script
-// block read `// The state block is a JSON <script>, so it takes raw JSON text...` — a literal,
-// unescaped, tag-shaped substring sitting inside the real script element's own text content. Once
-// the client's self-publish path (buildDoc()) re-embeds the whole page as a string and republishes
-// it, that stray substring survives the round-trip and something downstream mistook it for a
-// second tag, corrupting the render.
+// block should have been running silently.
 //
-// THE INVARIANT THIS GUARDS: outside the two real, deliberately-placed script elements (the JSON
-// state block and the client behaviour block), the generated page must contain ZERO characters
-// that look like a script tag -- no "<script" and no "</script" anywhere else, comments included.
-// A fix that removes today's one bad comment but leaves the door open for tomorrow's is not a fix.
+// ⚠ CORRECTION, CEO Review 54, IN THE OPEN: the first version of this file said the root cause was
+// "measured" -- a comment inside the client script block reading `// The state block is a JSON
+// <script>, so...`, a literal, unescaped, tag-shaped substring sitting inside the real script
+// element's own text. That substring was real and IS worth removing (this gate still enforces its
+// absence, below) -- but it was NOT measured to be the cause. CEO Review 54 regenerated the exact
+// pre-fix page and rendered it in a real, unmodified headless Chrome: it came up completely clean,
+// no corruption, because per the HTML5 spec a bare `<script>` (no slash) inside script-data state
+// is not special -- only `</script` ends it, and this file's own follow-up multi-round self-publish
+// simulation (jsEsc/JSON.stringify round-tripped 4 times) never drifted either. So: THE ACTUAL
+// MECHANISM THAT CORRUPTED WYATT'S LIVE PAGE IS STILL UNKNOWN. It may be specific to the Claude
+// Artifact host's own internal rendering/patching pipeline when `cap.publish()` runs live, which
+// cannot be reproduced or inspected from outside that system. This gate is kept because the
+// substring it bans is genuinely bad practice regardless of whether it was Wyatt's actual trigger,
+// and because a wider invariant (below) is worth having independent of that open question.
 //
-// ⚠ THIS CHECKS THE REAL GENERATED OUTPUT, NEVER A COPY (HARD-WON-LESSONS §12i): it runs
-// scripts/wyclau/glass.mjs exactly as the Bosun does, in a throwaway working directory, and reads
-// the glass.html it actually writes -- not a re-typed excerpt of the template.
+// THE INVARIANT THIS GUARDS, WIDENED after the same review found the first version only checked
+// two ALREADY-LOCATED blocks' own interiors -- a stray "</script" sitting in ordinary body markup,
+// outside either block, would be read as closing the state block early and never flagged. Now:
+// the WHOLE generated document must contain EXACTLY two `<script` occurrences and exactly two
+// `</script` occurrences (the state block and the client block, nothing else), AND neither block's
+// own interior may contain a stray one either. Two independent checks of the same invariant from
+// different directions.
+//
+// ⚠ THIS CHECKS THE REAL GENERATED OUTPUT, NEVER A COPY (HARD-WON-LESSONS §12i): it runs the real
+// scripts/wyclau/glass.mjs and reads the glass.html it actually writes -- not a re-typed excerpt of
+// the template. CORRECTION, same review: an earlier version of this comment claimed it ran "in a
+// throwaway working directory" -- false, and never checked. glass.mjs resolves its own paths from
+// ITS OWN file location regardless of cwd or CLAUDE_PROJECT_DIR, so this always writes and reads
+// the REAL repo's .planning/wyclau/glass.html (local, gitignored) -- the same side effect every
+// other Glass gate in this suite already accepts, stated honestly instead of guessed.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -27,9 +44,6 @@ import { fileURLToPath } from "node:url";
 
 const REPO_ROOT = join(fileURLToPath(import.meta.url), "..", "..", "..");
 const GLASS_MJS = join(REPO_ROOT, "scripts", "wyclau", "glass.mjs");
-// glass.mjs resolves its own paths from ITS OWN file location, not CLAUDE_PROJECT_DIR -- it always
-// writes the real repo's .planning/wyclau/glass.html (local, gitignored). Every other Glass gate in
-// this suite already accepts that side effect; this one reads the same real file, never a copy.
 const OUT = join(REPO_ROOT, ".planning", "wyclau", "glass.html");
 
 function generate() {
@@ -69,14 +83,22 @@ const failures = [
   ...checkBlockInterior(html, "client script block", "<script>", (h) => h.lastIndexOf("</script>")),
 ];
 
+// CEO Review 54's widening: check the WHOLE document too, not just the two known blocks' own
+// interiors. This is what would catch a stray tag-shaped substring sitting in ORDINARY body
+// markup, between the two blocks -- the interior checks above cannot see that by construction.
+const totalOpens = (html.match(/<script/gi) || []).length;
+const totalCloses = (html.match(/<\/script/gi) || []).length;
+if (totalOpens !== 2) failures.push(`whole document: expected exactly 2 "<script" occurrences (the state block and the client block), found ${totalOpens}`);
+if (totalCloses !== 2) failures.push(`whole document: expected exactly 2 "</script" occurrences, found ${totalCloses}`);
+
 if (failures.length) {
   console.error("FAIL — glass script tag purity");
   for (const f of failures) console.error(`  - ${f}`);
   console.error("\nA stray \"<script\" or \"</script\" substring anywhere outside the two real script");
-  console.error("elements can corrupt the page after a self-publish round-trip. Say \"script element\"");
-  console.error("or \"script tag\" in prose instead of the bracketed form.");
+  console.error("elements is banned regardless of whether it is proven to corrupt the live page. Say");
+  console.error("\"script element\" or \"script tag\" in prose instead of the bracketed form.");
   process.exit(1);
 }
 
-console.log("PASS — no script-tag-shaped substrings found outside the two real script elements");
+console.log("PASS — exactly 2 real script elements, no stray tag-shaped substrings anywhere else");
 process.exit(0);
