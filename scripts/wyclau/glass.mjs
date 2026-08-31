@@ -2,6 +2,9 @@
 // THE GLASS (wyclau charter, part 4) — the one status page, derived, never hand-typed.
 //
 // Usage:  node scripts/wyclau/glass.mjs --note "what is happening right now"
+//         node scripts/wyclau/glass.mjs --note "..." --demo   (adds 2 EXAMPLE asks to the
+//         rendered page ONLY, for a design screenshot — never saved, never part of the real
+//         republish workflow; see "DEMO MODE" below)
 //
 // One command does both halves of the liveness contract:
 //   1. stamps the heartbeat (.planning/wyclau/HEARTBEAT — untracked; the watchdog reads it)
@@ -25,6 +28,27 @@
 // THEM, so the Glass went on printing "Blocked on Wyatt (6)" while five were already answered.
 // Rulings are read by sessions the same way ideas are (the harvest step reads BOTH), which is
 // the whole reason they had to live on one page.
+//
+// V2.2 — THE DASHBOARD REDESIGN (Wyatt's seven priorities, given 2026-08-31 to a cloud session
+// and then redirected here: "wait -- i just realized you're in a cloud container. stop this
+// work" — visual work needs the rendered picture, and this machine can screenshot and iterate
+// locally). What changed, and which of his seven items each change answers:
+//   1. Dropped the subtitle line ("Pastry Pirates -- the engine's one honest window. Branch...").
+//   2. The boxed ALIVE/STALE verdict is gone. One small line under the title: an emoji plus the
+//      age, at a glance. The note text (what is happening right now) sits beside it, muted.
+//   3. "Write to Claude" is renamed "Ideas" and moved below "Your call".
+//   4. "Shipped today" drops the commit hash and reformats each line to ~5-7 words via
+//      shortSubject() below -- THE GENERATOR HALF of his ask. THE OTHER HALF IS A CONVENTION,
+//      NOT CODE: a generator cannot summarise a bad subject line into a good one, so this only
+//      works if commit subjects keep being written as a short "what" a stripped prefix and an
+//      em-dash "why" can split cleanly -- which is already this repo's own commit-message habit.
+//   5. "Your call" is its own card, above "Shipped today". DEMO MODE (see above) renders two
+//      example asks so the empty state's real format can still be judged from a screenshot.
+//   6. "On the Chart" and "The reboot checklist" merge into one "Tasks" list -- open checklist
+//      items plus any Chart-inbox items, one source instead of two counts.
+//   7. Every section is a bordered card on a background gradient and font matching the game's
+//      own palette (index.html's --sea/--teal/--mint/--gold/--ink, Avenir Next), not a generic
+//      status-page look.
 //
 // ⚠ THE HARVEST RULE, AND WHY IT IS LOAD-BEARING: anything Wyatt writes or taps on the page —
 // an IDEA or a RULING — lives ONLY in the page's state until a session moves it into
@@ -60,10 +84,17 @@ const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d19
 const HELM_URL = "https://claude.ai/code/artifact/e33ae884-12f2-4dd3-a2c2-9b69f12bc0c1";
 const OUT = join(WY, "glass.html");
 
+const argv = process.argv.slice(2);
 const note = (() => {
-  const i = process.argv.indexOf("--note");
-  return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : "(no note given)";
+  const i = argv.indexOf("--note");
+  return i > -1 && argv[i + 1] ? argv[i + 1] : "(no note given)";
 })();
+/* DEMO MODE — screenshot-only, never part of a real publish. Wyatt's item 5 asked to "show him a
+   few test calls" so the Your-call format can be judged even while the real list is empty (the
+   common case: he answers fast). This flag injects two EXAMPLE asks into the RENDERED page only;
+   the state block's `ideas`/`rulings` stay real and empty either way, so a --demo render can
+   never be mistaken for a page that has actually been published with fake blockers. */
+const DEMO = argv.includes("--demo");
 
 const nowIso = new Date().toISOString();
 mkdirSync(WY, { recursive: true });
@@ -76,6 +107,25 @@ const tryGit = (args) => {
   catch (e) { return null; }
 };
 
+/* THE GENERATOR HALF OF ITEM 4. Strips a conventional-commit-style prefix ("word:" or
+   "word(scope):") and this repo's own em-dash/double-hyphen "why" clause, then caps to ~8 words.
+   It cannot invent a good subject from a bad one — the durable half is the commit-message
+   convention itself, unchanged by this file. */
+function shortSubject(s) {
+  let t = String(s).replace(/^[a-z][a-z0-9_.-]*(\([^)]*\))?:\s*/i, "").trim();
+  t = t.split(/\s+(?:—|--)\s+/)[0].trim();
+  const words = t.split(/\s+/).filter(Boolean);
+  return words.length > 8 ? words.slice(0, 8).join(" ") + "…" : t;
+}
+/* Checklist/task lines carry real operational detail (not a commit subject), so this keeps more
+   of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
+   ones so the Tasks card stays scannable rather than a wall of text. */
+function shortTask(s) {
+  let t = String(s).replace(/\*\*/g, "").replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
+  const words = t.split(/\s+/).filter(Boolean);
+  return words.length > 16 ? words.slice(0, 16).join(" ") + "…" : t;
+}
+
 // --- shipped today: commits since local midnight, this branch ---
 const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
 const logRaw = tryGit(["log", `--since=${midnight.toISOString()}`, "--pretty=%h\t%s"]);
@@ -84,9 +134,9 @@ const commits = logRaw === null
   : logRaw === "" ? [] : logRaw.split("\n").map((l) => { const [h, ...s] = l.split("\t"); return { h, s: s.join("\t") }; });
 const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git failed";
 
-// --- the Chart: checklist tallies + blocked-on-Wyatt + inbox items ---
+// --- the Chart: checklist tallies + task text + blocked-on-Wyatt + inbox items ---
 const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
-let checklist = null, blocked = null, inboxItems = null, ruled = null;
+let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = null;
 if (chart !== null) {
   const done = (chart.match(/^- \[x\]/gim) || []).length;
   const open = (chart.match(/^- \[ \]/gim) || []).length;
@@ -113,6 +163,12 @@ if (chart !== null) {
     .map((l) => l.split("|").map((c) => c.trim().replace(/\*\*/g, "")).filter(Boolean))
     .filter((c) => c.length >= 2)
     .map(([item, call, now]) => ({ item, call, now: now ?? "" }));
+  // ITEM 6 — ONE MERGED TASK LIST, not two counts kept in step by nothing. Open items from the
+  // reboot checklist (the only checklist section today) plus any Chart-inbox items, in that
+  // order — the checklist is the standing plan, the inbox is what just arrived.
+  const stepSec = chart.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
+  const openChecklist = (stepSec.match(/^- \[ \] .*$/gm) || []).map((l) => shortTask(l.replace(/^- \[ \] /, "")));
+  tasks = [...openChecklist, ...(inboxItems ?? []).map(shortTask)];
 }
 
 // --- restarts (the watchdog appends here) ---
@@ -130,89 +186,108 @@ const rows = (list, empty) => list === null
 // as ideas — the generator always starts empty, so a republish without harvesting loses them.
 const state = { v: 2, generatedAt: nowIso, ideas: [], rulings: {} };
 
+// DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
+// touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
+const demoAsks = !DEMO ? [] : [
+  { id: "demo-1", q: "Should the wind gauge show forecast, or just the current push?", rec: "Current only — the forecast lives in the narration line already." },
+  { id: "demo-2", q: "Ship a small music bed under the lobby screen?", rec: "Not yet — the mute control redesign should land first." },
+];
+const askList = [...(blocked ?? []), ...demoAsks];
+
 /* THE PAGE, WITH TWO TOKENS. __GLASS_STATE__ is replaced by the state JSON; __GLASS_TPL__ by a
    JS string literal holding the FULL-DOCUMENT template (tokens intact) so the page can rebuild
    and save itself. Substitution order and document order are load-bearing: the state block sits
    BEFORE the client script, and .replace() takes the first occurrence, so the copies of the
    tokens embedded inside the TPL string are never touched by mistake. The client script uses no
    backticks and no ${} so this outer template literal stays honest. */
-const PAGE = `<title>The Glass</title>
+const PAGE = `<meta charset="utf-8">
+<title>The Glass</title>
 <style id="glass-style">
-  :root{--bg:#eef0ea;--surface:#f8f9f5;--ink:#182720;--muted:#57675c;--line:#c9d0c5;
-    --accent:#0f6b52;--ok:#0f6b52;--stale:#8a3b2a;--warn-bg:#f3e2dc;--signal:#8a6d1a;}
+  /* THE GAME'S OWN PALETTE (index.html's :root, ~line 45) — matched, not approximated, so the
+     Glass reads as part of Pastry Pirates rather than a generic ops dashboard (item 7). */
+  :root{--sea:#d3f0f4;--sea2:#bfe8ee;--ink:#1f4249;--parch:#ffffff;--paleblue:#dff3fb;
+    --teal:#29a3b2;--mint:#45dfa6;--gold:#fdb63d;--lemon:#fef48b;--pink:#fdaecb;
+    --bg:#dcece9;--bg2:#e6efe1;--bg3:#f5f0dd;--surface:var(--parch);--muted:#5c7a80;
+    --line:var(--sea2);--accent:var(--teal);--ok:var(--teal);--stale:#c65a3d;
+    --warn-bg:#fff6c2;--signal:var(--gold);}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-    --bg:#101613;--surface:#18211c;--ink:#e4e9e2;--muted:#93a297;--line:#31403a;
-    --accent:#3fae8a;--ok:#3fae8a;--stale:#d98a75;--warn-bg:#301b15;--signal:#d4af5a;}}
+    --ink:#e4f3f6;--parch:#152225;--paleblue:#1c2f33;--muted:#8fb3ba;
+    --bg:#0f1a1c;--bg2:#122420;--bg3:#1c1f14;--surface:var(--parch);--line:#234146;
+    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--gold);}}
   :root[data-theme="dark"]{
-    --bg:#101613;--surface:#18211c;--ink:#e4e9e2;--muted:#93a297;--line:#31403a;
-    --accent:#3fae8a;--ok:#3fae8a;--stale:#d98a75;--warn-bg:#301b15;--signal:#d4af5a;}
-  body{background:var(--bg);color:var(--ink);font:1rem/1.55 ui-sans-serif,system-ui,sans-serif;
+    --ink:#e4f3f6;--parch:#152225;--paleblue:#1c2f33;--muted:#8fb3ba;
+    --bg:#0f1a1c;--bg2:#122420;--bg3:#1c1f14;--surface:var(--parch);--line:#234146;
+    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--gold);}
+  body{background:var(--bg);
+    background-image:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 45%,var(--bg3) 100%);
+    background-attachment:fixed;color:var(--ink);
+    font:1rem/1.55 'Avenir Next',Avenir,'Segoe UI','Trebuchet MS',sans-serif;
     margin:0;padding:1rem 1rem 4rem;}
   .sheet{max-width:40rem;margin:0 auto;}
-  h1{font-size:1.5rem;margin:.8rem 0 .2rem;} h2{font-size:.8rem;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--accent);margin:1.8rem 0 .5rem;font-family:ui-monospace,monospace;}
-  .pulse{border-radius:10px;padding:1rem 1.2rem;background:var(--surface);border:2px solid var(--ok);}
-  .pulse.stale{border-color:var(--stale);background:var(--warn-bg);}
-  .pulse .age{font-size:1.6rem;font-weight:700;} .pulse .verdict{font-family:ui-monospace,monospace;
-    font-size:.75rem;letter-spacing:.1em;}
-  .pulse .note{color:var(--muted);margin-top:.3rem;}
+  h1{font-size:1.6rem;margin:.8rem 0 .15rem;color:var(--ink);}
+  h2{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);
+    margin:0 0 .7rem;font-family:ui-monospace,monospace;font-weight:700;}
+  /* ITEM 2 — one line, no box: an emoji and the age, at a glance. The note (what is happening)
+     rides beside it, muted, so context is still there without competing for attention. */
+  .pulseline{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin:0 0 1.3rem;
+    font-size:.95rem;}
+  .pulseline .age{font-weight:700;color:var(--ink);}
+  .pulseline .pulsenote{color:var(--muted);}
+  .pulseline.stale .age{color:var(--stale);}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(31,66,73,.05);}
+  .card.accentCard{border-color:var(--signal);border-width:1.5px;}
   ul{margin:.3rem 0;padding-left:1.2rem;} li{margin-bottom:.35rem;font-size:.95rem;}
   .muted{color:var(--muted);} .bad{color:var(--stale);}
-  code{font-family:ui-monospace,monospace;font-size:.85em;}
+  code{font-family:ui-monospace,monospace;font-size:.85em;background:var(--paleblue);
+    padding:.05em .3em;border-radius:4px;}
   table{border-collapse:collapse;width:100%;font-size:.9rem;}
   td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top;}
-  .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:2.2rem;}
+  .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:1.5rem;}
   .count{font-weight:700;color:var(--signal);}
-  #ideaText{width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);
+  /* ITEM 4 — shipped-today as a scannable strip, no hashes: a small dot, the short subject. */
+  .shipList{list-style:none;margin:.2rem 0;padding:0;}
+  .shipList li{position:relative;padding-left:1.1rem;margin-bottom:.5rem;font-size:.93rem;}
+  .shipList li::before{content:"";position:absolute;left:0;top:.45em;width:.5rem;height:.5rem;
+    border-radius:50%;background:var(--mint);}
+  #ideaText{width:100%;box-sizing:border-box;background:var(--paleblue);color:var(--ink);
     border:1px solid var(--line);border-radius:8px;padding:.7rem;font:inherit;resize:vertical;}
-  #ideaSend{margin-top:.5rem;background:var(--accent);color:var(--bg);border:none;border-radius:8px;
-    padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;}
+  #ideaSend{margin-top:.5rem;background:var(--teal);color:var(--parch);border:none;
+    border-radius:8px;padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;}
   #ideaSend:disabled{opacity:.5;cursor:default;}
   #ideaText:focus-visible,#ideaSend:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
-  .ask{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;margin-bottom:.9rem;}
+  .ask{background:var(--paleblue);border:1px solid var(--line);border-radius:10px;
+    padding:.9rem 1rem;margin-bottom:.9rem;}
   .ask.ruled{border-color:var(--signal);}
   .ask .q{font-weight:700;margin:0 0 .3rem;}
   .ask .rec{color:var(--muted);font-size:.92rem;margin:0 0 .7rem;}
   .ask .rec b{color:var(--ink);}
   .ruleRow{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;}
-  .rb{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+  .rb{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;
     padding:.5rem .9rem;font:inherit;cursor:pointer;}
-  .rb[aria-pressed="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600;}
-  .rnote{width:100%;box-sizing:border-box;background:var(--bg);color:var(--ink);border:1px solid var(--line);
+  .rb[aria-pressed="true"]{background:var(--teal);color:var(--parch);border-color:var(--teal);font-weight:600;}
+  .rnote{width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);border:1px solid var(--line);
     border-radius:8px;padding:.5rem;font:inherit;font-size:.93rem;resize:vertical;}
   .rstate{margin:.4rem 0 0;font-size:.88rem;}
   .rb:focus-visible,.rnote:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+  .demoTag{display:inline-block;font-family:ui-monospace,monospace;font-size:.68rem;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line);
+    border-radius:6px;padding:.1rem .4rem;margin-left:.4rem;}
 </style>
 <script type="application/json" id="glassState">__GLASS_STATE__</script>
 <div class="sheet">
   <h1>The Glass</h1>
-  <p class="muted">Pastry Pirates — the engine's one honest window. Branch <code>${esc(branch)}</code>.</p>
-
-  <div class="pulse" id="pulse">
-    <div class="verdict" id="verdict">CHECKING…</div>
-    <div class="age" id="age">—</div>
-    <div class="note">Now: ${esc(note)}</div>
+  <div class="pulseline" id="pulse">
+    <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
+    <span class="pulsenote" id="noteText">${esc(note)}</span>
   </div>
 
-  <h2>Write to Claude</h2>
-  <p class="muted" id="ideaCapNote">Checking whether this view can save…</p>
-  <div id="ideaForm" hidden>
-    <textarea id="ideaText" rows="3" placeholder="An idea, feedback, a bug you noticed — any words. It lands on the Chart and gets a fate."></textarea>
-    <button id="ideaSend" type="button">Send to the Chart</button>
-    <p class="muted" id="ideaStatus"></p>
-  </div>
-  <div id="ideaList"></div>
-
-  <h2>Shipped today (${commits === null ? "?" : commits.length} commits)</h2>
-  ${commits === null ? `<p class="bad">unreadable: git log failed</p>`
-    : commits.length === 0 ? `<p class="muted">Nothing yet today.</p>`
-    : `<ul>${commits.slice(0, 12).map((c) => `<li><code>${esc(c.h)}</code> ${esc(c.s)}</li>`).join("")}${commits.length > 12 ? `<li class="muted">…and ${commits.length - 12} more</li>` : ""}</ul>`}
-
-  <h2>Your call (${blocked === null ? "?" : blocked.length})</h2>
-  ${blocked === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-    : blocked.length === 0 ? `<p class="muted">Nothing waiting — every question you've been asked is ruled, and the engine has what it needs.</p>`
-    : `<div id="asks">${blocked.map((b) => `<div class="ask" data-id="${esc(b.id)}">
-      <p class="q">${esc(b.q)}</p>
+  <section class="card accentCard">
+    <h2>Your call (${askList.length}${DEMO ? " + 2 demo" : ""})</h2>
+    ${askList.length === 0
+      ? `<p class="muted">Nothing waiting — every question you've been asked is ruled, and the Bosun has what it needs.</p>`
+      : `<div id="asks">${askList.map((b) => `<div class="ask" data-id="${esc(b.id)}">
+      <p class="q">${esc(b.q)}${b.id.startsWith("demo-") ? `<span class="demoTag">example — not real</span>` : ""}</p>
       <p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>
       <div class="ruleRow">
         <button type="button" class="rb" data-choice="yes">Do it</button>
@@ -222,25 +297,46 @@ const PAGE = `<title>The Glass</title>
       <textarea class="rnote" rows="2" placeholder="A note, if you want one — your words outrank the button."></textarea>
       <p class="muted rstate"></p>
     </div>`).join("")}</div>`}
+  </section>
 
-  <h2>Your rulings, in hand (${ruled === null ? "?" : ruled.length})</h2>
-  ${ruled === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-    : ruled.length === 0 ? `<p class="muted">Nothing ruled yet.</p>`
-    : `<table id="ruled">${ruled.map((r) => `<tr><td>${esc(r.item)}</td><td><b>${esc(r.call)}</b><br><span class="muted">${esc(r.now)}</span></td></tr>`).join("")}</table>
-  <p class="muted">Migrated from the Helm and derived from the Chart — the engine works to these.</p>`}
+  <section class="card">
+    <h2>Ideas</h2>
+    <p class="muted" id="ideaCapNote">Checking whether this view can save…</p>
+    <div id="ideaForm" hidden>
+      <textarea id="ideaText" rows="3" placeholder="An idea, feedback, a bug you noticed — any words. It lands on the Chart and gets a fate."></textarea>
+      <button id="ideaSend" type="button">Send to the Chart</button>
+      <p class="muted" id="ideaStatus"></p>
+    </div>
+    <div id="ideaList"></div>
+  </section>
 
-  <h2>The reboot checklist</h2>
-  ${checklist === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-    : `<p><span class="count">${checklist.done}</span> done · <span class="count">${checklist.open}</span> open — detail in <code>.planning/CHART.md</code></p>`}
+  <section class="card">
+    <h2>Shipped today (${commits === null ? "?" : commits.length} commits)</h2>
+    ${commits === null ? `<p class="bad">unreadable: git log failed</p>`
+      : commits.length === 0 ? `<p class="muted">Nothing yet today.</p>`
+      : `<ul class="shipList">${commits.slice(0, 12).map((c) => `<li>${esc(shortSubject(c.s))}</li>`).join("")}${commits.length > 12 ? `<li class="muted">…and ${commits.length - 12} more</li>` : ""}</ul>`}
+  </section>
 
-  <h2>On the Chart, awaiting a fate</h2>
-  ${inboxItems === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-    : rows(inboxItems.map(esc), "The Chart inbox is empty.")}
+  <section class="card">
+    <h2>Your rulings, in hand (${ruled === null ? "?" : ruled.length})</h2>
+    ${ruled === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+      : ruled.length === 0 ? `<p class="muted">Nothing ruled yet.</p>`
+      : `<table id="ruled">${ruled.map((r) => `<tr><td>${esc(r.item)}</td><td><b>${esc(r.call)}</b><br><span class="muted">${esc(r.now)}</span></td></tr>`).join("")}</table>
+    <p class="muted">Migrated from the Helm and derived from the Chart — the Bosun works to these.</p>`}
+  </section>
 
-  <h2>Watchdog restarts (last 5)</h2>
-  ${rows(restarts.map(esc), "None recorded — either no stalls, or the watchdog isn't live yet (see the Chart).")}
+  <section class="card">
+    <h2>Tasks (${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open)</h2>
+    ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
+  </section>
 
-  <p class="meta">Generated ${esc(nowIso)} by scripts/wyclau/glass.mjs — every number above is derived, none hand-typed. Stale &gt; 45 min = something is wrong; the watchdog should have restarted the engine.</p>
+  <section class="card">
+    <h2>Watchdog restarts (last 5)</h2>
+    ${rows(restarts.map(esc), "None recorded — either no stalls, or the watchdog isn't live yet (see the Chart).")}
+  </section>
+
+  <p class="meta">Generated ${esc(nowIso)} by scripts/wyclau/glass.mjs — every number above is derived, none hand-typed. Stale &gt; 45 min = something is wrong; the watchdog should have restarted the Bosun.</p>
 </div>
 <script>
   (function(){
@@ -249,15 +345,16 @@ const PAGE = `<title>The Glass</title>
     try { state = JSON.parse(document.getElementById("glassState").textContent); }
     catch (e) { state = { v: 2, generatedAt: "${nowIso}", ideas: [] }; }
 
-    // --- freshness (the engine's clock, untouched by page saves: an idea is not engine progress)
+    // --- freshness (the Bosun's clock, untouched by page saves: an idea is not progress)
     var t = new Date(state.generatedAt);
     function tick(){
       var m = Math.floor((Date.now() - t.getTime())/60000);
-      var el = document.getElementById("age"), v = document.getElementById("verdict"), p = document.getElementById("pulse");
-      el.textContent = m < 1 ? "moments ago" : m + " min since last progress";
+      var age = document.getElementById("age"), emoji = document.getElementById("pulseEmoji"),
+          p = document.getElementById("pulse");
+      age.textContent = m < 1 ? "moments ago" : m + " min ago";
       var stale = m > 45;
-      v.textContent = stale ? "STALE — THE ENGINE MAY BE DOWN" : "ALIVE";
-      p.className = stale ? "pulse stale" : "pulse";
+      emoji.textContent = stale ? "🔴" : "🟢";
+      p.className = stale ? "pulseline stale" : "pulseline";
     }
     tick(); setInterval(tick, 30000);
 
@@ -337,6 +434,7 @@ const PAGE = `<title>The Glass</title>
 
     function saveRuling(el, choice){
       if (!cap) return;
+      if (el.getAttribute("data-id").indexOf("demo-") === 0) return; // demo cards never save
       var id = el.getAttribute("data-id");
       var st = el.querySelector(".rstate");
       st.textContent = "Saving your ruling…";
@@ -409,15 +507,15 @@ const html = PAGE
   .replace("__GLASS_STATE__", () => stateJson);
 
 writeFileSync(OUT, html);
-console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}`);
+console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}${DEMO ? "  [DEMO MODE — do not publish this render]" : ""}`);
 console.log(`note: ${note}`);
 
 console.log(`
 REPUBLISH THE GLASS -- writing the file is only half of it:`);
 console.log(`  ${GLASS_URL}`);
-console.log(`  ⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas entries into`);
-console.log(`  .planning/CHART.md's IDEA INBOX before republishing — a republish without the`);
-console.log(`  harvest DELETES his unharvested ideas (this page always regenerates with none).`);
+console.log(`  ⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas AND`);
+console.log(`  glassState.rulings entries into .planning/CHART.md before republishing — a`);
+console.log(`  republish without the harvest DELETES both (this page always regenerates empty).`);
 console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). Do it at every item`);
 console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);
 console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
