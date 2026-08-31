@@ -114,11 +114,37 @@ function main() {
 
   const ours = new Set(dirty);                            // uncommitted is ours by definition
   const mine = sh("git rev-parse --abbrev-ref --symbolic-full-name @{u}").trim();
-  const foreign = new Map();                              // file -> the branch that owns it
+
+  /* SAME-BRANCH FOREIGNNESS — the other-branch test below cannot see it. 2026-08-31: two
+     sessions shared claude/cloud-handoff-planning-a9ay1u; a setup session pulled the overnight
+     session's rename commit and this hook billed it for four src/ files it never touched,
+     because `git branch -r --contains` returned only this branch's own upstream, which is
+     filtered as `mine`. The commit had no session trailer either. What DOES tell them apart is
+     the reflog of this clone: a commit this session made lands as a `commit:` / `cherry-pick:`
+     entry (or a `(pick)` when a pull --rebase replays it); work that arrived by pull lands as
+     `pull …: Fast-forward` or a merge, never as a commit action. So: born-here = in that set.
+     If the reflog is unreadable or empty, skip this test rather than trusting an empty set —
+     an empty `born` would exclude everything and the hook would silently never fire again,
+     which is the exact rot this file exists to prevent. Known residual: on a shared checkout
+     (the Mac), a CONCURRENT session's commits are also "born here"; the ledger claim is the
+     guard for that case, not this hook. */
+  const reflog = sh(`git reflog --format="%H %gs"`).split("\n").map((s) => s.trim()).filter(Boolean);
+  const born = new Set(reflog
+    .filter((l) => {
+      const act = l.slice(41);                            // 40-char sha, one space, then %gs
+      return /^(commit\b|cherry-pick:)/.test(act) || /\((pick|reword|edit|squash|fixup)\)/.test(act);
+    })
+    .map((l) => l.slice(0, 40)));
+
+  const foreign = new Map();                              // file -> where that work actually lives
   for (const f of committed) {
     if (ours.has(f)) continue;
     const sha = sh(`git log -1 --format=%H ${range} -- "${f}"`).trim();
     if (!sha) { ours.add(f); continue; }
+    if (reflog.length && !born.has(sha)) {
+      foreign.set(f, "history pulled into this checkout, not written here");
+      continue;
+    }
     /* Which OTHER published branches carry the commit that last touched this file? If any does,
        that work was pushed by somebody else and this session merely has it in its history. */
     const owners = sh(`git branch -r --contains ${sha}`).split("\n")
@@ -204,7 +230,8 @@ THEN PUBLISH IT and give him the https:// link -- not the path, not the GitHub U
 `THIS SESSION CHANGED GAME CODE, AND THERE IS NO CHECKLIST NEWER THAN THAT WORK.
 
 It really is yours: the range is this session's own start commit to HEAD, and any file whose last
-change here is already published on another branch has been excluded as that session's to describe.
+change here is already published on another branch, or arrived by PULL rather than being committed
+in this checkout (the reflog knows the difference), has been excluded as that session's to describe.
 (Before 2026-08-30 this compared the whole BRANCH and demanded sheets for other sessions' merged-in
 work. If you believe the list below is not yours, that is a bug in this hook worth fixing, not a
 sheet worth writing.)
