@@ -1,5 +1,39 @@
 # CEO reviews — the standing record
 
+## CEO Review 55 — 2026-08-31, the wyclau-to-claude-kit vendoring move — VERBATIM
+
+**YES.** The ask was executed and holds up under independent checking — the reviewer verified all
+seven points itself rather than trusting the session's account, and every claim held.
+
+**What holds up:** the seven files are really in claude-kit (`plugins/wyclau/`), really committed
+and pushed (`2dcf895` on `origin/main`), not loose working-tree files. `install.sh` passes a syntax
+check; the new `wyclau` case maps each file to its real operating path in a target repo (not a new
+consolidating folder); the `org` module's file list is character-for-character identical before and
+after, and running the OLD pre-change installer against pastrypirates produced the exact same
+eleven-line org drift report as the new one — so that drift is pre-existing and this change neither
+caused nor worsened it. `.claude/wyclau/VENDORED-FROM` and `MANIFEST.sha256` are real, committed,
+and all seven hashes (not just the three asked for) were recomputed independently and matched.
+`bash install.sh check <repo> wyclau` really prints IN STEP, and the reviewer red-proofed the drift
+alarm itself — tampered a vendored file, watched the check fail and name it, restored it, watched it
+pass again. The vendoring commit touched only the two tracking files — no game code — and the
+working tree came out completely clean after the vendor run overwrote the seven real files with the
+kit copies, which is stronger proof of byte-identity than a diff would have been. The Stop hook is
+still registered in `.claude/settings.json`, the pulse hook still wired, the Door skill still live.
+`npm test` really is 74/74.
+
+**Two things flagged, neither blocking:**
+- **(A) No "this is vendored, edit in claude-kit" marker inside the seven files themselves.** The
+  org module's files sit in a folder that carries the warning; wyclau's files live at their normal
+  operating paths with no local sign they're now a copy — a future session could edit
+  `scripts/wyclau/glass.mjs` directly with no warning until the drift gate catches it after the
+  fact. **ACTED ON, same pass:** a one-line header comment added to all seven files, both in
+  claude-kit and the pastrypirates vendored copies, re-vendored and re-verified IN STEP.
+- **(B) A latent trap for a third module** — the copy step preserves filenames, so a future module
+  that renames a file between kit and target would silently land under the wrong name. Not a bug
+  today; noted for whoever adds the next module.
+
+---
+
 ## CEO Review 54 — 2026-08-31, the Glass corruption bug fix — VERBATIM
 
 **PARTIALLY.** The two things Wyatt could point at — the button that stuck and the silence about

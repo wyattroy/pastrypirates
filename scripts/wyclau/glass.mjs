@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// VENDORED FROM claude-kit (plugins/wyclau) — edit THERE, not here. Re-vendor: `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by scripts/qa/vendor_check.mjs.
 // THE GLASS (wyclau charter, part 4) — the one status page, derived, never hand-typed.
 //
 // Usage:  node scripts/wyclau/glass.mjs --note "what is happening right now"

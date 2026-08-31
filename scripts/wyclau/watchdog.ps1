@@ -1,4 +1,5 @@
 # THE WATCHDOG (wyclau charter, part 3) -- Windows / the Razer.
+# VENDORED FROM claude-kit (plugins/wyclau) -- edit THERE, not here. Re-vendor from a claude-kit checkout on THIS machine: bash install.sh vendor <repo> wyclau. Drift is caught by scripts/qa/vendor_check.mjs.
 #
 # The liveness layer lives OUTSIDE the worker: this runs from Task Scheduler, not from any
 # Claude session, so it cannot die with one. Every run: read the heartbeat the engine stamps

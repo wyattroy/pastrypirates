@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// VENDORED FROM claude-kit (plugins/wyclau) — edit THERE, not here. Re-vendor: `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by scripts/qa/vendor_check.mjs.
 // scripts/wyclau/mark_glass_published.mjs
 //
 // Run this immediately after the Artifact tool call that publishes the Glass succeeds. A plain

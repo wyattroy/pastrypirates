@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// VENDORED FROM claude-kit (plugins/wyclau) — edit THERE, not here. Re-vendor: `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by scripts/qa/vendor_check.mjs.
 /* wyclau-stop-keep-working.cjs — a Stop hook. THE MISSION IS TO WORK UNTIL EVERY TASK IS DONE OR
  * GENUINELY BLOCKED ON WYATT -- NEVER TO STOP MID-LOOP AND REPORT.
  *

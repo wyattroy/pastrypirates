@@ -3,6 +3,10 @@ name: door
 description: The one way into work on this project (wyclau charter, part 2). Use at the START of any work session, when asked to "continue", "keep going", or when a session needs to orient itself. Syncs, orients, states the situation in 6 lines, then works the Chart through the Proof.
 ---
 
+> **VENDORED FROM claude-kit (`plugins/wyclau`) — edit THERE, not here.** Re-vendor:
+> `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by
+> `scripts/qa/vendor_check.mjs`.
+
 # The Door
 
 Every work session enters here. Orientation budget: **two minutes**. If any step below is

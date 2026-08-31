@@ -1,4 +1,5 @@
 'use strict';
+// VENDORED FROM claude-kit (plugins/wyclau) — edit THERE, not here. Re-vendor: `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by scripts/qa/vendor_check.mjs.
 /* WYCLAU PULSE — stamp evidence that a session is alive, on every tool call.
  *
  * WHY THIS IS NOT THE HEARTBEAT. `.planning/wyclau/HEARTBEAT` is a DELIBERATE pulse: a session

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# VENDORED FROM claude-kit (plugins/wyclau) — edit THERE, not here. Re-vendor: `bash install.sh vendor <repo> wyclau` from claude-kit. Drift is caught by scripts/qa/vendor_check.mjs.
 # THE WATCHDOG — macOS/Linux variant (MacBook nights). Same contract as watchdog.ps1:
 # runs OUTSIDE any Claude session (cron/launchd), revives the engine when the heartbeat
 # goes stale. STATUS: UNPROVEN until deliberately stall-tested on the machine it guards.
