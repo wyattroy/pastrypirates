@@ -20,6 +20,7 @@ import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, ref
   waitLineIsSelfAddressed } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH } from "../shared/index.js";
+import { showsThinkingIndicator } from "../shared/visibility.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -1226,8 +1227,18 @@ function ribbonTick(){
     // appState.room` is the same networked test the chat panel already uses (orchestrator.js) —
     // reused here rather than inventing a new flag, per the state module's own field for "am I in
     // a room right now."
-    const botsUp = g2 && !appState.liveDone && !appState.passAndPlay && !(appState.db && appState.room) &&
-      act >= 0 && act !== (appState.mySeat ?? 0) && g2.players[act] && !g2.players[act].done;
+    /* A PERFORMER CAPABILITY, not a mode check — the plan's §04.2: "the capability is universal;
+       only its offer is mode-gated". You are told someone is thinking when you are watching
+       another seat's turn and there is nobody in the room to tell you: on a shared device the next
+       captain is sitting beside you, on separate devices the wire carries their turn. The rule
+       reads two HARDWARE facts and no mode name. src/shared/visibility.js, pure and gated. */
+    const botsUp = !!g2 && showsThinkingIndicator({
+      sharedDevice: appState.passAndPlay,
+      networked: !!(appState.db && appState.room),
+      watchingAnotherSeat: act >= 0 && act !== (appState.mySeat ?? 0),
+      seatStillPlaying: !!(g2.players[act] && !g2.players[act].done),
+      voyageOver: appState.liveDone,
+    });
     // explicit inline-flex/none — the CSS base is display:none, so writing "" would fall back to
     // hidden. inline-flex, NOT block: playtest 21 item 8 gave the ⏩ and the clock one shared box
     // rule that centres their contents with flex, and an inline `display:block` written here would

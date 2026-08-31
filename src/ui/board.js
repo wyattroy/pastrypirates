@@ -154,6 +154,7 @@ import {
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
 import { deriveActiveSeat } from "../shared/storyboard.js";
+import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
 
@@ -1712,8 +1713,13 @@ export function render(){
     // pass & play: your own recipe never auto-reveals — it only shows once you've tapped
     // "check my recipe" during your own live turn (see humanTurn/passGate), so a device
     // changing hands mid-battle or mid-trade can never carry someone else's recipe on screen.
-    const canReveal=spectator||(i===appState.mySeat&&(!appState.passAndPlay||appState.recipeRevealed));
-    const offerCheckBtn=appState.passAndPlay&&i===appState.mySeat&&i===appState.activeTurnSeat&&!appState.recipeRevealed;
+    /* THE RULE LIVES IN src/shared/visibility.js — pure, gated, and knowing no mode's name. These
+       two lines used to spell out `appState.passAndPlay` inline, which made a GAME RULE (your own
+       recipe is yours, everyone else's is private) look like a pass-and-play feature. It is not:
+       on separate devices the hardware enforces it for free, on one shared screen the same rule
+       needs a tap. Step 5's narrow half, at Wyatt's choosing, 2026-08-31. */
+    const canReveal=mayRevealRecipe({isMySeat:i===appState.mySeat,spectator,sharedDevice:appState.passAndPlay,askedThisTurn:appState.recipeRevealed});
+    const offerCheckBtn=offersRecipeCheck({isMySeat:i===appState.mySeat,isActiveSeat:i===appState.activeTurnSeat,sharedDevice:appState.passAndPlay,askedThisTurn:appState.recipeRevealed});
     if(canReveal){
       $("prowRecipe"+i).innerHTML=`${iconImg(SCROLL_IMG)} ${recipeTitle(appState.game.players[i].recipe)}`;
       $("prowRecipe"+i).classList.add("hasRecipe");
