@@ -174,6 +174,29 @@ try {
 }
 say(unitOk ? "   PASS — all of them\n" : "   FAIL\n" + unitTail + "\n");
 
+/* ---- 1b. ARE THE EYES OPEN? ------------------------------------------------
+   CEO Review 38, 2026-08-31: judge_can_see_check.mjs "is run by nothing… it is also not called by
+   scripts/sea_trial.mjs, which is the one place 'can the judge see?' needs answering before a
+   104-minute run." It was right, and the incident it was written for is the reason: on 2026-08-30
+   a FULL trial sailed every leg while the judge returned "unparseable judge reply" 1494 times and
+   hard-failed 120 more. The structural half of that run was real; the eyes were shut for all of
+   it, and NOTHING SAID SO until somebody counted afterwards.
+
+   THIRTY SECONDS BEFORE, NOT AN HOUR AFTER. Three exit codes, three meanings, and none of them
+   stops the trial — a run with shut eyes is still worth its structural half, and refusing to sail
+   would trade a partial answer for none. What must never happen again is that the report reads the
+   same either way. That is the NOT-RUN column's whole principle applied to the judge.  */
+let eyesOk = null, eyesWhy = "not asked for (--judge=off)";
+if (arg("judge", "on") !== "off") {
+  say("── 1b/2  can the judge open a screenshot? ──");
+  const r = spawnSync("node", ["scripts/qa/judge_can_see_check.mjs"], { cwd: REPO, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
+  const tail = ((r.stdout || "") + (r.stderr || "")).trim().split("\n").slice(-3).join(" · ");
+  if (r.status === 0)      { eyesOk = true;  eyesWhy = "checked just before sailing — the judge opened a real screenshot and described it"; }
+  else if (r.status === 2) { eyesOk = null;  eyesWhy = `**COULD NOT BE ASKED** — ${tail}`; }
+  else                     { eyesOk = false; eyesWhy = `**THE JUDGE CANNOT SEE** — every visual verdict below is worthless; the structural half still stands. ${tail}`; }
+  say(`   ${eyesOk === true ? "PASS — the eyes are open" : eyesOk === false ? "FAIL — the eyes are SHUT" : "UNKNOWN"}\n`);
+}
+
 /* ---- 2. the voyages -------------------------------------------------------- */
 let gateOk = null, gateOut = "";
 const OUT = path.join(REPO, "sea-trial-shots");
@@ -272,6 +295,7 @@ const report = `# Sea trial ${TRIAL_VERSION} — build \`${STAMP}\`
 | | |
 |---|---|
 | checks with no browser (\`npm test\`) | ${unitOk ? "PASS" : "**FAIL**"} |
+| **can the vision judge see?** | ${eyesOk === true ? "yes" : eyesOk === false ? "**NO**" : arg("judge", "on") === "off" ? "n/a" : "**unknown**"} — ${eyesWhy} |
 | voyages played with a real mouse | ${ranLegs.length ? ranLegs.join(", ") : "none"} |
 | **voyages that did NOT run** | ${notRun.length ? "**" + notRun.map(n => n.leg).join(", ") + "**" : "none"} |${rescueRow}
 
