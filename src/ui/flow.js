@@ -2474,9 +2474,25 @@ export async function humanAct(p,sailCtx){
   }
 }
 export async function humanTurn(p){
-  applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers — see its note in util.js (02.15-01 Stage 2)
+  /* THE DEVICE CHANGES HANDS BEFORE THE SCREEN CHANGES CAPTAIN — Wyatt, 2026-08-31: "Move it, I
+     trust the plan." The plan puts pass-and-play's hand-over in the Decider: it is a precondition
+     on OBTAINING a decision from a seat, not a look and not part of the turn.
+
+     WHAT STOOD HERE: applyActiveSeat(p.idx) — then the gate — then applyActiveSeat(p.idx) again,
+     with a note reading "exactly as setActor was called before it", i.e. a shape preserved through
+     a refactor rather than a behaviour anybody chose. It came in with the cutover (fb74eedc).
+
+     WHAT IT COST A PLAYER: the board switched to the incoming captain — ring, captains-box
+     highlight, pass-and-play row order — and THEN the hand-over card appeared. For that instant the
+     OUTGOING captain, still holding the device, was looking at the next captain's board.
+
+     AND TWO OF THE THREE PASS-AND-PLAY PATHS ALREADY DID IT THIS WAY: the secret draft and a bake
+     turn both gate first. One of three disagreeing is rule 8's drift exactly, and nobody had
+     noticed. Gate: scripts/qa/handover_before_turn_check.mjs.
+
+     NOTHING CHANGES OUTSIDE PASS-AND-PLAY — passGate returns immediately in every other mode. */
   await passGate(p.idx);
-  applyActiveSeat(p.idx); // ...and again after the gate, exactly as setActor was called before it
+  applyActiveSeat(p.idx); // ONE ACTIVE SEAT, both tiers — see its note in util.js (02.15-01 Stage 2)
   // a prior player's shot-clock expiry can leave this set from their forfeited turn — this
   // flag only ever got cleared by the clock's arming deep inside a decision, too late to
   // save this turn's own early "did the previous turn just die?" guards below, so clear it
