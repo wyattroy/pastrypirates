@@ -93,12 +93,41 @@ function judgeEnv() {
   return { cwd: os.tmpdir(), env };
 }
 
+/* ⚠ STAGE THE IMAGES WHERE THE JUDGE IS STANDING. THE FIX ABOVE IS WHY THIS IS NEEDED.
+ *
+ * The child runs from a temp dir on purpose (see judgeEnv's neighbours) so it cannot inherit this
+ * repo's cwd, load .claude/settings.json and be hijacked by our own hooks — measured 2026-08-28,
+ * 75 calls lost that way. AND THAT PROTECTION IS EXACTLY WHAT BLINDED IT: a child sitting in /tmp
+ * is refused permission to open absolute paths inside the repo, so it answers in PROSE — "I don't
+ * have permission to read those image files" — and prose is not JSON, so the caller files it as a
+ * PARSING problem. A whole FULL trial on 2026-08-30 judged nothing: 1494 unparseable replies and
+ * 120 hard failures, and not one of the three different wordings named the wall.
+ *
+ * Bisected with real calls: 0 images clean · 1 image by absolute path clean · 2 and 3 refused ·
+ * 5 reported as a TLS error · THREE IMAGES COPIED INTO THE CHILD'S OWN CWD returned a correct
+ * array of three verdicts. So the images move to the judge, not the judge to the images.
+ *
+ * Basenames are kept UNCHANGED because the reply is matched back by basename (see judgeBatch). Two
+ * screenshots sharing a basename in one batch would collide — that was already true of the
+ * matching before this existed, and is not introduced here. */
+function stageImages(absPaths) {
+  const dir = fs.mkdtempSync(os.tmpdir() + "/ppjudge-");
+  const names = [];
+  for (const abs of absPaths) {
+    const base = String(abs).split("/").pop();
+    fs.copyFileSync(abs, dir + "/" + base);
+    names.push(base);
+  }
+  return { dir, names, cleanup() { try { fs.rmSync(dir, { recursive: true, force: true }); } catch {} } };
+}
+
 // judge ONE screenshot. Returns {verdict, issues, confidence, raw} or {verdict:"ERROR", ...}.
 // context is a short label ("desktop 1920 — sail prompt") folded into the prompt so the model knows
 // the size/mode without it changing the layout rules.
 export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", timeoutMs = 120000 } = {}) {
-  const prompt = `${RUBRIC}\n\nContext (informational only, does not change the rules): ${context}\nRead the image file at ${imgPath} and judge it.`;
-  return new Promise((resolve) => {
+  const stage1 = stageImages([imgPath]);        // see stageImages — the child cannot open repo paths
+  const prompt = `${RUBRIC}\n\nContext (informational only, does not change the rules): ${context}\nRead the image file ${stage1.names[0]} in the current directory and judge it.`;
+  return new Promise((rawResolve1) => {
     /* THE JUDGE MUST TRUST THE PROXY'S CA, OR IT CANNOT SEE ANYTHING.
        Measured 2026-08-27: in a cloud container every judge call died with
          "API Error: Unable to connect to API: Self-signed certificate detected."
@@ -119,9 +148,10 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
        from a temp dir it answered in 37s.
        imgPath is absolute (playtest_gate passes it that way), so the judge has no need of the
        repo cwd at all. Do not "restore" it. */
-    const { cwd: CWD, env } = judgeEnv();
+    const { env } = judgeEnv();
+    const resolve = (v) => { stage1.cleanup(); rawResolve1(v); };
     const child = execFile("claude", ["-p", prompt, "--model", model, "--output-format", "json"],
-      { maxBuffer: 16 * 1024 * 1024, env, cwd: CWD }, (err, stdout) => {
+      { maxBuffer: 16 * 1024 * 1024, env, cwd: stage1.dir }, (err, stdout) => {
         if (err && !stdout) return resolve({ verdict: "ERROR", issues: ["vision call failed: " + String(err.message || err).slice(0, 120)], confidence: 0 });
         let text = stdout;
         let outer = null;
@@ -137,7 +167,14 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
            instrument failure, not a game with 67 broken screens. */
         if (outer && outer.is_error === true) return resolve({ verdict: "FATAL", issues: ["the judge cannot run: " + String(text).slice(0, 160)], confidence: 0 });
         const j = extractJSON(String(text));
-        if (!j || !j.verdict) return resolve({ verdict: "ERROR", issues: ["unparseable judge reply"], confidence: 0, raw: String(text).slice(0, 200) });
+        /* THE REPLY GOES IN THE ISSUES, NOT ONLY IN `raw`. On 2026-08-30 this resolved `raw` and
+           the caller logged only the phrase, so 1494 failures produced NO evidence of why and the
+           cause had to be found by hand-bisecting the judge. What it actually said was "I don't
+           have permission to read those image files" — one line that would have ended it. An
+           instrument that discards the evidence of its own failure cannot be debugged from its own
+           output. */
+        if (!j || !j.verdict) return resolve({ verdict: "ERROR", confidence: 0, raw: String(text).slice(0, 200),
+          issues: ["unparseable judge reply: " + String(text).replace(/\s+/g, " ").trim().slice(0, 140)] });
         resolve({ verdict: /fail/i.test(j.verdict) ? "FAIL" : "PASS", issues: Array.isArray(j.issues) ? j.issues : [], confidence: +j.confidence || 0 });
       });
     const t = setTimeout(() => { try { child.kill("SIGKILL"); } catch {} resolve({ verdict: "ERROR", issues: ["vision call timed out"], confidence: 0 }); }, timeoutMs);
@@ -166,7 +203,8 @@ export function judgeScreen(imgPath, context = "", { model = "claude-sonnet-5", 
  * screen nobody looked at being counted as a screen that was fine.
  */
 export function judgeBatch(items, { model = "claude-sonnet-5", timeoutMs = 300000 } = {}) {
-  const list = items.map((it, i) => `${i + 1}. ${it.path}${it.context ? `   (context, informational only: ${it.context})` : ""}`).join("\n");
+  const stage = stageImages(items.map(it => it.path));
+  const list = items.map((it, i) => `${i + 1}. ${stage.names[i]}${it.context ? `   (context, informational only: ${it.context})` : ""}`).join("\n");
   const prompt = `${RUBRIC}
 
 You are judging ${items.length} screenshots, listed below. Read EVERY image file and judge each one
@@ -176,10 +214,12 @@ Reply with ONLY a JSON array, one object per image, in the same order, no prose:
 
 Images:
 ${list}`;
-  return new Promise((resolve) => {
-    const { cwd, env } = judgeEnv();
+  return new Promise((rawResolve) => {
+    const { env } = judgeEnv();
+    // the images are HERE now, so the child works from the staging dir and names them bare
+    const resolve = (v) => { stage.cleanup(); rawResolve(v); };
     const child = execFile("claude", ["-p", prompt, "--model", model, "--output-format", "json"],
-      { maxBuffer: 32 * 1024 * 1024, env, cwd }, (err, stdout) => {
+      { maxBuffer: 32 * 1024 * 1024, env, cwd: stage.dir }, (err, stdout) => {
         if (err && !stdout) return resolve({ unparseable: "batch call failed: " + String(err.message || err).slice(0, 120) });
         let text = stdout, outer = null;
         try { outer = JSON.parse(stdout); text = outer.result ?? stdout; } catch {}
@@ -189,7 +229,7 @@ ${list}`;
         const raw = fence ? fence[1] : (String(text).match(/\[[\s\S]*\]/) || [null])[0];
         let arr = null;
         try { arr = raw ? JSON.parse(raw) : null; } catch {}
-        if (!Array.isArray(arr)) return resolve({ unparseable: "batch reply was not a JSON array", raw: String(text).slice(0, 200) });
+        if (!Array.isArray(arr)) return resolve({ unparseable: "batch reply was not a JSON array: " + String(text).replace(/\s+/g, " ").trim().slice(0, 140), raw: String(text).slice(0, 200) });
         /* MATCH BY BASENAME, NOT BY POSITION. The model is asked for the same order and usually
            obeys, but a verdict attached to the wrong screenshot is worse than no verdict at all —
            it would send a reader to the wrong picture. Position is used only as a fallback when a

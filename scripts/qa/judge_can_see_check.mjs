@@ -64,11 +64,25 @@ console.log("");
 const items = shots.map(s => ({ path: path.join(SHOTS, s), shot: path.join(SHOTS, s), context: "judge can-see check" }));
 const out = await judgeBatch(items);
 
-/* judgeBatch resolves either an array of verdicts, or an object carrying `unparseable`. Both shapes
-   are handled by name so a future change to either is visible here rather than silent. */
-const arr = Array.isArray(out) ? out : null;
-if (!arr) {
-  console.log(`  FAIL  judgeBatch returned no verdict array — ${JSON.stringify(out).slice(0, 240)}`);
+/* WHAT judgeBatch ACTUALLY RESOLVES — and the first draft of this gate got it wrong twice, which
+   is worth the comment. It is NOT an array. It is one of:
+     { results: Map<absolutePath, {verdict,issues,confidence}> }   the good case
+     { unparseable: "...", raw: "..." }                            the reply was not a JSON array
+     { fatal: {...} }                                              the judge cannot run at all
+   A Map stringifies to `{}`, so a gate that prints JSON.stringify(out) on the good path reports an
+   empty object and reads exactly like a failure. Read the shape by name. */
+const arr = out && out.results instanceof Map
+  ? items.map(it => out.results.get(it.path)).filter(Boolean)
+  : null;
+if (out && out.fatal) {
+  console.log(`  FAIL  the judge cannot run at all — ${JSON.stringify(out.fatal).slice(0, 200)}`);
+  console.log("\nFAILED — this is an environment fault, not a verdict about any screen.");
+  process.exit(1);
+}
+if (!arr || arr.length !== items.length) {
+  const detail = out && out.unparseable ? out.unparseable : `only ${arr ? arr.length : 0} of ${items.length} screenshot(s) came back named`;
+  console.log(`  FAIL  ${detail}`);
+  if (out && out.raw) console.log(`        raw reply: ${String(out.raw).replace(/\s+/g, " ").slice(0, 200)}`);
   console.log("\n  THE JUDGE CANNOT SEE. Stage the images into the judge's own working directory and");
   console.log("  name them bare; do NOT move the child back into this repo — that reintroduces the");
   console.log("  hook hijack this arrangement exists to prevent.");

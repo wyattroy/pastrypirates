@@ -478,15 +478,22 @@ const results = [];
    port, never a bare pkill — this container's shell wrapper matches `chromium` and a bare pkill
    kills the session itself). Sequential on purpose: nothing is waiting on these, and one browser
    at a time cannot take cores from a leg that is still finishing in a future wider fleet. */
-for (const [i, r] of results.entries()) {
-  if (!r || r.notRun || !(r.screens || []).length) continue;
-  const sheetPort = DBG0 + 90 + i;
-  await Promise.race([
-    contactSheet(r, r.name, i),
-    sleep(120000).then(() => { log(`[${r.name}] contact sheet timed out after 2 min — abandoning it (the screenshots and log are already written)`);
-      try { execSync(`pkill -9 -f "remote-debugging-port=${sheetPort}"`, { stdio: "ignore" }); } catch {} })
-  ]);
-}
+/* ⚠ CONTACT SHEETS ARE NOT RENDERED. Removed 2026-08-31 after being MEASURED, not guessed.
+ *
+ * PR #15 (merged 2026-08-30) said in its own summary: "Contact sheets -- 123s each, abandoned at
+ * their own cap, producing nothing -- are out." THEY WERE NOT OUT. The claim was quoted approvingly
+ * into the ledger and into a reply to Wyatt without being checked, and the loop stayed here.
+ *
+ * The FULL trial that night proved the author's own description exactly: 91 CONTACT SHEETS TIMED
+ * OUT at two minutes each against 29 that finished, on a run budgeted at ~85 minutes that took 104.
+ * Each timeout opened a 1700x1000 Chrome, hit the cap, was killed by port, and produced nothing.
+ *
+ * The screenshots and the log are written before this point and are what anyone actually reads;
+ * a sheet was only ever a convenience view of files that already exist on disk.
+ *
+ * contactSheet() itself is deliberately LEFT IN PLACE, unreferenced. It is a working renderer and
+ * the next person to want one should not have to write it again — but nothing calls it, so nothing
+ * pays for it. If you restore the call, put a measured time budget on it first. */
 
 let anyFail = false;
 for (const r of results) {
