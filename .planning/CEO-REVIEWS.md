@@ -1,5 +1,106 @@
 # CEO reviews — the standing record
 
+## CEO Review 37 — 2026-08-31, "do it" (one-director step 1 + step 3, as one piece) — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"You said 'do it' to a promise that host and guest cameras would stop pointing at different halves of the board. That promise was false, and the good news is that nobody built on it — a measurer checked before a single line moved, found the bug did not exist, and the work was struck the same hour, in writing, in front of everybody. What you got instead is real and I checked it myself: five copies of 'whose turn is it' became one, seventeen places that could move it became one, and both new guardrails genuinely go red when I break them. **But you should know two things. First, this changes nothing you can see — it is scaffolding, and its own commit message says so in capitals. Second, the brand-new guardrail has your laptop's address wrong: it looks for the game at a folder that only exists in the cloud machine, so `npm test` passes here and will crash on your Mac at gate 32 of 55.** That is a one-line fix, and I would not merge before it."*
+
+### A. WAS "DO IT" HONOURED? Yes on the half that was real, and the half that was struck was struck the RIGHT way — but you were sold something that did not exist and you have not yet been asked again.
+
+**The promise you approved was false, and it came from a code comment, not a measurement.** The plan, CEO 31's re-scoping, and the measurer's own brief all said host and guest disagree about whose turn it is. `.planning/CTO-LEDGER.md:540` records what actually happened: a real two-browser crew room, 200 samples across ~48 events, and **at all 161 moments where both browsers had consumed the same event, they agreed on the seat and on the glowing boat.** The 11 that differed had the guest one to three events behind on the wire — that is the internet, not two bosses. And the camera never read that value at all.
+
+**The strike is honest and it is dated before the build.** The ledger entry lands 02:35; commit `fa826143` is titled *"step 3 is dead: measured before building, and the premise was a stale comment"*; the build commits are 02:45 and 02:49. **The measurement killed the work before a builder touched anything.** That is the order this project keeps failing to achieve, and it achieved it here. Say that out loud — it is the best thing in this item.
+
+**And the size is stated where it cannot be missed.** Commit `5e9ee2b1` contains: *"this is structural, not a fix a player will see. The host/guest divergence it was scoped against was measured this morning and DOES NOT EXIST — 200 paired samples in a real crew room, 0 divergences… Anyone reporting this as a user-facing win is misreporting it."* I could not have written a fairer warning myself.
+
+**What is missing, and it is the thing rule 1 exists for.** You approved a package because you were told it would fix something you can see. Half of it evaporated. **Nobody has gone back and asked whether you still want the other half now that the reason for it is gone.** The record makes it impossible to hide; it does not amount to asking you. *(Boundary, stated: I can verify the ledger and the commits. I cannot see the reply you actually read.)*
+
+### B. IS THE FOUNDATION REAL? YES — I broke it myself and watched it go red.
+
+The whole thesis is that the new file is **pure** — it cannot touch the screen, the game state or the network, so two clients handed the same events must produce the same answer, and that can be checked in a second instead of with two browsers.
+
+I copied `src/` and `scripts/` into a scratch folder (**your repo was never touched**) and added one line to `src/shared/storyboard.js` importing from `src/ui/`:
+
+| what I ran | result |
+|---|---|
+| the shipped code | `PASS shared imports nothing from src/ (leaf tier)` — **exit 0** |
+| with one forbidden import added | `FAIL shared imports nothing from src/` **and** `CYCLE: src/ui/util.js -> src/shared/storyboard.js -> src/ui/util.js` — **exit 1** |
+| line removed again | **exit 0** |
+
+**The purity is enforced by the build, not promised in a comment.** That is exactly what was claimed, and it is the load-bearing claim of the whole architecture plan. It holds.
+
+### C. CAN THE NEW GATE FAIL? YES — all three exits are real, and the "I cannot tell" exit was not quietly turned into a pass.
+
+Same scratch copy. `scripts/qa/whose_turn_one_fact_check.mjs`:
+
+| what I did | what it printed | exit |
+|---|---|---|
+| nothing (shipped code) | `GREEN — applyActiveSeat is the only writer of the active seat` | **0** |
+| put the old direct writes back | `RED — "whose turn is it" has 12 writers (11 direct + applyActiveSeat)`, each one named with its file and line | **1** |
+| renamed the function it watches, so it can no longer find its subject | `INCONCLUSIVE — the code this gate describes has moved. Fix the gate, do not trust it.` | **2** |
+
+**The middle row is the one that matters and it is the one that is usually faked.** It did not pass, and it did not shrug — it named eleven specific lines. And the third row is the rare good thing: a check that knows when it has lost sight of what it is checking, and says so instead of printing a green tick. That path is intact.
+
+**The one-writer claim is also true, and I counted rather than believed it.** `src/ui/util.js:1828` — `setActor` is no longer exported. Direct calls to it anywhere outside that one file: **zero**. Three places now call the one shared walk (`src/ui/util.js:1894`, `src/ui/board.js:1532`, `src/ui/board.js:1776`).
+
+### D. THE HEADER EXCEPTION — THE SHARPEST QUESTION, AND MY ANSWER IS SPLIT: acceptable to have written, NOT acceptable to merge.
+
+`src/ui/board.js:9-13` carries a standing order in the file's own words: this body holds the v1.0 Safari storm-crash fix, and *"Do not refactor, 'clean up', re-animate, or reorder anything inside them."* Two earlier sessions changed that body anyway — and **both got your sign-off first and stamped it in the header: "Wyatt-approved 2026-07-30" and "Wyatt-approved 2026-07-31."** This one changed it and then wrote a block at `:15` saying **"⚠ AWAITING WYATT'S RULING."**
+
+**That is the order reversed.** The precedent is *ask, then change*. This is *change, then flag*. And the header itself sees the trap it is walking into — at `:39-41` it notes that an earlier ovens/bake widening was also never recorded, and says *"That is a second unrecorded deviation, not a licence for a third."* It then becomes the third, with better manners.
+
+**Why I am not calling it a failure.** Three things are genuinely different here:
+1. **The hazard the order guards is provably untouched.** The Safari crash was a live gradient plus a mask being redrawn every frame, and a box whose height animated on every keystroke. This edit swaps a loop over a list for a call to a function that returns the same value. No gradient, no mask, no animation, no per-frame work, no screen writing. `LAYERS is still 4`.
+2. **It was not left at reasoning.** A real Safari run (WebKit 26.5, two screen sizes, storms forced) mounted the full four-layer storm stack on both and hit zero errors, zero crashes. Its stated limit is honest — neither run got past Day 1, so a long voyage and a live bake were never exercised in a browser.
+3. **Nothing has reached a player.** This is on `claude/cloud-handoff-planning-a9ay1u`, and I confirmed it is **not** on `origin/main`.
+
+**Why it still needs a change.** A branch is not a resting place; it is a merge waiting to happen. **And I checked: nothing stops it.** No gate and no hook anywhere in `scripts/` or `.claude/hooks/` greps for `AWAITING WYATT` — so the only thing preventing this from riding onto `main` unruled is somebody remembering. **A rule that survives on memory is the exact failure this project keeps paying for.**
+
+**My ruling on your behalf, which you can overturn: writing it was fine, merging it is not, and the flag must be mechanical rather than remembered.**
+
+### E. `npm test` — EXIT 0 AT 55 GATES **ON THIS MACHINE ONLY.** This is the finding I will not let past.
+
+I ran it. `NPM_TEST_EXIT=0`, and `gate_count_check` confirms `declared total 55`. So the claim is true, here.
+
+**It will not be true on your laptop.** Line 11 of the new gate reads:
+
+```js
+const ROOT = process.argv[2] || '/home/user/pastrypirates';
+```
+
+`npm test` calls that gate with **no argument**, so it goes looking for the game at `/home/user/pastrypirates` — a folder that exists only inside the cloud container. On your Mac the game lives at `/Users/wyattroy/Documents/Projects/pastrypirates`. I ran it against a folder that does not exist: **it does not fail politely, it crashes with a stack trace and exit 1.** That is gate 32 of 55, so **`npm test` stops there and the remaining 23 gates never run.**
+
+**Every one of its neighbours does this correctly** — `one_event_consumer_check.mjs:18` and `ask_render_convergence_check.mjs:21` both work out where they are from their own location: `path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..")`. The new gate is the only file in the whole `npm test` chain with a hardcoded machine address.
+
+**And the irony is exact.** In the same run I watched, `doc_command_check` printed: *"PASS every documented `node …` command is repo-relative — it runs the same in a cloud container as on the laptop."* That check was written on 2026-08-28 after this unit shipped a home-rooted path and had to correct itself in `CLAUDE.md`. **The identical mistake has just been made in the opposite direction — container-rooted instead of home-rooted — in a file the checker cannot see, because it only reads documents.** One line fixes the gate. The deeper point is that the lesson was written down three days ago and did not transfer.
+
+*(One more, smaller: `scripts/qa/w7c_window_artifact_check.mjs` has the same hardcoded path. It is not in the `npm test` chain, so it breaks nothing today.)*
+
+### F. RECURRENCE OF CEO 35 AND 36's CHARGE — it recurs, but it has shrunk by an order of magnitude, and I want the direction on the record.
+
+The standing charge is **claiming more than the evidence supports** — CEO 35: a count of "exactly two sites" that was five. CEO 36: "two structural failures in the whole fleet" when the log held thirty-six.
+
+**What happened tonight is the same shape at a fraction of the size, and twice it was the unit itself that caught it:**
+- The count of writers was stated wrong twice and **corrected in the open both times** — the fix commit `989381cc` is literally titled *"an overclaim corrected"*.
+- "Byte-for-byte identical" was overclaimed. Its own checker ran a 20,000-stream comparison, found that where an event carries no seat the old code returned `undefined` and the new one returns `null`, and the claim was pulled back — `.claude-team/FINDINGS-step1.md:97`, and the honest difference is now written into the board.js header at `:36-39`. **No consumer can tell the difference, and it was reported anyway.** That is the standard I have been asking for.
+
+**Where it still recurs: "npm test exit 0 at 55 gates," stated flat.** It is a number that is true in one place, presented as true everywhere — the same mechanism as CEO 35 and 36, on a much smaller object. **The mechanism has not been fixed; the objects it damages have got smaller.** That is real progress and it is not a clean bill. The fix is not "be more careful" — it is: **before quoting a green result, ask which machine it was green on.**
+
+### The changes I require
+
+1. **Fix line 11 of `scripts/qa/whose_turn_one_fact_check.mjs`** to find the repo from its own location, the way its neighbours do. Then say plainly that `npm test`'s 55/55 has only ever been demonstrated in the cloud container. **This blocks the merge.**
+2. **Do not merge `board.js` to `main` until Wyatt rules on the header exception** — and put a gate on it, so a block marked `AWAITING WYATT'S RULING` fails the build instead of relying on the next reader noticing.
+3. **Ask him again.** He approved a package on a promise that turned out not to exist. Half the package is gone. Put the question to him with the question UI: *given the camera bug was never real, do you want the rest of this scaffolding now, or the playtest list first?*
+4. **Fix `scripts/qa/w7c_window_artifact_check.mjs` the same way** while the fix is in hand — it is harmless today and will not stay harmless.
+5. **Nothing here goes to him as a win he can see.** The right sentence is "the plumbing under whose-turn is now one thing instead of five, and the bug it was aimed at never existed."
+
+### One sentence Wyatt should read first
+
+The camera bug you were promised a fix for **was never real** — it was a stale code comment, and a measurement caught that before anyone built on it, which is the single best thing in this item; what got built instead is honest, well-guarded scaffolding you will not see on screen, and its new guardrail is looking for the game at a folder that exists only on the cloud machine, so `npm test` will crash on your laptop until one line is changed.
+
+---
+
+
+
 ## CEO Review 36 — 2026-08-31, "run the sea trial when the builder finishes" / "fix the judge as soon as the trial lands" — VERBATIM
 
 **VERDICT: SOUND-WITH-CHANGES.** *"Both things you asked for actually happened, and the judge fix is the real article — I broke it myself in a scratch copy and watched the exact blindness come back, then watched the shipped version return three proper verdicts. That is the best-proved fix I have reviewed on this repo. But then it told you the trial found only TWO problems in the whole fleet and that nothing pointed at last night's work. The trial's own log has THIRTY-SIX, and the ones it lost are concentrated on the crew phone GUEST — the screen you have been complaining about for a week. And the brand-new gate it built to prove the judge can see FAILS right now, on the repo, on the shipped code, with a message saying the judge is blind when the judge had just said 'I can see the three images'."*

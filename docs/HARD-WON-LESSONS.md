@@ -1544,3 +1544,33 @@ effect was a status stream that read as nothing but failure while the branch was
 **A correction is not a status report.** Say what now works that did not before, then what was
 corrected on the way. A session that reports only its own errors gives a false picture just as
 surely as one that hides them.
+
+---
+
+### §12f — A GATE THAT NAMES A MACHINE TAKES THE REST OF THE SUITE DOWN WITH IT
+
+**2026-08-31.** A new gate rooted itself at `process.argv[2] || '/home/user/pastrypirates'`. `npm
+test` passes no argument. On this container it was green; on Wyatt's Mac that directory does not
+exist, so the gate would have crashed with exit 1 at **gate 32 of 55 — and the remaining 23 would
+never have run**. CEO Review 37 caught it one commit before it shipped.
+
+**Three things worth keeping from it:**
+
+1. **A crashing gate is worse than a failing one.** A FAIL reports on one thing. A crash ends the
+   chain, and everything after it reports nothing at all — which reads, to anybody scrolling, like
+   the run simply stopped rather than like 23 unanswered questions.
+2. **The lesson was already in the repo and was made again in the direction nothing checked.**
+   `doc_command_check` fails a home-rooted path in a DOC, and printed *"it runs the same in a cloud
+   container as on the laptop"* in the very run this gate would have died in. **Guarding the prose
+   about the scripts is not guarding the scripts.** When you write a check, ask which
+   half of the artifact it can see.
+3. **"Absolute" was the wrong thing to ban, and the first draft of the guard proved it in one run:**
+   17 honest lines, all browser-side `import("/src/ui/index.js")` — a URL the local server answers,
+   not a filesystem path. And `vision.mjs` names `/root/.ccr/ca-bundle.crt` guarded by `existsSync`,
+   which degrades instead of dying. **The fault is not an absolute path; it is a path that locates
+   THIS REPO'S OWN CODE on one machine.** A guard aimed at the wrong quantity would have taught the
+   next session to break three working files.
+
+**Now enforced:** `tree_health_check` case 4, red-proofed in both directions, on every script in
+`scripts/`. Its planted example strings are **assembled at runtime** rather than typed, so the gate
+still polices its own file — an allowlist would have been a file nobody checks any more.

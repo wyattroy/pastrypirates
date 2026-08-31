@@ -7,8 +7,16 @@
    applyActiveSeat() (src/ui/util.js:1840) is the converged writer: it moves BOTH.
    THIS GATE: every write to the fact goes through applyActiveSeat. Any direct setActor() call
    outside its definition and outside applyActiveSeat is a second writer of one fact. */
-import fs from 'node:fs';import path from 'node:path';
-const ROOT=process.argv[2]||'/home/user/pastrypirates';
+import fs from 'node:fs';import path from 'node:path';import { fileURLToPath } from 'node:url';
+/* ⚠ ROOT OFF THIS MODULE, NEVER OFF A TYPED PATH. This line used to read
+   `process.argv[2] || '/home/user/pastrypirates'`, and `npm test` passes no argument — so on any
+   machine that is not this container the gate CRASHED with exit 1 at gate 32 of 55 and the
+   remaining 23 NEVER RAN. Found by CEO Review 37 before it reached Wyatt's Mac.
+   The lesson was already in the repo, three days old, and this made it again in the direction
+   nothing checks: `doc_command_check` fails a home-rooted path in a DOC and prints "it runs the
+   same in a cloud container as on the laptop" — in the same run that this gate would have died in.
+   41 of the 42 sibling gates already do it this way. */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SRC=path.join(ROOT,'src');
 const files=[];(function walk(d){for(const f of fs.readdirSync(d,{withFileTypes:true})){
   const p=path.join(d,f.name);if(f.isDirectory())walk(p);else if(f.name.endsWith('.js'))files.push(p);}})(SRC);

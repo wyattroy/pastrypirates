@@ -45,6 +45,25 @@ const pass = (w) => console.log(`  PASS  ${w}`);
 
 console.log("tree_health_check — the suite's own paths must point at things that exist\n");
 
+/* MASK COMMENTS, NOT STRINGS — hoisted, because cases 3 and 5 both read string LITERALS as their
+   evidence and both must ignore prose describing the defect (including this file's own). One copy:
+   two maskers kept in step by discipline is the fault rule 23 names. */
+const commentsOnly = src => {
+  let out = src;
+  for (const seg of classify(src)) {
+    if (seg.type !== "comment") continue;
+    out = out.slice(0, seg.start) + out.slice(seg.start, seg.end).replace(/[^\n]/g, " ") + out.slice(seg.end);
+  }
+  return out;
+};
+const everyScript = () => {
+  const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
+    e.isDirectory() ? walk(path.join(d, e.name)) : (/\.(mjs|cjs|js)$/.test(e.name) ? [path.join(d, e.name)] : []));
+  return walk(path.join(REPO, "scripts"));
+};
+
+
+
 const pkg = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
 const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).filter(Boolean);
 
@@ -93,8 +112,6 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
       three sweeps pointing at path.join(REPO, "4", "scripts"). */
 {
   const bad = [];
-  const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
-    e.isDirectory() ? walk(path.join(d, e.name)) : (/\.(mjs|cjs|js)$/.test(e.name) ? [path.join(d, e.name)] : []));
 
   /* MASK COMMENTS, NOT STRINGS — and the difference is the whole case.
      A first fix masked every non-code region via classify(), which was right for the pirate-register
@@ -106,14 +123,6 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
      So: comments are masked (that clears prose describing the incident, including this file's own),
      and ONE file is allowlisted because its job is to hold example strings OF the defect. */
   const PROSE_OK = new Set(["scripts/game_url_check.js"]);
-  const commentsOnly = src => {
-    let out = src;
-    for (const seg of classify(src)) {
-      if (seg.type !== "comment") continue;
-      out = out.slice(0, seg.start) + out.slice(seg.start, seg.end).replace(/[^\n]/g, " ") + out.slice(seg.end);
-    }
-    return out;
-  };
 
   /* A DIRECTORY THAT DOES NOT EXIST YET IS NOT A BROKEN PATH. sea-trial-shots/ and friends are
      CREATED BY THE RUN. .gitignore is already the one place that says what is transient output, so
@@ -123,7 +132,7 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
       .map(l => l.trim()).filter(l => l && !l.startsWith("#") && !l.startsWith("!"))
       .map(l => l.replace(/\/$/, "")));
 
-  for (const f of walk(path.join(REPO, "scripts"))) {
+  for (const f of everyScript()) {
     if (PROSE_OK.has(path.relative(REPO, f))) continue;
     commentsOnly(fs.readFileSync(f, "utf8")).split("\n").forEach((line, i) => {
       const m = line.match(/(?:path\.)?(?:join|resolve)\(\s*(?:REPO|ROOT)\s*,\s*["']([^"'/.][^"']*)["']/);
@@ -138,7 +147,41 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
   else pass("no script builds a path into a top-level directory that does not exist");
 }
 
-/* 4. RED-PROOF. A check never seen to fail is not a check (CLAUDE.md rule 6). Both directions,
+/* 4. NO SCRIPT MAY NAME A MACHINE. Earned 2026-08-31, twice in one file-set: a gate rooted itself
+      at `process.argv[2] || "/home/user/pastrypirates"` and `npm test` passes no argument, so on
+      Wyatt's Mac it died at gate 32 of 55 and the remaining 23 never ran — found by CEO Review 37,
+      one commit before it would have. A sibling probe imported two modules by their /home/user/…
+      path outright. Both spellings resolve on exactly ONE machine and fail everywhere else with an
+      error that reads like a missing file rather than a typed path.
+
+      WHY THIS SHAPE AND NOT "ban /home and /Users". A machine path is not wrong by itself —
+      vision.mjs names /root/.ccr/ca-bundle.crt and GUARDS it with existsSync, so it degrades
+      instead of dying. What is always wrong is a machine path used to LOCATE THIS REPO'S OWN CODE.
+      Two unambiguous forms, both of which a `fileURLToPath(import.meta.url)` root replaces:
+        a) an import specifier rooted in somebody's home directory (/home, /Users, /root) —
+           NOT merely "absolute": the browser-side probes legitimately `import("/src/ui/index.js")`,
+           which is a URL the local server answers, and 17 honest lines said so on the first run,
+        b) any absolute string naming this repo's checkout by directory name.
+      doc_command_check already fails a home-rooted command in a DOC; nothing checked the scripts
+      themselves, which is exactly the direction the fault came back in. */
+{
+  const bad = [];
+  const ROOTED_IMPORT = /^\s*(?:import\s[^"']*|export\s[^"']*)["'](\/(?:home|Users|root)\/[^"']+)["']|^\s*(?:const|let|var)\s+[^=]+=\s*(?:await\s+)?(?:import|require)\(\s*["'](\/(?:home|Users|root)\/[^"']+)["']/;
+  const NAMES_CHECKOUT = /["'](\/[^"']*\/pastrypirates)(?=[/"'])/;
+  for (const f of everyScript()) {
+    const rel = path.relative(REPO, f);
+    commentsOnly(fs.readFileSync(f, "utf8")).split("\n").forEach((line, i) => {
+      const im = line.match(ROOTED_IMPORT);
+      if (im) bad.push(`${rel}:${i + 1} imports from "${im[1] || im[2]}" — an absolute path that exists on one machine`);
+      const co = line.match(NAMES_CHECKOUT);
+      if (co) bad.push(`${rel}:${i + 1} names this checkout as "${co[1]}" — root off fileURLToPath(import.meta.url) instead`);
+    });
+  }
+  if (bad.length) fail(`${bad.length} script line(s) name a machine instead of rooting off this module: ${bad.slice(0, 3).join(" | ")}`);
+  else pass("no script locates repo code by an absolute path typed for one machine");
+}
+
+/* 5. RED-PROOF. A check never seen to fail is not a check (CLAUDE.md rule 6). Both directions,
       because case 2's whole design point is that it must stay QUIET on a quoted search needle. */
 {
   const realImport   = '  import { netWatchConnected } from "../../src/net/watchers.js";';
@@ -148,6 +191,25 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
   const spares  = !re.test(searchNeedle);
   if (catches && spares) pass("red-proof: catches a real static import, ignores a quoted search needle");
   else fail(`red-proof FAILED (catches:${catches} sparesNeedle:${spares})`);
+
+  /* and case 4 both ways — the sparing half matters as much as the catching half, because a
+     machine path that is GUARDED (vision.mjs's CA bundle) must stay quiet or the gate teaches
+     sessions to delete a working fallback. */
+  const RI = /^\s*(?:import\s[^"']*|export\s[^"']*)["'](\/(?:home|Users|root)\/[^"']+)["']|^\s*(?:const|let|var)\s+[^=]+=\s*(?:await\s+)?(?:import|require)\(\s*["'](\/(?:home|Users|root)\/[^"']+)["']/;
+  const NC = /["'](\/[^"']*\/pastrypirates)(?=[/"'])/;
+  /* ASSEMBLED, NOT TYPED. Written out in full, these two planted lines are themselves the defect
+     and case 4 flags its own gate — and the fix for THAT must never be an allowlist, because a
+     gate that stops reading one file is a gate somebody will later hide a fault in. Joined at
+     runtime, the regexes see the identical text and this file still polices itself. */
+  const HOME = "/" + "home/user/" + "pastrypirates";
+  const plantedImport = `  import { serve } from "${HOME}/scripts/mp_rig.mjs";`;
+  const plantedRoot   = `  const ROOT = process.argv[2] || '${HOME}';`;
+  const guardedCA     = '  const CA = "/root/.ccr/ca-bundle.crt";';
+  const relImport     = '  import { serve } from "../mp_rig.mjs";';
+  const hitsImport = RI.test(plantedImport), hitsRoot = NC.test(plantedRoot);
+  const sparesCA = !RI.test(guardedCA) && !NC.test(guardedCA), sparesRel = !RI.test(relImport);
+  if (hitsImport && hitsRoot && sparesCA && sparesRel) pass("red-proof: catches a machine-rooted import AND a typed checkout root, spares a guarded CA path and a relative import");
+  else fail(`red-proof FAILED for case 4 (import:${hitsImport} root:${hitsRoot} sparesCA:${sparesCA} sparesRel:${sparesRel})`);
 }
 
 console.log(`\n${failures ? "FAIL" : "PASS"} — ${failures} failure(s)`);

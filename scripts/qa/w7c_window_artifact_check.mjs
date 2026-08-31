@@ -25,8 +25,12 @@
  * IT FAILS when the two readings disagree — i.e. when the boat visibly walked and the crew
  * harness's window would have called it a slide.
  */
-import { serve, launch, attach, killAll, sleep } from "/home/user/pastrypirates/scripts/mp_rig.mjs";
-import { gameURL } from "/home/user/pastrypirates/scripts/lib/chrome.mjs";
+/* ⚠ RELATIVE, NEVER MACHINE-ROOTED. These two lines used to name /home/user/pastrypirates
+   outright, which resolves on exactly ONE machine and dies everywhere else with a module-not-found
+   that reads like a missing file rather than a typed path. Same fault CEO Review 37 caught in
+   whose_turn_one_fact_check.mjs; tree_health_check case 5 now fails the build on either spelling. */
+import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
+import { gameURL } from "../lib/chrome.mjs";
 
 const PORT = 8547, DBG = 9447;
 const EXTRA = Number((process.argv.find(a => a.startsWith("--extra=")) || "--extra=0").slice(8));
