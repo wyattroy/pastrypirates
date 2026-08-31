@@ -12,6 +12,50 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-08-31 — THE THREE DOORS, and the two names that make them sayable
+
+**Wyatt asked, verbatim:** *"i only ever will write to you, not to Blade Pirates ('Bosun') -- is
+that right?"* **The answer is NO, and the reason is the decision.**
+
+**Two names first, both his calls this evening:**
+
+- **THE BOSUN** — the Claude worker on the Razer that the watchdog rouses and that works the
+  Chart. *"The engine"* now means `src/engine/`, the game's seeded simulation, and nothing else.
+  He weighed **the Deck** — a good instinct, since the Glass, the Chart, the Helm and the Door are
+  all objects and Deck belongs to that set — and chose the person-noun because those four are
+  surfaces HE acts on, while the worker is the system's only ACTOR, and every sentence the ledger
+  needs is a verb of agency: stalled, was revived, claimed item 3. A deck does none of them.
+- **THE QUARTERMASTER** — the advisory session (cloud): measures, reports position, asks him the
+  decisions, keeps the log, relays. On a pirate ship the quartermaster is elected by the crew,
+  keeps the record, and is the standing check on the captain — which is this project's CEO-and-
+  ledger culture in one word. He weighed **Mentor** (his own first idea) and set it aside because
+  a live `mentor` skill already coaches his framing, so "the Mentor" would have been ambiguous
+  with a Mentor note; **Navigator** and **Pilot** were the other two offered.
+
+**THE THREE DOORS — one place the work is RECORDED, not one place he types:**
+
+| When he wants to… | He writes to | Why that one |
+|---|---|---|
+| **Rule on a question, or drop an idea** | **the Glass** | The durable channel. Rulings and ideas are both harvested to the Chart, and a hook blocks a session from republishing until it harvests — because he once ruled there and nobody picked it up for an hour. Survives every session dying. |
+| **Redirect the work, now** | **the Bosun** | It is the worker, on the machine that can see the game. Shortest path from his intent to a change in what is built. |
+| **Think something through, audit, ask "what is this?"** | **the Quartermaster** | Questions, second opinions, measurements against the record — the work that is not a Chart item. |
+
+**THE RULE UNDER ALL THREE:** *anything that matters lands in the repo — the Glass, the Chart, the
+ledger — never in a chat window.* Whichever door he uses, the ruling is written down or it did not
+happen.
+
+**AND THE ONE ARRANGEMENT TO AVOID, which is what he was proposing:** the Quartermaster must never
+be the ONLY path to the Bosun. It runs in a cloud container; everything it holds that is not
+committed dies when that container is reclaimed — which is exactly how Cloud: Edits lost its
+first-person account earlier the same day. A relay also adds a translation step, and on 2026-08-31
+that step handed him **two stale premises** (a PR that had already landed, an audio defect already
+fixed at the cutover). His terminal window is the fallback that cannot be taken from him.
+
+*The alternative — funnel everything through one advisory session — is tidier to think about and
+strictly more fragile: one container reclaim and he is locked out of his own engine.*
+
+---
+
 ## 2026-08-31 — ONE PLACE TO SEE AND DECIDE EVERYTHING (the Helm is retired)
 
 **Wyatt, 2026-08-31, verbatim:** *"finish the Helm fold-in — the decision cards live inside Glass
