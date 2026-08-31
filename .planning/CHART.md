@@ -88,6 +88,13 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **CEO Review 51's small finding**: `quiet_gate_report.mjs`'s naming convention (`^[wq]\d+_`)
+  misses `a1_bake_now_check.mjs` / `a2_bot_bake_watch_check.mjs` — two real per-item gates that are
+  neither structural nor currently reportable as retirement candidates. → **PARKED, low priority**:
+  widen the regex to also match `a\d+_` whenever someone is next in `quiet_gate_report.mjs` for
+  another reason; not worth a standalone session, since the report already covers every gate that
+  matches its stated convention and found zero candidates either way today.
+
 - **"Test to send to the chart"** (written on the Glass, 18:27:43Z) → **SHIPPED, and this IS the
   fate.** Read literally: the two-way save it exercises is exactly what it tested — the idea
   reached `glassState.ideas` on the live artifact and this harvest is that path completing end to

@@ -1,5 +1,39 @@
 # CEO reviews — the standing record
 
+## CEO Review 51 — 2026-08-31, gate retirement policy (suite ceiling + quiet-gate report) — VERBATIM
+
+**YES — delivered.** The reviewer re-ran every claim rather than reading the account.
+
+**The ceiling is real, not decorative.** `package.json:5-8` declares `{"total": 71, "ceiling": 71}`.
+Re-performed the red-proof on the real file: `sed`'d `total` to 72, `gate_ceiling_check.mjs`
+printed `GATE-CEILING-EXCEEDED` and exited 1; restored, `PASS suite ceiling: 71/71`, exit 0, tree
+clean. Read all 64 lines: it derives the path from `import.meta.url`, hardcodes neither number, and
+covers every way the declaration can be wrong.
+
+**The two checks compose into something airtight.** Simulated adding a 72nd gate while leaving
+`total` at 71: `gate_count_check.js` failed with `Declared 71, counted 72`. So a gate cannot be
+added without touching `total`, and `total` cannot rise without hitting the ceiling — the next new
+gate physically cannot land without someone deciding, in the same commit, to retire something or
+raise the limit and say why.
+
+**The quiet report is advisory and correctly scoped, not just filename-matching.** 35 files in
+`scripts/qa/` match `w##_`/`q##_`; 18 are actually wired into `npm test` and 17 are correctly
+skipped as one-off probes, each named in the output with the reason. Confirmed against the sharpest
+case: `w52_call_beside_boat.mjs` (probe, skipped) vs `w52_call_beside_boat_check.mjs` (gate,
+listed).
+
+**Nothing can retire a gate without a human.** Grepped both new scripts for writes: the only child
+process anywhere is a read-only `git log -1`. No `writeFileSync`, no `unlink`, no edit to
+`package.json` — retirement is `git mv` by hand, per `docs/GATE-RETIREMENT.md`'s six steps.
+
+**Two limitations named, neither fatal.** (1) The report finds zero candidates today — every gate
+in the repo is under 14 days old; lowering the threshold in a throwaway copy confirmed the
+"QUIET — candidate" branch genuinely fires (14 of 18) when there IS something to find. (2) The
+naming convention (`^[wq]\d+_`) misses `a1_bake_now_check.mjs` / `a2_bot_bake_watch_check.mjs` —
+two real per-item gates that are neither structural nor currently reportable. Small, cheap to widen
+later; parked in `.planning/CHART.md`'s idea inbox rather than fixed under this claim, since the
+report already does its job on every gate that matches its stated convention.
+
 ## CEO Review 50 — 2026-08-31, the Glass dashboard redesign — VERBATIM
 
 **PARTIALLY. Six of seven landed clean; item 4 half-shipped and would be seen in the first three
