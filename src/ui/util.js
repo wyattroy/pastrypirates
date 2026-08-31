@@ -41,7 +41,7 @@
 import {
   appState,
 } from "../state/index.js";
-import { normalizeSeat, deriveActiveSeat, TURN_ONLY } from "../shared/storyboard.js";
+import { normalizeSeat, deriveActiveSeat } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
@@ -1891,7 +1891,7 @@ export function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.p
 // needs exactly this derivation, and it is pure over the event stream.
 export function currentTurnSeat(){
   if(!appState.game||!appState.game.events)return null;
-  return deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
+  return deriveActiveSeat(appState.game.events,appState.evIdx);
 }
 /* ---------- board pops (event -> emoji animation) ---------- */
 export function spawnPops(e,cellPx){

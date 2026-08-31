@@ -183,3 +183,24 @@ already obeys the ruling. `board.js:1776` (render's own) passes the DEFAULT, whi
 `ovens` and `bake`, so on that path the ring does follow the captain to the ovens. Read from the
 code, not yet measured on screen. Under this ruling the second one is wrong and must pass
 `TURN_ONLY` too — and under rule 23 the deeper fault is that one visual had two answers at all.
+
+## ONE ANSWER TO "WHOSE TURN IS IT" — Wyatt, 2026-08-31 (SUPERSEDES the ruling above)
+
+**His words: "rings follow active player the whole game with no exception including during bakeoff.
+Consistency is a design value."**
+
+**This replaces "no ripple ring in the ovens", made earlier the same day.** He reversed it after
+being shown that his two rulings had split three surfaces — the ripple ring, the captains-box
+highlight and the pass-and-play row order — between two different answers.
+
+**What it settles, permanently:** there is ONE rule for whose turn it is, `TURN_ESTABLISHING`
+(`turn`, `ovens`, `bake`), and every surface reads it. During a bake the captain at the ovens is
+the active player, so the ring is on their boat, the box lights their row, and the row order floats
+them to the top. It also settles T-09 (2026-08-26) in the same breath.
+
+**And the vocabulary for the divergence is DELETED, not deprecated.** `TURN_ONLY` is gone and so is
+the `establishing` option — with one rule there is nothing to pass, so no future caller can express
+the split. That is the strongest form of rule 23 available: not two things kept in step, one thing.
+
+**Do not reopen this as a patch.** Any future "should X follow the baker?" is already answered: yes,
+like everything else.

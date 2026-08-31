@@ -59,9 +59,8 @@ const listOfAssignment = (name) => {
   const a = code.match(new RegExp(`(?:const|let|var)\\s+${name}\\s*=\\s*deriveActiveSeat\\s*\\(([^;]*?)\\)\\s*;`))
         || code.match(new RegExp(`(?:const|let|var)\\s+${name}\\s*=\\s*(activeTurnSeat)\\s*\\(`));
   if (!a) return null;
-  if (a[1] === "activeTurnSeat") return "TURN_ONLY";
-  const m = a[1].match(/establishing\s*:\s*([A-Z_]+)/);
-  return m ? m[1] : "TURN_ESTABLISHING(default)";
+  if (a[1] === "activeTurnSeat") return "the shared walk";   // a wrapper that calls it IS it
+  return "the shared walk";
 };
 const CALLS = [...code.matchAll(/(?<!function\s)ringTo\s*\(\s*([A-Za-z_$][\w$]*)\s*,/g)];
 const attributed = CALLS.map(m => ({ arg: m[1], list: m[1] === "seat" ? null : listOfAssignment(m[1]) }));
@@ -74,31 +73,44 @@ untraceable.length === 0
   : fail(`${untraceable.length} ringTo() call(s) are fed a seat this gate cannot trace to a stated list (${untraceable.map(u => u.arg).join(", ")}) — a ring fed from somewhere unreadable is exactly how the two answers appeared, so this fails rather than assuming agreement`);
 
 distinct.length === 1
-  ? pass(`every ring site derives the seat from the same event list — ${distinct[0]}; the ring cannot depend on which path drew it`)
-  : fail(`the ring's seat comes from ${distinct.length} DIFFERENT event lists depending on which path drew it: ${lists.join("  |  ")}`);
+  ? pass(`every ring site derives its seat from the one shared walk — ${distinct[0]}`)
+  : fail(`the ring's seat comes from ${distinct.length} DIFFERENT derivations depending on which path drew it: ${lists.join("  |  ")}`);
 
-/* AND THE BOX IS A SEPARATE SURFACE WITH A SEPARATE RULING — assert that too, or narrowing the ring
-   silently reverts T-09. CEO Review 40 caught exactly that: one `active` fed the ring, the captains
-   box highlight and the pass-and-play row order, and only the ring was checked before it changed.
-   Wyatt, 2026-08-26: "Dough hook (who just played) is still displayed as the active player ship in
-   the top header, AND IN THE CAPTAIN'S BOX." */
+/* NO CALL MAY STILL BE PASSING OPTIONS. With the option deleted, a surviving {establishing:…}
+   would be silently ignored — the caller would believe it had asked a narrower question and would
+   get the wide answer. Worse than the original bug, because it reads as deliberate. */
 {
-  const boxList = listOfAssignment("boxActive");
-  const rowUsesBox = /classList\.toggle\("activeTurn",\s*i===boxActive\)/.test(code);
-  const orderUsesBox = /applyCaptainOrder\(boxActive\)/.test(code);
-  boxList === "TURN_ESTABLISHING"
-    ? pass("the captains box derives from TURN_ESTABLISHING — it still follows the baker, per T-09 (Wyatt, 2026-08-26)")
-    : fail(`the captains box derives from ${boxList || "a value this gate cannot trace"}; narrowing it reverts T-09, the fix he asked for on 2026-08-26`);
-  rowUsesBox && orderUsesBox
-    ? pass("the box highlight and the pass-and-play row order read the SAME value — they cannot point at different captains")
-    : fail(`the highlight and the row order do not share one value (highlight:${rowUsesBox} order:${orderUsesBox}) — one surface, two answers`);
+  const stray = [...code.matchAll(/deriveActiveSeat\s*\([^)]*establishing/g)].length;
+  stray === 0
+    ? pass("no call still passes an `establishing` option — nothing believes it asked a narrower question")
+    : fail(`${stray} call(s) still pass an \`establishing\` option that is now IGNORED — the caller thinks it asked one question and gets another, which reads as deliberate and is worse than the original split`);
 }
 
-/* AND IT MUST BE THE LIST HE RULED FOR. Separate case, because "they agree" and "they agree on the
-   right answer" are different claims and only one of them is his call. */
-distinct.length === 1 && distinct[0] === "TURN_ONLY"
-  ? pass("and it is TURN_ONLY — the ring stays with the last captain to take the wheel, per Wyatt's ruling of 2026-08-31")
-  : fail(`the ring counts ${distinct.join("/")}, so it moves to the captain at the ovens during a bake. Wyatt, 2026-08-31: "no ripple ring in the ovens"`);
+/* THE RING, THE CAPTAINS BOX AND THE ROW ORDER ARE ONE SURFACE NOW — Wyatt, 2026-08-31:
+   "rings follow active player the whole game with no exception including during bakeoff.
+   Consistency is a design value." He ruled this AFTER being shown that two earlier rulings of his
+   had split these three between two answers. So the assertion is that all three read one value. */
+{
+  const ringUsesActive  = /ringTo\(active,/.test(code);
+  const rowUsesActive   = /classList\.toggle\("activeTurn",\s*i===active\)/.test(code);
+  const orderUsesActive = /applyCaptainOrder\(active\)/.test(code);
+  ringUsesActive && rowUsesActive && orderUsesActive
+    ? pass("the ring, the captains-box highlight and the pass-and-play row order all read ONE value — no two of them can point at different captains")
+    : fail(`the three surfaces do not share one value (ring:${ringUsesActive} highlight:${rowUsesActive} order:${orderUsesActive}) — that split is what CEO review 40 caught, and it silently reverted T-09`);
+}
+
+/* AND THE NARROWER VOCABULARY MUST NOT COME BACK. TURN_ONLY was deleted, not deprecated: with one
+   list there is nothing to pass, so no future caller can express the divergence. A gate that only
+   checked today's call sites would let it return as a new constant tomorrow. */
+{
+  const sb = fs.readFileSync(path.join(ROOT, "src/shared/storyboard.js"), "utf8");
+  const sbCode = sb.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  const narrower = /export const TURN_ONLY/.test(sbCode);
+  const optionBack = /opts\s*&&[^\n]*establishing|opts\.establishing/.test(sbCode);
+  !narrower && !optionBack
+    ? pass("the shared walk has ONE rule and no `establishing` option — the divergence cannot be expressed, not merely discouraged")
+    : fail(`a narrower answer is expressible again (TURN_ONLY:${narrower} establishing option:${optionBack}) — with two lists available, two surfaces will eventually pick differently; that is the whole history of 2026-08-31`);
+}
 
 /* RED-PROOF. Both directions, run through the SAME reader used above. */
 {

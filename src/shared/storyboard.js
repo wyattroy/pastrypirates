@@ -32,23 +32,20 @@ export const TURN_ESTABLISHING = Object.freeze(["turn", "ovens", "bake"]);
    it is now. Walking past it would resurrect the previous round's last captain. */
 export const TURN_BOUNDARY = Object.freeze(["newround"]);
 
-/* THE NARROWER QUESTION, AND IT IS DELIBERATELY STILL A DIFFERENT ONE.
-   Two callers ask only "who last took the wheel", ignoring the bake: board.js's activeTurnSeat()
-   (the ripple ring that follows a ship) and util.js's currentTurnSeat(). Passing this keeps their
-   answer byte-for-byte what it was while giving them the SAME WALK as everyone else.
-   RULED, 2026-08-31. Wyatt: **"no ripple ring in the ovens."** So TURN_ONLY is the ring's answer,
-   and this is no longer an open question — do not reopen it as a patch.
-   WHAT THE RULING FIXED, because the split was worse than the note above realised: render() was
-   NOT passing a list at all, and an omitted option is not "no answer" — it is the DEFAULT answer,
-   TURN_ESTABLISHING. So one of the two ring sites already counted the bake. On the stream
-   [newround, turn p1, sail p1, ovens p3, bake p3] the two sites returned seat 1 and seat 3.
-   The two ring derivations therefore disagreed (measured 2026-08-31; whether both paths ring in
-   the same bake ON SCREEN was not established, and this comment no longer says they do). Both ring
-   sites now pass TURN_ONLY explicitly; the CAPTAINS BOX keeps TURN_ESTABLISHING, because ovens/bake
-   were added to that list for T-09 and narrowing it would revert a fix Wyatt asked for on
-   2026-08-26. scripts/qa/ripple_one_answer_check.mjs fails the build if either comes apart —
-   asserting AGREEMENT first and his ruling second, so a reversal moves both together. */
-export const TURN_ONLY = Object.freeze(["turn"]);
+/* THERE IS NO NARROWER QUESTION ANY MORE — and deleting it is the point.
+   TURN_ONLY = ["turn"] lived here so that two callers could ask "who last took the wheel", ignoring
+   the bake. Wyatt, 2026-08-31, after being shown that the two answers had split three surfaces
+   between them: **"rings follow active player the whole game with no exception including during
+   bakeoff. Consistency is a design value."**
+   So there is ONE list, and with one list there is nothing to pass — the `establishing` option is
+   gone too. That is deliberate and it is the strongest form of rule 23 available here: two things
+   that must agree are not kept in step, they are ONE thing, and no future caller can express the
+   divergence because the vocabulary for it no longer exists.
+   WHAT THIS COST TO LEARN, in one day: the option was introduced to preserve two callers'
+   answers byte-for-byte; one caller then forgot to pass it and silently got the wide list; the two
+   ring sites disagreed (seat 1 vs seat 3 on [newround, turn p1, sail p1, ovens p3, bake p3]);
+   narrowing them reverted T-09 for the captains box; and the fix for all of it was to delete the
+   choice. RULE 9's shape exactly — the elegant version deletes code. */
 
 /* HOW FAR BACK. Also carried over from board.js unchanged. A bound, not a tuning constant:
    this walk runs inside render(), and an unbounded backward scan over a long voyage's event
@@ -88,16 +85,14 @@ export function normalizeSeat(seat, seatCount) {
 export function deriveActiveSeat(events, playhead, opts) {
   if (!Array.isArray(events)) return null;
   const lookback = (opts && Number.isInteger(opts.lookback)) ? opts.lookback : DEFAULT_LOOKBACK;
-  /* NO SILENT DEFAULT. Every caller in src/ states its list, and the one that DIDN'T is the whole
-     reason the ripple ring had two answers (2026-08-31): an omitted option looked like "no opinion"
-     and was in fact an opinion, the wider one. A default that is never deliberately chosen is a
-     trap with no user, so asking without saying which question you mean is now an ERROR rather
-     than a guess. This is the same lesson as rule 9 from the other side: the danger is not only a
-     hardcoded constant, it is a constant nobody realises they are using. */
-  if (!opts || !Array.isArray(opts.establishing)) {
-    throw new TypeError("deriveActiveSeat: say which events establish a turn — pass {establishing: TURN_ONLY} or {establishing: TURN_ESTABLISHING}. An omitted list used to mean TURN_ESTABLISHING silently, and that is how the ripple ring came to have two answers.");
-  }
-  const establishing = opts.establishing;
+  /* NO OPTION, SO NO SILENT DEFAULT AND NO DIVERGENCE TO EXPRESS. The `establishing` option was
+     removed on 2026-08-31 when the narrower list was deleted (see the note above). It briefly
+     THREW when omitted, because an omitted option had silently meant the wider list and that is
+     how the ring came to have two answers — but a required argument with exactly one legal value
+     is a ceremony, not a guard. Deleting the choice is the guard.
+     A caller still passing {establishing:…} is now ignoring nothing and gets the one rule, which
+     is correct: there is only one answer to "whose turn is it". */
+  const establishing = TURN_ESTABLISHING;
   const start = Number.isInteger(playhead) ? Math.min(playhead, events.length - 1) : -1;
   for (let i = start; i >= 0 && i > start - lookback; i--) {
     const e = events[i];

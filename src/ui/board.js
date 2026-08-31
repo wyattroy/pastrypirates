@@ -20,10 +20,12 @@
 // that is not part of that plan still needs its own ruling.
 // WHAT CHANGED: render()'s backward walk for "whose turn is it", and activeTurnSeat()'s, now call
 // deriveActiveSeat() in src/shared/storyboard.js instead of each keeping a private copy.
-// AND, LATER THE SAME DAY (his ruling "no ripple ring in the ovens"): render() now derives the seat
-// TWICE and says which list each time — TURN_ONLY for the ring, TURN_ESTABLISHING for the captains
-// box and the pass-and-play row order. It previously derived once and passed NO list, silently
-// taking the wider default. Nothing else in either body moved.
+// AND, LATER THE SAME DAY: render() previously derived the seat once and passed NO list, silently
+// taking a default while the other ring site passed the narrow one — so the two disagreed. Wyatt
+// then ruled "rings follow active player the whole game with no exception including during
+// bakeoff", which collapsed the two lists into one and let the option be DELETED. render() derives
+// once again, from the one rule, and the ring, the captains box and the pass-and-play row order
+// all read it. Nothing else in either body moved.
 // (This paragraph said "nothing else in either body moved" while render()'s body had moved a second
 // time — caught by CEO review 40. The header is what the unruled-exception gate blesses, so a
 // header that is behind its own region is the one comment in this file that must never be stale.) The same fact was being derived FIVE times in three files; it is now
@@ -151,7 +153,7 @@ import {
   // that used them rather than being left behind as plausible-looking dependencies.
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
-import { deriveActiveSeat, TURN_ONLY, TURN_ESTABLISHING } from "../shared/storyboard.js";
+import { deriveActiveSeat } from "../shared/storyboard.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
 
@@ -1533,11 +1535,13 @@ function ringTo(seat,x,y){
 // right ship too. render() has an identical inline copy which is deliberately LEFT ALONE — see the
 // file header's BYTE-IDENTICAL rule.
 /* ONE WALK (2026-08-31). This was the FOURTH private copy of the backward scan, found by the
-   sweep. It now shares the walk in src/shared/storyboard.js. TURN_ONLY keeps its answer exactly
+   sweep. It now shares the walk in src/shared/storyboard.js, which has one rule and no options
    what it was — this scan has never known about ovens/bake, unlike render()'s — and the split is
    now VISIBLE at this one line instead of being a silent difference between two lookalike loops. */
 function activeTurnSeat(){
-  return deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
+  // TURN_ESTABLISHING, moved here with render()'s copy on 2026-08-31 — "rings follow active player
+  // the whole game with no exception including during bakeoff". The gate keeps these two in step.
+  return deriveActiveSeat(appState.game.events,appState.evIdx);
 }
 // G14 (Wyatt-approved 2026-07-30): move ONE ship element to an arbitrary cell, without touching game
 // state or the event stream. The per-square painter behind the trade-wind rim sweep.
@@ -1781,36 +1785,33 @@ export function render(){
      establish a turn, the round boundary that stops the walk, and the 80-event bound are all
      unchanged; they now have one spelling instead of a copy per reader. The `done` filter below
      stays here, because it reads render state and the derivation must not. */
-  /* TWO SURFACES, TWO RULINGS, AND THEY ARE NOT THE SAME QUESTION. Both spelled out; neither
-     inherits a default. (Corrected 2026-08-31 by CEO review 40, which caught a first version of
-     this change narrowing BOTH with only the ring checked.)
+  /* ONE ANSWER FOR EVERY SURFACE — Wyatt, 2026-08-31, and this ruling REPLACED two earlier ones
+     the same day: "rings follow active player the whole game with no exception including during
+     bakeoff. Consistency is a design value."
 
-     THE RING — Wyatt, 2026-08-31: "no ripple ring in the ovens." TURN_ONLY. The ring marks whose
-     BOAT is active on the water, and during a bake no boat is moving.
+     So the ring, the captains-box highlight and the pass-and-play row order all read THIS value,
+     derived once from TURN_ESTABLISHING — the list that counts `ovens` and `bake`, because during
+     a bake the captain at the ovens IS the active player. renderLiveShips()'s ring reads the same
+     list through activeTurnSeat().
 
-     THE CAPTAINS BOX and the pass-and-play row order — Wyatt, 2026-08-26 (T-09, with a host/guest
-     screenshot pair): "Dough hook (who just played) is still displayed as the active player ship in
-     the top header, AND IN THE CAPTAIN'S BOX." `ovens`/`bake` were added to the list BECAUSE of
-     that complaint. So the box keeps the wider list. Narrowing it would revert a fix he asked for.
+     THE HISTORY, because two reversals in one day is exactly what a later reader will mistake for
+     drift. Earlier today he ruled "no ripple ring in the ovens", which was applied to the ring and
+     then — after CEO review 40 caught it — scoped so the box kept the wider list, because
+     `ovens`/`bake` were added to that list FOR the box (T-09, 2026-08-26: "Dough hook, who just
+     played, is still displayed as the active player ship in the top header, AND IN THE CAPTAIN'S
+     BOX"). Shown the split, he closed it the other way: one rule, every surface. That is the
+     ruling that stands, and it also settles T-09 in the same breath.
 
-     WHY THIS IS NOT RULE 23 COMING BACK. Rule 23 forbids ONE thing having two answers. The ring and
-     the box are two things he has ruled on separately, and each now has exactly one answer wherever
-     it is drawn — which is the part that was actually broken: this line used to OMIT the option
-     entirely, and an omitted option is not "no answer", it is the DEFAULT answer. renderLiveShips()
-     passed TURN_ONLY, so the two RING sites derived from different lists.
-     WHAT WAS MEASURED, stated as evidence rather than as a standing claim about runtime: on the
-     stream [newround, turn p1, sail p1, ovens p3, bake p3] the two derivations return seat 1 and
-     seat 3 (checked 2026-08-31). Whether both paths ever ring in the same bake ON SCREEN was NOT
-     established — CEO review 40 was right that an earlier draft of this comment asserted it.
-
-     ⚠ OPEN FOR WYATT, and deliberately not guessed: in the moment after a bake resolves, the box
-     will highlight the baker while the ring sits on the last captain to take the wheel. That is
-     each of his two rulings applied literally, and nobody has looked at whether the pair reads
-     right on screen. See scripts/qa/ripple_one_answer_check.mjs. */
-  const active=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
-  let boxActive=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ESTABLISHING});
+     WHAT WAS ACTUALLY BROKEN, and it survives every version of the ruling: this line used to pass
+     NO list, and an omitted option is not "no answer" — it is the DEFAULT answer, while the other
+     ring site passed the narrow one. The two derivations therefore disagreed (measured 2026-08-31:
+     on [newround, turn p1, sail p1, ovens p3, bake p3] they returned seat 1 and seat 3). The
+     option is now gone entirely — one rule, nothing to pass, nothing to forget.
+     scripts/qa/ripple_one_answer_check.mjs fails the build if any surface comes apart from the
+     others — it asserts AGREEMENT first and the current ruling second, which is what let this
+     reversal be a one-line change instead of an argument. */
+  let active=deriveActiveSeat(appState.game.events,appState.evIdx);
   if(active!=null&&st[active].done)active=null;
-  if(boxActive!=null&&st[boxActive].done)boxActive=null;
   if(activeRing){
     if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st,cell);
@@ -1820,13 +1821,13 @@ export function render(){
     }else activeRing.style.opacity=0;
   }
   appState.game.players.forEach((p,i)=>{
-    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===boxActive);   // T-09: the box follows the baker
+    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
   });
   // Pass & Play only: float the captain whose turn it is to the top of the box, rest in sailing
-  // order. Driven from `boxActive` — the SAME value as the highlight one line up, so the order and
-  // the highlight can never point at different captains — and in step with the narration playhead
-  // rather than ahead of it. NOT the ring's `active`: see the two-rulings note above.
-  applyCaptainOrder(boxActive);   // moves WITH the highlight above, never against it
+  // order. Driven from the SAME `active` as the ring and the highlight, so no two of the three can
+  // ever point at different captains, and in step with the narration playhead rather than ahead of
+  // it. See applyCaptainOrder, and the one-answer note above.
+  applyCaptainOrder(active);   // the SAME value as the ring and the highlight — see the note above
   if(appState.game.cfg.crates<1e9)for(const ing of appState.game.ings){
     const remaining=e.tokens[ing];
     for(let idx=0;idx<appState.game.cfg.crates;idx++){
