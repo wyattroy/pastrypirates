@@ -1,9 +1,12 @@
-# The Wyclau Charter — v0.1 DRAFT (awaiting Wyatt's approval)
+# The Wyclau Charter — v1.0, IN FORCE
+
+**APPROVED by Wyatt 2026-08-31**, verbatim: *"Charter is approved with only one correction: I
+learn fast, so I want learnings or lessons every day, not once per week."* The amendment is
+applied throughout: **one short lesson per day**, tied to the live work.
 
 Drafted 2026-08-31 from the founding note (`WYATTS-NOTE-2026-08-30.md`), the interview rulings
 (`INTERVIEW-2026-08-30.md`), and the four evidence reports in this folder. The presentation copy
 Wyatt reads is a published artifact; THIS file is the canonical copy sessions work from.
-**Status: DRAFT. Nothing below is in force until Wyatt approves.**
 
 ## The requirement above the others
 
@@ -54,7 +57,8 @@ skills wyclau practices on him ARE that job's skills, so it is designed in, not 
 
 - **Decisions arrive in executive shape** (options, trade-offs, recommendation, numbers) — every
   Boardroom round is a leadership rep.
-- **Term-once always; one ≤5-minute lesson a week** tied to a live decision, never homework.
+- **Term-once always; one ≤5-minute lesson a DAY** tied to the live work, never homework
+  (Wyatt's approval amendment, 2026-08-31: "I learn fast").
 - **The chairman's log**: a derived record on the Glass of concepts he now owns and the decisions
   made with them. Mentor coaches the asking; this teaches the deciding.
 - **A monthly retro on how he directed**, not what shipped.

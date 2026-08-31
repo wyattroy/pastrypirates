@@ -73,3 +73,7 @@ narration-timeline/
 *-shots/
 w1-crewphone-recheck/
 # ^ named outside the -shots convention and paid for it immediately: name probe output dirs *-shots so the glob above covers them without this file growing a list again.
+
+# wyclau liveness (local-only; the watchdog reads these)
+.planning/wyclau/HEARTBEAT
+.planning/wyclau/glass.html

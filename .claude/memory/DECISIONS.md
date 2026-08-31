@@ -12,6 +12,22 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-08-31 — THE WYCLAU CHARTER IS IN FORCE
+
+**Wyatt approved the charter verbatim:** *"Charter is approved with only one correction: I learn
+fast, so I want learnings or lessons every day, not once per week."*
+
+**Say "the charter" and any session must resolve it to
+[`.planning/wyclau/CHARTER.md`](../../.planning/wyclau/CHARTER.md)** (canonical; the published copy
+is https://claude.ai/code/artifact/5e6f19bf-654b-4d27-9563-597ef8f55d7b). Its seven principles and
+seven parts govern how work runs; its interview rulings
+([`.planning/wyclau/INTERVIEW-2026-08-30.md`](../../.planning/wyclau/INTERVIEW-2026-08-30.md))
+answer questions before they are re-asked. **The amendment: one short lesson per DAY, tied to the
+live work** — the alternative was weekly, and he struck it because he learns fast.
+
+*The alternative to the charter was continuing the accreted process it replaces; his founding note
+(`.planning/wyclau/WYATTS-NOTE-2026-08-30.md`) records why that was rejected.*
+
 ## 2026-08-30 — the organisation
 
 **THE ONE-DIRECTOR PLAN — the handle for the engine rebuild.** Wyatt, 2026-08-31: *"where is that
