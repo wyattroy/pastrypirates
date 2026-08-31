@@ -177,3 +177,39 @@ export function present(event, snapshot) {   // eslint-disable-line no-unused-va
      wanted, it is its own change, with its own gate. */
   return [{ do: "walkRoute", seat: event.p, from: route[0], path: route.slice(1) }];
 }
+
+/* ============================================================================
+   WHO ANSWERS FOR A SEAT — the first Decider predicate, made pure so it can be RUN.
+   ============================================================================
+   EXTRACTED 2026-08-31, AND THE REASON IS A GATE THAT COULD NOT FAIL. `decisionIsLocal` lives in
+   src/ui/util.js, which reaches appState and the DOM, so a headless gate cannot import it. The
+   gate written to protect it therefore TYPED THE RULE AS A LITERAL and asserted against its own
+   private copy — and CEO review 41 broke it in one line: appending `|| appState.isHost` to the
+   real function left the gate green while the single row it exists to protect was broken.
+
+   That is rule 6's "a measurement that cannot fail", committed inside a gate standing in for work
+   the session had decided not to do. The fix is not a better regex. It is to make the rule
+   RUNNABLE, which means pure, which means here.
+
+   THE TWO QUESTIONS, and they are not the same question:
+     does a PERSON answer, or a bot?       p.strategy === "human"
+     does THIS DEVICE answer, or another?  this function
+   Over every mode they agree on six rows and differ on exactly one — a crew host holding a turn
+   for a REMOTE human, where a person answers but not at this device. That row is why both exist;
+   merging them breaks the case the Decider abstraction was invented for.
+
+   FACTS IN, ANSWER OUT. It takes what it needs rather than reaching for appState, which is what
+   lets the gate run the SAME function the game runs. src/ui/util.js keeps the thin wrapper that
+   knows where those facts live.
+
+   AND IT DOES NOT KNOW A MODE'S NAME — `sharedDevice`, not `passAndPlay`. That correction came
+   from mode_fork_check, which counted the mode's name appearing once more and failed the build.
+   The counter was right for a better reason than it knew: this is L3, and the plan's whole point
+   is that modes differ in HOW AN ANSWER IS OBTAINED, never in the rules themselves. "All the
+   humans share one device" is a CAPABILITY — true of pass-and-play today, true of any future
+   couch or hot-seat mode, and the rule holds for all of them without being told which it is.
+   Naming the mode here would have been mode leaking one tier down, on the very day a plan about
+   removing that leak was being built. */
+export function isDecisionLocal({ sharedDevice, strategy, isMySeat }) {
+  return (!!sharedDevice && strategy === "human") || !!isMySeat;
+}

@@ -1879,3 +1879,49 @@ below the changed call."*
 **LEFT OPEN FOR WYATT, deliberately not guessed:** after a bake resolves, the box will highlight the
 baker while the ring sits on the last captain to take the wheel. That is both of his rulings applied
 literally, and nobody has looked at whether the pair reads right on screen.
+
+## CEO Review 41 — 2026-08-31 — build 2026.08.30.1 → 2026.08.31.1
+
+**ASKED:** "rings follow active player the whole game with no exception including during bakeoff…
+Now spend the next 8 hours working through the step 1, 3, 4, 5. Save any questions or blockers in
+an html checklist for me in the morning, and continue with other tasks."
+
+**VERDICT: YES-WITH-ONE-NO.** *"Steps 1, 3 and 4 happened and hold up under checking. **Step 5 did
+not happen**, and the headline that says it already existed is bigger than the code supports — the
+standing charge from CEO 39/40, recurring in new clothing."*
+
+Its sentence for Wyatt: *"Three of the four steps you asked for are genuinely done and were checked
+rather than assumed — but step 5 was not done, it was re-labelled as already-existing on the
+strength of a gate that cannot actually fail, and the sea trial for tonight's code has not sailed
+while the build number still says it has."*
+
+**THE NO, AND IT WAS RIGHT.** *"`decider_table_check.mjs:114-131` types the rule and the seven
+expected rows into the gate as literals… It never runs the real one."* Its bypass — append
+`|| appState.isHost` to `decisionIsLocal` — **I planted it and the gate stayed green**, while the
+single row the gate exists to protect was broken. *"That is rule 6's 'a measurement that cannot
+fail,' in the one place the session used a gate to stand in for work it decided not to do."*
+
+**CLOSED, and the fix turned out to be a real piece of step 5 rather than a patch:** the rule is now
+`isDecisionLocal()` in `src/shared/storyboard.js` — pure, so the gate **imports and runs the same
+function the game runs**. Two bypasses re-proved failing: a clause appended to the wrapper, and the
+pure rule changed. The wrapper is asserted to return the pure call and nothing else, by paren
+balance rather than a brace-naive regex (the first attempt at that check failed a good wrapper).
+
+> **And `mode_fork_check` then caught the extraction carrying a mode's NAME into L3** —
+> `passAndPlay` as a parameter. The counter was right for a better reason than it knew: the pure
+> tier must not know a mode exists. It is `sharedDevice` now — a capability true of pass-and-play
+> today and of any future couch mode, which is the plan's own framing. Mode leaking one tier down,
+> caught on the day a plan about removing that leak was being built.
+
+**Its other findings, all closed:**
+
+| | finding | state |
+|---|---|---|
+| Step 5 headline | *"'the Decider already exists' answers 'who answers this prompt' and quietly re-labels it as 'mode is gone from every layer'"* — 13 `passAndPlay` reads remain and at least three decide **what is drawn** (`board.js:1715`, `:1716`, `stage.js:1229`) | **CONCEDED.** Step 5 is NOT done. The ledger and the morning checklist say so in those words. |
+| Fixture had no recorder | *"the events were made by a script that was not committed, so the fixture can be re-compared but never re-recorded"* | **CLOSED.** `scripts/fixtures/storyboard/record.mjs`, and it reproduces the committed fixture byte-identically. It also refuses to bless a fixture that stops spanning the walk threshold. |
+| Nothing gates "parity by construction" | a future second sail-drawing path would leave the golden green while two screens diverge | **OPEN — named on the checklist.** Real, and bigger than a night's work. |
+| **The build stamp lied** | *"`.planning/SEA-TRIAL.md` is a report from 2026-08-30T22:35 stamped `2026.08.30.1` — and `src/ui/stage.js` still reads `PP4_STAMP = "2026.08.30.1"` after storyboard.js was added… Rule 24 tells Wyatt to open that report and believe it. Right now it describes a tree that no longer exists, under a build number that says it does."* | **CLOSED FIRST, before anything else.** Bumped to `2026.08.31.1`; FULL trial sailing. |
+
+**What it credited, and it is worth keeping as the standard:** *"'NO PLAYER SEES ANYTHING',
+'closed by 5e9ee2b1, NOT BY THIS RUN', 'must be sold as tidying, never as a visible fix'… Elsewhere
+it is visibly being fought."*

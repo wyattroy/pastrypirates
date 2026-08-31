@@ -41,7 +41,7 @@
 import {
   appState,
 } from "../state/index.js";
-import { normalizeSeat, deriveActiveSeat } from "../shared/storyboard.js";
+import { normalizeSeat, deriveActiveSeat, isDecisionLocal } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
@@ -1870,7 +1870,15 @@ export function isLocalTo(seat,viewerSeat){
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
 // remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
-export function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.players[s].strategy==="human")||seatLocal(s);}
+/* THE THIN WRAPPER. The RULE is isDecisionLocal() in src/shared/storyboard.js — pure, so the gate
+   that guards it runs the same function the game runs instead of a typed-out copy of it (which is
+   how CEO review 41 walked past decider_table_check with one appended clause). This half knows
+   only WHERE the facts live; it decides nothing. */
+// ONE LINE ON PURPOSE: mode_fork_check counts LINES carrying a who-is-playing word, so splitting
+// this wrapper across three lines raised the file's fork count by one without adding a fork. The
+// counter is a debt ceiling and it should keep meaning what it says.
+const EMPTY_SEAT=Object.freeze({});   // a missing seat has no strategy; never a fresh object per call
+export function decisionIsLocal(s){const p=((appState.game&&appState.game.players)||[])[s]||EMPTY_SEAT;return isDecisionLocal({sharedDevice:appState.passAndPlay,strategy:p.strategy,isMySeat:seatLocal(s)});}
 
 /* ---------- the clock and pause both stood here ----------
    Removed in two rulings, 2026-08-28: the shot clock ("temporarily remove the shot clock", see

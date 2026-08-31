@@ -33,6 +33,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
+const { isDecisionLocal } = await import(path.join(ROOT, "src/shared/storyboard.js"));
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
 let failures = 0;
@@ -104,17 +105,49 @@ const orch = strip(read("src/orchestrator.js"));
    question, which is the fault the Decider interface exists to prevent. */
 {
   const defs = [...util.matchAll(/function decisionIsLocal\s*\(/g)].length;
-  const inlineCopies = [...[util, orch].join("\n").matchAll(/passAndPlay\s*&&[^\n]*strategy\s*===\s*"human"/g)].length;
-  defs === 1 && inlineCopies === 1
-    ? pass("decisionIsLocal is defined once and its rule is spelled nowhere else — the device question has one answer")
-    : fail(`the device question has ${defs} definition(s) and ${inlineCopies} inline spelling(s) of its rule — a second copy is a third answer to "who answers?"`);
+  /* AND THE WRAPPER MUST DELEGATE, NOT REIMPLEMENT. If decisionIsLocal ever spells the rule out
+     again instead of calling isDecisionLocal, the pure function stops being the thing that runs and
+     this gate goes back to testing something the game does not use. That is exactly how the first
+     version was bypassed, one level up. */
+  const wrapper = (util.match(/export function decisionIsLocal\s*\([\s\S]*?\n\}/) || [""])[0];
+  /* "DELEGATES" IS NOT ENOUGH, and the second bypass proved it: `return isDecisionLocal({…}) ||
+     appState.isHost;` delegates AND changes the answer, and the first version of this case passed
+     it. The wrapper's returned expression must be the pure call and NOTHING ELSE — no `||`, no
+     `&&`, no ternary bolted on after it. Anything appended is a second rule living where no gate
+     can run it, which is the whole fault being fixed. */
+  /* BALANCE, NOT A BRACE-NAIVE REGEX. The first attempt used `\(\{[^}]*\}\)`, which cannot span a
+     nested `{}` in the argument and reported a perfectly good wrapper as broken. Read the call's
+     own parentheses instead: the outermost one must close at the very END of the expression, which
+     is exactly what "returns the pure call and nothing else" means. */
+  const ret = (wrapper.match(/return\s+([\s\S]*?);\s*\}/) || [, ""])[1].replace(/\s+/g, "");
+  const pureCallOnly = (() => {
+    const head = "isDecisionLocal(";
+    if (!ret.startsWith(head) || !ret.endsWith(")")) return false;
+    let depth = 0;
+    for (let k = head.length - 1; k < ret.length; k++) {
+      if (ret[k] === "(") depth++;
+      else if (ret[k] === ")") { depth--; if (depth === 0) return k === ret.length - 1; }
+    }
+    return false;
+  })();
+  defs === 1 && pureCallOnly
+    ? pass("decisionIsLocal returns the pure rule and nothing else — no second clause can live where a gate cannot run it")
+    : fail(`the wrapper does not return the pure call alone (definitions:${defs}, returns \`${ret.slice(0, 70)}\`) — anything appended to it is a second rule the gate above cannot execute, which is exactly how this gate was bypassed twice`);
 }
 
 /* THE TABLE ITSELF, RUN. Seven rows over every mode. The one row where the two questions DISAGREE
    is the reason both exist; if that row ever agrees, someone has merged them and broken the crew
    host holding a turn for a remote human. */
 {
-  const isLocal = (c) => (c.pp && c.strat === "human") || c.local;
+  /* THE REAL FUNCTION, IMPORTED AND RUN — not a copy of the rule typed into this file.
+     The first version DID type it out, and CEO review 41 walked straight past it by appending
+     `|| appState.isHost` to the real one: definition count still 1, inline spelling still 1, the
+     hardcoded rows still differed on exactly one row, GATE GREEN — while the single row this gate
+     exists to protect was broken. A gate that cannot fail for the change it names is rule 6's own
+     failure, and it happened here in the gate that stood in for work I had decided not to do.
+     The fix was to make the rule RUNNABLE — pure, in src/shared/storyboard.js — so this asserts
+     against the function the game actually calls. */
+  const isLocal = (c) => isDecisionLocal({ sharedDevice: c.pp, strategy: c.strat, isMySeat: c.local });
   const ROWS = [
     ["solo, my seat",             { pp: false, strat: "human", local: true  }],
     ["solo, bot seat",            { pp: false, strat: "bot",   local: false }],
