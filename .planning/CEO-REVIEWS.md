@@ -1774,3 +1774,41 @@ confirmed commit `409f44b5` touches exactly the five files its message claims, t
 **What N1/N2 cost to close:** the first draft was written, red-proofed in two directions, and still
 had two blind spots a fresh reader found in one pass. That is the case for rule 25 in miniature —
 the red-proof only tests the spellings its author thought of.
+
+## CEO Review 39 — 2026-08-31 — build 2026.08.30.1
+
+**ASKED:** the End of Voyage gap — check the falsifiers first, say plainly whether you were right,
+then fix it (structural checks + settle wait, same path every other screen takes), red-proof,
+npm test, commit, push.
+
+**VERDICT: SOUND-WITH-CHANGES.** *"The thing he asked for happened — the End of Voyage screen
+really is on the same capture path as every other screen now, I proved the new gate can fail,
+`npm test` is 56/56 exit 0, and the work is pushed. But the SIZE of the hole is still overstated in
+the record: the repo's own pre-fix trial shows the ending screen was already being settled and
+structurally checked in 10 of 10 legs; what was unchecked was a DUPLICATE record of it."*
+
+Its sentence for Wyatt: *"The gap got fixed properly and it is proven working on a real voyage —
+but it was never as big as it was billed: the last screen of every leg was already being checked,
+and what was actually broken was a second, duplicate copy of it sneaking into the report marked
+'clean', which is worth fixing and is not 'the ending was checked by nothing'."*
+
+**It verified rather than trusted** — re-ran the red-proof by mutating the gate itself, read the
+live leg's `report.json` (`settle {settled:true, ms:383}` where the pre-fix record had
+`settle: NONE`), and confirmed the commit ORDER makes the prediction impossible to retrofit
+(757cdeda prediction → 6ec8b49b result → 3085a4d7 fix).
+
+**Its three required changes, and what happened to each:**
+
+| | required | state |
+|---|---|---|
+| 1 | Correct *"zero ran"* — *"This is the standing charge from CEO 35, 36 and 37 recurring a third time. Two claims were struck by the session itself, honestly and in the open; this third one survived, and it is the one in the commit-message-shaped sentence."* | **DONE.** Verified against `report.json` myself: all ten legs already held a settled, checked `… ~ EOV ~` shot. Corrected in PREDICTION-eov-unchecked.md and written up as HARD-WON-LESSONS §12h. Its smaller number correction was also right — the range is 1–22, not 8–18, with 20 of 90 at or below 4. |
+| 2 | *"Either de-duplicate the End of Voyage capture, or write down why one screen is recorded twice"* — it costs a paid judge call per leg and moves the "not looked at" denominator | **DONE.** The branch routes through `player.captureIfNew` now: a genuinely new screen is settled and checked, a screen already recorded is not recorded twice. |
+| 3 | *"Downgrade or widen the gate's claim… I have a working bypass"* — `const noFindings = Array(0); … rec.screens.push(shotRec)` sailed through, because the regex needed `push({` and `Array(0)` dodged the literal-`[]` backstop | **DONE, widened not downgraded.** The gate now FAILS CLOSED: a push it cannot read is a failure, not a silent pass. Red-proofed with its own bypass verbatim, planted into the real file. Its remaining blind spot (a push from another file) is now named in the comment instead of papered over. |
+
+**Also noted and fixed in passing:** the log line printed *"settled and structurally clean"* without
+checking `settle.settled`. It no longer claims settling it did not verify.
+
+**Why this review matters more than the two before it:** two self-corrections had ALREADY been made
+in the same document, in the open, before this ran. Being careful did not catch the third — a
+reader with fresh eyes opening a file the author never opened did. That is the case for rule 25 in
+one line.

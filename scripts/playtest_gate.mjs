@@ -243,9 +243,22 @@ async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
     const st = await player.state();
     if (st && st.day !== lastDay) { lastDay = st.day; rec.days = st.day; log(`  [${tag}] DAY ${st.day}`); }
     if (st && st.over) { log(`  [${tag}] END OF VOYAGE at day ${st.day}`);
-      const f2 = `${OUT}/${tag}-eov.png`; await c.shot(f2);            // the motion frame, as for any screen
-      const eovFails = await settleAndCheck(c, tag, rec, f2, "end of voyage");
-      if (!eovFails.length) log(`  [${tag}] end of voyage: settled and structurally clean`);
+      /* CAPTURE IT THE SAME WAY, WHICH MEANS captureIfNew — NOT AN UNCONDITIONAL SHOT.
+         CEO Review 39 opened the pre-fix 10-leg report and found what I had missed: the loop
+         ABOVE already photographs the ending one tick earlier (signature `… ~ EOV ~`), settled and
+         structurally checked, in all ten legs. This branch's unconditional `c.shot` then added a
+         SECOND record of the same screen carrying `fails: []`.
+         So the fault was never "the ending is checked by nothing" — it was a DUPLICATE entering
+         the report marked clean. Real, and smaller than billed: `fails: []` reads as "checked and
+         clean" in every report, it inflates the screen count, and it costs one paid vision-judge
+         call per leg. Routing through captureIfNew fixes the lot: a genuinely new screen is
+         settled and checked like any other; a screen already in the record is not photographed
+         twice. `finished` is set either way — reaching the ending is what that means. */
+      const f2 = await player.captureIfNew(OUT, tag, ++shotN);
+      if (f2) {
+        const eovFails = await settleAndCheck(c, tag, rec, f2, "end of voyage");
+        log(`  [${tag}] end of voyage: ${eovFails.length ? eovFails.length + " structural finding(s)" : "no structural findings"}`);
+      } else { shotN--; log(`  [${tag}] end of voyage: already captured and checked as an ordinary screen — not recorded twice`); }
       rec.finished = true; return; }
     // side quests once the game is properly underway (day 2+, between prompts)
     if (quests && !questsDone && st && st.day >= 2) { questsDone = true; await sideQuests(c, player, (m) => log(`  [${tag}] ${m}`)); }

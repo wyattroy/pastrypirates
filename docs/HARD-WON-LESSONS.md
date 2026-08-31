@@ -1605,3 +1605,36 @@ Two things worth copying from the fix (`scripts/qa/unruled_exception_check.mjs`,
 **State the limit, or the fence becomes a wall in the telling:** this fires when `npm test` runs on
 main. It cannot see a merge pushed without running the suite. It is a fence — but a fence is what
 did not exist, and the release process walks straight into it.
+
+### §12h — READING THE CODE TELLS YOU WHAT ONE PATH DOES. ONLY THE OUTPUT TELLS YOU WHAT THE SYSTEM DOES.
+
+**2026-08-31, and it is rule 6's missing corollary.** Three overclaims in one item, all the same
+shape, all made by someone being careful:
+
+1. *"The End of Voyage screen is checked by nothing."* The branch really did hardcode `fails: []`.
+   But the vision judge reads it, and — found only by a fresh reader opening the previous trial's
+   `report.json` — **the ordinary capture loop was already photographing and structurally checking
+   that same screen one tick earlier, in all ten legs.** The real fault was a *duplicate* entering
+   the report marked clean. Worth fixing; a fraction of the billed size.
+2. *"The judge was handed a frame guaranteed to be mid-flight,"* citing a measured 688px glide. The
+   matched pair showed the card already at rest. That number was measured about the card being
+   **dragged**, not arriving — the right object, the wrong moment, and it read as rigour *because*
+   it had a citation attached.
+3. *"That failure runs at counts of 8 to 18."* Counted: **1 to 22, and 20 of the 90 at 4 or below.**
+
+**Every one is a true statement about the CODE promoted to a statement about the WORLD.** Reading a
+branch and seeing no checks is true of the branch. Concluding no checks ran on that screen requires
+knowing what every *other* path did — and the file that answered it was on disk, unopened.
+
+**SO, BEFORE YOU SAY HOW BIG A HOLE IS: OPEN WHAT THE SYSTEM ACTUALLY PRODUCED.** The last trial's
+`report.json`, the last run's log, the screenshots. It costs one command. All three of these died
+on contact with output that already existed.
+
+**The size of a claim is itself a claim, and it needs its own evidence.** "This is broken" and "this
+has been broken on every leg of every trial" are different assertions; the second is the one that
+gets quoted back, and it is the one nobody measured.
+
+**What caught them, in order:** the prediction note with named falsifiers caught #1's headline
+before the fix shipped. The matched-pair screenshots caught #2. A fresh-context CEO opening a file
+the author never opened caught #3 — *after* two honest self-corrections had already been made in
+the same document, which is precisely why rule 25 cannot be replaced by being careful.

@@ -108,3 +108,48 @@ exercised: vanilla beans` and `4 screen(s) never stopped moving before being che
 own coverage rules. The same failure shape appears **90 times** in `sea-trial-shots/log.txt` from
 earlier runs, at counts of 8 to 18. This run was at 4, the low end. The End of Voyage screen settled
 and contributed none of them.
+
+---
+
+## CORRECTION — THE HOLE WAS REAL AND SMALLER THAN I BILLED IT. CEO REVIEW 39.
+
+**I struck two of my own claims above and this THIRD one survived — the one written in the
+commit-message-shaped sentence.** CEO 39 found it by opening evidence I never opened: the pre-fix
+10-leg trial's own `sea-trial-shots/report.json`.
+
+**STRIKING:** *"seven structural rules now run on the End of Voyage screen. Before this change zero
+ran and the screen was recorded as clean anyway."*
+
+**WHAT IS ACTUALLY TRUE**, verified by reading that report myself rather than taking the CEO's word:
+**all ten legs already contained a settled, structurally-checked screenshot of the ending.** The
+ordinary loop catches it one tick earlier under the signature `… ~ EOV ~`, `settled: true`, checks
+run. Beside it sat a SECOND entry, `sig: "end of voyage"`, `settle: None`, `fails: []`.
+
+> So the fault was never *"the last screen of every leg was checked by nothing"*. It was **a
+> DUPLICATE record of an already-checked screen entering the report marked clean.**
+
+**That is still worth fixing, and here is the honest size of it:** `fails: []` reads as *checked and
+clean* in every report; it inflates each leg's screen count, which moves the denominator of the
+"N screens never looked at" rule; and it spends one paid vision-judge call per leg on a photograph
+of a screen already in the record. Fixed by routing the branch through `captureIfNew` — a genuinely
+new screen is settled and checked like any other, a screen already recorded is not recorded twice.
+
+**AND THE SMALL NUMBER WAS WRONG THE SAME WAY.** I wrote the pre-existing failure ran "at counts of
+8 to 18". Counted properly: **90 occurrences, range 1 to 22, and 20 of them at 4 or below.** My run
+at 4 was therefore ordinary, not "the low end" — a claim I made about a distribution I had looked at
+five lines of.
+
+### The lesson, and it is not "be careful"
+
+**Every one of these three overclaims had the same shape: a true statement about the CODE, promoted
+to a statement about the WORLD without opening the world.** I read the branch and saw no checks —
+true. I concluded no checks ran on that screen — false, because a different code path was already
+checking it. The report that would have said so was on disk the whole time and I never opened it.
+
+**RULE 6 HAS A COROLLARY THIS EARNED: when you find a hole, go and look at what the system actually
+PRODUCED before you say how big it is.** Reading the code tells you what one path does. Only the
+output tells you what the system does. The gap between those two is exactly where every one of
+these three claims lived.
+
+**And the process worked, which is the case for rule 25:** two claims were caught by my own
+prediction note, and the third by a reader with fresh eyes who went and opened a file I had not.

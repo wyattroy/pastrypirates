@@ -98,10 +98,20 @@ const trialCode = fs.readFileSync(path.join(ROOT, "scripts/sea_trial.mjs"), "utf
    guaranteed to be mid-flight — w34_eov_park_glide measured that card travelling 688px on desktop
    and 762px on tablet in 250ms.
 
-   CHECKED STRUCTURALLY, NOT BY NAME: a screen enters the record through `rec.screens.push`, so the
-   assertion is that there is exactly ONE such push and it lives inside the one function that
-   settles and checks. That is rule 23 stated as an arithmetic fact — a SECOND push is a second
-   capture path, whatever it is called, and no hand-kept list of branches has to be maintained. */
+   WHAT THIS CAN AND CANNOT SEE — stated honestly, because the first version's own comment
+   overclaimed and CEO Review 39 broke it in one try. It is a TEXT PATTERN over `rec.screens.push`
+   sites in ONE file, not a data-flow analysis. Its bypasses were real:
+       const noFindings = Array(0);
+       const shotRec = { shot: f2, sig: "end of voyage", fails: noFindings };
+       rec.screens.push(shotRec);            // sailed straight through
+   — a push whose argument is a variable was invisible to the regex, and `Array(0)` dodged the
+   literal-`[]` backstop.
+   SO IT NOW FAILS CLOSED. A push it cannot READ is a FAILURE, not a silent pass: the argument must
+   be an object literal it can inspect, and the findings must be a literal it can judge. That turns
+   the bypass into the loudest thing in the run, which is the only honest behaviour for a check
+   whose whole subject is "something entered the record unexamined". Its remaining blind spot is
+   named and not papered over: a push added from a DIFFERENT file is out of view, because this gate
+   reads playtest_gate.mjs alone. */
 console.log("\nEvery screen the gate photographs is a screen it checked");
 {
   const gateCode = gate.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
@@ -112,12 +122,21 @@ console.log("\nEvery screen the gate photographs is a screen it checked");
      (`fails: [{ ok: false, rule: "run", … }]`), so it can never read as "checked, and clean".
      THE FAULT IS NOT A SECOND PUSH. It is a push that enters the record with NOTHING against it
      while standing outside the function that checks. That is the thing to count. */
+  /* EVERY push site, readable or not — count them first, then read the ones you can. The gap
+     between the two counts IS the finding. */
+  const allPushes = (gateCode.match(/rec\.screens\.push\s*\(/g) || []).length;
   const pushArgs = [...gateCode.matchAll(/rec\.screens\.push\s*\(\s*\{([\s\S]{0,300}?)\}\s*\)/g)].map(m => m[1]);
   const settlerBody = (gateCode.match(/async function settleAndCheck\(([\s\S]*?)\n\}/) || [, ""])[1];
+  const unreadable = allPushes - pushArgs.length;
   const unchecked = pushArgs.filter(a => {
     if (settlerBody.includes(a)) return false;                    // the one that settles and checks
-    return !/fails:\s*\[\s*\{/.test(a);                          // …or one that records a real finding
+    /* A REAL FINDING IS A LITERAL THIS CAN JUDGE. `fails: someVariable` is not readable, so it is
+       not trusted — CEO 39's `Array(0)` bypass lived exactly here. */
+    return !/fails:\s*\[\s*\{/.test(a);
   });
+  unreadable === 0
+    ? ok(`all ${allPushes} screen record(s) are written as object literals this gate can read`)
+    : bad(`${unreadable} of ${allPushes} screen record(s) are built somewhere this gate cannot read (a variable, a spread, a helper) — a record it cannot inspect is a record it cannot vouch for, so this fails rather than passing quietly`);
   const inSettler = /async function settleAndCheck\([\s\S]*?rec\.screens\.push\s*\(/.test(gateCode);
   const settles   = /async function settleAndCheck\([\s\S]*?waitSettled\s*\(/.test(gateCode);
   const eovRoutes = /st\.over[\s\S]{0,400}?settleAndCheck\s*\(/.test(gateCode);
@@ -138,6 +157,10 @@ console.log("\nEvery screen the gate photographs is a screen it checked");
   const before = `const f2 = OUT + "/" + tag + "-eov.png"; await c.shot(f2); rec.screens.push({ shot: f2, sig: "end of voyage", fails: [] });\n` +
                  `if (f) { rec.screens.push({ shot: fSettled, motionShot: f, fails }); }`;
   const crash  = `rec.screens.push({ shot: f, sig: "ERROR", fails: [{ ok: false, rule: "run", what: rec.error }] });`;
+  /* CEO REVIEW 39'S BYPASS, verbatim. It must now be the loudest thing in the run. */
+  const bypass = `const noFindings = Array(0);\nconst shotRec = { shot: f2, sig: "end of voyage", fails: noFindings };\nrec.screens.push(shotRec);`;
+  const bypassCaught = ((bypass.match(/rec\.screens\.push\s*\(/g) || []).length
+                      - [...bypass.matchAll(/rec\.screens\.push\s*\(\s*\{([\s\S]{0,300}?)\}\s*\)/g)].length) === 1;
   const pick = src => [...src.matchAll(/rec\.screens\.push\s*\(\s*\{([\s\S]{0,300}?)\}\s*\)/g)].map(m => m[1]);
   /* goes RED on the pre-fix EOV push (nothing against it, no settler to be inside of) … */
   const redsOnBefore  = pick(before).filter(a => !/fails:\s*\[\s*\{/.test(a)).length >= 1;
@@ -145,9 +168,9 @@ console.log("\nEvery screen the gate photographs is a screen it checked");
   const sparesCrash   = pick(crash).filter(a => !/fails:\s*\[\s*\{/.test(a)).length === 0;
   const noSettler = !/async function settleAndCheck\(/.test(before);
   const catchesLiteral = /\bfails:\s*\[\]/.test(before);
-  redsOnBefore && sparesCrash && noSettler && catchesLiteral
-    ? ok("red-proof: goes red on the pre-fix End of Voyage push and on a missing settler, and stays quiet on the crash handler, which is outside it on purpose")
-    : bad(`red-proof FAILED (redOnBefore:${redsOnBefore} sparesCrash:${sparesCrash} noSettler:${noSettler} literal:${catchesLiteral}) — these cases may be unable to fail`);
+  redsOnBefore && sparesCrash && noSettler && catchesLiteral && bypassCaught
+    ? ok("red-proof: goes red on the pre-fix End of Voyage push, on a missing settler, and on CEO 39's variable-push bypass; stays quiet on the crash handler, which is outside it on purpose")
+    : bad(`red-proof FAILED (redOnBefore:${redsOnBefore} sparesCrash:${sparesCrash} noSettler:${noSettler} literal:${catchesLiteral} bypass:${bypassCaught}) — these cases may be unable to fail`);
 }
 
 console.log(fails ? `\nFAIL — ${fails}\n` : "\nPASS — the trial can no longer call a missing leg a pass, lose one out of the bottom of its own report, or photograph a screen it never checked\n");
