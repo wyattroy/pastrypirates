@@ -47,7 +47,7 @@
 //   6. "On the Chart" and "The reboot checklist" merge into one "Tasks" list -- open checklist
 //      items plus any Chart-inbox items, one source instead of two counts.
 //   7. Every section is a bordered card on a background gradient and font matching the game's
-//      own palette (index.html's --sea/--teal/--mint/--gold/--ink, Avenir Next), not a generic
+//      own palette (index.html's --sea/--teal/--mint/--orange/--ink, Avenir Next), not a generic
 //      status-page look.
 //
 // ⚠ THE HARVEST RULE, AND WHY IT IS LOAD-BEARING: anything Wyatt writes or taps on the page —
@@ -68,6 +68,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hostname } from "node:os";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -108,14 +109,27 @@ const tryGit = (args) => {
 };
 
 /* THE GENERATOR HALF OF ITEM 4. Strips a conventional-commit-style prefix ("word:" or
-   "word(scope):") and this repo's own em-dash/double-hyphen "why" clause, then caps to ~8 words.
-   It cannot invent a good subject from a bad one — the durable half is the commit-message
-   convention itself, unchanged by this file. */
+   "word(scope):") and this repo's own em-dash/double-hyphen "why" clause. It cannot invent a good
+   subject from a bad one — the durable half is the commit-message convention itself, unchanged
+   by this file.
+
+   ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: it hard-chopped at 8 words with a trailing "…",
+   which was tested against Wyatt's own two named-bad examples (both happen to carry a "--" clause
+   and split cleanly) and never checked against the list it actually renders. Measured against the
+   real 12 lines on the page that day: 6 of 12 ended mid-sentence. FIX: prefer the first natural
+   CLAUSE boundary (a comma, semicolon or colon) over a hard word count -- most subjects in this
+   repo's own style already have one, because they are written as a claim followed by a reason.
+   Only a subject with NO such boundary within a reasonable length falls back to a word chop, and
+   only THAT path keeps the "…" -- a clause-bounded result is a complete thought and gets none. */
 function shortSubject(s) {
   let t = String(s).replace(/^[a-z][a-z0-9_.-]*(\([^)]*\))?:\s*/i, "").trim();
   t = t.split(/\s+(?:—|--)\s+/)[0].trim();
+  const clause = t.match(/^[^,;:]+/);
+  if (clause && clause[0].trim().length >= 12 && clause[0].trim().length < t.length) {
+    return clause[0].trim();
+  }
   const words = t.split(/\s+/).filter(Boolean);
-  return words.length > 8 ? words.slice(0, 8).join(" ") + "…" : t;
+  return words.length > 9 ? words.slice(0, 9).join(" ") + "…" : t;
 }
 /* Checklist/task lines carry real operational detail (not a commit subject), so this keeps more
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
@@ -138,9 +152,6 @@ const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git
 const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
 let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = null;
 if (chart !== null) {
-  const done = (chart.match(/^- \[x\]/gim) || []).length;
-  const open = (chart.match(/^- \[ \]/gim) || []).length;
-  checklist = { done, open };
   const blockSec = chart.split(/^## BLOCKED ON WYATT$/m)[1]?.split(/^## /m)[0] ?? "";
   blocked = blockSec.split("\n")
     .filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|-+/.test(l) && !/^\|\s*---/.test(l))
@@ -169,11 +180,30 @@ if (chart !== null) {
   const stepSec = chart.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
   const openChecklist = (stepSec.match(/^- \[ \] .*$/gm) || []).map((l) => shortTask(l.replace(/^- \[ \] /, "")));
   tasks = [...openChecklist, ...(inboxItems ?? []).map(shortTask)];
+  // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
+  // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
+  // plus the inbox -- they happened to agree that day only because every checkbox in the file
+  // lived in that one section. Scoped to the same source as the list, so the two cannot drift:
+  // done = checked items in STEP 1 CHECKLIST; open = the list this card actually renders.
+  const doneChecklist = (stepSec.match(/^- \[x\]/gim) || []).length;
+  checklist = { done: doneChecklist, open: tasks.length };
 }
 
 // --- restarts (the watchdog appends here) ---
+// ⚠ THE HONESTY GAP A RELAY CAUGHT, 2026-08-31: restarts.log is machine-local and gitignored
+// (.gitignore:82), so a page generated anywhere but the Razer has NO file to read, and the old
+// code rendered that identically to "a log exists and is genuinely empty" -- both said "None
+// recorded", which is exactly the fail-open this file's own header rule forbids ("a source that
+// cannot be read renders as unreadable, never as empty success"). The restart log IS the 24-hour
+// exit test's evidence; a page that understates it understates the proof. So: distinguish FILE
+// ABSENT from FILE PRESENT AND EMPTY, and name the machine either way, so "no restarts" always
+// answers "on which machine, and did it even have a log to check".
+const MACHINE = hostname();
 const restartsRaw = tryRead(RESTARTS);
 const restarts = restartsRaw === null ? [] : restartsRaw.trim().split("\n").filter(Boolean).slice(-5);
+const restartsEmptyMsg = restartsRaw === null
+  ? `No restarts.log on this machine (<b>${esc(MACHINE)}</b>) — it is local and gitignored, so this page cannot see another machine's log. This is NOT evidence of zero restarts.`
+  : `None recorded on <b>${esc(MACHINE)}</b> — the watchdog has not needed to restart the Bosun here.`;
 
 const rows = (list, empty) => list === null
   ? `<p class="bad">unreadable: source file could not be parsed</p>`
@@ -203,21 +233,26 @@ const askList = [...(blocked ?? []), ...demoAsks];
 const PAGE = `<meta charset="utf-8">
 <title>The Glass</title>
 <style id="glass-style">
-  /* THE GAME'S OWN PALETTE (index.html's :root, ~line 45) — matched, not approximated, so the
-     Glass reads as part of Pastry Pirates rather than a generic ops dashboard (item 7). */
+  /* index.html's own :root (~line 45), copied EXACTLY, not approximated: --sea/--sea2/--ink/
+     --parch/--paleblue/--teal/--mint/--orange/--lemon/--pink are all the game's own hex values.
+     ⚠ CORRECTED, a relay caught the first version overclaiming this: --bg/--bg2/--bg3, the three
+     tokens the eye actually sees most (the page background), are NOT from the game -- they are
+     invented to sit near the game's palette rather than copied from it. The game's own ground is
+     a pale blue sea gradient (index.html:57, var(--sea) to var(--sea2)); this page's is sage to
+     parchment. A deliberate choice for readability at status-page scale, not a measurement. */
   :root{--sea:#d3f0f4;--sea2:#bfe8ee;--ink:#1f4249;--parch:#ffffff;--paleblue:#dff3fb;
-    --teal:#29a3b2;--mint:#45dfa6;--gold:#fdb63d;--lemon:#fef48b;--pink:#fdaecb;
+    --teal:#29a3b2;--mint:#45dfa6;--orange:#fdb63d;--lemon:#fef48b;--pink:#fdaecb;
     --bg:#dcece9;--bg2:#e6efe1;--bg3:#f5f0dd;--surface:var(--parch);--muted:#5c7a80;
     --line:var(--sea2);--accent:var(--teal);--ok:var(--teal);--stale:#c65a3d;
-    --warn-bg:#fff6c2;--signal:var(--gold);}
+    --warn-bg:#fff6c2;--signal:var(--orange);}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
     --ink:#e4f3f6;--parch:#152225;--paleblue:#1c2f33;--muted:#8fb3ba;
     --bg:#0f1a1c;--bg2:#122420;--bg3:#1c1f14;--surface:var(--parch);--line:#234146;
-    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--gold);}}
+    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--orange);}}
   :root[data-theme="dark"]{
     --ink:#e4f3f6;--parch:#152225;--paleblue:#1c2f33;--muted:#8fb3ba;
     --bg:#0f1a1c;--bg2:#122420;--bg3:#1c1f14;--surface:var(--parch);--line:#234146;
-    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--gold);}
+    --accent:#54c2cf;--ok:#54c2cf;--stale:#ff9068;--warn-bg:#3a2f12;--signal:var(--orange);}
   body{background:var(--bg);
     background-image:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 45%,var(--bg3) 100%);
     background-attachment:fixed;color:var(--ink);
@@ -332,11 +367,11 @@ const PAGE = `<meta charset="utf-8">
   </section>
 
   <section class="card">
-    <h2>Watchdog restarts (last 5)</h2>
-    ${rows(restarts.map(esc), "None recorded — either no stalls, or the watchdog isn't live yet (see the Chart).")}
+    <h2>Watchdog restarts (last 5, on ${esc(MACHINE)})</h2>
+    ${rows(restarts.map(esc), restartsEmptyMsg)}
   </section>
 
-  <p class="meta">Generated ${esc(nowIso)} by scripts/wyclau/glass.mjs — every number above is derived, none hand-typed. Stale &gt; 45 min = something is wrong; the watchdog should have restarted the Bosun.</p>
+  <p class="meta">Generated ${esc(nowIso)} on <b>${esc(MACHINE)}</b> by scripts/wyclau/glass.mjs — every number above is derived, none hand-typed. Stale &gt; 45 min = something is wrong; the watchdog should have restarted the Bosun.</p>
 </div>
 <script>
   (function(){
