@@ -20,6 +20,10 @@ param(
   # Must be at least the pulse cadence the Door promises the engine keeps (20 minutes), for the
   # reason spelled out at the one-engine guard below.
   [int]$LaunchGraceMinutes = 25,
+  # No engine running and nobody has touched a tool for this long = IDLE, and idle is the failure
+  # Wyatt named on 2026-08-31. Far shorter than StaleMinutes on purpose: that governs an engine
+  # that is running but silent; this governs a tree where nothing is running at all.
+  [int]$IdleMinutes = 10,
   # Log what would be launched instead of launching it, so a gate can exercise THIS script
   # rather than a paraphrase of it. Everything else runs identically.
   [switch]$DryRun
@@ -47,11 +51,50 @@ $now = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 # ABSENT IS NOT ALIVE. A tree where the hook has never run has no LAST-ACTIVITY, and then this
 # behaves exactly as it always did -- otherwise a missing file would wedge the watchdog shut,
 # which is the failure the whole mechanism exists to prevent.
+# IS AN ENGINE ACTUALLY RUNNING? ASK THE OS, NOT A FILE.
+#
+# Earned 2026-08-31, when Wyatt found the engine "sitting idle -- that is the exact thing that I
+# NEVER want to have happen." Every signal below this block is a RECENCY signal: HEARTBEAT is
+# narration recency, LAST-ACTIVITY is tool-call recency. Both answer "was something alive lately?"
+# NEITHER ANSWERS "IS AN ENGINE WORKING RIGHT NOW?" -- so an interactive session parked at its
+# prompt reads as alive, takes the hold-off branch below, and SUPPRESSES the relaunch while
+# nothing in the tree is working at all. That is not a stall the old logic could see; it is the
+# absence of work wearing a stall's clothes.
+#
+# This file already rejected a PID file, for a good reason stated below: "a PID file lies the
+# moment a session dies without cleaning up." That objection does NOT apply to asking the OS for
+# its live process table, which cannot go stale by construction. The headless engine is
+# distinguishable from Wyatt's Claude desktop app (also claude.exe) by its command line: only the
+# engine carries -p together with the Door prompt.
+$engineProcs = $null
+try {
+  $engineProcs = @(Get-CimInstance Win32_Process -Filter "Name='claude.exe'" -ErrorAction Stop |
+    Where-Object { $_.CommandLine -and $_.CommandLine -like '*-p*/door*' })
+} catch {
+  # Cannot see the process table. UNKNOWN MUST NOT MEAN IDLE -- a watchdog that cannot look is not
+  # a watchdog that should launch forever -- so fall through to the recency signals unchanged.
+  $engineProcs = $null
+}
+$engineRunning = ($engineProcs -ne $null) -and ($engineProcs.Count -gt 0)
+
 $hbTime = if (Test-Path $heartbeat)    { (Get-Item $heartbeat).LastWriteTime }    else { $null }
 $laTime = if (Test-Path $lastActivity) { (Get-Item $lastActivity).LastWriteTime } else { $null }
 $stamps = @($hbTime, $laTime) | Where-Object { $_ -ne $null }
 
-if ($stamps.Count -eq 0) {
+if (-not $engineRunning -and $engineProcs -ne $null) {
+  # NOTHING IS RUNNING. The only question left is whether a person has their hands in this tree
+  # right now: launching an engine under Wyatt's fingers is the 16:16Z collision. But a session
+  # that has not touched a tool in $IdleMinutes is not working -- it is parked at a prompt, which
+  # is precisely the state he never wants to see, and waiting out StaleMinutes to notice it is
+  # forty-five minutes of nothing happening.
+  $humanBusy = ($laTime -ne $null) -and (((Get-Date) - $laTime).TotalMinutes -lt $IdleMinutes)
+  if ($humanBusy) {
+    $laMin = [math]::Round(((Get-Date) - $laTime).TotalMinutes)
+    Add-Content $restarts "$now`tno engine running, but a session was active $laMin min ago (idle window $IdleMinutes) -- held off"
+    exit 0
+  }
+  $reason = "NO ENGINE RUNNING and nothing active for $IdleMinutes+ min -- starting one (idle is the failure, not only stalling)"
+} elseif ($stamps.Count -eq 0) {
   # Neither file exists: the engine has never run here, or they were cleared.
   # A stall by definition -- said distinctly so the Glass can show which case it was.
   $reason = "no heartbeat or activity file found -- launching the engine fresh"
@@ -120,7 +163,7 @@ Add-Content $restarts "$now`t$reason"
 # cp1252, and a pretty dash contains a byte it parses as a closing quote.
 Set-Location $Repo
 # Keep this prompt free of double quotes: the pre-quoting below cannot survive one.
-$doorPrompt = "/door - you were relaunched by the watchdog after a stall. Orient, note the restart in the ledger, pulse the Glass, and continue the Chart."
+$doorPrompt = "/door - the watchdog started you because nothing was working in this tree. Orient, note it in the ledger, pulse the Glass, then work the Chart CONTINUOUSLY: finish an item, record it, and take the next one. Do not stop after a single item - stopping is the failure this engine exists to prevent. Stop only when the Chart has nothing unblocked left, and say so."
 if ($DryRun) {
   Add-Content $restarts "$now`tDRYRUN would launch the engine"
 } else {

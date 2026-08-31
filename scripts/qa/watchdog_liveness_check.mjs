@@ -22,17 +22,53 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, utimesSync, exists
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const WATCHDOG = join(process.cwd(), "scripts", "wyclau", "watchdog.ps1");
-
-if (process.platform !== "win32") {
-  console.log("SKIP watchdog_liveness_check -- not Windows; the watchdog is a .ps1 on the Razer.");
-  console.log("     This is a SKIP, not a pass. Nothing about liveness was verified here.");
-  process.exit(0);
-}
-if (!existsSync(WATCHDOG)) { console.error(`FAIL -- watchdog not found at ${WATCHDOG}`); process.exit(1); }
+const WATCHDOG = process.argv[2] || join(process.cwd(), "scripts", "wyclau", "watchdog.ps1");
 
 let failed = false;
 const fail = (m) => { console.error(`FAIL -- ${m}`); failed = true; };
+
+// ---------------------------------------------------------------------------------------------
+// PART 1, AND IT RUNS EVERYWHERE: DOES THE WATCHDOG ASK WHETHER AN ENGINE IS RUNNING AT ALL?
+//
+// Earned 2026-08-31, by Wyatt: "Blade pirates is sitting idle -- that's the exact thing that I
+// NEVER want to have happen." Everything the watchdog read until then was a RECENCY signal
+// (HEARTBEAT = narration recency, LAST-ACTIVITY = tool-call recency). Both answer "was something
+// alive lately?"; neither answers "is an engine working right now?" So an interactive session
+// parked at its prompt read as alive and took the hold-off branch, suppressing the relaunch while
+// NOTHING was working. Waiting out StaleMinutes to notice that is 45 minutes of no work.
+//
+// This part reads the SOURCE, deliberately, because the behaviour below cannot run off Windows and
+// a skip must not leave this unguarded on every machine that is not the Razer. Red-proofed: run
+// this file with the pre-fix watchdog as argv[2] and all three assertions fail.
+{
+  const src = readFileSync(WATCHDOG, "utf8");
+  const probes = [
+    [/Get-CimInstance[\s\S]{0,120}Win32_Process/, "it never asks the OS for the live process table -- every signal it reads is recency, so a tree where nothing is running looks identical to one that is working"],
+    [/\$engineRunning/, "there is no running-engine test at all"],
+    [/-not \$engineRunning/, "nothing branches on the engine being absent, so idleness cannot be acted on differently from staleness"],
+  ];
+  for (const [re, why] of probes) {
+    if (!re.test(src)) fail(`WATCHDOG CANNOT SEE IDLENESS: ${why}. (${WATCHDOG})`);
+  }
+  // The other half of idleness is burstiness: an engine that does ONE item and exits leaves the
+  // tree empty until the next tick. The prompt must tell it to keep going.
+  if (!/CONTINUOUSLY|do not stop after a single item/i.test(src)) {
+    fail("THE ENGINE IS TOLD TO DO ONE ITEM: the Door prompt never instructs it to work items continuously, so every launch ends in an idle tree until the next tick.");
+  }
+  if (!failed) console.log("OK structural -- the watchdog asks whether an engine is RUNNING, branches on its absence, and tells the engine to keep working.");
+}
+
+
+if (process.platform !== "win32") {
+  console.log("SKIP watchdog_liveness_check (behavioural half) -- not Windows; the watchdog is a .ps1 on the Razer.");
+  console.log("     This is a SKIP, not a pass. Nothing about RUNTIME liveness was verified here.");
+  // The structural half above already ran and its verdict must still carry. Exiting 0 here
+  // regardless would make this file unable to fail off Windows -- a check that cannot fail is
+  // not a check, and it would have shipped the idleness fix unguarded on every machine but one.
+  process.exit(failed ? 1 : 0);
+}
+if (!existsSync(WATCHDOG)) { console.error(`FAIL -- watchdog not found at ${WATCHDOG}`); process.exit(1); }
+
 const MIN = 60 * 1000;
 
 /* Build a throwaway repo. `heartbeatAgeMin` and `activityAgeMin` are the two clocks under test;
