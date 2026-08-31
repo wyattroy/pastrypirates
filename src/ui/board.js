@@ -114,7 +114,7 @@ import {
   // that used them rather than being left behind as plausible-looking dependencies.
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
-import { deriveActiveSeat } from "../shared/storyboard.js";
+import { deriveActiveSeat, TURN_ONLY } from "../shared/storyboard.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
 
@@ -1438,6 +1438,9 @@ export function renderLiveShips(){
   });
   // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
   // G14: the whose-turn-is-it scan now lives in activeTurnSeat() below, shared with paintShipAt().
+  // CORRECTED 2026-08-31: the two copies are NOT identical and have not been since ovens/bake was
+  // added to render()'s alone. Both now call one walk (shared/storyboard.js); they differ only in
+  // the event list each passes, which is stated at each call site instead of hidden in a loop body.
   // It was previously duplicated inline here because this file's header forbids touching render()'s
   // body ("moved BYTE-IDENTICAL... do not refactor... anything inside them" — the v1.0 BUG-01
   // Safari storm-crash fix). render() KEEPS its own copy and is still NOT touched; extracting the
@@ -1492,13 +1495,12 @@ function ringTo(seat,x,y){
 // `turn` (stopping at a round boundary). Extracted from renderLiveShips so paintShipAt can ring the
 // right ship too. render() has an identical inline copy which is deliberately LEFT ALONE — see the
 // file header's BYTE-IDENTICAL rule.
+/* ONE WALK (2026-08-31). This was the FOURTH private copy of the backward scan, found by the
+   sweep. It now shares the walk in src/shared/storyboard.js. TURN_ONLY keeps its answer exactly
+   what it was — this scan has never known about ovens/bake, unlike render()'s — and the split is
+   now VISIBLE at this one line instead of being a silent difference between two lookalike loops. */
 function activeTurnSeat(){
-  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=appState.game.events[i].t;
-    if(t==="turn")return appState.game.events[i].p;
-    if(t==="newround")break;
-  }
-  return null;
+  return deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
 }
 // G14 (Wyatt-approved 2026-07-30): move ONE ship element to an arbitrary cell, without touching game
 // state or the event stream. The per-square painter behind the trade-wind rim sweep.

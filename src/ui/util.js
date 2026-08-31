@@ -41,7 +41,7 @@
 import {
   appState,
 } from "../state/index.js";
-import { normalizeSeat } from "../shared/storyboard.js";
+import { normalizeSeat, deriveActiveSeat, TURN_ONLY } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
@@ -1882,17 +1882,16 @@ export function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.p
    hidden-tab history) are in git history at this file — read the log before re-deriving any of
    it. sleepMs's sweeper belt above is NOT pause residue: it is the measured defence against a
    browser dropping setTimeout callbacks, and it must stay. */
-// mirrors render()'s "whose turn is it" derivation. CURRENTLY UNCALLED (its last consumer, the
+// CORRECTED 2026-08-31: this comment used to say "mirrors render()'s derivation". IT DOES NOT —
+// render() also stops at `ovens` and `bake`; this walk knows only `turn`. It was true when written
+// and rotted when render()'s copy was widened, which is exactly the rot a behavioural comment
+// carries (rule 6). It is now one walk, shared/storyboard.js, with the difference passed in.
+// CURRENTLY UNCALLED (its last consumer, the
 // pause panel's "waiting" label, left with play/pause at A-10) — kept because the clock's return
 // needs exactly this derivation, and it is pure over the event stream.
 export function currentTurnSeat(){
   if(!appState.game||!appState.game.events)return null;
-  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=appState.game.events[i]&&appState.game.events[i].t;
-    if(t==="turn")return appState.game.events[i].p;
-    if(t==="newround")return null;
-  }
-  return null;
+  return deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
 }
 /* ---------- board pops (event -> emoji animation) ---------- */
 export function spawnPops(e,cellPx){

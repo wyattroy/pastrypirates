@@ -32,6 +32,17 @@ export const TURN_ESTABLISHING = Object.freeze(["turn", "ovens", "bake"]);
    it is now. Walking past it would resurrect the previous round's last captain. */
 export const TURN_BOUNDARY = Object.freeze(["newround"]);
 
+/* THE NARROWER QUESTION, AND IT IS DELIBERATELY STILL A DIFFERENT ONE.
+   Two callers ask only "who last took the wheel", ignoring the bake: board.js's activeTurnSeat()
+   (the ripple ring that follows a ship) and util.js's currentTurnSeat(). Passing this keeps their
+   answer byte-for-byte what it was while giving them the SAME WALK as everyone else.
+   WHETHER THEY SHOULD BE WIDENED TO TURN_ESTABLISHING IS A DESIGN CALL FOR WYATT, NOT A PATCH.
+   Widening the ring means it would move to the captain at the ovens during a bake. That may well
+   be right — board.js's own note at render() calls the split "rule 23's shape exactly" — but it
+   changes what a player sees during a bake and nobody has measured it. Left visible here, at one
+   call site each, rather than buried in three private copies where nobody could see the split. */
+export const TURN_ONLY = Object.freeze(["turn"]);
+
 /* HOW FAR BACK. Also carried over from board.js unchanged. A bound, not a tuning constant:
    this walk runs inside render(), and an unbounded backward scan over a long voyage's event
    stream is a render cost that grows with the length of the game. */
@@ -70,11 +81,12 @@ export function normalizeSeat(seat, seatCount) {
 export function deriveActiveSeat(events, playhead, opts) {
   if (!Array.isArray(events)) return null;
   const lookback = (opts && Number.isInteger(opts.lookback)) ? opts.lookback : DEFAULT_LOOKBACK;
+  const establishing = (opts && Array.isArray(opts.establishing)) ? opts.establishing : TURN_ESTABLISHING;
   const start = Number.isInteger(playhead) ? Math.min(playhead, events.length - 1) : -1;
   for (let i = start; i >= 0 && i > start - lookback; i--) {
     const e = events[i];
     if (!e) continue;
-    if (TURN_ESTABLISHING.includes(e.t)) return e.p == null ? null : e.p;
+    if (establishing.includes(e.t)) return e.p == null ? null : e.p;
     if (TURN_BOUNDARY.includes(e.t)) return null;
   }
   return null;
