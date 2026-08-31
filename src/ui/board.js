@@ -19,8 +19,14 @@
 // THAT APPROVAL IS SCOPED TO THE FOUR-LAYER PLAN, not to this region generally. A change in here
 // that is not part of that plan still needs its own ruling.
 // WHAT CHANGED: render()'s backward walk for "whose turn is it", and activeTurnSeat()'s, now call
-// deriveActiveSeat() in src/shared/storyboard.js instead of each keeping a private copy. Nothing
-// else in either body moved. The same fact was being derived FIVE times in three files; it is now
+// deriveActiveSeat() in src/shared/storyboard.js instead of each keeping a private copy.
+// AND, LATER THE SAME DAY (his ruling "no ripple ring in the ovens"): render() now derives the seat
+// TWICE and says which list each time — TURN_ONLY for the ring, TURN_ESTABLISHING for the captains
+// box and the pass-and-play row order. It previously derived once and passed NO list, silently
+// taking the wider default. Nothing else in either body moved.
+// (This paragraph said "nothing else in either body moved" while render()'s body had moved a second
+// time — caught by CEO review 40. The header is what the unruled-exception gate blesses, so a
+// header that is behind its own region is the one comment in this file that must never be stale.) The same fact was being derived FIVE times in three files; it is now
 // derived once, and the shared module is a leaf tier that scripts/module_graph_check.js forbids
 // from importing src/ui/ or src/state/ at all.
 // WHY THAT IS SAFE, in BUG-01's own terms — the same test the two exceptions below apply. BUG-01
@@ -145,7 +151,7 @@ import {
   // that used them rather than being left behind as plausible-looking dependencies.
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
-import { deriveActiveSeat, TURN_ONLY } from "../shared/storyboard.js";
+import { deriveActiveSeat, TURN_ONLY, TURN_ESTABLISHING } from "../shared/storyboard.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
 
@@ -1775,18 +1781,36 @@ export function render(){
      establish a turn, the round boundary that stops the walk, and the 80-event bound are all
      unchanged; they now have one spelling instead of a copy per reader. The `done` filter below
      stays here, because it reads render state and the derivation must not. */
-  /* TURN_ONLY, EXPLICITLY — Wyatt, 2026-08-31: "no ripple ring in the ovens."
-     THIS LINE USED TO OMIT THE OPTION, and an omitted option is not "no answer", it is the DEFAULT
-     answer: TURN_ESTABLISHING, which counts `ovens` and `bake`. renderLiveShips() passed TURN_ONLY.
-     So the ring sat on a DIFFERENT BOAT depending on which path last drew it — measured, not
-     reasoned about: on the stream [newround, turn p1, sail p1, ovens p3, bake p3] this line
-     returned seat 3 and activeTurnSeat() returned seat 1.
-     One thing a player looks at, two answers, kept in step by nobody — rule 23, and the reason the
-     option is now SPELLED OUT here rather than inherited. The gate that forbids it coming apart
-     again is scripts/qa/ripple_one_answer_check.mjs, and it asserts AGREEMENT first and his ruling
-     second: if he reverses himself, both sites move together and it stays green. */
-  let active=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
+  /* TWO SURFACES, TWO RULINGS, AND THEY ARE NOT THE SAME QUESTION. Both spelled out; neither
+     inherits a default. (Corrected 2026-08-31 by CEO review 40, which caught a first version of
+     this change narrowing BOTH with only the ring checked.)
+
+     THE RING — Wyatt, 2026-08-31: "no ripple ring in the ovens." TURN_ONLY. The ring marks whose
+     BOAT is active on the water, and during a bake no boat is moving.
+
+     THE CAPTAINS BOX and the pass-and-play row order — Wyatt, 2026-08-26 (T-09, with a host/guest
+     screenshot pair): "Dough hook (who just played) is still displayed as the active player ship in
+     the top header, AND IN THE CAPTAIN'S BOX." `ovens`/`bake` were added to the list BECAUSE of
+     that complaint. So the box keeps the wider list. Narrowing it would revert a fix he asked for.
+
+     WHY THIS IS NOT RULE 23 COMING BACK. Rule 23 forbids ONE thing having two answers. The ring and
+     the box are two things he has ruled on separately, and each now has exactly one answer wherever
+     it is drawn — which is the part that was actually broken: this line used to OMIT the option
+     entirely, and an omitted option is not "no answer", it is the DEFAULT answer. renderLiveShips()
+     passed TURN_ONLY, so the two RING sites derived from different lists.
+     WHAT WAS MEASURED, stated as evidence rather than as a standing claim about runtime: on the
+     stream [newround, turn p1, sail p1, ovens p3, bake p3] the two derivations return seat 1 and
+     seat 3 (checked 2026-08-31). Whether both paths ever ring in the same bake ON SCREEN was NOT
+     established — CEO review 40 was right that an earlier draft of this comment asserted it.
+
+     ⚠ OPEN FOR WYATT, and deliberately not guessed: in the moment after a bake resolves, the box
+     will highlight the baker while the ring sits on the last captain to take the wheel. That is
+     each of his two rulings applied literally, and nobody has looked at whether the pair reads
+     right on screen. See scripts/qa/ripple_one_answer_check.mjs. */
+  const active=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ONLY});
+  let boxActive=deriveActiveSeat(appState.game.events,appState.evIdx,{establishing:TURN_ESTABLISHING});
   if(active!=null&&st[active].done)active=null;
+  if(boxActive!=null&&st[boxActive].done)boxActive=null;
   if(activeRing){
     if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st,cell);
@@ -1796,12 +1820,13 @@ export function render(){
     }else activeRing.style.opacity=0;
   }
   appState.game.players.forEach((p,i)=>{
-    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
+    const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===boxActive);   // T-09: the box follows the baker
   });
   // Pass & Play only: float the captain whose turn it is to the top of the box, rest in sailing
-  // order. Driven from `active` above (the same derivation the ring and the highlight use) so the
-  // box moves in step with the narration playhead, not ahead of it. See applyCaptainOrder.
-  applyCaptainOrder(active);
+  // order. Driven from `boxActive` — the SAME value as the highlight one line up, so the order and
+  // the highlight can never point at different captains — and in step with the narration playhead
+  // rather than ahead of it. NOT the ring's `active`: see the two-rulings note above.
+  applyCaptainOrder(boxActive);   // moves WITH the highlight above, never against it
   if(appState.game.cfg.crates<1e9)for(const ing of appState.game.ings){
     const remaining=e.tokens[ing];
     for(let idx=0;idx<appState.game.cfg.crates;idx++){

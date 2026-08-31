@@ -1826,3 +1826,56 @@ checking `settle.settled`. It no longer claims settling it did not verify.
 in the same document, in the open, before this ran. Being careful did not catch the third — a
 reader with fresh eyes opening a file the author never opened did. That is the case for rule 25 in
 one line.
+
+## CEO Review 40 — 2026-08-31 — build 2026.08.30.1
+
+**ASKED:** "no ripple ring in the ovens" / "i approve you changing board.js and anything else you
+need to change to execute our 4-layer plan".
+
+**VERDICT: SOUND-WITH-CHANGES.** *"The ring fix is real, measured, red-proofed and green — but the
+session narrowed a value that feeds THREE surfaces and only checked one of them. Its own falsifier 3
+asked exactly this question and was answered with an instrument that could not see the answer."*
+
+Its sentence for Wyatt: *"The ripple ring now has one answer and it is yours — that part is properly
+measured and gated — but the same line also controls who is lit up in the captains box, which you
+complained about on 26 August, and nobody checked that before changing it."*
+
+**It verified rather than trusted:** extracted `git show 9d535f3e~1:src/ui/board.js` and ran the
+gate's own reader over the pre-fix file to confirm it really would have gone red; ran the pure module
+itself to confirm seat 1 vs seat 3; confirmed 57 gates exit 0; and checked that making
+`deriveActiveSeat` throw breaks no caller in `src/` or `scripts/`.
+
+**BLOCKING finding, and it was right.** One `active` at `board.js:1788` fed three surfaces: the ring,
+the captains-box highlight (`:1799`), and the pass-and-play row order (`:1803`). `ovens`/`bake` were
+added to that list **because of T-09** — Wyatt, 2026-08-26, with a host/guest screenshot pair:
+*"Dough hook (who just played) is still displayed as the active player ship in the top header, AND
+IN THE CAPTAIN'S BOX."* Narrowing to `TURN_ONLY` reverted that for the box, and nothing in the
+commit, the prediction or the comment mentioned the box at all.
+
+> **Its sharpest point, and the one worth keeping:** falsifier 3 was written to catch exactly this
+> and was closed on the evidence *"grep finds no consumer naming TURN_ESTABLISHING"*. **That grep
+> answers a different question** — who names the CONSTANT, not who consumes the VALUE. The consumers
+> were eleven and fifteen lines below the call. Rule 6's own failure mode: the instrument did not
+> reach its subject.
+
+**CLOSED:** the change is now scoped to the ring. The box and the row order keep
+`TURN_ESTABLISHING`, both reading one shared `boxActive` so they can never point at different
+captains. Gate extended to assert the box's ruling too, and red-proofed by putting CEO 40's exact
+regression back — it goes red.
+
+**Its NOTED items, all closed:** the header's *"Nothing else in either body moved"* was stale after
+a second change to `render()` — corrected, with a note that a header the unruled-exception gate
+blesses is the one comment in this file that must never lag its region. The comment asserting the
+ring *"sat on a different boat"* was a behavioural claim that rots (CLAUDE.md rule 6) — it now
+states what was measured and says plainly that the on-screen half was not established. The gate's
+proximity reader is replaced: it traces each `ringTo()`'s actual argument to its assignment and
+**fails closed** on a seat it cannot trace — red-proofed with a ring fed from `appState.curSeat`.
+
+**Its verdict on the standing charge is the one to keep:** *"Fixed on the axis it was raised on…
+Recurring in new clothing on a different axis: CEO 39's deeper charge was a claim that survived
+because nobody opened the thing it was about. Here the thing nobody opened was the eleven lines
+below the changed call."*
+
+**LEFT OPEN FOR WYATT, deliberately not guessed:** after a bake resolves, the box will highlight the
+baker while the ring sits on the last captain to take the wheel. That is both of his rulings applied
+literally, and nobody has looked at whether the pair reads right on screen.

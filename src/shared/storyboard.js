@@ -42,8 +42,11 @@ export const TURN_BOUNDARY = Object.freeze(["newround"]);
    NOT passing a list at all, and an omitted option is not "no answer" — it is the DEFAULT answer,
    TURN_ESTABLISHING. So one of the two ring sites already counted the bake. On the stream
    [newround, turn p1, sail p1, ovens p3, bake p3] the two sites returned seat 1 and seat 3.
-   The ring sat on a different boat depending on which path last drew it. Both now pass TURN_ONLY
-   explicitly, and scripts/qa/ripple_one_answer_check.mjs fails the build if they come apart —
+   The two ring derivations therefore disagreed (measured 2026-08-31; whether both paths ring in
+   the same bake ON SCREEN was not established, and this comment no longer says they do). Both ring
+   sites now pass TURN_ONLY explicitly; the CAPTAINS BOX keeps TURN_ESTABLISHING, because ovens/bake
+   were added to that list for T-09 and narrowing it would revert a fix Wyatt asked for on
+   2026-08-26. scripts/qa/ripple_one_answer_check.mjs fails the build if either comes apart —
    asserting AGREEMENT first and his ruling second, so a reversal moves both together. */
 export const TURN_ONLY = Object.freeze(["turn"]);
 
