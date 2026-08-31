@@ -1977,3 +1977,30 @@ itself) and verified the empty-reflog fallback, --amend, full-sha widths, and (p
 **Acted on, same session:** `revert:` and `merge ` added to the born-here set (regex-tested against
 seven born-here and five foreign reflog shapes, all correct); the fresh-clone-resume residual is
 now named in the comment beside the concurrent-session one, both toward silence.
+
+## CEO Review 44 — 2026-08-31 — build 2026.08.31.1 (item: the Razer watchdog stall test)
+
+**ASKED (RAZER-SETUP step 7):** "Kill the engine process on purpose. Wait. The watchdog must
+revive it... A watchdog that has never caught a deliberate stall is an instrument that has never
+been proven able to fail."
+
+**VERDICT: YES-WITH-FAULTS.** *"Yes -- the watchdog was proven able to catch a deliberate stall
+and revive the engine through Task Scheduler, and it earned the proof the honest way: the test
+failed twice first and both failures were real bugs, found and fixed. But the pass itself measured
+an 11-minute revival latency that is longer than the 10-minute tick, and nothing in the script
+stops a second engine from being stacked on a live one -- the very thing the pass evidence says
+already happened once."*
+
+Findings acted on same session (commit 633b970): (3) the restart line was logged BEFORE the launch
+with no try/catch, so a failed launch left a log claiming a restart that never happened -- the
+launch is now wrapped and a failure appends "launch FAILED: <message>"; (4) the watchdog now stamps
+the heartbeat itself after a successful launch ("relaunched by watchdog; engine orienting"), so the
+measured 11m14s orientation no longer reads as a stall at the next tick; (2-residual) a
+no-double-quotes warning now sits beside the prompt's pre-quoting.
+
+Parked, named, for a ruling (finding 5): an engine legitimately inside an 85-minute sea trial
+cannot pulse mid-command and will read as stalled at 45 minutes, drawing a stacked duplicate.
+Options the CEO named: the trial pulses between legs, or StaleMinutes exceeds the longest single
+command, or the watchdog learns to see a live engine (hard: on the Razer, claude.exe is also the
+desktop app). Recurrence: Review 42's "claim beyond its measurement" did not recur; finding 3 is a
+new instance of the older family -- an instrument reporting success it never confirmed.
