@@ -1960,3 +1960,20 @@ In the CEO's words, the faults:
 instead of claiming a no-arbitrary-code property it lacks; the refusal claim is scoped to where it
 was measured, with a one-command Razer verification before the stall test; the three stall entries
 are in the block. Independent re-count 6+82=88 confirmed; zero entries covered the pulse.
+
+## CEO Review 43 — 2026-08-31 — build 2026.08.31.1 (small item: checklist-hook misfire fix)
+
+**ASKED (by the hook, per its own text):** the Stop hook billed the Razer-setup session for four
+src/ files pulled in from the overnight session's commit on the shared branch; "a bug in this hook
+worth fixing, not a sheet worth writing."
+
+**VERDICT: YES-WITH-FAULTS.** *"The misfire was real, the fix genuinely fixes it and fails safe on
+an empty reflog, and writing no sheet was correct — but two commit shapes a session can
+legitimately produce (`git revert`, a local merge) would now be silently excluded as 'pulled in,'
+which is the dangerous direction the fix itself warns about."* It re-ran both red-proofs itself
+(quiet on pulled-in files with the stderr note; a dirtied src/ui/util.js still blocks, naming only
+itself) and verified the empty-reflog fallback, --amend, full-sha widths, and (pick) replays hold.
+
+**Acted on, same session:** `revert:` and `merge ` added to the born-here set (regex-tested against
+seven born-here and five foreign reflog shapes, all correct); the fresh-clone-resume residual is
+now named in the comment beside the concurrent-session one, both toward silence.

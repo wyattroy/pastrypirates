@@ -125,14 +125,18 @@ function main() {
      `pull …: Fast-forward` or a merge, never as a commit action. So: born-here = in that set.
      If the reflog is unreadable or empty, skip this test rather than trusting an empty set —
      an empty `born` would exclude everything and the hook would silently never fire again,
-     which is the exact rot this file exists to prevent. Known residual: on a shared checkout
-     (the Mac), a CONCURRENT session's commits are also "born here"; the ledger claim is the
-     guard for that case, not this hook. */
+     which is the exact rot this file exists to prevent. CEO review (2026-08-31) added revert:
+     and locally-run merges to the born-here set — a session reverting a bad release (the
+     CLAUDE.md §6 rollback path) is authoring game changes and must still be asked for a sheet.
+     Known residuals, both toward silence: on a shared checkout (the Mac) a CONCURRENT session's
+     commits also read as born here — the ledger claim is the guard for that case; and a session
+     RESUMED ON A FRESH CLONE loses authorship of the commits it pushed before the restart (they
+     come back as clone:/pull entries), so such a session should write its sheet unprompted. */
   const reflog = sh(`git reflog --format="%H %gs"`).split("\n").map((s) => s.trim()).filter(Boolean);
   const born = new Set(reflog
     .filter((l) => {
       const act = l.slice(41);                            // 40-char sha, one space, then %gs
-      return /^(commit\b|cherry-pick:)/.test(act) || /\((pick|reword|edit|squash|fixup)\)/.test(act);
+      return /^(commit\b|cherry-pick:|revert:|merge )/.test(act) || /\((pick|reword|edit|squash|fixup)\)/.test(act);
     })
     .map((l) => l.slice(0, 40)));
 
