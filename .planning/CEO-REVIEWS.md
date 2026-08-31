@@ -1739,3 +1739,38 @@ differently."*
   following the rules exactly was a complete bypass.
 - `rec.finished = recA || recB` → a host finishing while the guest sat stuck reported "finished".
 - Crew-on-a-phone — the square he actually playtests — had no leg at all.
+
+## CEO Review 38 — 2026-08-31 — build 2026.08.30.1
+
+**ASKED:** "fix the judge as soon as the trial lands / don't overwrite any reports -- increment
+them / do it (build steps 1 and 3 of the one-director plan)" — judged hardest on the item since
+review 37: closing CEO 37's blocking finding.
+
+**VERDICT: YES.** *"The thing CEO 37 blocked on is fixed, and I broke the new guardrail myself to
+check it can actually go red. Two gaps remain, both NOTED, neither blocking."*
+
+Its own summary line for Wyatt: *"the crash that would have killed `npm test` on your laptop at
+gate 32 is genuinely gone — I ran the gate from a foreign directory and watched it pass — and the
+new guardrail that stops the whole class really does catch both real faults and your Mac's own
+spelling, though it still has a blind spot for a path written in backticks, which is a trap this
+repo has now fallen into four times."*
+
+**Verified, not taken on trust.** It ran the gate from `/` (exit 0), ran case 4's patterns against
+five spellings itself, and confirmed placement: `tree_health_check` is gate 2 of 55 and the gate it
+protects is gate 32, so the class is caught 30 gates before it can take the chain down. It also
+confirmed commit `409f44b5` touches exactly the five files its message claims, that §12f is real at
+`docs/HARD-WON-LESSONS.md:1550`, and that the overclaim CEO 37 left standing has NOT recurred —
+*"a hedge, not a flat green"*.
+
+**Findings, and what happened to each:**
+
+| | finding | state |
+|---|---|---|
+| N1 | *"A backtick escapes case 4, and this repo has been bitten by backticks three times already… This is the fourth."* `tree_health_check.js:169-170` | **CLOSED same session.** Every quote class now carries all three. Red-proofed: a backticked Mac path goes red. |
+| N2 | *"a checkout under any other name escapes"* — `/home/user/pp-worktree`, `/home/user/pastrypirates-wt2/src` both sailed through, *"and a worktree path is exactly what a second session types"* | **CLOSED same session.** The check no longer spells the repo's name at all; it matches any home-rooted literal, and the safe case (a path guarded by `existsSync`) is DERIVED from the identifier the line assigns rather than listed. Rule 9. |
+| N3 | *"CEO 37's required change #2 is still open, and still unfenced… zero hits for AWAITING WYATT. The flag is live at `src/ui/board.js:15`. Nothing mechanical stops that file merging to `main` unruled — only somebody remembering."* | **OPEN — needs Wyatt.** Raised to him in this run's report. |
+| N4 | *"`judge_can_see_check.mjs` is run by nothing"* — not in the chain (fairly: it calls a paid model) but also not called by `sea_trial.mjs`, *"which is the one place 'can the judge see?' needs answering before a 104-minute run"* | **OPEN — next.** |
+
+**What N1/N2 cost to close:** the first draft was written, red-proofed in two directions, and still
+had two blind spots a fresh reader found in one pass. That is the case for rule 25 in miniature —
+the red-proof only tests the spellings its author thought of.

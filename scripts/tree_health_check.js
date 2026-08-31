@@ -56,6 +56,19 @@ const commentsOnly = src => {
   }
   return out;
 };
+/* The two readers case 4 and its red-proof SHARE. One copy: a red-proof that tests a second
+   implementation of the rule proves nothing about the rule that runs. */
+const namesAMachine = line => {
+  const m = line.match(/["'`](\/(?:home|Users|root)\/[^"'`]*)["'`]/);
+  return m ? m[1] : null;
+};
+/* GUARDED? Read the whole FILE, not the line: `const CA = "/root/…"` is only safe because
+   somewhere below it says `existsSync(CA)`. Derived from the identifier the line assigns. */
+const guardedIn = (src, line) => {
+  const id = (line.match(/^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/) || [])[1];
+  return !!id && new RegExp(`existsSync\\(\\s*${id}\\b`).test(src);
+};
+
 const everyScript = () => {
   const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(path.join(d, e.name)) : (/\.(mjs|cjs|js)$/.test(e.name) ? [path.join(d, e.name)] : []));
@@ -157,24 +170,34 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
       WHY THIS SHAPE AND NOT "ban /home and /Users". A machine path is not wrong by itself —
       vision.mjs names /root/.ccr/ca-bundle.crt and GUARDS it with existsSync, so it degrades
       instead of dying. What is always wrong is a machine path used to LOCATE THIS REPO'S OWN CODE.
-      Two unambiguous forms, both of which a `fileURLToPath(import.meta.url)` root replaces:
-        a) an import specifier rooted in somebody's home directory (/home, /Users, /root) —
-           NOT merely "absolute": the browser-side probes legitimately `import("/src/ui/index.js")`,
-           which is a URL the local server answers, and 17 honest lines said so on the first run,
-        b) any absolute string naming this repo's checkout by directory name.
+      So: ANY string literal rooted in somebody's home directory (/home, /Users, /root). NOT merely
+      "absolute" — the browser-side probes legitimately import("/src/ui/index.js"), a URL the local
+      server answers, and 17 honest lines said so on the first run of this case.
+
+      THE EXEMPTION IS DERIVED, NOT LISTED. A home path GUARDED by existsSync degrades instead of
+      dying, which is the correct spelling and must stay legal; so a line is spared when the file
+      itself guards the identifier it assigns. A typed allowlist would rot exactly like the thing
+      it guards (§6 of this file's own lesson).
+
+      WIDENED 2026-08-31 BY CEO REVIEW 38, which broke the first draft two ways and both were real:
+        · a BACKTICK escaped it — `const ROOT = \`/home/user/pastrypirates\`` sailed straight
+          through, and commit 4631b0d1 is titled "the backtick trap bit a third time, and the rule
+          was too narrow". That made four. Every quote class here now carries all three.
+        · matching the literal word "pastrypirates" missed every OTHER name the same checkout has:
+          /home/user/pp-worktree, /home/user/pastrypirates-wt2/src. A worktree path is precisely
+          what a second session types (CLAUDE.md §3, two sessions on one branch). Nothing is a
+          constant — the check no longer spells the repo's name at all.
       doc_command_check already fails a home-rooted command in a DOC; nothing checked the scripts
       themselves, which is exactly the direction the fault came back in. */
 {
   const bad = [];
-  const ROOTED_IMPORT = /^\s*(?:import\s[^"']*|export\s[^"']*)["'](\/(?:home|Users|root)\/[^"']+)["']|^\s*(?:const|let|var)\s+[^=]+=\s*(?:await\s+)?(?:import|require)\(\s*["'](\/(?:home|Users|root)\/[^"']+)["']/;
-  const NAMES_CHECKOUT = /["'](\/[^"']*\/pastrypirates)(?=[/"'])/;
   for (const f of everyScript()) {
     const rel = path.relative(REPO, f);
-    commentsOnly(fs.readFileSync(f, "utf8")).split("\n").forEach((line, i) => {
-      const im = line.match(ROOTED_IMPORT);
-      if (im) bad.push(`${rel}:${i + 1} imports from "${im[1] || im[2]}" — an absolute path that exists on one machine`);
-      const co = line.match(NAMES_CHECKOUT);
-      if (co) bad.push(`${rel}:${i + 1} names this checkout as "${co[1]}" — root off fileURLToPath(import.meta.url) instead`);
+    const src = commentsOnly(fs.readFileSync(f, "utf8"));
+    src.split("\n").forEach((line, i) => {
+      const hit = namesAMachine(line);
+      if (!hit || guardedIn(src, line)) return;
+      bad.push(`${rel}:${i + 1} names a machine — "${hit}" exists on one computer; root off fileURLToPath(import.meta.url), or guard it with existsSync`);
     });
   }
   if (bad.length) fail(`${bad.length} script line(s) name a machine instead of rooting off this module: ${bad.slice(0, 3).join(" | ")}`);
@@ -204,12 +227,22 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
   const HOME = "/" + "home/user/" + "pastrypirates";
   const plantedImport = `  import { serve } from "${HOME}/scripts/mp_rig.mjs";`;
   const plantedRoot   = `  const ROOT = process.argv[2] || '${HOME}';`;
-  const guardedCA     = '  const CA = "/root/.ccr/ca-bundle.crt";';
+  const guardedCA     = `  const CA = "${"/" + "root/.ccr"}/ca-bundle.crt";`;   // assembled, same reason as HOME
   const relImport     = '  import { serve } from "../mp_rig.mjs";';
-  const hitsImport = RI.test(plantedImport), hitsRoot = NC.test(plantedRoot);
-  const sparesCA = !RI.test(guardedCA) && !NC.test(guardedCA), sparesRel = !RI.test(relImport);
-  if (hitsImport && hitsRoot && sparesCA && sparesRel) pass("red-proof: catches a machine-rooted import AND a typed checkout root, spares a guarded CA path and a relative import");
-  else fail(`red-proof FAILED for case 4 (import:${hitsImport} root:${hitsRoot} sparesCA:${sparesCA} sparesRel:${sparesRel})`);
+  /* FIVE SPELLINGS, and CEO Review 38 supplied two of them by breaking the first draft: the
+     backtick (this repo's fourth time — commit 4631b0d1) and a worktree whose directory is not
+     called "pastrypirates". Both must go red; the guarded CA and a legitimate browser URL must
+     stay quiet, and the guarded one is exercised THROUGH guardedIn, not through the matcher. */
+  const plantedTick  = "  const ROOT = `" + HOME + "`;";
+  const plantedTree  = "  const ROOT = '/" + "home/user/pp-worktree/src';";
+  const browserURL   = '  const m = await import("/src/ui/index.js");';
+  const caGuardedSrc = guardedCA + "\n  if (fs.existsSync(CA)) env.NODE_EXTRA_CA_CERTS = CA;";
+  const red = { import: plantedImport, root: plantedRoot, backtick: plantedTick, worktree: plantedTree };
+  const missed = Object.entries(red).filter(([, line]) => !namesAMachine(line) || guardedIn(line, line)).map(([k]) => k);
+  const sparesCA  = !!namesAMachine(guardedCA) && guardedIn(caGuardedSrc, guardedCA);   // matched, then spared BY THE GUARD
+  const sparesRel = !namesAMachine(relImport) && !namesAMachine(browserURL);
+  if (!missed.length && sparesCA && sparesRel) pass(`red-proof: goes red on all ${Object.keys(red).length} spellings (quoted import, typed root, backtick, worktree name), stays quiet on a guarded CA path, a relative import and a browser URL`);
+  else fail(`red-proof FAILED for case 4 (missed:${missed.join(",") || "none"} sparesCA:${sparesCA} sparesRel:${sparesRel})`);
 }
 
 console.log(`\n${failures ? "FAIL" : "PASS"} — ${failures} failure(s)`);
