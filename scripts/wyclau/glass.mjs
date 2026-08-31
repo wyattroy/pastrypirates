@@ -249,7 +249,9 @@ const PAGE = `<title>The Glass</title>
     var send = document.getElementById("ideaSend");
     var status = document.getElementById("ideaStatus");
 
-    var saved = state.ideas.some(function(i){ return i.text === getDraft(); });
+    // Compare the TRIMMED draft — ideas are trimmed before saving, and comparing untrimmed
+    // refilled the box with an already-saved idea (CEO Review 47, correction 2).
+    var saved = state.ideas.some(function(i){ return i.text === getDraft().trim(); });
     if (saved) setDraft("");
     text.value = getDraft();
     text.addEventListener("input", function(){ setDraft(text.value); });

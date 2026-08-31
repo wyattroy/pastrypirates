@@ -1,5 +1,21 @@
 # CEO reviews — the standing record
 
+## CEO Review 47 — 2026-08-31, Glass v2 (the two-way interface) — VERBATIM
+
+VERDICT: YES — the thing Wyatt asked for exists, and I verified it against the tree and the live page, not the report. Two corrections below.
+
+**What I confirmed with my own hands:** The live artifact (74034bde…, "The Glass") IS the v2 page: a "Write to Claude" box, a state block, the status sections, and the code that rebuilds and saves the whole page when Wyatt sends an idea. I read all 165 lines of the live version — it matches what the generator produces. The new gate is real, not decorative. I ran `node scripts/qa/glass_roundtrip_check.mjs`: it runs the actual generator, extracts the actual embedded template, feeds it text designed to break it (quotes, `$&`, `</script>`, emoji), and then proves its own verifier CAN fail by feeding it the two known-broken variants — both were caught (glass_roundtrip_check.mjs:107-112). This is the opposite of Review 46's finding-2 pattern. `npm test` is wired at 66 and the count check passes. The page's own save code matches the gate's mirror line for line (glass.mjs:214-220 vs the check's 70-72) — I compared them; the safe function-form is in the shipped page (live lines 98-105). The gate honestly names that it tests a mirror, not the browser (its lines 67-68). Wyatt's words survive: hostile text round-trips byte-for-byte, the draft guard wraps every storage touch in try/catch (live lines 127-128), and a failed save keeps his words and says so (live line 159).
+
+**Correction 1 — one claim outruns the tree.** The ledger says the harvest rule "lives in three places: the Door, glass.mjs, and the gate" (CTO-LEDGER.md:599). The gate contains the word "harvest" zero times — I grepped. It is prose in TWO places plus console output, and nothing mechanical stops a republish that deletes unharvested ideas. This project's own record says prose rules rot. The hazard is at least named loudly (glass.mjs:21-27), but the "unenforced" gap itself is not flagged anywhere.
+
+**Correction 2 — small real bug.** An idea saved with trailing whitespace is trimmed before saving (live line 150) but the draft-clear compares the UNtrimmed draft (line 136), so the box refills with the already-saved idea after reload — inviting a duplicate send. One-line fix.
+
+**"One graphical tool":** two pages exist today (Glass + Helm), but this is named drift, not quiet drift — Wyatt's own "ONE PLACE" ruling is recorded as a requirement (CTO-LEDGER.md:600), the fold-in is an open Chart item (CHART.md:41), and the Glass links the Helm meanwhile.
+
+**Honest limit, honestly stated:** no human has tapped Send in a logged-in browser yet; the ledger and Chart both say Wyatt's first tap is that test (CTO-LEDGER.md:599, CHART.md:39). Nothing claims otherwise.
+
+*(Recorded by the working session: correction 2 was fixed before this verdict reached Wyatt — the draft-clear now compares the trimmed draft. Correction 1 is accepted and recorded as a ledger correction: the harvest rule is prose in two places plus console output, not three, and no mechanism enforces it yet — mechanical enforcement is a Chart item. Numbering note: reviews 44-46 were recorded out of the file's newest-first order during the Razer day; this review takes 47 from the ledger's sequence.)*
+
 ## CEO Review 38 — 2026-08-31, the wyclau reboot (founding note → reports → interview → charter) — VERBATIM
 
 **VERDICT: YES-WITH-GAPS.** The six things you asked for happened, and I checked each against the files rather than the summary. Two real gaps: the interview under-served "my design values," and your stated HUGE goal — learning to lead a blended human+agent team — got one clause in the whole charter.

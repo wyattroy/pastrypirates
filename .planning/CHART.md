@@ -38,6 +38,7 @@ step 2). Wyatt's five-item bar is step 3.
 - [ ] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling)
 - [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
 - [ ] wyclau source moves to claude-kit as the kit's first module; pastrypirates vendors it *(his pick 2026-08-31)*
+- [ ] Mechanically enforce the Glass harvest rule (today it is prose; a republish can still delete unharvested page ideas) — CEO Review 47 correction 1
 - [ ] **Fold the Helm into the Glass** — one interface, not two kept in step (the engine's own flag, 2026-08-31; the Glass links the Helm meanwhile)
 
 ## BLOCKED ON WYATT
