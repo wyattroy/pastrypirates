@@ -487,8 +487,16 @@ const PAGE = `<meta charset="utf-8">
     function buildDoc(st){
       var d = TPL;
       d = d.replace("__GLASS_TPL__", function(){ return jsEsc(TPL); });
-      // The state block is a JSON <script>, so it takes raw JSON text with "<" made safe —
+      // The state block is a JSON script element, so it takes raw JSON text with "<" made safe —
       // < is a legal escape inside JSON strings, and "<" can only occur inside strings.
+      // ⚠ NEVER write an open angle bracket immediately followed by the word script and a close
+      // angle bracket, anywhere in PAGE's text, comments included. Measured 2026-08-31: a comment
+      // naming that tag the bracketed way, sitting unescaped inside the real script element's own
+      // text, corrupted the page after a self-publish round-trip -- something downstream of this
+      // file mistook it for a second tag and rendered raw JS source as visible page text. Say
+      // "script element" or "script tag" in prose; never spell the bracketed form out, even to
+      // explain this rule -- the first attempt at this warning re-typed the exact substring it
+      // was banning and reproduced the bug in its own fix.
       d = d.replace("__GLASS_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\u003c"); });
       return d;
     }
@@ -567,7 +575,13 @@ const PAGE = `<meta charset="utf-8">
         q: el.querySelector(".q").textContent,
         at: new Date().toISOString(),
       };
-      cap.publish(buildDoc(next)).catch(function(e){
+      cap.publish(buildDoc(next)).then(function(){
+        // Same fix as the Ideas box, same reason (Wyatt, 2026-08-31): never rely on -- or wait
+        // for -- the platform's own view reload. Update this view's own state right here and
+        // repaint, so a second ruling on a different question does not race a stale copy.
+        state = next;
+        paintAsk(el);
+      }).catch(function(e){
         st.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your note is still on screen — try again, or tell a session.";
       });
     }
@@ -601,7 +615,19 @@ const PAGE = `<meta charset="utf-8">
       var st = JSON.parse(JSON.stringify(state));
       st.ideas.push({ id: "i" + Date.now(), text: v, at: new Date().toISOString() });
       cap.publish(buildDoc(st)).then(function(){
-        // Success reloads every open view to the new version; the draft clears itself on load.
+        // Wyatt, 2026-08-31: "i need to be able to send another idea immediately afterwards,
+        // without waiting. i need to know that my first idea was sent, and added to the chart."
+        // Never rely on -- or wait for -- the platform's own view reload for this: update THIS
+        // view's own copy of state right here, confirm plainly, clear the box, re-enable the
+        // button. "added to the chart" is one step further than this page can promise on its
+        // own (a session still has to harvest it) -- said honestly, matching renderIdeas()'s own
+        // wording below, not oversold as done.
+        state = st;
+        setDraft("");
+        text.value = "";
+        renderIdeas();
+        status.textContent = "Saved to the page — a session will harvest it to the Chart soon.";
+        send.disabled = false;
       }).catch(function(e){
         send.disabled = false;
         status.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your words are kept as a draft here — try again, or just tell a session.";
