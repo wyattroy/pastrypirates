@@ -295,7 +295,30 @@ askDecision(seat, question) → answer
   <p>Which inverts the ordering: <strong>the layering gate is the highest-value item, because it is what makes the parity gate unnecessary.</strong> Keep the two-client byte comparison — but run it in the sea trial, not on every commit.</p>
 </div>
 
-<h2><span class="num">07</span><span>Migration — six steps that each ship</span></h2>
+<h2><span class="num">07</span><div class="warn">
+  <p class="lbl">Corrected 2026-08-31 — measured against the tree, at Wyatt's instruction</p>
+  <p><b>Three of these six steps describe work that is already done</b>, and a session has re-planned
+  finished work on this project once before. Every row below was checked against the code, not
+  against this document.</p>
+  <p><b>Step 1 — DONE.</b> <code>present()</code> in <code>src/shared/storyboard.js</code>,
+  <code>playStoryboard()</code> in <code>src/ui/flow.js</code>, <code>sail</code> converted.</p>
+  <p><b>Step 2 — ALREADY SHIPPED, before this plan was written.</b> The route rides on the event as
+  <code>draw.route</code> and <code>consumeEvent</code> walks it on every client. There is no
+  "first visible win" left to claim, and billing one would have been a claim larger than the code.</p>
+  <p><b>Step 3 — DONE</b> by commit <code>5e9ee2b1</code>, before the run that came to check it.
+  <code>setActor</code> has exactly one caller.</p>
+  <p><b>Step 4 — DONE</b>, built after ONE converted kind rather than two, on this plan's own stated
+  reason: a gate should guard the migration rather than certify it afterwards.</p>
+  <p><b>Step 5 — the NARROW HALF is done</b> (Wyatt's ruling, 2026-08-31). The secrecy rules that
+  decided what is <i>drawn</i> now live in <code>src/shared/visibility.js</code>, pure and naming no
+  mode. The full rename — deleting the idea of "mode" everywhere — is deliberately NOT done: two
+  predicates already choose who answers, they disagree on exactly one row (a crew host holding a
+  turn for a remote human), and merging them breaks precisely that case.</p>
+  <p><b>Step 6 — LARGELY ALREADY ENFORCED.</b> All three layering rules §06 asks for already fail
+  the build; proven by planting each violation and watching it go red. What §06 got wrong is its
+  status column, not its argument.</p>
+</div>
+<span>Migration — six steps that each ship</span></h2>
 
 <p>A big-bang rewrite is how this dies. Strangler fig instead: the new path grows alongside the old one, and the old one is deleted last.</p>
 
