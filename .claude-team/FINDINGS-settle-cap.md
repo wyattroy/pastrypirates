@@ -53,3 +53,55 @@ attached rather than being quietly fixed at 5am.
 Pose one radial prompt and trace what is still moving between 2.4s and 3.2s — one component, one
 recording, per rule 26. If it is the bloom's own arrival easing, that is a deliberate 3-second
 animation and the cap is simply wrong. If something is still drifting at 3.1s, that is the defect.
+
+
+---
+
+## CORRECTED 2026-08-31 BY WYATT, WHO PLAYED IT
+
+**His words:** *"I've played the game. the radial prompt is instantaneous. I have no idea why your
+tooling is measuring it wrong. it may be measuring the wrong thing... the radial prompt for trade
+appears IMMEDIATELY and stays onscreen."* (Screen recording: `notes/radial-prompt-proof.mp4` on his
+local main — not present in the container, so I have not watched it.)
+
+**He is right, and the fault is in what I claimed, not in his eyes.**
+
+### What the probe actually measures
+
+`SETTLE_PROBE` watches **fourteen selectors at once** — `.apBtn, .btlBtn, .sailCell, .recipeCard,
+.bkoCard, .apSlider, #flipCoinWrap.active, .apMsg, .apSub, .pp4Bub, .pp4PeekHint, #pp4Prompt,
+#pp4Cap, #pp4Pill` — and returns **one** number for the whole screen. The word `radial` in a
+signature is just the **prompt box's class name**, the first field of a screen label.
+
+**So "the radial prompt takes 3.2 seconds to settle" was never measured. What was measured is
+"something among fourteen selectors on a screen whose prompt happens to be radial was still
+moving."** I took a screen-level number and reported it as a component. That is rule 6's exact
+shape, and no amount of sample size fixes a quantity that names the wrong subject.
+
+### What the data does support, now that it is asked properly
+
+| question | answer |
+|---|---|
+| is it the sail squares? | **No.** 83 of 175 radial screens with NO sail cells still never settle |
+| is it the button reveal? | **No clean relationship.** 0 buttons → 2120ms; 1 → 996ms; 2 → 2613ms |
+| geometry or text? | **All 94 are `geometry`.** Zero are text — the field was already recorded |
+| was the typewriter still painting? | Separately, yes — 99 deadline extensions were granted for it |
+
+### The hypothesis this points at, NOT yet confirmed
+
+Something small is moving **continuously**, and the probe's defence against that is failing.
+`SETTLE_PROBE` quantises rects to 8px precisely because *"half this board never stops moving —
+`.sailCell` carries a permanent bounce, ships glide, the ripple pulses"*. **A pulse whose rect
+oscillates ACROSS an 8px boundary defeats that rounding entirely** — it produces two alternating
+strings forever, so three consecutive identical samples never happen. Commit `a9ee68f5`'s title is
+suggestive in exactly this direction: *"the narration bubble picks its side ONCE, and two placements
+stop measuring a pulsing button."*
+
+**If that is it, the fix is in the instrument and not in the game — which is what Wyatt said.**
+Compare rects with a TOLERANCE rather than a rounded string, so an element oscillating by a few
+pixels reads as stable instead of as two distinct screens.
+
+**Not confirmed.** It needs one posed radial prompt with per-element sampling between 2s and 3.5s,
+naming what actually moves. Until then this is a lead, not a cause — and the previous version of
+this file, which put "the prompt takes 3 seconds" to Wyatt as one of two readings, was wrong in a
+way his own eyes caught in seconds.
