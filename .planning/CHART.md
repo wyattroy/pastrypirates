@@ -19,7 +19,7 @@ step 2). Wyatt's five-item bar is step 3.
 | # | Step | State |
 |---|---|---|
 | 1 | **The reboot** (Door, Glass, watchdog, rulebook, memory, pruning) | **IN PROGRESS** — see checklist below |
-| 2 | **The foundation** (one-director rebuild, 6 steps) | **further along than the plan says — see below.** Steps 1, 2, 3 and 4 done; step 5 open; step 6 largely already enforced. **Launch date proposed here.** |
+| 2 | **The foundation** (one-director rebuild, 6 steps) | **DONE, in every step that can be.** Steps 1-5 shipped (step 5 as the narrow half, his ruling, 2026-08-31); step 6 largely already enforced by existing gates. **Launch date proposed here.** |
 | 3 | **The launch list**: finished feel solo+crew · tutorial · analytics · code-privacy decision · SEO | not started; sized at step 2 |
 | 4 | **Launch, then the till** (accounts + paid merch, +1 month) | not started |
 
@@ -80,7 +80,7 @@ convergences. Every row below was checked against the tree, not against the docu
 | 2 · put the route on the event, guest walks real water — *"first visible win"* | to build | **ALREADY SHIPPED.** The route rides on the event as `draw.route` and `consumeEvent` walks it on every client. There is no visible win left to claim. |
 | 3 · one fact for whose turn it is | struck by measurement | **DONE**, by commit `5e9ee2b1`, before the run that checked it. `setActor` has one caller. |
 | 4 · storyboard parity gate | to build, after two kinds | **DONE**, built after one kind on purpose — the plan's own reason is to guard the migration rather than certify it. Golden file, one process, no browser. |
-| 5 · the Decider interface | to build | **OPEN, and honestly so.** Its machinery mostly exists as two orthogonal predicates; 13 mode reads remain and 3 decide what is *drawn*. See the question above. |
+| 5 · the Decider interface | to build | **DONE, the narrow half — shipped 12:54Z, ruled 17:09Z.** Two orthogonal predicates stay two, per his ruling. The three mode reads that decided what is *drawn* moved to one pure rule module, `src/shared/visibility.js`; the drawing code only supplies facts. |
 | 6 · delete old paths, layering gate strict | to build | **LARGELY ALREADY ENFORCED.** All three layering rules the plan asks for already fail the build; proven by planting each violation. |
 
 ## THE IDEA INBOX
