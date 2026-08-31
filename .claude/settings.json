@@ -47,6 +47,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-base.cjs\"",
             "timeout": 15,
             "statusMessage": "Marking where this session started"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/wyclau-pulse.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Stamping that a session is alive in this tree"
           }
         ]
       }
@@ -55,6 +61,12 @@
       {
         "matcher": "Bash|Edit|Write|NotebookEdit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/wyclau-pulse.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Stamping that a session is alive in this tree"
+          },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cto-staging-only.cjs\" 2>/dev/null || true",

@@ -28,17 +28,39 @@ param(
 $heartbeat  = Join-Path $Repo ".planning\wyclau\HEARTBEAT"
 $restarts   = Join-Path $Repo ".planning\wyclau\restarts.log"
 $lastLaunch = Join-Path $Repo ".planning\wyclau\LAST-LAUNCH"
+$lastActivity = Join-Path $Repo ".planning\wyclau\LAST-ACTIVITY"
 $now = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
-if (-not (Test-Path $heartbeat)) {
-  # No heartbeat at all: the engine has never run here, or the file was cleared.
-  # That is a stall by definition -- but say so distinctly so the Glass can show which case it was.
-  $reason = "no heartbeat file found -- launching the engine fresh"
+# LIVENESS IS EVIDENCE, NOT NARRATION -- READ BOTH CLOCKS AND TRUST THE NEWER.
+#
+# HEARTBEAT is a DELIBERATE pulse: a session narrates what it is doing through glass.mjs, so it is
+# a statement of intent. A session that is busy and simply not narrating is indistinguishable from
+# one that has died. That is not hypothetical -- on 2026-08-31 the engine launched at 15:09:01Z
+# worked until ~15:24Z, went quiet WITHOUT EXITING, and at 16:16:02Z this script read 52 minutes of
+# silence and launched a second engine into the tree. Nothing was broken; the signal was wrong.
+# CEO Review 44 parked exactly this one window before it fired.
+#
+# LAST-ACTIVITY is stamped by a PreToolUse hook on EVERY tool call ANY session makes -- including
+# interactive ones, which the Door's pulse rule never reached and which therefore looked dead to
+# this script while a person was typing at them. It is evidence rather than narration.
+#
+# ABSENT IS NOT ALIVE. A tree where the hook has never run has no LAST-ACTIVITY, and then this
+# behaves exactly as it always did -- otherwise a missing file would wedge the watchdog shut,
+# which is the failure the whole mechanism exists to prevent.
+$stamps = @()
+if (Test-Path $heartbeat)    { $stamps += (Get-Item $heartbeat).LastWriteTime }
+if (Test-Path $lastActivity) { $stamps += (Get-Item $lastActivity).LastWriteTime }
+
+if ($stamps.Count -eq 0) {
+  # Neither file exists: the engine has never run here, or they were cleared.
+  # A stall by definition -- said distinctly so the Glass can show which case it was.
+  $reason = "no heartbeat or activity file found -- launching the engine fresh"
 } else {
-  $age = (Get-Date) - (Get-Item $heartbeat).LastWriteTime
+  $newest = ($stamps | Sort-Object -Descending)[0]
+  $age = (Get-Date) - $newest
   if ($age.TotalMinutes -le $StaleMinutes) { exit 0 }   # alive; do nothing, quietly
   $mins = [math]::Round($age.TotalMinutes)
-  $reason = "heartbeat stale ($mins min > $StaleMinutes) -- restarting the engine"
+  $reason = "no sign of life ($mins min > $StaleMinutes) -- restarting the engine"
 }
 
 # ONE ENGINE AT A TIME. This guard is what makes the file safe to leave running unattended.
