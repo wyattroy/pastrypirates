@@ -1,0 +1,346 @@
+<title>Morning Watch, 31 August</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#F1F5F4; --paper:#FFFFFF; --ink:#1B2A33; --muted:#61747C;
+    --rule:#D3DEDC; --accent:#0F6E6E; --accent-soft:#E2EEEC;
+    --alert:#B4471F; --alert-soft:#F6E7E0; --done:#8A9AA0;
+    --shadow:0 1px 2px rgba(27,42,51,.06);
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#12181A; --paper:#1A2225; --ink:#E4EDEB; --muted:#93A5A9;
+      --rule:#2B383B; --accent:#5FC2BC; --accent-soft:#1D2E30;
+      --alert:#E08A63; --alert-soft:#2E211C; --done:#6B7B80;
+      --shadow:0 1px 2px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12181A; --paper:#1A2225; --ink:#E4EDEB; --muted:#93A5A9;
+    --rule:#2B383B; --accent:#5FC2BC; --accent-soft:#1D2E30;
+    --alert:#E08A63; --alert-soft:#2E211C; --done:#6B7B80;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.55;margin:0;padding:0 20px 80px;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:660px;margin:0 auto}
+
+  header{padding:44px 0 20px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font-family:var(--serif);font-size:clamp(30px,7vw,42px);font-weight:600;
+    line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
+  .standfirst{margin:14px 0 0;color:var(--muted);font-size:15.5px;max-width:60ch}
+  .standfirst strong{color:var(--ink);font-weight:600}
+
+  .tally{display:flex;flex-wrap:wrap;gap:0;margin:22px 0 0;
+    border:1px solid var(--rule);border-radius:3px;background:var(--paper);
+    box-shadow:var(--shadow);overflow:hidden}
+  .tally div{flex:1 1 auto;min-width:96px;padding:11px 14px;
+    border-right:1px solid var(--rule)}
+  .tally div:last-child{border-right:0}
+  .tally .n{font-family:var(--mono);font-size:19px;font-weight:500;
+    font-variant-numeric:tabular-nums;display:block;line-height:1.2}
+  .tally .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);display:block;margin-top:3px}
+
+  h2{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);font-weight:500;
+    margin:52px 0 0;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+  h2 + .lede{margin:12px 0 0;color:var(--muted);font-size:14.5px;max-width:58ch}
+
+  .item{padding:26px 0;border-bottom:1px solid var(--rule);
+    display:grid;grid-template-columns:46px 1fr;gap:0 14px;align-items:start}
+  .mark{font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    color:var(--muted);padding-top:6px;font-variant-numeric:tabular-nums}
+  .item.blocks .mark{color:var(--alert)}
+  .q{font-family:var(--serif);font-size:20.5px;font-weight:600;line-height:1.25;
+    margin:0;text-wrap:balance}
+  .body{margin:10px 0 0}
+  .body p{margin:0 0 9px}
+  .body p:last-child{margin-bottom:0}
+  .body em{font-style:normal;background:var(--accent-soft);
+    padding:.08em .28em;border-radius:2px}
+  code{font-family:var(--mono);font-size:.87em;background:var(--accent-soft);
+    padding:.1em .32em;border-radius:2px;word-break:break-word}
+
+  .meta{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+  .chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;
+    text-transform:uppercase;padding:3px 8px;border-radius:2px;
+    border:1px solid var(--rule);color:var(--muted);background:var(--paper)}
+  .chip.size{border-color:var(--accent);color:var(--accent)}
+  .chip.stop{border-color:var(--alert);color:var(--alert);background:var(--alert-soft)}
+
+  .rec{margin:14px 0 0;padding:11px 14px;background:var(--paper);
+    border:1px solid var(--rule);border-radius:3px;font-size:15px}
+  .rec b{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px;
+    font-weight:500}
+
+  .answers{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0}
+  .answers label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    font-size:14.5px;padding:7px 12px;background:var(--paper);
+    border:1px solid var(--rule);border-radius:3px;transition:border-color .12s}
+  .answers label:hover{border-color:var(--accent)}
+  .answers input{accent-color:var(--accent);width:15px;height:15px;margin:0;flex:none}
+  .answers input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .answers label:has(input:checked){border-color:var(--accent);
+    background:var(--accent-soft)}
+
+  textarea{width:100%;margin:10px 0 0;padding:10px 12px;font-family:var(--sans);
+    font-size:15px;line-height:1.5;color:var(--ink);background:var(--paper);
+    border:1px solid var(--rule);border-radius:3px;resize:vertical;min-height:52px}
+  textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px;
+    border-color:var(--accent)}
+  textarea::placeholder{color:var(--done)}
+
+  .shipped{margin:14px 0 0;padding:0;list-style:none}
+  .shipped li{padding:7px 0;border-bottom:1px dotted var(--rule);font-size:15px;
+    display:grid;grid-template-columns:46px 1fr;gap:0 14px}
+  .shipped li:last-child{border-bottom:0}
+  .shipped .t{font-family:var(--mono);font-size:11px;color:var(--muted);
+    padding-top:3px}
+
+  footer{margin:54px 0 0;padding-top:18px;border-top:1px solid var(--rule);
+    color:var(--muted);font-size:13.5px}
+  footer p{margin:0 0 7px}
+  .saved{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--done)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:560px){
+    .item,.shipped li{grid-template-columns:1fr;gap:0}
+    .mark{padding-top:0;margin-bottom:6px}
+    .shipped .t{padding-top:0}
+  }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Night watch → morning · 31 August</p>
+  <h1>Eight questions, and one thing worth looking at</h1>
+  <p class="standfirst">You asked for steps 1, 3, 4 and 5 of the engine rebuild. <strong>All four are closed</strong> — but three of them were closed by finding they were already built, not by building them. That is the substance of what I need from you below.</p>
+  <div class="tally">
+    <div><span class="n">4/4</span><span class="k">steps closed</span></div>
+    <div><span class="n">60</span><span class="k">gates green</span></div>
+    <div><span class="n">3</span><span class="k">need a ruling</span></div>
+    <div><span class="n">0</span><span class="k">player-visible</span></div>
+  </div>
+</header>
+
+<h2>Decide — I am not moving on these without you</h2>
+<p class="lede">Each one changes something you would notice, or overrides a call I made on my own.</p>
+
+<div class="item blocks">
+  <div class="mark">01</div>
+  <div>
+    <p class="q">I did not build the Decider interface you asked for. I think it already exists.</p>
+    <div class="body">
+      <p>Step 5 was "introduce the Decider" — one way of asking who answers for a seat, so the game stops branching on which mode you are in. I went to build it and found it already there, in two pieces.</p>
+      <p>The game already asks two separate questions: <em>is this seat a person or a bot?</em> and <em>is that person sitting at this device?</em> I ran every combination — solo, pass-and-play, host, guest, bots — and the two questions give the same answer in six cases out of seven. They differ in exactly one: <strong>you are hosting a crew game and it is a remote friend's turn.</strong> A person is answering, but not on your screen.</p>
+      <p>That one row is the entire reason both questions exist. Merging them into one interface would break precisely the case the interface was invented to handle.</p>
+      <p>So I locked the seven-row table into the build instead. If anyone ever merges them, or adds a third way of asking, the build fails.</p>
+    </div>
+    <div class="meta">
+      <span class="chip stop">blocks step 6</span>
+      <span class="chip size">no player sees anything either way</span>
+      <span class="chip">gate 60</span>
+    </div>
+    <div class="rec"><b>My recommendation</b>Leave it. The rename costs a day, risks the one case that actually works, and buys a player nothing. If you want the interface anyway — as a foundation for a spectator mode or a replay — say so and I will build it properly rather than at 5am.</div>
+    <div class="answers">
+      <label><input type="radio" name="q1"> Leave it, you were right</label>
+      <label><input type="radio" name="q1"> Build it anyway</label>
+      <label><input type="radio" name="q1"> Show me the table first</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<div class="item blocks">
+  <div class="mark">02</div>
+  <div>
+    <p class="q">Should the hand-over screen move to before the turn starts?</p>
+    <div class="body">
+      <p>In pass-and-play, the "hand the device to the next captain" card currently appears <em>after</em> that captain's turn has technically begun. The plan says it belongs one step earlier — it is a condition on getting an answer, not part of the turn.</p>
+      <p>Architecturally the plan is right. But moving it changes <strong>when the card appears relative to the board updating</strong>, and that is timing you would see and feel. I was not willing to change the feel of a hand-off while you were asleep.</p>
+    </div>
+    <div class="meta">
+      <span class="chip stop">pass-and-play only</span>
+      <span class="chip size">you would feel the difference</span>
+    </div>
+    <div class="rec"><b>My recommendation</b>Let me build it behind a switch, and you play both in two tabs and pick. This is a feel question and feel questions are yours.</div>
+    <div class="answers">
+      <label><input type="radio" name="q2"> Build both, I'll pick</label>
+      <label><input type="radio" name="q2"> Move it, I trust the plan</label>
+      <label><input type="radio" name="q2"> Leave it alone</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<div class="item blocks">
+  <div class="mark">03</div>
+  <div>
+    <p class="q">There is a live sound bug I can fix by deleting one line. Shall I?</p>
+    <div class="body">
+      <p>Your own audio notes record it: anchoring during a storm dumps <strong>eight seconds of weather at full volume, once per ship</strong>. It happens because a second sound file can never play, and the fix for both is the same single deleted line.</p>
+      <p>This is the only thing on this page a player is actually suffering right now. It is not in the four steps you gave me, so I left it.</p>
+    </div>
+    <div class="meta">
+      <span class="chip stop">happening to players now</span>
+      <span class="chip size">one deleted line, fixes two defects</span>
+    </div>
+    <div class="rec"><b>My recommendation</b>Yes. It is the highest ratio of player-noticeable improvement to risk anywhere in the project this week.</div>
+    <div class="answers">
+      <label><input type="radio" name="q3"> Yes, do it</label>
+      <label><input type="radio" name="q3"> Not yet</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<h2>Look at once — no decision needed, but I could be wrong</h2>
+<p class="lede">Things I changed or noticed that I have not seen with my own eyes on a real screen.</p>
+
+<div class="item">
+  <div class="mark">04</div>
+  <div>
+    <p class="q">The ring now follows the baker. Nobody has watched it happen.</p>
+    <div class="body">
+      <p>Your ruling is applied: the glowing ring, the captains box and the pass-and-play row order all read one rule, and during a bake they all point at the captain at the ovens. The old narrower rule is deleted outright, so nothing can drift back.</p>
+      <p>What I have not done is <strong>watch a bake and see it</strong>. My attempt to set one up never actually started a game — and said so, rather than measuring the wrong screen and calling it done.</p>
+    </div>
+    <div class="meta"><span class="chip size">one glance during any bake</span></div>
+    <div class="answers">
+      <label><input type="checkbox"> Looked — correct</label>
+      <label><input type="checkbox"> Looked — something's off (note below)</label>
+    </div>
+    <textarea placeholder="What you saw"></textarea>
+  </div>
+</div>
+
+<div class="item">
+  <div class="mark">05</div>
+  <div>
+    <p class="q">Three things on the End of Voyage screen that look wrong to me</p>
+    <div class="body">
+      <p>Seen once each, in one screenshot, so I am calling them observations and not bugs.</p>
+      <p>A large blank gap sits between the last statistics row and the <em>Play again!</em> button. The line reading <em>Bakeries — 1 baker home</em> pairs a label and a value that do not match in register. And the right-hand menu column sits directly on the sea with no panel behind it, while the captains card just above it has one.</p>
+    </div>
+    <div class="meta"><span class="chip size">cosmetic, end screen only</span></div>
+    <div class="answers">
+      <label><input type="checkbox"> Fix the gap</label>
+      <label><input type="checkbox"> Fix the wording</label>
+      <label><input type="checkbox"> Fix the menu panel</label>
+      <label><input type="checkbox"> All intended, leave them</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<div class="item">
+  <div class="mark">06</div>
+  <div>
+    <p class="q">One check I could not automate, and a human should glance at</p>
+    <div class="body">
+      <p>I wanted the build to guarantee there is only ever one way to ask "is this seat a person". It can guarantee the <em>value</em> is always the same — and it does. It cannot reliably tell whether a second, different property has crept in, because in the code a player and a prompt are both called <code>p</code> and a text search cannot tell them apart.</p>
+      <p>I wrote three versions of that check that were each wrong in a different way before admitting the tool could not know. It is now honest about its limit rather than confidently wrong.</p>
+    </div>
+    <div class="meta"><span class="chip size">nothing broken today</span></div>
+    <div class="answers">
+      <label><input type="checkbox"> Noted</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<h2>Know — the plan itself was out of date, in your favour</h2>
+<p class="lede">I am flagging these because the plan document is what future sessions read, and three of its steps describe work that has already happened.</p>
+
+<div class="item">
+  <div class="mark">07</div>
+  <div>
+    <p class="q">Step 2 has already shipped. Step 3 was closed before I started.</p>
+    <div class="body">
+      <p>The plan promises step 2 as "the guest's boat starts sailing the actual water — first visible win". That already works: the route rides on the event and every screen walks it. And step 3's remaining piece was finished by a commit from earlier the same night.</p>
+      <p>So the foundation is <strong>further along than the plan says</strong>. I would rather correct the document than let the next session re-plan finished work — which has already happened once on this project.</p>
+    </div>
+    <div class="meta"><span class="chip size">two steps fewer to spend</span></div>
+    <div class="rec"><b>My recommendation</b>Let me rewrite the plan's step list to match what is actually built, and mark what genuinely remains.</div>
+    <div class="answers">
+      <label><input type="radio" name="q7"> Correct the plan</label>
+      <label><input type="radio" name="q7"> Leave it, I'll reread it myself</label>
+    </div>
+    <textarea placeholder="Notes"></textarea>
+  </div>
+</div>
+
+<div class="item">
+  <div class="mark">08</div>
+  <div>
+    <p class="q">Two things on the Chart still waiting on you</p>
+    <div class="body">
+      <p>Neither is mine to unblock. <strong>The Razer hour</strong> — thirty to sixty minutes at that machine to register the watchdog, without which "never stalls" cannot be claimed. And <strong>naming the quiet moment</strong> for the rulebook cutover, when the parallel fix session can pause for about an hour.</p>
+    </div>
+    <div class="meta"><span class="chip stop">blocking the reboot</span></div>
+    <div class="answers">
+      <label><input type="checkbox"> Razer hour booked</label>
+      <label><input type="checkbox"> Cutover: go ahead now</label>
+    </div>
+    <textarea placeholder="When"></textarea>
+  </div>
+</div>
+
+<h2>What shipped while you slept</h2>
+<ul class="shipped">
+  <li><span class="t">step 1</span><span>The storyboard exists. An event now produces a readable list of beats, and sailing is the first thing routed through it. No player sees a difference — sailing already agreed on every screen. What it buys is that the sequence can now be compared by a machine.</span></li>
+  <li><span class="t">step 4</span><span>That comparison, as a build gate. It caught three deliberate sabotages. The obvious source of test data would have made it useless — 1,820 recorded voyages that all predate the feature — which I found before building on it, not after.</span></li>
+  <li><span class="t">step 3</span><span>Verified already closed, by a commit from earlier the same night. Not rebuilt.</span></li>
+  <li><span class="t">step 5</span><span>The seven-row table locked into the build. See question 01.</span></li>
+  <li><span class="t">ruling</span><span>Rings, captains box and row order unified on one rule; the narrower rule deleted so the split cannot return.</span></li>
+  <li><span class="t">earlier</span><span>A crash that would have killed the test suite on your Mac at gate 32 of 60. A hole that let any file reach into any layer unnoticed. The End of Voyage screen being photographed and recorded as clean without ever being checked. And the sea trial now asks whether its own eyes work before spending an hour and a half sailing blind.</span></li>
+</ul>
+
+<footer>
+  <p>Ticks and notes save in this browser only — nothing is sent anywhere, and I cannot read them. Tell me the answers and I will act on them.</p>
+  <p class="saved" id="saved">Not yet edited</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var KEY="ppmorning-2026-08-31", el=document.getElementById("saved");
+  function store(){ try{ return window.localStorage; }catch(e){ return null; } }
+  function fields(){ return Array.prototype.slice.call(document.querySelectorAll("input,textarea")); }
+  function save(){
+    var s=store(); if(!s) return;
+    var data={};
+    fields().forEach(function(f,i){ data[i] = (f.type==="radio"||f.type==="checkbox") ? f.checked : f.value; });
+    try{ s.setItem(KEY, JSON.stringify(data)); }catch(e){ return; }
+    if(el) el.textContent="Saved on this device";
+  }
+  function load(){
+    var s=store(); if(!s) return;
+    var raw=null;
+    try{ raw=s.getItem(KEY); }catch(e){ return; }
+    if(!raw) return;
+    var data; try{ data=JSON.parse(raw); }catch(e){ return; }
+    fields().forEach(function(f,i){
+      if(!(i in data)) return;
+      if(f.type==="radio"||f.type==="checkbox") f.checked=!!data[i]; else f.value=data[i];
+    });
+    if(el) el.textContent="Restored from this device";
+  }
+  load();
+  document.addEventListener("input", save);
+  document.addEventListener("change", save);
+})();
+</script>
