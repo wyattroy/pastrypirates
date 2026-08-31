@@ -39,7 +39,9 @@ let state = null, TPL = null;
 if (stateMatch) {
   try { state = JSON.parse(stateMatch[1]); } catch (e) { fail(`state block is not JSON: ${e.message}`); }
   if (state && (state.v !== 2 || !Array.isArray(state.ideas))) fail("state lacks v:2 / ideas[]");
-  else if (state) ok("generated state block parses (v:2, ideas[])");
+  else if (state && (typeof state.rulings !== "object" || state.rulings === null))
+    fail("state lacks rulings{} — the folded-in Helm has nowhere to record his call");
+  else if (state) ok("generated state block parses (v:2, ideas[], rulings{})");
 }
 if (tplMatch) {
   try { TPL = JSON.parse(tplMatch[1]); } catch (e) { fail(`TPL literal is not a JSON string: ${e.message}`); }
@@ -81,6 +83,16 @@ const buildDocNoEsc = (tpl, st) => tpl
 const NASTY = {
   v: 2, generatedAt: "2026-08-31T00:00:00.000Z",
   ideas: [{ id: "i1", text: `He said "arr" \\ matey $& $' $\` 100% </script><img src=x>`, at: "2026-08-31T00:00:01.000Z" }],
+  // Rulings ride the same state block (the Helm, folded in 2026-08-31) and must survive the same
+  // hostile text — his NOTE is free-form and is the half that outranks the button.
+  rulings: {
+    "fix-the-live-audio-defect": {
+      choice: "yes",
+      note: `Do it — but not the "$&" way; see </script> notes & the 100% case`,
+      q: `Fix the live audio defect? (8s of storm)`,
+      at: "2026-08-31T00:00:02.000Z",
+    },
+  },
 };
 
 const verify = (doc) => {

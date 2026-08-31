@@ -18,13 +18,22 @@
 // full document with the idea appended and SAVES ITSELF as the new artifact version (the
 // "artifact" runtime capability). Sessions watching the artifact are woken by that save.
 //
-// ⚠ THE HARVEST RULE, AND WHY IT IS LOAD-BEARING: an idea Wyatt writes on the page lives ONLY
-// in the page's state until a session moves it into .planning/CHART.md ("THE IDEA INBOX").
-// This script regenerates the page with an EMPTY page-ideas list — it cannot read the live
-// artifact. So: REPUBLISHING WITHOUT HARVESTING FIRST DELETES HIS UNHARVESTED IDEAS. Before
-// any republish: read the artifact (Artifact tool, action "read"), copy every entry of the
-// page's glassState.ideas into the Chart inbox, commit, THEN regenerate and republish. The
-// Door states this step; this comment is for whoever reads the code instead.
+// V2.1 — THE HELM IS FOLDED IN (his instruction, 2026-08-31: "incorporate those changes into
+// glass v2"). He can RULE on each blocked question from this page — tap an option, add a note —
+// exactly as the separate Helm page allowed. Two pages was one interface too many, and it cost
+// something real: he ruled on five questions at 17:02-17:10Z on the Helm and NO SESSION READ
+// THEM, so the Glass went on printing "Blocked on Wyatt (6)" while five were already answered.
+// Rulings are read by sessions the same way ideas are (the harvest step reads BOTH), which is
+// the whole reason they had to live on one page.
+//
+// ⚠ THE HARVEST RULE, AND WHY IT IS LOAD-BEARING: anything Wyatt writes or taps on the page —
+// an IDEA or a RULING — lives ONLY in the page's state until a session moves it into
+// .planning/CHART.md (ideas → "THE IDEA INBOX"; rulings → "RULED" + .claude/memory/DECISIONS.md).
+// This script regenerates the page with an EMPTY ideas list and NO rulings — it cannot read the
+// live artifact. So: REPUBLISHING WITHOUT HARVESTING FIRST DELETES BOTH. Before any republish:
+// read the artifact (Artifact tool, action "read"), copy every glassState.ideas entry AND every
+// glassState.rulings entry into the record, commit, THEN regenerate and republish. Enforced by
+// .claude/hooks/glass-harvest-first.cjs; the Door states the step; this is for the code reader.
 //
 // Publishing note: the page needs the "artifact" capability to save itself. The declaration is
 // stored with the artifact and carries forward automatically on every later publish that omits
@@ -43,9 +52,11 @@ const RESTARTS = join(WY, "restarts.log");
 /* THE PAGE WYATT ACTUALLY READS. Recorded here because it was recorded nowhere, and a session
    cannot republish what it cannot find. If this ever moves, change it here and nowhere else. */
 const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2";
-/* The Helm — Wyatt's decision sheet for the BLOCKED ON WYATT items (engine-built 2026-08-31 at
-   his request). Two interface pages is one more than principle 1 allows; until the fold-in
-   (Chart item), the Glass links it so there is one place to START from. */
+/* The Helm — RETIRED 2026-08-31, folded into this page at Wyatt's instruction ("one place to go
+   to see and decide everything"). Kept only so the retirement notice can be republished to it,
+   and so the next reader knows where the five rulings of 17:02-17:10Z came from. Do not build a
+   second decision surface again: he ruled there, nobody harvested it for over an hour, and the
+   Glass went on printing "Blocked on Wyatt (6)" while five of the six were already answered. */
 const HELM_URL = "https://claude.ai/code/artifact/e33ae884-12f2-4dd3-a2c2-9b69f12bc0c1";
 const OUT = join(WY, "glass.html");
 
@@ -75,7 +86,7 @@ const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git
 
 // --- the Chart: checklist tallies + blocked-on-Wyatt + inbox items ---
 const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
-let checklist = null, blocked = null, inboxItems = null;
+let checklist = null, blocked = null, inboxItems = null, ruled = null;
 if (chart !== null) {
   const done = (chart.match(/^- \[x\]/gim) || []).length;
   const open = (chart.match(/^- \[ \]/gim) || []).length;
@@ -85,9 +96,23 @@ if (chart !== null) {
     .filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|-+/.test(l) && !/^\|\s*---/.test(l))
     .map((l) => l.split("|").map((c) => c.trim()).filter(Boolean))
     .filter((c) => c.length >= 2)
-    .map(([q, rec, since]) => ({ q, rec, since: since ?? "" }));
+    // A stable id per question so a ruling survives the wording being edited on the Chart:
+    // first 40 chars of the question, lowercased, punctuation stripped.
+    .map(([q, rec, since]) => ({
+      id: q.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40).replace(/^-|-$/g, ""),
+      q: q.replace(/\*\*/g, ""), rec: (rec ?? "").replace(/\*\*/g, ""), since: since ?? "",
+    }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
   inboxItems = /\(empty/.test(inboxSec) ? [] : (inboxSec.match(/^[-*] .*$/gm) || []).map((l) => l.replace(/^[-*] /, ""));
+  // HIS RULINGS, DERIVED — the Helm's record migrated into this page. Sourced from the Chart's
+  // RULED table (never hand-typed here), so a ruling shows on the Glass the moment it is
+  // harvested, and cannot drift from the record the engine works to.
+  const ruledSec = chart.split(/^## RULED[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
+  ruled = ruledSec.split("\n")
+    .filter((l) => l.startsWith("|") && !/^\|\s*item\b/i.test(l) && !/^\|\s*-+/.test(l))
+    .map((l) => l.split("|").map((c) => c.trim().replace(/\*\*/g, "")).filter(Boolean))
+    .filter((c) => c.length >= 2)
+    .map(([item, call, now]) => ({ item, call, now: now ?? "" }));
 }
 
 // --- restarts (the watchdog appends here) ---
@@ -101,7 +126,9 @@ const rows = (list, empty) => list === null
 
 // --- v2 state: what the page needs to rebuild itself. A fresh generation always starts with an
 // EMPTY ideas list — page-born ideas must already have been harvested to the Chart (see header).
-const state = { v: 2, generatedAt: nowIso, ideas: [] };
+// `rulings` is keyed by the question id above: {id: {choice, note, at}}. Same harvest contract
+// as ideas — the generator always starts empty, so a republish without harvesting loses them.
+const state = { v: 2, generatedAt: nowIso, ideas: [], rulings: {} };
 
 /* THE PAGE, WITH TWO TOKENS. __GLASS_STATE__ is replaced by the state JSON; __GLASS_TPL__ by a
    JS string literal holding the FULL-DOCUMENT template (tokens intact) so the page can rebuild
@@ -110,7 +137,7 @@ const state = { v: 2, generatedAt: nowIso, ideas: [] };
    tokens embedded inside the TPL string are never touched by mistake. The client script uses no
    backticks and no ${} so this outer template literal stays honest. */
 const PAGE = `<title>The Glass</title>
-<style>
+<style id="glass-style">
   :root{--bg:#eef0ea;--surface:#f8f9f5;--ink:#182720;--muted:#57675c;--line:#c9d0c5;
     --accent:#0f6b52;--ok:#0f6b52;--stale:#8a3b2a;--warn-bg:#f3e2dc;--signal:#8a6d1a;}
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -142,6 +169,19 @@ const PAGE = `<title>The Glass</title>
     padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;}
   #ideaSend:disabled{opacity:.5;cursor:default;}
   #ideaText:focus-visible,#ideaSend:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+  .ask{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;margin-bottom:.9rem;}
+  .ask.ruled{border-color:var(--signal);}
+  .ask .q{font-weight:700;margin:0 0 .3rem;}
+  .ask .rec{color:var(--muted);font-size:.92rem;margin:0 0 .7rem;}
+  .ask .rec b{color:var(--ink);}
+  .ruleRow{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;}
+  .rb{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+    padding:.5rem .9rem;font:inherit;cursor:pointer;}
+  .rb[aria-pressed="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600;}
+  .rnote{width:100%;box-sizing:border-box;background:var(--bg);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:.5rem;font:inherit;font-size:.93rem;resize:vertical;}
+  .rstate{margin:.4rem 0 0;font-size:.88rem;}
+  .rb:focus-visible,.rnote:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 </style>
 <script type="application/json" id="glassState">__GLASS_STATE__</script>
 <div class="sheet">
@@ -168,11 +208,26 @@ const PAGE = `<title>The Glass</title>
     : commits.length === 0 ? `<p class="muted">Nothing yet today.</p>`
     : `<ul>${commits.slice(0, 12).map((c) => `<li><code>${esc(c.h)}</code> ${esc(c.s)}</li>`).join("")}${commits.length > 12 ? `<li class="muted">…and ${commits.length - 12} more</li>` : ""}</ul>`}
 
-  <h2>Blocked on Wyatt (${blocked === null ? "?" : blocked.length})</h2>
+  <h2>Your call (${blocked === null ? "?" : blocked.length})</h2>
   ${blocked === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-    : blocked.length === 0 ? `<p class="muted">Nothing — the engine has what it needs.</p>`
-    : `<table>${blocked.map((b) => `<tr><td>${esc(b.q)}</td><td class="muted">${esc(b.rec)}</td></tr>`).join("")}</table>
-  <p class="muted">Rule on these at <a href="${HELM_URL}">the Helm</a> — your taps there are rulings.</p>`}
+    : blocked.length === 0 ? `<p class="muted">Nothing waiting — every question you've been asked is ruled, and the engine has what it needs.</p>`
+    : `<div id="asks">${blocked.map((b) => `<div class="ask" data-id="${esc(b.id)}">
+      <p class="q">${esc(b.q)}</p>
+      <p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>
+      <div class="ruleRow">
+        <button type="button" class="rb" data-choice="yes">Do it</button>
+        <button type="button" class="rb" data-choice="no">Don't</button>
+        <button type="button" class="rb" data-choice="talk">Let's talk</button>
+      </div>
+      <textarea class="rnote" rows="2" placeholder="A note, if you want one — your words outrank the button."></textarea>
+      <p class="muted rstate"></p>
+    </div>`).join("")}</div>`}
+
+  <h2>Your rulings, in hand (${ruled === null ? "?" : ruled.length})</h2>
+  ${ruled === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+    : ruled.length === 0 ? `<p class="muted">Nothing ruled yet.</p>`
+    : `<table id="ruled">${ruled.map((r) => `<tr><td>${esc(r.item)}</td><td><b>${esc(r.call)}</b><br><span class="muted">${esc(r.now)}</span></td></tr>`).join("")}</table>
+  <p class="muted">Migrated from the Helm and derived from the Chart — the engine works to these.</p>`}
 
   <h2>The reboot checklist</h2>
   ${checklist === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
@@ -256,12 +311,68 @@ const PAGE = `<title>The Glass</title>
     text.value = getDraft();
     text.addEventListener("input", function(){ setDraft(text.value); });
 
+    // --- the Helm, folded in: rule on each open question right here.
+    // ⚠ SELECT BY ID, ALWAYS. The artifact host injects its OWN reset stylesheet and wrapper
+    // before this document's content, so a tag-or-position selector (document.querySelector
+    // ("style"), firstElementChild, "the second script") can silently resolve to the HOST's
+    // asset instead of ours. Everything this page owns carries an id: #glass-style, #glassState,
+    // #asks, #ideaForm. Ledger lesson, 2026-08-31 — earned on the Helm before this page existed.
+    if (!state.rulings) state.rulings = {};
+    var asksBox = document.getElementById("asks");
+    var asks = asksBox ? Array.prototype.slice.call(asksBox.getElementsByClassName("ask")) : [];
+    function paintAsk(el){
+      var id = el.getAttribute("data-id");
+      var r = state.rulings[id];
+      var note = el.querySelector(".rnote"), st = el.querySelector(".rstate");
+      Array.prototype.forEach.call(el.querySelectorAll(".rb"), function(b){
+        b.setAttribute("aria-pressed", String(!!r && r.choice === b.getAttribute("data-choice")));
+      });
+      if (r) {
+        el.className = "ask ruled";
+        if (r.note && note.value !== r.note) note.value = r.note;
+        st.textContent = "Ruled " + r.at.slice(0, 16).replace("T", " ") + "Z — waiting for a session to pick it up.";
+      } else { st.textContent = ""; }
+    }
+    asks.forEach(paintAsk);
+
+    function saveRuling(el, choice){
+      if (!cap) return;
+      var id = el.getAttribute("data-id");
+      var st = el.querySelector(".rstate");
+      st.textContent = "Saving your ruling…";
+      var next = JSON.parse(JSON.stringify(state));
+      if (!next.rulings) next.rulings = {};
+      next.rulings[id] = {
+        choice: choice,
+        note: el.querySelector(".rnote").value.trim(),
+        q: el.querySelector(".q").textContent,
+        at: new Date().toISOString(),
+      };
+      cap.publish(buildDoc(next)).catch(function(e){
+        st.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your note is still on screen — try again, or tell a session.";
+      });
+    }
+    asks.forEach(function(el){
+      Array.prototype.forEach.call(el.querySelectorAll(".rb"), function(b){
+        b.addEventListener("click", function(){ saveRuling(el, b.getAttribute("data-choice")); });
+      });
+      // A note with no button press is still a ruling — his words outrank the buttons.
+      el.querySelector(".rnote").addEventListener("blur", function(){
+        var v = el.querySelector(".rnote").value.trim();
+        var r = state.rulings[el.getAttribute("data-id")];
+        if (v && (!r || r.note !== v)) saveRuling(el, (r && r.choice) || "note");
+      });
+    });
+
     var cap = null;
     var useFn = (window.claude && window.claude.use) ? window.claude.use.bind(window.claude) : null;
     (useFn ? useFn("artifact") : Promise.resolve(null)).then(function(a){
       cap = a;
       if (cap) { capNote.hidden = true; form.hidden = false; }
-      else { capNote.textContent = "This view can’t save to the page (preview, or the grant is missing) — but any idea still reaches Claude if you say it in any session."; }
+      else {
+        capNote.textContent = "This view can’t save to the page (preview, or the grant is missing) — but any idea still reaches Claude if you say it in any session.";
+        asks.forEach(function(el){ el.querySelector(".rstate").textContent = "This view can’t save rulings — open the artifact itself."; });
+      }
     });
 
     send.addEventListener("click", function(){

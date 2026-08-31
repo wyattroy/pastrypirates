@@ -44,16 +44,21 @@ step 2). Wyatt's five-item bar is step 3.
 
 ## BLOCKED ON WYATT
 
-| Question | Recommendation | Since |
-|---|---|---|
-| **Step 5 — do the narrow half, or the whole rename?** | Narrow half: move the three drawing branches behind the Decider, leave the two questions as two. **This is the call a session got wrong once and corrected — it should be yours.** | 2026-08-31 |
-| **Move the pass-and-play hand-over ahead of the turn?** | Build both behind a switch and play them — it changes feel, and feel is yours | 2026-08-31 |
-| **Fix the live audio defect?** (8s of storm at full volume per ship, one deleted line) | Yes — the best ratio of player-noticeable gain to risk this week | 2026-08-31 |
-| **Correct the plan document** to match what is actually built? | Yes — three of its steps describe finished work, and a session has already re-planned finished work once | 2026-08-31 |
-| Book the Razer hour (~30–60 min at that machine) | Sooner is better — "never stalls" is unclaimable until the watchdog exists | 2026-08-31 |
-| Name the quiet moment for the cutover (when the parallel fix session can pause for ~an hour) | Tell any session "cutover now" when your fix session is between items | 2026-08-31 |
+*(nothing — he has ruled on all six. See RULED, below.)*
 
-**All six are on one tappable page:** <https://claude.ai/code/artifact/0a8acdc5-e1ca-476d-833e-5b7623e0b3fb>
+## RULED — his answers, and what each one unblocks
+
+**Harvested 2026-08-31 from the Helm's state block, over an hour after he made them.** Full
+record with the failure it exposes: [`.claude/memory/DECISIONS.md`](../.claude/memory/DECISIONS.md).
+
+| item | HIS RULING | now |
+|---|---|---|
+| Live audio defect (8s full-volume storm per ship) | **"Yes — delete the line"** | unblocked — his stated best-ratio fix |
+| Pass-and-play hand-over ahead of the turn | **"Just move it"** — no A/B switch, make the change | unblocked |
+| One-director step 5 (Decider scope) | **"Narrow half"** — three drawing branches behind the Decider; the two questions stay two | unblocked |
+| The plan document vs the measured tree | **"Yes — make the measured table the plan of record"** | unblocked |
+| The cutover moment | **"After the exit test verdict"** — the 24-hour no-silent-stall run finishes first | SCHEDULED, gated on the exit test |
+| The Razer hour | done 2026-08-31, 16:19Z | closed |
 
 ## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
 

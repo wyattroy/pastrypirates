@@ -1725,3 +1725,36 @@ the end of the arrow's body.
 3. **Some `p` are not variables at all.** `{t:"sidebet",p:bet.idx}` is the event wire format — the
    seat field every client reads — and `<p style=…>` is a paragraph tag inside a string. Renaming
    either would have been a genuine break dressed as tidying. The matcher excludes `p:` explicitly.
+
+### §12k — A SECOND PLACE TO DECIDE IS A PLACE HIS ANSWERS GO TO DIE
+
+**2026-08-31.** Wyatt ruled on five questions on the Helm — a second page built beside the Glass
+so he could tap decisions from his phone — between 17:02 and 17:10Z. **No session read them for
+over an hour.** The Glass went on printing *"Blocked on Wyatt (6)"* while five of the six were
+already answered, the engine sat idle on work he had unblocked, and he had to tell us twice:
+*"i answered all of those questions already, multiple times."*
+
+**Nothing was broken.** The Helm saved his taps correctly, into its own state block, exactly as
+designed. The Glass rendered the Chart correctly. Both pages were right, and the answer still
+never arrived — because **no step in any loop read the Helm.**
+
+**THE SHAPE, AND IT IS RULE 23 WEARING NEW CLOTHES:** two surfaces that must agree, kept in step
+by nothing. The project already knows what that costs on the game's screens; this is the same
+fault one level up, in the interface itself. The rule generalises past pages:
+
+- **A CHANNEL NOBODY HARVESTS IS NOT A CHANNEL.** It is a place his words are stored and lost.
+  Before building any new surface he can write to, name the loop step that READS it — a Door
+  step, a hook, a gate. If you cannot name one, you are building a drawer, not a channel.
+- **ONE PLACE TO SEE AND DECIDE.** His words, 2026-08-31. The fold-in put the decision cards
+  inside the Glass, derived from the Chart's own blocked table, and the same harvest hook that
+  guards his ideas now guards his rulings.
+- **THE FIRST QUESTION FOR ANY INTERFACE: what makes this and the record agree?** "The session
+  will check both" is the answer that failed here.
+
+**AND THE MECHANICAL HALF, EARNED ON THE HELM ITSELF BEFORE THE GLASS EXISTED:** a self-
+publishing artifact must **select its own assets BY ID, never by tag or position**. The artifact
+host injects its own reset stylesheet ahead of the page's content, so `querySelector("style")`
+resolves to the HOST's asset — the Helm rebuilt itself around the reset once and **the entire
+stylesheet vanished on the first Record tap**, which Wyatt found. Every element a self-saving
+page rebuilds from carries an id: `#helm-style`, `#helm-state`, `#glass-style`, `#glassState`,
+`#asks`. The comment at `helm-main`'s `fullDoc()` records it at the scene.

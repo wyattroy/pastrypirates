@@ -12,6 +12,43 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-08-31 — ONE PLACE TO SEE AND DECIDE EVERYTHING (the Helm is retired)
+
+**Wyatt, 2026-08-31, verbatim:** *"finish the Helm fold-in — the decision cards live inside Glass
+v2, not linked beside it. My words: one place to go to see and decide everything."*
+
+**Done.** The Glass (https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2) now
+carries the decision cards itself — **derived from `.planning/CHART.md`'s BLOCKED ON WYATT table,
+never hand-typed** — plus a "Your rulings, in hand" section derived from the Chart's RULED table.
+The Helm URL now serves a retirement notice pointing at the Glass, with his five rulings
+preserved on it. *The alternative — linking the two pages — is what we had, and it lost his
+answers for an hour.*
+
+**THE MECHANICAL RULE THAT COMES WITH IT, and it is his:** a self-publishing page must select its
+own assets **by id, never by tag or position** — the artifact host injects its own reset
+stylesheet first, and the Helm once rebuilt itself around that reset and lost its entire
+stylesheet on the first tap. Full story: `docs/HARD-WON-LESSONS.md` §12k.
+
+## 2026-08-31 — FIVE RULINGS HE MADE ON THE HELM AT 17:02–17:10Z, HARVESTED LATE
+
+**He answered all of these on the page, and no session read them for over an hour.** Wyatt,
+2026-08-31: *"i answered all of those questions already, multiple times, on the other version of
+the helm."* The answers are his, recorded verbatim from the Helm's own state block:
+
+| item | HIS RULING | when |
+|---|---|---|
+| **audio-defect** — the 8s full-volume storm per ship | **"Yes — delete the line"** | 17:02Z |
+| **pass-and-play hand-over** — move it ahead of the turn? | **"Just move it"** — NOT "build both behind a switch"; he does not want the A/B, he wants the change | 17:08Z |
+| **decider-scope** (one-director step 5) | **"Narrow half"** — the three drawing branches behind the Decider; leave the two questions as two | 17:09Z |
+| **plan-doc** | **"Yes — make the measured table the plan of record"** — the tree wins over the document | 17:10Z |
+| **cutover-moment** (the rulebook/memory/pruning swap) | **"After the exit test verdict"** — the 24-hour no-silent-stall test finishes first | 17:10Z |
+
+**THE FAILURE THIS RECORDS IS OURS, AND IT IS THE ONE THE RECORD KEEPS NAMING: a question
+answered somewhere nobody harvests is a question still open.** The Helm saved his taps
+correctly; the Glass went on printing "Blocked on Wyatt (6)" while five of the six were ruled.
+*The fix he asked for in the same breath: fold the Helm's clicking-and-commenting INTO the
+Glass — one page, and the harvest hook already guards it.*
+
 ## 2026-08-31 — THE GLASS IS THE INTERFACE, SERVED AS AN ARTIFACT, HOMED IN CLAUDE-KIT
 
 **Wyatt's vision, his words:** *"it becomes our interface. I can write ideas and feedback to you
