@@ -1448,3 +1448,92 @@ the night: zero. The posed check answered a question the rates could not, in abo
 **Enforced at the trigger**, not left to memory: `.claude/hooks/qa-gear-first.cjs` prints it as
 STEP 0b at the moment you are about to change game code, and `src/ui/stage.js` carries it at both
 the framing and the placement sites.
+
+---
+
+## 11. 2026-08-30/31 — the night every wrong answer came from reading a summary instead of its source
+
+**Read this one before you write a status report, and before you believe any tool's headline.** The
+work that night was mostly sound. **Every wrong thing said to Wyatt came from the same move:
+repeating a summary without opening what it summarised.** Four times, in four different disguises.
+
+### 11a. A SUMMARY LOSES WHAT ITS SOURCE KNOWS — and the sea trial lost 94% of its own findings
+
+`.planning/SEA-TRIAL.md` reported **2 structural failures**. `sea-trial-shots/log.txt`, written by
+the same run, contained **36** — 23 of them on `crew-phone-guest`, a leg the report gave no
+structural line at all.
+
+**The mechanism:** `leg_verdict.mjs` gathered from `rec.screens`. A crew leg puts each seat in its
+**own** record (`playtest_gate.mjs:391`, `rec.seats = [recA, recB]`), so the guest's failures were
+never in the array being counted — **and the guest is the side nearly every playtest finding comes
+from.**
+
+**THE PART THAT MAKES IT A LESSON RATHER THAN A BUG:** this exact symptom was found on
+**2026-08-29** and is documented in that very function. The fix then made the line *name* the rules
+it counted. **It named them and still read the wrong array.** A fix aimed at the wording of a wrong
+answer leaves the wrong answer.
+
+- **Rule 24 says Wyatt opens the report and believes it. So the report must not know less than its
+  own log.** When you summarise a run, summarise it from the log, and if the two disagree the
+  summary is the suspect.
+- Deduplicate by **array identity**, not by name: a solo leg sets `seat.screens` to the *same array*
+  as `rec.screens` (`playtest_gate.mjs:424`), so a naive concat turns an undercount into an
+  overcount and still looks like a fix.
+
+### 11b. AN INSTRUMENT THAT DISCARDS THE EVIDENCE OF ITS OWN FAILURE CANNOT BE DEBUGGED
+
+The vision judge failed **1494 times in one run** saying only *"unparseable judge reply"*. It had
+the real reason in hand the whole time — `judgeBatch` resolves `raw` — and nothing logged it. The
+actual sentence was **"I don't have permission to read those image files."** One line that would
+have ended a two-hour investigation before it began.
+
+**Put the failure's own words in the message, not in a field nobody prints.**
+
+### 11c. A FIX BECOMES THE NEXT FAILURE — check what your protection now forbids
+
+The judge runs from a temp dir **on purpose**: on 2026-08-28 a child `claude -p` inherited the repo
+cwd, loaded `.claude/settings.json`, ran this project's hooks and went off to write a checklist
+instead of a verdict — 75 calls lost. **That protection is exactly why it could no longer open the
+repo's own screenshots.** A child in `/tmp` is refused absolute paths into the repo.
+
+**The fix was to move the images to the judge, not the judge to the images** (`stageImages`). When
+you fence something off, ask what it can no longer reach.
+
+### 11d. ERROR MESSAGES POINT AWAY FROM THE CAUSE MORE OFTEN THAN THEY POINT AT IT
+
+The same wall produced three different wordings, none of them naming it: *"unparseable judge reply"*
+(a parsing complaint about a permissions problem), *"unable to access image file"*, and
+*"Self-signed certificate detected"* at five images. **Diagnosis came from bisection — 0, 1, 2, 3, 5
+images, then 3 staged locally — not from reading any message.**
+
+### 11e. QUOTING A CLAIM APPROVINGLY IS ASSERTING IT
+
+PR #15 was merged with its own summary quoted into the ledger as *"worth keeping"*. One of its five
+claims — *"contact sheets are out"* — was false; they ran **91 times, timing out at two minutes
+each**, on a trial budgeted at 85 minutes that took 104. The safety claim ("no game code") had been
+verified properly; **none of the value claims had been checked at all.**
+
+**Verify what a change CLAIMS TO BUY, not only that it is safe.** (Checked afterwards: the other
+four claims held.)
+
+### 11f. THREE GATES I WROTE WERE WRONG BEFORE THE CODE THEY GUARDED WAS
+
+`judge_can_see_check.mjs`, on its first day: passed items as `{shot}` when the function reads
+`it.path`; then expected an array when the function resolves `{results: Map}` — **and a Map
+stringifies to `{}`, so the good case printed as an empty object and read exactly like a failure**;
+then selected the first three PNGs alphabetically, which were leftover contact sheets, and printed
+**"THE JUDGE CANNOT SEE"** over a reply beginning *"I can see the three images"* — the exact fault
+it was built to catch.
+
+**Each was a guess where a read would have done.** Before writing a check against a function, open
+the function.
+
+### 11g. AND THE ONE THAT IS ABOUT REPORTING, NOT ENGINEERING
+
+Every correction above was surfaced to Wyatt as it happened, which was right. **The cumulative
+effect was a status stream that read as nothing but failure while the branch was actually shipping
+— and he said so: "I'm losing faith in you."**
+
+**A correction is not a status report.** Say what now works that did not before, then what was
+corrected on the way. A session that reports only its own errors gives a false picture just as
+surely as one that hides them.
