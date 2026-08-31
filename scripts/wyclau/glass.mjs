@@ -43,6 +43,10 @@ const RESTARTS = join(WY, "restarts.log");
 /* THE PAGE WYATT ACTUALLY READS. Recorded here because it was recorded nowhere, and a session
    cannot republish what it cannot find. If this ever moves, change it here and nowhere else. */
 const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2";
+/* The Helm — Wyatt's decision sheet for the BLOCKED ON WYATT items (engine-built 2026-08-31 at
+   his request). Two interface pages is one more than principle 1 allows; until the fold-in
+   (Chart item), the Glass links it so there is one place to START from. */
+const HELM_URL = "https://claude.ai/code/artifact/e33ae884-12f2-4dd3-a2c2-9b69f12bc0c1";
 const OUT = join(WY, "glass.html");
 
 const note = (() => {
@@ -167,7 +171,8 @@ const PAGE = `<title>The Glass</title>
   <h2>Blocked on Wyatt (${blocked === null ? "?" : blocked.length})</h2>
   ${blocked === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
     : blocked.length === 0 ? `<p class="muted">Nothing — the engine has what it needs.</p>`
-    : `<table>${blocked.map((b) => `<tr><td>${esc(b.q)}</td><td class="muted">${esc(b.rec)}</td></tr>`).join("")}</table>`}
+    : `<table>${blocked.map((b) => `<tr><td>${esc(b.q)}</td><td class="muted">${esc(b.rec)}</td></tr>`).join("")}</table>
+  <p class="muted">Rule on these at <a href="${HELM_URL}">the Helm</a> — your taps there are rulings.</p>`}
 
   <h2>The reboot checklist</h2>
   ${checklist === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
