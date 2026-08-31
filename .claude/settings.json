@@ -122,7 +122,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/wyclau-stop-keep-working.cjs\" || true",
             "timeout": 10,
-            "statusMessage": "Is there unblocked Chart work, a preemption, or a stale Glass pulse?"
+            "statusMessage": "Is there unblocked Chart work, or a stale Glass pulse?"
           }
         ]
       }

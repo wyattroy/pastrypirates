@@ -154,6 +154,15 @@ function runHook(dir, stdinObj, bosun = true) {
   check("block 2 of 3 blocks", p2 && p2.decision === "block" && /Block 2 of 3/.test(p2.reason), `got: ${r2.out}`);
   check("block 3 of 3 blocks", p3 && p3.decision === "block" && /Block 3 of 3/.test(p3.reason), `got: ${r3.out}`);
   check("the 4th check gives up instead of blocking a 4th time", r4.out === "", `got stdout: ${r4.out}`);
+  // CEO Review 53 finding, fixed: a Stop hook exiting 0 (as give-up must) does not feed stderr
+  // back to the session -- the ONLY channel that survives the stop is a durable file write.
+  let ledgerText = "";
+  try { ledgerText = readFileSync(join(dir, ".planning", "CTO-LEDGER.md"), "utf8"); } catch {}
+  check(
+    "giving up appends a durable ledger line naming the stuck item (stderr alone cannot reach the next session)",
+    /KEEP-WORKING STOP HOOK GAVE UP/.test(ledgerText) && ledgerText.includes("an open, actionable item"),
+    `got: ${JSON.stringify(ledgerText)}`
+  );
   rmSync(dir, { recursive: true, force: true });
 }
 

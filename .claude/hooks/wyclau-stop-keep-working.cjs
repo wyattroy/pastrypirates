@@ -14,8 +14,10 @@
  * Wyatt ("run the hook in all sessions"): FIRES ONLY IN A SESSION THE WATCHDOG STARTED. Never in
  * Wyatt's own terminal, never in a cloud session. Gated on an environment stamp, not an inference
  * -- scripts/wyclau/watchdog.ps1 sets $env:PP_BOSUN = "1" immediately before the Start-Process
- * launch, and Windows PowerShell 5.1's Start-Process has no environment-isolation switch, so a
- * child inherits it by default. This hook checks that stamp first and exits immediately if it is
+ * launch. A child process inherits the parent's environment BY DEFAULT (CEO Review 53 corrected a
+ * false claim here that the isolating switch, -UseNewEnvironment, does not exist -- it does; it is
+ * simply never passed. See watchdog.ps1's own comment for the verified detail). This hook checks
+ * that stamp first and exits immediately if it is
  * absent -- an interactive or cloud session never reaches any brake below.
  *
  * ⚠ THE PREEMPTION SLOT WAS REMOVED IN THIS SAME CHANGE. An earlier version of this hook read
@@ -171,11 +173,24 @@ if (nextCount > 3) {
     fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
     fs.writeFileSync(STATE_FILE, JSON.stringify({ item: null, head: null, count: 0 }, null, 2));
   } catch { /* best-effort; giving up must not itself throw */ }
-  console.error(
-    `wyclau-stop-keep-working: STUCK on "${topItem}" -- blocked 3 times with no commit landing in ` +
-    `between. Giving up rather than blocking a 4th time. Say what is actually blocking this item, ` +
-    `park it, and move to the next one, or ask Wyatt.`
-  );
+  const giveUpMsg =
+    `STUCK on "${topItem}" -- blocked 3 times with no commit landing in between. Giving up ` +
+    `rather than blocking a 4th time. Say what is actually blocking this item, park it, and move ` +
+    `to the next one, or ask Wyatt.`;
+  // ⚠ CEO Review 53 finding, fixed: a Stop hook that exits 0 (allowing the stop, which give-up
+  // must do) does not feed its stderr back to the session that produced it -- only a blocking
+  // exit does. His brake said "stop AND SAY WHAT'S BLOCKING", and stderr alone cannot deliver the
+  // second half when the session is the one about to end. console.error stays, for a live
+  // terminal transcript, but the message that actually SURVIVES the stop is this ledger line --
+  // the same durable, cross-session channel the whole project already reads on orientation
+  // (the Door's own step 2). The NEXT session sees this on its very first ledger tail, not
+  // whichever session happened to be running when the give-up fired.
+  console.error(`wyclau-stop-keep-working: ${giveUpMsg}`);
+  try {
+    const LEDGER = path.join(ROOT, ".planning", "CTO-LEDGER.md");
+    const line = `${new Date().toISOString()}  SETUP  KEEP-WORKING STOP HOOK GAVE UP: ${giveUpMsg}\n`;
+    fs.appendFileSync(LEDGER, line);
+  } catch { /* best-effort; giving up must not itself throw */ }
   process.exit(0); // allow the stop
 }
 

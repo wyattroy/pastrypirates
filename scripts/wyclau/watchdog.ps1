@@ -170,10 +170,14 @@ if ($DryRun) {
   try {
     # PP_BOSUN=1 -- the env stamp the keep-working Stop hook gates on (Quartermaster's design,
     # 2026-08-31: the hook must fire ONLY in a session the watchdog started, never in Wyatt's own
-    # terminal or a cloud session). Start-Process has no environment-isolation switch in Windows
-    # PowerShell 5.1 -- a child process inherits the parent's environment by default -- so setting
-    # this on the CURRENT process, immediately before the call, is the whole mechanism. Do not add
-    # any switch that would isolate the child's environment; that would silently break the stamp.
+    # terminal or a cloud session). A child process inherits the parent's environment BY DEFAULT,
+    # so setting this on the CURRENT process, immediately before the call, is the whole mechanism.
+    # ⚠ CEO Review 53 finding, corrected: an earlier version of this comment claimed Start-Process
+    # "has no environment-isolation switch" -- false, and never checked. `(Get-Command
+    # Start-Process).Parameters.Keys` DOES list `-UseNewEnvironment` (verified on PS 5.1.26100.9168).
+    # The behaviour here was always correct -- that switch is simply never passed -- but the comment
+    # told the next reader a footgun was impossible when it is one flag away. DO NOT ADD
+    # -UseNewEnvironment here; doing so silently breaks the stamp and this hook will never fire.
     $env:PP_BOSUN = "1"
     Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
       "-p", "`"$doorPrompt`""
