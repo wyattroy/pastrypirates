@@ -36,6 +36,8 @@ step 2). Wyatt's five-item bar is step 3.
 - [ ] Memory consolidation: five homes → one + pointers *(same quiet moment)*
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record *(same quiet moment)*
 - [ ] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling)
+- [ ] **Glass v2 — the two-way interface** (ideas/feedback box on the page; page saves itself; sessions woken by his writes) *(SCHEDULED: today, after the Razer hour — his pick 2026-08-31)*
+- [ ] wyclau source moves to claude-kit as the kit's first module; pastrypirates vendors it *(his pick 2026-08-31)*
 
 ## BLOCKED ON WYATT
 
@@ -73,4 +75,7 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
 
 ## FATES DECIDED
 
-*(none yet)*
+- **"The Glass becomes our two-way interface"** (Wyatt, 2026-08-31) → **SCHEDULED**: Glass v2
+  today after the Razer hour; wyclau source homes in claude-kit now. GitHub Pages was considered
+  and set aside for the private interface (public by nature, no write path without glue) —
+  **reconsider at launch** as a public, player-facing status page for the game.

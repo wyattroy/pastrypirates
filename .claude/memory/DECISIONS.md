@@ -12,6 +12,18 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-08-31 — THE GLASS IS THE INTERFACE, SERVED AS AN ARTIFACT, HOMED IN CLAUDE-KIT
+
+**Wyatt's vision, his words:** *"it becomes our interface. I can write ideas and feedback to you
+directly there, i can see charts and reports about your progress, all in one graphical tool."*
+His platform pick (recommended option, 2026-08-31): **the interface stays a private Claude
+Artifact** — using the page's ability to save new versions of itself so his writes wake sessions —
+**and all wyclau source code homes in the claude-kit repo now** as the kit's first module.
+*Alternative rejected for the private interface: GitHub Pages from claude-kit — public by nature
+and no write path without Issues/Firebase glue. Reconsider Pages at launch, as the game's PUBLIC
+player-facing status page.* Glass v2 (the ideas/feedback box) is scheduled for after the Razer
+hour, same day.
+
 ## 2026-08-31 — THE WYCLAU CHARTER IS IN FORCE
 
 **Wyatt approved the charter verbatim:** *"Charter is approved with only one correction: I learn
