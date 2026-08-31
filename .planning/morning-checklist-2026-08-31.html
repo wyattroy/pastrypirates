@@ -113,6 +113,18 @@
   .saved{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
     text-transform:uppercase;color:var(--done)}
 
+  .collect{position:sticky;bottom:0;margin:40px 0 0;padding:16px 0 20px;
+    background:linear-gradient(to top,var(--ground) 72%,transparent);z-index:5}
+  .collect button{font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+    text-transform:uppercase;padding:13px 20px;border-radius:3px;cursor:pointer;
+    background:var(--ink);color:var(--ground);border:1px solid var(--ink);width:100%}
+  .collect button:hover{background:var(--accent);border-color:var(--accent)}
+  .collect button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .collect p{margin:8px 0 0;font-size:13px;color:var(--muted);text-align:center}
+  #out{display:none;margin:12px 0 0;min-height:220px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.5}
+  #out.show{display:block}
+
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   @media (max-width:560px){
     .item,.shipped li{grid-template-columns:1fr;gap:0}
@@ -349,6 +361,12 @@
   <li><span class="t">earlier</span><span>A crash that would have killed the test suite on your Mac at gate 32 of 60. A hole that let any file reach into any layer unnoticed. The End of Voyage screen being photographed and recorded as clean without ever being checked. And the sea trial now asks whether its own eyes work before spending an hour and a half sailing blind.</span></li>
 </ul>
 
+<div class="collect">
+  <button type="button" id="grab">Gather my answers to send</button>
+  <p id="hint">Puts every answer in one block, ready to paste back.</p>
+  <textarea id="out" readonly aria-label="Your answers, ready to copy"></textarea>
+</div>
+
 <footer>
   <p>Ticks and notes save in this browser only — nothing is sent anywhere, and I cannot read them. Tell me the answers and I will act on them.</p>
   <p class="saved" id="saved">Not yet edited</p>
@@ -383,5 +401,55 @@
   load();
   document.addEventListener("input", save);
   document.addEventListener("change", save);
+
+  /* GATHER. Wyatt, 2026-08-31: "how do i copy paste you the answers?" — a page he can fill in and
+     not send back is the same friction as a file path he cannot tap. Reads the live DOM rather
+     than storage, so it works in a private tab where nothing was ever saved. */
+  var btn = document.getElementById("grab"), out = document.getElementById("out"),
+      hint = document.getElementById("hint");
+  function gather(){
+    var lines = ["MORNING WATCH — 31 August — answers", ""];
+    var items = document.querySelectorAll(".item");
+    for (var n = 0; n < items.length; n++) {
+      var it = items[n];
+      var mark = (it.querySelector(".mark") || {}).textContent || "?";
+      var q = (it.querySelector(".q") || {}).textContent || "";
+      var picked = [];
+      var labels = it.querySelectorAll(".answers label");
+      for (var k = 0; k < labels.length; k++) {
+        var input = labels[k].querySelector("input");
+        if (input && input.checked) picked.push(labels[k].textContent.trim());
+      }
+      var ta = it.querySelector("textarea");
+      var note = ta && ta.value ? ta.value.trim() : "";
+      if (!picked.length && !note) continue;              // unanswered items stay out of the way
+      lines.push(mark.trim() + ". " + q);
+      if (picked.length) lines.push("   -> " + picked.join(" + "));
+      if (note) lines.push("   note: " + note.replace(/\n/g, "\n         "));
+      lines.push("");
+    }
+    if (lines.length <= 2) lines.push("(nothing ticked or written yet)");
+    return lines.join("\n");
+  }
+  if (btn) btn.addEventListener("click", function(){
+    var text = gather();
+    out.value = text; out.classList.add("show");
+    out.focus(); out.select();
+    /* TRY the clipboard, but never RELY on it — this page runs in a sandboxed frame where the
+       clipboard API is often refused, and a button that silently does nothing is worse than one
+       that shows you the text. The textarea above is the guarantee; the copy is the convenience. */
+    var copied = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){
+          hint.textContent = "Copied. Paste it straight back to Claude.";
+        }, function(){
+          hint.textContent = "Select the text above and copy it — the clipboard is blocked here.";
+        });
+        copied = true;
+      }
+    } catch (e) {}
+    if (!copied) hint.textContent = "Select the text above and copy it.";
+  });
 })();
 </script>
