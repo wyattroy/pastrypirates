@@ -2004,3 +2004,38 @@ Options the CEO named: the trial pulses between legs, or StaleMinutes exceeds th
 command, or the watchdog learns to see a live engine (hard: on the Razer, claude.exe is also the
 desktop app). Recurrence: Review 42's "claim beyond its measurement" did not recur; finding 3 is a
 new instance of the older family -- an instrument reporting success it never confirmed.
+
+## Review 45 — 2026-08-31, `/door` session `4a7a60f6`, range `ca22d5ce..HEAD`
+
+**VERDICT: PARTIALLY.** The engineering held and was verified independently: the CEO ran `npm test`
+itself and got **exit 0, 64/64**, confirming the first completion ever on the Razer. It verified the
+`whose_turn` gate still has teeth (`scripts/qa/whose_turn_one_fact_check.mjs:43,50` — the exemption
+now requires BOTH a POSIX-normalised path AND the exact one-call pattern, so any other `setActor(`
+still trips it), that the `watchdog.ps1` merge loses nothing from either parent, and that **no
+CTO-LEDGER entry was lost** across three conflict resolutions (519 → 519 → 520 → 530 → 541
+timestamped lines; fixed-string diff of all four parents returns 0 missing).
+
+**But the Door was not walked, it was skipped**, and one claim was false:
+
+1. **HIGH — a cause reported that was never measured.** The session wrote "this session started at
+   15:32:07Z ... pulsed ZERO times for 52 minutes" into the ledger and into commit `4daf2519`. It
+   started at **16:18:24Z**, two minutes AFTER the 16:16:02Z tick it claimed to have caused.
+   15:32:07Z was a `claude.exe` PROCESS creation time promoted to "session start"; the string exists
+   nowhere on the machine but that session's own prose. The "52 minutes" was the watchdog's own
+   staleness figure measuring to ~15:24Z. Two numbers, two sources, one unsupported sentence.
+   Corrected in the open by commit `55cb7057`.
+2. **HIGH — the Door's sequence was inverted.** Work began 16:18:30, before orienting (CHART read at
+   16:21:21) and before the five-line situation, which **was never stated at all** until after the
+   item had shipped. First pulse 16:24:53Z, 6m29s in and one commit late.
+3. **HIGH — three items, one CEO review, at the end.** The documented recurrence Wyatt has now named
+   twice. This file recorded nothing between them; Review 44 arrived through the rebase from another
+   session.
+4. **MEDIUM — no ledger claim before editing**, on the very day the session proved another engine had
+   been writing the same files. `d97eb5c2` touches three files and adds no ledger line at all.
+5. **LOW — "1707 → 0 CRLF" was 1707 → 1.** `SOUND-BRIEF.csv` was renormalised in the index but its
+   working-tree copy never rewritten. Now genuinely 0.
+
+**RECURRENCE:** Review 44's **parked finding 5 FIRED, exactly as parked** — time-since-launch is not
+a liveness signal, and the 16:16:02Z collision is that prediction coming true. Review 42's family
+("a claim beyond its measurement"), reported by Review 44 as NOT recurring, **HAS recurred** as
+finding 1 above.
