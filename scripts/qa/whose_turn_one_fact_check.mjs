@@ -33,15 +33,23 @@ const anchors={
 };
 console.log('SUBJECT REACHED:');for(const[k,v]of Object.entries(anchors))console.log('  '+(v?'yes':'NO ')+'  '+k);
 if(Object.values(anchors).some(v=>!v)){console.log('\nINCONCLUSIVE — the code this gate describes has moved. Fix the gate, do not trust it.');process.exit(2);}
+/* COMPARE PATHS IN POSIX, NEVER IN THE PLATFORM'S OWN SEPARATOR. `f` comes from path.join, so on
+   Windows it is backslash-separated and f.endsWith('ui/util.js') is FALSE -- the exemption for
+   the ONE legitimate call never fires, and this gate then reports the converged writer itself as
+   a second writer. It did exactly that on the Razer 2026-08-31: RED, with the backslashes plainly
+   visible in its own output, while src/ held that one call and no other. Same fault, same day, as
+   tree_health_check's PROSE_OK allowlist. A gate that is red on one OS and green on another is
+   not measuring the code. */
+const rel=f=>path.relative(ROOT,f).split(path.sep).join('/');
 const viol=[];
 for(const f of files){const lines=fs.readFileSync(f,'utf8').split('\n');
   lines.forEach((L,i)=>{
     const code=L.replace(/\/\/.*$/,'');
     if(!/\bsetActor\s*\(/.test(code))return;
     if(/^\s*(export )?function setActor\(s\)\{appState\.curSeat=s;\}/.test(code))return; // the definition itself
-    if(f.endsWith('ui/util.js')&&/^\s*setActor\(s\);\s*$/.test(code))return;    // the one call, inside applyActiveSeat
+    if(rel(f).endsWith('ui/util.js')&&/^\s*setActor\(s\);\s*$/.test(code))return;    // the one call, inside applyActiveSeat
     if(/^\s*(import|export)\b/.test(code)||/^\s*[\w,\s]+,\s*$/.test(code)&&!/\(/.test(code.replace(/setActor\s*\(/,'')))return;
-    viol.push(`${path.relative(ROOT,f)}:${i+1}: ${L.trim().slice(0,90)}`);});}
+    viol.push(`${rel(f)}:${i+1}: ${L.trim().slice(0,90)}`);});}
 // drop import-manifest lines (setActor listed among imported names, no call parens after it)
 const real=viol.filter(v=>/setActor\s*\(/.test(v));
 console.log(`\nDIRECT setActor() CALLS OUTSIDE applyActiveSeat: ${real.length}`);
