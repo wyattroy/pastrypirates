@@ -14,6 +14,17 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ## 2026-08-30 — the organisation
 
+**THE ONE-DIRECTOR PLAN — the handle for the engine rebuild.** Wyatt, 2026-08-31: *"where is that
+plan saved, and how can i reference it again in a way that you'll know what i'm talking about?"*
+
+**Say "the one-director plan" and any session must resolve it to:**
+[`.planning/architecture-one-director.html`](../../.planning/architecture-one-director.html) —
+published, tappable, at **https://claude.ai/code/artifact/715b29fe-fe33-4038-9e61-a20ef6676570**
+(same URL on every republish; it is titled *"One engine, one director"*).
+
+**It has ten sections (00-09) and its migration is SIX STEPS, in section 07.** Progress is measured
+against those six and nothing else, so "how close are we" always has a denominator.
+
 **ONE SHORT REPORT AT THE END OF A RUN — NOT A WALL PER STEP.** Wyatt, 2026-08-31: *"don't bog me
 down with all of your wall of text. I don't want to read it. I want to read one short report at the
 end of a long run of work that shows what worked, what you learned (and wrote somewhere durable),
