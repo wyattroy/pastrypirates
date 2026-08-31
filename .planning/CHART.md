@@ -96,6 +96,15 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, written on the Glass, 2026-08-31 20:40:18Z**: *"Edits for The Glass: 1. Move 'Tasks' to
+  go above 'Shipped Today' 2. Make Shipped Today expandable, with each thing shipped in its own
+  pill, clickable to see more information about that commit 3. reformat the pages so Shipped Today
+  is in the left column, and Your Rulings is on the right column. On mobile, one column with
+  Shipped Today is on top."* → **SCHEDULED, next Glass-focused session.** All three are real,
+  concrete UI work (reorder a section, make list items expandable with per-commit detail, a
+  responsive two-column layout) — not urgent, not blocking any Chart item, and needs the same
+  render-and-screenshot discipline (rule 19) the redesign itself used. Recommend building all three
+  together rather than piecemeal, since (2) and (3) both touch the Shipped Today card's markup.
 - **CEO Review 51's small finding**: `quiet_gate_report.mjs`'s naming convention (`^[wq]\d+_`)
   misses `a1_bake_now_check.mjs` / `a2_bot_bake_watch_check.mjs` — two real per-item gates that are
   neither structural nor currently reportable as retirement candidates. → **PARKED, low priority**:
