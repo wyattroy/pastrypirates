@@ -501,9 +501,57 @@ async function runLeg(name, idx) {
 }
 
 // ---------- main ------------------------------------------------------------------------------
+/* ============================================================================
+   RESUMABLE, BECAUSE THE MACHINE DOES NOT STAY UP LONG ENOUGH.
+   ============================================================================
+   2026-08-31, observed not inferred: a FULL trial launched at 05:33 was gone by 06:22 with its
+   report still reading IN PROGRESS. Not memory (14.5GB free), not disk, no OOM — `uptime` said
+   "up 1 min". **The cloud container was recycled and took the run with it.** FULL gear is ~104
+   minutes; this machine does not stay up that long, so without this the trial can NEVER finish
+   here, and every attempt starts again from leg one.
+
+   AND `setsid` IS NOT THE FIX, which is worth writing down because it was my first instinct. It
+   protects a process from its parent shell exiting; it does nothing whatever about the host being
+   replaced. Relaunching the identical run with a nicer flag is not a lesson learned.
+
+   HOW IT RESUMES: each leg writes its own result file the moment it finishes. On start, a leg with
+   a result file for THIS BUILD is skipped and its recorded result reused. So a recycle costs the
+   one leg that was mid-voyage, and any number of recycles still converges on a complete fleet.
+
+   KEYED ON THE BUILD STAMP, which is the part that makes it safe. A result from a different build
+   is a result about different code, and reusing one would be exactly the lie rule 24 exists to
+   prevent — so the key includes the stamp and a stale file is ignored rather than trusted.
+   Delete `sea-trial-shots/legs/` to force a clean fleet. */
+/* THE BUILD THIS FLEET IS SAILING. Read the same way sea_trial.mjs and ceo_brief.mjs read it —
+   one spelling of "which build is this", from the file the game itself ships. */
+const STAMP = (() => {
+  try { return (fs.readFileSync(path.join(REPO, "src/ui/stage.js"), "utf8").match(/PP4_STAMP\s*=\s*"([^"]+)"/) || [])[1] || "unknown"; }
+  catch { return "unknown"; }
+})();
+const LEGDIR = path.join(OUT, "legs");
+fs.mkdirSync(LEGDIR, { recursive: true });
+const legFile = (name) => path.join(LEGDIR, `${name}--${STAMP}.json`);
+const readDone = (name) => {
+  try {
+    const r = JSON.parse(fs.readFileSync(legFile(name), "utf8"));
+    return (r && r.__stamp === STAMP) ? r : null;
+  } catch { return null; }
+};
+
 const results = [];
-{ let next = 0; await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
-    while (next < LEGS.length) { const i = next++; results[i] = await runLeg(LEGS[i], i); } })); }
+{ let next = 0, resumed = 0; await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
+    while (next < LEGS.length) {
+      const i = next++, name = LEGS[i];
+      const already = readDone(name);
+      if (already) { results[i] = already; resumed++; log(`[${name}] RESUMED — a complete result for build ${STAMP} is already on record; not re-sailed`); continue; }
+      results[i] = await runLeg(name, i);
+      /* WRITE IT THE MOMENT IT IS DONE. A result held only in memory until the fleet is home is a
+         result the next recycle destroys — which is the whole failure this guards. */
+      try { fs.writeFileSync(legFile(name), JSON.stringify({ ...results[i], __stamp: STAMP })); } catch {}
+    }
+  }));
+  if (resumed) log(`\n${resumed} of ${LEGS.length} leg(s) were resumed from a previous attempt at this build — they were NOT re-sailed.`);
+}
 
 /* THE SHEETS, ONCE THE FLEET IS HOME. Same bound as before (two minutes, killed by its own debug
    port, never a bare pkill — this container's shell wrapper matches `chromium` and a bare pkill

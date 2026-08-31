@@ -49,3 +49,26 @@ lesson learned.
 **The laptop does not have this constraint.** A FULL trial there has completed before — the
 archived 104-minute report from 2026-08-30 is proof. This is a cloud-container limit, and worth
 saying plainly so nobody concludes the trial itself is broken.
+
+
+---
+
+## CORRECTION, same hour: I then reported the RELAUNCH dead when it was sailing fine
+
+Minutes after writing the above I checked the relaunched trial and reported *"trial not running —
+the relaunch also died with the recycle."* **It was running.** `pgrep -af` found both processes
+alive and a leg mid-voyage.
+
+**The cause was my instrument, not the world — again.** I captured a PID with
+`pgrep -f "scripts/sea_trial.mjs" | head -1` three seconds after launch, wrote it to a file, and
+then checked *that number* rather than the process. The number was a transient match. Every later
+check asked "is PID 1890 alive?" and got a truthful no about a PID that was never the trial.
+
+**The rule this keeps proving:** an instrument that reports absence has told you something about
+ITSELF until you check it reached its subject. A stored PID is a snapshot; `pgrep -af` by name is
+the question you actually mean. **On the same night I wrote that lesson twice into the docs, I made
+it a third time — which is the honest measure of how easy it is.**
+
+**And the finding above still stands, because it rests on different evidence:** the FIRST trial's
+death is established by `uptime` reading "up 1 min" at 06:22, not by a PID lookup. The container
+really was recycled. What was wrong was only the claim about the relaunch.
