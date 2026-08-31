@@ -48,7 +48,7 @@ step 2). Wyatt's five-item bar is step 3.
   6. **Merge "On the Chart" with "The Reboot Checklist" -- one source of tasks**, reprioritised as needed, which the Blade Pirates process is always working. *(This item lives in the merged list once it exists.)*
   7. Reformat everything to look **more like a dashboard**, easily scannable, and **matching the colours of the game**.
 
-- [ ] **ONE PUBLISHER for the Glass** — the engine owns it; other sessions leave a note file it picks up on its next pulse. Today two sessions publish the same artifact and the platform conflict guard fires (three times in five minutes, 2026-08-31); nothing lost, but it is "two things kept in step by nothing" at the publish layer
+- [x] **ONE PUBLISHER for the Glass** — SHIPPED 2026-08-31. `.planning/wyclau/GLASS-NOTE.md`, tracked: another session writes there and commits instead of publishing; the Bosun folds it into the page and resets the file on its next pulse. Gate `glass_note_relay_check.mjs`, red-proofed (the pre-fix code cannot even run the check — the mechanism did not exist to test). Screenshotted before shipping.
 - [x] **Fold the Helm into the Glass** — decision cards live INSIDE the Glass, derived from this file's own tables; the Helm URL serves a retirement notice (2026-08-31, his instruction)
 
 ## BLOCKED ON WYATT

@@ -84,6 +84,24 @@ const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d19
    Glass went on printing "Blocked on Wyatt (6)" while five of the six were already answered. */
 const HELM_URL = "https://claude.ai/code/artifact/e33ae884-12f2-4dd3-a2c2-9b69f12bc0c1";
 const OUT = join(WY, "glass.html");
+/* ONE PUBLISHER (Wyatt's ruling, 2026-08-31, on session sprawl: one WORKER, everything else
+   scaffolding). TRACKED, not gitignored: any session, on any machine, writes here by committing,
+   rather than publishing the Glass itself. Measured cost of NOT having this, same day: the
+   Razer engine and a second session both published the artifact within five minutes, and the
+   platform's own conflict guard fired three times before it cleared -- nothing was lost, but it
+   is "two things kept in step by nothing" at the publish layer, and it does not scale past two.
+   This file is the fix's other half: read on every generation, folded into the note if it holds
+   real content, then reset to the template -- so the next run does not re-show a stale message,
+   and the reset rides along with whatever commit already follows a generation. */
+const GLASS_NOTE = join(ROOT, ".planning", "wyclau", "GLASS-NOTE.md");
+const GLASS_NOTE_TEMPLATE = `<!-- GLASS-NOTE.md -- if you are not the Bosun (the Claude session on the Razer that the
+     watchdog revives), write what you want shown or said on the Glass BELOW the marker line,
+     then commit and push -- do not publish the Glass artifact yourself. The Bosun reads this on
+     its next pulse, folds it into the page, and clears this file back to this template. If the
+     Bosun is not running (check the Glass's own staleness first), that is a different problem;
+     leaving a note here will still reach it the moment it revives. -->
+---
+`;
 
 const argv = process.argv.slice(2);
 const note = (() => {
@@ -103,6 +121,20 @@ writeFileSync(HEARTBEAT, `${nowIso}\t${note}\n`);
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tryRead = (p) => { try { return readFileSync(p, "utf8"); } catch (e) { return null; } };
+
+// --- pick up whatever another session left in GLASS-NOTE.md, then reset it. Absent, unreadable,
+// or holding only the template's own marker line all mean "nothing pending" -- never an error;
+// a session that has never written here is the common case, not a fault.
+let relayedNote = null;
+{
+  const raw = tryRead(GLASS_NOTE);
+  const body = raw === null ? "" : raw.split(/^---\s*$/m)[1] ?? "";
+  const trimmed = body.trim();
+  if (trimmed) {
+    relayedNote = trimmed;
+    writeFileSync(GLASS_NOTE, GLASS_NOTE_TEMPLATE);
+  }
+}
 const tryGit = (args) => {
   try { return execFileSync("git", ["-C", ROOT, ...args], { encoding: "utf8" }).trim(); }
   catch (e) { return null; }
@@ -269,6 +301,7 @@ const PAGE = `<meta charset="utf-8">
   .pulseline .age{font-weight:700;color:var(--ink);}
   .pulseline .pulsenote{color:var(--muted);}
   .pulseline.stale .age{color:var(--stale);}
+  .relayNote{font-size:.88rem;color:var(--muted);margin:-.7rem 0 1.3rem;font-style:italic;}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(31,66,73,.05);}
   .card.accentCard{border-color:var(--signal);border-width:1.5px;}
@@ -316,6 +349,7 @@ const PAGE = `<meta charset="utf-8">
     <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
     <span class="pulsenote" id="noteText">${esc(note)}</span>
   </div>
+  ${relayedNote ? `<p class="relayNote">From another session, folded in on this pulse: ${esc(relayedNote)}</p>` : ""}
 
   <section class="card accentCard">
     <h2>Your call (${askList.length}${DEMO ? " + 2 demo" : ""})</h2>
@@ -544,6 +578,9 @@ const html = PAGE
 writeFileSync(OUT, html);
 console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}${DEMO ? "  [DEMO MODE — do not publish this render]" : ""}`);
 console.log(`note: ${note}`);
+if (relayedNote) {
+  console.log(`relayed note picked up from GLASS-NOTE.md and folded in; the file has been reset — commit that reset with your next commit.`);
+}
 
 console.log(`
 REPUBLISH THE GLASS -- writing the file is only half of it:`);
