@@ -47,7 +47,20 @@ if (-not (Test-Path $heartbeat)) {
 # caller's state. ASCII ONLY in this file -- PowerShell 5.1 reads BOM-less UTF-8 as
 # cp1252, and a pretty dash contains a byte it parses as a closing quote.
 Set-Location $Repo
+# Keep this prompt free of double quotes: the pre-quoting below cannot survive one.
 $doorPrompt = "/door - you were relaunched by the watchdog after a stall. Orient, note the restart in the ledger, pulse the Glass, and continue the Chart."
-Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
-  "-p", "`"$doorPrompt`""
-) -WindowStyle Hidden
+try {
+  Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
+    "-p", "`"$doorPrompt`""
+  ) -WindowStyle Hidden
+  # Reset the clock for the engine just launched. Orientation was MEASURED at 11m14s on
+  # the Razer (launch 15:09:01Z -> first pulse 15:20:15Z, 2026-08-31), which is longer
+  # than the 10-minute tick -- without this stamp the next tick reads the booting engine
+  # as stalled and stacks a second one on it. CEO Review 44, finding 4.
+  $stampNow = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+  Set-Content $heartbeat "$stampNow`trelaunched by watchdog; engine orienting"
+} catch {
+  # A "restarting" line with no launch behind it is a log that lies. Say what failed,
+  # in the same file the next reader will open. CEO Review 44, finding 3.
+  Add-Content $restarts "$now`tlaunch FAILED: $($_.Exception.Message)"
+}
