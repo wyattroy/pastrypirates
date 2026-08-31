@@ -123,7 +123,7 @@ import {
   optionButtonsHTML, backButtonHTML, // 02.1-03: the ONE button-row builder, shared with localAsk
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   rawName, pn, pname, updateRecipeBanner, describe, seatLocal,
-  decisionIsLocal, resolveOpt, setActor, applyActiveSeat, stepDelay, ask, pickNarrVariant,
+  decisionIsLocal, resolveOpt, applyActiveSeat, stepDelay, ask, pickNarrVariant,
   sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
@@ -530,7 +530,7 @@ export function battleAsk(p,o,msg,opts,colors){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],opts.length-1).opt.value);}
     endReplay();
   }
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   const seat=p.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
   // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
@@ -720,7 +720,7 @@ async function asyncBattleRun(att,def){
       if(cells.length){
         let flee;
         // @copy prompt.battle.flee
-        if(hD){setActor(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Slip away?`,
+        if(hD){applyActiveSeat(def.idx);flee=await ask(`${nm(def.idx)}: both shots missed wildly! Slip away?`,
           [{label:"🏃 Flee!",value:true},{label:"⚔️ Stand yer ground",value:false}]);}
         // a bot slips away when the wind is against it (it loses the next both-heads) or when it is
         // carrying a crate it cannot afford to lose — the same test the headless battle() applies
@@ -767,7 +767,7 @@ async function asyncBattleRun(att,def){
         let again=false;
         if(refire&&att.coins>=refire){
           if(hA){
-            setActor(att.idx);
+            applyActiveSeat(att.idx);
             // @copy prompt.battle.refire
             again=await ask(`${nm(att.idx)}: load another broadside <span class="nobrk">(−${refire}🌕)</span>? ⚪ HEADS and the shot lands.`,
               // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
@@ -819,7 +819,7 @@ async function asyncBattleRun(att,def){
   // picking which crate to take.
   let pick;
   const uniq=[...new Set(lose.ing)];
-  if(win.strategy==="human"&&uniq.length>1){setActor(win.idx);
+  if(win.strategy==="human"&&uniq.length>1){applyActiveSeat(win.idx);
     // @copy prompt.battle.winnerplunder
     pick=await ask(`${pn(win.idx)}, choose yer plunder!`,uniq.map(i=>({label:ilabelImg(i),value:i})));}
   else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}

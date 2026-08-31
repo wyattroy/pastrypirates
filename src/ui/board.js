@@ -114,6 +114,7 @@ import {
   // that used them rather than being left behind as plausible-looking dependencies.
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
 } from "./util.js";
+import { deriveActiveSeat } from "../shared/storyboard.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip } from "./audio.js";
 
@@ -1735,12 +1736,13 @@ export function render(){
      the box must follow the narration playhead rather than run ahead of it (see applyCaptainOrder
      below). That is a design call, not a patch, so it waits for Wyatt rather than being guessed at
      while he sleeps. Do not "fix" this by reading curSeat here as well — that makes three. */
-  let active=null;
-  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=appState.game.events[i].t;
-    if(t==="turn"||t==="ovens"||t==="bake"){active=appState.game.events[i].p;break;}
-    if(t==="newround")break;
-  }
+  /* ONE DERIVATION (2026-08-31). This walk used to live here, private, as the THIRD independent
+     answer to "whose turn is it". It has moved to src/shared/storyboard.js — the pure leaf tier,
+     where module_graph_check GATES its purity rather than trusting it. The list of events that
+     establish a turn, the round boundary that stops the walk, and the 80-event bound are all
+     unchanged; they now have one spelling instead of a copy per reader. The `done` filter below
+     stays here, because it reads render state and the derivation must not. */
+  let active=deriveActiveSeat(appState.game.events,appState.evIdx);
   if(active!=null&&st[active].done)active=null;
   if(activeRing){
     if(active!=null){

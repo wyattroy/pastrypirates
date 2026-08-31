@@ -58,7 +58,7 @@ import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
 import {
-  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, stepDelay, botBeat, setActor, applyActiveSeat, seatLocal,
+  pn, poss, apBtnStyle, optionButtonsHTML, backButtonHTML, sliderWrapHTML, wireSlider, ask, stepDelay, botBeat, applyActiveSeat, seatLocal,
   decisionIsLocal, sleepMs, seatStrat, saveSoloState,
   getSeaBase, advanceSeaCursor,
   replayShortfall, STORM_STEP_MS, describeFor, narrationVariants, isLocalTo, NEUTRAL_VIEWER,
@@ -270,7 +270,7 @@ export function localAsk(msg,opts,colors,sub,extra){
   return new Promise(res=>{renderAskPrompt({msg,opts,colors,sub,slider:extra&&extra.slider},res);});
 }
 export async function humanFlip(p,label,allowBack,sub){
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   const opts=[{label:"🌕 FLIP!",value:1,flip:true}];
   if(allowBack)opts.push({label:"← Back",back:true,value:"back"});
   // `sub` is the italic helper line beneath the buttons — used by the dock flip to explain what
@@ -627,7 +627,7 @@ export function pickCell(p,cells){
     }
     endReplay();
   }
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   // /4 stage: frame the whole sail window once the highlight cells exist (they are drawn just
   // after this call returns its promise — a beat later is soon enough for a lerping camera).
   // p.idx, NOT the viewer: on a spectating host this used to frame the HOST's own ship at the
@@ -737,7 +737,7 @@ export async function bakeoffPrompt(p,setup,fallback){
     }
     endReplay();
   }
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   // {wait:true} — same fault, found by the rule-8 sweep rather than by Wyatt: this is the other
   // per-turn spectator line whose subject is "nothing is happening yet". Also fire-and-forget.
   netHandlers().onBroadcast(`${pn(p.idx)} steps up to the ovens…`,[{seat:p.idx,html:""}],{wait:true});
@@ -1508,7 +1508,7 @@ async function pickBarterCrates(p,ing){
    outcome, on the same turn, with the coins just earned (rule 10a/10c), and the price is
    6 − however many crates are left on the island, so it climbs 3 → 4 → 5 as the island empties. */
 export async function humanDock(p,port){
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   const ing=port;
   const g=appState.game;
   // v2 rule 10d: an empty island still pays. There is treasure in the sand and work on the dock
@@ -1870,7 +1870,7 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
   return v;
 }
 export async function humanTrade(p){
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   const g=appState.game;
   // DEFENSE IN DEPTH, symmetric with step 0's "nobody has cargo I want" guard four lines below:
   // a captain with nothing at all to give (0 coins AND an empty hold) can never complete step 1
@@ -1970,7 +1970,7 @@ export async function humanTrade(p){
   // memory lives in the engine so bots spam neither each other nor, more importantly, the human.
   for(const q of g.holdersOf(offer.want,p).filter(q=>g.worthReAsking(p,q,offer.want,offer))){
     if(q.strategy==="human"){
-      setActor(q.idx);
+      applyActiveSeat(q.idx);
       // @copy prompt.trade.accept
       // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
       // the trade and moved on"). TWO separate ways that happened, both fixed here:
@@ -2019,7 +2019,7 @@ export async function humanTrade(p){
       responses.push(g.respondToOffer(q,offer,p));
     }
   }
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   if(!responses.length){
     // @copy adhoc.trade.silence
     await flash(`Not a soul answers ${pn(p.idx)}'s hail.`,undefined,undefined,[{seat:p.idx,html:`Not a soul answers yer hail.`}]);
@@ -2120,7 +2120,7 @@ export async function humanTrade(p){
   return true;
 }
 export async function humanAct(p,sailCtx){
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   const port=appState.game.adjPort(p);
   const canDock=port&&!(appState.game.cfg.singleDock&&appState.game.dockOccupiedBy(port,p));
   // v2 rule 13: EVERY dock is raidable now, and a captain who has already fired up the ovens is
@@ -2524,7 +2524,7 @@ export async function botOpenTradeLive(p){
   const responses=[];
   for(const q of g.holdersOf(offer.want,p)){
     if(q.strategy==="human"){
-      setActor(q.idx);
+      applyActiveSeat(q.idx);
       // @copy prompt.trade.accept
       // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
       // the trade and moved on"). TWO separate ways that happened, both fixed here:
@@ -2571,7 +2571,7 @@ export async function botOpenTradeLive(p){
       }
     }else responses.push(g.respondToOffer(q,offer,p));
   }
-  setActor(p.idx);
+  applyActiveSeat(p.idx);
   if(!responses.length)return false; // nobody left worth hailing — don't spend the turn on silence
   // remember every refusal, so the same doomed offer is not put to the same captain again
   const worth=g.offerWorthTurns(p,offer);
@@ -2808,7 +2808,7 @@ export async function draftDispatch({seats,isPublic,msgFor,optsFor,waitMsg,annou
     // one device, secret options: draft in turn, each behind the pass-the-device screen
     for(const seat of seats){
       await passGate(seat);
-      setActor(seat);
+      applyActiveSeat(seat);
       results[seat]=await localAsk(msgFor(seat),optsFor(seat));
     }
     return results;
@@ -2961,7 +2961,7 @@ export async function collectSideBets(att,def){
   const spectators=appState.game.players.filter(p=>p!==att&&p!==def&&!p.done);
   for(const s of spectators){
     if(s.strategy==="human"){
-      setActor(s.idx);
+      applyActiveSeat(s.idx);
       // NAMED, because on one device the prompt arrives out of nowhere (Wyatt, 2026-08-08: "it is
       // wyyy's turn and they are attacking, but juju must call; so the narration should say 'Juju —
       // A battle's brewing!'"). The caller is a SPECTATOR of someone else's fight, so nothing about

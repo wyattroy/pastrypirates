@@ -41,6 +41,7 @@
 import {
   appState,
 } from "../state/index.js";
+import { normalizeSeat } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
@@ -1819,7 +1820,12 @@ async function narrateCurrentBody(e){
   // @copy adhoc.turn.boteventpassthrough
   const L=appState.logLines[appState.evIdx];if(L)await netHandlers().onFlash(L.txt);
 }
-export function setActor(s){appState.curSeat=s;}
+/* NOT EXPORTED (2026-08-31). One fact, one writer: the only caller is applyActiveSeat below,
+   which also moves S.activeSeat — the value stage.js:1206 draws FIRST. Sixteen call sites used
+   to import this directly and leave the ribbon pointing at the previous captain; they now call
+   applyActiveSeat. Un-exporting is what stops the seventeenth from being added by hand.
+   scripts/qa/whose_turn_one_fact_check.mjs holds this. */
+function setActor(s){appState.curSeat=s;}
 /* ONE ACTIVE SEAT (02.15-01 Stage 2, D-25). THE fault of D-24 in miniature, and it was measured
    before it was touched: ribbonTick (ui/stage.js) glows the boat at S.activeSeat ?? appState.curSeat;
    curSeat is written only by setActor and S.activeSeat only by __pp4.actor; and every one of those
@@ -1838,11 +1844,15 @@ export function setActor(s){appState.curSeat=s;}
    index (T-02.2-08) — the `ev` node is host-authoritative, which is the same trust already relied
    on for board positions, but a bounded index costs nothing and a trusted one eventually does. */
 export function applyActiveSeat(seat){
-  if(seat==null)return;
+  /* THE ONE WRITER. Both guards now come from src/shared/storyboard.js's normalizeSeat, so the
+     rule for "is this a seat we may point at" has one spelling shared with the event-stream
+     derivation the board reads (2026-08-31). Behaviour is unchanged: null in -> nothing written,
+     out-of-range in -> nothing written. */
   const ps=appState.game&&appState.game.players;
-  if(!ps||!(seat>=0&&seat<ps.length))return;
-  setActor(seat);
-  if(window.__pp4)window.__pp4.actor(seat);
+  const s=normalizeSeat(seat,ps?ps.length:null);
+  if(s==null)return;
+  setActor(s);
+  if(window.__pp4)window.__pp4.actor(s);
 }
 export function seatLocal(s){return s===appState.mySeat;}
 // D-10: a sentinel seat value no real seat index (0..3) can ever equal — passing it as

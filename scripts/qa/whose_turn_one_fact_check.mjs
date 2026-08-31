@@ -16,10 +16,11 @@ const files=[];(function walk(d){for(const f of fs.readdirSync(d,{withFileTypes:
 const util=fs.readFileSync(path.join(SRC,'ui/util.js'),'utf8');
 const stage=fs.readFileSync(path.join(SRC,'ui/stage.js'),'utf8');
 const anchors={
-  'setActor defined in util.js':/export function setActor\(s\)\{appState\.curSeat=s;\}/.test(util),
+  'setActor defined in util.js (NOT exported)':/(?<!export )function setActor\(s\)\{appState\.curSeat=s;\}/.test(util),
+  'setActor is not exported':!/export function setActor\(/.test(util),
   'applyActiveSeat defined in util.js':/export function applyActiveSeat\(seat\)\{/.test(util),
-  'applyActiveSeat calls setActor':/applyActiveSeat\(seat\)\{[\s\S]{0,400}?setActor\(seat\)/.test(util),
-  'applyActiveSeat calls __pp4.actor':/applyActiveSeat\(seat\)\{[\s\S]{0,400}?__pp4\.actor\(seat\)/.test(util),
+  'applyActiveSeat calls setActor':/applyActiveSeat\(seat\)\{[\s\S]{0,1200}?setActor\(/.test(util),
+  'applyActiveSeat calls __pp4.actor':/applyActiveSeat\(seat\)\{[\s\S]{0,1200}?__pp4\.actor\(/.test(util),
   'ribbonTick prefers S.activeSeat':/S\.activeSeat != null\) \? S\.activeSeat : \(appState\.curSeat/.test(stage),
 };
 console.log('SUBJECT REACHED:');for(const[k,v]of Object.entries(anchors))console.log('  '+(v?'yes':'NO ')+'  '+k);
@@ -29,8 +30,8 @@ for(const f of files){const lines=fs.readFileSync(f,'utf8').split('\n');
   lines.forEach((L,i)=>{
     const code=L.replace(/\/\/.*$/,'');
     if(!/\bsetActor\s*\(/.test(code))return;
-    if(/export function setActor/.test(code))return;              // the definition
-    if(f.endsWith('ui/util.js')&&/^\s*setActor\(seat\);\s*$/.test(code))return; // inside applyActiveSeat
+    if(/^\s*(export )?function setActor\(s\)\{appState\.curSeat=s;\}/.test(code))return; // the definition itself
+    if(f.endsWith('ui/util.js')&&/^\s*setActor\(s\);\s*$/.test(code))return;    // the one call, inside applyActiveSeat
     if(/^\s*(import|export)\b/.test(code)||/^\s*[\w,\s]+,\s*$/.test(code)&&!/\(/.test(code.replace(/setActor\s*\(/,'')))return;
     viol.push(`${path.relative(ROOT,f)}:${i+1}: ${L.trim().slice(0,90)}`);});}
 // drop import-manifest lines (setActor listed among imported names, no call parens after it)
