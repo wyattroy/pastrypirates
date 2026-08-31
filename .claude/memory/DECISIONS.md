@@ -14,6 +14,20 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ## 2026-08-30 — the organisation
 
+**ONE SHORT REPORT AT THE END OF A RUN — NOT A WALL PER STEP.** Wyatt, 2026-08-31: *"don't bog me
+down with all of your wall of text. I don't want to read it. I want to read one short report at the
+end of a long run of work that shows what worked, what you learned (and wrote somewhere durable),
+and what you are now working on next."*
+
+**Three parts, in that order: WHAT WORKED · WHAT I LEARNED, and where it is written down · WHAT IS
+NEXT.** Corrections belong inside "what I learned", not as the headline and not as a running
+commentary — he had just told me the running-correction stream made him lose faith while the branch
+was in fact shipping.
+
+**This tightens rule 3 rather than replacing it.** Plain English and the SIZE still stand; what
+changes is CADENCE and SHAPE. Work quietly through a long run, surface only genuine questions and
+real-time blockers as they arise, and report once at the end.
+
 **NEW INFORMATION ONLY. A SECOND RECAP IS MUCH SHORTER THAN THE FIRST.** Wyatt, 2026-08-30, after
 reading back through a run: *"you tend to verbosely repeat yourself multiple times when reporting
 back to me. This isn't necessary. Please only state new information to me. And if you need to recap
