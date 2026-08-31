@@ -1,5 +1,23 @@
 # CEO reviews — the standing record
 
+## CEO Review 48 — 2026-08-31, "could a session that never met me continue from this?" (the boardroom session's close-out) — VERBATIM
+
+**PARTIALLY.** The machinery is real and I verified it with my own hands. The record has one hole, and it is at the front door.
+
+**What genuinely survives you** (checked, not taken on trust): `npm test` — **exit 0, 68 gates**, run by me just now. Three SKIPs are Windows watchdog gates and print "This is a SKIP, not a pass." Honest. The harvest hook **works, and I red-proofed it both ways** through the exact shell wrapper in `settings.json:66`: stale stamp → `permissionDecision:"deny"` with the three steps; fresh stamp → silent. It is a `PreToolUse` matcher on `Artifact`, so **it fires for a session that never opened the Door.** (My first test was wrong — I wrote to the stamp file, which refreshed the mtime it reads. The instrument lied before the hook did.) Your five Helm rulings are at `.claude/memory/DECISIONS.md:36-42`, verbatim, timestamped, each with the alternative named. "Delete the line" resolves to a real one — `docs/AUDIO.md:58`, *"delete the second `anchorHold` line."* A stranger can act on all five. `docs/HARD-WON-LESSONS.md:1729-1760` (§12k) is a permanent home, not a handoff. Both artifact URLs are in the repo — `scripts/wyclau/glass.mjs:54,60`, `.claude/hooks/glass-harvest-first.cjs:70`. `git status` clean, ledger claim released, nothing running.
+
+**Where a stranger stumbles:**
+
+1. **THE HOLE. `.claude/CLAUDE.md` — the one file loaded into every session — never mentions the Chart, the Door, DECISIONS.md, or wyclau. Zero hits, all four.** Line 948 still says *"Start at `.planning/STATE.md`, then `.planning/ROADMAP.md`"* — and line 1040 of that same file says those two are not authoritative. The new process is written only in `.planning/wyclau/CLAUDE-next.md`, staged behind the cutover, which you ruled waits for the exit test. So the rulebook a stranger is handed points at the retired map, and the Door is found only if the model reaches for a skill instead of following the rules it was given.
+
+2. **The Chart contradicts itself in the two rows it reads first.** `CHART.md:33` shows the Razer hour unticked and *"BLOCKED ON WYATT: book it"*, while `CHART.md:61` says it closed at 16:19Z. `CHART.md:43` shows *"Fold the Helm into the Glass"* unticked with *"the Glass links the Helm meanwhile"* — the day's last shipped item, marked done in DECISIONS.md and the ledger. A stranger who trusts the checklist works the wrong thing and interrupts you for an hour you already booked.
+
+3. Minor: `CHART.md:10` says *"a live fix session is working from BACKLOG.md"* — that session is archived per the ledger. Exactly the stale-premise fault the ledger itself flags one entry earlier.
+
+**The single thing that fixes it:** four lines in `.claude/CLAUDE.md` §5 naming the Door as the entry and the Chart plus DECISIONS.md as the plan and the rulings — no cutover required, it does not touch the staged rewrite — and tick the two Chart rows. Without it you have built a good front door and left the old map nailed to the wall beside it.
+
+*(Recorded by the working session: **all three findings were fixed before this verdict reached Wyatt.** `.claude/CLAUDE.md` now opens §5 with a START HERE box naming the Door, the Chart, DECISIONS.md and the Glass URL — no cutover needed, as the CEO said. The two Chart rows are ticked and the stale "live fix session" premise is corrected. `npm test` re-run after the edits: 68 gates, exit 0.)*
+
 ## CEO Review 47 — 2026-08-31, Glass v2 (the two-way interface) — VERBATIM
 
 VERDICT: YES — the thing Wyatt asked for exists, and I verified it against the tree and the live page, not the report. Two corrections below.

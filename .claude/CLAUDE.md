@@ -944,8 +944,26 @@ believing it passing.**
 
 ## 5. Project status and planning
 
+> ### ⚑ START HERE — WYCLAU IS IN FORCE (approved by Wyatt 2026-08-31)
+>
+> 1. **Enter through the Door** — the `door` skill. It is the one way into a work session: sync,
+>    orient, state the situation in five lines, pulse the Glass, work the plan.
+> 2. **The plan is [`.planning/CHART.md`](../.planning/CHART.md)** — launch line, checklist, what
+>    is blocked on Wyatt, the idea inbox. **Not ROADMAP.md or STATE.md** (both historical).
+> 3. **His rulings are [`.claude/memory/DECISIONS.md`](memory/DECISIONS.md)** — answer from them,
+>    never re-ask a settled question. A ruling he made that nobody harvested is the failure this
+>    system exists to stop (`docs/HARD-WON-LESSONS.md` §12k).
+> 4. **The interface is the Glass** — https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2
+>    — where he sees progress, writes ideas, and rules on questions. Pulse it with
+>    `node scripts/wyclau/glass.mjs --note "..."`, and **harvest before republishing** (a hook
+>    enforces this). The operating agreement is [`.planning/wyclau/CHARTER.md`](../.planning/wyclau/CHARTER.md).
+>
+> *The full rules rewrite is staged at `.planning/wyclau/CLAUDE-next.md` and lands at the cutover
+> — his ruling: after the 24-hour exit test verdict. Until then this box is the entry point and
+> the rest of this file still stands.*
+
 **Current milestone: v2.0 "The New Game"** — promoting the `4/` redesign to become the official game.
-Start at [`.planning/STATE.md`](../.planning/STATE.md), then
+Historical context only: [`.planning/STATE.md`](../.planning/STATE.md) and
 [`.planning/ROADMAP.md`](../.planning/ROADMAP.md). The intake research that reconstructs the `4/`
 development period is [`.planning/research/v2.0-intake/`](../.planning/research/v2.0-intake/) — read
 the relevant report before planning any phase; it is the only synthesis of a period that left no GSD

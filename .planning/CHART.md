@@ -5,9 +5,9 @@ idea inbox, and what's blocked on Wyatt. Sessions: enter through the Door
 (`.claude/skills/door/SKILL.md`), claim before editing, keep this file current — it is the source
 the Glass derives from.*
 
-**Until the cutover moment (see below), the per-bug game backlog stays in
-[`BACKLOG.md`](BACKLOG.md)** — a live fix session is working from it and the ground doesn't move
-under a working crew. This file owns the launch line and the reboot.
+**Until the cutover, the per-bug game backlog stays in [`BACKLOG.md`](BACKLOG.md)** — the
+Razer engine works from it. This file owns the launch line and the reboot. *(The Mac fix session
+that was also working it is archived as of 2026-08-31.)*
 
 ---
 
@@ -30,7 +30,7 @@ step 2). Wyatt's five-item bar is step 3.
 - [x] The Door exists (`.claude/skills/door/SKILL.md`)
 - [x] The Glass generator exists (`scripts/wyclau/glass.mjs`) and the first Glass is published
 - [x] Watchdog scripts + Razer setup guide exist (`scripts/wyclau/`)
-- [ ] **The Razer hour** — watchdog registered, engine launched *(BLOCKED ON WYATT: book it)*
+- [x] **The Razer hour** — watchdog registered, engine launched, stall test passed through the scheduled task (2026-08-31 16:19Z)
 - [ ] 24-hour unattended engine run, zero silent stalls (the exit test — claimable only after the Razer hour)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers *(AT THE QUIET MOMENT — needs the parallel fix session closed)*
 - [ ] Memory consolidation: five homes → one + pointers *(same quiet moment)*
@@ -40,7 +40,7 @@ step 2). Wyatt's five-item bar is step 3.
 - [ ] wyclau source moves to claude-kit as the kit's first module; pastrypirates vendors it *(his pick 2026-08-31)*
 - [x] Mechanically enforce the Glass harvest rule — `.claude/hooks/glass-harvest-first.cjs` + gate `glass_harvest_hook_check` (red first on the unregistered-hook case, red-proofed both ways), 2026-08-31
 - [ ] **ONE PUBLISHER for the Glass** — the engine owns it; other sessions leave a note file it picks up on its next pulse. Today two sessions publish the same artifact and the platform conflict guard fires (three times in five minutes, 2026-08-31); nothing lost, but it is "two things kept in step by nothing" at the publish layer
-- [ ] **Fold the Helm into the Glass** — one interface, not two kept in step (the engine's own flag, 2026-08-31; the Glass links the Helm meanwhile)
+- [x] **Fold the Helm into the Glass** — decision cards live INSIDE the Glass, derived from this file's own tables; the Helm URL serves a retirement notice (2026-08-31, his instruction)
 
 ## BLOCKED ON WYATT
 
