@@ -88,7 +88,11 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
-*(empty — nothing waiting)*
+- **"Test to send to the chart"** (written on the Glass, 18:27:43Z) → **SHIPPED, and this IS the
+  fate.** Read literally: the two-way save it exercises is exactly what it tested — the idea
+  reached `glassState.ideas` on the live artifact and this harvest is that path completing end to
+  end for the first time since Glass v2 shipped. No further action; the mechanism it was testing
+  now has its first real proof.
 
 ## FATES DECIDED
 
