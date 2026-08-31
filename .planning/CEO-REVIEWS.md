@@ -1,5 +1,41 @@
 # CEO reviews — the standing record
 
+## CEO Review 49 — 2026-08-31, the four rulings checked before building — VERBATIM
+
+**YES** — the ask happened, and it happened the right way round. This session says it *didn't
+build* three of four things Wyatt ruled on today, because it measured first and found them
+already done; the review checked all four independently and the claim holds — audio (defect
+already fixed at the cutover, commit `fb74eedc`, verified `soundForEvent({t:"anchorHold"})` →
+`{name:"fishing",bus:"master"}`), pass-and-play hand-over (commit `ae75fe63`, 12:51Z, 4h17m before
+the 17:08Z ruling, `passGate` before `applyActiveSeat` confirmed at `src/ui/flow.js:2476-2495`),
+and the Decider narrow half (commit `44dc853e`, 12:54Z, before the 17:09Z ruling, `src/shared/
+visibility.js` a real 58-line pure module, both gates pass with genuine red-proofs). The plan
+document was the one genuine item and was done properly — artifact `715b29fe` §07 now carries
+inline per-step status, integrated into the page's own existing `.good` style rather than bolted on.
+
+**Findings, all fixed same-session:**
+1. MEDIUM-HIGH — three ledger entries carried hand-typed, FUTURE timestamps (up to 18 minutes
+   ahead of the commit that contained them) — the exact fault rule 6 and the "no future tense"
+   convention both exist to catch. Corrected in the open, same-session, once found.
+2. MEDIUM — `docs/AUDIO.md:58-64` still told the next reader to "delete the second `anchorHold`
+   line" in the imperative, past the correction box at the top of the section — the likely reason
+   the false premise reached the Helm as a live question a second time. Struck through and
+   corrected in the same style as the page's own existing convention, same-session.
+3. MEDIUM — no ledger claim before editing on one of two commits (rule 16), inconsistent with the
+   session's own practice elsewhere. Acknowledged; not separately re-fixed (the work was already
+   done and safe — no collision occurred).
+4. LOW — the plan-doc footer's stale sentence sat before its correction rather than struck through.
+5. LOW, procedural — Review 46 was cited by Review 47 but was never recorded in this file, and this
+   file's own newest-first convention had also been broken twice (Review 45 and this entry were
+   both first appended at the bottom by mistake) — corrected in the same pass that recorded this
+   review. Review 46's content could not be reconstructed and is noted here as genuinely lost.
+
+**RECURRENCE:** Review 45's finding 1 ("a cause reported that was never measured") did NOT recur —
+this session wrote a falsifiable prediction before measuring the audio defect and it held. Review
+45's finding 4 ("no ledger claim before editing") DID recur, on one of two commits. Review 41's "a
+gate that cannot fail" did NOT recur — both new gates in today's work run the real function and
+prove they can go red.
+
 ## CEO Review 48 — 2026-08-31, "could a session that never met me continue from this?" (the boardroom session's close-out) — VERBATIM
 
 **PARTIALLY.** The machinery is real and I verified it with my own hands. The record has one hole, and it is at the front door.
@@ -33,6 +69,42 @@ VERDICT: YES — the thing Wyatt asked for exists, and I verified it against the
 **Honest limit, honestly stated:** no human has tapped Send in a logged-in browser yet; the ledger and Chart both say Wyatt's first tap is that test (CTO-LEDGER.md:599, CHART.md:39). Nothing claims otherwise.
 
 *(Recorded by the working session: correction 2 was fixed before this verdict reached Wyatt — the draft-clear now compares the trimmed draft. Correction 1 is accepted and recorded as a ledger correction: the harvest rule is prose in two places plus console output, not three, and no mechanism enforces it yet — mechanical enforcement is a Chart item. Numbering note: reviews 44-46 were recorded out of the file's newest-first order during the Razer day; this review takes 47 from the ledger's sequence.)*
+
+## Review 45 — 2026-08-31, `/door` session `4a7a60f6`, range `ca22d5ce..HEAD`
+
+**VERDICT: PARTIALLY.** The engineering held and was verified independently: the CEO ran `npm test`
+itself and got **exit 0, 64/64**, confirming the first completion ever on the Razer. It verified the
+`whose_turn` gate still has teeth (`scripts/qa/whose_turn_one_fact_check.mjs:43,50` — the exemption
+now requires BOTH a POSIX-normalised path AND the exact one-call pattern, so any other `setActor(`
+still trips it), that the `watchdog.ps1` merge loses nothing from either parent, and that **no
+CTO-LEDGER entry was lost** across three conflict resolutions (519 → 519 → 520 → 530 → 541
+timestamped lines; fixed-string diff of all four parents returns 0 missing).
+
+**But the Door was not walked, it was skipped**, and one claim was false:
+
+1. **HIGH — a cause reported that was never measured.** The session wrote "this session started at
+   15:32:07Z ... pulsed ZERO times for 52 minutes" into the ledger and into commit `4daf2519`. It
+   started at **16:18:24Z**, two minutes AFTER the 16:16:02Z tick it claimed to have caused.
+   15:32:07Z was a `claude.exe` PROCESS creation time promoted to "session start"; the string exists
+   nowhere on the machine but that session's own prose. The "52 minutes" was the watchdog's own
+   staleness figure measuring to ~15:24Z. Two numbers, two sources, one unsupported sentence.
+   Corrected in the open by commit `55cb7057`.
+2. **HIGH — the Door's sequence was inverted.** Work began 16:18:30, before orienting (CHART read at
+   16:21:21) and before the five-line situation, which **was never stated at all** until after the
+   item had shipped. First pulse 16:24:53Z, 6m29s in and one commit late.
+3. **HIGH — three items, one CEO review, at the end.** The documented recurrence Wyatt has now named
+   twice. This file recorded nothing between them; Review 44 arrived through the rebase from another
+   session.
+4. **MEDIUM — no ledger claim before editing**, on the very day the session proved another engine had
+   been writing the same files. `d97eb5c2` touches three files and adds no ledger line at all.
+5. **LOW — "1707 → 0 CRLF" was 1707 → 1.** `SOUND-BRIEF.csv` was renormalised in the index but its
+   working-tree copy never rewritten. Now genuinely 0.
+
+**RECURRENCE:** Review 44's **parked finding 5 FIRED, exactly as parked** — time-since-launch is not
+a liveness signal, and the 16:16:02Z collision is that prediction coming true. Review 42's family
+("a claim beyond its measurement"), reported by Review 44 as NOT recurring, **HAS recurred** as
+finding 1 above.
+
 
 ## CEO Review 38 — 2026-08-31, the wyclau reboot (founding note → reports → interview → charter) — VERBATIM
 
@@ -2038,38 +2110,3 @@ Options the CEO named: the trial pulses between legs, or StaleMinutes exceeds th
 command, or the watchdog learns to see a live engine (hard: on the Razer, claude.exe is also the
 desktop app). Recurrence: Review 42's "claim beyond its measurement" did not recur; finding 3 is a
 new instance of the older family -- an instrument reporting success it never confirmed.
-
-## Review 45 — 2026-08-31, `/door` session `4a7a60f6`, range `ca22d5ce..HEAD`
-
-**VERDICT: PARTIALLY.** The engineering held and was verified independently: the CEO ran `npm test`
-itself and got **exit 0, 64/64**, confirming the first completion ever on the Razer. It verified the
-`whose_turn` gate still has teeth (`scripts/qa/whose_turn_one_fact_check.mjs:43,50` — the exemption
-now requires BOTH a POSIX-normalised path AND the exact one-call pattern, so any other `setActor(`
-still trips it), that the `watchdog.ps1` merge loses nothing from either parent, and that **no
-CTO-LEDGER entry was lost** across three conflict resolutions (519 → 519 → 520 → 530 → 541
-timestamped lines; fixed-string diff of all four parents returns 0 missing).
-
-**But the Door was not walked, it was skipped**, and one claim was false:
-
-1. **HIGH — a cause reported that was never measured.** The session wrote "this session started at
-   15:32:07Z ... pulsed ZERO times for 52 minutes" into the ledger and into commit `4daf2519`. It
-   started at **16:18:24Z**, two minutes AFTER the 16:16:02Z tick it claimed to have caused.
-   15:32:07Z was a `claude.exe` PROCESS creation time promoted to "session start"; the string exists
-   nowhere on the machine but that session's own prose. The "52 minutes" was the watchdog's own
-   staleness figure measuring to ~15:24Z. Two numbers, two sources, one unsupported sentence.
-   Corrected in the open by commit `55cb7057`.
-2. **HIGH — the Door's sequence was inverted.** Work began 16:18:30, before orienting (CHART read at
-   16:21:21) and before the five-line situation, which **was never stated at all** until after the
-   item had shipped. First pulse 16:24:53Z, 6m29s in and one commit late.
-3. **HIGH — three items, one CEO review, at the end.** The documented recurrence Wyatt has now named
-   twice. This file recorded nothing between them; Review 44 arrived through the rebase from another
-   session.
-4. **MEDIUM — no ledger claim before editing**, on the very day the session proved another engine had
-   been writing the same files. `d97eb5c2` touches three files and adds no ledger line at all.
-5. **LOW — "1707 → 0 CRLF" was 1707 → 1.** `SOUND-BRIEF.csv` was renormalised in the index but its
-   working-tree copy never rewritten. Now genuinely 0.
-
-**RECURRENCE:** Review 44's **parked finding 5 FIRED, exactly as parked** — time-since-launch is not
-a liveness signal, and the 16:16:02Z collision is that prediction coming true. Review 42's family
-("a claim beyond its measurement"), reported by Review 44 as NOT recurring, **HAS recurred** as
-finding 1 above.

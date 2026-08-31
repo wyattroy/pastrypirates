@@ -55,13 +55,20 @@ disagree.** Every game downloads and decodes a 55 KB file that nothing can trigg
 
 Introduced in `0d3a71c` (the v2 ruleset), copied verbatim into `/3` and `/4`.
 
-**Fix: delete the second `anchorHold` line.** That is the whole change.
+~~**Fix: delete the second `anchorHold` line.** That is the whole change.~~
+**ALREADY DONE — see the correction box above.** There is no second line; `src/ui/audio.js:105` is
+the only `anchorHold` key left in the object literal. Left struck through rather than deleted,
+because this exact sentence read further down than the correction box is what put "delete the
+`anchorHold` line" back on the Helm as a live question on 2026-08-31 and got it ruled on a second
+time — the box at the top of this section was read; this one was not.
 
-**And `npm test` passes.** `scripts/audio_mapping_test.js` is a real, thorough suite — it asserts
+~~**And `npm test` passes.** `scripts/audio_mapping_test.js` is a real, thorough suite — it asserts
 the storm-cue pairing, the placeholders, the bus volumes — but it **never mentions `anchorHold` or
 `fishing` at all**, and nothing anywhere checks the literal for duplicate keys. So the green tick
 is not evidence: this check cannot fail on this defect. Worth adding both assertions with the fix,
-red first.
+red first.~~
+**DONE.** `scripts/audio_mapping_test.js` now asserts `anchorHold` plays `fishing`, that `fishing`
+is reachable at all, and that `EVENT_SOUND` declares no key twice — all four PASS.
 
 ### DEFECT-2 — Anchoring in a storm dumps 8 seconds of weather at full volume, once per ship
 
@@ -75,7 +82,9 @@ It fires once per ship: `noteStormOutcome()` is called per player. Three captain
 storm stacks three 8-second storms, on top of the storm cue that already played — and `fadeStorm()`
 cannot retire any of them, because `stormNode` is only set on the `newround` path.
 
-**Fix: the same single line.** This defect exists only because of DEFECT-1.
+~~**Fix: the same single line.**~~ **ALREADY FIXED, same commit as DEFECT-1** (`fb74eedc`) —
+this defect existed only because of DEFECT-1. `noteStormOutcome()` now plays `fishing`, not
+`storm`, so nothing lands on the master bus at full volume any more.
 
 ### THREE ASSERTIONS THAT FAIL THE MOMENT THE SUITE RUNS AGAIN (2026-08-31, undiagnosed)
 
