@@ -4,14 +4,14 @@
 import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CHROME, LINUX_ARGS } from "./chrome.mjs";
+import { CHROME, LINUX_ARGS, PYTHON } from "./chrome.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // one Chrome tab, driven over CDP. `serveRoot` is served on `httpPort` (fresh port = fresh module
 // cache, DRIVING-THE-GAME.md §1). Returns a rich handle; call .close() when done.
 export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDir, mobile = false, dsf = 1 }) {
-  const srv = httpPort ? spawn("python3", ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
+  const srv = httpPort ? spawn(PYTHON, ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
   fs.rmSync(profileDir, { recursive: true, force: true });
   const args = [...LINUX_ARGS, "--headless=new", "--mute-audio", `--remote-debugging-port=${dbgPort}`,
     `--user-data-dir=${profileDir}`, "--no-first-run", "--no-default-browser-check",

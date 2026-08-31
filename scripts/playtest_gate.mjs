@@ -23,7 +23,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { REPO, gameURL } from "./lib/chrome.mjs";
+import { REPO, gameURL, PYTHON } from "./lib/chrome.mjs";
 import { openChrome, sleep } from "./lib/cdp.mjs";
 /* THE SECOND ENGINE. Wyatt, 2026-08-26: "your fixes must be verified across Safari and Chrome."
    wk.mjs is a MOUNT, not a second driver — it returns the same handle shape openChrome() does, so
@@ -90,7 +90,7 @@ process.on("exit", killAll); for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) 
 // must NOT own servers: the contact sheet renders after a leg's Chrome closes, and a per-leg server
 // would already be dead by then. Do not edit game files while the gate runs — this serves the disk.
 import { spawn } from "node:child_process";
-const SRV = spawn("python3", ["-m", "http.server", String(PORT0)], { cwd: REPO, stdio: "ignore" });
+const SRV = spawn(PYTHON, ["-m", "http.server", String(PORT0)], { cwd: REPO, stdio: "ignore" });
 ownPorts.http.add(PORT0);
 process.on("exit", () => { try { SRV.kill("SIGKILL"); } catch {} });
 await sleep(900);
@@ -303,7 +303,7 @@ async function contactSheet(rec, tag, idx) {
        the same mistake is LOUD instead of reassuring (docs/HARD-WON-LESSONS.md §3). */
     const sheetPort = PORT0 + 70 + idx;
     ownPorts.http.add(sheetPort);
-    const sheetSrv = spawn("python3", ["-m", "http.server", String(sheetPort)], { cwd: OUT, stdio: "ignore" });
+    const sheetSrv = spawn(PYTHON, ["-m", "http.server", String(sheetPort)], { cwd: OUT, stdio: "ignore" });
     await sleep(700);
     await c.nav(`http://127.0.0.1:${sheetPort}/contact-${tag}.html`); await sleep(1200);
     const widths = await c.ev("Promise.all([...document.images].map(i=>i.complete?i.naturalWidth:new Promise(r=>{i.onload=()=>r(i.naturalWidth);i.onerror=()=>r(0);})))");

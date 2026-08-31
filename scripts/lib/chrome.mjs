@@ -72,3 +72,24 @@ export const LINUX_ARGS = process.platform === "linux" ? ["--no-sandbox", "--dis
    appears beside it. */
 export const GAME_PATH = "/";
 export const gameURL = (port, host = "127.0.0.1") => `http://${host}:${port}${GAME_PATH}`;
+
+/* ── ONE SPELLING FOR "run python", FOR THE SAME REASON AS CHROME ABOVE ────────────────────────
+   Every driver that serves the tree over HTTP hardcoded `spawn("python3", ["-m", "http.server", ...])`
+   -- twelve call sites, none of them agreeing with what is actually on the machine running them.
+   `python3` is the Linux/Mac spelling; this checkout's Windows Python (python.org installer, the
+   Razer, 2026-08-31) registers only as `python`, so every one of those twelve spawns failed with
+   ENOENT the first time anything tried to serve a leg here -- found running exactly the short
+   playtest leg this fix exists to unblock.
+
+   Resolved the same way CHROME is: prefer an explicit override, then try each spelling in turn,
+   and fail loudly rather than let a dead spawn read as "the server never came up". */
+export const PYTHON = (() => {
+  if (process.env.PYTHON_BIN) return process.env.PYTHON_BIN;
+  for (const n of ["python3", "python"]) {
+    try {
+      execSync(`${process.platform === "win32" ? "where" : "command -v"} ${n}`, { stdio: ["ignore", "pipe", "ignore"] });
+      return n;
+    } catch {}
+  }
+  console.error("FATAL: no python found — set PYTHON_BIN"); process.exit(1);
+})();

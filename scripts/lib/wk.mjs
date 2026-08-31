@@ -25,6 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { pathToFileURL } from "node:url";
+import { PYTHON } from "./chrome.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -77,7 +78,7 @@ export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile
       + `    mkdir -p ~/.pw && cd ~/.pw && npm i playwright && npx playwright install webkit\n`
       + `  scripts/lib/wk.mjs finds ~/.pw automatically; PW_DIR only overrides it.`);
   }
-  const srv = httpPort ? spawn("python3", ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
+  const srv = httpPort ? spawn(PYTHON, ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
   if (profileDir) fs.rmSync(profileDir, { recursive: true, force: true });
   await sleep(900);
 
