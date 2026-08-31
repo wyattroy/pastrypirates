@@ -12,10 +12,12 @@
 // anything inside them; a structural regression here is the milestone's known Safari risk
 // (11-CONTEXT.md D-12, re-verified live on Safari in 11-08).
 //
-// SCOPED EXCEPTION — ONE DIRECTOR STEP 1 (2026-08-31). ⚠ AWAITING WYATT'S RULING: both exceptions
-// below carry "Wyatt-approved <date>" and this one does not yet. It is recorded HERE, in the header
+// SCOPED EXCEPTION — ONE DIRECTOR STEP 1 (Wyatt-approved 2026-08-31). Recorded HERE, in the header
 // a reader checks first, because a checker's verdict was that without it the next reader is
-// entitled to revert this in good faith — and would be right to.
+// entitled to revert this in good faith — and would be right to. His words, granting it:
+// "i approve you changing board.js and anything else you need to change to execute our 4-layer plan".
+// THAT APPROVAL IS SCOPED TO THE FOUR-LAYER PLAN, not to this region generally. A change in here
+// that is not part of that plan still needs its own ruling.
 // WHAT CHANGED: render()'s backward walk for "whose turn is it", and activeTurnSeat()'s, now call
 // deriveActiveSeat() in src/shared/storyboard.js instead of each keeping a private copy. Nothing
 // else in either body moved. The same fact was being derived FIVE times in three files; it is now
