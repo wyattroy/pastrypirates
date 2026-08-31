@@ -59,6 +59,17 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/glass-harvest-first.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Harvest his words off the Glass before republishing over them"
+          }
+        ]
+      },
+      {
         "matcher": "Bash|Edit|Write|NotebookEdit",
         "hooks": [
           {
