@@ -102,3 +102,78 @@ export function deriveActiveSeat(events, playhead, opts) {
   }
   return null;
 }
+
+/* ============================================================================
+   THE STORYBOARD ITSELF — event in, ordered beats out.
+   ============================================================================
+   THE PLAN'S STEP 1 (.planning/architecture-one-director.html §07), and its honest size: NO PLAYER
+   SEES ANYTHING CHANGE. `sail` is already drawn identically on every client — consumeEvent()
+   (src/orchestrator.js:1586) is run by the host's drain AND by watchEvents()'s wire feed, and
+   animateSailRoute rides the event being consumed, idempotently. What was missing is not agreement.
+   It is that the agreed sequence was written as INSTRUCTIONS and could not be READ.
+
+   WHY THAT MATTERS ENOUGH TO BUILD: a sequence expressed as data can be snapshotted in one process
+   with no browser, no network and no Firebase — which is the whole basis of the parity gate the
+   plan asks for next. "Do the two clients agree?" stops being a two-browser expedition you hope
+   about and becomes a file the build compares. It is also why this must be PURE: two clients run
+   the same function on the same event, so their storyboards are identical BY CONSTRUCTION rather
+   than by comparison.
+
+   PURITY IS GATED, NOT PROMISED. This file may not import src/state/ or src/ui/ — enforced by
+   scripts/module_graph_check.js. So `present()` may read ONLY what it is handed. If a beat ever
+   seems to need appState, that is a finding about the beat, not a reason to import: it means the
+   beat depends on live render state and does not belong in a storyboard at all.
+
+   A BEAT IS { do, ... } AND NOTHING ELSE DECIDES ORDER. The list's order IS the order. L4 performs
+   them in sequence; it never reorders, filters by client type, or inserts its own.
+
+   SCOPE TODAY — strangler fig, deliberately one event kind: `sail` returns a real beat list, every
+   other kind returns null, meaning "keep doing what you already do". Converting a second kind is
+   what unlocks the golden-file gate; converting all of them is step 6, and only then does the old
+   path get deleted. */
+
+/* THE BEAT KINDS THAT EXIST SO FAR. Named as a frozen list so the gate can assert L4 knows how to
+   perform every one of them — an unknown beat must be a loud failure, never a silent skip, because
+   a skipped beat is precisely a screen quietly not drawing something. */
+export const BEAT_KINDS = Object.freeze(["walkRoute"]);
+
+/* present(event, snapshot) -> beats[] | null
+   `null` is not "no beats" — it means THIS KIND IS NOT CONVERTED YET, and the caller must fall
+   through to the existing path. An empty array would mean "converted, and this event draws
+   nothing", which is a different and equally legitimate answer. Keeping them distinct is what
+   makes the migration safe to do one kind at a time.
+
+   `snapshot` is unused by the sail beat, which needs only what is already on the event — but it is
+   NOT merely reserved, and the note at the return statement below is why: the moment a beat wants
+   to validate a seat it needs the seat count, which is engine state and may not be reached for
+   from in here. That is the concrete argument for the plan pinning L3's inputs as
+   `present(event, engineSnapshot)` AND NOTHING ELSE — the alternative is an import of appState,
+   which is the exact back door CEO review 31 named. */
+export function present(event, snapshot) {   // eslint-disable-line no-unused-vars
+  if (!event || typeof event !== "object") return null;
+  if (event.t !== "sail") return null;
+
+  /* THE ROUTE TEST IS THE EVENT'S OWN, NOT A SECOND OPINION. animateSailRoute has always ridden
+     "any event carrying a baked route", because Game.bakeDraw only produces draw.route for a move
+     it could vouch for — the route must land exactly on the pos baked beside it. A route under 3
+     squares is a straight hop with no corner to draw, and the plain render says it better; that
+     threshold is the walker's, kept here verbatim rather than re-derived, so converting the kind
+     cannot quietly change which sails walk. */
+  const route = event.draw && event.draw.route;
+  if (!Array.isArray(route) || route.length < 3) return [];
+
+  /* `event.p` VERBATIM, NOT normalizeSeat(event.p) — and the first draft got this wrong in a way
+     worth recording. normalizeSeat's signature is (seat, seatCount): called with one argument it
+     returns null for EVERY seat, which would have produced a beat with no captain and a boat that
+     never moves. It was caught in the first ten seconds of testing the function, which is the only
+     reason it is a note instead of a bug.
+     The seat count is engine state, so the correct call would need it passed in `snapshot` — which
+     is the concrete reason the plan pins present(event, engineSnapshot) rather than present(event).
+     I predicted this beat would need nothing but the event; that was wrong, and the finding is
+     better than the prediction.
+     But it is NOT normalized here anyway, because animateSailRoute passes `ev.p` raw today
+     (flow.js:1293) and CONVERTING A KIND MUST NOT CHANGE ITS BEHAVIOUR. Adding validation inside a
+     refactor is how a "pure move" quietly becomes a fix nobody reviewed. If seat validation is
+     wanted, it is its own change, with its own gate. */
+  return [{ do: "walkRoute", seat: event.p, from: route[0], path: route.slice(1) }];
+}

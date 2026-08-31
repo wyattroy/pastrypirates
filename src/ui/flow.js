@@ -45,6 +45,7 @@
 import { appState } from "../state/index.js";
 import { pingStart } from "./usage.js";
 import { roundCfg } from "../engine/index.js";
+import { present } from "../shared/storyboard.js";   // L3: the storyboard this file performs
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. The tails buy prompt (:below) was this file's
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
@@ -1274,6 +1275,43 @@ const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
    landed on the index the last voyage finished on (W7b case C). A fresh voyage's events are fresh
    objects, so this cannot happen and there is no frontier for anyone to remember to reset. */
 const _rodeRoute=new WeakSet();
+/* ============================================================================
+   L4 — THE PERFORMER. Plays a storyboard; decides nothing.
+   ============================================================================
+   Step 1 of the one-director plan. `present()` in src/shared/storyboard.js (L3, purity gated by
+   module_graph_check) turns an event into an ordered list of beats; this plays them in order.
+
+   IT DECIDES NOTHING, AND THAT IS THE ENTIRE CONTRACT. No reordering, no filtering by client type,
+   no beat of its own. The list's order IS the order. The moment a performer starts choosing, there
+   are two directors again, which is the fault the whole plan exists to remove.
+
+   AN UNKNOWN BEAT THROWS. It does not skip, and it does not warn-and-continue — a skipped beat is
+   precisely a screen quietly failing to draw something, which is the class of bug this project
+   keeps paying for. A beat kind that reaches here without a performer is a build mistake and
+   should be as loud as one.
+
+   NO PLAYER SEES ANYTHING CHANGE TODAY, and the honest reason is in storyboard.js's header: `sail`
+   was already drawn identically everywhere. What this buys is that the sequence is now DATA, which
+   is what the golden-file parity gate needs to exist at all. */
+export async function playStoryboard(beats){
+  if(!Array.isArray(beats))return false;
+  let played=false;
+  for(const b of beats){
+    switch(b&&b.do){
+      case "walkRoute":
+        /* THE SAME RUNNER THE OLD PATH CALLS, not a reimplementation — the whole point of a
+           strangler fig is that the new path reaches the identical code. animateSailRouteRun holds
+           the ride; animateSailRoute holds the DECISION to ride, and that decision has moved into
+           present(). */
+        played=(await animateSailRouteRun(b.seat,b.from,b.path))||played;
+        break;
+      default:
+        throw new Error(`playStoryboard: no performer for beat "${b&&b.do}" — a beat kind reached L4 that L4 cannot play. This is a build mistake, not a runtime condition; skipping it would be a screen silently not drawing something.`);
+    }
+  }
+  return played;
+}
+
 export async function animateSailRoute(ev){
   const g=appState.game;
   if(!g||appState.replaying)return false;
@@ -1287,10 +1325,18 @@ export async function animateSailRoute(ev){
   if(!ev)return false;
   if(_rodeRoute.has(ev))return false;
   _rodeRoute.add(ev);
-  const route=ev.draw&&ev.draw.route;
-  // <3 is a straight one-square hop: no corner to draw, and the plain render says it better
-  if(!Array.isArray(route)||route.length<3)return false;
-  return animateSailRouteRun(ev.p,route[0],route.slice(1));
+  /* THE DECISION TO RIDE NOW LIVES IN present() — src/shared/storyboard.js, L3, pure and gated.
+     What used to be three lines of policy here (does it carry a baked route? is it long enough to
+     have a corner?) is the same three lines there, moved verbatim so that converting this kind
+     could not quietly change which sails walk.
+     `null` MEANS "NOT CONVERTED", not "no beats", and the distinction is what makes the migration
+     safe one kind at a time: a kind present() does not know falls through to whatever this function
+     did before. Today only `sail` returns a list; everything else returns null and lands here.
+     The WeakSet guard stays ABOVE this, unchanged: idempotency is a property of this call site
+     (the host's own flow.js:2381/2489 calls versus consumeEvent's), not of the storyboard. */
+  const beats=present(ev);
+  if(beats)return playStoryboard(beats);
+  return false;
 }
 /* The walker itself: squares in hand, no derivation. Kept separate for the same reason
    animateRimSweepRun is — one place decides WHETHER to ride, one place performs the ride. */

@@ -52,6 +52,7 @@ const lineOf = (src, idx) => src.slice(0, idx).split("\n").length;
 
 const engine = read("src/engine/index.js");
 const flow   = read("src/ui/flow.js");
+const storyboard = read("src/shared/storyboard.js");   // step 1 moved the ride DECISION here
 const orch   = read("src/orchestrator.js");
 
 /* ─── STEP 0. PROVE THE INSTRUMENT TOUCHED ITS SUBJECT ────────────────────────────────────────
@@ -162,10 +163,30 @@ const ROUTE_KEY = /\b(route|path|legs|via|squares|waypoints)\b/;
   if (!drawReads.length) pass(`src/engine/index.js never READS a draw lane — presentation stays presentation, and deleting it changes no move`);
   else fail(`src/engine/index.js reads a draw lane at line(s) ${drawReads.map(m => lineOf(engine, m.index)).join(", ")} — a rule is reading presentation, so the lane is no longer free to delete`);
 
-  /* and the walker must read what the baker wrote — the two ends of one wire */
-  if (/\.draw\s*&&\s*\w+\.draw\.route|\.draw\?\.route|\.draw\.route/.test(flow))
-    pass(`src/ui/flow.js reads draw.route off the event — the lane the engine writes is the lane the walker walks`);
-  else fail(`src/ui/flow.js never reads draw.route — the engine publishes a lane nothing consumes, so the guest still glides straight`);
+  /* AND THE WALKER MUST READ WHAT THE BAKER WROTE — the two ends of one wire.
+     FOLLOWED, NOT WEAKENED, 2026-08-31. This asserted the read was in src/ui/flow.js, and it went
+     red the moment step 1 moved that decision into src/shared/storyboard.js's present(). The
+     behaviour did not change; the gate's SUBJECT moved. Loosening it to "some file somewhere reads
+     draw.route" would have been the easy fix and a bad one — this project has shipped a gate aimed
+     at the wrong tree before, and a gate aimed at nothing in particular is worse (§3 of
+     HARD-WON-LESSONS: a gate aimed at the wrong tree is not silent, it is reassuring).
+     So it now asserts the WIRE, end to end, in whichever file each end lives: something in the
+     display path reads the lane, and flow.js can reach that reader. Both halves must hold. */
+  const readers = [["src/ui/flow.js", flow], ["src/shared/storyboard.js", storyboard]]
+    .filter(([, src]) => /\.draw\s*&&\s*\w+\.draw\.route|\.draw\?\.route|\.draw\.route/.test(src))
+    .map(([name]) => name);
+  /* CODE ONLY. The first version tested this against the raw file and a COMMENT saying "moved into
+     present()" satisfied it — a gate passing on prose about the code instead of the code, which is
+     rule 6 committed inside a gate written to enforce rule 6. Caught by red-proofing the second
+     direction and noticing it did not fire. */
+  const flowCode = flow.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  const flowReachesReader = /\.draw\.route/.test(flowCode) || /=\s*present\s*\(/.test(flowCode);
+  if (readers.length && flowReachesReader)
+    pass(`the lane the engine writes is the lane the walker walks — read in ${readers.join(" + ")}, reached from src/ui/flow.js`);
+  else if (!readers.length)
+    fail(`nothing in the display path reads draw.route — the engine publishes a lane nothing consumes, so the guest still glides straight`);
+  else
+    fail(`draw.route is read in ${readers.join(" + ")}, but src/ui/flow.js neither reads it nor calls present() — the walker cannot reach the decision, so the lane is orphaned`);
 }
 
 /* ─── 2. THE GUEST. The one event consumer must walk the route. ────────────────────────────────
