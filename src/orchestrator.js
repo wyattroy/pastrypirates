@@ -524,14 +524,14 @@ export function watchBattle(){
 // battleFooter moved verbatim to src/ui/flow.js (11-05).
 // A battle decision that keeps the coins on screen: the scoreboard (o) renders with the
 // prompt buttons tucked beneath it, so nothing about the layout jumps when it's your turn.
-export function battleAsk(p,o,msg,opts,colors){
+export function battleAsk(player,o,msg,opts,colors){
   // same record/replay contract as ask(): log the chosen index, replay it through fresh opts
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],opts.length-1).opt.value);}
     endReplay();
   }
-  applyActiveSeat(p.idx);
-  const seat=p.idx;
+  applyActiveSeat(player.idx);
+  const seat=player.idx;
   const isFlip=opts.length===1&&!!opts[0].flip;
   // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
   // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
@@ -1037,13 +1037,13 @@ async function runLiveDayBakeoff(order){
   return g.endBakeDay();
 }
 /* One captain's attempt. */
-async function bakeTurnLive(p){
+async function bakeTurnLive(player){
   const g=appState.game;
   /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
      fixed order, so the seeded stream is identical whether a human is about to play or not. Only
      then does the human path get to look at the bench. */
-  const {setup,fallback}=g.bakeSetup(p);
-  const human=p.strategy==="human";
+  const {setup,fallback}=g.bakeSetup(player);
+  const human=player.strategy==="human";
   /* A-2 (Wyatt, 2026-08-28: "Yes. Build it. Bakeoff IS the game coming to life."): a bot's bake
      PLAYS on every screen now, where it used to resolve invisibly in one tick. `perform` is when
      any bench is worth drawing at all — never under replay (its sleeps no-op but the watcher's
@@ -1056,8 +1056,8 @@ async function bakeTurnLive(p){
   // player ACTUALLY made rather than re-deriving one from the bot. The bot's guess is the engine's
   // own fallback either way: the performance publishes a decision already made, it never makes one.
   let dec;
-  if(human)dec=await bakeoffPrompt(p,setup,fallback);
-  else{ if(perform)await botBakePerform(p,setup,fallback); dec={g:fallback,w:0}; }
+  if(human)dec=await bakeoffPrompt(player,setup,fallback);
+  else{ if(perform)await botBakePerform(player,setup,fallback); dec={g:fallback,w:0}; }
   /* WHERE A RE-WATCH IS ACTUALLY PAID FOR — three cases, one debit site, and the engine is the
      only thing that ever moves a coin.
        LOCAL, LIVE      already charged, one click at a time, by flow.js's onRewatch — so the purse
@@ -1072,11 +1072,11 @@ async function bakeTurnLive(p){
      bakeRewatch DRAWS NO RANDOM NUMBERS (see its note in the engine), so adding the remote case
      cannot fork the seeded stream; it emits a `rewatch` event, exactly as the other two do, which
      is also what reconciles the buyer's optimistic figure back to the settled one. */
-  if(dec.w&&(appState.replaying||!decisionIsLocal(p.idx)))g.bakeRewatch(p,dec.w);
-  const out=g.bakeResolve(p,dec.g);
+  if(dec.w&&(appState.replaying||!decisionIsLocal(player.idx)))g.bakeRewatch(player,dec.w);
+  const out=g.bakeResolve(player,dec.g);
   // A-2: the verdict reveals for EVERY performed bake, not only a human's — the crates a bot's
   // watchers just studied come off the same way, through the same one publish.
-  if(perform)await benchReveal(p,out.res);
+  if(perform)await benchReveal(player,out.res);
   liveRender();
   // narrateLastEvent() reads events[length-1], NOT appState.evIdx — so it narrates whichever event
   // bakeAttempt emitted last: the `finish` on a perfect bake, otherwise the `bake` verdict. Walking
@@ -1640,30 +1640,30 @@ export function watchEvents(){
 }
 export function watchPrompt(){
   netWatchPrompt(appState.db,appState.room,snap=>{
-    const p=snap.val();
+    const prompt=snap.val();
     /* A BAKE BENCH OUTLIVES ITS OWN PROMPT, so this clear must not take one down (04-01 Task 3).
        MEASURED: the remote captain answered, remotePrompt removed the prompt node, this callback
-       fired with p===null and wiped the bench a beat before the verdict arrived on the bench
+       fired with prompt===null and wiped the bench a beat before the verdict arrived on the bench
        channel — so the one captain who had actually played the bake was the only one who never saw
        how it went. The same guard protects a WATCHER, whose bench is not tied to any prompt of
        their own. The card leaves through its one exit, retireBakeCard (item 6 / D-16), never here. */
-    if(!p||p.seat!==appState.mySeat){
+    if(!prompt||prompt.seat!==appState.mySeat){
       if(!document.querySelector("#actionPanel .bko"))panel("");
       setFlipActive(null);appState.inBattlePrompt=false;return;}
-    if(p.kind==="ask"){
-      if(p.battle){
+    if(prompt.kind==="ask"){
+      if(prompt.battle){
         // this seat owns the live battle decision — render the same scoreboard everyone else
         // sees, with the control (flip button or choice buttons) layered on top
         appState.inBattlePrompt=true;
-        if(p.flip){
-          renderBattleFromSnap(p.battle);
+        if(prompt.flip){
+          renderBattleFromSnap(prompt.battle);
           setNeedsAction(true);
-          setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(p.id,0);});
+          setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(prompt.id,0);});
         }else{
           setFlipActive(null);
-          const cols=p.colors||[];
-          renderBattleFromSnap(p.battle,{prompt:{msg:p.msg,opts:(p.labels||[]).map(l=>({label:l})),colors:cols}});
-          $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{b.onclick=()=>sendResponse(p.id,+b.dataset.i);});
+          const cols=prompt.colors||[];
+          renderBattleFromSnap(prompt.battle,{prompt:{msg:prompt.msg,opts:(prompt.labels||[]).map(l=>({label:l})),colors:cols}});
+          $("actionPanel").querySelectorAll(".btlBtn").forEach(b=>{b.onclick=()=>sendResponse(prompt.id,+b.dataset.i);});
         }
         return;
       }
@@ -1683,19 +1683,19 @@ export function watchPrompt(){
          fixed 2d19a15e) instead of a floating narration bubble the host never drew.
          "" from the wire normalizes to null inside the rebuild (seat 0 is a real captain — the
          !=null tests stay). */
-      const flipIdx=(p.flipIdx!=null&&p.flipIdx>=0)?p.flipIdx:(p.flip?0:-1);
-      const backIdx=(p.back!=null&&p.back>=0)?p.back:-1;
-      const cols=p.colors||[],cls=p.classes||[],labels=p.labels||[],dis=p.disabled||[],why=p.why||[],seats=p.seats||[],shorts=p.shorts||[];
+      const flipIdx=(prompt.flipIdx!=null&&prompt.flipIdx>=0)?prompt.flipIdx:(prompt.flip?0:-1);
+      const backIdx=(prompt.back!=null&&prompt.back>=0)?prompt.back:-1;
+      const cols=prompt.colors||[],cls=prompt.classes||[],labels=prompt.labels||[],dis=prompt.disabled||[],why=prompt.why||[],seats=prompt.seats||[],shorts=prompt.shorts||[];
       const opts=labels.map((l,i)=>({label:l,cls:cls[i]||"",disabled:!!dis[i],why:why[i]||"",
         seat:(seats[i]===""||seats[i]==null)?null:seats[i],
         short:(shorts[i]===""||shorts[i]==null)?null:shorts[i],
-        flip:i===flipIdx,back:i===backIdx,stage:!!p.stage}));
+        flip:i===flipIdx,back:i===backIdx,stage:!!prompt.stage}));
       // belt: a flip prompt whose labels never crossed the wire still arms the coin
-      if(flipIdx>=0&&!opts.length)opts.push({label:"",flip:true,stage:!!p.stage});
-      const sl=p.slider?Object.assign({},p.slider,{ref:{value:p.slider.start}}):null;
-      renderAskPrompt({msg:p.msg,opts,colors:p.colors||null,sub:p.sub||null,slider:sl,battle:false},
-        v=>sendResponse(p.id,v,true));
-        }else if(p.kind==="pick"){
+      if(flipIdx>=0&&!opts.length)opts.push({label:"",flip:true,stage:!!prompt.stage});
+      const sl=prompt.slider?Object.assign({},prompt.slider,{ref:{value:prompt.slider.start}}):null;
+      renderAskPrompt({msg:prompt.msg,opts,colors:prompt.colors||null,sub:prompt.sub||null,slider:sl,battle:false},
+        v=>sendResponse(prompt.id,v,true));
+        }else if(prompt.kind==="pick"){
       appState.inBattlePrompt=false;
       setFlipActive(null);
       // THE TRACER (02.15-02 Task 3, D-25/PAR-14): names the ONE converged renderer DIRECTLY —
@@ -1715,15 +1715,15 @@ export function watchPrompt(){
          converged renderer, starved of an argument.
 
          prompt_field_parity_check's assertion 2 has been RED about exactly this the whole time —
-         "pickCell() SENDS 'pos' and watchPrompt's pick branch never reads p.pos". The gate named
+         "pickCell() SENDS 'pos' and watchPrompt's pick branch never reads prompt.pos". The gate named
          the field, the tier and the consequence, and nobody read it.
 
          And the comment inside renderPickPrompt claimed `pos` is "absent only across a version
          skew (an older host feeding a newer guest)". It was absent on EVERY guest in EVERY game.
          That is rule 6's other half in the wild — a comment making a claim about runtime, rotted,
          and believed. */
-      renderPickPrompt({cells:p.cells||[],msg:p.msg,hint:p.hint||null,pos:p.pos||null},cell=>sendResponse(p.id,cell));
-    }else if(p.kind==="bake"){
+      renderPickPrompt({cells:prompt.cells||[],msg:prompt.msg,hint:prompt.hint||null,pos:prompt.pos||null},cell=>sendResponse(prompt.id,cell));
+    }else if(prompt.kind==="bake"){
       /* MP-04 — THE BAKE, TAKEN BY ITS OWN CAPTAIN (04-01 Task 2, THE TRACER).
          Before this branch existed, a guest's bake was played on the HOST's screen by the host's
          own hands while the guest's screen showed nothing at all — measured 2026-08-23 in a real
@@ -1740,8 +1740,8 @@ export function watchPrompt(){
          also on re-attach, and a bake is a two-minute interaction rather than a re-render — a
          second start would put two benches in one panel and answer twice. Same edge-trigger idiom
          watchBattle uses for spectatingBattle: read before you assign. */
-      if(_liveBakePromptId===p.id)return;
-      _liveBakePromptId=p.id;
+      if(_liveBakePromptId===prompt.id)return;
+      _liveBakePromptId=prompt.id;
       /* MP-06, THE REMOTE PURSE. The engine is the only thing that moves a real coin and it lives
          on the host, so what happens here is DISPLAY: the buyer's own purse drops the moment they
          buy, the count rides home in the single reply, and the host charges it authoritatively
@@ -1751,12 +1751,12 @@ export function watchPrompt(){
          true number instantly, at the price of a round-trip in the middle of a prompt and a second
          way for a purse to be wrong. If the optimistic figure is ever seen to disagree with the
          settled one, report the number — do not paper over it. */
-      const cost=p.cost||1;
-      let purse=(p.coins==null?0:p.coins);
+      const cost=prompt.cost||1;
+      let purse=(prompt.coins==null?0:prompt.coins);
       const spend=(n)=>{
         const want=cost*(n||0);
         if(want<=0||purse<want)return false;
-        purse-=want;showSeatCoins(p.seat,purse);
+        purse-=want;showSeatCoins(prompt.seat,purse);
         return true;
       };
       spend.canAfford=()=>purse>=cost;
@@ -1768,9 +1768,9 @@ export function watchPrompt(){
       // a remote one does not. It caught this exact omission the moment `baker` was added — the
       // local screen would have titled the card "{Captain}'s Bake-Off" while a remote captain's
       // still read "The Bake-Off". A title is not load-bearing; the divergence would have been.
-      const wireSpec={order:p.order||[],before:p.before||[],swaps:p.swaps||[],
-                      locked:p.locked||[],attempts:p.attempts||0,cost,baker:p.baker};
-      const seat=p.seat;
+      const wireSpec={order:prompt.order||[],before:prompt.before||[],swaps:prompt.swaps||[],
+                      locked:prompt.locked||[],attempts:prompt.attempts||0,cost,baker:prompt.baker};
+      const seat=prompt.seat;
       /* MP-13 (04-01 Task 4) — A CAPTAIN WHO DROPS MID-BAKE DOES NOT STALL THE TABLE.
          The bake has no shot clock any more (Wyatt, 2026-08-18: the finish line gets as long as it
          needs), and the clock was the only thing that used to stop an absent captain hanging the
@@ -1783,7 +1783,7 @@ export function watchPrompt(){
          guess, having bought nothing. One entry, both facts.
          CANCELLING IS NOT OPTIONAL — see the writer's own note. It is cancelled on the answer path
          AND on the error path below, which are the only two ways out of this branch. */
-      netForfeitOnDisconnect(appState.db,appState.room,p.id);
+      netForfeitOnDisconnect(appState.db,appState.room,prompt.id);
       playBakeoffLive(wireSpec,{onRewatch:spend,onBench:(patch)=>benchPublish(wireSpec,seat,patch)})
         // The SAME SHAPE playBakeoffLive resolves for a local captain — {guess,rewatches} — so the
         // host's tail in bakeoffPrompt never has to know which tier answered. `null` (the bench
@@ -1796,10 +1796,10 @@ export function watchPrompt(){
         // on THIS bench. The card's exit is retireBakeCard's, at the end of that (item 6 / D-16).
         .then(r=>{_liveBakePromptId=null;
                   netClearForfeitOnDisconnect(appState.db,appState.room);
-                  sendResponse(p.id,r||null,true);},
+                  sendResponse(prompt.id,r||null,true);},
               e=>{_liveBakePromptId=null;console.error("bake prompt",e);
                   netClearForfeitOnDisconnect(appState.db,appState.room);
-                  sendResponse(p.id,null,true);});
+                  sendResponse(prompt.id,null,true);});
     }
   });
 }
