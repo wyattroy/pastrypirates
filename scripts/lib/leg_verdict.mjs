@@ -51,17 +51,16 @@ export function legVerdict(rec) {
     if (!wk) v.push(`${rescues} browser relaunch(es) on a Chrome leg — Chrome has never needed one; this is NOT the sanctioned WebKit crash`);
     else if (rescues > budget) v.push(`${rescues} WebKit relaunch(es) over ${rec.days || "?"} day(s) — above the ${budget} this voyage's length allows; that is a crash loop being ridden out, not a voyage`);
   }
-  /* ⚠ GATHER FROM EVERY SEAT, NOT JUST THE PARENT RECORD. THE SAME FAULT, TWICE.
-     The note below records 2026-08-29, when a bare count hid 22 failures — 14 of them on
-     crew-phone-guest — and the fix was to NAME the rules in this line. It named them and still
-     read the wrong array. On 2026-08-30 the FULL trial's own log carried 36 STRUCT FAIL lines
-     (23 crew-phone-guest, 10 solo-phone-wk, 2 solo-phone, 1 crew-phone-host) and the report showed
-     TWO, because a crew leg puts each seat in its own record (`rec.seats = [recA, recB]`,
-     playtest_gate.mjs:391) and this read only `rec.screens`. THE GUEST'S FAILURES WERE NEVER IN THE
-     ARRAY BEING COUNTED — and the guest is the side Wyatt's findings come from.
-     Deduplicated BY ARRAY IDENTITY because a solo leg sets `rec.seats = [{ screens: rec.screens }]`
-     (playtest_gate.mjs:424) — the same array under two names, which a naive concat would count
-     twice and turn an undercount into an overcount. */
+  /* ⚠ DEFENSIVE, NOT A REPAIR — AND THE STORY IS THE POINT.
+     This was written on 2026-08-31 to fix a reported 18x undercount: the log showed 36 structural
+     failures and the report showed 2. THE REPORT WAS RIGHT. `sea-trial-shots/log.txt` ACCUMULATES
+     ACROSS RUNS (its elapsed prefix resets sixteen times); the 36 are spread over ~16 trials, and
+     the last run's report.json holds exactly 2. And the mechanism blamed does not exist:
+     playtest_gate.mjs:390 gives recA and recB `screens: rec.screens` — THE SAME ARRAY as the
+     parent — so a guest's failures were never missing from the count.
+     KEPT ANYWAY, because it costs nothing and a future change that gives seats their own arrays
+     would make that bug real. Deduplicated by ARRAY IDENTITY, which is what makes it a no-op today.
+     DO NOT read this as evidence the report ever undercounted. It did not. */
   const screenSets = [];
   const seenArrays = new Set();
   for (const src of [rec, ...(rec.seats || [])]) {

@@ -1451,36 +1451,43 @@ the framing and the placement sites.
 
 ---
 
-## 11. 2026-08-30/31 — the night every wrong answer came from reading a summary instead of its source
+## 12. 2026-08-30/31 — the night every wrong answer came from reading a summary instead of its source
 
 **Read this one before you write a status report, and before you believe any tool's headline.** The
 work that night was mostly sound. **Every wrong thing said to Wyatt came from the same move:
 repeating a summary without opening what it summarised.** Four times, in four different disguises.
 
-### 11a. A SUMMARY LOSES WHAT ITS SOURCE KNOWS — and the sea trial lost 94% of its own findings
+### 12a. ⚠ THIS ENTRY WAS FALSE WHEN FIRST WRITTEN. THE REPORT WAS RIGHT.
 
-`.planning/SEA-TRIAL.md` reported **2 structural failures**. `sea-trial-shots/log.txt`, written by
-the same run, contained **36** — 23 of them on `crew-phone-guest`, a leg the report gave no
-structural line at all.
+**What stood here:** that the sea trial reported 2 structural failures while its own log held 36,
+and that a crew leg's guest failures were never counted. A CEO review found it, I verified it
+against the log, withdrew two claims to Wyatt, and wrote it up as a lesson — all within an hour.
 
-**The mechanism:** `leg_verdict.mjs` gathered from `rec.screens`. A crew leg puts each seat in its
-**own** record (`playtest_gate.mjs:391`, `rec.seats = [recA, recB]`), so the guest's failures were
-never in the array being counted — **and the guest is the side nearly every playtest finding comes
-from.**
+**It collapsed on one check.** `sea-trial-shots/log.txt` **DOES NOT DESCRIBE ONE RUN. It accumulates
+across every run** — its elapsed-second prefix resets to `[10s]` **sixteen times**, and the same
+screenshot carries a judge error twice, an hour apart. The 36 failures are spread over ~16 separate
+trials. The last run's own `report.json` holds **10 legs and exactly 2 screens with structural
+failures.**
 
-**THE PART THAT MAKES IT A LESSON RATHER THAN A BUG:** this exact symptom was found on
-**2026-08-29** and is documented in that very function. The fix then made the line *name* the rules
-it counted. **It named them and still read the wrong array.** A fix aimed at the wording of a wrong
-answer leaves the wrong answer.
+**And the mechanism blamed does not exist.** `playtest_gate.mjs:390`:
+`const recA = { screens: rec.screens }, recB = { screens: rec.screens }` — **both seats point at the
+same array as the parent.** A guest's failures were never missing from the count.
 
-- **Rule 24 says Wyatt opens the report and believes it. So the report must not know less than its
-  own log.** When you summarise a run, summarise it from the log, and if the two disagree the
-  summary is the suspect.
-- Deduplicate by **array identity**, not by name: a solo leg sets `seat.screens` to the *same array*
-  as `rec.screens` (`playtest_gate.mjs:424`), so a naive concat turns an undercount into an
-  overcount and still looks like a fix.
+**THE LESSON THAT REPLACES IT, and it is worth more:**
 
-### 11b. AN INSTRUMENT THAT DISCARDS THE EVIDENCE OF ITS OWN FAILURE CANNOT BE DEBUGGED
+- **AN ACCUMULATED LOG READS EXACTLY LIKE A SINGLE RUN'S LOG.** Three readers in a row took this one
+  as a single trial. Nothing announces otherwise until you notice the clock running backwards.
+  **Before counting anything in an artifact, establish whether it is per-run or append-only.**
+  `report.json` is the per-run record here; `log.txt` is not.
+- **AND THE PICTURES ARE GONE.** Later runs reuse the same screenshot filenames, so most
+  `STRUCT FAIL` lines in that log **no longer have the image of the moment they describe.** Two
+  failure families were chased on that basis; every surviving picture of them is clean, and nobody
+  can now say whether they were real.
+- **BEING WRONG IN BOTH DIRECTIONS ON ONE QUESTION IN ONE NIGHT IS THE TELL.** The first answer came
+  from trusting a report, the second from trusting a log. Neither was checked against the artifact
+  that actually described the run.
+
+### 12b. AN INSTRUMENT THAT DISCARDS THE EVIDENCE OF ITS OWN FAILURE CANNOT BE DEBUGGED
 
 The vision judge failed **1494 times in one run** saying only *"unparseable judge reply"*. It had
 the real reason in hand the whole time — `judgeBatch` resolves `raw` — and nothing logged it. The
@@ -1489,7 +1496,7 @@ have ended a two-hour investigation before it began.
 
 **Put the failure's own words in the message, not in a field nobody prints.**
 
-### 11c. A FIX BECOMES THE NEXT FAILURE — check what your protection now forbids
+### 12c. A FIX BECOMES THE NEXT FAILURE — check what your protection now forbids
 
 The judge runs from a temp dir **on purpose**: on 2026-08-28 a child `claude -p` inherited the repo
 cwd, loaded `.claude/settings.json`, ran this project's hooks and went off to write a checklist
@@ -1499,14 +1506,14 @@ repo's own screenshots.** A child in `/tmp` is refused absolute paths into the r
 **The fix was to move the images to the judge, not the judge to the images** (`stageImages`). When
 you fence something off, ask what it can no longer reach.
 
-### 11d. ERROR MESSAGES POINT AWAY FROM THE CAUSE MORE OFTEN THAN THEY POINT AT IT
+### 12d. ERROR MESSAGES POINT AWAY FROM THE CAUSE MORE OFTEN THAN THEY POINT AT IT
 
 The same wall produced three different wordings, none of them naming it: *"unparseable judge reply"*
 (a parsing complaint about a permissions problem), *"unable to access image file"*, and
 *"Self-signed certificate detected"* at five images. **Diagnosis came from bisection — 0, 1, 2, 3, 5
 images, then 3 staged locally — not from reading any message.**
 
-### 11e. QUOTING A CLAIM APPROVINGLY IS ASSERTING IT
+### 12e. QUOTING A CLAIM APPROVINGLY IS ASSERTING IT
 
 PR #15 was merged with its own summary quoted into the ledger as *"worth keeping"*. One of its five
 claims — *"contact sheets are out"* — was false; they ran **91 times, timing out at two minutes
@@ -1516,7 +1523,7 @@ verified properly; **none of the value claims had been checked at all.**
 **Verify what a change CLAIMS TO BUY, not only that it is safe.** (Checked afterwards: the other
 four claims held.)
 
-### 11f. THREE GATES I WROTE WERE WRONG BEFORE THE CODE THEY GUARDED WAS
+### 12f. THREE GATES I WROTE WERE WRONG BEFORE THE CODE THEY GUARDED WAS
 
 `judge_can_see_check.mjs`, on its first day: passed items as `{shot}` when the function reads
 `it.path`; then expected an array when the function resolves `{results: Map}` — **and a Map
@@ -1528,7 +1535,7 @@ it was built to catch.
 **Each was a guess where a read would have done.** Before writing a check against a function, open
 the function.
 
-### 11g. AND THE ONE THAT IS ABOUT REPORTING, NOT ENGINEERING
+### 12g. AND THE ONE THAT IS ABOUT REPORTING, NOT ENGINEERING
 
 Every correction above was surfaced to Wyatt as it happened, which was right. **The cumulative
 effect was a status stream that read as nothing but failure while the branch was actually shipping
