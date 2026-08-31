@@ -74,3 +74,37 @@ missing check AND false noise in the check that does run.
 **The lesson, which is rule 6 pointing at me:** I wrote "checked by nothing" from reading one branch
 and not following where `rec.screens` goes afterwards. The prediction note is the only reason that
 got corrected instead of shipped as a finding.
+
+---
+
+## THE LIVE PROOF — a real solo voyage, End of Voyage at day 11
+
+`scripts/playtest_gate.mjs --legs=solo-desktop`, 564s to the ending. The log line
+`end of voyage: settled and structurally clean` is reachable ONLY through `settleAndCheck`, and
+both `solo-desktop-eov.png` (motion) and `solo-desktop-eov-settled.png` now exist where before
+there was only the first.
+
+**WHAT IS PROVEN:** seven structural rules now run on the End of Voyage screen. Before this change
+**zero ran and the screen was recorded as clean anyway.**
+
+**AND A SECOND CLAIM OF MINE IS NOT SUPPORTED — striking it too.** I wrote that the missing settle
+wait meant the judge was "handed the one frame guaranteed to be mid-flight", citing w34's 688px
+glide. **The matched pair says otherwise.** Motion and settled frames of this ending are visually
+identical apart from one ✨ sparkle moving from the lower right of the winner banner to the upper
+left. The card was already at rest when `st.over` flipped.
+
+**Why I was wrong, which is worth more than the claim was:** w34 measured the card being **parked
+by a scroll or a drag** — a gesture — not its arrival. I reached for the nearest measured number
+about that card and applied it to a different moment. *A number measured about one moment is not
+evidence about another,* and it read as rigour because it had a citation attached.
+
+**So the settle wait is worth keeping on its merits, not on that argument:** it costs ~2s per leg,
+it makes the ending obey the same rule as every other screen (rule 23), and it records a settle
+reading where there was none. It is not fixing a mid-flight capture, because on this evidence there
+was not one.
+
+**The leg reported FAIL, and that is NOT this change.** Its two findings are `offered but never
+exercised: vanilla beans` and `4 screen(s) never stopped moving before being checked` — the leg's
+own coverage rules. The same failure shape appears **90 times** in `sea-trial-shots/log.txt` from
+earlier runs, at counts of 8 to 18. This run was at 4, the low end. The End of Voyage screen settled
+and contributed none of them.
