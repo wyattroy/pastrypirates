@@ -1,4 +1,4 @@
-# THE WATCHDOG (wyclau charter, part 3) — Windows / the Razer.
+# THE WATCHDOG (wyclau charter, part 3) -- Windows / the Razer.
 #
 # The liveness layer lives OUTSIDE the worker: this runs from Task Scheduler, not from any
 # Claude session, so it cannot die with one. Every run: read the heartbeat the engine stamps
@@ -25,13 +25,13 @@ $now = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 if (-not (Test-Path $heartbeat)) {
   # No heartbeat at all: the engine has never run here, or the file was cleared.
-  # That is a stall by definition — but log it distinctly so the Glass can show which case it was.
-  Add-Content $restarts "$now`tno heartbeat file found — launching the engine fresh"
+  # That is a stall by definition -- but log it distinctly so the Glass can show which case it was.
+  Add-Content $restarts "$now`tno heartbeat file found -- launching the engine fresh"
 } else {
   $age = (Get-Date) - (Get-Item $heartbeat).LastWriteTime
   if ($age.TotalMinutes -le $StaleMinutes) { exit 0 }   # alive; do nothing, quietly
   $mins = [math]::Round($age.TotalMinutes)
-  Add-Content $restarts "$now`theartbeat stale ($mins min > $StaleMinutes) — restarting the engine"
+  Add-Content $restarts "$now`theartbeat stale ($mins min > $StaleMinutes) -- restarting the engine"
 }
 
 # Relaunch through the Door. The engine re-orients itself from the Chart; no state is assumed.
