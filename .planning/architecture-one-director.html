@@ -295,7 +295,20 @@ askDecision(seat, question) → answer
   <p>Which inverts the ordering: <strong>the layering gate is the highest-value item, because it is what makes the parity gate unnecessary.</strong> Keep the two-client byte comparison — but run it in the sea trial, not on every commit.</p>
 </div>
 
-<h2><span class="num">07</span><span>Migration — six steps that each ship</span></h2>
+<h2><span class="num">07</span><span>Migration — six steps that each ship <div style="border-left:4px solid #c0392b;background:#fff5f4;padding:14px 18px;margin:18px 0;border-radius:6px">
+<strong>&#9888; STEP 3 WAS MEASURED ON 2026-08-31 AND ITS PREMISE IS DEAD.</strong>
+This plan said <em>&ldquo;whose turn is it&rdquo; is written on one client only &mdash; fix the fact and the camera follows on both screens.</em>
+<strong>Both halves are false on this build.</strong>
+A real two-browser crew room, 200 samples over ~48 events: at every one of the 161 moments where both browsers had consumed the same event, host and guest agreed on <code>curSeat</code> AND on the glowing boat. <strong>Zero divergences.</strong>
+The 11 samples that differed had the guest 1&ndash;3 events behind on the wire &mdash; latency, not two authorities.
+It already works because <code>consumeEvent</code> (orchestrator.js:1592) calls <code>applyActiveSeat(e.p)</code>, and that is the one consumer both tiers run.
+<strong>The comment this plan was built on (util.js:1824-1828) describes a symptom measured 2026-08-20 and fixed since.</strong> It is history, and it was quoted as current state &mdash; a comment used as a measurement, which is the one thing CLAUDE.md rule 6 forbids.
+<strong>And the camera never read <code>curSeat</code> at all:</strong> both <code>camToSeat</code> call sites pass <code>subj</code> or <code>mySeat</code>.
+<br><br>
+<strong>WHAT IS ACTUALLY LEFT, and it is worth doing:</strong> one fact with <strong>17 writers</strong>. Sixteen direct <code>setActor()</code> calls bypass <code>applyActiveSeat</code> and leave <code>S.activeSeat</code> stale while <code>stage.js:1206</code> draws <code>S.activeSeat</code> first. Observable on screen <strong>once in 200 samples</strong> &mdash; a real structural hazard, not something a player is seeing today. Sell it as tidying, never as a visible fix.
+<br><br>
+<strong>AND THE GOOD NEWS FOR STEP 1:</strong> the active seat <em>is</em> derivable from the event stream &mdash; proven, not argued. A pure backward walk over the events reproduced live <code>curSeat</code> <strong>154/154 on the host and 154/154 on the guest</strong>. <code>board.js:1738</code> already does it. <strong>L3's first inhabitant is already written; it just is not named, shared, or the single source.</strong>
+</div></span></h2>
 
 <p>A big-bang rewrite is how this dies. Strangler fig instead: the new path grows alongside the old one, and the old one is deleted last.</p>
 
