@@ -36,7 +36,18 @@ if (-not (Test-Path $heartbeat)) {
 
 # Relaunch through the Door. The engine re-orients itself from the Chart; no state is assumed.
 # (claude must be on PATH for the scheduled task's user. Verified during the Razer hour.)
+#
+# The prompt is PRE-QUOTED because Start-Process does not quote ArgumentList elements:
+# an element containing spaces reaches the child as that many separate arguments, so an
+# unquoted prompt hands claude '-p /door - you were relaunched ...' split apart, and it
+# dies on usage in a hidden window with no trace. (Observed on the Razer 2026-08-31:
+# task tick 14:59Z logged its stale line and no engine ever pulsed; this quoting is the
+# standard documented Start-Process behavior, applied as the fix.) The working directory
+# is pinned rather than inherited for the same reason: nothing here may depend on the
+# caller's state. ASCII ONLY in this file -- PowerShell 5.1 reads BOM-less UTF-8 as
+# cp1252, and a pretty dash contains a byte it parses as a closing quote.
 Set-Location $Repo
-Start-Process -FilePath "claude" -ArgumentList @(
-  "-p", "/door - you were relaunched by the watchdog after a stall. Orient, note the restart in the ledger, pulse the Glass, and continue the Chart."
+$doorPrompt = "/door - you were relaunched by the watchdog after a stall. Orient, note the restart in the ledger, pulse the Glass, and continue the Chart."
+Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
+  "-p", "`"$doorPrompt`""
 ) -WindowStyle Hidden
