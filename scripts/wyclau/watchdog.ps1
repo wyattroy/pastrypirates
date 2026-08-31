@@ -47,9 +47,9 @@ $now = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 # ABSENT IS NOT ALIVE. A tree where the hook has never run has no LAST-ACTIVITY, and then this
 # behaves exactly as it always did -- otherwise a missing file would wedge the watchdog shut,
 # which is the failure the whole mechanism exists to prevent.
-$stamps = @()
-if (Test-Path $heartbeat)    { $stamps += (Get-Item $heartbeat).LastWriteTime }
-if (Test-Path $lastActivity) { $stamps += (Get-Item $lastActivity).LastWriteTime }
+$hbTime = if (Test-Path $heartbeat)    { (Get-Item $heartbeat).LastWriteTime }    else { $null }
+$laTime = if (Test-Path $lastActivity) { (Get-Item $lastActivity).LastWriteTime } else { $null }
+$stamps = @($hbTime, $laTime) | Where-Object { $_ -ne $null }
 
 if ($stamps.Count -eq 0) {
   # Neither file exists: the engine has never run here, or they were cleared.
@@ -58,7 +58,22 @@ if ($stamps.Count -eq 0) {
 } else {
   $newest = ($stamps | Sort-Object -Descending)[0]
   $age = (Get-Date) - $newest
-  if ($age.TotalMinutes -le $StaleMinutes) { exit 0 }   # alive; do nothing, quietly
+
+  # THE HOLD-OFF MUST NEVER BE SILENT. If HEARTBEAT alone would say "alive" (narration is fresh),
+  # staying quiet is the original behaviour and needs no line. But if the heartbeat itself is
+  # stale and only LAST-ACTIVITY is keeping this engine from a restart, that is CEO Review 46's
+  # case: the stamp is one shared file per repo, so ANY session touching the tree -- a human, a
+  # subagent, a second engine -- can hold off a restart on a dead one's behalf. Silence there is
+  # indistinguishable from a watchdog that died. Log it, every time, so the exit test's claim
+  # ("zero SILENT stalls, every gap explained by a logged line") stays true through this path too.
+  $hbAlive = ($hbTime -ne $null) -and (((Get-Date) - $hbTime).TotalMinutes -le $StaleMinutes)
+  if ($age.TotalMinutes -le $StaleMinutes) {
+    if (-not $hbAlive -and $laTime -ne $null) {
+      $laMin = [math]::Round(((Get-Date) - $laTime).TotalMinutes)
+      Add-Content $restarts "$now`theartbeat stale, but LAST-ACTIVITY $laMin min old -- held off, NOT restarting (someone is in the tree)"
+    }
+    exit 0   # alive; do nothing further
+  }
   $mins = [math]::Round($age.TotalMinutes)
   $reason = "no sign of life ($mins min > $StaleMinutes) -- restarting the engine"
 }

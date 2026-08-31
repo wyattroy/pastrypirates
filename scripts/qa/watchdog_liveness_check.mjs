@@ -77,7 +77,7 @@ const launched = (ls) => ls.some((l) => l.includes("DRYRUN would launch"));
         (lines(restarts).join("\n  ") || "(no lines)")
       );
     } else {
-      console.log("OK 1/4 -- red-proof: a genuinely dead engine IS still restarted.");
+      console.log("OK 1/6 -- red-proof: a genuinely dead engine IS still restarted.");
     }
   } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
   finally { rmSync(repo, { recursive: true, force: true }); }
@@ -97,7 +97,7 @@ if (!failed) {
         ls.join("\n  ")
       );
     } else {
-      console.log("OK 2/4 -- a session with fresh activity and a stale heartbeat is left alone.");
+      console.log("OK 2/6 -- a session with fresh activity and a stale heartbeat is left alone.");
       for (const l of ls) console.log(`  ${l}`);
     }
   } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
@@ -117,7 +117,7 @@ if (!failed) {
         (lines(restarts).join("\n  ") || "(no lines)")
       );
     } else {
-      console.log("OK 3/4 -- with no activity file, behaviour is unchanged: a stale engine is restarted.");
+      console.log("OK 3/6 -- with no activity file, behaviour is unchanged: a stale engine is restarted.");
     }
   } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
   finally { rmSync(repo, { recursive: true, force: true }); }
@@ -137,9 +137,53 @@ if (!failed) {
     if (!existsSync(stamp)) {
       fail("the pulse hook ran but wrote no LAST-ACTIVITY -- the watchdog would read a clock nobody winds.");
     } else {
-      console.log("OK 4/4 -- the pulse hook stamps LAST-ACTIVITY, so the clock the watchdog reads is wound.");
+      console.log("OK 4/6 -- the pulse hook stamps LAST-ACTIVITY, so the clock the watchdog reads is wound.");
     }
   } catch (e) { fail(`the pulse hook did not run: ${e.stderr?.toString().trim() || e.message}`); }
+  finally { rmSync(repo, { recursive: true, force: true }); }
+}
+
+// 5/6 -- REGISTERED, NOT MERELY PRESENT. Assertion 4 runs the hook FILE, and CEO Review 46 showed
+//        that is not proof the mechanism is live: it unregistered the hook, left the file on disk,
+//        and the gate still printed OK -- the exact failure assertion 4's own comment claimed to
+//        catch. A hook absent from settings.json never runs. THE REGISTRATION IS THE MECHANISM.
+function registeredIn(settings) {
+  const groups = settings?.hooks?.PreToolUse ?? [];
+  return groups.some((g) => (g.hooks ?? []).some((h) => String(h.command ?? "").includes("wyclau-pulse")));
+}
+if (!failed) {
+  if (registeredIn({ hooks: { PreToolUse: [] } })) {
+    fail("registeredIn() says true for a config with NO hooks -- the predicate cannot fail, so it proves nothing.");
+  } else {
+    let cfg = null;
+    try { cfg = JSON.parse(readFileSync(join(process.cwd(), ".claude", "settings.json"), "utf8")); }
+    catch (e) { fail(`could not read .claude/settings.json: ${e.message}`); }
+    if (cfg && !registeredIn(cfg)) {
+      fail("THE PULSE HOOK IS NOT REGISTERED in settings.json PreToolUse -- the file sits on disk looking healthy while nothing runs it, so the watchdog reads a clock nobody winds.");
+    } else if (cfg) {
+      console.log("OK 5/6 -- the pulse hook is REGISTERED in settings.json, not merely present on disk.");
+    }
+  }
+}
+
+// 6/6 -- AND THE HOLD-OFF MUST NEVER BE SILENT. Trusting activity lets the watchdog decline to
+//        restart a stale engine. THE STAMP IS ONE SHARED FILE PER REPO with no session identity
+//        (CEO Review 46), so ANY session touching the tree -- a human, a subagent, a second engine
+//        -- refreshes it, and the decline is common rather than exotic. That is tolerable only
+//        because it is LOGGED: the exit test's claim is "zero SILENT stalls, every gap explained
+//        by a line". A watchdog that goes quiet is indistinguishable from one that died.
+if (!failed) {
+  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 0 });
+  try {
+    tick(repo);
+    const ls = lines(restarts);
+    if (!ls.some((l) => /held off|NOT restarting/i.test(l))) {
+      fail(`THE WATCHDOG WENT QUIET: it declined to restart a 60-minute-stale engine because something had touched the tree, and wrote NOTHING -- a dead engine and a working one now leave the same empty log. Lines: ${ls.join(" | ") || "(none at all)"}`);
+    } else {
+      console.log("OK 6/6 -- when it holds off on the strength of activity, it says so in the log.");
+      for (const l of ls) console.log(`  ${l}`);
+    }
+  } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
   finally { rmSync(repo, { recursive: true, force: true }); }
 }
 
