@@ -542,7 +542,7 @@ export function drawBoard(){
   }
   // ships
   shipEls=[];
-  appState.game.players.forEach((p,i)=>{
+  appState.game.players.forEach((player,i)=>{
     // DERIVED from SHIP_GLIDE_MS, not written as a literal `.35s`. util.js's constant carried the
     // comment "must match drawBoard()'s ship `transition: transform .35s`" — two numbers kept in
     // step by hand, in different files, one of them the pacing basis for every per-square animation
@@ -557,8 +557,8 @@ export function drawBoard(){
     shipEls.push(g);
   });
   // seat the ships on their Isle of Tortuga docks right away, before the first event renders
-  appState.game.players.forEach((p,i)=>{
-    const [x,y]=shipXY(p.pos,i,appState.game.players,cell);
+  appState.game.players.forEach((player,i)=>{
+    const [x,y]=shipXY(player.pos,i,appState.game.players,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
   });
 }
@@ -1463,8 +1463,8 @@ export function renderLiveShips(){
   if(appState.replaying)return;      // reload-replay rebuilds state silently — same guard liveRender() uses
   if(!shipEls.length)return;         // board not built yet
   const live=appState.game.players;  // shipXY() only reads .pos off each entry
-  live.forEach((p,i)=>{
-    const [x,y]=shipXY(p.pos,i,live,cell);
+  live.forEach((player,i)=>{
+    const [x,y]=shipXY(player.pos,i,live,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     // A CAPTAIN AT THE OVENS FADES OUT (Wyatt, 2026-08-08: "in a past version, the boat faded
     // semitransparent when docked. I removed that feature in v2, but now i want it back because we
@@ -1473,7 +1473,7 @@ export function renderLiveShips(){
     // free — so the boat being half-there is the honest picture of the rule. Anything still solid
     // on this board can be interacted with; anything faded cannot.
     // opacity only (PERF-01), and written unconditionally because it is one property on four nodes.
-    shipEls[i].style.opacity=p.baking?0.42:1;
+    shipEls[i].style.opacity=player.baking?0.42:1;
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
   });
   // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
@@ -1675,10 +1675,10 @@ export function render(){
   const st=e.state;
   // recipes are secret: only the local human's own recipe target is revealed.
   // in a spectator-only game (no human seat, e.g. a bot-vs-bot design test) everything stays visible.
-  const humanIdxs=appState.game.players.map((p,i)=>p.strategy==="human"?i:-1).filter(i=>i>=0);
+  const humanIdxs=appState.game.players.map((player,i)=>player.strategy==="human"?i:-1).filter(i=>i>=0);
   const youIdx=humanIdxs.length===1?humanIdxs[0]:-1;
   const spectator=humanIdxs.length===0;
-  appState.game.players.forEach((p,i)=>{
+  appState.game.players.forEach((player,i)=>{
     const [x,y]=shipXY(st[i].pos,i,st,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
     // v2.1 (Wyatt, 2026-08-06): "they don't need to fade out visually when they dock at Tortuga —
@@ -1826,7 +1826,7 @@ export function render(){
       activeRing.style.opacity=1;
     }else activeRing.style.opacity=0;
   }
-  appState.game.players.forEach((p,i)=>{
+  appState.game.players.forEach((player,i)=>{
     const row=$("prow"+i);if(row)row.classList.toggle("activeTurn",i===active);
   });
   // Pass & Play only: float the captain whose turn it is to the top of the box, rest in sailing
@@ -2082,7 +2082,7 @@ export function showStats(){
   const victoryLine=!winRecipe?"":`<div class="victoryText">${pn(w)} baked ${(a=>a?a+" ":"")(recipeArticle(winRecipe))}${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`;
   const wi=winRecipe?recipeInfo(winRecipe):null;
   const victoryPic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:""; // art, not copy
-  const luck=appState.game.players.map(p=>p.flips?(p.heads/p.flips):0);
+  const luck=appState.game.players.map(player=>player.flips?(player.heads/player.flips):0);
   // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
   // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
   const badges=assignBadges();
@@ -2110,14 +2110,14 @@ export function showStats(){
 
      This is a NEW quantity. `finishOrder` is untouched and still means what it always meant — it
      orders the finishers and other code depends on that. Do not repoint it at this. */
-  const bakersHome = appState.game.players.filter(p => p.baking || p.done).length;
+  const bakersHome = appState.game.players.filter(player => player.baking || player.done).length;
   // @copy misc.board.statsheadings
   const statsTable=`<table>
     <tr><td>Days</td><td>${appState.game.round}</td></tr>
     <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
     <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
     <tr><td>Bakeries</td><td>${bakersHome===0?"no bakers home":bakersHome===1?"1 baker home":bakersHome+" bakers home"}</td></tr>
-    ${appState.game.players.map((p,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${p.flips?Math.round(100*luck[i]):0}% of ${p.flips} flips</td></tr>`).join("")}
+    ${appState.game.players.map((player,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${player.flips?Math.round(100*luck[i]):0}% of ${player.flips} flips</td></tr>`).join("")}
     </table>`;
   $("statsPanel").innerHTML=`<div class="winner-banner">${banner}${victoryPic}${victoryLine}</div>
     <div class="awardsRow">${awards}</div>

@@ -1682,3 +1682,46 @@ about a copy — and a copy is the thing that drifts.**
 **And the honest report is the other half.** *"Step 5 is done"* and *"step 5 should not be built as
 written, here is the weaker thing I put in its place"* are different sentences, and only the second
 one was true. The first is what I wrote until a reviewer with fresh eyes read the tree.
+
+### §12j — A CHECK PINNED TO A VARIABLE'S NAME BLOCKS THE READABILITY WORK IT SHOULD IGNORE
+
+**2026-08-31.** Wyatt, on finding that a gate could not tell a player from a prompt because both
+were called `p`: *"it's unnecessarily lazy code for an AI agent to write. you write the string
+'player' exactly as quickly as the string 'p'."* Renaming them broke **three gates**, none of which
+was testing anything that changed:
+
+```
+w29_coin_question_check    /const n=await coinSlider\(p\.idx,/
+a2_bot_bake_watch_check    /benchReveal\(p,out\.res\)/
+a1_bake_now_check          /lightOvens\(p\)/ … /bakeTurnLive\(p\)/
+```
+
+**Every one asserts about SPELLING, not behaviour.** The coin question still knows what is on the
+table; the bench verdict is still drawn for bots; the ovens still lead to a bake. All three now
+read `\w+`.
+
+**The rule: a source-reading gate may name a FUNCTION, a CONSTANT, an exported symbol or a string
+the product itself contains — never a local variable.** A local name is the one thing a refactor is
+entitled to change without asking, and a gate that forbids it is a gate that forbids cleaning up.
+
+**AND THE RENAME ITSELF BROKE THE CODE ONCE, silently, which is the sharper half.** The first pass
+matched the parentheses around an arrow's PARAMETER and depth-walked from there — so for
+`(p)=>{...}` the match closed immediately after `p`, and only the parameter was renamed:
+
+```js
+setPicks:(player)=>{picks=p||[];if(pickCb)pickCb(picks);}   // p is now undefined
+```
+
+**`npm test` passed. All 62 gates.** It was caught by reading the output of a listing command, not
+by any check. Reverted with `git checkout` and redone with the span running from the parameter to
+the end of the arrow's body.
+
+**Three defences that made the redo safe, and they are cheap enough to always use:**
+1. **A pure swap is verifiable** — `git diff --numstat` must show insertions equal to deletions on
+   every file. A rename that adds or removes a line is not a rename.
+2. **Search for the orphan shape directly** — every scope whose parameter is now `player` while its
+   body still says `p`. That check found zero on the second pass and would have found the bug on
+   the first.
+3. **Some `p` are not variables at all.** `{t:"sidebet",p:bet.idx}` is the event wire format — the
+   seat field every client reads — and `<p style=…>` is a paragraph tag inside a string. Renaming
+   either would have been a genuine break dressed as tidying. The matcher excludes `p:` explicitly.

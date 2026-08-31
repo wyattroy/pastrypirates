@@ -506,7 +506,7 @@ const SAIL_HL_SCALE=0.9;
 
      "<crate> lies N squares off — no square ye can reach this day sits on that dock."
         -> "the helper text is stupid and unhelpful: 'fresh milk lies 0 squares off' makes no
-           sense." It is worse than unhelpful, it is WRONG: `man(p.pos, dock)` is the distance to
+           sense." It is worse than unhelpful, it is WRONG: `man(player.pos, dock)` is the distance to
            the DOCK SQUARE, and a captain moored on that very square measures 0 while being told
            nothing he can reach sits on it.
 
@@ -673,7 +673,7 @@ export function pickCell(player,cells){
 }
 /* ================= the bake-off's decision seam =================
 
-   bakeoffPrompt(p,setup,fallback) — one captain's attempt, made REPLAYABLE and CLOCKED. It is
+   bakeoffPrompt(player,setup,fallback) — one captain's attempt, made REPLAYABLE and CLOCKED. It is
    pickCell()'s shape, and it exists for a specific failure rather than for symmetry.
 
    REPLAY. Without a logged decision, a solo refresh mid-bake would re-run the attempt with the
@@ -715,7 +715,7 @@ export function pickCell(player,cells){
    at all — not a bench, not a waiting note (.planning/phases/04-the-networked-bakeoff/shots/t1/).
    So the branch below is not symmetry; it is the fix for that.
 
-   THE FORK IS decisionIsLocal(p.idx), NEVER isHost AND NEVER seatLocal (DISPLAY-RULES Rule B).
+   THE FORK IS decisionIsLocal(player.idx), NEVER isHost AND NEVER seatLocal (DISPLAY-RULES Rule B).
    decisionIsLocal is true for EVERY human seat at a pass-and-play table, which is what keeps that
    mode working when several seats are local on one device.
 
@@ -1170,8 +1170,8 @@ export async function animateRimSweepRun(seat,from,to){
         // routed sail uses it (see routeTick): this is the same driven motion, and a ship that
         // judders on one of them and glides on the other is one gesture with two behaviours.
         const t=Math.min(1,(Date.now()-began)/total);
-        const p=rimSweepPointAt(curve,t);
-        if(p)paintShipAtPoint(seat,p[0],p[1]);
+        const point=rimSweepPointAt(curve,t);
+        if(point)paintShipAtPoint(seat,point[0],point[1]);
         if(t>=1)break;
         await routeTick(RIM_SWEEP_TICK_MS);
       }
@@ -1261,7 +1261,7 @@ const routeTick=(ms)=>appState.replaying?Promise.resolve():(Promise.race([
    what it meant was `events[events.length-1]`. That is not one subject: it is the sail on the host,
    where the turn loop emits and rides with nothing in between, and whatever landed last on a guest,
    where watchEvents pushes each arriving event before awaiting consumeEvent and the engine emits a
-   sail and calls tradewind(p) in the same breath. Measured on eight sails in two real crew rooms:
+   sail and calls tradewind(player) in the same breath. Measured on eight sails in two real crew rooms:
    the host walked all eight, the guest walked five and slid across the islands on three.
    Handing it the event is the STRONGER version of the same principle — every call site now hands it
    exactly one thing, the event being drawn, and no call site can mean a different event by it.
@@ -1414,21 +1414,21 @@ export async function runStormLive(dirKey){
   await narrateLastEvent();
   // furthest downwind moves first, so the lead ship clears its square before the ship behind it
   // arrives — the engine owns that ordering too (rule 7b)
-  for(const p of g.stormOrder(dirKey)){
-    const wasDocked=g.adjPort(p)!==null;
-    const before=[...p.pos];
+  for(const player of g.stormOrder(dirKey)){
+    const wasDocked=g.adjPort(player)!==null;
+    const before=[...player.pos];
     let outcome="moved";
     for(let s=0;s<STORM_PUSH;s++){
-      const was=[...p.pos];
+      const was=[...player.pos];
       const evBefore=g.events.length;
-      outcome=g.stormStep(p,dirKey);
-      const movedSquare=(p.pos[0]!==was[0]||p.pos[1]!==was[1]);
+      outcome=g.stormStep(player,dirKey);
+      const movedSquare=(player.pos[0]!==was[0]||player.pos[1]!==was[1]);
       if(movedSquare&&outcome!=="swept"){
         // D-22, carried into v2: paint THIS square before anything about the next one can narrate.
         // renderLiveShips(), not liveRender() — an ordinary storm square emits no event, and
         // render() draws ships from the last emitted event's snapshot, so liveRender() here would
         // repaint the square the ship has just left and the push would be invisible.
-        // A SWEPT step is excluded: p.pos is already the whirlpool by now, so this paint WAS the
+        // A SWEPT step is excluded: player.pos is already the whirlpool by now, so this paint WAS the
         // teleport Wyatt recorded ("swept around the rim!" with no ride). The sweep animation
         // below paints its own arrival at the entry square instead.
         renderLiveShips();
@@ -1474,9 +1474,9 @@ export async function runStormLive(dirKey){
       if(g.events.length>evBefore){liveRender();if(g.events[g.events.length-1].t!=="tradewind")await narrateLastEvent();}
       if(outcome!=="moved")break;
     }
-    const moved=(p.pos[0]!==before[0]||p.pos[1]!==before[1]);
+    const moved=(player.pos[0]!==before[0]||player.pos[1]!==before[1]);
     const evBefore=g.events.length;
-    g.noteStormOutcome(p,outcome,moved,wasDocked);
+    g.noteStormOutcome(player,outcome,moved,wasDocked);
     // The per-ship event still fires — it carries this ship's board pop, its captain-panel note and
     // its audio cue — but it no longer NARRATES (playtest 21 item 3, the four texts withdrawn in
     // src/ui/util.js). liveRender still runs so the square it landed on is painted at the moment it
@@ -1760,7 +1760,7 @@ const counterTerms=(offer,r)=>appState.game.counterTerms(offer,r);
 
    THE COUNTER STALL (playtest 22, Wyatt: "when i counter-offer a bot trade the entire game stalls
    and stops... it happened immediately when i clicked counter offer"). It was ONE character of
-   nesting on the message line below — `poss(pn(p.idx))` where poss(), like pn(), takes a SEAT INDEX
+   nesting on the message line below — `poss(pn(player.idx))` where poss(), like pn(), takes a SEAT INDEX
    and renders the name itself. pname() computes `NAMES[i].replace("Capt. ","")` unconditionally,
    before any early return, so an array indexed by a finished `<b …>` string gives undefined and the
    .replace throws. Not sometimes: EVERY tap of Counter, for every seat, since the counter rebuild
@@ -1776,17 +1776,17 @@ const counterTerms=(offer,r)=>appState.game.counterTerms(offer,r);
    Both earlier attempts (a6b81cd, 69b9f23) were reasoning about what a counter SETTLES, which is
    everything downstream of a prompt that never rendered. When a stall is reported at a tap, prove
    the prompt appears before improving what it decides. 4/scripts/seat_arg_check.js is the gate. */
-async function counterOffer(q,p,offer){
+async function counterOffer(q,player,offer){
   const g=appState.game;
   // what THEY are carrying, minus the crate already on the table — offering it back is not a counter
-  const theirs=[...new Set(p.ing)].filter(i=>i!==offer.giveIng);
-  const room=Math.max(0,p.coins);
+  const theirs=[...new Set(player.ing)].filter(i=>i!==offer.giveIng);
+  const room=Math.max(0,player.coins);
   for(;;){
     if(appState.turnExpired)return null;
-    const opts=theirs.map(i=>crateOpt(p.ing,i));
+    const opts=theirs.map(i=>crateOpt(player.ing,i));
     // coin-only is still a legal counter — it is what the old flow could do, kept rather than lost
     opts.push({label:`💰 Coin instead`,short:`💰 Coin`,value:"__coinsonly__",disabled:room<1,
-      why:`${pn(p.idx)} has no coin at all — it must be a crate.`});
+      why:`${pn(player.idx)} has no coin at all — it must be a crate.`});
     opts.push({label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"__deny__"});
     opts.push({label:"← Back",back:true,value:"__back__"});
     // @copy prompt.trade.counterwant — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
@@ -1795,8 +1795,8 @@ async function counterOffer(q,p,offer){
     // UNCONDITIONALLY on an array indexed by that string: undefined.replace, a TypeError, thrown on
     // the first line of the first counter prompt. That is the whole of playtest 22's counter stall —
     // see the note above counterOffer.
-    const pick=await ask(`${pn(q.idx)}: what o' ${poss(p.idx)} will ye have instead?`,opts,null,
-      theirs.length?null:`${pn(p.idx)} has no other cargo — ye can ask for coin, or deny.`);
+    const pick=await ask(`${pn(q.idx)}: what o' ${poss(player.idx)} will ye have instead?`,opts,null,
+      theirs.length?null:`${pn(player.idx)} has no other cargo — ye can ask for coin, or deny.`);
     if(appState.turnExpired)return null;
     if(pick==null||pick==="__back__")return "__back__";
     if(pick==="__deny__")return "deny";
@@ -1814,7 +1814,7 @@ async function counterOffer(q,p,offer){
          I4, nothing that prices a trade may be a constant — there is no 6-coin rule anywhere in
              RULES-V2, and a purse ranges over an order of magnitude across a voyage;
          I3, bots and humans have the same affordances — openingBid bounds a bot's bid by
-             `p.coins - reserve`, its whole purse, so the cap applied to the human alone. */
+             `player.coins - reserve`, its whole purse, so the cap applied to the human alone. */
     const minC=askIng?0:1;
     const maxC=room;
     if(maxC<minC){
@@ -2906,7 +2906,7 @@ export async function netIntroBarrier(msg,btnLabel){
   // /4 playtest 12: the two intro barriers (ahoy + turn order) play CENTER STAGE — board dimmed,
   // message and button centred — instead of a bubble at the top and a lone circle mid-sea
   const opts=[{label:btnLabel,value:0,cls:"primary ahoyGlow",stage:true}];
-  const humans=appState.game.players.filter(p=>p.strategy==="human");
+  const humans=appState.game.players.filter(player=>player.strategy==="human");
   // whoever clicks through first (or isn't last) sits on this instead of a blank panel while the
   // rest of the crew finishes reading — same idea as recipeDraftNet's "waiting for the crew" beat.
   // (On a shared device the dispatcher never shows it: nobody is waiting for anybody.)
@@ -2915,7 +2915,7 @@ export async function netIntroBarrier(msg,btnLabel){
   // FORK 5 IS THE PUBLIC CASE — one showing for a shared device (Wyatt 2026-08-08), every human
   // concurrently when each has their own screen. The whole pass-and-play/networked branch pair that
   // stood here lives in draftDispatch now, where fork 4 shares it.
-  await draftDispatch({seats:humans.map(p=>p.idx),isPublic:true,msgFor:()=>msg,optsFor:()=>opts,waitMsg});
+  await draftDispatch({seats:humans.map(player=>player.idx),isPublic:true,msgFor:()=>msg,optsFor:()=>opts,waitMsg});
 }
 // the opening backstory/context message — stays up until every human player actually reads it
 // and clicks through, rather than auto-advancing on a timer like every other narration
@@ -3020,7 +3020,7 @@ export function battleFooter(o){
    and nobody is paid. */
 export async function collectSideBets(att,def){
   const bets=[],ns=pn;
-  const spectators=appState.game.players.filter(p=>p!==att&&p!==def&&!p.done);
+  const spectators=appState.game.players.filter(player=>player!==att&&player!==def&&!player.done);
   for(const s of spectators){
     if(s.strategy==="human"){
       applyActiveSeat(s.idx);
@@ -3056,11 +3056,11 @@ export async function settleSideBets(bets,winSide){
   const parts=[];
   const bounty=appState.game.cfg.callBounty;
   for(const bet of bets){
-    const p=appState.game.players[bet.idx];
+    const player=appState.game.players[bet.idx];
     // winSide is null for a NULL battle — nobody won, so no call can be correct (rule 5d)
     const won=winSide!=null&&bet.on===winSide;
     const delta=won?bounty:0;
-    p.coins+=delta;
+    player.coins+=delta;
     appState.game.ev({t:"sidebet",p:bet.idx,won,on:bet.on,delta});
     parts.push(won?`${pn(bet.idx)} +${delta}🌕`:`${pn(bet.idx)} no bounty`);
   }

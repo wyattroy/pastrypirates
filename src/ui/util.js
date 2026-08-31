@@ -958,7 +958,7 @@ const FALLBACK_BADGE={img:"anchor",name:"Good Mate",byline:"Pirated for the love
 // still-available badge. A captain who can't claim any stat (all zero) gets a flavor fallback.
 export function assignBadges(){
   const s=computeAwards();
-  const arrs=Object.assign({},s,{tails:appState.game.players.map(p=>(p.flips||0)-(p.heads||0))});
+  const arrs=Object.assign({},s,{tails:appState.game.players.map(player=>(player.flips||0)-(player.heads||0))});
   const n=appState.game.players.length;
   const cands=[];
   for(const def of BADGE_POOL){
@@ -972,7 +972,7 @@ export function assignBadges(){
     bySeat[c.seat]=c;usedCat.add(c.def.key);
   }
   for(let i=0;i<n;i++)if(bySeat[i]===undefined)bySeat[i]={seat:i,def:FALLBACK_BADGE,value:appState.game.players[i].ing.length};
-  return appState.game.players.map((p,i)=>bySeat[i]); // one per captain, in seat order
+  return appState.game.players.map((player,i)=>bySeat[i]); // one per captain, in seat order
 }
 
 // standard subtitle-timing formula: a floor so short messages don't flash away, a per-char
@@ -1432,7 +1432,7 @@ export function apBtnStyle(col){return col?` style="border:2px solid ${col};back
    SHARE THE BUILDER, NOT THE CALLER. This is the sailHighlightRect() shape (flow.js:388-419, G25,
    which fixed the same class of drift for sail squares): one pure function decides what the markup
    IS, and each caller keeps its own click wiring. localAsk resolves its own promise with res(i);
-   watchPrompt writes an answer to Firebase with sendResponse(p.id,i). Those two resolution paths
+   watchPrompt writes an answer to Firebase with sendResponse(prompt.id,i). Those two resolution paths
    are legitimately different — a local promise and a network round trip — and must stay apart.
    Unifying them is NOT what this shares.
 
@@ -1878,7 +1878,7 @@ export function isLocalTo(seat,viewerSeat){
 // this wrapper across three lines raised the file's fork count by one without adding a fork. The
 // counter is a debt ceiling and it should keep meaning what it says.
 const EMPTY_SEAT=Object.freeze({});   // a missing seat has no strategy; never a fresh object per call
-export function decisionIsLocal(s){const p=((appState.game&&appState.game.players)||[])[s]||EMPTY_SEAT;return isDecisionLocal({sharedDevice:appState.passAndPlay,strategy:p.strategy,isMySeat:seatLocal(s)});}
+export function decisionIsLocal(s){const player=((appState.game&&appState.game.players)||[])[s]||EMPTY_SEAT;return isDecisionLocal({sharedDevice:appState.passAndPlay,strategy:player.strategy,isMySeat:seatLocal(s)});}
 
 /* ---------- the clock and pause both stood here ----------
    Removed in two rulings, 2026-08-28: the shot clock ("temporarily remove the shot clock", see
@@ -2029,9 +2029,9 @@ export function getSeaBase(){
 // an ABSOLUTE position derived from the game's fixed base plus this captain's look count, not an
 // increment, so a replay that re-runs the same looks rewrites the same number rather than racing
 // the cursor forward a second time.
-export function advanceSeaCursor(p){
+export function advanceSeaCursor(player){
   const base=(appState.game&&appState.game.seaBase)||0;
-  const looks=p.oceanLooks||0;
+  const looks=player.oceanLooks||0;
   try{localStorage.setItem("pp_seaIdx",String((base+looks)%SEA_CREATURES.length));}catch(e){}
 }
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}

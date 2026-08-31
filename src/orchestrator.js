@@ -401,7 +401,7 @@ function benchWatch(snap){
        bench, cleared it, and left the watching captain staring at nothing for the rest of the bake.
        Teardown after setup. The flag says "somebody else owns the panel now; do not tidy it". */
     markSuperseded:()=>{ctl.superseded=true;},
-    setPicks:(p)=>{picks=p||[];if(pickCb)pickCb(picks);}};
+    setPicks:(player)=>{picks=player||[];if(pickCb)pickCb(picks);}};
   _bench=sess;
   playBakeoffLive({order:snap.order,before:snap.before,swaps:snap.swaps||[],
                    locked:snap.locked||[],attempts:snap.attempts||0,baker:snap.baker},{watch:ctl})
@@ -643,10 +643,10 @@ async function asyncBattleRun(att,def){
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
   const base=o=>Object.assign({att,def,a,d,round,need},o);
-  const hFlip=async(side,p,label,extra)=>{
+  const hFlip=async(side,player,label,extra)=>{
     extra=extra||{};
     const key=side==="a"?"atState":"dfState";
-    await battleAsk(p,base(Object.assign({live:side,[key]:"wait"},extra)),
+    await battleAsk(player,base(Object.assign({live:side,[key]:"wait"},extra)),
       label,[{label:"🌕 FLIP!",value:1,flip:true}]);
     broadcastFlip("spin");
     // playtest 11: the battle card's own coin spins through the beat — before this, only the
@@ -654,9 +654,9 @@ async function asyncBattleRun(att,def){
     // wait -> face with no motion at all
     battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));
     await sleep(flipSpinLeftMs());
-    const h=appState.game.flip(p);
+    const h=appState.game.flip(player);
     broadcastFlip(h?"H":"T");
-    netBroadcast(`${pn(p.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+    netBroadcast(`${pn(player.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
     battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
     // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
     // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
@@ -664,14 +664,14 @@ async function asyncBattleRun(att,def){
     broadcastFlip("wait");
     return h;
   };
-  const bFlip=async(side,p,extra)=>{
+  const bFlip=async(side,player,extra)=>{
     extra=extra||{};
     const key=side==="a"?"atState":"dfState";
     battlePublish(base(Object.assign({live:side,[key]:"wait"},extra)));
     broadcastFlip("spin");
     battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));   // playtest 11: see hFlip
     await sleep(flipSpinLeftMs());
-    const h=appState.game.flip(p);
+    const h=appState.game.flip(player);
     broadcastFlip(h?"H":"T");
     battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
     await sleep(FLIP_LAND_HOLD_MS);   // playtest 13 / T-34: the landed face holds, same as every other flip
@@ -737,7 +737,7 @@ async function asyncBattleRun(att,def){
              (o.route -> Game.bakeDraw -> o.draw), and the ONE walker walks them on every tier.
              THE EVENT ALSO NEEDS A SEAT. Game.ev bakes the drawn route against o.state[o.p], so a
              route on an event that names only `a` and `d` bakes to null however carefully it was
-             computed. `p` is the captain the move belongs to — the one who fled.
+             computed. `player` is the captain the move belongs to — the one who fled.
              AND IT IS RECORDED AT THE DESTINATION, BEFORE THE TRADE WINDS TAKE IT. The flee used to
              be recorded after the sweep, so the last snapshot before the sweep still held the
              PRE-BATTLE square, onRim(from) was false, and a ship that fled into the channel got no
@@ -854,7 +854,7 @@ export function writeMeta(){
   return netSetMeta(appState.db,appState.room,{
     round:appState.game.round,battles:appState.game.battles,trades:appState.game.trades,attWins:appState.game.attWins,
     finishOrder:appState.game.finishOrder,winner:appState.game.winner,
-    flips:appState.game.players.map(p=>p.flips),heads:appState.game.players.map(p=>p.heads)},netFail("game meta"));
+    flips:appState.game.players.map(player=>player.flips),heads:appState.game.players.map(player=>player.heads)},netFail("game meta"));
 }
 // Every finished game (solo or multiplayer) writes its full move-by-move transcript to a
 // permanent, room-independent path — rooms/{room}/ev is cleared on the next game in that room,
@@ -875,7 +875,7 @@ export function writeGameLog(){
     // attributable — events reference players by seat index, so this is the key to reading them back.
     // Consistent with the lobby's data-collection notice ("nothing beyond the name you type").
     names:appState.game.players.map((_,i)=>rawName(i)),
-    bots:appState.game.players.map(p=>p.strategy!=="human"),
+    bots:appState.game.players.map(player=>player.strategy!=="human"),
     events:JSON.parse(JSON.stringify(appState.game.events))
   },netFail("game log"));
 }
@@ -922,23 +922,23 @@ export async function applyEndMeta(){
 // finishes first, so a host-reload replay can deterministically reconstruct the same picks.
 export async function recipeDraftNet(){
   const picks=[];
-  const humans=appState.game.players.filter(p=>p.recipeChoices&&p.strategy==="human");
-  const bots=appState.game.players.filter(p=>p.recipeChoices&&p.strategy!=="human");
-  for(const p of bots)picks[p.idx]=appState.game.r()<.5?0:1;
+  const humans=appState.game.players.filter(player=>player.recipeChoices&&player.strategy==="human");
+  const bots=appState.game.players.filter(player=>player.recipeChoices&&player.strategy!=="human");
+  for(const player of bots)picks[player.idx]=appState.game.r()<.5?0:1;
   const pending=[];
-  for(const p of humans){
+  for(const player of humans){
     if(appState.replaying){
-      if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;picks[p.idx]=appState.dlog[appState.dlogIdx++];continue;}
+      if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;picks[player.idx]=appState.dlog[appState.dlogIdx++];continue;}
       endReplay();
     }
-    pending.push(p);
+    pending.push(player);
   }
   if(pending.length){
     // G4 (Wyatt-approved 2026-07-30): one short line — the prompt's job is to ask, not re-teach.
     // Not an extracted @copy site: the message reaches the dispatcher via a variable. D-29 (`yer`).
-    const msgFor=p=>`${pn(p.idx)}, choose yer recipe:`;
-    const optsFor=p=>[{label:recipeCardHTML(p.recipeChoices[0]),value:0,cls:"recipeCard"},
-                       {label:recipeCardHTML(p.recipeChoices[1]),value:1,cls:"recipeCard"}];
+    const msgFor=player=>`${pn(player.idx)}, choose yer recipe:`;
+    const optsFor=player=>[{label:recipeCardHTML(player.recipeChoices[0]),value:0,cls:"recipeCard"},
+                       {label:recipeCardHTML(player.recipeChoices[1]),value:1,cls:"recipeCard"}];
     /* FORK 4 CONVERGED (W1, 2026-08-28): the pass-and-play/networked branch pair that stood here
        — with its 17b one-moment-one-sentence lesson, the solo third-person regression and its
        variants fix, and the draftWait argument a guest once never received — lives in
@@ -947,18 +947,18 @@ export async function recipeDraftNet(){
        the pass gate, serially. The announce line and its variants ride in unchanged; decisions
        are logged below in seat-index order exactly as before, whichever mode ran, so a reload-
        replay reconstructs the identical stream. */
-    const byIdx={};pending.forEach(p=>{byIdx[p.idx]=p;});
+    const byIdx={};pending.forEach(player=>{byIdx[player.idx]=player;});
     // @copy misc.draftwait.recipechoosing
     const announce={html:pending.length>1?"⚓ Everyone's choosing their recipe…":`${pn(pending[0].idx)} is choosing a recipe…`,
       variants:pending.map(q=>({seat:q.idx,html:""}))};
     // @copy misc.draftwait.recipechosen
     // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
     const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
-    const results=await draftDispatch({seats:pending.map(p=>p.idx),isPublic:false,
+    const results=await draftDispatch({seats:pending.map(player=>player.idx),isPublic:false,
       msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
-    for(const p of pending){picks[p.idx]=results[p.idx];logDecision(results[p.idx]);}
+    for(const player of pending){picks[player.idx]=results[player.idx];logDecision(results[player.idx]);}
   }
-  appState.game.players.forEach(p=>{if(p.recipeChoices)p.recipe=p.recipeChoices[picks[p.idx]];});
+  appState.game.players.forEach(player=>{if(player.recipeChoices)player.recipe=player.recipeChoices[picks[player.idx]];});
   if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
@@ -968,10 +968,10 @@ export async function recipeDraftNet(){
    The only edit is the ending: what was `ended=…;break;` inside the while-loop is now a return. */
 async function runLiveDayClassic(order){
     for(const i of order){
-      const p=appState.game.players[i];
-      if(p.done)continue;
-      await (p.strategy==="human"?humanTurn(p):botTurn(p));
-      if(appState.game.checkFinish(p)){
+      const player=appState.game.players[i];
+      if(player.done)continue;
+      await (player.strategy==="human"?humanTurn(player):botTurn(player));
+      if(appState.game.checkFinish(player)){
         liveRender();
         if(appState.game.finishOrder.length===1){
           // FINAL ROUND (#19): the first ship reached Tortuga and fired up the bakery. Alert the
@@ -1024,14 +1024,14 @@ async function runLiveDayClassic(order){
 async function runLiveDayBakeoff(order){
   const g=appState.game;
   for(const i of order){
-    const p=g.players[i];
-    if(p.done)continue;
+    const player=g.players[i];
+    if(player.done)continue;
     /* A-1: one phase — the attempt rides the captain's own turn slot, byte-for-byte the same
        order as the engine's playBakeoff (live and headless must consume identical randomness).
        endBakeDay still closes the day at the end, so same-day arrivals keep their fair race. */
-    if(p.baking){await bakeTurnLive(p);continue;}
-    await (p.strategy==="human"?humanTurn(p):botTurn(p));
-    if(g.lightOvens(p)){liveRender();await narrateLastEvent();await bakeTurnLive(p);}
+    if(player.baking){await bakeTurnLive(player);continue;}
+    await (player.strategy==="human"?humanTurn(player):botTurn(player));
+    if(g.lightOvens(player)){liveRender();await narrateLastEvent();await bakeTurnLive(player);}
   }
   liveRender();
   return g.endBakeDay();
@@ -1106,23 +1106,23 @@ async function bakeTurnLive(player){
    THE TAP LIST IS THE ENGINE'S OWN DATA: fallback[k] is null exactly at steps already locked
    (botGuess's expansion), so "which crates does the bot tap, in what order" is read straight off
    the guess — no re-derivation that could disagree with what scoreAttempt will be handed. */
-async function botBakePerform(p,setup,fallback){
-  const spec={order:p.bake.order.slice(),
-    before:(setup.before||p.bake.slots).slice(),
+async function botBakePerform(player,setup,fallback){
+  const spec={order:player.bake.order.slice(),
+    before:(setup.before||player.bake.slots).slice(),
     swaps:(setup.swaps||[]).map(sw=>[sw[0],sw[1]]),
-    locked:p.bake.locked.slice(),
-    attempts:p.bake.attempts,
-    baker:pn(p.idx)};
-  benchPublish(spec,p.idx,{phase:"open"});      // the bench appears; the bot "studies"
+    locked:player.bake.locked.slice(),
+    attempts:player.bake.attempts,
+    baker:pn(player.idx)};
+  benchPublish(spec,player.idx,{phase:"open"});      // the bench appears; the bot "studies"
   await sleep(BENCH_STUDY_MS);
-  benchPublish(spec,p.idx,{phase:"shuffle"});   // Ready — every watcher's crates cover and swap
+  benchPublish(spec,player.idx,{phase:"shuffle"});   // Ready — every watcher's crates cover and swap
   await sleep(benchChoreoMs(spec));
   const picks=[];
   for(let k=0;k<spec.order.length;k++){
     if(fallback[k]==null)continue;              // a locked step is never tapped
     await sleep(BENCH_BEAT_MS);
     picks.push(fallback[k]);
-    benchPublish(spec,p.idx,{phase:"pick",picks:picks.slice()});
+    benchPublish(spec,player.idx,{phase:"pick",picks:picks.slice()});
   }
   await sleep(BENCH_BEAT_MS);                   // the last badge lands before the crates lift
 }
@@ -1136,9 +1136,9 @@ async function botBakePerform(p,setup,fallback){
 
    `slots` is on this snapshot and that is not a leak: it is the arrangement the crates are being
    lifted off, public to everyone the instant the reveal plays. */
-async function benchReveal(p,res){
-  const snap={seat:p.idx,phase:"reveal",
-    order:p.bake.order.slice(),slots:p.bake.slots.slice(),
+async function benchReveal(player,res){
+  const snap={seat:player.idx,phase:"reveal",
+    order:player.bake.order.slice(),slots:player.bake.slots.slice(),
     correct:res.correct.map(Boolean),perfect:!!res.perfect};
   const live=appState.db&&appState.room&&!appState.replaying;
   if(live)netSetBattle(appState.db,appState.room,{title:BENCH_TITLE,bake:snap},netFail("bake bench"));
@@ -1162,7 +1162,7 @@ async function benchReveal(p,res){
    Lighting here removes the dependency on both the turn and the weather: once a captain is baking
    the seat loop skips them and nothing re-checks where they are standing.
 
-   PLACED HERE, after recipeDraftNet, because that is where p.recipe stops being a pair of choices
+   PLACED HERE, after recipeDraftNet, because that is where player.recipe stops being a pair of choices
    and becomes the captain's actual recipe — and it is still before day one's wind and storm, which
    is the window in which everyone is provably still on Tortuga.
 
@@ -1200,16 +1200,16 @@ async function stockHoldsForBakeTest(){
   const bake2=testFlagOn("bake2",bake2Enabled);
   if(!testFlagOn("ovens",ovensNowEnabled)&&!bake2)return;
   const g=appState.game;
-  const humans=g.players.filter(p=>p.strategy==="human");
+  const humans=g.players.filter(player=>player.strategy==="human");
   if(!humans.length)return;
-  for(const p of humans){
-    if(!p.recipe||!p.recipe.length)continue;
-    p.ing=[...p.recipe];
-    g.ev({t:"testhold",p:p.idx});
+  for(const player of humans){
+    if(!player.recipe||!player.recipe.length)continue;
+    player.ing=[...player.recipe];
+    g.ev({t:"testhold",p:player.idx});
     // Straight to the ovens. lightOvens still enforces its own gate (full recipe, at Tortuga), so
     // this cannot conjure a bake out of an ineligible captain — it just satisfies the gate in the
     // one window where everyone provably still meets it.
-    g.lightOvens(p);
+    g.lightOvens(player);
     /* ?bake2=1 — LAND ON THE SECOND ATTEMPT, NOT THE FIRST (W0-1).
        The jitter Wyatt reported (W3-2) is an attempt-TWO fault, and `?ovens=1` lands on attempt
        one, so the shortcut that existed could not reach the bug it was needed for. lightOvens has
@@ -1224,10 +1224,10 @@ async function stockHoldsForBakeTest(){
        THREE bowls open. A recipe length is not a constant — leaving a fixed two locked would solve
        a short recipe outright via the forced-last-bowl rule and hand him a bake with nothing left
        to play. Three open is the smallest bench that still shuffles and still has to be read. */
-    if(bake2&&p.bake&&p.bake.order.length){
-      const n=p.bake.order.length;
+    if(bake2&&player.bake&&player.bake.order.length){
+      const n=player.bake.order.length;
       const solved=Math.max(0,n-3);
-      applyResult(p.bake,{correct:p.bake.order.map((_,k)=>k<solved)});
+      applyResult(player.bake,{correct:player.bake.order.map((_,k)=>k<solved)});
     }
   }
   liveRender();
@@ -1259,12 +1259,12 @@ async function stockHoldsForBakeTest(){
 async function skipToEndCard(){
   if(!testFlagOn("endcard",endCardEnabled))return false;
   const g=appState.game;
-  for(const p of g.players){
-    if(!p.recipe||!p.recipe.length)continue;
-    p.ing=[...p.recipe];
-    g.ev({t:"testhold",p:p.idx});
-    p.done=true;p.baking=false;
-    if(g.finishOrder.indexOf(p.idx)<0)g.finishOrder.push(p.idx);
+  for(const player of g.players){
+    if(!player.recipe||!player.recipe.length)continue;
+    player.ing=[...player.recipe];
+    g.ev({t:"testhold",p:player.idx});
+    player.done=true;player.baking=false;
+    if(g.finishOrder.indexOf(player.idx)<0)g.finishOrder.push(player.idx);
   }
   liveRender();
   await flash(`${iconImg(FLAME_IMG)} <b>TEST GAME</b> — every captain is home with a full recipe. Skipping to the end of the voyage.`,2600);
@@ -1529,23 +1529,23 @@ export function remoteDraftPrompt(seat,msg,opts,waitMsg){
 }
 export function watchDraftPrompt(){
   netWatchDraftPrompt(appState.db,appState.room,appState.mySeat,snap=>{
-    const p=snap.val();
-    if(!p){return;}
-    const cls=p.classes||[];
+    const player=snap.val();
+    if(!player){return;}
+    const cls=player.classes||[];
     const grid=cls.some(c=>c)?" recipes":"";
-    if(p.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
+    if(player.stage)$("actionPanel").dataset.pp4Stage="1";else delete $("actionPanel").dataset.pp4Stage;
     // @copy prompt.net.draftrerender
     // 02.1-03: the third copy of this markup is gone too. The draft channel's WIRE payload stays
     // deliberately narrower (no disabled/why/seat/colors — a recipe card is never greyed); only
     // its RENDERING stops duplicating the pattern, so a field it one day needs is already built.
-    panel(`<div class="apMsg">${p.msg}</div><div class="apBtns${grid}">`+
-      optionButtonsHTML((p.labels||[]).map((l,i)=>({i,label:l,cls:cls[i]})))+`</div>`,true);
-    const shorts=p.shorts||[];
+    panel(`<div class="apMsg">${player.msg}</div><div class="apBtns${grid}">`+
+      optionButtonsHTML((player.labels||[]).map((l,i)=>({i,label:l,cls:cls[i]})))+`</div>`,true);
+    const shorts=player.shorts||[];
     $("actionPanel").querySelectorAll(".apBtn").forEach(b=>{
       const i=+b.dataset.i;
       if(shorts[i])b._shortHtml=shorts[i];
       b.onclick=()=>{
-        netSetDraftResponse(appState.db,appState.room,appState.mySeat,{id:p.id,choice:i},netFail("recipe response"));
+        netSetDraftResponse(appState.db,appState.room,appState.mySeat,{id:player.id,choice:i},netFail("recipe response"));
         /* THE CARD WAS NEVER TORN DOWN — Wyatt, 2026-08-19: "the crew draws lots screen doesn't
            disappear". The old line showed the waiting narration and left the panel standing,
            because showNarration paints a floating bubble and does not touch #actionPanel. On the
@@ -1554,7 +1554,7 @@ export function watchDraftPrompt(){
            The teardown runs unconditionally now; the waiting line, if any, comes after it. */
         delete $("actionPanel").dataset.pp4Stage;
         panel("");
-        if(p.waitMsg)showNarration(p.waitMsg,{wait:true}); // item 19: no deadline on a wait line
+        if(player.waitMsg)showNarration(player.waitMsg,{wait:true}); // item 19: no deadline on a wait line
       };
     });
   });
@@ -1589,9 +1589,9 @@ export async function consumeEvent(e){
     // the guest's mirror of the host-authoritative state — see watchEvents' preserved history
     // below for the day the ribbon said DAY 1 while the board played day 2 (2026-08-19).
     if(e.state)e.state.forEach((s,i)=>{
-      const p=appState.game.players[i];if(!p||!s)return;
-      p.pos=Array.isArray(s.pos)?[...s.pos]:p.pos;
-      p.coins=s.coins;p.ing=Array.isArray(s.ing)?[...s.ing]:[];p.done=s.done;p.baking=!!s.baking;
+      const player=appState.game.players[i];if(!player||!s)return;
+      player.pos=Array.isArray(s.pos)?[...s.pos]:player.pos;
+      player.coins=s.coins;player.ing=Array.isArray(s.ing)?[...s.ing]:[];player.done=s.done;player.baking=!!s.baking;
     });
     if(e.round!=null)appState.game.round=e.round;
     if(e.wind!=null)appState.game.windNow=e.wind;
@@ -1632,7 +1632,7 @@ export function watchEvents(){
        the state onto every event (Game.ev already did) and mirror it here — MUTATED IN PLACE,
        never reassigned, because renderBattleFromSnap holds player object references across a
        fight. That mirror now lives in consumeEvent's guest branch, where the host's drain shares
-       every line AFTER it. `p` rides turn/sail/dock/pass/attack for applyActiveSeat (02.15-01
+       every line AFTER it. `player` rides turn/sail/dock/pass/attack for applyActiveSeat (02.15-01
        Stage 2); the rim sweep's known, accepted degradation stands: the guest's coin panels lag
        by the sweep's duration, an event arriving mid-sweep snaps the ship true on the next paint. */
     await consumeEvent(e);
