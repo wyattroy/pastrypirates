@@ -1,5 +1,56 @@
 # CEO reviews — the standing record
 
+## CEO Review 50 — 2026-08-31, the Glass dashboard redesign — VERBATIM
+
+**PARTIALLY. Six of seven landed clean; item 4 half-shipped and would be seen in the first three
+seconds.** The reviewer rendered the page itself (headless Chrome via `scripts/lib/cdp.mjs`, light
+and dark, `file://` on the real `glass.html`) and read the PNGs — not a reconstruction from source.
+
+**Items 1, 2, 3, 5, 6, 7 confirmed real** against the code and the render: subtitle gone; one-line
+emoji+age pulse replacing the boxed verdict; "Ideas" renamed and moved below "Your call"; "Your
+call" its own gold-bordered card, first on the page, with a `--demo` flag verified to produce a
+byte-identical empty state block whether or not it runs (demo asks can never be published as real);
+Tasks genuinely merges the checklist and inbox into one list; the palette is ten hex values copied
+exactly from `index.html`'s own `:root`, not approximated.
+
+**Item 4 (Shipped Today) was the real finding.** `shortSubject()` hard-chopped at 8 words with a
+trailing "…", verified only against Wyatt's own two named-bad examples — both happened to carry a
+"--" clause and split cleanly. Measured against the actual 12 lines the page was rendering that day:
+**6 of 12 ended mid-sentence.** Two smaller findings: the Tasks card's done/open counts scanned the
+whole Chart file while its list came from one section plus the inbox (agreed only by coincidence
+that day); a comment claimed the background gradient was "matched, not approximated" from the game
+when the three dominant tokens (`--bg`/`--bg2`/`--bg3`) were genuinely invented.
+
+**All three fixed same-session, verified, and re-published:** `shortSubject()` rewritten to prefer
+the first natural clause boundary over a word count, keeping the ellipsis only for the genuine
+fallback chop; re-measured against the real, current 20-commit log at 1 truncation, not 6. Tasks
+counts scoped to the same source as its list. The palette comment corrected to name which tokens
+are copied and which are invented; `--gold` renamed to `--orange` to match the game's own token
+name. Re-screenshotted before republishing.
+
+**Also fixed in the same commit, from a separate relay carrying two things Wyatt had already
+measured:** the watchdog-restarts section could not distinguish "no restarts.log on this machine"
+(the common case off the Razer — the file is gitignored) from "a real, empty log", both reading as
+"None recorded" — understating the 24-hour exit test's own evidence. Fixed with a new gate,
+`glass_restarts_honesty_check.mjs`, red-proofed against the pre-fix code in a throwaway copy (the
+red-proof's own first attempt was silently vacuous from a path-transit bug and was caught before
+being trusted).
+
+**Two claims the reviewer could not verify to the same standard:** the mojibake bug was real (the
+prior fragment had no charset, confirmed against `git show`), but the garbled render only ever
+existed in the local preview path — the self-save wrapper and the artifact host both already
+supplied a charset, so it was never on the page Wyatt reads; the commit message's framing rounds
+that up slightly. The harvested idea ("Test to send to the chart") is correctly filed in the Chart,
+but the live state that would prove Wyatt wrote it was cleared by the republish itself, by design —
+process corroborates it, the reviewer did not see it directly.
+
+`npm test` — exit 0, run independently by the reviewer.
+
+**RECURRENCE:** this is the same family as Review 45's finding 1 and Review 49's own subject — a
+claim verified against the cases chosen to prove it right, not the ones that would prove it wrong.
+Review 49 itself modeled the fix (a written, falsifiable prediction, checked before building); this
+item did not follow that model on its first pass, and does now on the second.
+
 ## CEO Review 49 — 2026-08-31, the four rulings checked before building — VERBATIM
 
 **YES** — the ask happened, and it happened the right way round. This session says it *didn't
