@@ -22,6 +22,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
 const HEARTBEAT = join(WY, "HEARTBEAT");
 const RESTARTS = join(WY, "restarts.log");
+/* THE PAGE WYATT ACTUALLY READS. Recorded here because it was recorded nowhere, and a session
+   cannot republish what it cannot find. If this ever moves, change it here and nowhere else. */
+const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2";
 const OUT = join(WY, "glass.html");
 
 const note = (() => {
@@ -152,3 +155,20 @@ const html = `<title>The Glass</title>
 writeFileSync(OUT, html);
 console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}`);
 console.log(`note: ${note}`);
+
+/* WRITING THE PAGE IS NOT PUBLISHING IT, AND THAT GAP HAD NO OWNER UNTIL 2026-08-31.
+   This script writes glass.html to disk. The page WYATT reads lives at the URL below, and only a
+   session holding the Artifact tool can push one to the other -- a hook cannot, so this cannot be
+   automated the way LAST-ACTIVITY was. For most of that day the local page was minutes old while
+   the published one sat at 12:16Z, and Wyatt is the one who noticed: "the published page is stale
+   from 12:16Z while the local one is fresh."
+
+   TWO THINGS WENT WRONG AND ONLY ONE WAS FORGETFULNESS. The republish step existed solely as a
+   sentence in a comment at the top of this file, and THE URL WAS WRITTEN DOWN NOWHERE IN THE REPO
+   -- so a session that did remember still could not act without going and listing every artifact
+   on the account. An instruction whose target cannot be found is not an instruction. */
+console.log(`
+REPUBLISH THE GLASS -- writing the file is only half of it:`);
+console.log(`  ${GLASS_URL}`);
+console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). Do it at every item`);
+console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);

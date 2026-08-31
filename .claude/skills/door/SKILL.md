@@ -49,6 +49,10 @@ node scripts/wyclau/glass.mjs --note "<what this session is starting>"
   answer: answer from the record, name the ruling, keep going.
 - **Pulse at least every 20 minutes** while working (`glass.mjs --note`), and at every item
   boundary. The watchdog reads the pulse; a silent session is a dead session.
+- **AND REPUBLISH THE GLASS at every item boundary** — writing `glass.html` is only half of it.
+  The page Wyatt reads is an artifact, and only a session can push the file to it; `glass.mjs`
+  prints the URL every run. On 2026-08-31 the local page was minutes old while the published one
+  sat at 12:16Z all day, and HE is the one who noticed. A pulse he cannot see is not a pulse.
 
 ## 5. Close
 
