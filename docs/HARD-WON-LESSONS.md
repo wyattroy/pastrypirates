@@ -1574,3 +1574,34 @@ never have run**. CEO Review 37 caught it one commit before it shipped.
 **Now enforced:** `tree_health_check` case 4, red-proofed in both directions, on every script in
 `scripts/`. Its planted example strings are **assembled at runtime** rather than typed, so the gate
 still polices its own file — an allowlist would have been a file nobody checks any more.
+
+### §12g — "SOMEBODY WILL REMEMBER" IS NOT A MECHANISM
+
+**2026-08-31.** A checker ruled that a change inside `board.js`'s BYTE-IDENTICAL Safari region
+needed a SCOPED EXCEPTION block in the header, and that **whether Wyatt must approve it was his
+call, not the builder's**. So the block was written saying `AWAITING WYATT'S RULING` — honest, in
+the right place, and completely inert. CEO Review 38 grepped `scripts/` and `.claude/hooks/` for
+that marker and got **zero hits**: *"Nothing mechanical stops that file merging to main unruled —
+only somebody remembering."*
+
+**The shape to recognise: a question correctly raised, correctly recorded, and load-bearing on
+nobody.** It reads as diligence. It behaves as a comment.
+
+Two things worth copying from the fix (`scripts/qa/unruled_exception_check.mjs`, gate 55 of 56):
+
+1. **BRANCH-AWARE, NOT ABSOLUTE.** An unruled exception is *correct* on a working branch — that is
+   where a ruling gets asked for. Failing there would turn every unrelated piece of work red until
+   Wyatt happened to be at a keyboard, and a gate that cries wolf gets `--no-verify`'d. So: on a
+   branch it PASSES and prints the file and line **every single run**, so the question cannot
+   become furniture; on `main` it FAILS, because that is the moment the change reaches real
+   players. **Put the failure where the cost is, and the reminder everywhere else.**
+2. **THE RED-PROOF NEEDED THE BRANCH TO BE AN ARGUMENT.** A run on a feature branch can never
+   demonstrate the main-branch verdict. The first attempt tried to prove it with a throwaway
+   worktree; that exited 1 with *module not found*, which looks exactly like the gate failing —
+   **an instrument measuring something other than what it names, inside the red-proof of a gate
+   about honesty.** The fix was one `verdict(found, branch)` function called by both the live path
+   and the proof. Nothing passes an override in; the live call reads git.
+
+**State the limit, or the fence becomes a wall in the telling:** this fires when `npm test` runs on
+main. It cannot see a merge pushed without running the suite. It is a fence — but a fence is what
+did not exist, and the release process walks straight into it.
