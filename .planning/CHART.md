@@ -19,7 +19,7 @@ step 2). Wyatt's five-item bar is step 3.
 | # | Step | State |
 |---|---|---|
 | 1 | **The reboot** (Door, Glass, watchdog, rulebook, memory, pruning) | **IN PROGRESS** — see checklist below |
-| 2 | **The foundation** (one-director rebuild, 6 steps) | step 1 shipped (storyboard module, gated); step 3 struck by measurement (CEO 37); 4 remain. **Launch date proposed here.** |
+| 2 | **The foundation** (one-director rebuild, 6 steps) | **further along than the plan says — see below.** Steps 1, 2, 3 and 4 done; step 5 open; step 6 largely already enforced. **Launch date proposed here.** |
 | 3 | **The launch list**: finished feel solo+crew · tutorial · analytics · code-privacy decision · SEO | not started; sized at step 2 |
 | 4 | **Launch, then the till** (accounts + paid merch, +1 month) | not started |
 
@@ -41,8 +41,28 @@ step 2). Wyatt's five-item bar is step 3.
 
 | Question | Recommendation | Since |
 |---|---|---|
+| **Step 5 — do the narrow half, or the whole rename?** | Narrow half: move the three drawing branches behind the Decider, leave the two questions as two. **This is the call a session got wrong once and corrected — it should be yours.** | 2026-08-31 |
+| **Move the pass-and-play hand-over ahead of the turn?** | Build both behind a switch and play them — it changes feel, and feel is yours | 2026-08-31 |
+| **Fix the live audio defect?** (8s of storm at full volume per ship, one deleted line) | Yes — the best ratio of player-noticeable gain to risk this week | 2026-08-31 |
+| **Correct the plan document** to match what is actually built? | Yes — three of its steps describe finished work, and a session has already re-planned finished work once | 2026-08-31 |
 | Book the Razer hour (~30–60 min at that machine) | Sooner is better — "never stalls" is unclaimable until the watchdog exists | 2026-08-31 |
 | Name the quiet moment for the cutover (when the parallel fix session can pause for ~an hour) | Tell any session "cutover now" when your fix session is between items | 2026-08-31 |
+
+**All six are on one tappable page:** <https://claude.ai/code/artifact/0a8acdc5-e1ca-476d-833e-5b7623e0b3fb>
+
+## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
+
+*The plan (`architecture-one-director.html`) was written from a reading that predates several
+convergences. Every row below was checked against the tree, not against the document.*
+
+| step | the plan says | the tree says |
+|---|---|---|
+| 1 · storyboard, route one kind through it | to build | **DONE.** `present()` in `src/shared/storyboard.js`, `playStoryboard()` in `src/ui/flow.js`, `sail` converted. No player-visible change — see step 2. |
+| 2 · put the route on the event, guest walks real water — *"first visible win"* | to build | **ALREADY SHIPPED.** The route rides on the event as `draw.route` and `consumeEvent` walks it on every client. There is no visible win left to claim. |
+| 3 · one fact for whose turn it is | struck by measurement | **DONE**, by commit `5e9ee2b1`, before the run that checked it. `setActor` has one caller. |
+| 4 · storyboard parity gate | to build, after two kinds | **DONE**, built after one kind on purpose — the plan's own reason is to guard the migration rather than certify it. Golden file, one process, no browser. |
+| 5 · the Decider interface | to build | **OPEN, and honestly so.** Its machinery mostly exists as two orthogonal predicates; 13 mode reads remain and 3 decide what is *drawn*. See the question above. |
+| 6 · delete old paths, layering gate strict | to build | **LARGELY ALREADY ENFORCED.** All three layering rules the plan asks for already fail the build; proven by planting each violation. |
 
 ## THE IDEA INBOX
 
