@@ -149,3 +149,21 @@ including a block he answered from his phone on 2026-08-29) and in `.planning/BA
 **Migrate a ruling into this file the next time you touch the item it governs** — a big-bang
 migration would be a day of copying with nothing verified, and copies made in bulk are the ones that
 turn out wrong.
+## NO RIPPLE RING IN THE OVENS — Wyatt, 2026-08-31
+
+**His words: "no ripple ring in the ovens."**
+
+The active-turn ripple must NOT move to the captain who has stepped up to bake. It stays with
+whoever last took the wheel — i.e. the walk that drives it counts only `turn` events
+(`TURN_ONLY` in `src/shared/storyboard.js`), never `ovens` or `bake`.
+
+This closes the open design call recorded at `src/shared/storyboard.js:39` and
+`src/ui/board.js:1768`. **It is not a patch to guess at again** — any future "should the ring
+follow X?" for the bake is already answered.
+
+**CONSEQUENCE, found while recording this:** the ring is drawn from TWO places that currently
+disagree. `board.js:1532` (`activeTurnSeat`, used by the live-ships path) passes `TURN_ONLY` and
+already obeys the ruling. `board.js:1776` (render's own) passes the DEFAULT, which includes
+`ovens` and `bake`, so on that path the ring does follow the captain to the ovens. Read from the
+code, not yet measured on screen. Under this ruling the second one is wrong and must pass
+`TURN_ONLY` too — and under rule 23 the deeper fault is that one visual had two answers at all.
