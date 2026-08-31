@@ -44,7 +44,15 @@ if (!fs.existsSync(SHOTS)) {
   console.log("judge can-see check — NOT RUN: no sea-trial-shots/ directory. Sail a trial first.");
   process.exit(2);
 }
-const shots = fs.readdirSync(SHOTS).filter(f => f.endsWith(".png")).sort().slice(0, 3);
+/* ⚠ PICK REAL GAME SCREENS, NOT WHATEVER SORTS FIRST. The first draft took the first three .png
+   alphabetically, which are the leftover `contact-*.png` dashboards — and the judge correctly
+   REFUSED them ("the three files you gave me aren't single gameplay screenshots"). The gate then
+   printed "THE JUDGE CANNOT SEE" over a reply that began "I can see the three images", which is
+   exactly the fault it was built to catch: an error message pointing away from the cause. Caught by
+   CEO Review 36, on the gate's own first day. */
+const shots = fs.readdirSync(SHOTS)
+  .filter(f => f.endsWith(".png") && !f.startsWith("contact-"))
+  .sort().slice(0, 3);
 if (shots.length < 2) {
   console.log(`judge can-see check — NOT RUN: found ${shots.length} screenshot(s), need at least 2.`);
   process.exit(2);
@@ -81,7 +89,12 @@ if (out && out.fatal) {
 }
 if (!arr || arr.length !== items.length) {
   const detail = out && out.unparseable ? out.unparseable : `only ${arr ? arr.length : 0} of ${items.length} screenshot(s) came back named`;
-  console.log(`  FAIL  ${detail}`);
+  /* A REFUSAL IS NOT A BLINDNESS, and conflating them is how this gate lied on day one. If the
+     reply shows the judge SAW the images and declined to rate them, say that instead — the eyes
+     were open and the subject was wrong. */
+  const sawThem = /\bI can see\b|\baren'?t single gameplay\b|\bcontact[- ]sheet\b/i.test(String((out && (out.unparseable || out.raw)) || ""));
+  console.log(`  ${sawThem ? "FAIL (SUBJECT, NOT SIGHT)" : "FAIL"}  ${detail}`);
+  if (sawThem) console.log("        The judge OPENED the images and refused to rate them. Its eyes work; this gate\n        handed it the wrong pictures. Fix the selection, not the judge.");
   if (out && out.raw) console.log(`        raw reply: ${String(out.raw).replace(/\s+/g, " ").slice(0, 200)}`);
   console.log("\n  THE JUDGE CANNOT SEE. Stage the images into the judge's own working directory and");
   console.log("  name them bare; do NOT move the child back into this repo — that reintroduces the");

@@ -1,5 +1,114 @@
 # CEO reviews — the standing record
 
+## CEO Review 36 — 2026-08-31, "run the sea trial when the builder finishes" / "fix the judge as soon as the trial lands" — VERBATIM
+
+**VERDICT: SOUND-WITH-CHANGES.** *"Both things you asked for actually happened, and the judge fix is the real article — I broke it myself in a scratch copy and watched the exact blindness come back, then watched the shipped version return three proper verdicts. That is the best-proved fix I have reviewed on this repo. But then it told you the trial found only TWO problems in the whole fleet and that nothing pointed at last night's work. The trial's own log has THIRTY-SIX, and the ones it lost are concentrated on the crew phone GUEST — the screen you have been complaining about for a week. And the brand-new gate it built to prove the judge can see FAILS right now, on the repo, on the shipped code, with a message saying the judge is blind when the judge had just said 'I can see the three images'."*
+
+### A. DID THE TRIAL ANSWER YOUR QUESTION? Half of it, and the half that mattered for last night's work is the empty half.
+
+**What it genuinely proved, and this is not nothing:**
+- It really sailed. Ten of ten legs, `.planning/SEA-TRIAL.md`, NOT-RUN column empty, 104 minutes, FULL gear. I checked it is describing the *live* code: `git log b1e3bf48..HEAD -- src/ index.html` returns **nothing**, so no game code has changed since the trial commit. **This closes the gap CEO 33, 34 and 35 each asked for and did not get** — three reviews running, the trial report described a build that no longer existed. It now describes this one. Say that out loud; it was the longest-standing open item on this unit.
+- `npm test` — I ran it. **Exit 0.**
+- Nothing crashed the game. The only console errors are the container's own TLS noise on the two WebKit legs.
+
+**What it did not prove, and it is the whole point of last night:** the judge saw nothing — 1494 unparseable replies. Last night's work was about *when things get published so both screens draw them in the same order*. That is a thing you can only catch by **looking at the picture**. So the trial validated that the game still runs and still passes its rule-checks; it validated nothing at all about whether the storm and the sail now look right on two screens.
+
+**Does it license shipping? No.** Not because the run was bad — it was an honest run — but because the eyes were shut for exactly the change it was meant to check. The report also flags its own gear was **forced on the command line**, and says in its own words to treat it as weaker evidence. It is right.
+
+### B. I RAN THE GATE. IT IS RED ON YOUR REPO RIGHT NOW — and for the wrong reason.
+
+`node scripts/qa/judge_can_see_check.mjs` → **FAILED, exit 1.** Here is what the judge actually replied:
+
+> *"I can see the three images, but I want to flag something before answering: none of these are single gameplay screenshots. Each one is a contact sheet (a grid of 17–22 small thumbnails)…"*
+
+The judge **could see**. It refused to give a verdict because it was handed **contact sheets** — the very thing this session removed last night. The gate picks the first three screenshots in alphabetical order (`scripts/qa/judge_can_see_check.mjs:47`), and four files named `contact-*.png` are still sitting in `sea-trial-shots/`, so they sort to the front every time. The gate then prints, in capitals, **"THE JUDGE CANNOT SEE"** — the opposite of what the judge just said.
+
+**That is the exact fault this gate was built to prevent.** Its own opening comment says the old failure was *"messages that point away from the cause"*. It now has one of its own.
+
+**And the fix underneath it is genuinely good — I proved that separately, which is why this is a gate fault and not a fix fault.** I copied the scripts into a scratch tree (the repo was never touched) and pointed both copies at three *real* single screenshots:
+
+| what I ran | result |
+|---|---|
+| **fix broken** (`stageImages` handing over repo paths, as before) | **FAIL** — *"I don't have permission to read those image files"* — **the diagnosed cause, word for word** |
+| **shipped code**, same three pictures | **PASS** — three real verdicts, one of them a genuine FAIL naming *"leftover speech-bubble remnant peeking above the recipe modal's top edge"* |
+
+So the diagnosis is right, the fix works, and I did not take the red-proof on trust. **The gate that guards it, as shipped, cannot be run.**
+
+### C. THE HOOK PROTECTION IS INTACT. Verified by reading every door.
+
+`scripts/lib/vision.mjs` shells out to `claude` in exactly two places — line **153** and line **221** — and both pass `cwd: stage.dir`, a fresh `mkdtemp` under the system temp directory (`:114`). Nothing passes the repo. `judgeEnv()` at `:89-94` still returns `cwd: os.tmpdir()`. **The 2026-08-28 hijack is not reintroduced** — the pictures moved to the judge, the judge did not move to the pictures. That was the right direction and the comment at `:95-112` explains why well enough that the next person will not undo it.
+
+### D. THE TWO FAILURES ARE NOT TWO. THERE ARE THIRTY-SIX, AND THIS IS THE FINDING I WILL NOT LET PAST.
+
+You were told, in `.planning/CTO-LEDGER.md:524`: *"TWO genuine structural failures in the whole fleet and they are THE SAME ONE… That is W1-4, already open… NOTHING IN THE REPORT POINTS AT TONIGHT'S PUBLISH-ORDER WORK."*
+
+I counted the trial's own log, `sea-trial-shots/log.txt`:
+
+```
+grep -o "STRUCT FAIL[^:]*: [a-z-]*" sea-trial-shots/log.txt | sort | uniq -c
+     17 STRUCT FAIL no-cover-ask
+      8 STRUCT FAIL sail-clickable
+      6 STRUCT FAIL not-occluded
+      5 STRUCT FAIL on-screen        =  36 total
+```
+
+**Thirty-six, not two.** And where they landed matters more than the number:
+
+| leg | in the LOG | in the REPORT |
+|---|---|---|
+| **crew-phone-guest** | **23** | folded into "crew-phone: 1" |
+| solo-phone-wk | 10 | 1 |
+| solo-phone | 2 | **0 — no structural line at all** |
+| crew-phone-host | 1 | **0** |
+
+**The leg that lost the most is the crew phone GUEST** — the exact screen your whole W1-4 complaint is about. Its failures include `sailCell <- covered by #pp4Cap`, `<- covered by #players`, `clickable off-screen: sailCell`, and a sail square covered by `.pnameInner` (a player's name label). None of that reached you.
+
+**And at least two of the families are NOT W1-4.** On solo-phone-wk, six times, the battle buttons sit on top of the battle question: *"Call Flaky Jack" over "Davy Scones — a battle's brewi"*, same for Crustbeard and Dough Hook (log lines 2270, 2291, 3115, 3188, 3934, 3981). On crew-phone-**host**: *"test2" over "Fer yer Toasty Wheat the tabl"* — a trade button over the trade question (log line 5280). Those are not sail squares and they are not on the checklist I read (`.planning/staging-checklist-2026-08-30.html:115`, which lists seven known items and none of these).
+
+**So the answer to your question D is: the two that were reported ARE correctly identified as the open W1-4 — that part is right, and the checklist backs it. But "two in the whole fleet" is wrong by a factor of eighteen, and the thirty-four that went missing include at least two faults nobody has ever reported to you.**
+
+**One honesty note about my own finding:** I have proved the discrepancy is real and large. I have **not** worked out the mechanism — why the report's per-leg summary loses its own log's failures. It is not the "seen only during an animation" demotion, because the report counts only 2 of those fleet-wide. *(Measured discrepancy; mechanism unknown — I stopped rather than guess.)*
+
+### E. NINETY-FOUR SCREENS THAT NEVER STOPPED MOVING — and the real number is worse.
+
+It is being filed as noise. It has been called "the known settle issue" and "the standing finding" in the ledger since 2026-08-28, and tonight it went into the report as ten line items and into your summary as nothing at all.
+
+Two things make that the wrong call:
+1. **It is growing.** ~62 unsettled screens on 2026-08-28 (`.planning/CTO-LEDGER.md:85`), **94** tonight. Half again as many.
+2. **The log's own count is 857.** `grep -c "still moving at the cap"` in `sea-trial-shots/log.txt` returns **857**. The gate's comment at `scripts/playtest_gate.mjs:221` says these are *"checked anyway"* — so 857 times tonight, a screen was still animating after a nine-second wait and got judged mid-motion.
+
+**In plain terms: something in this game is still moving nine seconds after it should have stopped, hundreds of times a voyage.** That is not an instrument quirk to be filed — a player waiting nine seconds for a screen to settle is a defect on its own, *and* it degrades every other check in the trial, because a check run on a moving screen is a check you cannot fully believe. **Nobody has ever asked what is still moving.** That question is one screen recording away.
+
+### F. THE PR15 EPISODE — the correction is good; the hole it came through is still open.
+
+The correction itself is exemplary. `857e8859` is titled *"a merged PR claimed a removal that never happened, and I repeated the claim"*, `70e4b9d2` is *"the other four PR15 claims hold — checked, not assumed"*, and the comment block at `scripts/playtest_gate.mjs:481-494` records the measurement (91 timeouts against 29 successes) rather than the apology. **Volunteering it before anyone asked is exactly right and I want it on the record.**
+
+**The process fault is still there, and it is one sentence long: nothing verifies a merged PR's claims, and nothing now stops the removal from coming back.** `contactSheet()` is still defined at `scripts/playtest_gate.mjs:247` and deliberately left in place, unreferenced. An unreferenced function is one line away from being referenced again, and there is no gate anywhere that would notice — I looked (`grep -rln "contactSheet" scripts/`: the gate file, `contact_sheet.mjs`, and two unrelated checks; no test). **The thing that caught this was a 104-minute trial burning 91 two-minute timeouts.** That is the most expensive possible detector, and it is currently the only one.
+
+### G. RECURRENCE OF CEO 34 AND 35's CHARGE — IT RECURS, in its most exact form yet.
+
+CEO 35's finding was: *"it told you it had counted the size of the problem and the count is wrong."* CEO 34's was the same charge in different clothes.
+
+**Tonight: "TWO genuine structural failures in the whole fleet." Thirty-six.** Same shape, same mechanism — a count stated as counted, which invites the reader to stop looking, attached to the sentence that told you nothing needed your attention. It is worse than CEO 35's instance in one respect: that wrong count under-fixed a bug, this one under-reported your own top complaint back to you.
+
+**The candour is real and I will not flatten it.** This session volunteered a gate it had written wrong twice, a module it accidentally *ran* while trying to syntax-check it, a count of "exactly two sites" that was wrong, and a merged PR whose claim it had repeated. That is four self-reported errors in one night, unprompted. **A unit that reports its own faults and still ships a wrong headline count has a reporting-discipline problem, not an honesty problem** — and those are fixed differently. The fix is not "be more careful"; it is **stop summarising a run from its report and start summarising it from its log.**
+
+### The changes I require
+
+1. **Re-read tonight's trial from `sea-trial-shots/log.txt` and give Wyatt the real list.** 36 structural failures, 23 of them on the crew phone guest, and at least two families he has never been told about (battle buttons over the battle question; a trade button over the trade question). The sentence "nothing points at tonight's work" needs withdrawing in the ledger, in the open.
+2. **Find out why the report loses its own log's failures.** A report that shows 2 when the log has 36 is an instrument that lies quietly, and rule 24 tells him to open that report and believe it. This outranks every other item on this list.
+3. **Make the gate runnable.** `scripts/qa/judge_can_see_check.mjs:47` must skip `contact-*.png`, and its failure message must not say "THE JUDGE CANNOT SEE" when the judge said it could — print the reply and let the reader decide. Right now the gate is red on a healthy repo.
+4. **Ask what is still moving after nine seconds.** 857 times in one trial, up from ~62 screens to 94. One screen recording, not another trial.
+5. **Put a one-line gate on the contact-sheet removal**, so the next person who re-references `contactSheet()` finds out in a second instead of in 104 minutes.
+6. **The judge half of this trial is still empty.** With the eyes now genuinely fixed and proved fixed, last night's publish-order work has still never been looked at. That is a re-run, or a posed pair — not a claim.
+
+### One sentence Wyatt should read first
+
+Both things you asked for got done, and the judge fix is real — I broke it and watched it go blind, then watched the fixed one see — but you were then told the trial found two problems and nothing new, when its own log has thirty-six, twenty-three of them on the crew phone guest screen you have been complaining about all week, including two kinds of fault nobody has ever mentioned to you.
+
+---
+
+
 ## CEO Review 35 — 2026-08-30, "the guest freezes for three quarters of a second in the middle of the storm ride, and its camera pulls wide late" — VERBATIM
 
 **VERDICT: SOUND-WITH-CHANGES.** *"The cause is genuinely found and genuinely fixed, and the hard judgement call at the centre of it — refusing the one-line version it was handed — is correct; I checked it line by line rather than taking its word. But it told you it had counted the size of the problem and the count is wrong. It says exactly two places in the game have this fault. There are at least five, and the ones it missed are the ORDINARY SAIL — the thing that happens on every single turn, where the storm happens occasionally. So the rarest instance is fixed and the commonest one is still there, sitting in `flow.js` behind a comment that argues for keeping it."*

@@ -51,7 +51,24 @@ export function legVerdict(rec) {
     if (!wk) v.push(`${rescues} browser relaunch(es) on a Chrome leg — Chrome has never needed one; this is NOT the sanctioned WebKit crash`);
     else if (rescues > budget) v.push(`${rescues} WebKit relaunch(es) over ${rec.days || "?"} day(s) — above the ${budget} this voyage's length allows; that is a crash loop being ridden out, not a voyage`);
   }
-  const structFails = rec.screens.flatMap(s => s.fails);
+  /* ⚠ GATHER FROM EVERY SEAT, NOT JUST THE PARENT RECORD. THE SAME FAULT, TWICE.
+     The note below records 2026-08-29, when a bare count hid 22 failures — 14 of them on
+     crew-phone-guest — and the fix was to NAME the rules in this line. It named them and still
+     read the wrong array. On 2026-08-30 the FULL trial's own log carried 36 STRUCT FAIL lines
+     (23 crew-phone-guest, 10 solo-phone-wk, 2 solo-phone, 1 crew-phone-host) and the report showed
+     TWO, because a crew leg puts each seat in its own record (`rec.seats = [recA, recB]`,
+     playtest_gate.mjs:391) and this read only `rec.screens`. THE GUEST'S FAILURES WERE NEVER IN THE
+     ARRAY BEING COUNTED — and the guest is the side Wyatt's findings come from.
+     Deduplicated BY ARRAY IDENTITY because a solo leg sets `rec.seats = [{ screens: rec.screens }]`
+     (playtest_gate.mjs:424) — the same array under two names, which a naive concat would count
+     twice and turn an undercount into an overcount. */
+  const screenSets = [];
+  const seenArrays = new Set();
+  for (const src of [rec, ...(rec.seats || [])]) {
+    const arr = src && src.screens;
+    if (Array.isArray(arr) && !seenArrays.has(arr)) { seenArrays.add(arr); screenSets.push(arr); }
+  }
+  const structFails = screenSets.flatMap(a => a.flatMap(s => (s && s.fails) || []));
   /* NAME THEM. A COUNT IS NOT ACTIONABLE, AND THIS ONE HID THE BIGGEST FINDING IN THE FLEET.
      Every other line in this verdict names its subject — dead controls list their labels,
      unreachable controls their `what`, unexercised kinds their names — and this one alone said
