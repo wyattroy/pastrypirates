@@ -77,3 +77,8 @@ w1-crewphone-recheck/
 # wyclau liveness (local-only; the watchdog reads these)
 .planning/wyclau/HEARTBEAT
 .planning/wyclau/glass.html
+
+# Claude Code local settings are MACHINE-LOCAL by design (the file even points at
+# /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history
+# to every clone; the deliberate, reviewed allowlist lives in .claude/settings.json.
+.claude/settings.local.json

@@ -11,8 +11,13 @@ impossible, say what you actually observed and park a question — never guess p
 ## 1. Sync (30 seconds)
 
 ```bash
-cd /Users/wyattroy/Documents/Projects/pastrypirates && git fetch origin && git pull --rebase
+git fetch origin && git pull --rebase
 ```
+
+Run it where you stand — every way into the Door (the watchdog, a terminal, a cloud container)
+starts in the repo root. Never `cd` to one machine's absolute path first: the repo lives at a
+different path on every machine, and a failed `cd` short-circuits the `&&` chain so the sync
+silently does nothing — on every watchdog restart, forever.
 
 If the pull moved `.claude/CLAUDE.md` or `.claude/rules/`, re-read them from disk — your context
 copy predates the pull.
