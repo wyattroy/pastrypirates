@@ -168,6 +168,13 @@ if ($DryRun) {
   Add-Content $restarts "$now`tDRYRUN would launch the engine"
 } else {
   try {
+    # PP_BOSUN=1 -- the env stamp the keep-working Stop hook gates on (Quartermaster's design,
+    # 2026-08-31: the hook must fire ONLY in a session the watchdog started, never in Wyatt's own
+    # terminal or a cloud session). Start-Process has no environment-isolation switch in Windows
+    # PowerShell 5.1 -- a child process inherits the parent's environment by default -- so setting
+    # this on the CURRENT process, immediately before the call, is the whole mechanism. Do not add
+    # any switch that would isolate the child's environment; that would silently break the stamp.
+    $env:PP_BOSUN = "1"
     Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
       "-p", "`"$doorPrompt`""
     ) -WindowStyle Hidden

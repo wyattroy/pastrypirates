@@ -10,56 +10,74 @@
  * layer one. See .claude/org/hooks/no-idle-offer.cjs for the sibling this is modelled on -- same
  * stdin/stdout contract, same "state a checkable thing, name what it can't see" shape.
  *
- * FIRES IN EVERY SESSION, INTERACTIVE INCLUDED -- his correction, 2026-08-31, overriding his own
- * first answer ("only unattended") the moment he gave it: "I want you to run the hook in all
- * sessions." No launch-context detection exists or is planned; a turn you are typing at is held to
- * the same brakes as an unattended one.
+ * ⚠ SCOPE CHANGE, 2026-08-31, from the Quartermaster, superseding an earlier live correction from
+ * Wyatt ("run the hook in all sessions"): FIRES ONLY IN A SESSION THE WATCHDOG STARTED. Never in
+ * Wyatt's own terminal, never in a cloud session. Gated on an environment stamp, not an inference
+ * -- scripts/wyclau/watchdog.ps1 sets $env:PP_BOSUN = "1" immediately before the Start-Process
+ * launch, and Windows PowerShell 5.1's Start-Process has no environment-isolation switch, so a
+ * child inherits it by default. This hook checks that stamp first and exits immediately if it is
+ * absent -- an interactive or cloud session never reaches any brake below.
  *
- * HIS BRAKES, CHECKED IN THIS ORDER:
+ * ⚠ THE PREEMPTION SLOT WAS REMOVED IN THIS SAME CHANGE. An earlier version of this hook read
+ * .planning/wyclau/PREEMPT.md as a brake ("his steering wheel... outranks whatever you're on").
+ * The Quartermaster's ruling: it existed only to protect Wyatt's interactive window, which now
+ * never runs this hook at all, so the brake had nothing left to protect. Steering happens through
+ * the ordinary channel instead (see brake 3): a question goes to the Chart's BLOCKED ON WYATT
+ * table with a recommendation, gets pulsed to the Glass, and the engine takes the next unblocked
+ * item -- no timer, no waiting on a file only a live session could ever have written to anyway.
+ *
+ * HIS BRAKES, CHECKED IN THIS ORDER (after the PP_BOSUN gate):
  *
  *   0. stop_hook_active -> ALWAYS allow the stop. Blocking twice in one turn risks a hang, and a
  *      hung session is worse than an early stop.
- *   1. THE PREEMPTION SLOT, read BEFORE the Chart -- his steering wheel, replacing a plain off
- *      switch: "I want to be able to tell Bosun 'put that task to the side right now, do this
- *      immediately, pick up your other work afterwards' or 'you're doing that stupidly, try this
- *      instead.'" .planning/wyclau/PREEMPT.md holds it (same tracked, harvest-and-reset shape as
- *      GLASS-NOTE.md -- a session that is not the Bosun, or Wyatt via a relay, writes below the
- *      marker and commits; the Bosun acts on it first, resets the file, commits the reset, then
- *      resumes). Real content there BLOCKS, regardless of Chart state.
- *   2. THE GLASS PUBLISH LAG -- moved HERE from `npm test` by CEO Review 52, 2026-08-31: it had
+ *   1. THE GLASS PUBLISH LAG -- moved HERE from `npm test` by CEO Review 52, 2026-08-31: it had
  *      been wired into scripts/qa/glass_publish_lag_check.mjs, which meant a stale WYCLAU DASHBOARD
  *      could block a real GAME fix from reaching players through the release gate. Same check, the
  *      honest home: if HEARTBEAT (a pulse) is more than 20 minutes newer than LAST-PUBLISH (a
  *      confirmed real publish, stamped by scripts/wyclau/mark_glass_published.mjs -- a plain script
  *      cannot call the Artifact tool itself, so this is a session's own attestation that it just
  *      published, not independent proof), BLOCK and say so. Never reachable from `npm test`.
- *   3. GIVE UP ON A STUCK ITEM. If the SAME top actionable Chart item has been blocked on 3 times
+ *   2. GIVE UP ON A STUCK ITEM. If the SAME top actionable Chart item has been blocked on 3 times
  *      with no new commit landing in between, STOP instead of blocking again, and say what is
  *      stuck. Tracked in .planning/wyclau/STOP-HOOK-STATE.json (local, gitignored -- resets clean
  *      on a fresh commit or a different item, never carries across machines).
- *   4. STOP WHEN EVERYTHING LEFT IS GENUINELY BLOCKED ON HIM. Parses .planning/CHART.md's STEP 1
+ *   3. STOP WHEN EVERYTHING LEFT IS GENUINELY BLOCKED ON HIM. Parses .planning/CHART.md's STEP 1
  *      CHECKLIST for `- [ ]` lines; a line carrying the literal marker "GATED:" is not actionable.
  *      If every open line carries it (or none remain), allow the stop.
  *
- * Otherwise: BLOCK. There is unblocked work and nothing preempts it.
+ * Otherwise: BLOCK. There is unblocked work.
+ *
+ * ⚠ CEO REVIEW 52 FOUND THREE REAL DEFECTS ON THE FIRST VERSION, FIXED SAME DAY, STILL TRUE HERE:
+ *   1. The give-up message must never be sent to a suppressed stream. Registration in
+ *      settings.json does not redirect stderr for this entry -- his brake said "stop AND SAY
+ *      WHAT'S BLOCKING", and a suppressed stream would lose the second half silently.
+ *   2. Off-by-one: count math must give up on the 4th check, not the 3rd -- blocks happen for
+ *      count 1, 2 and 3, matching "pushed ~3 times... stop".
+ *   3. The checklist regex matches any leading whitespace, not just column zero -- a genuinely
+ *      indented open item in CHART.md must not be invisible to brake 3.
  *
  * ⚠ WHAT THIS CAN AND CANNOT SEE -- an instrument that hides its own blind spots is the recurring
  * fault this project keeps paying for.
  *
- *   CAN see: .planning/wyclau/PREEMPT.md's content; HEARTBEAT vs LAST-PUBLISH's recorded gap;
- *            .planning/CHART.md's STEP 1 CHECKLIST section and whether each open line carries
- *            "GATED:"; the current git HEAD.
- *   CANNOT see: whether an item marked actionable is actually safe to work on unattended, whether
- *            an item WITHOUT "GATED:" is secretly blocked by something the Chart forgot to
- *            annotate, whether a recorded LAST-PUBLISH really happened (see brake 2's own note),
- *            or any checklist section other than STEP 1 (there is only one today). The marker and
- *            the attestation are the whole contract -- keep them honest, or this hook is wrong in
- *            whichever direction they are wrong.
+ *   CAN see: process.env.PP_BOSUN; HEARTBEAT vs LAST-PUBLISH's recorded gap; .planning/CHART.md's
+ *            STEP 1 CHECKLIST section and whether each open line carries "GATED:"; the current
+ *            git HEAD.
+ *   CANNOT see: whether Start-Process actually propagated PP_BOSUN into THIS process (see the
+ *            Door's own "watchdog stamp: PRESENT/ABSENT" line, written to the ledger on every
+ *            watchdog-started session, for that check); whether an item marked actionable is
+ *            actually safe to work on unattended; whether an item WITHOUT "GATED:" is secretly
+ *            blocked by something the Chart forgot to annotate; whether a recorded LAST-PUBLISH
+ *            really happened; or any checklist section other than STEP 1 (there is only one
+ *            today). The stamp, the marker and the attestation are the whole contract -- keep
+ *            them honest, or this hook is wrong in whichever direction they are wrong.
  */
 "use strict";
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+
+// ---------- The PP_BOSUN gate: not applicable at all outside a watchdog-started session ----------
+if (process.env.PP_BOSUN !== "1") process.exit(0);
 
 let raw = "";
 try { raw = fs.readFileSync(0, "utf8"); } catch { process.exit(0); }
@@ -71,7 +89,6 @@ if (inp.stop_hook_active) process.exit(0);
 
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CHART = path.join(ROOT, ".planning", "CHART.md");
-const PREEMPT = path.join(ROOT, ".planning", "wyclau", "PREEMPT.md");
 const STATE_FILE = path.join(ROOT, ".planning", "wyclau", "STOP-HOOK-STATE.json");
 const HEARTBEAT = path.join(ROOT, ".planning", "wyclau", "HEARTBEAT");
 const LAST_PUBLISH = path.join(ROOT, ".planning", "wyclau", "LAST-PUBLISH");
@@ -91,22 +108,7 @@ function block(reason) {
   process.exit(0);
 }
 
-// ---------- Brake 1: the preemption slot, read BEFORE the Chart ----------
-{
-  const preemptRaw = tryRead(PREEMPT);
-  const body = preemptRaw === null ? "" : (preemptRaw.split(/^---\s*$/m)[1] ?? "");
-  const trimmed = body.trim();
-  if (trimmed) {
-    block(
-      "STOP BLOCKED -- Wyatt's steering wheel has something on it, and it outranks whatever this turn was doing.\n\n" +
-      ".planning/wyclau/PREEMPT.md holds:\n\n" + trimmed + "\n\n" +
-      "Act on it FIRST. Then reset the file to its template (see the file's own header for the exact " +
-      "text), commit the reset, and resume."
-    );
-  }
-}
-
-// ---------- Brake 2: the Glass publish lag ----------
+// ---------- Brake 1: the Glass publish lag ----------
 {
   const hb = tryReadTimestamp(HEARTBEAT);
   if (hb !== null) {
@@ -136,61 +138,56 @@ function block(reason) {
 const chart = tryRead(CHART);
 if (chart === null) process.exit(0); // cannot see the plan -- do not invent a reason to block
 
+// Matches any leading whitespace, not just column zero -- an indented open item must not be
+// invisible to this brake (CEO Review 52).
 const stepSec = chart.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
-const openLines = stepSec.match(/^- \[ \] .*$/gm) || [];
+const openLines = stepSec.match(/^\s*- \[ \] .*$/gm) || [];
 const actionable = openLines.filter((l) => !l.includes("GATED:"));
 
 // ---------- Brake 3: everything left is genuinely blocked on him ----------
 if (actionable.length === 0) process.exit(0);
 
-const topItem = actionable[0].replace(/^- \[ \] /, "").trim();
+const topItem = actionable[0].replace(/^\s*- \[ \] /, "").trim();
 
 let head = null;
 try { head = execFileSync("git", ["-C", ROOT, "rev-parse", "HEAD"], { encoding: "utf8" }).trim(); }
 catch { head = null; }
 
 // ---------- Brake 2: give up on a stuck item ----------
+// count is how many blocks have been issued for THIS item at THIS head; blocks happen for count
+// 1, 2 and 3, and the 4th consecutive check (same item, same head) gives up instead of blocking
+// a 4th time -- matching "pushed ~3 times... stop" without the off-by-one CEO Review 52 found.
 let state = null;
 try { state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch { state = null; }
 
 const sameItem = state && state.item === topItem;
 const noCommitSince = head !== null && state && state.head === head;
+const priorCount = sameItem && noCommitSince ? (state.count || 0) : 0;
+const nextCount = priorCount + 1;
 
-if (sameItem && noCommitSince) {
-  const nextCount = (state.count || 1) + 1;
-  if (nextCount >= 3) {
-    // GIVE UP. Reset state so the next real change starts a fresh count, and allow the stop.
-    try {
-      fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-      fs.writeFileSync(STATE_FILE, JSON.stringify({ item: null, head: null, count: 0 }, null, 2));
-    } catch { /* best-effort; giving up must not itself throw */ }
-    console.error(
-      `wyclau-stop-keep-working: STUCK on "${topItem}" -- blocked ${nextCount} times with no commit ` +
-      `landing in between. Giving up rather than blocking again. Say what is actually blocking this ` +
-      `item, park it, and move to the next one, or ask Wyatt.`
-    );
-    process.exit(0); // allow the stop -- the give-up message went to stderr for the transcript
-  }
+if (nextCount > 3) {
+  // GIVE UP. Reset state so the next real change starts a fresh count, and allow the stop.
   try {
     fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-    fs.writeFileSync(STATE_FILE, JSON.stringify({ item: topItem, head, count: nextCount }, null, 2));
-  } catch { /* best-effort */ }
-  block(
-    `STOP BLOCKED -- unfinished, unblocked Chart work remains: "${topItem}"\n\n` +
-    `(This is block ${nextCount} of 3 on this same item with no commit landing in between -- after ` +
-    `3, this hook gives up and lets the turn end instead of looping forever.)\n\n` +
-    `Keep working: claim it in the ledger if not already claimed, and move it forward now.`
+    fs.writeFileSync(STATE_FILE, JSON.stringify({ item: null, head: null, count: 0 }, null, 2));
+  } catch { /* best-effort; giving up must not itself throw */ }
+  console.error(
+    `wyclau-stop-keep-working: STUCK on "${topItem}" -- blocked 3 times with no commit landing in ` +
+    `between. Giving up rather than blocking a 4th time. Say what is actually blocking this item, ` +
+    `park it, and move to the next one, or ask Wyatt.`
   );
+  process.exit(0); // allow the stop
 }
 
-// New item, or a commit landed since the last block -- reset the counter and block once.
 try {
   fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ item: topItem, head, count: 1 }, null, 2));
+  fs.writeFileSync(STATE_FILE, JSON.stringify({ item: topItem, head, count: nextCount }, null, 2));
 } catch { /* best-effort */ }
 
 block(
   `STOP BLOCKED -- unfinished, unblocked Chart work remains: "${topItem}"\n\n` +
+  `(Block ${nextCount} of 3 on this same item with no commit landing in between -- after 3, this ` +
+  `hook gives up on the 4th check and lets the turn end instead of looping forever.)\n\n` +
   `Keep working: claim it in the ledger if not already claimed, and move it forward now. ` +
   `(.planning/CHART.md's STEP 1 CHECKLIST -- an open line without "GATED:" counts as actionable.)`
 );

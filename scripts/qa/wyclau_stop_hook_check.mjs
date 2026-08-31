@@ -8,19 +8,27 @@
 // its logic (HARD-WON-LESSONS §12i: a gate that asserts against a copy of the real subject drifts
 // silently).
 //
-// Nine cases, each isolated in its own throwaway directory with its own CLAUDE_PROJECT_DIR:
-//   1. stop_hook_active=true -> never blocks, whatever else is true.
-//   2. PREEMPT.md holds real content -> blocks, names the content, checked BEFORE the Chart.
-//   3. PREEMPT.md is the bare template, Chart has one actionable open item -> blocks, names it.
-//   4. Every open Chart item carries "GATED:" -> does not block (nothing actionable).
-//   5. The same item blocked 3 times running, no commit landing in between -> gives up on the
-//      3rd instead of blocking a 4th time.
-//   6. A commit lands between blocks -> the stuck counter resets, blocks again at count 1.
-//   7. No HEARTBEAT at all -> the publish-lag brake stays silent (nothing pulsed yet).
-//   8. HEARTBEAT exists, LAST-PUBLISH has never been recorded -> blocks (moved here from npm
-//      test by CEO Review 52 -- must never gate the game's own release).
-//   9. HEARTBEAT far newer than LAST-PUBLISH (past the 20-minute threshold) -> blocks; within
-//      the threshold -> does not block for this reason.
+// ⚠ SCOPE CHANGE, 2026-08-31 (the Quartermaster): the hook now fires ONLY when process.env.PP_BOSUN
+// === "1" (set by scripts/wyclau/watchdog.ps1 immediately before launch). The Quartermaster's own
+// instruction: "RED-PROOF BOTH DIRECTIONS before believing it: with PP_BOSUN unset the hook must
+// ALLOW the stop... and with PP_BOSUN=1 and unblocked Chart work left it must BLOCK." Case 1 below
+// is that first direction; every other case sets PP_BOSUN=1 and is that second direction's family.
+// The preemption slot (PREEMPT.md) was removed in the same change and has no cases here any more.
+//
+// Ten cases, each isolated in its own throwaway directory with its own CLAUDE_PROJECT_DIR:
+//   1. PP_BOSUN unset -> never blocks, whatever else is true (the gate's own existence check).
+//   2. PP_BOSUN=1, stop_hook_active=true -> never blocks.
+//   3. PP_BOSUN=1, an actionable open Chart item -> blocks, names it.
+//   4. PP_BOSUN=1, every open Chart item carries "GATED:" -> does not block (nothing actionable).
+//   5. PP_BOSUN=1, the same item blocked 3 times running, no commit landing in between -> blocks
+//      on 1/2/3, gives up on the 4th check instead of blocking again.
+//   6. PP_BOSUN=1, a commit lands between blocks -> the stuck counter resets, blocks again at 1.
+//   7. PP_BOSUN=1, no HEARTBEAT at all -> the publish-lag brake stays silent (nothing pulsed yet).
+//   8. PP_BOSUN=1, HEARTBEAT exists, LAST-PUBLISH has never been recorded -> blocks (moved here
+//      from npm test by CEO Review 52 -- must never gate the game's own release).
+//   9. PP_BOSUN=1, HEARTBEAT far newer than LAST-PUBLISH (past the 20-minute threshold) -> blocks;
+//      within the threshold -> does not block for this reason.
+//   10. The hook is actually REGISTERED, not just present on disk.
 
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
@@ -53,9 +61,6 @@ function mkFixture() {
 function writeChart(dir, content) {
   writeFileSync(join(dir, ".planning", "CHART.md"), content);
 }
-function writePreempt(dir, body) {
-  writeFileSync(join(dir, ".planning", "wyclau", "PREEMPT.md"), `<!-- template header -->\n---\n${body}`);
-}
 function writeHeartbeat(dir, isoDate) {
   writeFileSync(join(dir, ".planning", "wyclau", "HEARTBEAT"), `${isoDate}\ttest pulse\n`);
 }
@@ -67,48 +72,42 @@ function commit(dir) {
   execFileSync("git", ["commit", "-q", "-m", "fixture"], { cwd: dir });
 }
 
-function runHook(dir, stdinObj) {
+// bosun=true sets PP_BOSUN=1 (the common case for these fixtures); pass false for case 1's own
+// red-proof of the gate itself.
+function runHook(dir, stdinObj, bosun = true) {
   let out = "";
-  let code = 0;
+  const env = { ...process.env, CLAUDE_PROJECT_DIR: dir };
+  if (bosun) env.PP_BOSUN = "1"; else delete env.PP_BOSUN;
   try {
     out = execFileSync("node", [HOOK], {
       cwd: dir,
-      env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+      env,
       input: JSON.stringify(stdinObj),
       encoding: "utf8",
     });
   } catch (e) {
-    code = e.status ?? 1;
     out = e.stdout ?? "";
   }
-  return { out: out.trim(), code };
+  return { out: out.trim() };
 }
 
-// ---- Case 1: stop_hook_active guard ----
+// ---- Case 1: PP_BOSUN unset -> never blocks, whatever else is true ----
 {
   const dir = mkFixture();
-  writeChart(dir, CHART_ACTIONABLE);
-  writePreempt(dir, "");
-  commit(dir);
-  const { out } = runHook(dir, { stop_hook_active: true });
-  check("stop_hook_active=true never blocks", out === "", `got stdout: ${out}`);
+  writeChart(dir, CHART_ACTIONABLE); // real actionable work AND stop_hook_active absent --
+  commit(dir);                       // every other brake would fire if this gate did not exist
+  const { out } = runHook(dir, {}, false);
+  check("PP_BOSUN unset -> never blocks even with unblocked Chart work present", out === "", `got stdout: ${out}`);
   rmSync(dir, { recursive: true, force: true });
 }
 
-// ---- Case 2: preemption slot blocks, checked before the Chart ----
+// ---- Case 2: stop_hook_active guard ----
 {
   const dir = mkFixture();
-  writeChart(dir, CHART_ALL_GATED); // nothing actionable in the Chart at all
-  writePreempt(dir, "DROP EVERYTHING: go check the mute button.\n");
+  writeChart(dir, CHART_ACTIONABLE);
   commit(dir);
-  const { out } = runHook(dir, {});
-  let parsed = null;
-  try { parsed = JSON.parse(out); } catch {}
-  check(
-    "PREEMPT.md content blocks even when the Chart has nothing actionable",
-    parsed && parsed.decision === "block" && /mute button/.test(parsed.reason),
-    `got: ${out}`
-  );
+  const { out } = runHook(dir, { stop_hook_active: true });
+  check("stop_hook_active=true never blocks", out === "", `got stdout: ${out}`);
   rmSync(dir, { recursive: true, force: true });
 }
 
@@ -116,13 +115,12 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ACTIONABLE);
-  writePreempt(dir, "");
   commit(dir);
   const { out } = runHook(dir, {});
   let parsed = null;
   try { parsed = JSON.parse(out); } catch {}
   check(
-    "an actionable open item blocks and names itself",
+    "PP_BOSUN=1, an actionable open item blocks and names itself",
     parsed && parsed.decision === "block" && /an open, actionable item/.test(parsed.reason),
     `got: ${out}`
   );
@@ -133,28 +131,29 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ALL_GATED);
-  writePreempt(dir, "");
   commit(dir);
   const { out } = runHook(dir, {});
   check("every open item GATED -> does not block", out === "", `got stdout: ${out}`);
   rmSync(dir, { recursive: true, force: true });
 }
 
-// ---- Case 5: give up after 3 blocks on the same item with no commit landing ----
+// ---- Case 5: blocks on 1/2/3, gives up on the 4th check (the CEO Review 52 off-by-one fix) ----
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ACTIONABLE);
-  writePreempt(dir, "");
   commit(dir);
   const r1 = runHook(dir, {});
   const r2 = runHook(dir, {});
   const r3 = runHook(dir, {});
-  let p1 = null, p2 = null;
+  const r4 = runHook(dir, {});
+  let p1 = null, p2 = null, p3 = null;
   try { p1 = JSON.parse(r1.out); } catch {}
   try { p2 = JSON.parse(r2.out); } catch {}
-  check("block 1 of 3 blocks", p1 && p1.decision === "block", `got: ${r1.out}`);
-  check("block 2 of 3 blocks", p2 && p2.decision === "block", `got: ${r2.out}`);
-  check("block 3 gives up instead of blocking a 4th time", r3.out === "", `got stdout: ${r3.out}`);
+  try { p3 = JSON.parse(r3.out); } catch {}
+  check("block 1 of 3 blocks", p1 && p1.decision === "block" && /Block 1 of 3/.test(p1.reason), `got: ${r1.out}`);
+  check("block 2 of 3 blocks", p2 && p2.decision === "block" && /Block 2 of 3/.test(p2.reason), `got: ${r2.out}`);
+  check("block 3 of 3 blocks", p3 && p3.decision === "block" && /Block 3 of 3/.test(p3.reason), `got: ${r3.out}`);
+  check("the 4th check gives up instead of blocking a 4th time", r4.out === "", `got stdout: ${r4.out}`);
   rmSync(dir, { recursive: true, force: true });
 }
 
@@ -162,7 +161,6 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ACTIONABLE);
-  writePreempt(dir, "");
   commit(dir);
   runHook(dir, {}); // count 1
   runHook(dir, {}); // count 2
@@ -172,8 +170,8 @@ function runHook(dir, stdinObj) {
   let p3 = null;
   try { p3 = JSON.parse(r3.out); } catch {}
   check(
-    "a commit between blocks resets the stuck counter (blocks again rather than giving up)",
-    p3 && p3.decision === "block",
+    "a commit between blocks resets the stuck counter (blocks again at count 1 rather than giving up)",
+    p3 && p3.decision === "block" && /Block 1 of 3/.test(p3.reason),
     `got: ${r3.out}`
   );
   rmSync(dir, { recursive: true, force: true });
@@ -183,7 +181,6 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ALL_GATED); // nothing else would block either, isolating this brake
-  writePreempt(dir, "");
   commit(dir);
   const { out } = runHook(dir, {});
   check("no HEARTBEAT -> publish-lag brake does not block", out === "", `got stdout: ${out}`);
@@ -194,7 +191,6 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ALL_GATED);
-  writePreempt(dir, "");
   writeHeartbeat(dir, new Date().toISOString());
   commit(dir);
   const { out } = runHook(dir, {});
@@ -212,7 +208,6 @@ function runHook(dir, stdinObj) {
 {
   const dir = mkFixture();
   writeChart(dir, CHART_ALL_GATED);
-  writePreempt(dir, "");
   const now = Date.now();
   writeHeartbeat(dir, new Date(now).toISOString());
   writeLastPublish(dir, new Date(now - 30 * 60000).toISOString()); // 30 min lag
@@ -249,6 +244,14 @@ function runHook(dir, stdinObj) {
   const fabricatedRegistered = (fabricated.hooks?.Stop || []).flatMap((g) => g.hooks || [])
     .some((h) => /wyclau-stop-keep-working\.cjs/.test(h.command || ""));
   check("the registration check can itself fail (red-proof)", fabricatedRegistered === false);
+
+  // The stderr-suppression finding, CEO Review 52: the registration must NOT redirect stderr for
+  // this entry, or the give-up brake's message (brake 2) is silently discarded.
+  const thisHookEntry = stopHooks.find((h) => /wyclau-stop-keep-working\.cjs/.test(h.command || ""));
+  check(
+    "the registration does not suppress stderr (2>/dev/null) for this hook",
+    !!thisHookEntry && !/2>\s*\/dev\/null/.test(thisHookEntry.command)
+  );
 }
 
 console.log(`\n${passCount} passed, ${failures.length} failed.`);

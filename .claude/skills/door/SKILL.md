@@ -1,6 +1,6 @@
 ---
 name: door
-description: The one way into work on this project (wyclau charter, part 2). Use at the START of any work session, when asked to "continue", "keep going", or when a session needs to orient itself. Syncs, orients, states the situation in 5 lines, then works the Chart through the Proof.
+description: The one way into work on this project (wyclau charter, part 2). Use at the START of any work session, when asked to "continue", "keep going", or when a session needs to orient itself. Syncs, orients, states the situation in 6 lines, then works the Chart through the Proof.
 ---
 
 # The Door
@@ -28,9 +28,16 @@ copy predates the pull.
 2. `.claude/memory/DECISIONS.md` — his rulings (top entries; stop when dates look familiar).
 3. `.planning/CTO-LEDGER.md` — tail only: what other live sessions have claimed.
 
-## 3. State the situation — five lines, plain English
+## 3. State the situation — six lines, plain English
 
-Running / last progress / shipped today / blocked on Wyatt / what this session will do now.
+Running / last progress / shipped today / blocked on Wyatt / what this session will do now /
+**watchdog stamp: PRESENT or ABSENT** (`process.env.PP_BOSUN === "1"` ? PRESENT : ABSENT — the
+Quartermaster's silent-failure guard, 2026-08-31: `watchdog.ps1` sets this immediately before
+launching, and the keep-working Stop hook gates its whole existence on it reaching this process.
+Nobody could test `Start-Process`'s environment inheritance from a container, so this line is the
+record that catches it if the stamp ever fails to survive the launch — ABSENT in a
+watchdog-started session means the hook silently never ran, and that must show up here, not be
+discovered later as an engine that quietly stopped after one item).
 Write it to the user (interactive) or the ledger (unattended). Then **pulse**:
 
 ```bash

@@ -3,9 +3,10 @@
 //
 // Run this immediately after the Artifact tool call that publishes the Glass succeeds. A plain
 // node script cannot call the Artifact tool itself (only a live session can), so this is the other
-// half of "make publishing part of pulsing": it records that a publish REALLY happened, so
-// scripts/qa/glass_publish_lag_check.mjs can tell a published pulse from one that only updated the
-// local file and stopped.
+// half of "make publishing part of pulsing": it records that a publish REALLY happened, so the
+// publish-lag brake in .claude/hooks/wyclau-stop-keep-working.cjs (moved there from npm test by
+// CEO Review 52 -- it must never gate the game's own release) can tell a published pulse from one
+// that only updated the local file and stopped.
 //
 // LAST-PUBLISH is local and gitignored, same as HEARTBEAT — per-machine by nature.
 
