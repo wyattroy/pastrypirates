@@ -1925,3 +1925,38 @@ balance rather than a brace-naive regex (the first attempt at that check failed 
 **What it credited, and it is worth keeping as the standard:** *"'NO PLAYER SEES ANYTHING',
 'closed by 5e9ee2b1, NOT BY THIS RUN', 'must be sold as tidying, never as a visible fix'… Elsewhere
 it is visibly being fought."*
+
+## CEO Review 42 — 2026-08-31 — build 2026.08.31.1
+
+**ASKED:** "what are the 88 things i need to trust?? I've hit the point where the hour needs your
+hands." (Razer hour blocker: untrusted workspace drops all 88 allow entries; say-ok probe cannot
+fail; Door hardcodes the Mac path. Approved via question UI: trust + rebuilt allowlist, untrack
+settings.local.json, land on claude/cloud-handoff-planning-a9ay1u.)
+
+**VERDICT: YES-WITH-FAULTS.** *"Yes — the door, the doc, the untracking and the grounds for the
+88-answer all verifiably happened; before you paste the permissions block, know that 'no arbitrary
+code' is not true of it, and confirm on the Razer itself that a session there really cannot edit
+settings.json."*
+
+In the CEO's words, the faults:
+
+- **FAULT A — the "no run-any-code" claim is false in effect.** "The same block grants unscoped
+  `Edit` and `Write` beside `Bash(node scripts/*)`. An engine that can write any file and then run
+  `node scripts/<anything>` can run arbitrary code in two steps — the exclusion of `node -e` is
+  cosmetic. … the doc should say 'this engine can run what it writes; what's actually fenced is
+  production (`push main`), staging, and your secrets', not claim an exclusion the block doesn't
+  deliver."
+- **FAULT B — the harness-refusal claim was measured in the wrong environment.** "RAZER-SETUP
+  states as a design fact that 'the harness refuses to let a session write its own permission
+  grants' — measured twice, in this cloud container. The Razer runs local Claude Code, where that
+  refusal is unverified. … This is the project's own rule 6 — a claim repeated as fact beyond
+  where it was measured."
+- Also named: the session's "13 Mac paths / 3 arbitrary-code entries" counts are looser than they
+  sound (CEO counts 16 and 5 with a broader net) — fine for plain English, not exact; and three
+  predictable stalls the list still permitted (`pkill` for the Door's close step, the stamp-check
+  `curl | grep`, `git rev-parse`).
+
+**Acted on, same session, commit after 92524a6:** the grant step now says what is actually fenced
+instead of claiming a no-arbitrary-code property it lacks; the refusal claim is scoped to where it
+was measured, with a one-command Razer verification before the stall test; the three stall entries
+are in the block. Independent re-count 6+82=88 confirmed; zero entries covered the pulse.

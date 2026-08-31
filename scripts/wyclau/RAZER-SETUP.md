@@ -5,7 +5,7 @@ dependability is a design, not a fact — no session may claim otherwise.*
 
 **What you need:** the Razer, ~30–60 minutes, Claude Code installed and logged in there.
 
-## The steps (a session walks you through these; steps 2 and 3 are YOURS alone)
+## The steps (a session walks you through these; steps 2, 3 and 8 are YOURS alone)
 
 1. **Clone/update the repo** on the Razer; note its path (call it `$repo`).
 2. **Trust the workspace** — open `claude` interactively in `$repo` once, accept the
@@ -16,9 +16,17 @@ dependability is a design, not a fact — no session may claim otherwise.*
 3. **Grant the engine its hands** — replace the `"permissions"` object in
    `.claude/settings.json` with the block below, then commit and push it. **This step is yours
    by design, not by accident: the harness refuses to let a session write its own permission
-   grants, with or without your approval on record.** The block is deliberate and short — repo
-   scripts, tests, git on `claude/*` branches, file edits — where the old accreted list held
-   run-any-code entries (`python3 -c`, `node -e`) an unattended machine should not carry:
+   grants, with or without your approval on record.** (That refusal was verified twice — in a
+   cloud session. Confirm it once on the Razer itself, by asking the engine session to add an
+   allow entry and watching it be refused, before you trust the stall test: if a local session
+   CAN edit this file, unscoped `Write` plus `git push origin claude/*` would let it widen its
+   own grants. A claim is only good where it was measured.)
+
+   **Be honest about what this block is.** An engine that can `Write` any file and then run
+   `node scripts/<anything>` can run whatever it writes — dropping the old `python3 -c` /
+   `node -e` entries is hygiene, not a fence. The engine must edit game code to do its job, so
+   that trade is inherent. What is ACTUALLY fenced: production (`git push origin main` is not
+   granted), publishing to staging where you play, and your secrets (the deny block):
 
    ```json
    "permissions": {
@@ -40,6 +48,11 @@ dependability is a design, not a fact — no session may claim otherwise.*
        "Bash(git add *)",
        "Bash(git commit *)",
        "Bash(git push origin claude/*)",
+       "Bash(git rev-parse *)",
+       "Bash(pkill -f remote-debugging-port*)",
+       "Bash(pkill -f http.server*)",
+       "Bash(curl -s https://playpastrypirates.com/*)",
+       "Bash(curl -s https://staging.playpastrypirates.com/*)",
        "Edit",
        "Write"
      ],
