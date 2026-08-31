@@ -39,6 +39,7 @@ step 2). Wyatt's five-item bar is step 3.
 - [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
 - [ ] wyclau source moves to claude-kit as the kit's first module; pastrypirates vendors it *(his pick 2026-08-31)*
 - [x] Mechanically enforce the Glass harvest rule — `.claude/hooks/glass-harvest-first.cjs` + gate `glass_harvest_hook_check` (red first on the unregistered-hook case, red-proofed both ways), 2026-08-31
+- [ ] **ONE PUBLISHER for the Glass** — the engine owns it; other sessions leave a note file it picks up on its next pulse. Today two sessions publish the same artifact and the platform conflict guard fires (three times in five minutes, 2026-08-31); nothing lost, but it is "two things kept in step by nothing" at the publish layer
 - [ ] **Fold the Helm into the Glass** — one interface, not two kept in step (the engine's own flag, 2026-08-31; the Glass links the Helm meanwhile)
 
 ## BLOCKED ON WYATT

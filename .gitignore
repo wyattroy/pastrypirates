@@ -87,3 +87,4 @@ w1-crewphone-recheck/
 # /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history
 # to every clone; the deliberate, reviewed allowlist lives in .claude/settings.json.
 .claude/settings.local.json
+.planning/wyclau/LAST-HARVEST
