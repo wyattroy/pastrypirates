@@ -19,11 +19,11 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-const { mayRevealRecipe, offersRecipeCheck, showsThinkingIndicator } = await import(path.join(ROOT, "src/shared/visibility.js"));
+const { mayRevealRecipe, offersRecipeCheck, showsThinkingIndicator } = await import(pathToFileURL(path.join(ROOT, "src/shared/visibility.js")).href);
 
 let failures = 0;
 const fail = (w) => { failures++; console.log(`  FAIL  ${w}`); };

@@ -33,7 +33,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SHOTS = path.join(REPO, "sea-trial-shots");
@@ -58,7 +58,7 @@ if (shots.length < 2) {
   process.exit(2);
 }
 
-const { judgeBatch } = await import(path.join(REPO, "scripts", "lib", "vision.mjs"));
+const { judgeBatch } = await import(pathToFileURL(path.join(REPO, "scripts", "lib", "vision.mjs")).href);
 
 console.log("judge can-see check — does the vision judge actually open the pictures?\n");
 console.log(`  subject: ${shots.length} screenshot(s) from sea-trial-shots/`);

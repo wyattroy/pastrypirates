@@ -24,6 +24,7 @@ import { spawn, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { pathToFileURL } from "node:url";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -36,7 +37,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 export async function playwrightDir() {
   const os = await import("node:os"), path = await import("node:path");
   for (const d of [process.env.PW_DIR, path.join(os.homedir(), ".pw")].filter(Boolean)) {
-    try { await import(path.join(d, "node_modules/playwright/index.mjs")); return d; } catch {}
+    try { await import(pathToFileURL(path.join(d, "node_modules/playwright/index.mjs")).href); return d; } catch {}
   }
   try { await import("playwright"); return "playwright (global)"; } catch {}
   return null;

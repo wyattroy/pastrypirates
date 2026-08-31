@@ -23,7 +23,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const gate = fs.readFileSync(path.join(ROOT, "scripts/playtest_gate.mjs"), "utf8");
 
@@ -33,7 +33,7 @@ const bad = (m) => { fails++; console.log("  FAIL  " + m); };
 
 /* ---- 1. a leg that did not run is reported as NOT RUN, never PASS ---- */
 console.log("\nA leg that never sailed cannot be reported as a pass");
-const { legVerdictLine } = await import(path.join(ROOT, "scripts/lib/leg_verdict.mjs"));
+const { legVerdictLine } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/leg_verdict.mjs")).href);
 const CASES = [
   ["never ran",        { name: "solo-phone-wk", notRun: "WebKit unavailable", verdict: [], finished: false }, /NOT RUN/,        /PASS/],
   ["ran, no findings", { name: "solo-phone",    verdict: [],                  finished: true  },              /PASS/,           null],
@@ -63,7 +63,7 @@ const gateCode = gate.split("\n").filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).joi
 
 /* ---- 3. and the shared resolver agrees with reality right now ---- */
 console.log("\nThe shared resolver can actually find what is installed");
-const { playwrightDir } = await import(path.join(ROOT, "scripts/lib/wk.mjs"));
+const { playwrightDir } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/wk.mjs")).href);
 const found = await playwrightDir();
 found ? ok(`resolved playwright at ${found}`)
       : bad("no playwright found — if it IS installed, this resolver is the thing that is wrong");

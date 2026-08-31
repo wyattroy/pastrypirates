@@ -22,9 +22,9 @@
  * House convention: no test runner, one PASS/FAIL line per case, every case runs before exit.
  */
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const { present, BEAT_KINDS } = await import(path.join(ROOT, "src/shared/storyboard.js"));
+const { present, BEAT_KINDS } = await import(pathToFileURL(path.join(ROOT, "src/shared/storyboard.js")).href);
 
 let failures = 0;
 const fail = (w) => { failures++; console.log(`  FAIL  ${w}`); };

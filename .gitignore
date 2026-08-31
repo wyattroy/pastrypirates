@@ -74,9 +74,13 @@ narration-timeline/
 w1-crewphone-recheck/
 # ^ named outside the -shots convention and paid for it immediately: name probe output dirs *-shots so the glob above covers them without this file growing a list again.
 
-# wyclau liveness (local-only; the watchdog reads these)
+# wyclau liveness (local-only; the watchdog reads and writes these). Per-machine by nature:
+# two machines running watchdogs would conflict on every push, and each one's answer is only
+# true about itself. The durable record of a restart is the ledger, in prose.
 .planning/wyclau/HEARTBEAT
 .planning/wyclau/glass.html
+.planning/wyclau/restarts.log
+.planning/wyclau/LAST-LAUNCH
 
 # Claude Code local settings are MACHINE-LOCAL by design (the file even points at
 # /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history

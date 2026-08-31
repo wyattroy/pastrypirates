@@ -43,7 +43,7 @@
  */
 import path from "node:path";
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const treeArg = process.argv.find(a => a.startsWith("--tree="));
@@ -79,8 +79,8 @@ const sail = (seat, route) => ({ t: "sail", p: seat, draw: { route } });
 let loads = 0;
 async function freshWalker() {
   const bust = `?w7b=${++loads}-${Date.now()}`;
-  const { appState } = await import(`file://${path.join(TREE, "src/state/index.js")}`);
-  const flow = await import(`file://${path.join(TREE, "src/ui/flow.js")}${bust}`);
+  const { appState } = await import(pathToFileURL(path.join(TREE, "src/state/index.js")).href);
+  const flow = await import(pathToFileURL(path.join(TREE, "src/ui/flow.js")).href + bust);
   if (typeof flow.animateSailRoute !== "function")
     missed("src/ui/flow.js does not export animateSailRoute — re-anchor this gate; do not delete it.");
   return { appState, flow };

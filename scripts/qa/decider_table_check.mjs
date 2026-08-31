@@ -30,10 +30,10 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
-const { isDecisionLocal } = await import(path.join(ROOT, "src/shared/storyboard.js"));
+const { isDecisionLocal } = await import(pathToFileURL(path.join(ROOT, "src/shared/storyboard.js")).href);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
 let failures = 0;

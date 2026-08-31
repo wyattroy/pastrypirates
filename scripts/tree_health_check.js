@@ -137,6 +137,15 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
      and ONE file is allowlisted because its job is to hold example strings OF the defect. */
   const PROSE_OK = new Set(["scripts/game_url_check.js"]);
 
+  /* AND THE ALLOWLIST IS COMPARED IN POSIX SPELLING, BECAUSE path.relative ANSWERS IN THE HOST'S.
+     On Windows it returns "scripts\game_url_check.js", which never equals the "scripts/..." written
+     above — so this allowlist was INERT on the one machine the watchdog runs on, and the whole suite
+     had been red there since 2026-08-31T03:23Z with nobody looking. The failure message printed the
+     backslash the entire time. Same family as the em-dash parse error the same day: written on a
+     Mac, correct there, silently wrong on the machine that matters. Normalise at every boundary
+     where a path meets a literal. */
+  const relPosix = (f) => path.relative(REPO, f).split(path.sep).join("/");
+
   /* A DIRECTORY THAT DOES NOT EXIST YET IS NOT A BROKEN PATH. sea-trial-shots/ and friends are
      CREATED BY THE RUN. .gitignore is already the one place that says what is transient output, so
      this follows it rather than keeping a second list that would rot the same way. */
@@ -146,14 +155,14 @@ const chain = String(pkg.scripts?.test || "").split("&&").map(s => s.trim()).fil
       .map(l => l.replace(/\/$/, "")));
 
   for (const f of everyScript()) {
-    if (PROSE_OK.has(path.relative(REPO, f))) continue;
+    if (PROSE_OK.has(relPosix(f))) continue;
     commentsOnly(fs.readFileSync(f, "utf8")).split("\n").forEach((line, i) => {
       const m = line.match(/(?:path\.)?(?:join|resolve)\(\s*(?:REPO|ROOT)\s*,\s*["']([^"'/.][^"']*)["']/);
       if (!m) return;
       const seg = m[1];
       if (transient.has(seg)) return;
       if (fs.existsSync(path.join(REPO, seg))) return;
-      bad.push(`${path.relative(REPO, f)}:${i + 1} builds a path into "${seg}/", which does not exist`);
+      bad.push(`${relPosix(f)}:${i + 1} builds a path into "${seg}/", which does not exist`);
     });
   }
   if (bad.length) fail(`${bad.length} path(s) built from a top-level directory that is gone: ${bad.slice(0, 3).join(" | ")}`);

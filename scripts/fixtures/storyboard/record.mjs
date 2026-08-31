@@ -14,9 +14,9 @@
  * below, because a fixture that drifts to one side turns the golden gate into theatre. */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const { Game, roundCfg } = await import(path.join(ROOT, "src/engine/index.js"));
+const { Game, roundCfg } = await import(pathToFileURL(path.join(ROOT, "src/engine/index.js")).href);
 
 const STRATS = ["balanced", "pirate", "trader", "rusher"];
 const SEEDS = [12345, 12346, 12347];

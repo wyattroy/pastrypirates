@@ -33,9 +33,9 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const { present } = await import(path.join(ROOT, "src/shared/storyboard.js"));
+const { present } = await import(pathToFileURL(path.join(ROOT, "src/shared/storyboard.js")).href);
 
 const EVENTS = path.join(ROOT, "scripts/fixtures/storyboard/events.jsonl");
 const GOLDEN = path.join(ROOT, "scripts/fixtures/storyboard/golden.json");

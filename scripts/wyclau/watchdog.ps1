@@ -16,23 +16,58 @@
 
 param(
   [Parameter(Mandatory=$true)][string]$Repo,
-  [int]$StaleMinutes = 45
+  [int]$StaleMinutes = 45,
+  # Must be at least the pulse cadence the Door promises the engine keeps (20 minutes), for the
+  # reason spelled out at the one-engine guard below.
+  [int]$LaunchGraceMinutes = 25,
+  # Log what would be launched instead of launching it, so a gate can exercise THIS script
+  # rather than a paraphrase of it. Everything else runs identically.
+  [switch]$DryRun
 )
 
-$heartbeat = Join-Path $Repo ".planning\wyclau\HEARTBEAT"
-$restarts  = Join-Path $Repo ".planning\wyclau\restarts.log"
+$heartbeat  = Join-Path $Repo ".planning\wyclau\HEARTBEAT"
+$restarts   = Join-Path $Repo ".planning\wyclau\restarts.log"
+$lastLaunch = Join-Path $Repo ".planning\wyclau\LAST-LAUNCH"
 $now = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 if (-not (Test-Path $heartbeat)) {
   # No heartbeat at all: the engine has never run here, or the file was cleared.
-  # That is a stall by definition -- but log it distinctly so the Glass can show which case it was.
-  Add-Content $restarts "$now`tno heartbeat file found -- launching the engine fresh"
+  # That is a stall by definition -- but say so distinctly so the Glass can show which case it was.
+  $reason = "no heartbeat file found -- launching the engine fresh"
 } else {
   $age = (Get-Date) - (Get-Item $heartbeat).LastWriteTime
   if ($age.TotalMinutes -le $StaleMinutes) { exit 0 }   # alive; do nothing, quietly
   $mins = [math]::Round($age.TotalMinutes)
-  Add-Content $restarts "$now`theartbeat stale ($mins min > $StaleMinutes) -- restarting the engine"
+  $reason = "heartbeat stale ($mins min > $StaleMinutes) -- restarting the engine"
 }
+
+# ONE ENGINE AT A TIME. This guard is what makes the file safe to leave running unattended.
+#
+# A stale heartbeat does not mean no engine is running. It means no engine has PULSED. An engine
+# that is booting, orienting through the Door, or simply mid-item has not pulsed either -- and
+# without this guard every tick launches another one on top of it. Two unattended sessions on one
+# branch is the hazard CLAUDE.md section 3 exists for; a watchdog that manufactures them on a
+# timer is not a liveness layer.
+#
+# WHY TIME AND NOT A LOCK: there is no cross-process lock available here, and a PID file lies the
+# moment a session dies without cleaning up -- it would wedge the watchdog shut forever, which is
+# the exact failure this mechanism was built to prevent. A grace window degrades the right way: a
+# genuinely dead engine is still restarted, just one window later.
+#
+# WHY THE GRACE MUST BE >= THE DOOR'S 20-MINUTE PULSE CADENCE: with anything shorter, a healthy
+# engine working a long item is indistinguishable from a dead one on EVERY tick. Not hypothetical
+# -- on 2026-08-31 the stall test's temporary -StaleMinutes 5 ran against a 10-minute task cadence
+# while the Door promised a pulse only every 20 minutes, and those three numbers cannot coexist.
+if (Test-Path $lastLaunch) {
+  $since = (Get-Date) - (Get-Item $lastLaunch).LastWriteTime
+  if ($since.TotalMinutes -lt $LaunchGraceMinutes) {
+    $m = [math]::Round($since.TotalMinutes)
+    Add-Content $restarts "$now`tstale, but an engine was launched $m min ago (grace $LaunchGraceMinutes) -- NOT spawning a second"
+    exit 0
+  }
+}
+
+Add-Content $restarts "$now`t$reason"
 
 # Relaunch through the Door. The engine re-orients itself from the Chart; no state is assumed.
 # (claude must be on PATH for the scheduled task's user. Verified during the Razer hour.)
@@ -49,18 +84,34 @@ if (-not (Test-Path $heartbeat)) {
 Set-Location $Repo
 # Keep this prompt free of double quotes: the pre-quoting below cannot survive one.
 $doorPrompt = "/door - you were relaunched by the watchdog after a stall. Orient, note the restart in the ledger, pulse the Glass, and continue the Chart."
-try {
-  Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
-    "-p", "`"$doorPrompt`""
-  ) -WindowStyle Hidden
-  # Reset the clock for the engine just launched. Orientation was MEASURED at 11m14s on
-  # the Razer (launch 15:09:01Z -> first pulse 15:20:15Z, 2026-08-31), which is longer
-  # than the 10-minute tick -- without this stamp the next tick reads the booting engine
-  # as stalled and stacks a second one on it. CEO Review 44, finding 4.
-  $stampNow = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-  Set-Content $heartbeat "$stampNow`trelaunched by watchdog; engine orienting"
-} catch {
-  # A "restarting" line with no launch behind it is a log that lies. Say what failed,
-  # in the same file the next reader will open. CEO Review 44, finding 3.
-  Add-Content $restarts "$now`tlaunch FAILED: $($_.Exception.Message)"
+if ($DryRun) {
+  Add-Content $restarts "$now`tDRYRUN would launch the engine"
+} else {
+  try {
+    Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
+      "-p", "`"$doorPrompt`""
+    ) -WindowStyle Hidden
+    # Reset the clock for the engine just launched. Orientation was MEASURED at 11m14s on
+    # the Razer (launch 15:09:01Z -> first pulse 15:20:15Z, 2026-08-31), which is longer
+    # than the 10-minute tick -- without this stamp the next tick reads the booting engine
+    # as stalled and stacks a second one on it. CEO Review 44, finding 4.
+    #
+    # NOT under -DryRun: this stamp makes the engine look alive to the NEXT tick, which
+    # would send that tick out at the top before it ever reaches the one-engine guard --
+    # so a dry run would silently measure the heartbeat check instead of the guard.
+    $stampNow = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    Set-Content $heartbeat "$stampNow`trelaunched by watchdog; engine orienting"
+  } catch {
+    # A "restarting" line with no launch behind it is a log that lies. Say what failed,
+    # in the same file the next reader will open. CEO Review 44, finding 3.
+    Add-Content $restarts "$now`tlaunch FAILED: $($_.Exception.Message)"
+  }
 }
+
+# Record WHEN an engine was last launched. Read by the one-engine guard above.
+#
+# UNCONDITIONAL, and both halves of that are deliberate. Under -DryRun, because the guard is
+# the thing the gate exists to exercise and it has nothing to read otherwise. After a FAILED
+# launch, because retrying a failing launch every tick is a hot loop; one window later is the
+# right degradation, and the heartbeat was not stamped, so it does come back.
+Set-Content -Path $lastLaunch -Value $now -Encoding ascii
