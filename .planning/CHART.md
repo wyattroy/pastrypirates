@@ -53,7 +53,7 @@ record with the failure it exposes: [`.claude/memory/DECISIONS.md`](../.claude/m
 
 | item | HIS RULING | now |
 |---|---|---|
-| Live audio defect (8s full-volume storm per ship) | **"Yes — delete the line"** | unblocked — his stated best-ratio fix |
+| Live audio defect (8s full-volume storm per ship) | **"Yes — delete the line"** | **CLOSED, NOT BUILT — the ruling was on a stale premise.** Measured 2026-08-31 18:12Z: `soundForEvent({t:"anchorHold"})` returns `{name:"fishing",bus:"master"}`, `EVENT_SOUND` declares `anchorHold` exactly once (`src/ui/audio.js:105`), and `node scripts/audio_mapping_test.js` PASSes all three of DEFECT-1/2's own regression guards. The fix shipped at the cutover, commit `fb74eedc`, before today — `docs/AUDIO.md`'s own correction box says so and names this exact trap. There is no line to delete. Same shape as the sea-trial-PR correction the same day: a question was put to him from a stale reading. |
 | Pass-and-play hand-over ahead of the turn | **"Just move it"** — no A/B switch, make the change | unblocked |
 | One-director step 5 (Decider scope) | **"Narrow half"** — three drawing branches behind the Decider; the two questions stay two | unblocked |
 | The plan document vs the measured tree | **"Yes — make the measured table the plan of record"** | unblocked |
