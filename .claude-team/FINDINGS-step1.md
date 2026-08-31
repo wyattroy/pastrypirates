@@ -37,7 +37,7 @@ What it buys: the fact "whose turn is it" went from **17 writers and 5 private d
 ## THE SWEEP FOUND A FOURTH AND FIFTH DERIVATION
 `src/ui/util.js:currentTurnSeat()` and `src/ui/board.js:activeTurnSeat()` — both private backward
 walks for the same fact. Both now call the shared walk, passing `TURN_ONLY`, **which keeps their
-answer byte-for-byte what it was**: neither has ever known about `ovens`/`bake`, unlike `render()`'s.
+answer the same answer for every consumer (see the correction below) what it was**: neither has ever known about `ovens`/`bake`, unlike `render()`'s.
 
 **And it exposed two comments that had rotted into lies** (rule 6):
 - `util.js` said `currentTurnSeat()` *"mirrors render()'s derivation"*. It does not, and has not
@@ -90,3 +90,21 @@ Started no browser, no server, no long-running process. Nothing to kill.
 `git diff --name-only` stayed inside `src/shared/storyboard.js`, `src/ui/board.js`,
 `src/ui/util.js`, `src/ui/flow.js`, `src/orchestrator.js`, `scripts/qa/whose_turn_one_fact_check.mjs`,
 `package.json`, `.claude-team/`. Never touched `main`, `CNAME`, `robots.txt`, `sitemap.xml`.
+
+
+---
+
+## ⚠ CORRECTION, added 2026-08-31 after the checker's differential
+
+**"byte-for-byte" was overclaimed and is corrected above.** A 20,000-stream differential against the
+old walks found **zero mismatches for every consumer** — the answer is unchanged. But **the TYPE of
+"no seat" moved**: where an establishing event carries `p === undefined`, the old walks returned
+`undefined` and the shared walk returns `null` (`src/shared/storyboard.js:88`).
+
+**No consumer can tell** — `board.js:1741` and `:1449` use `!= null`, `:1571/1586/1602/1614` compare
+`activeTurnSeat()===seat` against an integer, and `currentTurnSeat()` has no caller at all. So the
+claim "no behaviour changed" holds. **The claim "byte-for-byte" did not, and rule 6 is about exactly
+that kind of unearned precision.**
+
+*(Second difference, in the safe direction: the old render() walk indexed `events[i].t` unguarded and
+would throw on an out-of-range playhead. The shared walk clamps.)*

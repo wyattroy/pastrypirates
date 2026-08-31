@@ -12,6 +12,35 @@
 // anything inside them; a structural regression here is the milestone's known Safari risk
 // (11-CONTEXT.md D-12, re-verified live on Safari in 11-08).
 //
+// SCOPED EXCEPTION — ONE DIRECTOR STEP 1 (2026-08-31). ⚠ AWAITING WYATT'S RULING: both exceptions
+// below carry "Wyatt-approved <date>" and this one does not yet. It is recorded HERE, in the header
+// a reader checks first, because a checker's verdict was that without it the next reader is
+// entitled to revert this in good faith — and would be right to.
+// WHAT CHANGED: render()'s backward walk for "whose turn is it", and activeTurnSeat()'s, now call
+// deriveActiveSeat() in src/shared/storyboard.js instead of each keeping a private copy. Nothing
+// else in either body moved. The same fact was being derived FIVE times in three files; it is now
+// derived once, and the shared module is a leaf tier that scripts/module_graph_check.js forbids
+// from importing src/ui/ or src/state/ at all.
+// WHY THAT IS SAFE, in BUG-01's own terms — the same test the two exceptions below apply. BUG-01
+// was a LIVE CSS GRADIENT plus a MASK composited every frame, and a narration height animating on
+// every typewriter tick. This edit replaces a `for` loop over a JavaScript array with a function
+// call returning the same value: no gradient, no mask, no layer, no animation, no per-frame work,
+// no DOM. LAYERS is still 4.
+// AND IT WAS NOT LEFT AT REASONING. Verified on WebKit 26.5 at 1280x800 and 390x664 with storms
+// forced every 1.5s: the full four-layer storm stack mounted on both, the shared walk agreed with
+// live appState.curSeat 110/110 and 97/97, and there were ZERO pageerrors, console errors, crashes
+// or disconnects. A screenshot shows the active ripple ring on the correct ship mid-storm — the
+// exact thing this walk drives. Limit, stated: neither run passed Day 1, so a long voyage, a live
+// ovens/bake and a newround boundary were NOT exercised in a browser; those are covered instead by
+// a 20,000-stream differential against the old walks (0 mismatches for every consumer).
+// ONE HONEST DIFFERENCE, since "byte-for-byte" would be unearned: where an establishing event
+// carries p === undefined the old walks returned undefined and this returns null. No consumer can
+// tell — every reader uses `!= null` or compares against an integer — but the type moved, and that
+// is worth a reader knowing.
+// AND A PRECEDENT NOT TO FOLLOW: render()'s ovens/bake widening is a deliberate change to this body
+// that was never recorded in this header either. That is a second unrecorded deviation, not a
+// licence for a third.
+//
 // SCOPED EXCEPTION TO THE ABOVE — G19 (Wyatt-approved 2026-07-30), recorded here so the next reader
 // is not entitled to revert it. buildStormLayers() WAS changed, deliberately and narrowly, in two
 // ways: (a) its RNG source swapped from unseeded Math.random() to a private mulberry32 seeded from

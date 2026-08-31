@@ -76,3 +76,92 @@ would THROW on an out-of-range playhead or a hole; the new clamps (`Math.min(pla
 events.length-1)`) and skips holes. Strictly more defensive; cannot introduce a crash.
 Verdict on the claim: the ANSWER is unchanged. The TYPE of "no seat" changed from `undefined` to
 `null` at 7% of samples, and nothing reads it. Say "same answer", not "byte-for-byte".
+
+## THE QUESTION THE BUILDER HANDED ME — board.js's BYTE-IDENTICAL protection
+**My judgement: the protection does NOT cover this edit IN SUBSTANCE, and it DOES cover it IN RECORD.
+Two different answers, and both matter.**
+
+**Substance — the edit is not in BUG-01's risk class.** The header states what BUG-01 was, twice, in
+its own words (board.js:23-27, :43-49): "a LIVE CSS GRADIENT plus a MASK being composited every
+frame, and... the narration box's height animating on every typewriter tick." The edit replaces a
+backward `for` loop over a JS array with a function call returning the same value. No gradient,
+no mask, no layer, no animation, no per-frame work, no DOM. I did not take that on reasoning alone —
+see the Safari pass below.
+
+**Record — IT IS NOT RECORDED, AND THAT IS A REAL GAP.** The header's own precedent is unambiguous:
+every prior deliberate change to these bodies got a **"SCOPED EXCEPTION TO THE ABOVE"** block IN THE
+HEADER — `board.js:15` (G19, "Wyatt-approved 2026-07-30") and `board.js:32` (WIND-00, "Wyatt-approved
+2026-07-31") — each naming the approval and each closing with "WHY THAT IS SAFE, stated in terms of
+what BUG-01 actually fixed". Both say, in the same words, "recorded here so the next reader is not
+entitled to revert it." **This change has no such block.** The header still reads "Do not refactor,
+'clean up', re-animate, or reorder anything inside them." The builder's comment at board.js:1741 is
+inside the function, not in the header a reader checks first. **A reader of the header alone is
+entitled to revert this, and would be right to.**
+
+**And the builder's second argument is weaker than it looks.** It says render()'s body "already
+carries a later deliberate change at exactly this walk (the ovens/bake widening)". True about the
+code — and `sed -n '1,80p' src/ui/board.js | grep -i ovens` returns NOTHING. That widening is
+**not in the header**, i.e. a previous session made the same unrecorded deviation. Citing an
+undocumented prior violation as licence for another is not a precedent, it is a second one.
+
+## SAFARI PASS — I RAN IT. WebKit 26.5, two viewports, storms FORCED.
+Harness: scratchpad/wk-check-step1.mjs (desktop 1280x800, 170s) and wk-check-step1b.mjs (phone
+390x664, 150s). Solo voyage, `appState.game.cfg.storm=1` re-forced every 1.5s, page-error /
+console-error / crash listeners live throughout.
+
+| | desktop 1280x800 | phone 390x664 |
+|---|---|---|
+| module loads+runs in WebKit | yes — all 6 exports, smoke `[2,null,3,null,null]` correct | yes, identical |
+| max `.rlayer` mounted | **4** (the full storm stack — the run reached its subject) | **4** |
+| shared walk vs live `appState.curSeat` | **110/110 agree** | **97/97 agree** |
+| pageerror / console.error | **0** | **0** |
+| page crash / browser disconnect | **0** | **0** |
+| outcome | SURVIVED | SURVIVED |
+
+Screenshot `scratchpad/wk-step1-1280.png`, read pixel by pixel: rain streaks over the whole board,
+wind chevrons, two whirlpools, and — the part that matters here — **the active ripple ring is drawn
+around the pink ship, and "Checker" is the pink-glowed row in the CAPTAINS panel.** That ring is
+exactly what `activeTurnSeat()` drives, so the changed walk is visibly producing the right seat
+on WebKit mid-storm. Board, ribbon and prompt all render correctly.
+
+**LIMIT, stated so nobody overclaims it:** neither run got past Day 1 — 18 and 15 events, one
+`storm` event each; the naive driver stalls on the trade "What do ye WANT from the table?" bloom
+(visible in the screenshot). So this exercised the storm LAYERS compositing for ~5 minutes total
+with the new code in render(), but it did NOT exercise a long multi-round voyage, nor a live
+`ovens`/`bake` sequence, nor a `newround` boundary. Those are covered by the 20,000-stream
+differential above, not by the browser.
+
+**Housekeeping:** both harnesses kill their own `http.server` by PID in `finally` and close the
+browser. `ps` for webkit/http.server/playwright after both runs: **empty**. Nothing left running.
+
+## VERDICT: **CONFIRMED-WITH-GAPS**
+Everything the builder claimed that I could test, held. Two things I would not ship as-is, both
+about the RECORD rather than the code, plus three overclaims to correct.
+
+**WOULD NOT SHIP WITHOUT:**
+1. **A SCOPED EXCEPTION block in board.js's header**, in the form the file's own two precedents
+   set (board.js:15, :32) — and both of those carry "Wyatt-approved <date>". Whether he must
+   approve this one is HIS call, not mine and not the builder's; but the block must exist or the
+   next reader reverts it in good faith. Cite the Safari pass above as the "why that is safe".
+2. **Correct "byte-for-byte" in FINDINGS-step1.md.** The answer is unchanged; the TYPE of "no seat"
+   moved from `undefined` to `null` in ~7% of streams (storyboard.js:88). No consumer can tell —
+   verified at all six call sites — but the phrase as written is not true and rule 6 is about
+   exactly this kind of unearned precision.
+
+**OPINIONS (flagged as such, not blockers):**
+- The new gate is textual on `setActor(`; a bypass writing `appState.curSeat=` directly is invisible
+  to it. Today `grep -rn "curSeat\s*=" src/` finds exactly one writer, so the claim is true by
+  measurement as well as by gate — but the gate is narrower than its own headline.
+- `establishing.includes(e.t)` allocates nothing but does an array scan per event where the old code
+  did three `===`. Up to 80 iterations inside render(). Almost certainly irrelevant; unmeasured.
+
+**SIZE, and it is the honest one: no player sees anything.** The divergence this was scoped against
+was measured dead this morning. This is one derivation instead of five and one writer instead of
+seventeen, with the purity of the new tier proved (not promised) by a gate I broke and watched go
+red. That is a foundation, not a fix. Anyone reporting it as a user-facing win is misreporting it.
+
+**AND ONE THING THAT SHOULD REACH WYATT, not be decided by us:** the builder parked a real design
+question — *should the ripple ring follow the captain to the ovens during a bake?* Today it keeps
+ringing the previous captain for the whole bake. That is now visible at one line
+(`board.js:1503`, `{establishing:TURN_ONLY}`) instead of hidden in three copies, which is the first
+time anyone could have asked it. It changes what a player sees. It is his call.
