@@ -13,6 +13,23 @@ last 48 hours, including some of mine, and the redesign should not inherit them.
 https://claude.ai/code/artifact/b9a6a1f8-cd4d-4525-be4a-b68800dbc374 — that page is a snapshot;
 this file is the source a fresh session should read.
 
+
+> ## ⚠ UPDATE, 2026-09-01, WITHIN THE HOUR: THE SAIL SQUARE IS FIXED.
+>
+> While this brief was being written, another session shipped it — `76c49bcc`,
+> *"fix(camera): the guest's sail squares are framed, and framed ON SCREEN — his ruling, built"*,
+> closed against a posed pair and a tap proof (`52abc448`).
+>
+> **So "seven instruments, zero fixes" was true when written and is now superseded.** It is left
+> in the text below rather than edited away, because what broke the four-day deadlock is the
+> brief's own learning #6 arriving in practice: the thing that finally moved it was **implementing
+> Wyatt's stated ruling** — zoom out until they all fit — **not an eighth instrument.** The
+> Quartermaster refused to write one and said the scope question belonged to him; he answered it;
+> a session built the answer. That sequence is the most useful thing in this document.
+>
+> A redesigner should read the count as evidence of a real pattern that a decision broke, not as
+> the current state of the bug.
+
 ---
 
 ## 1. What the system is meant to be
@@ -194,6 +211,7 @@ trial** (the release gate), and **the CEO** (a fresh-context reviewer per item).
   the NOT-RUN lie through — treat it as evidence, not as a pass.
 - **Nothing is deployed to staging.** rsync is now installed; the deploy is unblocked mechanically
   and was deliberately not run because the build moved and a trial was in flight.
-- **Open and unfixed: a guest on a phone has a sail square it cannot tap** — reproducible on demand
-  (`scripts/qa/sail_containment_probe.mjs --mode=crew`), measured, and four days old.
+- **~~Open and unfixed~~ FIXED 2026-09-01 by another session** (`76c49bcc`), to Wyatt's own ruling,
+  verified on a posed pair with a tap proof. The probe
+  (`scripts/qa/sail_containment_probe.mjs --mode=crew`) remains as the repeatable check.
 - The 24-hour exit test was armed 2026-08-31 16:19Z; the cutover items remain GATED on its verdict.
