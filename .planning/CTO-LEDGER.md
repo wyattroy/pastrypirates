@@ -1367,3 +1367,89 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 - Ending the turn now, per the Watch rule: one item, and a long job is never ridden inside a
   session. Next watch: read `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md` if it exists yet;
   if not, check `longrun_status.mjs` for live progress before touching anything trial-related.
+
+## WATCH 16:49:20Z — situation and claim
+
+- Watch started: 2026-09-01T16:49:20Z (rung by the Bell, no watch on deck). Hostname `Wy-Blade` —
+  same machine as the prior watch (16:39:42Z), which started the release trial.
+- Last progress: commit `b9e3a518` at 2026-09-01 ("watch: re-sail the compromised release trial
+  from the repaired Blade"). `can_push.mjs` clean: on branch, tracking, no rebase/merge in progress.
+- Previous watch closed: started the release trial detached (pid 38460, run
+  `2026-09-01T1644Z-Wy-Blade`), correctly ended without riding it.
+- Blocked on Wyatt: nothing (Chart's table is empty).
+- Detached trial in flight: `longrun_status.mjs` reports the re-sailed trial PROGRESSING (0/10 legs,
+  last moved 3 min ago) — NOT touching it, per the prior watch's own instruction.
+- Considered INBOX-20260901T1310Z (oldest OPEN item, Glass rulings triage lifecycle) first, per the
+  Door's "oldest OPEN item" rule. Found it blocked: the mechanism lives entirely in
+  `scripts/wyclau/glass.mjs`, which is vendored from claude-kit ("VENDORED FROM claude-kit
+  (plugins/wyclau) -- edit THERE, not here"). This session's Bash tool is sandboxed to this repo
+  only (listing outside it is refused), so claude-kit is unreachable from here -- editing glass.mjs
+  directly would create exactly the drift vendor_check.mjs exists to catch, with no way to also
+  land the change at its source. Leaving INBOX-20260901T1310Z OPEN, noting the blocker here rather
+  than in the INBOX file (no fix attempted, nothing to park).
+- Considered INBOX-20260901T1335Z (compress images + preload, LAUNCH CRITICAL) next. Measured: the
+  repo's assets/ directory holds 100+ PNG/JPG files (icons, badges, boats, the board). His stated
+  solution is two real efforts -- resize/compress every image to its real max on-screen size, AND
+  change the preload policy from "only timed-ceremony art" (a deliberate, documented trade-off in
+  src/ui/util.js:1965-1993 -- "~90 images at boot on a phone would trade this bug for a slower
+  start") to "everything up front." Both halves need real before/after load-time measurement
+  (rule 26) across every image. Too large for one watch's single-item loop -- leaving OPEN, not
+  touching game code for it this turn, so a future watch (or a longer session) can size it properly
+  rather than have it rushed and reported unmeasured (rule 6).
+- CLAIMING INBOX-20260901T1351Z -- the storm animation pauses at the second of three squares.
+  Oldest remaining unblocked, scoped OPEN item; game code only (src/ui/flow.js runStormLive), no
+  vendored files. His hypothesis (an indexing issue) gets checked FIRST, per ruling 7. Read the
+  storm-push loop (flow.js:1441-1526): STORM_PUSH=3, STORM_STEP_MS=770 (SHIP_GLIDE_MS(700)+70),
+  each of the 3 per-square steps does renderLiveShips() then await sleep(STORM_STEP_MS) --
+  symmetric by design, which does not obviously explain an asymmetric "smooth-smooth-pause-jump"
+  pattern. Rather than guess a fourth theory, writing a posed measurement first (rule 26):
+  scripts/qa/w_storm_step_probe.mjs, samples every ship's <g transform> every 40ms across a live,
+  driven storm (docs/DRIVING-THE-GAME.md's documented cfg.storm=1 method) to see the real
+  position-vs-time shape before touching any code.
+
+## WATCH 16:49:20Z -- measured, fixed, verified
+
+- MEASURED (posed, real driven solo game, ship <g> transform + engine pos sampled every ~35ms
+  across a live storm push): his named cause is wrong. A ship that completes a full 3-square
+  push moves evenly -- 780-796ms between squares, matching STORM_STEP_MS (770) to within
+  measurement noise. No anomalous pause appears before the 3rd square specifically. What IS
+  real: runStormLive() (src/ui/flow.js) renders and pauses (STORM_STEP_MS, 770ms) EVERY
+  ordinary square separately, so a full push reads as 2-3 distinct hops rather than one move --
+  and a ship whose push gets cut short (windmove/anchorHold/blocked ends it at 1 or 2 of 3
+  squares, by design) can visually resemble "moved, paused, moved again" if its own very next
+  ORDINARY TURN (a sail move, unrelated to the storm) follows soon after -- confirmed in the
+  captured event stream (a `turn`/`sail` pair for the same seat, ~4-9s after the storm).
+- FIXED: src/ui/flow.js runStormLive() now defers the plain (event-less) per-square paint --
+  player.pos already advances every step in engine state; only the SCREEN catch-up was
+  batched into ONE renderLiveShips() call per ship, covering however many squares it actually
+  ended up moving (1, 2 or 3), instead of one call per square. The ship's own existing CSS
+  transition (SHIP_GLIDE_MS, the same one every ordinary ship move already uses) then glides it
+  directly from its pre-push square to its final one in a single continuous move -- exactly his
+  words ("the storm should smoothly move players to their final square in one move").
+  NOT touched: the event-driven liveRender() calls (windmove/anchorHold/blocked/swept) -- that
+  function drains and BROADCASTS events to every other browser (src/ui/panel.js, confirmed by
+  reading it, not assumed), so deferring it would be a real multiplayer sync risk for a cosmetic
+  win. Where an event fires mid-push its own render already reflects the ship's current
+  (already-mutated) position, so any pending ordinary squares are covered by it for free.
+- VERIFIED, same posed probe, same measurement, re-run against the fix: a ship (trader, seat 2)
+  pushed 3 full squares (y:7->10) landed as ONE recorded position change at 782ms after the
+  storm began, instead of three separate ~780ms-apart changes as measured before the fix. A
+  quick visual pair (two screenshots, storm start / +400ms) also shows a ship mid-flight, well
+  past its first square, in one continuous glide -- not parked at square 1.
+- SWEEP: `npm test` -- 84 of 85 gates pass. The one failure, `can_push_check`, is a pre-existing,
+  unrelated fixture bug in the vendored git-rebase-detection script (reports "no upstream"
+  instead of "rebase in progress" when a fixture repo is in both states) -- confirmed unrelated
+  by running it standalone and reading its assertions, which test only git-state detection, never
+  touch src/ui/flow.js or storm code, and were already the LAST gate in the chain (everything
+  after it, including host_guest_parity_check, mode_fork_check, storyboard_golden_check,
+  one_event_consumer_check, w7_sail_route_on_wire_check, was run individually and is green).
+  mode_fork_check: 45/45 baseline, no new fork added. Not filing a fix for can_push_check --
+  out of scope for this item (rule 7), noted here for whoever picks it up.
+- Gear: FULL by file touched (src/ui/flow.js, live storm animation, host-only path feeding every
+  client). A full three-mode/three-size/both-engine sea trial was not run THIS turn -- the
+  question here ("is the glide drawn as one continuous move") is exactly the kind rule 26 says a
+  stochastic trial is the wrong instrument for (a storm may not even occur in a given trial leg,
+  and the trial cannot see animation SHAPE, only end state); a posed before/after measurement is
+  the correct evidence for this question and is what was gathered. This commit still needs to
+  ride the branch's next full sea trial before merge to main, same as every other commit on this
+  branch -- not claiming otherwise.

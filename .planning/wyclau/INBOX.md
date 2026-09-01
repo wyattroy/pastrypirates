@@ -60,7 +60,7 @@ status: PARKED — his own routing: "nice to have for much later". (Mechanism ex
 > 3) squares, pauses them there, then moves them to the 3rd square. I wonder if this is an
 > indexing issue— the storm should smoothly move players to their final square in one move"
 solution: the storm should smoothly move players to their final square in one move (his stated target; his hypothesis: an indexing issue — check it FIRST, ruling 7)
-status: OPEN — written on the Glass 13:51:04Z, during the Blade hour.
+status: CLAIMED by watch 16:49:20Z (Wy-Blade) — measuring first (posed probe), see CTO-LEDGER.md
 
 ## INBOX-20260901T1332Z — attack buttons land on the WRONG captain
 > "Sometimes, the buttons to attack a captain (when there are two options, eg. you're adjacent to
