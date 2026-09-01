@@ -2226,3 +2226,72 @@ otherwise hide which 86 were actually verified.
 > repair is needed. The release trial (pid 45256) is unaffected: it reads the working tree's game
 > files, which are byte-identical throughout — none of the four conflicted or committed files is
 > game code.
+
+---
+
+## 2026-09-01T2010Z · Wy-Blade · watch stopped at the Door · CORRECTION to the entry above
+
+**I did not take an item. `can_push.mjs` exits 1 (rebase in progress) and the Door says stop, so
+this watch ends here — as the entry above instructs.** But its central factual claim is wrong, and
+its repair advice rests on that claim, so the record is corrected in the open before a human acts
+on it.
+
+**THE CLAIM: *"The remote has every line of this watch's work"* / *"everything this watch did is
+pushed."* MEASURED FALSE.** Prediction written before measuring: the remote is still at `03210e41`
+and those commits reached nobody; what would prove me wrong is the ref moving after an explicit
+fetch, or the commits living on some other remote branch. Neither happened.
+
+```
+git fetch origin 'refs/heads/*:refs/remotes/origin/*' --prune
+git rev-parse origin/claude/cloud-handoff-planning-a9ay1u   -> 03210e41   (NOT c706340a)
+git branch -r --contains de045b97                           -> (nothing)
+git branch -r --contains c706340a                           -> (nothing)
+```
+
+**The push it reports did not land.** `de045b97` and `c706340a` exist only in this machine's
+detached HEAD, on no branch and no remote. **This is the very failure that entry was written to
+prevent, one layer deeper: the watch knew about the invisible-watch trap, wrote the warning for the
+next reader, and then mis-reported its own push inside the same entry.** A push whose result was
+never re-read is not a push — it is a `git rev-parse` nobody ran.
+
+**THE THREE REFS, so the repair is chosen with eyes open:**
+
+| ref | at | holds |
+|---|---|---|
+| `origin/claude/cloud-handoff-planning-a9ay1u` | `03210e41` | the OTHER session's two commits; **missing this machine's two** |
+| local branch `claude/cloud-handoff-planning-a9ay1u` | `cff845ce` | this machine's two originals; **missing the other session's two** |
+| detached `HEAD` | `c706340a` | **both** — `03210e41..c706340a` is exactly `de045b97` + `c706340a` |
+
+**So `--abort` IS NOT the safe fallback the entry above calls it.** It returns the checkout to
+`cff845ce`, which loses the merge of the two histories and every conflict resolution with it —
+recoverable only through the reflog, and only by someone who knows to look. The detached HEAD is
+the one ref that has everything.
+
+**REPAIR, for a human, on the Blade. Prefer the first.**
+
+```
+git rebase --continue          # pending pick is cff845ce, now redundant with c706340a;
+                               # if it says nothing to commit -> git rebase --skip
+git status --short --branch    # must read ## claude/cloud-handoff-planning-a9ay1u
+node scripts/wyclau/can_push.mjs                            # must exit 0
+git push origin claude/cloud-handoff-planning-a9ay1u
+git rev-parse origin/claude/cloud-handoff-planning-a9ay1u   # RE-READ IT. This is the step that was skipped.
+```
+
+If the rebase will not finish, the equivalent without it is
+`git branch -f claude/cloud-handoff-planning-a9ay1u c706340a`, then check that branch out and push
+— `c706340a` already contains the remote tip, so it fast-forwards.
+
+**The reusable finding, and it is not about git.** The entry above named a real hazard — *the
+permitted set of commands is not closed under the states those commands can produce* — and that
+still stands. What today adds: **a watch blocked from its normal exit will reach for an unusual
+one, and the unusual path is exactly where nobody checks the result.** Pushing by full ref name was
+the improvised route; improvising it and verifying it are two different acts, and only the first
+happened. **When you work around a block, re-read the state afterwards — the workaround is the part
+most likely to have failed silently.**
+
+**Not done this watch, deliberately:** no item claimed, no game code touched, no Glass republish
+(that needs a harvest and a commit this tree cannot publish, and an unpublishable pulse is not a
+pulse). This entry is committed on the detached HEAD, so `--continue` carries it forward; it is
+**not** published, and the correction reaches Wyatt in the reply, which is the only transport this
+checkout has.
