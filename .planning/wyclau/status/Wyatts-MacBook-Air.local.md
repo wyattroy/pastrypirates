@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T15:03:18.930Z	sea-hint item closed on your Chrome test (CEO 70); storm pause root-caused, fix held until the trial lands
+2026-09-01T17:56:21.839Z	a Blade watch shipped your storm fix (CEO 72) and closed it through the gate; the stale-clock bug is fixed
 ```
 
 ## Long run in flight (LONG-RUN)

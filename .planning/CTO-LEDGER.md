@@ -1564,3 +1564,24 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   one watch — see this file's earlier entry for the scoping notes already gathered).
 
 - 2026-09-01T17:50:31Z · close_item: INBOX-20260901T1351Z · CEO 72 · commit f7c1207 (1 game file) · his solution first: commit f7c1207 · storm push now glides to its final square in one continuous move, swept ships included
+
+- ⚠ HIS RED DOT WAS RIGHT TO ALARM HIM AND WRONG ABOUT THE FACTS, and the fault was mine, made
+  today. "last progress 213 min ago" while a watch had pushed 65 minutes earlier and this Mac had
+  landed ten commits since. CAUSE: `lastProgress` was max(previous HEARTBEAT, LAST-ACTIVITY). Both
+  inputs are LOCAL, and I deleted the pulse hook that wrote LAST-ACTIVITY as part of the Watch
+  redesign — without noticing the Glass depended on it. That left ONE input, HEARTBEAT, which is
+  written by glass.mjs itself, so the number collapsed into a clock measuring its own last run and
+  blind to every other machine. The post-mortem's SHAPE A, re-introduced by the session that quoted
+  it that morning.
+  FIXED: last-progress now derives from the newest COMMIT reachable in the clone (`git log -1
+  --format=%cI --all`) — landed work, cross-machine, and impossible to produce by regenerating the
+  page. Verified: the number moved from 213 min to the exact timestamp of the Blade watch's push.
+  ALSO FIXED IN THE SAME PASS: a long run on ANOTHER machine is now visible. glass.mjs reads every
+  `.planning/wyclau/status/<host>.md` and shows a live marker from any of them, with the same
+  resolve-every-doubt-to-NOT-LIVE discipline (unparseable, undated, ruleless, future-dated or
+  past-its-own-staleness are all ignored). Without it the Mac's page could not see a trial sailing
+  on the Blade and would show a false red — the exact complaint of 2026-08-31, one machine over.
+- ⚠ THE SECOND TRIAL LOOKS DEAD TOO, stated because it is measured: the Blade's published marker
+  reads `0/10 legs`, `updatedAt 16:44:58Z` — zero legs, no movement in over an hour, past its own
+  53-minute staleness rule. Its report file still says IN PROGRESS with no verdict. Three trials
+  have now failed to finish today. The next watch that reads longrun_status owns this.
