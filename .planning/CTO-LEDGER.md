@@ -1211,3 +1211,15 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   project keeps paying for. The check is the ring test itself: a `ring:` line followed by a live
   door-launched claude.exe within a tick or two. If rings appear and NO watch ever does, that
   setting is the first suspect and the answer is to put the task back to interactive.
+
+- ✅ THE BELL RINGS. `ring: no watch on deck -- rang the next one` at 2026-09-01T16:08:22Z — the
+  first line ever written by bell.ps1 from the SCHEDULED TASK rather than by hand. It proves the
+  whole chain the broken registration hid: PowerShell found the script, parsed --Repo, read the
+  process table, judged correctly (no watch on deck), rang, and logged. The re-registration with
+  literal paths is the fix, and printing the action back is what caught it.
+  ⚠ STILL OPEN, and it is the next thing to see: whether the watch it rang actually CAME UP — the
+  task is now non-interactive, and no watch has ever been launched from that mode on this machine.
+  ⚠ AND A TIMING NOTE FOR WHOEVER READS THIS WATCH'S BEHAVIOUR: it was rung from a checkout that
+  predates the Door's commit-before-you-end fix, and a session loads its skill text at invocation,
+  BEFORE its own first pull. So THIS watch may still end invisibly; the next one will not. Do not
+  read a silent watch here as the fix having failed.
