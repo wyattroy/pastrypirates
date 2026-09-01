@@ -1120,3 +1120,18 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   caught the gap nobody closed: the inferred cause is GUEST-ONLY, and the mode of his sighting was
   asked for and never obtained, so a solo sighting would mean something else is still out there.
   Re-open trigger kept live in the INBOX at its instruction.
+
+- 2026-09-01T15:13:19Z · close_item: INBOX-20260901T1520Z · CEO 71 · commit 373bd99 (2 game files) · his solution first: commit 373bd99 · the pulse deleted from the shared rule; W4-5 reversal recorded; gate inverted and red-proofed by the CEO
+
+- INBOX-20260901T1520Z CLOSED through the gate (CEO 71: YES). His instruction — remove the sea
+  hint's pulse, Safari never ran it, not worth fixing — done by DELETING the hint from the shared
+  attention-vocabulary rule (never an animation:none override; CEO 18 named that as worse). This
+  REVERSES his own W4-5 ruling, recorded in the open in both places: the comment that replaces the
+  selector in index.html, and the gate's own header, which keeps the assertion it replaced
+  verbatim. The gate that PROTECTED the pulse is inverted, not deleted -- red on both counts
+  before, green after. CEO 71 red-proofed it independently against the pre-change tree (FAILED, 2
+  assertions) and against a synthetic private animation (also failed, and failed CLOSED on a
+  broken anchor rather than passing). Its one finding -- a failure message naming a cause the
+  regex cannot distinguish -- fixed in the same turn. Verified by eye at the posed moment: the
+  pill renders above the recipe card, legible, animationName "none". npm test 84/84, exit 0.
+  Stamp 2026.09.01.6.

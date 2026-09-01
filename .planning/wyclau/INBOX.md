@@ -30,7 +30,7 @@ status: DONE 2026-09-01 — CEO 67, commit 0caf85c (3 game files)
 > "just remove the animation from the \"Click and hold the sea\" -- it works in chrome but still
 > doesnt' work in safari and it's not worth fixing"
 solution: remove the animation from the hint (his words — not debug it further)
-status: CLAIMED by the advisor session, 2026-09-01. ⚠ This REVERSES W4-5 ("give it the same pulse as the buttons — in a way, it is a button, a button that reveals the sea"), which itself reversed his playtest-21 placement ruling. The reversal is recorded, never quiet (CEO Reviews 15 and 18 caught exactly that fault on this same element). Scope: the hint only — the stage buttons keep the shared pp4Glow.
+status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution first: commit 373bd99
 
 ## INBOX-20260901T1335Z — compress the images + preload all assets (LAUNCH CRITICAL, his words)
 > "There's one more SUPER important step we must finish before launch -- compressing the images to

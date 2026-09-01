@@ -125,7 +125,12 @@ const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/) || [, ""])[1].replace
   /* AND IT MUST NOT HAVE GAINED A PRIVATE ONE ON THE WAY OUT. The old assertion's own lesson,
      inverted with it: being absent from the list is not the same as not animating. */
   const own = /\.pp4PeekHint[^{}]*\{[^}]*animation\s*:\s*(?!none)[a-zA-Z]/.test(css);
-  if (own) fail("the sea hint has an animation of its own — he asked for NO animation on it");
+  /* ⚠ THE MESSAGE, CORRECTED BY CEO REVIEW 71: this regex spans the whole SELECTOR LIST, so it
+     also fires when the hint is back in the SHARED rule — which is exactly what happened when the
+     gate was red-proofed against the pre-change tree. The check is correct and strictly stronger
+     than "a private animation"; only the old sentence misdirected, by naming a cause it cannot
+     distinguish. It now says what it actually knows. */
+  if (own) fail("the sea hint is carrying an animation — shared rule or its own, this check cannot tell which, and he asked for NO animation on it (2026-09-01)");
   else pass("the hint carries no animation of its own either — it is genuinely still");
 }
 
