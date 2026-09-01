@@ -1088,3 +1088,24 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   NEXT STEP, precise: a 60fps single-ship matrix trace anchored to the storm event by TIMESTAMP
   (not by buffer scan), through a full 3-square push, to separate "slow glide" from "glide, wait,
   glide" and to catch what ends the push at square 2 (landHeld/held vs a pacing stall).
+
+- STORM PAUSE — ROOT CAUSE, measured then read (INBOX-20260901T1351Z). Timestamp-anchored rAF
+  trace (instrument's buffer-shift fault fixed): engine squares advance every ~780ms, three
+  squares for a full push (7,5→7,4→7,3; 6,7→6,6→6,5→6,4), and the RENDERED glide occupies only
+  ~430-530ms of each beat — so the hull visibly stops between squares. That gap is the pause.
+  WHY: `SHIP_GLIDE_MS` is **700**, not 350 — doubled at the cutover (`fb74eedc`, 2026-08-26,
+  promoting /4's own value). `STORM_STEP_MS = SHIP_GLIDE_MS + 70` therefore = **770ms**, but its
+  trailing comment still reads `// 420` and three other comments still say "(350)". The
+  DERIVATION is sound (rule 9 honoured — the constants moved together); what rotted is every
+  comment describing the result, and with it the design intent: "one glide plus a 70ms breath"
+  now means a 700ms slide, an easing tail nobody can see, then the next square.
+  HIS STATED SOLUTION, to be implemented FIRST when the fix lands (ruling 7): "the storm should
+  smoothly move players to their final square in one move." Fix shape: let the engine take its
+  steps (events unchanged — narration, the rim sweep and the guest's consumer all hang off them),
+  but paint ONE continuous glide to the final square instead of three discrete ones. ⚠ RULE 23
+  TRAP TO RESPECT: runStormLive is the HOST's driver; a guest draws the same storm from the event
+  stream, so a smooth host and a stepping guest would be a new display fork — the paint change
+  belongs where BOTH tiers reach it, not in the host's loop alone.
+  HELD, deliberately, and not from caution: a detached release trial is sailing this working tree
+  right now. Editing game code under a running trial makes its verdict describe code that no
+  longer exists. The fix goes in when the trial's report lands.
