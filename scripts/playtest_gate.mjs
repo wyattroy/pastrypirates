@@ -582,7 +582,12 @@ for (const r of results) {
   for (const v of r.verdict) log(`   ✗ ${v}`);
   if (r.recoveries) log(`   ✱ ${r.recoveries} WebKit relaunch(es) mid-voyage — the known WPEWebProcess SIGSEGV, resumed from the game's own solo save each time`);
   const P = (r.seats && r.seats[0] && r.seats[0].player) ? r.seats[0].player : null;
-  if (P) log(`   coverage: ${[...P.coverage.entries()].map(([k, c]) => `${k}:${c.clicked}/${c.seen}`).join("  ")}`);
+  // A RESUMED leg's coverage came back from report.json, where it was serialized as a plain
+  // object (Map -> Object.fromEntries, below) -- a live-driven leg's is a real Map. Accept both
+  // rather than assume one: found the hard way, 2026-09-01, when resuming crashed this line
+  // outright instead of reporting the resumed leg's verdict.
+  const covEntries = P && P.coverage ? (P.coverage instanceof Map ? [...P.coverage.entries()] : Object.entries(P.coverage)) : null;
+  if (covEntries) log(`   coverage: ${covEntries.map(([k, c]) => `${k}:${c.clicked}/${c.seen}`).join("  ")}`);
 }
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, (k, v) => v instanceof Map ? Object.fromEntries(v) : k === "screens" && Array.isArray(v) && v.length > 60 ? v.slice(0, 60) : v, 2));
 log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");
