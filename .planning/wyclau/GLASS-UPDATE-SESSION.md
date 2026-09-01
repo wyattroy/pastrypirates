@@ -28,21 +28,27 @@ publish. This session IS the terminal.
 > 2. **HARVEST FIRST.** Read the live page with the Artifact tool, `action: "read"`, url
 >    `https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2`. Find its
 >    `id="glassState"` block. If `ideas` or `rulings` is non-empty, copy every entry verbatim into
->    `.planning/CHART.md` under "## THE IDEA INBOX" and commit. **A republish without this deletes
+>    `.planning/CHART.md` under "## THE IDEA INBOX" and commit. **THE HARVEST HAPPENS ON EVERY TICK,
+>    BEFORE the change-gate below — never after it, and never skipped because nothing "moved". Only
+>    this read can see what he typed; no script can.** A republish without this deletes
 >    what he wrote, silently and completely.**
-> 3. `date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST`
-> 4. **READ `.planning/wyclau/GLASS-NOTE.md` BEFORE folding it in, and check it is still TRUE.**
+> 3. **NOW ASK WHETHER THIS TICK HAS ANYTHING TO SAY:** `node scripts/wyclau/glass_needs_publish.mjs`
+>    — exit **10 / `NOTHING-MOVED`** means **END THE TICK HERE, silently.** No publish, no stamp, no
+>    commit, no report. Exit **0 / `PUBLISH`** means carry on. (If step 2 found ideas or rulings, you
+>    are publishing regardless of what this says — his words landing on the Chart is itself a change.)
+> 4. `date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST`
+> 5. **READ `.planning/wyclau/GLASS-NOTE.md` BEFORE folding it in, and check it is still TRUE.**
 >    The relay carries words forward faithfully and cannot know they have expired — on 2026-09-01 a
 >    queued note still said a sea trial was sailing and warned him not to close a console window
 >    that had closed an hour earlier. If a note has gone stale, rewrite it to what is true now.
-> 5. `node scripts/wyclau/glass.mjs --note "<one plain sentence about what actually moved>"`
-> 6. Publish `.planning/wyclau/glass.html` with the Artifact tool, passing that same url.
-> 7. `node scripts/wyclau/mark_glass_published.mjs --version=<id>` — **`--version` is REQUIRED and a
+> 6. `node scripts/wyclau/glass.mjs --note "<one plain sentence about what actually moved>"`
+> 7. Publish `.planning/wyclau/glass.html` with the Artifact tool, passing that same url.
+> 8. `node scripts/wyclau/mark_glass_published.mjs --version=<id>` — **`--version` is REQUIRED and a
 >    bare call exits 1.** The id is the artifact version the publish produced; the publish
 >    confirmation does not print it inline, so **re-read the artifact and take the version from the
 >    result**, checking its `generatedAt` matches what you just wrote. **No version id means you did
 >    not publish, and you must not stamp.**
-> 8. Commit the `GLASS-NOTE.md` reset and push.
+> 9. Commit the `GLASS-NOTE.md` reset and push.
 >
 > Then say, in one line, what changed on the page. Nothing else.
 
@@ -65,11 +71,24 @@ platform's own conflict guard fired three times.* An earlier version of this fil
 > ask it 96 times a day. That matters beyond waste: step 2 is the only thing standing between a
 > republish and deleting what Wyatt typed, and a clock multiplies the unattended chances to skip it.
 >
-> **THE FIX, NOT YET BUILT:** `scripts/wyclau/glass_needs_publish.mjs`, printing `PUBLISH` or
-> `NOTHING-MOVED` from the newest landed commit, `GLASS-NOTE.md` differing from its template, and
-> unharvested `glassState` — becomes **step 0**, and the tick exits silently on `NOTHING-MOVED`.
-> Tick often, act rarely. **Until that exists, this file describes a loop that publishes whether or
-> not anything happened, and saying so here is the whole point of writing it down.**
+> **THE FIX, BUILT 2026-09-01 and now step 3 above:** `scripts/wyclau/glass_needs_publish.mjs`
+> prints `PUBLISH` (exit 0) or `NOTHING-MOVED` (exit 10) from the newest landed commit across all
+> refs and whether a note is queued. **Tick often, act rarely** — the Bell's own shape, which kept
+> its 10-minute tick through the redesign and simply asks a truthful question before acting.
+>
+> **RED-PROOFED IN BOTH DIRECTIONS before it was trusted**, because a check that can only say one
+> thing is the exact fault this file's step 8 was fixed for: with the stamp pointed at the current
+> commit it said `NOTHING-MOVED`; with a note queued it flipped to `PUBLISH`. Gate:
+> `scripts/qa/glass_needs_publish_check.mjs`, wired into `npm test` (90 gates).
+>
+> **EVERY DOUBT RESOLVES TO PUBLISH** — a missing stamp, an unparseable one, a git that will not
+> answer, an unreadable note file. A broken input must never be able to SUPPRESS a publish, because
+> the failure mode of a missed publish is Wyatt reading a frozen page, which is the bug this whole
+> subsystem exists to prevent.
+>
+> **AND IT CANNOT SEE THE LIVE PAGE.** Ideas he types live only in the artifact until a session
+> copies them out, and only a session holding the Artifact tool can read them. That is why the
+> harvest is step 2 and this is step 3, in that order, always.
 
 **The honest limit, stated rather than hidden:** this session has to be opened by hand and stay
 open. It cannot resurrect itself after a reboot the way the Bell can, because the Bell's whole

@@ -41,6 +41,7 @@
 // which is precisely why it must not be able to lie to them.
 
 import { writeFileSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,7 +75,19 @@ then you cannot publish and must not stamp. Write what you wanted shown into
   process.exit(1);
 }
 
+/* RECORD WHAT WAS PUBLISHED, not merely that something was. Without this the receipt says a publish
+   happened and nothing can ask "of what?" — so glass_needs_publish.mjs has nothing to compare the
+   current state against and every tick must publish. Same quantity glass.mjs uses for "last
+   progress" (newest commit across ALL refs), deliberately, so the page and the change-gate can
+   never disagree about what counts as work landing. Derived here rather than passed in: a caller
+   that has to type it is a caller that can mistype it. If git will not answer, the stamp says so
+   rather than inventing a hash — and glass_needs_publish reads a missing commit as PUBLISH. */
+let head = "unknown";
+try {
+  head = execFileSync("git", ["-C", ROOT, "log", "-1", "--format=%H", "--all"], { encoding: "utf8" }).trim() || "unknown";
+} catch { head = "unknown"; }
+
 const nowIso = new Date().toISOString();
 mkdirSync(WY, { recursive: true });
-writeFileSync(LAST_PUBLISH, `${nowIso}\tGlass published\tversion=${version}\n`);
-console.log(`LAST-PUBLISH stamped ${nowIso} (artifact version ${version})`);
+writeFileSync(LAST_PUBLISH, `${nowIso}\tGlass published\tversion=${version}\tcommit=${head}\n`);
+console.log(`LAST-PUBLISH stamped ${nowIso} (artifact version ${version}, commit ${head.slice(0, 7)})`);
