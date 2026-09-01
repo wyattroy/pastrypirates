@@ -1007,3 +1007,13 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 - INBOX-20260901T1332Z CLAIMED by the advisor session (attack buttons on the wrong captain).
   Watches: skip this claim; the queue's next unclaimed items are the flashing hint and the storm
   animation.
+
+- ATTACK BUTTONS FIXED BY CONVERGENCE (INBOX-20260901T1332Z): the universal rule he asked for
+  already existed (playtest 22 / W5-2's anchored-boats mode); the "Attack whom?" menu had simply
+  never joined it — no seat on the captain options, none on Back, so the all-or-nothing contract
+  dropped the whole menu into the fan around the chooser, where a captain-coloured circle lands
+  on whichever ADJACENT neighbour's hull the geometry crosses. One line: captains carry seat:o.idx,
+  Back carries the chooser's seat. Gate attack_buttons_on_target_check.mjs (expression-reading per
+  w52's lesson, red-proofed), proven RED on the seatless shape. Suite 84/84, stamp -> 2026.09.01.5.
+  SWEEP FINDING, parked for his call: the trade-response menu (flow.js ~2134) also names captains
+  without seats — whether trade answers should anchor on boats is a design question, not assumed.
