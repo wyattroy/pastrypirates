@@ -63,7 +63,7 @@ status: OPEN — written on the Glass 13:51:04Z, during the Blade hour.
 > so that the buttons that refer to selecting a player are always drawn next to them, not on top
 > of, or next to, someone else."
 solution: fix universally, not through patches — one rule places every player-selecting button beside its player (his words)
-status: OPEN — written on the Glass 13:32:49Z. Rule 23 shape: find the ONE placement path (or the fork that makes two).
+status: DONE 2026-09-01 — CEO 69, commit f2dff2c (2 game files); his solution first: commit f2dff2c
 
 ## INBOX-20260901T1317Z — the "Tap and hold the sea" hint's attention animation flashes rapidly
 > "\"Tap and hold the sea to reveal the board\" tooltip hint's attention-animation, which should be

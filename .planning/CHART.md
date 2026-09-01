@@ -362,7 +362,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ## BLOCKED ON WYATT
 
-*Nothing is blocked on Wyatt right now. Two questions resolved 2026-09-01: **rsync** — he
+| Question | Recommendation | since |
+|---|---|---|
+| **Should TRADE-RESPONSE buttons also anchor on the boats they name?** Your attack-buttons ruling said player-selecting buttons are "always drawn next to them" — the attack menu now obeys (2026.09.01.5). The sweep found one sibling: the trade-response menu (accept/counter circles naming captains, `src/ui/flow.js` ~2134) still fans around you. | **Recommend leaving the trade fan as-is for now.** Trade answers carry deal terms and disabled states, and responders can be far across the board — scattering a deal's options onto distant hulls may hurt the reading of the trade more than the anchoring helps. Consistency (rule 8) argues the other way, so it is genuinely your call; if you want it anchored, it is the same one-line join. | 2026-09-01 |
+
+*Otherwise nothing is blocked on Wyatt right now. Two questions resolved 2026-09-01: **rsync** — he
 installed it on the Razer (his pick, option (a)); deploys are mechanically unblocked from both
 machines. **The sail-square scope question** — he ruled the same morning: fix it NOW, with his
 stated camera-zoom solution; shipped, staged, and his own playtest passed all five checks the
