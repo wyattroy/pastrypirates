@@ -980,3 +980,14 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   harvest entries were hand-typed estimates and are ~1h fast — the page's own generatedAt values
   put the real times near 13:2x–13:3xZ. Convention 2 (never hand-type a number) applies to
   clock times too; entries stand, times corrected here rather than edited in place.
+
+- INBOX-20260901T1314Z CLAIMED by the advisor session (Muse narrations missing in Multiplayer).
+
+- MUSE NARRATION RESTORED (INBOX-20260901T1314Z): the graveyard showed EVENT_NARRATION's pass:
+  entry was deleted as COLLATERAL by 693c2b0b (2026-08-27, the weather-line commit — its own
+  "cut on purpose" list never names it). Restored verbatim from 693c2b0b^ into src/ui/util.js;
+  seaLine() has its caller back. New gate muse_narration_check.mjs (RED first: "no pass entry"),
+  6 checks incl. rule-9 red-proof (coin follows cfg.passCoin). NOT MP-specific — it was silent in
+  every mode; he noticed where he plays. Suite 83/83, stamp -> 2026.09.01.4. Wyatt confirms "the
+  glass is working!"; his two formatting notes harvested (line breaks -> backlog; screenshot
+  paste -> parked much later). He is starting the Blade hour now.

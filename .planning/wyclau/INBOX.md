@@ -37,6 +37,18 @@ status: DONE 2026-09-01 — CEO 67, commit 0caf85c (3 game files)
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
 status: OPEN — written on the Glass 13:35:23Z. His routing: LAUNCH CRITICAL → belongs on the Chart's launch list (step 3) as a named item, worked through the Proof (measure the real 18MB first, before/after load times).
 
+## INBOX-20260901T1340Z — the Glass bakes in line breaks (his routing: backlog)
+> "one small note about formatting on the glass-- you seem to be baking in line breaks, which
+> hints at a page construction that's messier than it should be. add to the backlog."
+solution: none stated
+status: OPEN (backlog, his routing) — cause already known: the lesson renders LESSONS.md's hard-wrapped source lines through white-space:pre-line, so every source newline becomes a visible break, and `*crash-only design*` shows raw asterisks (no markdown pass). Fix shape: join lines within a paragraph, break only on blank lines; render *…* as emphasis or strip it.
+
+## INBOX-20260901T1341Z — paste screenshots into the Glass (his routing: much later)
+> "also, it'd be great if there were some way to copy-paste in screenshots into the glass; but
+> that's a nice to have for much later"
+solution: none stated
+status: PARKED — his own routing: "nice to have for much later". (Mechanism exists when wanted: the artifact assets capability stores images a page collects.)
+
 ## INBOX-20260901T1332Z — attack buttons land on the WRONG captain
 > "Sometimes, the buttons to attack a captain (when there are two options, eg. you're adjacent to
 > two captains) place the buttons on top of the wrong captain -- eg Davy Scones button will not be
