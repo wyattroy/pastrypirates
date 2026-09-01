@@ -25,8 +25,8 @@ export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDi
   await new Promise(r => ws.onopen = r);
   ws.onmessage = e => { const m = JSON.parse(e.data);
     if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); }
-    if (m.method === "Runtime.exceptionThrown") consoleErrs.push("EXC " + (m.params.exceptionDetails?.exception?.description || m.params.exceptionDetails?.text || "").slice(0, 200));
-    if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") consoleErrs.push("ERR " + m.params.args.map(a => a.value ?? a.description ?? "").join(" ").slice(0, 200)); };
+    if (m.method === "Runtime.exceptionThrown") consoleErrs.push("EXC " + (m.params.exceptionDetails?.exception?.description || m.params.exceptionDetails?.text || "").slice(0, 2000));
+    if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") consoleErrs.push("ERR " + m.params.args.map(a => a.value ?? a.description ?? "").join(" ").slice(0, 2000)); };
   const send = (method, params = {}) => new Promise(res => { const i = ++id; pend.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
   const ev = async (expr) => { const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
     if (r.result?.exceptionDetails) return { __err: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text }; return r.result?.result?.value; };
