@@ -84,6 +84,10 @@ w1-crewphone-recheck/
 .planning/wyclau/LAST-ACTIVITY
 .planning/wyclau/LAST-PUBLISH
 .planning/wyclau/STOP-HOOK-STATE.json
+# Written by a long job (a sea trial) as it progresses, read by the watchdog to tell a slow run
+# from a stalled one. Per-machine by nature and actively misleading if shared: committed, it would
+# describe a job running on somebody else's computer, and the watchdog here would hold off on it.
+.planning/wyclau/LONG-RUN
 
 # Claude Code local settings are MACHINE-LOCAL by design (the file even points at
 # /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history
