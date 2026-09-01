@@ -1065,3 +1065,26 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 
 - INBOX-20260901T1351Z CLAIMED by the advisor session (storm pause at square 2 of 3). His
   hypothesis -- indexing -- is checked FIRST, per ruling 7.
+
+- STORM PAUSE (INBOX-20260901T1351Z) — FIRST REAL EVIDENCE, from looking at the game rather than
+  a fifth probe (his teeth rule: a failed tool means look the way he would). Posed solo storm,
+  26 frames at 250ms with the engine's own positions beside each frame:
+    * Ships are pushed ONE AT A TIME (stormOrder, by design), and each moved ship advanced
+      SQUARE BY SQUARE with a visible beat between squares — ship 2: 9,7 → 10,7 → 11,7;
+      ship 1: 7,8 → 8,8 → 9,8.
+    * Observed cadence ~830ms per square against the designed STORM_STEP_MS = 420
+      (src/ui/util.js:1276, = SHIP_GLIDE_MS 350 + 70). ⚠ CAVEAT, stated because the number is
+      the finding: sampling was 250ms, so aliasing inflates the apparent gap — the honest claim
+      is "the beat is visibly longer than one glide", not "exactly 2x".
+    * BOTH ships stopped after TWO squares of a three-square push (STORM_PUSH=3, shared/index.js:412).
+      That is his sentence from the outside: smooth to the second square, then a pause.
+  MY OWN INSTRUMENT'S FAULT, NAMED (rule 6's "check the instrument reaches its subject"): probe
+  runs 2-4 reported ZERO storm motion. Cause found: the rAF trace buffer shifts at 6000 frames
+  (~100s), and the analysis started at "the first frame where a storm event exists" — once the
+  buffer had shifted past the storm, EVERY frame satisfies that, so the window sat ~100s in the
+  past, after the storm. It measured a state it never created. Run 1's viewport-rect numbers were
+  camera-polluted; the matrix sampler itself is sound (red-proofed on a real board: 4 hulls
+  matched, a glide caught).
+  NEXT STEP, precise: a 60fps single-ship matrix trace anchored to the storm event by TIMESTAMP
+  (not by buffer scan), through a full 3-square push, to separate "slow glide" from "glide, wait,
+  glide" and to catch what ends the push at square 2 (landHeld/held vs a pacing stall).
