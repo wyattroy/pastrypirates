@@ -25,6 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { pathToFileURL } from "node:url";
+import { freshProfileDir } from "./cdp.mjs";
 import { PYTHON } from "./chrome.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -89,7 +90,7 @@ export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile
       + `  scripts/lib/wk.mjs finds ~/.pw automatically; PW_DIR only overrides it.`);
   }
   const srv = httpPort ? spawn(PYTHON, ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
-  if (profileDir) fs.rmSync(profileDir, { recursive: true, force: true });
+  profileDir = freshProfileDir(profileDir);   // same answer as the Chrome mount -- see cdp.mjs
   await sleep(900);
 
   /* MUTED, ALWAYS — and this mount has to do it by hand. Wyatt's standing rule is that a browser a

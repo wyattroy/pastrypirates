@@ -10,9 +10,30 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // one Chrome tab, driven over CDP. `serveRoot` is served on `httpPort` (fresh port = fresh module
 // cache, DRIVING-THE-GAME.md §1). Returns a rich handle; call .close() when done.
+/* freshProfileDir — a clean profile path, even when the old one is held open.
+   Both mounts wipe their profile before launching, and on WINDOWS you cannot unlink a file
+   another process still has open: a browser left behind by a killed run makes the next leg die
+   with EBUSY before it starts (measured 2026-09-01, crew-desktop). Linux and macOS unlink open
+   files happily, so this can only ever bite on the Razer.
+   A profile is scratch, so the answer is not to try harder at deleting but to stop insisting on
+   that exact path: fall back to a sibling with a suffix and carry on. Returns the directory to
+   actually use. */
+export function freshProfileDir(profileDir) {
+  if (!profileDir) return profileDir;
+  /* TWO WAYS A WIPE FAILS, and only one of them throws. rmSync raises EBUSY when a file is held
+     open (the measured case), but a partial delete can also leave the directory standing with
+     content in it. Check the result rather than trusting the call. */
+  try {
+    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 120 });
+    if (!fs.existsSync(profileDir)) return profileDir;
+  } catch { /* held open by something still running -- fall through */ }
+  const alt = `${profileDir}-${Date.now().toString(36)}`;
+  try { fs.rmSync(alt, { recursive: true, force: true }); } catch { }
+  return alt;
+}
 export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDir, mobile = false, dsf = 1 }) {
   const srv = httpPort ? spawn(PYTHON, ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
-  fs.rmSync(profileDir, { recursive: true, force: true });
+  profileDir = freshProfileDir(profileDir);
   const args = [...LINUX_ARGS, "--headless=new", "--mute-audio", `--remote-debugging-port=${dbgPort}`,
     `--user-data-dir=${profileDir}`, "--no-first-run", "--no-default-browser-check",
     `--window-size=${W},${H}`, "--autoplay-policy=no-user-gesture-required", "about:blank"];
