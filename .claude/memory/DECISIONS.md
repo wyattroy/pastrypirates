@@ -1,5 +1,38 @@
 # Wyatt's standing decisions
 
+## THE KEEP-WORKING HOOK FIRES ONLY IN THE BOSUN — 2026-08-31, RESTATED 2026-09-01 BECAUSE IT WAS LOST
+
+Wyatt, 2026-08-31: *"I want ONLY the bosun session to have this hook -- is that possible? all other
+sessions are normal."* And again 2026-09-01, having found it undone: *"yesterday i told both you and
+bosun that the keep working hook should ONLY apply to the bosun. why did this decision get
+overwritten/lost?"*
+
+**The ruling: the never-stop loop belongs to the watchdog-started engine and nowhere else.** Wyatt's
+own terminal, a cloud session, and any other session are ordinary sessions that may end a turn
+whenever they are done. The mechanism is the environment stamp — `watchdog.ps1` sets
+`PP_BOSUN=1` before launching, and the hook exits on its first line without it.
+
+### HOW IT WAS LOST, WRITTEN DOWN BECAUSE THE MECHANISM MATTERS MORE THAN THE INSTANCE
+
+**It was never recorded here.** It lived in one session's context and in a comment inside the hook.
+On 2026-09-01 that session wrote a chain audit recommending the gate move from *who launched this*
+to *is this session working* — reasoning from his symptom report (*"when I intervene with bosun, it
+stops him from being in a loop"*) without checking it against a ruling nobody had filed. He approved
+five fixes as a batch; fix 2 was the repeal, and nothing in the record flagged the contradiction.
+
+**CLAUDE.md §5 already names this exact failure:** *"A ruling he made that nobody harvested is the
+failure this system exists to stop."* The rule existed. The harvest did not happen.
+
+**AND THE SYMPTOM WAS MISREAD, WHICH IS THE OTHER HALF.** *"When I intervene with bosun, it stops him
+from being in a loop"* means **the Bosun's loop breaks when Wyatt interrupts it** — so the fix belongs
+on the resume path (the watchdog, or the Bosun picking the Chart back up after answering him), NOT on
+the hook's scope. Putting the loop into every session solved a problem he did not report, and took
+away the ability of any session to end a conversation.
+
+**Standing consequence:** a change that narrows or widens which sessions the loop governs is a change
+to this ruling and needs Wyatt, not an audit recommendation. Any session proposing one must cite this
+entry first.
+
 **What he has chosen, why, and when — so nobody asks him twice.** Newest at the top.
 
 This is not the rulebook (`.claude/CLAUDE.md` — how to work with him) and not the work record
