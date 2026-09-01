@@ -548,7 +548,7 @@ const PAGE = `<meta charset="utf-8">
 
     // --- the two-way half: the page rebuilds and saves itself with a new idea appended.
     var TPL = __GLASS_TPL__;
-    function jsEsc(s){ return JSON.stringify(s).replace(/</g, "\\u003c"); }
+    function jsEsc(s){ return JSON.stringify(s).replace(/</g, "\\\\u003c"); }
     // Function-form replacements, both here and in the generator: a plain string replacement
     // interprets "$&"-style sequences inside the inserted value, and idea text is user text.
     function buildDoc(st){
@@ -563,7 +563,7 @@ const PAGE = `<meta charset="utf-8">
       // (a real headless-Chrome render of the pre-fix page came up clean; the mechanism that
       // corrupted Wyatt's live page, 2026-08-31, is still not root-caused). Say "script element" or
       // "script tag" in prose regardless; never spell the bracketed form out, even to explain this.
-      d = d.replace("__GLASS_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\u003c"); });
+      d = d.replace("__GLASS_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\\\u003c"); });
       return d;
     }
 

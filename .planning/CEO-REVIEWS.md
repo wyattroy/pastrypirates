@@ -1,5 +1,153 @@
 # CEO reviews — the standing record
 
+## CEO Review 62 — 2026-09-01, the status dot reads a running job (second attempt at the false-red ask) — VERBATIM
+
+**Scope: commits `b1f13b43` and `a2a3166e` on `claude/cloud-handoff-planning-a9ay1u`. Everything
+below I ran on this machine myself; I trusted no part of the session's account of itself. The live
+`LONG-RUN` marker was saved before I started and is byte-identical now — a real sea trial is sailing
+on this machine and I did not disturb it.**
+
+**FIRST SENTENCE, IF YOU READ NOTHING ELSE: this time it is a real mechanism and not a promise —
+the page now flips itself from "working" back to red on the viewer's own clock, which I proved by
+running the shipped page code against a fast-forwarded clock — and the one thing I would still fix
+is that nothing puts a ceiling on how long a job may claim it is allowed to be quiet.**
+
+---
+
+**1. Is your ask answered by a MECHANISM rather than a habit? DONE.**
+
+Your words were *"fix the way you report status so that it's only red if the bosun is truly not
+working or running any subprocesses."* The first answer, in the morning, was a promise to refresh
+the page more often, and Review 56 was right to call that a habit. This one is different in kind.
+
+The long job now writes down what it is doing while it does it — a small file,
+`.planning/wyclau/LONG-RUN`, holding what it is, how far along, and how long its own quiet stretches
+are allowed to last. The trial derives that last number from its own leg time limit rather than
+typing one (`scripts/playtest_gate.mjs:552-553`), writes it after every leg (`:565`), and deletes it
+when the run ends (`:626`). The status page picks it up when it is built
+(`scripts/wyclau/glass.mjs:315-323`) and the page's own script re-reads it every 30 seconds
+(`scripts/wyclau/glass.mjs:529-541`, `setInterval(tick, 30000)` at `:548`). Two gates cover it, both
+actually wired into `npm test` — I checked the wiring, not just that the files exist:
+`scripts/qa/glass_longrun_status_check.mjs` (6 checks, all pass) and
+`scripts/qa/wyclau_chain_audit_check.mjs`. `npm test` is 77 gates, exit 0, confirmed by running it,
+and 77 is the real count of commands in `package.json`'s test script rather than a typed number.
+
+That is code doing the work, and it survives a session ending. It is a mechanism.
+
+**ONE HONEST LIMIT, WHICH YOU SHOULD KNOW ABOUT.** The page is a snapshot — it can only carry the
+marker that existed at the moment it was built, and the page says so in its own comment
+(`scripts/wyclau/glass.mjs:511-513`). So if a long job STARTS after the last time the page was
+published, the page in your hand still shows red until it is republished once. The publish brake
+keeps that window to about 20 minutes, so it is bounded rather than open-ended, but the false red you
+reported can still appear in that one shape. I am calling this DONE rather than PARTIAL because the
+mechanism is real and gated — but do not read it as "can never show red wrongly again."
+
+**2. Can the new marker hold the status green while nothing is happening? Essentially no — and I
+attacked it rather than reading about it. One uncapped input is the exception.**
+
+This was the question that mattered, because on 2026-08-31 a background timer pulsed a "still alive"
+file every 15 minutes whether or not anything was happening, and blinded the only stall detector in
+the tree for 2h31m. Rebuilding that on the page would be worse than not fixing it at all.
+
+I wrote twelve deliberately broken markers into the real file and rebuilt the real page each time.
+**Nine of the ten broken forms were dropped and the page fell back to the ordinary clock:** no marker
+at all; a marker dated in the future; one older than its own stated allowance; unreadable text; a
+list instead of a record; no allowance written; an allowance of zero; a negative allowance; and a
+nonsense timestamp. The guards are at `scripts/wyclau/longrun_status.mjs:50-78`, and every doubt
+resolves to "stalled", never to "hold the light green".
+
+**Then the part that actually settles it.** A page you are already looking at is a frozen snapshot,
+so I pulled the real `tick()` function out of the generated page and ran it against a clock I moved
+forward by hand. With a marker whose job said it may go quiet for 53 minutes:
+
+- viewer clock +0, +10, +52 min → gear, "sea trial, 10 legs -- 5/10 legs, still running"
+- viewer clock +53, +54, +60, +120, +1440 min → red, "last progress N min ago"
+
+**The page turns its own light red, from a frozen snapshot, with nobody republishing anything.** The
+2026-08-31 bug is not rebuilt here. That is the strongest thing in this commit.
+
+**THE ONE REAL HOLE — nothing puts a ceiling on the allowance.** The job writes its own quiet-time
+allowance and nothing anywhere caps it: not `scripts/wyclau/longrun_status.mjs:63-65` (which only
+requires a positive number), not `scripts/wyclau/glass.mjs:320`, and not the page script at
+`scripts/wyclau/glass.mjs:530` (`lr.staleAfterMinutes > 0`). I fed it `525600` — one year — and the
+page carried it, green. I fed it the text `"1e9"` and it carried that too, because the comparison
+quietly turns the text into a number. **And it is reachable without changing a line of code:** the
+trial's allowance is its leg time limit times 1.5 (`scripts/playtest_gate.mjs:57`, `:552-553`), and
+that limit is a command-line flag, so `--max-min=100000` produces a marker claiming it may sit
+silent for 104 days. Nobody would type that on purpose — which is why this is a fix and not an
+alarm — but "nobody would do that on purpose" was equally true of the 15-minute timer. **One line
+clamps it, and it should be clamped where the marker is READ, not where it is written.**
+
+**AND A SECOND NUMBER YOU SHOULD SIMPLY KNOW.** Deleting the marker when a run ends
+(`scripts/playtest_gate.mjs:626`) is an ordinary statement, not cleanup that runs no matter what — so
+a trial that CRASHES or is killed leaves its marker behind, and the page will say "still running"
+for up to that job's own allowance. Today that is 53 minutes. The code says this out loud and calls
+it the safe direction (`scripts/wyclau/longrun_status.mjs:102-104`), and I agree it is the safe
+direction — but it is not zero, and a trial was in fact killed on this machine tonight. **Up to 53
+minutes of gear-icon on a dead job is the honest worst case, and it belongs in the sentence you are
+told, not only in a comment.**
+
+**3. Is the Stop hook genuinely guarded, and is the rewritten test real? Yes to both, and I
+red-proofed the test myself rather than taking its word.**
+
+The guard is at `.claude/hooks/wyclau-stop-keep-working.cjs:167-172`, and its fallback is 20 —
+identical to the shared file's value at `.claude/hooks/wyclau-thresholds.cjs:32`, which is the right
+choice: guessing a larger number would have re-opened the deadlock Review 56 found.
+
+I rebuilt the pre-fix unguarded line and ran four combinations:
+
+- guarded hook, shared file MISSING → **blocks** (degrades to its fallback)
+- guarded hook, shared file CORRUPT → **blocks**
+- unguarded hook, shared file MISSING → **throws, does not block**
+- unguarded hook, shared file CORRUPT → **throws, does not block**
+
+So the new test genuinely fails against the code known to be broken. It is a real check, not a
+plausible one.
+
+**I also reproduced the failure the session admitted to, and its confession is accurate.** I ran the
+old shape — the repo's real hook, left where it lives, with a broken config planted in the temporary
+folder — and it **blocked**, which is to say it PASSED against code I had deliberately broken. The
+reason is exactly as stated: a file's neighbour is found next to that file, not next to the folder
+you happen to be running in. Relocating the real hook into the fixture
+(`scripts/qa/wyclau_stop_hook_check.mjs:330-348`) is the correct fix, and the comment there explains
+why in a way the next reader will understand. **Owning a test that could not fail, in the commit
+message, unprompted, is the behaviour this review process exists to produce.** Credit where it is
+due.
+
+**4. Claims not fully supported by the repo.**
+
+- **"Rendered and screenshotted at 375px before shipping" (commit `b1f13b43` message, repeated in
+  `.planning/CHART.md:158-162`) — I cannot verify this.** There is no such image anywhere in the
+  tree; the only recent screenshots are the sea trial's own. Rule 19 shots are usually temporary, so
+  this is not evidence of a false claim — but it is the one claim in this commit resting entirely on
+  the session's word, and it is precisely the claim rule 19 exists to make checkable. **If that rule
+  is to mean anything, the shot has to land somewhere it can be opened.**
+- **`scripts/qa/glass_longrun_status_check.mjs:68-69` is the weak link in an otherwise strong set.**
+  The check that "the page's own script actually uses the marker" is a text search for the word
+  `longRun` in the page. That would still pass if the comparison were reversed and the light stuck
+  on green forever. I proved the logic is right by extracting and running it; **the gate cannot, and
+  the gate is what runs tomorrow.** Replace the word-search with the moving-clock test I ran.
+- **Minor, not a defect:** the commit says a missing, malformed, future-dated or expired marker all
+  fall back to the ordinary clock. All four are true — I tested all four — but the gate named in the
+  Chart covers only two of them; the other two are covered one layer down in
+  `scripts/qa/wyclau_chain_audit_check.mjs:118-155`. The claim is sound; the single citation is
+  incomplete.
+- **The Chart's corrected count is now honest.** `.planning/CHART.md:133-137` says three of four
+  shipped as code with one unconfirmed, and having checked all three, that is accurate. It was wrong
+  twice and is right now, with both corrections left visible. That is the right way to fix a record.
+
+**5. The sentence to read first.**
+
+**You asked for the status to be red only when the bosun is truly not working, and this time it is
+built rather than promised — the page now turns its own light back to red on your clock when a job
+goes quiet longer than that job itself said it would, which I proved by fast-forwarding the real
+page; fix the one uncapped number before it becomes the next green light nobody can turn off.**
+
+*(Verified on this machine, 2026-09-01: `glass_longrun_status_check` 6/6, `wyclau_stop_hook_check`
+21/21, `npm test` 77 gates exit 0, plus 12 adversarial markers, a fast-forwarded render of the
+shipped page script, and a four-way red-proof of the Stop hook guard. Read-only apart from this
+append; the live `LONG-RUN` marker and `glass.html` were restored byte-for-byte.)*
+
 ## CEO Review 61 — 2026-09-01, the publish-lag deadlock (one threshold, not two) — VERBATIM
 
 **Scope: commit `96852ec5` only — the fix for the one failing check Review 59 found (fix 3, the

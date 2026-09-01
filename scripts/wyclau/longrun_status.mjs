@@ -39,6 +39,9 @@ export const NO_MARKER = 2;
 export const PROGRESSING = 0;
 export const STALLED = 1;
 
+/* The most silence any job may claim, whatever it writes for itself. See the check that uses it. */
+export const MAX_STALE_MINUTES = 240;
+
 /* Returns { code, reason }. Exported so should_launch.mjs asks THIS function rather than
    reimplementing the same reading — two readers of one file drift, one reader cannot (rule 23). */
 export function longRunStatus(dir) {
@@ -62,6 +65,22 @@ export function longRunStatus(dir) {
   }
   if (!Number.isFinite(staleAfter) || staleAfter <= 0) {
     return { code: STALLED, reason: "LONG-RUN marker has no usable staleAfterMinutes -- the job must write its own threshold (rule 9)" };
+  }
+  /* ⚠ AND IT IS CAPPED. CEO Review 62 found the hole by exploiting it: nothing limited this number,
+     so a marker claiming 525600 minutes (a year) was carried onto the Glass and held the light
+     green. NOT HYPOTHETICAL -- the value is derived from the trial's leg cap, and that cap is a
+     command-line flag, so `--max-min=100000` legitimately claims 104 days of silence. A hold-off
+     nothing can withdraw is the timer heartbeat of 2026-08-31 wearing a new hat.
+     THE CEILING IS DERIVED FROM WHAT REAL RUNS ACTUALLY DO: the longest sea trial on record here
+     is 144 minutes (2026-08-31, ten legs), so four hours is generous headroom over the longest
+     thing this repo has ever legitimately run. Past that, silence stops being evidence of work --
+     whatever the job believes about itself. */
+  if (staleAfter > MAX_STALE_MINUTES) {
+    return {
+      code: STALLED,
+      reason: `LONG-RUN marker claims it may go quiet for ${staleAfter} min, past the ${MAX_STALE_MINUTES} min ceiling ` +
+        `(the longest real run here is 144 min) -- refusing a hold-off no evidence could ever withdraw`,
+    };
   }
 
   const ageMin = (Date.now() - updatedAt) / 60000;
