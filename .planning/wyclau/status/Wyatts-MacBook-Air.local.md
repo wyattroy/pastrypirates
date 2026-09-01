@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T14:18:07.522Z	your trade-fan ruling harvested and filed; Bell registered and ticking; watch 1 on deck
+2026-09-01T15:03:18.930Z	sea-hint item closed on your Chrome test (CEO 70); storm pause root-caused, fix held until the trial lands
 ```
 
 ## Long run in flight (LONG-RUN)

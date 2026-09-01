@@ -1109,3 +1109,14 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   HELD, deliberately, and not from caution: a detached release trial is sailing this working tree
   right now. Editing game code under a running trial makes its verdict describe code that no
   longer exists. The fix goes in when the trial's report lands.
+
+- 2026-09-01T15:03:04Z · close_item: INBOX-20260901T1317Z · CEO 70 · no game diff — no fix was written for this item; measured clean in three poses and the thrash theory red-proofed clean; his sighting (13:17Z) predates 0caf85c1 (13:25:57Z), whose orphan sweep is the INFERRED, NEVER PROVEN cause -- guest-only, and his sighting mode was never obtained; closed on his own Chrome test · no stated solution
+
+- INBOX-20260901T1317Z CLOSED through the gate (CEO 70: "YES -- CLOSE IT, with the cause labelled
+  UNPROVEN in the record"), on WYATT'S OWN EYES: "the 'click and hold the sea' animation is now
+  fixed, i just tested it on chrome. close it out." No fix was written for this item. CEO 70
+  verified the timeline claim independently rather than accepting it: his note 13:17Z, the orphan
+  sweep 0caf85c1 at 13:25:57Z -- eight minutes apart, so he saw .2 and confirmed on >= .3. It also
+  caught the gap nobody closed: the inferred cause is GUEST-ONLY, and the mode of his sighting was
+  asked for and never obtained, so a solo sighting would mean something else is still out there.
+  Re-open trigger kept live in the INBOX at its instruction.

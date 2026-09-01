@@ -77,7 +77,14 @@ status: OPEN — mechanism known: Node ignores `windowsHide` for `detached: true
 > the same gentle orange gradient as the other attention buttons that are on stages, instead
 > flashes many many times per second -- the css or something on this animation is broken. Debug."
 solution: none stated (target look: the same gentle orange gradient as the other stage attention buttons — his words)
-status: PARKED 2026-09-01 — not reproducible on the current build, three poses measured clean (advisor session; ledger entries this date). The hint ALREADY shares the one pp4Glow animation with the stage buttons (index.html ~2594, single @keyframes, W4-5's own convergence); a live 4-second sample showed zero restarts/toggles, and even 30 injected orphan .sailCell rects did not flicker it. His sighting was on build .2, whose orphaned-squares disease (since cured by clearSailWindow, .3) remains the least-dead suspect but could not be re-posed. Why he can't re-check: the hint self-retires after 3 peek uses (pp4_peekUsed), and in private-Safari windows the storage read throws so the fallback deliberately hides it. RE-OPENS the moment any fresh-profile eye sees it flash on >= .3 — the 10-second check is `localStorage.removeItem('pp4_peekUsed')` then reload. Unexplored corner, named: the centre-stage hint variant (stage.js ~2690) was never posed.
+status: DONE 2026-09-01 — CEO 70, no game diff — no fix was written for this item; measured clean in three poses and the thrash theory red-proofed clean; his sighting (13:17Z) predates 0caf85c1 (13:25:57Z), whose orphan sweep is the INFERRED, NEVER PROVEN cause -- guest-only, and his sighting mode was never obtained; closed on his own Chrome test
+
+RE-OPEN TRIGGER, kept live at CEO 70's instruction (the cause is unproven, so this is the only
+thing standing between this and a silent recurrence): any fresh-profile sighting of the flash on
+build >= .3 re-opens this item. The 10-second check is `localStorage.removeItem('pp4_peekUsed')`
+then reload. STILL MISSING, and named so nobody treats it as settled: the MODE of his original
+sighting (solo or crew guest) was asked for and never obtained — the inferred cause is guest-only,
+so a solo sighting would mean something else is still out there.
 
 ## INBOX-20260901T1319Z — redesign the hold: what you NEED vs what you HAVE (pre-launch backlog, his priority)
 > "In a recent playtest, a new player did not know how to understand their hold. they didn't
