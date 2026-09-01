@@ -296,7 +296,34 @@ const rows = (list, empty) => list === null
 // EMPTY ideas list — page-born ideas must already have been harvested to the Chart (see header).
 // `rulings` is keyed by the question id above: {id: {choice, note, at}}. Same harvest contract
 // as ideas — the generator always starts empty, so a republish without harvesting loses them.
-const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, ideas: [], rulings: {} };
+/* IS SOMETHING SLOW ACTUALLY HAPPENING? Wyatt, 2026-09-01: "I can see the bosun working right now,
+   but the status shows red. You have to fix the way you report status so that it's only red if the
+   bosun is truly not working or running any subprocesses."
+   The first answer to that was a promise to republish more often, and CEO Review 56 was right to
+   call it "a habit, not a mechanism". THIS is the mechanism: a long job (a sea trial) writes
+   .planning/wyclau/LONG-RUN as it progresses, including how long its own quiet stretches may
+   legitimately last -- a number only the job can know, never one this page invents. Carried onto
+   the page so the dot can say "working, 7 of 10 legs" instead of counting minutes since a publish
+   and calling that death.
+   longRunStatus() resolves every doubt to STALLED (missing, malformed, future-dated, or past its
+   own staleness), so a broken marker can never hold the light green -- that would be the timer
+   heartbeat of 2026-08-31 rebuilt on the page instead of in a Monitor. */
+let longRun = null;
+try {
+  const lr = await import("./longrun_status.mjs");
+  const st = lr.longRunStatus(ROOT);
+  if (st.code === lr.PROGRESSING) {
+    const m = JSON.parse(readFileSync(join(WY, "LONG-RUN"), "utf8"));
+    longRun = {
+      what: m.what ?? "a long run",
+      progress: m.progress ?? "",
+      updatedAt: m.updatedAt,
+      staleAfterMinutes: m.staleAfterMinutes,
+    };
+  }
+} catch { longRun = null; }
+
+const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, longRun, ideas: [], rulings: {} };
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
@@ -494,6 +521,23 @@ const PAGE = `<meta charset="utf-8">
           p = document.getElementById("pulse"), pub = document.getElementById("publishedLine");
       var progressMs = Date.now() - tProgress.getTime();
       var publishedMs = Date.now() - tPublished.getTime();
+      // A LONG JOB IS WORK, NOT SILENCE. If a slow job was progressing when this page was
+      // generated, say so instead of counting minutes since the last pulse and calling it death --
+      // that was the false red Wyatt reported. The job's OWN staleness rule decides how long it may
+      // stay quiet, and once it is past that the page falls back to the ordinary clock, so a
+      // finished or crashed job cannot hold the light green from a frozen snapshot.
+      var lr = state.longRun, lrLive = false;
+      if (lr && lr.updatedAt && lr.staleAfterMinutes > 0) {
+        var lrAgeMin = (Date.now() - new Date(lr.updatedAt).getTime()) / 60000;
+        lrLive = lrAgeMin >= 0 && lrAgeMin <= lr.staleAfterMinutes;
+      }
+      if (lrLive) {
+        age.textContent = lr.what + (lr.progress ? " -- " + lr.progress : "") + ", still running";
+        emoji.textContent = "⚙️";
+        p.className = "pulseline";
+        if (pub) pub.textContent = "page published " + fmtAge(publishedMs);
+        return;
+      }
       age.textContent = "last progress " + fmtAge(progressMs);
       var stale = Math.floor(progressMs/60000) > 45;
       emoji.textContent = stale ? "🔴" : "🟢";

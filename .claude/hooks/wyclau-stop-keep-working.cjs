@@ -156,8 +156,20 @@ const LAST_PUBLISH = path.join(ROOT, ".planning", "wyclau", "LAST-PUBLISH");
    may_publish.mjs must agree with it exactly: whenever this brake blocks a stop, somebody has to
    be permitted to publish, or a session is ordered to publish and forbidden from publishing at the
    same time. CEO Review 56 found precisely that deadlock when the two numbers were written
-   separately (20 here, 45 there) -- see that file's header. */
-const { PUBLISH_LAG_THRESHOLD_MIN } = require("./wyclau-thresholds.cjs");
+   separately (20 here, 45 there) -- see that file's header.
+
+   ⚠ GUARDED, AND CEO REVIEW 61 IS WHY. The first version of this line was a bare require(), the
+   only unguarded read in an otherwise defensive file. The reviewer deleted the shared file, then
+   corrupted it, and ran this hook: it threw both times. It did not trap a session -- but only
+   because settings.json wraps the call in `|| true`, which swallows the crash and silently turns
+   off ALL THREE BRAKES for that turn rather than just this one. A safety net belonging to
+   something else is not this file's error handling. The fallback is the SAME value on purpose:
+   erring larger would re-open the very deadlock this file was changed to close. */
+let PUBLISH_LAG_THRESHOLD_MIN = 20;
+try {
+  const t = require("./wyclau-thresholds.cjs").PUBLISH_LAG_THRESHOLD_MIN;
+  if (Number.isFinite(t) && t > 0) PUBLISH_LAG_THRESHOLD_MIN = t;
+} catch { /* keep the fallback; a missing shared file must never take the brakes down with it */ }
 
 const tryRead = (p) => { try { return fs.readFileSync(p, "utf8"); } catch { return null; } };
 const tryReadTimestamp = (p) => {

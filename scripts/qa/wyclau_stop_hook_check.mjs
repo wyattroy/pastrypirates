@@ -314,6 +314,54 @@ function runHook(dir, stdinObj, bosun = true) {
 }
 
 console.log(`\n${passCount} passed, ${failures.length} failed.`);
+/* ---- Case 11: THE HOOK MUST SURVIVE ITS OWN SHARED CONFIG BEING BROKEN ----
+ *
+ * CEO Review 61 found this by doing it rather than reading it: the publish-lag threshold moved into
+ * a shared file (.claude/hooks/wyclau-thresholds.cjs) so may_publish.mjs could agree with it, and
+ * the read was a bare require() -- the only unguarded line in an otherwise defensive file. Delete
+ * or corrupt that file and the hook THREW. It did not trap a session, but only because
+ * settings.json wraps the call in `|| true`, which swallows the crash and silently turns off ALL
+ * THREE BRAKES for that turn instead of just the publish-lag one. A safety net that belongs to
+ * something else is not error handling, and nothing was watching this.
+ *
+ * Both cases below use a fixture with real actionable Chart work, so a hook that survives MUST
+ * still block -- proving it degraded to its fallback rather than merely failing quietly.
+ *
+ * ⚠ THE HOOK IS RUN FROM A COPY HERE, AND THAT IS FORCED, NOT LAZY. require("./wyclau-thresholds.cjs")
+ * resolves beside the HOOK FILE, not inside CLAUDE_PROJECT_DIR — so breaking a thresholds file in
+ * the fixture while running the repo's own hook changes nothing, and the first version of this case
+ * PASSED against the known-broken code. A check that cannot fail is not a check (rule 6). The copy
+ * is made byte-for-byte from the real file at run time, so it is still the shipped code being
+ * driven, just standing somewhere its neighbour can be controlled. */
+for (const [label, content] of [
+  ["MISSING", null],
+  ["CORRUPT", "{{{ not javascript"],
+]) {
+  const dir = mkFixture();
+  writeChart(dir, CHART_ACTIONABLE);
+  commit(dir);
+  // Make this session look like it is working, so the loop gate cannot be the reason for a stop.
+  writeFileSync(join(dir, ".planning", "CHART.md"), CHART_ACTIONABLE + "\nedited\n");
+  const hookDir = join(dir, ".claude", "hooks");
+  mkdirSync(hookDir, { recursive: true });
+  const hookCopy = join(hookDir, "wyclau-stop-keep-working.cjs");
+  writeFileSync(hookCopy, readFileSync(HOOK, "utf8"));      // the REAL file, relocated
+  if (content !== null) writeFileSync(join(hookDir, "wyclau-thresholds.cjs"), content);
+  let out = "";
+  try {
+    out = execFileSync("node", [hookCopy], {
+      cwd: dir, env: { ...process.env, CLAUDE_PROJECT_DIR: dir, PP_BOSUN: "1" },
+      input: JSON.stringify({}), encoding: "utf8",
+    }).trim();
+  } catch (e) { out = (e.stdout ?? "").trim(); }
+  check(
+    `the shared thresholds file being ${label} does not take the brakes down with it`,
+    /"decision"\s*:\s*"block"/.test(out),
+    out ? `got: ${out.slice(0, 120)}` : "got nothing -- the hook threw, and settings.json's `|| true` would hide it"
+  );
+  rmSync(dir, { recursive: true, force: true });
+}
+
 if (failures.length) {
   console.error("\nFAILURES:");
   for (const f of failures) console.error(`  - ${f}`);

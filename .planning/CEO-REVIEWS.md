@@ -1,5 +1,109 @@
 # CEO reviews — the standing record
 
+## CEO Review 61 — 2026-09-01, the publish-lag deadlock (one threshold, not two) — VERBATIM
+
+**Scope: commit `96852ec5` only — the fix for the one failing check Review 59 found (fix 3, the
+publish-lag deadlock). Fixes 1, 2, 5a and 5b are other reviewers' ground and not re-checked here.**
+
+**1. Is the deadlock fix DONE / PARTIAL / NOT DONE? DONE, verified by running it myself, not by
+reading the commit's account of itself.**
+
+The deadlock in plain terms: one file said "you may not stop your turn until you've republished the
+status page" if that page had gone more than 20 minutes stale; a second file, deciding whether THIS
+session is even allowed to publish that page (normally only one session does), used its own,
+separately-typed number — 45 minutes. Any staleness between those two numbers left a session that
+could neither stop (the first file forbids it) nor publish (the second file forbids that too).
+
+- I ran `node scripts/qa/wyclau_chain_audit_check.mjs` myself, on this machine, right now: **22 of
+  22 checks pass**, including the specific case built to catch this exact bug —
+  `"may_publish: a 25 min lag -- past brake 1's 20 min hold -- MUST permit a publish, or the hook
+  deadlocks"` — PASS. That case is the one Review 59 reported FAILING two commits ago; it is green now.
+- I ran `npm test` myself: **exit 0**, 19/19 in the Stop-hook suite, and the tool's own printed count
+  is `PASS gate count matches the chain (declared total 75)` — matching the commit message's
+  corrected "75 gates" (the message also says it is fixing its own earlier wrong "76/76" claim; I
+  independently confirm 75 is the real, current number, not merely repeated from the message).
+- I read all three files, not just the diff. The number is genuinely stored once and read, not
+  retyped: `.claude/hooks/wyclau-thresholds.cjs:32` exports `PUBLISH_LAG_THRESHOLD_MIN: 20`. The
+  Stop hook reads it with a plain Node `require()` at
+  `.claude/hooks/wyclau-stop-keep-working.cjs:160`. `may_publish.mjs` reads the *same file, by path*
+  (`scripts/wyclau/may_publish.mjs:88`, `path.join(dir, ".claude", "hooks", "wyclau-thresholds.cjs")`)
+  using `createRequire` because it is an ES module and the shared file is CommonJS — that is real
+  plumbing to make two different module systems read one file, not a second copy of the number.
+- `git show 96852ec5 --stat`: 7 files changed, including a new vendoring manifest update
+  (`.claude/wyclau/MANIFEST.sha256`) that I checked with `node scripts/qa/vendor_check.mjs` —
+  it passes, meaning the new file and the changed hook were both re-hashed correctly through the
+  project's normal "these files come from a shared kit" tracking, not hand-patched around it.
+
+**2. The fallback question — does it fail SAFE? Split verdict: `may_publish.mjs` does; the Stop
+hook's own read of the shared number does not, and that is a real, new, uncaught gap — though a
+lucky accident elsewhere in the repo keeps it from being dangerous.**
+
+"Fail safe" here means: if the shared number can't be read (wrong repo, missing file, a typo in it),
+does the system lean toward LETTING a session publish (mildly risky — two sessions might publish at
+once, which the platform already guards against and just means a duplicate save) or toward FORBIDDING
+it (dangerous — that's the deadlock itself, recreated)?
+
+- **`may_publish.mjs` gets this right, and says so honestly.** `scripts/wyclau/may_publish.mjs:84-91`:
+  if reading the shared file throws for any reason, it falls back to `FALLBACK_PUBLISH_LAG_MIN = 20`
+  — the SAME number brake 1 actually uses today, not a bigger, more "cautious"-sounding one. A
+  smaller number here makes the "you may rescue this page" decision fire SOONER (I traced the
+  arithmetic in `mayPublish()` at lines 67-73: a lower threshold reaches `MAY_PUBLISH` at a shorter
+  lag), so a wrong number can only ever make this file MORE permissive than intended, never less —
+  which is the safe direction the code comment at lines 80-83 says it is choosing, and I confirmed
+  that by reading the actual comparison, not by trusting the comment.
+- **The Stop hook itself does not fail safe by design — it fails safe by accident, and only for the
+  RIGHT reason by luck.** `.claude/hooks/wyclau-stop-keep-working.cjs:160` is a bare
+  `require("./wyclau-thresholds.cjs")` with no `try`/`catch` around it — the only unguarded file read
+  in this entire script; every other read in the same file (`tryRead`, `tryReadTimestamp`, the git
+  calls) is wrapped. **I tested this directly rather than reasoning about it**: I copied the hook to
+  a scratch folder without `wyclau-thresholds.cjs`, and separately with a deliberately broken copy of
+  it, and ran both through Node with the same stdin a real Stop event would send. Both crash with an
+  uncaught exception — `Error: Cannot find module './wyclau-thresholds.cjs'` and a `SyntaxError`,
+  Node exit code 1 in both cases, no JSON output at all.
+- **This does NOT hang or permanently block a session, but not because the hook handles it — because
+  a different file does.** `.claude/settings.json:123` registers this hook as
+  `node ".../wyclau-stop-keep-working.cjs" || true`. I re-ran both crash cases through that exact
+  wrapped command: the shell's `|| true` swallows the crash and the wrapped command exits 0 with no
+  block decision on stdout, which is what tells Claude Code "nothing is blocking the stop." So a
+  broken shared file does not trap a session — it silently turns the ENTIRE hook off for that turn
+  (all three brakes, not just the publish-lag one, since the crash happens before any of them run),
+  with a stack trace in stderr nobody is looking at. **This is a real, citable gap the commit does not
+  mention and no test in the suite covers** — I grepped `wyclau_stop_hook_check.mjs` and
+  `wyclau_chain_audit_check.mjs` for any reference to `wyclau-thresholds`; neither file has one.
+
+**3. The untracked-file finding, not acted on — is that honest, or an excuse? Honest, and better
+evidenced than the finding it responds to.**
+
+Review 58 found that a session whose only output is one brand-new file it hasn't `git add`ed yet
+looks idle to the Stop hook (because `git status --porcelain --untracked-files=no` ignores it) and
+can stop early with real unblocked work sitting there. Review 58 also tested removing that flag and
+found no existing test broke — but did not test the flip side. This commit's comment at
+`.claude/hooks/wyclau-stop-keep-working.cjs:111-122` reports doing exactly that missing test: with
+the flag removed, a session that changed NOTHING also gets treated as "still working," because a
+repo almost always has some stray untracked file lying around (their number: four, at the time). I
+checked that premise against this actual repo, right now, independently: `git status --porcelain`
+shows **6 untracked files** sitting in the tree this minute, unrelated to this review. The premise is
+real, not invented for the occasion. Both measurements — the cost of keeping the flag AND the cost of
+dropping it — are written into the code comment and into the ledger
+(`.planning/CTO-LEDGER.md`, the "CEO REVIEW 58's OTHER FINDING" entry appended by this same commit),
+with the specific unmet condition for revisiting it named ("a way to tell a session's new file from a
+tool's dropped scratch file"). That is a real trade-off honestly recorded, not a bug quietly left in
+place and hoped nobody would ask again.
+
+**4. Any claim in the commit message unsupported by the repo?** None found. Every checkable claim —
+22/22 on the chain audit, 75 gates in `npm test` (exit 0), the number stored once and read by both
+files, Reviews 58/59/60's verdicts as described, and the self-correction of the prior "19/19"/"76/76"
+message — held up under my own, independent run of the same commands. The one thing worth flagging is
+not a false claim but an **omission**: the message says nothing about the Stop hook's own read of the
+shared file having no error handling (§2 above), which is a real change in risk surface this same
+commit introduced and did not mention, test, or defend.
+
+**5. One sentence Wyatt should read first:** the deadlock itself is genuinely fixed and I proved it
+by running the same checks myself, but the fix also added a new way for the whole "keep working"
+hook to go silently dark if its one shared config file ever breaks — it doesn't trap a session, only
+because an unrelated line in `settings.json` happens to catch the crash, and nothing in the test
+suite would tell you if that safety net were ever removed.
+
 ## CEO Review 60 — 2026-09-01, chain audit fix 5 (brake 1's give-up; the launch stamp) — VERBATIM
 
 **DONE on both halves.** Fix 5a (the Stop hook's "give up" rule — a hook that can refuse to end a
