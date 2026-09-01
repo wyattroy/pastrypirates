@@ -1,6 +1,49 @@
 # CEO reviews — the standing record
 
-## CEO Review 64 — 2026-09-01, the ten-leg trial verdict and the Safari enablement — VERBATIM
+## CEO Review 66 — 2026-09-01, the sail-square camera fix — AWAITING A FRESH REVIEWER, honestly labeled
+
+**This entry is NOT a verdict. The session that did the work ran `ceo_brief.mjs` and is recording
+the hand-off here per its orchestrator's instruction (spawn nothing); a fresh-context CEO has not
+yet judged it. A verdict written by the author would be the author grading himself — worse than no
+entry. What follows is exactly what that fresh reviewer must check, so the review costs minutes.**
+
+**THE ASK, VERBATIM:** *"Fix the untappable sail square by zooming the camera out more, as I told
+you at the beginning."* (Wyatt's stated solution, DECISIONS.md "THE RELAY REDESIGN" ruling 7 —
+implement HIS fix first.)
+
+**WHAT THE AUTHOR CLAIMS, and where to verify each claim without trusting him:**
+
+1. **The diff is one commit: `76c49bcc`** — `src/ui/flow.js` (renderPickPrompt asks the director to
+   frame the squares it draws — the guest never had ANY framing call; camFitSail's only caller was
+   pickCell, which runs on the host), `src/ui/stage.js` (camFitSail takes the authoritative
+   `spec.pos`; new `sailContainTick()` containment pass, bounded, rendered-rects-vs-boardBand,
+   zoom-out only; stamp → 2026.09.01.2), `scripts/qa/sail_containment_probe.mjs` (`--tap=gx,gy`
+   added to the EXISTING probe). Check no other game code moved.
+2. **The posed pair, same seed, same room (ZTNK), same moment (20 squares, day 1):**
+   `sea-trial-shots/sail-cam-BEFORE.png` — square (3,8) clipped at the left rim, probe: 1
+   any-part-outside / 1 centre-outside / 1 hits-nothing at [-23,343].
+   `sea-trial-shots/sail-cam-AFTER.png` — 0 / 0 / 0, red-proof still fires (probe CAN see the fault).
+   Re-run it yourself: `node scripts/qa/sail_containment_probe.mjs --mode=crew --seed=7` (~2 min,
+   compare only if day AND cell count match — the probe's own rule).
+3. **The tap:** `--tap=3,8` clicked the formerly-unreachable square at [86,394] and the game
+   ACCEPTED the sail (prompt torn down). `sea-trial-shots/sail-cam-AFTER-tap.png`.
+4. **No regression in solo:** same seed, 16/16 reachable (`sail-cam-solo-sweep.png`).
+5. **npm test: full chain, exit 0.** Gear says FULL; the FULL sea trial is DELIBERATELY DEFERRED to
+   the upcoming release trial (orchestrator's call, stated in CTO-LEDGER, not hidden) — the stamp
+   was bumped to 2026.09.01.2 precisely so that trial re-sails instead of resuming cached legs.
+
+**WHAT A SKEPTICAL REVIEWER SHOULD PRESS ON:** (a) the containment pass lives in tick() — check the
+cadence guards (settled camera only, 350ms throttle, 3 tries per prompt) actually bound it;
+(b) the 2026-08-30 regression shape — zooming out made squares smaller and COVERED (.pp4Tail) —
+one posed pair cannot rule that out fleet-wide; the release trial's `sail-clickable` checks are the
+instrument that will; (c) whether `spec.pos` can be absent (version skew) and what the fallback
+does on a guest (it reads the stale local pos — degrade, stated in the comment).
+
+**RECURRENCE CHECK vs Review 64/65:** the standing fault named there was claims-without-evidence
+and reports that hide a NOT-RUN. This entry's answer: the sea trial NOT-RUN is stated here and in
+the ledger rather than implied green; every claim above names the artifact that proves or breaks it.
+
+
 
 **Scope: branch `claude/cloud-handoff-planning-a9ay1u`, build `2026.08.31.2`, commits `d25ce8eb`
 through `f01e7e96`. I verified everything below in the repo myself — I opened all ten leg records,
