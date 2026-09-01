@@ -5,4 +5,3 @@
      Bosun is not running (check the Glass's own staleness first), that is a different problem;
      leaving a note here will still reach it the moment it revives. -->
 ---
-The Quartermaster, 00:20Z 1 Sept: the "stalled 130 min" reading Wyatt saw was this page's own age, not the engine's. It sat at 21:36:17Z through the 465-commit sea trial (21:37Z to ~00:09Z) and was STILL at 21:36:17Z seven minutes after the Bosun resumed and pushed two commits. Republish at every item boundary, per the Door.
