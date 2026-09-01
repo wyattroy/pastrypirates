@@ -1,5 +1,60 @@
 # CEO reviews — the standing record
 
+## CEO Review 56 — 2026-09-01, the RED half of the chain audit (`f2cea081`) — VERBATIM
+
+**PARTIALLY — the gate is genuinely red and the split of labour is genuinely justified, but three of
+the five contracts can be turned green by an implementation that leaves Wyatt's actual fault
+unfixed, one contract's own fixture will fail a correct implementation, and wiring a knowingly-red
+wyclau gate into `npm test` re-fires the exact loaded gun CEO Review 52 disarmed — while the gate's
+own comment cites Review 52 as its justification, inverted.**
+
+**How it proved the vacuity, and this is the part worth keeping:** it did not reason about the
+checks, it BUILT LAZY IMPLEMENTATIONS AND RAN THEM. A `should_launch.mjs` that never opens the
+LONG-RUN file passed all four of its checks, including the one labelled "this is fix 1 and 3
+agreeing" — because that case passed `--engine=running`, which a case three lines above already
+established as an unconditional hold-off, so the two were indistinguishable. A `may_publish.mjs`
+with a 60-minute threshold passed all three of its checks, and 60 deadlocks against the stop hook's
+own 20-minute brake 1: a 25-minute gap leaves a session unable to stop (brake 1 holds it) and
+unable to publish (may_publish defers). A `longrun_status.mjs` fed a marker with no
+`staleAfterMinutes`, 24 hours stale, returned exit 0 — the indefinite hold-off the contract's own
+comment calls the case that matters most, and never tested. And `Set-Content -Path $heartbeat
+-Value "..."` — the house style two lines further down the same file — walked straight past the
+watchdog check's regex.
+
+**What held up, verified independently:** the gate really is red for the stated reasons (16 of 19,
+exit 1); the unbuilt-vs-built-and-wrong distinction is real; brake 1 really does refuse a 4th stop
+(driven four times as a subprocess — measurement, not reading); `vendor_check.mjs` passes and no
+vendored file was touched; the handover note about `wyclau_stop_hook_check.mjs:100` locking in the
+behaviour fix 2 removes is accurate and "the most valuable line in the commit"; the 19 checks do map
+to the four faults Wyatt named rather than an adjacent set.
+
+**Two overclaims it named:** (1) "two findings confirmed by measurement rather than reading" — half
+true; the watchdog HEARTBEAT finding was a regex over source text, which is reading, and the gate
+file's own comment concedes exactly that, so the commit message contradicted the file it described.
+(2) "The Bosun must do the fixes, not me" was wider than its own evidence: the three NEW node
+helpers are not vendored yet (proved by adding one and watching `vendor_check.mjs` still exit 0 —
+it only hashes manifest files, and its added-file detection is scoped to `.claude/agents/`), they
+run fine in a Linux container, and they are 12 of the 16 red checks. The honest answer to Wyatt's
+question was "most of the new code, yes — the two vendored-file edits and the PowerShell, no", and
+he was told no to all of it.
+
+**Recurrence:** yes, in both halves of Review 54's fault, less severely. A claim of measurement that
+was reading (overclaim 1), and checks that could not fail — one labelled vacuous honestly, three
+more vacuous and unlabelled.
+
+**ACTED ON THE SAME PASS, before the Bosun could build against the flawed spec:** the fix-1/fix-3
+integration case now passes `--engine=absent` so only the marker can explain the verdict; a
+25-minute deadlock-band case pins `may_publish`'s threshold to brake 1's; a missing-`staleAfterMinutes`
+case was added; the `hook-clean` fixture is genuinely git-clean and asserts its own cleanliness
+(it previously left untracked files, so a CORRECT implementation failed it, and the cheapest escape
+would have blinded the hook to new-file work); the watchdog check keys on the whole launch block and
+is red-proofed against both spellings plus a false positive; the gate came OUT of `npm test` into
+`npm run test:wyclau-audit`; and the inverted Review 52 citation is corrected in the file's header.
+NOT acted on: the reviewer's point that this session could have written the three helpers itself.
+That is Wyatt's call, not a defect to quietly repair — the work is already with the Bosun.
+
+---
+
 ## CEO Review 55 — 2026-08-31, the wyclau-to-claude-kit vendoring move — VERBATIM
 
 **YES.** The ask was executed and holds up under independent checking — the reviewer verified all

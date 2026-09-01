@@ -10,10 +10,24 @@
  * so that step 1 of the four steps (SHOW IT BROKEN) is a separate hand from step 2, rather than a
  * step the fixing session promises it took.
  *
- * ⚠ THIS GATE IS EXPECTED TO FAIL WHEN IT LANDS. That is its whole job. It is wired into `npm test`
- * anyway, and deliberately: a gate parked outside the chain is decorative, which is precisely the
- * defect CEO Review 52 found in the first version of the stop hook's own gate. Turning it green is
- * the definition of done for the five fixes.
+ * ⚠ THIS GATE IS EXPECTED TO FAIL WHEN IT LANDS. That is its whole job. Run it by name:
+ *     npm run test:wyclau-audit
+ * Turning it green is the definition of done for the five fixes; when it is green, MOVE IT INTO THE
+ * `npm test` CHAIN and bump gates.total/ceiling in the same edit.
+ *
+ * ⚠ CORRECTION, CEO REVIEW 56, IN THE OPEN. The first version of this header said the gate was wired
+ * into `npm test` "deliberately: a gate parked outside the chain is decorative, which is precisely
+ * the defect CEO Review 52 found". BOTH HALVES WERE WRONG, and the reviewer caught it. Review 52's
+ * finding was the OPPOSITE — the Glass publish-lag check had been wired INTO `npm test`, "which
+ * meant a stale WYCLAU DASHBOARD could block a real GAME fix from reaching players through the
+ * release gate", and it was moved OUT for exactly that reason (.planning/CEO-REVIEWS.md, and the
+ * stop hook's own brake-1 header records the move). The decorative-gate finding was Review 46's,
+ * which was never recorded and is noted in the record as lost. So this commit cited the review that
+ * FORBIDS this placement as its licence to do it, and the consequence was live rather than
+ * theoretical: the Chart's top open item is a sea trial of a real game fix headed for staging, and
+ * CLAUDE.md §6 requires `npm test` exit 0 before deploy-staging.sh. A knowingly-red wyclau dashboard
+ * gate in the release chain would have blocked a game fix from reaching players — the precise fault
+ * this project has already paid for once.
  *
  * THE ONE ARCHITECTURAL MOVE THIS GATE ENCODES, and it is the reason the contracts below are node
  * scripts rather than PowerShell branches: TODAY THE WATCHDOG'S JUDGEMENT CANNOT BE TESTED. It is
@@ -120,6 +134,16 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
   fs.writeFileSync(path.join(broken, ".planning/wyclau/LONG-RUN"), "{ this is not json");
   expectExit("longrun: MALFORMED marker -> exit 1, never a permanent hold-off", LR, [`--dir=${broken}`], 1);
 
+  // ⚠ CEO REVIEW 56: the comment above calls a marker with MISSING FIELDS the case that matters
+  // most, and then never tested it. The reviewer fed a marker with no staleAfterMinutes, 24 hours
+  // stale, to a plausible implementation and got exit 0 — hold off forever, the exact unfalsifiable
+  // hold-off this contract forbids.
+  const missingFields = fixture("lr-missing");
+  fs.writeFileSync(path.join(missingFields, ".planning/wyclau/LONG-RUN"), JSON.stringify({
+    what: "sea trial", startedAt: iso(1500), updatedAt: iso(1440), progress: 2,
+  }));
+  expectExit("longrun: marker MISSING staleAfterMinutes -> exit 1, not an indefinite hold-off", LR, [`--dir=${missingFields}`], 1);
+
   const future = fixture("lr-future");
   fs.writeFileSync(path.join(future, ".planning/wyclau/LONG-RUN"), JSON.stringify({
     what: "clock skew", startedAt: iso(10), updatedAt: new Date(Date.now() + 3600e3).toISOString(),
@@ -196,9 +220,16 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
   fs.writeFileSync(path.join(during, ".planning/wyclau/LONG-RUN"), JSON.stringify({
     what: "sea trial", startedAt: iso(60), updatedAt: iso(2), progress: 7, staleAfterMinutes: 20,
   }));
+  // ⚠ CEO REVIEW 56 FIXED THIS CASE. It passed `--engine=running`, which the case four lines above
+  // already establishes as an unconditional hold-off — so the two were indistinguishable and a
+  // should_launch.mjs that NEVER OPENS the LONG-RUN file passed both. The reviewer proved it by
+  // writing exactly that implementation. `--engine=absent` is the only form that forces the marker
+  // to be consulted: without it, the whole long-run mechanism can be built, wired to nothing, and
+  // the gate still goes green — which would leave Wyatt's "run sea trials without turning off
+  // watchdog" unfixed with a green suite saying otherwise.
   expectExit(
-    "should_launch: stale commits but a PROGRESSING long run -> exit 1 (hold off; this is fix 1 and 3 agreeing)",
-    SL, [`--dir=${during}`, "--engine=running"], 1
+    "should_launch: stale commits, NO engine, but a PROGRESSING long run -> exit 1 (only the marker can explain this)",
+    SL, [`--dir=${during}`, "--engine=absent"], 1
   );
 }
 
@@ -226,6 +257,23 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
   const neverPublished = fixture("mp-never");
   fs.writeFileSync(path.join(neverPublished, ".planning/wyclau/HEARTBEAT"), `${iso(30)}\tworking\n`);
   expectExit("may_publish: pulses exist but nothing was ever published -> exit 0", MP, [`--dir=${neverPublished}`], 0);
+
+  // ⚠ CEO REVIEW 56 ADDED THIS, AND IT IS THE CASE THAT MATTERS. Without it the threshold was
+  // unpinned anywhere between 1 and 93 minutes, and a 60-minute implementation passed all three
+  // checks above. That is not merely loose — it DEADLOCKS. The stop hook's brake 1 refuses to let
+  // a session stop while the pulse is more than PUBLISH_LAG_THRESHOLD_MIN (20) newer than the last
+  // publish. Pick any may_publish threshold above 20 and there is a live window — a 25-minute gap —
+  // where brake 1 says "you may not stop until you publish" and may_publish says "defer, you may
+  // not publish". The session can then do neither. So the threshold is DERIVED from the brake's,
+  // not typed a second time (CLAUDE.md rule 9): whenever brake 1 would hold a session, somebody
+  // must be permitted to publish.
+  const deadlockBand = fixture("mp-deadlock-band");
+  fs.writeFileSync(path.join(deadlockBand, ".planning/wyclau/HEARTBEAT"), `${iso(1)}\tworking\n`);
+  fs.writeFileSync(path.join(deadlockBand, ".planning/wyclau/LAST-PUBLISH"), `${iso(26)}\tpublished\n`);
+  expectExit(
+    "may_publish: a 25 min lag -- past brake 1's 20 min hold -- MUST permit a publish, or the hook deadlocks",
+    MP, [`--dir=${deadlockBand}`], 0
+  );
 }
 
 /* ------------------------------------------------------------------------------------------------
@@ -312,11 +360,25 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
     fs.writeFileSync(path.join(clean, "seed.txt"), "seed\n");
     git("add", "-A"); git("commit", "-q", "-m", "seed");
     const base = spawnSync("git", ["-C", clean, "rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+    // ⚠ CEO REVIEW 56 REBUILT THIS FIXTURE. It used to write CHART.md and session-base AFTER the
+    // commit, leaving untracked files — so `git status --porcelain` was non-empty and a CORRECT
+    // implementation of "dirty tree means working" FAILED here. The cheapest escape from that would
+    // have been to narrow "dirty" to tracked files only, which blinds the hook to a session whose
+    // entire output is NEW FILES — the commonest shape of work in this repo (every gate is a new
+    // file, this one included). So the fixture is fixed instead of the contract being weakened.
+    // .read-state is ignored here exactly as it is in the real repo (.gitignore:17).
+    fs.writeFileSync(path.join(clean, ".gitignore"), ".claude/hooks/.read-state/\n");
+    fs.mkdirSync(path.join(clean, ".planning"), { recursive: true });
     fs.writeFileSync(path.join(clean, ".planning", "CHART.md"),
       "## STEP 1 CHECKLIST\n\n- [ ] a real, unblocked item\n");
+    git("add", "-A"); git("commit", "-q", "-m", "chart and ignores");
+    const base2 = spawnSync("git", ["-C", clean, "rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
     const sdir = path.join(clean, ".claude", "hooks", ".read-state", "gatesession");
     fs.mkdirSync(sdir, { recursive: true });
-    fs.writeFileSync(path.join(sdir, "session-base"), base + "\n");
+    fs.writeFileSync(path.join(sdir, "session-base"), base2 + "\n");
+    const porcelain = spawnSync("git", ["-C", clean, "status", "--porcelain"], { encoding: "utf8" }).stdout.trim();
+    check("the 'changed nothing' fixture is genuinely git-clean (else it tests the opposite of its label)",
+      porcelain === "", `git status --porcelain returned: ${porcelain}`);
   }
   // ⚠ VACUOUS TODAY, AND SAYING SO IS THE POINT. With PP_BOSUN unset the hook exits on its first
   // line, so this passes for a reason that has nothing to do with what it claims to protect. It
@@ -378,18 +440,30 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
  * only — and it says so, because a string in a file is not behaviour.
  * ---------------------------------------------------------------------------------------------- */
 {
+  // ⚠ CEO REVIEW 56: the first version matched /Set-Content\s+\$heartbeat/, and the reviewer evaded
+  // it in one rewrite -- `Set-Content -Path $heartbeat -Value "..."`, identical behaviour, check
+  // PASSES. That form is not hypothetical; it is the house style two lines later at watchdog.ps1's
+  // own $lastLaunch write. So key on ANY write to $heartbeat ANYWHERE IN THE LAUNCH BLOCK -- from
+  // Start-Process to the end of that try -- rather than on one spelling of one cmdlet.
   const ps = fs.readFileSync(path.join(ROOT, "scripts", "wyclau", "watchdog.ps1"), "utf8");
-  const stampsOwnHeartbeat = /Set-Content\s+\$heartbeat/.test(ps);
+  const launchIdx = ps.indexOf("Start-Process");
+  const launchBlock = launchIdx === -1 ? "" : ps.slice(launchIdx);
+  // Any cmdlet that writes a file, in any argument order, naming $heartbeat.
+  const WRITES_HEARTBEAT = /(Set-Content|Add-Content|Out-File|Tee-Object)[^\n]*\$heartbeat/;
   check(
-    "watchdog.ps1 no longer stamps HEARTBEAT in its own launch path (structural check, not behavioural)",
-    !stampsOwnHeartbeat,
-    "found `Set-Content $heartbeat` — the launcher is still vouching for an engine that may not have started"
+    "watchdog.ps1 no longer writes HEARTBEAT anywhere in its launch path (structural check, not behavioural)",
+    launchIdx !== -1 && !WRITES_HEARTBEAT.test(launchBlock),
+    launchIdx === -1
+      ? "could not find Start-Process — the launch block could not be located, so this check proves nothing"
+      : "the launcher still writes HEARTBEAT after Start-Process, vouching for an engine that may not have started"
   );
-  // Red-proof this assertion: prove the pattern can match, so a PASS above means the line is gone
-  // rather than that the regex never worked.
+  // Red-proof, in BOTH spellings the reviewer used — a pattern that only catches the form we
+  // happen to have written today is a check that its own fix can walk around.
   check(
-    "the launch-stamp assertion can itself fail (red-proof)",
-    /Set-Content\s+\$heartbeat/.test('Set-Content $heartbeat "x"')
+    "the launch-stamp assertion catches both spellings (red-proof)",
+    WRITES_HEARTBEAT.test('Set-Content $heartbeat "x"') &&
+    WRITES_HEARTBEAT.test('Set-Content -Path $heartbeat -Value "x"') &&
+    !WRITES_HEARTBEAT.test('Set-Content -Path $lastLaunch -Value $now')
   );
 }
 
