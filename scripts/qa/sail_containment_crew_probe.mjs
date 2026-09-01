@@ -115,7 +115,24 @@ async function driveUntilGuestSail(host, guest, maxIters = 220) {
 async function measureSailCells(c, label) {
   const cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
   if (!cells) return { label, cells: 0 };
+  /* DOES THE CELL SET GROW AFTER camFitSail() HAS ALREADY COMMITTED ITS ONE-TIME FRAME? Pure DOM
+     observation, no game code touched. A MutationObserver on #sailHost's childList records every
+     .sailCell added from THIS moment (cells already > 0, so the initial draw has happened) through
+     the settle window -- if the count climbs, camFitCells was handed a smaller bbox than what a
+     player actually sees a moment later, which is exactly the shape the frame/bbox numbers below
+     point at. */
+  await c.ev(`(() => {
+    const host = document.getElementById("sailHost") || document.body;
+    window.__pp4qaGrowth = [{ t: 0, n: document.querySelectorAll(".sailCell").length }];
+    const t0 = performance.now();
+    const mo = new MutationObserver(() => {
+      window.__pp4qaGrowth.push({ t: Math.round(performance.now() - t0), n: document.querySelectorAll(".sailCell").length });
+    });
+    mo.observe(host, { childList: true });
+    window.__pp4qaObserver = mo;
+  })()`);
   await sleep(1200); // let the camera fit and its lerp finish
+  await c.ev(`window.__pp4qaObserver && window.__pp4qaObserver.disconnect()`);
   const report = await c.ev(`(async () => {
     const vw = window.innerWidth, vh = window.innerHeight;
     const out = [];
@@ -188,6 +205,7 @@ async function measureSailCells(c, label) {
       viewBoxRaw: vbRaw,
       viewBox: vb,
       trueBBox,
+      cellGrowth: window.__pp4qaGrowth || null,
     };
     return JSON.stringify({ vw, vh, cells: out, diag });
   })()`);
@@ -225,6 +243,10 @@ function printReport(r) {
       console.log(`[${label}] FRAME MINUS TRUE BBOX (positive = frame is SHORT on that side, board units): left ${shortL.toFixed(1)}  top ${shortT.toFixed(1)}  right ${shortR.toFixed(1)}  bottom ${shortB.toFixed(1)}`);
     } else {
       console.log(`[${label}] could not decode viewBox/trueBBox (viewBoxRaw=${JSON.stringify(d.viewBoxRaw)} viewBox=${JSON.stringify(d.viewBox)} trueBBox=${JSON.stringify(d.trueBBox)})`);
+    }
+    if (d.cellGrowth) {
+      const first = d.cellGrowth[0], last = d.cellGrowth[d.cellGrowth.length - 1];
+      console.log(`[${label}] CELL GROWTH after first draw (t=0 -> t=~1200ms): ${JSON.stringify(d.cellGrowth)}` + (last.n > first.n ? `  ⚠ GREW from ${first.n} to ${last.n} — more cells arrived AFTER the camera's one-time fit` : `  (steady at ${first.n})`));
     }
   }
   return { centreOut: centreOut.length, unhittable: unhittable.length, outside: outside.length };
