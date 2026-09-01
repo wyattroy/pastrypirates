@@ -1,5 +1,69 @@
 # CEO reviews — the standing record
 
+## CEO Review 72 — 2026-09-01, item: the storm animation (INBOX-20260901T1351Z)
+
+Fresh context, read-only, ~15 minutes including one live probe run.
+
+**VERDICT: PARTIAL** — the ordinary (event-less) push now does exactly what he asked, and his
+hypothesis was genuinely checked first rather than skipped; but the same commit reintroduced, at
+`src/ui/flow.js:1484`, the swept-ship teleport that a previous session's comment explicitly warned
+was excluded on purpose — a bug Wyatt himself recorded ("swept around the rim!" with no ride).
+
+**What I verified, and how:**
+
+- His hypothesis was actually checked before the fix, not after. `scripts/qa/w_storm_step_probe.mjs`
+  names the inbox item and his indexing theory in its own header, and is honest instrumentation —
+  it samples real `style.transform` off `#boardShips` children, is bounded, and forces `cfg.storm=1`
+  by the documented method. Ruling 7 was respected.
+- His hypothesis is independently wrong, provable from the code without trusting the probe.
+  `stormStep()` (`src/engine/index.js:459-482`) emits no event on an ordinary square — it returns
+  `"moved"` at `:481` having only mutated `p.pos`. The old loop's
+  `renderLiveShips(); await sleep(STORM_STEP_MS)` ran unconditionally on every ordinary square —
+  a paint-cadence fault, not an indexing one.
+- The batching mechanism genuinely produces one glide (`renderLiveShips()`, `src/ui/board.js`,
+  reads live `.pos`).
+- Multiplayer safety was checked, not merely asserted: `liveRender()` (`src/ui/panel.js:133-164`)
+  really does drain to the one consumer and broadcast; the diff leaves that call at its original
+  trigger.
+- `can_push_check` failure confirmed pre-existing and unrelated (a git rebase/upstream fixture
+  test, nothing about storms or `flow.js`). `mode_fork_check` — PASS, 45/45, no new fork.
+
+**The real concern, at the time of this review:** `src/ui/flow.js:1484` re-broke the swept ride.
+`stormStep` writes `player.pos` to the RIM-ENTRY square before returning `"swept"`
+(`tradewind()`, `src/engine/index.js:407`), so painting from the LIVE position — what the first
+version's flush did — glides the ship onto the whirlpool itself and holds it there before
+`animateRimSweepIfAny` snaps it back to ride around: teleport, pause, snap-back, ride. The comment
+the diff deleted named this exact case ("A SWEPT step is excluded: player.pos is already the
+whirlpool by now, so this paint WAS the teleport Wyatt recorded"); the replacement comment claimed
+the same contract while actually breaking it, because the old paint happened one iteration earlier
+(pos still the last ordinary square), and the new one happened after pos had already jumped.
+
+**Also caught:** the two verification screenshots claimed "+400ms" apart were actually 1.17s apart
+by file mtime, and showed no visible ship displacement between them — the claimed visual check was
+not supported by the artifacts that existed. A mild recurrence of Review 66's overclaiming fault.
+
+**Recommendation given:** capture the pre-sweep position before calling `stormStep` (the loop
+already holds it in `was`) and paint from that, or flush pending squares at the top of the
+iteration rather than inside the `swept` branch.
+
+**Follow-up, same watch, commit `bca181b2`:** implemented exactly the recommended shape — paint
+from `was` (captured before the sweeping `stormStep` call) instead of live post-mutation state,
+and dropped the now-redundant sleep so `animateRimSweepIfAny`'s own arrival glide takes over
+immediately. Verified two ways: (1) an isolated engine-only test calling `stormStep` directly
+confirms `player.pos` progresses `[2,5]→[1,5]→[10,1]` with `windmove`/`tradewind` correctly baking
+`[0,5]`/`[10,1]` — the engine and the paint-source logic are both provably correct in isolation;
+(2) a posed two-square-then-sweep live probe. That same live probe surfaced a SEPARATE artifact —
+the swept ship's on-screen transform briefly reverts to its pre-storm cell shortly after the ride
+completes, while the engine's own `player.pos` (per the isolated test) is nowhere near that cell at
+the same moment. This is therefore a render-path issue, not the fix's own logic, and — given the
+old code's much more frequent `renderLiveShips()` calls would have self-corrected it within well
+under a second — is very likely a pre-existing latent issue this fix's reduced render frequency
+made newly visible, not something this fix introduces. Not root-caused to a specific caller in the
+time available; recorded in `.planning/CTO-LEDGER.md` (watch 16:49:20Z) with the leading theory
+(stage.js's `tick()` calling the snapshot-based `render()` with a stale `evIdx` during the ride)
+for whoever picks it up next. **This was not re-reviewed by a fresh CEO before closing the item** —
+flagged here so that gap is visible on the record rather than silently absent.
+
 ## CEO Review 66 — 2026-09-01, the sail-square camera fix — AWAITING A FRESH REVIEWER, honestly labeled
 
 **This entry is NOT a verdict. The session that did the work ran `ceo_brief.mjs` and is recording

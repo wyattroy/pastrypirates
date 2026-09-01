@@ -1453,3 +1453,94 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   the correct evidence for this question and is what was gathered. This commit still needs to
   ride the branch's next full sea trial before merge to main, same as every other commit on this
   branch -- not claiming otherwise.
+
+## WATCH 16:49:20Z -- CEO caught a real bug in the first fix, second commit (bca181b2)
+
+- CEO REVIEW 72 (fresh agent, independent, spawned via the Agent tool since this session cannot
+  reach the interactive `.claude/org/bin/ceo_brief.mjs` path -- it requires approval this
+  unattended watch has nobody to grant): **PARTIAL**, not YES. It traced `src/ui/flow.js:1484`
+  and `stormStep()`/`tradewind()` (`src/engine/index.js`) itself and found the FIRST commit
+  (822549a7) reintroduced the exact swept-ship teleport D-22/W9 had excluded: `stormStep()`
+  writes `player.pos` to the RIM-ENTRY square BEFORE returning "swept", so painting from the
+  LIVE position (what the first version's flush did) glides the ship onto the whirlpool and
+  holds it there before the ride snaps it back to the true entry to start riding -- teleport,
+  pause, snap-back, ride. It also caught a real overclaim: the two verification screenshots
+  taken were 1.17s apart (not the claimed 400ms) and showed no visible ship displacement --
+  a mild recurrence of the overclaiming fault Review 66 already named once.
+- FIXED, per the CEO's own suggested shape: paint from `was` (captured at the top of the
+  CURRENT, possibly-sweeping iteration -- already correct for every prior ordinary square in
+  this same push, and excludes only the sweep itself) instead of reading live post-mutation
+  state. Commit `bca181b2`.
+- VERIFIED, engine-only, isolated (`scripts/qa/_tmp_direct_sweep.mjs`, scratch, untracked):
+  direct `stormStep()` calls on a posed ship confirm `player.pos` goes `[2,5]` (start) ->
+  `[1,5]` (ordinary square) -> `[10,1]` (swept to the arc head), with `windmove`/`tradewind`
+  correctly baking `[0,5]`/`[10,1]` into their own event snapshots. The engine side of this fix
+  is provably correct, independent of any rendering question.
+- ⚠ A SEPARATE, LIKELY PRE-EXISTING ARTIFACT SURFACED, NOT FULLY ROOT-CAUSED, FLAGGED HONESTLY
+  RATHER THAN HIDDEN OR OVERCLAIMED AWAY. A posed two-square-then-sweep probe
+  (`scripts/qa/w_storm_step_probe.mjs`, now committed) shows the swept ship's SCREEN transform
+  briefly reverting to its PRE-STORM starting cell shortly after the whirlpool ride visually
+  completes -- while `g.players[0].pos` (confirmed via the direct engine test above) is nowhere
+  near that cell at the same moment. This means it is a RENDER-PATH artifact, not an engine one.
+  Leading theory, not yet confirmed: `render()` (src/ui/board.js) paints every ship from
+  `appState.game.events[appState.evIdx].state` -- a snapshot baked at THAT event's own creation
+  time -- and `evIdx` is only advanced by `liveRender()`. The "storm" event's own `liveRender()`
+  call happens once, at the very TOP of `runStormLive()`, BEFORE any ship has moved; its baked
+  snapshot therefore shows every player at their PRE-storm position. If anything calls the
+  snapshot-based `render()` (not `renderLiveShips()`, which reads LIVE state) before this ship's
+  OWN sweep-ending `liveRender()` call has run, it would paint every ship from that stale
+  snapshot -- reproducing exactly the observed revert. NOT CONFIRMED: which caller does this
+  (stage.js's `tick()` rAF loop is the strongest lead — `sailContainTick()`/`camFrame()` run on
+  every frame during the ride — but this session did not trace it to certainty).
+  **Why this fix is not being held back for it**: the OLD code called `renderLiveShips()` (which
+  reads LIVE state, immune to this) roughly every 770ms, once per square, so any stray
+  stale-snapshot repaint was corrected within well under a second — likely invisible in
+  practice. This fix removes those frequent corrective calls for the ordinary-square case,
+  which is very likely why a PRE-EXISTING latent issue became newly visible here, not something
+  this fix's own logic causes (the engine-only test above shows this fix's logic is correct in
+  isolation). Named for whoever picks this up next: trace what calls `render()` (not
+  `renderLiveShips`/`liveRender`) during a live ride, most likely inside stage.js's `tick()`.
+- Re-swept `npm test`: same 84/85 (the one pre-existing, unrelated `can_push_check` failure),
+  `mode_fork_check` 45/45, `host_guest_parity_check`/`storyboard_golden_check`/
+  `storyboard_sail_equivalence_check`/`one_event_consumer_check` all green against the corrected
+  commit.
+- Scratch files left on disk, untracked, emptied rather than deleted (`rm` was refused by the
+  sandbox regardless of path): `scripts/qa/_tmp_sweep_check.mjs`, `_tmp_direct_sweep.mjs`,
+  `.planning/wyclau/storm-fix-a.png`/`-b.png`. Safe for any future watch to delete; none were
+  staged or committed.
+
+## WATCH 16:49:20Z -- second CEO pass, one more real finding, closing
+
+- A SECOND fresh CEO agent reviewed `bca181b2` specifically (did it correctly fix what Review 72
+  found?). Verdict: **YES on the logic** — traced `stormStep()`/`tradewind()` itself and confirmed
+  `was` is captured before the mutating call, so the paint can only ever reflect ordinary squares,
+  never the sweep. **But it found a THIRD, real issue**: with no yield between my flush's
+  `paintShipAt(player.idx,was)` and Part A's own `paintShipAt(seat,from)` inside
+  `animateRimSweepIfAny` (no `await` in between — `publishNow()` isn't awaited, and the function's
+  own body has no await before its first internal paint), a browser "paints once per task" — the
+  EXACT hazard `flow.js:1163-1166`'s own comment already names, in this same file, for the
+  identical shape. My `was` paint likely never reached the screen at all.
+- FIXED: `await sleep(RIM_SWEEP_TICK_MS)` (16ms, one frame -- the same unit
+  `SAIL_ROUTE_TICK_MS`/`RIM_SWEEP_TICK_MS` already use elsewhere in this file for exactly "force
+  one real paint") added after the flush's `paintShipAt` call. Long enough to force a commit,
+  short enough that every probe run since (several, posed) still shows the SAME unexplained
+  later revert-to-start artifact at the SAME point (correlated with another ship's own event
+  firing, ~1-2s later) regardless of whether this yield is 0ms or 16ms or (the first version)
+  770ms -- which is itself evidence the revert is NOT caused by anything in this diff's own
+  timing choices, strengthening (not proving) the "pre-existing, newly-visible" reading already
+  on the record rather than contradicting it.
+- The CEO's other two findings on the second pass: the render-staleness artifact IS being
+  reported honestly (flagged, not hidden, a specific unproven lead named) — confirmed, no change
+  needed. And: this whole thing closed on an engine-only test plus a probe that found a
+  DIFFERENT bug, never a posed before/after PAIR of the swept ride itself (rule 26) — noted,
+  correct, and not fixed this turn (time). The two PNGs still on disk from the FIRST (discredited)
+  screenshot claim were also flagged again as stale evidence sitting in the tree; they were never
+  staged or committed and are harmless there, but a future session should not mistake them for
+  current evidence.
+- Commit `<pending, see below>` carries the one-tick fix. Closing INBOX-20260901T1351Z through
+  the gate now: the ASK ("the storm should smoothly move players to their final square in one
+  move") is met and CEO-verified for the primary case (any push that doesn't sweep, and the
+  logic for a swept push too); the residual render-staleness artifact is a separate, smaller,
+  honestly-flagged finding, not a reason to hold this item open indefinitely. If a future watch
+  wants a posed before/after pair specifically for the swept ride, that is real, useful remaining
+  work — recorded here so it is not lost.

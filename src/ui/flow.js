@@ -1488,16 +1488,18 @@ export async function runStormLive(dirKey){
            immediately before this (sweeping) stormStep call, which already carries every ordinary
            square walked in earlier iterations of this same push (each mutated player.pos in turn)
            and excludes only the sweep itself — precisely the D-22/W9 contract, restored.
-           NO SLEEP HERE, DELIBERATELY (measured, not guessed — a first version slept STORM_STEP_MS
-           here and a live probe caught the ship's transform reverting to its PRE-PUSH position
-           partway through that wait, before the ride even started; root cause not fully isolated,
-           but the wait itself is provably unnecessary, so the safer fix is removing the window
-           rather than chasing whatever used it). animateRimSweepIfAny()'s own PART A already glides
-           the ship from wherever it visually is to the rim-ENTRY cell (`from`, derived from the
-           windmove event's own baked snapshot — see its comment two screens down — never from
-           live DOM state), over RIM_SWEEP_ARRIVE_MS, before the ride proper begins. Painting `was`
-           here with no pause just hands Part A a correct starting point to glide FROM. */
-        if(pendingSquares){paintShipAt(player.idx,was);pendingSquares=false;}
+           ONE TICK (RIM_SWEEP_TICK_MS), NOT STORM_STEP_MS — CEO REVIEW 72's follow-up caught a
+           second issue: with no yield at all here, this paint and PART A's own paintShipAt(seat,
+           from) below (animateRimSweepRun) land in the same task, and "a browser paints once per
+           task" is the exact hazard that function's own comment two screens down names for the
+           identical shape — so `was` would never reach the screen. A full STORM_STEP_MS (770ms)
+           wait was tried first and pulled in a SEPARATE, likely pre-existing artifact (a probe
+           caught the ship's transform reverting to its pre-push cell mid-wait — recorded in
+           .planning/CTO-LEDGER.md, not yet root-caused). One tick is the minimum that still forces
+           a real paint (the same unit SAIL_ROUTE_TICK_MS/RIM_SWEEP_TICK_MS both use for exactly
+           this "guarantee at least one frame" purpose elsewhere in this file) without holding the
+           window open long enough, in every probe run since, to reproduce that artifact. */
+        if(pendingSquares){paintShipAt(player.idx,was);await sleep(RIM_SWEEP_TICK_MS);pendingSquares=false;}
         /* THE HOST-ONLY ESCAPE HATCH IS GONE (W9, rule 23). This used to reconstruct the rim-entry
            square by hand — from `was` plus the wind — because the event stream did not contain it,
            and then call animateRimSweepRun directly. runStormLive is host-only, and that was
