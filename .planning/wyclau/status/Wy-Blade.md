@@ -5,33 +5,14 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T19:47:08.517Z	longrun status check
+2026-09-01T22:37:24.138Z	self-publish check
 ```
 
 ## Long run in flight (LONG-RUN)
-```
-{
-  "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-01T19:14:17.400Z",
-  "updatedAt": "2026-09-01T19:49:55.344Z",
-  "progress": "4/10 legs",
-  "staleAfterMinutes": 53
-}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T07:36:02Z	hold off: a commit landed 27 min ago (within 45) -- the Chart is moving, hold off
-2026-09-01T07:46:02Z	hold off: a commit landed 37 min ago (within 45) -- the Chart is moving, hold off
-2026-09-01T07:56:02Z	no engine, and no commit for 47 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
-2026-09-01T08:06:02Z	hold off: an engine is already running -- never stack a second on it
-2026-09-01T08:16:02Z	hold off: an engine is already running -- never stack a second on it
-2026-09-01T08:26:02Z	hold off: an engine is already running -- never stack a second on it
-2026-09-01T08:36:02Z	hold off: an engine is already running -- never stack a second on it
-2026-09-01T08:46:02Z	hold off: a commit landed 7 min ago (within 45) -- the Chart is moving, hold off
-2026-09-01T08:56:02Z	hold off: a commit landed 7 min ago (within 45) -- the Chart is moving, hold off
-2026-09-01T09:06:02Z	hold off: a commit landed 17 min ago (within 45) -- the Chart is moving, hold off
-2026-09-01T09:16:02Z	hold off: a commit landed 27 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T09:26:02Z	hold off: a commit landed 37 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T09:36:02Z	no engine, and no commit for 47 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
 2026-09-01T09:46:02Z	hold off: an engine is already running -- never stack a second on it
@@ -61,4 +42,15 @@
 2026-09-01T18:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T184803Z.out/.err)
 2026-09-01T19:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T190803Z.out/.err)
 2026-09-01T19:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T192803Z.out/.err)
+2026-09-01T20:08:04Z	ring: no watch on deck -- rang the next one (output: watch-20260901T200805Z.out/.err)
+2026-09-01T20:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T201803Z.out/.err)
+2026-09-01T20:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T202802Z.out/.err)
+2026-09-01T20:38:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T203804Z.out/.err)
+2026-09-01T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T204802Z.out/.err)
+2026-09-01T20:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T205802Z.out/.err)
+2026-09-01T21:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T210802Z.out/.err)
+2026-09-01T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T211802Z.out/.err)
+2026-09-01T21:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T212802Z.out/.err)
+2026-09-01T21:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T213802Z.out/.err)
+2026-09-01T22:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T220803Z.out/.err)
 ```

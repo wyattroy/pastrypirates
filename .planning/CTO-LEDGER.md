@@ -2433,3 +2433,12 @@ has **19** non-opaque pixels of 4,545,424 — the rounded percentage hid them. I
 - **Scratch left on disk that a human should delete** (git-ignored, not committed): `.tmp-quant/`,
   `.tmp-after-assets/` (a second copy of the whole art tree), `.tmp-posed/` and four Chrome profile
   dirs. `Remove-Item` and `rm -r` are both refused by this sandbox.
+- **No Artifact tool in this session**, so the Glass was neither harvested nor republished. Stated
+  as the plain fact it is, not as a guess about why — the next session that has the tool harvests.
+  `publish_status.mjs` ran and `.planning/wyclau/status/Wy-Blade.md` is committed, so this machine's
+  instruments are readable without Wyatt carrying them.
+- **The 19:14Z detached sea trial FINISHED while this watch worked**, pid 45256 gone: 10 of 10 legs
+  sailed (CEO 75's scorecard fix held), but **the vision judge could not see** — *"every visual
+  verdict below is worthless; the structural half still stands"* — so every leg's visual pass is
+  DEFERRED, not cleared. Not this watch's item; recorded so nobody re-starts a run that has already
+  happened, and nobody stages on a report whose visual half is empty.
