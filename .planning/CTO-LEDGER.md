@@ -1041,3 +1041,6 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   on Windows. Previous guess (the Bell's PowerShell tick) was WRONG and is corrected here: the
   window title said node.exe. Filed as INBOX-20260901T1440Z with the hazard named: closing that
   window kills the trial. He was told: minimize, never close.
+
+- INBOX-20260901T1317Z CLAIMED by the advisor session (the flashing attention hint). Watches:
+  next unclaimed items are the storm animation (1351Z) and the launch-list rows.
