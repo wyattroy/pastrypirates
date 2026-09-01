@@ -67,7 +67,7 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
 
 | Question | Recommendation | since |
 |---|---|---|
-| Does the Glass's Ideas box still corrupt the page after a save? The real trigger was never found — CEO Review 54 disproved the original theory in a real browser. Two of your three complaints are fixed and verified (the button re-enables, confirms honestly); the corruption itself is not confirmed fixed. | Try the Ideas box once more on the live page. If it's still broken, a screenshot of the exact moment (and whether it happened right after the save, or later) would help far more than another local simulation — this needs the real host, which nothing here can reproduce. | 2026-08-31 21:20Z |
+| ~~Does the Glass's Ideas box still corrupt the page after a save?~~ **ROOT-CAUSED AND FIXED 2026-09-01 03:50Z — no longer a question for you.** | The page's own escaper was a no-op: authored inside a template literal, its backslashes were halved on the way out, so it replaced `<` with `<`. Every self-publish wrote the document's own text into a JS string containing a live closing script tag, which ended the real script early and turned the rest of the page into stray markup — three script elements, dead JavaScript, no styles. Found by driving the real page in a browser, clicking Send, and rendering what it saved. Gate `glass_self_publish_check.mjs`, red first. **Please try the Ideas box once more to confirm — but this one was measured, not guessed.** | 2026-08-31 21:20Z |
 
 ## RULED — his answers, and what each one unblocks
 
