@@ -595,10 +595,28 @@ enough, what happened before THAT.**
 
 **The case that earned it.** Sail squares a guest cannot tap: some are drawn off the edge of the
 phone. Two days went into measuring WHERE the squares were — their rects, the board's transform,
-the camera's scale — and two separate geometry theories were measured dead. One question moved it
-in minutes. The answer was 180 milliseconds earlier: `src/ui/flow.js` draws the squares, then asks
-the camera to frame them **on a `setTimeout`** — and the camera is allowed to REFUSE while a
-centre-stage card holds the player's attention. The squares were correct. The order was not.
+the camera's scale — and two separate geometry theories were measured dead. One question moved it:
+look 180 milliseconds earlier, at the ORDER. `src/ui/flow.js:636` draws the squares, then asks the
+camera to frame them **on a `setTimeout`** — so the frame is requested after the fact, not with it.
+
+> ### ⚠ THE MECHANISM THIS PARAGRAPH USED TO NAME WAS MEASURED DEAD, AND THE PARAGRAPH DID NOT SAY SO
+>
+> It ended: *"and the camera is allowed to REFUSE while a centre-stage card holds the player's
+> attention. The squares were correct. The order was not."* **The refusal half is false.**
+> `.planning/CTO-LEDGER.md`, 2026-08-29: 18 tap-to-sail prompts on a real 390×844 guest — *"in
+> every failing prompt's history the stage reads `-` throughout — no card, no veil — so NOTHING WAS
+> REFUSED and there was nothing to overwrite."* That measurement landed two days after this
+> paragraph was written, and **nobody reconciled the two**.
+>
+> **This is not a footnote, it is the trap the whole section is about.** On 2026-09-01 a session
+> read this rule, recognised the symptom, predicted the cause it states, and burned a pass
+> re-running a theory the project had already buried — the third geometry theory to die on this
+> bug. *A rule that names a dead cause does not merely fail to help; it aims the next reader at
+> the grave.*
+>
+> **What still stands, verified:** the 180ms `setTimeout` is real and has never been changed except
+> by a rename (`git log -S`, `b3c7b12c`). The ordering fault is genuine. **Its mechanism is open**,
+> and the next step is a POSED comparison (rule 26), never a fourth theory.
 
 **Why measuring harder could never have found it:** every measurement was taken at the moment of
 the symptom, and the cause had already finished happening. **A snapshot cannot show you a race.**
