@@ -27,6 +27,7 @@ import os from "node:os";
 import path from "node:path";
 import { execSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { judgeModeFor } from "./lib/judge_mode.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -197,12 +198,23 @@ if (arg("judge", "on") !== "off") {
   say(`   ${eyesOk === true ? "PASS — the eyes are open" : eyesOk === false ? "FAIL — the eyes are SHUT" : "UNKNOWN"}\n`);
 }
 
+/* ACT ON THE EYE TEST, DO NOT MERELY PRINT IT. Earned 2026-09-01, at a cost of 80 minutes: this
+   check said "the eyes are SHUT" and the fleet was handed `--judge=on` regardless, so every screen
+   of every leg burned its full timeout against a judge already proven blind. A check that warns and
+   is then ignored is not a gate. Deferring (queue) rather than disabling keeps every screen
+   judgeable later — see scripts/lib/judge_mode.mjs for why UNKNOWN is not treated as SHUT. */
+const judgeMode = judgeModeFor(arg("judge", "on"), eyesOk);
+if (judgeMode !== arg("judge", "on")) {
+  say(`   → judging DEFERRED to the queue: the screens are still captured and still judgeable, but`);
+  say(`     nothing will be sailed into a judge this run has just proven cannot see.\n`);
+}
+
 /* ---- 2. the voyages -------------------------------------------------------- */
 let gateOk = null, gateOut = "";
 const OUT = path.join(REPO, "sea-trial-shots");
 if (legs.length) {
   say(`── 2/2  playing ${legs.length} voyage(s) with a real mouse ──`);
-  const a = ["scripts/playtest_gate.mjs", `--legs=${legs.join(",")}`, `--out=${OUT}`, `--judge=${arg("judge","on")}`, `--parallel=${arg("parallel","2")}`];
+  const a = ["scripts/playtest_gate.mjs", `--legs=${legs.join(",")}`, `--out=${OUT}`, `--judge=${judgeMode}`, `--parallel=${arg("parallel","2")}`];
   const r = spawnSync("node", a, { cwd: REPO, encoding: "utf8", maxBuffer: 128 * 1024 * 1024 });
   gateOut = ((r.stdout || "") + (r.stderr || ""));
   gateOk = r.status === 0;

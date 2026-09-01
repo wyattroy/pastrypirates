@@ -298,28 +298,57 @@ export async function judgeAllOneByOne(items, { concurrency = 3, model = "claude
  * re-run the planted-fault red-proof, because the risk of a bigger batch is a lazier look at each
  * screen, which would be invisible in the timings and fatal to the point of the whole pass.
  */
-export async function judgeAll(items, { concurrency = 3, batch = 5, model = "claude-sonnet-5", onEach } = {}) {
+/* `_batchFn` and `_oneByOneFn` exist ONLY so a gate can drive the loop below deterministically —
+   the real ones shell out to `claude -p`, which a check cannot depend on. Nothing in production
+   passes them. A seam this small is worth it: the behaviour underneath is what cost 80 minutes,
+   and an untestable fix for an untestable bug is how that happens twice. */
+export async function judgeAll(items, { concurrency = 3, batch = 5, model = "claude-sonnet-5", onEach,
+  _batchFn = null, _oneByOneFn = null } = {}) {
   const results = new Array(items.length);
   const groups = [];
   for (let i = 0; i < items.length; i += batch) groups.push({ at: i, items: items.slice(i, i + batch) });
   let fatal = null, nextG = 0;
+  /* THE CIRCUIT BREAKER, added 2026-09-01 after a trial spent 80 of its 111 minutes here.
+     A BROKEN JUDGE IS NOT AN ABSENT ONE, and only an absent one used to stop this loop. A timeout
+     resolves to {unparseable}/{verdict:"ERROR"} rather than FATAL, so a judge that answered nothing
+     kept its `fatal` flag clear and every remaining group paid full price: the batch timeout (300s)
+     and then five single-screen timeouts (120s each) in the "look at them singly rather than lose
+     them" safety net below. Sixty screens is hours.
+     The evidence that it is dead rather than unlucky: NOT ONE screen has produced a usable verdict
+     yet, and a whole group has now failed. No threshold to tune — the condition is "nothing has
+     ever worked", which is as strong as this can know and costs exactly one group to establish. */
+  let sawGood = false;
+  const noneUsable = (g) => g.items.every((_, k) => !results[g.at + k]);
   await Promise.all(Array.from({ length: Math.min(concurrency, groups.length) }, async () => {
     while (nextG < groups.length) {
       if (fatal) return;
       const g = groups[nextG++];
-      const r = await withCertRetry(() => judgeBatch(g.items, { model }), x => x && x.fatal);
+      const runBatch = _batchFn || ((its) => judgeBatch(its, { model }));
+      const r = await withCertRetry(() => runBatch(g.items), x => x && x.fatal);
       if (r.fatal) { if (!fatal) fatal = r.fatal; return; }
       if (r.unparseable) {
         // the safety net: these screens have NOT been seen, so look at them singly rather than lose them
-        const one = await judgeAllOneByOne(g.items, { concurrency: Math.min(3, g.items.length), model });
+        const one = _oneByOneFn
+          ? await _oneByOneFn(g.items)
+          : await judgeAllOneByOne(g.items, { concurrency: Math.min(3, g.items.length), model });
         if (one.fatal && !fatal) fatal = one.fatal;
         g.items.forEach((it, k) => { results[g.at + k] = one[k]; if (onEach && one[k]) onEach(it, one[k], g.at + k); });
+        if (!sawGood && noneUsable(g) && !fatal) {
+          fatal = { verdict: "FATAL", confidence: 0, issues: [
+            "the judge produced no usable verdict for any screen in the first group it was given, " +
+            "batched or one by one — treating it as dead rather than paying its timeout on every " +
+            "remaining screen. The screens are kept and can be judged later.",
+          ] };
+          return;
+        }
+        if (g.items.some((_, k) => results[g.at + k])) sawGood = true;
         continue;
       }
       g.items.forEach((it, k) => {
         const v = r.results.get(it.path);
         if (!v) return;                              // not mentioned -> stays undefined, NOT cleared
         results[g.at + k] = v;
+        sawGood = true;                              // the judge CAN answer — the breaker stands down
         if (onEach) onEach(it, v, g.at + k);
       });
     }
