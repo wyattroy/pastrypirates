@@ -1294,3 +1294,20 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   (vendored, 11 checks green) refuses to let a watch work in a tree that is mid-rebase, detached,
   or upstream-less — naming which, with the repair. Watch 1 would have ended in ten seconds with a
   readable reason instead of committing into a void for two hours.
+
+- ✅ THE BLADE IS REPAIRED AND CAN PUBLISH. `can_push.mjs` on his machine: "can publish: on
+  claude/cloud-handoff-planning-a9ay1u, tracking origin/..., no rebase or merge in progress." The
+  rebase is aborted, the branch is checked out, the tree matches origin at bf537926, and both
+  rescue branches (blade-rescue-2026-09-01, blade-rescue-b) still hold everything the half-finished
+  rebase contained, including watch 1's stranded ledger commit.
+  THE FOUR FAULTS OF THE BLADE HOUR, ALL FOUND BY MEASUREMENT AND ALL NOW FIXED: (1) the task was
+  registered with a variable that expanded to nothing, so it ran a missing file for 90 minutes and
+  reported Ready; (2) non-interactive scheduling let it ring but never launch a watch; (3) a
+  half-finished rebase made every commit unpushable — the reason watch 1's real work vanished; and
+  (4) that same rebase rewound game code under a running trial, which is why that trial's verdict
+  is void rather than merely late.
+  WHAT EACH ONE LEFT BEHIND, which is the part worth more than the fixes: the registration must be
+  VERIFIED BY PRINTING IT BACK (a task that reports Ready proves nothing); a rung watch's output is
+  CAPTURED (a launch death was indistinguishable from silence); and a watch REFUSES TO WORK in a
+  tree it cannot publish from — 11 checks, red-proofed against a fixture built as this exact broken
+  folder, wired into npm test at 85 gates.
