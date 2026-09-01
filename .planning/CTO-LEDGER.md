@@ -1721,3 +1721,27 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   was correctly NOT run, since nothing was actually published. Nothing pending on the live Glass
   to harvest (checked: no ideas/rulings were added there since the last harvest, per the prior
   watch's own note). Next capable session: harvest (if anything has landed since) and republish.
+- ⚠ TWO OF OUR OWN DECISIONS ARE INCOMPATIBLE, and the platform settles it, not an opinion.
+  RESEARCHED (claude-code-guide against the official docs, 2026-09-01): **the Artifact tool does
+  not exist in `claude -p` headless runs.** Not permission-gated — architecturally absent, and
+  `--allowedTools` cannot restore what is not in the list. It requires an INTERACTIVE session
+  (terminal REPL or the desktop app) and `/login` auth. Sources: code.claude.com/docs artifacts,
+  tools-reference, headless, permission-modes.
+  SO THE RECORD RECONCILES LIKE THIS, and every "no Artifact tool" line today was TRUE for the
+  session that wrote it: ledger 1021 (14:07:49Z) "confirmed Artifact tool present" was an
+  INTERACTIVE Blade session and it published successfully — Wyatt is right that the Blade can
+  publish. Lines 852, 895, 896, 1354, 1547 are all `-p` watches, and they are right too. One
+  machine, two session types, opposite capabilities. My error was relaying a watch's self-report
+  as if it described the machine, hours after reading the entry that proves otherwise — the
+  reconciliation duty CLAUDE.md names, failed by me.
+  THE ARCHITECTURAL COLLISION, stated plainly for his ruling:
+    (1) DECISIONS.md 2026-08-31: the Glass stays a PRIVATE CLAUDE ARTIFACT (GitHub Pages was
+        weighed and rejected — public by nature, no write path).
+    (2) CHARTER part 3 + his ruling today: the watchdog's ONLY job is spawning a session; THE
+        SESSION DOES EVERYTHING, including keeping the Glass current.
+  Both cannot hold. A spawned unattended session is `claude -p` by construction, and `-p` cannot
+  publish an artifact. The Bell is not doing it wrong — it is doing the only unattended thing
+  available, and the capability it needs does not exist there.
+  WHAT THIS MEANS FOR THE CLAIM I MADE ALL DAY: watches "failing to publish the Glass" was never a
+  bug to fix. It is the platform's boundary, and the design has been asking for something
+  impossible since the day it was written.
