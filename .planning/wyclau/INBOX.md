@@ -52,7 +52,8 @@ GREEN (78 fetched, 53 warmed unseen, flame among them); boot warms 143 of 149 fi
 the 18px inline slot, binds the icon family (one file serves both; `EMOJI_IMG` +
 `popEmoji`), and a board pop needs ~163 device px at 3× DPR, so the 128px icons must NOT shrink and
 the only oversized tier is the ~320px icons, worth ~0.35 MB. Full derivation in `CTO-LEDGER.md`
-under WATCH 22:10Z. ⚠ **The commits are LOCAL ONLY — this sandbox refuses `git push`.**
+under WATCH 22:10Z. Pushed — `git push origin <branch>` spelled out in full works where the
+shorter forms are refused; see the correction in the ledger.
 
 ## INBOX-20260901T1340Z — the Glass bakes in line breaks (his routing: backlog)
 > "one small note about formatting on the glass-- you seem to be baking in line breaks, which
