@@ -604,6 +604,18 @@ export function renderPickPrompt(spec,answer){
   // unchanged.
   panel(sailPanelHTML(spec.msg||sailPickMsg(appState.mySeat),spec.hint),true);
   $("apStay").onclick=()=>done(null);
+  /* THE CAMERA REQUEST RIDES WITH THE SQUARES — rule 23's converge move, and the missing half of a
+     guest's sail prompt. camFitSail() had exactly ONE caller: pickCell(), which runs on the machine
+     running the ENGINE. In a crew game that is the HOST — so a guest drew its squares and nobody
+     ever asked the director to frame them; its camera sat wherever the last narration's camToSeat()
+     glide (640/1.9 — the 336.84-unit window in every probe trace) had parked it, and whichever
+     square fell outside that window could not be tapped. Measured 2026-09-01 (posed, seed 7, room
+     ZTNK): square (3,8) at x=-23 on a 390px guest, centre outside, elementFromPoint = nothing.
+     Whoever DRAWS the squares asks for the frame — one renderer, both tiers, so the request cannot
+     fork again. spec.pos is the authoritative boat square (the stay-square rule above) — never this
+     client's own players[].pos. After panel(), so camFitSail's reserve measures the real pill; a
+     zero-delay beat, because unlike pickCell's call the squares here are already in the DOM. */
+  if(window.__pp4)setTimeout(()=>window.__pp4.sailCells(null,spec.pos),0);
   return teardown;
 }
 export function pickCell(player,cells){
@@ -633,6 +645,10 @@ export function pickCell(player,cells){
   // after this call returns its promise — a beat later is soon enough for a lerping camera).
   // player.idx, NOT the viewer: on a spectating host this used to frame the HOST's own ship at the
   // start of every guest's turn (Wyatt, 2026-08-20). See camFitSail() in ui/stage.js.
+  // SINCE 2026-09-01 the client that DRAWS the squares frames them from renderPickPrompt itself
+  // (which is what fixed the guest, who never reached this line — pickCell runs on the engine's
+  // machine). This call remains for the client that does NOT run that renderer: the spectator,
+  // whose empty cell list collapses the same camFitSail to "frame the asked captain's ship".
   if(window.__pp4)setTimeout(()=>window.__pp4.sailCells(player.idx),180);
   // @copy misc.draftwait.sailchoosing
   // D-10 DELIVERY (F7): same conversion as ask() — the spectator line is the neutral broadcast and

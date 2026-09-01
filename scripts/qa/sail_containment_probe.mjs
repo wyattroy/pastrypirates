@@ -297,6 +297,32 @@ red-proof: with the board shoved a viewport sideways, the probe sees ${proof} sq
 
   await c.shot(SHOT);
   console.log(`\nscreenshot: ${SHOT}`);
+
+  /* --tap=gx,gy — TAP ONE SQUARE AND REPORT WHAT THE GAME DID. Added 2026-09-01 for the camera
+     containment fix: measuring elementFromPoint says a square is REACHABLE; only a real tap says
+     it is TAPPABLE (the fix's whole point — the square at (3,8) was 23px off the LEFT before it).
+     A successful sail tears the prompt down (renderPickPrompt's teardown removes every .sailCell),
+     so "squares gone" is the game's own confirmation, not a probe-side theory. */
+  const TAP = arg("tap", "");
+  if (TAP) {
+    const [tgx, tgy] = TAP.split(",");
+    const t = await c.ev(`(() => {
+      const el = [...document.querySelectorAll(".sailCell")].find(e => e.dataset.gx === ${JSON.stringify(String(+tgx))} && e.dataset.gy === ${JSON.stringify(String(+tgy))});
+      if (!el) return "null";
+      const r = el.getBoundingClientRect();
+      return JSON.stringify({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    })()`);
+    if (t === "null") console.log(`tap: square (${tgx},${tgy}) is not on this board's sail window — nothing tapped`);
+    else {
+      const p = JSON.parse(t);
+      await c.clickXY(p.x, p.y);
+      await sleep(1500);
+      const left = await c.ev(`document.querySelectorAll(".sailCell").length`);
+      console.log(`tap: clicked (${tgx},${tgy}) at [${Math.round(p.x)},${Math.round(p.y)}] — ${left === 0
+        ? "the game ACCEPTED the sail (prompt torn down, all squares gone)"
+        : `⚠ ${left} square(s) still up — the tap did NOT take`}`);
+    }
+  }
   console.log(centreOut.length || unhittable.length
     ? "\nRESULT: squares are unreachable on this viewport — the ground truth a fix has to move."
     : "\nRESULT: every square is reachable on this viewport. Not a proof of the general case: one board, one seed.");
