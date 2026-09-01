@@ -23,6 +23,20 @@ step 2). Wyatt's five-item bar is step 3.
 | 3 | **The launch list**: finished feel solo+crew · tutorial · analytics · code-privacy decision · SEO | not started; sized at step 2 |
 | 4 | **Launch, then the till** (accounts + paid merch, +1 month) | not started |
 
+> ### ⚑ IF YOU ARE HERE TO REDESIGN THE BOSUN / QUARTERMASTER / WATCHDOG SYSTEM, START HERE
+>
+> **[`.planning/wyclau/REDESIGN-BRIEF.md`](wyclau/REDESIGN-BRIEF.md)** — every major failing,
+> success and learning from 48 hours of running it, written 2026-09-01 at Wyatt's instruction
+> *"so that a new fresh session can redesign it"*. Readable page:
+> https://claude.ai/code/artifact/b9a6a1f8-cd4d-4525-be4a-b68800dbc374
+>
+> It opens with the numbers rather than the narrative — 6 of 17 trials ever produced a verdict,
+> the watchdog launched four engines in one day and every one fired while a session was working,
+> and one bug has seven instruments and zero fixes — then separates what held from what failed,
+> role by role, with the Bosun's own failures tagged as its own. It ends with seven open questions
+> a redesign has to answer, starting with **who owns liveness**, given that every proxy tried so
+> far (heartbeat, activity stamp, commit clock) has failed in both directions.
+
 ## STEP 1 CHECKLIST — the reboot (estimate 2–3 days from 2026-08-31; re-sized end of day one)
 
 *Open items carrying `GATED:` are not currently actionable — say why right after the marker. A
