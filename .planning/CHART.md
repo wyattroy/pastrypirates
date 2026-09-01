@@ -50,18 +50,44 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   ⚠ The cached failure records had to be deleted first or `readDone()` would have replayed them —
   it resumes any leg with a record at the current stamp and never checks whether it succeeded.
 
-- [ ] **Re-sail `crew-desktop`, the one leg with no clean result — two separate faults found in it.**
-  *(a)* It hung the 03:07Z trial: it overran its own 35-minute cap by 17 minutes having produced
-  no screenshot, because the cap was a loop condition (`while (Date.now() - t0 < MAX_MS)`) and a
-  loop condition is only consulted BETWEEN iterations — one await that never resolves runs past it
-  forever. Fixed with a real deadline (`withDeadline`, a race), gate `leg_deadline_check.mjs`
-  driving it against a promise that genuinely never settles.
-  *(b)* Its retry then died with `EBUSY: resource busy or locked` deleting its browser profile,
-  because a browser from the killed run still held the directory and Windows will not unlink an
-  open file. Fixed: a profile is scratch, so if it cannot be cleared the mount uses a sibling path
-  (`freshProfileDir`, shared by both mounts).
-  **Both fixes are in; the leg simply needs re-running** once the Safari batch is home — delete
-  `sea-trial-shots/legs/crew-desktop--2026.08.31.2.json` first, for the resume reason above.
+- [x] **Re-sail `crew-desktop` — DONE 2026-09-01 05:55Z.** Both fixes held: it played a full crew
+  voyage, host and guest in step, END OF VOYAGE at day 14, 42 screens, no EBUSY and no hang. Its
+  only finding is the benign settle timing (9 geometry, longest 2.7s).
+
+- [x] **THE TEN-LEG VERDICT IS IN — 10 of 10 legs FINISHED THE VOYAGE, build `2026.08.31.2`.**
+  Three modes, three sizes, both engines. The `pname()` crash that failed 7 of 7 Chromium legs at
+  21:31Z is gone, and Safari sailed here for the first time ever (one leg reached day 25).
+  **Findings, separated by whether they are about the GAME or about the INSTRUMENT:**
+  - **6 legs: settle-timing only** — screens checked a fraction before they stopped animating,
+    all geometry churn, longest 2.7s against a 2.6s window. Instrument, not game. Parked with its
+    measurement in the idea inbox.
+  - **2 legs (`solo-phone`, `passplay-phone`): "vision judge FAILED" — ARTEFACTS, NOT FINDINGS.**
+    Their records were written at 01:26Z and 01:38Z, in the run whose judge was broken ("the eyes
+    are SHUT") and which then hung. The judge failing is the judge's fault. **These two legs should
+    be re-sailed before the merge** so the fleet's evidence is uniform — they are the only records
+    not produced by the clean `--judge=off` run.
+  - **1 leg (`solo-tablet-wk`): a Firebase WebSocket console error in Safari.** Chased, not filed:
+    it exposed a comment asserting the opposite of reality and a design question (does a solo
+    voyage need a presence socket?) now parked for Wyatt. Not a game defect.
+  - **⚠ 1 leg (`crew-phone`): THE ONE REAL PLAYER-FACING FINDING IN TEN LEGS — see below.**
+
+- [ ] **A GUEST ON A PHONE HAS A SAIL SQUARE IT CANNOT TAP — measured 2026-09-01, and Wyatt has
+  reported this shape before.** `crew-phone`, guest seat, DAY 1:
+  `sea-trial-shots/crew-phone-guest-006-settled.png`. Two structural checks failed on one screen:
+  `on-screen: clickable off-screen: sailCell` and
+  `sail-clickable: 1 sail square(s) covered: a sail square <- nothing (outside any element)`.
+  "Outside any element" means the square's own centre lands where there is no page at all — it is
+  past the edge, not merely behind something. **The player consequence is exact: one of your sail
+  options cannot be tapped, on the guest, on a phone, in a crew game — the configuration Wyatt
+  actually playtests.**
+  ⚠ **DO NOT FIX THIS BY GUESSING, AND DO NOT REACH FOR ANOTHER TRIAL.** CLAUDE.md rule 26 was
+  earned on this exact bug: three probe runs and three 85-minute trials could not settle a
+  placement question that two posed screenshots settled in minutes. And rule's WIDEN THE TIME
+  HORIZON section records a previous cause for the same symptom — `src/ui/flow.js` draws the
+  squares, then asks the camera to frame them on a `setTimeout`, and the camera is allowed to
+  REFUSE while a centre-stage card holds attention. **Whether that is this instance is unmeasured;
+  the screenshot above shows a prompt bubble up at the time.** Next step is a POSED board (§5e of
+  `docs/DRIVING-THE-GAME.md`): same seed, guest on a phone, before and after — not a rate.
 - [ ] Full sea trial, re-run against the fixed 465-commit branch, build `2026.08.31.2` — **RUNNING and VERIFIED HEALTHY at 03:35Z**: `node scripts/qa/trial_health.mjs` → *PROGRESSING*, 5/10 legs, newest screenshot seconds old, crew-phone driving. **Check it with that command rather than by eye** — it was built tonight precisely because a wedged trial looks identical to a working one from the process table, and it is red-proofed against tonight's actual 80-minute hang. Running as `.planning/SEA-TRIAL-465-check-3.md` with `--judge=off`, the path that can actually reach a gameplay verdict. This run is also the first live exercise of the chain audit's long-run marker: it wrote `.planning/wyclau/LONG-RUN` at `4/10 legs` with `staleAfterMinutes: 53` **derived from its own 35-minute leg cap**, and `should_launch.mjs` read it and held off — the case that previously required a timer pulsing HEARTBEAT on the trial's behalf. *(Earlier attempts, for the record:)* **first attempt at 01:16Z FAILED FAST and TAUGHT SOMETHING REAL**: the trial's own resume-cache is keyed by build stamp, and since I hadn't bumped it, it silently replayed the STALE PRE-FIX crash data instead of re-testing, then crashed its own reporting code (`P.coverage.entries is not a function`) trying to summarize the differently-shaped cached data. Bumped the stamp (`node scripts/bump-build.mjs`, `2026.08.31.1`→`.2`, commit `a4785183`) so the next run is genuine, not cached. Re-launching now. NOT GATED on purpose.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
