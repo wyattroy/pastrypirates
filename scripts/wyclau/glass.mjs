@@ -501,17 +501,40 @@ const PAGE = `<meta charset="utf-8">
       return d;
     }
 
-    // SELF-HEAL, NOT A ROOT-CAUSE FIX. Wyatt, 2026-08-31, reported the rendered page corrupts
-    // after submitting an idea; his own View Source moments later showed the STORED HTML was
-    // clean -- so the corruption lives in that one render, not in what gets saved. The exact
-    // mechanism is unknown (this file cannot drive cap.publish() outside the live host to watch
-    // it happen). A real fresh page load reads the confirmed-clean stored copy, so scheduling one
-    // shortly after every successful publish recovers a clean page regardless of what the bug
-    // turns out to be. The delay keeps his explicit requirement ("send another idea immediately
-    // afterwards, without waiting" / the same for a ruling) intact -- the confirmation is instant;
-    // only the safety-net reload is delayed, long enough to read it.
-    function scheduleSelfHealReload(){
-      setTimeout(function(){ location.reload(); }, 1400);
+    // BLANK, THEN RELOAD -- NOT A ROOT-CAUSE FIX. Wyatt, 2026-08-31, reported the rendered page
+    // corrupts after submitting an idea; his own View Source moments later showed the STORED HTML
+    // was clean -- so the corruption lives in the render, not in what gets saved. FIRST ATTEMPT at
+    // a fix scheduled a reload 1400ms AFTER a successful cap.publish() while leaving the full,
+    // complex page on screen in the meantime -- and he reported it still broken. Read plainly: if
+    // the corruption happens AS the publish call is processed, not after, a page still full of
+    // complex content during that window still shows him the broken render, however briefly, and
+    // still self-heals into something he already saw as broken. So this version removes the risk
+    // surface instead of racing it: BEFORE calling cap.publish() at all, the entire visible body is
+    // replaced with a few words of plain text -- nothing left with enough structure to render as
+    // garbled markup even if the same unknown mechanism fires. The real save (and the real repair)
+    // still happens: cap.publish() runs against the confirmed-clean buildDoc() output exactly as
+    // before, and a real fresh reload follows shortly after, reading that clean stored copy. This
+    // trades his "instant, no-wait" confirmation for "instant, unmistakably safe" -- said plainly,
+    // not silently: a font this small on a page this blank cannot corrupt into something alarming.
+    // Blanks immediately (before the risky window even opens), then reloads once the publish
+    // SETTLES either way -- success or failure, both reload; the draft-recovery logic already in
+    // this file (getDraft/setDraft, "saved" check on load) is what tells the next load whether the
+    // words made it or need to come back from the draft, so this function does not need to branch
+    // on the outcome itself. A safety-net timeout reloads anyway if publishPromise never settles at
+    // all (the same "stuck on Checking..." failure mode reported separately), so this can never
+    // leave him staring at a blank page forever either.
+    function blankThenReload(msg, publishPromise){
+      try {
+        document.body.textContent = "";
+        var p = document.createElement("p");
+        p.style.cssText = "font:1rem sans-serif;color:#1f4249;margin:2rem;";
+        p.textContent = msg;
+        document.body.appendChild(p);
+      } catch (e) {}
+      var done = false;
+      var go = function(){ if (done) return; done = true; location.reload(); };
+      publishPromise.then(go, go);
+      setTimeout(go, 8000);
     }
 
     function renderIdeas(){
@@ -578,8 +601,6 @@ const PAGE = `<meta charset="utf-8">
       if (!cap) return;
       if (el.getAttribute("data-id").indexOf("demo-") === 0) return; // demo cards never save
       var id = el.getAttribute("data-id");
-      var st = el.querySelector(".rstate");
-      st.textContent = "Saving your ruling…";
       var next = JSON.parse(JSON.stringify(state));
       if (!next.rulings) next.rulings = {};
       next.rulings[id] = {
@@ -588,16 +609,10 @@ const PAGE = `<meta charset="utf-8">
         q: el.querySelector(".q").textContent,
         at: new Date().toISOString(),
       };
-      cap.publish(buildDoc(next)).then(function(){
-        // Same fix as the Ideas box, same reason (Wyatt, 2026-08-31): never rely on -- or wait
-        // for -- the platform's own view reload. Update this view's own state right here and
-        // repaint, so a second ruling on a different question does not race a stale copy.
-        state = next;
-        paintAsk(el);
-        scheduleSelfHealReload();
-      }).catch(function(e){
-        st.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your note is still on screen — try again, or tell a session.";
-      });
+      // Everything the ruling needs is already captured into "next" above -- blanking the screen
+      // now, before cap.publish() even runs, cannot lose it. See blankThenReload's own comment
+      // for why this replaced the earlier optimistic-update-then-delayed-reload attempt.
+      blankThenReload("Saving your ruling — reloading…", cap.publish(buildDoc(next)));
     }
     asks.forEach(function(el){
       Array.prototype.forEach.call(el.querySelectorAll(".rb"), function(b){
@@ -613,7 +628,23 @@ const PAGE = `<meta charset="utf-8">
 
     var cap = null;
     var useFn = (window.claude && window.claude.use) ? window.claude.use.bind(window.claude) : null;
+    // Wyatt, 2026-09-01: "not showing a text box, just 'Checking whether this view can save…'" --
+    // the artifact host's own capability grant did not resolve at all, not even to null, so the
+    // page waited forever with nothing he could do about it. Everything below the .then() is
+    // unchanged; this only adds a ceiling on how long "Checking…" is allowed to sit there before
+    // offering him a way out, since a page that can only be rescued by leaving and coming back is
+    // not rescuable by someone who does not know that.
+    var capStuckTimer = setTimeout(function(){
+      if (cap !== null) return; // resolved (to a real capability) in the meantime
+      capNote.innerHTML = "";
+      capNote.appendChild(document.createTextNode("This view is taking too long to check whether it can save. "));
+      var a = document.createElement("a");
+      a.href = "#"; a.textContent = "Reload";
+      a.addEventListener("click", function(ev){ ev.preventDefault(); location.reload(); });
+      capNote.appendChild(a);
+    }, 6000);
     (useFn ? useFn("artifact") : Promise.resolve(null)).then(function(a){
+      clearTimeout(capStuckTimer);
       cap = a;
       if (cap) { capNote.hidden = true; form.hidden = false; }
       else {
@@ -625,28 +656,17 @@ const PAGE = `<meta charset="utf-8">
     send.addEventListener("click", function(){
       var v = text.value.trim();
       if (!v || !cap) return;
-      send.disabled = true; status.textContent = "Saving to the page…";
       var st = JSON.parse(JSON.stringify(state));
       st.ideas.push({ id: "i" + Date.now(), text: v, at: new Date().toISOString() });
-      cap.publish(buildDoc(st)).then(function(){
-        // Wyatt, 2026-08-31: "i need to be able to send another idea immediately afterwards,
-        // without waiting. i need to know that my first idea was sent, and added to the chart."
-        // Never rely on -- or wait for -- the platform's own view reload for this: update THIS
-        // view's own copy of state right here, confirm plainly, clear the box, re-enable the
-        // button. "added to the chart" is one step further than this page can promise on its
-        // own (a session still has to harvest it) -- said honestly, matching renderIdeas()'s own
-        // wording below, not oversold as done.
-        state = st;
-        setDraft("");
-        text.value = "";
-        renderIdeas();
-        status.textContent = "Saved to the page — a session will harvest it to the Chart soon.";
-        send.disabled = false;
-        scheduleSelfHealReload();
-      }).catch(function(e){
-        send.disabled = false;
-        status.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your words are kept as a draft here — try again, or just tell a session.";
-      });
+      // Wyatt, 2026-08-31: "i need to be able to send another idea immediately afterwards,
+      // without waiting. i need to know that my first idea was sent." The draft in localStorage is
+      // NOT cleared here -- it stays exactly what he typed. On the reload this triggers, the page's
+      // own on-load check ("var saved = state.ideas.some(...)") clears the draft ONLY if the idea
+      // really made it into the reloaded, confirmed-clean state; if the publish failed, the fresh
+      // page comes back up with his words still sitting in the box, from the draft, ready to retry
+      // -- so failure is handled by the SAME mechanism as success, not a separate error branch that
+      // has to be trusted to run before whatever corrupts the render gets a chance to.
+      blankThenReload("Saved — reloading…", cap.publish(buildDoc(st)));
     });
   })();
 </script>
