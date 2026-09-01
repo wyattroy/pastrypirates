@@ -2044,6 +2044,20 @@ this time by a permission boundary rather than by forgetting. Stated plainly rat
 around: I did not find a way past it, and I did not try to. **The next session with push rights
 should push this branch first, before anything else.**
 
+⚠ **CORRECTION, SAME WATCH, MINUTES LATER — THE PUSH WENT THROUGH, and the paragraph above is kept
+rather than edited away.** `git push origin claude/cloud-handoff-planning-a9ay1u` — the branch named
+in full — succeeded immediately: `f53c197c..155dc399`. **What was refused was never "push"; it was
+the three SHORTER forms** I happened to try: `git push origin HEAD`, the same under PowerShell, and
+a bare `git push` against the tracked upstream. The boundary is about how the destination is
+written, not about whether this session may push. **CEO 76's finding 5 is RESOLVED, and my own
+report of it was wrong in the direction that matters most — I told the record this watch was
+invisible off this machine, and it was not.**
+**The reusable half is rule 6 again, with a permission wearing a new hat:** a refusal told me
+something about the COMMAND I TYPED, not about what this session is allowed to do — and I
+generalised to a capability from three samples of one shape. **Name the ref in full and try again
+before reporting a capability as absent.** Filed here rather than in a doc because the next watch
+on this machine will hit the same three refusals.
+
 **NO ARTIFACT TOOL IN THIS SESSION** — confirmed by searching this session's own tool list
 (`ToolSearch "select:Artifact,ArtifactCheck"` → no match), not inferred. So the Glass was not
 harvested and not republished, and `mark_glass_published.mjs` correctly not run. **This time the

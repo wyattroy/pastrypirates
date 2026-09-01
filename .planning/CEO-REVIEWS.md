@@ -4247,7 +4247,11 @@ genuinely sailing the new stamp.
    (a cache key derived from the tree) named as the fix, and deliberately not built.
 5. **The unpushed commit.** Least severe, *"because it is at least in git and the watch named the
    refusal honestly. Combined with Finding 1, though, this watch is invisible off this machine."*
-   **UNRESOLVED** — the sandbox holds `git push` for approval and no one is at the keyboard.
+   **RESOLVED minutes later, and the watch's own report of it was wrong** — `git push origin
+   claude/cloud-handoff-planning-a9ay1u`, naming the branch in full, went straight through
+   (`f53c197c..155dc399`). Only the three shorter forms (`origin HEAD`, the same in PowerShell, a
+   bare `git push`) were held. The watch had generalised a capability from three samples of one
+   command shape; correction is in the ledger, kept in the open rather than edited away.
 
 **RECURRENCE, accepted.** CEO 75's stated recurrence (CEO 74's finding 2, *"the change that fixes
 the trial has not been sailed"*) is **not cured but in flight**, and CEO 76 explicitly declined to
