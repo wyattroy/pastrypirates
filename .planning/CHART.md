@@ -91,9 +91,13 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   different boards, **the identical failure**: one square, 41×41, centre at **exactly [-23,258]
   screen-relative both times** — 23px off the LEFT edge, its centre hitting nothing
   (`elementFromPoint` returns null there). Different grid cells each time ((1,9) then (3,8)), same
-  screen position — **this is not a per-square coordinate slip, it is a fixed offset**, which
-  narrows the search a lot: something is short by a constant ~23px on the left, not computing a
-  wrong position per square.
+  screen position.
+  ⚠ **CORRECTED IN THE OPEN, THIRD RUN, SAME SESSION: "fixed offset" was wrong.** A third
+  reproduction (below) came back **24px off the RIGHT**, not the left. So it is not a constant
+  left-hand shift — the magnitude (~23-24px) is consistent across all three catches so far, but the
+  DIRECTION is not. That still narrows the search, just not the way the first two runs suggested:
+  something is under-covering the frame by a near-constant AMOUNT on whichever edge the last
+  highlighted square happens to sit past, not a one-directional bias.
 
   **THE CAMERA-DEFERRED-BY-A-CENTRE-STAGE-CARD THEORY IS NOW MEASURED, AND IT IS WRONG.**
   `src/ui/stage.js` `stageHoldsAttention()` (the only thing that can make `camTo()` remember a move
@@ -109,6 +113,44 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   genuinely contains every square — containment in BOARD coordinates is not containment on SCREEN")
   and says outright that two geometry theories were already tried and killed there — **read that
   comment and its own warning before touching `camFitCells`/`toScreen` again.**
+
+  **SECOND THEORY MEASURED AND ALSO RULED OUT, THIRD RUN.** The HTML sail-square layer
+  (`#sailHost`) is scaled/translated by a SEPARATE code path from the SVG board
+  (`src/ui/stage.js`'s camera-sync block, the comment beginning *"EVERY HTML LAYER MAPPED TO THE
+  BOARD NEEDS THE CAMERA COMPOSED IN"*) — it uses `W = vwPx()` where the SVG uses its own
+  `getBoundingClientRect().width`. A mismatch between those two widths would explain a drift. **On
+  a phone, measured, they are identical**: `documentElement.clientWidth=390`, `window.innerWidth=390`,
+  `svg#board.getBoundingClientRect()` `= [left 0, width 390]` — all three agree exactly at the
+  reproduced moment (`vwPx()` falls back to `window.innerWidth` on phone since `stageCappedRect()`
+  is desktop-only by its own guard). **Not the cause.**
+
+  **THIRD REPRODUCTION, WITH BOTH THEORIES' DIAGNOSTICS ATTACHED:** `sea_containment_crew_probe.mjs`
+  now logs `#sailHost`'s live `transform` string alongside every reproduction — e.g.
+  `scale(1.9) translate(-92.3684px, -118.368px)` — so the next session can decode the camera's own
+  computed frame (`viewBox`) directly rather than re-deriving it. **Three for three now: every run
+  of this probe has caught the bug on some guest sail turn.** This is common enough on a phone-sized
+  guest that it is not a rare edge case — it is closer to routine.
+
+  **WHERE THIS POINTS, FOR WHOEVER PICKS IT UP NEXT:** both the stage-hold theory and the two-width
+  theory are now measured dead, in the open, so the search has narrowed to `camFitCells()`'s own
+  containment math (`src/ui/stage.js` ~line 161-192) — specifically the `reservePx`/`room` shrink
+  (`side = side / room`) and whether `camTo()`'s clamp (`Math.max(0, Math.min(640 - w, x))`) can
+  push the frame's origin in a way that no longer contains the true bbox once the reserve has
+  grown `side`.
+
+  **A FOURTH ATTEMPT, THIS ONE HALF-BUILT AND NOT YET TRUSTWORTHY — SAID PLAINLY RATHER THAN
+  REPORTED AS A FINDING.** The probe now also decodes the applied camera frame straight off
+  `svg#board`'s live `viewBox` attribute (no game-code change needed — `camTo()` already writes it)
+  and reconstructs the TRUE board-unit bbox of every highlighted cell plus the ship, the same
+  inputs `camFitSail` feeds `camFitCells`. On the one run that got far enough to print both: the
+  reconstructed true bbox (443×443 board units) came out LARGER than the applied frame (337×337) —
+  by far more than the ~24px/1.9 ≈ 13-unit overflow actually observed on screen. **That gap is too
+  big to be the real answer; it means the reconstruction itself is very likely wrong somewhere**
+  (candidates: `activeTurnSeat` not naming the seat `camFitSail` actually framed, or a stray
+  `.sailCell` picked up from a prior prompt not yet cleared) **and rule 6 says not to believe an
+  instrument before red-proofing it.** Left in `scripts/qa/sail_containment_crew_probe.mjs` for the
+  next session to fix and trust, not to build on top of as-is. **Do not quote the 443×443 number
+  anywhere as a measured fact.**
 
   Reproducible on demand: `node scripts/qa/sail_containment_crew_probe.mjs` (no fixed seed yet —
   each run is a fresh room; it has caught the bug on 2 of 2 runs so far, at occurrence #1 and #3 of

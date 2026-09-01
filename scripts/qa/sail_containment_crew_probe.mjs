@@ -116,7 +116,7 @@ async function measureSailCells(c, label) {
   const cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
   if (!cells) return { label, cells: 0 };
   await sleep(1200); // let the camera fit and its lerp finish
-  const report = await c.ev(`(() => {
+  const report = await c.ev(`(async () => {
     const vw = window.innerWidth, vh = window.innerHeight;
     const out = [];
     document.querySelectorAll(".sailCell").forEach(el => {
@@ -139,11 +139,55 @@ async function measureSailCells(c, label) {
        "was it plausible", an actual read of the same two DOM signals stageHoldsAttention() itself
        reads, plus whether the turn-announcement narration bubble was still up and not yet .out. */
     const ap = document.getElementById("actionPanel");
+    /* THE LEAD: src/ui/stage.js's camera-sync block (the comment beginning "EVERY HTML LAYER
+       MAPPED TO THE BOARD NEEDS THE CAMERA COMPOSED IN") scales/translates sailHost using
+       W = vwPx() (the STAGE-CAPPED viewport width, falling back to window.innerWidth), while the
+       SVG board itself is scaled by its OWN rendered box (getBoundingClientRect().width, read in
+       toScreen()). Those are two different numbers unless something guarantees they match.
+       Measure both, not guessed. */
+    const svg = document.getElementById("board");
+    const svgRect = svg ? svg.getBoundingClientRect() : null;
+    const sailHost = document.getElementById("sailHost");
+    /* THE FRAME ITSELF, DECODED FROM WHAT camFitCells ACTUALLY APPLIED — no internal access
+       needed: camTo() writes viewBox="x y w h" straight onto the live SVG. Compared against the
+       TRUE board-unit bbox of every highlighted cell plus the ship (the same inputs camFitSail
+       fed camFitCells), this answers directly whether the applied frame actually contains its own
+       subject -- the question the 2026-08-29 comment says two prior theories died trying to
+       answer by reasoning instead of measuring. */
+    const vbRaw = svg ? svg.getAttribute("viewBox") : null;
+    const vbParts = vbRaw ? vbRaw.trim().split(/[\s,]+/).map(Number) : null;
+    const vb = (vbParts && vbParts.length === 4 && vbParts.every(Number.isFinite)) ? vbParts : null;
+    let win = null;
+    try { win = (await import("/src/state/index.js")).appState; } catch (e) {}
+    let trueBBox = null;
+    if (win && win.game) {
+      const cellPx = 640 / (win.game.cfg.grid || 15);
+      const gxs = [...document.querySelectorAll(".sailCell")].map(e => +e.dataset.gx);
+      const gys = [...document.querySelectorAll(".sailCell")].map(e => +e.dataset.gy);
+      const seat = win.activeTurnSeat;
+      const ship = (seat != null && win.game.players[seat]) ? win.game.players[seat].pos : null;
+      if (ship) { gxs.push(ship[0]); gys.push(ship[1]); }
+      if (gxs.length) {
+        const P = 1.2; // CAM_FIT_PAD, copied from stage.js — the padding the fit itself adds
+        trueBBox = {
+          x0: (Math.min(...gxs) - P) * cellPx, y0: (Math.min(...gys) - P) * cellPx,
+          x1: (Math.max(...gxs) + 1 + P) * cellPx, y1: (Math.max(...gys) + 1 + P) * cellPx,
+        };
+      }
+    }
     const diag = {
       bodyClasses: document.body.className,
       apPp4Stage: ap ? (ap.dataset.pp4Stage || null) : null,
       bubCount: document.querySelectorAll(".pp4Bub").length,
       bubOutCount: document.querySelectorAll(".pp4Bub.out").length,
+      vwPxViaDocEl: document.documentElement.clientWidth,
+      vwPxViaWindow: window.innerWidth,
+      svgClientWidth: svgRect ? svgRect.width : null,
+      svgClientLeft: svgRect ? svgRect.left : null,
+      sailHostTransform: sailHost ? sailHost.style.transform : null,
+      viewBoxRaw: vbRaw,
+      viewBox: vb,
+      trueBBox,
     };
     return JSON.stringify({ vw, vh, cells: out, diag });
   })()`);
@@ -169,7 +213,19 @@ function printReport(r) {
     console.log(`  (${x.gx},${x.gy}) ${x.w}x${x.h} at [${x.left},${x.top}] — ${how.join(", ")}${x.centreOutside ? "  ⚠ CENTRE OUTSIDE" : ""}${x.hit === null ? "  ⚠ HITS NOTHING" : ""}`);
   }
   if ((centreOut.length || unhittable.length) && cells.diag) {
-    console.log(`[${label}] diag at measurement time: body classes="${cells.diag.bodyClasses}"  actionPanel.dataset.pp4Stage=${JSON.stringify(cells.diag.apPp4Stage)}  narration bubbles on screen=${cells.diag.bubCount} (${cells.diag.bubOutCount} already .out)`);
+    const d = cells.diag;
+    console.log(`[${label}] diag at measurement time: body classes="${d.bodyClasses}"  actionPanel.dataset.pp4Stage=${JSON.stringify(d.apPp4Stage)}  narration bubbles on screen=${d.bubCount} (${d.bubOutCount} already .out)`);
+    console.log(`[${label}] WIDTH LEAD — documentElement.clientWidth=${d.vwPxViaDocEl}  window.innerWidth=${d.vwPxViaWindow}  svg#board.getBoundingClientRect()=[left ${d.svgClientLeft}, width ${d.svgClientWidth}]  #sailHost transform="${d.sailHostTransform}"`);
+    if (d.viewBox && d.trueBBox) {
+      const [vx, vy, vw2, vh2] = d.viewBox;
+      const b = d.trueBBox;
+      console.log(`[${label}] APPLIED FRAME (viewBox) = x:${vx.toFixed(1)} y:${vy.toFixed(1)} w:${vw2.toFixed(1)} h:${vh2.toFixed(1)}  ->  right:${(vx+vw2).toFixed(1)} bottom:${(vy+vh2).toFixed(1)}`);
+      console.log(`[${label}] TRUE BBOX (cells+ship, padded)  = x0:${b.x0.toFixed(1)} y0:${b.y0.toFixed(1)} x1:${b.x1.toFixed(1)} y1:${b.y1.toFixed(1)}`);
+      const shortL = vx - b.x0, shortT = vy - b.y0, shortR = b.x1 - (vx + vw2), shortB = b.y1 - (vy + vh2);
+      console.log(`[${label}] FRAME MINUS TRUE BBOX (positive = frame is SHORT on that side, board units): left ${shortL.toFixed(1)}  top ${shortT.toFixed(1)}  right ${shortR.toFixed(1)}  bottom ${shortB.toFixed(1)}`);
+    } else {
+      console.log(`[${label}] could not decode viewBox/trueBBox (viewBoxRaw=${JSON.stringify(d.viewBoxRaw)} viewBox=${JSON.stringify(d.viewBox)} trueBBox=${JSON.stringify(d.trueBBox)})`);
+    }
   }
   return { centreOut: centreOut.length, unhittable: unhittable.length, outside: outside.length };
 }
