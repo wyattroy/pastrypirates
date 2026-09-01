@@ -49,7 +49,7 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
-## 2026-09-01 — THE RELAY REDESIGN: sixteen rulings in one sitting
+## 2026-09-01 — THE RELAY REDESIGN: sixteen answers in one sitting
 
 **Context.** After the Bosun/Quartermaster/Watchdog degradation — his words: *"all three of those
 have bugs and seem to be breaking"* — Wyatt asked for 10–20 questions and then a redesign. All

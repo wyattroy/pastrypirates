@@ -3485,3 +3485,29 @@ Options the CEO named: the trial pulses between legs, or StaleMinutes exceeds th
 command, or the watchdog learns to see a live engine (hard: on the Razer, claude.exe is also the
 desktop app). Recurrence: Review 42's "claim beyond its measurement" did not recur; finding 3 is a
 new instance of the older family -- an instrument reporting success it never confirmed.
+
+## CEO Review 65 — 2026-09-01 — item: the relay redesign ("ask me 10-20 questions … then redesign")
+
+Fresh-context CEO, handed the ask verbatim, the DECISIONS.md harvest (commit 8e1d2800), the
+published design (the Watch, artifact 8c855d0c), and Review 44 as the previous verdict.
+
+**VERDICT: YES-WITH-FAULTS**, in its words: *"The thing you asked for happened. […] Against your
+six frustrations, the design kills four structurally and two by audited discipline — that
+distinction is the faults. FAULT 1 — your fix ignored for 4 days: 'your stated solution is tried
+FIRST' is marching orders backed by CEO audit of each run's outcome — discipline with a check, not
+a structure that makes the failure impossible. A watch can still disobey; you'd learn within one
+CEO review instead of four days. Better, not killed. FAULT 2 — CEO never called: the design says
+CEO-per-item 'becomes a gate' but never says what enforces the gate. Given that 'CEO after every
+item' has been promised and lost twice before, the build must make this mechanical, and the design
+doesn't yet say how. Minor: the entry's title says sixteen rulings; the numbered list has fourteen
+(two are multi-part). A hand-typed count."*
+
+Recurrence check it ran: Review 44's parked finding (an engine inside an 85-minute trial reads as
+stalled, drawing a stacked duplicate) is DISSOLVED by this design — trials run detached and belong
+to no session.
+
+Acted on same turn: the hand-typed count corrected in DECISIONS.md ("sixteen answers", not
+"sixteen rulings"). Faults 1 and 2 are carried into the day-1 build list as named requirements:
+the CEO gate is a close-out script that refuses to tick a Chart item without a verdict entry, and
+solution-first disobedience is checked by the same script comparing the run's first diff against
+the inbox item's stated solution.
