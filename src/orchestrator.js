@@ -2688,7 +2688,15 @@ export function boot(){
   // (src/net/index.js), so it can never break a boot that previously never called it.
   const fbOk=fbInit();
   if(!fbOk){
-    // v2 always lands here — there is no Firebase SDK on the page at all. The elements these
+    // ⚠ THIS COMMENT WAS FALSE, AND SAYING SO IS THE POINT. It read: "v2 always lands here —
+    // there is no Firebase SDK on the page at all." MEASURED 2026-09-01, from the opposite
+    // direction: a Safari leg logged a live Firebase WebSocket failure, which a page with no SDK
+    // cannot do. index.html:40-41 loads firebase-app-compat and firebase-database-compat, so
+    // fbInit() SUCCEEDS on a normal boot, watchPresence() runs, and a socket opens — in solo too.
+    // The branch below is therefore the RARE path (no config, no SDK, or a thrown init), not the
+    // universal one, and anyone reasoning from the old sentence would have reasoned backwards.
+    // A comment is a statement of intent by somebody who has since left the room; this one had
+    // been overtaken by the SDK being added back and nobody re-read it. The elements these
     // lines marked up no longer exist, so each is guarded; the branch itself is kept because
     // ui_contract_check.js's BOOT-FBINIT-OFFLINE assertion forbids restructuring the path  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // between here and resumeSoloGame(), and because an offline refresh mid-solo-game still has
