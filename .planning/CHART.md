@@ -71,8 +71,9 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
     voyage need a presence socket?) now parked for Wyatt. Not a game defect.
   - **⚠ 1 leg (`crew-phone`): THE ONE REAL PLAYER-FACING FINDING IN TEN LEGS — see below.**
 
-- [ ] **A GUEST ON A PHONE HAS A SAIL SQUARE IT CANNOT TAP — measured 2026-09-01, and Wyatt has
-  reported this shape before.** `crew-phone`, guest seat, DAY 1:
+- [ ] **A GUEST ON A PHONE HAS A SAIL SQUARE IT CANNOT TAP — measured 2026-09-01. GATED: scope
+  question posed to Wyatt (see BLOCKED ON WYATT) -- four days, seven probes, zero fixes; awaiting
+  his call before an eighth probe. Wyatt has reported this shape before.** `crew-phone`, guest seat, DAY 1:
   `sea-trial-shots/crew-phone-guest-006-settled.png`. Two structural checks failed on one screen:
   `on-screen: clickable off-screen: sailCell` and
   `sail-clickable: 1 sail square(s) covered: a sail square <- nothing (outside any element)`.
