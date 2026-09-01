@@ -3807,3 +3807,51 @@ so the item is not fully closed until he rules. A question parked in a file he d
 a question never asked (HARD-WON-LESSONS §12k's exact failure). Route it to the Glass or
 BLOCKED ON WYATT.
 
+
+## CEO Review 70 — 2026-09-01 — item: the flashing sea hint (INBOX-20260901T1317Z)
+
+Fresh context, read-only, ~6 minutes. Small item, short verdict.
+
+**VERDICT: YES — CLOSE IT, with the cause labelled UNPROVEN in the record.** He has said in his own
+words that the animation is fixed on Chrome. His eyes are the gate (D-09); nothing outranks them.
+But no fix was written for this item, and the commit being credited was never shown to be its cause.
+Both of those must survive into the record, or a future reader will inherit a false lesson.
+
+**What I checked myself:**
+
+- **The timeline claim is TRUE and I verified it, not assumed it.** His note is stamped 13:17Z;
+  `0caf85c1` was committed 2026-09-01T09:25:57-04:00 = **13:25:57Z**. His sighting predates the
+  orphan sweep by eight minutes, so he saw build .2 and confirmed on >= .3. That is a real fact,
+  and it is the strongest thing this close has.
+- **The record's citations hold.** `index.html:2594` — `.pp4PeekHint span` sits in the same
+  selector list as `#btnStart`, `.apBtn` and the battle buttons on one `animation: pp4Glow 1.1s`,
+  exactly as the INBOX status says (his W4-5 ruling, one definition, working as built).
+  `src/ui/stage.js:~2690` is the two-hints placement block, as claimed. **Review 67's fault — record
+  text disagreeing with the artifact it describes — does NOT recur.**
+- **Review 66's fault — citing evidence for a fact it cannot contain — does NOT recur in what is
+  written, and it is the live hazard in what is about to be written.** The INBOX status cites
+  "ledger entries this date" for the three clean poses, and CTO-LEDGER.md:1048–1064 does contain
+  them, including the red-proof (30 injected orphan `.sailCell` rects, 4-second sample, 0 toggles,
+  0 restarts). **`0caf85c1` contains no evidence about the hint whatsoever** — its diff is
+  `clearSailWindow()` and a sail-window gate. Do not let the close text imply otherwise.
+
+**The gap nobody has closed, and it is the reason the wording matters.** The inferred cause is
+**guest-only** — `0caf85c1`'s own body: *"The host answers locally, so it never orphans."* So the
+theory requires his sighting to have been on a crew guest, and **that coordinate was asked for and
+never obtained**: CTO-LEDGER.md:1056 says *"The coordinate only he holds: WHERE he saw it. Asked,
+not guessed"*, and there is no answer anywhere in the record. His confirmation today —
+*"i just tested it on chrome"* — does not state the mode either. **So the cause is not merely
+unproven; it rests on a fact that was never gathered.** If he saw it solo, the credited commit
+cannot have been the cure and something is still out there.
+
+**On the close gate's reason (question 4): the intended reason is HONEST, not an evasion** — it
+volunteers the thing an evasion would hide ("no fix was written for this item"). Two words to add,
+so the inference cannot harden into a fact:
+
+> *no fix was written for this item; measured clean in three poses and the thrash theory red-proofed
+> clean; his sighting (13:17Z) predates 0caf85c1 (13:25:57Z), whose orphan sweep is the INFERRED,
+> NEVER PROVEN cause — and that inference is guest-only, while his sighting mode was asked for and
+> never obtained; closed on his own Chrome test.*
+
+Close it. Keep the "re-opens on any fresh-profile sighting on >= .3" line — with the cause unproven,
+that trigger is the only thing standing between this and a silent recurrence.
