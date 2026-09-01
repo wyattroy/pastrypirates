@@ -1261,3 +1261,20 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   have its remaining legs test different code from its first four, and the report would describe
   a build that never existed in one piece. Wait for the trial's report, THEN checkout + pull,
   THEN force a ring — that is the first genuinely end-to-end test of the relay.
+
+- ⚠ CORRECTION, IN THE OPEN, AND IT IS MINE: WATCH 1 DID COMMIT. The Blade's HEAD sits at
+  `ee60c30f` — "ledger: watch launches the detached release trial (build .5)" — watch 1's own
+  entry, written exactly as the Door asks. Verified from here: that sha does not exist in this
+  clone and its subject appears nowhere on any branch, so it never left the Blade.
+  SO THE DOOR GAP WAS NOT THE CAUSE OF THE SILENCE, and I said it was. The sole cause is the
+  DETACHED HEAD: a commit made on no branch cannot be pushed, so a watch doing everything right
+  is still invisible. My Door fix (commit before you end) remains correct on its own merits and
+  is now credited with nothing it did not do — the wrong-attribution shape CEO 70 named this
+  morning, caught here by his own `git log --oneline -1`.
+  ALSO ON THAT TREE: a modified `.planning/wyclau/GIT-REBASE-STUCK.md` — a note some earlier
+  session left about a stuck rebase, which is the likeliest origin of the detached state (a rebase
+  in progress detaches HEAD by construction).
+  RECOVERY, SAFE ORDER: name the current HEAD with a branch FIRST — `git branch
+  blade-rescue-2026-09-01` — which moves no files and cannot disturb the sailing trial, and makes
+  watch 1's commit unlosable whatever we do next. Only after the trial's report lands: check for
+  an in-progress rebase, return to the working branch, and bring `ee60c30f` across.
