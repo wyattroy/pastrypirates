@@ -3855,3 +3855,47 @@ so the inference cannot harden into a fact:
 
 Close it. Keep the "re-opens on any fresh-profile sighting on >= .3" line — with the cause unproven,
 that trigger is the only thing standing between this and a silent recurrence.
+
+
+## CEO Review 71 — 2026-09-01 — item: remove the sea hint's pulse (INBOX-20260901T1520Z)
+
+Fresh context, read-only, ~7 minutes. Small item, short verdict.
+
+**VERDICT: YES — the ask was executed, and the gate that protected the old ruling was genuinely
+inverted rather than made vacuous.** I red-proofed the gate myself rather than taking the commit's
+word for it.
+
+**What I verified, and how:**
+
+- **Scope is the hint alone; no regression to the shared vocabulary.** `373bd99e` deletes
+  `.pp4PeekHint span,` from the one rule that grants `animation: pp4Glow 1.1s`. `index.html:2601-2606`
+  still lists `#flipCoinWrap.active`, `.ahoyGlow`, the centre-stage `.apBtn`, `.btlBtn`, `#btnStart`,
+  `#btnConfirmStart` and `#btnStartPassPlay` on that one declaration. **Nothing else lost its pulse.**
+- **The hint is genuinely still — I read every rule it has.** Comments stripped, `.pp4PeekHint` has
+  exactly two rules and neither carries `animation` or `transition`. The removal is complete for his
+  ask; there is no second thing still moving.
+- **The gate CAN fail — both sub-assertions, red-proofed independently in a scratch tree.** New gate
+  vs the pre-change `index.html` (`373bd99e^`): `FAILED — 2 assertion(s)`, exit 1. Current tree plus
+  a synthetic private `animation: myOwnPulse` on the hint: also FAILED, and it failed *closed*
+  ("could not find the one attention-vocabulary rule … re-anchor this assertion, do not delete it")
+  rather than passing on a broken anchor. **This is not a check that cannot fail.**
+  *(My first red-proof attempt was wrong — I inserted the selector at the first textual match, which
+  is a different rule 350 lines earlier, and it "passed". The instrument was wrong, not the gate.
+  Rule 6, on myself.)*
+- **`node scripts/qa/w45_sea_hint_check.mjs` — 4 PASS, exit 0. `npm test` — exit 0, 84/84 declared
+  gates** (`gates in npm test: 84`, `PASS suite ceiling: 84/84`).
+- **The reversal is visible to the next reader, in both places.** `index.html:2587-2600` keeps the
+  W4-5 quote, his 2026-09-01 quote, and why it was deleted rather than overridden;
+  `w45_sea_hint_check.mjs:99-117` keeps the assertion it replaced verbatim. **Reviews 15 and 18's
+  fault — a silent reversal on this same element — does NOT recur.**
+- **Review 70's fault (crediting an unproven cause) does NOT recur.** Nothing here claims to know
+  why Safari never ran it; his sentence is quoted and the fix is deletion, not a theory.
+  **Review 66's fault (citing evidence a source cannot contain) does not recur either** — the
+  on-screen observation in the commit body is corroborated by an independent path I ran myself
+  (the CSS above carries no animation at all).
+
+**One small thing to fix when someone is next in that file, not a blocker.** Sub-assertion 3b's
+regex `\.pp4PeekHint[^{}]*\{[^}]*animation…` spans the whole selector list, so it also fires when
+the hint is in the SHARED rule — which is why the pre-change tree failed it with the message *"the
+sea hint has an animation of its own"* when the animation was the shared one. The check is correct
+and strictly stronger than advertised; only its failure sentence would misdirect a future reader.
