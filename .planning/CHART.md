@@ -336,7 +336,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   running it, not assumed. Gear: package.json + two `scripts/qa/*.mjs` files only, no `src/` or
   `index.html` touched — a full sea trial is not proportionate to a change that cannot reach a
   player; `npm test` green is the right depth here.
-- [ ] **⚠ THE SEA TRIAL'S SCORECARD CANNOT EVER SAY A LEG SAILED — this blocks the release, and it
+- [x] **⚠ THE SEA TRIAL'S SCORECARD CANNOT EVER SAY A LEG SAILED — this blocks the release, and it (closed 2026-09-01 · CEO 75 · no game diff — fixed in the instrument, not the game: one stamped record now serves both the per-leg file and report.json, and the gate that could not fail was rebuilt to execute both files' real code)
   is the next watch's item. Measured 2026-09-01, CEO Review 74, re-measured by the watch before
   being written here.** `scripts/sea_trial.mjs:258` clears a leg only when `leg.__runId === runId`,
   reading `leg` out of `sea-trial-shots/report.json`. But `scripts/playtest_gate.mjs:609` writes

@@ -1859,3 +1859,95 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   ask is one-third done and the remaining two-thirds are now BLOCKED for measured reasons. The
   close gate was correctly not run — there is no tick to write. Next watch: the Chart's two new
   release rows are the top unblocked item, in that order.
+
+- 2026-09-01T19:03:54Z · close_item: "THE SEA TRIAL'S SCORECARD CANNOT EVER SAY A LEG SAILED" · CEO 75 · no game diff — fixed in the instrument, not the game: one stamped record now serves both the per-leg file and report.json, and the gate that could not fail was rebuilt to execute both files' real code · no stated solution
+
+## WATCH 2026-09-01T18:50Z (Wy-Blade) — the sea trial's scorecard
+
+- **SITUATION AT START.** Watch started 18:50Z on `claude/cloud-handoff-planning-a9ay1u`;
+  `can_push.mjs` clean (tracking branch, no rebase or merge in progress). Last progress: the
+  previous watch, which PARKED the release-cargo item at one-of-three parts and named these two
+  Chart rows as the next watch's cargo. Blocked on Wyatt: nothing. No detached trial in flight —
+  the release run `2026-09-01T1644Z-Wy-Blade` (pid 38460) finished and its pid is gone. **This
+  watch took ONE item: the scorecard.**
+- **THE ITEM, AND IT IS NOT A GAME BUG — IT IS THE INSTRUMENT THAT JUDGES THE GAME.** Two objects
+  were built from one fact. `playtest_gate.mjs` attached the run id INLINE inside the per-leg
+  file's own `writeFileSync` (`{ ...results[i], __stamp, __runId }`) while `results[i]` itself
+  stayed unstamped — and `report.json` is serialized from `results`. So the per-leg file carried
+  the provenance and the report did not. `sea_trial.mjs:258`'s `sailedHere()` reads the REPORT, so
+  it was false for every leg of every run on every machine, and `:265` then filed each leg under
+  NOT RUN *using its own verdict text as the reason it did not run*. That is the whole explanation
+  of the release trial's "FAILED — 0 of 10 voyage(s) sailed" sitting above twelve END OF VOYAGE
+  lines in its own log. CLAUDE.md rule 23's exact shape: two things kept in step by nobody.
+- **THE FIX IS THAT THERE IS ONLY ONE RECORD**, not a second assignment. `stampRun()` stamps the
+  result as it is born (`playtest_gate.mjs`, beside `RUN_ID`); the per-leg file then writes
+  `results[i]` ITSELF rather than a fresh spread of it. The file and the report now serialize the
+  same object and cannot drift again.
+- **THE FOUR STEPS, honestly.** RED FIRST: the rebuilt gate ran before any edit to
+  `playtest_gate.mjs` and produced **4 failures**, including the decisive one — *"the real
+  report.json carries a run id on all 10 leg(s) that captured screens: 10 without one"* — which is
+  the field bug reproduced by the gate itself, not reasoned about. GREEN after: 14 checks, one
+  honest SKIP, exit 0. SWEEP: `npm test` **86/86**, proven by the `&&` chain reaching its last
+  gate (`doc_command_check`, PASS — 0 failures), run twice. Gear: `scripts/playtest_gate.mjs` +
+  `scripts/qa/notrun_provenance_check.mjs`; **no `src/`, no `index.html`** — a sea trial is not a
+  proportionate sweep for a change to the sea trial's own bookkeeping, and the next trial's report
+  is now judged by the gate automatically.
+- **PREDICTION WRITTEN BEFORE MEASURING, and it held exactly:** after the fix, checks 2 and 3 go
+  green but the artefact check STILL FAILS, because the `report.json` on disk was written by the
+  old code and cannot grow a run id retroactively. Named falsifier: it going green without a new
+  trial. It did not.
+- **THE GATE WAS THE HALF THAT MATTERED, and the old one was green for the entire life of the bug
+  it was written to catch.** `notrun_provenance_check.mjs:43,47` asserted *"report.json carries
+  the run id too"* by grepping `playtest_gate.mjs`'s SOURCE TEXT for `/__runId/`. Somebody had
+  written the word, so it passed. **A gate that greps the source of the thing it guards is
+  checking that somebody wrote the word.** The rebuild refuses to ask the source anything it can
+  ask the behaviour instead: it EXECUTES the real `stampRun` out of `playtest_gate.mjs`, feeds the
+  record to the real `sailedHere` out of `sea_trial.mjs` — values crossing the file boundary, not
+  a grep — and OPENS the real `report.json`.
+- **RED-PROOFED IN BOTH DIRECTIONS, including the new artefact check, which is the one that could
+  most easily have been vacuous.** Backed the real `report.json` up byte-exact, then drove three
+  states: (A) stale artefact as found → SKIP; (B) the SAME unstamped legs with a fresh mtime →
+  **FAIL**; (C) fresh and stamped → **PASS**. Restored byte-identical (`Buffer.compare` → 0) and
+  the mtime restored in effect (the SKIP is back). So the check can fail, and it is not
+  always-fail.
+- **WHY THE ARTEFACT CHECK SKIPS RATHER THAN FAILS ON A STALE REPORT.** Failing would have put the
+  GAME's release gate behind an 88-minute QA artefact — the exact fault CEO Review 52 caught when
+  the Glass's publish lag was wired into `npm test` and a stale dashboard could block a real fix
+  reaching players. It skips only when `report.json` is OLDER than `playtest_gate.mjs`, derived
+  from the two files' own timestamps, never a hand-kept stale list. It cannot skip forever: the
+  gate writes `report.json` at the end of every run, so the next trial's report is judged.
+- ⚑ **CEO REVIEW 75: PARTIAL.** Its words, in full, in `.planning/CEO-REVIEWS.md`. *"The code fault
+  is genuinely fixed and the gate is genuinely capable of failing (both verified independently,
+  not taken on report). What has not happened is the thing the ask exists for: no scorecard has
+  yet said a leg sailed."* It independently re-measured `grep -c "__runId" report.json` → 0 and
+  traced `stampRun` → `results` → `report.json` → `sailedHere` itself. **Finding 4 acted on the
+  same turn:** the gate now checks the RESUME path too — a resumed leg must be stored as it came
+  off disk, never re-stamped with this run's id, which is the inverted form of the same bug
+  (restamping would make every ghost vouch for itself again). Findings 2 and 3 accepted as stated.
+  **RECURRENCE it names, accepted:** CEO 74's finding 2 recurs — the change that fixes the trial
+  has not been sailed.
+- ⚠ **THE HAZARD THE NEXT WATCH NEEDS BEFORE IT STARTS THE RE-SAIL, and it is why this watch did
+  NOT start one blind.** The Chart's next row is "the release trial did not sail the code that
+  would be staged — re-sail after the fix above." **A re-sail today would sail nothing.**
+  `PP4_STAMP` is `2026.09.01.6` and `sea-trial-shots/legs/` already holds records at that exact
+  stamp (`crew-desktop--2026.09.01.6.json`, `crew-phone--2026.09.01.6.json`, …). `readDone()`
+  matches on the BUILD STAMP alone, so all ten legs would RESUME in about a minute, re-sailing
+  none of them — and, correctly under the now-working provenance rule, every resumed leg would be
+  filed NOT RUN because it carries a foreign run id. The report would read "0 of 10 sailed" again,
+  for an entirely different and this time HONEST reason. **Starting that trial is a decision, not
+  a formality**: it needs either the leg cache cleared for this stamp or the stamp bumped.
+- ⚠ **AND A SECOND FINDING, ADJACENT, NOT FIXED (rule 7 — one item).** `efa1f2f5` changed
+  `src/ui/util.js` **without bumping `PP4_STAMP`**. The stamp is both the trial's resume key and
+  its claim about which game was tested, so right now it says `2026.09.01.6` for a tree that is
+  not the one `2026.09.01.6` was sailed against. That is a real hole in the merge evidence and it
+  deserves its own item; naming it here rather than widening this one.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Confirmed by searching this session's own tool list
+  (`ToolSearch "select:Artifact"` → no match), not inferred. So the Glass was NOT harvested and
+  NOT republished this turn, and `mark_glass_published.mjs` correctly not run — the fifth
+  consecutive Blade watch in this position. Next capable session: harvest first, then republish.
+- **Left untracked and unremovable:** `scripts/qa/_tmp_notrun_redproof.mjs`, the throwaway that
+  drove the three-state red-proof above. This sandbox refuses file deletion, same as the six other
+  `_tmp_*` files prior watches left. It is untracked and reaches nothing.
+- **ENDING THE TURN.** One item, closed through the gate. The next watch's top unblocked item is
+  the re-sail — read the two hazard notes above BEFORE launching it, and launch it detached
+  (`start_trial_detached.mjs`), then commit and push the claim before ending.

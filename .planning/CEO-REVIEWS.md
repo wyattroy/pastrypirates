@@ -4163,3 +4163,45 @@ never sailed at all."*
 count 0; `git show -s` on `efa1f2f5` → 18:13:39Z), then filed on the Chart as the release's
 blocking item. Finding 5's correction accepted and written into the ledger. Finding 6 accepted
 without qualification. The item is PARKED, not closed — the ask is one-third done.
+
+## CEO Review 75 — 2026-09-01 — item: the sea trial's scorecard cannot say a leg sailed
+
+**THE ASK, VERBATIM (from `.planning/CHART.md` STEP 1 CHECKLIST):**
+
+> **⚠ THE SEA TRIAL'S SCORECARD CANNOT EVER SAY A LEG SAILED — this blocks the release, and it is the next watch's item.** `scripts/sea_trial.mjs:258` clears a leg only when `leg.__runId === runId`, reading `leg` out of `sea-trial-shots/report.json`. But `scripts/playtest_gate.mjs:609` writes `__runId` into the **per-leg** file only, and `:653` builds `report.json` from the raw `results` array, which never had `__runId` added. […] So `sailedHere()` returns false for **every leg of every run on every machine, always**, and `sea_trial.mjs:265` then files each leg under NOT RUN *using its own verdict text as the reason it did not run.*
+> ⚠ **AND THE GATE WRITTEN TO PREVENT EXACTLY THIS IS GREEN AND CANNOT FAIL.** `scripts/qa/notrun_provenance_check.mjs:43,47` asserts *"report.json carries the run id too"* by grepping **`playtest_gate.mjs`'s SOURCE TEXT** for `/__runId/`, and tests `sailedHere` against hand-built objects — it never opens a real `report.json`. **Fix the gate in the same change as the bug, or the next reader gets the same false assurance.**
+
+**VERDICT ON "DID THE ASK HAPPEN": PARTIAL** — the code fault is genuinely fixed and the gate is
+genuinely capable of failing (both verified independently, not taken on report). What has *not*
+happened is the thing the ask exists for: no scorecard has yet said a leg sailed. The fix is proven
+at the seam and unproven in the artefact, and the gate's one artefact check is skipping on this
+machine right now for exactly that reason.
+
+### FINDING 1 — the bug is fixed, and the trace holds. CONFIRMED.
+`scripts/playtest_gate.mjs:570` defines `stampRun`; `:618` is `results[i] = stampRun(await runLeg(name, i));`, so the object *in the `results` array* now carries `__runId`. `:667` still serialises `report.json` from that same `results` array, and `:666` writes `runid.json` with the identical `RUN_ID`. `scripts/sea_trial.mjs:260` reads `runid.json` into `thisRunId` and `:258`'s `sailedHere` compares `leg.__runId === runId` — true. A freshly sailed leg with screens now clears the NOT-RUN column. The two-objects-for-one-fact shape is gone: `:623` writes `JSON.stringify(results[i])` itself, not a second spread.
+
+### FINDING 2 — the rebuilt gate can fail; it is not the same false assurance. CONFIRMED, with one caveat.
+Against the pre-fix source (visible in `git diff` as the `-` lines: `results[i] = await runLeg(name, i);` and `JSON.stringify({ ...results[i], __stamp, __runId })`), `notrun_provenance_check.mjs:92`'s `stampSrc` extraction finds nothing → `:93` fires `check(..., false)`, and both structural predicates at the section-3 block fail. `:99` *executes* the real `stampRun` and `:110` feeds its output to the real `sailedHere` — values crossing the file boundary, not a grep. I ran it: 13 PASS, 1 SKIP, exit 0. **Caveat:** the end-to-end checks at `:110`/`:113` are guarded by `if (sailedHere)`, so if `sea_trial.mjs`'s `sailedHere` regex ever stops matching, those two checks silently do not run — one FAIL is raised in their place, so it still goes red, but the strongest checks are the ones that vanish.
+
+### FINDING 3 — the mtime SKIP is honest and not structurally vacuous, but it is dark on the one machine that matters.
+`notrun_provenance_check.mjs:144` skips the artefact check when `report.json` is older than `playtest_gate.mjs`. It cannot skip forever — the gate *writes* `report.json` at the end of every run, so after any real trial the report is newer and the check is live. But editing `playtest_gate.mjs` re-arms the skip, which means it is skipping here, now, immediately after the fix. I confirmed the artefact it is declining to judge: `grep -c "__runId" sea-trial-shots/report.json` → **0**, across 10 legs. So the summary's RED claim is corroborated and nothing was bent to go green — but the check that would prove the cure has not yet had a chance to run.
+
+### FINDING 4 — a RESUMED leg is still filed NOT RUN using its own verdict text as the reason, and no check covers it.
+`scripts/playtest_gate.mjs:616-617`: `const already = readDone(name); if (already) { results[i] = already; ... }` — `readDone` (`:576`) matches on `__stamp === STAMP`, not run id, so a resumed record carries the *previous* run's `__runId`. `sea_trial.mjs:258` then returns false and `:265` files it under NOT RUN with its own verdict text — the exact sentence in the ask, still live on this path. The trial's own comment (`sea_trial.mjs:254-257`) argues inherited evidence must not testify, so this may be deliberate; either way the rebuilt gate has no check on the resume path at all, and `playtest_gate.mjs:659` shows resume is a path that fires in practice.
+
+### FINDING 5 — no other consumer is broken by the two extra keys.
+`scripts/qa/seed_drill.mjs:105-109` reads only `leg.verdict` and `leg.screens`; `scripts/lib/leg_verdict.mjs:91-101` reads `rec.seats`/`P.*`. `__stamp`/`__runId` are inert to both. The per-leg file's serialisation is byte-identical to before (same spread depth, same absent replacer). Nothing bent.
+
+### FINDING 6 — nothing in the watch's summary is overclaimed.
+Every claim I could test held: the gate is wired into `npm test` (`package.json:12`), the RED evidence matches the artefact on disk, and the SKIP is reported loudly rather than passing quietly.
+
+### RECURRENCE
+**CEO 74's FINDING 2 recurs**: the change that fixes the trial has not been sailed. The release-blocking symptom — "0 of 10 voyage(s) sailed" — has not been observed cured on a real report, and the release stays blocked until one trial runs and the scorecard reads a non-zero sailed count. CEO 74's FINDING 6 (*"the instrument you are not currently working on is the one you will believe"*) does **not** recur here: this watch rebuilt the instrument in the same change as the bug, which is precisely what the ask demanded.
+
+**ACTED ON BY THIS WATCH, same turn, so the record is not just the verdict:** finding 4 ACTED ON —
+the gate now carries a resume-path check (*"a RESUMED leg is stored as it came off disk, never
+re-stamped with this run's id"*), guarding the INVERTED form of the same bug: restamping a resumed
+record would make every ghost vouch for itself again. Findings 2 and 3 ACCEPTED AS STATED, not
+argued away — the artefact check is dark on this machine until a trial runs, and that trial is the
+Chart's own next row, deliberately left for the next watch rather than started blind (see the
+ledger for the resume hazard that makes starting it a decision, not a formality).
