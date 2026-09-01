@@ -138,19 +138,43 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   push the frame's origin in a way that no longer contains the true bbox once the reserve has
   grown `side`.
 
-  **A FOURTH ATTEMPT, THIS ONE HALF-BUILT AND NOT YET TRUSTWORTHY — SAID PLAINLY RATHER THAN
-  REPORTED AS A FINDING.** The probe now also decodes the applied camera frame straight off
-  `svg#board`'s live `viewBox` attribute (no game-code change needed — `camTo()` already writes it)
-  and reconstructs the TRUE board-unit bbox of every highlighted cell plus the ship, the same
-  inputs `camFitSail` feeds `camFitCells`. On the one run that got far enough to print both: the
-  reconstructed true bbox (443×443 board units) came out LARGER than the applied frame (337×337) —
-  by far more than the ~24px/1.9 ≈ 13-unit overflow actually observed on screen. **That gap is too
-  big to be the real answer; it means the reconstruction itself is very likely wrong somewhere**
-  (candidates: `activeTurnSeat` not naming the seat `camFitSail` actually framed, or a stray
-  `.sailCell` picked up from a prior prompt not yet cleared) **and rule 6 says not to believe an
-  instrument before red-proofing it.** Left in `scripts/qa/sail_containment_crew_probe.mjs` for the
-  next session to fix and trust, not to build on top of as-is. **Do not quote the 443×443 number
-  anywhere as a measured fact.**
+  **THE FOURTH ATTEMPT — RED-PROOFED AND NOW TRUSTWORTHY, AND IT FOUND THE REAL SHAPE.** The
+  previous entry here reported the viewBox/bbox comparison as "not yet trustworthy" because the
+  numbers didn't add up — that diagnosis was right, but the cause was dumber than a stale seat:
+  **the probe's own `split(/[\s,]+/)` lived inside an outer template literal, and an untagged
+  template literal silently drops an unrecognized escape — `\s` became literal `s` before the
+  string ever left this file.** `"151.5 194.2 336.8 336.8"` contains no `s`, so it never split at
+  all, and every prior run of this diagnostic silently reported `viewBox=null`. Same trap the
+  Glass corruption saga hit (backslashes halved on the way out). Fixed by splitting on a literal
+  space (commit `438a6690`) — no regex needed, since the game always writes `viewBox` space-
+  separated. **This is on the record as a correction, not quietly edited away — a wrong number
+  from a broken instrument was almost the "finding."**
+
+  With the parser fixed, two real occurrences in one room:
+  - **Occurrence #1, CLEAN (0 outside).** Frame `x:151.6 y:194.2 w:336.8 h:336.8`. Reconstructed
+    true bbox `x0:119.5 y0:162.1 x1:477.9 y1:563.2`. The frame is technically "short" of the
+    reconstructed bbox by ~32 units on three sides — and nothing was off-screen anyway.
+  - **Occurrence #2, REPRODUCED (2 outside — one on EACH side).** Frame
+    `x:194.2 y:194.2 w:336.8 h:336.8`. True bbox `x0:119.5 x1:605.9` — **486 units wide, 150 units
+    wider than the 336.8-unit frame**, and the shortfall lands almost exactly symmetric: 74.8 units
+    short on the left, 74.8 short on the right — which is exactly what a frame centred on a bbox
+    but too NARROW to contain it would do, and it matches the two actual overflowing squares
+    (one off each side) almost perfectly.
+
+  **WHAT THIS MEANS, STATED CAREFULLY, AS A LEAD NOT A PROVEN CAUSE.** `camFitCells()`'s own
+  `side` can only ever GROW from `max(bw, bh)` — nothing in it can produce a frame narrower than
+  the bbox it was handed. So a 337-wide frame against a 486-wide TRUE bbox means one of two things:
+  either (a) the set of `.sailCell` elements `camFitSail()` actually measured, ONCE, 180ms after
+  `pickCell()`, was NARROWER than the set that exists ~1200ms later when this probe (and a real
+  player) looks at the screen — i.e. **more cells get added to the board AFTER the one-time camera
+  fit already ran** — or (b) this probe's own cell-collection has a bug of its own not yet
+  red-proofed. **(a) has a concrete candidate**: `src/ui/stage.js`'s own comment on
+  `sailHighlightRect()` notes it is called from TWO places — `camFitSail` and "the trade-wind
+  preview" — so a preview/sweep highlight arriving after the initial draw is a real, named
+  mechanism that could widen the cell set post-fit. **Not confirmed. The next step is to log
+  `document.querySelectorAll('.sailCell').length` at the moment `camFitSail` itself runs (one
+  `console.log` in `src/ui/stage.js:236`, temporary) against the count a moment later — that
+  settles (a) vs (b) directly, in one more posed run, without touching layout code.**
 
   Reproducible on demand: `node scripts/qa/sail_containment_crew_probe.mjs` (no fixed seed yet —
   each run is a fresh room; it has caught the bug on 2 of 2 runs so far, at occurrence #1 and #3 of
