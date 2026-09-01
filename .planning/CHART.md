@@ -211,8 +211,58 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   measured cause.** Next step if picked up: instrument `toScreen()`/`camFitCells()` directly (log
   `S.cam.x/y/w`, `br.left`, `fixedOrigin()` at the reproduced moment) rather than guessing again —
   same posed-board discipline, one level deeper.
+
+  **THE NAMED NEXT STEP IS DONE, 2026-09-01 — `camFitCells` ITSELF IS RULED OUT, NO BROWSER
+  NEEDED.** `scripts/qa/cam_fit_cells_containment_check.mjs` (new, now wired into `npm test`, gate
+  80/80): extracts the REAL `camFitCells()`/`camTo()`/`zoomCap()` from `src/ui/stage.js` by brace-
+  matching (never a hand-copied re-implementation — that would test a description of the code, not
+  the code) and runs them with no DOM at all, across a battery of shapes: a centre cluster, edge-
+  adjacent clusters on both the left and right grid columns, five `reservePx` values up to a real
+  phone prompt's height, the one line (`side = Math.min(side, 640)`) that is mathematically the ONLY
+  place the function can shrink below its own subject, and — the decisive case — occurrence #2's own
+  numbers from the probe above (true bbox 486.4 wide). **Every case held.** The reconstructed
+  486.4-wide shape produced a frame exactly 486.4 wide, matching its own bbox to the pixel: this
+  function's math cannot produce a 336.8-wide frame from a 486.4-wide subject, because
+  `side = Math.max(bw, bh, ...)` provably cannot decrease except at the one traced-and-tested 640
+  cap, which this case never reaches. **This means the two field numbers (486.4 true bbox, 336.8
+  applied frame) cannot both describe the same `camFitCells` call** — so the remaining, narrower
+  lead for whoever picks this up next is the PROBE'S OWN bbox reconstruction, not the function:
+  `sail_containment_crew_probe.mjs` reads `win.activeTurnSeat` and `win.game.players[seat].pos` at
+  MEASUREMENT time (after the ~1200ms settle wait) to reconstruct the ship's contribution to the
+  true bbox, while the real `camFitSail()` reads the SAME fact at FIT time (180ms after `pickCell`).
+  `applyActiveSeat()` is called from many sites, including `consumeEvent()` for every event carrying
+  a `.p` field (`src/orchestrator.js:1601`) — so if `activeTurnSeat` or the ship's position changes
+  between fit-time and measurement-time, the probe would reconstruct a bbox for a DIFFERENT ship
+  than the one `camFitCells` actually received, without `camFitCells` doing anything wrong. **Not
+  measured yet** — a live check would need to log the seat/ship-pos `camFitSail()` itself uses (not
+  the probe's own later read) at the moment it runs, which needs a real two-browser room; not
+  attempted this session, per rule 26 (a targeted single measurement, not another blind probe run,
+  would be the next step, and it should be posed rather than driven).
 - [x] **Full sea trial, re-run against the fixed 465-commit branch, build `2026.08.31.2` — the underlying voyage data is CONFIRMED CURRENT, but the "re-run" itself never happened this session, and that gap is worth recording plainly.** The 03:07Z attempt that showed PROGRESSING at 03:35Z died silently overnight (no `.planning/wyclau/LONG-RUN` marker survived it, and `.planning/SEA-TRIAL-465-check-3.md` sat stuck at "IN PROGRESS" for three hours). Relaunched 2026-09-01 06:29Z at the same `--report=` path. **It "finished" in 1 minute and reported "10 of 10 voyage(s) sailed" — which is misleading.** `sea-trial-shots/log.txt` (the real log, not the summary report) says plainly: *"10 of 10 leg(s) were resumed from a previous attempt at this build — they were NOT re-sailed."* Every leg's cache file under `sea-trial-shots/legs/*--2026.08.31.2.json` predates this run (newest at 01:17Z) — `readDone()` correctly matched them on build stamp and reused them, exactly as designed, but **the markdown report's own "voyages that did NOT run: none" line does not distinguish RESUMED from FRESHLY SAILED**, which is a real gap in the one file rule 24 says to trust at face value. Parking that as a one-line note, not fixing it now (rule 7): `sea_trial.mjs`'s report should print a resumed-count line the way it already prints a not-run column.
   ⚠ **What this means for "is the branch trial-clean": the resumed data is the SAME build's already-fully-triaged 10-leg result** (see the TEN-LEG VERDICT entry below, same build stamp) — 6 legs settle-timing noise, 1 Safari WebSocket comment/design question, 1 the real crew-phone sail-square finding above. No game code has changed since those records were made, so a genuinely fresh re-sail would almost certainly reproduce them identically; the ~1-3.5 hour cost of proving that seemed like a poor trade against the sail-square investigation. **Genuinely new in this run: `npm test` showed one FAIL** — `watchdog_one_engine_check.mjs`'s fixture expects no live engine on the machine when it runs, and detected THIS session itself (a real watchdog-started Bosun) as "an engine is already running," which is the gate's own correct behaviour aimed at the wrong target. Not a game bug; parked, one line, per rule 7 — the fixture needs to exclude the current test-runner's own process, or should_launch.mjs's engine check needs an override for exactly this case. Every OTHER `npm test` check passed.
+- [x] **THE `watchdog_one_engine_check`/`watchdog_liveness_check` FALSE FAIL — FIXED 2026-09-01,
+  and it was blocking the back half of `npm test` on EVERY watchdog-started session, not just the
+  one that first noticed it.** Both gates run the REAL `watchdog.ps1` against a throwaway fixture
+  repo — right, per the "gate aimed at the wrong tree" lesson (§2 of this file) — but `watchdog.ps1`'s
+  own engine-presence check (`Get-CimInstance Win32_Process -Filter "Name='claude.exe'"`) is
+  deliberately MACHINE-GLOBAL, with no way to scope it to the fixture. So from inside a live
+  watchdog session it correctly detects the CALLING session's own process and holds off on every
+  fixture tick — not a bug in the watchdog, but an assumption the gates could no longer make once
+  running-from-inside-a-watchdog-session became the normal way this project works. **Because
+  `npm test` chains with `&&`, this silently swallowed every gate after it** (`chrome_discovery_check`
+  through `doc_command_check`, ~13 gates) on every such run — a green run further up the chain was
+  never proof the whole suite ran.
+  Fixed by a shared preflight (`scripts/qa/lib/real_engine_check.mjs`): list every real `claude.exe`'s
+  command line and test for `-p .../door` with a plain regex, then SKIP loudly (never silently pass)
+  when a real engine is found, in both gates — `watchdog_liveness_check`'s pure-source structural
+  half still runs unconditionally, only its six behavioural fixture assertions are skipped. Measured,
+  not copied from `watchdog.ps1`: its own `-Filter`/`-like` pair returned ZERO hits against this
+  exact session's command line when tested directly, so copying it would have reproduced the same
+  blind spot rather than avoided it. `npm test` now runs to completion (80/80 gates, including the
+  new `cam_fit_cells_containment_check` above) from inside this very watchdog session — verified by
+  running it, not assumed. Gear: package.json + two `scripts/qa/*.mjs` files only, no `src/` or
+  `index.html` touched — a full sea trial is not proportionate to a change that cannot reach a
+  player; `npm test` green is the right depth here.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment

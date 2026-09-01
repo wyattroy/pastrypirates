@@ -19,6 +19,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, utimesSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { realEngineIsRunning } from "./lib/real_engine_check.mjs";
 
 const WATCHDOG = join(process.cwd(), "scripts", "wyclau", "watchdog.ps1");
 
@@ -30,6 +31,28 @@ if (process.platform !== "win32") {
 if (!existsSync(WATCHDOG)) {
   console.error(`FAIL -- watchdog script not found at ${WATCHDOG}`);
   process.exit(1);
+}
+
+// A REAL ENGINE, RUNNING RIGHT NOW, MAKES THE FIRST HALF OF THIS GATE UNRUNNABLE -- NOT WRONG.
+//
+// watchdog.ps1's engine check (this file's own comment at its line ~55-79) is deliberately
+// MACHINE-GLOBAL: it asks the OS for every `claude.exe -p .../door` process, with no way to scope
+// that query to this gate's throwaway fixture repo. That is correct production behaviour -- only
+// one unattended engine should ever run on the Razer, full stop (CLAUDE.md section 3). But it means
+// that whenever THIS gate is run FROM INSIDE a live watchdog-started session (the normal way this
+// project now runs unattended work), the real watchdog it invokes sees the CALLING session's own
+// process and correctly holds off -- so "the fixture's first tick must launch" is an assumption
+// this gate can no longer make, through no fault of the fixture or the script under test.
+// See lib/real_engine_check.mjs for why this is a fresh OS query rather than a copy of watchdog.ps1's
+// own `-Filter`/`-like` pair (measured to under-match this exact process's command line).
+if (realEngineIsRunning()) {
+  console.log("SKIP watchdog_one_engine_check -- a real headless engine (claude.exe -p .../door) is");
+  console.log("     already running on this machine, so watchdog.ps1 correctly holds off on EVERY");
+  console.log("     tick it sees right now, including this gate's own fixture. This is not a SKIP");
+  console.log("     of the guard being untested in general -- it is a SKIP of this specific run,");
+  console.log("     because a real engine's presence is exactly what the guard exists to respect.");
+  console.log("     This is a SKIP, not a pass. Re-run outside a live watchdog session to verify.");
+  process.exit(0);
 }
 
 const repo = mkdtempSync(join(tmpdir(), "wyclau-watchdog-"));

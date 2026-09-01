@@ -21,6 +21,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, utimesSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { realEngineIsRunning } from "./lib/real_engine_check.mjs";
 
 const WATCHDOG = process.argv[2] || join(process.cwd(), "scripts", "wyclau", "watchdog.ps1");
 
@@ -80,6 +81,24 @@ if (process.platform !== "win32") {
   process.exit(failed ? 1 : 0);
 }
 if (!existsSync(WATCHDOG)) { console.error(`FAIL -- watchdog not found at ${WATCHDOG}`); process.exit(1); }
+
+// A REAL ENGINE, RUNNING RIGHT NOW, MAKES THE BEHAVIOURAL HALF BELOW UNRUNNABLE -- NOT WRONG.
+// Every scenario() below invokes the REAL watchdog.ps1, whose engine-present check is
+// machine-global (see lib/real_engine_check.mjs) and OUTRANKS every fixture signal (heartbeat,
+// activity, commits, LONG-RUN) by should_launch.mjs's own rule 1. So when this gate runs from
+// inside a live watchdog-started session, EVERY tick below holds off regardless of what the
+// fixture says -- not because the watchdog is broken, but because a real engine legitimately is
+// running. The structural half above already ran (pure source-text, no process invoked) and its
+// verdict still carries; only the six behavioural assertions are skipped here.
+if (realEngineIsRunning()) {
+  console.log("SKIP watchdog_liveness_check (behavioural half) -- a real headless engine (claude.exe");
+  console.log("     -p .../door) is already running on this machine, so every fixture tick below would");
+  console.log("     see should_launch.mjs's rule 1 (\"an engine is already running\") outrank whatever");
+  console.log("     heartbeat/activity/commit signal the scenario sets up, regardless of the watchdog's");
+  console.log("     own correctness. This is a SKIP, not a pass -- re-run outside a live watchdog");
+  console.log("     session (or against a machine with no live engine) to verify the six scenarios.");
+  process.exit(failed ? 1 : 0);
+}
 
 const MIN = 60 * 1000;
 
