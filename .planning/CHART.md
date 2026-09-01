@@ -130,10 +130,11 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   status emoji, but make it a headline, a sentence or two, not a paragraph. Lastly, I can see the
   bosun working right now, but the status shows red. You have to fix the way you report status so
   that it's only red if the bosun is truly not working or running any subprocesses. Page is still
-  broken after submitting an idea, same error as before."* → **TWO SHIPPED AS CODE, ONE ANSWERED
-  WITH A HABIT RATHER THAN A MECHANISM, ONE UNCONFIRMED.** *(Framing corrected in the open by CEO
-  Review 56, which was right: the first version of this line said "shipped, three of four", which
-  quietly counted a process promise as equivalent to a working fix.)*
+  broken after submitting an idea, same error as before."* → **THREE SHIPPED AS CODE, ONE
+  UNCONFIRMED (the corruption — his to verify).** *(Framing corrected TWICE in the open: the first
+  version said "shipped, three of four", counting a process promise as a working fix — CEO Review 56
+  was right to call that out. The third item was then genuinely fixed with a mechanism later the
+  same day, so the count is honest now for a different reason than it was first claimed.)*
   - **Mobile width**: root cause was `table{width:100%}` under the default `table-layout:auto` —
     a minimum, not a ceiling; a long unbroken token in a ruling's cell (a path, a command) stretched
     the whole page past the viewport. Fixed with `table-layout:fixed` plus `overflow-wrap:anywhere`
@@ -153,12 +154,15 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
     snapshot comfortably inside the 45-minute/watchdog-tied threshold. The 45-minute threshold
     itself is unchanged — it's tied to the watchdog's own restart contract (see the page's own meta
     line), so loosening it would misrepresent that, not fix this.
-    **THE REAL MECHANISM ARRIVES WITH THE CHAIN AUDIT'S FIX 1** (`LONG-RUN` marker +
-    `scripts/wyclau/longrun_status.mjs`): a long job writes its own progress as it works, so
-    "genuinely working on something slow" becomes a readable state instead of an inference from a
-    clock. That is what Wyatt actually asked for — *"only red if the bosun is truly not working or
-    running any subprocesses"* — and this item is not done until that lands and the status reads
-    from it.
+    **✅ NOW FIXED WITH A MECHANISM — 2026-09-01 03:45Z.** The chain audit's fix 1 supplied the
+    missing signal (`LONG-RUN`, written by the job itself), and the Glass now reads it: the live
+    page shows **"⚙️ sea trial, 10 legs — 5/10 legs, still running"** instead of a red dot, because
+    the job says what it is doing rather than the page guessing from a clock. Rendered and
+    screenshotted at 375px before shipping (rule 19). **It cannot become a new lie:** a missing,
+    malformed, future-dated or expired marker falls back to the ordinary clock, so nothing can hold
+    the light green — that would be the 2026-08-31 timer heartbeat rebuilt on the page. Gate
+    `scripts/qa/glass_longrun_status_check.mjs`, 6 checks, red first, including both
+    cannot-hold-it-green cases. npm test 77/77.
   - **Idea-submit corruption — attempt 3, see the entry above.** Same underlying bug as the
     2026-08-31 report; folded into that entry rather than duplicated here.
 - **"testing"** (written on the Glass, 2026-09-01 03:14:37Z, minutes after the reload-free rewrite
