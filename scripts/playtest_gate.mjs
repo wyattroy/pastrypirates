@@ -549,6 +549,14 @@ const STAMP = (() => {
 })();
 const LEGDIR = path.join(OUT, "legs");
 fs.mkdirSync(LEGDIR, { recursive: true });
+/* THIS RUN'S OWN ID. A leg record used to carry only the BUILD STAMP, which says which GAME
+   was tested and nothing about WHEN. Since a leg is RESUMED whenever a record exists at the
+   same stamp, a record carries the screens of whichever run made it -- so a leg that failed to
+   start today was vouched for by its own ghost from an hour ago, and the report's NOT-RUN
+   column said `none` while three Safari legs had died without starting (CEO Review 64,
+   2026-09-01). Evidence has to carry its provenance. */
+const RUN_ID = `${STAMP}-${Date.now().toString(36)}`;
+
 const legFile = (name) => path.join(LEGDIR, `${name}--${STAMP}.json`);
 const readDone = (name) => {
   try {
@@ -598,7 +606,7 @@ const results = [];
       results[i] = await runLeg(name, i);
       /* WRITE IT THE MOMENT IT IS DONE. A result held only in memory until the fleet is home is a
          result the next recycle destroys — which is the whole failure this guards. */
-      try { fs.writeFileSync(legFile(name), JSON.stringify({ ...results[i], __stamp: STAMP })); } catch {}
+      try { fs.writeFileSync(legFile(name), JSON.stringify({ ...results[i], __stamp: STAMP, __runId: RUN_ID })); } catch {}
       done++; markProgress(done);
     }
   }));
@@ -641,6 +649,7 @@ for (const r of results) {
   const covEntries = P && P.coverage ? (P.coverage instanceof Map ? [...P.coverage.entries()] : Object.entries(P.coverage)) : null;
   if (covEntries) log(`   coverage: ${covEntries.map(([k, c]) => `${k}:${c.clicked}/${c.seen}`).join("  ")}`);
 }
+fs.writeFileSync(path.join(OUT, "runid.json"), JSON.stringify({ runId: RUN_ID, stamp: STAMP }));
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, (k, v) => v instanceof Map ? Object.fromEntries(v) : k === "screens" && Array.isArray(v) && v.length > 60 ? v.slice(0, 60) : v, 2));
 /* THE RUN IS OVER, SO THE MARKER MUST GO. A finished job that leaves its marker behind would hold
    the watchdog off until the marker aged past its own staleness — the safe direction, but still a

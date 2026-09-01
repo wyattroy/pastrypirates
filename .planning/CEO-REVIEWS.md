@@ -1,5 +1,197 @@
 # CEO reviews — the standing record
 
+## CEO Review 64 — 2026-09-01, the ten-leg trial verdict and the Safari enablement — VERBATIM
+
+**Scope: branch `claude/cloud-handoff-planning-a9ay1u`, build `2026.08.31.2`, commits `d25ce8eb`
+through `f01e7e96`. I verified everything below in the repo myself — I opened all ten leg records,
+I extracted the pre-fix source out of git and re-ran the gates' own assertions against it, and I
+ran `npm test` from end to end. I did not trust the session's account of anything. I started no
+browser and no server; a `sail_containment_probe.mjs` run was live on this machine throughout and I
+left it alone.**
+
+**FIRST SENTENCE, IF YOU READ NOTHING ELSE: the game genuinely plays again — ten voyages finished,
+Safari sailed here for the first time, and the crash that killed seven legs last night is gone —
+but the trial report sitting on disk right now says FAILED, the vision judge was switched OFF for
+every screen on this build, and that report tells you "voyages that did NOT run: none" while its
+own log underneath shows three Safari legs dying on the exact error it was written to stop
+hiding. Play it on staging. Do not treat it as a passed sea trial.**
+
+---
+
+### 1. Is "10 of 10 legs finished" true?
+
+**As a fact about ten files, yes. As a description of a sea trial, no — and the assembly does let a
+bad leg hide. I proved that; it is not a worry.**
+
+All ten records exist at `sea-trial-shots/legs/<leg>--2026.08.31.2.json`, every one carries
+`finished: true` and `__stamp: "2026.08.31.2"`, and together they hold 303 screens. The voyages are
+real, not stubs: `sea-trial-shots/log.txt:497` shows `solo-tablet-wk` reaching END OF VOYAGE at day
+25 in Safari, and `log.txt:559,561` shows crew-desktop's host and guest both reaching END OF VOYAGE
+at day 14. That is a genuine change from last night, when 7 of 7 Chromium legs crashed at day 1.
+
+**But no single run ever sailed ten legs.** The ten records were written across at least four
+separate `playtest_gate.mjs` invocations spanning 01:23Z to 05:17Z. Two of them — `solo-desktop`
+(01:23Z) and `solo-tablet` (01:38Z) — predate the Safari, judge, deadline and profile-lock fixes
+entirely, and are the only two records on this build carrying any vision-judge data at all.
+
+**And here is the part that matters, because it is the specific lie this project has already paid
+for.** The newest trial report on disk, `.planning/SEA-TRIAL-465-check-3.md`, says in its summary
+table `| **voyages that did NOT run** | none |` — while thirty lines below, in its own log, all
+three Safari legs read `ERROR: playwright not found`. The mechanism is exact:
+`scripts/sea_trial.mjs:260-261` removes any leg from the NOT-RUN list if `report.json` shows it
+captured screens, and `report.json` is keyed on nothing but the build stamp
+(`scripts/playtest_gate.mjs:556`), so records written by a LATER run promoted THIS run's three dead
+legs to "sailed". `scripts/sea_trial.mjs:229-236` describes that exact failure, from 2026-08-26,
+and calls it "the most misleading line in the repo". It has recurred, tonight, in the file rule 24
+tells you to open.
+
+**That report is also a ghost.** Its header says `started 2026-09-01T03:07:33.927Z · 315 min`; its
+file timestamp is 08:22Z. The hung 03:07Z process finally wrote its verdict five hours late, on top
+of the 06:29Z relaunch's report at the same path. The artifact outlived the run and kept its
+verdict — the hazard `sea_trial.mjs:108-115` was written to prevent, wearing a new coat.
+
+**None of the evidence is in git.** `.gitignore:73` ignores `*-shots/`. The ten records exist on
+this Razer and nowhere else, so neither you nor a future session can check the claim from another
+machine.
+
+### 2. Is the GAME-vs-INSTRUMENT split honest? — the most important question
+
+**The reasoning is sound and I could not knock it down. The evidence underneath it is thinner than
+the write-up sounds, and one of its four bullets is wrong on the facts.**
+
+What holds, verified:
+
+- **The settle findings really are not failures.** `scripts/lib/checks.mjs` says so in the
+  instrument's own words — "HITTING THE CAP IS NOT A FAULT" — and I counted: on all six
+  settle-only legs, structural failures = 0, on every screen. The 12-second runaway guard is real
+  and nothing came within 9 seconds of it.
+- **The one real finding is real and it is the right one.** crew-phone holds the only two
+  structural failures in the whole fleet. The session then reproduced it independently, twice, with
+  a number — a sail square at x=372 on a 390-wide phone, its centre 2.5px past the edge,
+  `elementFromPoint` returning nothing — and did **not** fix it, on the grounds that rule 26 was
+  earned on this exact bug. That restraint is correct and I want it on the record as correct.
+- **It killed its own theories in the open.** Three of them, including one it had written down as a
+  prediction an hour earlier: *"MY PREDICTION IS DEAD, AND IT WAS ALREADY DEAD BEFORE I WROTE IT"*
+  (`.planning/CTO-LEDGER.md`, 08:45Z). It also caught and published a bug in its own probe
+  (`438a6690`). This is not a session flattering itself.
+
+Where I attack it:
+
+1. **The eyes were shut for the entire build.** The report says `--judge=off`. I counted: 50 of 303
+   screens were ever looked at by the vision judge, and all 50 sit in the two stale pre-fix records
+   the ledger itself flags as suspect. **253 screens — 83% — were never seen by anything but
+   geometric rules.** So "one player-facing finding across ten legs" means "one finding of the kind
+   a rule can catch". The entire class rule 19 exists for — the flat card instead of the radial
+   bloom, the heading stranded behind the ribbon — was not checked on this build at all. The report
+   does disclose `--judge=off`; the ledger sentence you would actually read does not carry it.
+2. **28% of screens were read while still moving** — 84 of 303, and on crew-phone 19 of 44. The leg
+   that found the real bug is also the leg whose *clean* screens are the least trustworthy in the
+   fleet. "Settle-timing is the instrument, not the game" is fair. "…and therefore those legs are
+   clean" is one step further than the evidence goes.
+3. **The vision-judge bullet names the wrong legs and the wrong build.** `.planning/CTO-LEDGER.md`
+   (05:55Z) says *"2 legs (solo-phone, passplay-phone): 'vision judge FAILED N screens'"*. I opened
+   them: `solo-phone--2026.08.31.2.json` and `passplay-phone--2026.08.31.2.json` have **zero**
+   judged screens and no judge finding in either build. The only two `.2` records with judge data
+   are `solo-desktop` (22 judged, 0 non-PASS) and `solo-tablet` (28 judged, 0 non-PASS). The legs
+   that genuinely carried "vision judge FAILED" were `solo-tablet` and `passplay-desktop`, in build
+   `.1` (`.planning/SEA-TRIAL-465-check.md`). The conclusion — discount them as judge artefacts —
+   is right. Every identifying detail in the sentence is wrong.
+4. **If anyone told you those two legs were re-sailed and the verdicts vanished, the repo does not
+   support it.** The ledger says they *"should be re-sailed before the merge"* — future tense, and
+   it never happened. The relaunch that was meant to do it replayed cache:
+   `sea-trial-shots/log.txt:638-649`, *"10 of 10 leg(s) were resumed from a previous attempt at this
+   build — they were NOT re-sailed."* To this session's credit it wrote that down itself, plainly,
+   at `.planning/CHART.md:241`. But the two suspect records are still in the fleet, still stale.
+5. **The Safari bullet is the softest, and it hides a bigger gap than the one it dismisses.**
+   `solo-tablet-wk` logged a real Firebase WebSocket failure. It was triaged away partly because
+   solo does not need that socket. Fair. But look at the matrix: `scripts/sea_trial.mjs:102-103`
+   sails Safari **solo only** — Chromium carries every multiplayer leg. So **Safari has never played
+   a crew game on this machine, in either build**, and the one Safari signal we do have about
+   Firebase is an error. Your stated core value is the game staying playable "in both Safari and
+   multiplayer". "Both engines" in this trial does not cover Safari *in* multiplayer. That is not a
+   defect I can prove; it is a hole you should know is there.
+
+Smaller: the ledger says the longest settle was "2.7s". It was 3017ms, on crew-phone.
+
+### 3. Are the four fixes real, and do their gates go red on the old code?
+
+**All four fixes are real. Three have gates; two of those I drove red against the pre-fix source
+myself. One fix has no gate at all.**
+
+- **Safari.** Pre-fix `scripts/lib/wk.mjs` (extracted from `ab61ca83^`) built
+  `path.join(os.homedir(), ".pw", "node_modules/playwright/index.mjs")` and handed it straight to
+  `await import(c)` — a raw Windows path, read as the protocol "c:", rejected, reported as
+  "playwright not found" — while `playwrightDir()` four lines above already wrapped the same path in
+  `pathToFileURL`. Both halves of the session's account are exactly true. `wk.mjs:77` now calls
+  `await playwrightDir()`. I ran `trial_honesty_check.mjs:79-80`'s own assertion against the pre-fix
+  file: **false — the gate goes red.** In fairness I note that the sibling assertion at
+  `trial_honesty_check.mjs:82-86` would *not* have caught it, because the path travelled through a
+  variable — and the file says so about itself, in its own comment, unprompted.
+- **Judge hang.** `scripts/lib/vision.mjs` gained a circuit breaker (`sawGood`/`noneUsable`) in
+  `40cdf75e`; neither it nor `scripts/lib/judge_mode.mjs` existed before. The gate drives the *real*
+  `judgeAll` through a seam with a judge that answers nothing and demands it be declared dead after
+  ONE group, with a red-proof in the other direction. Ran it: 10 of 10 PASS. Against the pre-fix
+  tree the module it imports does not exist, so it fails at its first line.
+- **Leg cap.** `withDeadline` is a genuine `Promise.race` with `.finally(clearTimeout)`.
+  `leg_deadline_check.mjs` lifts the real function out of the real gate file and races it against a
+  promise that never settles. Ran it: 6 of 6 PASS. The pre-fix `playtest_gate.mjs` contains **zero**
+  occurrences of `withDeadline` and still carries `while (Date.now() - t0 < MAX_MS)` — **red.**
+- **Windows profile lock.** Real: `scripts/lib/cdp.mjs:21-33`, called by both browser mounts
+  (`cdp.mjs:36`, `wk.mjs:93`). **It has no gate.** It is the only one of the four where step 1 of
+  the four steps left nothing behind, and it is therefore the one that will rot first.
+- I ran `npm test` myself: exit 0, **"PASS suite ceiling: 80/80 gates"**.
+
+### 4. Claimed but not supported by the repo
+
+- **"The trial finished green"** — `.planning/CTO-LEDGER.md` 06:05Z, and again on
+  `.planning/CHART.md:294` as "done and green". The report says **FAILED**, in bold, at
+  `.planning/SEA-TRIAL-465-check-3.md:3`. "Ten legs finished the voyage" is true and is the honest
+  sentence. "Green" is your word for a pass and no artifact in this repo says it.
+- **The judge-artefact bullet** — wrong legs, wrong build (§2.3).
+- **Any re-sail of the two suspect legs** — did not happen (§2.4).
+- **`.planning/CHART.md:304`** still describes the merge as blocked by the FAILED 7-of-7 crash run,
+  contradicting line 57 in the same file. Whoever reads the BLOCKED table first gets last night's
+  answer.
+- **"465-commit branch"** — it is now **538** commits ahead of `origin/main`. Not a lie; it grew
+  overnight, and the number in your head is 73 commits stale.
+- The staging blocker is exactly as described and I verified both halves:
+  `scripts/deploy-staging.sh:133` is `rsync -a --delete "${EXCLUDES[@]}"`, and `which rsync` finds
+  nothing on this machine.
+
+### 5. Is it ready for you to play on staging?
+
+**Yes to playing it. No to calling this a passed sea trial, and no to merging on the strength of
+it.**
+
+It is ready for you because the thing that was broken is fixed, and the fix is proven by the game
+itself finishing ten voyages across three modes, three sizes and both engines, with zero console
+errors on nine of the ten. Last night nothing reached day 2. Tonight Safari finished a 25-day
+voyage. Your own ruling was trial, then staging, then your say-so — and the trial has produced
+enough to justify the second step.
+
+It is not a passed trial because the report says FAILED, the eyes were off for every screen on this
+build, the ten legs were assembled from four separate runs rather than sailed as a fleet, and that
+assembly demonstrably reported three dead Safari legs as having sailed. Those are not reasons to
+withhold the build from you. They are reasons not to let "10 of 10" harden into "the trial passed"
+between now and the merge.
+
+**What I would tell you to do, in order.** Install rsync on the Razer — option (a), and the session
+was right to stop rather than rewrite the one script whose failure takes the live game down at 6am
+with no reviewer. Deploy and play it, in two tabs, host and guest, on your phone. Then, before the
+merge and not after, have someone sail **one** clean fleet in a single run with the judge on, so
+the ten legs come from one voyage instead of four and something actually looks at the pictures. If
+that is too slow to be worth it, then merge on *your* eyes — you find in twenty minutes what this
+fleet did not look for at all — but make that a choice you took, not one the word "green" made for
+you.
+
+### 6. The one sentence
+
+**The game plays again and Safari sailed for the first time — but nothing looked at a single
+picture of it, and the report you are meant to open says FAILED while telling you every leg ran, so
+go play it yourself before anyone calls this trial passed.**
+
+---
+
 ## CEO Review 63 — 2026-09-01, Wyatt's three Glass edits (Tasks first, commit pills, two columns) — VERBATIM
 
 **Scope: commit `ad95cf2f` on `claude/cloud-handoff-planning-a9ay1u`. I verified everything below by

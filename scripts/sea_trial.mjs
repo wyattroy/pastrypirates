@@ -250,15 +250,23 @@ try {
                     .map(l => `${l.name} ×${l.recoveries}${l.days ? ` over ${l.days} days` : ""}`);
   if (rescued.length) rescueRow =
     `\n| **voyages that only finished after a BROWSER RESTART** | **${rescued.join(", ")}** — the known WebKit crash in this container; each was resumed from the game's own save. A rescued leg is not a clean one. |`;
+  /* PROVENANCE, and this is the whole fix. A leg is only cleared by screens THIS run produced.
+     An inherited record -- the normal case once a fleet is assembled from several runs, which is
+     what happened on 2026-09-01 -- must not testify that a leg sailed now. Unknown provenance
+     counts as NOT sailed, deliberately: the NOT-RUN column exists to be pessimistic, and a leg
+     wrongly listed as not-run costs a re-sail while a leg wrongly cleared costs the truth. */
+  const sailedHere = (leg, runId) => !!(leg && (leg.screens || []).length > 0 && leg.__runId && runId && leg.__runId === runId);
+  let thisRunId = null;
+  try { thisRunId = JSON.parse(fs.readFileSync(path.join(OUT, "runid.json"), "utf8")).runId; } catch { thisRunId = null; }
   for (const leg of rj) {
     const n = (leg.screens || []).length;
-    if (n > 0) continue;                                     // it captured something: it sailed
+    if (sailedHere(leg, thisRunId)) continue;                // it captured something IN THIS RUN: it sailed
     if (notRun.some(x => x.leg === leg.name)) continue;      // already named, keep its reason
     notRun.push({ leg: leg.name, why: (leg.verdict || ["produced no screens at all"]).join("\n") });
   }
   // A leg the phrase-matcher flagged but which DID capture screens is a mid-leg error, not a
   // no-show — do not demote a leg that actually sailed.
-  const captured = new Set(rj.filter(l => (l.screens || []).length > 0).map(l => l.name));
+  const captured = new Set(rj.filter(l => sailedHere(l, thisRunId)).map(l => l.name));
   notRun = notRun.filter(n => !captured.has(n.leg));
 } catch (e) {
   say(`   (could not read report.json to verify what actually sailed: ${e.message})`);
