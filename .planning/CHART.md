@@ -105,6 +105,8 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
 - **Wyatt, LIVE BUG REPORT, 2026-08-31 21:00Z, two screenshots**: *"after I send something to you in the ideas box, the page css breaks; and i'm not sure if the idea was sent. i need to be able to send another idea immediately afterwards, without waiting. i need to know that my first idea was sent, and added to the chart."* → **TWO OF THREE FIXED AND VERIFIED. THE THIRD — THE ACTUAL CORRUPTION — IS UNEXPLAINED. STILL OPEN, NOT SHIPPED-AND-CLOSED.**
   - **✅ Fixed, verified**: "send another immediately, without waiting" and "know it was sent" — the Send button's success handler was an empty comment (relied entirely on the platform's own view reload, never re-enabled, never confirmed). Now updates local state, clears the box, repaints the visible list, shows an honest confirmation ("Saved to the page — a session will harvest it to the Chart soon." — not overclaiming it's already in the Chart), and re-enables immediately. Same fix applied to the rulings-save flow for consistency (rule 8). Gate `scripts/qa/glass_send_confirms_check.mjs`, red-proofed against the exact pre-fix empty handler.
   - **⚠ CORRECTION, CEO Review 54, IN THE OPEN — the page-corruption fix is NOT proven.** The original entry here said "root cause measured": a comment reading `// The state block is a JSON <script>, so...` — a literal, unescaped, tag-shaped substring inside the real client script element. **That claim was wrong, and the review caught it properly**: it regenerated the exact pre-fix page and rendered it in a real, unmodified headless Chrome — it came up completely clean, no corruption. Per the HTML5 spec, a bare `<script>` (no slash) inside running script content is not special; only `</script` ends it. A follow-up check here (4 rounds of the real client-side self-publish escaping, simulated in Node) also never drifted. **So the actual mechanism that broke Wyatt's live page is still unknown** — most plausibly something specific to the Claude Artifact host's own internal rendering/patching pipeline when `cap.publish()` runs live, which cannot be reproduced or inspected from outside that system. The comment was still reworded (bad practice regardless, and the gate `scripts/qa/glass_script_tag_purity_check.mjs` was kept and WIDENED to check the whole document, not just two known blocks — a real improvement CEO Review 54 also asked for) — but it must not be called a proven fix for his exact symptom. **Needs Wyatt to try the Ideas box again on the live page and say whether the corruption still happens** — parked here rather than asked via the question UI, per his standing instruction. npm test 74/74.
+  - **2026-08-31, ATTEMPT 2 — also reported still broken.** Redesigned to blank the body to a few plain words BEFORE calling `cap.publish()`, reloading once the publish promise settled either way. Wyatt: *"the glass ideas section is still broken."* Gate `glass_self_heal_reload_check.mjs` verified the mechanism was actually shipped; it did not verify the mechanism actually fixes his symptom, which remained unmeasurable from outside the live host.
+  - **2026-09-01, ATTEMPT 3 — removed `location.reload()` from the flow entirely, not yet confirmed.** Two different reload timings (1400ms after publish; immediately before, blanked) both still corrupted, per his own reports — evidence the reload itself is implicated, not its timing. Send/ruling handlers now mutate `state` in memory, repaint synchronously via the existing `renderIdeas`/`paintAsk`, and call `cap.publish()` in the background with no navigation at all. This also directly answers his original ask ("send another idea immediately, without waiting") better than either reload-based version did. Gate `glass_optimistic_save_check.mjs` (replacing `glass_self_heal_reload_check.mjs`) verifies no `location.reload()` remains in the send/ruling paths and that both update state before publishing. **Still not proof the corruption is gone — same limitation as attempts 1 and 2: it cannot be reproduced outside the live authenticated host.** Needs Wyatt to try the Ideas box again and say whether it still happens.
 - **Wyatt, written on the Glass, 2026-08-31 20:40:18Z**: *"Edits for The Glass: 1. Move 'Tasks' to
   go above 'Shipped Today' 2. Make Shipped Today expandable, with each thing shipped in its own
   pill, clickable to see more information about that commit 3. reformat the pages so Shipped Today
@@ -121,6 +123,32 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   another reason; not worth a standalone session, since the report already covers every gate that
   matches its stated convention and found zero candidates either way today.
 
+- **Wyatt, written on the Glass AND said live, 2026-09-01 02:13:52Z**: *"Make Glass truly mobile
+  friendly— it is too wide for phone because not all its divs are constrained, so the 'your ruling'
+  section forces the whole page to be too wide. Also, I like the headline on 'progress' under the
+  status emoji, but make it a headline, a sentence or two, not a paragraph. Lastly, I can see the
+  bosun working right now, but the status shows red. You have to fix the way you report status so
+  that it's only red if the bosun is truly not working or running any subprocesses. Page is still
+  broken after submitting an idea, same error as before."* → **SHIPPED, this session, three of
+  four; the fourth is process, not code.**
+  - **Mobile width**: root cause was `table{width:100%}` under the default `table-layout:auto` —
+    a minimum, not a ceiling; a long unbroken token in a ruling's cell (a path, a command) stretched
+    the whole page past the viewport. Fixed with `table-layout:fixed` plus `overflow-wrap:anywhere`
+    on the table cells and on `.sheet` itself, so a future long string in any card can't reopen this.
+  - **Headline, not a paragraph**: added `shortNote()` in `glass.mjs`, capping the displayed pulse
+    note to its first sentence or two (~200 chars) regardless of how long a session's `--note` is.
+  - **False red while actually working**: the dot is correct given what it can see — it counts
+    minutes since the LAST PUBLISH, and this session had been pulsing HEARTBEAT locally every 15
+    minutes (via a background Monitor) without republishing the artifact at the same cadence, so
+    the live page's clock was ticking from a stale snapshot even though the worker was genuinely
+    alive. This is not fixable from inside the static page — there's no live channel for it to poll.
+    Fixed by republishing NOW, and going forward this session will republish on every Monitor
+    heartbeat (~15 min) during long waits, not only at item boundaries, keeping the published
+    snapshot comfortably inside the 45-minute/watchdog-tied threshold. The 45-minute threshold
+    itself is unchanged — it's tied to the watchdog's own restart contract (see the page's own meta
+    line), so loosening it would misrepresent that, not fix this.
+  - **Idea-submit corruption — attempt 3, see the entry above.** Same underlying bug as the
+    2026-08-31 report; folded into that entry rather than duplicated here.
 - **"Test to send to the chart"** (written on the Glass, 18:27:43Z) → **SHIPPED, and this IS the
   fate.** Read literally: the two-way save it exercises is exactly what it tested — the idea
   reached `glassState.ideas` on the live artifact and this harvest is that path completing end to

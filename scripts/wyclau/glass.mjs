@@ -200,6 +200,19 @@ function shortSubject(s) {
   const words = t.split(/\s+/).filter(Boolean);
   return words.length > 9 ? words.slice(0, 9).join(" ") + "…" : t;
 }
+/* THE PULSELINE NOTE IS A HEADLINE, NOT A PARAGRAPH. Wyatt, 2026-09-01: "I like the headline on
+   'progress' under the status emoji, but make it a headline, a sentence or two, not a paragraph."
+   Sessions (including this one) have been passing whole run-summaries as --note text; this caps
+   what's DISPLAYED (the full note still prints to the console for the session's own record) to
+   the first sentence or two, so the page stays scannable regardless of how long a future --note
+   is. */
+function shortNote(s) {
+  const t = String(s).trim();
+  const sentences = t.match(/[^.!?]+[.!?]*/g) || [t];
+  let out = sentences[0].trim();
+  if (out.length < 60 && sentences[1]) out = (out + " " + sentences[1].trim()).trim();
+  return out.length > 200 ? out.slice(0, 200).trim() + "…" : out;
+}
 /* Checklist/task lines carry real operational detail (not a commit subject), so this keeps more
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
    ones so the Tasks card stays scannable rather than a wall of text. */
@@ -327,7 +340,15 @@ const PAGE = `<meta charset="utf-8">
     background-attachment:fixed;color:var(--ink);
     font:1rem/1.55 'Avenir Next',Avenir,'Segoe UI','Trebuchet MS',sans-serif;
     margin:0;padding:1rem 1rem 4rem;}
-  .sheet{max-width:40rem;margin:0 auto;}
+  /* MOBILE WIDTH — Wyatt, 2026-09-01: "not all its divs are constrained... the 'your ruling'
+     section forces the whole page to be too wide." Root cause: table{width:100%} is a MINIMUM
+     under the default table-layout:auto, not a cap — a long unbroken token in a <td> (a file
+     path, a command) makes the browser size the table (and so the whole .sheet, and so the
+     whole page) to fit that token, wider than the viewport. table-layout:fixed makes width:100%
+     an actual ceiling; overflow-wrap:anywhere on .sheet is the belt-and-suspenders for any other
+     card that gets a long unbroken string in the future, so this class of bug can't recur
+     one card at a time. */
+  .sheet{max-width:40rem;margin:0 auto;overflow-wrap:anywhere;}
   h1{font-size:1.6rem;margin:.8rem 0 .15rem;color:var(--ink);}
   h2{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);
     margin:0 0 .7rem;font-family:ui-monospace,monospace;font-weight:700;}
@@ -350,8 +371,9 @@ const PAGE = `<meta charset="utf-8">
   .muted{color:var(--muted);} .bad{color:var(--stale);}
   code{font-family:ui-monospace,monospace;font-size:.85em;background:var(--paleblue);
     padding:.05em .3em;border-radius:4px;}
-  table{border-collapse:collapse;width:100%;font-size:.9rem;}
-  td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top;}
+  table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:.9rem;}
+  td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top;
+    word-break:break-word;overflow-wrap:anywhere;}
   .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:1.5rem;}
   .count{font-weight:700;color:var(--signal);}
   /* ITEM 4 — shipped-today as a scannable strip, no hashes: a small dot, the short subject. */
@@ -388,7 +410,7 @@ const PAGE = `<meta charset="utf-8">
   <h1>The Glass</h1>
   <div class="pulseline" id="pulse">
     <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
-    <span class="pulsenote" id="noteText">${esc(note)}</span>
+    <span class="pulsenote" id="noteText">${esc(shortNote(note))}</span>
   </div>
   <p class="publishedline" id="publishedLine">page published —</p>
   ${relayedNote ? `<p class="relayNote">From another session, folded in on this pulse: ${esc(relayedNote)}</p>` : ""}
@@ -501,41 +523,20 @@ const PAGE = `<meta charset="utf-8">
       return d;
     }
 
-    // BLANK, THEN RELOAD -- NOT A ROOT-CAUSE FIX. Wyatt, 2026-08-31, reported the rendered page
-    // corrupts after submitting an idea; his own View Source moments later showed the STORED HTML
-    // was clean -- so the corruption lives in the render, not in what gets saved. FIRST ATTEMPT at
-    // a fix scheduled a reload 1400ms AFTER a successful cap.publish() while leaving the full,
-    // complex page on screen in the meantime -- and he reported it still broken. Read plainly: if
-    // the corruption happens AS the publish call is processed, not after, a page still full of
-    // complex content during that window still shows him the broken render, however briefly, and
-    // still self-heals into something he already saw as broken. So this version removes the risk
-    // surface instead of racing it: BEFORE calling cap.publish() at all, the entire visible body is
-    // replaced with a few words of plain text -- nothing left with enough structure to render as
-    // garbled markup even if the same unknown mechanism fires. The real save (and the real repair)
-    // still happens: cap.publish() runs against the confirmed-clean buildDoc() output exactly as
-    // before, and a real fresh reload follows shortly after, reading that clean stored copy. This
-    // trades his "instant, no-wait" confirmation for "instant, unmistakably safe" -- said plainly,
-    // not silently: a font this small on a page this blank cannot corrupt into something alarming.
-    // Blanks immediately (before the risky window even opens), then reloads once the publish
-    // SETTLES either way -- success or failure, both reload; the draft-recovery logic already in
-    // this file (getDraft/setDraft, "saved" check on load) is what tells the next load whether the
-    // words made it or need to come back from the draft, so this function does not need to branch
-    // on the outcome itself. A safety-net timeout reloads anyway if publishPromise never settles at
-    // all (the same "stuck on Checking..." failure mode reported separately), so this can never
-    // leave him staring at a blank page forever either.
-    function blankThenReload(msg, publishPromise){
-      try {
-        document.body.textContent = "";
-        var p = document.createElement("p");
-        p.style.cssText = "font:1rem sans-serif;color:#1f4249;margin:2rem;";
-        p.textContent = msg;
-        document.body.appendChild(p);
-      } catch (e) {}
-      var done = false;
-      var go = function(){ if (done) return; done = true; location.reload(); };
-      publishPromise.then(go, go);
-      setTimeout(go, 8000);
-    }
+    // NO RELOAD, AT ALL -- the third attempt at "the page corrupts after submitting an idea", and
+    // the first that does not call location.reload() in any form. Attempt 1 (a reload 1400ms after
+    // a successful publish, full page left on screen meanwhile) and attempt 2 (blank the body
+    // BEFORE publishing, reload once the publish settled either way) both still left him reporting
+    // the SAME corruption, 2026-09-01: "page is still broken after submitting an idea, same error
+    // as before." Two different reload timings producing the identical symptom is evidence the
+    // reload itself is implicated, not when it fires -- the exact host-side mechanism is still
+    // unmeasured (see the buildDoc() comment below on what CEO Review 54 already ruled out), but
+    // this version removes reload from the sequence entirely rather than continuing to time it.
+    // A send or a ruling now updates "state" in memory, repaints synchronously (renderIdeas /
+    // paintAsk below), and calls cap.publish() in the background -- the tab never tears itself
+    // down, so whatever triggers the corruption never gets the chance to fire. It also answers
+    // what he actually asked for in the first place, 2026-08-31: "I need to be able to send
+    // another idea immediately afterwards, without waiting."
 
     function renderIdeas(){
       var box = document.getElementById("ideaList");
@@ -601,18 +602,17 @@ const PAGE = `<meta charset="utf-8">
       if (!cap) return;
       if (el.getAttribute("data-id").indexOf("demo-") === 0) return; // demo cards never save
       var id = el.getAttribute("data-id");
-      var next = JSON.parse(JSON.stringify(state));
-      if (!next.rulings) next.rulings = {};
-      next.rulings[id] = {
+      if (!state.rulings) state.rulings = {};
+      state.rulings[id] = {
         choice: choice,
         note: el.querySelector(".rnote").value.trim(),
         q: el.querySelector(".q").textContent,
         at: new Date().toISOString(),
       };
-      // Everything the ruling needs is already captured into "next" above -- blanking the screen
-      // now, before cap.publish() even runs, cannot lose it. See blankThenReload's own comment
-      // for why this replaced the earlier optimistic-update-then-delayed-reload attempt.
-      blankThenReload("Saving your ruling — reloading…", cap.publish(buildDoc(next)));
+      paintAsk(el); // optimistic — the tab never reloads, so this IS the confirmation he sees
+      cap.publish(buildDoc(state)).then(null, function(){
+        el.querySelector(".rstate").textContent = "Didn't save — tap again to retry.";
+      });
     }
     asks.forEach(function(el){
       Array.prototype.forEach.call(el.querySelectorAll(".rb"), function(b){
@@ -656,17 +656,28 @@ const PAGE = `<meta charset="utf-8">
     send.addEventListener("click", function(){
       var v = text.value.trim();
       if (!v || !cap) return;
-      var st = JSON.parse(JSON.stringify(state));
-      st.ideas.push({ id: "i" + Date.now(), text: v, at: new Date().toISOString() });
-      // Wyatt, 2026-08-31: "i need to be able to send another idea immediately afterwards,
-      // without waiting. i need to know that my first idea was sent." The draft in localStorage is
-      // NOT cleared here -- it stays exactly what he typed. On the reload this triggers, the page's
-      // own on-load check ("var saved = state.ideas.some(...)") clears the draft ONLY if the idea
-      // really made it into the reloaded, confirmed-clean state; if the publish failed, the fresh
-      // page comes back up with his words still sitting in the box, from the draft, ready to retry
-      // -- so failure is handled by the SAME mechanism as success, not a separate error branch that
-      // has to be trusted to run before whatever corrupts the render gets a chance to.
-      blankThenReload("Saved — reloading…", cap.publish(buildDoc(st)));
+      var idea = { id: "i" + Date.now(), text: v, at: new Date().toISOString() };
+      // Optimistic, in place, no reload: the box clears and the idea appears in the list right
+      // now, which IS the confirmation he asked for ("I need to know that my first idea was
+      // sent") -- and because nothing reloads, he can type and send the next one immediately,
+      // which was the other half of that same ask.
+      state.ideas.push(idea);
+      text.value = "";
+      setDraft("");
+      renderIdeas();
+      status.textContent = "Saving…";
+      cap.publish(buildDoc(state)).then(function(){
+        status.textContent = "Saved — on the Chart as soon as a session reads it. Send another any time.";
+      }, function(){
+        // Roll back and hand his words back so nothing is lost — matches the old draft-recovery
+        // contract's intent without needing a reload to re-derive it.
+        var idx = state.ideas.indexOf(idea);
+        if (idx > -1) state.ideas.splice(idx, 1);
+        renderIdeas();
+        text.value = v;
+        setDraft(v);
+        status.textContent = "Didn't save — your words are back in the box, try again.";
+      });
     });
   })();
 </script>
