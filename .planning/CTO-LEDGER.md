@@ -1745,3 +1745,29 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   WHAT THIS MEANS FOR THE CLAIM I MADE ALL DAY: watches "failing to publish the Glass" was never a
   bug to fix. It is the platform's boundary, and the design has been asking for something
   impossible since the day it was written.
+
+- ⚠⚠ CORRECTION, MEASURED, AND IT REVERSES THE ENTRY ABOVE. I ran the one command nobody had run —
+  CEO Review 73 demanded exactly this and it is the reason the wrong answer did not ship:
+      claude -p "...is a tool named Artifact present in YOUR tool list right now?..."
+  on this Mac. It answered: **PRESENT: Artifact**.
+  SO `-p` DOES NOT BLOCK THE ARTIFACT TOOL. The research I relayed — "architecturally absent in
+  headless runs, no flag restores it", sourced to the official docs by a research agent — is FALSE
+  here, and I repeated it as platform fact without measuring it. That is rule 6's exact failure
+  committed while quoting rule 6, and the second wrong confident claim I have made about this one
+  question today.
+  THREE CLAIMS OF MINE ARE HEREBY STRUCK, in the open rather than edited away:
+    (1) "the Artifact tool does not exist in `claude -p` headless runs" — REFUTED by measurement.
+    (2) "the design has been asking for something impossible since the day it was written" —
+        refuted by CEO 73 from the record itself: CHARTER.md:47 sets ONE PUBLISHER and routes other
+        sessions through GLASS-NOTE.md, and door/SKILL.md:56-58 already writes the degradation.
+        The plan anticipated a session that cannot publish; nothing was impossible.
+    (3) my O2 close, "both machines publish" — CEO 73 is right that it was true only of INTERACTIVE
+        sessions on both machines, and it was never evidence about unattended ones.
+  WHAT IS ACTUALLY OPEN, now that mode is ruled out: WHY do the BLADE's `-p` watches report no
+  Artifact tool when a Mac `-p` session has it? It is a MACHINE difference, not a mode difference —
+  candidates: Claude Code version, auth method (/login vs API key), or the Task Scheduler launch
+  context. THE DECISIVE TEST IS THE SAME ONE COMMAND, RUN ON THE BLADE. Nobody should design
+  anything for this until that returns.
+  AND THE LESSON THE DAY KEEPS TEACHING: a research agent's confident citation is a comment, not a
+  measurement. It read plausible, it named real doc pages, and it was wrong about the only fact
+  that mattered.
