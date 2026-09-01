@@ -1199,3 +1199,15 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   claude-kit inside a compound command left the shell there, so this ledger append and an `npm
   test` ran against the WRONG repo (exit 254 — no such script). Nothing was written to the wrong
   tree; the kit commit was correct. Absolute paths from here.
+
+- HE FIXED BOTH HAZARDS FROM THE SAME schtasks OUTPUT (his own message, mid-turn): Conditions →
+  both power boxes unticked (the Bell no longer dies when the charger comes out — the failure that
+  would have killed an overnight run silently), and General → "Run whether user is logged on or
+  not" (ends `Logon Mode: Interactive only`).
+  ⚠ ONE CONSEQUENCE TO VERIFY RATHER THAN ASSUME, and it is new: that setting moves the task out of
+  his interactive desktop session. `claude -p` should be unaffected — it is headless by nature and
+  still runs AS him, so his profile and credentials are the same — but nobody has watched a watch
+  launch from a non-interactive task on this machine, and "it should be fine" is the sentence this
+  project keeps paying for. The check is the ring test itself: a `ring:` line followed by a live
+  door-launched claude.exe within a tick or two. If rings appear and NO watch ever does, that
+  setting is the first suspect and the answer is to put the task back to interactive.
