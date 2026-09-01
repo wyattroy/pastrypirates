@@ -1580,7 +1580,7 @@ export async function humanDock(player,port){
      .purse) and logs nothing — its whole job is to make the panel tell the truth. Every other coin
      change in the game emits its event in the same breath as the mutation; this one could not,
      because a prompt sits in between. */
-  g.ev({t:"purse",player:player.idx});
+  g.ev({t:"purse",p:player.idx});
   liveRender(); // the purse changed — show it before the buy prompt prices anything against it
   let buy=null;
   if(g.cfg.dockBuy&&price!==null){
@@ -1665,7 +1665,7 @@ export async function humanDock(player,port){
       break;                                     // "Nah"
     }
   }
-  g.ev({t:"dock",player:player.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
+  g.ev({t:"dock",p:player.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
     paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
     black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
   /* HIS ITEM 9: THE CRATE LANDS WHEN YE BUY IT. One call moved, none added.
@@ -2006,7 +2006,7 @@ export async function humanTrade(player){
   // announcing an offer is itself public information — the whole table now knows what player is after,
   // and that is exactly how bots learn each other's recipes without ever seeing one (see noteDemand)
   g.noteDemand(player,offer.want,1);
-  g.ev({t:"openoffer",player:player.idx,want:offer.want,offer:offerDisplay});
+  g.ev({t:"openoffer",p:player.idx,want:offer.want,offer:offerDisplay});
   liveRender();
   await narrateLastEvent();
 
@@ -2412,7 +2412,7 @@ export async function humanAct(player,sailCtx){
       const from=[...player.pos];
       // the drawn line INCLUDES the square being left, so what lands on the wire is self-contained
       const route=[from,...appState.game.sailPath(player,dest,{throughRim:true})];
-      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",player:player.idx,route});
+      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",p:player.idx,route});
       /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
          object the guest is handed, so both tiers walk identical code on an identical subject.
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
@@ -2501,7 +2501,7 @@ export async function humanTurn(player){
   // pass & play: this seat's own "check my recipe" button is only ever offered while its
   // turn is genuinely live (see render()) — any reveal from a prior turn is already gone.
   appState.activeTurnSeat=player.idx;appState.recipeRevealed=false;
-  appState.game.ev({t:"turn",player:player.idx});
+  appState.game.ev({t:"turn",p:player.idx});
   liveRender();
   // NARR-03/D-25: the round header already announced the wind moments ago, so the neutral banner
   // does not restate it; only the captain whose turn it is gets the reminder.
@@ -2536,7 +2536,7 @@ export async function humanTurn(player){
       // inconsistency in a new place.
       const fromSail=[...player.pos];
       const routeSail=[fromSail,...appState.game.sailPath(player,dest,{throughRim:true})];
-      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",player:player.idx,route:routeSail});
+      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",p:player.idx,route:routeSail});
       /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
          object the guest is handed, so both tiers walk identical code on an identical subject.
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
@@ -2580,7 +2580,7 @@ export async function botOpenTradeLive(player){
   if(!offer)return false;
   g.noteDemand(player,offer.want,1);
   const offerDisplay=g.offerLabel(offer,0)||"nothing";
-  g.ev({t:"openoffer",player:player.idx,want:offer.want,offer:offerDisplay});
+  g.ev({t:"openoffer",p:player.idx,want:offer.want,offer:offerDisplay});
   liveRender();
   await botBeat();
   const responses=[];
@@ -2721,7 +2721,7 @@ async function botDockCoin(dockEv){
 export async function botTurn(player){
   applyActiveSeat(player.idx); // ONE ACTIVE SEAT, both tiers (02.15-01 Stage 2)
   const g=appState.game;
-  g.ev({t:"turn",player:player.idx});
+  g.ev({t:"turn",p:player.idx});
   await botBeat();
   // v2.1: no turn is ever lost to weather, so a bot has no forfeit branch either.
   if(!g.adjPort(player))player.dockedNow.clear();
@@ -2744,7 +2744,7 @@ export async function botTurn(player){
       // outright rather than player.pos being temporarily rewound to read the route back out of it.
       // The route is now taken BEFORE the event, because it rides ON the event (Game.ev/bakeDraw).
       const route=[b,...g.sailPath(player,[...player.pos],{throughRim:false,from:b})];
-      const evSail=g.ev({t:"sail",player:player.idx,route});
+      const evSail=g.ev({t:"sail",p:player.idx,route});
       /* ANIMATE BEFORE liveRender(), which is the order consumeEvent draws in — off the SAME event
          object the guest is handed, so both tiers walk identical code on an identical subject.
          liveRender()'s drain then finds the ride already walked (re-entry guard) and its call is a
