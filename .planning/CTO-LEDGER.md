@@ -1544,3 +1544,5 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   honestly-flagged finding, not a reason to hold this item open indefinitely. If a future watch
   wants a posed before/after pair specifically for the swept ride, that is real, useful remaining
   work — recorded here so it is not lost.
+
+- 2026-09-01T17:50:31Z · close_item: INBOX-20260901T1351Z · CEO 72 · commit f7c1207 (1 game file) · his solution first: commit f7c1207 · storm push now glides to its final square in one continuous move, swept ships included
