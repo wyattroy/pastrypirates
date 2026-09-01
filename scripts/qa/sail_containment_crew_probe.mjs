@@ -155,7 +155,7 @@ async function measureSailCells(c, label) {
        subject -- the question the 2026-08-29 comment says two prior theories died trying to
        answer by reasoning instead of measuring. */
     const vbRaw = svg ? svg.getAttribute("viewBox") : null;
-    const vbParts = vbRaw ? vbRaw.trim().split(/[\s,]+/).map(Number) : null;
+    const vbParts = vbRaw ? vbRaw.trim().split(" ").map(Number) : null;
     const vb = (vbParts && vbParts.length === 4 && vbParts.every(Number.isFinite)) ? vbParts : null;
     let win = null;
     try { win = (await import("/src/state/index.js")).appState; } catch (e) {}
@@ -212,7 +212,7 @@ function printReport(r) {
     if (x.bottom > cells.vh) how.push(`${x.bottom - cells.vh}px off the BOTTOM`);
     console.log(`  (${x.gx},${x.gy}) ${x.w}x${x.h} at [${x.left},${x.top}] — ${how.join(", ")}${x.centreOutside ? "  ⚠ CENTRE OUTSIDE" : ""}${x.hit === null ? "  ⚠ HITS NOTHING" : ""}`);
   }
-  if ((centreOut.length || unhittable.length) && cells.diag) {
+  if (cells.diag) {
     const d = cells.diag;
     console.log(`[${label}] diag at measurement time: body classes="${d.bodyClasses}"  actionPanel.dataset.pp4Stage=${JSON.stringify(d.apPp4Stage)}  narration bubbles on screen=${d.bubCount} (${d.bubOutCount} already .out)`);
     console.log(`[${label}] WIDTH LEAD — documentElement.clientWidth=${d.vwPxViaDocEl}  window.innerWidth=${d.vwPxViaWindow}  svg#board.getBoundingClientRect()=[left ${d.svgClientLeft}, width ${d.svgClientWidth}]  #sailHost transform="${d.sailHostTransform}"`);
