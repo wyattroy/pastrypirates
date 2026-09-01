@@ -297,3 +297,18 @@ the split. That is the strongest form of rule 23 available: not two things kept 
 
 **Do not reopen this as a patch.** Any future "should X follow the baker?" is already answered: yes,
 like everything else.
+
+## MERGE 465 COMMITS TO MAIN, VIA THE NORMAL RELEASE LOOP — Wyatt, 2026-08-31 23:39:57Z
+
+**Ruled on the Glass, "Do it".** In response to the discovery that `claude/cloud-handoff-planning-
+a9ay1u` sat 465 commits ahead of `main` with nothing merged since 2026-08-26 — five days of real
+work, including the entire Bosun/Glass/Stop-hook system, never reaching real players.
+
+**What this authorizes, exactly as recommended:** sea-trial the branch at FULL gear (confirmed by
+`gear.mjs` — real engine/UI files diverged, not just docs), deploy the result to staging for him to
+play, then merge to `main` on his say-so once he has played it. **Not a blanket pre-approval to
+merge without his final look** — the ruling is on the PROCESS ("do it" = run the normal release
+loop), his approval of the actual merge still comes after he plays staging, per CLAUDE.md §6's
+standing release process.
+
+**Do not re-ask whether the branch should be trialed and staged — that part is settled.**
