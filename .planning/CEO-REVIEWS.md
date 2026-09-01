@@ -1,5 +1,45 @@
 # CEO reviews — the standing record
 
+## CEO Review 73 — 2026-09-01, item: image preload (INBOX-20260901T1335Z, partial)
+
+Fresh context, verified live (re-ran the probe, the new gate, `module_graph_check`, `can_push_check`).
+
+**VERDICT: PARTIAL** — two of his three bundled asks done and independently verified live; the one
+he called "the SUPER important step" and launch-critical, compressing the ~19MB of source images,
+is completely untouched.
+
+**Per-ask verdict:**
+- **(a) resize/compress every image to its real on-screen size (board excepted): NOT DONE.**
+  `assets/` is still 19MB, unchanged. This is the biggest of his three asks and it's still open.
+- **(b) load all game assets up front: PARTIAL.** Only the recipe-art and badge families were
+  added to `preloadAssets()` (src/ui/util.js); everything already in that list was already there.
+- **(c) the specific "loads dynamically... appears blank" symptom: DONE, verified live** — ran
+  `node scripts/qa/preload_recipe_badge_probe.mjs` myself against the real game with a real
+  headless Chrome: "pastry images fetched by boot: 21 of 21", "badge images fetched by boot: 10",
+  "PASS."
+
+**No unsupported claims found** — reproduced the probe, ran the new gate
+(`preload_recipe_badge_check.mjs`, gates 85→86) standalone, ran `module_graph_check.js` (no import
+cycle), and ran `can_push_check.mjs` myself: it does fail, and the failure is a pre-existing
+branch-upstream/rebase-detection fixture bug, nothing to do with images — matches the prior watch's
+documented claim rather than reusing it uncritically.
+
+**Recurrence check against CEO Review 72** (overclaiming beyond the evidence; a regression hiding
+behind a correct-looking fix): **not present here.** Every load-bearing claim was independently
+reproducible, and the change only appends URLs to an existing fire-and-forget preload list — it
+never touches drawing logic, so there's no equivalent surface for a quiet regression to hide in.
+
+**Skipping the full sea trial and leaving the INBOX item open: both defensible, not a dodge.** A
+real detached trial (pid 38460) was already running against an older commit, and CLAUDE.md itself
+says not to start a second one while it's alive; the live boot-time probe answered the actual risk
+(does the fetch happen, does it block anything) directly rather than on paper. Closing the INBOX
+item would have overclaimed — his headline ask, the compression, is most of the promised payoff
+("make the game load MUCH faster") and it isn't there yet.
+
+**One sentence for Wyatt:** the annoying blank-icon bug is fixed and verified live, but the 19MB of
+uncompressed images — the actual reason the game is slow to load — hasn't been touched, and needs
+an image tool (sharp/ImageMagick/Pillow) this unattended sandboxed watch could not install.
+
 ## CEO Review 72 — 2026-09-01, item: the storm animation (INBOX-20260901T1351Z)
 
 Fresh context, read-only, ~15 minutes including one live probe run.

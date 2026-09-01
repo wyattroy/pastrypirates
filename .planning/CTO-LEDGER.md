@@ -1585,3 +1585,132 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   reads `0/10 legs`, `updatedAt 16:44:58Z` — zero legs, no movement in over an hour, past its own
   53-minute staleness rule. Its report file still says IN PROGRESS with no verdict. Three trials
   have now failed to finish today. The next watch that reads longrun_status owns this.
+
+## WATCH ~18:00Z — situation, claim, and a real fix (INBOX-20260901T1335Z, partial)
+
+- Watch started ~2026-09-01T18:00Z (Bell-triggered, unattended — no human present to grant
+  interactive Bash approvals; this matters below). Different machine from the two prior watches
+  (`Wy-Blade`) — `longrun_status.mjs` here reports no local LONG-RUN marker, so the trial below is
+  read from the Blade's shared files, not this machine's own state.
+- Synced clean (`git fetch && git pull --rebase`, fast-forward, no conflicts). `can_push.mjs`
+  green: on branch, tracking, no rebase/merge in progress.
+- Last progress: `eda2107d` (the Glass last-progress fix) — this watch's own commit below,
+  `efa1f2f5`, is now the newest.
+- ⚑ **THE RELEASE TRIAL FINISHED — 10 of 10 legs, all reported FAIL, none of them "did not run."**
+  `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md` now ends in `RESULT: FAIL` after ~87 minutes
+  (5232s), all ten legs (solo/passplay/crew × desktop/phone/tablet, +3 WebKit) present with a
+  verdict, 342 screens queued for the vision judge (`sea-trial-shots/judge-queue.json`, not read
+  this turn — out of scope for this item, flagging for whoever owns the release gate next). NOT
+  investigated further here — this watch's item is the image-preload inbox entry below, not the
+  release trial; the next watch (or Wyatt) should read that report before treating "FAIL" as
+  broken-game rather than the geometry-settle noise pattern seen on every prior clean run.
+- Considered the INBOX in oldest-OPEN order per the Door: `INBOX-20260901T1310Z` (Glass rulings
+  triage) and `INBOX-20260901T1440Z` (detached-trial black console) are both mechanism-in-
+  `scripts/wyclau/glass.mjs`/`start_trial_detached.mjs`, both VENDORED from claude-kit — this
+  session's Bash tool is sandboxed to this repo only (confirmed: listing `C:\Users\wyatt\Projects`
+  is refused), so claude-kit is unreachable and editing the vendored copy directly would only
+  create drift `vendor_check.mjs` exists to catch. Left OPEN, untouched, same as two prior watches.
+  `INBOX-20260901T1340Z` (Glass line-break rendering) is the same file, same blocker. That leaves
+  `INBOX-20260901T1335Z` (compress images + preload, LAUNCH CRITICAL) as the oldest genuinely
+  reachable OPEN item — CLAIMING it.
+- MEASURED first (rule 26/6): `assets/` totals 19MB (`du -sh`), confirming his "~18mb from
+  memory." `assets/board.png` is 4.6MB (already his stated exception). `assets/pastries/` (21
+  files, all 512px-wide PNGs) is 5.3MB; `assets/badges/` (11 files, 256×256) is 248KB.
+  `grep`-ing for a literal "oven" image reference found none — instead traced the mechanism by
+  reading render call sites: `RECIPE_BOOK` (src/ui/recipe.js:317) and `BADGE_POOL`/
+  `FALLBACK_BADGE` (src/ui/util.js) are drawn via plain `<img src>` at recipe.js:349
+  (`.recipeThumb`), :400 (`.recipeModalThumb`), board.js:2084 (`.victoryRecipe`) and :2090
+  (`.awardEmblem`) — none of them were ever in `preloadAssets()`'s eager list, so each fetches
+  cold the first time the recipe picker, the recipe modal, or the End-of-Voyage screen renders it.
+  This is the real, measured match for "loads dynamically when it is called... appears blank",
+  even though his own naming ("fire the ovens") doesn't appear literally anywhere in the codebase.
+- TOOLING CHECK, before attempting the resize/compress half: no ImageMagick (`convert` on PATH
+  resolves to Windows' own disk-conversion utility, not ImageMagick), no `sharp` npm package, `npm
+  install sharp` and `python3 -c "import PIL"` both require interactive Bash approval this
+  unattended watch cannot obtain (tested directly, both blocked). **So (a), resize/compress every
+  image to its real display size, is genuinely blocked here, not merely skipped** — left OPEN.
+- Chose NOT to blind-preload the 5.3MB of pastry art on top of that, since it would trade the
+  blank-pop-in bug for a real bandwidth regression — directly working against the same request's
+  "make the game load MUCH faster." Instead read `src/orchestrator.js` around `preloadAssets()`'s
+  three call sites (~2727-2761): it already fires WITHOUT being awaited on the primary "fresh
+  visit" path (JOURNEY 1, home screen) and is awaited only on the mid-voyage-refresh path, already
+  capped there at a pre-existing `Promise.race([...,timeout(6000)])`. So adding the two missing
+  families is real "up front" loading (fetch starts immediately at boot) with zero boot-blocking
+  cost on the common path, bounded to +6s worst case on the resume path.
+- FIXED: `src/ui/util.js` `preloadAssets()` now includes `RECIPE_BOOK.map(r=>r.img)` and
+  `BADGE_POOL`/`FALLBACK_BADGE`'s badge URLs. Added `RECIPE_BOOK` to util.js's existing import from
+  recipe.js (one-directional edge already established via `escHtml`; `module_graph_check.js`
+  confirms no cycle). Rewrote the block comment above the function to record his 2026-09-01
+  reversal of the prior "not every icon" trade-off, per rule 6 (a comment must not rot).
+- VERIFIED LIVE, not just read: `scripts/qa/preload_recipe_badge_probe.mjs` (new, uses the
+  project's existing `scripts/lib/cdp.mjs` Chrome driver) boots the real game to a bare home
+  screen — no game started, so the recipe/badge UI has never rendered — waits 4s, and reads
+  `performance.getEntriesByType('resource')`. Result: **21 of 21 pastry images and 10 of 10 badge
+  images fetched by boot, with no recipe/badge `<img>` anywhere on screen.** This is a posed,
+  deterministic check (rule 26) rather than a sea-trial rate, chosen because the question ("does
+  this fetch happen before first use") has a yes/no answer, not a distribution.
+- Wired a structural gate, `scripts/qa/preload_recipe_badge_check.mjs` (reads the real
+  `preloadAssets()` source, checks for the three identifiers — never a hand-copied
+  reimplementation), into `npm test` (`package.json` `gates.total`/`ceiling` 85→86). Red-proofed
+  by reading `git show HEAD:src/ui/util.js`'s pre-fix function body directly and confirming none
+  of the three identifiers appear in it — `git stash`/`git checkout HEAD -- <file>` both require
+  the same unavailable interactive approval, so this substituted direct inspection for a literal
+  reverted re-run; the diff is small enough (one array literal) that reading it is not weaker
+  evidence than running it would have been.
+- SWEEP: `npm test`'s `&&` chain stops at `can_push_check` (same pre-existing, unrelated
+  git-rebase-detection fixture bug the prior watch already documented — re-verified here rather
+  than assumed: reran it standalone, confirmed the failure is about branch-upstream/rebase
+  detection, nothing touching images or util.js). Every gate after it in the chain, including
+  `gate_ceiling_check` (86/86) and the new gate, was run individually by hand — all green.
+  `module_graph_check`, `tree_health_check`, `gate_count_check` also re-run directly — all green.
+  Did NOT run `node scripts/sea_trial.mjs` (gear=FULL's normal step 4): a real detached trial
+  (pid 38460) was already in flight on the Blade against an OLDER commit, and the prior watch's
+  own instruction says not to start a second one while it's alive — and per the finding above, it
+  has now actually finished, so a second one is even less warranted right now. The live probe
+  above substitutes a targeted, real-browser measurement for the specific risk this change
+  carries (an added fetch, not a drawing change).
+- Housekeeping found and fixed in the same commit: this watch's own probe created a Chrome
+  `--user-data-dir` INSIDE the repo (`.pw-profile-preload-probe/`) under a name none of the
+  existing `.gitignore` globs covered — the same shape as the 2026-08-26 incident documented in
+  that file (a committed Chrome profile leaked a Google API key). Added `.pw-profile-*/` to
+  `.gitignore` in the same commit rather than leaving the gap for the next probe to hit.
+- NOT cleaned up: `scripts/qa/_tmp_check_pil.py`, `_tmp_check_tools.mjs`, `_tmp_img_dims.mjs` (this
+  watch's own scratch files, tooling probes) remain untracked in the working tree — `rm` was
+  categorically refused by the Bash tool in this session even against files inside the allowed
+  repo directory (message named the allowed directory as both blocked and allowed — looks like
+  `rm` itself is disabled for this session type, not a path problem), and `git clean`/`git stash`
+  both require the same unavailable approval. They are untracked, unstaged, and were never `git
+  add`ed — harmless, but flagging for a session that CAN run `rm` to sweep them, alongside two
+  pre-existing ones from before this watch (`_tmp_direct_sweep.mjs`, `_tmp_sweep_check.mjs`).
+- Committed `efa1f2f5` — 5 files (`.gitignore`, `package.json`, `src/ui/util.js`, two new
+  `scripts/qa/*.mjs`). Did NOT touch `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md` (modified
+  live by the Blade's own trial process — not this watch's to touch).
+- **CEO Review 73: PARTIAL** (fresh context, independently re-ran the probe, the new gate,
+  `module_graph_check`, `can_push_check` rather than trusting the brief). Confirmed (b)/(c) — the
+  specific blank-art bug — genuinely done and live-verified; confirmed (a), the resize/compress
+  half he called launch-critical in his own words, is completely untouched (19MB unchanged). No
+  unsupported claims found; the prior review's fault (overclaiming beyond the evidence, or a
+  regression hiding behind a correct-looking fix) does not recur — this change only appends URLs
+  to an existing fire-and-forget list, no drawing-path surface for a quiet regression to hide in.
+  Judged skipping the full sea trial and leaving the item open as defensible scoping, not a dodge.
+  Full text: `.planning/CEO-REVIEWS.md`, Review 73.
+- **NOT closing `INBOX-20260901T1335Z` through the gate** — only 2 of his 3 bundled asks are done,
+  and the one he called launch-critical (compression) isn't. Left `status: OPEN` in
+  `.planning/wyclau/INBOX.md`, exactly as the prior two watches did — same established pattern as
+  the sail-square investigation (real commits, real measured progress, item stays open across
+  many watches until genuinely complete). A future watch with `npm install` access (a human present
+  to grant the approval) or a machine with ImageMagick/PIL already installed should pick up (a):
+  resize every `assets/pastries/*.png`/`assets/badges/*.png`/`assets/icons/*.png`/
+  `assets/islands/*.png` to its real max on-screen CSS size (already measured for pastries/badges
+  above: recipeModalThumb needs ~880×440 @2x, awardEmblem ~120×120 @2x — badges at 256×256 are
+  already close to right-sized; pastries at 512px-wide/240-350KB each are oversized on FILE SIZE
+  relative to their pixel count, suggesting the bigger lever is PNG re-compression or a JPEG/WebP
+  switch, not dimension shrink — check for alpha transparency before considering JPEG). Icons and
+  island/boat art (board-scaled, zoom-dependent) were NOT sized this turn — riskier to get the
+  target resolution right without careful zoom-aware measurement; flagging rather than guessing.
+- ENDING THE TURN NOW, per the Watch rule: one item, worked through the full Proof (measured
+  first, tooling-blocked half honestly separated from the shippable half, fixed, live-verified,
+  CEO-reviewed, pushed). Next watch: same INBOX ordering applies — 1310Z/1335Z(remainder)/1440Z
+  are the open items, with 1310Z and 1440Z blocked by the same vendored-file sandbox unless run
+  from a session with claude-kit access, and 1335Z's compression half blocked by tooling unless
+  run from a session that can grant `npm install` or already has an image tool installed.
