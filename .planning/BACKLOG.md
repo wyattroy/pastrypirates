@@ -434,6 +434,38 @@ Surfaced the moment the cutover pointed `ui_contract_check` at the promoted tree
 **Fixing these is how `ui_contract_check` gets promoted from guarding the frozen game to guarding
 the live one.** That is the real prize here, and it is a copy pass plus two decisions.
 
+⚠️ **RE-MEASURED 2026-09-01 — this row is stale on nearly every count, and re-running the check
+before acting on it saved a wasted pass.** `node scripts/ui_contract_check.js` (no `--tree` flag
+defaults to root) against the current tree shows **zero `D-29-REGISTER` failures** — the ~22 pirate-
+voice items are gone (fixed at some point since this row was written, never crossed off). What
+IS still failing is a different, smaller list, and at least two of those are the check being stale
+rather than the game being wrong (rule 6 — suspect the check first when it condemns something that
+works):
+- The 5 "co-reachability" dead-button findings (`src/ui/flow.js:1616,1620,1940,1957,2254`) are
+  **at least partly false positives, verified by reading the code, not assumed**: `flow.js:1616`'s
+  Buy option already carries `why:shortWhy` (a real, correctly-derived reason string, added for
+  ITEM 17 2026-08-23) — the checker's pattern for "a reason decided by this flag" just doesn't
+  recognise this shape. Did not check all 5; flagging the pattern, not clearing the row.
+- Two of the COIN-NOBRK failures (`battleflee`) are checking for a `(−1🌕)` flee-cost parenthetical
+  that a comment at `util.js:712` says was DELIBERATELY removed ("v2 rule 2: fleeing is FREE now")
+  — the check is asserting text the game correctly stopped emitting, not a missing wrap.
+- **The retained-globals row is not "two debug hooks" — `window.__pp4` is a load-bearing,
+  actively-used runtime bridge** (`grep -rn "__pp4" src/` returns 50+ call sites across
+  `orchestrator.js`, `panel.js`, `stage.js`, `flow.js`, `board.js`, `bakeoff.js`, `lobby.js`,
+  `util.js` — narration, camera framing, battle flash, actor/subject tracking). It is a different
+  object from the deleted `PP-BRIDGE` this same gate's assertions 2/3 were built to catch, and
+  several of ITS OWN comments (`panel.js:1205`, `orchestrator.js:1810`) already name it as a site of
+  the "two orchestrations, one renderer, drifted" fault rule 23 is about. **This is not a copy pass
+  or a quick allowlist decision — it is either a real architectural item (part of the one-director
+  work already underway) or a considered, explicit "yes, keep it" ruling from Wyatt**, not something
+  to silently add to a check's allowlist. `__pulseBeacon` (`pulsebeacon.js:151`) by contrast does
+  look like the same category as the four already-allowlisted debug hooks (its own comment: "exposed
+  for the rig's probes… and for a desktop console") — cheap and low-risk to allowlist on its own,
+  separately from `__pp4`.
+**Not fixed this session** — re-running the full check, item by item, against the current tree
+(not this stale row) is the right next step for whoever picks this up, and the retained-globals
+half needs Wyatt on `__pp4` specifically before any code changes.
+
 ## 🟠 Process debt
 
 - [ ] **The seeded-defect drill still cannot fail.** `scripts/qa/seed_drill.mjs:72` grades on the
