@@ -2492,3 +2492,113 @@ because of them and I pushed without rebasing rather than disturb them.
 publisher still republishes on every tick regardless of whether anything moved — the timer fault
 Wyatt named and CEO 80 upheld. And a cron said to be running in another session (`538477ec`) is that
 session's report, **not something this one measured**: a session cannot list another's cron jobs.
+
+---
+
+## WATCH — 2026-09-01T22:48Z, Wy-Blade. CLAIM WRITTEN BEFORE THE FIRST EDIT.
+
+**SITUATION, six lines.**
+- **Watch started** 2026-09-01T22:48Z on `claude/cloud-handoff-planning-a9ay1u`, in sync with origin
+  (0 ahead, 0 behind). `can_push.mjs`: can publish.
+- **Last progress:** `7510a13f` (22:4xZ) — the Advisor session's runbook sweep and its own
+  retroactive claim.
+- **The previous watch closed** two of Wyatt's three asks in INBOX-20260901T1335Z: COMPRESS
+  (17.79 → 10.70 MB) and PRELOAD ALL ASSETS UP FRONT (flame.png among 53 warmed unseen). CEO 80.
+- **Blocked on Wyatt:** nothing. The BLOCKED ON WYATT table is empty.
+- **Detached trial in flight:** NONE. `.planning/wyclau/LONG-RUN` is empty and the ledger records
+  pid 45256 gone; the 19:14Z run finished 10 of 10 legs structurally with its **visual half
+  DEFERRED** (the vision judge could not see). I could not enumerate processes to confirm
+  independently — `Get-Process` and `tasklist` are both refused by this sandbox — so this rests on
+  the marker and the previous watch's reading, and is stated as such.
+- **What THIS watch will do:** finish INBOX-20260901T1335Z — **part (c), RESIZE**, the last of his
+  three asks and the oldest OPEN inbox item. LAUNCH CRITICAL, his word.
+
+**WHY THIS ITEM AND NOT THE CHART.** The Door puts the Inbox first, and 1335Z is the oldest OPEN
+entry (1315Z is IN FLIGHT, 1340Z and 1440Z are younger). His words are unambiguous and unfinished:
+*"everything else should be resized and compressed according to its maximum pixel size in the real
+gameplay."* Two thirds of that sentence shipped; the word "resized" has not.
+
+**A SCOPE POINT ON THE HANDOFF, NOT A CORRECTION OF IT.** The previous watch derived a real and
+useful number — the board pop binds the icon family at ~163 device px, so the 128px icons must not
+shrink — and then sized the whole remaining ask off that one family: *"the only genuinely oversized
+tier is the ~320px icons, worth ~0.35 MB."* But icons are not where the weight is. Excluding
+`board.png` (his stated exception, 4.34 MB), **6.36 MB remains**, and the three heaviest tiers are
+`islands/` (~1.6 MB, one file 1054x534), `pastries/` (21 files, all 512px wide, ~1.7 MB) and the
+About page's four JPEGs (~0.6 MB). **None of those three had its maximum real-gameplay display size
+measured.** That measurement is this watch's first act, before any encoder runs.
+
+**MY PREDICTION, WRITTEN BEFORE MEASURING** (rule 6's working form; full note in
+`.planning/wyclau/PREDICTION-20260901T2250Z-resize.md`). I expect the pastry cards at 512px to be
+genuinely oversized — I predict their largest real slot is a recipe/end-of-voyage card well under
+256 CSS px — and I expect `islands/5.png` at 1054x534 to be near-correct, because island art is
+drawn onto the board and the board is the one thing he told us to leave big. **What would prove me
+wrong:** a pastry drawn full-bleed at stage width on a 3x-DPR phone, which would need every one of
+its 512 pixels — if I find that slot, the pastries must not shrink and this item's honest answer is
+much smaller than his sentence implies. I will say plainly which half I got wrong.
+
+**Claimed:** INBOX-20260901T1335Z part (c). No other session should take it while this entry stands.
+
+### OUTCOME — CEO 82 said **NO**, the item stays OPEN, and it is right
+
+**NOTHING WAS RESIZED THIS WATCH.** I built the measurement his sentence names, corrected it twice,
+and then over-read it into "nothing may safely shrink." CEO 82 took that apart and the item is not
+ticked. What this watch actually leaves behind is a working instrument, a persisted table, and a
+much smaller, sharper remaining job than the one it started with.
+
+**BOTH MY WRITTEN PREDICTIONS WERE WRONG, IN THE SAME DIRECTION**
+(`.planning/wyclau/PREDICTION-20260901T2250Z-resize.md`, written before measuring):
+1. *"Pastries are oversized"* — **wrong, and worse, unmeasured.** `.prowRecipe` never resolved on any
+   viewport, so 19 of 21 pastries are still `NOT SEEN`. The "they're under-resolution" reading came
+   from `index.html:344`'s CSS, which is exactly what my own probe's header forbids.
+2. *"Islands are near-correct"* — **right for the wrong reason**, and only after two corrections.
+
+**THE CEILING WAS WRONG TWICE, IN OPPOSITE DIRECTIONS. This is the reusable part.**
+- **Too low.** v1 used `zoomCap()` (`stage.js:789`), the DIRECTOR's cap — ~1.03 on a 1280px board.
+  Every island read "OVERSIZED x2" and the obvious next move was to halve commissioned board art.
+- **Too high.** v2 used the player's pinch clamp (`stage.js:945`, a raw `Math.max(640/2.6, …)` that
+  `camTo` never lower-clamps — both true at source). But I then took the MAX across viewports, and
+  the winner was a 1280px DESKTOP at 2.6 — **a gesture a mouse cannot make.** The handler is gated on
+  `ptrs.size === 2` (`stage.js:941`). That inflated the ceiling ~1.7× and manufactured the answer.
+- **v3, split by device class:** touch viewports pinch to 2.6, mouse-only desktop is held at
+  `zoomCap`. Board tier now reads **islands/5 x1.22, islands/3 x1.27, compass-dial x1.25, dock
+  x1.26** — sitting ON the 1.30 margin, not comfortably under it.
+
+**A wrong constant in an instrument does not read as wrong. It reads as a finding** — and this one
+read as a finding twice, pointing opposite ways, both times confidently.
+
+**AND I ACCEPTED A BLOCKER WITHOUT CHECKING IT, which is the error I most want the next watch to
+avoid.** The previous watch wrote that the ~320px icon tier needed "a palette decoder plus a
+resampler" and I took that as settled. CEO 82 found both already in this repo: `scripts/lib/png.mjs`
+(decoder :80, encoder :173) and a resampler in use at `scripts/qa/w51_reexport_coin_art.mjs:16`.
+**That tier is executable today.** Rule 6's shape again — an instrument (here, a previous session's
+sentence) saying NO had told me something about itself, not about the world.
+
+**WHAT LANDED, and all of it is committed and pushed:**
+- `scripts/qa/asset_display_size_probe.mjs` — boots the real game at three viewports, walks every
+  `<img>`, CSS background and SVG board image, resolves `object-fit`, and reports each file's
+  intrinsic pixels against the DEVICE pixels its largest slot can actually use.
+- `.planning/ASSET-DISPLAY-SIZES.md` — all 149 files with their measured slot. CEO 82 finding 7: the
+  first version printed to stdout only, so the reviewer had to re-run the probe to see the evidence.
+- It also found a real gap in an existing instrument: **`asset_posed_pair.mjs` never reaches the
+  recipe picker either.** An opening-ceremony card with a single "Arrgh!" button sits in front of it
+  and nothing advances it, so that script's "recipe picker" screenshot is of the ceremony card.
+
+**WHAT IS ACTUALLY LEFT, sized honestly, for the next watch** (CEO 82's list, in its order):
+1. **Reach the recipe modal and measure the pastries — 1.71 MB, the heaviest family after the
+   board.** `.prowRecipe` never resolved; either find the real affordance or inject the state per
+   `DRIVING-THE-GAME.md` §5e. This is the biggest unmeasured block.
+2. **Ship the ~320px icon tier, ~0.35 MB** — measured, over the line, and the tooling exists. Posed
+   pair per rule 26.
+3. **The About JPEGs, ~0.52 MB** (`about-recipes.jpg` x1.49, `about-screenshot.jpg` x1.28) — genuinely
+   oversized and fully measured, blocked only because ffmpeg is refused by this sandbox. **A "could
+   not", not a "should not"** — do not argue it away as I did on the grounds that it is off the boot
+   path (verified: absent from `preloadAssets()`, `src/ui/util.js:2016-2028`).
+4. **94 files / 2.84 MB are still `NOT SEEN`** — not measured, and therefore not safe to shrink.
+   Total still on the table: roughly **1.5–2 MB of 10.70 MB, so ~15–20% lighter is plausible.**
+
+**Scratch a human should delete** (untracked, not committed, and `rm` is refused by this sandbox):
+`.tmp-boot-diag.mjs` at the repo root, `scripts/qa/tmp_boot_diag.mjs`, and the `.tmp-dispsize-*` /
+`.tmp-bootdiag-*` Chrome profile directories.
+
+**Kept clean:** no game code touched, `npm test` green and ran to completion (89 gates, asset ceiling
+10.70 MB with 0.30 MB headroom). No sea trial — nothing this watch changed can reach a player.

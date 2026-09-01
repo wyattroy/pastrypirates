@@ -48,12 +48,23 @@ ASSETS UP FRONT: done — his own "fire the ovens" example (`icons/flame.png`) w
 fetched at boot; proved RED (25 icons fetched, all 25 already on screen, zero warmed ahead) then
 GREEN (78 fetched, 53 warmed unseen, flame among them); boot warms 143 of 149 files. Both closed
 2026-09-01T22:5xZ, CEO 80, commits `2f3a4a0`-era pair on `claude/cloud-handoff-planning-a9ay1u`.
-(c) RESIZE: **NOT done, and the measurement that decides it is now on the record** — the board, not
-the 18px inline slot, binds the icon family (one file serves both; `EMOJI_IMG` +
-`popEmoji`), and a board pop needs ~163 device px at 3× DPR, so the 128px icons must NOT shrink and
-the only oversized tier is the ~320px icons, worth ~0.35 MB. Full derivation in `CTO-LEDGER.md`
-under WATCH 22:10Z. Pushed — `git push origin <branch>` spelled out in full works where the
-shorter forms are refused; see the correction in the ledger.
+(c) RESIZE: **STILL NOT DONE — nothing has been resized yet, and CEO 82 said NO to the attempt.**
+The measurement now exists and is committed: **`.planning/ASSET-DISPLAY-SIZES.md`**, all 149 files
+with the maximum DEVICE pixels each is ever drawn at, produced by
+`node scripts/qa/asset_display_size_probe.mjs`. The watch of 22:48Z over-read it as "nothing may
+safely shrink"; that was wrong, because its zoom ceiling credited a mouse-only desktop with a
+two-finger pinch. **Corrected, roughly 1.5–2 MB of 10.70 MB is still on the table (~15–20%
+lighter).** What remains, in order:
+  1. **Pastries, 1.71 MB — never measured.** The probe cannot open the recipe modal (`.prowRecipe`
+     never resolves), so 19 of 21 come back NOT SEEN. Biggest unmeasured block.
+  2. **The ~320px icon tier, ~0.35 MB** — measured, over the line, and executable today: the
+     previous "no decoder/resampler" blocker was wrong, `scripts/lib/png.mjs` and
+     `scripts/qa/w51_reexport_coin_art.mjs:16` already have both.
+  3. **The About JPEGs, ~0.52 MB** (x1.49 / x1.28) — measured and oversized, blocked only because
+     ffmpeg is refused by the Windows sandbox. A "could not", not a "should not".
+  4. **94 files / 2.84 MB still NOT SEEN** — unmeasured, so not safe to shrink.
+Full account, including the ceiling being wrong twice in opposite directions, in `CTO-LEDGER.md`
+under WATCH 22:48Z and CEO 82.
 
 ## INBOX-20260901T1340Z — the Glass bakes in line breaks (his routing: backlog)
 > "one small note about formatting on the glass-- you seem to be baking in line breaks, which

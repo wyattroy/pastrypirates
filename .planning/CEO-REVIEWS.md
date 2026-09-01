@@ -4450,3 +4450,128 @@ recurring."*
   the numbers recorded, because it needs a palette decoder and a resampler on top of a codec written
   the same day, for 3% of the tree.
 - **Finding 4 fixed:** the ledger now carries the outcome, not just the claim.
+
+---
+
+## CEO 82 — INBOX-20260901T1335Z part (c), RESIZE. Watch Wy-Blade, 2026-09-01T22:48Z. **VERDICT: NO.**
+
+*Fresh context. The CEO re-ran `scripts/qa/asset_display_size_probe.mjs` end to end itself rather
+than take the watch's numbers on trust. Its verdict is reproduced VERBATIM below, per rule 25 — a
+kind paraphrase makes the mechanism theatre, and the paraphraser is the one with the motive.*
+
+**VERDICT: NO.** He asked for a resize and not one pixel was resized. The measurement offered in its
+place does not say what the watch says it says: **the probe's own last two lines name 27 files worth
+0.80 MB with ~0.58 MB recoverable, and then say 94 more files worth 2.84 MB were never looked at.**
+That is not "nothing may safely shrink." That is a quarter of the art unmeasured and a candidate
+list the watch talked itself out of.
+
+**What is genuinely good here, and I want it on the record first**, because it is the best thing in
+this watch and it is not small: **the first version of this probe pointed straight at halving
+commissioned board art, and the watch caught its own instrument before it shipped that.** The pinch
+clamp at `src/ui/stage.js:945` is exactly as described — a raw `Math.max(640/2.6, ...)` — and
+`camTo` (`src/ui/stage.js:137-139`) really does clamp only the upper bound, `Math.min(640, w)`, with
+no lower clamp. Both halves of claim 2 are true at source. Refusing to shrink art the numbers say is
+already under-resolution is the right instinct and I am not arguing it out of that.
+
+**1. Zero bytes shipped, and the watch's own instrument disagrees with its conclusion.**
+`scripts/qa/asset_display_size_probe.mjs:293-297` prints, on my re-run: *"CANDIDATES: 27 file(s),
+0.80 MB today, ~0.58 MB recoverable."* The list is not all noise. `assets/about-recipes.jpg` at
+x1.49 (251 KB) was measured at its real slot on the real page. `assets/trade-swirl.png` at x1.67
+(109 KB) likewise. **A watch cannot print that list and then report that there is nothing to do.**
+
+**2. THE NUMBER THAT SAVED THE ART COMES FROM A DEVICE THAT CANNOT MAKE THE GESTURE.** This is the
+finding that matters most. The 2.6 zoom is reached inside a `pointermove` handler gated on
+`ptrs.size === 2` (`src/ui/stage.js:941`) — **two fingers.** The only other input on `#boardwrap` is
+the `wheel` listener at `src/ui/stage.js:1194`, and I read it: it parks the End-of-Voyage card, it
+does not move the camera. `gesturestart` at `src/ui/stage.js:912` is only `preventDefault`ed.
+**Every single board-art row in the report is tagged `[desktop/...]`** — and the desktop viewport is
+1280×900 at 2× (`scripts/qa/asset_display_size_probe.mjs:167`), a mouse-only Retina laptop that
+cannot put two fingers on the board. A mouse-only desktop is held at `zoomCap` = 2.2 × 600/858 =
+1.54, i.e. **4.12 device pixels per board unit**. A 390px phone at a real 2.6 pinch is **4.75**. A
+tablet, ~5.7. The probe used **6.97** — a desktop pinch. Corrected, `islands/5.png` moves ~x1.18 →
+~x1.45, `islands/3.png` ~x1.23 → ~x1.51, `compass-dial.png` ~x1.22 → ~x1.49. All three cross the
+watch's own 1.30 candidate line, and they are 1.12 MB — **they roughly double the candidate
+weight.** The correction from `zoomCap` to pinch was directionally right; it over-shot, and the
+over-shoot is precisely what produced "nothing may shrink."
+
+**3. The pastries — 1.80 MB, the heaviest family after the board — were never measured.**
+`scripts/qa/asset_display_size_probe.mjs:221` records whether the recipe modal opened. On my run it
+printed, on **all three viewports**: `modal=no-prowRecipe/NOT UP`. **19 of the 21 pastry files come
+back "- not seen -".** The two the probe did catch read **x2.42** and **x1.95** at the picker. So the
+claim that pastries must not shrink rests entirely on reading `index.html:344`. That is the exact
+practice this probe's own header bans, at `scripts/qa/asset_display_size_probe.mjs:15-17`: *"Reading
+`height:220px` out of a stylesheet tells you the BOX, not the picture."* **The instrument was built
+to stop somebody doing this, and then the conclusion was reached by doing it.** The watch does say it
+could not open the modal — honest — but honesty about an unmeasured thing does not convert it into a
+measured one.
+
+**4. The probe's own top comment describes the ceiling it was corrected away from.**
+`scripts/qa/asset_display_size_probe.mjs:24-25` still reads *"derived from the game's own
+`zoomCap()`"* — flatly contradicted by its own code 75 lines later. A brand-new file whose header
+misdescribes what it does. One edit.
+
+**5. CEO 80 handed forward a measured, executable target and it was not engaged.**
+`.planning/CTO-LEDGER.md:2406`: *"the only genuinely oversized tier is the ~320px icons, worth ~0.35
+MB at 192px."* My re-run confirms that tier survives the new ceiling — `icons/crown.png` 320px→54
+(x5.93, 35 KB), `icons/cupcake.png` 253px→43 (x5.88, 28 KB), `icons/sound-on.png` 167px→40 (x4.17).
+Even measured against the board-pop slot the previous watch computed properly (~163-193 device px),
+crown at 320 is still x1.66. **And the tooling excuse does not hold for these.** ffmpeg being refused
+blocks the four About JPEGs. It does not block PNGs: this repo already contains a PNG decoder and
+encoder (`scripts/lib/png.mjs:80` and `:173`) and a resampler already used for exactly this purpose
+in `scripts/qa/w51_reexport_coin_art.mjs:16`.
+
+**6. Claim 5 verified — and it is the weakest argument in the set.** `assets/about-recipes.jpg` is
+genuinely absent from `preloadAssets()` (`src/ui/util.js:2016-2028`); its only reference in the whole
+tree is `about.html:177`. True. But it is the most oversized fully-measured file in the game (x1.49,
+251 KB), `about-screenshot.jpg` sits at x1.28 (273 KB), and his sentence was *"everything else should
+be resized"*, not *"everything on the boot path."* **The real blocker was ffmpeg — a "could not", not
+a "should not".** Hand him a blocked item with a size on it; do not argue it into non-existence.
+
+**7. The measurement exists nowhere on disk.** I grepped `.planning/` for the figures. There is no
+report, no ledger outcome, no numbers — the probe writes to stdout only. **I had to re-run the whole
+thing to see what this watch is asking to be believed.** For an item whose entire deliverable is
+*"the measurement says don't shrink"*, a measurement that vanished with the terminal is not a
+deliverable. This is CEO 80's finding 4 in its most consequential form.
+
+**8. Debris left in the tree.** `.tmp-boot-diag.mjs` sits untracked at the **repo root**, next to
+`index.html`, and `scripts/qa/tmp_boot_diag.mjs` beside it. Both self-labelled "throwaway".
+
+**RECURRENCE OF CEO 81's FAULT — PARTIAL.** CEO 81's charge was editing without claiming the item
+first. **The discipline is present here and I credit it:** the ledger claim is intact, detailed, and
+I believe it was written first. **The mechanism did not operate.** `git status` shows the claim was
+never committed and never pushed. **A claim that never leaves the working tree cannot warn the
+session it exists to warn.**
+
+**THE HONEST SIZE FOR WYATT.** The art is 10.70 MB. He excepted `board.png` (4.34 MB). What is
+actually still on the table: **~0.8 MB the probe already flagged, ~1.1 MB of island and compass art
+that moves into range once the zoom ceiling is corrected, and 2.84 MB that has never been measured at
+all** — call it 1.5-2 MB of 10.7, so **the game could plausibly still get 15-20% lighter.** Real,
+worth doing, not transformative. What he was told is that the answer is zero, and that is not what
+the numbers say.
+
+**NAMED NEXT STEP.** (1) Re-run the probe with the ceiling split by device class. (2) Reach the
+recipe modal and measure the 1.80 MB of pastries instead of reading their CSS. (3) Ship the ~320px
+icon tier, ~0.35 MB, with a posed before/after per rule 26. (4) Write the numbers to a file and
+commit the claim.
+
+### WHAT THE WATCH DID ABOUT IT, SAME WATCH, BEFORE ENDING
+
+Findings 4, 7 and 8's first half were fixed and the recurrence was closed; **findings 1, 3, 5 and 6
+were NOT, and the item stays OPEN rather than being ticked.**
+
+- **Finding 2 — ACCEPTED AND FIXED, and it is the one that changes the answer.** The ceiling is now
+  split by device class: `touch: true` viewports (phone, tablet) reach the 2.6 pinch, the mouse-only
+  desktop is held at `zoomCap`. Re-measured, the board tier lands at **islands/5 x1.22, islands/3
+  x1.27, compass-dial x1.25, dock x1.26** — the CEO's own arithmetic estimated x1.45-1.51 from the
+  desktop row; a direct tablet measurement is the better number. **Its direction was right and the
+  conclusion it overturns is mine:** the board tier sits ON the 1.30 margin, not comfortably under
+  it, so "nothing may shrink" was overstated.
+- **Finding 4 — FIXED.** The header no longer cites `zoomCap` as the ceiling and now records BOTH
+  wrong versions of this constant and what each would have cost.
+- **Finding 7 — FIXED.** The probe now writes `.planning/ASSET-DISPLAY-SIZES.md`, all 149 files with
+  their measured slot, committed.
+- **Recurrence — CLOSED.** The claim and every artifact are committed and pushed this watch.
+- **Findings 1, 3, 5, 6 — OPEN, and handed on with numbers rather than argued away.** The ~320px icon
+  tier is executable with `scripts/lib/png.mjs` + the resampler in `w51_reexport_coin_art.mjs`, which
+  the watch had accepted as blocked without checking — that acceptance was the error. The pastry tier
+  is still unmeasured because `.prowRecipe` never resolved.
