@@ -1035,3 +1035,9 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   BLOCKED ON WYATT emptied. Bell task confirmed registered and Ready (his schtasks query).
   The full Glass loop — question up as a card, ruled on the page, harvested to the record,
   card retired — has now run end to end once.
+
+- The "strange window" on the Blade identified from his screenshot (read, not guessed): the
+  detached trial's own node.exe console — Node ignores windowsHide for detached console children
+  on Windows. Previous guess (the Bell's PowerShell tick) was WRONG and is corrected here: the
+  window title said node.exe. Filed as INBOX-20260901T1440Z with the hazard named: closing that
+  window kills the trial. He was told: minimize, never close.

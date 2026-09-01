@@ -65,6 +65,13 @@ status: OPEN — written on the Glass 13:51:04Z, during the Blade hour.
 solution: fix universally, not through patches — one rule places every player-selecting button beside its player (his words)
 status: DONE 2026-09-01 — CEO 69, commit f2dff2c (2 game files); his solution first: commit f2dff2c
 
+## INBOX-20260901T1440Z — the detached trial pops a visible black console on Windows (close = dead trial)
+> Wyatt, mid-Blade-hour: "this strange window popped up automatically, do you know what it's
+> doing?" — a black `C:\Program Files\nodejs\node.exe` console, which is the detached release
+> trial itself (screenshot in the session record, read element by element).
+solution: none stated
+status: OPEN — mechanism known: Node ignores `windowsHide` for `detached: true` console children on Windows, so start_trial_detached.mjs's trial gets its own visible console (black — stdio goes to the log). The hazard is real, not cosmetic: one accidental ✕ kills an 85-minute trial silently. Fix shape: launch the detached child windowless on Windows (e.g. via a hidden powershell wrapper or CREATE_NO_WINDOW-equivalent), red-proofed on the Blade. Vendored file — fix in claude-kit.
+
 ## INBOX-20260901T1317Z — the "Tap and hold the sea" hint's attention animation flashes rapidly
 > "\"Tap and hold the sea to reveal the board\" tooltip hint's attention-animation, which should be
 > the same gentle orange gradient as the other attention buttons that are on stages, instead
