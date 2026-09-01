@@ -1951,3 +1951,39 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 - **ENDING THE TURN.** One item, closed through the gate. The next watch's top unblocked item is
   the re-sail — read the two hazard notes above BEFORE launching it, and launch it detached
   (`start_trial_detached.mjs`), then commit and push the claim before ending.
+
+## WATCH 2026-09-01T19:09Z (Wy-Blade) — the release re-sail (INBOX-20260901T1315Z, part 2)
+
+**SITUATION, six lines.**
+- Watch started 2026-09-01T19:09Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  `can_push.mjs` green (tracking origin, no rebase or merge in progress).
+- Last progress: `f53c197c`, 19:05Z — the previous watch, minutes ago.
+- What the previous watch closed: the sea trial's scorecard (CEO 75) — one stamped record now
+  serves both the per-leg file and `report.json`, and the gate that could not fail was rebuilt to
+  execute both files' real code.
+- Blocked on Wyatt: nothing. The Chart's BLOCKED ON WYATT table is empty.
+- Detached trial in flight: **none.** Both `.planning/wyclau/detached/*.out` belong to finished
+  runs (14:19Z, 16:44Z); no live pid.
+- **This watch takes the Chart's top unblocked row** — "the release trial did not sail the code
+  that would be staged — re-sail after the fix above" — which is part 2 of his
+  INBOX-20260901T1315Z, the first Watch cargo.
+
+**CLAIMED:** INBOX-20260901T1315Z part 2 (the re-sail), this watch, from 19:09Z.
+
+**PREDICTION, WRITTEN BEFORE MEASURING (rule 6's working form).**
+1. A trial started as the tree stands resumes all ten legs and sails none. `PP4_STAMP` is
+   `2026.09.01.6` and `sea-trial-shots/legs/` holds a full ten-leg set at that exact stamp. Read
+   out of the code rather than assumed: `playtest_gate.mjs:572` keys the cache file on
+   `${name}--${STAMP}.json`, and `:576` re-checks `r.__stamp === STAMP` — the stamp is the whole
+   resume key.
+2. Bumping the stamp is therefore both halves of the fix in one line. It invalidates the cache so
+   the re-sail genuinely sails, and it makes the stamp honest — which is the adjacent finding the
+   last watch named and correctly did not widen into: **four game-code commits landed after
+   `373bd99e` set `.6`** — `822549a7`, `bca181b2` and `f7c1207e` during the 16:44Z run, and
+   `efa1f2f5` about ninety seconds after it ended. So `.6` currently names a tree it was never
+   sailed against.
+3. `npm test` stays green across the bump — nothing should depend on the stamp's literal value.
+
+**NAMED FALSIFIERS**, so this note can be wrong rather than merely confident: a leg that still
+resumes at the new stamp, or any gate that hardcodes `2026.09.01.6`, means the reasoning above is
+wrong, and it gets written here as wrong.
