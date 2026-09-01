@@ -27,7 +27,28 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const THRESHOLD = 5;
+/* ⚠ WIDENED 2026-09-01, BECAUSE IT WATCHED ME SHIP FOUR UNREVIEWED ITEMS AND SAID NOTHING.
+   Wyatt asked "how can you ensure the CEO is on for every turn?" after the advisor session shipped
+   can_push.mjs, the Bell's output capture, the Door's publish rule and the Glass's clock fix with
+   no verdict on any of them. THE FENCE WAS WORKING EXACTLY AS WRITTEN: it counted only GAME-CODE
+   commits, and not one of those four touched index.html or src/. An instrument measuring a subset
+   of the thing it is named for reads, from inside, exactly like an instrument finding nothing.
+   SO IT NOW COUNTS REVIEWABLE WORK, not game code: any commit touching a tracked file that is not
+   itself part of the record. Infrastructure IS work — the sea trial, the Bell and the Door decide
+   whether the game ships, and shipping them unreviewed is the batching this fence exists to stop.
+   The record files are excluded because a commit that only writes the log is not an item. */
+const THRESHOLD = 3;
+/* Files that are the RECORD rather than work. A commit touching only these is bookkeeping and must
+   not count toward the fence, or the fence would fire on its own ledger entries forever. */
+const RECORD_ONLY = [
+  /^\.planning\/CTO-LEDGER\.md$/,
+  /^\.planning\/CEO-REVIEWS\.md$/,
+  /^\.planning\/wyclau\/(INBOX|LESSONS)\.md$/,
+  /^\.planning\/wyclau\/status\//,
+  /^\.planning\/CHART\.md$/,
+  /^\.claude\/memory\/DECISIONS\.md$/,
+];
+const isRecord = (f) => RECORD_ONLY.some((re) => re.test(f));
 
 function main() {
   let input;
@@ -48,28 +69,38 @@ function main() {
     const lastReview = git("log -1 --format=%H -- .planning/CEO-REVIEWS.md").trim();
     if (!lastReview) process.exit(0);   // no review has ever landed: nothing to measure against
 
-    // one source for "what is game code" — the same lib the gear hook reads (rule 23)
-    const { isGameCode } = require(path.join(__dirname, "lib", "game-code.cjs"));
     const out = git(`log ${lastReview}..HEAD --name-only --format=%H`);
-    let gameCommits = 0, inCommit = false, counted = false;
+    let workCommits = 0, inCommit = false, counted = false;
     for (const line of out.split("\n")) {
-      if (/^[0-9a-f]{40}$/.test(line.trim())) { inCommit = true; counted = false; continue; }
-      if (inCommit && !counted && line.trim() && isGameCode(line.trim())) { gameCommits++; counted = true; }
+      const f = line.trim();
+      if (/^[0-9a-f]{40}$/.test(f)) { inCommit = true; counted = false; continue; }
+      if (inCommit && !counted && f && !isRecord(f)) { workCommits++; counted = true; }
     }
-    if (gameCommits < THRESHOLD) process.exit(0);
+    if (workCommits < THRESHOLD) process.exit(0);
 
+    /* ⚠ ONE DENIAL PER *UNREVIEWED STRETCH*, NOT PER SESSION — corrected 2026-09-01, and this was
+       the bigger of the two faults. The marker used to be written once and then suppress the fence
+       for the rest of the session. That is fine for a watch, which lives one item; it is useless
+       for a long advisor session, where it means ONE reminder per DAY however much lands after it.
+       Replayed against today's real history: the count crossed the old threshold, and the fence
+       still never spoke, because it had already spent its single denial hours earlier.
+       The marker now REMEMBERS WHICH REVIEW IT LAST FIRED AGAINST. A new verdict landing changes
+       that sha, which re-arms the fence for the next stretch. Keeping the cadence is what buys
+       silence — nothing else does. */
     const stateDir = path.join(repo, ".claude", "hooks", ".read-state", session);
     const marker = path.join(stateDir, "ceo-cadence");
-    if (fs.existsSync(marker)) process.exit(0);                  // one denial per session
+    let firedAgainst = null;
+    try { firedAgainst = fs.readFileSync(marker, "utf8").trim(); } catch { firedAgainst = null; }
+    if (firedAgainst === lastReview) process.exit(0);            // already warned for THIS stretch
     fs.mkdirSync(stateDir, { recursive: true });
-    fs.writeFileSync(marker, new Date().toISOString());
+    fs.writeFileSync(marker, lastReview);
 
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
         permissionDecisionReason:
-`CEO CADENCE — ${gameCommits} game-code commits have landed since .planning/CEO-REVIEWS.md last changed.
+`CEO CADENCE — ${workCommits} commits of real work (game code OR the tooling that gates it) have landed since .planning/CEO-REVIEWS.md last changed.
 
 Wyatt's standing order (given twice, 2026-08-28): "I want CEO to review after every item."
 The unit is the ITEM — each thing he asked for closes with its own fresh-context CEO verdict,
