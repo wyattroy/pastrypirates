@@ -120,7 +120,7 @@ const DEMO = argv.includes("--demo");
 /* Markdown markers the Chart uses that this page renders literally if they survive. Kept as
    ONE function because they were being stripped ad hoc in three places and ~~ was missed in
    all of them -- it reached the published page as raw tildes across a struck-through row. */
-const unmark = (s) => String(s).replace(/\*\*|~~/g, "").replace(/~~/g, "");
+const unmark = (s) => String(s).replace(/\*\*|~~/g, "");
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tryReadTimestamp = (p) => {
@@ -225,20 +225,26 @@ function shortSubject(s) {
    "Some-Header: value" line, or a link to a session -- never by a hand-typed list of exact
    strings, which would rot the moment a trailer is renamed. */
 function stripTrailers(body) {
-  return String(body || "")
-    .split("\n")
-    .filter((l) => !/^\s*(?:[A-Za-z][A-Za-z]*-)+[A-Za-z]+:\s/.test(l))
-    .filter((l) => !/^\s*(?:Generated with|https:\/\/claude\.ai\/code\/session)/.test(l))
-    .join("\n");
+  const lines = String(body || "").split("\n");
+  /* Only from the END, which is where git puts trailers. A line that looks like one in the
+     middle of a paragraph is somebody's sentence -- three were being eaten ("end-to-end:",
+     "bulk-copied:", "Check-in:") before this was positional. */
+  const isTrailer = (l) =>
+    l.trim() === "" ||
+    /^[A-Za-z][A-Za-z0-9-]*:\s*\S/.test(l) ||
+    /^\s*\S*\s*Generated with/.test(l) ||
+    /^\s*https?:\/\//.test(l);
+  let end = lines.length;
+  while (end > 0 && isTrailer(lines[end - 1])) end--;
+  return lines.slice(0, end).join("\n");
 }
-
 function pillHtml(c) {
   const paras = stripTrailers(c.body).split(/\n\s*\n/).map((b) => b.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
   const why = paras.length
-    ? paras.map((b) => '<p class="pillWhy">' + esc(b) + "</p>").join("")
+    ? paras.map((b) => '<p class="pillWhy">' + esc(unmark(b)) + "</p>").join("")
     : '<p class="muted">No further detail in this commit.</p>';
-  return '<details class="pill"><summary>' + esc(shortSubject(c.s)) + "</summary>"
-    + '<div class="pillBody"><p class="pillSubject">' + esc(c.s) + "</p>"
+  return '<details class="pill"><summary>' + esc(unmark(shortSubject(c.s))) + "</summary>"
+    + '<div class="pillBody"><p class="pillSubject">' + esc(unmark(c.s)) + "</p>"
     + why
     + '<p class="pillMeta">' + esc(c.h) + " · " + esc(c.when) + "</p></div></details>";
 }
@@ -254,7 +260,7 @@ function shortNote(s) {
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
    ones so the Tasks card stays scannable rather than a wall of text. */
 function shortTask(s) {
-  let t = String(s).replace(/\*\*|~~/g, "").replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
+  let t = unmark(s).replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
   const words = t.split(/\s+/).filter(Boolean);
   return words.length > 16 ? words.slice(0, 16).join(" ") + "…" : t;
 }
@@ -288,7 +294,7 @@ if (chart !== null) {
     // first 40 chars of the question, lowercased, punctuation stripped.
     .map(([q, rec, since]) => ({
       id: q.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40).replace(/^-|-$/g, ""),
-      q: q.replace(/\*\*|~~/g, ""), rec: (rec ?? "").replace(/\*\*|~~/g, ""), since: since ?? "",
+      q: unmark(q), rec: unmark(rec ?? ""), since: since ?? "",
     }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
   /* WHOLE BLOCKS, not first lines. An idea's fate ("SHIPPED", "PARKED", "SCHEDULED") is written
@@ -307,7 +313,7 @@ if (chart !== null) {
   const ruledSec = chart.split(/^## RULED[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
   ruled = ruledSec.split("\n")
     .filter((l) => l.startsWith("|") && !/^\|\s*item\b/i.test(l) && !/^\|\s*-+/.test(l))
-    .map((l) => l.split("|").map((c) => c.trim().replace(/\*\*|~~/g, "")).filter(Boolean))
+    .map((l) => l.split("|").map((c) => unmark(c.trim())).filter(Boolean))
     .filter((c) => c.length >= 2)
     .map(([item, call, now]) => ({ item, call, now: now ?? "" }));
   // ITEM 6 — ONE MERGED TASK LIST, not two counts kept in step by nothing. Open items from the
@@ -323,7 +329,36 @@ if (chart !== null) {
      inflated one is worse than a missing one.
      Detected by the fate words the Chart itself promises to write, not by a hand-kept list of
      which ideas are done -- a list like that would rot the first time somebody harvested one. */
-  const FATE = /\b(SHIPPED|PARKED|SCHEDULED|HARVESTED|CLOSED|DONE|FIXED|ROOT-CAUSED)\b/;
+  /* THE FATE IS DECLARED, NOT MENTIONED. CEO Review 63 caught this being right by luck: the
+     first rule searched the whole idea for eight words, and hid an entry whose own verdict reads
+     "STILL OPEN, NOT SHIPPED-AND-CLOSED" -- because the word SHIPPED appears inside the phrase
+     DENYING it. The answer happened to be correct that day and the reasoning was not, which is
+     the kind of check that fails the moment somebody writes a different sentence.
+     The Chart declares a fate in one shape, its own convention: an arrow, then the fate in bold
+     ("→ **SHIPPED**", "→ **PARKED, low priority**"). Match THAT, so a fate has to be announced
+     rather than merely mentioned. */
+  /* A FATE IS DECLARED, AND A DENIAL OUTRANKS IT. Two mistakes were made getting here, both
+     worth keeping because they are opposite:
+       - the first rule searched the whole idea for eight words, and hid an entry whose verdict
+         reads "STILL OPEN, NOT SHIPPED-AND-CLOSED" -- the word SHIPPED inside the phrase denying
+         it (CEO Review 63: right answer, wrong reasoning);
+       - the second demanded the fate be the FIRST word after the arrow, and then showed a fully
+         answered idea as open because its verdict opens "THREE SHIPPED AS CODE...".
+     So: the fate must be DECLARED (the Chart's own shape -- an arrow, then a bold verdict) and
+     the verdict must not explicitly say otherwise. A sentence that says it is still open is the
+     most reliable signal on the page, and it beats any word-matching.
+     Wyatt steers by the open count; over-hiding costs him more than over-showing. */
+  const DECLARED = /(?:→|->)\s*\*\*([^*]{0,160})/;
+  const FATE_WORD = /\b(SHIPPED|PARKED|SCHEDULED|HARVESTED|CLOSED|DONE|FIXED|ROOT-CAUSED)\b/;
+  const STILL_OPEN = /\bSTILL OPEN\b|\bNOT (?:SHIPPED|DONE|BUILT|FIXED)\b|\bUNCONFIRMED\b/;
+  const FATE = {
+    test(block) {
+      const m = DECLARED.exec(block);
+      if (!m) return false;
+      const verdict = m[1];
+      return FATE_WORD.test(verdict) && !STILL_OPEN.test(verdict);
+    },
+  };
   const openInbox = inboxBlocks.filter((b) => !FATE.test(b.all)).map((b) => b.head);
   tasks = [...openChecklist, ...openInbox.map(shortTask)];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
@@ -472,7 +507,7 @@ const PAGE = `<meta charset="utf-8">
      first, so the phone case is the grid simply not applying -- no reordering rule to keep in step.
      The breakpoint is the sheet's own width (40rem), not a device guess. */
   .twoCol{display:grid;grid-template-columns:1fr;gap:0;}
-  @media (min-width: 46rem){
+  @media (min-width: 64rem){
     .sheet{max-width:62rem;}
     .twoCol{grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start;}
     .twoCol > .card{margin-bottom:0;}

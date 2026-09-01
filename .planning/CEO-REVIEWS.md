@@ -1,5 +1,182 @@
 # CEO reviews — the standing record
 
+## CEO Review 63 — 2026-09-01, Wyatt's three Glass edits (Tasks first, commit pills, two columns) — VERBATIM
+
+**Scope: commit `ad95cf2f` on `claude/cloud-handoff-planning-a9ay1u`. I verified everything below by
+building the page myself and looking at it in a real browser at 1100 pixels wide and at 375 pixels
+(a phone), not by reading the session's account of what it did. I ran the page generator from a COPY
+in a scratch folder so nothing in the repo moved, and I checked afterwards that nothing had. A real
+sea trial was sailing on this machine throughout; I started my own browsers on their own ports and
+closed every one before writing this, and I deliberately did NOT use the blanket "kill all browsers"
+command, which would have killed the trial.**
+
+**FIRST SENTENCE, IF YOU READ NOTHING ELSE: all three of your edits are genuinely there and they
+look right — but the same commit that says it stopped stray formatting characters reaching the page
+puts them straight back through the new pills, where `~~markdown~~` is sitting on your page right
+now, and the new two-column layout squeezes your rulings into a 156-pixel ribbon on a tablet-width
+screen, splitting a filename down the middle.**
+
+---
+
+### 1. Your three edits, one at a time
+
+**Edit 1 — "Move 'Tasks' to go above 'Shipped Today'". DONE.**
+
+I measured where each card actually sits on the built page. At 1100px the Tasks card starts 394
+pixels down and Shipped Today starts 651 pixels down, so Tasks is above it. On the phone it is the
+same order. Before this change, Tasks sat at 3268 pixels — right at the bottom, under everything.
+It is now the third card you see, directly under Your Call and Ideas.
+
+**Edit 2 — "Make Shipped Today expandable, with each thing shipped in its own pill, clickable to see
+more information about that commit". DONE.**
+
+Each shipped item is now its own rounded pill with a small arrow, all closed when the page loads,
+and clicking one opens it. I counted them in the browser: 3 pills on today's page, 12 on a page I
+built with a wider time window, and zero open by default in every case.
+
+**Edit 3 — "Shipped Today in the left column, Your Rulings on the right. On mobile, one column with
+Shipped Today on top". DONE.**
+
+At 1100px I measured Shipped Today at x=47 and Your Rulings at x=551, both starting at the same
+height (651px) and both 487px wide — genuinely side by side, Shipped on the left. At 375px both
+cards are full width at x=16, and Shipped Today (y=1033) sits above Your Rulings (y=1259). The way
+it was built is sound: the two-column rule simply stops applying below 46rem, and the order in the
+underlying page already has Shipped first, so there is no second "put Shipped on top" rule that
+could fall out of step with the first.
+
+### 2. Does it really collapse on a phone, and does it scroll sideways?
+
+**One column: yes. Sideways scrolling: none.** At 375px the page is exactly 375px wide with nothing
+sticking out — I checked every element on the page, and the furthest-right edge of any of them is
+375px, dead flush. That still holds with pills opened. So the sideways-scrolling problem you
+reported before has not come back here.
+
+**But there is a narrow-screen problem one step up from the phone, and it is new.** The moment the
+window is wide enough for two columns (about 736px — an iPad held upright, or a browser window
+taking half a laptop screen), your rulings get half the page instead of all of it, and the rulings
+table splits that half in two again. I measured the column your ruling text lands in: **301 pixels
+before this change, 156 pixels after, at 768px wide.** The first ruling grew from 10 lines to 18,
+and the text breaks mid-word — the filename `glass_self_publish_check.mjs` is split across two lines
+as `glass_self_publish_che` / `ck.mjs`. I have the before and after screenshots side by side.
+
+This matters because the session's own note in `.planning/CHART.md` says it chose that 46rem
+switch-over point *because* "at 40rem the columns came out 311px and the rulings table wrapped every
+other word". It moved the line and did not re-measure past it: 46rem produces **156px**, which is
+half the width it rejected. The problem was pushed, not solved (`scripts/wyclau/glass.mjs:475`).
+
+### 3. Open a pill — is what is inside useful?
+
+**Yes, genuinely useful.** Opening a pill gives you the full commit title in bold, then the
+reasoning written into that commit in readable paragraphs, then the short code and how long ago at
+the foot. A real example, copied out of the browser: *"readDone() resumes any leg with a record at
+the current build stamp and does not check whether it succeeded, so the three cached
+playwright-not-found failures would come straight back. Same trap that wasted a run earlier
+tonight."* That is the "why", which is exactly what you wanted a pill to open onto.
+
+**Does the trailer-stripping claim hold?** Mostly, and I tested it rather than took it on faith. The
+session said it drops the machine-written footer lines (`Co-Authored-By`, the session link) "by
+shape" so a renamed one cannot leak back. I ran the actual filter over the last **400 commits**:
+
+- It removed **182** `Co-Authored-By` lines and **164** `Claude-Session` lines — the intended
+  targets.
+- **No footer line survived it** anywhere in that history. So on this repo's real commits, it works.
+- **It also ate 3 lines of genuine reasoning** — sentences that happen to begin with a hyphenated
+  word and a colon: `end-to-end:`, `bulk-copied:`, `Check-in:`. Those are your engineers' actual
+  explanations, deleted from the pill silently. Small (3 lines in 400 commits) but real.
+- **The "renamed trailer cannot leak back" claim is narrower than stated.** The filter only
+  recognises footer names containing a hyphen. I tested it: `Session: https://claude.ai/code/...`
+  and a "Generated with [Claude Code]" line that starts with an emoji both sail straight through and
+  would show up inside a pill. Neither appears in this repo's commit history today, so nothing is
+  broken now — but the sentence "a renamed trailer can't leak back in" is stronger than the code
+  (`scripts/wyclau/glass.mjs:227-233`).
+
+### 4. The three defects it says it found by looking. All three were real. One is not fixed.
+
+**(a) Raw `~~` formatting characters reaching the page — REAL, and BACK AGAIN in the same commit.**
+
+I reproduced the original: I rebuilt the page with the old code against the old chart, and there it
+is, in the card headed "Your call (1)" — *"~~Does the Glass's Ideas box still corrupt the page after
+a save?~~"* with the tildes showing. Confirmed, not taken on trust.
+
+**But the new pills reintroduce it.** The pill bodies are commit text pasted onto the page with no
+formatting cleanup at all, so any commit whose message contains those characters shows them raw.
+**It is on your page right now**: open the "Wyatt's three scheduled edits" pill and the second
+paragraph reads *"raw ~~markdown~~ reaching the page"*. I have the screenshot. The irony is exact —
+the sentence describing the fix is displaying the bug (`scripts/wyclau/glass.mjs:235-241`).
+
+Two smaller things in the same family. The tidy-up function the note is proudest of, `unmark()`, is
+**written and never called** — it sits at `scripts/wyclau/glass.mjs:123` and nothing in the file
+uses it; the three scattered clean-ups it was supposed to replace are still scattered, at lines 291,
+292 and 310. The Chart entry telling you this is done says "now one `unmark()`", and that is not
+what shipped. And your Tasks card still shows backtick characters around every filename, which was
+true before this commit too, but it is the same leak and it is the card you look at most.
+
+**(b) An answered question still showing as an open "Your call" — REAL, and fixed.**
+
+Verified both ways. Old build: "Your call (1)", showing you a question that had already been
+answered and crossed out. Current build: "Your call (0) — Nothing waiting". The fix was to move that
+row in `.planning/CHART.md` out of the "blocked on you" table and into the "ruled" table rather than
+crossing it out in place — a record fix, not a code fix, and the right one.
+
+**(c) The Tasks count — REAL, "12 open" was genuinely 6, and 6 is correct today.**
+
+I built both versions of the page against the same chart: the old one says "17 done · 12 open", the
+new one says "17 done · 6 open". The six that dropped off are all ideas in the inbox that already
+have an answer written under them. So the number you steer by is now honest.
+
+**The mechanism behind it is fragile, and you should know how.** It decides an idea is finished by
+searching the whole entry for any of eight words — SHIPPED, PARKED, FIXED, DONE and so on
+(`scripts/wyclau/glass.mjs:326-327`). It does not check whether the sentence containing that word is
+saying the opposite. The clearest case is on your chart right now: one entry's own verdict line
+reads **"STILL OPEN, NOT SHIPPED-AND-CLOSED"** — and the filter hides it, because the word SHIPPED
+appears inside the phrase denying it. It happens to land on the right answer today only because a
+later chart entry genuinely closed that item.
+
+So: **the number is right, and it is right by luck.** All six inbox ideas are now hidden, and three
+of the six still contain the words "still open", "unconfirmed" or "needs Wyatt to confirm". If you
+write a new idea tomorrow that mentions something already shipped, it can vanish from your own Tasks
+count without a trace. **I would not call this fixed; I would call it improved and unguarded.**
+
+### 5. Anything missing, or anything you did not ask for
+
+**Nothing you asked for is missing.** All three edits landed, and I could not find a corner of any
+of them that was skipped.
+
+**Two things arrived that you did not ask for, and one of them is a decision, not a bug fix.**
+Deciding which of your own ideas count as "still open" changes the number you use to steer, and it
+was made on your behalf, in the same commit as three layout changes, with no check guarding it. The
+other is the page getting wider on desktop (from about 640 to about 990 pixels of content) — a
+necessary side effect of putting two columns side by side, not a problem, just something you will
+notice.
+
+**One process note.** Every other Glass item this week shipped with its own automatic check — the
+long-run status, the save behaviour, the harvest rule all have one. This commit added none, for a
+layout change and for that Tasks-count rule. The layout is fair enough; you cannot easily automate
+"does this look right". The Tasks count is a number, and a number can be checked.
+
+**One cosmetic thing I saw and nobody has mentioned:** the heading reads "Shipped today (1
+commits)" when only one thing has shipped (`scripts/wyclau/glass.mjs:575`). Pre-existing, one line
+to fix.
+
+### 6. VERDICT: YES — with two things to fix before you look at it
+
+You asked for three edits and you got three edits, built the way you described them, and I confirmed
+each one with my own eyes in a browser rather than from a report. That is the answer to the question
+this review exists to ask.
+
+The two things I would fix before you next open the page: **the stray `~~` characters now showing
+inside the commit pills** (one line — run the pill text through the same clean-up the rest of the
+page uses, and actually call the `unmark()` function that was written for it and then forgotten),
+and **the rulings column being crushed to 156 pixels on a tablet-width screen**, which needs either
+a wider switch-over point or the rulings table not splitting its own half in two.
+
+**The one sentence for Wyatt: your three edits are all there and they look good, but the commit that
+says it stopped stray `~~` symbols reaching the page is itself displaying them inside the new pills,
+and your rulings become a 156-pixel ribbon on a tablet — two small fixes, neither of them a
+rebuild.**
+
+---
+
 ## CEO Review 62 — 2026-09-01, the status dot reads a running job (second attempt at the false-red ask) — VERBATIM
 
 **Scope: commits `b1f13b43` and `a2a3166e` on `claude/cloud-handoff-planning-a9ay1u`. Everything
