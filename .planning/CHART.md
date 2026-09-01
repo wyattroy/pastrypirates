@@ -64,6 +64,14 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
 
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — root-caused and fixed 2026-09-01; **awaiting his look on the live page**
+- [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
+- [ ] Your ruling: the cutover moment — **gated on the exit test verdict**, which is his own condition
+
 - [x] Charter approved (2026-08-31, amendment: daily lessons)
 - [x] The Chart exists (this file)
 - [x] The Door exists (`.claude/skills/door/SKILL.md`)
@@ -442,10 +450,43 @@ same day (staging checklist 2026-09-01, items 1–5 PASSED — item 5 was the fr
 so the wider camera is settled, not pending). The removed rows are in git history at this file,
 2026-09-01.*
 
-## RULED — his answers, and what each one unblocks
+## RULED — his answers, waiting to be triaged
+
+> ### THIS SECTION IS A WAITING ROOM, NOT AN ARCHIVE. Read this before adding a row.
+>
+> Wyatt, 2026-09-01 (INBOX-20260901T1310Z): *"The Glass's Your Rulings -- In Hand are stale; there
+> must be a process that triages them and adds them to the Tasks list, then removes them from the
+> Your Rulings list."* **This section IS that card** — the Glass renders every row of it under
+> "Your rulings, in hand", so a row that stays here forever is a card he stops reading. It held
+> eight rows, five of them shipped or closed days earlier.
+>
+> **THE PROCESS, and it is three moves, done by the watch that harvests or acts on a ruling:**
+>
+> 1. **A freshly harvested ruling lands HERE**, with the `now` cell left EMPTY — it has not been
+>    triaged yet, and an empty cell is the honest way to say so.
+> 2. **Triage it.** If it still needs work, add a `- [ ] Your ruling: …` row to the STEP 1
+>    CHECKLIST — that is what puts it in the Glass's Tasks card, automatically, with no second
+>    list to keep in step. If nothing is left to do, no task is needed.
+> 3. **Move the whole row down to SETTLED RULINGS**, with the verdict written into its `now` cell.
+>    It leaves this card and stays on the record forever.
+>
+> **Enforced, not remembered:** `scripts/qa/rulings_triage_check.mjs` fails the build if a row here
+> carries a verdict (it belongs in SETTLED), or if a settled ruling with work outstanding has no
+> checklist row (it would have vanished from every surface he can see). Both directions
+> red-proofed.
+
+*Nothing is waiting: all eight of his rulings were triaged 2026-09-01 and moved to SETTLED
+RULINGS below. Three carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
+
+| item | HIS RULING | now |
+|---|---|---|
+
+## SETTLED RULINGS — triaged, and kept on the record forever
 
 **Harvested 2026-08-31 from the Helm's state block, over an hour after he made them.** Full
 record with the failure it exposes: [`.claude/memory/DECISIONS.md`](../.claude/memory/DECISIONS.md).
+**The Glass does not render this section** — that is the point of it. A ruling here has a fate;
+the three still carrying work also have a checklist row above, which is where he sees them.
 
 | item | HIS RULING | now |
 |---|---|---|
@@ -455,8 +496,8 @@ record with the failure it exposes: [`.claude/memory/DECISIONS.md`](../.claude/m
 | Pass-and-play hand-over ahead of the turn | **"Just move it"** — no A/B switch, make the change | **ALREADY SHIPPED before the ruling was harvested.** Commit `ae75fe63` ("the device changes hands before the screen changes captain"), 2026-08-31 12:51Z — over four hours before his 17:08Z ruling reached anyone. `humanTurn()`'s own comment quotes him: *"Move it, I trust the plan."* All three pass-and-play hand-over sites (turn, secret draft, bake) gate before the screen switches captain; `node scripts/qa/handover_before_turn_check.mjs` PASSes, including its red-proof of the backwards order. Nothing to build. |
 | One-director step 5 (Decider scope) | **"Narrow half"** — three drawing branches behind the Decider; the two questions stay two | **ALREADY SHIPPED before the ruling was harvested.** Commit `44dc853e` ("step 5, the narrow half: the secrecy rules move to one pure place"), 2026-08-31 12:54Z — over four hours before the 17:09Z ruling. `mayRevealRecipe`/`offersRecipeCheck`/`showsThinkingIndicator` in `src/shared/visibility.js` are the one pure rule; `board.js`/`stage.js` supply facts (`sharedDevice: appState.passAndPlay`) rather than branching. `decisionIsLocal` still the sole other predicate, unmerged, per the ruling. Both `scripts/qa/decider_table_check.mjs` and `scripts/qa/visibility_rules_shared_check.mjs` PASS, red-proofed. Nothing to build. |
 | The plan document vs the measured tree | **"Yes — make the measured table the plan of record"** | **DONE 2026-08-31 18:35Z.** The only one of the four genuinely unbuilt when picked up. Republished [One Engine, One Director](https://claude.ai/code/artifact/715b29fe-fe33-4038-9e61-a20ef6676570) §07: each of the six migration steps now carries its real status inline (four SHIPPED, one dead-premise-closed, one largely-enforced) instead of reading as a plain to-build list; the footer's "nothing has been built" claim corrected to match. Nothing else on the page touched. |
-| The cutover moment | **"After the exit test verdict"** — the 24-hour no-silent-stall run finishes first | SCHEDULED, gated on the exit test |
-| The Razer hour | done 2026-08-31, 16:19Z | closed |
+| The cutover moment | **"After the exit test verdict"** — the 24-hour no-silent-stall run finishes first | **SCHEDULED** — gated on the exit test verdict. |
+| The Razer hour | done 2026-08-31, 16:19Z | **CLOSED 2026-08-31 16:19Z.** Watchdog registered, engine launched, stall test passed through the scheduled task. |
 
 ## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
 

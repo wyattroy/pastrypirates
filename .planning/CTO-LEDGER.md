@@ -2088,3 +2088,99 @@ died and that is itself the finding.
   STILL UNEXPLAINED, and named rather than hand-waved: WHY a watch searching its own tools found
   nothing. Most likely a deferred-tool list that must be searched with the right query before it
   appears — a watch running one search, getting nothing, and concluding absence. Not measured.
+
+> **⚠ MEASURED AGAINST YOUR OWN HYPOTHESIS, WATCH 19:29Z, AND IT DOES NOT HOLD FOR THIS SESSION.**
+> You suspected a watch runs ONE search, gets nothing, and concludes absence. I ran two, of
+> deliberately different shapes: `ToolSearch "select:Artifact,ArtifactCheck,ArtifactComments"` →
+> *"No matching deferred tools found"*, and a keyword search `"artifact publish page html"` →
+> returned `WebFetch`, `DesignSync` and a Drive tool, **no Artifact**. So in THIS session the tool
+> is genuinely not present, and it is not a query-shape artefact.
+>
+> **Your finding and mine are both right and they are about different things, which is worth
+> keeping separate:** yours measured `claude -p` invoked fresh from a shell on both machines; mine
+> is a watch the Bell rang, which is a different launch. **So the open question is not "does -p
+> have it" — you settled that — but "why does a BELL-RUNG watch differ from a hand-run `claude
+> -p`?"** That is answerable by diffing `bell.ps1`'s launch line against the one you tested, and
+> it is the thing to check before anyone concludes the watches were simply wrong about themselves.
+> **Your reusable lesson stands either way and I am not weakening it**: a session's report about
+> its own tools is a claim. I made mine twice, by two routes, before repeating it.
+
+
+---
+
+## WATCH 2026-09-01T19:29Z (Wy-Blade) — CLAIMING INBOX-20260901T1310Z, the Glass's rulings triage
+
+**The situation, in six lines.**
+- Watch started 19:29Z. Tree can publish (`can_push.mjs` clean, on `claude/cloud-handoff-planning-a9ay1u`).
+- Last progress: the previous watch started the release re-sail and pushed `155dc399`/`6b86a458`.
+- It closed no item — correctly, a trial in flight is not a closed item.
+- Blocked on Wyatt: nothing new. The release still waits on the trial's verdict, then his say-so.
+- **A trial IS in flight and I did not touch it**: run `2026-09-01T1914Z-Wy-Blade`, pid 45256,
+  verified ALIVE at 19:29Z — its log shows npm test PASS, step 1b's judge FAIL-and-defer, and it
+  is inside the ten voyages. Expect a verdict about 20:42Z. Nobody re-starts it.
+- **This watch takes INBOX-20260901T1310Z** — the oldest OPEN inbox item now that the release
+  trial (1315Z) is IN FLIGHT and its own order-note is satisfied. Deliberately chosen as a
+  tooling-only item: editing game code while a full trial is reading the working tree would
+  poison that run.
+
+**⚠ A HAZARD FOUND IN THE RELAY ITSELF, IN THE FIRST MINUTE, AND FILED RATHER THAN FIXED (one
+item per watch).** `glass.mjs --note` folds `.planning/wyclau/GLASS-NOTE.md` into the page **and
+resets the file**, unconditionally — including in a session with no Artifact tool, which cannot
+then publish the page it folded them into. So the previous watch's note to Wyatt (the trial is
+sailing; do not close the black window) was consumed by my pulse and would have vanished from
+every surface he can see. I wrote it straight back, extended with this run's judge caveat. **The
+fix shape, for whoever takes it: reset the note only when `mark_glass_published.mjs` runs, not
+when the page is merely written** — the same "writing the file is only half of it" rule the tool
+prints at itself every time.
+
+> **⚠ CORRECTION, SAME WATCH, BY CEO REVIEW 77 AND NOT BY ME. THE SENTENCE ABOVE WAS FALSE WHEN A
+> READER WOULD HAVE REACHED IT, AND IT IS KEPT RATHER THAN EDITED AWAY.** "I wrote it straight
+> back" was true for about a minute. I then pulsed the Glass a SECOND time in the same watch, to
+> re-render the page after the fix — and that pulse ate the note again. So for most of this watch
+> `GLASS-NOTE.md` held nothing but its template while an 88-minute release trial was on Wyatt's
+> screen, and this ledger said the opposite. The note is now restored, after the last pulse, and
+> carries a warning to the next watch about the ordering.
+>
+> **This is CEO 76's finding in mirror image and I walked straight into it**: I found the
+> instrument bug in the first minute, described it precisely, filed the fix shape — and then let
+> the same bug hit me a second time because I never re-checked the file I had just rescued. *A
+> hazard you have diagnosed is not a hazard you are immune to.* The general form, which is rule 6
+> yet again: **I asserted a state of the world from an action I had taken, rather than from
+> looking at the file.** One `Read` would have shown it empty.
+>
+> **The fix is now filed where it can actually be applied**:
+> `.planning/wyclau/PENDING-KIT-PATCHES.md`, entry 2, with the gate that should grow a case for it.
+
+**⚠ AND A STRUCTURAL FINDING THAT OUTLIVES THIS ITEM: THE RELAY CANNOT REPAIR ITS OWN TOOLING.**
+My first, working implementation put the triage inside `scripts/wyclau/glass.mjs` — red gate, fix,
+green gate, screenshot, all of it — and `scripts/qa/vendor_check.mjs` rejected it, correctly. That
+file is vendored from claude-kit, which lives on Wyatt's MacBook; there is no way to edit or
+re-vendor it from the Razer, and I could not even reach a checkout to look. **So the machine the
+relay RUNS on cannot fix the Bell, the Glass, `can_push`, `close_item` or `start_trial_detached`.**
+Two items today have now hit this wall (this one, and INBOX-20260901T1440Z's black console, which
+is also a vendored file). The reversion was the right call and cost about twenty minutes; the
+second implementation, in the record instead of the page, is better anyway — his word was
+"process". **If a third item hits this, it is worth asking him whether the wyclau scripts should
+live here and be vendored INTO the kit.** Filed at the top of `PENDING-KIT-PATCHES.md`.
+
+**⚠ AND ONE RED GATE IN `npm test`, PRE-EXISTING, WHICH I DID NOT CAUSE AND DID NOT FIX (one item
+per watch) — but it is worse than it looks and it is written down here so the next watch does not
+have to rediscover it.** `scripts/qa/glass_longrun_status_check.mjs` fails 3 of its cases right
+now. The three that fail are the ones checking that a BAD marker is REJECTED — frozen, malformed,
+or claiming a year of silence — and all three report the live trial's own marker instead of the
+fixture the gate just wrote. **Cause, traced rather than guessed:** commit `26801bb3` (today,
+13:55Z) gave `longRun` a SECOND source — `glass.mjs:453-475` falls back to
+`.planning/wyclau/status/<machine>.md` so a run on any machine is visible — and the gate still
+controls only the FIRST. So the moment the local fixture is correctly rejected, the fallback
+supplies the real sailing trial and the gate reads it as a failure to reject.
+**Two things follow, and the second is the serious one:**
+  (a) it is unrelated to my diff — `glass.mjs` is byte-identical to HEAD (`vendor_check` PASSES),
+      and CEO 77 confirmed independently that the marker is committed at HEAD, so this is red on a
+      clean checkout;
+  (b) **`npm test` cannot pass on any machine while a sea trial is sailing — and the sea trial
+      runs `npm test` as its own step 1.** Today's run passed step 1 only because it starts before
+      it writes its status file. **This is the ONE DISPLAY PATH fault in miniature** (rule 23): a
+      second source was added beside the first, and the guard was left pointed at the first.
+**The rest of the suite is green: 86 of 87.** The `&&` chain aborts at the red gate, so the eight
+gates after it were run individually and all pass — named here because "npm test failed" would
+otherwise hide which 86 were actually verified.
