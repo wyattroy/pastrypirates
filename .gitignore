@@ -54,6 +54,7 @@ profile/
 profile-*/
 _sheet-profile/
 chrome-probe*/
+.pw-profile-*/
 
 # Two more scripts still default their --out INSIDE the repo: mouse_qa.mjs
 # (./mouse-qa-shots) and narration_timeline.mjs (./narration-timeline). The profile

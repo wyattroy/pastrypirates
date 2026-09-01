@@ -55,7 +55,7 @@ import {
   ING_HOLE_IMG,
   SEA_CREATURES, buildRoster,
 } from "../shared/index.js";
-import { escHtml } from "./recipe.js";
+import { escHtml, RECIPE_BOOK } from "./recipe.js";
 // 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
 // lobby.js, and flow.js — it can never import any of THEM back without closing an import cycle
 // module_graph_check.js's "no import cycle" assertion forbids. A handful of functions here
@@ -1974,18 +1974,28 @@ export function updateRecipeBanner(){
    board can arrive a beat late and nobody notices; a flip CANNOT, because it is a timed animation
    that has already started.
 
-   That is the line this list draws, and it is worth stating so the next addition knows which side
-   it is on: preload what a TIMED CEREMONY needs — anything the game animates on a clock, where a
-   late image is a missed beat rather than a slow paint. Not every icon in the game: ~90 images at
-   boot on a phone would trade this bug for a slower start. The flip is the archetype; the coin is
-   also what battles, docks and the bake-off all spend their drama on. */
+   That line — "preload what a TIMED CEREMONY needs, not every icon" — was Wyatt's deliberate
+   trade-off through 2026-08-31. He REVERSED it 2026-09-01 (INBOX-20260901T1335Z): "we need to load
+   all game assets up front; i notice sometimes that the 'fire the ovens' graphic loads dynamically
+   when it is called, which will make it appear blank on slow connections. Bad engineerign! [sic]"
+   The recipe/badge art below is the confirmed, measured mechanism: RECIPE_BOOK's 21 pastry
+   illustrations (recipe.js) and BADGE_POOL's emblems (this file) are plain `<img src>` tags that
+   fetch cold the first time the recipe picker, the recipe modal, or the End-of-Voyage award screen
+   actually renders them — exactly the "loads dynamically when called" complaint, on the two asset
+   families that were never in this list. Safe to add here because every call site of
+   preloadAssets() already fires it WITHOUT awaiting except the mid-voyage-resume path, which caps
+   it at a 6s Promise.race — this was already true before this change, not a new guarantee. */
 export function preloadAssets(){
   const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
     FLIP_SOCKET_IMG,COIN_SPIN_IMG,FLIP_HEADS_IMG,FLIP_TAILS_IMG,COIN_IMG,
     // T-33: ING_HOLE_IMG was the ONE ingredient family never warmed here, so the greyed-crate art
     // was always fetched cold in the middle of a voyage — and both image failures caught in a
     // driven run were in it (holes/sugar.png, twice). Seven files, ~24KB.
-    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i]),...ING_ALL.map(i=>ING_HOLE_IMG[i])];
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i]),...ING_ALL.map(i=>ING_HOLE_IMG[i]),
+    // INBOX-20260901T1335Z: the two asset families a player can reach WITHOUT them ever having
+    // been fetched — recipe art (picker/modal/victory banner) and award emblems (End of Voyage).
+    ...RECIPE_BOOK.map(r=>r.img),
+    ...BADGE_POOL.map(b=>`${ASSET_BASE}badges/${b.img}.png`),`${ASSET_BASE}badges/${FALLBACK_BADGE.img}.png`];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
     img.onload=img.onerror=()=>res();
