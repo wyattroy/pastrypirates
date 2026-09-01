@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T23:20:55.700Z	Change-gate live: this publish establishes the commit-tracking baseline the gate needed; future ticks with nothing new will end silently instead of republishing
+2026-09-01T23:51:08.529Z	Gate fired on my own prior housekeeping commit (the GLASS-NOTE.md reset) -- nothing new from Wyatt or the engine this tick
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T09:36:02Z	no engine, and no commit for 47 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
 2026-09-01T09:46:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T09:56:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:06:02Z	hold off: an engine is already running -- never stack a second on it
@@ -53,4 +52,5 @@ None recorded.
 2026-09-01T21:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T213802Z.out/.err)
 2026-09-01T22:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T220803Z.out/.err)
 2026-09-01T22:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T224803Z.out/.err)
+2026-09-01T23:28:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T232803Z.out/.err)
 ```
