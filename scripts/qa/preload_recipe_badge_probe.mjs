@@ -8,6 +8,7 @@
 // and badge art appear there, preloadAssets() fetched them eagerly, unprompted by any of
 // their real call sites.
 import { openChrome, sleep } from "../lib/cdp.mjs";
+import { gameURL } from "../lib/chrome.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,7 +19,7 @@ const dbgPort = 9401, httpPort = 8401;
 const c = await openChrome({ W: 1280, H: 900, dbgPort, httpPort, serveRoot: repoRoot,
   profileDir: path.join(repoRoot, ".pw-profile-preload-probe") });
 try {
-  await c.nav(`http://127.0.0.1:${httpPort}/index.html`);
+  await c.nav(gameURL(httpPort)); // one spelling of where the game is served — never hardcoded here
   await sleep(4000); // boot + fire-and-forget preloadAssets() to get well underway
   const names = await c.ev(`performance.getEntriesByType('resource').map(e=>e.name)`);
   const fetched = Array.isArray(names) ? names : [];

@@ -1771,3 +1771,91 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   AND THE LESSON THE DAY KEEPS TEACHING: a research agent's confident citation is a comment, not a
   measurement. It read plausible, it named real doc pages, and it was wrong about the only fact
   that mattered.
+
+---
+
+## WATCH 2026-09-01T19:0xZ — item INBOX-20260901T1315Z (the release trial cargo). PARKED, not closed.
+
+- **Situation at the start.** Synced clean (`git fetch && git pull --rebase`, fast-forward from
+  `68ecb3a8` to `0b90912f`). `can_push.mjs` green: on `claude/cloud-handoff-planning-a9ay1u`,
+  tracking, no rebase or merge in progress. Last progress: `0b90912f` (the previous watch's
+  measured retraction about the Artifact tool). Previous watch closed: nothing — it ended on a
+  correction, having partially shipped INBOX-20260901T1335Z's preload half earlier.
+  Blocked on Wyatt: nothing (the Chart's table is empty). Detached trial in flight: **NONE — the
+  release trial has FINISHED** (`longrun_status.mjs`: "no LONG-RUN marker"; pid 38460 gone).
+- **CLAIMED and worked: INBOX-20260901T1315Z**, his ruling 12, the first Watch cargo. Oldest OPEN
+  by his own ORDER NOTE in 1310Z, and the trial finishing is what made its next step come due.
+- **THE ITEM IS ONE-THIRD DONE AND I AM NOT DRESSING THAT UP.** "Run the trial so it survives
+  session death" is DONE — the detached run outlived the watch that started it and left a finished
+  88-minute report. "Stage it" and "hand you the link" are NOT DONE, and are now correctly BLOCKED
+  by two things measured this watch (below), not merely unfinished.
+- **WHAT I ACTUALLY FIXED, and why it was the right work rather than rule-7 tooling.** The trial's
+  report says `npm test` **FAIL**, and CLAUDE.md §6 makes a green `npm test` a hard precondition of
+  the deploy his ask requires. So the gate was literally the thing standing between this watch and
+  "stage it". Two blockers:
+  1. `scripts/qa/can_push_check.mjs` fixture 4 hardcoded the branch name in `git rebase main`.
+     `git config --get init.defaultBranch` on this Blade is **`master`**, so no local ref named
+     `main` existed, the rebase died with `fatal: invalid upstream 'main'`, the surrounding
+     `try/catch` swallowed it, and **no rebase was ever in progress**. `can_push.mjs` was then
+     handed branch `side` with no upstream, answered **NO UPSTREAM** — correctly — and was scored
+     FAIL for being right. Machine-dependent: green on a `main`-defaulting machine, red here.
+     FIXED by DERIVING the base branch (`git branch --show-current`) instead of typing it (rule 9
+     applies to gates too), plus a NEW assertion that the fixture really is mid-rebase before the
+     guard is asked — so a fixture that fails to build itself is loud rather than issuing a wrong
+     verdict about the guard.
+  2. `scripts/qa/preload_recipe_badge_probe.mjs:21` hardcoded `http://127.0.0.1:${port}/index.html`,
+     which `game_url_check` correctly failed. FIXED to `gameURL(httpPort)`.
+     ⚠ **CORRECTION, CEO 74's, accepted: this one was NOT part of the trial's FAIL.** That step ran
+     at 16:44Z; the probe was committed at 18:13:39Z. Only `can_push_check` was the trial's actual
+     blocker; this was a newer regression that arrived on the branch afterwards. My first framing
+     ("two blockers to the same gate") understated that.
+- **THE FOUR STEPS, honestly.** RED first, both, before any edit. Red-proofed the can_push fix in
+  the failing direction by planting `if (false && ...)` over the guard's own rebase branch and
+  watching the gate fail — and it failed reporting **DETACHED HEAD**, which is what a real
+  mid-rebase tree looks like without that branch, confirming the fixture now builds the state it
+  claims. Guard restored; `git status` shows `scripts/wyclau/can_push.mjs` unmodified (it is
+  VENDORED — I edited it only to red-proof and put it back byte-clean). Green after: 12/12 on the
+  gate, **86/86 on `npm test`**, proven by the `&&` chain reaching its LAST gate
+  (`doc_command_check`) with PASS. Gear: two `scripts/qa/*.mjs` files, no `src/`, no `index.html`;
+  `gear.mjs` printed FULL but that reads the whole BRANCH's diff versus origin/main (the trial's
+  own subject), not this change — `npm test` green is the honest depth for a test fixture.
+- ⚑ **CEO REVIEW 74 SAID NO, AND ITS BIGGEST FINDING IS NOT ABOUT MY WORK — IT IS ABOUT THE
+  RELEASE.** Recorded verbatim in `.planning/CEO-REVIEWS.md`. I re-measured both findings myself
+  before relaying them, rather than repeating an agent's citation (the exact failure the previous
+  watch was burned by, one entry above):
+  - **The sea trial's scorecard can never say a leg sailed.** `sea_trial.mjs:258`'s `sailedHere()`
+    requires `leg.__runId === runId` from `report.json`; `playtest_gate.mjs:609` writes `__runId`
+    to the **per-leg** file only, and `:653` builds `report.json` from raw `results` where it was
+    never added. MEASURED: `grep -c "__runId" sea-trial-shots/report.json` → **0**, against
+    `runid.json` = `{"runId":"2026.09.01.6-mtiwe6sl"}`. So every leg of every run on every machine
+    is filed under NOT RUN, using its own verdict text as the reason it did not run. **That is the
+    complete explanation of "FAILED — 0 of 10 sailed" sitting above twelve END OF VOYAGE lines in
+    the same file.** The ten legs sailed; whether they passed is a question the report no longer
+    answers. AND the gate written for exactly this — `notrun_provenance_check.mjs:43,47` — greps
+    `playtest_gate.mjs`'s SOURCE TEXT for `/__runId/` and never opens `report.json`, so it is green
+    and cannot fail. Filed on the Chart as the next watch's item; **the gate must be fixed in the
+    same change as the bug.**
+  - **The trial did not sail the code that would be staged.** `efa1f2f5` touches `src/ui/util.js`
+    and landed 18:13:39Z (`git show -s`); the run ended ≈18:12Z. Ninety seconds too late.
+- **THE RECURRENCE, CEO 74's finding 6, accepted without qualification.** I wrote the comment
+  *"an instrument that reports a failure has told you something about ITSELF first"* into
+  `can_push_check.mjs` this very turn, applied it rigorously to the small instrument, and then read
+  the LARGE instrument's headline — noticed it contradicted its own log — and attributed it to
+  settle noise and a blind judge **without opening `report.json`**. Two greps would have found it.
+  The lesson is not "be more careful": it is that the instrument you are not currently working on
+  is the one you will believe.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Confirmed by searching this session's own tool list, not
+  inferred. Stating it plainly because the previous entry named the decisive open question — why do
+  the BLADE's unattended watches report no Artifact tool when a Mac `-p` session has it? **This is
+  another Blade data point on that question, and nothing more**: I did not run the `claude -p`
+  probe here (that is the other item's work, not mine). `glass.mjs --note` was NOT run this turn
+  for the same reason the last three watches could not publish; `mark_glass_published.mjs`
+  correctly NOT run. Next capable session: harvest, then republish.
+- **Left untracked and unremovable:** `scripts/qa/_tmp_cpfix_probe.mjs`, the scratch probe that
+  reproduced fixture 4's real git behaviour. This sandbox refuses file deletion (both `rm` and
+  `Remove-Item` were blocked), same as the five other `_tmp_*` files prior watches left. Naming it
+  so it is not a mystery to the next reader; it is untracked and reaches nothing.
+- **ENDING THE TURN.** One item, worked through the Proof, parked rather than closed because the
+  ask is one-third done and the remaining two-thirds are now BLOCKED for measured reasons. The
+  close gate was correctly not run — there is no tick to write. Next watch: the Chart's two new
+  release rows are the top unblocked item, in that order.

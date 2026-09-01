@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T18:18:21.348Z	watch ~18:00Z: image-preload fix (INBOX-20260901T1335Z) -- blank recipe/badge art bug fixed and live-verified (CEO 73: PARTIAL); the 19MB compression half he called launch-critical stays open, blocked on tooling in this sandboxed watch. Release trial finished 10/10 legs on the Blade.
+2026-09-01T18:39:03.303Z	self-publish check
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T06:56:01Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T07:06:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T07:16:02Z	hold off: a commit landed 7 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T07:26:02Z	hold off: a commit landed 17 min ago (within 45) -- the Chart is moving, hold off
@@ -53,4 +52,5 @@ None recorded.
 2026-09-01T16:39:42Z	ring: no watch on deck -- rang the next one (output: watch-20260901T163942Z.out/.err)
 2026-09-01T16:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T164803Z.out/.err)
 2026-09-01T17:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T175803Z.out/.err)
+2026-09-01T18:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T182803Z.out/.err)
 ```

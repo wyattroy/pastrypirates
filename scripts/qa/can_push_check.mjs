@@ -56,6 +56,13 @@ function healthyPair(name) {
   return work;
 }
 
+/* The fixture's own base branch is whatever `git init` named it — `main` on a machine that sets
+ * init.defaultBranch, `master` on one that does not. DERIVE it; never type it. (Rule 9 applies to
+ * gates too, and this one cost a red release gate: fixture 4 below said `git rebase main`, which on
+ * this Blade resolved to nothing at all, so no rebase ever started and the case measured a tree
+ * that was merely upstream-less. See the note on that fixture.) */
+const baseBranch = (d) => git(d, "branch", "--show-current").trim();
+
 console.log("can_push_check — a watch that cannot publish must be told so, before it works\n");
 
 /* 1. HEALTHY — must pass, or the guard would stop every watch everywhere. */
@@ -92,15 +99,28 @@ console.log("can_push_check — a watch that cannot publish must be told so, bef
 }
 
 /* 4. REBASE IN PROGRESS — the CAUSE behind the detached state, and a different repair, so it must
- *    be reported differently. Built by forcing a real conflict mid-rebase. */
+ *    be reported differently. Built by forcing a real conflict mid-rebase.
+ *
+ *    ⚠ THE FIXTURE MUST PROVE IT BUILT ITSELF, and this case is why. Until 2026-09-01 it rebased
+ *    onto the literal name `main` and swallowed the error. On a machine whose init.defaultBranch is
+ *    `master` — this Blade, and git's own default — no ref named `main` exists, so the rebase died
+ *    with `fatal: invalid upstream 'main'`, NO rebase was ever in progress, and the case measured an
+ *    ordinary upstream-less branch instead. `can_push.mjs` answered that tree correctly and was
+ *    marked FAIL for it, turning the whole release gate red on one machine and green on another.
+ *    An instrument that reports a failure has told you something about ITSELF first. */
 {
   const d = healthyPair("rebasing");
+  const base = baseBranch(d);
   fs.writeFileSync(path.join(d, "a.txt"), "main-side\n");
   git(d, "add", "."); git(d, "commit", "-q", "-m", "main side");
   git(d, "checkout", "-q", "-b", "side", "HEAD~1");
   fs.writeFileSync(path.join(d, "a.txt"), "side-side\n");
   git(d, "add", "."); git(d, "commit", "-q", "-m", "side side");
-  try { git(d, "rebase", "main"); } catch { /* the conflict is the point */ }
+  try { git(d, "rebase", base); } catch { /* the conflict is the point */ }
+  const gitDir = git(d, "rev-parse", "--git-dir").trim();
+  const midRebase = ["rebase-merge", "rebase-apply"].some((n) => fs.existsSync(path.resolve(d, gitDir, n)));
+  check("the fixture really is mid-rebase before the guard is asked (else this case measures nothing)",
+    midRebase, `no rebase-merge/rebase-apply in ${gitDir} after rebasing onto "${base}"`);
   const r = run(d);
   check("a rebase in progress is REFUSED (exit 1)", r.code === 1, `exit ${r.code}`);
   check("it is reported as a REBASE, not merely as detachment — different cause, different repair",

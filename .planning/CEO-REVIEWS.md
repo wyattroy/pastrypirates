@@ -4078,3 +4078,88 @@ the record already half-answers.**
 status page — that part is right. But the plan already had a fallback for exactly that, so nothing
 here was impossible; what it can't do is keep the page as fresh as you asked for this morning. That's
 a design call I should be bringing you with a recommendation, not a contradiction for you to settle."*
+
+---
+
+## CEO Review 74 — 2026-09-01 — item: the release trial cargo (INBOX-20260901T1315Z)
+
+**Ask, verbatim (his ruling 12, THE RELAY REDESIGN):** *"First job of the new engine — the rebuilt
+relay's shakedown cargo IS the release: run the trial in a way that survives session death, stage
+it, hand you the link."*
+
+**What was put to it:** the detached trial (`2026-09-01T1644Z-Wy-Blade`, pid 38460) finished; this
+watch read the report, found the next step (stage it) blocked by `npm test` = FAIL, and fixed two
+release-gate blockers — `can_push_check.mjs`'s fixture 4 (hardcoded branch name `main` on a
+`master`-defaulting machine, so no rebase ever started and the innocent guard was scored FAIL) and
+`preload_recipe_badge_probe.mjs:21` (a hardcoded game URL `game_url_check` correctly caught).
+
+**VERDICT ON "DID THE ASK HAPPEN": NO — one of three parts.**
+
+| part of ruling 12 | state | evidence |
+|---|---|---|
+| "run the trial in a way that survives session death" | **DONE** | `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md:3` — a completed 88-minute report exists, written by a detached pid, stamped `sailed on **win32 (Wy-Blade)**` |
+| "stage it" | **NOT DONE** | no deploy ran this watch |
+| "hand you the link" | **NOT DONE** | no URL produced |
+
+> The watch says this up front and does not claim otherwise. That honesty is real and I am not
+> marking it down for it. But the item Wyatt named is *the release*, and after this watch there is
+> still no staged build and no link.
+
+**FINDING 1 — BLOCKING. The release trial's verdict is structurally incapable of ever saying a leg
+sailed. Do not make a release decision on that report.** `sea_trial.mjs:258` clears a leg only if
+`leg.__runId === runId`, reading `leg` out of `report.json`; `playtest_gate.mjs:609` writes
+`__runId` into the **per-leg** file only, and `:653` writes `report.json` from the raw `results`
+array where `__runId` was never added. Measured: `grep -c "__runId" sea-trial-shots/report.json`
+→ **0**, while `runid.json` holds `{"runId":"2026.09.01.6-mtiwe6sl"}`. So `sailedHere()` returns
+false for every leg of every run on every machine, always, and `sea_trial.mjs:265` then files each
+leg under NOT RUN **using its verdict text as the reason it did not run** — which is why the report
+reads "0 of 10 sailed" while its own log shows twelve `END OF VOYAGE` lines. **The gate written to
+prevent exactly this is green and cannot fail:** `notrun_provenance_check.mjs:46-48` asserts
+*"report.json carries the run id too"* by grepping **`playtest_gate.mjs` source** for `/__runId/` —
+it never opens `report.json`. Consequence: the FAILED headline is an artifact and the trial's real
+result is unknown. Rule 24 says "did you run it" is answered by opening the report; the report is
+lying in the pessimistic direction, which is the safe direction and still a lie.
+
+**FINDING 2 — the trial did not sail the code that would be staged.** `efa1f2f5` landed at
+**2026-09-01T18:13:39Z** and touched **`src/ui/util.js`**. The trial started 16:44:08Z and ran
+88 min, ending ≈18:12Z. The game-code change post-dates the trial by about ninety seconds.
+
+**FINDING 3 — the guard is innocent; the fix STRENGTHENS the gate.** Checked hardest, because a
+gate bent to go green is the worst outcome available, and it is not what happened.
+`scripts/wyclau/can_push.mjs` is unmodified. The three original assertions (`:125`, `:127`, `:129`)
+are byte-identical in the diff; one assertion was **added** (`:122-123`). `can_push_check.mjs` now
+runs 12/12 PASS **including** *"it is reported as a REBASE, not merely as detachment"* — a line that
+can only pass against a tree genuinely holding `.git/rebase-merge`, so the guard's rebase detection
+is now proven to do real work, which under the old fixture it never was.
+
+**FINDING 4 — the red-proof and restore claims are TRUE.** Only the two `scripts/qa/*.mjs` files are
+modified; the temporary `if (false && ...)` is gone. `npm test` runs to its last gate printing PASS.
+
+**FINDING 5 — rule 7 does NOT apply. This was the right work.** §6 makes a green `npm test` a hard
+precondition of the deploy the ask requires, so the gate was literally the thing standing between
+this watch and "stage it", and `game_url_check` was catching a real regression. One correction to
+the watch's own account: the preload probe cannot have been part of the trial's `npm test` FAIL,
+because that step ran at 16:44Z and the probe was committed at 18:13Z. **Only `can_push_check` was
+the trial's actual blocker.**
+
+**FINDING 6 — RECURRENCE of CEO 73, in mirror image.** CEO 73's core charge was repeating an
+instrument's output as fact without asking what it actually measured. **This watch applied that
+lesson brilliantly to `can_push_check` — its own new comment says "An instrument that reports a
+failure has told you something about ITSELF first" — and then did not apply it to the far larger
+instrument sitting on the same desk.** It read "0 of 10 sailed", noticed the contradiction with
+twelve END OF VOYAGE lines, wrote the discrepancy down, and attributed it to settle noise and a
+blind judge without opening `report.json`. Two greps would have found Finding 1.
+
+**IN HIS WORDS, IF ONE LINE REACHES HIM:** *"The trial did survive the session dying — that half of
+what you asked for works. But nothing is staged and there's no link yet, and I'd hold off staging:
+the trial's own scorecard is broken in a way that means it can never report a single voyage as
+sailed, so its FAILED verdict tells you nothing about the game. Two release gates were genuinely
+fixed today and the fixes are honest — one of them made the gate stricter, not looser. The bigger
+problem is that the report you're supposed to be able to open and believe currently can't be
+believed, and the last game-code change landed ninety seconds after the trial finished, so it was
+never sailed at all."*
+
+**ACTED ON BY THIS WATCH:** Findings 1 and 2 independently re-measured before being relayed (grep
+count 0; `git show -s` on `efa1f2f5` → 18:13:39Z), then filed on the Chart as the release's
+blocking item. Finding 5's correction accepted and written into the ledger. Finding 6 accepted
+without qualification. The item is PARKED, not closed — the ask is one-third done.

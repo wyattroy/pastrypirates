@@ -125,15 +125,30 @@ status: OPEN — written on the Glass 13:10:15Z. A wyclau process item: the RULE
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: IN FLIGHT — re-sailed 2026-09-01T16:44:08Z from the repaired Blade at a clean tree
-(HEAD `27fb9c48`, `can_push.mjs` green, build `2026.09.01.6`). Detached, pid 38460, run
-`2026-09-01T1644Z-Wy-Blade`, FULL gear, 10 legs (solo-desktop/phone/tablet, passplay-phone/
-desktop, crew-desktop/phone, solo-desktop/phone/tablet-wk). Report:
-`.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md`. Log:
-`.planning/wyclau/detached/trial-2026-09-01T1644Z-Wy-Blade.out`. The prior run (started
-14:19:35Z) is the one this item already declared COMPROMISED (mid-run rebase); it is now
-STALLED per `longrun_status.mjs` and superseded by this one. Next watch: read the report,
-do not start a second trial while this pid is alive.
+status: OPEN — **ONE OF THREE PARTS DONE. Do NOT stage yet; two measured reasons below.** CEO 74.
+
+PART 1, "run the trial in a way that survives session death" — **DONE.** The detached run
+`2026-09-01T1644Z-Wy-Blade` (pid 38460, started 16:44:08Z, FULL gear, 10 legs) outlived the watch
+that started it and left a finished 88-minute report:
+`.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md`, stamped `sailed on win32 (Wy-Blade)`. Log:
+`.planning/wyclau/detached/trial-2026-09-01T1644Z-Wy-Blade.out`. The pid is no longer alive.
+
+PART 2 "stage it" and PART 3 "hand you the link" — **NOT DONE, and correctly held.** Two blockers,
+both measured this watch, both now on the Chart's STEP 1 checklist as the next watch's item:
+  (a) **The trial's scorecard is broken and can never report a leg as sailed** — `report.json`
+      carries no `__runId` (grep count 0), so `sea_trial.mjs:258`'s `sailedHere()` is false for
+      every leg of every run, and each leg is filed under NOT RUN using its own verdict text as
+      the reason. That is the whole explanation of "0 of 10 sailed" against twelve END OF VOYAGE
+      lines in the same file. The gate meant to catch it greps source text, so it is green and
+      cannot fail. **The trial's FAILED headline currently tells us nothing about the game.**
+  (b) **The trial did not sail the code that would be staged** — `efa1f2f5` (touches
+      `src/ui/util.js`) landed 18:13:39Z, about ninety seconds AFTER the run ended ≈18:12Z.
+
+CLEARED THIS WATCH, so the deploy is no longer gate-blocked once (a) and (b) are: `npm test` was
+FAIL in that report and is now **86/86 green** — `can_push_check.mjs`'s fixture hardcoded the
+branch name `main` on a `master`-defaulting machine (no rebase ever started; the innocent guard was
+scored FAIL), and `preload_recipe_badge_probe.mjs:21` hardcoded a game URL. Both fixed, both
+red-proofed, guard file untouched.
 
 ## INBOX-20260901T0000Z — worked example (the fix that seeded this file)
 > "the bosun spent 4 days making stupid tooling instead of simply fixing the sail square problem

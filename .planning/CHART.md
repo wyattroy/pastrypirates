@@ -336,6 +336,34 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   running it, not assumed. Gear: package.json + two `scripts/qa/*.mjs` files only, no `src/` or
   `index.html` touched — a full sea trial is not proportionate to a change that cannot reach a
   player; `npm test` green is the right depth here.
+- [ ] **⚠ THE SEA TRIAL'S SCORECARD CANNOT EVER SAY A LEG SAILED — this blocks the release, and it
+  is the next watch's item. Measured 2026-09-01, CEO Review 74, re-measured by the watch before
+  being written here.** `scripts/sea_trial.mjs:258` clears a leg only when `leg.__runId === runId`,
+  reading `leg` out of `sea-trial-shots/report.json`. But `scripts/playtest_gate.mjs:609` writes
+  `__runId` into the **per-leg** file only, and `:653` builds `report.json` from the raw `results`
+  array, which never had `__runId` added. Measured, not reasoned: `grep -c "__runId"
+  sea-trial-shots/report.json` → **0**, while `sea-trial-shots/runid.json` holds
+  `{"runId":"2026.09.01.6-mtiwe6sl"}`. So `sailedHere()` returns false for **every leg of every run
+  on every machine, always**, and `sea_trial.mjs:265` then files each leg under NOT RUN *using its
+  own verdict text as the reason it did not run*.
+  **That is the entire explanation of the release trial's headline** — `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md`
+  reads "FAILED — 0 of 10 voyage(s) sailed, 10 NOT RUN" while its own log holds twelve
+  `END OF VOYAGE` lines. The ten legs sailed; whether they PASSED is a separate question the report
+  no longer answers.
+  ⚠ **AND THE GATE WRITTEN TO PREVENT EXACTLY THIS IS GREEN AND CANNOT FAIL.**
+  `scripts/qa/notrun_provenance_check.mjs:43,47` asserts *"report.json carries the run id too"* by
+  grepping **`playtest_gate.mjs`'s SOURCE TEXT** for `/__runId/`, and tests `sailedHere` against
+  hand-built objects — it never opens a real `report.json`. A gate that greps the source of the
+  thing it guards is checking that somebody wrote the word, not that the file has the field. **Fix
+  the gate in the same change as the bug, or the next reader gets the same false assurance.**
+  **DO NOT MAKE A RELEASE DECISION ON THAT REPORT UNTIL THIS IS FIXED** — rule 24 stands on opening
+  the report and believing it, and right now it is lying in the pessimistic direction. Pessimistic
+  is the safe direction and it is still a lie.
+- [ ] **The release trial did not sail the code that would be staged — re-sail after the fix above.**
+  `efa1f2f5` ("preload: recipe art and award emblems now load up front") landed **2026-09-01T18:13:39Z**
+  and touches `src/ui/util.js` — game code. The trial started 16:44:08Z and ran 88 minutes, ending
+  ≈18:12Z, so the change post-dates the whole run by about ninety seconds. Staging on the strength
+  of that report would ship something the trial never saw.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment
