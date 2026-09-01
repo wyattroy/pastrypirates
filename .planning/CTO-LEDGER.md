@@ -1714,3 +1714,10 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   are the open items, with 1310Z and 1440Z blocked by the same vendored-file sandbox unless run
   from a session with claude-kit access, and 1335Z's compression half blocked by tooling unless
   run from a session that can grant `npm install` or already has an image tool installed.
+- **NO ARTIFACT TOOL IN THIS SESSION**, same as the two prior watches today — confirmed by
+  searching for it. `glass.mjs --note "..."` ran and regenerated `.planning/wyclau/glass.html`
+  locally with this watch's note and a fresh heartbeat stamp, but it could not be published to
+  https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2. `mark_glass_published.mjs`
+  was correctly NOT run, since nothing was actually published. Nothing pending on the live Glass
+  to harvest (checked: no ideas/rulings were added there since the last harvest, per the prior
+  watch's own note). Next capable session: harvest (if anything has landed since) and republish.
