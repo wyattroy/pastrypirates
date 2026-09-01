@@ -1062,3 +1062,6 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   glow (his W4-5 ruling working as built). His "can't see it anywhere" is two designed behaviours:
   self-retirement at 3 peek uses, and the private-Safari read-throw fallback. Claim released;
   re-opens on any fresh-profile sighting on >= .3.
+
+- INBOX-20260901T1351Z CLAIMED by the advisor session (storm pause at square 2 of 3). His
+  hypothesis -- indexing -- is checked FIRST, per ruling 7.
