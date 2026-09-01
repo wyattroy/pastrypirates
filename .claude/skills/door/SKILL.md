@@ -70,8 +70,13 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    the previous watch closed · blocked on Wyatt · any detached trial in flight (read its report,
    check its pid) · what THIS watch will do. Then pulse:
    `node scripts/wyclau/glass.mjs --note "watch <UTC>: <what this watch is taking up>"` — and
-   republish + `node scripts/wyclau/mark_glass_published.mjs` (a pulse he cannot see is not a
-   pulse).
+   republish + `node scripts/wyclau/mark_glass_published.mjs --version=<id>` (a pulse he cannot see
+   is not a pulse). **`--version` is the id the Artifact publish returned, and it is REQUIRED** — a
+   bare call exits 1 and writes nothing. **If you have no version id you did not publish, and you
+   must not stamp:** a Bell-launched watch has no Artifact tool on some machines and cannot publish
+   at all. Write what you wanted shown into `.planning/wyclau/GLASS-NOTE.md` and commit it, for the
+   next session that can. Earned 2026-09-01: the stamp used to take no arguments and record a
+   publish unconditionally, so a watch that could not publish still marked the Glass as fresh.
 2. **Pick ONE item.** INBOX first — the oldest OPEN item; his words outrank the Chart. Otherwise
    the top unblocked Chart item. **Claim it in the ledger before touching anything.**
 3. **Work it through the Proof, with the teeth** (his rulings, 2026-09-01, all three):
@@ -100,7 +105,7 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    item without a CEO verdict on file, a game-code diff or a stated one-line reason, and the
    solution-first evidence. Do not tick the Chart or the INBOX by hand — the gate writes the tick,
    the ledger entry, and the INBOX fate together, so they cannot disagree.
-6. **Republish the Glass** (harvest first — always), `mark_glass_published.mjs`, then
+6. **Republish the Glass** (harvest first — always), `mark_glass_published.mjs --version=<id>`, then
    `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
    include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its
    transport. Commit (`git pull --rebase` first), push.

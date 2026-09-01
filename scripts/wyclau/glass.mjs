@@ -138,10 +138,14 @@ const tryReadTimestamp = (p) => {
    STATIC once published — its numbers tick forward from references frozen at generation time, and
    no reference computed here can retroactively reflect work that happens AFTER this run. So this
    fix cannot make an unpublished-for-hours page stop looking stale; only actually republishing can
-   (see mark_glass_published.mjs, and the publish-lag brake in
-   .claude/hooks/wyclau-stop-keep-working.cjs — the mechanical half of "make publishing part of
-   pulsing", moved there from npm test by CEO Review 52: it had been wired into the game's own
-   release gate, so a stale DASHBOARD could block a real GAME fix from reaching players).
+   (see mark_glass_published.mjs).
+   ⚠ CORRECTED 2026-09-01: this used to name a publish-lag brake in
+   .claude/hooks/wyclau-stop-keep-working.cjs as the mechanical half of "make publishing part of
+   pulsing". THAT HOOK NO LONGER EXISTS — deleted in claude-kit 2dd722c (the Watch redesign),
+   present in neither the kit's hooks nor the game repo's, nor in settings.json. Verified by
+   looking, not remembered. So there is NO mechanical brake on an unpublished pulse: the only
+   thing that keeps this page moving is a session that CAN publish actually doing it. Do not read
+   this paragraph as reassurance — it used to be, and that is exactly why it was wrong.
    ⚠ CORRECTED, CEO Review 52: an earlier version of this comment claimed an administrative re-run
    "now correctly shows an OLDER last progress than page published" as a settled behaviour. Measured
    instead of assumed: `.claude/hooks/wyclau-pulse.cjs` stamps LAST-ACTIVITY on EVERY tool call by
@@ -994,7 +998,13 @@ console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). D
 console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);
 console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
 console.log(`  capabilities {artifact:{}} on a fresh publish, or if the page says it can't save.)`);
-console.log(`  ⚠ THEN RUN: node scripts/wyclau/mark_glass_published.mjs`);
-console.log(`  This is the OTHER HALF of "publishing is part of pulsing" (CEO Review 52) — the`);
-console.log(`  keep-working Stop hook checks the gap it records and will block a stale, unpublished`);
-console.log(`  pulse. Skipping this step is skipping the whole mechanism, not a shortcut past it.`);
+console.log(`  ⚠ THEN RUN, with the version the publish call returned:`);
+console.log(`      node scripts/wyclau/mark_glass_published.mjs --version=<id>`);
+console.log(`  A BARE CALL IS REFUSED (2026-09-01). It used to stamp "Glass published"`);
+console.log(`  unconditionally, so anything that ran it — including a watch with no Artifact`);
+console.log(`  tool, which cannot publish at all — forged a publish. A stamp that could only`);
+console.log(`  ever say one thing is rule 6's "measurement that cannot fail".`);
+console.log(`  ⚠ AND KNOW WHAT IT NO LONGER BUYS: the keep-working Stop hook that read this gap`);
+console.log(`  was DELETED in claude-kit 2dd722c (the Watch redesign). NOTHING IN CODE READS`);
+console.log(`  LAST-PUBLISH now. Sessions do, and act on it — so it must not lie to them — but`);
+console.log(`  do not skip publishing believing a hook will catch you. Nothing will.`);
