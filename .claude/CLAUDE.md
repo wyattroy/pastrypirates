@@ -564,6 +564,23 @@ captures with completely different cause mixes, and three 85-minute full trials 
 31** structural failures on the same ten legs. Nothing in that can tell a fix from a coin flip —
 and three changes were shipped on it that same night, and all three reverted.
 
+> **⚠ "TWO PICTURES" IS NOT A CONTRAST WITH THE SEA TRIAL, WHICH ALSO TAKES PICTURES.** Wyatt asked
+> exactly this on 2026-09-01 — *"doesn't the sea trial capture pictures? isn't that the entire point
+> of the sea trial?"* — and he is right that the wording invites the confusion. It does: it
+> screenshots as it sails and runs a vision judge over the result (267 screens judged in one run),
+> and that is how the untappable sail square was CAUGHT.
+>
+> **The distinction is POSED versus SAMPLED, not pictures versus no pictures.** The trial
+> photographs whatever happens to occur — a different board and a different set of moments every
+> run — so it is an excellent DETECTOR and a useless A/B. A posed comparison photographs *the same
+> seeded board and the same prompt, before and after the change*, which is the only thing that can
+> answer "did my fix work?". That is why the same ten legs gave 22 → 26 → 31: not noise in the
+> judging, different boards.
+>
+> **So: the trial finds it. A posed pair settles it.** Never read this rule as "don't screenshot" or
+> "the trial is worthless" — read it as "a rate over a stochastic voyage cannot answer a question
+> you could photograph twice."
+
 **A POSED BOARD ANSWERS IN MINUTES AND CANNOT BE ARGUED WITH.** `docs/DRIVING-THE-GAME.md` §5e —
 inject the state you want instead of playing your way to it. Same seed, same prompt, before and
 after, two screenshots side by side.
