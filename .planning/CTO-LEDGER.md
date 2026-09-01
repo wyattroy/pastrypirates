@@ -1241,3 +1241,23 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   on", force a run, and look for a ProcessId. If a watch appears, session 0 is the cause and the
   trade-off is plain — the Bell rings only while he is logged in, which on a laptop that sleeps is
   most of what was available anyway.
+
+- ✅ SESSION 0 WAS THE CAUSE, PROVEN BY REVERT, NOT ARGUED: with the task back to "run only when
+  user is logged on", a forced run produced a live door-launched claude.exe (pid 24884) — the
+  FIRST watch ever started by automation on the Blade. Standing trade-off, small and honest: the
+  Bell rings only while he is logged in. (A laptop that sleeps was never ringing anyway.)
+- ⚠⚠ AND THE BIGGER FIND, from a line nobody was looking at: HIS BLADE CHECKOUT IS IN DETACHED
+  HEAD. `git pull` there answers "You are not currently on a branch". A watch's FIRST act is
+  `git pull --rebase`, which fails there exactly the same way, and nothing it commits can ever
+  reach the branch.
+  THIS IS NOW THE LEADING EXPLANATION FOR WATCH 1'S SILENCE — not the Door's missing commit step.
+  The Door fix stands on its own merits (a watch that ends without pushing is invisible whatever
+  the cause), but it should NOT be credited with a cure it may not have delivered: the same
+  wrong-attribution shape CEO 70 caught this morning, avoided here by saying so.
+  It also explains the missing watch-*.err file: the pull never landed, so the Bell on that
+  machine is still the pre-redirect script.
+  ⚠ ORDER OF OPERATIONS, and this one has teeth: DO NOT `git checkout` the branch while the sea
+  trial is sailing. The trial reads src/ from that working tree; swapping the tree mid-run would
+  have its remaining legs test different code from its first four, and the report would describe
+  a build that never existed in one piece. Wait for the trial's report, THEN checkout + pull,
+  THEN force a ring — that is the first genuinely end-to-end test of the relay.
