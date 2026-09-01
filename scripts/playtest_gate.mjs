@@ -561,6 +561,9 @@ const markProgress = (doneCount) => {
   try {
     lr.writeLongRun(MARKER_REPO, {
       what: `sea trial, ${LEGS.length} legs`,
+      // The fine clock's threshold: no leg may outlive this, so silence approaching it is a leg
+      // about to be killed. Carried on the marker so a reader never has to reconstruct it.
+      legCapMinutes: LEG_CAP_MIN,
       progress: `${doneCount}/${LEGS.length} legs`,
       staleAfterMinutes: LONGRUN_STALE_MIN,
     });

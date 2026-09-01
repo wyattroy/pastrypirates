@@ -46,6 +46,12 @@ catch { console.error("MARKER UNREADABLE — it is not valid JSON. Treat as wedg
 
 const markerAge = mins(Date.now() - Date.parse(m.updatedAt));
 const stale = Number(m.staleAfterMinutes);
+/* The fine clock gets the LEG CAP, not the coarse allowance -- see the header. Falls back to
+   two thirds of the coarse one for a marker written before legCapMinutes existed, which is the
+   same relationship (cap x 1.5) read backwards rather than a new number invented here. */
+const legCap = Number.isFinite(Number(m.legCapMinutes)) && Number(m.legCapMinutes) > 0
+  ? Number(m.legCapMinutes)
+  : stale * (2 / 3);
 
 /* THE FINE-GRAINED CLOCK. Only .png files, and only ones the driver captured — a profile directory
    under sea-trial-shots/ is full of Chrome's own files, and counting those is the exact mistake
@@ -63,7 +69,7 @@ const shotAge = newestShot === null ? null : mins(Date.now() - newestShot);
 console.log(`trial:      ${m.what}`);
 console.log(`progress:   ${m.progress}   (a leg finishing is what moves this)`);
 console.log(`marker:     updated ${fmt(markerAge)} ago, may legitimately go ${stale} min between legs`);
-console.log(`screenshot: ${shotAge === null ? "none found" : `newest ${fmt(shotAge)} ago`}   (this is the fine clock)`);
+console.log(`screenshot: ${shotAge === null ? "none found" : `newest ${fmt(shotAge)} ago`}   (the fine clock; no leg may outlive ${legCap.toFixed(0)} min)`);
 console.log("");
 
 /* A SCREENSHOT IS THE STEP. If none has appeared for longer than a leg is allowed to go quiet, the
@@ -73,11 +79,16 @@ if (shotAge === null) {
   console.log("VERDICT: UNKNOWN — a marker exists but no screenshot has ever been captured.");
   process.exit(1);
 }
-if (shotAge > stale) {
-  console.log(`VERDICT: WEDGED — no screenshot for ${fmt(shotAge)}, past the ${stale} min this job`);
-  console.log("         says it may go quiet. Processes being alive is NOT evidence against this.");
+if (shotAge > legCap) {
+  console.log(`VERDICT: WEDGED — no screenshot for ${fmt(shotAge)}, past the ${legCap.toFixed(0)} min cap a leg`);
+  console.log("         cannot outlive. Processes being alive is NOT evidence against this.");
   console.log("         Look at what the legs are waiting on before assuming it is merely slow.");
   process.exit(1);
+}
+if (shotAge > legCap * 0.8) {
+  console.log(`VERDICT: NEARLY WEDGED — no screenshot for ${fmt(shotAge)}, against a ${legCap.toFixed(0)} min leg cap.`);
+  console.log("         The leg is close to being killed by the harness. Watch it, or look at what it waits on.");
+  process.exit(0);
 }
 if (markerAge > stale) {
   console.log(`VERDICT: SLOW — screenshots are still arriving (${fmt(shotAge)} ago), so the driver is`);
