@@ -161,6 +161,13 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
     from it.
   - **Idea-submit corruption — attempt 3, see the entry above.** Same underlying bug as the
     2026-08-31 report; folded into that entry rather than duplicated here.
+- **"testing"** (written on the Glass, 2026-09-01 03:14:37Z, minutes after the reload-free rewrite
+  shipped) → **HARVESTED, and it carries real evidence about the corruption bug.** The idea reached
+  `glassState.ideas` intact and the page saved a clean new version — so the SAVE path works on the
+  no-reload design. What that cannot tell us is what he SAW: the reported fault was always a
+  rendering one (his own View Source showed the stored HTML was clean), so only he can say whether
+  the page still garbled. **Left open in BLOCKED ON WYATT for exactly that reason** — the third
+  attempt is unconfirmed, not confirmed, until he says so.
 - **"Test to send to the chart"** (written on the Glass, 18:27:43Z) → **SHIPPED, and this IS the
   fate.** Read literally: the two-way save it exercises is exactly what it tested — the idea
   reached `glassState.ideas` on the live artifact and this harvest is that path completing end to
