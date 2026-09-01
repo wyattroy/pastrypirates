@@ -1223,3 +1223,21 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   predates the Door's commit-before-you-end fix, and a session loads its skill text at invocation,
   BEFORE its own first pull. So THIS watch may still end invisibly; the next one will not. Do not
   read a silent watch here as the fix having failed.
+
+- ⚠ RINGS HAPPEN, WATCHES DO NOT. 16:08:22Z the scheduled task rang; the process table shows NO
+  door-launched claude.exe after it. Start-Process did NOT throw (the "ring:" line is only written
+  on the non-throwing path), so `claude` was FOUND and STARTED — and the child then died with its
+  output going nowhere.
+  MY SCRIPT'S BLIND SPOT, fixed in the same turn: bell.ps1 launched the watch with no redirect, so
+  "claude cannot start in this session", "it refused the prompt" and "it ran and ended instantly"
+  were one indistinguishable symptom. It now writes the rung watch's stdout and stderr to
+  .planning/wyclau/watch-<stamp>.out/.err (gitignored, machine-local) and names them in the ring
+  line. The next ring is readable instead of silent.
+  LEADING SUSPECT, and it is the change made minutes earlier: the task is now NON-INTERACTIVE
+  ("run whether user is logged on or not"), which puts the child in a background session. Every
+  watch that has EVER launched on this machine was launched from an interactive context (watch 1
+  came from his own PowerShell at 14:15:42Z); a scheduled task has never successfully started one.
+  THE DECISIVE TEST is a revert, not a theory: put the task back to "run only when user is logged
+  on", force a run, and look for a ProcessId. If a watch appears, session 0 is the cause and the
+  trade-off is plain — the Bell rings only while he is logged in, which on a laptop that sleeps is
+  most of what was available anyway.
