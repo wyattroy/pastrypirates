@@ -1,0 +1,75 @@
+<title>The Blade Hour</title>
+<style>
+:root{--ink:#12303a;--muted:#5b7580;--line:#d8e3e7;--card:#fffdf7;--bg:#eef4f6;--accent:#0f7f96;--ok:#1f9d6b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--ink:#e8f1f4;--muted:#93aab3;--line:#22414c;--card:#12262e;--bg:#0b1a20;--accent:#4fc3dd;--ok:#3ec38c}}
+:root[data-theme=dark]{--ink:#e8f1f4;--muted:#93aab3;--line:#22414c;--card:#12262e;--bg:#0b1a20;--accent:#4fc3dd;--ok:#3ec38c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 16px 100px}
+main{max-width:760px;margin:0 auto}
+h1{font-size:22px;margin:26px 0 4px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.9px;color:var(--accent);margin:26px 0 8px;font-weight:700}
+.step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;display:flex;gap:12px;align-items:flex-start}
+.step.done{opacity:.55}
+.step input{width:22px;height:22px;margin-top:2px;flex:0 0 auto;accent-color:var(--ok)}
+.step .t{flex:1;min-width:0}
+.step b{display:block;margin-bottom:2px}
+.step .d{color:var(--muted);font-size:14px}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:13px/1.5 ui-monospace,Consolas,monospace;overflow-x:auto;margin:8px 0 2px;white-space:pre}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:var(--bg);padding:.06em .3em;border-radius:4px}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:11px 13px;margin:0 0 12px;font-size:14.5px}
+</style>
+<main>
+<h1>The Blade Hour — installing the Bell</h1>
+<p class="sub">Everything in order, ~30–60 min (most of it is watching the ring test wait).
+Full detail lives in <code>scripts/wyclau/RAZER-SETUP.md</code>; this sheet is the walk-through.
+Ticks save in this browser.</p>
+
+<h2>Already done — just confirm</h2>
+<div class="step" data-k="a1"><input type="checkbox"><div class="t"><b>Old watchdog disabled</b><div class="d">You did this this morning. To delete it for good (elevated PowerShell): <code>schtasks /Delete /TN "wyclau-watchdog" /F</code></div></div></div>
+<div class="step" data-k="a2"><input type="checkbox"><div class="t"><b>One more <code>git pull</code></b><div class="d">I pushed a queue-order fix after your first pull — pull again so the first watch takes the release trial, not the older triage note.</div></div></div>
+
+<h2>Setup — about 10 minutes</h2>
+<div class="step" data-k="s1"><input type="checkbox"><div class="t"><b>1 · Prove a headless watch can pulse</b><div class="d">In the repo folder (regular PowerShell):</div>
+<pre>claude -p "Run exactly this command and show its output: node scripts/wyclau/glass.mjs --note 'headless permission probe'"</pre>
+<div class="d">Then confirm <code>.planning\wyclau\HEARTBEAT</code> has a fresh timestamp. This proves <code>claude</code> is on PATH and the permissions survived — both were proven in the first Razer hour, this re-checks them cheaply.</div></div></div>
+<div class="step" data-k="s2"><input type="checkbox"><div class="t"><b>2 · The O2 test — can a Blade session publish the Glass?</b><div class="d">Open an interactive <code>claude</code> in the repo and say: <em>"Republish the Glass, and state plainly whether the Artifact tool exists in your tool list. Write the answer to the ledger verbatim, commit and push."</em> Whatever the answer, it settles the one unexplained fault left in the system (three Blade sessions have reported no publish path; nobody knows if the tool was absent or refused).</div></div></div>
+<div class="step" data-k="s3"><input type="checkbox"><div class="t"><b>3 · Register the Bell</b><div class="d">ELEVATED PowerShell, with your real repo path:</div>
+<pre>$repo = "C:\path\to\pastrypirates"
+schtasks /Create /TN "wyclau-bell" /SC MINUTE /MO 10 /TR "powershell -NoProfile -ExecutionPolicy Bypass -File $repo\scripts\wyclau\bell.ps1 -Repo $repo"</pre>
+<div class="d">Set the task to run whether or not you're logged in, and check the machine won't sleep on idle while plugged in.</div></div></div>
+<div class="step" data-k="s4"><input type="checkbox"><div class="t"><b>4 · Ring the first watch by hand</b><div class="d">Run the Bell once yourself and watch it work:</div>
+<pre>powershell -NoProfile -ExecutionPolicy Bypass -File $repo\scripts\wyclau\bell.ps1 -Repo $repo</pre>
+<div class="d">It should ring a watch (a line in <code>.planning\wyclau\restarts.log</code> starting <code>ring:</code>). <b>Expected:</b> that watch takes the top queue item — starting the detached release trial on build .4 — then ENDS its turn. Ending is correct; it's the whole design.</div></div></div>
+
+<h2>The ring test — both directions, ~35 min of mostly waiting</h2>
+<div class="step" data-k="r1"><input type="checkbox"><div class="t"><b>5 · Direction 1: a killed watch gets relieved</b><div class="d">While a watch is mid-work, kill it on purpose:</div>
+<pre>Get-CimInstance Win32_Process -Filter "Name='claude.exe'" | Where-Object {$_.CommandLine -like '*-p*/door*'} | Select ProcessId
+Stop-Process -Id &lt;that pid&gt; -Force</pre>
+<div class="d">Within ~15 min (one 10-min tick + the 5-min grace) the log gains a new <code>ring:</code> line and a fresh watch appears. The killed item stays claimed in the ledger — the next watch sees it there. That's the designed recovery, not a mess.</div></div></div>
+<div class="step" data-k="r2"><input type="checkbox"><div class="t"><b>6 · Direction 2: a working watch never gets a double</b><div class="d">While a watch is visibly alive, let two Bell ticks pass (20 min — good moment for coffee). Then rerun the <code>Get-CimInstance</code> line: the count of door-launched <code>claude.exe</code> must be exactly ONE, and the log must show no new rings. This is the direction the old watchdog failed four times in one day.</div></div></div>
+
+<h2>Finish</h2>
+<div class="step" data-k="f1"><input type="checkbox"><div class="t"><b>7 · Arm your phone</b><div class="d">In your own session: <code>/remote-control</code> — then confirm the Glass link opens on your phone.</div></div></div>
+<div class="step" data-k="f2"><input type="checkbox"><div class="t"><b>8 · Tell me the ring test passed (or what you saw)</b><div class="d">That starts the 48-hour shakedown clock: zero phantom watches, zero eaten conversations, the Glass never stale beyond one watch, every closed item CEO-verdicted — then you judge, then the merge on your word.</div></div></div>
+
+<p class="note"><b>While the trial runs (~85 min, detached):</b> it survives every watch ending — that's the point. Later watches read its report (<code>.planning/SEA-TRIAL-&lt;runid&gt;.md</code>) and work the next queue items meanwhile: the attack-buttons fix, the flashing hint, the storm animation.</p>
+</main>
+<script>
+/* Every localStorage touch guarded: in a private tab the accessor THROWS, and an unguarded read
+   would blank the whole page (CLAUDE.md rule 27's own warning). */
+(function(){
+  var KEY="pp-blade-hour-2026-09-01";
+  var read=function(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}};
+  var write=function(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}};
+  var st=read();
+  document.querySelectorAll(".step").forEach(function(row){
+    var k=row.getAttribute("data-k"),box=row.querySelector("input");
+    if(st[k]){box.checked=true;row.classList.add("done");}
+    box.addEventListener("change",function(){
+      st[k]=box.checked;write(st);row.classList.toggle("done",box.checked);
+    });
+  });
+})();
+</script>
+</main>
