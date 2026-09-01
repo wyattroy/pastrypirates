@@ -1537,12 +1537,30 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   screenshot claim were also flagged again as stale evidence sitting in the tree; they were never
   staged or committed and are harmless there, but a future session should not mistake them for
   current evidence.
-- Commit `<pending, see below>` carries the one-tick fix. Closing INBOX-20260901T1351Z through
+- Commit `f7c1207e` carries the one-tick fix. Closing INBOX-20260901T1351Z through
   the gate now: the ASK ("the storm should smoothly move players to their final square in one
   move") is met and CEO-verified for the primary case (any push that doesn't sweep, and the
   logic for a swept push too); the residual render-staleness artifact is a separate, smaller,
   honestly-flagged finding, not a reason to hold this item open indefinitely. If a future watch
   wants a posed before/after pair specifically for the swept ride, that is real, useful remaining
   work — recorded here so it is not lost.
+- **NO ARTIFACT TOOL IN THIS SESSION**, same as the prior watch (16:39:42Z) — confirmed again by
+  searching for it. `glass.mjs --note "..."` ran and regenerated `.planning/wyclau/glass.html`
+  locally with this watch's note, but it could not be published to
+  https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2. `mark_glass_published.mjs`
+  was correctly NOT run, since nothing was actually published. Next capable session: harvest (none
+  pending — nothing new landed on the Glass this turn to harvest) and republish so the page
+  reflects this item's close.
+- Detached release trial (pid 38460, run `2026-09-01T1644Z-Wy-Blade`) not touched this turn, per
+  the prior watch's instruction — still the responsibility of whichever watch next checks
+  `longrun_status.mjs`.
+- ENDING THE TURN NOW, per the Watch rule: one item, worked through the full Proof (measured
+  first per ruling 7, fixed, CEO-reviewed twice as real issues surfaced, closed through the gate,
+  pushed). Next watch: INBOX oldest-OPEN is now `INBOX-20260901T1440Z` (the detached-trial black
+  console, vendored file — needs claude-kit access this session did not have) or
+  `INBOX-20260901T1310Z` (Glass rulings triage, also vendored-file-blocked here) — both may be
+  equally blocked for a session in this same sandboxed state; if so, the next unblocked oldest
+  item is `INBOX-20260901T1335Z` (compress images + preload, LAUNCH CRITICAL, sized too large for
+  one watch — see this file's earlier entry for the scoping notes already gathered).
 
 - 2026-09-01T17:50:31Z · close_item: INBOX-20260901T1351Z · CEO 72 · commit f7c1207 (1 game file) · his solution first: commit f7c1207 · storm push now glides to its final square in one continuous move, swept ships included
