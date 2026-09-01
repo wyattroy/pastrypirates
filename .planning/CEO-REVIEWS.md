@@ -3688,3 +3688,61 @@ guest alike. What this does NOT yet prove: that Wyatt's exact "stays until refre
 in a live crew game — that is his item-6 replay and the release trial, and the record says so.
 
 Item: INBOX-20260901T1309Z. Commit: 0caf85c1.
+
+## CEO Review 68 — 2026-09-01 — item: Muse narrations missing (INBOX-20260901T1314Z)
+
+**VERDICT: YES on the ask — the Muses narrate again and the cause is honestly named. One fault,
+and it is Review 67's fault recurring in the same row it was caught in.**
+
+**The ask (Glass, 13:14Z):** "The Muse narrations are now missing from all narration in
+Multiplayer -- they don't seem to be firing at all, or maybe they get wiped away IMMEDIATELY."
+
+**What I verified myself, not took on faith:**
+
+- **The cause claim holds.** `git show 693c2b0b` — its "WHAT HE DELETED" list names the storm
+  theatre and the wind-streak flavour, and never the pass entry. The diff deletes
+  `pass:(e,at,cellPx,viewerSeat)=>` and re-adds zero `pass:` lines. Collateral, not chosen —
+  exactly as claimed.
+- **The restoration is byte-identical, better than claimed.** I extracted the full 552-byte
+  `pass:` builder from `693c2b0b^:src/ui/util.js` and from today's src/ui/util.js by brace-walk:
+  RAW identical, not merely code-identical — the restoration note and Muse-rename comments sit
+  above the entry, outside the builder. No code drift of any kind.
+- **The gate is real and green — 7 checks, not the 6 the record says.** I ran
+  `scripts/qa/muse_narration_check.mjs`: 7 PASS lines (both persons, the coin clause, the
+  cfg.passCoin derivation, the legacy string payload, the log line, the wave pop). The commit and
+  ledger both hand-type "six checks" — wrong in the safe direction, but convention 2 exists for
+  exactly this. The rule-9 red-proof is IN the script (it changes cfg.passCoin and requires the
+  text to follow); the "proven RED first — no pass entry" claim is structurally sound (check 1
+  cannot pass with the entry absent) though I could not re-run the historical red in a read-only
+  review.
+- **`npm test` exit 0 at 83.** gate_count_check declares and verifies 83, muse_narration_check
+  is in the chain, and the ceiling raise carries its stated reason.
+- **The honesty bar is met.** Ledger: "NOT MP-specific — it was silent in every mode; he noticed
+  where he plays." Sheet item 7: "silent in EVERY mode for five days." His premise is corrected
+  in his own deliverable, plainly. And nothing pretends to have tested "wiped away IMMEDIATELY"
+  — the record names absence as the cause and stops there. His second guess is neither adopted
+  nor silently dropped; the first guess ("not firing at all") is confirmed and explained.
+
+**THE FAULT — Review 67's stale-stamp row, recurred, third generation.**
+`.planning/staging-checklist-2026-09-01.html` (the uncommitted working-tree version he will be
+handed): header and intro now read `2026.09.01.4-staging@841507a2`, and I curled staging —
+`PP4_STAMP = "2026.09.01.4-staging@841507a2"` on the wire. But the item-1 row still tells him to
+expect "Build 2026.09.01.3-staging" with `@0caf85c1`, and no script rewrites it (the only
+dynamic stamp read is the export line). Review 67 caught this same row at .2; it was fixed to
+.3; the .4 update touched the header, the intro and added item 7 — and left the row at .3 again.
+The row's own why-text cites Review 67 catching it. As written, his first check FAILS on the
+correct build and the sheet's intro tells him to stop and report. Fix the two hand-typed strings
+in item 1 before he opens it — and this row has now earned deriving from the header's `#stamp`
+element instead of being typed a fourth time.
+
+**Recurrence vs 65–67 otherwise:** 66's too-early-screenshot fault does not recur (the evidence
+here is a re-runnable gate and a byte-diff, and I re-ran both). 65's CEO-per-item gap does not
+recur (this review exists because the close gate demands it). 67's fault recurs as above.
+
+**What a player gets:** musing works again — a captain who passes summons a sea-creature
+sighting on every screen, second person for the muser, third person for the rest, with the
+"Recipe idea! (+1)" coin derived from config — in solo, pass-around and crew alike, after five
+silent days nobody reported because the deletion also killed it for the modes nobody was
+watching.
+
+Item: INBOX-20260901T1314Z. Commit: 841507a2.
