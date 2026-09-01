@@ -2070,3 +2070,21 @@ the gap and then let his window go dark anyway.
 `close_item.mjs` correctly has nothing to tick yet. **The next watch's job on this item is to read
 the report, not to re-run anything**; if pid 45256 is gone and the report is unfinished, the run
 died and that is itself the finding.
+- ✅ SETTLED BY MEASUREMENT ON BOTH MACHINES: `claude -p` HAS the Artifact tool. Mac: PRESENT.
+  Blade (Wyatt ran it himself, 2026-09-01): PRESENT. So the capability was never missing anywhere.
+  THEREFORE THE WATCHES WERE WRONG ABOUT THEMSELVES. Five ledger entries across the day
+  (:852, :895, :896, :1354, :1547) state "no Artifact tool in this session" — some say they
+  confirmed it by searching. They were self-reports, they were false, and three separate sessions
+  (mine included, relaying them) treated them as facts about the platform.
+  CONSEQUENCE, AND IT IS THE GOOD KIND: there is no architectural collision, no impossible design,
+  and nothing for Wyatt to rule on. A watch CAN publish the Glass. The Glass going stale is a
+  session-behaviour problem — a watch that believes it cannot publish will not try — not a
+  capability problem. Wyatt said this from the start ("the blade CAN publish the Glass, it's been
+  doing it this whole time") and he was right while three sessions of evidence said otherwise.
+  THE REUSABLE LESSON, which is bigger than this bug: A SESSION'S REPORT ABOUT ITS OWN TOOLS IS A
+  CLAIM, NOT A MEASUREMENT. It reads like the strongest possible evidence — the session is right
+  there, looking at itself — and it was wrong five times today. The cheap decisive test is one
+  line: `claude -p "is a tool named Artifact present in YOUR tool list? PRESENT or ABSENT"`.
+  STILL UNEXPLAINED, and named rather than hand-waved: WHY a watch searching its own tools found
+  nothing. Most likely a deferred-tool list that must be searched with the right query before it
+  appears — a watch running one search, getting nothing, and concluding absence. Not measured.
