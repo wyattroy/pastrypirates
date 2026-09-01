@@ -4341,3 +4341,31 @@ charter fallback."*
 > and there's a real gate that will catch the next one going stale. But while fixing it the watch
 > wiped the note file that was telling you not to close the black console window running your
 > release trial, and then wrote in its log that it had put the note back. It hadn't."*
+
+## CEO Review 78 — 2026-09-01T21:4xZ, Wy-Blade — Wyatt's proposal: publish the Glass at the START and END of the watch prompt
+
+**HIS ASK, VERBATIM:** *"just add another instruction to the BEGINNING of watch to update the artifact at the beginning, and another at the end? ask the CEO to critique this"*
+
+**VERDICT: NO — and the premise is wrong twice over.**
+
+1. **The instruction already exists.** `scripts/wyclau/bell.ps1:84` — *"…close it through the gate, republish the Glass, and END YOUR TURN."* His proposal adds a second and third copy of an instruction that is not being disobeyed; it is not being **reached**.
+2. **Publishing at the START is actively dangerous, and RECURS CEO 77.** `glass.mjs:56-61` states republishing without harvesting first DELETES his ideas and rulings. Publish-at-start inverts that ordering by construction. CEO 77's finding was that a watch *"wiped the note file that was telling you not to close the black console window."* A publish-first instruction makes that the routine rather than the accident.
+3. **The actual cause was an outage nobody was looking at.** Ten consecutive rings from 20:08Z, every watch exiting in ~2 minutes: *"I ran the sync and the publish check, and the check failed. I did no work and changed nothing"* — `can_push.mjs` exit 1 on a detached, mid-rebase checkout. No prompt edit changes this.
+4. **It also caught the reviewing session's own instrument.** The session's first Artifact probe was a SELF-REPORT, the same instrument the ledger declares invalid, and its `Read` control could not discriminate because `Read` is core while `Artifact` is plausibly deferred. It specified the behavioural test instead. **That test was then run and REJECTED the deferred-tool theory:** `ToolSearch("select:Artifact")` → no matching deferred tools; `ToolSearch("+artifact")` → same; and the print session's own prompt lists subagent tools as *"All tools except Agent, Artifact, ArtifactComments…"* — the harness knows the name and withholds it. **Blade `-p` genuinely cannot publish; the Mac measures PRESENT on the Mac (2.1.257 vs 2.1.240). Honest scope is per-machine, not "print mode".** Commit `59ad8b69`'s capitalised claim that *"-p HAS the Artifact tool"* is FALSE on the Blade and stands uncorrected in `git log --oneline`.
+
+**Most important next step it named:** label the stranded work before any git move — `git branch rescue-20260901 f4bd3f7c`. This was done, and it is why the rebase decision was safe to get wrong.
+
+## CEO Review 79 — 2026-09-01T21:5xZ, Wy-Blade — the engine repair, two Glass publishes, and the Artifact settlement
+
+**HIS ASKS, VERBATIM:** *"why doesn't the Glass say that a sea trial is running? the glass needs to be redesigned/fixed asap"* · *"measure dont trust the ledger it lies"* · *"then start a session to publish it, you silly pants!!"* · *"could we just start an interactive session, once, called Glass update, that is fed a clear instruction, updates the glass wtih whatever it needs to, then clears itself afterwards?"*
+
+**VERDICT: PARTIAL — the repair is sound and the honesty is real, but ask #1 is not fixed, ask #4 is not started, and CEO 77's fault recurs verbatim.**
+
+1. **Ask #1 NOT FIXED — patched for today, and today's patch mechanism is now switched off.** No structural change: the last touch to `glass.mjs` is `26801bb3`, from before this session. The page is a publish-time snapshot by construction (`glass.mjs:506`), so it cannot learn that a trial started after it was written. With the Bell disabled, **nothing will ever move the 21:50Z stamp again** — *"worse than the state he complained about, because tonight's freeze at least had a running engine behind it that could recover."*
+2. **Ask #2 obeyed, unevenly.** The INBOX correction is in `4c9046ec`'s body where a future reader hits it. The "five commits" error never entered the record (watch logs consistently say three), so nothing stands to retract — but the correction lives only in a reply that dies with the session. `59ad8b69`'s false claim still reads as fact in `git log --oneline`.
+3. **The repair is SOUND — all four checks pass.** Attached branch, no rebase dir, `can_push.mjs` exit 0, 0/0 vs origin. `git diff --stat cff845ce HEAD -- .planning/CEO-REVIEWS.md` empty; skipping was right and was proved before moving. **Caveat: `rescue-20260901` is now an ancestor of HEAD and protects nothing going forward.**
+4. **Ask #3 satisfied by other means** (the Glass was published twice). **Ask #4 untouched** — no Glass-update session exists.
+5. **RECURRENCE — YES, CEO 77 almost word for word.** `CTO-LEDGER.md:2190` still carried *"THIS CHECKOUT IS LEFT IN DETACHED HEAD, MID-REBASE. A HUMAN MUST REPAIR IT"* for 107 lines, hours after the repair. **The tree was fixed and the alarm left ringing.** And no verdict had been appended here for any of this session's work — *"a verdict nobody recorded is a recurrence check nobody can run."* **Both fixed in the same turn as this entry, which is the only reason the charge is not still live.**
+6. **Three overreaches in `4c9046ec`:** "eight watches" was TEN; the citation pointed at `restarts.log` when the evidence is in the `.out` files; and *"the engine was never refusing to publish"* asserts one cause for a window the evidence half covers — **17:56Z→20:08Z is still unexplained.**
+
+**Most important next step it named:** *"Re-enable the Bell before you close this laptop — or accept that the Glass is now a photograph."*

@@ -2295,3 +2295,47 @@ most likely to have failed silently.**
 pulse). This entry is committed on the detached HEAD, so `--continue` carries it forward; it is
 **not** published, and the correction reaches Wyatt in the reply, which is the only transport this
 checkout has.
+
+---
+
+## ⚠ THE REPAIR ALARM ABOVE (from line ~2190) IS RETIRED — 2026-09-01T21:5xZ, Wy-Blade (interactive)
+
+**The block above says "THIS CHECKOUT IS LEFT IN DETACHED HEAD, MID-REBASE. A HUMAN MUST REPAIR
+IT." That was true when written and is FALSE now. It is left in place rather than deleted, because
+`docs/INTENDED-BEHAVIOUR.md` and the wyclau audit cite this file BY LINE NUMBER and deleting
+narrative silently breaks them (CEO 74's blocking condition). Read it as history, not as an
+instruction.**
+
+**Repaired, verified four ways:** on `claude/cloud-handoff-planning-a9ay1u`, attached; no
+`.git/rebase-merge`; `node scripts/wyclau/can_push.mjs` exit 0; 0 ahead / 0 behind origin.
+
+**How:** `git branch rescue-20260901 f4bd3f7c` FIRST, so the whole decision was safe to get wrong.
+Then a test cherry-pick of the pending `cff845ce` (conflicted on this file and INBOX.md; tree
+restored), then `git rebase --skip` to completion — because `cff845ce` was the SAME work as
+`c706340a`, already applied by hand. Proved before moving: `git diff --stat cff845ce HEAD --
+.planning/CEO-REVIEWS.md` is empty, and the only INBOX.md delta is `2946b97` → `de045b9`, the
+post-rebase hash of the same commit. **Nothing was lost.**
+
+**A caveat on `rescue-20260901`, so nobody overclaims it later:** it is now an ANCESTOR of HEAD, so
+it protects nothing going forward. It was insurance at the moment it was created and is a label on
+reachable history now.
+
+**THREE CORRECTIONS TO COMMIT `4c9046ec`, made by the CEO that reviewed it (CEO 79):**
+
+1. **"Eight consecutive watches" is wrong — it was TEN.** `restarts.log` shows ten rings from
+   20:08Z (20:08, 20:18, 20:28, 20:38, 20:48, 20:58, 21:08, 21:18, 21:28, 21:38) and there are ten
+   matching `watch-20260901T2*.out` files. Understated by two, in a commit whose whole point was
+   measuring rather than assuming.
+2. **The citation pointed at the wrong file.** `restarts.log` only records the ring. The evidence
+   that each watch did no work is in the `.out` files — e.g. `watch-20260901T213802Z.out`: *"The
+   check failed, so I stopped without taking an item."*
+3. **"The engine was never refusing to publish" overstates the diagnosis.** The detached tree
+   explains the 20:08Z→21:38Z outage. It does NOT explain the Glass being stamped 17:56:21Z, 132
+   minutes before the first blocked watch. **Something else ate 17:56Z→20:08Z and is still
+   unexplained.** A single cause was asserted for a window the evidence only half covers.
+
+**STILL OPEN, and the biggest one:** the Bell is DISABLED (Wyatt disabled it at his own hand this
+evening). The Glass only learns anything at publish time (`glass.mjs:506`), so with no publisher
+running the page is now a photograph — the freeze it opened on is guaranteed rather than
+intermittent until the Bell is re-enabled or a Glass-update session is opened
+(`.planning/wyclau/GLASS-UPDATE-SESSION.md`).
