@@ -3746,3 +3746,64 @@ silent days nobody reported because the deletion also killed it for the modes no
 watching.
 
 Item: INBOX-20260901T1314Z. Commit: 841507a2.
+
+## CEO Review 69 — 2026-09-01 — item: attack buttons on the wrong captain (INBOX-20260901T1332Z)
+
+**VERDICT: YES on the ask — the attack circles now anchor on the captain they name, by joining
+the one placement rule rather than patching around it. One routing fault: the parked sweep
+question was parked where Wyatt does not read.**
+
+**The ask (Glass, 13:32Z):** attack buttons "on top of the wrong captain... Fix this universally,
+not through patches, so that the buttons that refer to selecting a player are always drawn next
+to them."
+
+**What I verified myself, not took on faith:**
+
+- **The change is exactly the described one line.** `git show f2dff2cb -- src/ui/flow.js`: the
+  only functional edit is `seat:o.idx` on each captain option and `seat:player.idx` on "← Back"
+  (now src/ui/flow.js:2502), plus a comment block. Zero new placement code, zero new forks — the
+  rest of the commit is the stamp, the gate registration (83→84 with ceiling reason), the gate
+  script, and the ledger entry.
+- **"All-or-nothing" is real, judged from the code.** src/ui/stage.js:2785:
+  `const onBoats = anchors.length > 0 && anchors.every(Boolean);` — one seatless button maps to
+  a null anchor, `every(Boolean)` goes false, and the whole menu runs the ordinary fan around
+  the chooser. So the pre-fix menu (no seats anywhere) could never have anchored, and a fix that
+  seated only the captains but not Back would have silently done nothing. The load-bearing claim
+  holds, and seating Back with the chooser's seat is the correct completion of the contract.
+- **The gate is real and green — 4/4 including its in-file red-proof.** I ran
+  `scripts/qa/attack_buttons_on_target_check.mjs`: both seat assertions plus the red-proof, which
+  reconstructs the exact pre-fix seatless line and requires both assertions to fire on it. The
+  "run RED against the real pre-fix tree first" claim is historical and I cannot re-run it, but
+  it is structurally sound — the doctored shape IS the pre-fix shape, byte-for-byte the old line.
+  (Trivial: assertions 2–3 ignore their function argument and read `seg` from closure, and
+  `menuExpr` is computed and unused. Cosmetic, not a correctness hole.)
+- **`npm test` exit 0 at 84.** gate_count_check declares and verifies 84; the new gate sits in
+  the chain beside w52.
+- **The honesty bar is met on the mechanism.** The ledger states cause as read-from-code ("the
+  all-or-nothing contract dropped the whole menu into the fan... where a captain-coloured circle
+  lands on whichever ADJACENT neighbour's hull the geometry crosses") — mechanism language,
+  nothing pretends a posed on-screen reproduction happened. No posed before/after pair exists
+  (rule 26's gold standard for a placement question), but the record does not claim one, the fix
+  changes zero placement machinery (w52 already holds that), and checklist item 8 routes the
+  visual verification to Wyatt on staging with the exact two-adjacent-captains pose.
+- **"Universally" is genuinely met, not patched.** One rule now covers every seat-carrying menu —
+  battle calls (W5-2) and the attack menu alike. A patch would have been bespoke positioning for
+  this one menu; this is convergence onto the existing rule, which is what his words asked for.
+- **Reviews 67/68 recurrence: the third-generation stamp fault is structurally fixed.** The
+  item-1 row now READS the header (`liveStamp` span) instead of restating it — a pointer, not a
+  copy. Staging serves `PP4_STAMP = "2026.09.01.5-staging@f2dff2cb"` (curled), matching the
+  committed sheet's header. Minor: line 73 of the sheet still hand-types the `-staging@f2dff2cb`
+  suffix — true today, same fault class one line above the row that now derives. Watch it.
+
+**THE FAULT — the parked question has no path to his eyes.** The sweep finding (the
+trade-response menu, src/ui/flow.js ~2125-2150, also names captains without seats) is "parked
+for Wyatt" in the ledger and the commit message — and nowhere else. CHART.md's BLOCKED ON WYATT
+section reads "Nothing is blocked on Wyatt right now," and neither the checklist nor the Glass
+carries the question. Parking rather than assuming was the right call — trade responses can come
+from distant captains and the options carry deal terms and disabled states, so whether they
+should scatter onto boats is genuinely his taste — but by the letter of his ask ("buttons that
+refer to selecting a player are ALWAYS drawn next to them") that menu is arguably inside scope,
+so the item is not fully closed until he rules. A question parked in a file he does not read is
+a question never asked (HARD-WON-LESSONS §12k's exact failure). Route it to the Glass or
+BLOCKED ON WYATT.
+
