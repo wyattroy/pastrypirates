@@ -66,7 +66,7 @@
 // page reports it cannot save.
 
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
@@ -153,9 +153,32 @@ const tryReadTimestamp = (p) => {
    REAL evidence — the newer of HEARTBEAT and LAST-ACTIVITY, read BEFORE this run overwrites
    HEARTBEAT, so the act of running glass.mjs itself is never, by construction, mistaken for
    progress on its own. */
+const tryGit = (args) => {
+  try { return execFileSync("git", ["-C", ROOT, ...args], { encoding: "utf8" }).trim(); }
+  catch (e) { return null; }
+};
+/* ⚠ REWRITTEN 2026-09-01, AND THE OLD VERSION IS THE POINT. "Last progress" used to be
+   max(previous HEARTBEAT, LAST-ACTIVITY). Both inputs were LOCAL and one of them died the same
+   day: the pulse hook that wrote LAST-ACTIVITY was deleted with the Watch redesign, and HEARTBEAT
+   is written by THIS SCRIPT — so the only surviving input was "when did glass.mjs last run here",
+   and the number reduced to a clock measuring itself, blind to every other machine.
+   WHAT WYATT SAW: a red dot reading "last progress 213 min ago" while a watch on the Blade had
+   pushed 65 minutes earlier and this Mac had landed ten commits since. The work was real; the
+   instrument could not see any of it. That is the post-mortem's SHAPE A exactly — an instrument
+   measuring something other than what it names — and I introduced it today by deleting the hook
+   without noticing what depended on it.
+   THE FIX IS TO MEASURE LANDED WORK: the newest commit reachable in this clone, across ALL refs,
+   so a watch's push on another machine moves it the moment this one fetches. A commit is work that
+   landed, by definition; it cannot be produced by regenerating this page, which is what makes it
+   immune to the self-reference the old pair had. If git cannot answer, this falls back to the old
+   local reading rather than inventing a time. */
+const lastCommitIso = tryGit(["log", "-1", "--format=%cI", "--all"]);
+const lastCommitMs = lastCommitIso ? Date.parse(lastCommitIso) : NaN;
 const prevHeartbeatAt = tryReadTimestamp(HEARTBEAT);
 const lastActivityAt = tryReadTimestamp(LAST_ACTIVITY);
-const lastProgressMs = Math.max(prevHeartbeatAt ?? 0, lastActivityAt ?? 0) || null;
+const lastProgressMs = Number.isFinite(lastCommitMs)
+  ? lastCommitMs
+  : (Math.max(prevHeartbeatAt ?? 0, lastActivityAt ?? 0) || null);
 
 const nowIso = new Date().toISOString();
 const lastProgressIso = lastProgressMs ? new Date(lastProgressMs).toISOString() : nowIso;
@@ -176,10 +199,7 @@ let relayedNote = null;
     writeFileSync(GLASS_NOTE, GLASS_NOTE_TEMPLATE);
   }
 }
-const tryGit = (args) => {
-  try { return execFileSync("git", ["-C", ROOT, ...args], { encoding: "utf8" }).trim(); }
-  catch (e) { return null; }
-};
+
 
 /* THE GENERATOR HALF OF ITEM 4. Strips a conventional-commit-style prefix ("word:" or
    "word(scope):") and this repo's own em-dash/double-hyphen "why" clause. It cannot invent a good
@@ -420,6 +440,40 @@ try {
     };
   }
 } catch { longRun = null; }
+/* ...AND A LONG RUN ON ANOTHER MACHINE IS STILL A LONG RUN. The marker above is machine-local, so
+   a page generated on the Mac could not see the sea trial sailing on the Blade — it would show no
+   job and let the dot go red while a real trial was running, which is precisely the false red
+   Wyatt reported on 2026-08-31 and had already been fixed once, locally. The cross-machine half
+   only became possible today, when publish_status.mjs started committing each machine's marker
+   into .planning/wyclau/status/<hostname>.md.
+   SAME DISCIPLINE AS THE LOCAL READ: every doubt resolves to NOT LIVE. A file that will not parse,
+   a marker with no updatedAt, no staleness rule of its own, a future date, or one past its own
+   rule is ignored rather than trusted — a broken status file must never be able to hold the light
+   green, which would be the timer heartbeat of 2026-08-31 rebuilt one directory over. */
+if (!longRun) {
+  try {
+    const statusDir = join(WY, "status");
+    for (const f of readdirSync(statusDir)) {
+      if (!f.endsWith(".md")) continue;
+      const body = readFileSync(join(statusDir, f), "utf8");
+      const block = body.split("## Long run in flight")[1];
+      if (!block) continue;
+      const json = (block.match(/```\s*([\s\S]*?)```/) || [])[1];
+      if (!json) continue;
+      let m; try { m = JSON.parse(json); } catch { continue; }
+      if (!m || !m.updatedAt || !(m.staleAfterMinutes > 0)) continue;
+      const ageMin = (Date.now() - Date.parse(m.updatedAt)) / 60000;
+      if (!(ageMin >= 0 && ageMin <= m.staleAfterMinutes)) continue;   // stale or future-dated
+      longRun = {
+        what: `${m.what ?? "a long run"} on ${f.replace(/\.md$/, "")}`,
+        progress: m.progress ?? "",
+        updatedAt: m.updatedAt,
+        staleAfterMinutes: m.staleAfterMinutes,
+      };
+      break;
+    }
+  } catch { /* no status dir yet, or unreadable -- no long run, never an error */ }
+}
 
 /* --- the lesson and the Captain's log (the apprenticeship — charter's co-equal goal) --------
    HIS RULING (2026-09-01, the relay redesign, question round 3): the daily lesson lands ON THE
@@ -683,11 +737,13 @@ const PAGE = `<meta charset="utf-8">
     try { state = JSON.parse(document.getElementById("glassState").textContent); }
     catch (e) { state = { v: 2, generatedAt: "${nowIso}", lastProgressAt: "${nowIso}", ideas: [] }; }
 
-    // --- freshness (the Bosun's clock, untouched by page saves: an idea is not progress).
-    // TWO clocks, on purpose (Wyatt, 2026-08-31): tProgress answers "is the worker alive", read
-    // from real evidence (HEARTBEAT/LAST-ACTIVITY at generation time); tPublished answers "how
-    // old is THIS page" — the two can legitimately disagree, and showing both is the fix. Neither
-    // can see work that happens after this page was generated; only republishing closes that gap.
+    // --- freshness. TWO clocks, on purpose (Wyatt, 2026-08-31): tProgress answers "is work
+    // landing", tPublished answers "how old is THIS page" — they can legitimately disagree, and
+    // showing both is the fix. Neither can see work that happens after this page was generated;
+    // only republishing closes that gap, which is a discipline this page cannot enforce on itself.
+    // SINCE 2026-09-01 tProgress is the newest COMMIT in the clone (see the generator), not a
+    // local heartbeat: a watch pushing from another machine now moves it, and regenerating this
+    // page no longer can.
     var tProgress = new Date(state.lastProgressAt || state.generatedAt);
     var tPublished = new Date(state.generatedAt);
     function fmtAge(ms){
