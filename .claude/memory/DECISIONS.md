@@ -2,6 +2,10 @@
 
 ## THE KEEP-WORKING HOOK FIRES ONLY IN THE BOSUN — 2026-08-31, RESTATED 2026-09-01 BECAUSE IT WAS LOST
 
+> **SUPERSESSION PENDING (2026-09-01, the relay redesign, ruling 5):** when the relay lands, the
+> keep-working hook is deleted entirely and this ruling becomes moot — no hook, no scope. Until
+> that lands, this ruling stands exactly as written.
+
 Wyatt, 2026-08-31: *"I want ONLY the bosun session to have this hook -- is that possible? all other
 sessions are normal."* And again 2026-09-01, having found it undone: *"yesterday i told both you and
 bosun that the keep working hook should ONLY apply to the bosun. why did this decision get
@@ -42,6 +46,69 @@ again.
 
 **Append here the moment he rules on something.** Date it, quote him where you can, and say what
 the alternative was — the alternative is what makes it a decision rather than an instruction.
+
+---
+
+## 2026-09-01 — THE RELAY REDESIGN: sixteen rulings in one sitting
+
+**Context.** After the Bosun/Quartermaster/Watchdog degradation — his words: *"all three of those
+have bugs and seem to be breaking"* — Wyatt asked for 10–20 questions and then a redesign. All
+sixteen answers came through the question UI on 2026-09-01, informed by the two post-mortems
+(`.planning/HANDOFF-2026-09-01-WYCLAU-DEBUG.md`, `.planning/wyclau/REDESIGN-BRIEF.md`). Each ruling
+below names the alternative he did NOT pick, because the alternative is what makes it a decision.
+
+1. **First priority: autonomy that SHIPS FIXES.** Unattended hours must turn into shipped game
+   improvements, not instruments. *(Over: instructions-first, Glass trust, phantom sessions — all
+   still get fixed, but this is the one the design optimizes for.)*
+2. **What "degraded" meant, verbatim:** *"The system we designed, where everything is shown to a
+   CEO, and every turn from the quartermaster ends with it teaching me something, was lost. the
+   quartermaster sometimes forgot my instructions; the bosun repeated the same mistakes."* The
+   CEO-per-item and daily-teaching guarantees are the things he misses, not optional extras.
+3. **Radically simplify.** *(Over: repair the three-role design in place, or pause autonomy.)*
+4. **The 24/7 engine stands, as chartered.** *(Over: autonomous-only-when-away, or none.)*
+5. **The engine is a RELAY OF FRESH RUNS** — one item per run through the full loop (fix → measure
+   → CEO → record → Glass), then the run ENDS; the scheduler starts the next minutes later,
+   forever. *(Over: a better-guarded long-lived session, or a hybrid.)* **Consequence he accepted:
+   ~2 minutes of re-orientation per run. Consequence for the record: the keep-working Stop hook is
+   DELETED when the relay lands** — the hook-scope ruling at the top of this file becomes moot at
+   that moment (no hook, no scope); until the relay lands it stands unchanged.
+6. **Instructions go to ONE TRACKED INBOX.** His words land verbatim in a queue file; the next
+   engine run must read it FIRST and work his items before anything else. *(Over: talking to the
+   engine session directly — the arrangement that just failed.)*
+7. **THE TEETH** (multi-pick, one his own write-in):
+   - **His stated solution is tried FIRST**, implemented and measured before any investigation or
+     tooling; disagreement is allowed only after showing him the result of his version.
+   - **Every run ends in a game-code diff or a one-line reason** led at the top of its report, and
+     the reason is CEO-reviewed like work — "built a tool" stops counting as a day's work.
+   - **His write-in, verbatim:** *"If a tool doesn't work, the next strategy must be to take a
+     screenshot/verify the way I would — by looking at and measuring the actual game."* Never a
+     second tool after a failed tool.
+   - *(Offered and NOT chosen: a hard one-instrument-per-bug cap — he replaced it with the
+     look-like-I-would rule.)*
+8. **The Quartermaster is DISSOLVED: his window IS the advisor.** Whatever session he opens is a
+   fresh advisor — reads the record, answers strategy, teaches as it goes, writes his instructions
+   to the inbox in the same turn. Auditing belongs to fresh-context CEO agents per item. *(Over: a
+   standing QM restarted daily, or folding advice into reports.)*
+9. **What broke Glass trust: STALE, BROKEN, and WRONG.** He did NOT pick "my writes went nowhere"
+   — harvest lag was not his complaint.
+10. **The Glass: REBUILD THE FULL INTERACTIVE VISION.** *(Over the recommended boring status
+    board.)* **Decisions happen ON THE GLASS, tap to rule** *(over batched question-UI rounds)*,
+    and **the daily lesson lands ON THE GLASS** *(over the daily report)*. The Glass is confirmed
+    as THE interface; its reliability is the redesign's hardest engineering, treated as such.
+11. **The sail square is fixed NOW, in parallel** with the redesign — a separate session implements
+    his stated camera-zoom solution with a posed before/after pair. *(Over: redesign first, or
+    square first.)*
+12. **The release push is the new engine's FIRST JOB** — the 539-commit branch through a trial that
+    survives session death → staging → his play → merge, as the shakedown cargo. *(Over: babysit a
+    trial by hand today, or wait until the system settles.)*
+13. **Redesign timebox: TWO DAYS, HARD FENCE.** Day 1 the relay + inbox + truthful minimal Glass;
+    day 2 the interactive Glass rebuild. Anything unfinished is cut to ordinary Chart items.
+    *(Over: one day, or as-long-as-it-takes.)*
+14. **Trust bar: a MEASURED 48-HOUR SHAKEDOWN** — zero phantom sessions, zero eaten conversations,
+    Glass never older than one run and never wrong on spot-check, every closed item carrying a CEO
+    verdict — numbers reported honestly, then HE judges. **This supersedes the 24-hour exit test as
+    the rulebook-cutover gate** — the question named that consequence explicitly and he picked it.
+    *(Over: a week of normal use, or "it ships the release" as the sole proof.)*
 
 ---
 
