@@ -68,6 +68,25 @@ const found = await playwrightDir();
 found ? ok(`resolved playwright at ${found}`)
       : bad("no playwright found — if it IS installed, this resolver is the thing that is wrong");
 
+/* ⚠ AND THE LAUNCHER MUST USE THAT SAME ANSWER. This section certified playwrightDir() while
+   openWebKit() — the function that actually launches Safari — kept its OWN candidate list and
+   imported each entry as a RAW PATH. On Windows that is fatal and silent: import("C:\...") is
+   parsed as the protocol "c:" and rejected, so every candidate threw and the error read "playwright
+   not found" while playwright was installed and importable. Three Safari legs reported NOT RUN on
+   the Razer for days because of it, and THIS CHECK STAYED GREEN THROUGHOUT — it was asking the
+   working resolver about a launcher that never called it. Exactly the drift the section above
+   warns about, one function further down. */
+const wkSrc = fs.readFileSync(path.join(ROOT, "scripts/lib/wk.mjs"), "utf8");
+/await playwrightDir\(\)/.test(wkSrc)
+  ? ok("openWebKit asks the shared resolver rather than keeping a second candidate list")
+  : bad("openWebKit resolves playwright by itself again — two answers to one question, and the launcher's copy is the one that decides whether Safari sails");
+const rawPathImports = [...wkSrc.matchAll(/await import\(([^;]*?)\)\s*[;,)]/g)]
+  .map((m) => m[1])
+  .filter((a) => /path\.join|homedir\(\)/.test(a) && !/pathToFileURL/.test(a));
+rawPathImports.length === 0
+  ? ok("no INLINE raw filesystem path is handed to import() (a path laundered through a variable would slip past this one — the check above is the real guard)")
+  : bad(`wk.mjs hands a raw filesystem path to import(): ${rawPathImports[0].slice(0, 70)} — on Windows that is read as the protocol "c:" and throws, which is exactly how Safari coverage vanished. Wrap it in pathToFileURL().`);
+
 /* ---- 4. AND EVERY LEG THAT SAILED MUST HAVE ITS VERDICT PRINTED ----
    The 2026.08.29.1 report showed EIGHT verdicts for TEN legs. `solo-desktop: FAIL` and
    `solo-phone: FAIL` were both in the run's own final summary and neither reached the file, because

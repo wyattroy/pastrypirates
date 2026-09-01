@@ -61,16 +61,26 @@ export async function openWebKit({ W, H, httpPort, serveRoot, profileDir, mobile
        3. bare "playwright"  a global or workspace install, if someone has one
      The browsers themselves already live durably in ~/Library/Caches/ms-playwright, so only this
      little package directory was ever the fragile part. */
+  /* ⚠ ONE RESOLVER, AND THIS FUNCTION USED TO KEEP A SECOND ONE. Found 2026-09-01, on the Razer.
+     This built its own candidate list and imported each entry as a RAW PATH. On Windows that is
+     fatal and silent: `import("C:\Users\...\index.mjs")` is parsed as the URL protocol "c:",
+     which ESM rejects (ERR_UNSUPPORTED_ESM_URL_SCHEME) — so every candidate threw, and the error
+     said "playwright not found" while playwright was installed and importable two lines away.
+     THREE SAFARI LEGS HAVE BEEN REPORTING "NOT RUN" ON THIS MACHINE EVER SINCE, and Safari is a
+     stated core requirement of this game, so a tenth of the fleet was silently uncovered.
+     playwrightDir() next door had it right all along — it wraps paths with pathToFileURL — which is
+     exactly the drift this file's own comment predicted ("two answers to one question will drift
+     again"). So there is now ONE answer: ask playwrightDir(), then import from what it found. */
   let webkit;
-  const homePw = path.join(os.homedir(), ".pw", "node_modules/playwright/index.mjs");
-  const candidates = [
-    process.env.PW_DIR ? path.join(process.env.PW_DIR, "node_modules/playwright/index.mjs") : null,
-    homePw,
-    "playwright",
-  ].filter(Boolean);
   const tried = [];
-  for (const c of candidates) {
-    try { ({ webkit } = await import(c)); if (webkit) break; } catch { tried.push(c); }
+  const dir = await playwrightDir();
+  if (dir) {
+    const spec = dir === "playwright (global)"
+      ? "playwright"
+      : pathToFileURL(path.join(dir, "node_modules/playwright/index.mjs")).href;
+    try { ({ webkit } = await import(spec)); } catch (e) { tried.push(`${spec} (${e.code || e.message})`); }
+  } else {
+    tried.push("$PW_DIR, ~/.pw, and a global install");
   }
   if (!webkit) {
     throw new Error("playwright not found. Tried: " + tried.join(", ")
