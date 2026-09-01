@@ -125,7 +125,7 @@ status: OPEN — written on the Glass 13:10:15Z. A wyclau process item: the RULE
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: IN FLIGHT — watch 1 (Blade) started it detached 2026-09-01T14:19:35Z; LONG-RUN read 4/10 legs at 14:52:55Z. ⚠ A LATER WATCH MUST NOT START A SECOND: `start_trial_detached.mjs` refuses while a LONG-RUN pid is alive, and that guard is the only thing standing between us and two trials on one machine. Read its report when it lands (`.planning/SEA-TRIAL-<runid>.md`) and close this item then. Watch 1 pushed no claim of its own — the Door gap fixed the same day — so this line is the record until the report exists.
+status: MUST BE RE-SAILED — the run started 14:19:35Z is COMPROMISED and its report must not be believed. At ~14:35Z the Blade's checkout entered a rebase onto `47ae2d28` (10:18Z), which rewound the working tree the trial was reading by 21 commits — including index.html and src/ui/stage.js, i.e. the attack-circles fix and the sea-hint pulse removal. Its first legs sailed one build and its later legs another. A trial whose code changed mid-run cannot have a verdict, and rule 24's NOT-RUN column exists precisely so this is stated rather than hidden. Re-sail from a clean checkout at the branch tip once the Blade's git state is repaired.
 
 ## INBOX-20260901T0000Z — worked example (the fix that seeded this file)
 > "the bosun spent 4 days making stupid tooling instead of simply fixing the sail square problem

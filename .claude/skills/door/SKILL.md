@@ -21,6 +21,22 @@ Otherwise a person opened this session: you are THE ADVISOR. There is no third k
 git fetch origin && git pull --rebase
 ```
 
+**Then, BEFORE any work, ask whether this tree can publish at all:**
+
+```bash
+node scripts/wyclau/can_push.mjs
+```
+
+**Exit 1 means STOP: end the turn, and say why in your reply or the local ledger.** A watch that
+cannot push is invisible — its commits reach nobody, its edits still change a shared tree, and a
+sailing sea trial may be reading those very files. Earned 2026-09-01: watch 1 on the Razer did
+everything right, committed its ledger entry, and the commit landed on no branch because the
+checkout was in detached HEAD after a stuck rebase. Nothing reached the branch, and from every
+other machine it looked exactly like a watch that never woke. **Working perfectly into a void is
+worse than not working**, because it also hides the fault. The script names which of the four
+faults it found (detached HEAD, no upstream, rebase in progress, merge in progress) and the repair;
+a human does the repair, never an unattended watch.
+
 Run it where you stand — every way into the Door starts in the repo root. Never `cd` to one
 machine's absolute path first: the repo lives at a different path on every machine, and a failed
 `cd` short-circuits the `&&` chain so the sync silently does nothing — on every ring of the Bell,

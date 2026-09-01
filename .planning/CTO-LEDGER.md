@@ -1278,3 +1278,19 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   blade-rescue-2026-09-01` — which moves no files and cannot disturb the sailing trial, and makes
   watch 1's commit unlosable whatever we do next. Only after the trial's report lands: check for
   an in-progress rebase, return to the working branch, and bring `ee60c30f` across.
+
+- ⚠ THE TRIAL IS COMPROMISED, AND THIS IS THE REAL COST OF THE STUCK REBASE. Measured, not feared:
+  the Blade is mid-rebase ONTO 47ae2d28 (10:18Z). That target is 21 commits behind the branch, and
+  those 21 commits touch index.html and src/ui/stage.js — the attack-circles fix (.5) and the
+  sea-hint pulse removal (.6). A rebase rewrites the working tree, so at ~14:35Z the tree the
+  running trial was reading was rewound to this morning's game code. The trial started 14:19:35Z:
+  its first legs sailed one build, its later legs another. THERE IS NO HONEST VERDICT AVAILABLE
+  FROM IT — it must be re-sailed from a clean checkout, and the INBOX item now says so.
+  ⚠ ALSO A CORRECTION TO THE OTHER SESSION'S SUMMARY, which told him "no player-facing risk, this
+  is confined to .planning/CTO-LEDGER.md metadata". The CONFLICT is metadata; the REBASE is not.
+  Finishing or abandoning it moves game code on disk, and a trial was reading those files. The
+  distinction matters more than the conflict did.
+  ✅ AND THE GUARD FOR THIS EXACT TREE SHIPPED BEFORE WE KNEW THE FULL STORY: can_push.mjs
+  (vendored, 11 checks green) refuses to let a watch work in a tree that is mid-rebase, detached,
+  or upstream-less — naming which, with the repair. Watch 1 would have ended in ten seconds with a
+  readable reason instead of committing into a void for two hours.
