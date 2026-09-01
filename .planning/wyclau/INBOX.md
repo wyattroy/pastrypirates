@@ -49,6 +49,13 @@ status: OPEN (backlog, his routing) — cause already known: the lesson renders 
 solution: none stated
 status: PARKED — his own routing: "nice to have for much later". (Mechanism exists when wanted: the artifact assets capability stores images a page collects.)
 
+## INBOX-20260901T1351Z — storm animation pauses at the second of three squares
+> "There's a weird storm animation bug where the storm moves players smoothly to their second (of
+> 3) squares, pauses them there, then moves them to the 3rd square. I wonder if this is an
+> indexing issue— the storm should smoothly move players to their final square in one move"
+solution: the storm should smoothly move players to their final square in one move (his stated target; his hypothesis: an indexing issue — check it FIRST, ruling 7)
+status: OPEN — written on the Glass 13:51:04Z, during the Blade hour.
+
 ## INBOX-20260901T1332Z — attack buttons land on the WRONG captain
 > "Sometimes, the buttons to attack a captain (when there are two options, eg. you're adjacent to
 > two captains) place the buttons on top of the wrong captain -- eg Davy Scones button will not be

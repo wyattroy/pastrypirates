@@ -999,3 +999,7 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   time) fixed at the MECHANISM: item 1 now derives from the header's #stamp element (.liveStamp
   fill) — a pointer cannot go stale. Also his count correction inherited from 68: the muse gate is
   7 checks, not the hand-typed "six" in the restore commit. He has started the Blade hour.
+
+- FOURTH GLASS HARVEST (13:51Z, mid-Blade-hour): storm animation pauses ships at square 2 of 3
+  instead of one smooth move to the final square — INBOX-20260901T1351Z, OPEN, his target
+  behaviour and indexing hypothesis recorded (his hypothesis gets checked first, ruling 7).
