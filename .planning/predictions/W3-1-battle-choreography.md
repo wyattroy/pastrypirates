@@ -89,3 +89,67 @@ subtract. It is the panel being painted before it has been placed.
 flip coin never carried content in this window, so *"the coin disappears from the flippenator BEFORE
 the stage does"* is **not measured here and remains open**. Reporting the half I saw as though it
 were the whole item would be the same unearned confidence rule 6 exists to stop.
+
+---
+
+## 2026-09-01 — A FIFTH THEORY, WRITTEN BEFORE MEASURING. THE PREVIOUS TWO ATTEMPTS BOTH DIED ON
+## "IDENTICAL RESULT" BECAUSE NEITHER TOUCHED THIS LINE.
+
+Picking this item back up after the 2026-08-30T11:41:26Z handover, which located the mover to
+`#pp4Prompt` itself carrying a stale inline `top` for one frame (`promptTick`'s `isBattle` branch,
+`src/ui/stage.js:3447-3448`) and handed over the fix shape (extract the placement so it can run
+SYNCHRONOUSLY when the content is built, mirroring `enterCenterStage()`) without shipping it,
+because two prior JS-ordering fixes had already been tried and reverted.
+
+**READING THE FILE FRESH RATHER THAN TRUSTING THE HANDOVER'S OWN NEXT STEP, because the handover
+said "extracting a branch out of promptTick is structure, not a one-liner" and that is worth
+checking before attempting it** — there may be a smaller fault sitting in front of the branch it
+never reaches.
+
+**THE MECHANISM, READ FROM THE CODE, NOT YET MEASURED:**
+
+1. `panel()` (`src/ui/panel.js:513`) calls `window.__pp4.syncPrompt()` synchronously, at its own
+   single chokepoint, specifically so a freshly-built prompt is "laid out in the frame it was
+   built" (panel.js:506-512's own comment, written for the recipe-card flash this exact bug family
+   already fixed once).
+2. `syncPrompt` (`src/ui/stage.js:3728`) calls `promptTick()` directly — outside the rAF loop,
+   with no scheduling delay.
+3. **`promptTick()` throttles its own positioning work: `if (!S.tween && fc % 3) return;`
+   (stage.js:3425), BEFORE it ever reaches the `isBattle` branch at 3447-3448.** `fc` is a
+   module-level frame counter incremented only inside `tick()` (stage.js:3539), the real rAF loop.
+   A synchronous call from `syncPrompt()` does not increment `fc` and does not know its value —
+   so roughly 2 times in 3 (whenever `fc % 3 !== 0` and no camera tween happens to be running),
+   the synchronous "lay it out now" call for a battle card returns at line 3425 **before reaching
+   the code that clears the stale inline `top`/`left` and adds `.centered`.**
+
+**THIS MATCHES THE RECORDED FRAMES EXACTLY.** The 2026-08-30T11:41:26Z measurement: frame 1
+`top=0px inline=0px tr=none` (the isBattle branch never ran — inline top is whatever the PREVIOUS
+prompt left, nothing cleared, no `.centered` transform), frame 2 `top=396px inline=UNSET tr=yes`
+(a later real `tick()` call, landing on `fc % 3 === 0`, finally reached the branch).
+
+**WHY THE CENTRE-STAGE PATH (`enterCenterStage()`) NEVER SHOWS THIS BUG:** it is called at
+stage.js:2584, structurally BEFORE the throttle line (2584 sits inside `promptTick()`'s own top
+half, then `return`s at 2585) — so it always runs on every call, throttled or not. The `isBattle`
+branch sits in the OTHER half of the same function, past the throttle. Same function, same
+synchronous entry point, but only one of its two "centre this card now" paths is actually
+un-throttled.
+
+**PREDICTION: adding a `force` parameter to `promptTick(force)` — true only from `syncPrompt()` —
+and changing the throttle to `if (!force && !S.tween && fc % 3) return;` makes the synchronous
+call always reach the `isBattle`/`big` branch on the same tick the content was built, so the card
+never carries a stale inline position into its first visible frame. The RED gate
+(`scripts/qa/w31_battle_choreography.mjs`) should then report ONE vertical position instead of
+two, on the same measurement it already makes.**
+
+**NAMED FALSIFIER:** if the gate still reports two positions after this change, `fc`/`S.tween`
+were never the gate keeping the synchronous call out — in which case say so plainly and look at
+whether `syncPrompt()` itself is even being called before the first paint (a scheduling question,
+not a throttle one), rather than reframing a miss as a partial win.
+
+**WHY THIS IS A ONE-LINE-SHAPED FIX RATHER THAN THE STRUCTURAL EXTRACTION THE PRIOR HANDOVER
+EXPECTED:** the previous two attempts both edited CODE INSIDE the throttled section (a height
+transition, a `parseFloat(box.style.top)` clamp) — work that never ran on the synchronous call
+either, for the same throttle reason, which is also why both attempts measured "identical result."
+Removing the gate that skips the branch on its one synchronous call is a smaller, more targeted
+change than extracting the branch into a second function, and it fixes every prompt style this
+throttle currently starves on its first frame, not just the battle card.

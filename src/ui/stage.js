@@ -2502,7 +2502,7 @@ function peekHintLast(){
   if (!box.classList.contains("radial") && !already) return;
   peekHintTick(box);
 }
-function promptTick(){
+function promptTick(force){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
   // AT PORT: this loop keeps running (it is the shared stage rAF, not per-game), and it owns
@@ -3421,8 +3421,21 @@ function promptTick(){
     b.style.position = ""; b.style.left = ""; b.style.top = "";
     if (b._radSwapped){ b.innerHTML = b._fullHtml; b._radSwapped = false; }   // card shows the full label
   });
+  /* W3-1 (Wyatt, 2026-08-27): "the battle box choreography is glitchy... it appears for an
+     instant, [then] it moves down to centre." MEASURED, frame by frame (scripts/qa/
+     w31_battle_choreography.mjs): the card's first visible frame carried a stale inline `top`
+     from whatever prompt was on screen before it, and only snapped to `.centered` on a LATER
+     frame. The cause was this throttle: syncPrompt() (below) calls promptTick() SYNCHRONOUSLY,
+     at panel()'s own chokepoint, specifically so a freshly-built prompt is laid out in the frame
+     it was built — but the throttle bailed out before ever reaching the isBattle/big-card
+     placement below, because `fc` (only ever incremented by the real rAF loop in tick()) is not
+     a multiple of 3 on most synchronous calls. The centre-stage path above (`enterCenterStage()`,
+     called before this line) never had this problem for exactly that reason: it never passes
+     through the throttle at all. `force` is that same exemption for this half of the function —
+     true only from syncPrompt's one-off call, so the continuous per-frame case (tick(), where
+     this comment's HOT-PHONE reasoning still applies in full) is unchanged. */
   // HOT-PHONE: the card path reads offsetHeight (layout) — 20Hz is plenty when nothing glides
-  if (!S.tween && fc % 3) return;
+  if (!force && !S.tween && fc % 3) return;
   const big = box.offsetHeight > vhPx() * 0.42;
   const u = boatUXY(appState.mySeat ?? 0);
   /* T-07 (Wyatt, 2026-08-26): "when you observe other players battling, the battle box moves around
@@ -3725,7 +3738,12 @@ export function initStage(){
     // the slow gear, is up to 125ms away. That window is what made the recipe cards flash at 110px
     // before settling to 163.5px. promptTick is idempotent and already runs every frame, so this
     // is the same work a beat earlier, not extra work.
-    syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(); },
+    // force=true (W3-1, 2026-09-01): this is a ONE-OFF synchronous call outside the rAF loop, so
+    // the module-level frame counter promptTick's own HOT-PHONE throttle reads (fc, only ever
+    // incremented by tick()) is not something this call controls — without force, roughly 2 calls
+    // in 3 bailed out before reaching the layout work this comment exists to run early, which is
+    // exactly the "painted before it is placed" bug he reported on the battle card.
+    syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(true); },
     settled: stageSettled,
   };
   recipeGuard();
