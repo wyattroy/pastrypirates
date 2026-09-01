@@ -4388,7 +4388,12 @@ charter fallback."*
 
 ---
 
-## CEO Review 80 — 2026-09-01T22:5xZ, Wy-Blade — the image compression (INBOX-20260901T1335Z)
+## CEO Review 81 — 2026-09-01T22:5xZ, Wy-Blade — the image compression (INBOX-20260901T1335Z)
+
+*(Filed as "80" first and renumbered the same turn: a concurrent session on this machine claimed 80
+for Wyatt's timer charge while this one was running. The number is a shared counter with no lock —
+two watches on one branch, exactly the case CLAUDE.md §3 says to assume. Whoever files 82 should
+check the tail of this file first, not their memory of it.)*
 
 **HIS ASK, VERBATIM:** *"There's one more SUPER important step we must finish before launch --
 compressing the images to make the game load MUCH faster. it's about 18mb of images, from memory.
