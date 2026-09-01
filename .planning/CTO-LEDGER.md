@@ -2339,3 +2339,13 @@ evening). The Glass only learns anything at publish time (`glass.mjs:506`), so w
 running the page is now a photograph — the freeze it opened on is guaranteed rather than
 intermittent until the Bell is re-enabled or a Glass-update session is opened
 (`.planning/wyclau/GLASS-UPDATE-SESSION.md`).
+
+**RESOLVED, the gap CEO 79 correctly said was unexplained (17:56Z→20:08Z).** It is a SECOND cause,
+not the same one, and asserting a single cause is what the CEO caught. Measured from the watch
+logs: in that window the watches were WORKING normally — `watch-20260901T192803Z.out` closes an
+item — and every one of them simply could not publish (*"no Artifact tool, so I could not harvest
+or republish the Glass, and I have no link to hand you"*, `watch-20260901T184803Z.out`). So the
+page sat at its 17:56Z stamp with a healthy engine behind it. Only at 20:08Z did the tree break and
+the watches stop working at all. **One symptom, two faults, in sequence — and only the second one
+was repaired tonight. The first is still live and is exactly what GLASS-UPDATE-SESSION.md exists to
+answer.**
