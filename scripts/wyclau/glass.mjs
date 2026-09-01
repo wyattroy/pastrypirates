@@ -493,13 +493,25 @@ const PAGE = `<meta charset="utf-8">
       // ⚠ NEVER write an open angle bracket immediately followed by the word script and a close
       // angle bracket, anywhere in PAGE's text, comments included. Measured 2026-08-31: a comment
       // naming that tag the bracketed way, sitting unescaped inside the real script element's own
-      // text, corrupted the page after a self-publish round-trip -- something downstream of this
-      // file mistook it for a second tag and rendered raw JS source as visible page text. Say
-      // "script element" or "script tag" in prose; never spell the bracketed form out, even to
-      // explain this rule -- the first attempt at this warning re-typed the exact substring it
-      // was banning and reproduced the bug in its own fix.
+      // text, was REMOVED as a precaution -- CEO Review 54 later disproved it was the actual cause
+      // (a real headless-Chrome render of the pre-fix page came up clean; the mechanism that
+      // corrupted Wyatt's live page, 2026-08-31, is still not root-caused). Say "script element" or
+      // "script tag" in prose regardless; never spell the bracketed form out, even to explain this.
       d = d.replace("__GLASS_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\u003c"); });
       return d;
+    }
+
+    // SELF-HEAL, NOT A ROOT-CAUSE FIX. Wyatt, 2026-08-31, reported the rendered page corrupts
+    // after submitting an idea; his own View Source moments later showed the STORED HTML was
+    // clean -- so the corruption lives in that one render, not in what gets saved. The exact
+    // mechanism is unknown (this file cannot drive cap.publish() outside the live host to watch
+    // it happen). A real fresh page load reads the confirmed-clean stored copy, so scheduling one
+    // shortly after every successful publish recovers a clean page regardless of what the bug
+    // turns out to be. The delay keeps his explicit requirement ("send another idea immediately
+    // afterwards, without waiting" / the same for a ruling) intact -- the confirmation is instant;
+    // only the safety-net reload is delayed, long enough to read it.
+    function scheduleSelfHealReload(){
+      setTimeout(function(){ location.reload(); }, 1400);
     }
 
     function renderIdeas(){
@@ -582,6 +594,7 @@ const PAGE = `<meta charset="utf-8">
         // repaint, so a second ruling on a different question does not race a stale copy.
         state = next;
         paintAsk(el);
+        scheduleSelfHealReload();
       }).catch(function(e){
         st.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your note is still on screen — try again, or tell a session.";
       });
@@ -629,6 +642,7 @@ const PAGE = `<meta charset="utf-8">
         renderIdeas();
         status.textContent = "Saved to the page — a session will harvest it to the Chart soon.";
         send.disabled = false;
+        scheduleSelfHealReload();
       }).catch(function(e){
         send.disabled = false;
         status.textContent = "Couldn’t save (" + ((e && e.code) || e) + "). Your words are kept as a draft here — try again, or just tell a session.";
