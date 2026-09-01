@@ -110,6 +110,18 @@ below names the alternative he did NOT pick, because the alternative is what mak
     the rulebook-cutover gate** — the question named that consequence explicitly and he picked it.
     *(Over: a week of normal use, or "it ships the release" as the sole proof.)*
 
+### Addendum, same day — the four rulings that started the build
+
+1. **Day 1 is green-lit as designed** — the published design (artifact `8c855d0c`) is the plan of
+   record, with CEO Review 65's two faults carried in as day-1 requirements (a close-out script
+   enforces the CEO gate; the same script checks a run's first diff against his stated solution).
+2. **He disables the old watchdog himself, now** — Task Scheduler on the Blade. *(Over: leaving it
+   running through the rebuild.)*
+3. **The Blade hour is TODAY** — the Bell install and the O2 publish test close day 1 on the Blade
+   itself. *(Over: tomorrow, or at shakedown start.)*
+4. **THE NAMES ARE HIS PICKS: the WATCH (the engine — a relay of fresh runs) and the BELL (the
+   scheduler that rings a new watch when none is on deck).** "Bosun" retires with the role.
+
 ---
 
 ## 2026-08-31 — THE THREE DOORS, and the two names that make them sayable
