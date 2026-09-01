@@ -38,7 +38,10 @@ const { makePlayer, GATE_SRC } = await import(pathToFileURL(path.join(ROOT, "scr
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const W = +arg("w", 390), H = +arg("h", 844);
-const SHOT = arg("shot", path.join(ROOT, "sail-containment.png"));
+/* Into sea-trial-shots/, which exists and is gitignored -- NOT the repo root. tree_health_check
+   reads a root-level path as a top-level directory and fails the build on one that is not there,
+   which is exactly what it caught here. */
+const SHOT = arg("shot", path.join(ROOT, "sea-trial-shots", "sail-containment.png"));
 
 const c = await openChrome({
   W, H, dbgPort: 9411, httpPort: 8301, serveRoot: ROOT,
@@ -95,7 +98,7 @@ try {
     /* LOOK, do not guess again. Three boot attempts failed silently before this line existed; a
        screenshot and the visible text answer in one run what another round of DOM guessing does
        not (rule 19). */
-    await c.shot(path.join(ROOT, "sail-probe-stuck.png"));
+    await c.shot(path.join(ROOT, "sea-trial-shots", "sail-probe-stuck.png"));
     const where = await c.ev(`JSON.stringify({
       day: (document.body.innerText.match(/DAY \d+/)||["none"])[0],
       modal: !!document.getElementById("nameModalInput"),
@@ -103,7 +106,7 @@ try {
       text: document.body.innerText.replace(/\s+/g," ").slice(0,180)
     })`);
     console.log("stuck at:", where);
-    console.log("screenshot: sail-probe-stuck.png");
+    console.log("screenshot: sea-trial-shots/sail-probe-stuck.png");
   }
   if (!cells) { console.log("NO SAIL PROMPT REACHED — nothing measured. Not a result about the game."); c.close(); process.exit(2); }
 
