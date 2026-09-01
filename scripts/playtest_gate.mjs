@@ -215,6 +215,19 @@ async function settleAndCheck(c, tag, rec, f, sig) {
   return fails;
 }
 
+/* A REAL DEADLINE, because a loop condition is not one. playSeat's `while (Date.now() - t0 <
+   MAX_MS)` is only consulted between iterations, so a single await that never resolves runs past
+   any cap forever -- measured 2026-09-01, when a leg overran its 35-minute cap by 17 minutes
+   having produced no screenshot at all, and the trial could not finish. Promise.race is the
+   whole fix: the timer resolves whether or not the work ever does.
+   It RESOLVES rather than rejects, and marks the record, because a leg that ran out of time is
+   a real result to report -- the NOT-RUN principle applied to a hang. */
+function withDeadline(promise, ms, onTimeout) {
+  let timer;
+  const bell = new Promise((res) => { timer = setTimeout(() => { try { onTimeout(); } catch {} res("deadline"); }, ms); });
+  return Promise.race([promise, bell]).finally(() => clearTimeout(timer));
+}
+
 async function playSeat(c, tag, rec, { untilOver = true, quests = true } = {}) {
   const player = makePlayer(c, { log: (m) => log(`  [${tag}] ${m}`) });
   rec.player = player.P;
@@ -443,7 +456,13 @@ async function runLeg(name, idx) {
           await sleep(2500);
         }
       })();
-      await Promise.all([playSeat(host, `${name}-host`, recA), playSeat(guest, `${name}-guest`, recB, { quests: true })]);
+      /* The deadline is a little over one leg cap: each seat already caps itself, so this only
+         fires when a seat has stopped answering entirely -- the case the cap cannot see. */
+      await withDeadline(
+        Promise.all([playSeat(host, `${name}-host`, recA), playSeat(guest, `${name}-guest`, recB, { quests: true })]),
+        MAX_MS * 1.1,
+        () => { rec.error = (rec.error ? rec.error + "; " : "") + `leg hit its hard deadline (${(MAX_MS * 1.1 / 60000).toFixed(0)} min) with a seat not responding -- the per-seat cap cannot fire inside a stuck await`; }
+      );
       sampling = false; await sampler.catch(() => {});
       /* BOTH, NOT EITHER. This was `||` until the CEO review of 2026-08-26: if the host completed
          the voyage while the guest sat stuck on a card forever, the leg reported "finished" and went
