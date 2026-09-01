@@ -4385,3 +4385,63 @@ charter fallback."*
 **WHERE THE AUDIT WAS ITSELF WRONG, measured afterwards rather than argued:** it claimed the poll was *"structurally guaranteed to reach its timeout"* because no watch can move LAST-PUBLISH. It was not — the poll fired at 22:18 on a real publish by the interactive Glass-update session, which does have the tool. And it claimed two publishers on the same cadence; the session used `CronCreate` **instead of** `/loop`, not as well as — the doc describes a second publisher, but no live collision existed.
 
 **ACTED ON:** its item 4 was taken as the highest-value finding and fixed the same night — `mark_glass_published.mjs` now requires `--version=<id>` (kit `8691117`, repo `9138a0e7`, gate `scripts/qa/glass_publish_stamp_check.mjs`, RED 4/GREEN 5, npm test 89 exit 0). The poll is gone. **The cron survives, against the audit's advice**, on the argument that its own principle is *"tick often, act rarely"* — the tick is not the fault, the unconditional publish is; deleting it now would re-freeze the page with nothing in its place. `glass_needs_publish.mjs` is NOT built, and until it is, the cron still publishes unconditionally.
+
+---
+
+## CEO Review 80 — 2026-09-01T22:5xZ, Wy-Blade — the image compression (INBOX-20260901T1335Z)
+
+**HIS ASK, VERBATIM:** *"There's one more SUPER important step we must finish before launch --
+compressing the images to make the game load MUCH faster. it's about 18mb of images, from memory.
+but the only one that needs to be as big as it is is the board itself -- everyhting else should be
+resized and compressed according to its maximum pixel size in the real gameplay. this is launch
+critical; as part of it, we need to load all game assets up front; i notice sometimes that the
+'fire the ovens' graphic loads dynamically when it is called, which will make it appear blank on
+slow connections. Bad engineerign!"*
+
+**VERDICT: PARTIAL** — *"The compression half is real, well-verified and honestly reported. The two
+other halves of his sentence — resize and preload everything — are not done, and the commit message
+asserts more confidently than the evidence supports on both. That is CEO 79's overreach fault
+recurring."*
+
+1. **"Almost nothing here is genuinely oversized" is false for the largest family, and the watch
+   never checked it.** All three CSS citations in the commit are correct — but `index.html:307`
+   (`.narrIcon { width:18px; height:18px }`) is the box every one of the 78 `assets/icons/` files
+   is drawn in, via `src/shared/index.js:241`, and they ship at ~320px. *"The claim was generalised
+   from three boxes to fifteen families."*
+2. **"The preload half shipped earlier today" — it did not.** `src/ui/util.js:1988-1998` is the sole
+   preload path and *"does not include `assets/icons/` at all"*, including `FLAME_IMG`
+   (`src/shared/index.js:60`) — **Wyatt's own named example**. Also absent: `compass/`, `clock/`,
+   `welcome-backdrop.jpg`. *"The watch inherited this claim from a previous watch and repeated it as
+   fact without opening the list."*
+3. **What did happen is real, and verified better than most work here.** 10.70 MB confirmed by
+   re-running the report; `board.png` still 2132×2132; the gate can genuinely fail
+   (`asset_weight_check.mjs:62-67` against `package.json:11`) and is wired in; the WebP argument
+   holds (`classic/src/shared/index.js:22`). *"Verifying through Chrome rather than the watch's own
+   encoder was the right instinct and is the reason I believe the 118/118 figure."*
+4. **Minor: no closing ledger entry** — the 22:10Z claim had no outcome recorded.
+5. **NOT recurring from CEO 79:** the verdict WAS appended, and the watch's self-reported gaps (no
+   BEFORE screenshot, no push, `vendor_check` failing on a concurrent session's files, no sea trial,
+   a written prediction it got wrong) are honestly stated and none should have blocked the work.
+
+**Its named next step:** *"Resize assets/icons/ to 64px and add the whole family to preloadAssets()
+— one change that closes both open halves of his ask."*
+
+**ACTED ON, IN THE SAME TURN, AND ONE HALF OF THE ADVICE REFUSED WITH A MEASUREMENT:**
+
+- **Finding 2 FIXED and proved both ways** (commit *"'fire the ovens' was never preloaded"*).
+  `sharedAssetUrls()` derives the warm list off the shared module's own `*_IMG` exports rather than
+  appending a fifth hand-typed name to a list that had already drifted four times.
+  `scripts/qa/preload_covers_icons_probe.mjs`, posed at the bare welcome screen: **RED** — 25 icons
+  fetched, all 25 already on screen, zero warmed ahead, `flame.png` not fetched. **GREEN** — 78
+  fetched, 53 warmed without being drawn, `flame.png` among them. Boot now warms 143 of 149 files.
+- **Finding 1's CITATION accepted, its RECOMMENDATION refused — 64px would visibly blur the board.**
+  Nearly every icon is in `EMOJI_IMG` (`src/shared/index.js:118`) and `popEmoji` falls back to that
+  same map for board pops (`src/ui/board.js:1974`), so one file serves both the 18px inline slot and
+  the board, and the board binds. Computed: grid 15 → cell 42.7 (`board.js:265`); pop art
+  `cell*0.72*0.86` = 26.4 board units (`board.js:1986-1987`); `zoomCap` holds on-screen scale at
+  600px-equivalent × 2.2 (`stage.js:788,169`) → **54.5 CSS px, ~163 device px at 3× DPR.** So the
+  128px icons are already slightly UNDER-resolution and 64px would be 2.5× under. The genuinely
+  oversized tier is the ~320px icons, worth ~0.35 MB at 192px — **left undone deliberately**, with
+  the numbers recorded, because it needs a palette decoder and a resampler on top of a codec written
+  the same day, for 3% of the tree.
+- **Finding 4 fixed:** the ledger now carries the outcome, not just the claim.

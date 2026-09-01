@@ -41,7 +41,18 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — written on the Glass 13:35:23Z. His routing: LAUNCH CRITICAL → belongs on the Chart's launch list (step 3) as a named item, worked through the Proof (measure the real 18MB first, before/after load times).
+status: OPEN — **2 of his 3 asks now closed; only RESIZE remains.** (a) COMPRESS: done —
+`assets/` 17.79 MB → 10.70 MB (−40%), every pixel dimension unchanged, `board.png` left at
+2132×2132 per his exception; gate `asset_weight_check.mjs` RED→GREEN, npm test 89. (b) PRELOAD ALL
+ASSETS UP FRONT: done — his own "fire the ovens" example (`icons/flame.png`) was genuinely never
+fetched at boot; proved RED (25 icons fetched, all 25 already on screen, zero warmed ahead) then
+GREEN (78 fetched, 53 warmed unseen, flame among them); boot warms 143 of 149 files. Both closed
+2026-09-01T22:5xZ, CEO 80, commits `2f3a4a0`-era pair on `claude/cloud-handoff-planning-a9ay1u`.
+(c) RESIZE: **NOT done, and the measurement that decides it is now on the record** — the board, not
+the 18px inline slot, binds the icon family (one file serves both; `EMOJI_IMG` +
+`popEmoji`), and a board pop needs ~163 device px at 3× DPR, so the 128px icons must NOT shrink and
+the only oversized tier is the ~320px icons, worth ~0.35 MB. Full derivation in `CTO-LEDGER.md`
+under WATCH 22:10Z. ⚠ **The commits are LOCAL ONLY — this sandbox refuses `git push`.**
 
 ## INBOX-20260901T1340Z — the Glass bakes in line breaks (his routing: backlog)
 > "one small note about formatting on the glass-- you seem to be baking in line breaks, which

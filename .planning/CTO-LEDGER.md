@@ -2382,3 +2382,54 @@ tree**, which matches his "about 18mb from memory" — `assets/board.png` alone 
 pastry cards are ~5.5 MB between them, and three island PNGs are 2 MB. Tooling checked before
 committing to the item: **ffmpeg and Python 3.12 are on this machine**; no image library is a
 dependency of this repo and none will be added.
+
+### OUTCOME — two of his three asks closed, the third parked with its numbers
+
+**COMPRESSED: `assets/` 17.79 MB → 10.70 MB (−40%).** Same pixel dimensions on every file;
+`board.png` untouched at 2132×2132, his stated exception. 118 files palette-quantized, 19 more
+re-encoded losslessly. Gate `scripts/qa/asset_weight_check.mjs` written RED first (failed at 17.79
+against an 11.00 MB ceiling), green after, wired into `npm test` at 89/89.
+
+**PRELOADED: `flame.png` — his own "fire the ovens" example — was never fetched at boot, and now
+is.** CEO 80's catch. Proved both ways in a real browser at the bare welcome screen: RED 25 icons
+fetched with all 25 already on screen and zero warmed ahead; GREEN 78 fetched with 53 warmed
+without being drawn. Boot warms 143 of 149 files, 10.13 MB over the wire.
+
+**RESIZE: NOT DONE, deliberately, and this is the part the next watch should read.** His words were
+"resized… according to its maximum pixel size in the real gameplay", and the maximum pixel sizes are
+now measured rather than guessed. **The board, not the 18px inline slot, is what binds the icon
+family** — nearly every icon is in `EMOJI_IMG` and `popEmoji` falls back to that same map for board
+pops, so one file serves both. Grid 15 → cell 42.7 (`board.js:265`); pop art `cell*0.72*0.86` = 26.4
+board units (`board.js:1986-1987`); `zoomCap` holds the scale at 600px-equivalent × 2.2
+(`stage.js:788,169`) ⇒ **54.5 CSS px ≈ 163 device px at 3× DPR.** Consequences: the 128px icons are
+already slightly under-resolution and must NOT shrink; the flip faces need every pixel of their 384
+(`.coin` reaches 211 CSS px); the only genuinely oversized tier is the ~320px icons, worth ~0.35 MB
+at 192px. Left undone because it needs a palette decoder plus a resampler on top of a codec written
+the same day, for 3% of the tree — a poor trade against the risk of blurring commissioned art.
+
+**A PREDICTION I WROTE DOWN AND GOT WRONG** (`.planning/wyclau/PREDICTION-20260901T2230Z-assets.md`):
+I predicted 256-colour quantization would visibly band the soft-shaded pastry art. It does not —
+worst mean error on any pastry is 2.22/255, verified in Chrome, not by my own encoder.
+
+**AN INSTRUMENT FAULT OF MY OWN, corrected in the open:** `asset_alpha_probe.mjs` first reported
+`board.png` as "0.0% not opaque" and I nearly filed it as carrying a wholly unused alpha channel. It
+has **19** non-opaque pixels of 4,545,424 — the rounded percentage hid them. It prints the count now.
+
+**WHAT THIS WATCH COULD NOT DO, stated rather than glossed:**
+- **`git push` is refused by this sandbox** (Bash and PowerShell both). Three commits sit local on
+  `claude/cloud-handoff-planning-a9ay1u`. **Until someone pushes, this watch is invisible from every
+  other machine** — the exact failure the relay exists to remove.
+- **No posed BEFORE screenshot of the game with the old art.** `git restore assets` is refused too,
+  so the original art could not be put back to photograph it. The AFTER shot exists and is clean,
+  and every file was compared against its original in Chrome while the originals were still on disk
+  (118/118 decoded, worst mean error 2.34/255) — but that is a per-file diff, not rule 26's pair.
+- **`npm test` stops early at `vendor_check.mjs`**, which fails on `scripts/wyclau/glass.mjs`,
+  `mark_glass_published.mjs` and `.claude/skills/door/SKILL.md`. **Those are a CONCURRENT session's
+  in-flight edits, not this work** — left unstaged and untouched; the gates after it were run
+  individually and pass. `package.json` carries that session's new gate too, with `gates.total`
+  reconciled to the real count, 89.
+- **No sea trial.** The art changed, no code path did; the change is verified per-file in Chrome and
+  by a posed board. A trial would be the right instrument before the release, not for this item.
+- **Scratch left on disk that a human should delete** (git-ignored, not committed): `.tmp-quant/`,
+  `.tmp-after-assets/` (a second copy of the whole art tree), `.tmp-posed/` and four Chrome profile
+  dirs. `Remove-Item` and `rm -r` are both refused by this sandbox.
