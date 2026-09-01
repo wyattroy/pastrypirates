@@ -43,6 +43,68 @@ does on a guest (it reads the stale local pos — degrade, stated in the comment
 and reports that hide a NOT-RUN. This entry's answer: the sea trial NOT-RUN is stated here and in
 the ledger rather than implied green; every claim above names the artifact that proves or breaks it.
 
+### Fresh-reviewer verdict — 2026-09-01, fresh context, read-only, I ran the checks myself
+
+**YES — the thing Wyatt asked for happened: HIS solution, tried first, proven on a posed pair.
+Two faults in the evidence, neither of which overturns the verdict.**
+
+**What I verified with my own eyes and my own commands:**
+
+- **The posed pair is real and it answers the question.** `sea-trial-shots/sail-cam-BEFORE.png`:
+  a sail square is cut off at the LEFT rim — a yellow sliver at the screen edge beside the milk
+  island, consistent with the probe's centre at [-23,343]. `sail-cam-AFTER.png`: the SAME posed
+  moment — Day 1, the same "probeguest: tap to sail" prompt, the same four captains with the same
+  coins and holds, the same ship positions — and the camera is visibly zoomed out: every square
+  fully on-screen with margin to spare. That is the picture he asked for, and it shows his fix
+  working.
+- **It is his solution, not a substitute.** The camera zooms out until the squares fit
+  (DECISIONS.md, THE RELAY REDESIGN ruling 7: "His stated solution is tried FIRST" — done as
+  stated). The diff (`76c49bcc`) is three files, 132 lines: the fix plus one probe flag, nothing
+  else.
+- **The root cause found is the strongest part of the work.** A crew guest NEVER had a framing
+  call — camFitSail's one caller was pickCell(), which runs on the engine's machine, the host
+  (src/ui/flow.js:648). Nothing was refused; nothing was ever requested. Four days of geometry
+  theories, and the answer was in the call graph.
+- **Rule 9 holds.** The containment margin is boardBand()'s own margins; the scale conversion is
+  the renderer's own number (`br.width / S.cam.w`, src/ui/stage.js, sailContainTick); 640 is the
+  board's own extent. No invented geometry constant — the 3-tries/350ms numbers are cadence
+  guards, not margins.
+- **Rule 23 holds.** renderPickPrompt — the ONE renderer both tiers call — asks for the frame
+  (src/ui/flow.js:615); no isHost fork added; sailContainTick runs in every client's tick().
+  pickCell's surviving call serves the spectator, who does not run that renderer, and the comment
+  says so.
+- **No new instrument.** `76c49bcc` shows `M scripts/qa/sail_containment_probe.mjs` (+26 lines,
+  the `--tap` flag) — the existing probe extended; nothing new appears in `git log -- scripts/qa/`
+  from this fix.
+- **The NOT-RUN is stated plainly** in the ledger's 20:55Z DONE entry and in item 5 above, with
+  the stamp bump that forces the release trial to re-sail. Not hidden.
+
+**FAULT 1 — the tap image is cited for a fact it cannot contain.** The ledger says the game
+"ACCEPTED the sail (prompt torn down) (sail-cam-AFTER-tap.png)". I read that image pixel by
+pixel: the prompt is STILL UP, the squares still drawn, the ship unmoved. The probe's own code
+says why it must be so: `await c.shot(SHOT)` (scripts/qa/sail_containment_probe.mjs:298) runs
+BEFORE the `--tap` block, and no screenshot is taken after the click. The acceptance claim rests
+on the probe's programmatic check — zero `.sailCell` left after 1.5s, printed to the console — a
+sound check, but its output was preserved nowhere I can read, and the PNG is offered as if it
+depicts the acceptance. That is the exact evidence-inflation shape Reviews 64/65 named, in
+miniature. One-line fix for next time: `--tap` takes a second screenshot after the click.
+
+**FAULT 2 — "npm test: full chain, exit 0" is true of a moment that has passed.** On the tree as
+it stands right now, `npm test` FAILS at tree_health_check: three watchdog/wyclau gates named in
+package.json no longer exist on disk. Attribution: all three exist in HEAD (`git ls-tree`
+confirms) — the OTHER active session is deleting the watchdog mid-flight, uncommitted. Not this
+fix's fault, and the gates that actually cover the changed code pass right now, run by me:
+cam_fit_cells_containment_check.mjs, mode_fork_check.js, host_guest_parity_check.js — all exit 0.
+
+**What a player gets:** a crew guest on a phone can now reach every tap-to-sail square — the
+four-day untappable-square bug. It covers the sail prompt on every client; it deliberately leaves
+the fleet-wide question (whether zoomed-out squares get COVERED — the 2026-08-30 regression
+shape) to the release trial, and says so.
+
+**The one sentence: the fix Wyatt named on day one is built, it is his version, and the posed
+pair proves it — send it to the release trial; and next time do not cite a screenshot for a fact
+the instrument photographed too early to see.**
+
 
 
 **Scope: branch `claude/cloud-handoff-planning-a9ay1u`, build `2026.08.31.2`, commits `d25ce8eb`
