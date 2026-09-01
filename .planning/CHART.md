@@ -238,6 +238,44 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   the probe's own later read) at the moment it runs, which needs a real two-browser room; not
   attempted this session, per rule 26 (a targeted single measurement, not another blind probe run,
   would be the next step, and it should be posed rather than driven).
+
+  **A FOURTH LEAD, SOURCE-ONLY, NOT YET MEASURED — the guest's `#sailHost` transform can go stale
+  against `#boardwrap`'s own width, and there is a real (if likely narrow) window for that.** Sail
+  squares are positioned in `cqw` against `#boardwrap` (`container-type:inline-size`,
+  `src/ui/flow.js:523,529-536`) — live, continuous, recomputed by the browser on every layout, with
+  NO reference to the camera. `#sailHost` gets the camera composed IN as a separate CSS `transform`
+  (`src/ui/stage.js:801-822`, `scale(640/c.w) translate(...)`), using `W = vwPx()`. Two real facts,
+  each checked directly rather than assumed:
+  - `vwPx()` (`src/ui/util.js:1203`) on a phone falls back to `document.documentElement.clientWidth
+    || window.innerWidth` — the WHOLE VIEWPORT, not `#boardwrap`'s own measured rect.
+  - `#boardwrap`'s two CSS states genuinely differ in what fills that role. Normal:
+    `width:100%; max-width:min(820px, calc(100vh-210px))` inside `#game`/`#layout`, **both of which
+    carry `padding:14px`** (`index.html:69,1213`) — so boardwrap's content width is narrower than
+    the viewport by that padding, compounded through two ancestors. `body.pp4Stage #boardwrap`
+    (`index.html:1698`): `position:fixed; inset:0; max-width:none` — escapes the padded ancestor
+    chain entirely and is exactly viewport-width. **If `#sailHost`'s transform were computed while
+    boardwrap was still in the FIRST state (or before `pp4Stage`'s box has settled) and then never
+    recomputed, it would carry a `W` that no longer matches boardwrap's real box** — exactly the
+    kind of small, constant-magnitude, direction-varying offset measured in the field.
+  - **THE PART THAT WEAKENS IT, STATED HONESTLY RATHER THAN OMITTED:** `showStageLayer()` (which
+    adds `body.pp4Stage`) is called ONCE, synchronously, from `showGameView()`
+    (`src/ui/lobby.js:338-344`) when the lobby hands off to the actual game — well before recipe
+    draft, turn order, or any sail prompt. So by the time a normal sail prompt fires, `pp4Stage`
+    should already be long-settled, not toggling per-turn — which is the opposite of what this
+    theory needs to explain a bug that shows up on ordinary later-game sail prompts, not just the
+    first one. It does NOT rule the mechanism out (a brief post-boot layout/reflow window before
+    the fixed box has fully applied, combined with `computeStageGeometry()`'s own `vb!==lastVB`
+    memoization silently freezing a stale transform, could still do it once and never self-correct
+    for the rest of the voyage) — but it means this is weaker than the clean per-turn race it first
+    looked like, and it must not be reported as a cause without checking that specific window.
+  - **THE ONE MEASUREMENT THAT WOULD SETTLE IT, NOT ATTEMPTED THIS SESSION** (to avoid a live probe
+    colliding with the browser-driven investigation other sessions are actively running on the same
+    files right now): on a failing guest, at the moment of the bug, read `#boardwrap
+    .getBoundingClientRect().width` and `vwPx()` side by side. Equal ⇒ this lead is dead, the same
+    way the two-width theory above already died. Different ⇒ this is very likely the mechanism, and
+    the fix is either recomputing `#sailHost`'s transform outside the `vb!==lastVB` memo (keyed on
+    boardwrap's own rect too, not just the camera's board-unit rectangle) or reading `#boardwrap`'s
+    own `getBoundingClientRect().width` instead of `vwPx()` at line 815.
 - [x] **Full sea trial, re-run against the fixed 465-commit branch, build `2026.08.31.2` — the underlying voyage data is CONFIRMED CURRENT, but the "re-run" itself never happened this session, and that gap is worth recording plainly.** The 03:07Z attempt that showed PROGRESSING at 03:35Z died silently overnight (no `.planning/wyclau/LONG-RUN` marker survived it, and `.planning/SEA-TRIAL-465-check-3.md` sat stuck at "IN PROGRESS" for three hours). Relaunched 2026-09-01 06:29Z at the same `--report=` path. **It "finished" in 1 minute and reported "10 of 10 voyage(s) sailed" — which is misleading.** `sea-trial-shots/log.txt` (the real log, not the summary report) says plainly: *"10 of 10 leg(s) were resumed from a previous attempt at this build — they were NOT re-sailed."* Every leg's cache file under `sea-trial-shots/legs/*--2026.08.31.2.json` predates this run (newest at 01:17Z) — `readDone()` correctly matched them on build stamp and reused them, exactly as designed, but **the markdown report's own "voyages that did NOT run: none" line does not distinguish RESUMED from FRESHLY SAILED**, which is a real gap in the one file rule 24 says to trust at face value. Parking that as a one-line note, not fixing it now (rule 7): `sea_trial.mjs`'s report should print a resumed-count line the way it already prints a not-run column.
   ⚠ **What this means for "is the branch trial-clean": the resumed data is the SAME build's already-fully-triaged 10-leg result** (see the TEN-LEG VERDICT entry below, same build stamp) — 6 legs settle-timing noise, 1 Safari WebSocket comment/design question, 1 the real crew-phone sail-square finding above. No game code has changed since those records were made, so a genuinely fresh re-sail would almost certainly reproduce them identically; the ~1-3.5 hour cost of proving that seemed like a poor trade against the sail-square investigation. **Genuinely new in this run: `npm test` showed one FAIL** — `watchdog_one_engine_check.mjs`'s fixture expects no live engine on the machine when it runs, and detected THIS session itself (a real watchdog-started Bosun) as "an engine is already running," which is the gate's own correct behaviour aimed at the wrong target. Not a game bug; parked, one line, per rule 7 — the fixture needs to exclude the current test-runner's own process, or should_launch.mjs's engine check needs an override for exactly this case. Every OTHER `npm test` check passed.
 - [x] **THE `watchdog_one_engine_check`/`watchdog_liveness_check` FALSE FAIL — FIXED 2026-09-01,
