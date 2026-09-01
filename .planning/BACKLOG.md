@@ -106,28 +106,37 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 
 ## Wave 2 — the words (10) · cosmetic gear, safe, felt immediately
 
+> **SWEPT 2026-09-01 — ALL TEN ROWS ARE SHIPPED.** The 2026-08-29 sweep note above explicitly left
+> this wave unread ("not swept... not to be read as open or closed"); checked now against the
+> current source, all ten already carry their fix, most from `b92641ef` (five of the ten, one
+> commit, four agents) and the rest each in their own commit. Every row below now points at real
+> evidence (a commit or a line) rather than restating a verdict — a pointer cannot go stale, a copy
+> always can.
+
 | # | Item |
 |---|---|
-| W2-1 | **Weather forecast line too long.** Should read `Day {day}: Wind {direction}. Tomorrow: {direction}`. *(Check whether he means the narration line or the wind pill — the pill currently reads `WIND NOW: W← • FORECAST: W←`.)* |
-| W2-2 | **"The Shelves be bare…" — cut 50%.** `src/ui/panel.js:1292`. ✅ **DECIDED 2026-08-27 — and he took NONE of the three offered, he wrote his own.** Ship EXACTLY:<br>`Sold-out islands fly the black market flag. They'll find ye one more ingredient — for 10🌕.`<br>**Two word choices are his and are not typos: "crate"→"ingredient", "black flag"→"black market flag". Do not "correct" either.** He also dropped "after dark" and "Sugar Seas" entirely — the latter agrees with W2-6. ⚠️ The `10🌕` is hardcoded in the copy; derive it from cfg (rule 9) rather than carrying the number across. |
-| W2-3 | **Dock language consistency.** `spends the turn haulin' crates at {location}` → `workin' the docks` (`src/ui/util.js:770,773`). **Then audit every other reference to docking** and make them agree. |
-| W2-4 | **Money must be explicit wherever it changes hands.** `TREASURE! Buy…` → `TREASURE (+3🌕)! Buy…` (`src/ui/flow.js:1458`); same principle for `TAILS (+1🌕) — work the docks…`. **Audit every narration line that moves coin.** ✅ **His numbers are CORRECT — measured 2026-08-27:** `dockHeads:3, dockTails:1` (`src/engine/index.js:3081`). **Derive them from `cfg`, never type them** (rule 9) — the payout is a field precisely so it can move. |
-| W2-5 | **Dock recap money consistency:** `strikes buried treasure (+3🌕) — then buys {ingredient} (-{price}🌕)`. Same derive-don't-type rule. |
-| W2-10 | **A LOAD-BEARING COMMENT IN THE ENGINE IS STALE, found while checking W2-4.** `src/engine/index.js:3069` reads *"TREASURE PAYS 5, NOT 6"* with a 600-voyage balance table under it — but the line it describes is `dockHeads:3`. **The code pays 3; the comment claims 5.** Wyatt observed 3 in play and was right. This is rule 6's second half in the wild: a comment is a statement of intent by somebody who has since left the room. **Correct the comment, keep the balance table** (it is graveyard, rule 10) and date the correction. |
-| W2-6 | **Remove "On the Sugar Seas" from the page title.** `index.html:10`. **Audit where else it appears** — `og:title` :15, `twitter:title` :22, schema.org `name` :26. It should be colour in scarce places; the game is called Pastry Pirates. ⚠️ The schema.org `name` is load-bearing for the SEO entry below — changing it is an SEO decision, not only a copy one. |
-| W2-7 | **"Pass" → "Muse" everywhere**, with tooltip *"Watch the water and write a recipe about what you see."* Button at `src/ui/flow.js:2104`. **GRAVEYARD (rule 10):** the label briefly read *"Look into the ocean"* on 2026-08-05 and **was changed back to "Pass"** — `src/ui/util.js:558` records it. "Muse" is a different word and this is his call; the history is here so nobody re-runs the argument silently. *(Open question: is there a tooltip mechanism for this button at all today?)* |
-| W2-8 | **"Tap to sail" → "Tap square again to sail trade winds"** to confirm trade-wind movement. |
-| W2-9 | **"Would ye offer any coin on top?" is context-blind.** If coin is the ONLY thing being offered it makes no sense — should read `How many coins?`. **And the slider itself should pulse** to show what to touch. `sliderWrapHTML`/`wireSlider`, `src/ui/util.js`. |
+| ~~W2-1~~ | ✅ **CLOSED — his own ruling (A-9, 2026-08-28) reformed the narration line**, resolving the ambiguity this row itself raised ("narration or the pill?"). `commit 693c2b0b`; current text at `src/ui/util.js` `EVENT_NARRATION.newround`: `Day {round}: Wind {DIR}.` + `Tomorrow: {DIR}.` — matches his spec. The wind pill was not part of his ruling and is unchanged. |
+| ~~W2-2~~ | ✅ **CLOSED — his exact sentence, verbatim.** `commit b92641ef`; `src/ui/panel.js` around :1154 reads *"Sold-out islands fly the black market flag. They'll find ye one more ingredient — for 10🌕."* — the price derives from `cfg.blackMarket`, not typed. |
+| ~~W2-3~~ | ✅ **CLOSED — "workin' the docks" is the one name used everywhere now.** `commit b92641ef`; `src/ui/util.js` dock narration (`⚫ TAILS — ye spend the turn workin' the docks at {place}`). |
+| ~~W2-4~~ | ✅ **CLOSED — every dock narration line names the coin as it moves, derived from `cfg`.** `commit b92641ef`; `src/ui/util.js` dock builder, `(+${heads}🌕)`/`(+${tails}🌕)`. |
+| ~~W2-5~~ | ✅ **CLOSED — same builder as W2-4, same derive-don't-type rule, one function so they can't drift apart.** `commit e6a1d04e`. |
+| ~~W2-10~~ | ✅ **CLOSED — the stale comment is corrected and dated.** `commit 72508abe`, sharpened by `commit dcedb178`; `src/engine/index.js` ~:3131 now reads "CORRECTED 2026-08-27 (W2-10)". |
+| ~~W2-6~~ | ✅ **CLOSED, ONE FIELD DELIBERATELY LEFT — his call, not an oversight.** `commit b92641ef`; `index.html` `<title>`, `og:title`, `twitter:title` and `about.html` all drop "On the Sugar Seas". **`schema.org`'s `name` field still reads "Pastry Pirates on the Sugar Seas" ON PURPOSE** (`index.html`:29-33's own dated comment) — it is the one place the long form still does real SEO work, and closing that gap needs Wyatt's ruling, not a copy edit. Do not "finish" this by touching it. |
+| ~~W2-7~~ | ✅ **CLOSED, INCLUDING THE TOOLTIP QUESTION.** `commit 97e5c2ed`; `src/ui/flow.js` ~:2326: *"MUSE, not Pass (Wyatt, 2026-08-27)"*. The tooltip half was also his call, the same day: *"don't build the tooltip, ignore this and let the idea go"* — no tooltip exists, deliberately, not a gap. |
+| ~~W2-8~~ | ✅ **CLOSED, with a real refinement beyond the literal ask.** `commit af9d53d8`; `src/ui/flow.js` ~:372. The line is conditional — added only when a blue (trade-wind) square is actually on offer, since a mixed set has amber squares that DO commit on one tap, and "tap again" would be false for those. |
+| ~~W2-9~~ | ⚠️ **HALF CLOSED, and the other half is a tracked proposal, not a silent gap.** `commit c62df6f7`: the wording now reads `How many coins?` when coin is the only thing on the table. **The slider PULSE was not shipped** — filed as **P-2** in the 🧭 CTO PROPOSALS section below (`commit af9d53d8`): every glow lives in one CSS block keyed to `.apBtn`, the slider isn't one, and nobody has confirmed WebKit animates a range-thumb pseudo-element (his phone is the only real Safari this project has). Not re-filed here; see P-2. |
 
 > **SWEPT 2026-08-29 (the night run).** Every closed row in Waves 3–6 now carries a strikethrough
 > and a pointer into `.planning/CTO-LEDGER.md` rather than a copy of its verdict — a pointer cannot
-> go stale, a copy always can. **Waves 4, 5 and 6 are fully closed. Wave 3 has three rows open:
-> W3-1, W3-3, W3-5.**
+> go stale, a copy always can. **Waves 4, 5 and 6 are fully closed.**
+> ⚠️ **CORRECTED 2026-09-01: this line originally said "Wave 3 has three rows open: W3-1, W3-3,
+> W3-5"** — stale the moment it was written, since the very next day's commit (2026-08-30, see
+> W3-5's own row above) closed W3-5 without this summary being updated to match. **Wave 3 has TWO
+> rows open: W3-1, W3-3** (re-confirmed 2026-09-01 alongside the Wave 2 sweep below).
 >
-> **Waves 0, 1 and 2 were NOT swept and their rows are not to be read as open or closed from this
-> pass.** Their statuses are recorded inline in the rows themselves and I did not re-verify them
-> tonight; saying "swept" over work I had not checked is exactly the copy-that-rots this note
-> exists to remove.
+> **Waves 0 and 1 were NOT swept and their rows are not to be read as open or closed from this
+> pass.** Their statuses are recorded inline in the rows themselves. **Wave 2 WAS swept, 2026-09-01
+> — see the note above its own table: all ten rows are shipped, one (W2-9) only half.**
 
 ## Wave 3 — glitches a player sees constantly (5)
 

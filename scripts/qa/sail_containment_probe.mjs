@@ -38,6 +38,7 @@ const { makePlayer, GATE_SRC } = await import(pathToFileURL(path.join(ROOT, "scr
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const W = +arg("w", 390), H = +arg("h", 844);
+const MODE = arg("mode", "solo");   // solo | crew  (crew measures the GUEST, where the bug lives)
 /* Into sea-trial-shots/, which exists and is gitignored -- NOT the repo root. tree_health_check
    reads a root-level path as a top-level directory and fails the build on one that is not there,
    which is exactly what it caught here. */
@@ -48,6 +49,18 @@ const c = await openChrome({
   profileDir: path.join(ROOT, "sea-trial-shots", "prof-sail-probe"),
   mobile: true, dsf: 2,
 });
+
+/* THE HOST IS A SECOND BROWSER, on its own ports so it cannot collide with the guest's (rule 17
+   names the ports discipline). It is driven only far enough to start the voyage -- nothing is
+   measured on it. */
+let hostC = null;
+if (MODE === "crew") {
+  hostC = await openChrome({
+    W: 1100, H: 900, dbgPort: 9421, httpPort: 8311, serveRoot: ROOT,
+    profileDir: path.join(ROOT, "sea-trial-shots", "prof-sail-probe-host"),
+    mobile: false, dsf: 1,
+  });
+}
 
 try {
   /* BOOT AND DRIVE WITH THE REPO'S OWN DRIVER, not a hand-rolled click loop. The first version of
@@ -66,6 +79,73 @@ try {
      Two earlier attempts here searched the DOM for a button matching /solo/i, clicked the right
      card, and still never reached a sail prompt -- because the name modal was never answered, so
      the game never started and player.tick() had nothing to drive. */
+  if (MODE === "crew") {
+    /* THE CREW SEQUENCE, copied from playtest_gate's own helpers rather than re-derived -- host
+       card, room code, guest joins with that code, host presses Start and then the two-step
+       confirm. Note bootJoin's own hard-won detail: the name modal is GONE from the join flow
+       since 2026-08-24, so it is used if present and skipped if not. A rig that encodes a flow
+       breaks when the flow is fixed, and it fails looking like the GAME is broken. */
+    const hurl = "http://127.0.0.1:8311/";
+    await hostC.nav(hurl); await sleep(2200);
+    await hostC.ev(`localStorage.clear(); localStorage.setItem('pp_id','qa-sail-probe-host'); 1`);
+    await hostC.nav(hurl); await sleep(2600);
+    await hostC.ev(GATE_SRC);
+    const hc = await hostC.ev(`__gate(document.getElementById('choiceHost'))`);
+    if (!hc || !hc.ok) { console.log("host card not clickable — nothing measured"); process.exit(2); }
+    await hostC.clickXY(hc.x, hc.y);
+    await sleep(800);
+    const hn = await hostC.ev(`__gate(document.getElementById('nameModalInput'))`);
+    if (hn && hn.ok) {
+      await hostC.send("Input.dispatchMouseEvent", { type: "mousePressed", x: hn.x, y: hn.y, button: "left", clickCount: 3 });
+      await hostC.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: hn.x, y: hn.y, button: "left", clickCount: 3 });
+      await hostC.type("probehost");
+      const hb = await hostC.ev(`__gate(document.getElementById('btnNameConfirm'))`);
+      if (hb && hb.ok) await hostC.clickXY(hb.x, hb.y);
+    }
+    let code = "";
+    for (let i = 0; i < 50 && !/^[A-Z0-9]{4}$/.test(code); i++) {
+      await sleep(600);
+      code = await hostC.ev(`(document.getElementById('roomCode')||{textContent:''}).textContent.trim()`);
+    }
+    console.log("room code:", code || "(never appeared)");
+    if (!/^[A-Z0-9]{4}$/.test(code)) { console.log("no room — nothing measured"); process.exit(2); }
+
+    const jc = await c.ev(`__gate(document.getElementById('choiceJoin'))`);
+    if (!jc || !jc.ok) { console.log("join card not clickable — nothing measured"); process.exit(2); }
+    await c.clickXY(jc.x, jc.y); await sleep(900);
+    const hasModal = await c.ev(`(()=>{const m=document.getElementById('nameModal'); return !!(m && getComputedStyle(m).display !== 'none');})()`);
+    if (hasModal) {
+      const nm2 = await c.ev(`__gate(document.getElementById('nameModalInput'))`);
+      if (nm2 && nm2.ok) {
+        await c.send("Input.dispatchMouseEvent", { type: "mousePressed", x: nm2.x, y: nm2.y, button: "left", clickCount: 3 });
+        await c.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: nm2.x, y: nm2.y, button: "left", clickCount: 3 });
+        await c.type("probeguest");
+        const cb = await c.ev(`__gate(document.getElementById('btnNameConfirm'))`);
+        if (cb && cb.ok) await c.clickXY(cb.x, cb.y);
+      }
+      await sleep(700);
+    }
+    await c.ev(`(() => { const j = document.getElementById('joinCode'); if (j) j.value = ${JSON.stringify(code)};
+      const n = document.getElementById('joinName'); if (n) n.value = "probeguest"; return 1; })()`);
+    const jb = await c.ev(`__gate(document.getElementById('btnJoin'))`);
+    if (!jb || !jb.ok) { console.log("join button not clickable — nothing measured"); process.exit(2); }
+    await c.clickXY(jb.x, jb.y);
+    await sleep(2500);
+
+    for (let i = 0; i < 60; i++) {
+      await sleep(700);
+      const b = await hostC.ev(`__gate(document.getElementById('btnStart'))`);
+      if (b && b.ok) { await hostC.clickXY(b.x, b.y); break; }
+    }
+    await sleep(1000);
+    for (let i = 0; i < 30; i++) {
+      await sleep(600);
+      const b = await hostC.ev(`__gate(document.getElementById('btnConfirmStart'))`);
+      if (b && b.ok) { await hostC.clickXY(b.x, b.y); break; }
+    }
+    console.log("crew started; measuring on the GUEST");
+    await sleep(2600);
+  } else {
   const g = await c.ev(`__gate(document.getElementById('choiceSolo'))`);
   if (!g || !g.ok) { console.log("solo card not clickable — nothing measured"); c.close(); process.exit(2); }
   await c.clickXY(g.x, g.y);
@@ -84,13 +164,17 @@ try {
   }
   await sleep(2600);
 
-  const player = makePlayer(c, { log: (m) => console.log("  [drive]", m) });
+  }
+
+  const player = makePlayer(c, { log: (m) => console.log("  [guest]", m), isGuest: MODE === "crew" });
+  const hostPlayer = hostC ? makePlayer(hostC, { log: () => {} }) : null;
   let cells = 0;
   for (let i = 0; i < 60 && cells === 0; i++) {
     await c.ev(GATE_SRC);
     cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
     if (cells) break;
     try { await player.tick(); } catch (e) { /* keep driving */ }
+    if (hostC) { try { await hostC.ev(GATE_SRC); await hostPlayer.tick(); } catch (e) { /* host just needs to keep its turn moving */ } }
     await sleep(500);
   }
   console.log("sail squares on screen:", cells);
@@ -181,4 +265,5 @@ red-proof: with the board shoved a viewport sideways, the probe sees ${proof} sq
     : "\nRESULT: every square is reachable on this viewport. Not a proof of the general case: one board, one seed.");
 } finally {
   c.close();
+  if (hostC) hostC.close();
 }
