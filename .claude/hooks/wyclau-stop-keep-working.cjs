@@ -79,9 +79,6 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
-// ---------- The PP_BOSUN gate: not applicable at all outside a watchdog-started session ----------
-if (process.env.PP_BOSUN !== "1") process.exit(0);
-
 let raw = "";
 try { raw = fs.readFileSync(0, "utf8"); } catch { process.exit(0); }
 let inp = {};
@@ -91,6 +88,58 @@ try { inp = JSON.parse(raw || "{}"); } catch { process.exit(0); }
 if (inp.stop_hook_active) process.exit(0);
 
 const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+
+let head = null;
+try { head = execFileSync("git", ["-C", ROOT, "rev-parse", "HEAD"], { encoding: "utf8" }).trim(); }
+catch { head = null; }
+
+/* ---------- THE LOOP GATE: IS THIS SESSION WORKING? ----------
+ *
+ * ⚠ THIS REPLACED THE PP_BOSUN GATE, 2026-09-01, and the axis it moved along is the whole point.
+ * The old first line was `if (process.env.PP_BOSUN !== "1") process.exit(0)` — the loop ran only
+ * in a session the watchdog had started. Wyatt reported the consequence directly: "When I
+ * intervene with bosun, it stops him from being in a loop." His instruction arrives in a session
+ * that is NOT watchdog-started, so the keep-working mechanism was switched off in the very session
+ * carrying the work he had just asked for — one task, then a stop.
+ *
+ * WHO LAUNCHED A SESSION IS NOT THE QUESTION. WHETHER IT IS WORKING IS. A session is WORKING if
+ * HEAD has moved since it started (it committed something) or the tree has uncommitted changes to
+ * TRACKED files (it is mid-edit). A session that has changed nothing is having a conversation and
+ * must be allowed to end its turn — that is what keeps Wyatt's own terminal usable, and it is a
+ * real brake rather than a courtesy: without it this hook would refuse to let any chat end.
+ *
+ * WHY TRACKED-ONLY (`--untracked-files=no`): a tool that drops a log, a report or a scratch
+ * directory into the tree would otherwise make every session look like it was working, forever.
+ * An untracked file is something that HAPPENED to a repo; a modified tracked file is something a
+ * session DID to it.
+ *
+ * PP_BOSUN SURVIVES AS A FORCE-ON, NOT AS A GATE. A freshly launched engine has not committed or
+ * edited anything yet, and it is precisely the session that must not be allowed to stop early.
+ *
+ * ⚠ THIS CONTRADICTED A PASSING GATE, DELIBERATELY, AND IT WAS REWRITTEN IN THE SAME COMMIT:
+ * scripts/qa/wyclau_stop_hook_check.mjs asserted "PP_BOSUN unset -> never blocks even with
+ * unblocked Chart work present", which locks in the behaviour removed here. Leaving both would
+ * make one of the two gates a lie (CLAUDE.md rule 9's trap: list what reads a quantity, gates
+ * included, before changing how it is produced).
+ */
+const sessionId = String(inp.session_id || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64);
+let sessionBase = null;
+if (sessionId) {
+  try {
+    sessionBase = fs.readFileSync(
+      path.join(ROOT, ".claude", "hooks", ".read-state", sessionId, "session-base"), "utf8"
+    ).trim();
+  } catch { sessionBase = null; }
+}
+const headMoved = sessionBase !== null && head !== null && sessionBase !== head;
+
+let treeDirty = false;
+try {
+  treeDirty = execFileSync("git", ["-C", ROOT, "status", "--porcelain", "--untracked-files=no"],
+    { encoding: "utf8" }).trim() !== "";
+} catch { treeDirty = false; }
+
+if (process.env.PP_BOSUN !== "1" && !headMoved && !treeDirty) process.exit(0);
 const CHART = path.join(ROOT, ".planning", "CHART.md");
 const STATE_FILE = path.join(ROOT, ".planning", "wyclau", "STOP-HOOK-STATE.json");
 const HEARTBEAT = path.join(ROOT, ".planning", "wyclau", "HEARTBEAT");
@@ -111,27 +160,80 @@ function block(reason) {
   process.exit(0);
 }
 
+// State is read HERE now, not at brake 2, because brake 1 needs a counter of its own (below).
+let state = null;
+try { state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch { state = null; }
+const writeState = (next) => {
+  try {
+    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
+    fs.writeFileSync(STATE_FILE, JSON.stringify({ ...(state || {}), ...next }, null, 2));
+  } catch { /* best-effort; a counter must never itself throw */ }
+};
+
+/* A give-up is an ALLOWED stop that still has to say why. Brake 2 learned this the hard way (CEO
+   Review 53): a hook that exits 0 does not feed its stderr back to the session that is ending, so
+   the durable half of "stop AND say what's blocking" is the ledger line, which the next session
+   reads on orientation. Shared by both brakes rather than written twice. */
+function giveUp(msg, reset) {
+  writeState(reset);
+  console.error(`wyclau-stop-keep-working: ${msg}`);
+  try {
+    fs.appendFileSync(
+      path.join(ROOT, ".planning", "CTO-LEDGER.md"),
+      `${new Date().toISOString()}  SETUP  KEEP-WORKING STOP HOOK GAVE UP: ${msg}\n`
+    );
+  } catch { /* best-effort */ }
+  process.exit(0); // allow the stop
+}
+
 // ---------- Brake 1: the Glass publish lag ----------
+/* ⚠ THE GIVE-UP ADDED 2026-09-01, and why it was missing is worth keeping. Brakes 2 and 3 can
+ * both end a turn — a stuck item gives up after three blocks, an all-GATED Chart allows the stop.
+ * Brake 1 had neither: it blocked and returned before any counter was touched, so a session that
+ * genuinely could not publish (no capability, a failing artifact host, an unpublishable page) was
+ * refused every stop with nothing able to stop it. MEASURED, not read: the Quartermaster drove the
+ * hook four times against a fixture with an unpublishable page and it blocked all four times.
+ * This hook's own header says a hung session is worse than an early stop; brake 1 was the one
+ * place that was not honoured. Same shape as brake 2 now: block three times, then give up and say
+ * what is stuck.
+ */
 {
   const hb = tryReadTimestamp(HEARTBEAT);
   if (hb !== null) {
     const lp = tryReadTimestamp(LAST_PUBLISH);
-    if (lp === null) {
-      block(
-        "STOP BLOCKED -- a pulse exists (HEARTBEAT) but no publish has ever been recorded on this machine.\n\n" +
-        "Publish the Glass (Artifact tool, the URL scripts/wyclau/glass.mjs prints), then run:\n" +
-        "  node scripts/wyclau/mark_glass_published.mjs\n\n" +
-        "then resume."
-      );
-    }
-    const lagMin = (hb - lp) / 60000;
+    const lagMin = lp === null ? Infinity : (hb - lp) / 60000;
     if (lagMin > PUBLISH_LAG_THRESHOLD_MIN) {
+      // Counted per HEAD, like brake 2: a commit landing means real movement, and the count starts
+      // over. Kept under its own keys so the two brakes cannot clobber each other's counter.
+      const samePub = state && state.pubHead === head;
+      const pubCount = (samePub ? (state.pubCount || 0) : 0) + 1;
+      if (pubCount > 3) {
+        giveUp(
+          `CANNOT PUBLISH THE GLASS -- blocked 3 times with the page still ${lp === null ? "never published" : `${lagMin.toFixed(0)} min behind the last pulse`}, ` +
+          `and no commit landing in between. Giving up rather than refusing every stop forever. ` +
+          `Say what is actually stopping the publish (the artifact capability, the harvest hook, a ` +
+          `failing host), park it on the Chart, and move on.`,
+          { pubHead: null, pubCount: 0 }
+        );
+      }
+      writeState({ pubHead: head, pubCount });
+      const tail =
+        `\n\n(Block ${pubCount} of 3 on the publish lag with no commit landing in between -- after 3, this ` +
+        `hook gives up and lets the turn end rather than looping forever.)`;
+      if (lp === null) {
+        block(
+          "STOP BLOCKED -- a pulse exists (HEARTBEAT) but no publish has ever been recorded on this machine.\n\n" +
+          "Publish the Glass (Artifact tool, the URL scripts/wyclau/glass.mjs prints), then run:\n" +
+          "  node scripts/wyclau/mark_glass_published.mjs\n\n" +
+          "then resume." + tail
+        );
+      }
       block(
         `STOP BLOCKED -- the last pulse is ${lagMin.toFixed(1)} min newer than the last recorded Glass publish ` +
         `(threshold ${PUBLISH_LAG_THRESHOLD_MIN} min, the Door's own stated cadence).\n\n` +
         "A pulse Wyatt cannot see is not a pulse. Publish the Glass, then run:\n" +
         "  node scripts/wyclau/mark_glass_published.mjs\n\n" +
-        "then resume."
+        "then resume." + tail
       );
     }
   }
@@ -152,17 +254,11 @@ if (actionable.length === 0) process.exit(0);
 
 const topItem = actionable[0].replace(/^\s*- \[ \] /, "").trim();
 
-let head = null;
-try { head = execFileSync("git", ["-C", ROOT, "rev-parse", "HEAD"], { encoding: "utf8" }).trim(); }
-catch { head = null; }
-
 // ---------- Brake 2: give up on a stuck item ----------
 // count is how many blocks have been issued for THIS item at THIS head; blocks happen for count
 // 1, 2 and 3, and the 4th consecutive check (same item, same head) gives up instead of blocking
 // a 4th time -- matching "pushed ~3 times... stop" without the off-by-one CEO Review 52 found.
-let state = null;
-try { state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch { state = null; }
-
+// (`state` and `head` are read further up now, since brake 1 needs both for its own counter.)
 const sameItem = state && state.item === topItem;
 const noCommitSince = head !== null && state && state.head === head;
 const priorCount = sameItem && noCommitSince ? (state.count || 0) : 0;
@@ -170,35 +266,16 @@ const nextCount = priorCount + 1;
 
 if (nextCount > 3) {
   // GIVE UP. Reset state so the next real change starts a fresh count, and allow the stop.
-  try {
-    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-    fs.writeFileSync(STATE_FILE, JSON.stringify({ item: null, head: null, count: 0 }, null, 2));
-  } catch { /* best-effort; giving up must not itself throw */ }
-  const giveUpMsg =
+  // (The ledger line, not stderr, is what survives an allowed stop -- see giveUp()'s own comment.)
+  giveUp(
     `STUCK on "${topItem}" -- blocked 3 times with no commit landing in between. Giving up ` +
     `rather than blocking a 4th time. Say what is actually blocking this item, park it, and move ` +
-    `to the next one, or ask Wyatt.`;
-  // ⚠ CEO Review 53 finding, fixed: a Stop hook that exits 0 (allowing the stop, which give-up
-  // must do) does not feed its stderr back to the session that produced it -- only a blocking
-  // exit does. His brake said "stop AND SAY WHAT'S BLOCKING", and stderr alone cannot deliver the
-  // second half when the session is the one about to end. console.error stays, for a live
-  // terminal transcript, but the message that actually SURVIVES the stop is this ledger line --
-  // the same durable, cross-session channel the whole project already reads on orientation
-  // (the Door's own step 2). The NEXT session sees this on its very first ledger tail, not
-  // whichever session happened to be running when the give-up fired.
-  console.error(`wyclau-stop-keep-working: ${giveUpMsg}`);
-  try {
-    const LEDGER = path.join(ROOT, ".planning", "CTO-LEDGER.md");
-    const line = `${new Date().toISOString()}  SETUP  KEEP-WORKING STOP HOOK GAVE UP: ${giveUpMsg}\n`;
-    fs.appendFileSync(LEDGER, line);
-  } catch { /* best-effort; giving up must not itself throw */ }
-  process.exit(0); // allow the stop
+    `to the next one, or ask Wyatt.`,
+    { item: null, head: null, count: 0 }
+  );
 }
 
-try {
-  fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ item: topItem, head, count: nextCount }, null, 2));
-} catch { /* best-effort */ }
+writeState({ item: topItem, head, count: nextCount });
 
 block(
   `STOP BLOCKED -- unfinished, unblocked Chart work remains: "${topItem}"\n\n` +

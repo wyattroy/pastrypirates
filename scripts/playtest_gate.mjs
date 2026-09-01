@@ -538,16 +538,46 @@ const readDone = (name) => {
   } catch { return null; }
 };
 
+/* THE LONG-RUN MARKER — this is what replaced the fake heartbeat, 2026-09-01.
+   A trial legitimately produces no commits for an hour or more, so the watchdog used to read it as
+   a dead engine. The previous answer was a background Monitor pulsing HEARTBEAT every 15 minutes,
+   which made the heartbeat a TIMER: it beat whether or not anything was happening, and for 2h31m
+   the only stall detector in the tree was blind — during the exit test meant to prove there are no
+   silent stalls. The honest signal is the one the trial alone possesses: which leg it just finished.
+
+   staleAfterMinutes IS DERIVED FROM THIS RUN'S OWN LEG CAP, never typed (CLAUDE.md rule 9): no leg
+   can exceed MAX_MS by construction, so silence longer than that is genuinely wrong. The half-cap
+   margin is because legs run PAR-at-a-time, so the gap between two completions can legitimately
+   approach one full leg. */
+const LEG_CAP_MIN = MAX_MS / 60000;
+const LONGRUN_STALE_MIN = Math.ceil(LEG_CAP_MIN * 1.5);
+// Rooted at THIS file, not at cwd: the marker must land in the repo being sailed even if some
+// future caller runs the gate from elsewhere.
+const MARKER_REPO = path.resolve(path.dirname((await import("node:url")).fileURLToPath(import.meta.url)), "..");
+let lr = null;
+try { lr = await import("./wyclau/longrun_status.mjs"); } catch { lr = null; }
+const markProgress = (doneCount) => {
+  if (!lr) return; // the helper is vendored; a tree without it must still be able to sail
+  try {
+    lr.writeLongRun(MARKER_REPO, {
+      what: `sea trial, ${LEGS.length} legs`,
+      progress: `${doneCount}/${LEGS.length} legs`,
+      staleAfterMinutes: LONGRUN_STALE_MIN,
+    });
+  } catch { /* the marker must never be able to fail a trial */ }
+};
+
 const results = [];
-{ let next = 0, resumed = 0; await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
+{ let next = 0, resumed = 0, done = 0; markProgress(0); await Promise.all(Array.from({ length: Math.min(PAR, LEGS.length) }, async () => {
     while (next < LEGS.length) {
       const i = next++, name = LEGS[i];
       const already = readDone(name);
-      if (already) { results[i] = already; resumed++; log(`[${name}] RESUMED — a complete result for build ${STAMP} is already on record; not re-sailed`); continue; }
+      if (already) { results[i] = already; resumed++; done++; markProgress(done); log(`[${name}] RESUMED — a complete result for build ${STAMP} is already on record; not re-sailed`); continue; }
       results[i] = await runLeg(name, i);
       /* WRITE IT THE MOMENT IT IS DONE. A result held only in memory until the fleet is home is a
          result the next recycle destroys — which is the whole failure this guards. */
       try { fs.writeFileSync(legFile(name), JSON.stringify({ ...results[i], __stamp: STAMP })); } catch {}
+      done++; markProgress(done);
     }
   }));
   if (resumed) log(`\n${resumed} of ${LEGS.length} leg(s) were resumed from a previous attempt at this build — they were NOT re-sailed.`);
@@ -590,6 +620,10 @@ for (const r of results) {
   if (covEntries) log(`   coverage: ${covEntries.map(([k, c]) => `${k}:${c.clicked}/${c.seen}`).join("  ")}`);
 }
 fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(results, (k, v) => v instanceof Map ? Object.fromEntries(v) : k === "screens" && Array.isArray(v) && v.length > 60 ? v.slice(0, 60) : v, 2));
+/* THE RUN IS OVER, SO THE MARKER MUST GO. A finished job that leaves its marker behind would hold
+   the watchdog off until the marker aged past its own staleness — the safe direction, but still a
+   lie about what is happening in the tree. */
+if (lr) { try { lr.clearLongRun(MARKER_REPO); } catch { /* never fail a trial on housekeeping */ } }
 log(anyFail ? "\nRESULT: FAIL" : "\nRESULT: PASS");
 /* Write the queue LAST, once, for every leg that deferred — one file for the whole run, because a
    session judging it wants one list, not one per leg. */

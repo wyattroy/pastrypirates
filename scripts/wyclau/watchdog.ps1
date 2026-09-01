@@ -78,48 +78,61 @@ try {
 }
 $engineRunning = ($engineProcs -ne $null) -and ($engineProcs.Count -gt 0)
 
-$hbTime = if (Test-Path $heartbeat)    { (Get-Item $heartbeat).LastWriteTime }    else { $null }
-$laTime = if (Test-Path $lastActivity) { (Get-Item $lastActivity).LastWriteTime } else { $null }
-$stamps = @($hbTime, $laTime) | Where-Object { $_ -ne $null }
+# THE JUDGEMENT LEFT POWERSHELL, 2026-09-01 (the chain audit's architectural move).
+#
+# Everything this script used to decide here -- is the tree alive, is a human in it, is silence a
+# stall -- is now scripts/wyclau/should_launch.mjs, which exits 0 to LAUNCH and 1 to hold off and
+# prints one plain reason either way. THE REASON IS TESTABILITY, AND IT IS NOT CEREMONY: no check
+# that runs in CI, in a cloud container, or on Wyatt's Mac can execute PowerShell, so for as long
+# as this logic lived here the only available instrument was grepping this file for strings --
+# exactly the "instrument that measures something other than what it names" this project keeps
+# paying for. The node helper is driven as a real subprocess by scripts/qa/wyclau_chain_audit_check.mjs
+# against real fixture trees, so its decisions are checked by behaviour rather than by reading.
+#
+# WHAT STAYED HERE, and it is the one thing that had to: whether a claude.exe with -p /door is
+# alive. That is a genuinely Windows-only fact, so it is measured above and PASSED IN as a flag.
+#
+# WHAT CHANGED IN THE DECISION ITSELF (the fault Wyatt reported): LAST-ACTIVITY no longer buys a
+# hold-off on its own. It is stamped by a PreToolUse hook on every tool call by any session, so
+# HIS OWN TYPING kept it warm while the Chart did not move, and this script held off for hours
+# waiting on a signal that was never going to change. A tool call is not progress; a commit is.
+$engineFlag = if ($engineRunning) { "running" } elseif ($engineProcs -eq $null) { "running" } else { "absent" }
+if ($engineProcs -eq $null) {
+  # CANNOT SEE THE PROCESS TABLE. Unknown is reported as "running" on purpose: of the two possible
+  # errors, suppressing a needed launch is recoverable one window later, while stacking a second
+  # engine onto a live one is the two-sessions-on-one-branch hazard CLAUDE.md section 3 exists for.
+  # Logged every tick so a hold-off this script cannot justify is never silent.
+  Add-Content $restarts "$now`tcannot read the process table -- assuming an engine IS running and holding off (see CLAUDE.md section 3)"
+}
 
-if (-not $engineRunning -and $engineProcs -ne $null) {
-  # NOTHING IS RUNNING. The only question left is whether a person has their hands in this tree
-  # right now: launching an engine under Wyatt's fingers is the 16:16Z collision. But a session
-  # that has not touched a tool in $IdleMinutes is not working -- it is parked at a prompt, which
-  # is precisely the state he never wants to see, and waiting out StaleMinutes to notice it is
-  # forty-five minutes of nothing happening.
-  $humanBusy = ($laTime -ne $null) -and (((Get-Date) - $laTime).TotalMinutes -lt $IdleMinutes)
-  if ($humanBusy) {
-    $laMin = [math]::Round(((Get-Date) - $laTime).TotalMinutes)
-    Add-Content $restarts "$now`tno engine running, but a session was active $laMin min ago (idle window $IdleMinutes) -- held off"
+# RESOLVED FROM THIS SCRIPT'S OWN DIRECTORY, NOT FROM $Repo. The helper is part of the watchdog's
+# installation and ships beside it; the tree being judged arrives as --dir. Using $Repo instead was
+# wrong twice over: it assumed every judged tree carries a copy of the tooling, and it broke
+# watchdog_one_engine_check.mjs, which points a real watchdog at a bare fixture repo on purpose --
+# the decider vanished, every tick held off, and the gate could no longer see the question it
+# exists to ask. Found by running the suite, not by reading.
+$decider = Join-Path $PSScriptRoot "should_launch.mjs"
+$reason = $null
+$shouldLaunch = $false
+try {
+  $deciderOut = & node $decider "--dir=$Repo" "--engine=$engineFlag" "--stale-minutes=$StaleMinutes" 2>&1
+  $deciderCode = $LASTEXITCODE
+  $reason = ($deciderOut | Out-String).Trim()
+  if ($deciderCode -eq 0) {
+    $shouldLaunch = $true
+  } elseif ($deciderCode -eq 1) {
+    # A hold-off must never be silent -- the exit test's claim is "zero SILENT stalls, every gap
+    # explained by a logged line", and that has to survive this path too.
+    Add-Content $restarts "$now`thold off: $reason"
+    exit 0
+  } else {
+    Add-Content $restarts "$now`tshould_launch.mjs exited $deciderCode (expected 0 or 1) -- holding off rather than acting on a verdict this cannot read: $reason"
     exit 0
   }
-  $reason = "NO ENGINE RUNNING and nothing active for $IdleMinutes+ min -- starting one (idle is the failure, not only stalling)"
-} elseif ($stamps.Count -eq 0) {
-  # Neither file exists: the engine has never run here, or they were cleared.
-  # A stall by definition -- said distinctly so the Glass can show which case it was.
-  $reason = "no heartbeat or activity file found -- launching the engine fresh"
-} else {
-  $newest = ($stamps | Sort-Object -Descending)[0]
-  $age = (Get-Date) - $newest
-
-  # THE HOLD-OFF MUST NEVER BE SILENT. If HEARTBEAT alone would say "alive" (narration is fresh),
-  # staying quiet is the original behaviour and needs no line. But if the heartbeat itself is
-  # stale and only LAST-ACTIVITY is keeping this engine from a restart, that is CEO Review 46's
-  # case: the stamp is one shared file per repo, so ANY session touching the tree -- a human, a
-  # subagent, a second engine -- can hold off a restart on a dead one's behalf. Silence there is
-  # indistinguishable from a watchdog that died. Log it, every time, so the exit test's claim
-  # ("zero SILENT stalls, every gap explained by a logged line") stays true through this path too.
-  $hbAlive = ($hbTime -ne $null) -and (((Get-Date) - $hbTime).TotalMinutes -le $StaleMinutes)
-  if ($age.TotalMinutes -le $StaleMinutes) {
-    if (-not $hbAlive -and $laTime -ne $null) {
-      $laMin = [math]::Round(((Get-Date) - $laTime).TotalMinutes)
-      Add-Content $restarts "$now`theartbeat stale, but LAST-ACTIVITY $laMin min old -- held off, NOT restarting (someone is in the tree)"
-    }
-    exit 0   # alive; do nothing further
-  }
-  $mins = [math]::Round($age.TotalMinutes)
-  $reason = "no sign of life ($mins min > $StaleMinutes) -- restarting the engine"
+} catch {
+  # A watchdog that cannot run its own decider must not fall back to launching forever.
+  Add-Content $restarts "$now`tcould not run should_launch.mjs ($($_.Exception.Message)) -- holding off; a watchdog that cannot judge must not spawn"
+  exit 0
 }
 
 # ONE ENGINE AT A TIME. This guard is what makes the file safe to leave running unattended.
@@ -183,16 +196,24 @@ if ($DryRun) {
     Start-Process -FilePath "claude" -WorkingDirectory $Repo -ArgumentList @(
       "-p", "`"$doorPrompt`""
     ) -WindowStyle Hidden
-    # Reset the clock for the engine just launched. Orientation was MEASURED at 11m14s on
-    # the Razer (launch 15:09:01Z -> first pulse 15:20:15Z, 2026-08-31), which is longer
-    # than the 10-minute tick -- without this stamp the next tick reads the booting engine
-    # as stalled and stacks a second one on it. CEO Review 44, finding 4.
+    # THE LAUNCH STAMP IS GONE, 2026-09-01 (the chain audit's fix 5b), and what it used to do is
+    # worth stating so nobody puts it back. A line here used to write the heartbeat file directly,
+    # with the text "relaunched by watchdog; engine orienting". (Deliberately not spelled out as
+    # code: the gate that enforces this reads the file for that write, and a quoted example of the
+    # forbidden line is indistinguishable from the line itself -- it failed exactly that way once.)
+    # THE LAUNCHER WAS VOUCHING FOR AN ENGINE THAT MAY NEVER HAVE STARTED. Start-Process returns
+    # as soon as it has handed the request to the OS, so a launch that FAILED to become a working
+    # session still left a fresh heartbeat behind it, and the next several ticks read that stamp
+    # and believed a live engine was orienting. A heartbeat is supposed to be evidence; this was
+    # the launcher writing its own alibi -- the same fault as the timer-driven Monitor of
+    # 2026-08-31, in a different place.
     #
-    # NOT under -DryRun: this stamp makes the engine look alive to the NEXT tick, which
-    # would send that tick out at the top before it ever reaches the one-engine guard --
-    # so a dry run would silently measure the heartbeat check instead of the guard.
-    $stampNow = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    Set-Content $heartbeat "$stampNow`trelaunched by watchdog; engine orienting"
+    # THE ENGINE STAMPS IT INSTEAD, when it actually orients: the Door's step 3 pulses the Glass
+    # (glass.mjs writes HEARTBEAT), so the first stamp now means a session really reached the
+    # Chart. Nothing is lost from the anti-stacking guard, which never read HEARTBEAT: LAST-LAUNCH
+    # below is written unconditionally and the $LaunchGraceMinutes window (25 min, against a
+    # MEASURED 11m14s orientation on the Razer, 2026-08-31) is what stops the next tick stacking a
+    # second engine onto one that is still booting. CEO Review 44 finding 4 stays answered.
   } catch {
     # A "restarting" line with no launch behind it is a log that lies. Say what failed,
     # in the same file the next reader will open. CEO Review 44, finding 3.

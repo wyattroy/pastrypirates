@@ -8,15 +8,23 @@
 // its logic (HARD-WON-LESSONS §12i: a gate that asserts against a copy of the real subject drifts
 // silently).
 //
-// ⚠ SCOPE CHANGE, 2026-08-31 (the Quartermaster): the hook now fires ONLY when process.env.PP_BOSUN
-// === "1" (set by scripts/wyclau/watchdog.ps1 immediately before launch). The Quartermaster's own
-// instruction: "RED-PROOF BOTH DIRECTIONS before believing it: with PP_BOSUN unset the hook must
-// ALLOW the stop... and with PP_BOSUN=1 and unblocked Chart work left it must BLOCK." Case 1 below
-// is that first direction; every other case sets PP_BOSUN=1 and is that second direction's family.
+// ⚠ SCOPE CHANGE, 2026-08-31 (the Quartermaster), SUPERSEDED 2026-09-01 (the chain audit). The
+// 2026-08-31 version gated the whole hook on process.env.PP_BOSUN === "1", so it fired ONLY in a
+// session the watchdog started. Wyatt reported the consequence on 2026-09-01: "When I intervene
+// with bosun, it stops him from being in a loop" -- his instruction lands in a session that is not
+// watchdog-started, so the loop was off in exactly the session doing the work he asked for.
+//
+// THE GATE MOVED AXIS: from WHO LAUNCHED THIS to IS THIS SESSION WORKING (HEAD moved since the
+// session's own base, or tracked files are dirty). PP_BOSUN survives as a FORCE-ON for a fresh
+// engine that has not committed anything yet. Case 1a/1b/1c below are that contract, and rewriting
+// them was mandatory in the same commit as the hook change -- the old assertion asserted precisely
+// the behaviour being removed, and leaving it would have made one of the two gates a lie.
 // The preemption slot (PREEMPT.md) was removed in the same change and has no cases here any more.
 //
 // Ten cases, each isolated in its own throwaway directory with its own CLAUDE_PROJECT_DIR:
-//   1. PP_BOSUN unset -> never blocks, whatever else is true (the gate's own existence check).
+//   1. THE LOOP GATE: (a) a session that changed nothing may stop even with actionable work;
+//      (b) a session with uncommitted tracked changes BLOCKS with no PP_BOSUN; (c) PP_BOSUN=1
+//      still forces the loop on for an engine that has not changed anything yet.
 //   2. PP_BOSUN=1, stop_hook_active=true -> never blocks.
 //   3. PP_BOSUN=1, an actionable open Chart item -> blocks, names it.
 //   4. PP_BOSUN=1, every open Chart item carries "GATED:" -> does not block (nothing actionable).
@@ -91,13 +99,55 @@ function runHook(dir, stdinObj, bosun = true) {
   return { out: out.trim() };
 }
 
-// ---- Case 1: PP_BOSUN unset -> never blocks, whatever else is true ----
+/* ---- Case 1: THE LOOP GATE, REWRITTEN 2026-09-01 ----
+ *
+ * ⚠ WHAT THIS ASSERTION USED TO SAY, AND WHY IT HAD TO GO. It read:
+ *     "PP_BOSUN unset -> never blocks even with unblocked Chart work present"
+ * That was true of the hook as built, and it LOCKED IN the exact fault Wyatt reported on
+ * 2026-09-01: "When I intervene with bosun, it stops him from being in a loop." His instruction
+ * arrives in a session the watchdog did not start, so the keep-working loop was switched off in
+ * the very session carrying his work. The chain audit moved the gate from WHO LAUNCHED THIS to
+ * IS THIS SESSION WORKING, and the Quartermaster's handover note was explicit: rewrite this
+ * assertion IN THE SAME COMMIT, or the suite contradicts itself and one of the two gates is a lie.
+ *
+ * The three cases below are the new contract, and 1a is the brake that keeps Wyatt's own terminal
+ * usable -- without it this hook would refuse to let any conversation end.
+ */
 {
+  // 1a. A session that changed NOTHING is talking, not working -- it may stop, even with real
+  //     actionable work on the Chart. (Clean tree, no HEAD movement, no PP_BOSUN.)
   const dir = mkFixture();
-  writeChart(dir, CHART_ACTIONABLE); // real actionable work AND stop_hook_active absent --
-  commit(dir);                       // every other brake would fire if this gate did not exist
+  writeChart(dir, CHART_ACTIONABLE);
+  commit(dir);
   const { out } = runHook(dir, {}, false);
-  check("PP_BOSUN unset -> never blocks even with unblocked Chart work present", out === "", `got stdout: ${out}`);
+  check("a session that changed nothing may stop, even with unblocked Chart work present", out === "", `got stdout: ${out}`);
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // 1b. THE FIX ITSELF: a session that IS working blocks, PP_BOSUN or not. Uncommitted changes to
+  //     a TRACKED file are the evidence -- this is the session Wyatt steered, mid-edit.
+  const dir = mkFixture();
+  writeChart(dir, CHART_ACTIONABLE);
+  commit(dir);
+  writeFileSync(join(dir, ".planning", "CHART.md"), CHART_ACTIONABLE + "\nedited by this session\n");
+  const { out } = runHook(dir, {}, false);
+  check(
+    "NO PP_BOSUN, but this session has uncommitted work + an actionable item -> BLOCKS (the 2026-09-01 fix)",
+    /"decision"\s*:\s*"block"/.test(out), `got stdout: ${out}`
+  );
+  rmSync(dir, { recursive: true, force: true });
+}
+{
+  // 1c. PP_BOSUN survives as a FORCE-ON, not a gate: a freshly launched engine has committed and
+  //     edited nothing yet, and it is exactly the session that must not stop early.
+  const dir = mkFixture();
+  writeChart(dir, CHART_ACTIONABLE);
+  commit(dir);
+  const { out } = runHook(dir, {}, true);
+  check(
+    "PP_BOSUN=1 still forces the loop on for a fresh engine that has not changed anything yet",
+    /"decision"\s*:\s*"block"/.test(out), `got stdout: ${out}`
+  );
   rmSync(dir, { recursive: true, force: true });
 }
 

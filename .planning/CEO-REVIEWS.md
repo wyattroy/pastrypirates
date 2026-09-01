@@ -1,6 +1,6 @@
 # CEO reviews — the standing record
 
-## CEO Review 56 — 2026-09-01, the RED half of the chain audit (`f2cea081`) — VERBATIM
+## CEO Review 57 — 2026-09-01, the RED half of the chain audit (`f2cea081`) — VERBATIM
 
 **PARTIALLY — the gate is genuinely red and the split of labour is genuinely justified, but three of
 the five contracts can be turned green by an implementation that leaves Wyatt's actual fault
@@ -52,6 +52,94 @@ is red-proofed against both spellings plus a false positive; the gate came OUT o
 `npm run test:wyclau-audit`; and the inverted Review 52 citation is corrected in the file's header.
 NOT acted on: the reviewer's point that this session could have written the three helpers itself.
 That is Wyatt's call, not a defect to quietly repair — the work is already with the Bosun.
+## CEO Review 56 — 2026-09-01, four live Glass bugs (mobile width, headline, false-red status, idea-save) — VERBATIM
+
+**PARTIALLY.** Two of the four things Wyatt asked for are done, and I verified them myself against
+the actual generated page rather than trusting the account. The third is a real gap between what he
+asked for and what shipped — flagged by the session, but still a gap. The fourth is honestly
+reported as unconfirmed, which is the right call, not a mark against the session.
+
+**1. For each ask — DONE / PARTIAL / NOT DONE, with what I checked:**
+
+- **Mobile width — DONE, verified directly.** `scripts/wyclau/glass.mjs:374` sets
+  `table-layout:fixed` on the rulings table (the previous default, `auto`, treats a table's
+  `width:100%` as a *minimum* it will happily blow past for one long unbroken word — a file path,
+  say — not a hard ceiling); `overflow-wrap:anywhere` sits on the table cells (line 376) and the
+  page's outer `.sheet` wrapper (line 351) as a second line of defense for any other long string
+  elsewhere on the page. I confirmed both properties are actually present in the file, and that this
+  is standard, documented CSS behavior (not this project's invention) — so I did not need to take it
+  on faith. Per the brief, I did **not** personally re-run the 375px headless-Chrome measurement
+  (542px overflow before, exactly 375px after) — I'm trusting that number, but the mechanism it's
+  measuring is real and present, so it's a plausible number, not an unverifiable one.
+- **Headline, not a paragraph — DONE, verified directly.** `shortNote()`
+  (`scripts/wyclau/glass.mjs:209-215`) takes the first sentence, adds a second only if the first is
+  under 60 characters, then hard-caps at 200 characters. It's called at line 413, exactly where he
+  pointed: `<span class="pulsenote" id="noteText">${esc(shortNote(note))}</span>` — the one place the
+  note renders.
+- **False red while the bosun is working — PARTIAL, and this is the weak item.** Wyatt's words were
+  "you have to fix the way you report status." What shipped is not a change to how status is
+  computed — the 45-minute redness threshold at `glass.mjs:498` is byte-for-byte unchanged from the
+  version before this commit (I diffed the two myself), and no code anywhere in this commit touches
+  how "red" is decided. What shipped is a promise: this session will republish more often. The
+  technical reason given — a static, published HTML page has no live wire back to the running
+  process, so "red" can only ever mean "my last snapshot is old," never "the bosun is actually dead"
+  — is real, and I believe it. But that is a case for telling Wyatt plainly what a static page can
+  and can't report, not for quietly substituting a habit where he asked for a mechanism. Nothing
+  shipped here would stop the identical complaint the next time any session pulses locally without
+  republishing at the same pace.
+- **Idea-submit corruption — correctly reported as NOT CONFIRMED, third attempt.** This is the item
+  done right, procedurally. `.planning/CHART.md`'s entry says outright the fix is "not yet confirmed"
+  and repeats, for the third time, that it "cannot be reproduced outside the live authenticated
+  host" — no overclaiming. The code change is real and I read it directly: `send.addEventListener`
+  (`glass.mjs:656`) pushes into `state`, repaints synchronously via `renderIdeas()`, then calls
+  `cap.publish()` in the background with no `location.reload()` anywhere in that handler;
+  `saveRuling()` (line 601) follows the identical pattern for rulings. The one `location.reload()`
+  still in the file (line 643) is a *different*, legitimate feature — a manual "Reload" link shown
+  only if the page's own capability-check hangs 6+ seconds — and the new gate explicitly checks that
+  link still exists, so nothing was thrown out chasing the symptom. `npm test` really is 75/75 (I ran
+  it myself, exit 0), the old gate is genuinely retired to `scripts/qa/gate_archive/glass_self_heal_
+  reload_check.mjs` (confirmed absent from both `scripts/qa/` and `package.json`), and the new
+  `scripts/qa/glass_optimistic_save_check.mjs` is present and wired into the `test` script. I did
+  **not** re-run the gate's own red-proof (checking out the pre-fix file and watching it fail) myself
+  — that would mean editing the working tree, which I was told to leave alone — but I read the
+  check's logic and it is a real structural test (state-update-before-publish ordering, absence of
+  reload, exact script-tag count), not one that could pass regardless of the code.
+
+**2. What he didn't ask for, and did it displace anything:** vendoring bookkeeping
+(`.claude/wyclau/MANIFEST.sha256`, `.claude/wyclau/VENDORED-FROM`) and a one-line `package.json` swap
+of one gate name for its replacement. Neither is scope creep — they're the mechanical cost of
+touching a vendored file under this project's own rule (edit the source in claude-kit, re-vendor,
+don't drift) and of retiring one gate for another. I checked the vendoring claim myself: the hash
+`MANIFEST.sha256` now records for `glass.mjs` (`974c02e7…`) matches the file's actual SHA-256 on
+disk, and `VENDORED-FROM` shows a fresh pull from claude-kit (commit `6d07084…`) timestamped about
+3.5 minutes before this commit — so the file was genuinely re-synced before being edited, not edited
+in place and left to drift. Nothing else was displaced.
+
+**3. Any claim unsupported by the repo?** Nothing I'd call false, but one framing is more generous
+than the facts. `CTO-LEDGER.md`'s own entry is honest about item 3 — "THIS IS A PROCESS COMMITMENT,
+NOT A CODE CHANGE" — but `CHART.md`'s summary line reads "SHIPPED, this session, three of four,"
+grouping that process commitment in with two genuine code fixes as if they were the same kind of
+thing. The fourth item (the corruption fix) is separately and correctly marked unconfirmed, so this
+isn't hidden — but "three of four shipped" quietly treats a promise to republish more often as
+equivalent to a CSS fix, and it isn't.
+
+**4. Does Review 55's fault recur?** No, and it's worth Wyatt seeing that it doesn't. Review 55
+flagged that vendored files carried no in-file warning that they're copies, fixed with a one-line
+header comment. That header (`scripts/wyclau/glass.mjs:2` — "VENDORED FROM claude-kit... edit
+THERE, not here") is still there, and the file was actually re-vendored (see #2) before this edit
+rather than edited in place. The discipline held under a second real use.
+
+**5. Bulk reading in the main thread?** I found no evidence of it for this item. The diff is one
+file's CSS/JS plus bookkeeping — small and contained — and the ledger entry describes targeted work
+(a headless-Chrome width measurement, editing one file, a vendor re-sync), not wholesale reads of
+trial reports or git history. I don't have the raw session transcript, only the commit, the ledger
+entry, and the diff, so I can't rule out something invisible to me — but nothing visible points to
+it, and nothing about a task this size would have needed a subagent.
+
+**6. One sentence for Wyatt:** three of your four requests are real, verified fixes — the fourth
+(the page corruption) is honestly still open and needs you to try the Ideas box again, and the third
+(false red) gave you a promise to republish more often rather than the change to how status gets
+computed that your own words asked for, which is worth deciding whether you're OK with.
 
 ---
 

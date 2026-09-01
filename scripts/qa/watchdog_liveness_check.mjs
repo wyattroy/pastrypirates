@@ -45,7 +45,19 @@ const fail = (m) => { console.error(`FAIL -- ${m}`); failed = true; };
   const probes = [
     [/Get-CimInstance[\s\S]{0,120}Win32_Process/, "it never asks the OS for the live process table -- every signal it reads is recency, so a tree where nothing is running looks identical to one that is working"],
     [/\$engineRunning/, "there is no running-engine test at all"],
-    [/-not \$engineRunning/, "nothing branches on the engine being absent, so idleness cannot be acted on differently from staleness"],
+    /* ⚠ THIS PROBE WAS REWRITTEN 2026-09-01, and the reason is worth more than the probe.
+       It used to look for the literal `-not $engineRunning` -- the PowerShell branch that acted on
+       an absent engine. The chain audit moved that judgement OUT of PowerShell into
+       scripts/wyclau/should_launch.mjs, so the string vanished and this gate failed while the
+       behaviour it protects was intact and better tested than before. A gate that asserts an
+       IMPLEMENTATION SHAPE fails the day the shape improves; one that asserts the CONTRACT does
+       not. So it now checks the wiring instead -- and that is the exact half
+       scripts/qa/wyclau_chain_audit_check.mjs states it cannot see (PowerShell will not run in a
+       container), which makes this the only automated guard that the shim really is wired to its
+       decider. The decision itself is checked by behaviour over there. */
+    [/should_launch\.mjs/, "the watchdog never calls should_launch.mjs -- the engine-present fact is measured and then thrown away, so idleness cannot be acted on at all"],
+    [/--engine=\$engineFlag/, "the running-engine fact is never PASSED to the decider, so the one genuinely Windows-only signal never reaches the judgement it exists to inform"],
+    [/\$LASTEXITCODE|\$deciderCode/, "the decider's exit code is never read -- a shim that ignores its verdict is not a shim, it is a hard-coded answer"],
   ];
   for (const [re, why] of probes) {
     if (!re.test(src)) fail(`WATCHDOG CANNOT SEE IDLENESS: ${why}. (${WATCHDOG})`);
@@ -71,9 +83,15 @@ if (!existsSync(WATCHDOG)) { console.error(`FAIL -- watchdog not found at ${WATC
 
 const MIN = 60 * 1000;
 
-/* Build a throwaway repo. `heartbeatAgeMin` and `activityAgeMin` are the two clocks under test;
-   null means the file does not exist at all. */
-function scenario({ heartbeatAgeMin, activityAgeMin }) {
+/* Build a throwaway repo.
+   ⚠ `commitAgeMin` WAS ADDED 2026-09-01 AND IS NOW THE SIGNAL THAT DECIDES. The chain audit moved
+   the watchdog's judgement into scripts/wyclau/should_launch.mjs and changed what counts as
+   progress: a TOOL CALL no longer buys a hold-off, a COMMIT does. Wyatt's report is the reason --
+   his own typing kept LAST-ACTIVITY warm through wyclau-pulse.cjs while the Chart did not move, so
+   the watchdog held off for hours waiting on a signal that could never change. The two file clocks
+   below are kept in the fixture because they must be proven NOT to decide any more.
+   `null` means the file does not exist at all. */
+function scenario({ heartbeatAgeMin, activityAgeMin, commitAgeMin = null, longRun = null }) {
   const repo = mkdtempSync(join(tmpdir(), "wyclau-liveness-"));
   const wy = join(repo, ".planning", "wyclau");
   mkdirSync(wy, { recursive: true });
@@ -88,6 +106,23 @@ function scenario({ heartbeatAgeMin, activityAgeMin }) {
     writeFileSync(la, "fixture activity\n");
     age(la, activityAgeMin);
   }
+
+  if (commitAgeMin != null) {
+    const git = (...a) => execFileSync("git", ["-C", repo, ...a], { stdio: "pipe" });
+    git("init", "-q");
+    git("config", "user.email", "gate@example.com");
+    git("config", "user.name", "gate");
+    writeFileSync(join(repo, "seed.txt"), "seed\n");
+    git("add", "-A");
+    const when = new Date(Date.now() - commitAgeMin * MIN).toISOString();
+    execFileSync("git", ["-C", repo, "commit", "-q", "-m", "fixture"], {
+      stdio: "pipe",
+      env: { ...process.env, GIT_AUTHOR_DATE: when, GIT_COMMITTER_DATE: when },
+    });
+  }
+
+  if (longRun) writeFileSync(join(wy, "LONG-RUN"), JSON.stringify(longRun));
+
   return { repo, restarts: join(wy, "restarts.log") };
 }
 
@@ -119,21 +154,88 @@ const launched = (ls) => ls.some((l) => l.includes("DRYRUN would launch"));
   finally { rmSync(repo, { recursive: true, force: true }); }
 }
 
-// ── THE SUBJECT. Heartbeat stale, activity fresh: a session that is working but not narrating.
+/* ── THE SUBJECT, AND IT WAS DELIBERATELY REVERSED ON 2026-09-01. READ THIS BEFORE "FIXING" IT.
+ *
+ * THIS CASE USED TO ASSERT THE OPPOSITE. It read: heartbeat an hour old, activity stamp seconds
+ * old -> the watchdog must NOT restart, because that looks like "a session mid-item, making tool
+ * calls, not narrating". That was a reasonable reading of the evidence available at the time, and
+ * Wyatt reported what it cost: "When I intervene with bosun, it stops him from being in a loop...
+ * And watchdog fails to recognize it or restart him on the chart work after."
+ *
+ * THE FLAW IN THE OLD ASSERTION: LAST-ACTIVITY is stamped by a PreToolUse hook on EVERY tool call
+ * by ANY session, HIS OWN TERMINAL INCLUDED. So "something touched the tree" was true whenever
+ * Wyatt was typing, and the watchdog held off on a signal that would never go stale while he sat
+ * there -- with the Chart not moving at all. A tool call is not progress. A commit is.
+ *
+ * THE TRADE, STATED PLAINLY BECAUSE IT IS REAL: an engine may now be launched into a tree somebody
+ * is typing in, IF nothing has landed for longer than the staleness window. That is the approved
+ * cost of never again sitting idle for hours, and it is only safe because the engine-already-
+ * running check (Get-CimInstance, above) still outranks everything.
+ */
 if (!failed) {
-  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 0 });
+  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 0, commitAgeMin: 180 });
+  try {
+    tick(repo);
+    const ls = lines(restarts);
+    if (!launched(ls)) {
+      fail(
+        "A STALLED TREE WAS LEFT ALONE BECAUSE SOMEBODY TOUCHED A TOOL. No commit had landed for\n" +
+        "  three hours and no engine was running, but the activity stamp was seconds old -- exactly the\n" +
+        "  state Wyatt reported, where his own typing suppressed the relaunch while nothing moved.\n  " +
+        (ls.join("\n  ") || "(no lines)")
+      );
+    } else {
+      console.log("OK 2/6 -- a fresh tool call no longer buys a hold-off: no commit for 3h + no engine = LAUNCH.");
+      for (const l of ls) console.log(`  ${l}`);
+    }
+  } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
+  finally { rmSync(repo, { recursive: true, force: true }); }
+}
+
+// ── THE OTHER HALF OF THE SAME RULE, or the one above would be a licence to restart everything:
+//    a RECENT COMMIT still holds the watchdog off. Work landing is what "someone is working" means
+//    now, and it must be honoured even with both file clocks stale.
+if (!failed) {
+  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 60, commitAgeMin: 1 });
   try {
     tick(repo);
     const ls = lines(restarts);
     if (launched(ls)) {
       fail(
-        "A WORKING SESSION WAS RESTARTED ON TOP OF. The heartbeat was an hour old but the activity\n" +
-        "  stamp was seconds old -- a session mid-item, making tool calls, not narrating. On the Razer\n" +
-        "  that is two unattended sessions on one branch, which is what CLAUDE.md section 3 is about.\n  " +
-        ls.join("\n  ")
+        "A TREE THAT IS ACTIVELY LANDING WORK WAS RESTARTED ON TOP OF. A commit had landed one minute\n" +
+        "  earlier; that is the signal that replaced the tool-call clock, and if it does not hold the\n" +
+        "  watchdog off then the 2026-09-01 change simply restarts everything.\n  " + ls.join("\n  ")
       );
     } else {
-      console.log("OK 2/6 -- a session with fresh activity and a stale heartbeat is left alone.");
+      console.log("OK 2b/6 -- a commit one minute old holds the watchdog off, both file clocks stale or not.");
+      for (const l of ls) console.log(`  ${l}`);
+    }
+  } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
+  finally { rmSync(repo, { recursive: true, force: true }); }
+}
+
+// ── AND THE CASE THE WHOLE LONG-RUN MARKER EXISTS FOR: a sea trial produces no commits for an
+//    hour or more. Before the marker, the only way to survive that was a timer pulsing HEARTBEAT,
+//    which blinded the stall detector for 2h31m. Now the job says what it is doing.
+if (!failed) {
+  const { repo, restarts } = scenario({
+    heartbeatAgeMin: 60, activityAgeMin: 60, commitAgeMin: 180,
+    longRun: {
+      what: "sea trial, 10 legs", startedAt: new Date(Date.now() - 60 * MIN).toISOString(),
+      updatedAt: new Date(Date.now() - 2 * MIN).toISOString(), progress: "7/10 legs", staleAfterMinutes: 20,
+    },
+  });
+  try {
+    tick(repo);
+    const ls = lines(restarts);
+    if (launched(ls)) {
+      fail(
+        "A PROGRESSING LONG RUN WAS RESTARTED ON TOP OF. The marker said a sea trial had moved two\n" +
+        "  minutes ago; a trial legitimately lands no commits for an hour, and restarting it is what the\n" +
+        "  15-minute timer Monitor was invented to prevent -- the thing this marker replaced.\n  " + ls.join("\n  ")
+      );
+    } else {
+      console.log("OK 2c/6 -- a progressing LONG-RUN marker holds the watchdog off with no commits at all.");
       for (const l of ls) console.log(`  ${l}`);
     }
   } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
@@ -208,15 +310,18 @@ if (!failed) {
 //        -- refreshes it, and the decline is common rather than exotic. That is tolerable only
 //        because it is LOGGED: the exit test's claim is "zero SILENT stalls, every gap explained
 //        by a line". A watchdog that goes quiet is indistinguishable from one that died.
+/* (The scenario changed on 2026-09-01 with the signal it holds off ON -- a recent COMMIT rather
+   than a recent tool call -- but the assertion is untouched and is the one that matters most: a
+   hold-off that writes nothing is indistinguishable from a watchdog that died.) */
 if (!failed) {
-  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 0 });
+  const { repo, restarts } = scenario({ heartbeatAgeMin: 60, activityAgeMin: 60, commitAgeMin: 1 });
   try {
     tick(repo);
     const ls = lines(restarts);
-    if (!ls.some((l) => /held off|NOT restarting/i.test(l))) {
-      fail(`THE WATCHDOG WENT QUIET: it declined to restart a 60-minute-stale engine because something had touched the tree, and wrote NOTHING -- a dead engine and a working one now leave the same empty log. Lines: ${ls.join(" | ") || "(none at all)"}`);
+    if (!ls.some((l) => /held off|hold off|NOT restarting/i.test(l))) {
+      fail(`THE WATCHDOG WENT QUIET: it declined to restart a 60-minute-stale engine and wrote NOTHING -- a dead engine and a working one now leave the same empty log. Lines: ${ls.join(" | ") || "(none at all)"}`);
     } else {
-      console.log("OK 6/6 -- when it holds off on the strength of activity, it says so in the log.");
+      console.log("OK 6/6 -- when it holds off, it says so in the log, with the decider's own reason.");
       for (const l of ls) console.log(`  ${l}`);
     }
   } catch (e) { fail(`the watchdog did not run: ${e.stderr?.toString().trim() || e.message}`); }
