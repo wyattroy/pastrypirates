@@ -4003,3 +4003,78 @@ regex `\.pp4PeekHint[^{}]*\{[^}]*animation…` spans the whole selector list, so
 the hint is in the SHARED rule — which is why the pre-change tree failed it with the message *"the
 sea hint has an animation of its own"* when the animation was the shared one. The check is correct
 and strictly stronger than advertised; only its failure sentence would misdirect a future reader.
+
+## CEO Review 73 — 2026-09-01 — item: can an unattended watch keep the Glass current?
+
+**VERDICT: MOSTLY CORRECT, ONE OVERSTATEMENT, AND THE COLLISION IS MISNAMED.** The reconciliation
+holds. "Two decisions collide, you must rule" does not — the charter already anticipated this case
+and wrote the degradation down, and the thing that actually breaks is a bar Wyatt set TODAY.
+
+**CLAIM 1 (`-p` has no Artifact tool) — SUPPORTED BY THE REPO, NOT INDEPENDENTLY MEASURED HERE.**
+Every ledger observation is consistent with it and I found nothing that contradicts it. But it is a
+subagent's reading of docs being relayed as platform fact, which is the exact shape of "a comment is
+not a measurement." **The decisive measurement is one command and nobody has run it:** launch
+`claude -p` on this Mac with a prompt asking it to list whether Artifact is in its tool list. Do
+that before this reaches a design decision.
+
+**CLAIM 2 (interactive vs `-p` split) — SUPPORTED, on three independent textual distinguishers.**
+(1) `CTO-LEDGER.md:1021` — the positive entry records *"question answered verbatim: 'Yes — the
+Artifact tool exists in this session's tool list'"*; a question answered verbatim means a human was
+in the session. (2) `CTO-LEDGER.md:1029` — *"Bell task confirmed registered and Ready (his schtasks
+query)"* at **14:16:56Z, nine minutes AFTER the 14:07:49Z publish** — no Bell existed yet to have
+spawned a `-p` watch, and `DECISIONS.md` addendum ruling 3 puts Wyatt at the Blade for exactly that
+hour. (3) The negatives are watch turns (`:896` *"watchdog-started"*; `:1354`, `:1547`, `:1717` each
+close with *"ENDING THE TURN NOW, per the Watch rule"*), and `scripts/wyclau/bell.ps1:98-100`
+launches `claude -p "$doorPrompt"` `-WindowStyle Hidden`. **The split is real.** Caveat for the
+record: it is inference from timing and labels, not a measurement, and `:1027` recorded at the time
+that *"why three earlier sessions saw no tool stays unexplained."*
+
+**CLAIM 3 — 3(a) ACCURATE, 3(b) MISQUOTED, "impossible since the day it was written" REFUTED.**
+- 3(a) is a fair reading. `DECISIONS.md` 2026-08-31: *"the interface stays a private Claude
+  Artifact"*; rejected alternative named and reasoned — *"GitHub Pages from claude-kit — public by
+  nature and no write path without Issues/Firebase glue."*
+- 3(b) is **not what the charter says.** `CHARTER.md:46` gives the watchdog a Glass duty of its own
+  (*"relaunches the engine through the Door when stale, **noting the restart on the Glass**"*), and
+  `CHARTER.md:47` says the opposite of "the session does everything": ***"ONE PUBLISHER,
+  2026-08-31: only the Bosun publishes it. Another session writes into the tracked GLASS-NOTE.md
+  instead — the Bosun folds it in and clears it on its next pulse."*** "The session does everything"
+  is Wyatt's ruling today plus `DECISIONS.md` 2026-09-01 ruling 5, not the charter.
+- **The charter therefore ANTICIPATED a session that cannot publish and wrote the handoff for it.**
+  So does the Door: `.claude/skills/door/SKILL.md:56-58` — *"If this session has no Artifact tool,
+  write that fact to the ledger… and continue; the next capable session harvests."* A designed
+  degradation is not an impossibility. **Strike "the design has been asking for something impossible
+  since the day it was written" from the record — it is wrong, and it is sitting unqualified in an
+  append-only file at `CTO-LEDGER.md:1745`.**
+
+**THE COLLISION, CORRECTLY NAMED — and it is sharper and newer than the one offered.** The
+GLASS-NOTE relay needs one capable publisher to exist. Under the relay every unattended run is `-p`,
+so the only capable publisher is Wyatt's own window — which he opens *after* reading the Glass.
+What that breaks is not the 2026-08-31 platform pick; it is **`DECISIONS.md` 2026-09-01 ruling 14's
+shakedown bar: *"Glass never older than one run and never wrong on spot-check."*** An all-`-p` relay
+cannot meet that. **Also now falsified: `CTO-LEDGER.md:1024-1026`'s O2 close — *"a single capable
+publisher — is gone: both machines publish"*. Both machines publish INTERACTIVELY; neither publishes
+unattended. That claim should be corrected in the open too.**
+
+**#4 — no workable path was overlooked, and I checked the two named.** The artifact's self-save
+capability cannot help: `glass.mjs:908` shows it fires only from a viewer's browser via
+`window.claude.use("artifact")`, and the artifact CSP blocks the page from fetching repo state, so
+the page cannot refresh itself from outside. Committing `glass.html` for a later session **is
+already the design** (`GLASS-NOTE.md`, Door :56-58) — necessary, and insufficient against ruling 14.
+One thing the claim does overstate: *"a spawned unattended session is `-p` by construction"* is true
+**of the Bell as built** (`bell.ps1:98-100`), not a law — a scheduled headful REPL, a cloud/cron
+session, or a `-p` watch messaging a live interactive session are all unmeasured alternatives.
+
+**#5 — PARTLY DODGING. Bring a recommendation, and reserve his ruling for the one thing that is
+actually his.** Three of the four exits are engineering and belong to the advisor: (i) accept the
+staleness and make the Glass state it honestly on its own face — already chartered, `CHARTER.md:47`
+*"page shows staleness itself"*; (ii) ring a publish-capable interactive session on a cadence;
+(iii) a publish-only interactive session on the Blade. Only (iv) — moving the Glass off private
+artifacts to a public/Firebase-backed page — reverses his 2026-08-31 pick and is genuinely his,
+against ruling 9 (STALE is what broke Glass trust) and ruling 14. **Put (iv) to him with a measured
+staleness number and a recommendation. Do not put the whole architecture to him as an open question
+the record already half-answers.**
+
+**IN HIS WORDS, IF ONE LINE REACHES HIM:** *"The unattended watches genuinely can't update your
+status page — that part is right. But the plan already had a fallback for exactly that, so nothing
+here was impossible; what it can't do is keep the page as fresh as you asked for this morning. That's
+a design call I should be bringing you with a recommendation, not a contradiction for you to settle."*
