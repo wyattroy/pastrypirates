@@ -135,7 +135,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 |---|---|
 | W3-1 | **The battle box choreography is glitchy, in ALL modes.** It appears for an instant, the stage deletes it, it moves down to centre, then it is removed and replaced by the stage with the coin flipper. **And after the flip the coin disappears from the flippenator BEFORE the stage does** — it should stay until the stage goes. ⚠️ **All modes means this is NOT a host/guest fault** — do not fold it into Wave 1. |
 | ~~W3-2~~ | ✅ **CLOSED — the frozen pitch in bakeoff.js — Wyatt diagnosed it from the description alone.** See `.planning/CTO-LEDGER.md` (search `W3-2`) for the measurement and its CEO verdict. **Bake-off attempt 2+ : the boxes jitter after being shuffled** instead of settling smoothly. Wyatt's own hypothesis: the open crates, or the borders around them. `src/ui/bakeoff.js`. |
-| W3-3 | **The drumroll fires AFTER the narration that names the winner.** It should come first. Found in the solo voyage, 2026-08-27, on a two-captain tie broken by crates/coins. |
+| W3-3 | **The drumroll fires AFTER the narration that names the winner.** It should come first. Found in the solo voyage, 2026-08-27, on a two-captain tie broken by crates/coins. ⚠️ **STILL OPEN — re-confirmed 2026-09-01, not closed.** `scripts/qa/w33_drumroll_order.mjs` (built 2026-08-29/30, posing `?endcard=1`'s all-captains-finish ending against the real collab/tie branch) had a hardcoded `/tmp/chrome-w33` profile path — a Linux-container assumption that made Chrome fail to start silently on Windows (`--user-data-dir` invalid, DevTools listener never came up, `attach()` just timed out reading as "no chrome"). Fixed to `os.tmpdir()`; re-ran on the current build (post the whole one-director foundation rebuild): **PASS, drumroll 1975ms before the winner** — matching the 2026-08-30 measurement (1951ms) almost exactly, so the ENDING sequence itself has not regressed. **This does NOT close W3-3.** The 2026-08-30 finding stands: `?endcard=1` poses the ending, not the approach, and skips the entire day loop — Wyatt's report is about what he saw DURING a played voyage, which this shortcut cannot exercise. The real site (if it still exists) is somewhere in the day-loop run-up to the ending, not in `liveResolveEndNet()`'s own sequence, and testing that needs an actual multi-day playthrough (several minutes to hours, `docs/DRIVING-THE-GAME.md` §5), not attempted this session. |
 | ~~W3-4~~ | ✅ **CLOSED — the End of Voyage slam, and Q-20's scrolling ruling on top of it.** See `.planning/CTO-LEDGER.md` (search `W3-4`) for the measurement and its CEO verdict. **The End of Voyage card "SLAMS" down to the captains box.** It should scroll smoothly. |
 | ~~W3-5~~ | ✅ **CLOSED 2026-08-30 — the fix is real, and the proof took two goes.** The teardown had been nested inside `if (!cell)`, so it fired only when a tap missed EVERY sail square; unconditional since 2026-08-29. **MEASURED in a browser with real mouse events** (`scripts/qa/w35_sweep_preview_live.mjs`): 0 preview parts, 3 after tapping the trade-wind square (`sweepPath, sweepEnd, sweepGhost`), 0 after tapping a plain one. ⚠ **THE FIRST VERSION OF THAT PROBE COULD NOT TELL THE FIXED TREE FROM THE BROKEN ONE** — CEO Review 28 reinstated the bug and watched it still pass: the first tap calls `camFull()` and `#sailHost` is camera-transformed, so every square MOVES, and the probe tapped a coordinate measured before the glide — landing on board artwork 131px away, where the `!cell` branch clears the preview just as it did before the fix. It now re-measures after the camera settles, refuses unless the point is actually on a plain sail square, and poses the trade-wind square instead of driving for one. |
 
@@ -446,6 +446,19 @@ the live one.** That is the real prize here, and it is a copy pass plus two deci
       make the mistake, not at session start. The rule-17 hook proves the pattern works.
 - [ ] **Volume**: `HARD-WON-LESSONS.md` is ~1316 lines and CLAUDE.md ~960, and every session is told
       to read both. CEO review 5 recommends collapsing §10c/e/f/g to one line each.
+- [ ] **38 browser-driving scripts hardcode a Linux-container `/tmp/...` Chrome profile path** —
+      found 2026-09-01 fixing `w33_drumroll_order.mjs` (`grep -rl '"/tmp/' scripts/`). On Windows
+      (the Razer) this makes `--user-data-dir` invalid, so Chrome exits before its DevTools listener
+      comes up; `mp_rig.mjs`'s `launch()` runs with `stdio:"ignore"`, so the failure is silent and
+      `attach()`'s eventual "no chrome on `<port>`" reads exactly like an environment problem, not a
+      one-line path bug. Newer, Windows-era probes (`sail_containment_crew_probe.mjs` and its
+      siblings) already use `path.join(OUTDIR, ...)`/`os.tmpdir()` and are unaffected — this is
+      specifically the older, cloud-container-era scripts (the `t##_*`, `group_*`, `w##_*` probes
+      from before the Razer migration). Only `w33_drumroll_order.mjs` was fixed (needed for the W3-3
+      re-check above); the other 37 are unverified and untouched. **Cheap when someone needs one of
+      them**: swap the literal `"/tmp/..."` for `path.join(os.tmpdir(), "...")` in each, one line per
+      file — not done as a sweep here because none of the other 37 were blocking anything this
+      session needed, and touching files nobody asked about is the scope creep rule 7 warns against.
 
 ## 🟡 Roadmap phases deferred past the cutover
 

@@ -19,10 +19,17 @@
  * reporting an order it never observed.
  */
 import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
+import path from "node:path";
+import os from "node:os";
 
 const PORT = 8526, DBG = 9428;
 const url = serve(PORT);
-launch(DBG, "/tmp/chrome-w33");
+// A hardcoded "/tmp/..." profile path is a Linux-container-era assumption: on Windows Chrome gets
+// handed an invalid --user-data-dir, fails to start its DevTools listener, and exits silently
+// (spawn() runs with stdio "ignore" in mp_rig.launch()) -- so attach() just times out with the
+// uninformative "no chrome on <port>", which reads exactly like an environment problem rather than
+// a bad path. os.tmpdir() resolves to the real temp directory on every platform this runs on.
+launch(DBG, path.join(os.tmpdir(), "chrome-w33"));
 const C = await attach(DBG);
 await C.send("Emulation.setDeviceMetricsOverride", { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false });
 
