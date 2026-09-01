@@ -1054,3 +1054,11 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   Safari/WebKit quirk in the box-shadow/var() keyframes (the Reveal Race note above the keyframes
   records a measured WebKit animation-creation fault on this same attention system). The
   coordinate only he holds: WHERE he saw it. Asked, not guessed.
+
+- FLASHING HINT PARKED (INBOX-20260901T1317Z), the cosmetic-loop timebox honoured: red-proof of
+  the thrash theory came back CLEAN — 30 injected orphan .sailCell rects over a live hint, 4-sec
+  sample, 0 display toggles / 0 restarts — so even the least-dead theory is unconfirmed, and the
+  sighting build (.2) is gone from staging. Measured across three poses; the hint shares the one
+  glow (his W4-5 ruling working as built). His "can't see it anywhere" is two designed behaviours:
+  self-retirement at 3 peek uses, and the private-Safari read-throw fallback. Claim released;
+  re-opens on any fresh-profile sighting on >= .3.

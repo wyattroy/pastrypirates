@@ -77,7 +77,7 @@ status: OPEN — mechanism known: Node ignores `windowsHide` for `detached: true
 > the same gentle orange gradient as the other attention buttons that are on stages, instead
 > flashes many many times per second -- the css or something on this animation is broken. Debug."
 solution: none stated (target look: the same gentle orange gradient as the other stage attention buttons — his words)
-status: OPEN — written on the Glass 13:17:07Z. Consistency rule 8: one attention animation, everywhere.
+status: PARKED 2026-09-01 — not reproducible on the current build, three poses measured clean (advisor session; ledger entries this date). The hint ALREADY shares the one pp4Glow animation with the stage buttons (index.html ~2594, single @keyframes, W4-5's own convergence); a live 4-second sample showed zero restarts/toggles, and even 30 injected orphan .sailCell rects did not flicker it. His sighting was on build .2, whose orphaned-squares disease (since cured by clearSailWindow, .3) remains the least-dead suspect but could not be re-posed. Why he can't re-check: the hint self-retires after 3 peek uses (pp4_peekUsed), and in private-Safari windows the storage read throws so the fallback deliberately hides it. RE-OPENS the moment any fresh-profile eye sees it flash on >= .3 — the 10-second check is `localStorage.removeItem('pp4_peekUsed')` then reload. Unexplored corner, named: the centre-stage hint variant (stage.js ~2690) was never posed.
 
 ## INBOX-20260901T1319Z — redesign the hold: what you NEED vs what you HAVE (pre-launch backlog, his priority)
 > "In a recent playtest, a new player did not know how to understand their hold. they didn't
