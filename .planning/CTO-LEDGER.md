@@ -2602,3 +2602,43 @@ sentence) saying NO had told me something about itself, not about the world.
 
 **Kept clean:** no game code touched, `npm test` green and ran to completion (89 gates, asset ceiling
 10.70 MB with 0.30 MB headroom). No sea trial — nothing this watch changed can reach a player.
+
+---
+
+## WATCH — 2026-09-01T23:29Z, Wy-Blade. CLAIM WRITTEN BEFORE THE FIRST EDIT.
+
+**SITUATION, six lines.**
+- **Watch started** 2026-09-01T23:29Z on `claude/cloud-handoff-planning-a9ay1u`, in sync with origin.
+  `can_push.mjs`: can publish.
+- **Last progress:** `71c13cc8` (23:0xZ) — the previous watch's close, Glass note and machine status.
+- **The previous watch closed nothing:** CEO 82 said NO to its attempt at INBOX-20260901T1335Z
+  part (c). It left behind the measurement (`.planning/ASSET-DISPLAY-SIZES.md`) and a sharper list.
+- **Blocked on Wyatt:** nothing. The BLOCKED ON WYATT table is empty.
+- **Detached trial in flight:** none that I can see — `.planning/wyclau/LONG-RUN` is empty and the
+  19:14Z run's pid is recorded gone. **I could not confirm independently: `Get-Process`,
+  `Stop-Process` and `taskkill` are all refused by this sandbox**, so this rests on the marker and
+  the previous watch's reading, and is stated as such rather than as something I measured.
+- **What THIS watch will do:** INBOX-20260901T1335Z **part (c), RESIZE** — CEO 82's item 1, the
+  **pastries**. 1.71 MB, the heaviest family after the board, and the biggest block nobody has
+  measured.
+
+**NO ARTIFACT TOOL IN THIS SESSION.** A `ToolSearch` for Artifact / ArtifactComments / ArtifactData
+returns nothing, so this watch **cannot harvest or republish the Glass**. Stated plainly as a fact
+about this session, never as a guess about why. What I would have shown him goes to
+`.planning/wyclau/GLASS-NOTE.md`, for the next session that can publish.
+
+**WHY THE PASTRIES AND NOT THE ICON TIER.** CEO 82 listed both. The icon tier is executable, but the
+*measured* part of it is two files — `crown.png` 35 KB and `cupcake.png` 28 KB. The other six 320px
+icons are `NOT SEEN` and may not be shrunk on this evidence. 63 KB is not what "load MUCH faster"
+means. The pastries are 1.71 MB and the question about them is genuinely open.
+
+**MY PREDICTION, WRITTEN BEFORE MEASURING** (rule 6's working form; full note in
+`.planning/wyclau/PREDICTION-20260901T2330Z-pastries.md`). I expect the pastries to come back
+**already UNDER-resolution** — the recipe modal draws them at `height:220px; object-fit:contain`,
+which on a 390px phone at dpr 3 should want roughly 850 device pixels of pastry width against the
+512 they carry. **What would prove me wrong:** a measured `wants` at or below ~394 device px
+(512 ÷ 1.3) on every viewport, which would make the whole family shrinkable and worth ~1 MB. I will
+say plainly which way it went.
+
+**Claimed:** INBOX-20260901T1335Z part (c), the pastry family. No other session should take it while
+this entry stands.
