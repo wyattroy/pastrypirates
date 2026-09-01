@@ -1044,3 +1044,13 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 
 - INBOX-20260901T1317Z CLAIMED by the advisor session (the flashing attention hint). Watches:
   next unclaimed items are the storm animation (1351Z) and the launch-list rows.
+
+- FLASHING HINT (INBOX-20260901T1317Z), measured before theorizing further: posed solo Chromium
+  desktop on the CURRENT build — 4-second sample on the live hint: 0 animation restarts, 0
+  display toggles, 0 element recreations; the shared pp4Glow (1.1s, the gentle orange his note
+  asks for) runs clean. Three restart theories dead. Two candidates remain: (a) the hint's
+  hide/show placement search thrashing against ORPHANED sail-square rects on a pre-.3 crew
+  guest — the same disease the broom fixed, in which case his sighting predates the cure; (b) a
+  Safari/WebKit quirk in the box-shadow/var() keyframes (the Reveal Race note above the keyframes
+  records a measured WebKit animation-creation fault on this same attention system). The
+  coordinate only he holds: WHERE he saw it. Asked, not guessed.
