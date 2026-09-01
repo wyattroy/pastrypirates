@@ -3616,3 +3616,75 @@ Acted on same turn: the hand-typed count corrected in DECISIONS.md ("sixteen ans
 the CEO gate is a close-out script that refuses to tick a Chart item without a verdict entry, and
 solution-first disobedience is checked by the same script comparing the run's first diff against
 the inbox item's stated solution.
+
+## CEO Review 67 — 2026-09-01 — item: the guest camera pinned at full zoom (INBOX-20260901T1309Z)
+
+Fresh context, read-only, bounded. I read the diff of `0caf85c1` line by line, ran the new gate and
+the full chain myself, extracted the pre-fix tree from git, and curled staging. The question: did
+what Wyatt asked for happen — the camera bug root-caused and fixed WITHOUT re-forking host/guest?
+
+**VERDICT: YES-WITH-ONE-FAULT. The fix is real, it is one shared broom and not a fork, the gate was
+genuinely proven red first, and the chain is green at 82. The fault is in the sheet he is about to
+open: its stamp-check row still tells him to expect the OLD build number, so his very first
+tap-through check would FAIL on the correct build.**
+
+What I verified with my own commands:
+
+- **The diff is what is claimed, and nothing more.** `0caf85c1` touches five files: `src/ui/flow.js`
+  adds ONE exported function, `clearSailWindow()` — it removes every `.sailCell`, unconditionally
+  (src/ui/flow.js:578-580) — called first thing inside `renderPickPrompt` (src/ui/flow.js:582-583);
+  `src/orchestrator.js` calls the same export in watchPrompt's clear branch
+  (src/orchestrator.js:1650-1656) and imports it (line 110); the stamp moves to 2026.09.01.3; the
+  new gate and its counts. No other game code moved.
+- **It is not a fork, judged the way rule 23 says to — what makes the two agree?** The answer is now
+  "there is one of them": ONE renderer (`renderPickPrompt`, reached by the host's local path at
+  src/ui/flow.js:861 and the guest's watcher at src/orchestrator.js:1731) sweeps at entry for EVERY
+  client, and the guest's clear branch — the only path that can clear a prompt without the renderer
+  running — disposes through the SAME export rather than code of its own. Zero new isHost/mySeat
+  conditions in the added lines decide what is drawn (the one `mySeat` string in the diff is the
+  gate quoting the pre-existing clear-branch condition as its grep anchor,
+  scripts/qa/sail_window_single_check.mjs:111). The parity and mode-fork gates are still in the
+  chain and green. The architectural convergence of a week ago HELD — the commit says so and the
+  code agrees.
+- **The red-proof is documented with specifics and consistent with the pre-fix code.** The gate
+  header states 3 of 3 behavioural cases failed pre-fix: 8 squares after a double render, 4 orphans
+  after answering, no `clearSailWindow` export (scripts/qa/sail_window_single_check.mjs:33-34). I
+  pulled `0caf85c1~1:src/ui/flow.js` out of git: it contains no `.sailCell` sweep of any kind, and
+  the pre-fix clear branch never touched squares — the RED result could not have been otherwise.
+- **The gate passes now — I ran it: 4 of 4 PASS**, and its last check tests WIRING, not capability
+  (it greps that the clear branch actually calls the broom before its return).
+- **`npm test`: full chain, exit 0**, with gate_count_check and gate_ceiling_check inside the chain
+  validating 82 = 82. The ceiling-raise reason in the commit message is real: the parity gate
+  compares which prompt classes the two paths emit — it cannot see a DOM lifecycle leak by
+  construction; this gate can.
+- **The honesty limit is stated.** The sheet's known-issues note says the full sea trial is NOT run
+  and "This sheet is yer early look, not the merge evidence"; item 6 hands the end-to-end replay to
+  Wyatt. The one place confidence runs a step past measurement: the commit's "Fully zoomed, guest
+  only, until refresh. Exactly." — the orphans-pin-the-camera link is REASONED from the containment
+  pass's code (budget resets every turn, only move OUT, cap 640), not photographed in a live crew
+  game. Well-reasoned, and the record names his item-6 replay plus the release trial as the proof —
+  acceptable, but he should know his replay is what confirms the SYMPTOM; the gate confirms the
+  mechanism.
+
+**THE FAULT — the sheet's stamp row condemns the right build.**
+`.planning/staging-checklist-2026-09-01.html` (an uncommitted working-tree edit as I write): the
+header and staging itself read `2026.09.01.3-staging@0caf85c1` — I curled staging and
+`PP4_STAMP = "2026.09.01.3-staging@0caf85c1"` — but the item-1 row (line 100) still tells him to
+expect "Build 2026.09.01.2-staging", and its why-text still says "The .2 bump". As written, the
+first check on his sheet FAILS on the correct build. A hand-typed number (convention 2). Fix the
+two ".2" strings in item 1 before he opens it.
+
+**Recurrence vs Reviews 65 and 66:** 66's fault 1 (a screenshot cited for a fact photographed too
+early) does NOT recur — no screenshot is offered as evidence here at all; the evidence is a
+re-runnable gate, and I re-ran it. 65's fault 2 (the unenforced CEO-per-item gate) is now enforced
+in the direction that matters: this review exists because the close gate refuses to close
+INBOX-20260901T1309Z without a verdict carrying the item id and the commit. But the stale stamp row
+is a fresh instance of the family both reviews sit in — record text disagreeing with the artifact
+it describes.
+
+**What a player gets:** a crew guest's camera stops getting permanently stuck at full-ocean zoom —
+the leak that made every later sail window frame the whole board is swept on both paths, host and
+guest alike. What this does NOT yet prove: that Wyatt's exact "stays until refresh" screen is gone
+in a live crew game — that is his item-6 replay and the release trial, and the record says so.
+
+Item: INBOX-20260901T1309Z. Commit: 0caf85c1.
