@@ -321,6 +321,13 @@ red-proof: with the board shoved a viewport sideways, the probe sees ${proof} sq
       console.log(`tap: clicked (${tgx},${tgy}) at [${Math.round(p.x)},${Math.round(p.y)}] — ${left === 0
         ? "the game ACCEPTED the sail (prompt torn down, all squares gone)"
         : `⚠ ${left} square(s) still up — the tap did NOT take`}`);
+      // A second screenshot AFTER the click, so the acceptance claim has a picture that can
+      // actually contain it. CEO Review 66's fault 1: the pre-tap shot was cited for a fact it
+      // was photographed too early to see — the sound programmatic check above printed to a
+      // console nobody kept, and the PNG stood in for it. Evidence should photograph its claim.
+      const afterShot = SHOT.replace(/\.png$/, "-after-tap.png");
+      await c.shot(afterShot);
+      console.log(`tap: post-tap screenshot: ${afterShot}`);
     }
   }
   console.log(centreOut.length || unhittable.length

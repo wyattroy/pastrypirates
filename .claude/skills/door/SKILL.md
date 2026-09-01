@@ -1,6 +1,6 @@
 ---
 name: door
-description: The one way into work on this project (wyclau charter, part 2). Use at the START of any work session, when asked to "continue", "keep going", or when a session needs to orient itself. Syncs, orients, states the situation in 6 lines, then works the Chart through the Proof.
+description: The one way into work on this project (wyclau charter, part 2). Use at the START of any session — a Bell-started watch runs one item through the full Proof and ends; any session Wyatt opens becomes the Advisor. Syncs, orients, then works or advises.
 ---
 
 > **VENDORED FROM claude-kit (`plugins/wyclau`) — edit THERE, not here.** Re-vendor:
@@ -9,75 +9,104 @@ description: The one way into work on this project (wyclau charter, part 2). Use
 
 # The Door
 
-Every work session enters here. Orientation budget: **two minutes**. If any step below is
-impossible, say what you actually observed and park a question — never guess past it.
+Every session enters here. Orientation budget: **two minutes**. If any step below is impossible,
+say what you actually observed and park a question — never guess past it.
 
-## 1. Sync (30 seconds)
+**Which mode?** If your launch prompt says the Bell started you as a **watch**, run THE WATCH.
+Otherwise a person opened this session: you are THE ADVISOR. There is no third kind of session.
+
+## First, both modes: sync and orient
 
 ```bash
 git fetch origin && git pull --rebase
 ```
 
-Run it where you stand — every way into the Door (the watchdog, a terminal, a cloud container)
-starts in the repo root. Never `cd` to one machine's absolute path first: the repo lives at a
-different path on every machine, and a failed `cd` short-circuits the `&&` chain so the sync
-silently does nothing — on every watchdog restart, forever.
+Run it where you stand — every way into the Door starts in the repo root. Never `cd` to one
+machine's absolute path first: the repo lives at a different path on every machine, and a failed
+`cd` short-circuits the `&&` chain so the sync silently does nothing — on every ring of the Bell,
+forever. If the pull moved `.claude/CLAUDE.md` or `.claude/rules/`, re-read them from disk — your
+context copy predates the pull.
 
-If the pull moved `.claude/CLAUDE.md` or `.claude/rules/`, re-read them from disk — your context
-copy predates the pull.
+Then read, do not re-derive:
 
-## 2. Orient (60 seconds — read, do not re-derive)
+1. `.planning/wyclau/INBOX.md` — **Wyatt's words, verbatim. They outrank everything below.**
+2. `.planning/CHART.md` — the plan, the checklist, what's blocked on Wyatt.
+3. `.claude/memory/DECISIONS.md` — his rulings (top entries; stop when dates look familiar).
+4. `.planning/CTO-LEDGER.md` — tail only: what other live sessions or a detached trial have claimed.
 
-1. `.planning/CHART.md` — the plan, the checklist, what's blocked on Wyatt.
-2. `.claude/memory/DECISIONS.md` — his rulings (top entries; stop when dates look familiar).
-3. `.planning/CTO-LEDGER.md` — tail only: what other live sessions have claimed.
+**Harvest the Glass before anything republishes it** (the hook enforces this): read the live
+artifact (Artifact tool, `action: "read"`, the URL `glass.mjs` prints), copy every idea and every
+ruling from its state into the INBOX / `DECISIONS.md`, commit. A republish without the harvest
+deletes his words. If this session has no Artifact tool, write that fact to the ledger — plainly,
+as "no Artifact tool in this session", never as a guess about why — and continue; the next capable
+session harvests.
 
-## 3. State the situation — six lines, plain English
+---
 
-Running / last progress / shipped today / blocked on Wyatt / what this session will do now /
-**watchdog stamp: PRESENT or ABSENT** (`process.env.PP_BOSUN === "1"` ? PRESENT : ABSENT — the
-Quartermaster's silent-failure guard, 2026-08-31: `watchdog.ps1` sets this immediately before
-launching, and the keep-working Stop hook gates its whole existence on it reaching this process.
-Nobody could test `Start-Process`'s environment inheritance from a container, so this line is the
-record that catches it if the stamp ever fails to survive the launch — ABSENT in a
-watchdog-started session means the hook silently never ran, and that must show up here, not be
-discovered later as an engine that quietly stopped after one item).
-Write it to the user (interactive) or the ledger (unattended). Then **pulse**:
+## THE WATCH — one item, full loop, then END
 
-```bash
-node scripts/wyclau/glass.mjs --note "<what this session is starting>"
-```
+You are one watch in an endless relay. The Bell rings a fresh watch a few minutes after you end,
+forever. **Ending your turn is the design working, not a failure** — a watch that tries to work
+forever is the failure, and everything that goes with it (context rot, phantom engines, a stale
+Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-09-01).
 
-## 4. Work
+1. **State the situation** — six lines to the ledger: watch started (UTC) · last progress · what
+   the previous watch closed · blocked on Wyatt · any detached trial in flight (read its report,
+   check its pid) · what THIS watch will do. Then pulse:
+   `node scripts/wyclau/glass.mjs --note "watch <UTC>: <what this watch is taking up>"` — and
+   republish + `node scripts/wyclau/mark_glass_published.mjs` (a pulse he cannot see is not a
+   pulse).
+2. **Pick ONE item.** INBOX first — the oldest OPEN item; his words outrank the Chart. Otherwise
+   the top unblocked Chart item. **Claim it in the ledger before touching anything.**
+3. **Work it through the Proof, with the teeth** (his rulings, 2026-09-01, all three):
+   - **His stated solution first.** If the item carries `solution:` in his words, your FIRST act
+     is to implement and measure exactly that — before any investigation, before any tooling.
+     You may disagree only AFTER showing the measured result of his version.
+   - **A failed tool means look at the game the way he would** — screenshot it, play it. Never a
+     second instrument for the same bug.
+   - Otherwise the loop is unchanged: gear → red check first → fix → same check green → posed
+     pair or played verification at the gear's depth → fresh-context CEO → verdict appended to
+     `.planning/CEO-REVIEWS.md`.
+4. **A long job never runs inside your session.** A sea trial is started detached —
+   `node scripts/wyclau/start_trial_detached.mjs` — and belongs to the machine, not to you. Start
+   it, note it in the ledger, and END; later watches read its report. Three trials died in one day
+   riding sessions that ended. Never again.
+5. **Close ONLY through the gate:** `node scripts/wyclau/close_item.mjs …`. It refuses to tick the
+   item without a CEO verdict on file, a game-code diff or a stated one-line reason, and the
+   solution-first evidence. Do not tick the Chart or the INBOX by hand — the gate writes the tick,
+   the ledger entry, and the INBOX fate together, so they cannot disagree.
+6. **Republish the Glass** (harvest first — always), `mark_glass_published.mjs`, then
+   `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
+   include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its
+   transport. Commit (`git pull --rebase` first), push.
+7. **END THE TURN.** One item per watch. Blocked mid-item? Park it in the Chart with the reason,
+   note it in the ledger, and end — the next watch sees it in orientation. Nothing unblocked at
+   all? Write that to the ledger, pulse the Glass, and end. Never wait, never spin, never take a
+   second item.
 
-- **Instruction from Wyatt?** It outranks the Chart. Restate it back in the next reply, then do it.
-- **No instruction?** Claim the top unblocked Chart (or, until cutover, BACKLOG) item in the
-  ledger, then work it through the Proof: gear → red check first → fix → same check green →
-  played verification at the gear's depth → fresh-context CEO → record verdict → update Chart →
-  commit (pull --rebase first) → push → pulse → next item.
-- **Taste question?** Park it in the Chart's BLOCKED ON WYATT table with a recommendation and move
-  to the next unblocked item. Taste is never defaulted. Mechanism questions his existing rulings
-  answer: answer from the record, name the ruling, keep going.
-- **Pulse at least every 20 minutes** while working (`glass.mjs --note`), and at every item
-  boundary. The watchdog reads the pulse; a silent session is a dead session.
-- **HARVEST BEFORE EVERY GLASS REPUBLISH (v2 — the page is two-way).** Wyatt writes ideas
-  directly on the Glass; they live in the page's `glassState.ideas` until moved. Before
-  republishing: read the live artifact (Artifact tool, `action: "read"`, the URL glass.mjs
-  prints), copy every `ideas[]` entry into the Chart's IDEA INBOX with a recommendation, commit
-  — THEN regenerate and republish. **A republish without the harvest deletes his words.** An
-  artifact-changed notification for the Glass means he wrote something: harvest it promptly and
-  give it a fate.
-- **AND REPUBLISH THE GLASS at every item boundary** — writing `glass.html` is only half of it.
-  The page Wyatt reads is an artifact, and only a session can push the file to it; `glass.mjs`
-  prints the URL every run. On 2026-08-31 the local page was minutes old while the published one
-  sat at 12:16Z all day, and HE is the one who noticed. A pulse he cannot see is not a pulse.
-- **THEN RUN `node scripts/wyclau/mark_glass_published.mjs`** — the other half of the same fix.
-  A plain script cannot call the Artifact publish tool itself, so this is how a real publish gets
-  recorded; the keep-working Stop hook checks the gap it leaves and blocks a stale, unpublished
-  pulse (CEO Review 52 moved this OUT of `npm test` — it must never gate the game's own release).
+## THE ADVISOR — Wyatt's window
 
-## 5. Close
+A person opened this session, so this session's job is HIM: strategy, second opinions, questions
+answered from the record, and the work he directly asks for. No Stop hooks apply to you; end turns
+whenever the conversation does.
+
+- **Every instruction he gives lands in `.planning/wyclau/INBOX.md` verbatim, in the same turn he
+  gives it** — timestamped, with `solution:` filled in if he stated one — committed and pushed,
+  and restated back to him in your next reply. This is the fix for the failure he named on
+  2026-09-01 ("the quartermaster sometimes forgot my instructions"): his words move to a file the
+  moment they exist, and the next watch obeys the file. An instruction he wants done RIGHT NOW you
+  also just do — the INBOX entry is the record, not a queue you hide behind.
+- **Every ruling he makes lands in `.claude/memory/DECISIONS.md` in the same turn**, quoted, with
+  the alternative he did not pick.
+- **Teach as you go** — plain English first, the real term once, one short lesson a day tied to
+  the live work (his amendment, 2026-08-31: daily, because he learns fast).
+- Taste is never defaulted: park taste questions to the Chart's BLOCKED ON WYATT table with a
+  recommendation — or ask him, he is right there.
+- If he asks you to do game work, it goes through the same Proof as a watch's (gear, red first,
+  CEO per item, close through the gate).
+
+## Close (both modes)
 
 One short report in his ruled shape — **WHAT WORKED · WHAT I LEARNED (and where it is written) ·
-WHAT'S NEXT** — new information only, corrections only where they change a decision, one daily
-lesson if none has been given today. Kill every browser/server you started. Never end on an offer.
+WHAT'S NEXT** — new information only, one daily lesson if none has been given today. Kill every
+browser and server you started. Never end on an offer.

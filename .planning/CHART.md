@@ -25,10 +25,30 @@ step 2). Wyatt's five-item bar is step 3.
 
 ## STEP 1 CHECKLIST — the reboot (estimate 2–3 days from 2026-08-31; re-sized end of day one)
 
-*Open items carrying `GATED:` are not currently actionable — say why right after the marker. This
-is the literal string the keep-working Stop hook parses (`.claude/hooks/wyclau-stop-keep-working.cjs`)
-to tell "nothing left to do" from "something left, but it waits on Wyatt/a dependency" — keep it
-exact, or the hook is wrong in whichever direction this list is wrong.*
+*Open items carrying `GATED:` are not currently actionable — say why right after the marker. A
+watch picking its one item skips GATED rows; keep the marker exact so "nothing unblocked" stays
+readable at a glance. (The Stop hook that used to parse this string was deleted 2026-09-01 with
+the Watch redesign — see the section below.)*
+
+### ⚑ THE WATCH REDESIGN — 2026-09-01, supersedes the machinery rows above
+
+Wyatt's sixteen rulings (`.claude/memory/DECISIONS.md`, "THE RELAY REDESIGN") replaced the
+Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs), the **Bell**
+(`scripts/wyclau/bell.ps1` — rings a watch when none is on deck), the **Inbox**
+(`.planning/wyclau/INBOX.md` — his words, obeyed first), and the **close gate**
+(`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
+https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
+
+- [x] Day 1 — the relay: Door rewritten (watch + advisor) · the Bell · the Inbox · the close
+  gate (`close_item_check.mjs`, red-proofed both directions) · detached trials
+  (`start_trial_detached.mjs`) · `publish_status.mjs` built, its red gate now green ·
+  keep-working/pulse/thresholds hooks and the watchdog judgement stack DELETED · npm test 81/81
+- [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
+  directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
+- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
+  chairman's log) on the thin-surface architecture (design, section IV)
+- [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
+  release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
 
 - [x] Charter approved (2026-08-31, amendment: daily lessons)
 - [x] The Chart exists (this file)

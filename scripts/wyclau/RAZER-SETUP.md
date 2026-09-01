@@ -1,7 +1,12 @@
-# The Razer hour — making "never silently stalls" true
+# The Blade hour — installing the Bell
 
-*The one-time setup from the charter's risk list. Until every box below is checked, the engine's
-dependability is a design, not a fact — no session may claim otherwise.*
+*Rewritten 2026-09-01 for the Watch redesign (DECISIONS.md "THE RELAY REDESIGN"): the watchdog and
+its judgement are gone; the Bell rings a fresh one-item watch whenever none is on deck. Steps 2–3
+survive unchanged from the first Razer hour — they were paid for. Until the ring test below has
+passed, the relay's dependability is a design, not a fact — no session may claim otherwise.*
+
+**Before anything: the old `wyclau-watchdog` scheduled task must be OFF** (Wyatt disabled it
+2026-09-01; `schtasks /Delete /TN "wyclau-watchdog" /F` removes it for good).
 
 **What you need:** the Razer, ~30–60 minutes, Claude Code installed and logged in there.
 
@@ -67,7 +72,7 @@ dependability is a design, not a fact — no session may claim otherwise.*
    What is deliberately NOT here: `git push origin main` (production stays human),
    `./scripts/deploy-staging.sh` (publishing where you play stays human), `git checkout`
    (the engine stays on its branch), and any bare interpreter (`node -e`, `python3`).
-4. **Prove the engine can pulse headless:**
+4. **Prove a watch can pulse headless:**
 
    ```powershell
    claude -p "Run exactly this command and show its output: node scripts/wyclau/glass.mjs --note 'headless permission probe'"
@@ -77,32 +82,42 @@ dependability is a design, not a fact — no session may claim otherwise.*
    `claude -p "say ok"` — a check that uses no tools, so it passed on a machine where the
    engine could not stamp its own heartbeat. **A check that cannot fail on the thing it
    certifies certifies nothing.**
-5. **Register the watchdog** (elevated PowerShell — the exact command is at the top of
-   `scripts/wyclau/watchdog.ps1`, with `$repo` substituted). Every 10 minutes it checks the
-   heartbeat; stale > 45 min ⇒ it logs to `restarts.log` and relaunches the engine through the
-   Door.
-6. **Launch the engine once by hand:** `claude -p "/door"` — watch it orient, claim work, and
-   pulse the Glass.
-7. **THE STALL TEST — the step that makes it real.** Kill the engine process on purpose. Wait.
-   The watchdog must revive it within ~10 minutes of the heartbeat going stale, the restart must
-   appear in `restarts.log`, and the Glass must show fresh progress after. A watchdog that has
-   never caught a deliberate stall is an instrument that has never been proven able to fail —
-   the exact class of tool this project learned not to trust. (Run literally this waits out the
-   full 45-minute staleness; registering the task with `-StaleMinutes 5` for the test and
-   re-registering at 45 after it passes exercises the identical path in ~15 minutes.)
-8. **Arm your phone:** run `/remote-control` in the engine session yourself (only you can), and
-   confirm the Glass link opens on your phone: the engine republishes it as it works.
+5. **Test the O2 question while you are here** — can a Blade session publish the Glass at all?
+   In an interactive `claude` session on the Blade, ask it to republish the Glass and to state
+   plainly whether the Artifact tool exists in its tool list. Whatever the answer, it goes in the
+   ledger verbatim — this has been "unexplained" since 2026-09-01 and the Glass architecture
+   hedges on it (a watch that cannot publish commits `glass.html` and flags it).
+6. **Register the Bell** (elevated PowerShell — the exact command is at the top of
+   `scripts/wyclau/bell.ps1`, with `$repo` substituted). Every 10 minutes it asks one question:
+   is a door-launched claude.exe alive? No ⇒ it rings a fresh watch and logs the ring to
+   `restarts.log`. There is nothing else to configure — the Bell has no thresholds.
+7. **THE RING TEST — the step that makes it real.** Ring a watch by hand first
+   (`claude -p` with the exact prompt from bell.ps1) and watch it work ONE item and end. Then
+   kill a running watch mid-item on purpose. Within ~10–15 minutes (one tick plus the grace
+   window) the Bell must ring a fresh watch, the ring must appear in `restarts.log`, and the
+   fresh watch must pick up from the record — including the killed item's claim in the ledger.
+   A Bell that has never been proven to ring after a deliberate kill is an instrument that has
+   never been proven able to fail. Also confirm the OPPOSITE direction: while a watch is
+   visibly working, two Bell ticks pass without a second watch appearing (the process check
+   holding, where the old commit clock summoned doubles).
+8. **Arm your phone:** run `/remote-control` in your own session (only you can), and confirm
+   the Glass link opens on your phone: every watch republishes it as it works.
 
 ## After the hour
 
-The Chart's exit test begins: **24 hours unattended, zero silent stalls** — every gap in the
-heartbeat explained by a logged restart. Then, and only then, the charter's keel sentence is
-claimable.
+The 48-hour shakedown begins (DECISIONS.md ruling 14, superseding the old 24-hour exit test):
+zero phantom sessions, zero eaten conversations, the Glass never older than one watch and never
+wrong on spot-check, every closed item carrying a CEO verdict, every inbox item acknowledged
+within one Bell interval. The shakedown's cargo is the release — trial, staging, Wyatt plays,
+merge. Then, and only then, the rulebook cutover.
 
 ## Honest limits
 
-- The watchdog revives the engine; it cannot revive the *machine* (sleep, updates, power). Task
-  Scheduler should be set to run whether or not you are logged in; disable sleep-on-idle for
-  mains power.
-- `claude -p` must be on PATH for the scheduled task's user — step 4 exercises this, and the hour
-  isn't done until the stall test passes with the task, not just the terminal.
+- The Bell rings watches; it cannot revive the *machine* (sleep, updates, power). Task Scheduler
+  should be set to run whether or not you are logged in; disable sleep-on-idle for mains power.
+- `claude` must be on PATH for the scheduled task's user — step 4 exercises this, and the hour
+  isn't done until the ring test passes with the task, not just the terminal.
+- The Bell cannot see a DETACHED sea trial (that is a node process, not a door-launched claude),
+  and it does not need to: watches read the trial's report and LONG-RUN marker; the Bell keeps
+  ringing watches regardless, and a watch that finds a trial in flight simply works something
+  else or ends.
