@@ -35,12 +35,11 @@ Ticks save in this browser.</p>
 <div class="d">Then confirm <code>.planning\wyclau\HEARTBEAT</code> has a fresh timestamp. This proves <code>claude</code> is on PATH and the permissions survived — both were proven in the first Razer hour, this re-checks them cheaply.</div></div></div>
 <div class="step" data-k="s2"><input type="checkbox"><div class="t"><b>2 · The O2 test — can a Blade session publish the Glass?</b><div class="d">Open an interactive <code>claude</code> in the repo and say: <em>"Republish the Glass, and state plainly whether the Artifact tool exists in your tool list. Write the answer to the ledger verbatim, commit and push."</em> Whatever the answer, it settles the one unexplained fault left in the system (three Blade sessions have reported no publish path; nobody knows if the tool was absent or refused).</div></div></div>
 <div class="step" data-k="s3"><input type="checkbox"><div class="t"><b>3 · Register the Bell</b><div class="d">ELEVATED PowerShell, with your real repo path:</div>
-<pre>$repo = "C:\path\to\pastrypirates"
-schtasks /Create /TN "wyclau-bell" /SC MINUTE /MO 10 /TR "powershell -NoProfile -ExecutionPolicy Bypass -File $repo\scripts\wyclau\bell.ps1 -Repo $repo"</pre>
+<pre>schtasks /Create /TN "wyclau-bell" /SC MINUTE /MO 10 /TR "powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\wyatt\Projects\pastrypirates\scripts\wyclau\bell.ps1 -Repo C:\Users\wyatt\Projects\pastrypirates"</pre>
 <div class="d">Set the task to run whether or not you're logged in, and check the machine won't sleep on idle while plugged in.</div></div></div>
-<div class="step" data-k="s4"><input type="checkbox"><div class="t"><b>4 · Ring the first watch by hand</b><div class="d">Run the Bell once yourself and watch it work:</div>
-<pre>powershell -NoProfile -ExecutionPolicy Bypass -File $repo\scripts\wyclau\bell.ps1 -Repo $repo</pre>
-<div class="d">It should ring a watch (a line in <code>.planning\wyclau\restarts.log</code> starting <code>ring:</code>). <b>Expected:</b> that watch takes the top queue item — starting the detached release trial on build .4 — then ENDS its turn. Ending is correct; it's the whole design.</div></div></div>
+<div class="step" data-k="s4"><input type="checkbox"><div class="t"><b>4 · Ring the first watch by hand</b><div class="d">Run the Bell once yourself — any PowerShell window, no elevation needed, no variables (a fresh window forgets step 3’s <code>$repo</code>, which is what made the first version of this step error):</div>
+<pre>powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\wyatt\Projects\pastrypirates\scripts\wyclau\bell.ps1 -Repo C:\Users\wyatt\Projects\pastrypirates</pre>
+<div class="d">It prints nothing itself — the watch launches HIDDEN. Confirm with <code>Get-Content C:\Users\wyatt\Projects\pastrypirates\.planning\wyclau\restarts.log -Tail 3</code> (a line starting <code>ring:</code>) and the <code>Get-CimInstance</code> line from step 5 (one ProcessId). <b>Expected:</b> that watch takes the top queue item — starting the detached release trial on build .5 — then ENDS its turn. Ending is correct; it's the whole design.</div></div></div>
 
 <h2>The ring test — both directions, ~35 min of mostly waiting</h2>
 <div class="step" data-k="r1"><input type="checkbox"><div class="t"><b>5 · Direction 1: a killed watch gets relieved</b><div class="d">While a watch is mid-work, kill it on purpose:</div>
@@ -53,7 +52,7 @@ Stop-Process -Id &lt;that pid&gt; -Force</pre>
 <div class="step" data-k="f1"><input type="checkbox"><div class="t"><b>7 · Arm your phone</b><div class="d">In your own session: <code>/remote-control</code> — then confirm the Glass link opens on your phone.</div></div></div>
 <div class="step" data-k="f2"><input type="checkbox"><div class="t"><b>8 · Tell me the ring test passed (or what you saw)</b><div class="d">That starts the 48-hour shakedown clock: zero phantom watches, zero eaten conversations, the Glass never stale beyond one watch, every closed item CEO-verdicted — then you judge, then the merge on your word.</div></div></div>
 
-<p class="note"><b>While the trial runs (~85 min, detached):</b> it survives every watch ending — that's the point. Later watches read its report (<code>.planning/SEA-TRIAL-&lt;runid&gt;.md</code>) and work the next queue items meanwhile: the attack-buttons fix, the flashing hint, the storm animation.</p>
+<p class="note"><b>While the trial runs (~85 min, detached):</b> it survives every watch ending — that's the point. Later watches read its report (<code>.planning/SEA-TRIAL-&lt;runid&gt;.md</code>) and work the next queue items meanwhile: the flashing hint, the storm animation, then the launch-list items (the attack-buttons fix already shipped while you were setting up).</p>
 </main>
 <script>
 /* Every localStorage touch guarded: in a private tab the accessor THROWS, and an unguarded read
