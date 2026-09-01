@@ -2349,3 +2349,36 @@ page sat at its 17:56Z stamp with a healthy engine behind it. Only at 20:08Z did
 the watches stop working at all. **One symptom, two faults, in sequence — and only the second one
 was repaired tonight. The first is still live and is exactly what GLASS-UPDATE-SESSION.md exists to
 answer.**
+
+---
+
+## WATCH 2026-09-01T22:10Z — Wy-Blade — INBOX-20260901T1335Z, compress the images + preload every asset
+
+**Watch started** 2026-09-01T22:10:21Z, on `claude/cloud-handoff-planning-a9ay1u`, `can_push.mjs`
+exit 0 (attached, tracking, no rebase or merge in progress).
+
+**Last progress** — commit `3bf36883`, the previous watch resolving CEO 79's unexplained window.
+
+**What the previous watch closed** — nothing ticked; it was a repair watch. It ended the
+detached-HEAD outage and corrected three claims in `4c9046ec` at CEO 79's charge.
+
+**Blocked on Wyatt** — the Chart's BLOCKED ON WYATT table is empty.
+
+**The detached trial: FINISHED, and its verdict changes the picture.** Run
+`2026-09-01T1914Z-Wy-Blade`, pid 45256, is no longer alive — the log's last line reads
+`⚓ FAILED — report: .planning\SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md (88 min, build 2026.09.01.7)`.
+Read, not assumed: it sailed **10 of 10 legs** (CEO 75's scorecard fix held — the previous run said
+0 of 10), and **the vision judge could not see**: *"NO — THE JUDGE CANNOT SEE — every visual verdict
+below is worthless; the structural half still stands."* Every leg's visual pass is DEFERRED, not
+cleared. **That is not my item** (it belongs to INBOX-20260901T1315Z, the release) and I am not
+taking it; recording it so the next watch does not re-start a trial that has already run, and does
+not stage on a report whose visual half is empty.
+
+**WHAT THIS WATCH IS TAKING UP — INBOX-20260901T1335Z, the oldest OPEN inbox item, his words,
+LAUNCH CRITICAL.** *"compressing the images to make the game load MUCH faster… only the board needs
+to be as big as it is… we need to load all game assets up front."* Claimed at 22:10Z, Wy-Blade.
+Measured before claiming, so the size is real and not remembered: **19 MB across the `assets/`
+tree**, which matches his "about 18mb from memory" — `assets/board.png` alone is 4.58 MB, the 21
+pastry cards are ~5.5 MB between them, and three island PNGs are 2 MB. Tooling checked before
+committing to the item: **ffmpeg and Python 3.12 are on this machine**; no image library is a
+dependency of this repo and none will be added.
