@@ -1478,10 +1478,26 @@ export async function runStormLive(dirKey){
       const movedSquare=(player.pos[0]!==was[0]||player.pos[1]!==was[1]);
       if(movedSquare&&outcome!=="swept")pendingSquares=true;
       if(outcome==="swept"){
-        // paint whatever ordinary squares are still pending NOW, before the sweep — same
-        // pre-sweep-paint contract D-22/W9 always relied on, just possibly covering more than
-        // one square in this one glide instead of the last square alone.
-        if(pendingSquares){renderLiveShips();await sleep(STORM_STEP_MS);pendingSquares=false;}
+        /* CEO REVIEW 72 CAUGHT THIS: stormStep() already wrote player.pos to the RIM-ENTRY square
+           before returning "swept" (tradewind(), src/engine/index.js), so painting from the LIVE
+           position here — as a plain renderLiveShips() does — glides the ship onto the whirlpool
+           itself and holds it there, before animateRimSweepIfAny() snaps it back to ride around.
+           Teleport, pause, snap-back, ride: exactly the bug D-22 excluded a swept step to avoid,
+           reintroduced by reading current state instead of the pre-sweep one.
+           `was`, captured at the top of THIS iteration, is the fix: it is the position as it stood
+           immediately before this (sweeping) stormStep call, which already carries every ordinary
+           square walked in earlier iterations of this same push (each mutated player.pos in turn)
+           and excludes only the sweep itself — precisely the D-22/W9 contract, restored.
+           NO SLEEP HERE, DELIBERATELY (measured, not guessed — a first version slept STORM_STEP_MS
+           here and a live probe caught the ship's transform reverting to its PRE-PUSH position
+           partway through that wait, before the ride even started; root cause not fully isolated,
+           but the wait itself is provably unnecessary, so the safer fix is removing the window
+           rather than chasing whatever used it). animateRimSweepIfAny()'s own PART A already glides
+           the ship from wherever it visually is to the rim-ENTRY cell (`from`, derived from the
+           windmove event's own baked snapshot — see its comment two screens down — never from
+           live DOM state), over RIM_SWEEP_ARRIVE_MS, before the ride proper begins. Painting `was`
+           here with no pause just hands Part A a correct starting point to glide FROM. */
+        if(pendingSquares){paintShipAt(player.idx,was);pendingSquares=false;}
         /* THE HOST-ONLY ESCAPE HATCH IS GONE (W9, rule 23). This used to reconstruct the rim-entry
            square by hand — from `was` plus the wind — because the event stream did not contain it,
            and then call animateRimSweepRun directly. runStormLive is host-only, and that was

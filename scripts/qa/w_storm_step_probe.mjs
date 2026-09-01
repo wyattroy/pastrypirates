@@ -49,10 +49,38 @@ async function main() {
     await c.ev(`appState.game.cfg.storm = 1`);
     console.log("cfg.storm forced to 1");
 
+    // POSE A SWEEP (rule 26): place player 0 one square upwind of a real rim cell (read off the
+    // live, already-validated g.rim — never hand-reconstructed), so the next storm carries them
+    // onto the whirlpool on its FIRST square, with no prior ordinary squares this run — the
+    // simplest case for checking CEO Review 72's fix (paint from `was`, not the post-sweep pos).
+    const posed = await c.ev(`(() => {
+      const g = window.appState.game;
+      const DIRS = { N:[0,-1], S:[0,1], E:[1,0], W:[-1,0] };
+      // TWO squares upwind of a rim cell, not one — so the storm's FIRST square is ordinary
+      // (exercising pendingSquares=true) and the SECOND square is the sweep, which is the exact
+      // shape CEO Review 72 found broken (a sweep AFTER at least one un-painted ordinary square).
+      for (const key of g.rim) {
+        const [rx,ry] = key.split(',').map(Number);
+        for (const [dirKey, d] of Object.entries(DIRS)) {
+          const mid = [rx-d[0], ry-d[1]];
+          const start = [rx-2*d[0], ry-2*d[1]];
+          if (!g.blocked(start) && !g.onRim(start) && g.islands[start.join(',')] === undefined &&
+              !g.blocked(mid) && !g.onRim(mid) && g.islands[mid.join(',')] === undefined) {
+            g.players[0].pos = [...start];
+            return { dirKey, start, mid, rim: [rx,ry] };
+          }
+        }
+      }
+      return null;
+    })()`);
+    console.log("posed:", JSON.stringify(posed));
+    if (posed) await c.ev(`window.appState.game.windNow = ${JSON.stringify(posed.dirKey)}`);
+
     // PHASE 1: drive turns (click whatever's live) until a storm event lands, or 90s elapse
     const t0 = Date.now();
     let stormIdx = -1;
     while (Date.now() - t0 < 90000) {
+      if (posed) await c.ev(`window.appState.game.players[0].pos=${JSON.stringify(posed.start)};window.appState.game.windNow=${JSON.stringify(posed.dirKey)}`);
       const evs = await c.ev(`appState.game.events.length`);
       const lastStorm = await c.ev(`appState.game.events.map(e=>e.t).lastIndexOf('storm')`);
       if (lastStorm >= 0 && lastStorm !== stormIdx) {
@@ -66,10 +94,6 @@ async function main() {
       else await sleep(150);
     }
     if (stormIdx < 0) { console.log("FAIL: no storm event within 90s of driving"); return; }
-    await c.shot("C:/Users/wyatt/Projects/pastrypirates/.planning/wyclau/storm-fix-a.png");
-    await sleep(400);
-    await c.shot("C:/Users/wyatt/Projects/pastrypirates/.planning/wyclau/storm-fix-b.png");
-    console.log("screenshots saved");
 
     // PHASE 2: tight sampling of ship 0..N transforms for 20s right after the storm event
     const sampler = `(() => {
@@ -85,6 +109,7 @@ async function main() {
       await sleep(30);
     }
     console.log("samples:", samples.length);
+    console.log("CONSOLE:", JSON.stringify(c.consoleErrs));
     const evDump = await c.ev(`window.appState.game.events.map((e,i)=>i+':'+e.t+(e.p!==undefined?'(p='+e.p+')':'')+(e.dir?'/'+e.dir:'')).join(' | ')`);
     console.log("EVENTS:", evDump);
     // per-ship trace: print a line whenever THAT ship's own pos or transform changes
