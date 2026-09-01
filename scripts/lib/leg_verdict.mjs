@@ -92,7 +92,13 @@ export function legVerdict(rec) {
     if (P.deadButtons.length) v.push(`${P.deadButtons.length} dead control(s): ${P.deadButtons.map(d => d.label).slice(0, 5).join(", ")}`);
     if (P.findings.length) v.push(`${P.findings.length} unreachable control(s): ${P.findings.map(f => f.what).slice(0, 3).join("; ")}`);
     // coverage: a kind the game OFFERED but the player never successfully exercised
-    const unexercised = [...P.coverage.entries()].filter(([k, r]) => r.seen > 2 && r.clicked === 0 && !/back|menu close|chat close/.test(k)).map(([k]) => k);
+    /* A RESUMED leg comes back from report.json, where a Map was serialized to a plain object;
+       a live-driven one is a real Map. Accept both rather than assume one -- the identical fault
+       was found and fixed in playtest_gate.mjs on 2026-09-01 and this second copy was missed, so
+       calling legVerdict() on a stored leg threw "P.coverage.entries is not a function". Same
+       fault, same fix, both places (rule 8). */
+    const covEntries = P.coverage instanceof Map ? [...P.coverage.entries()] : Object.entries(P.coverage || {});
+    const unexercised = covEntries.filter(([k, r]) => r.seen > 2 && r.clicked === 0 && !/back|menu close|chat close/.test(k)).map(([k]) => k);
     if (unexercised.length) v.push(`offered but never exercised: ${unexercised.join(", ")}`);
   }
   /* THE TWO SEATS DISAGREEING IS A FAILURE, not a note. This is the class Wyatt's 2026-08-26
@@ -128,8 +134,30 @@ export function legVerdict(rec) {
   if (judgeHoles) v.push(`${judgeHoles} screen(s) never judged — NOT cleared`);
   const motionOnly = rec.screens.reduce((n, s) => n + ((s.motionOnly || []).length), 0);
   if (motionOnly) v.push(`${motionOnly} observation(s) seen only DURING an animation — not failures, read them in the log`);
-  const unsettled = rec.screens.filter(s => s.settle && !s.settle.settled).length;
-  if (unsettled) v.push(`${unsettled} screen(s) never stopped moving before being checked`);
+  /* NAME THE CAUSE, NOT JUST THE COUNT — and checks.mjs already worked it out.
+     waitSettled() records WHICH half kept moving ("geometry", "text", or both) precisely because
+     the two need opposite fixes, and its own comment says the finding is "reported, not merely
+     counted... the report has to tell them apart". It was not: this line printed a bare number and
+     the cause was computed and thrown away. A comment describing what the code MEANT to do, while
+     the code did something else -- the exact trap CLAUDE.md's rule 6 is about.
+     Found 2026-09-01 with a real finding in hand: Safari's first two legs on the Razer each
+     reported unsettled screens, and there was no way to tell from the verdict whether the game was
+     still animating or the text was still painting. Also reports how long the worst one ran,
+     because a screen that hit the 12s runaway guard is a different problem from one that missed
+     the window by 200ms. */
+  const unsettledScreens = rec.screens.filter(s => s.settle && !s.settle.settled);
+  if (unsettledScreens.length) {
+    const causes = {};
+    for (const s of unsettledScreens) { const k = s.settle.churn || "unknown"; causes[k] = (causes[k] || 0) + 1; }
+    const why = Object.entries(causes).map(([k, n]) => `${n} ${k}`).join(", ");
+    const worst = Math.max(...unsettledScreens.map(s => s.settle.ms || 0));
+    const hardCapped = unsettledScreens.filter(s => s.settle.hardCap).length;
+    v.push(
+      `${unsettledScreens.length} screen(s) never stopped moving before being checked ` +
+      `(still moving: ${why}; longest wait ${(worst / 1000).toFixed(1)}s` +
+      (hardCapped ? `, ${hardCapped} hit the 12s runaway guard` : "") + ")"
+    );
+  }
   if ((rec.queued || []).length) v.push(`vision pass DEFERRED for ${rec.queued.length} screen(s) — queued for a session, NOT cleared`);
   return v;
 }
