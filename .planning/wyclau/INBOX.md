@@ -19,6 +19,13 @@ Every item gets a visible fate within a day (charter: the Chart's every-idea-get
 
 ---
 
+## INBOX-20260901T1315Z — the release trial, first Watch cargo
+> Ruling 12, THE RELAY REDESIGN (question put to him with the recommendation marked, his pick):
+> "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
+> trial in a way that survives session death, stage it, hand you the link."
+solution: none stated
+status: OPEN — first watch: `node scripts/wyclau/start_trial_detached.mjs --label="release trial, 2026.09.01.2, full gear"`, then END; later watches read its report. Staging already serves this build and Wyatt's five-item checklist PASSED 2026-09-01 — the trial is the LAST merge gate before his final say-so. Do not babysit it in-session; do not start a second (check LONG-RUN and the ledger first).
+
 ## INBOX-20260901T0000Z — worked example (the fix that seeded this file)
 > "the bosun spent 4 days making stupid tooling instead of simply fixing the sail square problem
 > by zooming the camera out more -- a solution that i told it at the beginning"

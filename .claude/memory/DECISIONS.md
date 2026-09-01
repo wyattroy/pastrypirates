@@ -121,6 +121,10 @@ below names the alternative he did NOT pick, because the alternative is what mak
    itself. *(Over: tomorrow, or at shakedown start.)*
 4. **THE NAMES ARE HIS PICKS: the WATCH (the engine — a relay of fresh runs) and the BELL (the
    scheduler that rings a new watch when none is on deck).** "Bosun" retires with the role.
+5. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
+   ("YER CALL, not a defect: judge the wider camera itself") marked PASSED with items 1–4. The
+   taste question the fix raised is settled; do not re-open it as a patch. Any future tune is a
+   one-place change to the containment pass's derived margins, on his ask only.
 
 ---
 

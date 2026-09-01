@@ -933,3 +933,12 @@ CLEANED UP TWO THINGS THAT WOULD HAVE MISLED: (1) the stale LONG-RUN marker, wri
 FINAL STATE FOR WHOEVER IS NEXT: branch claude/cloud-handoff-planning-a9ay1u, 539 commits ahead of main, in sync with origin, npm test green at 81 gates, nothing uncommitted. Build 2026.09.01.1 still has NO completed sea trial (three dead attempts today; Wyatt's ruling stands that only a Bosun session may sail one, because a watchdog-started session's turn ends and takes the trial with it). Nothing deployed to staging -- rsync is now installed so the deploy is mechanically unblocked, and it was deliberately not run because the build had moved and a trial was in flight. The untappable sail square is reproducible on demand and still unfixed after four days and seven instruments; that is the scope question sitting with Wyatt, not a task to pick up quietly.
 
 MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers, the stale LONG-RUN marker cleared, the dead trial report banner-marked so it cannot be mistaken for a verdict. The twelve Chrome processes on this machine are Wyatt's own -- checked ownership before touching anything, which is the one lesson from tonight I would most want the next session to inherit.
+
+- 2026-09-01T13:08:45Z · close_item: "SAIL SQUARE IT CANNOT TAP" · CEO 66 · commit 76c49bc (2 game files) · no stated solution · his camera-zoom solution; posed pair; staging checklist 2026-09-01 all five PASSED by Wyatt
+
+- 2026-09-01T13:20Z · WYATT PLAYED STAGING (2026.09.01.2-staging@159e26e1): staging checklist
+  2026-09-01, ALL FIVE ITEMS PASSED — stamp, crew-guest squares phone-narrow, farthest-square
+  tap, solo no-regression, and item 5 the framing taste call (now DECISIONS ruling 5: the wider
+  framing is settled). The sail-square Chart row is closed through close_item.mjs (CEO 66,
+  commit 76c49bc). Remaining merge gate: the full trial, queued as INBOX-20260901T1315Z for the
+  first Watch. BLOCKED ON WYATT is empty.
