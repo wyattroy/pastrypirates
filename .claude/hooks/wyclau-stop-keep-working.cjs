@@ -108,10 +108,18 @@ catch { head = null; }
  * must be allowed to end its turn — that is what keeps Wyatt's own terminal usable, and it is a
  * real brake rather than a courtesy: without it this hook would refuse to let any chat end.
  *
- * WHY TRACKED-ONLY (`--untracked-files=no`): a tool that drops a log, a report or a scratch
- * directory into the tree would otherwise make every session look like it was working, forever.
- * An untracked file is something that HAPPENED to a repo; a modified tracked file is something a
- * session DID to it.
+ * WHY TRACKED-ONLY (`--untracked-files=no`) — A KNOWN GAP, MEASURED BOTH WAYS, KEPT ON PURPOSE.
+ * CEO Review 58 found the cost and it is real: A SESSION WHOSE ONLY OUTPUT IS A BRAND-NEW FILE IT
+ * HAS NOT STAGED YET LOOKS IDLE HERE, and is allowed to stop with unblocked work left -- the very
+ * case this hook exists to catch. So the obvious fix was tried: drop the flag and count untracked
+ * files too. MEASURED, 2026-09-01, on a real fixture: a session that had changed NOTHING then
+ * blocked as well, because a repo almost always carries some untracked file (this one held four at
+ * the time -- trial reports and a marker). That turns the hook from "keep a working session going"
+ * into "no session in this repo may ever end its turn", which takes away Wyatt's own terminal.
+ * BOTH DIRECTIONS ARE WRONG SOMEWHERE; this is the milder error, and it self-corrects the moment
+ * the session stages or commits anything, which real work does within minutes. Do not silently
+ * flip it -- if you flip it, you owe the other half a way to tell a session's new file from a
+ * tool's dropped scratch file, which is the thing nobody has yet.
  *
  * PP_BOSUN SURVIVES AS A FORCE-ON, NOT AS A GATE. A freshly launched engine has not committed or
  * edited anything yet, and it is precisely the session that must not be allowed to stop early.
@@ -144,7 +152,12 @@ const CHART = path.join(ROOT, ".planning", "CHART.md");
 const STATE_FILE = path.join(ROOT, ".planning", "wyclau", "STOP-HOOK-STATE.json");
 const HEARTBEAT = path.join(ROOT, ".planning", "wyclau", "HEARTBEAT");
 const LAST_PUBLISH = path.join(ROOT, ".planning", "wyclau", "LAST-PUBLISH");
-const PUBLISH_LAG_THRESHOLD_MIN = 20; // the Door's own stated pulse cadence, made mechanical
+/* THE ONE NUMBER, read rather than typed. It lives in wyclau-thresholds.cjs because
+   may_publish.mjs must agree with it exactly: whenever this brake blocks a stop, somebody has to
+   be permitted to publish, or a session is ordered to publish and forbidden from publishing at the
+   same time. CEO Review 56 found precisely that deadlock when the two numbers were written
+   separately (20 here, 45 there) -- see that file's header. */
+const { PUBLISH_LAG_THRESHOLD_MIN } = require("./wyclau-thresholds.cjs");
 
 const tryRead = (p) => { try { return fs.readFileSync(p, "utf8"); } catch { return null; } };
 const tryReadTimestamp = (p) => {

@@ -1,5 +1,384 @@
 # CEO reviews — the standing record
 
+## CEO Review 60 — 2026-09-01, chain audit fix 5 (brake 1's give-up; the launch stamp) — VERBATIM
+
+**DONE on both halves.** Fix 5a (the Stop hook's "give up" rule — a hook that can refuse to end a
+session's turn, now stops refusing after three tries) and fix 5b (the watchdog no longer writes
+itself a fake "the engine is alive" note the moment it launches one) both do exactly what was
+claimed, and I traced the counter math and the anti-double-launch guard by hand rather than taking
+the check's word for either.
+
+**SCOPE NOTE, read before the rest: my count of 22 checks (not 19) is real, not a typo.** A
+sibling commit (`146e4829`, "CEO Review 56's findings") landed immediately before this one and
+added three MUST-PASS checks to the same file, including a check for a 25-minute deadlock in a
+DIFFERENT fix (fix 3, `may_publish.mjs` — not mine to review). Right now, at this exact commit,
+that one check still fails: 21 of 22 pass. That failure is not fix 5's; both of fix 5's own checks
+pass. But it means the commit's own headline — "19/19 green" — is not true of the file as it
+stands, and I flag it below so nobody repeats it as settled.
+
+**1. DONE / PARTIAL / NOT DONE, with what I checked myself**
+
+- **Fix 5a — DONE.** `.claude/hooks/wyclau-stop-keep-working.cjs:200–240` (brake 1, the "the status
+  page hasn't been published recently" check) now has its own three-strikes counter
+  (`pubHead`/`pubCount`, written at `:219`) and a `giveUp()` function (`:177–187`) that, on the 4th
+  check in a row with nothing changed, writes ONE line to `.planning/CTO-LEDGER.md` saying what's
+  stuck and then lets the session's turn end (`process.exit(0)`), instead of refusing forever. I
+  didn't just read this — I ran `node scripts/qa/wyclau_chain_audit_check.mjs`, which drives the
+  REAL hook file four times in a row against a real, unpublishable test folder. The first three
+  calls each printed a real "block this stop" message; the fourth printed nothing (a silent,
+  allowed stop) — exactly the "block 3, give up on 4" shape claimed. `npm test`'s own
+  `wyclau_stop_hook_check.mjs` (19/19 passed) tests the same thing plus one more case: if a real
+  commit lands in between blocks, the counter resets to 1 instead of continuing toward give-up —
+  also verified passing.
+- **Fix 5b — DONE.** I read the entire current `scripts/wyclau/watchdog.ps1` and grepped it for
+  every mention of the word "heartbeat" (not just inside the launch code, the whole file, line by
+  line). The variable `$heartbeat` is defined once (`:33`) and never written anywhere — the old
+  three lines that used to stamp it the instant `Start-Process` was called are gone, replaced by
+  a comment (`:199–216`) explaining why. I diffed against the commit BEFORE this one and confirmed
+  the file this note claims is unchanged really is unchanged: the "one engine at a time" guard
+  (`:155–162`, using a separate file called LAST-LAUNCH) and the unconditional stamp at the end
+  (`:230`) both existed before this fix and were not touched by it. The gate's own check here
+  (`scripts/qa/wyclau_chain_audit_check.mjs:442–467`) is honestly labelled as "structural" — it
+  greps the PowerShell file for a write to `$heartbeat`, which proves a line is absent, not that
+  the resulting behaviour is safe — so I answered the safety question separately below rather than
+  trusting the grep.
+
+**2. Answers to the two questions I was asked to dig into**
+
+**(a) Can brake 1's counter and brake 2's counter step on each other, and does brake 1 really
+block exactly three times and release on the fourth — not two, not forever?**
+
+No collision, and the counting is correct. Both counters live in the same file
+(`.planning/wyclau/STOP-HOOK-STATE.json`), but they use different names inside it — brake 1 owns
+`pubHead`/`pubCount`, brake 2 owns `item`/`head`/`count` — and the function that writes state
+(`writeState`, `:166–171`) merges new values into the OLD object rather than replacing it, so
+writing one brake's counter can never erase the other's. I hand-traced the arithmetic: on call 1
+the count becomes 1 (block), call 2 becomes 2 (block), call 3 becomes 3 (block), call 4 becomes 4,
+which trips `if (pubCount > 3)` (`:210`) and gives up. That is "blocked on 1, 2, 3; released on 4"
+— matching the header's own promise and matching CEO Review 52's earlier fix to the exact same
+off-by-one mistake in brake 2. A session cannot get stuck forever: even if brake 1's condition
+(the page is stale) is still true after the give-up, the very next check starts a fresh count of 1
+and repeats the same 3-block-then-release cycle rather than refusing indefinitely — I confirmed
+this by tracing what happens to `pubHead`/`pubCount` after `giveUp()` resets them to
+`null`/`0`. One real behavioural note, not a bug: brake 1 is checked before brake 2 in the file,
+and whichever one fires first ends the whole check for that call (`block()` and `giveUp()` both
+exit immediately) — so if the status page AND a stuck Chart item are both a problem at the same
+moment, brake 2's counter is frozen until brake 1 either resolves or gives up on its own. That
+looks like the intended priority order (the file's own comment lists the brakes "in this order"),
+not an accident, but it is worth Wyatt knowing: a chronically stale status page can delay how soon
+the "stuck on this item" message reaches him, even though neither counter can be pushed past 3.
+
+**(b) With the fake heartbeat stamp gone, can a failed launch retry in a tight loop, or can a
+booting engine get a second one stacked on top of it?**
+
+Neither happens, and the real reason is stronger than the fix's own comment says. The comment at
+`watchdog.ps1:210–216` credits the 25-minute LAST-LAUNCH grace period as "what stops the next tick
+stacking a second engine" — true, but it undersells the actual first line of defence. This same
+commit's `should_launch.mjs:44–46` checks with the real Windows process list (not any file) whether
+a `claude.exe` process for the engine is literally still alive, and if it is, it holds off
+UNCONDITIONALLY — "an engine is already running -- never stack a second on it" — regardless of
+whether the 25-minute window has expired and regardless of whether HEARTBEAT has ever been
+written. So a genuinely live but slow-booting engine (even one that took much longer than the
+measured 11 minutes to say hello) is protected by "is the program actually running," not by a
+clock. The 25-minute LAST-LAUNCH window is the backstop for the OTHER case: a launch that FAILED
+outright (no process ever starts). I traced that path by hand too — the file writes LAST-LAUNCH
+unconditionally right after every launch attempt, success or failure (`:230`, and I confirmed via
+`git diff` against the prior commit that this line already existed and was not changed by this
+fix), so a repeatedly failing launch is retried at most once per 25 minutes, never in a tight loop.
+Both guards were already there before this fix and neither reads HEARTBEAT, so removing the
+launcher's fake self-stamp does not weaken either one — if anything it makes brake 1 (5a) more
+honest, since a relaunch can no longer manufacture a "fresh" HEARTBEAT that never reflects real
+work.
+
+**3. Claims not supported by what's actually in the repo right now**
+
+- The commit's own headline, "wyclau: the chain audit's five approved fixes -- 19/19 green," does
+  not match the repo at this exact commit. Running `node scripts/qa/wyclau_chain_audit_check.mjs`
+  right now gives **21 passed, 1 failed** out of **22** checks (the file itself prints "gate is
+  RED... 1 of 22 checks failing"). The 19-check file existed only before `146e4829` (the CEO
+  Review 56 fix, the direct parent of this commit) added three more required checks — so "19/19"
+  was never an accurate count of the file this commit was actually built on. The one still-failing
+  check, `may_publish: a 25 min lag ... MUST permit a publish, or the hook deadlocks`, belongs to
+  fix 3, which I was told is another reviewer's territory — I did not investigate it — but it means
+  the commit is not fully green as claimed, and Wyatt should hear that from someone even though it
+  is not my fix to judge.
+- The commit body also says "`npm test` is 76/76, exit 0." I ran `npm test` myself just now: exit
+  code 0, and it genuinely passes — but the tool's own count, printed by
+  `scripts/gate_count_check.js`, says **75**, not 76 ("gates in `npm test`: 75", "PASS suite
+  ceiling: 75/75 gates"), and that count comes from `package.json`'s own test chain (`package.json:12`),
+  which I counted independently and agrees. This is a minor, one-off miscount, not a fabrication —
+  the suite really is fully green — but it is a number that didn't need to be typed by hand and was
+  typed wrong.
+- Everything else claimed specifically about fix 5 — the give-up shape, the ledger line, the
+  deleted heartbeat stamp, the unchanged LAST-LAUNCH guard — checked out against the actual files
+  and against real runs of the checks, not just against the commit's description of itself.
+
+**4. The one sentence to read first**
+
+Fix 5 itself is genuinely done and I could not find a hole in either half of it — but the commit's
+own "19/19 green" is not true of the file it was built on (it's 21 of 22, and the one red check
+belongs to a different fix), so before anyone calls this whole audit closed, someone needs to look
+at that `may_publish` failure.
+
+## CEO Review 59 — 2026-09-01, chain audit: the launch decision and the publish decision — VERBATIM
+
+**Scope note: this review covers only Fix A (the watchdog's launch decision, `should_launch.mjs`)
+and Fix B (who may publish the Glass, `may_publish.mjs`) from commit `80d4a904`. It does not cover
+the long-run marker, the Stop hook's loop gate, or brake 1's give-up — other reviewers own those.**
+
+**FIX A — DONE.** **FIX B — NOT DONE**, and the gate the commit itself calls the definition of done
+is red, on disk, on this exact commit, right now.
+
+**1. Fix A: does the watchdog's judgement actually leave PowerShell, and does the "commit, not a
+tool call" rule actually work? DONE, and this is the more strongly verified of the two.**
+
+- Read `scripts/wyclau/should_launch.mjs:40-96` myself. The order really is: (1) an engine already
+  running always wins (line 44-46); (2) a genuinely progressing long job (the "LONG-RUN" marker)
+  outranks a stale commit clock (line 52-55); (3) only then does it look at when the last commit
+  landed — not at the file a hook stamps on every keystroke — and launches if that commit is older
+  than the threshold (line 86-96).
+- Read `scripts/wyclau/watchdog.ps1:114-136` myself. It genuinely calls
+  `node should_launch.mjs --dir=$Repo --engine=$engineFlag --stale-minutes=$StaleMinutes`, reads the
+  real exit code (`$LASTEXITCODE`), and only relaunches the engine when that code says to. This is
+  not a claim I took on faith — the script text is right there and I read every line of the path
+  from "read the OS process table" (line 70-79) through "decide" (114-136) to "launch"
+  (line 178-198).
+- I did not stop at reading. **I ran it, for real, on this Windows machine.** I executed
+  `node scripts/qa/watchdog_liveness_check.mjs` myself. Unlike the failure-mode check for the other
+  fix (below), this one is *not* skipped on this machine — it drives the real `watchdog.ps1` through
+  real PowerShell, against disposable throwaway folders, six separate times. All six passed,
+  including a "red-proof" (a genuinely dead session really does still get restarted, so the other
+  five results mean something) and the specific reversal Wyatt asked for: no commit landing for 3
+  hours + no engine running now launches an engine, even though the "somebody touched a file" clock
+  reads 0 minutes old — while a commit that landed 1 minute ago still correctly holds it back, so
+  the fix didn't just start restarting everything indiscriminately.
+- The restarts.log evidence, checked on disk as instructed (it is gitignored and machine-local, so I
+  read `C:\Users\wyatt\Projects\pastrypirates\.planning\wyclau\restarts.log` directly, not through
+  git). It genuinely contains:
+  `2026-09-01T02:56:01Z	hold off: a commit landed 25 min ago (within 45) -- the Chart is moving, hold off`
+  `2026-09-01T02:58:24Z	hold off: a commit landed 27 min ago (within 45) -- the Chart is moving, hold off`
+  That is the exact sentence `should_launch.mjs` produces, not a paraphrase, and it sits right after
+  three older-format restart lines from 2026-08-31 (the pre-fix code), which is real supporting
+  evidence this is a genuine history and not something typed in for the occasion. **One caveat, and
+  it's a real one:** the log records *what* each tick decided, not *who triggered* it — there is
+  nothing in the file itself distinguishing "the scheduled task's own tick" from "a manual real
+  tick." That specific attribution is the author's account layered on top of genuinely real data,
+  not something the log proves on its own.
+
+**2. Fix B: may a rescuing session publish a frozen status page? NOT DONE.**
+
+The task told me to treat turning `scripts/qa/wyclau_chain_audit_check.mjs` green as the definition
+of done. I ran exactly that command, on the delivered commit, with no local edits (confirmed —
+`git diff 80d4a904 -- scripts/wyclau/may_publish.mjs` shows nothing). It printed:
+
+```
+FAIL -- may_publish: a 25 min lag -- past brake 1's 20 min hold -- MUST permit a publish, or the hook deadlocks: expected exit 0, got 1 (stdout: the page is current (pulse is 25 min ahead of the last publish, under 45) -- defer, one publisher stands)
+
+FAIL wyclau chain audit — 1 of 22 checks failing
+```
+Exit code 1. Not the "19/19" the commit message claims — the check file grew to 22 cases (a fresh
+CEO review, #57, hardened it before the Bosun ever wrote the fix) and one of those 22 fails.
+
+**In plain terms, why this matters and isn't a nitpick:** this same commit adds a rule ("brake 1")
+that refuses to let the main worker session stop if it hasn't republished the status page in the
+last 20 minutes. `may_publish.mjs` is supposed to be the rescue valve — letting a *different*
+session step in and publish if the page has gone stale enough that the main worker clearly isn't
+going to. The bug: `may_publish.mjs` doesn't consider the page "stale enough to rescue" until 45
+minutes have passed (`scripts/wyclau/may_publish.mjs:41`, `staleMinutes` defaults to `"45"`). That
+leaves a live window — roughly 21 to 44 minutes of staleness — where the main worker is being
+forced to keep working because it hasn't published recently enough, and at the very same time no
+other session is allowed to publish for it, because it isn't stale enough yet by this file's math.
+Both rules refuse at once. That is a real deadlock in the rescue mechanism this fix exists to build,
+not a hypothetical — it's the literal scenario `scripts/qa/wyclau_chain_audit_check.mjs:270-276`
+tests for (added by Review 57 specifically because an earlier draft of this same fix hit exactly
+this deadlock), and it fails, live, today.
+
+**On the thresholds (the "nothing is a constant" question I was asked to weigh in on):** the file's
+own header claims the number is principled — `scripts/wyclau/may_publish.mjs:19-23`: *"THE THRESHOLD
+IS NOT INVENTED HERE. It defaults to the same 45 minutes the watchdog uses [for] ... an engine
+[being] DEAD."* That is the bug stated as if it were the fix. It ties the "may I rescue the page"
+threshold to an unrelated number (when to consider an *engine* dead) instead of the number that
+actually determines whether a deadlock occurs (brake 1's 20-minute publish-lag threshold, referenced
+in `.claude/hooks/wyclau-stop-keep-working.cjs:39-40` and exercised at `npm test`'s "30 min publish
+lag (over the 20-min threshold) -> blocks" / "5 min publish lag (within threshold) -> does not
+block" cases). Fix A's thresholds fare better on this same question: `LaunchGraceMinutes` (25, in
+`watchdog.ps1:20-23`) is explicitly and correctly derived from the Door's own 20-minute pulse
+promise ("must be at least ... 20 minutes"), and the LONG-RUN marker's `staleAfterMinutes` is
+written per-job by the job itself (`scripts/wyclau/longrun_status.mjs:18-20`, `:63-65`) rather than
+hand-typed anywhere — both are real derivations, correctly reasoned. One small piece of debt while
+I was in this file: `watchdog.ps1:27` still declares `$IdleMinutes = 10` with a comment explaining
+why it should be shorter than `StaleMinutes` — but that parameter is never referenced anywhere else
+in the script (confirmed by grep). It's harmless dead code, not a bug, but it's a leftover from an
+earlier design sitting next to real code, and could mislead a future reader into thinking it governs
+something.
+
+To be fair to what DID ship correctly in `may_publish.mjs`: three of its four test cases pass — a
+current page correctly defers to the one publisher (line 65-67), a page stale by 90+ minutes
+correctly permits a rescue (line 58-63), and a tree that has pulsed but never published correctly
+defaults to "may publish" (line 54-56). The logic is sound; only the number is wrong, and it is a
+small, precisely-located fix (either lower the default or thread brake 1's real 20-minute number
+through explicitly) — but as delivered and committed, it fails the gate the commit itself names as
+"done," on the exact case that gate was built to catch.
+
+**3. Anything delivered that wasn't asked for, displacing something that was?** No. Within the two
+files in my scope, nothing beyond the stated contract was built. (The one loose end — the unused
+`$IdleMinutes` parameter — is leftover scaffolding, not scope creep; it does nothing.)
+
+**4. Claims unsupported by the repo, cited file:line:**
+
+- "All 19 now pass" (commit message on `80d4a904`) and the task's framing that turning the gate
+  green is the definition of done — **unsupported.** `node scripts/qa/wyclau_chain_audit_check.mjs`,
+  run on this exact commit, prints "FAIL wyclau chain audit — 1 of 22 checks failing," exit 1, the
+  failing case being `may_publish`'s deadlock-band check. This is reproducible by anyone, right now,
+  with one command.
+- The restarts.log claim ("the scheduled task's own tick at 02:56:01Z ... and a manual real tick at
+  02:58:24Z") — **the timestamps and text are genuinely on disk and verified** (see §1 above); **the
+  attribution of which tick was scheduled versus manual is not provable from the log itself** and
+  rests on the author's word, not on anything I could independently confirm.
+
+**5. The rewritten gate — `scripts/qa/watchdog_liveness_check.mjs` — honest update, or weakened to
+pass? Honest update, and I verified this by running it, not by reading the commit's own defence of
+itself.**
+
+The old version of this file asserted the literal opposite of the new behaviour: "heartbeat stale,
+activity fresh → must NOT restart" (this is the exact bug Wyatt reported: his own typing kept the
+tree looking alive while nothing moved). A gate that still asserted that would make this whole fix
+impossible to ship honestly, so it had to change. What tips this from "weakened to pass" to "honestly
+updated," verified against the actual diff (`git show 80d4a904 -- scripts/qa/watchdog_liveness_check.mjs`),
+not just the in-file comment describing it:
+
+- **It kept a red-proof.** Test 1/6 (`watchdog_liveness_check.mjs:140-155`) first confirms a
+  genuinely dead engine still gets restarted at all — without that, every other "did not restart"
+  result in the file would be meaningless, and it's still there, unchanged.
+- **It didn't just delete the old protection — it replaced it with an equivalent one on the new
+  signal.** Test "2b/6" (`watchdog_liveness_check.mjs:198-215`, newly added in this commit) asserts
+  that a commit landing 1 minute ago *still* holds the watchdog off, with both old file-clocks stale.
+  That is the direct successor to what the deleted assertion used to protect — "don't restart
+  something that's genuinely working" — just measured by the correct signal now (a commit) instead
+  of the wrong one (a tool call). Without this case, the reversal would be a green light to restart
+  everything; with it, the gate still fails if the fix goes too far in the other direction.
+- **It added net-new coverage for the exact gap the sibling gate admits it can't see.**
+  `scripts/qa/wyclau_chain_audit_check.mjs`'s own header says it cannot verify PowerShell actually
+  calls the new helper (PowerShell won't run in this review's sandbox). This rewritten file closes
+  that gap directly: three new regex probes (`watchdog_liveness_check.mjs:58-60`) require the source
+  to call `should_launch.mjs`, pass it `--engine=$engineFlag`, and read `$LASTEXITCODE`/`$deciderCode`
+  — replacing a probe that literally could not survive the refactor (it searched for a PowerShell
+  branch string, `-not $engineRunning`, that the refactor correctly deleted). The comment at
+  `watchdog_liveness_check.mjs:48-57` explains this honestly: a gate that checks an *implementation
+  shape* breaks the day the shape improves; this one now checks the *contract*.
+- **I ran it, live, on this machine, and it is not a rubber stamp.** `node scripts/qa/watchdog_liveness_check.mjs`
+  genuinely drives the real `watchdog.ps1` through real PowerShell (this file skips its behavioural
+  half loudly, and only on non-Windows machines — I am on Windows, so nothing was skipped). All eight
+  assertions (2 structural + 6 behavioural, including the red-proof and the "2b" survivor check)
+  passed for real, against disposable fixture folders, not mocks.
+
+**Recurrence check against Review 57 (the previous verdict for this same body of work):** Review 57
+caught three vacuous/lazy implementations of these same three helpers before the Bosun built the
+real ones, and named the deadlock-band case specifically as "the case that matters" once it added
+it. That exact case is the one still failing today. So: the earlier review's warning was correct and
+specific, the gate that carries it survived into the delivered code, and the delivered code still
+does not satisfy it. That is not a new failure mode — it's the same one, caught once at the spec
+stage and not carried through to the implementation.
+
+**One sentence Wyatt should read first: the watchdog fix (fix A) is real, and I drove it myself on
+your machine and watched it work — but the "let someone else save the status page while I'm stuck"
+fix (fix B) currently creates the exact stuck-both-ways trap it was built to close, and the test
+written to catch that is failing on the code as committed, right now, with one command.**
+
+## CEO Review 58 — 2026-09-01, chain audit fixes 1 and 2 (the long-run marker; the loop gate) — VERBATIM
+
+**FIX 1 — DONE. FIX 2 — DONE as claimed, but I found a real, measured gap in it that no test in the
+suite checks — not a weakened gate, but an unwatched one.**
+
+**1. Fix by fix, with what I checked myself, not what the commit says.**
+
+FIX 1 (the marker — a small file a long job writes to say "I'm still here" — replacing the old fake
+heartbeat). `scripts/wyclau/longrun_status.mjs` is new, 118 lines. I ran the real checks in
+`scripts/qa/wyclau_chain_audit_check.mjs` myself: a missing marker, a marker that's broken JSON, one
+missing its staleness field, and one dated in the future all come back "1 = stalled, do not wait" —
+never "0 = wait, it's genuinely busy" — exactly as claimed (`longrun_status.mjs:44-83`, all four
+edge-case checks PASS). `scripts/playtest_gate.mjs:552-568` writes that marker after every leg of a
+sea trial finishes, and the "how long is too quiet" number really is computed from that run's own
+time limit — `LEG_CAP_MIN = MAX_MS / 60000`, then `Math.ceil(LEG_CAP_MIN * 1.5)` — not typed in by
+hand (`playtest_gate.mjs:552-553`). I confirmed `should_launch.mjs:35,52` genuinely calls this
+function rather than the marker sitting unused. On the "was the old 15-minute fake-pulse Monitor
+actually stopped" claim: the project's own ledger (`.planning/CTO-LEDGER.md:659-660`) shows it was
+found and killed by hand on 2026-08-31 at 23:58, hours before this commit landed — this fix's real
+job is making that manual kill unnecessary from now on, and it does that.
+
+FIX 2 (the loop gate — a hook, a script that runs automatically when a session tries to stop —
+moves from asking "did the watchdog launch this?" to "is this session actually working?"). I
+verified this two ways, not one. First, by reading: `wyclau-stop-keep-working.cjs:142` now only lets
+a session stop without a fight if PP_BOSUN (the "the watchdog started me" signal) is unset AND the
+git commit hasn't moved AND the tracked files are clean. Second, by actually running it: I pulled
+the OLD hook out of the prior commit (`146e4829`) and ran today's tests against it — the two tests
+that check "no PP_BOSUN, but this session did real work → must still block" FAILED against the old
+hook and PASS against the new one. That's a real red-to-green result I produced myself, not one I
+read about.
+
+The Quartermaster's specific warning — that `wyclau_stop_hook_check.mjs` had an old test locking in
+"PP_BOSUN unset → never blocks," and it had to be rewritten in the same commit or the suite would
+contradict itself — was honored, not dodged. I read the diff: that false assertion is gone, replaced
+by three honest cases (`wyclau_stop_hook_check.mjs:110-155`) — a session that changed nothing may
+still stop; a session with uncommitted work blocks with no PP_BOSUN at all; PP_BOSUN alone still
+forces a freshly-launched, untouched engine to keep going. I ran the file myself: 19 passed, 0
+failed.
+
+**2. Anything delivered that wasn't asked for?** No. The same commit also touches fixes 3-5
+(`may_publish.mjs`, `should_launch.mjs`, `watchdog_liveness_check.mjs`, `watchdog.ps1`) plus ledger
+and Chart bookkeeping — all five fixes were approved together, and I was told two other reviewers
+are covering 3-5, so I did not audit those beyond what I needed to isolate fix 1 and fix 2's own
+behaviour. Nothing here displaced fix 1 or fix 2.
+
+**3. Claims sitting in the repo right now that the repo itself doesn't support.**
+
+- The commit's own line, "Turning the gate green is the definition of done" / "All 19 now pass," is
+  not true of the file as it stands. I ran `node scripts/qa/wyclau_chain_audit_check.mjs` myself,
+  just now: **22 checks, 1 failing** — `may_publish: a 25 min lag ... expected exit 0, got 1`. That
+  failure is fix 3's (another reviewer's ground, not mine), and every fix-1 and fix-2 check passes —
+  but the headline claim that the whole gate is green is false, measured directly, right now.
+- The commit body also says `npm test` is "76/76." I ran it: exit 0, genuinely green, but the tool's
+  own printed count says **75/75**, and `package.json:6` confirms the declared total is 75 — it was
+  already 75 before this commit, so this looks like a stale number carried over, not a regression.
+- `scripts/qa/wyclau_chain_audit_check.mjs:363` attributes a fixture rebuild to "CEO REVIEW 56," but
+  Review 56 (`.planning/CEO-REVIEWS.md:55`) is about four unrelated Glass mobile-page bugs — the
+  fixture fix it's actually describing is Review 57's (`.planning/CEO-REVIEWS.md:49-50`). A small
+  citation error, in a file this commit didn't touch, but it's live in the repo today.
+
+**4. Was any gate weakened to pass, instead of the code being fixed? This is the question I looked
+hardest at, and the honest answer is more interesting than yes/no.**
+
+I did not find an assertion that was softened to force a pass. What I found instead: a real,
+measured hole in fix 2's own definition of "working" that nothing in the test suite exercises,
+in either direction. The dirty-tree check (`wyclau-stop-keep-working.cjs:136-140`) uses
+`git status --porcelain --untracked-files=no` — it only counts changes to files git already knows
+about. I built a real throwaway repo and ran the actual shipped hook against it myself: a session
+whose only output so far is ONE BRAND-NEW FILE it has not yet `git add`ed (the step that tells git
+"count this as real, not just sitting on disk") is invisible to this check. The hook printed nothing
+and exited 0 — it let that session stop, with a real unblocked Chart item sitting right there. The
+instant I `git add`ed that same file — still not committed — the hook correctly caught it and
+blocked. This is exactly the shape of the bug fix 2 exists to close ("a working session gets cut off
+early"), just for one specific and common kind of work.
+
+I then checked whether this was chosen to make a test pass — it was not. I removed the
+`--untracked-files=no` restriction entirely and reran both `wyclau_chain_audit_check.mjs` and
+`wyclau_stop_hook_check.mjs`: every currently-passing case still passed, identically. So the
+restriction isn't propping up the test suite; it's an independent design choice that the suite
+simply never examines either way. That makes it a real gap rather than a dishonest one, but it is
+not hypothetical — the project's own Review 57, sitting in this same file
+(`.planning/CEO-REVIEWS.md:49-50`), already warned in these words that narrowing "dirty" to tracked
+files "blinds the hook to a session whose entire output is NEW FILES — the commonest shape of work
+in this repo (every gate is a new file, this one included)." The hook's own comment
+(`wyclau-stop-keep-working.cjs:111-114`) defends the same choice for a different reason (ignoring a
+tool's scratch/log noise) — but neither reason was tested against the other, and no fixture in
+either check file creates a new file and asks whether the hook notices it before it's staged.
+
+**5. The one sentence to read first.** Fix 1 is solid and safe by construction; fix 2 is a real fix
+for the bug you reported — but it can still let a working session stop early if that session's only
+output right now is a brand-new file it hasn't `git add`ed yet, and separately, the gate that's
+supposed to prove "all five fixes are done" is not all-green at this exact commit (1 of 22 checks
+fails, in the part of the work the other two reviewers are covering, not fix 1 or fix 2).
+
 ## CEO Review 57 — 2026-09-01, the RED half of the chain audit (`f2cea081`) — VERBATIM
 
 **PARTIALLY — the gate is genuinely red and the split of labour is genuinely justified, but three of

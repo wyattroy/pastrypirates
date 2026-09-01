@@ -16,16 +16,25 @@
  *
  * EXIT CODES ARE THE INTERFACE:  0 = you may publish.  1 = defer to the Bosun.
  *
- * THE THRESHOLD IS NOT INVENTED HERE. It defaults to the same 45 minutes the watchdog uses to
- * decide an engine is DEAD (`watchdog.ps1 -StaleMinutes`), and callers pass their own in. The
- * reasoning is one sentence: if the page has not been published for longer than it takes this
- * system to conclude the engine is gone, the Bosun is not about to rescue it, so somebody else
- * may. Anything shorter and this quietly becomes a second publisher rather than a rescue.
+ * ⚠ THE THRESHOLD IS THE STOP HOOK'S, NOT ONE OF ITS OWN, AND THIS WAS A REAL DEADLOCK.
+ * The first version of this file reasoned its way to 45 minutes -- the watchdog's own "the engine
+ * is dead" window -- which is defensible on its own and WRONG in company. CEO Review 56 found why:
+ * the Stop hook's brake 1 refuses to let a session end its turn while the pulse is more than
+ * PUBLISH_LAG_THRESHOLD_MIN (20) newer than the last publish. Any threshold here above 20 opens a
+ * live window -- a 25-minute gap, say -- in which brake 1 says "you may not stop until you publish"
+ * and this file says "defer, you may not publish". THE SESSION CAN THEN DO NEITHER: it cannot stop,
+ * and it cannot clear the condition stopping it.
+ *
+ * So the number is READ from .claude/hooks/wyclau-thresholds.cjs, where brake 1 reads it too. The
+ * rule it encodes is a relationship, not a quantity: WHEREVER BRAKE 1 CAN BLOCK A STOP, SOMEBODY
+ * MUST BE PERMITTED TO PUBLISH. A relationship stored in two places is a relationship that will
+ * drift (CLAUDE.md rule 9; rule 23's "what makes these two agree?").
  */
 "use strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 export const MAY_PUBLISH = 0;
 export const DEFER = 1;
@@ -68,15 +77,29 @@ export function mayPublish(dir, { staleMinutes }) {
   };
 }
 
+/* Read brake 1's own threshold out of the tree being judged, so the two can never disagree.
+   The fallback is deliberately the SAME value rather than a larger "safe" one: erring high is
+   exactly the deadlock this whole arrangement exists to prevent, so if the shared file cannot be
+   read, this errs toward PERMITTING a publish rather than toward forbidding one. */
+export const FALLBACK_PUBLISH_LAG_MIN = 20;
+export function brakeThreshold(dir) {
+  try {
+    const require_ = createRequire(import.meta.url);
+    const v = require_(path.join(dir, ".claude", "hooks", "wyclau-thresholds.cjs")).PUBLISH_LAG_THRESHOLD_MIN;
+    return Number.isFinite(v) && v > 0 ? v : FALLBACK_PUBLISH_LAG_MIN;
+  } catch { return FALLBACK_PUBLISH_LAG_MIN; }
+}
+
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (isMain) {
   const arg = (k, d) => {
     const hit = process.argv.slice(2).find((a) => a.startsWith(`--${k}=`));
     return hit ? hit.slice(k.length + 3) : d;
   };
-  const staleMinutes = Number(arg("stale-minutes", "45"));
-  const { code, reason } = mayPublish(arg("dir", process.cwd()), {
-    staleMinutes: Number.isFinite(staleMinutes) ? staleMinutes : 45,
+  const dir = arg("dir", process.cwd());
+  const override = Number(arg("stale-minutes", ""));
+  const { code, reason } = mayPublish(dir, {
+    staleMinutes: Number.isFinite(override) && override > 0 ? override : brakeThreshold(dir),
   });
   console.log(reason);
   process.exit(code);
