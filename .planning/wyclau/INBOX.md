@@ -41,7 +41,36 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — **2 of his 3 asks now closed; only RESIZE remains.** (a) COMPRESS: done —
+status: OPEN — **2 of his 3 asks closed, and RESIZE is now nearly closed too — because there turned
+out to be almost nothing in it.** Watch 2026-09-01T23:29Z, CEO 83 (**PARTIAL**).
+
+  **THE PASTRIES — 1.71 MB, the heaviest family after the board — ARE MEASURED, AND THEY CANNOT
+  SHRINK.** All 21 measured at the recipe modal on three viewports (19 were `NOT SEEN` before).
+  Every one ships 512px wide into a slot that wants **692–879 DEVICE pixels** on a phone: ratios
+  **x0.58–x0.74**. They are not oversized, they are about 40% SHORT. His sentence cannot take a
+  byte off this family. The modal was never refused — `.prowRecipe` only exists once a seat has
+  committed a recipe, and the two-tap commit ahead of it does not land under the driver, so the row
+  was never built; the probe now falls back to the game's own `openRecipeModal()` (`recipe.js:433`).
+  CEO 83 re-derived the arithmetic itself and confirmed it.
+  **SHIPPED: −137 KB.** `assets/about-recipes.jpg` 1328×1000 251 KB → 896×675 114 KB (55% lighter),
+  the one file in the library that was unambiguously oversized, at its measured slot, posed pair in
+  `.planning/posed/about-recipes-{before,after}-phone.png`. `assets/` is now **10.57 MB**. The old
+  "ffmpeg is refused here" blocker was false — a headless-Chrome canvas is the resampler, and
+  `scripts/qa/about_art_resize.mjs` is it.
+  **WHAT IS HONESTLY LEFT TO RESIZE: about 0.15–0.25 MB, ~2%** (CEO 83). The 1.5–2 MB estimate is
+  dead: it assumed the pastries and islands were oversized and neither is.
+  **THE LAST REAL LEVER IS THE FORMAT, AND IT IS HIS CALL — waiting in CHART.md's BLOCKED ON WYATT
+  and in GLASS-NOTE.md.** WebP at q0.92 takes the same 21 pastries from 1.71 MB to 1.18 MB with the
+  pixels untouched (`scripts/qa/pastry_reexport.mjs`), posed pair in `.planning/posed/pastry-*.png`.
+  Parked rather than shipped for two measured reasons: it is a lossy re-save of his commissioned
+  art, and `/classic` reads the same `assets/` folder (`classic/src/shared/index.js:22`), so
+  renaming the files blanks the frozen v1's recipe art unless that game is edited too.
+  **KNOWN WRONG NUMBERS, LABELLED IN THE REPORT:** `trade-swirl.png` and `wind-arrow.png` sit in a
+  CAMERA layer (`rimHost`) and the probe only applies the zoom ceiling to SVG, so their ratios are
+  FLOORS, not maxima. Found by CEO 83; not fixed. **94 files / 2.84 MB `NOT SEEN` is now
+  74 files / 1.27 MB.**
+
+  *The three asks, as they stood before this watch, kept for the record:* (a) COMPRESS: done —
 `assets/` 17.79 MB → 10.70 MB (−40%), every pixel dimension unchanged, `board.png` left at
 2132×2132 per his exception; gate `asset_weight_check.mjs` RED→GREEN, npm test 89. (b) PRELOAD ALL
 ASSETS UP FRONT: done — his own "fire the ovens" example (`icons/flame.png`) was genuinely never

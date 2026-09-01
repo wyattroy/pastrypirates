@@ -225,17 +225,65 @@ for (const vp of VIEWPORTS) {
     await sleep(3000);
     record(await t.ev(COLLECT), `${vp.name}/board`);
 
-    // SURFACE 3 — the recipe MODAL, the largest pastry slot in the game. A player reaches it by
-    // tapping their own recipe in the CAPTAINS panel (`.prowRecipe`, wired in recipe.js:428), so
-    // that is how this probe reaches it — the real affordance, not a hand-built imitation.
-    const modal = await t.ev(`(()=>{
+    // SURFACE 3 — the recipe MODAL, the largest pastry slot in the game, and the reason 19 of the
+    // 21 pastries came back NOT SEEN on every run before 2026-09-01T23:xxZ.
+    //
+    // A player reaches it by tapping their own recipe in the CAPTAINS panel (`.prowRecipe`, wired
+    // in recipe.js:428), so that is tried FIRST and its result is reported either way. But the row
+    // only exists once this seat has committed a recipe, and the commit ahead of it (a draft card,
+    // then the "Bake this!" overlay — DRIVING-THE-GAME.md §3c) does not reliably land under this
+    // driver. **The modal was never refused; the thing that opens it was never built.** Waiting
+    // longer on `.prowRecipe` cannot fix that, and an instrument that never reaches its subject
+    // reports something about itself (rule 6).
+    //
+    // SO THE FALLBACK CALLS THE GAME'S OWN OPENER, `openRecipeModal()` — literally the function
+    // the `.prowRecipe` handler calls on line 433 of the same file. Same DOM, same stylesheet,
+    // same `object-fit` maths; nothing here draws a card of its own. ONE DISPLAY PATH holds. It is
+    // the same move DRIVING-THE-GAME.md §6 makes with `board.showStats()`, and §5e's rule: pose
+    // the state, do not play your way to it.
+    //
+    // AND IT WALKS ALL 21, not one. Every pastry is 512px wide but they differ in HEIGHT, and the
+    // modal is `height:220px; object-fit:contain` — so the drawn width is set by each picture's own
+    // aspect ratio, and one sample cannot stand for the family.
+    let modal = 'prowRecipe-missing';
+    const clicked = await t.ev(`(()=>{
       const el=[...document.querySelectorAll('.prowRecipe')].find(e=>(e.textContent||'').trim());
-      if(!el) return 'no-prowRecipe';
-      el.click(); return 'clicked';
+      if(!el) return false;
+      el.click(); return true;
     })()`);
-    await sleep(1500);
-    const modalUp = await t.ev(`document.querySelectorAll('.recipeModalThumb').length>0`);
-    record(await t.ev(COLLECT), `${vp.name}/modal`);
+    if (clicked === true) {
+      await sleep(1200);
+      if (await t.ev(`document.querySelectorAll('.recipeModalThumb').length>0`) === true) {
+        modal = 'prowRecipe';
+        record(await t.ev(COLLECT), `${vp.name}/modal`);
+      }
+    }
+    // RED-PROOF THE FALLBACK BEFORE BELIEVING IT: nothing is recorded unless the thumb is really on
+    // screen with a real width. A modal that failed to open records nothing and says so.
+    const walked = await t.ev(`(async()=>{
+      const m = await import('/src/ui/recipe.js');
+      if (!m.RECIPE_BOOK || !m.RECIPE_BOOK.length) return -1;
+      window.__ppOpen = (i) => { m.openRecipeModal(m.RECIPE_BOOK[i].ings);
+        const im = document.querySelector('.recipeModalThumb');
+        return !!(im && im.getBoundingClientRect().width > 0); };
+      return m.RECIPE_BOOK.length;
+    })()`);
+    let measured = 0;
+    if (typeof walked === 'number' && walked > 0) {
+      for (let i = 0; i < walked; i++) {
+        const ok = await t.ev(`window.__ppOpen(${i})`);
+        if (ok !== true) continue;
+        await sleep(140);                       // let the <img> decode so naturalWidth is real
+        const rows = await t.ev(COLLECT);
+        if (Array.isArray(rows)) { record(rows, `${vp.name}/recipe-modal`); measured++; }
+      }
+      if (measured > 0 && modal === 'prowRecipe-missing') modal = `openRecipeModal(x${measured})`;
+      // LOOK AT THE PICTURE (rule 19). A number from a modal nobody photographed is a number from
+      // an instrument nobody checked.
+      await t.shot(path.join(ROOT, `.tmp-dispsize-modal-${vp.name}.png`));
+      await t.ev(`(()=>{const el=document.getElementById('recipeModal'); if(el) el.style.display='none';})()`);
+    }
+    const modalUp = measured > 0 || modal === 'prowRecipe';
 
     // SURFACE 4 — about.html, four JPEGs on a plain static page.
     await t.nav(`${base}/about.html`);
@@ -334,6 +382,22 @@ const lines = [
   '',
   '**NOT SEEN means "this probe never reached a screen that draws it" — never "unused".**',
   'Do not shrink a NOT SEEN file on this evidence.',
+  '',
+  // CEO 83 finding 3: the two lines that turn this table into an ANSWER were printed to the
+  // terminal and never written down, so every reader had to re-run the probe to recompute them.
+  // A summary nobody can open is a summary nobody checks.
+  `**CANDIDATES** (more than 1.3x the device pixels their largest slot can use): **${over.length} file(s), ` +
+  `${(over.reduce((s, r) => s + r.kb, 0) / 1024).toFixed(2)} MB today, ~${(wouldSave / 1024).toFixed(2)} MB ` +
+  'recoverable** if each were cut to its own slot. The 1.3 is headroom, not a target.',
+  '',
+  `**NOT SEEN: ${unseen.length} file(s), ${(unseen.reduce((s, r) => s + r.kb, 0) / 1024).toFixed(2)} MB.** ` +
+  'Not measured here, so not safe to shrink.',
+  '',
+  '⚠ **A CANDIDATE IS A LEAD, NOT A VERDICT.** This probe applies the camera\'s zoom ceiling to ' +
+  '`svg image` only. An HTML `<img>` inside a camera layer (`CAM_HTML_LAYERS`, `src/ui/stage.js:476` ' +
+  '— `rippleHost`, `sailHost`, `rimHost`) grows with the zoom too, and is measured here at whatever ' +
+  'zoom the board happened to be at. `assets/trade-swirl.png` and `assets/wind-arrow.png` are both ' +
+  'in `rimHost` (`src/ui/board.js:243-250`), so their ratios are FLOORS. Found by CEO 83; not yet fixed.',
   '',
   '| KB | intrinsic | max drawn (css) | wants (dev) | ratio | file | where |',
   '|---:|---|---|---:|---:|---|---|',

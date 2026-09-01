@@ -2642,3 +2642,89 @@ say plainly which way it went.
 
 **Claimed:** INBOX-20260901T1335Z part (c), the pastry family. No other session should take it while
 this entry stands.
+
+### OUTCOME — CEO 83: **PARTIAL**. The pastries are answered, 137 KB shipped, and the resize job turns out to be nearly empty
+
+**THE HEADLINE, AND IT IS THE OPPOSITE OF THE ITEM'S PREMISE.** All 21 pastries are now measured at
+the recipe modal — 19 of them had never been measured at all — and **not one is oversized. They are
+about 40% too SMALL**: 512px files in a slot that wants 692–879 device pixels on a phone, ratios
+x0.58–x0.74. **1.71 MB, the heaviest art after the board, is off the table for Wyatt's resize ask**,
+and that is a result rather than an evasion. CEO 83 re-derived the arithmetic independently and
+confirmed it, and both posed screenshots show the real modal on a real board.
+
+**BOTH WRITTEN PREDICTIONS HELD, and the commit proves they were written first.**
+`.planning/wyclau/PREDICTION-20260901T2330Z-pastries.md` landed in `d4c6eed1` at **23:35:01Z**; the
+report stamps its run at **23:39:06Z**. Predicted ~850 device px wanted: measured 692–879. Predicted
+the two apparently-oversized pastries would drop off the list once the modal was reached:
+`13-pound-cake` x2.42 → x0.59, `11-crispy-cocoa-snaps` x1.95 → x0.58. The stated wrong-proof (a slot
+at or below ~394 px) never fired. **This is the first time on this item that a prediction survived
+contact**, and it is the reason the "cannot shrink" claim is trustworthy where the previous watch's
+identical-sounding claim was not.
+
+**WHAT SHIPPED: −137 KB, and the blocker that stopped it twice was false.** `assets/about-recipes.jpg`,
+1328×1000 251 KB → **896×675 114 KB (55% lighter)**, at its measured slot (891 device px, rounded up
+to a multiple of 8). `assets/` is now **10.57 MB**. Two watches left this file alone on the grounds
+that "ffmpeg is refused by this sandbox" — **it was a could-not that was not true.** A headless
+Chrome canvas is the resampler, as `w51_reexport_coin_art.mjs` has known since 2026-08-30, and
+`scripts/qa/about_art_resize.mjs` now does it. **CEO 83 had to point that out, and it had to point it
+out at a tool THIS WATCH had just built and not turned on the file the PREVIOUS review named.** That
+is the finding to carry: *the thing that unblocks a parked item is often something you already built
+for a different reason.*
+
+**AND THE POSED PAIR THAT PROVED IT WAS, AT FIRST, A FORGERY OF ONE.** Written down because it was
+minutes from being filed as evidence. The script re-navigated to `about.html?v=<now>` after writing
+the smaller file and screenshotted again — **the cache-buster was on the PAGE and the IMAGE URL
+never changed**, so Chrome served the picture it already had. The two screenshots came back
+**byte-identical, same md5**, and the natural reading of that was *"the resize is invisible, good."*
+It was the same photograph twice. **The only reason it was caught is that two files in a directory
+listing had the identical byte count.** The pair now loads each half under a URL Chrome has never
+seen, waits for `decode()`, asserts the decoded `naturalWidth` (1328 then 896), and fails outright
+if the two PNGs are identical — `1280903 vs 1268441 bytes` on the re-run. **A check that cannot fail
+is not a check**, and this one had been read as passing.
+
+**THE HONEST SIZE OF WHAT IS LEFT — the most useful thing this watch produced.** CEO 82 told Wyatt
+1.5–2 MB was still recoverable by resizing. **That estimate is dead.** The pastries are under-
+resolution, the island tier reads x1.22–x1.27 (inside the margin), and every remaining "oversized"
+icon is measured only at an 18×18 About-page slot while being drawn far larger on surfaces the probe
+cannot reach. **What resizing can still honestly buy is roughly 0.15–0.25 MB, about 2%.** The last
+real lever on his launch-critical ask is the FORMAT, and it is 0.53 MB.
+
+**PARKED FOR HIM, NOT DECIDED HERE.** WebP q0.92 takes the 21 pastries from 1.71 MB to 1.18 MB with
+the pixels untouched (`scripts/qa/pastry_reexport.mjs`), and the posed pair is indistinguishable.
+Not shipped, for two reasons found by looking rather than assumed: it is a lossy re-save of his
+commissioned art (his taste call), and **`/classic` reads the same `assets/` folder**
+(`classic/src/shared/index.js:22`, `classic/src/ui/recipe.js:317`), so renaming the files blanks the
+frozen v1's recipe art unless that game is edited too. In `CHART.md`'s BLOCKED ON WYATT and in
+`GLASS-NOTE.md`.
+
+**THE MASTERS CANNOT HELP, AND THE GUARD THAT SAID SO WAS ALREADY WRITTEN.** `art-review/pastries/`
+holds ~5 MB originals, but W5-1's corner-alpha guard refused all 21: opaque corner 255 against the
+shipped file's 0. They are pre-cutout renders, not bigger versions — the exact trap that guard
+exists for. Lifting it cost nothing and saved a black square behind twenty-one cakes.
+
+**AN INSTRUMENT FAULT FOUND BY CEO 83 AND LEFT LABELLED, NOT FIXED.** The probe applies the camera's
+zoom ceiling to `svg image` only. An HTML `<img>` inside a camera layer grows with the zoom too, and
+`trade-swirl.png` and `wind-arrow.png` both live in `rimHost` (`src/ui/board.js:243-250`,
+`CAM_HTML_LAYERS` at `src/ui/stage.js:476`). **Their ratios are FLOORS, not maxima.** The report now
+says so in bold at the top, because a wrong number left unlabelled is how this file has already
+misled two watches. Fixing it is the next watch's step.
+
+**HOUSEKEEPING, STATED HONESTLY RATHER THAN CLAIMED.** `.gitignore` now covers `.tmp-*` FILES as
+well as `.tmp-*/` directories, so probe screenshots can never be committed. **The scratch files are
+still on disk — this sandbox refuses `rm`, `Remove-Item` and `taskkill` inside the repo.** A human
+deletes `.tmp-boot-diag.mjs`, `scripts/qa/tmp_boot_diag.mjs` and the `.tmp-dispsize-modal-*.png`.
+CEO 82 recorded the first of those as fixed and it was not; saying "fixed" here would repeat that.
+
+**`npm test` IS RED, AND IT WAS RED BEFORE THIS WATCH.** `scripts/qa/vendor_check.mjs` finds five
+scripts edited in place inside the vendored `.claude/wyclau` area — `bell.ps1`, `publish_status.mjs`,
+`can_push.mjs`, `close_item.mjs`, `start_trial_detached.mjs` — last touched in `bdb33c94`, 46 commits
+and about seven hours before this watch opened. CEO 83 ran it independently. **This watch adds no
+failure**: `gate_count_check`, `tree_health_check`, `asset_weight_check` and `doc_command_check` all
+PASS. **It is not fixed here** — the fix is to edit those files in claude-kit and re-vendor, which is
+a different repo and a different item. **But a red chain blocks the release**, and the previous watch
+reported "npm test green" while this was already failing. Somebody should claim it.
+
+**NO ARTIFACT TOOL, so the Glass was neither harvested nor republished.** The question and both
+pictures are in `GLASS-NOTE.md` for the next session that can publish. CEO 83's criticism stands in
+full: **as filed, Wyatt cannot see the question.** No game code was touched apart from one JPEG, and
+no sea trial was run — a smaller About-page picture cannot change how the game plays.

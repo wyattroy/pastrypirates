@@ -4575,3 +4575,78 @@ were NOT, and the item stays OPEN rather than being ticked.**
   tier is executable with `scripts/lib/png.mjs` + the resampler in `w51_reexport_coin_art.mjs`, which
   the watch had accepted as blocked without checking — that acceptance was the error. The pastry tier
   is still unmeasured because `.prowRecipe` never resolved.
+
+---
+
+## CEO 83 — INBOX-20260901T1335Z part (c), RESIZE. Watch Wy-Blade, 2026-09-01T23:29Z. **VERDICT: PARTIAL.**
+
+*Fresh context, spawned with Wyatt's request verbatim, the watch's claims, and CEO 82's verdict.
+Reproduced VERBATIM below, per rule 25. Its named step 1 was executed BEFORE this verdict was
+filed — see the note at the end, which is the watch's, not the CEO's.*
+
+*Fresh context. I did not take the watch's account on trust: I re-read the report table and re-derived its arithmetic by hand, read the CSS the claim rests on, opened both posed screenshots and the probe's own modal capture pixel by pixel, ran `vendor_check` and `asset_weight_check` myself, and verified the `/classic` hazard at source.*
+
+**VERDICT: PARTIAL.** The thing CEO 82 said was missing — a real measurement of the 1.71 MB pastry family — **happened, and it is right.** I checked it three independent ways and it holds. But he asked for a **resize**, and for the second watch running, **zero bytes came off the game.** Most of that is now genuinely defensible. Not all of it is.
+
+**What is right, and it is the best measurement work this item has had.** `index.html:344` reads `#recipeModalBody .recipeModalThumb { width:100%; height:220px; object-fit:contain }` — no media query anywhere overrides it (only the `@media print` block at `index.html:411`). With `contain`, the 220px height binds before the width does on nearly every pastry, and the report's own numbers prove the probe computed the *contained* rect and not the box: `assets/pastries/01-spiced-cocoa-shortbread.png` is 512×385 (ratio 1.330) and is recorded drawn at 293×220 (ratio 1.332); `16-cinnamon-dutch-baby` is 512×446 (1.148) drawn at 253×220 (1.150). That aspect agreement cannot happen by accident. **And I looked at the picture** (`.tmp-dispsize-modal-phone.png` and `.planning/posed/pastry-png-phone.png`): a real recipe modal, over a real board, on a real 390px phone, with the torte occupying roughly 800 device pixels of a 1170px-wide frame — exactly the 805 the report claims for that file. **The instrument reached its subject.** So: **every pastry ships 512px wide into a slot that wants 692–879. They are not oversized; they are about 40% short. Claim 3 is TRUE and 1.71 MB is genuinely off the table for his resize ask.**
+
+**1. He asked for a resize; nothing was resized, and one item on the list was executable today.** `assets/about-recipes.jpg` — 251 KB, ratio **x1.49**, measured at its real and *only* slot (`about.html:177`, its sole reference in the tree). CEO 82 named it twice. The reason it was left last time was that ffmpeg is refused in this sandbox. **That excuse died this watch, by the watch's own hand:** `scripts/qa/pastry_reexport.mjs:96-102` re-encodes any image at any size through a headless-Chrome canvas — `x.drawImage(img,0,0,dw,dh); c.toDataURL(TYPE,QUALITY)` — and `TYPE` is a variable. Point it at `image/jpeg` and the one fully-measured, unambiguously oversized file in the library ships, worth ~138 KB. A watch that builds the tool and does not use it on the file the previous review named is one step short.
+
+**2. Two of the four biggest candidates are measured on a branch that cannot see the camera, and the probe's own header says why that is wrong.** `assets/trade-swirl.png` (109 KB, x1.67) and `assets/wind-arrow.png` (15 KB, x2.23) are HTML `<img>` elements built into `.rimSwirl`/`.rimFlow` at `src/ui/board.js:243-250`, inside `rimHost` — which is a **camera layer**, `src/ui/stage.js:476` (`CAM_HTML_LAYERS = ["rippleHost","sailHost","rimHost"]`). They grow with the zoom. The probe applies its max-zoom ceiling **only** to `svg image` (`scripts/qa/asset_display_size_probe.mjs:129-138`); the HTML branch at `:75-86` reads a plain `getBoundingClientRect()` at whatever zoom the board happened to be at, and both files were caught at `desktop/picker`. **This is the exact error the file's own comment block at `:19-25` was written to prevent, applied to SVG and not to board HTML.** These two ratios are not maxima and should not be acted on or reported as such.
+
+**3. The disk report drops the two lines that turn the table into an answer.** `asset_display_size_probe.mjs:357-365` prints the CANDIDATES and NOT SEEN totals to stdout; `:372-395` writes only the per-file table. CEO 82's finding 7 was "the measurement exists nowhere on disk", and it is *mostly* fixed — but the summary a reader actually needs is still terminal-only. I had to recompute it. For the record, from the table itself: **26 files / 0.66 MB of candidates** (was 27 / 0.80), and **74 files / 1.27 MB NOT SEEN** (was 94 / 2.84) — claim 2's numbers are exact, I checked them KB by KB.
+
+**4. Parking the WebP conversion is the right call. Filing it where he cannot see it is not.** The `/classic` hazard is real and I verified it: `classic/src/shared/index.js:22` is `const ASSET_BASE="../assets/"` and `classic/src/ui/recipe.js:317` builds `${ASSET_BASE}pastries/${file}.png` — the frozen v1 reads the same folder, and `pastry_reexport.mjs:109` deletes the PNG. Renaming would blank v1's recipe art. That is a genuine second-order cost, and lossy re-encoding of commissioned art is his taste call under rule 1, and the posed pair is exactly what rule 26 asks for. **But the question lives only in `.planning/CHART.md`, in an uncommitted working tree; `.planning/wyclau/GLASS-NOTE.md` is empty below its marker (cleared at 19:36, six minutes before the work finished); and the two pictures he is meant to rule on are handed over as repo file paths, not a link he can tap.** Rule 27, verbatim: *"Hand him a LINK he can tap. Never a file path."* **This is the largest remaining lever on his launch-critical ask — 0.53 MB, more than everything else combined — and as filed it cannot reach him.**
+
+**5. Debris, and half of it is CEO 82's finding 8 unfixed.** `.tmp-boot-diag.mjs` still sits untracked at the repo root beside `index.html`, with `scripts/qa/tmp_boot_diag.mjs` — CEO 82 recorded that first half as fixed and it is not. This watch added `.tmp-dispsize-modal-desktop.png`, `-tablet.png` and `-phone.png` at root, none of them gitignored.
+
+**6. Claims verified and true, so they are not held against the watch.** The prediction really does predate the measurement: `d4c6eed1` is committed 19:35:01 EDT = **23:35:01Z**, the report stamps its run at **23:39:06Z**, four minutes later. All three predictions in `.planning/wyclau/PREDICTION-20260901T2330Z-pastries.md` held and the stated wrong-proof (a slot at or below ~394 device px) did not fire. The `openRecipeModal()` fallback measures what a player sees: `src/ui/recipe.js:433` is literally the line the `.prowRecipe` handler calls, `openRecipeModal()` at `:416-426` rebuilds the same DOM from `recipeModalHTML()` at `:389-414`, and the modal in the screenshot is the game's own. **ONE DISPLAY PATH holds.** `npm test` is red at `scripts/qa/vendor_check.mjs` — I ran it, five wyclau scripts fail — and it was red before this watch: those files were last touched in `bdb33c94`, 12:23 EDT, seven hours before the watch opened. `asset_weight_check` passes at 10.70 MB with 0.30 MB headroom.
+
+**THE HONEST SIZE FOR WYATT, and this is the most valuable thing the watch produced.** The art is 10.70 MB; he excepted `board.png` (4.34 MB). CEO 82 told him 1.5–2 MB was still recoverable by resizing. **That estimate is now dead, and this watch is why:** the 1.71 MB of pastries came back under-resolution, and the island tier sits at x1.22–x1.27, under the margin. After discounting the two camera-layer files (finding 2) and every icon measured only at an 18×18 About-page slot — which the watch was **right** to leave alone; `crown` and `flip-heads` are drawn far larger on the board and in the flip ceremony — **what resizing can honestly still buy is roughly 0.15–0.25 MB, about 2%.** The resize half of his ask is very nearly finished, and the finding is that there was almost nothing there. **The remaining real lever is the format change, 0.53 MB, and it is waiting on his ruling.**
+
+**RECURRENCE OF CEO 82's THREE HEADLINE FINDINGS.** **Finding 3 (pastries never measured) — CLOSED, properly, and I credit it fully.** All 21 measured at the modal, red-proofed on `.recipeModalThumb` width > 0, photographed, and the CSS-reading practice the probe's header bans was replaced with an actual measurement. **Finding 2 (the inflated zoom ceiling) — does NOT recur; the per-device-class split at `asset_display_size_probe.mjs:118-126` is correct.** But a **sibling** of it does: the same "measured at a non-maximum moment" fault now lives in the HTML branch instead of the SVG one (finding 2 above). **Finding 1 (zero bytes shipped) — RECURS, and it is now about 85% defensible instead of 0%.** The 1.71 MB really cannot shrink and saying so is a result, not an evasion. `about-recipes.jpg` really could have shipped today with the tool this watch built. That gap is small in bytes and it is the difference between YES and PARTIAL.
+
+**NAMED NEXT STEP, in order.** (1) Ship `about-recipes.jpg` through `pastry_reexport.mjs`'s own canvas path — one file, ~138 KB, posed pair per rule 26. (2) Get the WebP question in front of him as a **published link**, not a repo path, with the two pictures side by side. (3) Fix the HTML branch to apply the camera ceiling, then re-read the trade-swirl and wind-arrow rows. (4) Write the CANDIDATES/NOT SEEN summary into the `.md`, not just stdout. (5) Sweep the five `.tmp-*` files out of the root.
+
+---
+
+### WHAT THE WATCH DID WITH CEO 83, before closing. *(The watch's own note, not the CEO's.)*
+
+**Steps 1, 4 and 5 were executed the same watch, so the verdict above is the state BEFORE them.**
+
+- **Step 1 — DONE, and it is the bytes.** `scripts/qa/about_art_resize.mjs`: `assets/about-recipes.jpg`
+  **1328×1000 251 KB → 896×675 114 KB, 55% lighter, −137 KB.** 896 is the measured slot (891 device
+  px) rounded to the next multiple of 8, not a chosen number. `assets/` is now **10.57 MB**.
+  The CEO was right that its own tool made the "no ffmpeg" blocker false, and right that the watch
+  should have seen that itself.
+
+  > **⚠ AND THE FIRST POSED PAIR FOR IT WAS WORTHLESS. Correcting it here because it was nearly
+  > filed as evidence.** The script re-navigated to `about.html?v=<now>` after writing the new file
+  > and screenshotted again — **the cache-buster was on the PAGE, and the IMAGE URL never changed**,
+  > so Chrome served the picture it already had. The two screenshots came back **byte-identical, the
+  > same md5**, and were read as "the resize is invisible, good." They were the same photograph
+  > twice. **A posed pair whose two halves cannot differ is not evidence, it is decoration** — rule
+  > 6's oldest shape, caught here only by noticing two files with the same byte count.
+  >
+  > **The pair now cannot silently pass.** Each half loads the image under a URL Chrome has never
+  > seen, waits for `decode()`, and **asserts the decoded `naturalWidth`** — 1328 before, 896 after
+  > — and the run fails if the two PNGs come out identical. Re-run: `1280903 vs 1268441 bytes`.
+  > **Read side by side, element by element, on the real page at phone size: indistinguishable** —
+  > the sponge cake's crust and the plate rims, where a JPEG re-encode shows first, are unchanged.
+  > `.planning/posed/about-recipes-{before,after}-phone.png`.
+- **Step 4 — DONE.** The CANDIDATES and NOT SEEN totals are now written into
+  `.planning/ASSET-DISPLAY-SIZES.md` instead of only to a terminal nobody keeps.
+- **Step 5 — PARTLY DONE, and honestly.** `.gitignore` now covers `.tmp-*` files as well as
+  `.tmp-*/` directories, so those screenshots can never be committed. **The files themselves are
+  still on disk: this sandbox refuses `rm`, `Remove-Item` and `taskkill` inside the repo.** A human
+  deletes `.tmp-boot-diag.mjs`, `scripts/qa/tmp_boot_diag.mjs` and the three
+  `.tmp-dispsize-modal-*.png`. Saying "fixed" here is what CEO 82 did and it was not true then.
+- **Step 3 (the camera-layer fault) — NOT fixed, and recorded where the next reader must see it.**
+  `.planning/ASSET-DISPLAY-SIZES.md` now carries a warning naming `trade-swirl.png` and
+  `wind-arrow.png` as FLOORS, not maxima, with the CEO's citations. A wrong number left unlabelled
+  is how this file has already misled two watches.
+- **Step 2 (the WebP question as a tappable link) — NOT done, and it cannot be done from here.**
+  **This session has no Artifact tool** (`ToolSearch` for Artifact/ArtifactComments/ArtifactData
+  returns nothing), so it cannot publish anything. The question and both pictures are written to
+  `.planning/wyclau/GLASS-NOTE.md` for the next session that can publish, which is the mechanism
+  built for exactly this. The CEO's criticism stands in full: **as things are, he cannot see it.**
