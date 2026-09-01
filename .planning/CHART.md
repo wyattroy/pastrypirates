@@ -122,6 +122,20 @@ convergences. Every row below was checked against the tree, not against the docu
 | 5 · the Decider interface | to build | **DONE, the narrow half — shipped 12:54Z, ruled 17:09Z.** Two orthogonal predicates stay two, per his ruling. The three mode reads that decided what is *drawn* moved to one pure rule module, `src/shared/visibility.js`; the drawing code only supplies facts. |
 | 6 · delete old paths, layering gate strict | to build | **LARGELY ALREADY ENFORCED.** All three layering rules the plan asks for already fail the build; proven by planting each violation. |
 
+- **Safari screens miss the settle window by about a tenth of a second — a tuning decision, not a bug.**
+  Measured 2026-09-01 on Safari's first two legs ever run here: 7 of 27 screens (desktop) and 5 of
+  20 (phone) were checked while still moving, **all of them GEOMETRY churn, longest wait 2.7s**
+  against the 2.6s window — and none anywhere near the 12s runaway guard. So the game is not
+  misbehaving in WebKit; the checker reads the screen a fraction before WebKit finishes animating.
+  → **PARKED, with the measurement, because the obvious fix has a real cost.** `waitSettled()`
+  already pushes its deadline while TEXT is still painting, and extending that to geometry would
+  clear these. But a screen with a looping animation would then hold until the 12s guard every
+  time, on every leg of every trial — potentially minutes added per run to fix a 100ms miss.
+  The honest options are (a) push on geometry too and accept the worst case, (b) let the window
+  follow the engine, since this is WebKit-only so far, or (c) leave it and read the cause, which
+  the verdict now prints. **Not guessing between them without more evidence** — three Safari legs
+  is one run. Revisit when a second Safari trial exists to compare against.
+
 ## THE IDEA INBOX
 
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
