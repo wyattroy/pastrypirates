@@ -36,6 +36,7 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
 - [x] The Glass generator exists (`scripts/wyclau/glass.mjs`) and the first Glass is published
 - [x] Watchdog scripts + Razer setup guide exist (`scripts/wyclau/`)
 - [x] **The Razer hour** — watchdog registered, engine launched, stall test passed through the scheduled task (2026-08-31 16:19Z)
+- [ ] Root-cause the sea trial's crash (`pname()`/`NAMES[i].replace(...)`, `src/ui/util.js:289`) blocking every voyage on the 465-commit branch — engine emission side checked clean (all `this.ev({t:...` calls consistently use `p:p.idx`, not `player:`, ruling out the recent p→player rename); narrowing to which specific event/narration call site passes an undefined index. Blocks staging deploy and the merge Wyatt approved. NOT GATED on purpose.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment
