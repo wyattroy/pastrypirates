@@ -950,3 +950,24 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   Multiplayer (13:14Z). Plus two taps confirming the rsync and sail-scope asks are resolved —
   both already cleared from the Chart before his taps; no action. His words deleted from nothing:
   harvested BEFORE the day-2 republish went over them.
+
+- 2026-09-01T13:33:49Z · close_item: INBOX-20260901T1309Z · CEO 67 · commit 0caf85c (3 game files) · no stated solution
+
+- 2026-09-01T14:30Z · INBOX-20260901T1309Z CLOSED through the gate (CEO 67 YES-WITH-ONE-FAULT,
+  commit 0caf85c1): the guest camera pinned at full zoom was ORPHANED SAIL SQUARES (teardown
+  discarded by the guest caller; clear branch never swept) made loud by the containment pass.
+  NOT a host/guest drawing fork — the week-old convergence held; one broom (clearSailWindow)
+  now serves both paths. Gate sail_window_single_check proven RED first (8 squares after a
+  duplicate render). CEO 67's fault (sheet item 1 still read ".2") fixed and republished before
+  Wyatt opened it. Staging serves 2026.09.01.3-staging@0caf85c1; his sheet gained item 6 (replay
+  the crew flow — his eyes confirm the SYMPTOM; the gate confirms the mechanism). Sweep note:
+  the swept-square ride preview (two taps, camFull on first tap) is his own 2026-08-13 design —
+  a legitimate, transient full-zoom, not this bug. Remaining before merge: his item 6, the Muse
+  narration regression (INBOX, OPEN), and the detached release trial on build .3.
+
+- 2026-09-01T14:45Z · SECOND GLASS HARVEST of the afternoon (page version 13:32Z): FOUR more
+  ideas, all in the INBOX verbatim — attack buttons on the wrong captain (OPEN, his solution
+  shape: universal placement rule, no patches); the tap-and-hold hint's attention animation
+  flashing rapidly (OPEN); the hold redesign with an auto-checking recipe box (PARKED to the
+  launch list, his own routing: "NOT urgent, but must be done pre-Reddit launch"); mini spinning
+  coins over bot dock flips (PARKED, "eventual nice to have"). Nothing overwritten.

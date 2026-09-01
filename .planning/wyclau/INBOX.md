@@ -24,7 +24,39 @@ Every item gets a visible fate within a day (charter: the Chart's every-idea-get
 > replicate the bug, but there is some interaction that causes the camera to become FULLY zoomed
 > out, and stay that way, until the guest refreshes their page."
 solution: none stated
-status: CLAIMED by the advisor session, 2026-09-01 — written on the Glass 13:08:57Z, the same hour he playtested the sail-cam fix on staging. The new containment pass zooms OUT only; "fully zoomed out and stays" is exactly the failure shape a runaway pass would produce. Prediction and measurement before any code.
+status: DONE 2026-09-01 — CEO 67, commit 0caf85c (3 game files)
+
+## INBOX-20260901T1332Z — attack buttons land on the WRONG captain
+> "Sometimes, the buttons to attack a captain (when there are two options, eg. you're adjacent to
+> two captains) place the buttons on top of the wrong captain -- eg Davy Scones button will not be
+> on top of Davy Scones, it'll be on top of Crustbeard. Fix this universally, not through patches,
+> so that the buttons that refer to selecting a player are always drawn next to them, not on top
+> of, or next to, someone else."
+solution: fix universally, not through patches — one rule places every player-selecting button beside its player (his words)
+status: OPEN — written on the Glass 13:32:49Z. Rule 23 shape: find the ONE placement path (or the fork that makes two).
+
+## INBOX-20260901T1317Z — the "Tap and hold the sea" hint's attention animation flashes rapidly
+> "\"Tap and hold the sea to reveal the board\" tooltip hint's attention-animation, which should be
+> the same gentle orange gradient as the other attention buttons that are on stages, instead
+> flashes many many times per second -- the css or something on this animation is broken. Debug."
+solution: none stated (target look: the same gentle orange gradient as the other stage attention buttons — his words)
+status: OPEN — written on the Glass 13:17:07Z. Consistency rule 8: one attention animation, everywhere.
+
+## INBOX-20260901T1319Z — redesign the hold: what you NEED vs what you HAVE (pre-launch backlog, his priority)
+> "In a recent playtest, a new player did not know how to understand their hold. they didn't
+> realize that the red squares were ingredients they still needed; they thought that they already
+> had them. add this to the eventual backlog (NOT urgent, but must be done pre-Reddit launch): we
+> need to redesign the hold to make it clearer what you need, and what you have. I think there
+> should be a separate \"recipe\" box somewhere, so that everyone's hold can simply look the same,
+> and the recipe box can get checked off automatically as you acquire those ingredients"
+solution: a separate recipe box that checks off automatically; every hold looks the same (his words)
+status: PARKED — his own routing: "NOT urgent, but must be done pre-Reddit launch" → belongs on the Chart's launch list (step 3, finished feel), added there at the next Chart pass.
+
+## INBOX-20260901T1322Z — mini spinning coins above bot boats at dock flips (nice-to-have)
+> "Eventual nice to have: bot turns at docks should have mini spinning coins appear above their
+> boats when they're flipping at the dock. we already hear their sound, we should see it too."
+solution: none stated
+status: PARKED — his own routing: "Eventual nice to have" → idea inbox, after launch items.
 
 ## INBOX-20260901T1314Z — Muse narrations missing in Multiplayer
 > "The Muse narrations are now missing from all narration in Multiplayer -- they don't seem to be
