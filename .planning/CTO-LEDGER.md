@@ -2447,3 +2447,48 @@ has **19** non-opaque pixels of 4,545,424 — the rounded percentage hid them. I
   verdict below is worthless; the structural half still stands"* — so every leg's visual pass is
   DEFERRED, not cleared. Not this watch's item; recorded so nobody re-starts a run that has already
   happened, and nobody stages on a report whose visual half is empty.
+
+---
+
+## ⚠ RETROACTIVE CLAIM — 2026-09-01T22:4xZ, Wy-Blade (interactive, Advisor mode). WRITTEN AFTER THE WORK, AND MARKED AS SUCH.
+
+**This claim should have been written BEFORE the edit and was not. CEO 81 caught it.** Rule 16 is
+explicit — *"CLAIM THE ITEM IN THE LEDGER BEFORE EDITING IT … this is the whole coordination
+mechanism"* — and another session was demonstrably live on this branch throughout: `19f039ca` (its
+claim of INBOX-20260901T1335Z) → `087101f9` (its fix) → `9138a0e7` (mine) → `c4063d32` (mine). Two
+sessions interleaving commits, one of them unclaimed. **This is the third recording failure tonight
+and the second of the same shape: CEO 79 charged the gap, CEO 80 got appended, and the ledger — the
+half nobody was grading — was skipped again.**
+
+**WHAT WAS DONE, so the other session can see whose it was:**
+- `scripts/wyclau/mark_glass_published.mjs` — now requires `--version=<id>`; a bare call exits 1 and
+  writes nothing. Fixed at source in claude-kit (`8691117`) and re-vendored, not edited in place.
+- `scripts/qa/glass_publish_stamp_check.mjs` — NEW gate, wired into `npm test`, `gates.total` 88→89.
+- `scripts/wyclau/glass.mjs` — two dead claims removed (the "keep-working Stop hook" that reads the
+  publish gap was deleted in claude-kit `2dd722c` and exists nowhere).
+- `.claude/skills/door/SKILL.md` — steps 1 and 6 updated to `--version=<id>`.
+- `.planning/wyclau/GLASS-UPDATE-SESSION.md` — step 7 was left BARE and would have exited 1 under
+  the recurring publisher. Swept after CEO 81 found it, not before shipping. See below.
+
+**FILES I DID NOT TOUCH, deliberately:** the ~150 uncommitted asset-recompression changes in this
+tree belong to the concurrent session. Left exactly as found; `git pull --rebase` correctly refused
+because of them and I pushed without rebasing rather than disturb them.
+
+**THREE OF MY OWN ERRORS TONIGHT, all corrected in the open rather than dropped:**
+1. Told Wyatt 8 vendored files had drifted and sessions were editing them in place. **FALSE** — a
+   CRLF artifact: `diff` reported 172 changed lines in a file `diff --strip-trailing-cr` called
+   identical. The vendor gate was GREEN before my edits and I turned it red.
+2. Acting on that, ran the re-vendor — which **DELETED** the landed-commits last-progress fix and the
+   cross-machine long-run read, because the kit was 104 lines BEHIND this repo. Caught by reading
+   the 75 deletions instead of trusting the green gate that ran after, reverted, then fixed properly
+   by bringing the repo's newer file into the kit first. **A green gate after a destructive
+   operation is not evidence the operation was safe.**
+3. Shipped a breaking interface change and swept ONE of two runbooks. `door/SKILL.md` was updated in
+   both repos; `GLASS-UPDATE-SESSION.md` step 7 was not — **the operating instruction for the
+   recurring unattended publisher**, whose step 7 would have exited 1 with nobody to read the error.
+   Rule 8's consistency sweep, missed, and it cost one grep to find.
+
+**STILL OPEN, NOT CLOSED BY THIS:** `glass_needs_publish.mjs` is not built, so the recurring
+publisher still republishes on every tick regardless of whether anything moved — the timer fault
+Wyatt named and CEO 80 upheld. And a cron said to be running in another session (`538477ec`) is that
+session's report, **not something this one measured**: a session cannot list another's cron jobs.
