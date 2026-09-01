@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T14:11:51.993Z	attack circles anchored (CEO 69) on staging .5; the trade-menu question is on your cards; O2 CLOSED -- the Blade publishes the Glass
+2026-09-01T14:18:07.522Z	your trade-fan ruling harvested and filed; Bell registered and ticking; watch 1 on deck
 ```
 
 ## Long run in flight (LONG-RUN)

@@ -121,7 +121,13 @@ below names the alternative he did NOT pick, because the alternative is what mak
    itself. *(Over: tomorrow, or at shakedown start.)*
 4. **THE NAMES ARE HIS PICKS: the WATCH (the engine — a relay of fresh runs) and the BELL (the
    scheduler that rings a new watch when none is on deck).** "Bosun" retires with the role.
-5. **HE IS "THE CAPTAIN", NEVER "CHAIRMAN".** His words, 2026-09-01: *"I feel weird when you call
+5. **THE TRADE FAN STAYS.** Ruled ON THE GLASS (tap-to-rule's first real use), 2026-09-01
+   14:16:56Z, his note verbatim: *"Don't touch the trade fan, it's fine."* The trade-response
+   menu keeps fanning around the chooser; the anchored-on-named-boats rule governs the battle
+   call and the attack menu, and the difference is HIS chosen exception (rule 8's sanctioned-
+   exception form). Do not re-open as a consistency patch. *(The alternative — anchoring trade
+   answers on responders' boats — was recommended against and he agreed.)*
+6. **HE IS "THE CAPTAIN", NEVER "CHAIRMAN".** His words, 2026-09-01: *"I feel weird when you call
    me Chairman, it reminds me of Chairman Mao. Can you call me Captain instead, without that
    getting confusing with our game terminology?"* The disambiguation that keeps it clean: inside
    the game world, lowercase "captains" are the players (game copy untouched); on system surfaces
@@ -129,7 +135,7 @@ below names the alternative he did NOT pick, because the alternative is what mak
    capital-C **the Captain** is Wyatt. "The chairman's log" (charter term, 2026-08-30 org era) is
    renamed **the Captain's log** everywhere it appears. *(The alternative — keeping "chairman of
    the board" from the org design — is struck at his ask.)*
-6. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
+7. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
    ("YER CALL, not a defect: judge the wider camera itself") marked PASSED with items 1–4. The
    taste question the fix raised is settled; do not re-open it as a patch. Any future tune is a
    one-place change to the containment pass's derived margins, on his ask only.

@@ -1029,3 +1029,9 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   tool stays unexplained; the operative question is answered.) Attack item closed via the gate
   (CEO 69, f2dff2cb); the trade-menu sibling routed to BLOCKED ON WYATT as a decision card, per
   CEO 69's routing fault.
+
+- FIRST TAP-TO-RULE RULING HARVESTED (14:16:56Z, from the page's saved state): the trade fan
+  stays — "Don't touch the trade fan, it's fine." Filed to DECISIONS (relay addendum ruling 5),
+  BLOCKED ON WYATT emptied. Bell task confirmed registered and Ready (his schtasks query).
+  The full Glass loop — question up as a card, ruled on the page, harvested to the record,
+  card retired — has now run end to end once.
