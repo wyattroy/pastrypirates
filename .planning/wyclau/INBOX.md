@@ -26,6 +26,17 @@ Every item gets a visible fate within a day (charter: the Chart's every-idea-get
 solution: none stated
 status: DONE 2026-09-01 — CEO 67, commit 0caf85c (3 game files)
 
+## INBOX-20260901T1335Z — compress the images + preload all assets (LAUNCH CRITICAL, his words)
+> "There's one more SUPER important step we must finish before launch -- compressing the images to
+> make the game load MUCH faster. it's about 18mb of images, from memory. but the only one that
+> needs to be as big as it is is the board itself -- everyhting else should be resized and
+> compressed according to its maximum pixel size in the real gameplay. this is launch critical; as
+> part of it, we need to load all game assets up front; i notice sometimes that the \"fire the
+> ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
+> connections. Bad engineerign!"
+solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
+status: OPEN — written on the Glass 13:35:23Z. His routing: LAUNCH CRITICAL → belongs on the Chart's launch list (step 3) as a named item, worked through the Proof (measure the real 18MB first, before/after load times).
+
 ## INBOX-20260901T1332Z — attack buttons land on the WRONG captain
 > "Sometimes, the buttons to attack a captain (when there are two options, eg. you're adjacent to
 > two captains) place the buttons on top of the wrong captain -- eg Davy Scones button will not be

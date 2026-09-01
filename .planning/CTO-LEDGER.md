@@ -971,3 +971,12 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   flashing rapidly (OPEN); the hold redesign with an auto-checking recipe box (PARKED to the
   launch list, his own routing: "NOT urgent, but must be done pre-Reddit launch"); mini spinning
   coins over bot dock flips (PARKED, "eventual nice to have"). Nothing overwritten.
+
+- THIRD GLASS HARVEST (page version 13:35:23Z): one idea, LAUNCH CRITICAL by his own words —
+  compress the ~18MB of images to each asset's real maximum gameplay size (board excepted) and
+  preload everything up front (the "fire the ovens" graphic loads lazily and would appear blank
+  on slow connections). INBOX-20260901T1335Z, routed to the launch list.
+  ⚠ CORRECTION on my own earlier entries: the "14:30Z"/"14:45Z" stamps on today's two prior
+  harvest entries were hand-typed estimates and are ~1h fast — the page's own generatedAt values
+  put the real times near 13:2x–13:3xZ. Convention 2 (never hand-type a number) applies to
+  clock times too; entries stand, times corrected here rather than edited in place.

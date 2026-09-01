@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T13:35:02.377Z	harvested four more of your Glass notes; camera fix on staging .3 -- sheet item 6 is yours when ready
+2026-09-01T13:36:43.128Z	harvested: image compression + preload marked LAUNCH CRITICAL, routed to the launch list
 ```
 
 ## Long run in flight (LONG-RUN)
