@@ -872,3 +872,16 @@ ONE HONEST GAP, same as the prior Bosun and QM both reported: no Artifact tool i
 7. THE BRANCH IS 539 COMMITS AHEAD OF MAIN, NOT 465. I repeated "the 465-commit branch" all night from a stale Chart line without once checking it.
 
 WHAT STANDS: the pname() crash fix is real and the game plays again; Safari solo sails where it never had; the four harness fixes are real and their gates fail against the pre-fix code (the reviewer drove two of them red itself). WHAT DOES NOT: any claim that this trial PASSED.
+
+2026-09-01T09:45:00Z  QA  SEEDING THE RNG PINS THE BOARD AND NOT THE MOMENT -- and finding that out is worth more than the fix I did not ship. The probe can now force the game's seed from the browser side (Math.random overridden before any game script runs, so no test hook goes anywhere near shipping code -- docs/DRIVING-THE-GAME.md §5e's rule). It works: --seed=7 produced the SAME room code ZTNK on two separate crew runs, so the game's own RNG really is pinned.
+
+IT STILL DID NOT GIVE A POSED COMPARISON. Same seed, two runs:
+  run 1 -> 20 sail squares, ONE outside: (3,8) 23px off the LEFT, centre outside, hits nothing
+  run 2 -> 18 sail squares, SIX outside: (4,9) -58, (4,8) -59, (3,9) -116, three of them untappable
+Nothing is flaky in the game there. The probe measures the GUEST'S FIRST SAIL PROMPT, and which turn that falls on depends on how fast the driver got there -- a different turn is a different board position, so the two runs photographed different moments of the same seeded voyage. A fix judged across those two would have looked like a triumph or a disaster at random. THAT IS EXACTLY THE SAMPLING MISTAKE THAT COST THE NIGHT OF 2026-08-30, wearing new clothes, and I nearly walked into it having quoted the rule against it twice.
+
+WHAT THE RUNS DID CORROBORATE, strongly: run 2's magnitudes -- -58, -59, -116 -- match what stage.js recorded on 2026-08-29 almost exactly ("six sail squares at x = -57 to -116, off the LEFT edge by more than a full square"). The probe reproduces the DOCUMENTED signature of this bug, not something adjacent to it.
+
+SO THE PROBE NOW STATES THE MOMENT IT MEASURED (day + square count) and says out loud that two runs are comparable only when both match. That is the honest instrument. What a real posed pair still needs is a pinned TURN, not just a pinned seed -- inject the state (§5e) rather than racing a driver to it.
+
+STILL NOT FIXED, AND STILL DELIBERATELY. Two nights have now been lost to changing this on evidence that could not carry the weight; a third would be mine.

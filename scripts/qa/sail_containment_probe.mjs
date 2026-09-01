@@ -38,11 +38,24 @@ const { makePlayer, GATE_SRC } = await import(pathToFileURL(path.join(ROOT, "scr
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const W = +arg("w", 390), H = +arg("h", 844);
-const MODE = arg("mode", "solo");   // solo | crew  (crew measures the GUEST, where the bug lives)
+const MODE = arg("mode", "solo");
+const SEED = arg("seed", "");        // pose the SAME board twice: --seed=1   // solo | crew  (crew measures the GUEST, where the bug lives)
 /* Into sea-trial-shots/, which exists and is gitignored -- NOT the repo root. tree_health_check
    reads a root-level path as a top-level directory and fails the build on one that is not there,
    which is exactly what it caught here. */
 const SHOT = arg("shot", path.join(ROOT, "sea-trial-shots", "sail-containment.png"));
+
+
+const SEED_SRC = (n) => `(() => {
+  let s = ${n} >>> 0;
+  Math.random = function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+})()`;
 
 const c = await openChrome({
   W, H, dbgPort: 9411, httpPort: 8301, serveRoot: ROOT,
@@ -60,7 +73,12 @@ if (MODE === "crew") {
     profileDir: path.join(ROOT, "sea-trial-shots", "prof-sail-probe-host"),
     mobile: false, dsf: 1,
   });
+  /* THE HOST'S SEED IS THE ONE THAT MATTERS in a crew game -- the host creates the Game and the
+     guest receives its seeded stream -- but both are pinned so nothing else drifts between runs. */
+  if (SEED) await hostC.send("Page.addScriptToEvaluateOnNewDocument", { source: SEED_SRC(SEED) });
 }
+
+if (SEED) await c.send("Page.addScriptToEvaluateOnNewDocument", { source: SEED_SRC(SEED) });
 
 try {
   /* BOOT AND DRIVE WITH THE REPO'S OWN DRIVER, not a hand-rolled click loop. The first version of
@@ -169,7 +187,10 @@ try {
   const player = makePlayer(c, { log: (m) => console.log("  [guest]", m), isGuest: MODE === "crew" });
   const hostPlayer = hostC ? makePlayer(hostC, { log: () => {} }) : null;
   let cells = 0;
-  for (let i = 0; i < 60 && cells === 0; i++) {
+  /* GENEROUS, because in a crew game the GUEST only gets sail squares on ITS OWN TURN and the
+     other captains have to play first. A 60-iteration budget reached DAY 1 and timed out waiting
+     for the turn to come round -- which looks exactly like "no sail prompt" and is not. */
+  for (let i = 0; i < 240 && cells === 0; i++) {
     await c.ev(GATE_SRC);
     cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
     if (cells) break;
@@ -196,6 +217,22 @@ try {
 
   await sleep(1200); // let the 180ms camera fit and its lerp finish
 
+  /* WHICH MOMENT WAS MEASURED, and this is the lesson of the seeded runs.
+     SEEDING THE RNG PINS THE BOARD AND NOT THE MOMENT. Two runs at --seed=7 produced the SAME
+     room code (ZTNK, so the seed really is taking) and two different pictures: 20 squares with 1
+     outside, then 18 squares with 6 outside and one 116px off the left. Nothing is flaky about
+     the game there -- the guest's FIRST sail prompt simply falls on a different turn depending on
+     how quickly the driver reached it, and a different turn is a different board position.
+     A before/after judged across those two runs would be exactly the sampling mistake that cost
+     the night of 2026-08-30, in new clothes. So every result states the moment it measured, and
+     runs are only comparable when the day AND the square count match.
+     (Run 2's numbers -- -58, -59, -116 -- match the measurement stage.js recorded on 2026-08-29:
+     "six sail squares at x = -57 to -116". The probe reproduces the documented signature.) */
+  const moment = await c.ev(`(() => {
+    const d = (document.body.innerText.match(/DAY (\d+)/) || [0, "?"])[1];
+    return JSON.stringify({ day: d, cells: document.querySelectorAll(".sailCell").length });
+  })()`);
+  console.log("measured at:", moment, "— only compare runs whose day AND cell count match");
   const report = await c.ev(`(() => {
     const vw = window.innerWidth, vh = window.innerHeight;
     const out = [];
@@ -221,7 +258,7 @@ try {
   const centreOut = r.cells.filter(x => x.centreOutside);
   const unhittable = r.cells.filter(x => x.hit === null);
 
-  console.log(`\nviewport ${r.vw}x${r.vh}   sail squares: ${r.cells.length}`);
+  console.log(`\nviewport ${r.vw}x${r.vh}   sail squares: ${r.cells.length}${SEED ? `   seed ${SEED} (posed — rerun with --seed=${SEED} for the same board)` : "   UNSEEDED — this board will not recur"}`);
   console.log(`squares with ANY part outside the viewport: ${outside.length}`);
   console.log(`squares whose CENTRE is outside (untappable):  ${centreOut.length}`);
   console.log(`squares whose centre hits NOTHING at all:      ${unhittable.length}`);
