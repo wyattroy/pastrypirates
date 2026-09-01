@@ -125,7 +125,15 @@ status: OPEN — written on the Glass 13:10:15Z. A wyclau process item: the RULE
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: MUST BE RE-SAILED — the run started 14:19:35Z is COMPROMISED and its report must not be believed. At ~14:35Z the Blade's checkout entered a rebase onto `47ae2d28` (10:18Z), which rewound the working tree the trial was reading by 21 commits — including index.html and src/ui/stage.js, i.e. the attack-circles fix and the sea-hint pulse removal. Its first legs sailed one build and its later legs another. A trial whose code changed mid-run cannot have a verdict, and rule 24's NOT-RUN column exists precisely so this is stated rather than hidden. Re-sail from a clean checkout at the branch tip once the Blade's git state is repaired.
+status: IN FLIGHT — re-sailed 2026-09-01T16:44:08Z from the repaired Blade at a clean tree
+(HEAD `27fb9c48`, `can_push.mjs` green, build `2026.09.01.6`). Detached, pid 38460, run
+`2026-09-01T1644Z-Wy-Blade`, FULL gear, 10 legs (solo-desktop/phone/tablet, passplay-phone/
+desktop, crew-desktop/phone, solo-desktop/phone/tablet-wk). Report:
+`.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md`. Log:
+`.planning/wyclau/detached/trial-2026-09-01T1644Z-Wy-Blade.out`. The prior run (started
+14:19:35Z) is the one this item already declared COMPROMISED (mid-run rebase); it is now
+STALLED per `longrun_status.mjs` and superseded by this one. Next watch: read the report,
+do not start a second trial while this pid is alive.
 
 ## INBOX-20260901T0000Z — worked example (the fix that seeded this file)
 > "the bosun spent 4 days making stupid tooling instead of simply fixing the sail square problem

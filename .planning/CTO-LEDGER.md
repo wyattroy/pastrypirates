@@ -1311,3 +1311,59 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   CAPTURED (a launch death was indistinguishable from silence); and a watch REFUSES TO WORK in a
   tree it cannot publish from — 11 checks, red-proofed against a fixture built as this exact broken
   folder, wired into npm test at 85 gates.
+
+## WATCH 16:39:42Z — situation and claim
+
+- Watch started: 2026-09-01T16:39:42Z (rung by the Bell, no watch on deck). Hostname confirmed
+  `Wy-Blade` — this IS the repaired machine.
+- Last progress: commit `27fb9c48` at 2026-09-01T16:39:15Z UTC (12:39:15-04:00) — "the Blade is
+  repaired and can publish."
+- Previous watch closed: the Blade-hour repair (task registration, non-interactive launch,
+  stuck rebase abort, `can_push.mjs` gate). Verified again this turn: `can_push.mjs` reports
+  clean, on-branch, tracking, no rebase/merge in progress; HEAD is `27fb9c48`, tree clean.
+- Blocked on Wyatt: nothing (the Chart's table is empty).
+- Detached trial in flight: the OLD one (`sea trial, 10 legs`, started 14:19:35Z) is DEAD —
+  `longrun_status.mjs` reports STALLED (108+ min past its own staleness), and its log
+  `trial-2026-09-01T1419Z-Wy-Blade.out` has not been written to in ~100 min. It is the same run
+  INBOX-20260901T1315Z already declared COMPROMISED (a mid-run rebase rewound the tree it was
+  reading). Its marker carries no `pid`, so `start_trial_detached.mjs`'s live-pid guard will not
+  fire on it — noted here rather than hidden.
+- This watch's ONE item: **INBOX-20260901T1315Z, the release trial** (top of the ORDER NOTE in
+  INBOX-20260901T1310Z). Git state is now repaired, so the item's own stated condition
+  ("re-sail from a clean checkout at the branch tip once the Blade's git state is repaired") is
+  met. CLAIMING it now. Starting a fresh detached FULL-gear trial (`gear.mjs` confirms FULL) from
+  this clean tree, then ending the turn per the Watch rule — a long job is started, never ridden
+  inside a session.
+
+## WATCH 16:39:42Z — done: trial started, Glass write-only
+
+- **DETACHED, confirmed alive, not just started.** `node scripts/wyclau/start_trial_detached.mjs
+  --label="sea trial, 10 legs (re-sail, clean 27fb9c48 tree)"` → pid 38460, run
+  `2026-09-01T1644Z-Wy-Blade`. Waited 20s and read the log directly (not the marker): build
+  `2026.09.01.6`, gear FULL, the real 10-leg list, into "1/2 the checks that need no browser (npm
+  test)". `publish_status.mjs` a few seconds later showed `LONG-RUN` self-overwritten by the
+  trial's own `markProgress()` to `"0/10 legs"`, `staleAfterMinutes: 53` — the process is alive
+  and driving, not a launch that died silently (the exact failure mode this watch's own
+  situation report flagged as a risk given the old marker's missing pid).
+- INBOX-20260901T1315Z updated to IN FLIGHT with these numbers (pid, runId, report/log paths);
+  the old 14:19:35Z run's status is superseded, not deleted, so the compromised-run record stays
+  readable.
+- `publish_status.mjs` run: `.planning/wyclau/status/Wy-Blade.md` regenerated — included below in
+  this commit per its own instruction ("commit it so other machines can read this one's
+  instruments").
+- **⚠ NO ARTIFACT TOOL IN THIS SESSION** — stated plainly, per the Door's own instruction, not
+  guessed at. `glass.mjs --note "..."` ran and wrote `.planning/wyclau/glass.html` locally with
+  this watch's note and a fresh heartbeat, but this session has no way to call the Artifact tool
+  to publish it, and `ToolSearch` for "Artifact publish read" surfaces no such tool. So the Glass
+  page at https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2 is NOT updated by
+  this watch — the note exists only in this ledger entry and the unpublished local HTML. **The
+  next capable session should harvest (none pending — no ideas/rulings were added this turn) and
+  republish** so the Glass reflects this trial. `mark_glass_published.mjs` was NOT run, correctly,
+  since nothing was actually published.
+- Nothing on this watch was game code — the item was procedural (start and record a detached QA
+  run), so no CEO review is owed per rule 25 ("after work — something built, fixed, measured or
+  shipped"); starting an already-designed detached-trial script is none of those. The trial's own
+  eventual verdict is what a future watch takes to CEO/staging/merge.
+- Ending the turn now, per the Watch rule: one item, and a long job is never ridden inside a
+  session. Next watch: read `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md` if it exists yet;
+  if not, check `longrun_status.mjs` for live progress before touching anything trial-related.
