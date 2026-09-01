@@ -144,6 +144,38 @@ console.log("wyclau chain audit — the five approved fixes, checked by behaviou
   }));
   expectExit("longrun: marker MISSING staleAfterMinutes -> exit 1, not an indefinite hold-off", LR, [`--dir=${missingFields}`], 1);
 
+  /* ⚠ MY OWN CONTRACT WAS WRONG HERE, AND WYATT'S restarts.log CAUGHT IT, 2026-09-01.
+     Five consecutive hold-offs, 10:16Z to 10:56Z, all reading: long run "sea trial, 10 legs" is
+     progressing (0/10 legs), last moved 11 ... 51 min ago. The leg counter never moved off ZERO
+     and the engine was held off for 51 minutes anyway, because the test I specified was "is
+     updatedAt recent", which is a FRESHNESS test wearing a PROGRESS test's name. That is the
+     timer-versus-evidence fault this whole audit was about, one level down, in the fix for it.
+
+     SO THE MARKER CARRIES TWO CLOCKS AND THEY MEAN DIFFERENT THINGS: `updatedAt` moves whenever
+     the job touches the file at all, and `progressAt` moves ONLY when `progress` actually
+     increases. Staleness is judged on progressAt. A job that is alive but achieving nothing must
+     read as stalled, because from the watchdog's side those are the same thing. */
+  const busyButFrozen = fixture("lr-busy-frozen");
+  fs.writeFileSync(path.join(busyButFrozen, ".planning/wyclau/LONG-RUN"), JSON.stringify({
+    what: "sea trial, 10 legs", startedAt: iso(70), updatedAt: iso(1),
+    progressAt: iso(51), progress: 0, staleAfterMinutes: 20,
+  }));
+  expectExit(
+    "longrun: file touched a minute ago but progress FROZEN at 0 for 51 min -> exit 1 (this is Wyatt's 10:16-10:56Z log)",
+    LR, [`--dir=${busyButFrozen}`], 1
+  );
+
+  // The converse, so the check above cannot be satisfied by a script that simply always says 1.
+  const genuinelyMoving = fixture("lr-moving");
+  fs.writeFileSync(path.join(genuinelyMoving, ".planning/wyclau/LONG-RUN"), JSON.stringify({
+    what: "sea trial, 10 legs", startedAt: iso(70), updatedAt: iso(1),
+    progressAt: iso(4), progress: 6, staleAfterMinutes: 20,
+  }));
+  expectExit(
+    "longrun: progress advanced 4 min ago -> exit 0 (hold off), so the frozen case is discriminating",
+    LR, [`--dir=${genuinelyMoving}`], 0
+  );
+
   const future = fixture("lr-future");
   fs.writeFileSync(path.join(future, ".planning/wyclau/LONG-RUN"), JSON.stringify({
     what: "clock skew", startedAt: iso(10), updatedAt: new Date(Date.now() + 3600e3).toISOString(),
