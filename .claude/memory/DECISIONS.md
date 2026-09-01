@@ -121,7 +121,15 @@ below names the alternative he did NOT pick, because the alternative is what mak
    itself. *(Over: tomorrow, or at shakedown start.)*
 4. **THE NAMES ARE HIS PICKS: the WATCH (the engine — a relay of fresh runs) and the BELL (the
    scheduler that rings a new watch when none is on deck).** "Bosun" retires with the role.
-5. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
+5. **HE IS "THE CAPTAIN", NEVER "CHAIRMAN".** His words, 2026-09-01: *"I feel weird when you call
+   me Chairman, it reminds me of Chairman Mao. Can you call me Captain instead, without that
+   getting confusing with our game terminology?"* The disambiguation that keeps it clean: inside
+   the game world, lowercase "captains" are the players (game copy untouched); on system surfaces
+   outside the game world — the Glass, reports, docs, the same boundary as the credits rule —
+   capital-C **the Captain** is Wyatt. "The chairman's log" (charter term, 2026-08-30 org era) is
+   renamed **the Captain's log** everywhere it appears. *(The alternative — keeping "chairman of
+   the board" from the org design — is struck at his ask.)*
+6. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
    ("YER CALL, not a defect: judge the wider camera itself") marked PASSED with items 1–4. The
    taste question the fix raised is settled; do not re-open it as a patch. Any future tune is a
    one-place change to the containment pass's derived margins, on his ask only.
@@ -293,7 +301,7 @@ CLAUDE.md says in its own words that a list which reads longer than it is dilute
 and the hook fires on every turn in every session rather than only inside a `/team` run — so the
 coverage is already complete without a new row.
 
-**The org is CEO, CTO, EA, and a crew.** He is the **chairman of the board**. The **CEO** manages
+**The org is CEO, CTO, EA, and a crew.** He is the **chairman of the board** *(title struck 2026-09-01 — he is the CAPTAIN now; see the relay redesign addendum ruling 5)*. The **CEO** manages
 long-running work and holds the CTO accountable — judging whether something got built is one part of
 that, not the whole job. The **CTO** is the marathon worker that runs development. The **EA**
 (*executive assistant*, renamed from "shift worker" on this date) keeps the long-running worker

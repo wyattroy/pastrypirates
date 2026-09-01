@@ -59,7 +59,7 @@ skills wyclau practices on him ARE that job's skills, so it is designed in, not 
   Boardroom round is a leadership rep.
 - **Term-once always; one ≤5-minute lesson a DAY** tied to the live work, never homework
   (Wyatt's approval amendment, 2026-08-31: "I learn fast").
-- **The chairman's log**: a derived record on the Glass of concepts he now owns and the decisions
+- **The Captain's log** *(renamed from "the chairman's log" at his ask, 2026-09-01)*: a derived record on the Glass of concepts he now owns and the decisions
   made with them. Mentor coaches the asking; this teaches the deciding.
 - **A monthly retro on how he directed**, not what shipped.
 

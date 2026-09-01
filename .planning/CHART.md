@@ -60,7 +60,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
   directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
-  chairman's log) on the thin-surface architecture (design, section IV)
+  Captain's log) on the thin-surface architecture (design, section IV)
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
 

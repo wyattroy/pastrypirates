@@ -942,3 +942,11 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   framing is settled). The sail-square Chart row is closed through close_item.mjs (CEO 66,
   commit 76c49bc). Remaining merge gate: the full trial, queued as INBOX-20260901T1315Z for the
   first Watch. BLOCKED ON WYATT is empty.
+
+- 2026-09-01T13:25Z · GLASS HARVEST (version saved from the page 13:14Z): THREE ideas, all moved
+  to the INBOX verbatim — (1) guest camera stuck FULLY zoomed out until refresh (13:08Z, flagged
+  as possible sail-cam regression, claimed for immediate investigation — it gates the merge);
+  (2) "Your Rulings — In Hand" needs a triage lifecycle (13:10Z); (3) Muse narrations missing in
+  Multiplayer (13:14Z). Plus two taps confirming the rsync and sail-scope asks are resolved —
+  both already cleared from the Chart before his taps; no action. His words deleted from nothing:
+  harvested BEFORE the day-2 republish went over them.
