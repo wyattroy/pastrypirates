@@ -1003,3 +1003,7 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 - FOURTH GLASS HARVEST (13:51Z, mid-Blade-hour): storm animation pauses ships at square 2 of 3
   instead of one smooth move to the final square — INBOX-20260901T1351Z, OPEN, his target
   behaviour and indexing hypothesis recorded (his hypothesis gets checked first, ruling 7).
+
+- INBOX-20260901T1332Z CLAIMED by the advisor session (attack buttons on the wrong captain).
+  Watches: skip this claim; the queue's next unclaimed items are the flashing hint and the storm
+  animation.
