@@ -171,10 +171,38 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   red-proofed. **(a) has a concrete candidate**: `src/ui/stage.js`'s own comment on
   `sailHighlightRect()` notes it is called from TWO places — `camFitSail` and "the trade-wind
   preview" — so a preview/sweep highlight arriving after the initial draw is a real, named
-  mechanism that could widen the cell set post-fit. **Not confirmed. The next step is to log
-  `document.querySelectorAll('.sailCell').length` at the moment `camFitSail` itself runs (one
-  `console.log` in `src/ui/stage.js:236`, temporary) against the count a moment later — that
-  settles (a) vs (b) directly, in one more posed run, without touching layout code.**
+  mechanism that could widen the cell set post-fit.
+
+  **(a) IS NOW RULED OUT, WITHOUT TOUCHING GAME CODE.** A `MutationObserver` on `#sailHost`,
+  armed the instant `.sailCell` count first goes above zero, watched for any further additions
+  through the whole ~1200ms settle window, across six occurrences now, including a fresh
+  reproduction (14 squares at t=0, still 14 at measurement — one of them 23px off the RIGHT).
+  Every single occurrence, clean or broken, held a perfectly steady count from the moment cells
+  first appeared. Nothing is added to the board after the initial draw — this was not a timing
+  race at all.
+
+  **WHAT'S LEFT, NARROWED HONESTLY:** `camFitCells()`'s own logic (`side = Math.max(bw, bh)`,
+  centred on the bbox's own centre) mathematically GUARANTEES containment of a bw x bh rectangle —
+  a side x side square whose side is at least as large as both dimensions, centred on that same
+  rectangle's centre, cannot fail to cover it, by construction, before the reserve step even runs
+  (which can only grow `side` further). So either this probe's own bbox reconstruction still
+  doesn't match the real inputs `camFitSail` uses (candidates worth checking: whether the real
+  code's `cellPx`/grid or its exact seat differ from what this probe reads — the clean occurrences
+  show non-zero, non-matching "shortfalls" on sides where nothing is actually wrong, which argues
+  for this), or `camFitCells` genuinely has a containment bug that a geometry-only unit test (no
+  browser needed: call `camFitCells`'s math directly with a known bw x bh and assert the returned
+  frame contains it) would settle in minutes. **That unit test, not another probe run, is the
+  concrete next step** — it removes every remaining uncertainty this session's DOM-based
+  measurements could not (real DOM layout, camera timing, animation) by asking the pure math the
+  question directly.
+
+  **SIX RUNS, FOUR REPRODUCTIONS, ZERO WASTED — SESSION SUMMARY FOR WHOEVER PICKS THIS UP.**
+  Overflow direction is not fixed (left once, right three times, once both sides at once);
+  magnitude is consistently ~23-24px on the affected square. Two theories measured and killed
+  (stage-hold; the HTML-layer-vs-SVG width mismatch). One theory measured and killed just now
+  (cells added after the camera's one-time fit). **Still not fixed — correctly, per rule 26.**
+  `scripts/qa/sail_containment_crew_probe.mjs` reproduces this on demand in about a minute; use it
+  to verify any future fix rather than a full trial.
 
   Reproducible on demand: `node scripts/qa/sail_containment_crew_probe.mjs` (no fixed seed yet —
   each run is a fresh room; it has caught the bug on 2 of 2 runs so far, at occurrence #1 and #3 of
