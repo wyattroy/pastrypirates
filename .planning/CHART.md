@@ -359,11 +359,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **DO NOT MAKE A RELEASE DECISION ON THAT REPORT UNTIL THIS IS FIXED** — rule 24 stands on opening
   the report and believing it, and right now it is lying in the pessimistic direction. Pessimistic
   is the safe direction and it is still a lie.
-- [ ] **The release trial did not sail the code that would be staged — re-sail after the fix above.**
-  `efa1f2f5` ("preload: recipe art and award emblems now load up front") landed **2026-09-01T18:13:39Z**
-  and touches `src/ui/util.js` — game code. The trial started 16:44:08Z and ran 88 minutes, ending
-  ≈18:12Z, so the change post-dates the whole run by about ninety seconds. Staging on the strength
-  of that report would ship something the trial never saw.
+- [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
+  The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
+  landed **2026-09-01T18:13:39Z** and touches `src/ui/util.js` — game code. The trial started
+  16:44:08Z and ran 88 minutes, ending ≈18:12Z, so the change post-dated the whole run by about
+  ninety seconds. **Three MORE game commits landed DURING that run** (`822549a7`, `bca181b2`,
+  `f7c1207e`), which the original filing missed. Staging on the strength of that report would ship
+  something the trial never saw.
+  **THE RE-SAIL COULD NOT SAIL UNTIL THE STAMP MOVED, and that is the part worth keeping.**
+  `readDone()` keys the leg cache on the build stamp alone (`playtest_gate.mjs:572,576`), and all
+  ten legs of the FULL fleet held records at `2026.09.01.6` — so a trial started as the tree stood
+  would have resumed 10 of 10, sailed nothing, and (correctly, under the provenance rule fixed an
+  hour earlier) filed every resumed leg as NOT RUN. Measured red first: ten files matched
+  `*--2026.09.01.6.json` and `crew-phone`'s own `__stamp` matched too, so both halves of the resume
+  key were live. **The same one line fixes the honesty problem too**: four game commits had landed
+  since `373bd99e` set `.6`, so the stamp named a tree it was never sailed against. Bumped to
+  `2026.09.01.7` (`d6d6d75b`, via `scripts/bump-build.mjs` — the counter is the stamp itself, never
+  a second file). Green after: zero cached legs at `.7`, no gate hardcodes the old value, npm test
+  86/86, and the trial's own banner reads `build 2026.09.01.7 … gear: FULL` with all ten legs
+  listed to sail rather than resume.
+  Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
+  `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
+  `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
+- [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
+  `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
+  a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
+  four game commits landed on `.6` and nothing anywhere went red**, and three of those landed
+  DURING an 88-minute trial that then reported on code it had never sailed. Nothing protects `.7`
+  either. The player-facing cost is exact: a release decision made on a report about a different
+  build. **Rule 9's shape is a key derived from the tree** — e.g. `git rev-parse HEAD:src` folded
+  into the cache key and the report's own stamp — which makes "did the trial sail the staged code?"
+  mechanical instead of a duty somebody must remember. Sizing, honestly: one small change to the
+  cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
+  first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
+  file that can disagree with it.
+- [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
+  `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
+  reading `.planning/wyclau/LONG-RUN`. But the trial's own progress writer,
+  `scripts/wyclau/longrun_status.mjs:108-119`, rewrites that marker as a fixed five-field object —
+  it deliberately preserves `startedAt` and **drops `pid`, `runId`, `reportPath` and `logPath`**,
+  every field `start_trial_detached.mjs` calls the birth certificate. Measured live at 19:15:19Z,
+  62 seconds after launch: the marker held `what/startedAt/updatedAt/progress/staleAfterMinutes`
+  and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
+  fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
+  which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment

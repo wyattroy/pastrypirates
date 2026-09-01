@@ -4205,3 +4205,61 @@ record would make every ghost vouch for itself again. Findings 2 and 3 ACCEPTED 
 argued away — the artefact check is dark on this machine until a trial runs, and that trial is the
 Chart's own next row, deliberately left for the next watch rather than started blind (see the
 ledger for the resume hazard that makes starting it a decision, not a formality).
+
+---
+
+## CEO REVIEW 76 — 2026-09-01T19:2xZ, Wy-Blade — the release re-sail (INBOX-20260901T1315Z part 2)
+
+**The ask, verbatim:** *"the Bell rings you as a WATCH. Sync, orient, then work exactly ONE item
+through the full Proof - Wyatt's inbox first, then the top unblocked Chart item - close it through
+the gate, republish the Glass, and END YOUR TURN. Ending is correct: the Bell rings the next watch.
+Never take a second item."*
+
+**VERDICT: PARTIAL.** Its words, in full, unparaphrased:
+
+> The engineering is right and the evidence is real. Where it fails is the record — and it fails in
+> the one way that matters most tonight, because what this watch left behind is an 88-minute trial
+> that another session must not disturb, and nothing durable says so.
+
+**What it verified independently, not on report:** one item and no widening (`d6d6d75b` is two
+files); the RED is real and not a check passing for an unrelated reason — it re-counted the
+directory itself, **ten** `*--2026.09.01.6.json` files written 16:56Z–18:12Z and **zero** at `.7`,
+and traced `playtest_gate.mjs:572,576`; the honesty half is real (four `src/` commits post-date
+`373bd99e`); GREEN is real, and it corroborated `npm test` from *the trial's own step 1 log* rather
+than from the watch's word — *"which is better evidence than the watch's word"*; and the trial is
+genuinely sailing the new stamp.
+
+**Its five findings, all fair:**
+1. **Both stacking guards are dead** — `LONG-RUN` has no `pid` (`longrun_status.mjs:107-118`
+   overwrote it; `start_trial_detached.mjs:56` reads `prev.pid`), and the human-readable substitute
+   in `INBOX.md` and `CHART.md` **was uncommitted**. *"Committing was permitted; only push was
+   refused. So this was an oversight, not the sandbox."* **FIXED same turn.**
+2. **The ledger entry stopped at the prediction** — no GREEN result, no pid, no report path, neither
+   non-fix. *"Everything the watch told me that is not in those 35 lines dies with the session."*
+   **FIXED same turn.**
+3. **The Glass got neither a publish nor its charter fallback.** `CHARTER.md:47` names
+   `GLASS-NOTE.md` for exactly this; its mtime was five hours stale. *"It is a miss, not a
+   technicality — and the fix was one tracked file away."* **FIXED same turn.**
+4. **The stamp bump is right for this instance and leaves the generating fault unfiled.** *"Four
+   game-code commits landed on `.6` and nothing anywhere went red — that is the proof this is
+   structural, not a one-off... Not widening was correct. Not writing the gap onto the Chart as its
+   own item was the miss."* **FIXED same turn** — filed as its own Chart item, with rule 9's shape
+   (a cache key derived from the tree) named as the fix, and deliberately not built.
+5. **The unpushed commit.** Least severe, *"because it is at least in git and the watch named the
+   refusal honestly. Combined with Finding 1, though, this watch is invisible off this machine."*
+   **UNRESOLVED** — the sandbox holds `git push` for approval and no one is at the keyboard.
+
+**RECURRENCE, accepted.** CEO 75's stated recurrence (CEO 74's finding 2, *"the change that fixes
+the trial has not been sailed"*) is **not cured but in flight**, and CEO 76 explicitly declined to
+mark that down since the watch labelled it that way rather than claiming victory. What DOES recur
+is **CEO 74's finding 6 in mirror image**: *"the watch applied instrument-scepticism brilliantly to
+the leg cache and caught the pid-drop, then did not turn the same scepticism on the record it was
+itself leaving behind."*
+
+**The one line it wrote for Wyatt:**
+
+> *"The one-line fix is right and the proof behind it is solid — the trial genuinely could not have
+> sailed anything without it, and it's sailing now. What's wrong is the paper trail: the notes
+> saying 'a trial is running, don't start another' were never committed, the pid-based safety catch
+> had already erased itself, the ledger stops mid-sentence at the prediction, and the Glass you'd
+> look at doesn't know any of this happened."*

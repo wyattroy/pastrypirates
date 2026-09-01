@@ -125,7 +125,18 @@ status: OPEN — written on the Glass 13:10:15Z. A wyclau process item: the RULE
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: OPEN — **ONE OF THREE PARTS DONE. Do NOT stage yet; two measured reasons below.** CEO 74.
+status: IN FLIGHT — **the re-sail is SAILING as of 2026-09-01T19:14:17Z.** Both blockers below are
+now cleared; part 3 (staging + the link) waits on this run's verdict. Do not stage before reading
+its report.
+
+**THE RE-SAIL, IN FLIGHT.** `node scripts/wyclau/start_trial_detached.mjs` — run
+`2026-09-01T1914Z-Wy-Blade`, **pid 45256**, 10 legs at FULL gear, build **`2026.09.01.7`**.
+Report: `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`. Log:
+`.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. It is detached from the watch
+that started it, so it survives this session ending. Expect roughly 88 minutes, on the last run's
+timing. **A later watch reads the report; nobody re-starts it while pid 45256 is alive.**
+⚠ **A BLACK NODE CONSOLE WILL BE ON WYATT'S SCREEN AGAIN — that window IS the trial. Closing it
+kills the run.** Known, open, and not this watch's item: INBOX-20260901T1440Z.
 
 PART 1, "run the trial in a way that survives session death" — **DONE.** The detached run
 `2026-09-01T1644Z-Wy-Blade` (pid 38460, started 16:44:08Z, FULL gear, 10 legs) outlived the watch
@@ -133,8 +144,10 @@ that started it and left a finished 88-minute report:
 `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md`, stamped `sailed on win32 (Wy-Blade)`. Log:
 `.planning/wyclau/detached/trial-2026-09-01T1644Z-Wy-Blade.out`. The pid is no longer alive.
 
-PART 2 "stage it" and PART 3 "hand you the link" — **NOT DONE, and correctly held.** Two blockers,
-both measured this watch, both now on the Chart's STEP 1 checklist as the next watch's item:
+PART 2 "stage it" and PART 3 "hand you the link" — **still not done, and still correctly held.**
+The two blockers below were both cleared by 19:14Z (a) by CEO 75's fix, (b) by the stamp bump
+`d6d6d75b`; what remains is simply waiting for the run above to produce a verdict. The blockers as
+they were measured, kept for the record:
   (a) **The trial's scorecard is broken and can never report a leg as sailed** — `report.json`
       carries no `__runId` (grep count 0), so `sea_trial.mjs:258`'s `sailedHere()` is false for
       every leg of every run, and each leg is filed under NOT RUN using its own verdict text as

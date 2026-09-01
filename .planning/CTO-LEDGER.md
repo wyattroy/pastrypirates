@@ -1987,3 +1987,72 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
 **NAMED FALSIFIERS**, so this note can be wrong rather than merely confident: a leg that still
 resumes at the new stamp, or any gate that hardcodes `2026.09.01.6`, means the reasoning above is
 wrong, and it gets written here as wrong.
+
+**THE RESULT: THE PREDICTION HELD IN ALL THREE PARTS.** Saying so plainly, because half of rule 6's
+working form is the part after the measurement.
+- **RED, measured first.** Ten files matched `sea-trial-shots/legs/*--2026.09.01.6.json` — the
+  whole FULL fleet — and `crew-phone--2026.09.01.6.json` carried `"__stamp":"2026.09.01.6"` too, so
+  both halves of the resume key were live. A trial started as the tree stood resumes 10 of 10.
+- **THE CHANGE.** `node scripts/bump-build.mjs` → `.6` → `.7`. Commit `d6d6d75b`, one game file
+  (`src/ui/stage.js`, one line) plus this ledger. The script, not a hand edit: the stamp is
+  deliberately its own counter and a second counter file would be the fourth hand-kept list this
+  repo has paid for.
+- **GREEN, the same check.** Zero files match `*--2026.09.01.7.json`. `grep 2026\.09\.01\.6` across
+  `scripts/` → no matches, so nothing hardcoded the old value. `npm test` 86/86 — and better than
+  my word for it, the trial's OWN step 1 logged `PASS — all of them` at the new stamp.
+- **AND AT THE DEPTH THAT ACTUALLY MATTERS**, which a file count cannot reach: the trial's own
+  banner reads `⚓ SEA TRIAL v2 — build 2026.09.01.7 / gear: FULL` with all ten legs listed to
+  sail. Not one `RESUMED` line in the log.
+
+**THE DELIVERABLE, IN FLIGHT.** Run `2026-09-01T1914Z-Wy-Blade`, **pid 45256**, started
+19:14:17Z, 10 legs, FULL gear. Report `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`; log
+`.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. Detached, so it outlives this
+watch. **Nobody starts another trial while pid 45256 is alive** — and read the next paragraph,
+because the mechanical version of that sentence is broken.
+
+⚠ **THE STACKING GUARD ERASES ITSELF ABOUT A MINUTE INTO EVERY RUN. Measured, filed on the Chart,
+NOT fixed here (one item).** `start_trial_detached.mjs:56` refuses a duplicate only
+`if (prev && prev.pid)`, but the trial's own `writeLongRun` (`longrun_status.mjs:108-119`) rewrites
+the marker as a fixed five-field object and drops `pid`/`runId`/`reportPath`/`logPath`. Read live
+at 19:15:19Z, 62 seconds after launch: no pid. **So the sentence above is the only protection there
+is, which is exactly why it is in three tracked files** — this ledger, the INBOX, and the Chart.
+
+⚠ **THE VISION JUDGE IS SHUT ON THIS MACHINE AGAIN, and this run is therefore structural-only.**
+Step 1b logged `can the judge open a screenshot? FAIL — the eyes are SHUT`, and the designed
+fallback fired correctly: `judging DEFERRED to the queue`. Screens are still captured and still
+judgeable later, so nothing is forfeited — but **whoever reads this report must not read a clean
+verdict as "it looked right"**, only as "nothing structural failed". The untappable sail square was
+originally caught by the JUDGE, not by a structural check.
+
+⚑ **CEO REVIEW 76: PARTIAL.** Full text in `.planning/CEO-REVIEWS.md`. It verified the engineering
+independently — re-counting the leg files itself, tracing the resume key, and corroborating
+`npm test` from the trial's own log rather than from my report — and confirmed one item with no
+widening. **Its five findings were all fair and four are acted on in this same turn**: the Chart
+and INBOX edits were still uncommitted (finding 1), this ledger stopped at the prediction
+(finding 2), the charter's Glass fallback was unused (finding 3), and the structural cache-key
+gap was unfiled (finding 4). Finding 5, the unpushed commit, stands unresolved — see below.
+**The recurrence it names, accepted, and it is the sharp one:** CEO 74's finding 6 in mirror image
+— *"the watch applied instrument-scepticism brilliantly to the leg cache and caught the pid-drop,
+then did not turn the same scepticism on the record it was itself leaving behind."*
+
+⚠ **`git push` WAS REFUSED BY THIS SANDBOX — "This command requires approval", with nobody at the
+keyboard to approve it.** Tried three ways (`git push origin HEAD` in bash and PowerShell, and a
+bare `git push` against the tracked upstream); all three were held for approval. Committing was NOT
+blocked. **So the work is committed locally and this watch is invisible from every other machine
+until someone pushes** — which is precisely the failure the Door's step 4 was written to stop, hit
+this time by a permission boundary rather than by forgetting. Stated plainly rather than worked
+around: I did not find a way past it, and I did not try to. **The next session with push rights
+should push this branch first, before anything else.**
+
+**NO ARTIFACT TOOL IN THIS SESSION** — confirmed by searching this session's own tool list
+(`ToolSearch "select:Artifact,ArtifactCheck"` → no match), not inferred. So the Glass was not
+harvested and not republished, and `mark_glass_published.mjs` correctly not run. **This time the
+charter's fallback WAS used**: `.planning/wyclau/GLASS-NOTE.md` now carries the trial's status and
+the do-not-close-the-black-window warning in plain English, for the next Glass-capable session to
+fold in. That is CEO 76's finding 3, and it is the fix for five consecutive watches that recorded
+the gap and then let his window go dark anyway.
+
+**ENDING THE TURN. The item is NOT closed** — a trial in flight is not a closed item, and
+`close_item.mjs` correctly has nothing to tick yet. **The next watch's job on this item is to read
+the report, not to re-run anything**; if pid 45256 is gone and the report is unfinished, the run
+died and that is itself the finding.
