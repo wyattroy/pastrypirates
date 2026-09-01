@@ -1170,3 +1170,17 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   DECISIVE NEXT CHECK (his machine): `schtasks /Query /TN "wyclau-bell" /V /FO LIST` — Last Run
   Time, Last Result and Next Run Time. A Next Run Time still reading 10:21 AM means it has never
   fired once.
+
+- THE BELL'S SILENCE, ROOT-CAUSED from his /V /FO LIST: the task's action is
+  `-File \scripts\wyclau\bell.ps1 -Repo` — the repo path EXPANDED TO NOTHING. He created it in a
+  fresh elevated window where `$repo` was never set, so `$repo\scripts\...` became `\scripts\...`
+  and `-Repo $repo` became `-Repo ` with no value. THE SAME `$repo` TRAP THAT ERRORED HIS STEP 4,
+  except this one did not error: the task reported Ready and fired every 10 minutes for an hour,
+  dying before it reached bell.ps1 (Last Result -196608 = PowerShell on a missing file). A
+  registration that looks healthy and does nothing is the worst shape available, and my sheet
+  invited it by using a variable in a command run in a different window than the one that set it.
+  FIXED IN THE SHEET AND THE RUNBOOK: literal paths (already), plus a REQUIRED verification step
+  that prints the action back and forces one run, plus `-WindowStyle Hidden` (which also removes
+  the console flash he asked about). Two more real hazards named from the same output:
+  `Logon Mode: Interactive only` (nothing runs when logged out) and `Stop On Battery Mode, No
+  Start On Batteries` (on a Blade, the Bell dies when the charger comes out).
