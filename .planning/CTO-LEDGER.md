@@ -1135,3 +1135,17 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   regex cannot distinguish -- fixed in the same turn. Verified by eye at the posed moment: the
   pill renders above the recipe card, legible, animationName "none". npm test 84/84, exit 0.
   Stamp 2026.09.01.6.
+
+- ⚠ THE BLADE HAS PUSHED NOTHING SINCE THE BELL RANG. Measured, not felt: the Bell rang watch 1 at
+  14:15:42Z; every commit on the branch since then is from the MAC (this advisor session), and
+  .planning/wyclau/status/ still contains only Wyatts-MacBook-Air.local.md — no Blade status file,
+  no ledger claim, no trial report, ~1 hour on. A node.exe console DID appear on his screen, which
+  is consistent with the detached trial starting, and that is ALL the evidence there is.
+  ⚠ CORRECTION OF MY OWN REPEATED CLAIM: I have said several times that "the release trial is
+  sailing on the Blade". I do not know that. What I know is that a node console appeared at ~14:16Z.
+  Whether it is still running, whether it is the trial, and whether the Bell has rung any further
+  watches are all UNVERIFIED from this machine — the liveness files are machine-local and the
+  status publisher only runs when a watch closes an item.
+  WHAT WOULD SETTLE IT (his machine, three commands): the Bell's log tail, the door-launched
+  claude.exe count, and whether LONG-RUN exists. Written here so the next watch to wake sees the
+  gap rather than assuming the silence was quiet success.
