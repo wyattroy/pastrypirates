@@ -26,7 +26,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.join(fileURLToPath(import.meta.url), "..", "..", "..");
 const { openChrome, sleep } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/cdp.mjs")).href);
-const { GATE_SRC } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/player.mjs")).href);
+const { GATE_SRC, makePlayer } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/player.mjs")).href);
 const { gameURL } = await import(pathToFileURL(path.join(ROOT, "scripts/lib/chrome.mjs")).href);
 
 const HTTP_PORT = 8302;
@@ -89,15 +89,31 @@ async function hostStart(c) {
   throw new Error("start confirm never clickable");
 }
 
+/* DRIVE BOTH SEATS UNTIL THE GUEST HOLDS A SAIL PROMPT, CHECKING BEFORE EVERY TICK ON EITHER SIDE.
+   player.tick()'s own answerSail() would CLICK a sail square the instant one appears -- exactly the
+   state this probe exists to measure before anything touches it. So .sailCell is checked on the
+   guest immediately before every tick call (host's or guest's), never after, and the loop stops the
+   moment one appears rather than letting tick() answer it. */
+async function driveUntilGuestSail(host, guest, maxIters = 220) {
+  const hp = makePlayer(host, { log: () => {} });
+  const gp = makePlayer(guest, { log: () => {} });
+  const guestHasCells = async () => {
+    await guest.ev(GATE_SRC);
+    return await guest.ev(`document.querySelectorAll(".sailCell").length`);
+  };
+  for (let i = 0; i < maxIters; i++) {
+    if (await guestHasCells()) return true;
+    try { await hp.tick(); } catch (e) { /* keep driving */ }
+    if (await guestHasCells()) return true;
+    try { await gp.tick(); } catch (e) { /* keep driving */ }
+    await sleep(250);
+  }
+  return false;
+}
+
 // the same geometric question sail_containment_probe.mjs asks, run against whichever page is passed
 async function measureSailCells(c, label) {
-  let cells = 0;
-  for (let i = 0; i < 90 && cells === 0; i++) {
-    await c.ev(GATE_SRC);
-    cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
-    if (cells) break;
-    await sleep(500);
-  }
+  const cells = await c.ev(`document.querySelectorAll(".sailCell").length`);
   if (!cells) return { label, cells: 0 };
   await sleep(1200); // let the camera fit and its lerp finish
   const report = await c.ev(`(() => {
@@ -117,7 +133,19 @@ async function measureSailCells(c, label) {
         hit: hitEl ? (hitEl.className && hitEl.className.baseVal !== undefined ? hitEl.className.baseVal : String(hitEl.className || hitEl.tagName)).slice(0, 28) : null,
       });
     });
-    return JSON.stringify({ vw, vh, cells: out });
+    /* WIDEN THE TIME HORIZON (CLAUDE.md rule 27): before guessing at a cause, measure whether the
+       stage-hold mechanism (src/ui/stage.js camTo(): a centre-stage card or the flip veil defers a
+       requested camera move) was actually in play at the moment the squares were measured -- not
+       "was it plausible", an actual read of the same two DOM signals stageHoldsAttention() itself
+       reads, plus whether the turn-announcement narration bubble was still up and not yet .out. */
+    const ap = document.getElementById("actionPanel");
+    const diag = {
+      bodyClasses: document.body.className,
+      apPp4Stage: ap ? (ap.dataset.pp4Stage || null) : null,
+      bubCount: document.querySelectorAll(".pp4Bub").length,
+      bubOutCount: document.querySelectorAll(".pp4Bub.out").length,
+    };
+    return JSON.stringify({ vw, vh, cells: out, diag });
   })()`);
   return { label, cells: JSON.parse(report) };
 }
@@ -140,6 +168,9 @@ function printReport(r) {
     if (x.bottom > cells.vh) how.push(`${x.bottom - cells.vh}px off the BOTTOM`);
     console.log(`  (${x.gx},${x.gy}) ${x.w}x${x.h} at [${x.left},${x.top}] — ${how.join(", ")}${x.centreOutside ? "  ⚠ CENTRE OUTSIDE" : ""}${x.hit === null ? "  ⚠ HITS NOTHING" : ""}`);
   }
+  if ((centreOut.length || unhittable.length) && cells.diag) {
+    console.log(`[${label}] diag at measurement time: body classes="${cells.diag.bodyClasses}"  actionPanel.dataset.pp4Stage=${JSON.stringify(cells.diag.apPp4Stage)}  narration bubbles on screen=${cells.diag.bubCount} (${cells.diag.bubOutCount} already .out)`);
+  }
   return { centreOut: centreOut.length, unhittable: unhittable.length, outside: outside.length };
 }
 
@@ -157,22 +188,39 @@ try {
   await hostStart(host);
   await sleep(2000);
 
-  // measure BOTH seats at the first sail prompt each of them sees — the posed pair rule 26 asks for
-  const guestReport = await measureSailCells(guest, "GUEST");
-  await guest.shot(path.join(OUTDIR, "sail-crew-guest.png"));
-  const hostReport = await measureSailCells(host, "HOST");
-  await host.shot(path.join(OUTDIR, "sail-crew-host.png"));
+  /* MEASURE EVERY GUEST SAIL DECISION IN THIS VOYAGE, NOT ONLY THE FIRST. The originally caught
+     screenshot (crew-phone-guest-006-settled.png) was already several turns in (the guest's hold
+     was not empty) — "the first prompt reached" and "the prompt that actually failed" are not
+     provably the same moment. This is still ONE posed room, not a rate across separate runs: every
+     occurrence is measured exactly, and the loop stops the instant one reproduces the bug. */
+  const MAX_OCCURRENCES = 12;
+  let reproduced = null;
+  for (let occ = 1; occ <= MAX_OCCURRENCES; occ++) {
+    const reached = await driveUntilGuestSail(host, guest);
+    if (!reached) { console.log(`\nno further guest sail prompt reached after ${occ - 1} occurrence(s) — voyage may have ended or stalled.`); break; }
 
-  const gStats = printReport(guestReport);
-  const hStats = printReport(hostReport);
+    const day = await guest.ev(`(document.body.innerText.match(/DAY \\d+/) || ["day?"])[0]`);
+    const guestReport = await measureSailCells(guest, `GUEST #${occ} (${day})`);
+    const shotG = path.join(OUTDIR, `sail-crew-guest-${String(occ).padStart(2, "0")}.png`);
+    const shotH = path.join(OUTDIR, `sail-crew-host-${String(occ).padStart(2, "0")}.png`);
+    await guest.shot(shotG);
+    await host.shot(shotH);
+    const stats = printReport(guestReport);
 
-  console.log(`\nscreenshots: sea-trial-shots/sail-crew-guest.png, sea-trial-shots/sail-crew-host.png`);
-  if (gStats && (gStats.centreOut || gStats.unhittable)) {
-    console.log("\nRESULT: REPRODUCED — the guest has an untappable sail square in this room. Ground truth for a fix.");
-  } else if (guestReport.cells === 0) {
-    console.log("\nRESULT: the guest never saw a sail prompt in this room (host may have sailed first) — not a result about the bug.");
+    if (stats && (stats.centreOut || stats.unhittable)) {
+      reproduced = { occ, day, stats, shotG, shotH };
+      console.log(`\n*** REPRODUCED at occurrence #${occ} (${day}) — screenshots: ${shotG}, ${shotH} ***`);
+      break;
+    }
+    // advance PAST this occurrence's sail decision so driveUntilGuestSail can reach the next one
+    const gp = makePlayer(guest, { log: () => {} });
+    try { await gp.tick(); } catch (e) { /* keep driving */ }
+  }
+
+  if (reproduced) {
+    console.log(`\nRESULT: REPRODUCED — the guest has an untappable sail square at occurrence #${reproduced.occ} (${reproduced.day}). Ground truth for a fix.`);
   } else {
-    console.log("\nRESULT: every square was reachable for the guest in THIS room. One board, one seed — re-run to sample another.");
+    console.log(`\nRESULT: every guest sail square was reachable across all ${MAX_OCCURRENCES} occurrences measured in this room. Not proof of the general case — re-run to sample another room.`);
   }
 } finally {
   try { if (host) host.close(); } catch {}

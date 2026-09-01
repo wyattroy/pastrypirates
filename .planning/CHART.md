@@ -82,12 +82,41 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
   actually playtests.**
   ⚠ **DO NOT FIX THIS BY GUESSING, AND DO NOT REACH FOR ANOTHER TRIAL.** CLAUDE.md rule 26 was
   earned on this exact bug: three probe runs and three 85-minute trials could not settle a
-  placement question that two posed screenshots settled in minutes. And rule's WIDEN THE TIME
-  HORIZON section records a previous cause for the same symptom — `src/ui/flow.js` draws the
-  squares, then asks the camera to frame them on a `setTimeout`, and the camera is allowed to
-  REFUSE while a centre-stage card holds attention. **Whether that is this instance is unmeasured;
-  the screenshot above shows a prompt bubble up at the time.** Next step is a POSED board (§5e of
-  `docs/DRIVING-THE-GAME.md`): same seed, guest on a phone, before and after — not a rate.
+  placement question that two posed screenshots settled in minutes.
+
+  **REPRODUCED, GEOMETRICALLY, TWICE, 2026-09-01 — `scripts/qa/sail_containment_crew_probe.mjs`.**
+  A real two-browser crew room (boot flow copied from `playtest_gate.mjs`), driven turn-by-turn,
+  measuring every `.sailCell` rect against the guest's own viewport at EVERY guest sail decision
+  (not just the first — the original catch was several turns in). Two independent rooms, two
+  different boards, **the identical failure**: one square, 41×41, centre at **exactly [-23,258]
+  screen-relative both times** — 23px off the LEFT edge, its centre hitting nothing
+  (`elementFromPoint` returns null there). Different grid cells each time ((1,9) then (3,8)), same
+  screen position — **this is not a per-square coordinate slip, it is a fixed offset**, which
+  narrows the search a lot: something is short by a constant ~23px on the left, not computing a
+  wrong position per square.
+
+  **THE CAMERA-DEFERRED-BY-A-CENTRE-STAGE-CARD THEORY IS NOW MEASURED, AND IT IS WRONG.**
+  `src/ui/stage.js` `stageHoldsAttention()` (the only thing that can make `camTo()` remember a move
+  instead of performing it) checks exactly two things: `body.pp4Cer` (the flip veil) and
+  `actionPanel.dataset.pp4Stage` (a centre-stage card). At the reproduced moment: `body` classes
+  were `"pp4Stage"` only (the ordinary phone-column layout, not the veil), and
+  `actionPanel.dataset.pp4Stage` was `null`. One ordinary turn-announcement narration bubble
+  (`.pp4Bub`, not yet `.out`) was on screen, and `stageHoldsAttention()` never reads `.pp4Bub` at
+  all. **So the camera was never deferred — this correction replaces the earlier, unmeasured guess
+  copied from the sail-squares-off-the-edge bug of 2026-08-27, which was a different investigation.**
+  The comment already sitting in `src/ui/stage.js:196-216` (2026-08-29/30) is the more likely lead:
+  a prior measurement of the *same shape* of bug ("six sail squares off the LEFT edge... the bbox
+  genuinely contains every square — containment in BOARD coordinates is not containment on SCREEN")
+  and says outright that two geometry theories were already tried and killed there — **read that
+  comment and its own warning before touching `camFitCells`/`toScreen` again.**
+
+  Reproducible on demand: `node scripts/qa/sail_containment_crew_probe.mjs` (no fixed seed yet —
+  each run is a fresh room; it has caught the bug on 2 of 2 runs so far, at occurrence #1 and #3 of
+  the guest's sail turns). **Still not fixed — the mechanism this points at (a constant ~23px
+  short on the left, in `camFitCells`/`toScreen`'s BOARD→SCREEN conversion) is a lead, not a
+  measured cause.** Next step if picked up: instrument `toScreen()`/`camFitCells()` directly (log
+  `S.cam.x/y/w`, `br.left`, `fixedOrigin()` at the reproduced moment) rather than guessing again —
+  same posed-board discipline, one level deeper.
 - [ ] Full sea trial, re-run against the fixed 465-commit branch, build `2026.08.31.2` — **RUNNING and VERIFIED HEALTHY at 03:35Z**: `node scripts/qa/trial_health.mjs` → *PROGRESSING*, 5/10 legs, newest screenshot seconds old, crew-phone driving. **Check it with that command rather than by eye** — it was built tonight precisely because a wedged trial looks identical to a working one from the process table, and it is red-proofed against tonight's actual 80-minute hang. Running as `.planning/SEA-TRIAL-465-check-3.md` with `--judge=off`, the path that can actually reach a gameplay verdict. This run is also the first live exercise of the chain audit's long-run marker: it wrote `.planning/wyclau/LONG-RUN` at `4/10 legs` with `staleAfterMinutes: 53` **derived from its own 35-minute leg cap**, and `should_launch.mjs` read it and held off — the case that previously required a timer pulsing HEARTBEAT on the trial's behalf. *(Earlier attempts, for the record:)* **first attempt at 01:16Z FAILED FAST and TAUGHT SOMETHING REAL**: the trial's own resume-cache is keyed by build stamp, and since I hadn't bumped it, it silently replayed the STALE PRE-FIX crash data instead of re-testing, then crashed its own reporting code (`P.coverage.entries is not a function`) trying to summarize the differently-shaped cached data. Bumped the stamp (`node scripts/bump-build.mjs`, `2026.08.31.1`→`.2`, commit `a4785183`) so the next run is genuine, not cached. Re-launching now. NOT GATED on purpose.
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
