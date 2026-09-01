@@ -1149,3 +1149,24 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   WHAT WOULD SETTLE IT (his machine, three commands): the Bell's log tail, the door-launched
   claude.exe count, and whether LONG-RUN exists. Written here so the next watch to wake sees the
   gap rather than assuming the silence was quiet success.
+
+- THE BLADE SILENCE, DIAGNOSED from his three commands (14:15Z ring + ~70 min):
+  * THE TRIAL IS REAL AND WATCH 1 DID ITS JOB. LONG-RUN: "sea trial, 10 legs", startedAt
+    14:19:35Z, 4/10 legs, updatedAt 14:52:55Z. So watch 1 rang, oriented, started the trial
+    DETACHED, and ended its turn — exactly the design, and the detached runner is proven: the
+    trial outlived the session that started it.
+  * THE BELL IS NOT EXECUTING, and this is a deduction, not a guess: restarts.log has NO line
+    after the 14:15:42Z manual ring, and `Get-CimInstance` shows ZERO door-launched claude.exe
+    right now. bell.ps1 cannot tick silently in that state — with no watch on deck it either
+    rings (logs "ring:"), or is inside the 5-minute grace (logs "not ringing a second"), or
+    cannot read the process table (logs that too). Every path writes a line. No line for ~70
+    minutes with no watch alive means the scheduled task never ran.
+  * SECOND GAP, separate: watch 1 pushed NOTHING — no ledger claim, no status file. Starting a
+    long job is not "closing an item", so the Door's publish/commit steps never fired for it.
+    The Door must make a watch commit its claim + status BEFORE it ends, even when its item is
+    "start the trial and end".
+  * The pre-14:15Z log lines are the OLD watchdog's (their "the Chart is moving" wording is
+    should_launch.mjs's), ending 12:26:01Z — his disable took, and nothing has stacked since.
+  DECISIVE NEXT CHECK (his machine): `schtasks /Query /TN "wyclau-bell" /V /FO LIST` — Last Run
+  Time, Last Result and Next Run Time. A Next Run Time still reading 10:21 AM means it has never
+  fired once.
