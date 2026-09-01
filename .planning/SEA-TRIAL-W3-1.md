@@ -1,6 +1,6 @@
 # Sea trial v2 — build `2026.08.31.2`
 
-**FAILED** — 0 of 10 voyage(s) sailed, 10 NOT RUN  ·  2026-09-01T10:00:00.956Z  ·  1 min  ·  gear **FULL**  ·  sailed on **win32 (Wy-Blade)**
+**FAILED** — 0 of 10 voyage(s) sailed, 10 NOT RUN  ·  2026-09-01T10:01:50.483Z  ·  1 min  ·  gear **FULL**  ·  sailed on **win32 (Wy-Blade)**
 
 > Gear chosen because: nothing uncommitted, so this reads what is AHEAD OF origin/main: .claude-team/GREEN-step1.txt, .claude-team/RED-step1.txt, about.html, index.html, package.json, src/engine/index.js, src/main.js, src/net/index.js, src/net/watchers.js, src/net/writers.js, src/orchestrator.js, src/shared/index.js, src/shared/storyboard.js, src/shared/visibility.js, src/state/index.js, src/ui/audio.js, src/ui/bakeoff.js, src/ui/board.js, src/ui/flow.js, src/ui/panel.js, src/ui/stage.js, src/ui/util.js
 >
