@@ -125,7 +125,7 @@ status: OPEN — written on the Glass 13:10:15Z. A wyclau process item: the RULE
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: OPEN — first watch: `node scripts/wyclau/start_trial_detached.mjs --label="release trial, 2026.09.01.2, full gear"`, then END; later watches read its report. Staging already serves this build and Wyatt's five-item checklist PASSED 2026-09-01 — the trial is the LAST merge gate before his final say-so. Do not babysit it in-session; do not start a second (check LONG-RUN and the ledger first).
+status: IN FLIGHT — watch 1 (Blade) started it detached 2026-09-01T14:19:35Z; LONG-RUN read 4/10 legs at 14:52:55Z. ⚠ A LATER WATCH MUST NOT START A SECOND: `start_trial_detached.mjs` refuses while a LONG-RUN pid is alive, and that guard is the only thing standing between us and two trials on one machine. Read its report when it lands (`.planning/SEA-TRIAL-<runid>.md`) and close this item then. Watch 1 pushed no claim of its own — the Door gap fixed the same day — so this line is the record until the report exists.
 
 ## INBOX-20260901T0000Z — worked example (the fix that seeded this file)
 > "the bosun spent 4 days making stupid tooling instead of simply fixing the sail square problem

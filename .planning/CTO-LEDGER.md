@@ -1184,3 +1184,18 @@ MY PROCESSES ARE STOPPED, per his instruction: zero node, zero harness browsers,
   the console flash he asked about). Two more real hazards named from the same output:
   `Logon Mode: Interactive only` (nothing runs when logged out) and `Stop On Battery Mode, No
   Start On Batteries` (on a Blade, the Bell dies when the charger comes out).
+
+- BELL RE-REGISTERED CORRECTLY (his commands, verified by printing the action back): the task now
+  reads the full `-File C:\Users\wyatt\Projects\pastrypirates\scripts\wyclau\bell.ps1 -Repo
+  C:\Users\wyatt\Projects\pastrypirates`, with -WindowStyle Hidden, and he forced one run.
+- TWO GAPS CLOSED IN THE SAME TURN, both found by this failure rather than by a gate:
+  (1) THE DOOR now requires a watch that starts a long job to write its claim, publish its status
+  and PUSH before ending — watch 1 started a real trial and pushed nothing, so from outside it was
+  indistinguishable from a watch that never woke. Vendored from claude-kit (79e5bbd).
+  (2) THE RELEASE-TRIAL INBOX ITEM now reads IN FLIGHT with the marker's own numbers, so the next
+  watch does not spend its turn trying to start a second trial. (start_trial_detached.mjs would
+  refuse it — the live-pid guard — but a watch should not need to be saved by a guard.)
+- ⚠ MY OWN RULE-18 SLIP, recorded because it is the exact trap the rule names: a `cd` into
+  claude-kit inside a compound command left the shell there, so this ledger append and an `npm
+  test` ran against the WRONG repo (exit 254 — no such script). Nothing was written to the wrong
+  tree; the kit commit was correct. Absolute paths from here.

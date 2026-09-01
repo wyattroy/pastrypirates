@@ -71,6 +71,15 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    `node scripts/wyclau/start_trial_detached.mjs` — and belongs to the machine, not to you. Start
    it, note it in the ledger, and END; later watches read its report. Three trials died in one day
    riding sessions that ended. Never again.
+   **⚠ AND COMMIT BEFORE YOU END — this is not optional and it is not the close gate.** Starting a
+   long job is not "closing an item", so step 5's gate never runs for it, and on 2026-09-01 that
+   meant watch 1 started a real trial and pushed NOTHING: no claim, no status file. From outside,
+   a watch doing real work looked identical to a watch that never woke — the exact blindness this
+   relay exists to remove. So: write the claim and what you started to `.planning/CTO-LEDGER.md`,
+   run `node scripts/wyclau/publish_status.mjs`, update the INBOX item to IN FLIGHT with the
+   marker's own numbers, `git pull --rebase`, commit, PUSH — and only then end. The same applies
+   to any turn that ends without closing an item: **a watch that pushes nothing is invisible, and
+   an invisible watch is indistinguishable from a dead one.**
 5. **Close ONLY through the gate:** `node scripts/wyclau/close_item.mjs …`. It refuses to tick the
    item without a CEO verdict on file, a game-code diff or a stated one-line reason, and the
    solution-first evidence. Do not tick the Chart or the INBOX by hand — the gate writes the tick,
