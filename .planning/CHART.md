@@ -70,7 +70,6 @@ exact, or the hook is wrong in whichever direction this list is wrong.*
 
 | Question | Recommendation | since |
 |---|---|---|
-| ~~Does the Glass's Ideas box still corrupt the page after a save?~~ **ROOT-CAUSED AND FIXED 2026-09-01 03:50Z — no longer a question for you.** | The page's own escaper was a no-op: authored inside a template literal, its backslashes were halved on the way out, so it replaced `<` with `<`. Every self-publish wrote the document's own text into a JS string containing a live closing script tag, which ended the real script early and turned the rest of the page into stray markup — three script elements, dead JavaScript, no styles. Found by driving the real page in a browser, clicking Send, and rendering what it saved. Gate `glass_self_publish_check.mjs`, red first. **Please try the Ideas box once more to confirm — but this one was measured, not guessed.** | 2026-08-31 21:20Z |
 
 ## RULED — his answers, and what each one unblocks
 
@@ -79,6 +78,7 @@ record with the failure it exposes: [`.claude/memory/DECISIONS.md`](../.claude/m
 
 | item | HIS RULING | now |
 |---|---|---|
+| The Glass's Ideas box corrupting the page after a save | **Reported four times** | **ROOT-CAUSED AND FIXED 2026-09-01.** The page's own escaper was a no-op, so every save wrote a live closing script tag into the document and broke it. Found by clicking Send in a real browser and rendering what the page saved. Gate `glass_self_publish_check.mjs`, red first. Awaiting his look on the live page. |
 | Merge the 465-commit branch to `main` via the normal release loop | **"Do it" / "re merge: do it, a"** — ruled on the Glass 2026-08-31 23:39:57Z, confirmed live in chat the same message, choosing option (a) (run the trial now with active foreground monitoring) | **IN PROGRESS.** Sea trial ran 2026-08-31 21:31Z-23:56Z, **FAILED** — 7/7 Chromium legs crashed identically in `pname()` (`src/ui/util.js:289`), not yet root-caused; 3 WebKit legs did not run (Playwright not installed on this machine). NOT deployed to staging, NOT merged — a build that cannot finish a voyage is not ready to show him. Root-cause investigation is a real, open CHART checklist item. |
 | Live audio defect (8s full-volume storm per ship) | **"Yes — delete the line"** | **CLOSED, NOT BUILT — the ruling was on a stale premise.** Measured 2026-08-31 18:12Z: `soundForEvent({t:"anchorHold"})` returns `{name:"fishing",bus:"master"}`, `EVENT_SOUND` declares `anchorHold` exactly once (`src/ui/audio.js:105`), and `node scripts/audio_mapping_test.js` PASSes all three of DEFECT-1/2's own regression guards. The fix shipped at the cutover, commit `fb74eedc`, before today — `docs/AUDIO.md`'s own correction box says so and names this exact trap. There is no line to delete. Same shape as the sea-trial-PR correction the same day: a question was put to him from a stale reading. |
 | Pass-and-play hand-over ahead of the turn | **"Just move it"** — no A/B switch, make the change | **ALREADY SHIPPED before the ruling was harvested.** Commit `ae75fe63` ("the device changes hands before the screen changes captain"), 2026-08-31 12:51Z — over four hours before his 17:08Z ruling reached anyone. `humanTurn()`'s own comment quotes him: *"Move it, I trust the plan."* All three pass-and-play hand-over sites (turn, secret draft, bake) gate before the screen switches captain; `node scripts/qa/handover_before_turn_check.mjs` PASSes, including its red-proof of the backwards order. Nothing to build. |
@@ -120,6 +120,21 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   responsive two-column layout) — not urgent, not blocking any Chart item, and needs the same
   render-and-screenshot discipline (rule 19) the redesign itself used. Recommend building all three
   together rather than piecemeal, since (2) and (3) both touch the Shipped Today card's markup.
+  → **ALL THREE SHIPPED 2026-09-01 04:15Z**, built together as recommended. (1) Tasks now sits above
+  Shipped Today. (2) Each commit is its own pill, closed by default, opening to that commit's real
+  reasoning — its body, with the `Co-Authored-By`/session trailers stripped by SHAPE so a renamed
+  trailer cannot leak back in; the hash and relative time sit at the foot. (3) Two columns at
+  ≥46rem, Shipped left and Rulings right, one column below that with Shipped on top — source order
+  already puts Shipped first, so the phone case is the grid simply not applying, with no second
+  ordering rule to keep in step. The sheet widens to 62rem only where the grid applies (at 40rem the
+  columns came out 311px and the rulings table wrapped every other word). Rendered and screenshotted
+  at 1100px and 375px, zero horizontal overflow at either. **Three real defects were found by
+  looking at the picture rather than the numbers**: raw `~~` markdown reaching the page (the Chart's
+  markers were stripped in three ad-hoc places and `~~` was missed in all of them — now one
+  `unmark()`); an answered question still rendering as an open "Your call" because its row had been
+  edited in place instead of moved to RULED; and the Tasks card counting harvested ideas as open
+  work — it read only each bullet's FIRST line, while an idea's fate is written in the lines
+  underneath, so "12 open" was really 6.
 - **CEO Review 51's small finding**: `quiet_gate_report.mjs`'s naming convention (`^[wq]\d+_`)
   misses `a1_bake_now_check.mjs` / `a2_bot_bake_watch_check.mjs` — two real per-item gates that are
   neither structural nor currently reportable as retirement candidates. → **PARKED, low priority**:

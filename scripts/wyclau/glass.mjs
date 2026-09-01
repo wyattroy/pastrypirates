@@ -117,6 +117,11 @@ const note = (() => {
    never be mistaken for a page that has actually been published with fake blockers. */
 const DEMO = argv.includes("--demo");
 
+/* Markdown markers the Chart uses that this page renders literally if they survive. Kept as
+   ONE function because they were being stripped ad hoc in three places and ~~ was missed in
+   all of them -- it reached the published page as raw tildes across a struck-through row. */
+const unmark = (s) => String(s).replace(/\*\*|~~/g, "").replace(/~~/g, "");
+
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tryReadTimestamp = (p) => {
   let raw;
@@ -206,6 +211,38 @@ function shortSubject(s) {
    what's DISPLAYED (the full note still prints to the console for the session's own record) to
    the first sentence or two, so the page stays scannable regardless of how long a future --note
    is. */
+/* HIS EDIT 2's renderer: one pill per commit, closed by default, opening to the reasoning.
+   Written as a FUNCTION rather than inline in the page template because the nested escaping this
+   needs (a template inside a template inside a generated string) is exactly where the Glass's own
+   self-publish bug lived -- one collapsed backslash and the page stops being a page. Plain string
+   concatenation here, no cleverness.
+   The BODY is the point: this repo writes its reasoning into commit bodies, so opening a pill is
+   how Wyatt gets from "what shipped" to "why". Blank-line-separated paragraphs are kept as
+   paragraphs; single newlines are joined, because a body wrapped at 72 columns is not a list. */
+/* TRAILERS ARE NOT REASONING. A commit body here ends with Co-Authored-By / Claude-Session lines
+   and sometimes a generated-with note; opening a pill to read a session URL is worse than opening
+   it to read nothing, because it buries the paragraph that IS the answer. Dropped by SHAPE -- a
+   "Some-Header: value" line, or a link to a session -- never by a hand-typed list of exact
+   strings, which would rot the moment a trailer is renamed. */
+function stripTrailers(body) {
+  return String(body || "")
+    .split("\n")
+    .filter((l) => !/^\s*(?:[A-Za-z][A-Za-z]*-)+[A-Za-z]+:\s/.test(l))
+    .filter((l) => !/^\s*(?:Generated with|https:\/\/claude\.ai\/code\/session)/.test(l))
+    .join("\n");
+}
+
+function pillHtml(c) {
+  const paras = stripTrailers(c.body).split(/\n\s*\n/).map((b) => b.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
+  const why = paras.length
+    ? paras.map((b) => '<p class="pillWhy">' + esc(b) + "</p>").join("")
+    : '<p class="muted">No further detail in this commit.</p>';
+  return '<details class="pill"><summary>' + esc(shortSubject(c.s)) + "</summary>"
+    + '<div class="pillBody"><p class="pillSubject">' + esc(c.s) + "</p>"
+    + why
+    + '<p class="pillMeta">' + esc(c.h) + " · " + esc(c.when) + "</p></div></details>";
+}
+
 function shortNote(s) {
   const t = String(s).trim();
   const sentences = t.match(/[^.!?]+[.!?]*/g) || [t];
@@ -217,17 +254,25 @@ function shortNote(s) {
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
    ones so the Tasks card stays scannable rather than a wall of text. */
 function shortTask(s) {
-  let t = String(s).replace(/\*\*/g, "").replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
+  let t = String(s).replace(/\*\*|~~/g, "").replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
   const words = t.split(/\s+/).filter(Boolean);
   return words.length > 16 ? words.slice(0, 16).join(" ") + "…" : t;
 }
 
 // --- shipped today: commits since local midnight, this branch ---
 const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
-const logRaw = tryGit(["log", `--since=${midnight.toISOString()}`, "--pretty=%h\t%s"]);
+/* HIS EDIT 2, 2026-08-31: "Make Shipped Today expandable, with each thing shipped in its own pill,
+   clickable to see more information about that commit." So the log has to carry more than a
+   subject now -- the body is where this repo's commits keep their reasoning, and that is the thing
+   worth opening a pill for. A record separator (\x1e) ends each entry because bodies contain
+   newlines and a line-based split would tear them apart. */
+const logRaw = tryGit(["log", `--since=${midnight.toISOString()}`, "--pretty=%h\t%cr\t%s\t%b%x1e"]);
 const commits = logRaw === null
   ? null
-  : logRaw === "" ? [] : logRaw.split("\n").map((l) => { const [h, ...s] = l.split("\t"); return { h, s: s.join("\t") }; });
+  : logRaw === "" ? [] : logRaw.split("\u001e").map((r) => r.trim()).filter(Boolean).map((rec) => {
+      const [h, when, subject, ...body] = rec.split("\t");
+      return { h, when: when || "", s: subject || "", body: body.join("\t").trim() };
+    });
 const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git failed";
 
 // --- the Chart: checklist tallies + task text + blocked-on-Wyatt + inbox items ---
@@ -243,17 +288,26 @@ if (chart !== null) {
     // first 40 chars of the question, lowercased, punctuation stripped.
     .map(([q, rec, since]) => ({
       id: q.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40).replace(/^-|-$/g, ""),
-      q: q.replace(/\*\*/g, ""), rec: (rec ?? "").replace(/\*\*/g, ""), since: since ?? "",
+      q: q.replace(/\*\*|~~/g, ""), rec: (rec ?? "").replace(/\*\*|~~/g, ""), since: since ?? "",
     }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
-  inboxItems = /\(empty/.test(inboxSec) ? [] : (inboxSec.match(/^[-*] .*$/gm) || []).map((l) => l.replace(/^[-*] /, ""));
+  /* WHOLE BLOCKS, not first lines. An idea's fate ("SHIPPED", "PARKED", "SCHEDULED") is written
+     in the lines UNDERNEATH its bullet, so anything deciding whether an idea is still open has to
+     read the continuation too. Reading only line one made the Tasks card count answered ideas as
+     work left to do. `head` is what gets shown; `all` is what gets judged. */
+  const inboxBlocks = /\(empty/.test(inboxSec) ? [] : inboxSec
+    .split(/^(?=[-*] )/m)
+    .map((b) => b.trim())
+    .filter((b) => /^[-*] /.test(b))
+    .map((b) => ({ head: b.split("\n")[0].replace(/^[-*] /, ""), all: b }));
+  inboxItems = inboxBlocks.map((b) => b.head);
   // HIS RULINGS, DERIVED — the Helm's record migrated into this page. Sourced from the Chart's
   // RULED table (never hand-typed here), so a ruling shows on the Glass the moment it is
   // harvested, and cannot drift from the record the engine works to.
   const ruledSec = chart.split(/^## RULED[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
   ruled = ruledSec.split("\n")
     .filter((l) => l.startsWith("|") && !/^\|\s*item\b/i.test(l) && !/^\|\s*-+/.test(l))
-    .map((l) => l.split("|").map((c) => c.trim().replace(/\*\*/g, "")).filter(Boolean))
+    .map((l) => l.split("|").map((c) => c.trim().replace(/\*\*|~~/g, "")).filter(Boolean))
     .filter((c) => c.length >= 2)
     .map(([item, call, now]) => ({ item, call, now: now ?? "" }));
   // ITEM 6 — ONE MERGED TASK LIST, not two counts kept in step by nothing. Open items from the
@@ -261,7 +315,17 @@ if (chart !== null) {
   // order — the checklist is the standing plan, the inbox is what just arrived.
   const stepSec = chart.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
   const openChecklist = (stepSec.match(/^- \[ \] .*$/gm) || []).map((l) => shortTask(l.replace(/^- \[ \] /, "")));
-  tasks = [...openChecklist, ...(inboxItems ?? []).map(shortTask)];
+  /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
+     SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
+     pending. Feeding the whole inbox in made the Tasks card count answered ideas as work left to
+     do (seen 2026-09-01: "12 open" included three ideas already shipped and one already parked,
+     each rendered as a truncated paragraph of prose). The count is what Wyatt steers by, so an
+     inflated one is worse than a missing one.
+     Detected by the fate words the Chart itself promises to write, not by a hand-kept list of
+     which ideas are done -- a list like that would rot the first time somebody harvested one. */
+  const FATE = /\b(SHIPPED|PARKED|SCHEDULED|HARVESTED|CLOSED|DONE|FIXED|ROOT-CAUSED)\b/;
+  const openInbox = inboxBlocks.filter((b) => !FATE.test(b.all)).map((b) => b.head);
+  tasks = [...openChecklist, ...openInbox.map(shortTask)];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
@@ -403,6 +467,30 @@ const PAGE = `<meta charset="utf-8">
     word-break:break-word;overflow-wrap:anywhere;}
   .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:1.5rem;}
   .count{font-weight:700;color:var(--signal);}
+  /* HIS EDIT 3, 2026-09-01: "Shipped Today is in the left column, and Your Rulings is on the right
+     column. On mobile, one column with Shipped Today is on top." Source order already puts Shipped
+     first, so the phone case is the grid simply not applying -- no reordering rule to keep in step.
+     The breakpoint is the sheet's own width (40rem), not a device guess. */
+  .twoCol{display:grid;grid-template-columns:1fr;gap:0;}
+  @media (min-width: 46rem){
+    .sheet{max-width:62rem;}
+    .twoCol{grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start;}
+    .twoCol > .card{margin-bottom:0;}
+  }
+  /* HIS EDIT 2: each shipped thing is its own pill, closed, opening to the commit's reasoning. */
+  .pills{display:flex;flex-direction:column;gap:.4rem;margin:.3rem 0 0;}
+  .pill{background:var(--paleblue);border:1px solid var(--line);border-radius:999px;
+    padding:.35rem .8rem;font-size:.92rem;}
+  .pill[open]{border-radius:12px;}
+  .pill summary{cursor:pointer;list-style:none;}
+  .pill summary::-webkit-details-marker{display:none;}
+  .pill summary::before{content:"▸ ";color:var(--accent);font-size:.85em;}
+  .pill[open] summary::before{content:"▾ ";}
+  .pill summary:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:6px;}
+  .pillBody{margin:.5rem 0 .2rem;padding-top:.5rem;border-top:1px solid var(--line);}
+  .pillSubject{font-weight:600;margin:0 0 .4rem;}
+  .pillWhy{margin:0 0 .5rem;font-size:.9rem;color:var(--ink);}
+  .pillMeta{margin:.2rem 0 0;font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);}
   /* ITEM 4 — shipped-today as a scannable strip, no hashes: a small dot, the short subject. */
   .shipList{list-style:none;margin:.2rem 0;padding:0;}
   .shipList li{position:relative;padding-left:1.1rem;margin-bottom:.5rem;font-size:.93rem;}
@@ -470,11 +558,24 @@ const PAGE = `<meta charset="utf-8">
     <div id="ideaList"></div>
   </section>
 
+  <!-- HIS EDIT 1: Tasks moved ABOVE Shipped Today. What is still to do outranks what is done. -->
+
+  <!-- HIS EDIT 1: Tasks moved ABOVE Shipped Today. What is still to do outranks what is done. -->
+  <section class="card">
+    <h2>Tasks (${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open)</h2>
+    ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
+  </section>
+
+  <!-- HIS EDIT 3: "Shipped Today is in the left column, and Your Rulings is on the right column.
+       On mobile, one column with Shipped Today is on top." The grid below is that, and the source
+       order puts Shipped first so the one-column phone case needs no reordering rule. -->
+  <div class="twoCol">
   <section class="card">
     <h2>Shipped today (${commits === null ? "?" : commits.length} commits)</h2>
     ${commits === null ? `<p class="bad">unreadable: git log failed</p>`
       : commits.length === 0 ? `<p class="muted">Nothing yet today.</p>`
-      : `<ul class="shipList">${commits.slice(0, 12).map((c) => `<li>${esc(shortSubject(c.s))}</li>`).join("")}${commits.length > 12 ? `<li class="muted">…and ${commits.length - 12} more</li>` : ""}</ul>`}
+      : `<div class="pills">${commits.slice(0, 12).map(pillHtml).join("")}</div>${commits.length > 12 ? `<p class="muted">…and ${commits.length - 12} more</p>` : ""}`}
   </section>
 
   <section class="card">
@@ -484,12 +585,8 @@ const PAGE = `<meta charset="utf-8">
       : `<table id="ruled">${ruled.map((r) => `<tr><td>${esc(r.item)}</td><td><b>${esc(r.call)}</b><br><span class="muted">${esc(r.now)}</span></td></tr>`).join("")}</table>
     <p class="muted">Migrated from the Helm and derived from the Chart — the Bosun works to these.</p>`}
   </section>
+  </div>
 
-  <section class="card">
-    <h2>Tasks (${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open)</h2>
-    ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
-  </section>
 
   <section class="card">
     <h2>Watchdog restarts (last 5, on ${esc(MACHINE)})</h2>
