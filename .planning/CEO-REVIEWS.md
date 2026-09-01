@@ -4268,7 +4268,15 @@ itself leaving behind."*
 > had already erased itself, the ledger stops mid-sentence at the prediction, and the Glass you'd
 > look at doesn't know any of this happened."*
 
-## CEO REVIEW 77 — 2026-09-01T19:5xZ, Wy-Blade — the Glass's rulings triage (INBOX-20260901T1310Z)
+## CEO Review 77 — 2026-09-01T19:5xZ, Wy-Blade — the Glass's rulings triage (INBOX-20260901T1310Z)
+
+> **⚠ THE HEADING SPELLING IS LOAD-BEARING, AND I GOT IT WRONG FIRST.** `close_item.mjs:95` finds a
+> verdict with `^## CEO Review <n>\b` — **case-sensitive**. I wrote `## CEO REVIEW 77` and the gate
+> refused the close with *"CEO Review 77 is not in CEO-REVIEWS.md"*, which reads exactly like a
+> review nobody ran. **`## CEO REVIEW 76` above is still in the uppercase form**, so that verdict
+> is invisible to the gate too — it exists, and no item can be closed against it. Left as found
+> rather than quietly retitled: it is one watch's own record, and the fix belongs with whoever
+> reads this next. The durable answer is for the gate to match case-insensitively.
 
 **Wyatt asked, verbatim:** *"The Glass's Your Rulings -- In Hand are stale; there must be a process
 that triages them and adds them to the Tasks list, then removes them from the Your Rulings list"*

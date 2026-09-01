@@ -118,7 +118,7 @@ status: DONE 2026-09-01 — CEO 68, commit 841507a (2 game files)
 > "The Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and
 > adds them to the Tasks list, then removes them from the Your Rulings list"
 solution: triage each ruling into the Tasks list, then remove it from the Your Rulings list (his words, lightly compressed)
-status: CLAIMED by watch 2026-09-01T19:29Z (Wy-Blade) — written on the Glass 13:10:15Z. A wyclau process item: the RULED table needs states (ruled → triaged-to-task → done, only open ones rendered), derived on the Glass, hand-typed nowhere. ORDER NOTE for the first watch: the release-trial entry (INBOX-20260901T1315Z) outranks this despite being 5 minutes younger — his ruling 12 names the trial as the first Watch cargo; take that first.
+status: DONE 2026-09-01 — CEO 77, no game diff — no game code: this is his own interface, not the game — the rulings lifecycle lives in .planning/CHART.md and a new gate, because the Glass generator is vendored from claude-kit and cannot be edited from this machine; his solution first: commit de045b9
 
 ## INBOX-20260901T1315Z — the release trial, first Watch cargo
 > Ruling 12, THE RELAY REDESIGN (question put to him with the recommendation marked, his pick):

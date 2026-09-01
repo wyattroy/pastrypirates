@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T19:15:09.938Z	self-publish check
+2026-09-01T19:47:08.517Z	longrun status check
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,15 +13,14 @@
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-01T19:14:17.400Z",
-  "updatedAt": "2026-09-01T19:15:19.118Z",
-  "progress": "0/10 legs",
+  "updatedAt": "2026-09-01T19:49:55.344Z",
+  "progress": "4/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T07:26:02Z	hold off: a commit landed 17 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T07:36:02Z	hold off: a commit landed 27 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T07:46:02Z	hold off: a commit landed 37 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T07:56:02Z	no engine, and no commit for 47 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
@@ -61,4 +60,5 @@
 2026-09-01T18:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T182803Z.out/.err)
 2026-09-01T18:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T184803Z.out/.err)
 2026-09-01T19:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T190803Z.out/.err)
+2026-09-01T19:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T192803Z.out/.err)
 ```
