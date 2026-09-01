@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T13:36:43.128Z	harvested: image compression + preload marked LAUNCH CRITICAL, routed to the launch list
+2026-09-01T13:50:55.580Z	Muse restored on staging .4 (CEO 68 YES); Blade hour in progress -- the Bell awaits its ring test
 ```
 
 ## Long run in flight (LONG-RUN)

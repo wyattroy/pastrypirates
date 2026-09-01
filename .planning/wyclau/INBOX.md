@@ -85,7 +85,7 @@ status: PARKED — his own routing: "Eventual nice to have" → idea inbox, afte
 > "The Muse narrations are now missing from all narration in Multiplayer -- they don't seem to be
 > firing at all, or maybe they get wiped away IMMEDIATELY"
 solution: none stated
-status: OPEN — written on the Glass 13:14:06Z. A "now missing" = a regression somewhere in the one-director convergences; find WHEN it broke (git log, rule 10) before measuring where.
+status: DONE 2026-09-01 — CEO 68, commit 841507a (2 game files)
 
 ## INBOX-20260901T1310Z — the Glass's "Your Rulings — In Hand" needs a triage lifecycle
 > "The Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and
