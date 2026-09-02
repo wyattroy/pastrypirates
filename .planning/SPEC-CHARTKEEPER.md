@@ -16,9 +16,11 @@
 > 3. **The governing sentence, which outranks the rest of this document:** *"The chart should
 >    therefore only show WHERE WE ARE GOING — accurately, constantly updating."*
 >
-> **And two repairs must land in the SAME change or the build goes red:** the Glass's `done` count
-> (it counts `- [x]` rows that will no longer exist) and `rulings_triage_check.mjs` (it fails when a
-> settled ruling has no checklist row). Both are specified under PASS 4.
+> **And THREE repairs must land in the SAME change or the build goes red**, all specified under
+> PASS 4: the Glass's `done` count becomes **"done today"** from `CHART-LOG.md` (it currently
+> counts `- [x]` rows that will no longer exist); `rulings_triage_check.mjs` must read the log
+> rather than the Chart; and the **SETTLED RULINGS table is swept out too** — his ruling of
+> 2026-09-02, overruling a recommendation to keep it.
 
 *Written by the Advisor 2026-09-02 at Wyatt's instruction: audit the Chart, design (do not build) a
 system that keeps it re-prioritised, current, and self-pruning, wired into the process. **This is a
@@ -294,10 +296,13 @@ the essays are the graveyard (rule 10) that stops the next session re-running a 
 > ### ⚠ SWEEPING EVERY DONE ROW BREAKS TWO THINGS THAT READ THEM. FIX BOTH IN THE SAME CHANGE.
 >
 > **1 · The Glass's `done` count goes to zero.** `glass.mjs:392` derives it by counting `- [x]`
-> inside `## STEP 1 CHECKLIST`. Sweep them all and the card reads *"0 done."* **Re-source it from
-> `CHART-LOG.md`, windowed** — done today, or done this week — which is the number that was
-> actually worth showing all along. *(This is the second time in this spec that a claim about
-> `glass.mjs`'s counting has had to be corrected. Read the code, not this paragraph.)*
+> inside `## STEP 1 CHECKLIST`. Sweep them all and the card reads *"0 done."*
+> **HIS RULING, question UI, 2026-09-02: it becomes "DONE TODAY", derived from `CHART-LOG.md` and
+> resetting each day.** He was offered "done this week" and "remove it entirely" and picked today.
+> **His reason is already on the record and this is consistent with it** — 2026-08-31, on the Glass:
+> *"I want to see that the work is being done, right at the top, at a glance."* A number that only
+> ever grows cannot do that job; a daily one can. *(This is the second time in this spec that a
+> claim about `glass.mjs`'s counting has had to be corrected. Read the code, not this paragraph.)*
 >
 > **2 · `scripts/qa/rulings_triage_check.mjs` fails the build** when a settled ruling with work
 > outstanding has no checklist row (`:132-137`, and that direction is red-proofed). Sweeping a
@@ -305,10 +310,17 @@ the essays are the graveyard (rule 10) that stops the next session re-running a 
 > outstanding work needs no row.** Change the gate in the same commit, and re-prove both
 > directions — do not weaken it to silence.
 
-**WHAT DOES NOT GET SWEPT, and this is my call to flag rather than make silently:** the
-`SETTLED RULINGS` table. It is a lookup keyed by question, the Glass deliberately does not render
-it, and the gate above depends on it. It is not a to-do list wearing a costume, so it is not what
-his sentence is aimed at. **If he wants it gone too, it is one line to add — his to say.**
+**THE `SETTLED RULINGS` TABLE GOES TOO — HIS RULING, question UI, 2026-09-02.** It was put to him
+with a recommendation to KEEP it (12 rows, never rendered on the Glass, and a gate depends on it)
+and **he overruled that and chose to sweep it.** The strict reading of his own sentence wins:
+nothing backward-looking survives in `CHART.md`, including a lookup table of decisions already
+made. **It moves to `CHART-LOG.md` with everything else.**
+
+**That makes `rulings_triage_check.mjs` a THIRD dependent repair, not a second**, and it is the
+fiddliest of the three: the gate currently asserts against `CHART.md` (`:102`, `:132-137`) that a
+settled ruling with outstanding work has a checklist row. With the table in `CHART-LOG.md` it must
+read the log for the ruling and the Chart for the row — **and both directions must be re-proved,
+never weakened to silence.** The check it performs is worth keeping; only its address changes.
 
 ### WHERE IT RUNS — his two options, and my recommendation is *both, with different authority*
 
