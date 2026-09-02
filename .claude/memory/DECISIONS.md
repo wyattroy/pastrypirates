@@ -679,3 +679,59 @@ cannot.**
 **Recommendation to him in one line:** defer the extensibility project entirely, keep one silent
 counter so the deferral stays measured, and spend the discipline only on structural coupling — which
 is where retrofitting actually gets expensive.
+
+## ONE QUEUE, RANKED — his design, 2026-09-02, and it is better than the one it replaces
+
+**His words, answering "what do you want done about the queue order":**
+
+> *"the door should not read oldest-first; the RANK algorithm should do the ordering, and the door
+> should read what's at the top. the rank algorithm should prioritize my requests over bugs that the
+> Watch generated; and i need a way to say DO THIS NOW such that RANK puts it at the top -- eg a
+> checkbox underneath the ideas list that says 'Add to top of list'"*
+
+**AND THE RULING ON THE ADVISOR, same round:** **record-only, with a named exception.** The rule
+stands — it was earned three times in one night. The exception: **the Advisor may execute when Wyatt
+directs it in the moment, and must SAY in its reply that it stepped outside the line.** Explicitly
+NOT an exception: the Advisor deciding on its own that the process is too slow.
+
+### WHY HIS VERSION BEATS THE ONE THAT WAS PROPOSED TO HIM
+
+The Advisor offered a `priority: NOW` marker typed into `INBOX.md`. **His answer removes a whole
+class of problem instead of adding a mechanism**, and it does it in three moves:
+
+1. **ONE ORDERING AUTHORITY.** Today there are TWO: the Door has its own rule (INBOX oldest-first,
+   then the Chart) and RANK has another. **Rule 23's design-time question — *what makes these two
+   agree?* — answers "nothing".** His version deletes the Door's rule entirely: RANK orders, the
+   Door reads position 1. Two orderings become one.
+2. **SOURCE BECOMES A RANKING SIGNAL.** *"prioritize my requests over bugs that the Watch
+   generated"* — today RANK counts how often he has raised something, but a watch-filed defect and a
+   thing he typed compete on equal footing. **Who asked is a fact already on disk** (his items carry
+   his words; watch-filed rows carry a watch stamp), so it is derivable, not a new field.
+3. **THE INTERRUPT IS A CONTROL HE HOLDS, NOT A MARKER SOMEBODY TYPES.** A checkbox under the Ideas
+   box — *"Add to top of list"* — means the urgent path is **his hand on his own page**, with no
+   session in the loop. Every interrupt tonight required him to notice, interrupt, and repeat
+   himself. This removes the person from the mechanism.
+
+### THE DEPENDENCY THIS EXPOSES, AND IT MUST BE FIXED FIRST
+
+**RANK CANNOT CURRENTLY ORDER ACROSS THE TWO LISTS.** Recorded in `PENDING-KIT-PATCHES.md` patch 4's
+own caveat: RANK reorders rows *within the open-row slots the file already has*, and cannot reorder
+across the two sections the Glass concatenates (`glass.mjs`: open checklist rows, then unfated inbox
+entries). **So "the Door reads what is at the top" is meaningless until there is ONE list to be at
+the top of.** That is patch 5 — converge `glass.mjs` onto `scripts/wyclau/lib/chart_model.mjs`, so
+the Glass and the Chartkeeper stop deriving "what is open" separately. **Unblocked as of today's
+`vendor_check` inversion.**
+
+**Order of work, and it is not negotiable:** converge the two derivations (patch 5) → RANK ranks one
+list including source weight → the Door drops oldest-first and reads position 1 → the Glass gets the
+"Add to top" checkbox and the harvest carries the flag through.
+
+### WHAT "ADD TO TOP" MUST NOT BECOME
+
+**One slot, not a queue.** Ticking it on a second item must displace the first, deliberately —
+otherwise "urgent" becomes a second backlog, which is the exact fault this whole design removes. A
+gate should fail the build on two.
+
+**And it must be visible on the page.** He must be able to see what he pinned and whether it has been
+taken; an interrupt he cannot see is indistinguishable from one that was ignored, which is precisely
+what happened all night.
