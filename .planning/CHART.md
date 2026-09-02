@@ -142,15 +142,54 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         3. **The three repairs the banner says must land in the same change:** the Glass's `done`
            count becomes "done today" from `CHART-LOG.md`; `rulings_triage_check.mjs` reads the log
            not the Chart; the `SETTLED RULINGS` table is swept too.
-      **TWO RANKING SIGNALS ARE UNSOUND AND SHOULD BE GROUNDED OR CUT (CEO 91, measured):**
-        • *approved-and-unblocked* (+100) regex-matches phrases **inside the row's own prose**
-          (`chartkeeper.mjs:204`) and never opens `SETTLED RULINGS`, which is where the spec says it
-          comes from — so any session can float its own row to #1 by typing "at his instruction".
-          This watch widened that pattern after seeing its own row rank 14, and CEO 91's verdict on
-          that is **fitting the tool to flatter its own item**. Recorded, not defended.
-        • *how often HE has raised it* (+8 each) is five-letter-token overlap and **prints false
-          sentences at him**: "raised it 9 times" for `can_push`, where "push" is in 1 of 28 Inbox
-          entries; "raised it once" for the trade circle, which has three recorded sightings.
+      ### ⚑ THE TWO UNSOUND RANKING SIGNALS — WORKED 2026-09-02T06:0xZ. One is DONE, one is HALF DONE, and CEO 94 says exactly where the line is.
+      **SIGNAL B — the false "you have raised it N times" — is DONE (CEO 94's own scoring).** It
+      was a five-letter token overlap over 900 characters of essay, and on the real Chart it told
+      him he had raised the `can_push` row — a tool fault a session found, which he has never
+      mentioned — **ten times**. It now counts DISTINCT RESOLVED CITATIONS: entries of his Inbox
+      the row names, plus entries naming the row's `T-nnn` handle. `can_push` now reads *"no signal
+      either way"*.
+      ⚠ **AND THE OBVIOUS DIAGNOSIS WAS WRONG, which is the reusable half:** it was not tracking row
+      LENGTH — the 900-character cap flattens that out (a 4,695-char row scored 1, a 487-char row
+      scored 5). It tracked **shared process vocabulary**: rows about the watch/trial machinery
+      matched the many Inbox entries about the watch/trial machinery. It measured *"is this row
+      about the same subsystem as most of his recent notes"* and reported it as *"you raised this N
+      times."*
+      **SIGNAL A — approved-and-unblocked (+100) — IS HALF DONE, AND CEO 94 BROKE IT IN A MINUTE.**
+      The prose regex is gone; approval now needs a resolved `INBOX-<stamp>` that is still live, or
+      a `Your ruling:` tag that resolves against the Chart's own rulings tables. Two of CEO 94's
+      findings were faults introduced in the same watch and are fixed in it (`9dbac237`): the tag
+      used to be credited on a Chart with **empty** rulings tables, because the file claimed in two
+      places that `rulings_triage_check.mjs` enforces it and **that gate only walks rulings → rows**
+      (`rulings_triage_check.mjs:92-98`); and a comment said "eight rows" where the tool's own
+      report says four. Gate cases 11a, 11a-ii, 11b, 11c, 11d, 11e — twelve assertions, RED first
+      (six failures), `npm test` 94 green.
+      **WHAT IS STILL OPEN, AND IT IS THE NEXT STEP HERE, WITH CEO 94'S OWN REPRODUCTION:**
+        • **A row citing a REAL BUT UNRELATED live Inbox entry is still credited.** CEO 94 wrote a
+          fictional *"repaint the bilge pump widget, nobody has ever mentioned this"* row, pasted
+          this row's own live Inbox stamp into it, and **it scored 108 and ranked #1** against a real
+          player-facing bug. Nothing checks the entry is ABOUT the row. Its proposed fix — require
+          the cited entry to name the row's `T-nnn` handle — **would today zero every row on the
+          list**, because `grep -o "T-0[0-9][0-9]" .planning/wyclau/INBOX.md` returns NOTHING: there
+          are no backrefs at all. So this needs the backref convention established on the Advisor's
+          side first, plus a decision about what a one-sided citation is worth. **A design choice
+          about his record, not a patch.**
+        • **Two rows were demoted that should not have been, and the repair is one line each.**
+          The tool NAMES them in its report. *"Convert the recipe art to WebP"* — his ruling was
+          *"do it"* and his 2026-09-02T00:48Z Inbox entry is live and right there; it fell from
+          +100 to 30 for want of a citation that is not a matter of judgement. And the row that is
+          literally his quoted words (*"Make Glass…"*, 2026-09-01 02:13:52Z) now scores **0** at
+          rank 27. Writing those citations in is the Advisor's job under his 2026-09-02T04:00Z
+          record-only ruling.
+        • **`INBOX.md:390` and `:409` are two different entries sharing one id** (the
+          `2026-09-02T05:xx` stamp). The tool keys them in a Map, so one silently overwrites the
+          other and the survivor's status decides both. Found by CEO 94.
+      ⚠ **AND WRITING THIS ROW DEMONSTRATED THE HOLE, WHICH IS WHY THE WORDING ABOVE IS INDIRECT.**
+      The first draft named those two entries by their raw `INBOX-…` ids as evidence about OTHER
+      rows — and the tool immediately counted them as THIS row's citations and printed *"you asked
+      for it in 3 of your notes"* at him. A pointer written for a human reader became a score. So
+      the ids are spelled out in prose here instead. **That is not the fix; it is the bug wearing a
+      workaround**, and it is the sharpest argument for the two-sided citation above.
       **REAP CATCHES 4 OF THE AUDIT'S 5.** The 24-hour-run row is missed: *"the 24h exit test"*
       tokenises to an empty set through the five-letter filter (`chart_model.mjs:196`). Two probes,
       `supersededByAnotherRow` and `pidLongDead`, have no gate case at all.
