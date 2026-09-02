@@ -4448,3 +4448,43 @@ write is not an orphan.* Before committing a reset, `git log -1 -- .planning/wyc
 after your reset. **`INBOX-20260902T0350Z` said "a note that is committed is not a note that was
 delivered." This says the harder half: a note that is committed can still be deleted by a session
 that means well.**
+
+## WATCH 2026-09-02T12:20Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T12:20Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+- **Last progress:** `d8d2f4a9` (the Advisor filed his claude-kit vision into DECISIONS);
+  `LAST-PUBLISH` reads `2026-09-02T12:09:14.376Z … version=1788350947-869c commit=81ef12e9`, so his
+  page is eleven minutes old and carries the restored 11:40Z note.
+- **The previous watch closed `INBOX-20260902T05xxZ-a`** — the Glass session's context, CEO 103,
+  commit `42958113`. It filed the red build as `T-079` and did NOT take it (one item per watch).
+- **Blocked on Wyatt / blocked on the kit, unchanged and not re-measured this watch** (the 11:00Z
+  and 11:40Z watches both measured the claude-kit read as REFUSED, not empty): the board-compression
+  reading (`INBOX-20260901T1335Z`), the staging permission spelling (`INBOX-20260902T05xxZ-c`), and
+  kit patches 4/5/6 of the Chartkeeper.
+- **Detached trial in flight: none.** No `.planning/wyclau/LONG-RUN`, so no pid to confirm.
+- **No Artifact tool in this session** — a Bell-launched `claude -p` watch cannot publish or
+  harvest. This watch writes `GLASS-NOTE.md` and commits it; the Glass-update session folds it in.
+- **THIS WATCH TAKES `T-079`**, the in-repo, unblocked half of his highest-priority Inbox item
+  `INBOX-20260902T04xxZ` (*"design … a system that will dynamically reprioritize it"*). Claimed.
+
+**WHY THIS ITEM, walking the Inbox oldest-first as the Door requires.** `20260901T1335Z`,
+`20260901T1340Z`, `20260901T1440Z`, `20260902T0058Z` and `05xxZ-c` fall out for the reasons the
+11:00Z and 11:40Z watches recorded. `20260902T04xxZ` is his stated highest priority, and every
+piece of it a previous watch could reach was kit-blocked — **but `T-079` is not.** It lives
+entirely in `scripts/wyclau/chartkeeper.mjs`, a file this repo owns.
+**AND IT IS TWO THINGS AT ONCE.** `npm test` is RED, so no watch after this one can close anything
+on a green build; and the single failing case is the Chartkeeper's own acceptance test — *his
+four-times-asked request must rank first* — which is failing because his request sank on his own
+list again, by the exact mechanism the Chartkeeper was built to remove. Un-redding the build and
+answering his ask are the same edit.
+
+⚠ **FOURTH SIGHTING OF THE SHARED-CHECKOUT HAZARD, AND THE FIRST TIME IT ATE A WATCH'S CLAIM.**
+This entry was written once already, at 12:21Z. The CEO-cadence hook blocked the commit (correctly
+— it tells you to retry), and by the time the retry ran, **the working tree was clean and the
+append was gone**: no error, no conflict, 0 lines matching its own heading. Another session in this
+one checkout moved the checkout underneath it. `INBOX-20260902T05xxZ-c` records the same thing
+happening to an Advisor's Inbox entry, and its rule — *write and commit in the SAME step* — is
+right and **was obeyed here and still lost**, because a BLOCKED commit re-opens the very gap the
+rule closes. **The stronger form: a hook that blocks a commit leaves your work naked, so the retry
+must live in the SAME shell command as the write**, never in a second tool call.
