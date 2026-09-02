@@ -32,11 +32,26 @@ if (html.includes("function blankThenReload(")) {
 }
 
 // --- the send handler: must update state + repaint BEFORE calling cap.publish(), and must not reload ---
+/* ⚠ FOLLOW THE DELEGATION, DO NOT ANCHOR ON THE LISTENER'S OWN TEXT. This read the 2000 characters
+   after `send.addEventListener("click"` and judged them. On 2026-09-02 the send body moved into a
+   named `sendIdea()` so his new DO NOW button could share ONE send path (rule 23 — two buttons,
+   one way for an idea to reach the page), and this gate went red on four counts while every
+   property it guards was intact. **A gate anchored on where code happens to live fails the day the
+   code is tidied, and the next reader's cheapest move is to weaken it.** So it now resolves the
+   listener to whatever it CALLS, and reads that. The properties are unchanged and the coverage is
+   strictly larger: both buttons go through the body this checks. */
 const clickIdx = html.indexOf('send.addEventListener("click"');
 if (clickIdx === -1) {
   failures.push('could not find send.addEventListener("click", ...)');
 } else {
-  const sendHandler = html.slice(clickIdx, clickIdx + 2000);
+  const listener = html.slice(clickIdx, clickIdx + 300);
+  const delegate = /\b([A-Za-z_$][\w$]*)\s*\((?:[^)]*)\)\s*;\s*\}\s*\)\s*;/.exec(listener);
+  let sendHandler = html.slice(clickIdx, clickIdx + 2000);
+  if (delegate && delegate[1] !== "addEventListener") {
+    const fnIdx = html.indexOf(`function ${delegate[1]}(`);
+    if (fnIdx === -1) failures.push(`the send listener delegates to ${delegate[1]}() and no such function is defined on the page`);
+    else sendHandler = html.slice(fnIdx, fnIdx + 2500);
+  }
   const pushIdx = sendHandler.indexOf("state.ideas.push(idea)");
   const renderIdx = sendHandler.indexOf("renderIdeas()");
   const publishIdx = sendHandler.indexOf("cap.publish(buildDoc(state))");

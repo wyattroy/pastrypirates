@@ -151,7 +151,15 @@ export const ID_RE = /`(T-\d{3})`/;
  *  the handle leads the first line (`withId` still migrates those), then nothing. **Nothing is the
  *  right third answer** — a row with no handle of its own gets a fresh one on the next write, which
  *  is cheap, where inheriting a neighbour's is silent and wrong. */
-const HEAD_ID_RE = /⟨\s*`(T-\d{3})`\s*⟩/;
+/*  ⚠ THE HEAD LINE MAY CARRY FIELDS BESIDE THE HANDLE, AND UNTIL 2026-09-02 THIS PATTERN SAID IT
+ *  MAY NOT. It read `⟨\s*`(T-\d{3})`\s*⟩` — handle alone, nothing else inside the brackets — while
+ *  `chartkeeper.mjs`'s own `headField()` splits that same bracket on `·` to read `needs:` and
+ *  `size:`. **Two readers of one line, disagreeing about its grammar**, and the day anything wrote
+ *  a second field the row would have lost its identity silently: `idOfRow` returns null, the row
+ *  gets a FRESH handle on the next write, and every ruling pointing at the old one is orphaned.
+ *  Nothing had written one yet, so nothing had failed — which is the only reason this was still
+ *  here to find when his DO NOW pin became the first field to be written. */
+const HEAD_ID_RE = /⟨\s*`(T-\d{3})`\s*(?:·[^⟩]*)?⟩/;
 const LEAD_ID_RE = /^(?:- \[[ xX]\]\s+|[-*]\s+)`(T-\d{3})`/;
 export function idOfRow(rowLines) {
   const lines = Array.isArray(rowLines) ? rowLines : String(rowLines ?? "").split("\n");

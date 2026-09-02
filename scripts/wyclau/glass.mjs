@@ -88,7 +88,7 @@ const GLASS_URL = "https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d19
    second decision surface again: he ruled there, nobody harvested it for over an hour, and the
    Glass went on printing "Blocked on Wyatt (6)" while five of the six were already answered. */
 const HELM_URL = "https://claude.ai/code/artifact/e33ae884-12f2-4dd3-a2c2-9b69f12bc0c1";
-const OUT = join(WY, "glass.html");
+const OUT_DEFAULT = join(WY, "glass.html");
 /* ONE PUBLISHER (Wyatt's ruling, 2026-08-31, on session sprawl: one WORKER, everything else
    scaffolding). TRACKED, not gitignored: any session, on any machine, writes here by committing,
    rather than publishing the Glass itself. Measured cost of NOT having this, same day: the
@@ -118,6 +118,22 @@ const note = (() => {
    the state block's `ideas`/`rulings` stay real and empty either way, so a --demo render can
    never be mistaken for a page that has actually been published with fake blockers. */
 const DEMO = argv.includes("--demo");
+/* ⚑ REHEARSAL MODE — `--chart=<path> --out=<path>`. A gate that wants to know what this page does
+   with a given Chart had, until 2026-09-02, exactly one way to find out: render the REAL page. That
+   stamps the heartbeat (so the freshness clocks report a run nobody made) and CONSUMES
+   `GLASS-NOTE.md` — and this project has already lost a watch's note to precisely that, the night
+   the Advisor ran `--note` only to look at the page and destroyed the finished screenshot results
+   sitting in it (INBOX-20260902T0350Z).
+   So: naming a Chart makes the run a rehearsal. It writes ONE file, the one you named, and touches
+   nothing else in `.planning/`. **The page itself is built by the same code either way** — there is
+   no second rendering path here and there must never be one (rule 23). */
+const readOpt = (name) => {
+  const hit = argv.find((a) => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : null;
+};
+const CHART_OVERRIDE = readOpt("chart");
+const REHEARSAL = CHART_OVERRIDE !== null;
+const OUT = readOpt("out") ?? OUT_DEFAULT;
 
 /* Markdown markers the Chart uses that this page renders literally if they survive. Kept as
    ONE function because they were being stripped ad hoc in three places and ~~ was missed in
@@ -195,7 +211,7 @@ const lastProgressMs = Number.isFinite(lastCommitMs)
 const nowIso = new Date().toISOString();
 const lastProgressIso = lastProgressMs ? new Date(lastProgressMs).toISOString() : nowIso;
 mkdirSync(WY, { recursive: true });
-writeFileSync(HEARTBEAT, `${nowIso}\t${note}\n`);
+if (!REHEARSAL) writeFileSync(HEARTBEAT, `${nowIso}\t${note}\n`);
 const tryRead = (p) => { try { return readFileSync(p, "utf8"); } catch (e) { return null; } };
 
 // --- pick up whatever another session left in GLASS-NOTE.md, then reset it. Absent, unreadable,
@@ -203,7 +219,7 @@ const tryRead = (p) => { try { return readFileSync(p, "utf8"); } catch (e) { ret
 // a session that has never written here is the common case, not a fault.
 let relayedNote = null;
 {
-  const raw = tryRead(GLASS_NOTE);
+  const raw = REHEARSAL ? null : tryRead(GLASS_NOTE);
   const body = raw === null ? "" : raw.split(/^---\s*$/m)[1] ?? "";
   const trimmed = body.trim();
   if (trimmed) {
@@ -375,7 +391,7 @@ const commits = logRaw === null
 const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git failed";
 
 // --- the Chart: checklist tallies + task text + blocked-on-Wyatt + inbox items ---
-const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
+const chart = tryRead(CHART_OVERRIDE ?? join(ROOT, ".planning", "CHART.md"));
 let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = null;
 /* HIS ASK 3's DANGEROUS HALF. "If there are no calls for me to make, don't show the Your Call box"
    is one conditional — but `blocked.length === 0` is reachable for TWO completely different reasons,
@@ -446,9 +462,19 @@ if (chart !== null) {
    * his real page: `…his words: *"claude my`, cut where CHART.md happens to wrap. There is now one
    * reader, and `chunk()` is the same row-boundary rule the Chartkeeper ranks and sweeps by, so a
    * row cannot mean one thing to the page and another to the tool that orders it. */
+  /* ⚑ HIS INTERRUPT, MADE VISIBLE. `T-104`, his words: a DO NOW button "that tells RANK to put this
+     task at the top". RANK moving the row is only half of that — his own design says the other half
+     out loud: "IT MUST BE VISIBLE ON THE PAGE — he must see what he pinned and whether it has been
+     taken. An interrupt he cannot see is indistinguishable from one that was ignored", which is
+     exactly what happened to him all day on 2026-09-02.
+     The marker is added AFTER `shortTask`, deliberately: `deShout` downcases a run of two capitalised
+     words, so "DO NOW" written before it comes out as "Do now" — his own emphasis, quietly removed
+     by a rule written for somebody else's shouting. */
   const openChecklist = chunk(stepSec, "checklist")
     .filter((c) => c.type === "row" && /^- \[ \] /.test(c.lines[0]))
-    .map((c) => shortTask(titleOf(c.lines)));
+    .map((c) => (c.lines.some((l) => /^\s*⟨[^⟩]*(?:^|·)\s*now\s*:\s*yes\b[^⟩]*⟩\s*$/i.test(l))
+      ? `⚡ DO NOW — ${shortTask(titleOf(c.lines))}`
+      : shortTask(titleOf(c.lines))));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
      SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
      pending. Feeding the whole inbox in made the Tasks card count answered ideas as work left to
@@ -889,6 +915,17 @@ const PAGE = `<meta charset="utf-8">
   #ideaSend{margin-top:.5rem;background:var(--teal);color:var(--parch);border:none;
     border-radius:8px;padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;}
   #ideaSend:disabled{opacity:.5;cursor:default;}
+  /* His DO NOW button. Beside the ordinary send, and deliberately NOT the louder of the two:
+     the common case is an idea that can wait, and a page whose shout button is the prettiest
+     one teaches him to shout. --signal is the same colour the page already uses for "this is
+     your decision". */
+  #ideaDoNow{margin-top:.5rem;margin-left:.5rem;background:var(--surface);color:var(--signal);
+    border:1.5px solid var(--signal);border-radius:8px;padding:.55rem 1rem;font:inherit;
+    font-weight:700;letter-spacing:.04em;cursor:pointer;}
+  #ideaDoNow:disabled{opacity:.5;cursor:default;}
+  #ideaDoNow:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+  .pinTag{display:inline-block;font-weight:700;color:var(--signal);letter-spacing:.04em;
+    font-size:.78rem;margin-right:.35rem;}
   #ideaText:focus-visible,#ideaSend:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
   .ask{background:var(--paleblue);border:1px solid var(--line);border-radius:10px;
     padding:.9rem 1rem;margin-bottom:.9rem;}
@@ -949,7 +986,11 @@ const PAGE = `<meta charset="utf-8">
     <p class="muted" id="ideaCapNote">Checking whether this view can save…</p>
     <div id="ideaForm" hidden>
       <textarea id="ideaText" rows="3" placeholder="An idea, feedback, a bug you noticed — any words. It lands on the Chart and gets a fate."></textarea>
+      <!-- HIS OWN WORDS, 2026-09-02 3:09 PM ET: "in the Glass, Add a 'DO now' button next to 'Send
+           to the Chart' button that tells RANK to put this task at the top". NEXT TO, not instead
+           of: the ordinary send is still the common case and stays first. -->
       <button id="ideaSend" type="button">Send to the Chart</button>
+      <button id="ideaDoNow" type="button" title="Send it and put it at the top of the list">DO NOW</button>
       <p class="muted" id="ideaStatus"></p>
     </div>
     <div id="ideaList"></div>
@@ -1170,12 +1211,29 @@ const PAGE = `<meta charset="utf-8">
       var ul = document.createElement("ul");
       state.ideas.forEach(function(i){
         var li = document.createElement("li");
-        li.textContent = i.text + "  (" + i.at.slice(0, 16).replace("T", " ") + "Z)";
+        // A pinned idea has to LOOK pinned the moment he taps, before any session has seen it.
+        // Until the harvest runs, this tag is the only evidence he has that his interrupt landed.
+        if (i.now) {
+          var tag = document.createElement("span");
+          tag.className = "pinTag";
+          tag.textContent = "DO NOW";
+          li.appendChild(tag);
+        }
+        li.appendChild(document.createTextNode(i.text + "  (" + i.at.slice(0, 16).replace("T", " ") + "Z)"));
         ul.appendChild(li);
       });
       box.appendChild(ul);
     }
     renderIdeas();
+
+    /* ONE SLOT, NOT A QUEUE — his design, enforced here as well as in chartkeeper.mjs, because the
+       page can hold pinned ideas that no session has harvested yet. If he pins a second thing, the
+       first stops being the interrupt at the moment he says so, not at the moment somebody reads
+       it. "An interrupt with a queue is just another backlog, which is the fault this whole design
+       removes." */
+    function releasePins(){
+      state.ideas.forEach(function(i){ if (i.now) delete i.now; });
+    }
 
     // Draft guard: a save that conflicts reloads the page and drops the edit; the draft brings
     // his words back instead of eating them. Every touch is try/caught — storage can throw.
@@ -1187,6 +1245,7 @@ const PAGE = `<meta charset="utf-8">
     var form = document.getElementById("ideaForm");
     var text = document.getElementById("ideaText");
     var send = document.getElementById("ideaSend");
+    var doNow = document.getElementById("ideaDoNow");
     var status = document.getElementById("ideaStatus");
 
     // Compare the TRIMMED draft — ideas are trimmed before saving, and comparing untrimmed
@@ -1275,10 +1334,20 @@ const PAGE = `<meta charset="utf-8">
       }
     });
 
-    send.addEventListener("click", function(){
+    /* ONE SEND PATH, TWO BUTTONS — rule 23, applied to a nine-line function. The DO NOW button is
+       the ordinary send with one field set, so there is no second way for an idea to reach the page
+       and no chance of the two drifting. Everything the send already got right (optimistic paint,
+       no reload, his words handed back on failure) applies to a pinned idea unchanged. */
+    function sendIdea(pin){
       var v = text.value.trim();
       if (!v || !cap) return;
+      var released = [];
+      if (pin) {
+        state.ideas.forEach(function(i){ if (i.now) released.push(i); });
+        releasePins();
+      }
       var idea = { id: "i" + Date.now(), text: v, at: new Date().toISOString() };
+      if (pin) idea.now = true;
       // Optimistic, in place, no reload: the box clears and the idea appears in the list right
       // now, which IS the confirmation he asked for ("I need to know that my first idea was
       // sent") -- and because nothing reloads, he can type and send the next one immediately,
@@ -1289,18 +1358,25 @@ const PAGE = `<meta charset="utf-8">
       renderIdeas();
       status.textContent = "Saving…";
       cap.publish(buildDoc(state)).then(function(){
-        status.textContent = "Saved — on the Chart as soon as a session reads it. Send another any time.";
+        status.textContent = pin
+          ? "Saved, and it goes to the TOP of the list. Only one thing can be there, so anything you marked before is back in the ordinary order."
+          : "Saved — on the Chart as soon as a session reads it. Send another any time.";
       }, function(){
         // Roll back and hand his words back so nothing is lost — matches the old draft-recovery
-        // contract's intent without needing a reload to re-derive it.
+        // contract's intent without needing a reload to re-derive it. A failed pin must also put
+        // back the pin it displaced: releasing one interrupt to save another, and then not saving
+        // the other, would leave him with none.
         var idx = state.ideas.indexOf(idea);
         if (idx > -1) state.ideas.splice(idx, 1);
+        released.forEach(function(i){ i.now = true; });
         renderIdeas();
         text.value = v;
         setDraft(v);
         status.textContent = "Didn't save — your words are back in the box, try again.";
       });
-    });
+    }
+    send.addEventListener("click", function(){ sendIdea(false); });
+    doNow.addEventListener("click", function(){ sendIdea(true); });
   })();
 </script>
 `;
@@ -1322,7 +1398,13 @@ const html = PAGE
   .replace("__GLASS_STATE__", () => stateJson);
 
 writeFileSync(OUT, html);
-console.log(`GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}${DEMO ? "  [DEMO MODE — do not publish this render]" : ""}`);
+/* ⚠ THIS LINE USED TO SAY "heartbeat stamped" UNCONDITIONALLY, AND THE FIRST REHEARSAL RUN PRINTED
+   IT WHILE STAMPING NOTHING. Caught within a minute of `--chart=` existing, and it is the same
+   shape as the publish stamp that "could only ever say one thing" — a sentence that reports an act
+   rather than observing one. It now says which of the two things actually happened. */
+console.log(REHEARSAL
+  ? `GLASS ok — REHEARSAL from ${CHART_OVERRIDE}: page written to ${OUT}, and nothing else touched (no heartbeat, GLASS-NOTE.md left alone). Do not publish this render.`
+  : `GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}${DEMO ? "  [DEMO MODE — do not publish this render]" : ""}`);
 console.log(`note: ${note}`);
 if (relayedNote) {
   console.log(`relayed note picked up from GLASS-NOTE.md and folded in; the file has been reset — commit that reset with your next commit.`);

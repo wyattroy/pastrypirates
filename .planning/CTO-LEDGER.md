@@ -5613,3 +5613,23 @@ in §2 is NOT passed by this watch**, and the close must not read as though it i
 
 Prediction, written before any edit:
 [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
+
+## WATCH 2026-09-02T21:20Z (Blade) — `T-104`, HIS "DO NOW" BUTTON
+
+- **Watch started:** 2026-09-02T21:20Z (5:20 PM ET).
+- **Last progress:** the 21:05Z watch worked `T-105` layers A and B (CEO 120, PARTIAL, commit
+  `8e7d563a`) and deliberately did not close it — his words can still be lost.
+- **What the previous watch closed:** nothing. It reported PARTIAL and acted on every finding.
+- **Blocked on Wyatt:** unchanged since the last watch's list.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is empty on this machine.
+- **THIS WATCH TAKES `T-104`** — RANK's own top row (score 108, rank 1 of 54), claimed via
+  `claim_item.mjs`.
+
+**WHAT I AM TAKING AND WHAT I AM NOT, STATED BEFORE THE WORK.** The top row bundles two of his
+"DO NOW" notes: `T-103` (drag to reprioritise the Chart, in the Glass) and `T-104` (a DO NOW button
+beside "Send to the Chart" that tells RANK to put a task at the top). **I am building `T-104` only,
+end to end, and splitting `T-103` into its own row.** `T-083` — his own design, which this row says
+to read first — orders the work and puts the "add to top" slot at step 4; the drag UI is a superset
+of it that needs every task on his page to carry a handle it does not carry today. **A watch that
+half-built both would leave neither provable, and this row has already been caught once claiming a
+position it did not hold.**

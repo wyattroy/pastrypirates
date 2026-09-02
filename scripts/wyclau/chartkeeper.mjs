@@ -97,6 +97,97 @@ if (!existsSync(CHART)) {
 }
 const original = readFileSync(CHART, "utf8");
 
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+   HIS INTERRUPT — "DO NOW". ONE SLOT, AND THE WRITE IS WHAT ENFORCES IT.
+
+   Wyatt, Glass, 2026-09-02 3:09 PM ET: "Do Now: in the Glass, Add a \"DO now\" button next to
+   \"Send to the Chart\" button that tells RANK to put this task at the top". And his design, the
+   same day: "i need a way to say DO THIS NOW such that RANK puts it at the top".
+
+   ⚠ THE DESIGN CONSTRAINT IS HIS AND IT IS THE WHOLE REASON THIS IS A COMMAND AND NOT A FIELD
+   ANYONE MAY TYPE: "ONE SLOT, NOT A QUEUE. Ticking it on a second item must displace the first,
+   deliberately. An interrupt with a queue is just another backlog, which is the fault this whole
+   design removes." A rule saying "clear the old one first" is a rule somebody skips at 3am. So
+   the pin and the release happen in ONE act — read, modify, write — and the only way to reach two
+   pins is to hand-edit the file, which the refusal below fails the build on.
+
+   WHY IT IS A HEAD FIELD AND NOT A NEW FILE: the Chart is the record, `⟨…⟩` head lines already
+   carry `needs:` and `size:`, and `glass.mjs` renders the row he must be able to SEE it on. A
+   marker kept anywhere else is a second thing to keep in step with the first (rule 23).
+   ───────────────────────────────────────────────────────────────────────────────────────────── */
+const HEAD_ANY = /^(\s*)⟨([^⟩]*)⟩(\s*)$/;
+const headIsPinned = (inner) => /(?:^|·)\s*now\s*:\s*yes\b/i.test(inner);
+const headUnpin = (inner) => inner
+  .replace(/\s*·\s*now\s*:\s*yes\b/gi, "")
+  .replace(/^\s*now\s*:\s*yes\s*·?\s*/i, "")
+  .trim();
+const headPin = (inner) => `${headUnpin(inner)} · now: yes`;
+const headHandle = (inner) => (/T-\d{3}/.exec(inner) || [])[0] ?? null;
+/* A pin belongs on an OPEN row. Scanning back to the nearest checkbox is how this file already
+   decides what a head line belongs to, and it means a pin can never be parked on finished work. */
+const headIsOpen = (lines, i) => {
+  for (let j = i - 1; j >= 0 && j > i - 12; j--) {
+    const m = /^[-*] \[([ xX])\]/.exec(lines[j]);
+    if (m) return m[1] === " ";
+  }
+  return false;
+};
+
+{
+  const wanted = opt("do-now", null);
+  const clearing = flag("do-now-clear");
+  if (wanted !== null || clearing) {
+    const lines = original.split("\n");
+    const want = wanted === null ? null : String(wanted).replace(/[`\s]/g, "");
+    let target = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const m = HEAD_ANY.exec(lines[i]);
+      if (m && want && headHandle(m[2]) === want && headIsOpen(lines, i)) target = i;
+    }
+    if (want && target === -1) {
+      console.error(`chartkeeper --do-now: no OPEN row on ${CHART} carries the handle ${want}. Nothing was marked.`);
+      console.error("  Refusing rather than silently doing nothing: an interrupt he cannot see is");
+      console.error("  indistinguishable from one that was ignored, and that is the fault this exists to remove.");
+      process.exit(2);
+    }
+    let released = 0;
+    const out = lines.map((l, i) => {
+      const m = HEAD_ANY.exec(l);
+      if (!m) return l;
+      if (i === target) return `${m[1]}⟨${headPin(m[2])}⟩${m[3]}`;
+      if (headIsPinned(m[2])) { released++; return `${m[1]}⟨${headUnpin(m[2])}⟩${m[3]}`; }
+      return l;
+    });
+    writeFileSync(CHART, out.join("\n"));
+    if (target > -1) {
+      console.log(`DO NOW  ${want} is now the top of the list — RANK puts it first until it is taken or released.`);
+      if (released) console.log(`        released ${released} earlier pin: one slot, not a queue, so an interrupt stays an interrupt.`);
+      console.log("        A watch takes it, then runs:  node scripts/wyclau/chartkeeper.mjs --do-now-clear");
+    } else {
+      console.log(released ? `DO NOW  released — the slot is empty again.` : `DO NOW  nothing was pinned; the slot was already empty.`);
+    }
+    process.exit(0);
+  }
+}
+
+/* TWO PINS CANNOT BE PRODUCED BY THE COMMAND ABOVE, SO TWO PINS MEAN A HAND EDIT — and a hand edit
+   is what this record keeps losing to. Fail the build, name both, and do not guess which he meant. */
+{
+  const lines = original.split("\n");
+  const pinned = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = HEAD_ANY.exec(lines[i]);
+    if (m && headIsPinned(m[2]) && headIsOpen(lines, i)) pinned.push(headHandle(m[2]) ?? `line ${i + 1}`);
+  }
+  if (pinned.length > 1) {
+    console.error(`chartkeeper: ${pinned.length} rows carry DO NOW — ${pinned.join(", ")}.`);
+    console.error("  His interrupt is ONE SLOT by design; two of them is just another backlog, and nothing");
+    console.error("  here may guess which one he meant. Re-pin the one that is still urgent:");
+    console.error(`    node scripts/wyclau/chartkeeper.mjs --do-now=${pinned[0]}`);
+    process.exit(3);
+  }
+}
+
 /* ⚠ THE KEEPER'S OWN OUTPUT IS STRIPPED BEFORE IT READS ANYTHING. Found by the gate, not by
    reasoning, and it is the sharpest thing in this file: the first version appended a flag reading
    "measured on build 2000.01.01.1; the tree is 2026.09.01.8" — and on the NEXT run the probe found
@@ -405,11 +496,23 @@ const FAULT_WHY = {
 
 const HEAD = /⟨([^⟩]*)⟩/;
 const HEAD_LINE = /^\s*⟨[^⟩]*⟩\s*$/;
+/* ⚠ THIS READ `row.lines[0]` UNTIL 2026-09-02, AND ON THIS CHART THAT LINE NEVER HOLDS A HEAD.
+   The head goes on its OWN line underneath — CEO 91's ruling, because the first line is the one
+   Wyatt reads on his phone and nothing machine-readable may live in it. So `headField` was looking
+   at the one line the head is guaranteed not to be on, and **both signals that use it — `needs:`
+   (sink a row that is waiting on him) and `size:` (small first, so the queue drains) — have never
+   once fired.** Not wrong answers: no answers, silently, on every row of every run.
+   Nothing caught it because a dead signal produces a plausible ranking; it surfaced only when his
+   DO NOW pin became the first head field anything actually wrote. Now it reads the head wherever
+   the head is, which is the same line `idOfRow` takes the handle from. */
 const headField = (row, name) => {
-  const m = HEAD.exec(row.lines[0]);
-  if (!m) return null;
-  const f = new RegExp(`${name}\\s*:\\s*([^·⟩]+)`).exec(m[1]);
-  return f ? f[1].trim() : null;
+  for (const line of row.lines) {
+    const m = HEAD.exec(line);
+    if (!m) continue;
+    const f = new RegExp(`(?:^|·)\\s*${name}\\s*:\\s*([^·⟩]+)`).exec(m[1]);
+    if (f) return f[1].trim();
+  }
+  return null;
 };
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -703,6 +806,17 @@ function derive(src) {
 function score(row, { reapByKey, reapFaultByKey, settleByKey, ruleTokens, blockedNaming }) {
   const why = [];
   let s = 0;
+  /* HIS INTERRUPT OUTRANKS EVERY OTHER SIGNAL, BECAUSE IT IS NOT ONE. Everything else in this
+     function is DERIVED — a guess about what he would want, built out of the repo. `now: yes` is
+     him saying it. So it does not compete with the derived signals; it stands above all of them,
+     and the margin is deliberately far wider than any combination of them can reach.
+     ⚠ IT DOES NOT CANCEL "BLOCKED". A pinned row that is also GATED still says so in its why-now
+     phrase, because he is allowed to pin something that turns out to be blocked and must be told —
+     silently un-blocking a row on his say-so would be this tool deciding it knew better. */
+  if ((headField(row, "now") || "").toLowerCase() === "yes") {
+    s += 10000;
+    why.push("YOU SAID DO NOW");
+  }
   const gated = /\bGATED:/.test(row.raw);
   const needsWyatt = (headField(row, "needs") || "").toLowerCase() === "wyatt";
   /* WAITING ON HIM IS A FACT ABOUT THIS ROW, NOT ABOUT THE WORDS IT USES. This read
