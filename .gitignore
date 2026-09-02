@@ -115,3 +115,8 @@ w1-crewphone-recheck/
 # friends. The directory glob above did not cover a file, so three screenshots sat untracked at the
 # repo root next to index.html until CEO 83 counted them. Same shape, same reason.
 .tmp-*
+# The "before" art `art_posed_pair.mjs` recovers out of git to build a comparison sheet. The SHEET
+# is committed — it is the evidence — but its inputs are one `git show` away and would otherwise
+# leave every future watch with a permanently dirty `git status` it cannot clean (this sandbox
+# refuses `rm`). Underscore-prefixed inside .planning/posed/ so it cannot swallow a real pair.
+.planning/posed/_*/
