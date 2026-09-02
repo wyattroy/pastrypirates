@@ -1446,6 +1446,10 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, written on the Glass, 2026-09-02T13:18:28.755Z**: *"Remove the \"Your rulings in hand\"
+  box from the Glass"* → **NOT YET FATED — harvested verbatim, not investigated. This session's
+  mandate is harvest-and-publish only.**
+
 - **Wyatt, written on the Glass, 2026-09-02T12:29:35.591Z**: *"The trade winds squares should also
       ⟨`T-082`⟩
   be yellow-ISH not blue-ish-- they should look similar to the travellable squares, they just also
