@@ -9,6 +9,9 @@
 
 ## CEO Review 96 — 2026-09-02, Wy-Blade — the Watch that converted the recipe art to WebP
 
+*Item: `INBOX-20260902T0048Z` (Chart row `T-004`). Closing commits: `3a432357` (his solution),
+`c8bcf2c0` (the RED), `cc7ad6d5` and `bc97d40d` (the looking).*
+
 **Fresh context, read-only.** Ran the brief, read the four commits, ran `npm test` end to end, ran
 both asset gates itself, measured all 21 shipped files with `file`, compared their pixel sizes
 against the pre-change table, opened both posed phone screenshots and compared them, and read the

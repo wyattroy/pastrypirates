@@ -296,7 +296,7 @@ pass that is finished.
 ## INBOX-20260902T0048Z — the recipe pictures: what size are they actually drawn at?
 > "Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"
 solution: his ruling on the WebP question is DO IT, and /classic shares the converted files (his pick, question UI). The question is answered below and it CHANGES THE SCOPE.
-status: ANSWERED by the Advisor; the conversion itself is OPEN, FOR A WATCH.
+status: DONE 2026-09-02 — CEO 96, commit 3a43235 (1 game file); his solution first: commit 3a43235
   MEASURED, not remembered: files are 512 x ~385px, 80-100 KB. Drawn at 220px tall in the recipe modal (`#recipeModalBody .recipeModalThumb`, index.html:344), 130px on the board card (`.recipeThumb`, index.html:1506), 54px on an action-panel button (index.html:2344) — all `width:100%` with `object-fit: contain`. At the files' aspect ratio, 220px tall is about 290 CSS px wide.
   ⚠ HIS SURPRISE IS JUSTIFIED, AND "40% too big" IS A 1x READING. On a 2x phone those 290 CSS px are 580 DEVICE pixels against a 512px-wide file — the art is already slightly UPSCALED there, not wasted. RESIZING DOWN WOULD VISIBLY SOFTEN IT ON EVERY MODERN PHONE. The honest saving is WebP compression alone (~0.53 MB), not fewer pixels. Whoever takes this: CONVERT, DO NOT RESIZE, and take a phone screenshot before and after.
 

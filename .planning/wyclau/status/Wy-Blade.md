@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T07:20:40.129Z	self-publish check
+2026-09-02T07:51:15.708Z	self-publish check
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T11:16:01Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T11:26:01Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T11:36:01Z	hold off: long run "sea trial, 10 legs" is progressing (2/10 legs), last moved 1 min ago -- hold off
 2026-09-01T11:46:01Z	hold off: a commit landed 1 min ago (within 45) -- the Chart is moving, hold off
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T05:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T050803Z.out/.err)
 2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
 2026-09-02T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T064802Z.out/.err)
+2026-09-02T07:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T072802Z.out/.err)
 ```

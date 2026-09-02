@@ -3724,6 +3724,90 @@ reading the rule is plainly not enough to obey it.
   `src/`, no `index.html`, nothing a player can reach. `npm test` is the honest depth; a sea trial
   cannot say anything about a Chart-ordering tool.
 
+### WHAT THIS WATCH DID — `T-004` CLOSED through the gate. Half a megabyte off every boot.
+
+**THE HONEST SIZE, FIRST: this is one asset family and about 5% of the art, and it finishes the
+LAST lever of his launch-critical compression ask.** `assets/` was 17.79 MB when he raised it,
+10.57 MB this morning, **10.05 MB now**. What a player gets is a shorter wait before the board
+appears — and only that. Nothing about how the game looks or plays changed, deliberately.
+
+**NOT ONE PIXEL MOVED, AND THAT WAS HIS RULING, NOT A SHORTCUT.** `.planning/ASSET-DISPLAY-SIZES.md`
+measured all 21 at the recipe modal and every one is UNDER-resolution on a phone, so "resize to the
+maximum size in real gameplay" cannot take a byte off this family. All 21 are still 512 wide; the
+bytes came from the format alone. CEO 96 proved this independently and by geometry rather than by
+reading my log: `art-review/pastries/01` is 2048 wide, and had the alpha guard let a master through
+the tool would have written 896 — every shipped file is 512.
+
+**THE FOUR STEPS, WITH THE REDS ON THE RECORD:** `asset_weight_check.mjs`'s ceiling moved to where
+his ask says the art belongs → **RED, 0.53 MB over** (`c8bcf2c0`) → the conversion + two one-line
+edits (`3a432357`) → the same gate GREEN at exactly 10,533,661 bytes, ratcheted so the saving
+cannot drift back. **`npm test` 95/95.**
+
+**AND THE NEW GATE WAS RED-PROOFED ON A REAL BROKEN BUILD, NOT AN INJECTED ONE.** Between the
+conversion and the source fix the files were WebP and both `recipe.js` files still said `.png`:
+`recipe_art_exists_check.mjs` failed **42 of 42 across both trees**, and **the other 94 gates all
+passed over that build** — including `preload_recipe_badge_check.mjs`, which asserts the preload
+LIST names the recipe art and provably cannot see whether the files exist. That is the gap this
+gate closes.
+
+**`/classic` WAS THE REAL HAZARD AND IT IS MEASURED, NOT ASSUMED.** It has no `assets/` of its own
+— `ASSET_BASE` is `"../assets/"` — so the frozen v1 real players are in the middle of reads the
+very same 21 files. Converting without touching it would have blanked 21 recipe cards silently, on
+a page nobody here opens. His ruling covered it; the gate now checks BOTH trees; and the frozen
+v1's own modal is photographed: `.planning/posed/pastry-webp-shipped-classic.png`.
+
+**CEO 96 SAID PARTIAL AND BOTH ACTIONABLE FINDINGS WERE FIXED IN THIS WATCH, NOT FILED.**
+- The probe's header claimed a `/classic` screenshot the code never wrote — **CEO 95's fault one
+  watch later in new clothes**, a claim written where a reader trusts it that the code contradicts.
+  Made TRUE rather than deleted: the probe now opens classic's own `openRecipeModal()`.
+- **Safari.** My own prediction file named "Safari refuses WebP" as the thing that would prove me
+  wrong and then did not measure it, while `scripts/lib/wk.mjs` sat on the shelf. Measured now:
+  **webkit / the game 21 of 21, webkit / /classic 21 of 21, CLEAN**, and the probe FAILS with
+  `UNREACHABLE` rather than passing quietly if the engine will not start. ⚠ **Playwright WebKit is
+  not Safari** and nothing here says it is — his phone is still the only real Safari this project
+  has. What is excluded is the codec class.
+- Its third finding is not a code change: **he asked a QUESTION alongside "Do it" and nobody
+  answered it to him.** Answered in the reply and on the Glass, in CEO 96's own framing: the picture
+  is capped at 220px tall by one CSS line (`index.html:344`) on every device, ≈290 layout pixels
+  wide, which is **879 real dots on his 3x phone against a 512-wide file** — stretched about 1.7x,
+  which is exactly why it reads as already too small. That also reconciles the two different numbers
+  his own documents carried (580 vs 692-879 — a 2x reading and a 3x one, neither labelled).
+- Its fourth is accepted as a fair hit and is the lesson worth carrying: **gate 95's RED was real
+  and was never committed**, so nobody can check it out. The weight gate's RED is a commit; this
+  one's is my word. **Commit the red, or the claim is only as good as its author.**
+
+**WHAT THIS WATCH DID NOT DO.**
+- **NO SEA TRIAL, and it is a stated deviation, not an omission.** `gear.mjs` reads FULL — against
+  the 465-commit branch, not this change. The risk this change carries is a path that no longer
+  resolves and a codec an engine might refuse; both are now gated and measured. CEO 96 agreed with
+  the call and sharpened it: *that reasoning is precisely what makes the WebKit leg the one thing
+  that should run* — so it ran.
+- **UNMEASURED AND NAMED SO: the PRINT path.** CEO 96 found the recipe card's Download-PDF route
+  and the print stylesheet (`index.html:401-425`) does not override the 220px cap, so a printed copy
+  asks MORE of the same 512-wide file than any screen. No probe in this repo has ever looked at it.
+  Not a regression from this change — the same file, the same pixels — but it is where this art is
+  thinnest, and nobody has photographed it.
+- **THE CEILING NOW HAS ZERO HEADROOM.** Deliberate, and worth knowing before it surprises somebody:
+  the next person who adds any picture at all gets a red build until they raise `assets.ceilingBytes`
+  and say in the commit what a player gets for the weight. That is the gate working as designed.
+- **`.planning/ASSET-DISPLAY-SIZES.md` still lists ~0.34 MB of measured candidates and 74 files the
+  probe never reached.** His launch-critical ask is smaller than it was, not finished.
+
+**ONE THING I OBSERVED AND CANNOT EXPLAIN, recorded rather than guessed at.** One combined gate run
+immediately after the conversion reported the PRE-change world — 149 files, 1.71 MB of pastries, and
+`src/ui/recipe.js` still on `.png` — while `git status` in the very next call showed the PNGs deleted
+and both edits in place. Re-running each gate on its own gave the correct answer every time since.
+I have no measured cause and am not inventing one; if another session sees a tool read a stale tree
+on this machine, this is a second sighting rather than a first.
+
+**HOUSEKEEPING.** Both browser tools ran their own teardown (`killAll()` and a `finally { close() }`).
+**I could not independently confirm no Chrome survives** — `tasklist`, `Get-Process` and `pkill` are
+all refused by this session's sandbox, measured three ways. Reported as a boundary, not as a claim.
+The 06:49Z watch's untracked `scripts/qa/tmp_dupkey_measure.mjs` is still there and this session
+cannot delete it either. **No Artifact tool**, so the Glass was not published from here and
+`mark_glass_published.mjs` was not stamped; the pulse went to `GLASS-NOTE.md` — and the Glass-update
+session picked up the first one mid-watch, which is the relay working.
+
 ### WHAT THIS WATCH DID — four collisions fixed, and the honest size is SMALL. `T-001` NOT ticked.
 
 **THE PREDICTION WENT ON DISK BEFORE THE MEASUREMENT AND IT HELD ON EVERY POINT.**
@@ -3814,3 +3898,7 @@ stamped; the pulse went to `GLASS-NOTE.md`.
   exactly one shape: **a path the game asks for that no longer exists on disk**, which is a gate,
   not a voyage.
 
+
+- 2026-09-02T08:00:09Z · close_item: INBOX-20260902T0048Z · CEO 96 · commit 3a43235 (1 game file) · his solution first: commit 3a43235 · the 21 recipe illustrations are WebP: 1.71 MB -> 1.18 MB, not one pixel resized, /classic shares them, both engines and both games photographed
+
+- 2026-09-02T08:00:24Z · close_item: "Convert the recipe art to WebP" · CEO 96 · commit 3a43235 (1 game file) · no stated solution · same item as INBOX-20260902T0048Z, closed through this gate minutes earlier: converted not resized, /classic sharing the files, both engines clean

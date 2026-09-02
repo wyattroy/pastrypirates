@@ -262,7 +262,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 (2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
 wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
-- [ ] **Convert the recipe art to WebP — CONVERT, DO NOT RESIZE** — his ruling: do it, and `/classic`
+- [x] **Convert the recipe art to WebP — CONVERT, DO NOT RESIZE** — his ruling: do it, and `/classic` (closed 2026-09-02 · CEO 96 · commit 3a43235 (1 game file))
       ⟨`T-004`⟩
       shares the converted files. ⚠ The Advisor measured the scope and it is smaller than the item
       claimed: files are 512×~385px; the largest they are ever drawn is 220px tall
