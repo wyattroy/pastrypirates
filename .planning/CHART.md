@@ -232,7 +232,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       strips `**` and `~~`, not backticks). Handles now live on their own line; gate case 7b asserts
       every row's first line survives the write byte for byte; the rendered page was opened and
       checked afterwards. **Twenty-two green cases and none of them had looked at the picture.**
-- [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
+- [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
 - [x] **Your ruling: judge the 0137Z queue — the screenshots of the build that would actually be (closed 2026-09-02 · CEO 87 · no game diff — a judging pass, not a code change: 315 of 315 queued screens judged (307 PASS, 8 FAIL, 0 unjudged, 0 lost) on build 2026.09.01.8, the stamp in the tree; deliberately no src/ diff, because any stamp bump retires the evidence just gathered)
       ⟨`T-033`⟩
@@ -241,7 +241,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   trial landed with its eyes shut (the `vision.mjs` fix landed while it was already at sea) and
   deferred **315 screens** on build `2026.09.01.8`, which is the stamp in the tree. Claimed by the
   watch of 2026-09-02T03:00Z, which is also the last gate standing between here and staging.
-- [ ] Your ruling: the cutover moment — **gated on the exit test verdict**, which is his own condition
+- [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
 
 *Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
@@ -288,7 +288,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       first failure, so run them separately to see that. The probe's need is legitimate — it
       photographs the frozen v1 — so the fix is to build that URL the way the gate expects rather
       than to weaken the gate.
-- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — root-caused and fixed 2026-09-01; **awaiting his look on the live page**
+- [ ] Your ruling: the Glass’s Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so.
       ⟨`T-008`⟩
 - [x] **The money symbol: this row's diagnosis was wrong, and the corrected answer is below — (closed 2026-09-02 · CEO 101 · no game diff — answered, not fixed: no game change is right -- the residual is T-078, recurrence-gated)
       ⟨`T-005`⟩
