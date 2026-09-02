@@ -1106,6 +1106,28 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   end for the first time since Glass v2 shipped. No further action; the mechanism it was testing
   now has its first real proof.
 
+- `T-072` **⚑ Wyatt, written on the Glass, 2026-09-02T04:36:18.685Z, PROPOSAL TO REDESIGN THE SEA
+  TRIAL**: *"Redesign Sea Trial to take less time: I can play a full game in 15 minutes. we
+  probably don't need to test every browser size of every game for every sea trial; we need to
+  test one game (eg solo) in every browser size (phone, tablet, desktop); and we need to test
+  every game mode in one browser size, eg tablet (solo, pass & play, crew). That's actually 5
+  legs, not 12, and it will ensure that most changes are functional in most situations. Only for
+  the big UI changes do we need a FULL sea trial with 3 modes * 3 sizes. And the sea trial should
+  be intelligently deployed in scope depending on the change made -- If the change only affects
+  pass&play (eg the handoff screen) then that is the only one that needs to be tested. make sure
+  my thinking is correct here. show CEO. and create a new sea trial protocol that will be quicker,
+  more efficient, and equally effective"* → **NOT INVESTIGATED — this is a Glass-harvest-only
+  session, no product or QA-process work done here.** He's asking two things: (1) sanity-check his
+  own proposal to cut the standard sea trial from 3 modes × 3 sizes (9 legs, or up to 12 per the
+  QA-PROCESS doc) down to a 5-leg matrix (one mode across all three sizes, all three modes at one
+  size) with the full 9-leg version reserved for big UI changes, scoped by what the change actually
+  touches; (2) if the reasoning holds, build that as the new default protocol, and show it to CEO
+  per his standing instruction before it's presented back to him. Needs a session that can actually
+  read `docs/QA-PROCESS.md` and `scripts/sea_trial.mjs`'s current leg matrix, reason about whether
+  a 5-leg reduced trial would still have caught the real regressions this project has shipped and
+  later found (host/guest divergences, viewport-specific layout breaks), and scope the change
+  before touching the trial script itself. → **SCHEDULED, next session that owns QA-process work.**
+
 ## FATES DECIDED
 
 - **"The Glass becomes our two-way interface"** (Wyatt, 2026-08-31) → **SCHEDULED**: Glass v2
