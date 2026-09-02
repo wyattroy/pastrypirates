@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T22:14:56.723Z	self-publish check
+2026-09-02T22:39:21.955Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -16,7 +16,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T204802Z.out/.err)
 2026-09-01T20:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T205802Z.out/.err)
 2026-09-01T21:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T210802Z.out/.err)
 2026-09-01T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T211802Z.out/.err)
@@ -56,4 +55,5 @@ None recorded.
 2026-09-02T20:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T203801Z.out/.err, kit: readable)
 2026-09-02T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T211801Z.out/.err, kit: readable)
 2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
+2026-09-02T22:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T222801Z.out/.err, kit: readable)
 ```

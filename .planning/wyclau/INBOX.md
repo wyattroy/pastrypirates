@@ -1087,7 +1087,7 @@ status: DONE 2026-09-02 — CEO 122, no game diff — no game code is right: sit
 
 solution: his own, and it is a PROCESS instruction as much as a task: ask him 2-5 questions with the QUESTION UI to settle which page becomes THE rules page, what About keeps, and whether the in-game modal shows the full text or a short version that links out. **Write no code this session.** Come back with a recommendation and let him approve it.
 
-status: OPEN — FOR A WATCH.
+status: DONE 2026-09-02 — CEO 124, no game diff — no game code is right: he said do not write any code this session -- the deliverable is five questions in his Your Call card and a recommendation he approves; index.html, about.html and src/ untouched; his solution first: commit 2b2ef25
 
 ## INBOX-20260902T190730Z — build the rules page, with ONE source for the rules (his own citation of rule 23)
 

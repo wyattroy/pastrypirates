@@ -42,3 +42,6 @@ its own crate prices. A static page can only ever show the four-seat default. Th
 the full text in the modal rather than link out of a game on a shot clock.
 
 Nothing gets built until you answer question 1 — you said so yourself, and the build item quotes it.
+
+⚠ *This note was written, committed, and then wiped by `npm test` — the open Chart row that says
+`npm test` destroys whatever is waiting here. Restored from its own commit. Second bite today.*
