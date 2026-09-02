@@ -5,18 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T20:29:05.257Z	self-publish check
+2026-09-02T21:04:43.771Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "THE GLASS MUST NOT BE ABLE TO LOSE HIS WRITING -- Layers A and B of SPEC-GLASS-HARVEST-SAFETY",
+  "handle": "T-105",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-02T20:42:23.218Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T20:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T201803Z.out/.err)
 2026-09-01T20:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T202802Z.out/.err)
 2026-09-01T20:38:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T203804Z.out/.err)
 2026-09-01T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T204802Z.out/.err)
@@ -56,4 +63,5 @@ None recorded.
 2026-09-02T18:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T184801Z.out/.err, kit: readable)
 2026-09-02T19:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T192801Z.out/.err, kit: readable)
 2026-09-02T19:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T195801Z.out/.err, kit: readable)
+2026-09-02T20:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T203801Z.out/.err, kit: readable)
 ```

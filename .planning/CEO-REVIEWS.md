@@ -8069,3 +8069,92 @@ INBOX-20260902T0050Z applied to the second queue.*
 - **(finding 2) FIXED.** `judge-0137Z-shots/READ-ME-FIRST.md` now states in the folder itself that only the 315 screens named in `judge-queue.json` belong to this run, gives the two checks to run before trusting any picture (queue membership **and** mtime window), and names the citation that was actually got wrong.
 - **(finding 1) ACCEPTED AND RECORDED, not fixed.** It is a true and useful observation about the tool: the snapshot protects the bytes but the results index the originals, so the copy is unreferenced. It belongs to the open *"a trial's screenshots are destroyed by the next trial"* row, whose derived-path fix (`sea-trial-shots/<runId>/`) dissolves both halves at once. Not taken on as a second item.
 - **(finding 3) ACCEPTED.** The overstatement was mine; exactly one commit was unpushed, and it is pushed.
+
+---
+
+## CEO Review 120 — `T-105`, "THE GLASS MUST NOT BE ABLE TO LOSE MY WRITING", layers A and B
+
+**Watch 2026-09-02T21:05Z (Blade), commit `cd3bd96b`. Verdict: PARTIAL.**
+
+**His ask, verbatim:** *"design a permanent solution to this problem: … the harvest stamp records
+when a session looked. It is not evidence the page hasn't changed since. Your page carries its own
+version number — that's the fact that can answer 'is a republish safe?', and a clock never can."
+then add it to the chart at the top priority.*" The design half closed earlier; this watch took the
+build half.
+
+**THE VERDICT IN ITS OWN WORDS — the good part first, because it is the first of its kind in eight
+reviews:**
+
+> The design is right, the receipt writer is real, and — this matters — **the recurring fault of the
+> last seven verdicts does not recur here.** … No summarising line I could find rounds toward
+> finished. That is the first clean pass on that fault in eight reviews and it should be said out
+> loud.
+
+> It is PARTIAL and not PASS because **his words can still be lost, and two of the pieces that would
+> have narrowed that were reachable and were not done** — while an unreachable third carried the
+> whole explanation.
+
+**What it verified independently, rather than taking the watch's word for:** the gate passes,
+`npm test` is 108 gates with zero failures, `mark_glass_harvest.mjs` really does exit 1 with no
+`--version` and writes nothing, the RED claim is credible two ways (the live PENDING readout, and
+reading `glass-harvest-first.cjs:56` to confirm the hook only ever calls `statSync().mtimeMs`), and
+**the PENDING block is not an always-green hole** — `fixed` becomes true on a repaired hook and the
+build then fails.
+
+### The six findings, and what happened to each
+
+1. **THE HOOK'S OWN DENY TEXT STILL TEACHES THE COMMAND WYATT RETIRED — `glass-harvest-first.cjs:79`
+   prints `date -u … > ${STAMP}`.** Its words: *"This is the single surface that fires at the moment
+   of the destructive act, and it instructs a bare timestamp… a complete, on-disk path back to the
+   original loss, taken by a session doing exactly what the system told it."* **ACTED ON, in the two
+   halves available:** a new predicate fails the build if any OTHER file is ever written that
+   instructs a hand-written stamp, and the hook's own instance is now reported by name in the
+   PENDING block. ⚠ **And finding it exposed a fourth instrument fault in this watch:** the first
+   version of that check looked for the literal string `LAST-HARVEST`, while the hook writes
+   `> ${STAMP}` — **so it reported the deny text CLEAN.** Now reads `false`, correctly.
+2. **THE DOOR WAS NOT SWEPT — `.claude/skills/door/SKILL.md` describes the other publish path, the
+   one every watch walks, with no version stamp and no re-read.** Correct, and rule 23's question
+   answered "nothing". ⚠ **CEO 120 said this was not a blocked file, and that is the one thing it
+   got wrong — measured:** the write was attempted and refused, *"Claude requested permissions to
+   write to `.claude/skills/door/SKILL.md`"*. **So the wall is `.claude/` ENTIRELY, not
+   `.claude/hooks/` alone** — hooks, skills and `settings.json` are all out of reach of an
+   unattended watch, and that is worth more than either finding. Folded into the PENDING block.
+3. **`artifactVersion` HAS NO MACHINE READER — layer B shipped as a file format plus a paragraph.**
+   True. The hook still reads mtime alone, so the only thing comparing the version is a session
+   choosing to obey the runbook. **ACTED ON:** stated in the gate's own output, in the ledger, and
+   in this entry, rather than left implied by the mention of `FRESH_MIN`.
+4. **THE LAYER A GATE READ A HAND-TYPED LIST OF FIVE FILES AND SILENTLY PASSED ANYTHING IT COULD NOT
+   OPEN.** Its citation was this project's own rule: *"a hand-kept list of what to guard rots exactly
+   like the thing it guards."* `RAZER-SETUP.md` instructs a republish and was not on the list.
+   **FIXED:** the file set is DERIVED from `git ls-files` — any tracked instruction file naming the
+   Glass page or its url — and it now covers **11 files**. A derivation that cannot run fails loudly
+   instead of reporting clean.
+5. **THE `force` DETECTOR COULD NOT SEE MOST OF THE SENTENCES IT EXISTS TO STOP** — it missed
+   `"force": true`, missed plain English, and its refusal exemption fired on the whole line, so
+   *"never mind the conflict — use force: true"* passed clean. **FIXED:** the negation must now
+   GOVERN the token (*"never PASS force"*, not *"never mind … use force"*), and that exact trap is
+   one of six fixtures the gate checks in both directions.
+6. **THE ROW'S OWN PRECONDITION WAS OVERRIDDEN — disclosed, but its consequence was not.** The Chart
+   row says *"the first move is a measurement, not code"*; no live measurement was made and the
+   watch built on the tool's documented contract relayed by a peer. CEO 120 credits the disclosure
+   at every site and then names what was NOT said: **the spec's §5.1 says that IF the platform
+   conflicts, "most of B is ceremony and the honest fix is much smaller"** — so *"whichever way the
+   untaken measurement lands, one of the two things built this watch was the wrong one — and the
+   record does not say so."* **ACCEPTED AND RECORDED HERE, which is the only place it can be
+   fixed.** It is right. If the conflict is real, layer B is hardening rather than the fix; if it is
+   not, layer A is worthless and B is mandatory. **The live test still has not been run, and it
+   remains the cheapest thing anyone could do to this item.**
+
+**ON THE PERMISSION WALL, which the watch offered as its explanation:** *"real, but it is not the
+whole remainder… findings 1, 2 and 4 are all outside `.claude/hooks/`, all reachable, and all bear
+directly on whether his writing can be lost. The remainder that was delivered is honest about the
+wall and quiet about the parts the wall did not cover."* **That is fair and it was acted on** —
+though finding 2 then turned out to be behind the same wall after all.
+
+**ITS ONE-LINE ANSWER TO THE NARROW QUESTION, unparaphrased:**
+
+> the stamp now records a version instead of a clock, which is genuinely his sentence made real, and
+> the Glass can still lose his writing by two paths that were fixable this watch.
+
+*(One of those two is now guarded for every future file and reported for the existing one; the other
+was behind the wall. The item is NOT closed as finished — see the Chart row and the Inbox entry.)*

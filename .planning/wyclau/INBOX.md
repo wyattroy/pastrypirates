@@ -1228,7 +1228,29 @@ status: DONE 2026-09-02 — designed at [`SPEC-GLASS-HARVEST-SAFETY.md`](../SPEC
 
 solution: build [`SPEC-GLASS-HARVEST-SAFETY.md`](../SPEC-GLASS-HARVEST-SAFETY.md) as amended by CEO 117 — measurement first (Layer A's refusal), then B, C, D. His invariant governs: a republish is safe only if the version harvested is the version live. Identity, not a clock.
 
-status: OPEN — FOR A WATCH. `T-105`, the top row of `### ⚑ FOR A WATCH`.
+status: OPEN — FOR A WATCH. `T-105`, the top row of `### ⚑ FOR A WATCH`. **Worked 2026-09-02T21:0xZ, CEO 120 (PARTIAL), commit `cd3bd96b` — the stamp now records WHICH page was read; the half that makes it mechanical is behind a permission. Deliberately NOT closed: his words can still be lost.**
+
+  **WHAT SHIPPED, IN ONE LINE: the harvest stamp stopped being a clock.**
+  `scripts/wyclau/mark_glass_harvest.mjs` writes a receipt naming the artifact VERSION that was read
+  and refuses a versionless stamp; `GLASS-UPDATE-SESSION.md` gains **step 6b — re-read the live page
+  and compare, in the same breath as the publish** (the spec's §3: moving the guard there matters
+  more than fixing the stamp) and a step 7 that forbids `force`. A derived gate over 11 instruction
+  files fails the build if any of them ever teaches a forced publish or a hand-written stamp.
+
+  ⚠ **WHAT IS BLOCKED, AND IT IS THE HALF THAT MAKES IT MECHANICAL.** The hook still decides on
+  `FRESH_MIN = 30`, and its own deny text still prints the retired `date -u … > ${STAMP}` at the one
+  moment that fires immediately before the destructive act. **Three invariants were written FIRST
+  and went RED against it** — a bare timestamp accepted, a receipt denied for being old, a forced
+  publish allowed. The fix is two files in `.claude/`, and **every write there is refused for an
+  unattended watch.** Measured rather than inferred: the hook AND `.claude/skills/door/SKILL.md`
+  were both attempted and both refused — **so the wall is `.claude/` entirely**, which is a standing
+  fact about every future item whose fix lands there. The three red cases sit in a PENDING block
+  that reports the live state on every `npm test` and **fails the moment the hook is repaired.**
+
+  ⚠ **THE HONEST HEADLINE: HIS WORDS CAN STILL BE LOST.** `artifactVersion` has no machine reader
+  yet — only a session obeying the runbook compares it. Layers C and D are not built and the
+  acceptance test in the spec's §2 is not passed. **Two rows are in BLOCKED ON WYATT:** the
+  permission, and the one-minute live test that would settle whether half of this was needed at all.
 
   ⚠ **WHY THIS ENTRY EXISTS AT ALL, AND IT IS NOT BOOKKEEPING — CEO 117, FINDING 1.** He asked for
   two things: design it, **and put it at the top priority.** The design row was written and placed

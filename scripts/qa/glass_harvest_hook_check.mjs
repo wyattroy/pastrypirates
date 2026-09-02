@@ -98,13 +98,43 @@ const forced = { tool_name: "Artifact", cwd: tree, tool_input: { file_path: `${t
 // reported as present. Rule 6's "check the instrument reaches its subject": a force probe run under
 // a stale stamp cannot tell you anything about force.
 const forceProbe = () => { writeFileSync(stamp, receipt("1788381450-c06f")); return denies(run(forced)); };
-const pending = { bareDenied: bare(), agedAllowed: !agedReceipt(), forceDenied: forceProbe() };
-const fixed = pending.bareDenied && pending.agedAllowed && pending.forceDenied;
+/* AND TWO MORE, ADDED AT CEO 120's FINDINGS 1 AND 2 — both in `.claude/`, both blocked by the same
+ * wall, and the second one WIDENS what that wall is:
+ *   (d) the hook's own deny text still prints `date -u … > LAST-HARVEST` — the bare stamp Wyatt's
+ *       sentence retired — at the one moment that fires immediately before the destructive act.
+ *       Follow the hook's three steps today and you write a versionless stamp, the hook allows the
+ *       publish on its fresh mtime, and step 6b has nothing to compare. A complete path back to the
+ *       original loss, taken by a session doing exactly what the system told it. CEO 120 found it.
+ *   (e) `.claude/skills/door/SKILL.md` — the OTHER publish path, the one every watch walks — still
+ *       says "harvest, then republish" with no version stamp and no re-read. The guard was moved to
+ *       the publish moment in the runbook alone. Two publish paths kept in step by nobody is rule
+ *       23's defect answered "nothing".
+ * ⚠ CEO 120 SAID (e) WAS NOT A BLOCKED FILE AND THAT IS THE ONE THING IT GOT WRONG, MEASURED HERE:
+ * the write was attempted and refused — "Claude requested permissions to write to
+ * .claude/skills/door/SKILL.md". So the wall is `.claude/` ENTIRELY, not `.claude/hooks/` alone,
+ * which is worth more than either finding: it means the Door, the hooks and settings.json are all
+ * out of reach of an unattended watch, and any future item whose fix lands there is blocked before
+ * it starts. */
+const hookSrc = (() => { try { return readFileSync(HOOK, "utf8"); } catch { return ""; } })();
+const doorSrc = (() => { try { return readFileSync(join(ROOT, ".claude", "skills", "door", "SKILL.md"), "utf8"); } catch { return ""; } })();
+const pending = {
+  bareDenied: bare(),
+  agedAllowed: !agedReceipt(),
+  forceDenied: forceProbe(),
+  // Inline rather than reusing handStamp() below: that is declared later and this runs first.
+  // Same two spellings — the literal filename, and the `${STAMP}` constant the hook actually uses.
+  hookTextClean: !/\bdate\s+-u[^\n]*>\s*[^\s>|]*(LAST-HARVEST|\$\{?STAMP\}?)/.test(hookSrc),
+  doorCompares: /mark_glass_harvest\.mjs/.test(doorSrc),
+};
+const fixed = Object.values(pending).every(Boolean);
 if (fixed) {
-  fail("3-5/9 THE HOOK NOW ENFORCES ALL THREE T-105 INVARIANTS — promote them to hard assertions and delete the pending block. This failure is the reminder, and it is one edit to clear.");
+  fail("3-5/9 EVERY BLOCKED T-105 REPAIR IS NOW IN PLACE — promote these to hard assertions and delete the pending block. This failure is the reminder, and it is one edit to clear.");
 } else {
-  console.log(`  PENDING 3-5/9 (T-105, blocked on a permission only Wyatt can grant): bare-timestamp denied=${pending.bareDenied}, aged-receipt allowed=${pending.agedAllowed}, force denied=${pending.forceDenied}`);
-  console.log("    The hook still decides on a 30-minute clock. Fix: .claude/hooks/glass-harvest-first.cjs — see .planning/SPEC-GLASS-HARVEST-SAFETY.md layers A and B.");
+  console.log(`  PENDING 3-5/9 (T-105 — every one of these lives in .claude/, which an unattended watch may not write):`);
+  console.log(`    hook: bare-timestamp denied=${pending.bareDenied}  aged-receipt allowed=${pending.agedAllowed}  force denied=${pending.forceDenied}  deny-text free of the hand-written stamp=${pending.hookTextClean}`);
+  console.log(`    door: SKILL.md stamps and compares the version=${pending.doorCompares}`);
+  console.log("    Fix: .claude/hooks/glass-harvest-first.cjs and .claude/skills/door/SKILL.md — see .planning/SPEC-GLASS-HARVEST-SAFETY.md layers A and B.");
+  console.log("    ⚠ SO `artifactVersion` HAS NO MACHINE READER YET (CEO 120 finding 3): the receipt is written, and the only thing that compares it is a session obeying the runbook. Until the hook reads it, layer B is a file format plus a paragraph.");
 }
 
 // 6 — it must never touch anything else. A publish of a different artifact, and a non-publish
@@ -141,29 +171,93 @@ if (registered('{"hooks":{"PreToolUse":[{"matcher":"Artifact","hooks":[{"command
   fail("8/9 VACUOUS: the registration predicate passed a settings file that does not name the hook");
 else ok("8/9 registration predicate rejects a settings file missing the hook");
 
-// 9 — LAYER A's OTHER HALF: no INSTRUCTION anywhere may tell a session to force the Glass publish.
-//     The hook catches the call; this catches the sentence that would talk somebody into making it.
-//     Checked in the files that actually instruct a publisher, and red-proofed on a synthetic line
-//     so it cannot pass by looking at nothing.
-const forceInstruction = (text) => /\bforce\s*:\s*true\b|--force\b/.test(text);
-const INSTRUCTION_FILES = [
-  join(ROOT, ".planning", "wyclau", "GLASS-UPDATE-SESSION.md"),
-  join(ROOT, ".claude", "skills", "door", "SKILL.md"),
-  join(ROOT, "scripts", "wyclau", "glass.mjs"),
-  join(ROOT, "scripts", "wyclau", "mark_glass_published.mjs"),
-  join(ROOT, ".claude", "hooks", "glass-harvest-first.cjs"),
-];
-const offenders = INSTRUCTION_FILES.filter((f) => {
-  let raw; try { raw = readFileSync(f, "utf8"); } catch { return false; }
-  // The hook and this gate must be free to NAME the flag in order to forbid it; only lines that
-  // are not part of a refusal count. Crude on purpose: any occurrence outside a "never/refus/deny"
-  // sentence is treated as an instruction.
-  return raw.split("\n").some((l) => forceInstruction(l) && !/never|refus|deny|denied|forbid|must not/i.test(l));
-});
-if (offenders.length) fail(`9/9 an instruction to force a Glass publish is on disk: ${offenders.map((f) => f.replace(ROOT, "")).join(", ")}`);
-else if (!forceInstruction('  Artifact publish with force: true'))
-  fail("9/9 VACUOUS: the force-instruction detector did not flag a line that plainly instructs a forced publish");
-else ok("9/9 no file instructs a forced Glass publish, and the detector can still see one");
+/* 9 — LAYER A's OTHER HALF, AND THE STAMP'S: no INSTRUCTION anywhere may tell a session to force
+ *     the Glass publish, or to write the harvest stamp by hand as a bare timestamp. The hook
+ *     catches the CALL; this catches the sentence that would talk somebody into making it.
+ *
+ * ⚠ REWRITTEN AT CEO 120's FINDINGS 1, 4 AND 5, ALL THREE OF WHICH WERE RIGHT.
+ *   - The file list was HAND-TYPED (five entries) with a `catch { return false }` behind it, so a
+ *     rename turned an entry into a silent no-op. CLAUDE.md §6 names exactly this: "a hand-kept
+ *     list of what to guard rots exactly like the thing it guards." It is DERIVED now — every
+ *     tracked file that names the Glass page or its artifact url is a Glass publish path by
+ *     definition, and a new one is covered the day it is written. `RAZER-SETUP.md` instructs a
+ *     republish and was missing from the old list; the derivation picks it up.
+ *   - The `force` pattern saw only two spellings, and the "this line is a refusal" exemption fired
+ *     on the WHOLE line — so `never mind the conflict, use force: true` passed clean. The negation
+ *     must now sit close to the token, and that trap is one of the red-proof fixtures.
+ *   - THE HAND-WRITTEN STAMP is the new half. `date -u … > LAST-HARVEST` is the command Wyatt's
+ *     sentence retired, and it is still printed by the hook's own deny text — the one surface that
+ *     fires at the moment of the destructive act. That instance is tracked in the PENDING block
+ *     above with the rest of the hook; this check stops a SECOND one from ever being written.
+ */
+const forceInstruction = (text) =>
+  /(^|[^\w])"?force"?\s*[:=]\s*true\b|--force\b|\b(pass|use|send|with|adding)\s+`?force`?\b/i.test(text);
+/* A SHELL REDIRECT, not a markdown blockquote. The first draft of this matched any `>` on a line
+   mentioning the stamp, so it flagged every quoted runbook line that merely NAMES the file — the
+   detector was reading `> step text` as `> file`. It now requires a real character before the
+   redirect, which a line-leading blockquote marker does not have. */
+/* ⚠ AND IT MUST SEE THE INDIRECT SPELLING. The hook prints its retired command as `> ${STAMP}` —
+   the filename is in a constant — so a detector looking for the literal "LAST-HARVEST" reported
+   the hook's deny text CLEAN while it was the one surface still teaching the bare stamp. That is
+   the third instrument in this watch that did not reach its subject (rule 6), and it was found by
+   reading the hook rather than by trusting the green. */
+const handStamp = (text) => /[^\s>]\s*>\s*[^\s>|]*(LAST-HARVEST|\$\{?STAMP\}?)/.test(text);
+/* A line only counts as a refusal if the negation is NEAR the token, not merely somewhere on it —
+   and "this USED TO BE the command, and he RETIRED it" is a refusal too. A document that may not
+   quote the thing it forbids cannot explain why it forbids it. */
+const refuses = (line) =>
+  // The negation must GOVERN the token — "never PASS force", not "never mind …, use force".
+  /(never|do not|don'?t|must not|no)\s+(pass|use|send|write|hand-?write|stamp|force)\w*[^.]{0,12}?(force|LAST-HARVEST)/i.test(line) ||
+  // …or the line is explaining that this is the thing that was retired, which a record must be free to do.
+  /(used to be|retired|no longer|instead of|was replaced)[^.]{0,40}?(force|LAST-HARVEST)/i.test(line);
+/* RECORDS ARE NOT INSTRUCTIONS. The Inbox, the ledger, the CEO file, the Chart and a prediction
+   note describe what happened — including quoting the retired command in order to say it was
+   retired. Scanning them would make the record unable to explain itself, and would put this gate
+   in the position of editing history. Only files that TELL A SESSION WHAT TO DO are in scope. */
+const IS_RECORD = /^(INBOX|CTO-LEDGER|CEO-REVIEWS|CHART|GLASS-NOTE|DECISIONS|LESSONS|PREDICTION-.*|.*-LOG|SPEC-.*)\.md$/i;
+
+/* DERIVED, not listed: any tracked file under these roots that names the Glass page or its url is
+   a file that can instruct a publisher. The roots are where instructions to sessions live. */
+const GLASS_MARKERS = /glass\.html|74034bde-ad7e-4861-913e-d5d190801af2|mark_glass_published/;
+const instructionFiles = (() => {
+  let tracked = [];
+  try {
+    tracked = execFileSync("git", ["ls-files", ".planning/wyclau", ".claude/skills", ".claude/hooks", "scripts/wyclau", "docs"],
+      { cwd: ROOT, encoding: "utf8" }).split("\n").map((s) => s.trim()).filter(Boolean);
+  } catch { return null; } // git unavailable -> say so loudly below rather than pass on nothing
+  return tracked.filter((rel) => {
+    if (IS_RECORD.test(rel.split("/").pop())) return false;
+    try { return GLASS_MARKERS.test(readFileSync(join(ROOT, rel), "utf8")); } catch { return false; }
+  });
+})();
+if (!instructionFiles) fail("9/9 could not derive the Glass instruction files from git — the check looked at NOTHING and must not report that as clean");
+else if (!instructionFiles.length) fail("9/9 derived ZERO Glass instruction files — the derivation is broken, not the repo (GLASS-UPDATE-SESSION.md alone must match)");
+else {
+  const offenders = [];
+  for (const rel of instructionFiles) {
+    const raw = readFileSync(join(ROOT, rel), "utf8");
+    for (const line of raw.split("\n")) {
+      if (refuses(line)) continue;
+      // The hook's own deny text is a KNOWN offender, tracked in the PENDING block above; it is
+      // named here so this check cannot be read as saying the hook is clean.
+      if (rel.endsWith("glass-harvest-first.cjs") && handStamp(line)) continue;
+      if (forceInstruction(line) || handStamp(line)) offenders.push(`${rel}: ${line.trim().slice(0, 70)}`);
+    }
+  }
+  const fixtures = [
+    ['  Artifact publish with force: true', true],
+    ['  publish with "force": true', true],
+    ['  never mind the conflict, use force: true', true],   // CEO 120's trap: refusal word, live instruction
+    ['  date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST', true],
+    ['  NEVER PASS force. Not once, not to get past a conflict.', false],
+    ['  read the live page and stamp the version you saw', false],
+  ];
+  const blind = fixtures.filter(([line, shouldFlag]) =>
+    (!refuses(line) && (forceInstruction(line) || handStamp(line))) !== shouldFlag);
+  if (offenders.length) fail(`9/9 an instruction to force a Glass publish, or to hand-write the harvest stamp, is on disk:\n      ${offenders.join("\n      ")}`);
+  else if (blind.length) fail(`9/9 VACUOUS: the detector got ${blind.length} of its own ${fixtures.length} fixtures wrong — it cannot see what it is for`);
+  else ok(`9/9 none of the ${instructionFiles.length} derived Glass instruction files teaches a forced publish or a hand-written stamp (${fixtures.length} fixtures, both directions)`);
+}
 
 // 10 — LAYER B's INSTRUMENT, and this half IS enforceable today: the receipt writer must refuse to
 //      stamp without a version, and must record that version under a name the hook can read.
