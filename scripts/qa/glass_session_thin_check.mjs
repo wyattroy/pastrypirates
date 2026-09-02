@@ -145,15 +145,46 @@ export function auditRunbook(text) {
   if (!rearm) {
     bad("rearm-section", "the runbook has no re-arm box — after Wyatt clears the session nothing tells the next context to check the cron job at all, and a Glass that stops updating gives him a frozen page with no signal that it froze");
   } else {
-    const presenceOnly = /\b(?:if\s+(?:the\s+)?(?:dispatcher\s+)?job\s+is\s+there|if\s+it(?:'s| is)\s+there)\b[^.\n]{0,40}nothing to do/i.exec(rearm);
+    /* ⚠ THE STEPS ONLY — CEO 103 FINDING 2, and it is rule 1's own lesson arriving one rule late.
+     * Rule 1 stops a HEADING from satisfying it. This rule read headings AND prose, so the
+     * paragraph directly below the steps — the one naming this very gate, "…if the DISPATCHER LINE
+     * stops pointing at this file, or if the steps get inlined into the cron PROMPT again" —
+     * supplied every keyword the rule wanted, all by itself. **Delete instructions 1-4 and the
+     * rule stayed green.** A gate satisfied by a sentence ABOUT the gate is the purest form of an
+     * instrument measuring itself. The subject is what the reader is told to DO, so that is the
+     * only text this rule may read. */
+    const steps = (() => {
+      const out2 = [];
+      let inStep = false;
+      for (const l of rearm.split("\n")) {
+        if (/^\s*\d+\.\s/.test(l)) { inStep = true; out2.push(l); continue; }
+        if (inStep && /^\s{2,}\S/.test(l)) { out2.push(l); continue; }
+        inStep = false;
+      }
+      return out2.join("\n");
+    })();
+    if (!steps.trim())
+      bad("rearm-no-steps", "the re-arm box has no numbered instructions at all — whatever it says about itself, there is nothing for the reader to follow");
+
+    /* ⚠ WIDENED — CEO 103 FINDING 3. The first version matched two literal phrasings, and its
+     * fixture substituted the deleted sentence VERBATIM, so it proved the rule catches THAT
+     * SENTENCE rather than a reverted intent: "CronList. If a job is listed, you're done." sailed
+     * straight through. A memorial to one sentence is not a guard against a class — the same
+     * correction CEO 100 made to glass_gate_verdict_logged_check.mjs's step-3 rule.
+     * Scoped to the STEPS, which is also what lets it widen safely: a paragraph recounting the old
+     * instruction is history and must stay sayable; a STEP that settles for presence is the fault. */
+    const EXISTS = String.raw`(?:is\s+(?:there|listed|present|armed)|exists|shows\s+up|comes\s+back\s+(?:with|non-empty))`;
+    const STOP = String.raw`(?:nothing\s+to\s+do|you'?re\s+done|do\s+nothing|leave\s+it|move\s+on|carry\s+on|all\s+good|no\s+action)`;
+    const presenceOnly = new RegExp(String.raw`\b(?:if|when)\b[^.\n]{0,40}\b${EXISTS}\b[^.\n]{0,40}\b${STOP}\b`, "i").exec(steps);
     if (presenceOnly)
-      bad("rearm-presence-only", `the re-arm box settles for the job merely EXISTING ("${presenceOnly[0].trim()}") — a job armed with the old nine-step prompt is also 'there', so this passes while his ask is unmet`);
-    const checksPrompt = /\bprompt\b/i.test(rearm)
-      && /(dispatcher line|pointer|not the (?:nine|9) steps|carries the steps|carrying the steps|its shape|the SHAPE)/i.test(rearm);
+      bad("rearm-presence-only", `a re-arm STEP settles for the job merely EXISTING ("${presenceOnly[0].trim()}") — a job armed with the old nine-step prompt is also there, so this passes while his ask is unmet`);
+
+    const checksPrompt = /\bprompt\b/i.test(steps)
+      && /(dispatcher line|pointer|not the (?:nine|9) steps|carries the steps|carrying the steps|its shape|the SHAPE)/i.test(steps);
     if (!checksPrompt)
-      bad("rearm-no-shape-check", "the re-arm box never tells the reader to look at the armed job's PROMPT and compare it to the dispatcher line — presence is not shape, and only shape answers whether the session is still thin");
-    if (!/delete|re-?arm|replace/i.test(rearm))
-      bad("rearm-no-repair", "the re-arm box says what to look for but never what to DO about a wrong prompt — a finding with no repair is a reader who shrugs");
+      bad("rearm-no-shape-check", "the re-arm STEPS never tell the reader to look at the armed job's PROMPT and compare it to the dispatcher line — presence is not shape, and only shape answers whether the session is still thin (a sentence elsewhere in the box describing this gate does not count: the reader follows the steps)");
+    if (!/delete|re-?arm|replace/i.test(steps))
+      bad("rearm-no-repair", "the re-arm steps say what to look for but never what to DO about a wrong prompt — a finding with no repair is a reader who shrugs");
   }
 
   return out;
@@ -200,14 +231,43 @@ Each tick spawns a fresh general-purpose subagent; the session stays empty.
 > Run one Glass tick. Spawn a FRESH general-purpose subagent and give it the nine steps from
 > .planning/wyclau/GLASS-UPDATE-SESSION.md as its entire prompt.
 `;
+const STEPS_RE = /1\. CronList\..*\n2\. If that prompt.*\n/;
 const cases = [
   ["a healthy fixture", GOOD, null],
   ["a cron prompt with the steps inlined", GOOD.replace("as its entire prompt.", "as its entire prompt. First HARVEST FIRST, then run node scripts/wyclau/glass.mjs --note and mark_glass_published."), "recur-inlined"],
-  ["a re-arm box that only checks the job EXISTS", GOOD.replace(/1\. CronList\..*\n2\. If that prompt.*\n/, "1. CronList. If the dispatcher job is there, nothing to do.\n"), "rearm-presence-only"],
+  ["a re-arm box that only checks the job EXISTS", GOOD.replace(STEPS_RE, "1. CronList. If the dispatcher job is there, nothing to do.\n"), "rearm-presence-only"],
   ["a runbook with no dispatcher shape at all", GOOD.replace("Each tick spawns a fresh general-purpose subagent; the session stays empty.", "The session runs the steps itself."), "dispatcher-shape"],
   ["a cron prompt that names no runbook to read", GOOD.replace(".planning/wyclau/GLASS-UPDATE-SESSION.md as its entire prompt.", "as its entire prompt."), "recur-pointer"],
   ["a runbook whose steps have gone missing", GOOD.replace(/> 2\. \*\*HARVEST FIRST.*\n> 8\..*\n/, ""), "steps-present"],
+
+  /* ── CEO 103's two escape routes. He found both by reading the regexes; each is now a fixture,
+   *    because a finding that is understood and not encoded is a finding that comes back. ── */
+
+  // FINDING 3 — a revert that does not quote the deleted sentence. The old rule matched two
+  // literal phrasings and its fixture supplied one of them verbatim, so it proved the rule caught
+  // THAT SENTENCE, not a reverted intent. This wording is the same defect in different words.
+  ["a REWORDED presence-only revert that quotes nothing", GOOD.replace(STEPS_RE, "1. CronList. If a job is listed, you're done.\n"), "rearm-presence-only"],
+
+  // FINDING 2 — the steps deleted, leaving only a sentence ABOUT this gate. Every keyword the
+  // shape rule wanted ("dispatcher line", "prompt") is present, and the reader has been told
+  // nothing. A gate satisfied by prose describing the gate is measuring itself.
+  ["a re-arm box whose only 'shape check' is a sentence describing this gate",
+    GOOD.replace(STEPS_RE, "Held by scripts/qa/glass_session_thin_check.mjs, which fails the build if the dispatcher line stops pointing at this file or the steps get inlined into the cron prompt again.\n"),
+    "rearm-no-shape-check"],
 ];
+/* ── AND THE SAME TWO, AGAINST THE REAL DOCUMENT ──────────────────
+ * A hand-written fixture proves a rule works on text this file wrote. The failure that matters is
+ * on the file Wyatt's tick actually reads, so mutate THAT and check the rule still bites. It also
+ * cannot drift: the mutation is derived from the live runbook every run, so if the re-arm box is
+ * rewritten tomorrow this case is exercising the new one. */
+{
+  const strippedSteps = book.split("\n").filter((l) => !/^\s*>?\s*\d+\.\s/.test(l)).join("\n");
+  const ids = auditRunbook(strippedSteps).map((f) => f.id);
+  if (!ids.includes("rearm-no-shape-check"))
+    fail(`red-proof on the REAL runbook: with its numbered re-arm steps deleted the shape rule did not fire (got ${JSON.stringify(ids)}) — prose describing this gate is satisfying it, which is the gate measuring itself (CEO 103 finding 2)`);
+  else pass("red-proof on the REAL runbook: deleting its re-arm steps turns the shape rule red — the prose about this gate does not stand in for the instructions");
+}
+
 for (const [name, fixture, expectedId] of cases) {
   const ids = auditRunbook(fixture).map((f) => f.id);
   if (expectedId === null) {

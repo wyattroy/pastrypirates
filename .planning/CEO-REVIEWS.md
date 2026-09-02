@@ -7,6 +7,98 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 103 — 2026-09-02T12:0xZ, Wy-Blade — INBOX-20260902T05xxZ-a, the Glass session's context, and a gate that could be satisfied by a sentence about itself
+
+*Item: **"make sure that Glass Update Session gets cleared between ticks or updates or whatever you
+call its tasks -- we don't want to keep adding to its context, that's unnecessary"** — his second
+asking. Reviewed: commit `42958113` (the runbook fix + `scripts/qa/glass_session_thin_check.mjs`).*
+
+### VERDICT: **PARTIAL**
+
+**Its one sentence for Wyatt, in its own words:** *"The Glass session really does start each tick
+fresh — that was built and proven at 4:46 this morning, before this watch started — and this watch
+closed a real gap in the instructions that could have quietly put the old fat version back; but the
+note in your inbox still says 'not yet applied', and the new alarm it fitted can be muted by
+rewording one sentence."*
+
+**WHAT IT VERIFIED AS TRUE, each against git or a live command rather than against the account it
+was given:**
+- **The dispatcher shape was already in place before this watch.** `git log` on the runbook:
+  `b94b40a7` *"each tick runs in a FRESH subagent"*, `87b3e986` *"confirm: subagent publish works"*,
+  `3428d089` recording the cron survived a `/clear`. The INBOX entry is stamped ~05:00Z; the
+  confirmation is **04:47Z**. *"So the entry's 'capability question now being probed' was already
+  answered when it was written."*
+- **The runbook fix is a real behaviour change for the reader**, not cosmetic
+  (`GLASS-UPDATE-SESSION.md:101-112`, heading at `:75`).
+- **The gate runs, and its fixtures assert against the same `auditRunbook()` the real file goes
+  through** (`:212`) rather than a copy.
+- **The stated limit is honest** — nothing outside the creating session can read a cron job's
+  prompt, and the gate says so in its own header.
+- **The red `npm test` is genuinely not from this change.** `chartkeeper_check.mjs` reads
+  `CHART.md`, which `42958113` does not touch; `8178eb29` added the rows.
+
+### ⚠ FINDING 2 — THE GATE COULD BE SATISFIED BY A SENTENCE DESCRIBING THE GATE
+
+The shape rule read the whole re-arm section, so the paragraph naming this very check — *"…if the
+**dispatcher line** stops pointing at this file, or if the steps get inlined into the cron
+**prompt** again"* — supplied every keyword it wanted **on its own**. *"Delete instructions 1-4 and
+that sentence alone keeps the rule green."* And the sweep was available: rule 1 already strips
+headings for exactly this class of defeat, **and that lesson was not carried to rule 4.**
+
+**FIXED THIS PASS.** The rule now reads only the numbered STEPS — what the reader is actually told
+to do. Two red-proofs were added, and the second is the stronger one: the fixture, and **a mutation
+of the REAL runbook** with its numbered steps stripped, derived live on every run so it cannot go
+stale. Both turn it red. *A gate satisfied by prose about the gate is the purest form of an
+instrument measuring itself.*
+
+### ⚠ FINDING 3 — THE PRESENCE-ONLY RULE WAS A MEMORIAL TO ONE SENTENCE
+
+It matched two literal phrasings, and its fixture substituted the deleted sentence **verbatim** —
+*"so it proves the rule catches the old sentence, not a reverted intent."* A revert worded
+*"CronList. If a job is listed, you're done."* sailed through both re-arm rules while his ask stayed
+unmet. **Same correction CEO 100 made to `glass_gate_verdict_logged_check.mjs`.**
+
+**FIXED THIS PASS.** Widened to a class (`is there|listed|present|armed|exists|shows up` × `nothing
+to do|you're done|do nothing|leave it|move on|carry on|all good|no action`) and scoped to the steps
+— which is what makes widening safe: a paragraph recounting the old instruction is history and must
+stay sayable, while a STEP that settles for presence is the fault. CEO 103's own wording is now a
+fixture.
+
+### FINDING 1 — THE RECORD HE READS STILL SAYS NOT DONE
+
+`INBOX.md` still read `not yet applied` / `status: OPEN` while the working tree was clean. *"The
+watch diagnosed the stale record and left it stale — 'committed is not delivered' applied to the
+watch itself."* Discharged by closing through `close_item.mjs`, which writes the fate.
+
+### FINDING 4, minor and kept — the prediction rests on its own word
+
+The prediction note and the gate landed in the **same commit**, so nothing outside the file
+corroborates that it predates the check. Not a fault; recorded so it is not read as verified. **A
+prediction's value is that it cannot be retrofitted, and a same-commit prediction cannot prove that
+about itself.** Worth a convention: commit the prediction on its own, before the check exists.
+
+### ITS ANSWER ON CLOSABILITY, WHICH IS THE HONEST PART
+
+*"Substantially yes, but not on this watch's work alone.* The mechanism that answers his ask shipped
+at 00:43-01:08 local, and the runbook records the live job `b2a4d78d` still armed after a `/clear`
+carrying the same dispatcher prompt — **so there is prior evidence the running job is the thin
+shape, not merely documentation about it.** This watch delivered documentation plus a gate on that
+documentation — worthwhile, because the re-arm hole was real — **but no new measurement of the live
+session.**"
+
+### CEO 102 RECURRENCE (unmeasured claims): **DOES NOT RECUR**
+
+Every claim it could test — the prior shipping, the red-first evidence, the stated limit, the
+attribution of the red suite — held against git or a live command. The residual is finding 4, one
+self-attested timestamp, *"a much smaller thing than an inherited 'PHYSICALLY UNREACHABLE'."*
+
+⚠ **ITS OWN LIMIT, STATED BY IT:** findings 2 and 3 were **read, not executed** — `node -e` was
+permission-blocked in that session, so it could not run a mutated-runbook probe. This watch then ran
+exactly that probe, and **both findings were confirmed**: the escape routes it derived from reading
+regexes turned out to be real, and are now fixtures.
+
+---
+
 ## CEO Review 102 — 2026-09-02, Wy-Blade — the wall he was told is physical is one line of config, and the taxonomy does not survive its own file list
 
 *Item: **"we need a better way to add tasks to the watch than modifying vendored files… redesign the
