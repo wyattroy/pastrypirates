@@ -7,6 +7,80 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 113 — 2026-09-02T17:4xZ, Wy-Blade — `T-088`, his five Glass asks, BUILT
+
+*Item: **`T-088`** — Wyatt, 2026-09-02T16:1xZ, with a screenshot of his own page: **"claude my friend,
+you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the chart."** Commits
+`d0908e64` and `c8cca404`. Previous verdict handed over: CEO 111 (APPROVED WITH CHANGES, the design
+for ask 1) and CEO 110 (the previous watch).*
+
+### VERDICT: **PARTIAL**
+
+**Its one sentence for Wyatt, in its words:** *"Three of your five asks are genuinely fixed and I can
+see them in the photograph — the Chart is numbered, the shouting is gone, and the Your Call box now
+hides itself — but the '25 minutes ago' number you complained about is still printed exactly as it
+was, with an apology added underneath it, and the new 'what's being worked on right now' line has no
+process that fills it in, so the next watch that follows the Door as written will make your page say
+'nothing in hand' while it works."*
+
+**PER ASK, in its words:**
+- **Ask 1 — BUILT, NOT WIRED.** `glass.mjs:845` renders it under the pulse, `:545-567` reads the
+  machine-written block, four states gated, and the photograph shows it working. *"The gap: nothing
+  produces that block. `.claude/skills/door/SKILL.md:81` still says only 'Claim it in the ledger' —
+  `claim_item.mjs` appears nowhere in the Door… the next watch working from the Door writes a ledger
+  heading and no claim → the line reads 'nothing in hand' during live work. That is a false statement
+  of the same family he complained about, inverted."*
+- **Ask 2 — NOT FIXED, MITIGATED.** *"The number he objected to is unchanged and still the prominent
+  one… the deliverable is a caveat, not the fix."* It judged the account of it honest.
+- **Ask 3 — DONE.** `glass.mjs:849`. *"Hides on genuinely empty, keeps the card and shouts on
+  unparseable (T-077 case), which is the right call."* Rests on the gate, not the picture.
+- **Ask 4 — DONE.** `glass.mjs:601-606`; *"the photograph shows the Chart list numbered 1 through 53+."*
+- **Ask 5 — DONE, with a cost visible on his page.** *"I read the photograph row by row and found no
+  ALL-CAPS shouting anywhere in the Chart list; lone acronyms survive."* And: *"row 15 renders 'a
+  character of wyatt's own text'… his own name, lowercased, on the page he steers from… I'd call it
+  acceptable but I would not want him to discover it unannounced."*
+
+**THE COUNTING CLAIM — "nobody was right, and that is the answer."** CEO 111 said 15 headings / 4
+parseable; the watch said 40 / 4; the CEO counted **57** and **3**. *"Three independent counts, three
+different numbers, from the same file on the same day. That does not change the decision — it is the
+strongest available evidence for it. The ledger is free prose whose count is a property of whoever's
+regex is looking at it."*
+
+**RECURRENCE:** CEO 111's finding 1 **does not recur** (the built thing reads the status file, and
+the gate's fixtures are produced by the real writer, `glass_his_five_asks_check.mjs:71`). CEO 111's
+finding 2 **does not recur as an error**, but its warning holds — *"my judgement: ask 2 should not be
+ticked."* CEO 110's fault **does not recur**: *"each `pass()` string describes exactly the condition
+just checked."* **"A sentence tidier than the record" PARTIALLY recurs, at the headline only** — the
+commit subject *"every one held to the LIE it could become"* *"reads as five delivered. Two are
+not… a headline out ahead of an honest body, not a concealment. Fifth or sixth verdict on this branch
+touching the same shape."*
+
+**WHAT IT DID NOT VERIFY, in its words:** the RED-first claim (*"I did not check out `217c1375` and
+run the gate against the old `glass.mjs` — read-only mandate"*); the full `npm test` (it ran the one
+gate, 18 ok, and confirmed the ceiling and the chain entry); anything a browser renders beyond the
+photograph, which it judged directly; and the empty-Your-Call case on the real page.
+
+**WHAT THE WATCH DID ABOUT IT, IN THE SAME PASS, BEFORE WRITING TO WYATT:**
+- **(ask 1, not wired) FIXED AS FAR AS THIS SESSION CAN, AND THE REMAINDER IS NAMED.** The Door edit
+  was attempted **twice** and refused by this session's write permissions, so two things were done
+  instead. **(a) The lie is gone from the page:** it now reads *"Nothing recorded in hand — no watch
+  has claimed since the last close"* — a fact about the RECORD, which is all this page can know,
+  where *"Nothing in hand"* asserted something it cannot. The gate now FAILS on the old wording.
+  **(b) The reminder reaches a watch through a command the Door already tells it to run:**
+  `publish_status.mjs` prints a loud warning when it publishes with no claim on file. The Door line
+  itself is a Chart row.
+- **(ask 2) THE CLAUSE MOVED ONTO THE NUMBER HE READS**, which is the CEO's actual complaint: once
+  the page is more than a minute old the figure reads *"last progress N min ago (as of this page)"*.
+  **And its judgement is accepted in full: ask 2 is NOT ticked and `T-088` is NOT closed.** The cure
+  is the page being republished when work lands (the Door's step 6b, shipped by another session an
+  hour earlier), because a static page cannot learn about a commit made after it was generated.
+- **(headline) ACCEPTED, and corrected in the open** rather than by rewriting a pushed subject — the
+  closing ledger entry and this verdict both say four of five, not five.
+- **(the counting) ACCEPTED, and it is the better argument.** Three regexes, three answers; the
+  ledger is prose. Recorded in `claim_item.mjs`'s header and in the Door row.
+
+---
+
 ## CEO Review 112 — 2026-09-02, Wy-Blade — `SPEC-GLASS-CALM.md`, the three "chaotic again" fixes
 
 *His ask, verbatim: **"the glass looks chaotic again. 1. In Hand needs to give me context on what is
@@ -93,80 +167,6 @@ the wrong comment to be corrected in the same change. Filed as `T-095`.
 size they are displayed at?"* — sits in the RULED card with an empty `now` cell
 (`.planning/CHART.md:1044`) while `.planning/ASSET-DISPLAY-SIZES.md` appears to answer it. *"He asked
 a question, we answered it in a file, and his page still shows it unanswered."*
-
----
-
-## CEO Review 112 — 2026-09-02T17:4xZ, Wy-Blade — `T-088`, his five Glass asks, BUILT
-
-*Item: **`T-088`** — Wyatt, 2026-09-02T16:1xZ, with a screenshot of his own page: **"claude my friend,
-you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the chart."** Commits
-`d0908e64` and `c8cca404`. Previous verdict handed over: CEO 111 (APPROVED WITH CHANGES, the design
-for ask 1) and CEO 110 (the previous watch).*
-
-### VERDICT: **PARTIAL**
-
-**Its one sentence for Wyatt, in its words:** *"Three of your five asks are genuinely fixed and I can
-see them in the photograph — the Chart is numbered, the shouting is gone, and the Your Call box now
-hides itself — but the '25 minutes ago' number you complained about is still printed exactly as it
-was, with an apology added underneath it, and the new 'what's being worked on right now' line has no
-process that fills it in, so the next watch that follows the Door as written will make your page say
-'nothing in hand' while it works."*
-
-**PER ASK, in its words:**
-- **Ask 1 — BUILT, NOT WIRED.** `glass.mjs:845` renders it under the pulse, `:545-567` reads the
-  machine-written block, four states gated, and the photograph shows it working. *"The gap: nothing
-  produces that block. `.claude/skills/door/SKILL.md:81` still says only 'Claim it in the ledger' —
-  `claim_item.mjs` appears nowhere in the Door… the next watch working from the Door writes a ledger
-  heading and no claim → the line reads 'nothing in hand' during live work. That is a false statement
-  of the same family he complained about, inverted."*
-- **Ask 2 — NOT FIXED, MITIGATED.** *"The number he objected to is unchanged and still the prominent
-  one… the deliverable is a caveat, not the fix."* It judged the account of it honest.
-- **Ask 3 — DONE.** `glass.mjs:849`. *"Hides on genuinely empty, keeps the card and shouts on
-  unparseable (T-077 case), which is the right call."* Rests on the gate, not the picture.
-- **Ask 4 — DONE.** `glass.mjs:601-606`; *"the photograph shows the Chart list numbered 1 through 53+."*
-- **Ask 5 — DONE, with a cost visible on his page.** *"I read the photograph row by row and found no
-  ALL-CAPS shouting anywhere in the Chart list; lone acronyms survive."* And: *"row 15 renders 'a
-  character of wyatt's own text'… his own name, lowercased, on the page he steers from… I'd call it
-  acceptable but I would not want him to discover it unannounced."*
-
-**THE COUNTING CLAIM — "nobody was right, and that is the answer."** CEO 111 said 15 headings / 4
-parseable; the watch said 40 / 4; the CEO counted **57** and **3**. *"Three independent counts, three
-different numbers, from the same file on the same day. That does not change the decision — it is the
-strongest available evidence for it. The ledger is free prose whose count is a property of whoever's
-regex is looking at it."*
-
-**RECURRENCE:** CEO 111's finding 1 **does not recur** (the built thing reads the status file, and
-the gate's fixtures are produced by the real writer, `glass_his_five_asks_check.mjs:71`). CEO 111's
-finding 2 **does not recur as an error**, but its warning holds — *"my judgement: ask 2 should not be
-ticked."* CEO 110's fault **does not recur**: *"each `pass()` string describes exactly the condition
-just checked."* **"A sentence tidier than the record" PARTIALLY recurs, at the headline only** — the
-commit subject *"every one held to the LIE it could become"* *"reads as five delivered. Two are
-not… a headline out ahead of an honest body, not a concealment. Fifth or sixth verdict on this branch
-touching the same shape."*
-
-**WHAT IT DID NOT VERIFY, in its words:** the RED-first claim (*"I did not check out `217c1375` and
-run the gate against the old `glass.mjs` — read-only mandate"*); the full `npm test` (it ran the one
-gate, 18 ok, and confirmed the ceiling and the chain entry); anything a browser renders beyond the
-photograph, which it judged directly; and the empty-Your-Call case on the real page.
-
-**WHAT THE WATCH DID ABOUT IT, IN THE SAME PASS, BEFORE WRITING TO WYATT:**
-- **(ask 1, not wired) FIXED AS FAR AS THIS SESSION CAN, AND THE REMAINDER IS NAMED.** The Door edit
-  was attempted **twice** and refused by this session's write permissions, so two things were done
-  instead. **(a) The lie is gone from the page:** it now reads *"Nothing recorded in hand — no watch
-  has claimed since the last close"* — a fact about the RECORD, which is all this page can know,
-  where *"Nothing in hand"* asserted something it cannot. The gate now FAILS on the old wording.
-  **(b) The reminder reaches a watch through a command the Door already tells it to run:**
-  `publish_status.mjs` prints a loud warning when it publishes with no claim on file. The Door line
-  itself is a Chart row.
-- **(ask 2) THE CLAUSE MOVED ONTO THE NUMBER HE READS**, which is the CEO's actual complaint: once
-  the page is more than a minute old the figure reads *"last progress N min ago (as of this page)"*.
-  **And its judgement is accepted in full: ask 2 is NOT ticked and `T-088` is NOT closed.** The cure
-  is the page being republished when work lands (the Door's step 6b, shipped by another session an
-  hour earlier), because a static page cannot learn about a commit made after it was generated.
-- **(headline) ACCEPTED, and corrected in the open** rather than by rewriting a pushed subject — the
-  closing ledger entry and this verdict both say four of five, not five.
-- **(the counting) ACCEPTED, and it is the better argument.** Three regexes, three answers; the
-  ledger is prose. Recorded in `claim_item.mjs`'s header and in the Door row.
 
 ## CEO Review 111 — 2026-09-02, Wy-Blade — the "what is being worked on right now" design
 
