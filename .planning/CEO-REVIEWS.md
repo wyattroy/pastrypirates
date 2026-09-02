@@ -7,6 +7,124 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 104 — 2026-09-02T12:5xZ, Wy-Blade — `T-079`, the "waiting on your answer" signal, and a commit that swept up another session's work
+
+*Item: **`T-079`** — "`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING
+OFF THE TOP OF HIS LIST." The in-repo, unblocked half of `INBOX-20260902T04xxZ`, his
+four-times-asked *"update the Tasks list dynamically — it is stale"*. Fix commit `ed827799`;
+prediction committed alone beforehand as `5cee0c40`.*
+
+**VERDICT: PASS** — with one hygiene note: unrelated Chart content was committed inside the fix,
+undisclosed, and someone should confirm no other session lost work to that shared checkout.
+
+### 1. The ask, part by part
+
+**Make the signal row-level — DONE.**
+The old rule was a word-search for the phrase "BLOCKED ON WYATT" inside a row's own text
+(`scripts/wyclau/chartkeeper.mjs:525`, pre-fix). So a row sank to the bottom of your list because it
+*mentioned* the section — including your own Chartkeeper row, whose spec text describes the tool
+writing questions into that section. The new rule is a fact you can point at: a question in **your**
+table has to name the row's `T-nnn` handle. The link lives on your side, in your question, so a row
+can no longer talk itself into hiding (`chartkeeper.mjs`, `blockedNaming`/`settledNaming` in
+`derive()`, and `livePointer` in `score()`). Both consumers — the ranking and the stale-row check —
+now read the **same** derivation, where before they read two that contradicted each other by
+construction.
+
+**Red-proof by adding an unrelated question — DONE, and it is the strongest case in the file.**
+Case 13d (`scripts/qa/chartkeeper_check.mjs:1249-1256`) ranks the same fixture twice, identical but
+for one extra question that names no row, and demands the order not move by a single character. I
+ran the new tests against the **old** tool in a scratch copy: 13d failed exactly as claimed, with
+the descriptive row moving from **+40 (top) to −1000 (bottom)** on that one unrelated edit. Eight of
+the nine new assertions failed on the old tool. The watch's "8 of 9" is confirmed, not asserted.
+
+**Did not relax the failing case — DONE.** Case 11e (`chartkeeper_check.mjs:889-898`) is
+byte-for-byte untouched; the commit's diff has no hunk within 250 lines of it. It still demands your
+Chartkeeper row rank first on the real Chart.
+
+**No game code — DONE.** Four files: the Chart, the two tool files, the gate. Nothing under `src/`.
+
+**And the red really was red.** I rebuilt the fully pre-fix state and ran it: 11e fails with the
+exact sentence quoted in the ask, your row at **31 of 39, score −984**. With the new code and the
+*old* Chart, it passes at **+116**. So the code fix genuinely repairs it.
+
+### 2. Delivered but not asked for
+
+One thing rode along that shouldn't have: **the fix commit also edited `.planning/CHART.md`** with
+Glass-harvest content — a ruling of yours moved to RULED, and your new trade-winds-colour idea filed
+as `T-082`. That is somebody else's work (the watch's own ledger says it had no way to harvest from
+the Glass), almost certainly swept up out of the shared checkout — the exact hazard that same ledger
+entry documents four lines earlier. The commit message never mentions it.
+
+**Why I chased this hard, and why it turned out clean:** removing questions from your table *also*
+turns the red test green under the old tool. So on the face of it, the watch might have fixed a
+failing test by editing the data it reads. It did not — I proved the code fix stands alone on the
+unedited Chart. But it is worth knowing the Chart edit would have *masked* the same failure while
+fixing nothing, and would have gone red again the next time anyone filed a question. Bundling made a
+commit that can be misread as exactly the thing it isn't.
+
+### 3. Unsupported claims
+
+None found. Every number checked out: 8 of 9 new cases red on the old tool, "31 of 39, score −984"
+reproduces exactly, `npm test` reports `99/99 gates` green, and your top row scores 116 for the
+honest reason — "you asked for this yourself, and nothing is blocking it" plus two resolved
+citations of your notes — not the old fabricated +40.
+
+### 4. Recurrence of CEO 103
+
+- **Finding 4 (a prediction that can't be proved to predate the work) — cured, and deliberately so.**
+  The prediction is its own commit, `5cee0c40`, fourteen minutes before the fix, and it names
+  finding 4 as the reason. It states what would prove it *wrong* before the measurement, and it was
+  right.
+- **Finding 2 (a gate satisfied by a sentence about the gate) — does not recur.** The new cases
+  assert against the tool's structured output on purpose-built fixtures, with positive and negative
+  twins.
+- **Finding 3 (a memorial to one literal phrasing) — cured where it counts, one residual.** The
+  scoring signal is now structural. But the *advisory* list still uses the old word-search
+  (`unattachedMentions`, in `derive()`): a row that refers to your table in different words won't be
+  listed as needing a link. It can't sink anything any more, so it's a small blind spot in a helper
+  report, not a live defect.
+
+### 5. Context spend
+
+I have no visibility into the watch's own tool calls, so I can't name specific wasteful reads and
+won't invent any. What I can say is the work was three files and about 120 net lines, and it is the
+kind of work — a prediction, a gate written red-first, a file being actively edited — that belongs
+in the main thread anyway.
+
+### 6. The one sentence for you
+
+**Your top ask no longer falls off your own list because somebody else filed an unrelated question —
+that's fixed at the root and proven with a test that fails on the old code — but nothing on your
+real Chart is linked up yet, so until someone writes the handles into your four questions, the tool
+will never mark anything as "waiting on Wyatt" at all; it just tells you which links are missing.**
+
+### THE 2×2 IT RAN AFTERWARDS, WHICH IS WORTH MORE THAN THE VERDICT
+
+Asked to separate the code fix from the Chart edit, it ranked `T-001` under every combination of
+tool and Chart:
+
+| | pre-fix Chart | HEAD Chart |
+|---|---|---|
+| **pre-fix tool** | **31 of 39, score −984 — 11e FAILS** | 1 of 39, score **+156** — 11e passes |
+| **HEAD tool** | **1 of 39, score +116 — 11e PASSES** | 1 of 39, +116 — passes |
+
+**Both routes to green are independently sufficient, and they are not equivalent.** Under the old
+tool the pass is bought with the fabricated +40 — score 156, with the extra clause *"something it
+was waiting on has landed"*, the exact spurious verdict new case 13b-ii condemns. Emptying the table
+did not attach a real signal; it flipped the same absence-derived signal from −1024 to +40. And it
+is fragile: splice either removed question back in and the row re-sinks to 31st or 34th, on
+questions that have nothing to do with building the Chartkeeper. Under the new tool it holds at +116
+regardless.
+
+**AND ITS OWN WRONG PREDICTION, WHICH IT REPORTED RATHER THAN QUIETLY DROPPING.** Its first
+fragility probe used a synthetic one-liner (*"Should the new lantern be brass or iron?"*) and it did
+**not** re-sink the row — it had predicted it would. Too short to share three five-letter words with
+a 900-character row, so REAP still judged the pointer dead. **A short synthetic question is not a
+valid instrument for this signal**, which is why the table above uses his real removed rows. That is
+rule 6 caught in flight, by the reviewer, on itself.
+
+---
+
 ## CEO Review 103 — 2026-09-02T12:0xZ, Wy-Blade — INBOX-20260902T05xxZ-a, the Glass session's context, and a gate that could be satisfied by a sentence about itself
 
 *Item: **"make sure that Glass Update Session gets cleared between ticks or updates or whatever you
