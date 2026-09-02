@@ -49,6 +49,35 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-09-02, 3:04 PM — WRITE EVERY TIME HE READS IN HIS LOCAL TIME, NEVER UTC
+
+Wyatt: *"always write to me in my local time -- your UTC is confusing"*.
+
+**The decision:** every time in anything he reads is his LOCAL time, on a 12-hour clock with am/pm.
+**The alternative he did not pick:** UTC everywhere with a local time in brackets — he asked for
+local, not for both, and a doubled timestamp is the same arithmetic wearing a bracket.
+
+**WHERE IT APPLIES: everything written FOR HIM** — replies, question-UI forms, the Glass, status
+reports, checkpoints, anything published. **Where it does NOT: the record.** Commit messages,
+`CTO-LEDGER.md`, `CEO-REVIEWS.md`, `LAST-PUBLISH`, `LAST-HARVEST`, run ids and report stamps stay
+UTC: they are written for the next session, sessions run on machines in different zones, and a
+ledger in mixed local times cannot be ordered. **It is rule 3's boundary applied to numbers —
+plain for him, precise for the record.**
+
+⚠ **READ THE OFFSET, NEVER REMEMBER IT.** Measured 2026-09-02: this machine is **EDT, UTC−4**
+(`date +%z` → `-0400`; 3:05 PM local = 19:05Z). **But EST is UTC−5 from early November**, so a
+session that hardcodes −4 is an hour wrong for a third of the year — **and an hour-wrong timestamp
+is worse than a UTC one, because it looks right.** One `date +%z` on the machine answers it. He also
+works from a Mac; read the clock of the machine you are on, and if you are in a container, say so
+rather than guessing his.
+
+**Why he asked:** every time given to him on 2026-09-02 — the 1:06 PM ruling, the 2:36–2:42 PM
+window, the 2:51 PM tick — was handed over in UTC, so he had to convert before he could tell whether
+something had just happened or happened an hour ago. **A timestamp he has to convert is a fact he
+cannot use at a glance.** Filed as `INBOX-20260902T1904Z`.
+
+---
+
 ## 2026-09-02T17:06Z — KEEP THE FLASHING SELF-TEST IN `npm test`
 
 Wyatt, ruled on the Glass 17:06Z and restated to the Advisor at 17:38Z in his own words:

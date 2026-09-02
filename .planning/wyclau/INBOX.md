@@ -968,3 +968,33 @@ diff; `glass-harvest-first.cjs` plus the Glass runbook.
   **WHAT WAS ACTUALLY DONE ABOUT THE LIVE RISK:** the Glass-update session ran a fresh tick with a
   genuine harvest immediately, which establishes whether anything is unharvested NOW. It cannot
   establish what was on the page between 18:36:14Z and 18:41:38Z, and nobody should claim it does.
+
+## INBOX-20260902T1904Z — ALWAYS WRITE TO HIM IN HIS LOCAL TIME. UTC IS CONFUSING.
+
+**HIS WORDS, VERBATIM:**
+
+> always write to me in my local time -- your UTC is confusing
+
+solution: his own — every time in anything he reads is his LOCAL time. Measured, not assumed: this machine is **EDT, UTC−4** (`date +%z` returns `-0400`, 3:05 PM local against 19:05Z). Use a 12-hour clock with am/pm, the way he reads a clock.
+
+status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md`; no build, it is a writing rule.
+
+  **WHERE IT APPLIES: EVERYTHING HE READS.** Replies, question-UI forms, the Glass, checkpoint
+  framing, status reports, anything published for him. **Where it does NOT: the record.** Commit
+  messages, `CTO-LEDGER.md`, `CEO-REVIEWS.md`, file stamps, `LAST-PUBLISH` and `LAST-HARVEST` stay
+  UTC — they are written for the next session and for machines on two different continents' clocks,
+  and a ledger in mixed local times cannot be ordered. **The boundary is the same one rule 3 already
+  draws: plain English for him, precision for the record.**
+
+  ⚠ **AND THE OFFSET MUST BE READ, NEVER REMEMBERED.** EDT is UTC−4 today and EST is UTC−5 from
+  early November; a session that hardcodes −4 will be an hour wrong for a third of the year, and
+  **an hour-wrong timestamp is worse than a UTC one because it looks right.** `date +%z` on the
+  machine answers it in one call. He also works from a Mac, which may not be in the same zone as
+  the Blade — read the clock of the machine you are on, and if you are in a container, say so
+  rather than guessing his.
+
+  **WHY HE ASKED, in his own framing:** every time this session gave him today — the 17:06Z ruling,
+  the 18:36–18:42 window, the 18:51 tick — required him to do arithmetic on his own day before he
+  could tell whether something had just happened or happened an hour ago. **A timestamp he has to
+  convert is a fact he cannot use at a glance**, which is rule 3's own test applied to numbers
+  rather than to words.
