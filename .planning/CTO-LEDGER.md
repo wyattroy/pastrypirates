@@ -2879,3 +2879,24 @@ temp dir with a whole absolute Windows path glued on. `scripts/lib/vision.mjs:11
 basename with `String(abs).split("/").pop()` — a POSIX separator — so on Windows the "basename" is
 the entire path. **The eyes are not shut on this machine; the staging step never opens them.**
 This watch's work: prove that RED, fix it, prove the same check GREEN, then judge the queue.
+
+**THE PREDICTION, WRITTEN AND COMMITTED BEFORE THE FIX** (CLAUDE.md rule 6's working form):
+
+1. `stageImages` copies each screenshot into the judge's own scratch folder and works out the
+   filename with `String(abs).split("/").pop()` — **a Mac separator**. Handed a path built by
+   `path.join` on Windows, that "basename" is the whole path, so the destination becomes
+   `<temp>\ppjudge-x\C:\Users\...\shot.png` and the copy throws ENOENT. **I expect the fix to be
+   `path`-derived basename + `path.join`, and I expect it to make `judge_can_see_check.mjs` RUN.**
+2. **I do NOT predict the eye test will PASS.** `judge-queue.json`'s own instructions say the
+   `claude -p` route is what the queue exists to replace ("one shared OAuth credential"). So the
+   honest outcome may be: the path fault is fixed, the check reaches the judge, and the judge is
+   unavailable for a DIFFERENT, real reason. That would still be progress — the trial would report
+   the truth instead of a crash — but it must be reported as a partial result, not a win.
+3. **A second Windows fault of the same shape sits at `vision.mjs:245`**, and fixing 117 alone
+   would not be enough: `judgeBatch` matches each verdict back to its screenshot with the same
+   `split("/")`, so on Windows every verdict would be dropped as "never mentioned" — silently, which
+   is the worst direction. `stage.names[i]` already holds the right answer, so the fix is ONE
+   derivation, not two kept in step (rule 23).
+4. **WHAT WOULD PROVE ME WRONG:** if after the fix the eye test still dies on a path, the diagnosis
+   is wrong. If the queue's screens then judge fine through a route that never touches `stageImages`,
+   then this was never what blocked the release evidence and I have fixed something adjacent.
