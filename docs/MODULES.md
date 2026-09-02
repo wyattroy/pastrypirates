@@ -21,6 +21,7 @@ no-dependency path and works even for a reader without npm. A convenience alias
 is also available:
 
 ```bash
+# BROKEN ON WINDOWS: `npm start` runs `python3` (package.json:21) — use the `python` line above.
 npm start
 ```
 

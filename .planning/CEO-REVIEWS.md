@@ -7,6 +7,38 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 116 — 2026-09-02T19:1xZ, Wy-Blade — `INBOX-20260902T15xxZ`, the docs' shell commands, WIDENED
+
+*Item: **`INBOX-20260902T15xxZ`** — not Wyatt's words; the Advisor's finding while fixing rule 17.
+Its `solution:` line, verbatim: **"extend `scripts/doc_command_check.js` to verify SHELL commands
+the docs teach, not only `node …` ones. Start with the two verbs that actually appear: does the
+binary exist on this machine, and if not, is the line labelled with the machine it belongs to?"**
+Previous verdict handed over: CEO 115 (PARTIAL), including its finding that a **fifth consecutive**
+verdict had caught "a sentence tidier than the record". Reviewed in fresh context, then re-verified
+twice at this watch's request after each round of findings was applied. **Its words, unedited:***
+
+**CEO Review 116 — 2026-09-02, `INBOX-20260902T15xxZ` (doc_command_check widened to shell commands) — PARTIAL, then PASS on re-verify.**
+First pass PARTIAL: the gate worked and was genuinely red-proofed, but the sweep missed `docs/MODULES.md:14-16`, which taught `python3 -m http.server` — the exact command the watch had just fixed elsewhere — inside an untagged fence the scanner never enters, with the gate printing "all 78 shell command(s) the docs teach" green above it: an instrument whose subject was narrower than its own sentence, inside the fix for that fault. Also flagged that only the first word of a line was judged, so rule 17's own `pkill …; pkill …` would have been half-checked.
+All three acted on and re-verified read-only: MODULES.md tagged and corrected; the compound split at `:214` widened to `||`/`&&`/`;`/`|` with quote-blanking and comment-stripping at `:210-213` (which surfaced three live false positives — `.claude/CLAUDE.md:1039`, `docs/DETERMINISM-CAPTURE-4.md:23-24` — since fixed), 78 -> 99 commands, 12 fixtures; the PASS line at `:246` now names its subject AND its blind spot. Untagged fences were measured, not assumed: entering them yields 1,170 findings because this repo's untagged blocks are pseudocode (`docs/WINNING-STRATEGY.md:187-196` verified), so tagged-only stands and the cost is stated aloud.
+A NUL byte written into the split regex mid-edit was disclosed rather than hidden, was caught by the new fixtures going red, and is gone: `git diff --numstat` reads 165 insertions / 0 deletions (lines 1-118 byte-identical) and the file contains no NUL. Independently confirmed: 108 gates, `doc_command_check` PASS; the full `npm test` PASS is the watch's measurement, not the CEO's — browser-launching gates were out of bounds for a read-only review.
+RECURRENCE: the five-verdict run of "a sentence tidier than the record" ENDS here. The gate's green line now under-claims rather than over-claims, and the watch reported its own near-miss unprompted.
+
+ADDENDUM (CEO 116). The watch then found and REPORTED, rather than quietly fixed, that `package.json:21` is `"start": "python3 -m http.server 8000"` — so `npm start` fails on Windows for the same reason as the item itself, one level below where the gate can see (the gate checks that `npm` resolves, and it does). Ruled: leaving `package.json` alone is CORRECT — its subject is the doc gate, and the real fix is an interpreter resolver in the shape of `scripts/lib/chrome.mjs:110-119`, which is new tooling and a second item. Ruled the other way on the doc: the edit fixed `docs/MODULES.md:16` to `python` while leaving `:19-24` framing `npm start` as "a convenience alias", which now steers a Windows reader off a working command onto a broken one — a steer the edit itself created, so repairing it completes item one rather than opening item two. Accepted line, inside the fence: `# BROKEN ON WINDOWS: \`npm start\` runs \`python3\` (package.json:21) — use the \`python\` line above.` Known cost, accepted knowingly: that comment matches PLATFORM_NOTE and exempts the block from judging; `npm` resolves anyway and the block holds one command. VERDICT UNCHANGED: PASS, conditional on that line landing and the gate re-running green.
+
+**THE CONDITION IS MET.** Its exact line is at `docs/MODULES.md:23`; `node scripts/doc_command_check.js` re-run after it: **PASS — 0 failure(s)**, 99 commands, 12 fixtures.
+
+⚠ **ONE THING THIS WATCH OWES IN THE OPEN, because the verdict praises the disclosure and should not
+be read as the whole story.** The watch's own summary message to the CEO attributed the 78 → 99 jump
+to the compound split alone; **19 of the 21 came from the split and 2 from tagging `MODULES.md`.**
+The code comment at `scripts/doc_command_check.js:201` carries the correct number, so the permanent
+record was right and only the summary drifted — but that is the same fault the recurrence line above
+declares ended, one size smaller, in the same hour. Caught by the CEO, not by me.
+
+**FILED, NOT FIXED — `npm start` is broken on Windows** (`package.json:21`). Needs an interpreter
+resolver in the shape of `scripts/lib/chrome.mjs:110-119`; a watch takes one item.
+
+---
+
 ## CEO Review 115 — 2026-09-02T18:2xZ, Wy-Blade — `INBOX-20260901T1335Z`, his launch-critical image ask, CLOSING ON HIS RULING
 
 *Item: **`INBOX-20260901T1335Z`** — Wyatt, 2026-09-01T13:35Z, verbatim: **"There's one more SUPER
