@@ -483,3 +483,51 @@ carrying the finished screenshot-judging results by running `glass.mjs --note` m
 the page. **Every one of those started as a small, reasonable-looking change.**
 
 See also [[a-question-mark-is-not-authorisation]].
+
+## THE KIT IS A FRAMEWORK, NOT A DEPENDENCY — 2026-09-02, seven rulings in two question rounds
+
+**His framing, verbatim, which reversed the whole design:** *"claude-kit is intended to be a repo
+where the DESIGN of our system is made. we keep it updated as we build the system so that it can be
+useful in OTHER projects. but our system must operate LOCALLY in its OWN REPO... at the beginning of
+a project, claude-kit is added to it. then all of the instructions and processes in claude-kit start
+running within the project's repo. the ONLY reason we're still touching claude-kit is because we're
+building the plane as we're flying it."*
+
+**And the metaphor he chose for the flow — this project's own release process, pointed at its
+tooling:** *"the kit is 'production' and the local version of it is 'staging'... i don't want to be
+the human cherrypicking; i want the design of the kit itself to be architecturally extensible to
+many different projects, like a framework, and to be updated as we change it locally to serve an
+individual project."*
+
+| # | question | HIS RULING |
+|---|---|---|
+| 1 | `vendor_check.mjs` fails the build on any local edit — the kit is authoritative at runtime | **INVERT IT.** The project copy is the truth; the check warns that the KIT is behind. |
+| 2 | May a watch read claude-kit at runtime? | **NEVER — and that is the test.** A watch needing the kit means the file is in the wrong repo. The fence stays closed and becomes a design check rather than an obstacle. |
+| 3 | When does a project change reach the kit? | **A periodic batched pass**, never per-commit. Generalising benefits from seeing several changes at once and must never block shipping. |
+| 4 | Does the kit hold the literal file or a generalised one? | **GENERALISED.** A copy is not portable just because it sits in a portable repo. |
+| 5 | What does a new project receive at adoption? | **A copy it owns outright** — no lock file, no hashes. **Plus his amendment: it must also have a way to update to the latest kit as it becomes available.** |
+| 6 | Should improvements flow kit → project? | **NOT by human cherry-pick** — he rejected that outright. Architectural, staging→production. |
+| 7 | `.claude/skills/door/SKILL.md` — the Watch's own procedure | **THE PROJECT OWNS ITS DOOR.** This is what unblocks the Chartkeeper's RANK, asked for four times. |
+
+**RULED SEPARATELY, SAME ROUND:** the fate lexicon becomes **three states** — OPEN shows, SCHEDULED
+shows and says so, PARKED shows dimmed with its reason, and only genuinely-finished words hide.
+Measured trigger: **13 of his 15 ideas were hidden from the Glass, 9 of them by `SCHEDULED`**, while
+`CHARTER.md` names scheduled and parked as *visible* fates.
+
+**⏸ DELIBERATELY NOT RULED — he stopped the round:** how the back-port debt stays visible. His words:
+*"i don't like any of your options. i'll give you more context below -- wait for it before
+continuing."* **Nothing on this is to be designed or built until that context arrives.**
+
+> ### ⚠ THIS ENTRY WAS WRITTEN THREE TIMES BECAUSE THE FIRST TWO WERE SILENTLY RECLAIMED
+>
+> Three sessions share ONE working tree (the Advisor, the Glass-update session, a Chartkeeper
+> Watch). An uncommitted edit to a shared file does not survive another session's checkout-moving
+> git command — no error, no conflict, no trace.
+>
+> **AND THE RULE WRITTEN AFTER THE FIRST LOSS WAS NOT ENOUGH.** That rule was *"write and commit in
+> the SAME step."* This entry WAS written and committed in one chained command — **and the
+> CEO-cadence hook blocked the commit, which re-opened the window and the edit was gone by the
+> retry.** *A hook that blocks a commit leaves the edit exposed, so the safe form is: compose
+> outside the repo, then land it in a single write-and-commit.*
+>
+> **Rule 16 anticipated two sessions on one BRANCH. It did not anticipate three in one WORKING TREE.**
