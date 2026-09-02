@@ -4488,3 +4488,68 @@ happening to an Advisor's Inbox entry, and its rule — *write and commit in the
 right and **was obeyed here and still lost**, because a BLOCKED commit re-opens the very gap the
 rule closes. **The stronger form: a hook that blocks a commit leaves your work naked, so the retry
 must live in the SAME shell command as the write**, never in a second tool call.
+
+- 2026-09-02T12:59:46Z · close_item: "IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FAL" · CEO 104 · no game diff — no game code is right -- the ask is the Chartkeeper's ranking signal, not the game: commit ed827799, npm test 99/99 · no stated solution
+
+### WHAT THIS WATCH FOUND, AND THE THREE THINGS WORTH MORE THAN THE ITEM
+
+**THE ANSWER, AND IT WAS ONE LINE.** `chartkeeper.mjs:525` read
+`/BLOCKED ON WYATT/i.test(row.raw) && !reapByKey.has(row.key)` — **a prose-grep for a SECTION
+HEADING inside a row's own body**, cancelled by a REAP flag derived from the same grep plus a
+three-five-letter-word overlap over 900 characters of essay. So a row was "waiting on your answer"
+because it QUOTED the heading, and *whether* it was depended on what somebody else had most
+recently typed into his table. **Three of the four rows the tool was hiding from him were waiting on
+nothing**: his own four-times-asked Chartkeeper row (whose spec text describes SETTLE writing "one
+question into BLOCKED ON WYATT"), the row filed to describe this very defect (on the words "adding
+an unrelated BLOCKED ON WYATT row"), and a one-sentence wording fix (for quoting the heading it is
+about).
+
+Now one derivation feeds both consumers (rule 23): **a row of HIS table must NAME the row's `T-nnn`
+handle.** Live table ⇒ he is being asked, and only then does the row sink. `SETTLED RULINGS` ⇒ his
+answer landed and nobody moved the row, which is REAP's flag — **a positive fact instead of an
+absence**. Neither ⇒ nothing is claimed, and the report names the row and the orphaned question so
+the link can be written down. The link lives on HIS side, exactly like `linksOf`'s `backRef`, which
+is what makes it unfakeable by a row's own prose. `npm test` 89 → **99/99**, and `T-001` ranks first
+at **116** for the honest reason (+100 approved-and-unblocked from a live Inbox citation, +16 for
+two resolved notes) rather than the old, false +40.
+
+**1 · `git commit` AFTER `git add <paths>` STILL COMMITS EVERYTHING ALREADY IN THE INDEX — the
+fifth sighting of the shared-checkout hazard, by a NEW route, and it makes this watch's own earlier
+rule insufficient.** CEO 104 found `.planning/CHART.md` inside `ed827799`: a Glass harvest belonging
+to another session, which had staged it before this watch ran `git commit`. **Staging by path does
+not protect you if somebody else already staged theirs.** The safe form is a pathspec on the COMMIT
+— `git commit -m "…" -- <paths>` — which is what every commit after that one uses. The earlier note
+in this watch's own claim above says "stage by path"; **that is now known to be too weak, and this
+is the correction.**
+
+**2 · THE CEO'S 2×2 IS THE MOST USEFUL THING IN THE PASS, AND IT NEARLY CAUGHT A FALSE FIX.** Asked
+to separate the code fix from the Chart edit, it ranked `T-001` under every combination of tool and
+Chart and found **both routes to green are independently sufficient**: emptying his BLOCKED ON WYATT
+table also turns the red test green under the OLD tool. Had the Chart edit been mine, this commit
+would have been indistinguishable from fixing a failing test by editing the data it reads. It proved
+the code fix stands alone (old Chart + new tool = pass at +116) — **and that the other route is a
+fraud**, buying its pass with the fabricated +40 and re-sinking the row to 31st the moment either
+real question is spliced back in.
+
+**AND IT REPORTED ITS OWN WRONG PREDICTION RATHER THAN DROPPING IT.** Its first fragility probe used
+a synthetic one-liner and did NOT re-sink the row, against its own prediction — too short to share
+three five-letter words with a 900-character row. **A short synthetic question is not a valid
+instrument for this signal.** That is rule 6 caught in flight, by the reviewer, on itself.
+
+**3 · TWO ROWS ON THE LIVE CHART BOTH CARRY `T-079`, AND THIS PASS IS WHAT MADE IT DANGEROUS.**
+Found while trying to close the item: `CHART.md:990` (the npm-test row) and `CHART.md:1166` (THE
+PROJECT OWNS ITS DOOR). Until today a handle was a label; as of `ed827799` **it is the link that
+decides whether a row is hidden from him**, so one question naming `T-079` would now sink two
+unrelated rows. This is block 12's own fault class — `new Map(pairs)` keeping the last value for a
+repeated key — arriving one floor up, in his record rather than in the code. **The gate that would
+catch it exists and is pointed at a fixture** (`chartkeeper_check.mjs` case 7 runs on `MIXED`,
+never on the real Chart), which is `HARD-WON-LESSONS.md` §3's *"a gate aimed at the wrong tree is
+not silent, it is reassuring"*. Filed as its own row with the renumber rule written down: **do not
+renumber the older row — a handle is allocated once and never reused.**
+
+**WHAT WAS DELIBERATELY NOT DONE, stated so nobody reads silence as completion.** No handle links
+were written into the real Chart, so **nothing is currently scored "waiting on your answer" at
+all** — the tool reports the four rows and two questions that need linking instead. That is the
+chosen direction of failure: a row that turns out to need him costs a watch minutes, while a row
+wrongly hidden costs him his own order, which is the complaint that started this. Filed as its own
+row, with the trap named: **a bundle with unblocked parts must be SPLIT, not sunk.**
