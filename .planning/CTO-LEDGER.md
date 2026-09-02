@@ -5106,3 +5106,68 @@ item 2 and rejected items 1 and 3 as first written; both rejections were re-meas
 (1) `In hand` shows a handle and an ISO timestamp — he wants the WORK; (2) two status lines, one of
 them apologising, become one bar in his own wording; (3) the red "could not read" warning on his page
 — debug and fix the cause, which is prose sitting in `## BLOCKED ON WYATT`.
+
+- 2026-09-02T18:11:44Z · close_item: "THE GLASS LOOKS CHAOTIC AGAIN" · CEO 114 · no game diff — no game code is right: all three faults are in his Glass page (glass.mjs) and the Chart it reads -- commit 0b63026c, src/ and index.html untouched, build stamp unchanged · no stated solution · one status bar in his own words, In Hand names the work not a code, and the red could-not-read warning is gone at its cause
+
+### WATCH 17:36Z — `T-095` CLOSED, CEO 114 **PASS**, and the two things it caught were both mine
+
+**PREDICTION vs RESULT** (`.planning/wyclau/PREDICTION-20260902T1736Z-glass-calm.md`, written before
+a single measurement, and it earned its ninety seconds).
+- **P1 RIGHT, and to the number.** I predicted his new wording would turn 3–4 cases of
+  `glass_his_five_asks_check.mjs` red, and that the right move was to REWRITE them onto the new bar
+  rather than delete them. It was exactly four assertions, in one block, and the property they
+  defended — the page must always say how old it is, beside the number bounded by it — survived his
+  rewording intact. It is now carried by the *Updated* clock instead of by an apologising sentence.
+- **P2 RIGHT.** The server-rendered first paint had to be written separately from the live one, and
+  the honest shape was a TIME-FREE fallback that `tick()` replaces — not a second copy of the age
+  logic in Node.
+- **P3 RIGHT, and re-measured rather than inherited: five prose blocks, 45 non-table lines, NO
+  hidden question.** The prediction named what would prove it wrong — a genuine question in that
+  prose, in which case moving it would have been deleting a question of his. All five were read
+  before any was moved.
+- **P4 RIGHT.** `shortTask()` never touches the status bar; no interaction.
+- **P5 RIGHT AND UNDERSTATED, for the second watch running.** The gate took longer than the three
+  fixes together, and the largest single piece was the writer-side rule, exactly as predicted.
+
+**THE TWO THINGS I GOT WRONG, both found by somebody else, both fixed rather than argued.**
+1. **Writing `T-095` and `T-090` inside a SETTLED row put "your answer landed — keep it" onto two
+   open rows he has never ruled on.** `chartkeeper.mjs:303`'s `hisAnswerLanded` reads a settled row
+   for the handles it mentions; a handle written as DECORATION in a closed row therefore tells his
+   Chart that live work is finished, and those flags feed SETTLE. One of the two was `T-090` — the
+   very defect *"an answered question never leaves BLOCKED ON WYATT"* — which it would have proposed
+   closing while it is still open and while he was angry about its fourth instance. CEO 114.
+2. **The archive claimed "verbatim" for a row it had compressed.** The black-window question's
+   mechanism, the measured "183 hidden browsers", and both rejected alternatives had been dropped.
+   His ruling itself was intact, which is why it read as harmless. Restored whole.
+
+**THE MOST USEFUL THING THIS WATCH LEARNED, and it is not about the Glass.** Quoting him verbatim
+inside an HTML comment ended the comment mid-sentence: **his `-->` is a comment terminator.** Six
+lines of the fence went straight back into the section as prose, and the gate caught it in one run —
+the same gate, on the same file, red for a second and completely different reason. **A fence written
+in a syntax that his own words can close is not a fence**, and the note now says so where the next
+writer will meet it.
+
+**AND ONE FOUND ONLY BY LOOKING, which is the argument for rule 19 over any fixture: the de-shouting
+writes his own name in lower case on his own page** — *"the seat wyatt actually playtests"*,
+*"blocked on wyatt"*. Invisible to every hand-written case in the gate, obvious in one photograph of
+his real Chart at 390×844. Filed as its own Chart row, not fixed here.
+
+⚠ **A RECORD FAULT THIS WATCH COULD NOT CLOSE, AND WILL NOT HAND-PATCH.**
+`INBOX-20260902T17xxZ` — the very item this watch built — **is written as `### INBOX-…` with no
+`status:` line**, and `close_item.mjs` parses `## INBOX-…` plus `status:`. So the gate closed the
+CHART row (which is the authoritative tick) and **could not write the INBOX fate**, and reported
+"no stated solution" although the entry does carry his wording for item 2. **That entry will read
+OPEN to every future watch, exactly like `INBOX-20260901T1335Z` does.** The Door forbids ticking the
+Inbox by hand, so this is reported rather than repaired: **two Inbox rows now misroute orientation,
+and the fix for both is one gate run each.**
+
+**HIS PAGE IS NOT REPUBLISHED, AND CEO 114 CALLED THAT THE THING HE MOST NEEDS TOLD.** This session
+has no Artifact tool (measured). The note went to `GLASS-NOTE.md`, was picked up and cleared by the
+Glass-update session mid-watch, and that session is asked directly at the Door's step 6b. **Until it
+publishes, the page he taps is the old chaotic one.**
+
+**RULE 17 ON EXIT:** `stray_probe_check` PASS — no debug-port browsers running at all, checked after
+`glass_peek.mjs` closed its own.
+
+**LOCAL LITTER STILL HERE, named again so a human can remove it:** `scripts/qa/_peek_glass.mjs` and
+`.planning/wyclau/_commitmsg.txt`. Both UNTRACKED, never staged; `rm` is refused to this session too.

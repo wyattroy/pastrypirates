@@ -5,19 +5,11 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T17:54:35.501Z	12 rows on your Chart look already finished — the first: a trade-offer circle fix measured on a build the tree has since moved past.
+2026-09-02T18:09:56.100Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-```
-{
-  "item": "fixing the Glass — his three chaotic faults",
-  "handle": "T-095",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-02T17:54:49.841Z",
-  "staleAfterMinutes": 90
-}
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
 None recorded.
