@@ -1617,3 +1617,34 @@ status: DONE 2026-09-02 — both rows retired to `RULED` with his verdicts; the 
   ruling must, in the SAME act, delete the row that asked it. Two separate steps kept in step by
   discipline is the shape `.claude/CLAUDE.md` rule 23 forbids by name, and this is its fifth
   demonstration in twelve hours.
+
+## INBOX-20260902T1830Z — CEO-verify the retire-answered-questions plan, then put it at the TOP of the Chart
+
+**HIS WORDS, VERBATIM:**
+
+> get the ceo to verify your fix plan, then add it to the TOP of the fix list.
+
+> by fix list I mean Task List/ Chart
+
+solution: his own, both halves. The plan is [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](../SPEC-ANSWERED-QUESTIONS-RETIRE.md); a fresh-context CEO verifies it; the row goes to the top of `### ⚑ FOR A WATCH` **and must RANK there, not merely sit there** — CEO 117 caught a row asserting "TOP PRIORITY" while scoring zero at rank 34.
+
+status: OPEN — FOR A WATCH. **This entry stays OPEN deliberately: it is the BUILD, and `chartkeeper.mjs:155` treats a `DONE` entry as not live, which is what strips a row of its claim on his priority.**
+
+  **THE PLAN IN ONE LINE:** a question and its answer are one object — **recording the answer and
+  retiring the question must be the same act.** Today they are two acts joined by a session
+  remembering, which is rule 23's forbidden shape, and it has drifted five times in twelve hours.
+
+  **WHAT WAS MEASURED BEFORE THE PLAN WAS WRITTEN, so none of it is assumption:**
+  1. **The join already exists and is deterministic.** `glass.mjs:430` slugs the first 40 characters
+     of a question into its id, and `glassState.rulings` is keyed by it. Slugging his two real rows
+     reproduces the two keys his answers were stored under, **character for character**. So
+     automatic retirement needs no new schema.
+  2. ⚠ **AND THAT SAME JOIN CAN SILENTLY MIS-ATTRIBUTE HIS RULINGS — PROVEN, NOT THEORISED.** Two
+     different questions on one item:
+     *"⟨T-105⟩ Should the harvest retire the row immediately, or flag it for a watch?"* and
+     *"⟨T-105⟩ Should the harvest retire the row only after a CEO has seen it?"* → **the same id.**
+     **His answer to one would retire the other, and the record would show him answering a question
+     he never saw.** A duplicate question is an annoyance; a mis-attributed ruling is a corrupted
+     decision. **That is why the plan hardens the join BEFORE automating on it.**
+  3. **The handle eats 5 of the 40 characters**, and questions sharing a handle are exactly the ones
+     asked together — **as his two were today.**
