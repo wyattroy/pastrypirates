@@ -1,12 +1,32 @@
-// throwaway (posed pair, in text): the SAME live CHART.md through the OLD generator and the NEW
-// one. A screenshot pair taken minutes apart is confounded here — a peer session committed a new
-// Chart row between the two shots — so the honest A/B renders both from one file, right now.
+#!/usr/bin/env node
+/* ⚠ NOT A GATE. It is never in `npm test`, it asserts nothing, and nothing depends on it.
+ * Same standing as `glass_peek.mjs` next to it, and for the same reason: it is an instrument for
+ * LOOKING, not a check that can fail.
+ *
+ * ⚠ AND IT IS IN THE WRONG DIRECTORY — CEO 118's finding 4, accepted rather than argued with:
+ * "`scripts/qa/` is where this project's gates live, and a `tmp_`-named file there will confuse the
+ * next reader about whether it runs." The rename out of this folder was attempted twice from the
+ * watch that wrote it (`git mv`, `git rm`) and REFUSED by this machine's sandbox, so the header is
+ * carrying what the filename could not. **A later watch with permission moves it.**
+ *
+ *   node scripts/qa/tmp_rowcount_measure.mjs [<base commit>]
+ *
+ * WHAT IT IS FOR, and it earned its keep on its first run. A screenshot pair of the Glass taken
+ * minutes apart is a CONFOUNDED A/B: `.planning/CHART.md` is a hot file three sessions write, and on
+ * 2026-09-02 a peer committed a new row between the "before" and "after" shots — so the two pictures
+ * disagreed on the open count (76 vs 77) for a reason that had nothing to do with the change being
+ * photographed. This renders the SAME live `CHART.md` through BOTH generators in one pass instead,
+ * which is the posed comparison rule 26 actually asks for: same board, before and after.
+ *
+ * Its first run: 51 of 77 rows read differently, 77 rows both times — every difference a phrase
+ * completed or a raw markdown marker removed, and nothing gained or lost.
+ */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const base = process.argv[2] || "8838d73d"; // the commit before this watch touched anything
+const base = process.argv[2] || "8838d73d"; // the commit before the title reader converged
 const chart = readFileSync(".planning/CHART.md", "utf8");
 
 function render(ref) {

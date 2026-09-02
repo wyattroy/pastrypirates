@@ -7,6 +7,70 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 118 — 2026-09-02T20:0xZ, Wy-Blade — `T-088`, his five Glass asks, VERIFIED ON THE PAGE
+
+**Number checked at FILING time, not when the review was spawned** — CEO 117's own opening warning,
+and the second collision on this branch today. Highest on file was 117; this is 118.
+
+**HIS ASK, VERBATIM:** *"claude my friend, you just HAVE to fix the glass. Don't do it yourself --
+put it to the TOP of the chart."*
+The Chart row: **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ**, `T-088`. **Closing commit: `1d852187`.**
+
+**VERDICT: PASS.** In its words: *"His five asks are on the page, in the photograph, and the sixth
+fault is inside ask 5's own words rather than scope the watch chose for itself. The findings below
+are all small."*
+
+**IT CHECKED EACH ASK ITSELF RATHER THAN TAKING THE WATCH'S WORD** — ask 1 in the photograph, ask 2
+at `glass.mjs:1036-1059` and `:1125`, ask 3 in both shots and both gate branches, ask 4 as `1.`
+through `77.`, ask 5 as sentence-cased titles. On the one the watch inherited rather than measured:
+*"Ask 2 is NOT an inherited claim… This one was genuinely closed by another route and this watch was
+right not to redo it."* On scope: *"`.planning/CHART.md` T-088 ask 5's own parenthetical says: 'the
+page clipping content rather than the content being wrong.' The wrapped-title cut is exactly that
+class. Not self-assigned scope."*
+
+**RECURRENCE OF CEO 117 — DOES NOT RECUR.** Its fault was describing as new or as done something the
+code already did. *"The commit's last paragraph says plainly that four asks were already built by
+earlier watches and claims no credit for them. That is the opposite of the 'describes as new what
+already ships' fault."*
+
+**ITS FOUR FINDINGS, IN ITS WORDS:**
+1. **The commit message is tidier than the two pictures it cites.** *"It says 'row count identical
+   (77 → 77). Nothing gained or lost' … But the two photographs read '76 OPEN' and '77 OPEN' … The
+   confound is honestly disclosed — but only in `scripts/qa/tmp_rowcount_measure.mjs:1-3` … It is not
+   in the message Wyatt reads. If he opens both PNGs, they contradict the sentence."*
+2. **The watch photographed his page and did not report what the photograph shows.** *"rows 2, 3, 55
+   and 56 render as `■■■` / `■■` — tofu boxes where a glyph should be… the entire premise of this
+   watch was 'verify on the RENDERED page, not in the source', and the rendered page has four
+   visibly broken glyphs on it."*
+3. **The prediction was written and never written back.** *"`.planning/CTO-LEDGER.md:5432-5438`
+   writes the prediction and never writes back the result… the cross-session record contains a
+   question with no answer. The outcome lives only in a commit message."*
+4. **A self-declared throwaway sits in the gate directory.** *"`scripts/qa/` is where this project's
+   gates live, and a `tmp_`-named file there will confuse the next reader about whether it runs."*
+
+**ITS ONE SENTENCE FOR WYATT:** *"All five things you asked for are on your Glass and I looked at the
+photograph to check, not just the code — plus the row about your own message was being chopped
+mid-sentence wherever the file happened to wrap, and that is now fixed too; the one thing to know is
+that the two screenshots were taken nine minutes apart with another session adding a row in between,
+so the 'nothing changed but the wording' line in the write-up is truer than those two pictures make
+it look."*
+
+**WHAT THE WATCH DID ABOUT IT, before writing to Wyatt — all four acted on, none argued with:**
+- **(1) FIXED where he reads it.** The confound is now stated in the ledger's closing account and in
+  the note that reaches his page, not only inside a scratch script's header. The A/B that IS clean —
+  the same `CHART.md` through both generators, 51 of 77 rows differing, 77 rows both times — is named
+  as the evidence, and the screenshot pair is labelled as what it is: two shots nine minutes apart
+  across a peer's commit, good for "does the fix show" and useless as a count comparison.
+- **(2) REPORTED, and deliberately NOT called a defect.** Four `⚑` glyphs (U+2691) render as tofu in
+  the headless capture; `★` in the same list renders correctly, so it is one missing glyph and not a
+  broken page. **Observed once, in the rig only, never on his device** — and this project has paid
+  for exactly this shape before (the black-market coin, `INBOX-20260902T0405Z`: the rig disagreed
+  with a real Safari and the rig was wrong). Filed as a question for him rather than a bug.
+- **(3) FIXED.** The prediction's result is written back into `.planning/CTO-LEDGER.md` in the same
+  entry that holds the prediction, including the one thing it got wrong.
+- **(4) ACCEPTED.** The throwaway is renamed out of the gate namespace and its header says in its
+  first line that it is not a gate and is not in `npm test`.
+
 ## CEO Review 117 — 2026-09-02, Wy-Blade — `T-105` / `INBOX-20260902T191500Z`, the permanent fix for the Glass losing his writing, DESIGN ONLY
 
 > ⚠ **NUMBERED 116 BY THE REVIEWER, RENUMBERED TO 117 ON FILING.** A different item — the docs' shell

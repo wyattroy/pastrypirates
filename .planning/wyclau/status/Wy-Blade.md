@@ -5,19 +5,11 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T19:27:26.242Z	CEO 117's T-105 verdict landed (8838d73d, confirmed on the tree) and T-105 is now rank 2, the second open row on the Chart; 10 rows on the Chart look stale and are flagged for a watch to close, nothing closed automatically.
+2026-09-02T19:40:25.856Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-```
-{
-  "item": "his five Glass asks — verify each one on the real rendered page, fix what is not right, and close the row",
-  "handle": "T-088",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-02T19:30:29.859Z",
-  "staleAfterMinutes": 90
-}
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
 None recorded.

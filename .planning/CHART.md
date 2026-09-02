@@ -53,64 +53,6 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [ ] **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: *"claude my
-      friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the
-      chart."* Every one is `glass.mjs`, which is editable in-repo. Sizing: 1, 3, 4 and 5 are each
-      MINUTES. Only 2 needs thought.**
-      ⟨`T-088`⟩
-
-      **1 · WHAT IS BEING WORKED ON RIGHT NOW, under the status dot.** *"what is being worked on
-      RIGHT NOW? that needs to be visible just underneath the emoji status."* Derive it from the
-      newest `claims` line in `.planning/CTO-LEDGER.md` — the Door already requires a claim before a
-      watch touches anything, so the fact is on disk. **Between watches there is no claim: render
-      *"nothing in hand"*, NEVER the last thing finished.** A status line that keeps showing a
-      completed item is the lie this page has told all day.
-
-      **2 · "LAST PROGRESS 25 MIN AGO" WHEN WORK WAS 4 MINUTES OLD — and the number is not lying,
-      the PAGE is stale.** Measured at 16:12:47Z: `HEARTBEAT` said **16:09:00Z**, four minutes
-      earlier. The page had been published 13 minutes before and **a published page is a STATIC
-      photograph** — its "25 min ago" was computed at publish time and has been ageing on screen
-      ever since. `glass_needs_publish.mjs` then correctly declines to republish when nothing has
-      *changed*, so **the staleness he sees is worst exactly when the relay is quietly working.**
-      **THE FIX IS NOT MORE PUBLISHING** — he charged the timer design once already and CEO 80
-      upheld him. **Make the page compute its own age in the browser** from the timestamps embedded
-      in it: it already carries `generatedAt`, so a few lines of client script can render *"last
-      progress N min ago"* live and, better, say *"this page is N minutes old"* when it is stale
-      rather than presenting an aged number as current.
-
-      **3 · HIDE `YOUR CALL` WHEN IT IS EMPTY.** *"if there are no calls for me to make, don't show
-      the Your Call box."* One conditional. **⚠ And do NOT hide it when the count is 0 for the wrong
-      reason:** the card renders only `|` table rows in `## BLOCKED ON WYATT`, so a question written
-      there as PROSE renders as `(0)` while genuinely waiting — that is `T-077`, still open. **Hide
-      an empty card; never hide an unparseable one. If the section has content the renderer could
-      not read, the card must say so.**
-
-      **4 · NUMBERS, NOT BULLETS.** *"the Chart is still not using numbers -- it's using bullet
-      points. it needs numbers."* `<ol>` instead of `<ul>`. **This is the second time he has asked**
-      (INBOX-20260902T13xxZ). RANK now orders the list, so the numbers are the whole point: without
-      them the ordering he asked for four times is invisible.
-
-      **5 · THE ALL-CAPS SHOUTING — the Glass is innocent and the CHART is the culprit.**
-      `glass.mjs:288` `shortTask()` takes each row's first line, strips markdown, truncates to 16
-      words — **and renders whatever the row says, verbatim.** Watches write row titles in ALL CAPS
-      for emphasis inside `CHART.md`, so the page inherits the shouting. **TWO POSSIBLE FIXES AND
-      THEY ARE NOT EQUIVALENT:** (a) sentence-case the title at render time — one line, immediate,
-      and it cannot regress; (b) a convention that rows are written in sentence case — durable but
-      it is prose, and prose rules fail here (Principle 2). **Recommend (a) now and (b) as a gate
-      later.** *(Related, same screenshot: his note read* "evidence from before today's 2026." —
-      **cut off mid-sentence.** *The note text is being truncated too, and that is the same class:
-      the page clipping content rather than the content being wrong.)*
-
-      **WHERE HIS EARLIER GLASS ASKS WENT, because he asked and deserves the honest list:**
-      **expandable rows** and **a comment box under each item** are `T-076`, filed and open.
-      **Numbers** and **what-is-being-worked-on** were filed at INBOX-20260902T13xxZ and were sitting
-      NINTH in an eight-item oldest-first queue. **Hiding Your Call and the ALL-CAPS are new here.**
-      **Nothing was lost — but nothing was built either, and that is the point of his message.**
-
-      **AND HOW HE PRIORITISES THEM HIMSELF is already designed and unbuilt: `T-083`** — RANK becomes
-      the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
-      Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
-      loop. **Until that ships, "put it at the top" is something only a session can do for him.**
 
 - [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
       BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
@@ -149,6 +91,36 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       a staleness judgement and a regeneration in between — **so even a perfect tick has a
       multi-minute gap between the read and the destructive act.** Move the check to step 7.
       **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
+- [ ] **ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY READER OF HIS PAGE HAS DRAWN
+      ⟨`T-090`⟩
+      THE WRONG CONCLUSION FROM IT — INCLUDING THE ADVISOR, TO HIS FACE.** His idea, 3:30 PM ET,
+      `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call section so I can
+      approve/deny them being closed?"*
+      **His page says "N tasks on your list look already finished."** Ran
+      `node scripts/wyclau/chartkeeper.mjs --reap` and read all ten: **not one of them is flagged
+      "looks finished."** Six say *the evidence is stale because the build moved on*, three say *he
+      ruled and the row never moved*, one says *a pid is dead*.
+      **THE ANSWER TO HIS IDEA: right instinct, wrong pile.** Stale-evidence rows need RE-MEASURING,
+      not his approval — he cannot know from a phone whether a trade circle still clips a name.
+      Already-ruled rows must never go back to him; that is `T-090`'s exact fault, the one he was
+      furious about at 1:38 PM today. **Your Call is right for the residue only** — rows whose fate
+      is genuinely his say-so, like *"merge the 465-commit branch to main — his own final say-so"*.
+      **That pile is one or two rows, not ten.**
+      ⚠ **AND THE "HE ALREADY RULED" SIGNAL CAN FIRE ON A ROW HE NEVER RULED ON. VERIFIED:** `T-078`
+      (`CHART.md:1047`) is *"chase it only if it is seen again"* about an `<img>` that failed to paint
+      once in a WebKit frame — matched against his **12:39:56Z ruling on whether a watch may read the
+      claude-kit folder**. Unrelated. **Under his proposal, unfixed, that row would be put to him as a
+      question — the very failure the proposal exists to reduce.** Fix the matcher before wiring
+      anything to his page.
+      **THE BUILD, in order:** (1) split the reap by KIND and name each kind in the note in his
+      words; (2) fix the ruling-to-row matcher and red-proof it on `T-078`; (3) route each kind to
+      its owner — re-measure, close, or ask him; (4) only then, his Your Call pile.
+      **Sizing: `chartkeeper.mjs` and `glass.mjs`. No game code, no sea trial.**
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF, AND THAT IS THE ONLY REASON THEY ARE THIS
       ⟨`T-103`⟩
       HIGH.** *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
@@ -175,10 +147,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
       no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
       harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
@@ -211,28 +179,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
-- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
-      ⟨`T-088`⟩
-      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
-      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
-      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
-      shrink, and that is 27% of the library sitting outside the answer.
-      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
-      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
-      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
-      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
-      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
-      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
-      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
-      measured, not assuming.
-      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
-      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
-      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
-      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
-      current candidate list are FLOORS, not values** — 2 of the 12.
-      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
-      the real answer or an underestimate.** No game code.
-
 
 
 
@@ -262,6 +208,27 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
+      ⟨`T-088`⟩
+      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
+      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
+      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
+      shrink, and that is 27% of the library sitting outside the answer.
+      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
+      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
+      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
+      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
+      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
+      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
+      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
+      measured, not assuming.
+      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
+      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
+      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
+      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
+      current candidate list are FLOORS, not values** — 2 of the 12.
+      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
+      the real answer or an underestimate.** No game code.
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -347,6 +314,39 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
+- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
+      he has now reported this exact fault TWICE, about two different cards.** Filed
+      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
+      ⟨`T-090`⟩
+      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
+      this question on the Glass once -- now it seems to be asking me again."*
+      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
+      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
+      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
+      answer creates a row; **nothing retires the question.**
+      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
+      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
+      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
+      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
+      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
+      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
+      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
+      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
+      the row and writes the ledger together so they cannot disagree.
+      **AND GATE IT, because the ungated twin is what allowed this:** extend
+      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
+      corresponding harvested ruling. Red-proof both ways.
+      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
+      third time. That is a repair, not the fix.)*
+      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
+      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
+      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
+      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
+      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
+      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
+      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
+      the design, and the gap between the two steps is a page that lies to him — so the move must be
+      atomic, which is what this row already says.
 - [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
       ⟨`T-027`⟩
       WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
@@ -445,39 +445,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
-      he has now reported this exact fault TWICE, about two different cards.** Filed
-      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
-      ⟨`T-090`⟩
-      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
-      this question on the Glass once -- now it seems to be asking me again."*
-      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
-      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
-      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
-      answer creates a row; **nothing retires the question.**
-      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
-      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
-      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
-      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
-      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
-      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
-      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
-      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
-      the row and writes the ledger together so they cannot disagree.
-      **AND GATE IT, because the ungated twin is what allowed this:** extend
-      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
-      corresponding harvested ruling. Red-proof both ways.
-      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
-      third time. That is a repair, not the fix.)*
-      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
-      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
-      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
-      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
-      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
-      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
-      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
-      the design, and the gap between the two steps is a page that lies to him — so the move must be
-      atomic, which is what this row already says.
 - [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
@@ -518,6 +485,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -538,35 +510,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
       line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
       thirty seconds and it would have caught this one.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY READER OF HIS PAGE HAS DRAWN
-      THE WRONG CONCLUSION FROM IT — INCLUDING THE ADVISOR, TO HIS FACE.** His idea, 3:30 PM ET,
-      `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call section so I can
-      approve/deny them being closed?"*
-      **His page says "N tasks on your list look already finished."** Ran
-      `node scripts/wyclau/chartkeeper.mjs --reap` and read all ten: **not one of them is flagged
-      "looks finished."** Six say *the evidence is stale because the build moved on*, three say *he
-      ruled and the row never moved*, one says *a pid is dead*.
-      **THE ANSWER TO HIS IDEA: right instinct, wrong pile.** Stale-evidence rows need RE-MEASURING,
-      not his approval — he cannot know from a phone whether a trade circle still clips a name.
-      Already-ruled rows must never go back to him; that is `T-090`'s exact fault, the one he was
-      furious about at 1:38 PM today. **Your Call is right for the residue only** — rows whose fate
-      is genuinely his say-so, like *"merge the 465-commit branch to main — his own final say-so"*.
-      **That pile is one or two rows, not ten.**
-      ⚠ **AND THE "HE ALREADY RULED" SIGNAL CAN FIRE ON A ROW HE NEVER RULED ON. VERIFIED:** `T-078`
-      (`CHART.md:1047`) is *"chase it only if it is seen again"* about an `<img>` that failed to paint
-      once in a WebKit frame — matched against his **12:39:56Z ruling on whether a watch may read the
-      claude-kit folder**. Unrelated. **Under his proposal, unfixed, that row would be put to him as a
-      question — the very failure the proposal exists to reduce.** Fix the matcher before wiring
-      anything to his page.
-      **THE BUILD, in order:** (1) split the reap by KIND and name each kind in the note in his
-      words; (2) fix the ruling-to-row matcher and red-proof it on `T-078`; (3) route each kind to
-      its owner — re-measure, close, or ask him; (4) only then, his Your Call pile.
-      **Sizing: `chartkeeper.mjs` and `glass.mjs`. No game code, no sea trial.**
 
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**

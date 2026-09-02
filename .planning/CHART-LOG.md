@@ -1013,3 +1013,64 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       **THE PROOF A GATE IS WARRANTED:** five prose blocks are in that section right now
       (`CHART.md:956-1010`) on a tree where `npm test` is green. Nothing in the build can see them;
       the only thing that notices is the renderer, at read time, on his page, in red.
+
+## T-088 — 2026-09-02 — FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: "claude my (closed 2026-09-02 · CEO 118 · no game diff — no game code is right: his ask is the GLASS, his own status page, not the game -- fixed in scripts/wyclau/glass.mjs and lib/chart_model.mjs with two new gate cases; src/ and index.html untouched (commit 1d852187)) friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the chart." Every one is glass.mjs, which is editable in-repo. Sizing: 1, 3, 4 and 5 are each MINUTES. Only 2 needs thought.
+
+- [x] **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: *"claude my (closed 2026-09-02 · CEO 118 · no game diff — no game code is right: his ask is the GLASS, his own status page, not the game -- fixed in scripts/wyclau/glass.mjs and lib/chart_model.mjs with two new gate cases; src/ and index.html untouched (commit 1d852187))
+      friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the
+      chart."* Every one is `glass.mjs`, which is editable in-repo. Sizing: 1, 3, 4 and 5 are each
+      MINUTES. Only 2 needs thought.**
+      ⟨`T-088`⟩
+
+      **1 · WHAT IS BEING WORKED ON RIGHT NOW, under the status dot.** *"what is being worked on
+      RIGHT NOW? that needs to be visible just underneath the emoji status."* Derive it from the
+      newest `claims` line in `.planning/CTO-LEDGER.md` — the Door already requires a claim before a
+      watch touches anything, so the fact is on disk. **Between watches there is no claim: render
+      *"nothing in hand"*, NEVER the last thing finished.** A status line that keeps showing a
+      completed item is the lie this page has told all day.
+
+      **2 · "LAST PROGRESS 25 MIN AGO" WHEN WORK WAS 4 MINUTES OLD — and the number is not lying,
+      the PAGE is stale.** Measured at 16:12:47Z: `HEARTBEAT` said **16:09:00Z**, four minutes
+      earlier. The page had been published 13 minutes before and **a published page is a STATIC
+      photograph** — its "25 min ago" was computed at publish time and has been ageing on screen
+      ever since. `glass_needs_publish.mjs` then correctly declines to republish when nothing has
+      *changed*, so **the staleness he sees is worst exactly when the relay is quietly working.**
+      **THE FIX IS NOT MORE PUBLISHING** — he charged the timer design once already and CEO 80
+      upheld him. **Make the page compute its own age in the browser** from the timestamps embedded
+      in it: it already carries `generatedAt`, so a few lines of client script can render *"last
+      progress N min ago"* live and, better, say *"this page is N minutes old"* when it is stale
+      rather than presenting an aged number as current.
+
+      **3 · HIDE `YOUR CALL` WHEN IT IS EMPTY.** *"if there are no calls for me to make, don't show
+      the Your Call box."* One conditional. **⚠ And do NOT hide it when the count is 0 for the wrong
+      reason:** the card renders only `|` table rows in `## BLOCKED ON WYATT`, so a question written
+      there as PROSE renders as `(0)` while genuinely waiting — that is `T-077`, still open. **Hide
+      an empty card; never hide an unparseable one. If the section has content the renderer could
+      not read, the card must say so.**
+
+      **4 · NUMBERS, NOT BULLETS.** *"the Chart is still not using numbers -- it's using bullet
+      points. it needs numbers."* `<ol>` instead of `<ul>`. **This is the second time he has asked**
+      (INBOX-20260902T13xxZ). RANK now orders the list, so the numbers are the whole point: without
+      them the ordering he asked for four times is invisible.
+
+      **5 · THE ALL-CAPS SHOUTING — the Glass is innocent and the CHART is the culprit.**
+      `glass.mjs:288` `shortTask()` takes each row's first line, strips markdown, truncates to 16
+      words — **and renders whatever the row says, verbatim.** Watches write row titles in ALL CAPS
+      for emphasis inside `CHART.md`, so the page inherits the shouting. **TWO POSSIBLE FIXES AND
+      THEY ARE NOT EQUIVALENT:** (a) sentence-case the title at render time — one line, immediate,
+      and it cannot regress; (b) a convention that rows are written in sentence case — durable but
+      it is prose, and prose rules fail here (Principle 2). **Recommend (a) now and (b) as a gate
+      later.** *(Related, same screenshot: his note read* "evidence from before today's 2026." —
+      **cut off mid-sentence.** *The note text is being truncated too, and that is the same class:
+      the page clipping content rather than the content being wrong.)*
+
+      **WHERE HIS EARLIER GLASS ASKS WENT, because he asked and deserves the honest list:**
+      **expandable rows** and **a comment box under each item** are `T-076`, filed and open.
+      **Numbers** and **what-is-being-worked-on** were filed at INBOX-20260902T13xxZ and were sitting
+      NINTH in an eight-item oldest-first queue. **Hiding Your Call and the ALL-CAPS are new here.**
+      **Nothing was lost — but nothing was built either, and that is the point of his message.**
+
+      **AND HOW HE PRIORITISES THEM HIMSELF is already designed and unbuilt: `T-083`** — RANK becomes
+      the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
+      Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
+      loop. **Until that ships, "put it at the top" is something only a session can do for him.**

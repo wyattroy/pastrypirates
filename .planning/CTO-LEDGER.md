@@ -5436,3 +5436,64 @@ actually appear, and close the row.**
 HTML. **A comment naming an ask is not the ask working** — that is exactly the "a comment is not a
 measurement" fault this project has paid for. If two or more are broken, this stops being a close
 and becomes a fix, and I will say so.
+
+### THE RESULT, WRITTEN BACK INTO THE SAME ENTRY — CEO 118's finding 3, and it was right to ask
+
+*A prediction with no answer beside it is a question the next session inherits with no way to close
+it. The outcome lived only in a commit message until the CEO said so.*
+
+**THE PREDICTION HELD, AND IT WAS ALSO INCOMPLETE — the incomplete half is the whole value.** All
+five asks were indeed already built, and all five verified on the rendered page: the In hand line
+under the status dots, both clocks in one bar, no Your call card while nothing waits, `1.` through
+`77.` numbered, and sentence-cased titles. **What I did not predict is that photographing the page
+would find a SIXTH fault that no gate was looking for** — and it was in the first row on his page,
+about his own ask:
+
+```
+Fix the glass — his five asks from the screenshot, 2026-09-02T16:1xZ. his words: *"claude my
+```
+
+Cut where `CHART.md` happens to hard-wrap. No ellipsis to say it had been cut. A naked markdown
+asterisk left behind. **Reading the source would never have found it; one photograph did in
+seconds** — which is rule 19's whole argument, arriving as evidence rather than as a slogan.
+
+**CAUSE: RULE 23, NOT A BAD REGEX.** `glass.mjs:434` read a row's first PHYSICAL LINE while
+`lib/chart_model.mjs:160` carried a `titleOf()` whose own comment said it was *"the one-line title a
+human (and the Glass) sees"*. **Two definitions of one thing, one of them claiming to be the
+other.** The honest answer to *what makes these two agree?* was nothing. There is now one reader, and
+it is `chunk()` — the same row-boundary rule the Chartkeeper ranks and sweeps by, so a row cannot
+mean one thing to his page and another to the tool that orders it.
+
+**RED FIRST, on the real generator, with the exact text photographed off his page:** two new cases in
+`glass_his_five_asks_check.mjs` FAILED, then passed. `npm test` **108/108**. `stray_probe_check` PASS
+— no debug-port browsers running at all; nothing this watch started is still alive.
+
+⚠ **A REGRESSION I CAUSED, AND THE PHOTOGRAPH CAUGHT IT BEFORE IT SHIPPED.** Reading the whole
+opening paragraph made the handle-strip unanchored, so it ate a handle mid-clause: *"the half of
+`T-078` he asked for"* rendered as *"the half of he asked for"*, in three rows. **The gate was green
+through this** — its handle case tests a handle in a position the bug did not touch. Anchored to the
+start of the title, and a new gate case now holds it: a handle in his prose is content, only a
+leading one is filing.
+
+⚠ **AND THE SCREENSHOT PAIR IS CONFOUNDED — CEO 118's finding 1, and he should hear it from the
+record rather than discover it by opening both files.** The two shots are nine minutes apart, and a
+peer session committed a new Chart row in between, so they read **76 OPEN** and **77 OPEN**. That
+difference is not mine and the pair cannot be used as a count comparison. **The A/B that IS clean
+renders the same live `CHART.md` through both generators in one pass: 51 of 77 rows read differently,
+77 rows both times.** The pictures are good evidence that the fix shows on his page and useless as an
+arithmetic before/after; the commit message's *"nothing gained or lost"* is true of the clean A/B and
+looks contradicted by the pictures beside it.
+
+⚠ **FOUR GLYPHS RENDER AS TOFU IN THE CAPTURE — OBSERVED ONCE, IN THE RIG ONLY, AND DELIBERATELY NOT
+CALLED A DEFECT.** Rows 2, 3, 55 and 56 show `■` where `⚑` (U+2691) belongs. `★` in the same list
+renders correctly, so it is one missing glyph rather than a broken page — **and it has never been
+seen on a device Wyatt uses.** This project has paid for exactly this shape already: the black-market
+coin (`INBOX-20260902T0405Z`), where the rig showed a gap, his real Safari showed the coin, and the
+rig was the thing that was wrong. Filed as a question for him, not as a bug to fix.
+
+⚠ **AND ONE THING I COULD NOT FINISH: `scripts/qa/tmp_rowcount_measure.mjs` should not be in the gate
+directory** (CEO 118, finding 4 — accepted). `git mv` and `git rm` were both refused by this
+machine's sandbox, twice. The file's first line now says in words what its name cannot: **not a
+gate, never in `npm test`**. A watch with permission finishes the move.
+
+- 2026-09-02T19:47:50Z · close_item: "FIX THE GLASS — his five asks from the screenshot" · CEO 118 · no game diff — no game code is right: his ask is the GLASS, his own status page, not the game -- fixed in scripts/wyclau/glass.mjs and lib/chart_model.mjs with two new gate cases; src/ and index.html untouched (commit 1d852187) · no stated solution
