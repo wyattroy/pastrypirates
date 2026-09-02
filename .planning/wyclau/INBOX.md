@@ -1298,3 +1298,30 @@ status: OPEN — FOR A WATCH.
   it.** Split the reap output by kind, name each kind in the note in his words, and route each to
   its own owner: re-measure, close, or ask him. **A flag that means three things cannot be acted on
   by anybody.**
+
+## INBOX-20260902T192000Z — Layer A measurement: attempted, blocked; answered from tool contract instead
+
+**What was asked (via pastrypirates-b0, Watch 19:29Z-ish):** does the Artifact tool refuse a publish
+built on a stale read, or overwrite the live page silently? Named as T-105's actual blocker, since
+SPEC-GLASS-HARVEST-SAFETY.md §4 Layer A only matters if the answer is "it conflicts."
+
+**Attempted a live experiment** (read version N, sleep ~90s so a concurrent watch likely republishes,
+publish stale content without `force`, observe). **The subagent spawn itself was refused by Claude
+Code's auto-mode classifier** — deliberately publishing probe/stale content to a shared live page,
+even reversibly, reads as risky and was blocked before it ran. Did not attempt to work around this.
+
+**Answered instead from the Artifact tool's own documented contract** (not a live measurement — flag
+this distinction for whoever reads this): publishing to an existing `url` tracks a `baseVersion` from
+the read a session built on. **Without `force: true`, a concurrent write conflicts instead of being
+silently clobbered** — that is the tool's stated default. `force: true` is the only path to an
+overwrite, and even it "refuses force over a version saved from inside the page" in some cases. This
+is also consistent with what every Glass-update tick this session has observed directly: the
+"artifact changed elsewhere, your copy is stale, re-read before editing or republishing" notifications
+that fire constantly on this page ARE that conflict-detection mechanism surfacing.
+
+**So: Layer A (conflict-on-stale-write) appears to already be true by default in the runtime**, which
+per the peer's framing means Layer A is most of the fix, not ceremony — but this is inference from
+documentation and observed side-effects, not a controlled experiment. **A genuine live test is still
+worth running by whoever can get it approved** (e.g. Wyatt explicitly authorizing a probe publish, or
+running it against a disposable test artifact rather than the live Glass) — do not treat this entry as
+closing that question definitively.
