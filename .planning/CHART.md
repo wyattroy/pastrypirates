@@ -1078,6 +1078,15 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, ruled on the Glass, 2026-09-02T17:06:59.448Z** (question: *"That black window you asked
+  about is fixed — but the check that keeps it fixed flashes one for about a second every time we
+  run the checks. Is that price OK?"*, `.planning/CHART.md` BLOCKED-ON-WYATT row, choice `note`):
+  *"Keep it."* → **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
+  harvest-and-publish only.** Reads as: keep the self-test that flashes a black window for ~1
+  second during every `npm test` and sea trial, in exchange for the check not being able to go
+  silently blind. The BLOCKED-ON-WYATT table row for this question should be moved to RULED/SETTLED
+  by whichever session next triages the inbox.
+
 - **Wyatt, ruled on the Glass, 2026-09-02T16:10:03.916Z** (question: *"Your images ask, last
       ⟨`T-089`⟩
   third: shrinking the rest of the art is worth about 2%. Call it finished, or spend a watch on
