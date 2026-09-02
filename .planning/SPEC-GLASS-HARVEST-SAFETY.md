@@ -71,7 +71,38 @@ happened. A guard that runs before minutes of unrelated work is a guard about th
 
 ## 4. THE DESIGN — four layers, each independently useful, cheapest first
 
-### LAYER A — THE PLATFORM ALREADY REFUSES A STALE PUBLISH. USE IT, AND NEVER `force`.
+### LAYER A — ✅ **MEASURED TRUE, 2026-09-02 4:58 PM ET.** THE PLATFORM REFUSES A STALE PUBLISH. NEVER `force`.
+
+> ✅ **THIS IS NO LONGER AN INFERENCE. THE EXPERIMENT RAN AND IT REFUSED.** On a disposable artifact
+> (`1130683a-f8ce-49de-8f10-43adbcf1d0c9`), never on the Glass: the Advisor published `rev 1`; the
+> Glass-update session published `rev 2` at 4:57:45 PM, standing in for Wyatt typing an idea; the
+> Advisor republished `rev 1` unchanged, no `force`. **Verbatim:** *"Publish refused — nothing was
+> merged or published: a newer version (1788382665-1bce) published by another session or agent at
+> 2026-09-02T20:57:45Z is live and this publish was not built on it."* It saved the live source and
+> required it be read in full before any further publish.
+>
+> **AND A SECOND, INDEPENDENT GATE SURFACED WITHOUT BEING LOOKED FOR:** the peer's own first publish
+> was refused because *"you hadn't viewed the live version of this artifact"*. **Two enforcement
+> points — a read-gate and a stale-base gate.**
+>
+> ⚠ **SO §2's ACCEPTANCE TEST IS ALREADY PASSED BY THE RUNTIME, AND §2's NARRATIVE OVERSTATED THE
+> DANGER.** The 3:07 PM sequence could not have destroyed his ideas silently; that publish would
+> have been refused. **The hazard was reported as a near-miss without anyone measuring the
+> protection** — rule 6, broken inside a document about not breaking it. Left standing, corrected
+> here, rather than rewritten to look prescient.
+>
+> **WHAT STILL STANDS:** the harvest stamp remains a clock that cannot answer *"is a republish
+> safe?"*. It is simply **not the last line of defence, and nobody knew that.** A guard never tested
+> and a guard that does nothing are indistinguishable from inside.
+>
+> **WHAT IS LEFT OF LAYER A: one gate.** The runbook already says *"NEVER PASS `force`"*
+> (`GLASS-UPDATE-SESSION.md:222-230`) and `force` appears nowhere in the Glass publish path — **but
+> nothing enforces it, so it is a sentence, and sentences are what failed here.**
+>
+> ⚠ **AND THE RESIDUAL EXPOSURE MOVED — THIS IS THE PART TO CARRY FORWARD.** The tool refuses and
+> **hands back the live source to merge**. A careless merge can still drop his words. The difference
+> is that it is now a **visible act by a session holding his text**, not a silent overwrite. Layers
+> C and D are re-aimed at that, and it is a far narrower target.
 
 The Artifact tool carries optimistic concurrency: a publish is tracked against the version the
 session last read or published, and **a publish over a newer version is REFUSED and hands back the
@@ -101,7 +132,13 @@ publish.**
   **Start from `glass.mjs:22-23`, not from zero** — and still do not build on this paragraph until
   the refusal itself has been seen.
 
-### LAYER B — THE STAMP RECORDS AN IDENTITY, NOT A TIME
+### LAYER B — THE STAMP RECORDS AN IDENTITY, NOT A TIME — **downgraded to a convenience, 4:58 PM**
+
+> **Layer A's measurement demoted this one.** With the runtime refusing a stale publish outright,
+> comparing versions beforehand no longer stands between him and losing work — it turns a hard
+> refusal into a smooth re-harvest. **Still worth doing, no longer mandatory, and it must not be
+> built before Layer A's gate.** Deleting `FRESH_MIN` remains right either way: a clock that cannot
+> answer the question should not be left standing beside one that can.
 
 `.planning/wyclau/LAST-HARVEST` stops being a bare timestamp and becomes a receipt:
 
@@ -176,9 +213,12 @@ republish costs a re-read instead of his writing.
 
 Written before anything is built, per the prediction rule, so it cannot be retrofitted:
 
-1. **If the measurement in Layer A shows the platform already conflicts on his in-page saves**, then
-   most of B is ceremony and the honest fix is much smaller — one gate forbidding `force`, plus C.
-   **Say so and build less.**
+1. ✅ **THIS ONE FIRED, 4:58 PM ET, AND IT IS THE WHOLE VALUE OF HAVING WRITTEN IT DOWN FIRST.** It
+   read: *"If the measurement in Layer A shows the platform already conflicts on his in-page saves,
+   then most of B is ceremony and the honest fix is much smaller — one gate forbidding `force`, plus
+   C. **Say so and build less.**"* **It does conflict. So: said, and the build is smaller.** A
+   prediction written before the result is the only kind that can do this — retrofitted, it would
+   have been reframed as a partial win.
 2. **If ideas turn out NOT to carry stable ids across a republish**, Layer C's whole premise fails
    and idempotency needs a content hash instead. Check before building.
 3. **If the page cannot be given durable storage on this account**, Layer D is unavailable and the

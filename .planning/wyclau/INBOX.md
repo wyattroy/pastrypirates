@@ -1333,7 +1333,7 @@ closing that question definitively.
 
 solution: none needed — this is a measurement. It re-scopes the build.
 
-status: DONE 2026-09-02 — measured; consequences written into the `T-105` row and the spec.
+status: DONE 2026-09-02 — measured. ⚠ The commit that recorded this said the consequences were "written into the T-105 row and the spec" while only this entry existed; they were written minutes later, and the overclaim is left visible because it is the fault CEO 117 named.
 
   **THE EXPERIMENT, run 4:55–4:58 PM ET on a throwaway artifact
   (`1130683a-f8ce-49de-8f10-43adbcf1d0c9`), never on the Glass:**

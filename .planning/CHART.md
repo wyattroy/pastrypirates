@@ -90,6 +90,23 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
       a staleness judgement and a regeneration in between — **so even a perfect tick has a
       multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      ✅ **MEASURED 2026-09-02 4:58 PM ET, AND IT MAKES THIS ROW SMALLER — READ THIS BEFORE THE
+      SPEC.** The Layer A question this row called "the first move, a measurement not code" was run
+      on a DISPOSABLE artifact, never on the Glass, and **a stale republish was REFUSED**: *"a newer
+      version ... is live and this publish was not built on it."* A second gate surfaced unlooked-for
+      — the peer's own publish was refused for never having viewed the live version. **Two
+      enforcement points; his invariant is already in the runtime.**
+      ⚠ **SO THE ROW'S OWN ACCEPTANCE-TEST STORY OVERSTATED THE DANGER, AND THAT IS CORRECTED
+      RATHER THAN QUIETLY DROPPED:** the 3:07 PM sequence could not have destroyed his ideas
+      silently — that publish would have been refused. **A hazard was reported as a near-miss
+      without anyone measuring the protection.** What still stands is that the harvest stamp is a
+      clock and cannot answer the question; it was simply never the last line of defence.
+      **WHAT IS ACTUALLY LEFT, in order:** (1) **Layer A = ONE GATE** that fails the build on `force`
+      near a Glass publish — the runbook already says "NEVER PASS `force`"
+      (`GLASS-UPDATE-SESSION.md:222-230`) and nothing enforces it, and a sentence is what failed
+      here; (2) Layer B drops to a convenience, still delete `FRESH_MIN`; (3) **the residual exposure
+      MOVED to the MERGE** — the tool hands back the live source to merge, and a careless merge can
+      still drop his words, visibly rather than silently. Aim C and D there.
       **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
 
 *Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
