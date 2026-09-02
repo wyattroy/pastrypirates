@@ -148,6 +148,33 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
       harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
 
+- [ ] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
+      ⟨`T-106`⟩
+      by the watch that closed it, at CEO 119's insistence and it was right to insist.** His idea,
+      2026-09-02 3:30 PM ET, `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call
+      section so I can approve/deny them being closed?"*
+      **`T-090` fixed the LABEL — the thing that made his idea point at the wrong pile.** The ten
+      rows are now split into five named kinds, each carrying whose job it is, and the sentence on
+      his page is written by the tool rather than composed by a session. **What it did NOT build is
+      the pile itself**, and CEO 119 named the omission exactly: *"step 4 — your Your Call pile,
+      which is the part your idea was actually about — is not built."*
+      **WHAT THIS ROW IS, AND IT IS SMALL BY DESIGN:** route the `answered` and `superseded` kinds
+      to a close, the `stale-evidence` and `dead-pointer` kinds to a watch that re-measures or
+      corrects the wording, and **only the residue to him** — rows whose fate is genuinely his
+      say-so, like *"merge the 465-commit branch to main — his own final say-so"*. **That pile is
+      one or two rows, not ten**, and the whole value of `T-090` is that it is now possible to tell
+      which two.
+      ⚠ **DO NOT SEND HIM THE STALE-EVIDENCE ROWS.** Handing him *"is this still broken?"* is
+      handing him our homework — he cannot know from a phone whether a trade circle still clips a
+      captain's name, and that is seven of the nine. **And never the `answered` ones**: he already
+      answered those, and re-asking is the exact fault he was furious about at 1:38 PM.
+      **Sizing: `chartkeeper.mjs`'s routing plus `glass.mjs`'s Your Call card. No game code, no sea
+      trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
+      that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
+
+
+
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -177,11 +204,28 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-
-
-
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
+      ⟨`T-088`⟩
+      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
+      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
+      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
+      shrink, and that is 27% of the library sitting outside the answer.
+      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
+      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
+      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
+      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
+      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
+      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
+      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
+      measured, not assuming.
+      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
+      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
+      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
+      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
+      current candidate list are FLOORS, not values** — 2 of the 12.
+      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
+      the real answer or an underestimate.** No game code.
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -207,28 +251,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
       not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
-      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
-      ⟨`T-088`⟩
-      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
-      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
-      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
-      shrink, and that is 27% of the library sitting outside the answer.
-      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
-      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
-      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
-      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
-      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
-      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
-      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
-      measured, not assuming.
-      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
-      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
-      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
-      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
-      current candidate list are FLOORS, not values** — 2 of the 12.
-      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
-      the real answer or an underestimate.** No game code.
+      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -243,7 +266,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ `.claude/memory/DECISIONS.md` is permission-protected: an unattended watch's edit is
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
-      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -374,7 +397,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -382,7 +405,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -436,7 +459,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -444,7 +467,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
@@ -469,6 +492,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
       edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
       ⟨`T-088`⟩
       by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
@@ -485,10 +513,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
@@ -764,6 +788,22 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⟨`T-025`⟩
   Captain's log) on the thin-surface architecture (design, section IV)
 
+- [ ] **FIVE HANDLES ON THIS CHART ARE EACH CARRIED BY TWO DIFFERENT OPEN ROWS — measured
+      ⟨`T-107`⟩
+      2026-09-02T21:xxZ, and the tool now says so on every run.** `T-090`, `T-103`, `T-088`, `T-008`
+      and `T-079`. Found by CEO 119 on the live Chart, in the handle of the very row that was fixing
+      handle mis-attribution — *"the same fault the commit says it rooted out, in a form the fix
+      does not cover."*
+      **What is already done:** an ambiguous handle now claims NOTHING (a ruling naming it names two
+      jobs, so it may speak for neither), and `chartkeeper.mjs` prints the list on every run instead
+      of quietly coping. Red-proofed both ways in `chartkeeper_check.mjs` case 14c-ter.
+      **What is left is the repair itself, and it is content work:** give one row of each pair a new
+      handle. **It cannot be automated safely** — a handle is grep-able across `CHART.md` and
+      `CHART-LOG.md` and other rows point at it, so renumbering blind breaks references. `T-079` is
+      the older row about this same class and should be read first; this row supersedes nothing, it
+      just has the measured list.
+      **Sizing: five edits to `CHART.md` plus a sweep for references. No game code, no sea trial.**
+
 - [ ] **HIS FOUR GLASS-PAGE ASKS — THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box. FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A
       ⟨`T-076`⟩
       ✅ **SHIPPED 2026-09-02, in this order:** the Chart re-prioritises itself (RANK runs in every
@@ -1011,7 +1051,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-      ⚠ STALE-CANDIDATE — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
+- [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
+      ⟨`T-006`⟩
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
   WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
@@ -1021,10 +1064,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
-      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-- [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
-      ⟨`T-006`⟩
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
       ⟨`T-028`⟩
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment

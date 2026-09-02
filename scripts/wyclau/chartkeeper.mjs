@@ -540,15 +540,28 @@ function derive(src) {
      HIS side, in the question"* — and the code did not do it. Now it does: cell 0 only. */
   const inQuestionCell = (rows, id) => (id ? rows.filter((r) => (r.cells[0] ?? "").includes(id)) : []);
   const inCommentary = (rows, id) => (id ? rows.filter((r) => r.cells.slice(1).join(" ").includes(id)) : []);
-  /* A HANDLE THAT ALSO NAMES A CLOSED ROW IN THE ARCHIVE NAMES TWO JOBS. Derived from the log's own
-     entry headings rather than from a list somebody keeps — `## T-078 — 2026-09-02 — …`. */
+  /* A HANDLE THAT NAMES TWO JOBS NAMES NEITHER. Two ways that happens, and the first version of
+     this guard only covered one of them:
+       • the handle also heads a CLOSED row in the archive (`## T-078 — 2026-09-02 — …`), or
+       • TWO OPEN ROWS ON THE CHART CARRY IT.
+     ⚠ THE SECOND WAS FOUND BY CEO 119, ON THE LIVE CHART, IN THE HANDLE OF THE VERY ROW THIS CHANGE
+     WAS FILED UNDER: `T-090` is on `CHART.md:95` and again on `:320`, two unrelated rows. The guard
+     shipped an hour earlier could not see it, and the tool printed no warning — *"the same fault the
+     commit says it rooted out, in a form the fix does not cover."* Both sets are DERIVED from the
+     two files, never from a list somebody keeps. */
   const closedHandles = new Set([...archiveText().matchAll(/^##\s+(T-\d+)\s+—/gm)].map((m) => m[1]));
+  const seen = new Map();
+  for (const r of openItems) if (r.id) seen.set(r.id, (seen.get(r.id) ?? 0) + 1);
+  const duplicateHandles = new Set([...seen].filter(([, n]) => n > 1).map(([id]) => id));
   const ctx = {
     parsed, openItems,
     blockedNaming: (id) => naming(parsed.blocked, id),
     settledNaming: (id) => inQuestionCell(parsed.settled, id),
     settledFreeing: (id) => inCommentary(parsed.settled, id),
-    handleIsAmbiguous: (id) => !!id && closedHandles.has(id.replace(/`/g, "")),
+    handleIsAmbiguous: (id) => {
+      const h = id ? id.replace(/`/g, "") : "";
+      return !!h && (closedHandles.has(h) || duplicateHandles.has(h));
+    },
   };
   const reasonsFor = (sub) => PROBES.map((p) => p(sub, ctx)).filter(Boolean);
 
@@ -678,7 +691,7 @@ function derive(src) {
     .filter((q) => !openItems.some((row) => row.id && q.raw.includes(row.id)))
     .map((q) => q.cells[0]);
 
-  return { parsed, openItems, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
+  return { parsed, openItems, duplicateHandles: [...duplicateHandles], reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -881,7 +894,7 @@ if (WRITE && DO.settle) {
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
 }
-const { parsed, openItems, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
+const { parsed, openItems, duplicateHandles, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 4 — SWEEP. EVERY completed row leaves, the moment it is finished. No age, no stub.
@@ -1162,6 +1175,18 @@ if (JSON_OUT) {
      true of six of the ten rows it was describing.** A human composing a summary from a lumped list
      is the step that went wrong, so the step is gone: the tool prints the sentences, the tick copies
      them. One label, one meaning, one owner. */
+  /* ⚠ A DUPLICATE HANDLE IS NAMED OUT LOUD, NOT SILENTLY WORKED AROUND — the same rule as the
+     ambiguous Inbox stamp above, and for the same reason: it can only be repaired in CHART.md, and a
+     reader that quietly copes with it makes the collision permanent. Every signal keyed on a
+     handle — one of his questions holding a row up, a ruling freeing it, how often he has raised
+     it — attaches to BOTH rows while it stands. (It does not misdirect `close_item.mjs`, which
+     matches on a substring of the row's text and never on a handle — checked, not assumed.) */
+  if (duplicateHandles.length) {
+    console.log(`⚠ ${duplicateHandles.length} handle(s) are carried by MORE THAN ONE open row: ${duplicateHandles.join(", ")}.`);
+    console.log("  Nothing may be claimed from a mention of one — a ruling naming it names two different jobs, so");
+    console.log("  every signal keyed on it attaches to both. Give one of each pair a new handle in");
+    console.log("  .planning/CHART.md.\n");
+  }
   if (DO.reap) {
     if (reap.length === 0) console.log("REAP   the Chart is fine — every pointer on it still resolves.\n");
     else {

@@ -1569,6 +1569,11 @@ const KINDS = `# THE CHART — fixture
 - [ ] **A ROW THAT TALKS ABOUT ANOTHER ROW — the half of \`T-201\` nobody built**, warns readers
       ⟨\`T-205\`⟩
       off on account of pid 999999, which is not running.
+- [ ] **ONE OF TWO OPEN ROWS SHARING A HANDLE** — nothing forbids this and it happens; the ruling
+      ⟨\`T-206\`⟩
+      below names the handle, so without a guard BOTH of these inherit the same answer.
+- [ ] **THE OTHER OF TWO OPEN ROWS SHARING A HANDLE** — an entirely unrelated job.
+      ⟨\`T-206\`⟩
 
 ## BLOCKED ON WYATT
 
@@ -1579,7 +1584,7 @@ const KINDS = `# THE CHART — fixture
 
 | item | HIS RULING | now |
 |---|---|---|
-| The bilge pump, which holds up \`T-201\` | **"leave it alone"** | CLOSED. Still to do: the pump housing (\`T-202\`) and the old bilge item (\`T-204\`). |
+| The bilge pump, which holds up \`T-201\` | **"leave it alone"** | CLOSED. Still to do: the pump housing (\`T-202\`), the old bilge item (\`T-204\`) and the twins (\`T-206\`). |
 
 ## THE IDEA INBOX
 
@@ -1647,6 +1652,22 @@ const KINDS_LOG = `# THE CHART LOG — fixture
   else if (talksAbout.fault === "answered")
     fail("a row that only talks about another row inherited that row's settled ruling");
   else pass("a row is identified by its own handle line, not by a handle it mentions in passing");
+
+  /* 14c-ter. ⚑ AND A HANDLE TWO OPEN ROWS SHARE IS AMBIGUOUS TOO — CEO 119 found this on the LIVE
+        Chart, in the handle of the very row this whole change was filed under: `T-090` sits on
+        `CHART.md:95` and again on `:320`, two unrelated rows, and the guard shipped an hour earlier
+        saw nothing because it only knew about handles closed in the archive. **The tool must say so
+        out loud**, not quietly cope: a duplicate can only be repaired in `CHART.md`, and while it
+        stands every signal keyed on that handle attaches to both rows. On the live Chart there are
+        FIVE of them, not one. */
+  const twinA = find(/ONE OF TWO OPEN ROWS SHARING A HANDLE/);
+  const twinB = find(/THE OTHER OF TWO OPEN ROWS SHARING A HANDLE/);
+  if (twinA || twinB)
+    fail(`a row sharing its handle with another open row still inherited a ruling (${JSON.stringify((twinA || twinB).reason)}) — one mention names two jobs, so it may speak for neither`);
+  else pass("a handle two open rows share claims nothing for either of them");
+  if (!/handle\(s\) are carried by MORE THAN ONE open row/.test(run([`--chart=${p}`, `--log=${logPath}`, "--reap"]).out))
+    fail("the duplicate handle is silently worked around — it can only be repaired in CHART.md, and closing by that handle is a coin flip between the two rows");
+  else pass("…and the duplicate is named out loud so somebody can repair it");
 
   /* 14d. AND THE REPORT MUST SAY WHICH IS WHICH, IN A SENTENCE HE COULD READ. The runbook told the
           Glass session to write one line — "N tasks on your list look already finished" — for
