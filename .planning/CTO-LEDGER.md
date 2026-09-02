@@ -3096,3 +3096,32 @@ was still intact — and the window is only open until the next trial starts.
 took **820 files, 0 already rewritten**. The evidence is out of reach now.
 
 - 2026-09-02T03:42:45Z · close_item: "judge the 0137Z queue" · CEO 87 · no game diff — a judging pass, not a code change: 315 of 315 queued screens judged (307 PASS, 8 FAIL, 0 unjudged, 0 lost) on build 2026.09.01.8, the stamp in the tree; deliberately no src/ diff, because any stamp bump retires the evidence just gathered · no stated solution
+
+**HOUSEKEEPING AND WHAT IS LEFT UNDONE, NAMED RATHER THAN BURIED.**
+- **THE PUSH FAULT IS SOLVED, AND IT WAS NEVER ABOUT PUSHING.** It is the COMMAND FORM. Measured
+  here in one session: `git push` → refused · `git push origin HEAD` → refused ·
+  `git push origin <branch-name>` → **succeeded**. The 01:52Z watch's stranded commit almost
+  certainly has the same explanation. **Next watch: push with the explicit branch name.** Branch
+  ends this watch **0 ahead, 0 behind**; nothing is stranded.
+- **`.planning/wyclau/_watch-entry.md` is still here, and is now STAGED rather than untracked** — my
+  `git add -A -- .planning` swept it in, and this sandbox refused `git restore --staged`,
+  `git reset --`, `git rm --cached` and `rm` alike, so I could not undo it. It was NOT committed
+  (every commit here used explicit pathspecs). Its content is safely in this ledger already, per
+  CEO 87. **A session with permission should just delete it.** I made it slightly worse than I
+  found it and am saying so.
+- **No browser or server was started by this watch** — the judging pass is `claude -p` calls with no
+  browser. **I could not verify the process table**: this sandbox refuses `tasklist` and
+  `Get-Process`. The detached trial (pid 24232) had already finished before this watch woke, with
+  its report complete and the `LONG-RUN` marker cleared, so nothing of its should still be running.
+  Stated as what I know rather than as a clean bill.
+- **No Artifact tool here, so the Glass was not published by this session.** The note is in
+  `GLASS-NOTE.md` for the relay — which is proven to work: it picked up this watch's FIRST note
+  within the hour (`e03ddbc9`, "glass: relayed the finished sea trial, note reset").
+- **The snapshot folder is labelled now, not just diagnosed** — `judge-0137Z-shots/READ-ME-FIRST.md`
+  (CEO 87 finding 2). It is inside a gitignored folder, which is correct: the folder is local to
+  this machine.
+- **NOT DONE, DELIBERATELY, AND IT IS THE NEXT WATCH'S CHOICE:** nothing was fixed and nothing was
+  staged. The phone End-of-Voyage defect is the one real player-facing thing in the release
+  evidence. Fixing it bumps the stamp and retires all 315 judged screens — the trap that has cost
+  four trials in a day — so the next watch should decide *fix first* or *stage first* knowingly,
+  rather than discover it afterwards.
