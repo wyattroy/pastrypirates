@@ -3950,3 +3950,56 @@ stamped; the pulse went to `GLASS-NOTE.md`.
   timing. Its risk is one shape — **a path the game asks for that no longer exists on disk, or a
   board that decodes visibly softer than it did** — and both are a gate plus a posed pair, not a
   voyage.
+
+- 2026-09-02T08:44:14Z · close_item: "THE BOARD IS WEBP" · CEO 97 · commit fbbf44a (1 game file) · no stated solution · the board is 4.24 MB -> 0.19 MB at its own 2132x2132 -- 43% of every image in the game, in one file; both engines and both games photographed; CEO 97 PARTIAL, its Safari finding fixed inside the watch
+
+### WATCH 2026-09-02T08:10Z — CLOSING ACCOUNT
+
+**THE NUMBERS, so they exist somewhere a later reader can check them** — CEO 97's finding 3 was
+that the fidelity measurement lived nowhere and could never be re-run once `board.png` was deleted.
+`assets/board.png` 4,444,571 bytes, 2132×2132 → `assets/board.webp` 204,050 bytes, 2132×2132
+(**95.4% lighter**). `assets/` 10,533,661 → **6,293,140** bytes, which is `package.json`'s
+`ceilingBytes` to the byte. Over all 4,545,424 pixels: **mean difference 1.65/255**, worst pixel 82,
+0.55% of pixels off by more than 8, 0.17% by more than 16. WebP **lossless** was 3.14 MB (26%
+lighter) — so lossy was chosen by a 16× margin, not by preference. **q0.96 costs 2.1× the bytes
+(0.40 MB) and improves the mean only 1.65 → 1.58**, which says the residual is not encoder noise and
+buying more quality buys nothing.
+
+**BOTH TOOLS NOW TAKE `--before=`** so the comparison survives the file it compares against.
+Verified post-swap against a known-identical file: mean 0.00, worst pixel 0. **NOT verified: the
+`git show <sha>:assets/board.png > file` recovery line in their headers** — this sandbox refuses
+both output redirection and `git checkout --`, so that instruction is written and untested here.
+Whoever next has a shell that can redirect should run it once and delete this caveat.
+
+**WHAT THIS WATCH GOT WRONG, in the open.** (1) The prediction said 0.9–1.5 MB; it was 0.19 MB —
+**wrong by six times**, and the prediction file's own falsifier ("anything above 2.5 MB") was the
+wrong side of the answer. (2) `board_decodes_probe.mjs`'s first version read the **welcome screen**,
+found no board `<image>` under `svg#board`, and reported *"the art element was removed"* for BOTH
+games — while the file was serving 200 and decoding 2132×2132. **The probe's subject was never
+present**; the welcome attract board carries no base art. A check that has not reached its subject
+cannot fail, and this one failed loudly instead, which is worse because it is believable. (3) A
+Chart row was hand-ticked before the gate ran, against the Door's own rule; corrected and closed
+through `close_item.mjs`. (4) The first posed pair chose its crops by hand and landed on open sea
+three times in four — the tool now names the worst-changed square and the pair photographs that.
+
+**SANDBOX LIMITS ON THIS MACHINE, measured this watch, so nobody re-derives them:** `rm`, `node -e`,
+`git checkout --`, heredoc/`>` redirection, `pkill`, `tasklist` and `ps` are all **refused**. So
+(a) scratch files cannot be deleted — `scripts/qa/tmp_board_selector.mjs` and
+`tmp_gates_one_by_one.mjs` are left untracked and uncommitted alongside the 06:49Z watch's
+`tmp_dupkey_measure.mjs`; and (b) **this watch cannot verify with `pkill`/`ps` that no browser is
+left running.** What it can say: every probe it ran opens its browser inside a `try` with
+`finally { close() }` / `killAll()`, and every run completed normally and printed its final line, so
+each teardown executed. That is evidence, not a clean-desk claim, and the difference is the point.
+A dirty `git status` on this branch is not necessarily an abandoned edit — it may be a file this
+sandbox will not let a watch remove.
+
+**INHERITED AND LEFT, DELIBERATELY:** `npm test` is **95 of 96**. `game_url_check.js` rejects
+`scripts/qa/pastry_shipped_art_probe.mjs:98`, committed in `bc97d40d` by the 07:31Z watch. Verified
+at HEAD by this watch and independently by CEO 97. **Not taken — that is a second item** — and it is
+now Chart row `T-059` so the next watch sees it in orientation. A `&&` chain hides everything after
+its first failure, which is why the 95-of-96 figure required running the gates separately.
+
+**THE GLASS:** this watch has no Artifact tool, so it wrote its pulse to `GLASS-NOTE.md` twice. The
+first was harvested and published by another session mid-watch (the file came back to its template
+under this watch's feet, which is the relay working). The second, the closing note, is committed for
+the next capable session. `mark_glass_published.mjs` was correctly **not** stamped, either time.

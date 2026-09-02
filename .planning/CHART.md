@@ -270,7 +270,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       512px file — the art is already slightly upscaled.** "40% too big" was a 1× reading. Resizing
       down would visibly soften every modern phone. Saving is compression alone (~0.53 MB).
       Screenshot a phone before and after.
-- [ ] **THE BOARD IS WEBP — 4.24 MB → 0.19 MB, and that one file was 43% of every image in the
+- [x] **THE BOARD IS WEBP — 4.24 MB → 0.19 MB, and that one file was 43% of every image in the (closed 2026-09-02 · CEO 97 · commit fbbf44a (1 game file))
       ⟨`T-057`⟩
       game.** All 2132×2132 pixels kept; format only. `assets/` 10.05 MB → 6.00 MB. His sentence
       *"the only one that needs to be as big as it is is the board itself"* exempts the board from

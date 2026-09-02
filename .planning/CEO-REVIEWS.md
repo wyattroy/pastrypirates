@@ -9,9 +9,12 @@
 
 ## CEO Review 97 — 2026-09-02, Wy-Blade — the Watch that converted the BOARD to WebP
 
-*Item: the board lever of `INBOX-20260901T1335Z` (his launch-critical compression ask). Reviewed
-against the STAGED change, before it was committed, so the verdict could still change the work —
-and it did: the Safari finding below was acted on inside the same watch and is now closed.*
+*Item: **THE BOARD IS WEBP** (Chart row `T-057`), the board lever of `INBOX-20260901T1335Z` — his
+launch-critical compression ask. Closing commit: `fbbf44ad`. Reviewed against the STAGED change,
+before it was committed, so the verdict could still change the work — and it did: the Safari finding
+below was acted on inside the same watch and is now closed. **The commit sha is written in after the
+fact for traceability only; not one word of the verdict was changed after it was given.**
+The pre-work claim commit is `ae8afbdb`.*
 
 **Fresh context, read-only.** Decoded the WebP header itself, re-ran four gates, ran `gear.mjs`,
 opened all three posed images, read every new script, traced the failing gate's provenance in git,
