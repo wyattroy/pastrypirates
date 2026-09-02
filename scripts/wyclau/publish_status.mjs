@@ -94,4 +94,13 @@ if (existing === body) {
 fs.mkdirSync(statusDir, { recursive: true });
 fs.writeFileSync(outPath, body);
 console.log(`published ${path.relative(repo, outPath)} — commit it so other machines can read this one's instruments`);
+/* THE ONE PLACE A WATCH CAN BE TOLD, and it is here because the Door could not be edited from the
+ * session that built this. CEO 112: a watch that works without recording a claim leaves his page
+ * saying nothing is in hand while it works — "a false statement of the same family he complained
+ * about, inverted." Every watch runs THIS script (Door steps 4 and 6), so this is the reminder that
+ * actually reaches one. It never fails the publish; it is a sentence, not a gate. */
+if (inHand === null) {
+  console.log("  ⚠ NO CLAIM RECORDED on this machine — his page will read \"Nothing recorded in hand\".");
+  console.log("  -> if you are working an item: node scripts/wyclau/claim_item.mjs --item=\"T-000 — what it is\"");
+}
 process.exit(0);

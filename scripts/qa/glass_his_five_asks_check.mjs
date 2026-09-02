@@ -140,8 +140,9 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
   const line = inHandLine(render({ chart: CHART(ONE_ROW), status: RELEASED }));
   if (line === null) fail("the in-hand line vanishes entirely once the item is released — he cannot tell 'nothing in hand' from 'this feature broke'");
   else if (/T-088/.test(line)) fail(`the claim was released and the page still shows it as in hand: "${plain(line)}"`);
-  else if (!/nothing in hand/i.test(line)) fail(`between watches the line reads "${plain(line)}" rather than saying nothing is in hand`);
-  else pass("a released claim renders as nothing in hand");
+  else if (/nothing in hand\b/i.test(plain(line))) fail(`the line reads "${plain(line)}" — only the claim RECORD is readable from here, so asserting nothing is in hand is a statement the page cannot support (CEO 112: the same class of lie he complained about, inverted)`);
+  else if (!/nothing recorded in hand/i.test(plain(line))) fail(`between watches the line reads "${plain(line)}" rather than saying no claim is on record`);
+  else pass("a released claim renders as nothing RECORDED in hand — a fact about the record, not about the world");
 }
 
 // 3/9 — CLAIMED BUT COLD. The state the design's first draft missed and the one he is actually
@@ -163,12 +164,12 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
 {
   const none = inHandLine(render({ chart: CHART(ONE_ROW), status: null }));
   if (none === null) fail("no status file at all and the in-hand line is simply absent — a page that cannot read its source must say so");
-  else if (/nothing in hand/i.test(none)) fail("no status file at all and the page reports 'nothing in hand' — it is stating a fact it has no source for");
+  else if (/nothing (recorded )?in hand/i.test(none)) fail("no status file at all and the page reports nothing in hand — it is stating a fact it has no source for");
   else if (!/unreadable/i.test(none)) fail(`no status file, and the line reads "${plain(none)}" instead of naming itself unreadable`);
   else pass("no status file renders as unreadable rather than a confident 'nothing in hand'");
 
   const old = inHandLine(render({ chart: CHART(ONE_ROW), status: OLD_SHAPE }));
-  if (/nothing in hand/i.test(old)) fail("a status file written before the In hand block existed renders as 'nothing in hand' — the page is answering a question that machine never answered");
+  if (/nothing (recorded )?in hand/i.test(old)) fail("a status file written before the In hand block existed renders as nothing in hand — the page is answering a question that machine never answered");
   else if (!/unreadable/i.test(old)) fail(`a status file with no In hand block reads "${plain(old)}"`);
   else pass("a status file that predates the block says so rather than answering for it");
 }
@@ -197,6 +198,15 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
   if (assignments.length === 0) fail("the client script no longer sets the published line at all — the live minute count is gone");
   else if (bare.length) fail(`${bare.length} of ${assignments.length} published-line assignments write the age without the blindness clause — after one tick he is back to reading a frozen number as current`);
   else pass("every live update of the published line goes through that one clause");
+
+  /* AND THE CLAUSE MUST BE ON THE NUMBER HE READS, not only on the line under it. CEO 112: "the
+     number he objected to is unchanged and still the prominent one." The frozen figure is the one
+     labelled "last progress"; once the page is more than a minute old that label must say whose
+     clock it is on. This is a mitigation and the file says so — the cure is republishing on landing. */
+  const ageAssign = (/age\.textContent\s*=\s*"last progress"?[^;]*;/.exec(html) || [""])[0];
+  if (!/as of this page/i.test(ageAssign)) fail(`the "last progress" figure is written as \`${ageAssign.slice(0, 90)}\` — on a page that is minutes old it presents a frozen number as current, which is exactly what he reported at 16:12`);
+  else if (!/publishedMs/.test(ageAssign)) fail("the 'as of this page' clause is unconditional — a page published seconds ago should not disclaim itself");
+  else pass("the last-progress figure says whose clock it is on once the page is no longer fresh");
 }
 
 // 5/9 — HIDE "YOUR CALL" WHEN IT IS EMPTY. His ask 3, one conditional.

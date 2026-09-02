@@ -572,7 +572,13 @@ const inHand = (() => {
 const inHandHtml = inHand.state === "unreadable"
   ? `<span class="bad">unreadable: ${esc(inHand.why)} — this page cannot tell you what is in hand</span>`
   : inHand.state === "none"
-    ? `<b>Nothing in hand</b> — the next watch takes the top of the Chart.`
+    /* ⚠ "NOTHING RECORDED", NOT "NOTHING IN HAND" — CEO 112 caught the difference and it matters.
+       Only the claim RECORD can be read from here. A watch that works without running
+       `claim_item.mjs` is invisible to this page, so "Nothing in hand" would assert something the
+       page cannot know — the same class of false statement he complained about, inverted. This says
+       exactly what is true: no watch has recorded one. `publish_status.mjs` warns any watch that is
+       about to leave the page in this state. */
+    ? `<b>Nothing recorded in hand</b> <span class="muted">— no watch has claimed since the last close.</span>`
     : inHand.state === "cold"
       ? `<b>⚠ Claimed, and cold:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}, and no watch has moved since</span>`
       : `<b>In hand:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}</span>`;
@@ -991,7 +997,14 @@ const PAGE = `<meta charset="utf-8">
         if (pub) pub.textContent = "page published " + fmtAge(publishedMs) + BLIND;
         return;
       }
-      age.textContent = "last progress " + fmtAge(progressMs);
+      /* ⚠ THE CLAUSE GOES ON THE NUMBER HE READS, NOT ONLY ON THE LINE BELOW IT. CEO 112: "the
+         number he objected to is unchanged and still the prominent one." True — and this is still
+         not a cure. The cure is the page being republished when work lands (the Door's step 6b),
+         because a static page CANNOT learn about a commit made after it was generated. What this
+         does is stop the frozen number presenting itself as current: once the page is more than a
+         minute old, the age says whose clock it is on. */
+      age.textContent = "last progress " + fmtAge(progressMs)
+        + (Math.floor(publishedMs/60000) >= 1 ? " (as of this page)" : "");
       var stale = Math.floor(progressMs/60000) > 45;
       emoji.textContent = stale ? "🔴" : "🟢";
       p.className = stale ? "pulseline stale" : "pulseline";

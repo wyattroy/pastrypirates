@@ -5000,3 +5000,68 @@ page's "last progress N min ago" ages on screen after publish — make it comput
 browser; (3) hide the `YOUR CALL` card when it is genuinely empty, and never when it is merely
 unparseable; (4) numbers not bullets; (5) stop the page shouting his Chart's ALL-CAPS row titles back
 at him.
+
+### WATCH 16:49Z — `T-088` NOT CLOSED. Four of five shipped, CEO 112 PARTIAL, and it is right.
+
+**THE HEADLINE, CORRECTED IN THE OPEN BEFORE ANYTHING ELSE.** Commit `d0908e64`'s subject says
+*"his five Glass asks, and every one held to the LIE it could become"*. **That reads as five
+delivered and it is four.** CEO 112: *"a headline out ahead of an honest body… fifth or sixth verdict
+on this branch touching the same shape."* The body and the code comments both say it plainly; the
+subject did not, and a subject is the only line that reaches him (the convention filed at
+`INBOX-20260902T15xxZ`, two hours old, and broken by the watch that had just read it).
+
+**PREDICTION vs RESULT** (`.planning/wyclau/PREDICTION-20260902T1649Z-glass-five-asks.md`, written
+before a single measurement).
+- **P1 RIGHT, and it was the most valuable line in the file.** I predicted the Chart's stated fix for
+  ask 2 — *"make the page compute its own age in the browser"* — was **already built**. It was, and
+  had been since 2026-08-31. **Implementing the row as written would have changed nothing and been
+  reported as a fix.** CEO 111 reached the same conclusion independently, from the other direction.
+- **P2 WRONG, and this is the one worth keeping.** I predicted the ledger's claim headings were
+  parseable enough and needed no staleness constant. **Measured: 40 `WATCH` headings, 4 in a
+  parseable shape, all four written in the previous two hours.** My regex worked today and would have
+  shown him nothing that morning. Rebuilt onto a machine-written block.
+- **P3, P4 RIGHT.** The acronym-vs-shouting distinction held; the unparseable-blocked-section case
+  was real and reachable.
+- **P5 RIGHT and understated.** The gate took longer than all five fixes together, **and two of the
+  five turned out to be differently caused than the row said.**
+
+**WHAT SHIPPED** — `d0908e64`, `c8cca404`, and the CEO-fix commit that follows this entry.
+`glass_his_five_asks_check.mjs`, **RED 12 of 13 → GREEN 19 of 19**, npm test **107/107**, ceiling
+106 → 107 with `quiet_gate_report` offering zero retirement candidates for the fourth raise running.
+Photographed against the REAL Chart, ledger and status files at 390×844 DPR 2:
+`.planning/posed/glass-after-T088.png`.
+
+**WHAT IS ACTUALLY LEFT, so nobody re-does the four that are done:**
+1. **ASK 2 IS MITIGATED, NOT CURED, AND IT IS NOT TICKED.** The frozen figure now says *"(as of this
+   page)"* once the page is over a minute old, and the published line says the page cannot see
+   anything newer. **The number itself is unchanged**, because a static page cannot learn about a
+   commit made after it was generated. The cure is republishing when work lands — the Door's step 6b,
+   shipped by another session an hour before this watch. **And he has already overruled the wording**:
+   `T-095` asks for one status bar in his own words and for the apology string to be deleted.
+2. **THE DOOR LINE.** `claim_item.mjs` exists and works; `.claude/skills/door/SKILL.md` step 2 does
+   not yet tell a watch to run it. **The edit was attempted TWICE and refused by this session's write
+   permissions** — recorded as a fact about this machine, not as a guess about why. Two things were
+   done instead: the page no longer says *"Nothing in hand"* (it says *"Nothing recorded in hand"*,
+   which is a fact about the RECORD and all the page can know), and `publish_status.mjs` warns loudly
+   when it publishes with no claim on file — a command every watch already runs.
+
+**THE MOST USEFUL THING THIS WATCH LEARNED, and it is not about the Glass.** Two of the five asks had
+a cause different from the one his Chart row stated, and **both were caught by looking rather than by
+reasoning** — one by writing the prediction down before measuring, one by photographing his real page
+instead of a fixture. The photograph found two de-shouting defects no fixture could: a trailing full
+stop made `NUMBER.` read as an identifier, and a punctuation token carried a shouting run across a
+clause boundary and lowercased the acronym beyond it (*"the heading — ceo 104's"*). `glass_peek.mjs`
+is kept for that reason and flagged as tooling rather than buried.
+
+**AND A COUNT THAT NOBODY GOT RIGHT, which is the strongest argument for what was built.** How many
+claims are parseable out of `CTO-LEDGER.md`? CEO 111 said 15/4, this watch said 40/4, CEO 112 counted
+57/3 — **three regexes, three answers, same file, same day.** The ledger is prose, and its count is a
+property of whoever is looking at it.
+
+**RULE 17 ON EXIT:** `stray_probe_check` — see the closing commit. `glass_peek.mjs` launches a
+headless Chrome and `cdp.mjs`'s `close()` leans on `pkill`, which does not exist here.
+
+**LOCAL LITTER THIS SESSION COULD NOT REMOVE, named so a human can:** `scripts/qa/_peek_glass.mjs`
+(superseded by `glass_peek.mjs`) and `.planning/wyclau/_commitmsg.txt`. Both are UNTRACKED and were
+never staged, so neither reaches the branch; `rm`, `Remove-Item` and `git mv` were each refused on
+them by this session's sandbox.
