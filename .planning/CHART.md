@@ -54,6 +54,41 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
+- [ ] **A FIELD NAMED `artifactVersion` HOLDS A CLOCK, IN BOTH RECEIPTS, AND THE GATE CANNOT SEE IT
+      ⟨`T-111`⟩
+      BECAUSE IT ONLY CHECKS THE NAME.** `INBOX-20260902T2156Z`, measured 2026-09-02 5:56 and
+      6:06 PM ET. **Sizing: one value in two call sites, plus one gate. No game code, no sea trial.**
+      **MEASURED, two real versions of his page:** `1788385436-4b8b` and `1788385523-b046` both carry
+      `generatedAt` **`21:08:44.245Z`** — identical — and the second contains his Google Analytics
+      idea while the first does not. **`generatedAt` moves when a SESSION regenerates the page and
+      never when HE saves into it**, and his saves are the only thing these receipts exist to detect.
+      A comparison against it says "unchanged" at the exact moment he has written something.
+      **IT SPREAD IN TEN MINUTES.** `LAST-HARVEST` first (`"artifactVersion": "2026-09-02T21:55:24.391Z"`),
+      then `LAST-PUBLISH` (`version=2026-09-02T22:06:23.279Z`) — which held the correct
+      `1788386140-0fbe` form eleven minutes earlier. **Both receipts now record a clock and call it a
+      version.**
+      ⚠ **AND IT BROKE A DETECTOR THAT WAS WORKING:** the cheapest way to tell HIS save from a
+      session's publish was whether `LAST-PUBLISH` named the version the notification announced. The
+      two sides are now different kinds of value, so that comparison is impossible. **It is how his
+      5:43 PM ruling was found sitting unharvested.**
+      **THE FIX:** (1) pass the tool's `<epoch>-<hash>` id to `mark_glass_harvest.mjs --version=` and
+      `mark_glass_published.mjs --version=`; (2) **add the missing gate — fail if the recorded
+      version parses as a date — and red-proof it against today's files, which do.**
+      **WHY IT SLIPPED PAST EVERYTHING, and this is the reusable half:**
+      `glass_harvest_hook_check.mjs:277-279` asserts the writer stores SOMETHING under
+      `artifactVersion`, and the runbook reads that name (`GLASS-UPDATE-SESSION.md:217`). **Nothing
+      checks the KIND of value. A gate on a field's NAME is not a gate on its CONTENTS**, and the
+      right name is precisely what kept everyone confident. `mark_glass_published.mjs` refusing an
+      EMPTY value is the same gap one level down: refusing absence is not checking kind.
+      **ROOT CAUSE NAMED BY THE SESSION THAT DID IT, and it points at an item already on this
+      Chart:** the Glass-update session dispatches each tick to a fresh subagent and sees only its
+      prose report, never its tool calls — *"that's my dispatched subagents' mistake on the last two
+      ticks."* **Same weakness filed at `INBOX-20260902T1845Z`.** Fixing the value without fixing
+      that leaves the next wrong value equally invisible.
+      ✅ **HIS WORDS WERE NEVER AT RISK FROM THIS** — the runtime refuses a stale publish regardless
+      (`INBOX-20260902T2100Z`). What was at risk is every reader believing these receipts mean
+      something they do not.
+
 - [ ] **⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.**
       ⟨`T-103`⟩
       *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
@@ -92,6 +127,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       carries its handle** — there is nothing for a drag to identify yet. Dragging also has to
       persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
       read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
       ⟨`T-106`⟩
@@ -135,9 +174,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
       that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
 
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+- [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
+      ⟨`T-112`⟩
+      note to him, an hour after the same hazard was filed about a session doing it by hand.**
+      Found 2026-09-02T22:0xZ by watching the file reset under a green suite.
+      *(It reset a second time minutes later; that one is NOT attributed here — a live Glass session
+      consuming the note is the mechanism working, and the note did reach `glass.html`. Only the
+      first is measured, and the code path below is what makes it certain rather than the timing.)*
+      **THE MECHANISM, READ NOT GUESSED:** `scripts/qa/glass_roundtrip_check.mjs:29` runs the real
+      generator as `glass.mjs --note "gate: glass_roundtrip_check"`, and `glass.mjs` folds
+      `GLASS-NOTE.md` into the page and **resets the file unconditionally** on every run. So the
+      note a watch wrote for Wyatt is consumed by a page nobody will publish, and the only copy of
+      it is a throwaway `glass.html` the next generation overwrites.
+      ⚠ **THIS IS `INBOX-20260902T0350Z` IN A NEW COSTUME.** That entry is about the Advisor running
+      `--note` merely to inspect the page and destroying a watch's finished screenshot results. The
+      lesson written there — *"a command that LOOKS like a read had a destructive side effect nobody
+      warned about at the call site"* — now applies to **the test suite**, which every session runs
+      several times an item and nobody thinks of as a write.
+      **THE FIX IS ALREADY HALF-BUILT AND WAS BUILT FOR THIS:** `glass.mjs --chart=<path>` is a
+      REHEARSAL render that touches nothing outside the file you name (`T-104`, same commit).
+      Point the round-trip gate at a fixture Chart and a fixture out-path and the hazard is gone
+      for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
+      destroy-then-repair is still a window, and this project has already lost a note inside one.
+      **Sizing: SMALL. No game code.**
+
+
+
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
@@ -169,7 +231,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -191,10 +252,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
-
-
-
-
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -461,6 +518,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
       edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
       ⟨`T-088`⟩
       by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
@@ -477,6 +539,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
+
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -497,44 +560,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
       line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
       thirty seconds and it would have caught this one.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **A FIELD NAMED `artifactVersion` HOLDS A CLOCK, IN BOTH RECEIPTS, AND THE GATE CANNOT SEE IT
-      BECAUSE IT ONLY CHECKS THE NAME.** `INBOX-20260902T2156Z`, measured 2026-09-02 5:56 and
-      6:06 PM ET. **Sizing: one value in two call sites, plus one gate. No game code, no sea trial.**
-      **MEASURED, two real versions of his page:** `1788385436-4b8b` and `1788385523-b046` both carry
-      `generatedAt` **`21:08:44.245Z`** — identical — and the second contains his Google Analytics
-      idea while the first does not. **`generatedAt` moves when a SESSION regenerates the page and
-      never when HE saves into it**, and his saves are the only thing these receipts exist to detect.
-      A comparison against it says "unchanged" at the exact moment he has written something.
-      **IT SPREAD IN TEN MINUTES.** `LAST-HARVEST` first (`"artifactVersion": "2026-09-02T21:55:24.391Z"`),
-      then `LAST-PUBLISH` (`version=2026-09-02T22:06:23.279Z`) — which held the correct
-      `1788386140-0fbe` form eleven minutes earlier. **Both receipts now record a clock and call it a
-      version.**
-      ⚠ **AND IT BROKE A DETECTOR THAT WAS WORKING:** the cheapest way to tell HIS save from a
-      session's publish was whether `LAST-PUBLISH` named the version the notification announced. The
-      two sides are now different kinds of value, so that comparison is impossible. **It is how his
-      5:43 PM ruling was found sitting unharvested.**
-      **THE FIX:** (1) pass the tool's `<epoch>-<hash>` id to `mark_glass_harvest.mjs --version=` and
-      `mark_glass_published.mjs --version=`; (2) **add the missing gate — fail if the recorded
-      version parses as a date — and red-proof it against today's files, which do.**
-      **WHY IT SLIPPED PAST EVERYTHING, and this is the reusable half:**
-      `glass_harvest_hook_check.mjs:277-279` asserts the writer stores SOMETHING under
-      `artifactVersion`, and the runbook reads that name (`GLASS-UPDATE-SESSION.md:217`). **Nothing
-      checks the KIND of value. A gate on a field's NAME is not a gate on its CONTENTS**, and the
-      right name is precisely what kept everyone confident. `mark_glass_published.mjs` refusing an
-      EMPTY value is the same gap one level down: refusing absence is not checking kind.
-      **ROOT CAUSE NAMED BY THE SESSION THAT DID IT, and it points at an item already on this
-      Chart:** the Glass-update session dispatches each tick to a fresh subagent and sees only its
-      prose report, never its tool calls — *"that's my dispatched subagents' mistake on the last two
-      ticks."* **Same weakness filed at `INBOX-20260902T1845Z`.** Fixing the value without fixing
-      that leaves the next wrong value equally invisible.
-      ✅ **HIS WORDS WERE NEVER AT RISK FROM THIS** — the runtime refuses a stale publish regardless
-      (`INBOX-20260902T2100Z`). What was at risk is every reader believing these receipts mean
-      something they do not.
 
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
@@ -653,29 +678,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
       a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
       the Door still reads oldest-first, so there are still two orderings.**
-
-- [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
-      note to him, an hour after the same hazard was filed about a session doing it by hand.**
-      Found 2026-09-02T22:0xZ by watching the file reset under a green suite.
-      *(It reset a second time minutes later; that one is NOT attributed here — a live Glass session
-      consuming the note is the mechanism working, and the note did reach `glass.html`. Only the
-      first is measured, and the code path below is what makes it certain rather than the timing.)*
-      **THE MECHANISM, READ NOT GUESSED:** `scripts/qa/glass_roundtrip_check.mjs:29` runs the real
-      generator as `glass.mjs --note "gate: glass_roundtrip_check"`, and `glass.mjs` folds
-      `GLASS-NOTE.md` into the page and **resets the file unconditionally** on every run. So the
-      note a watch wrote for Wyatt is consumed by a page nobody will publish, and the only copy of
-      it is a throwaway `glass.html` the next generation overwrites.
-      ⚠ **THIS IS `INBOX-20260902T0350Z` IN A NEW COSTUME.** That entry is about the Advisor running
-      `--note` merely to inspect the page and destroying a watch's finished screenshot results. The
-      lesson written there — *"a command that LOOKS like a read had a destructive side effect nobody
-      warned about at the call site"* — now applies to **the test suite**, which every session runs
-      several times an item and nobody thinks of as a write.
-      **THE FIX IS ALREADY HALF-BUILT AND WAS BUILT FOR THIS:** `glass.mjs --chart=<path>` is a
-      REHEARSAL render that touches nothing outside the file you name (`T-104`, same commit).
-      Point the round-trip gate at a fixture Chart and a fixture out-path and the hazard is gone
-      for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
-      destroy-then-repair is still a window, and this project has already lost a note inside one.
-      **Sizing: SMALL. No game code.**
 
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
@@ -1088,31 +1090,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
       bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
 
-- [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
-      ⟨`T-026`⟩
-  The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
-  landed **2026-09-01T18:13:39Z** and touches `src/ui/util.js` — game code. The trial started
-  16:44:08Z and ran 88 minutes, ending ≈18:12Z, so the change post-dated the whole run by about
-  ninety seconds. **Three MORE game commits landed DURING that run** (`822549a7`, `bca181b2`,
-  `f7c1207e`), which the original filing missed. Staging on the strength of that report would ship
-  something the trial never saw.
-  **THE RE-SAIL COULD NOT SAIL UNTIL THE STAMP MOVED, and that is the part worth keeping.**
-  `readDone()` keys the leg cache on the build stamp alone (`playtest_gate.mjs:572,576`), and all
-  ten legs of the FULL fleet held records at `2026.09.01.6` — so a trial started as the tree stood
-  would have resumed 10 of 10, sailed nothing, and (correctly, under the provenance rule fixed an
-  hour earlier) filed every resumed leg as NOT RUN. Measured red first: ten files matched
-  `*--2026.09.01.6.json` and `crew-phone`'s own `__stamp` matched too, so both halves of the resume
-  key were live. **The same one line fixes the honesty problem too**: four game commits had landed
-  since `373bd99e` set `.6`, so the stamp named a tree it was never sailed against. Bumped to
-  `2026.09.01.7` (`d6d6d75b`, via `scripts/bump-build.mjs` — the counter is the stamp itself, never
-  a second file). Green after: zero cached legs at `.7`, no gate hardcodes the old value, npm test
-  86/86, and the trial's own banner reads `build 2026.09.01.7 … gear: FULL` with all ten legs
-  listed to sail rather than resume.
-  Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
-  `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
-  `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
 - [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
       BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
       `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
@@ -1201,6 +1178,31 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       publish from a session that read it beforehand, and record what comes back.
       Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
       [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
+
+- [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
+      ⟨`T-026`⟩
+  The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
+  landed **2026-09-01T18:13:39Z** and touches `src/ui/util.js` — game code. The trial started
+  16:44:08Z and ran 88 minutes, ending ≈18:12Z, so the change post-dated the whole run by about
+  ninety seconds. **Three MORE game commits landed DURING that run** (`822549a7`, `bca181b2`,
+  `f7c1207e`), which the original filing missed. Staging on the strength of that report would ship
+  something the trial never saw.
+  **THE RE-SAIL COULD NOT SAIL UNTIL THE STAMP MOVED, and that is the part worth keeping.**
+  `readDone()` keys the leg cache on the build stamp alone (`playtest_gate.mjs:572,576`), and all
+  ten legs of the FULL fleet held records at `2026.09.01.6` — so a trial started as the tree stood
+  would have resumed 10 of 10, sailed nothing, and (correctly, under the provenance rule fixed an
+  hour earlier) filed every resumed leg as NOT RUN. Measured red first: ten files matched
+  `*--2026.09.01.6.json` and `crew-phone`'s own `__stamp` matched too, so both halves of the resume
+  key were live. **The same one line fixes the honesty problem too**: four game commits had landed
+  since `373bd99e` set `.6`, so the stamp named a tree it was never sailed against. Bumped to
+  `2026.09.01.7` (`d6d6d75b`, via `scripts/bump-build.mjs` — the counter is the stamp itself, never
+  a second file). Green after: zero cached legs at `.7`, no gate hardcodes the old value, npm test
+  86/86, and the trial's own banner reads `build 2026.09.01.7 … gear: FULL` with all ten legs
+  listed to sail rather than resume.
+  Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
+  `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
+  `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
@@ -1789,6 +1791,7 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   row above.
 
 - **Wyatt, written on the Glass, 2026-09-02, 5:45:23 PM ET, RULING**: *"Done -- I wrote about
+      ⟨`T-113`⟩
   adding google analytics and firebase"* → **ALREADY HARVESTED**, `.planning/wyclau/INBOX.md`,
   `INBOX-20260902T214523Z` — his half of the live conflict-test he ran himself on this page (Layer A
   of `T-105`, already confirmed REFUSED on a disposable artifact; his run is the live-page
