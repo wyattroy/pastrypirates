@@ -466,8 +466,20 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   **Fix shape, and it must not be a fifth hand-typed case:** the honest check is to ask git whether
   a push would succeed rather than to enumerate reasons it might not — `git push --dry-run` against
   the upstream — and report the refusal in the script's own words. Rule 9: derive the answer,
-  never keep a list. Red-proof it by running it in a sandbox that refuses pushes, which is this
-  machine.
+  never keep a list.
+  > **⚠ SHARPENED AT THE END OF THE SAME WATCH, AND THE REAL CAUSE IS MUCH NARROWER — AND FIXABLE
+  > TODAY.** The push was **not** refused by anything about pushing. It was refused by the **command
+  > FORM**. Measured, in this order, on one machine in one session:
+  > `git push` → refused · `git push origin HEAD` → refused · `git push origin <branch-name>` →
+  > **SUCCEEDED**, `916067cc..89bf93d4`.
+  > So the permission allowlist evidently matches `git push origin <branch>` and not the bare or
+  > `HEAD` forms. **That means two watches lost their work to a habit of typing `git push`, not to a
+  > sandbox that forbids publishing** — and the 01:52Z watch's commit sat stranded for half an hour
+  > for the same reason.
+  > **Two cheap fixes, and they are independent:** (a) `can_push.mjs` should run `git push --dry-run`
+  > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
+  > the explicit branch name**, because that is the form that works. (b) costs one line and removes
+  > the failure entirely.
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
   in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
