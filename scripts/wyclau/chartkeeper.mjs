@@ -105,14 +105,69 @@ const treeStamp = (() => {
     return (/PP4_STAMP\s*=\s*"([^"]+)"/.exec(readFileSync(join(ROOT, "src", "ui", "stage.js"), "utf8")) || [])[1] ?? null;
   } catch { return null; }
 })();
-const inboxWords = (() => {
-  // His words, verbatim, in the Inbox — the best available proxy for what he cares about, and it is
-  // already on disk with timestamps. One token-set per entry.
+/* HIS OWN RECORDS — the Inbox, entry by entry, with each entry's id and whether it is still live.
+ *
+ * ⚠ THIS USED TO BE A BAG OF WORDS AND THE BAG WAS LYING TO HIM. Until 2026-09-02 this read one
+ * token-set per entry and RANK counted how many of them overlapped a row by four distinctive words
+ * or more, then printed the count at him as "you have raised it N times". Measured on the real
+ * Chart, it told him he had raised the `can_push` row — a tool fault a session found, which he has
+ * never once mentioned — **ten times**; its ten "matches" were entries about the Advisor being
+ * record-only, a destroyed note, and the change-gate verdict. In the same pass the trade-offer
+ * circle, which has three recorded sightings, read "raised it once", and the one entry it matched
+ * was about judging screenshots.
+ *
+ * THE DIAGNOSIS THAT LOOKED OBVIOUS WAS WRONG, and it is recorded because it is the useful half:
+ * it was NOT tracking row length — the 900-character cap flattens that out, and a 4,695-character
+ * row scored 1 while a 487-character one scored 5. It was tracking SHARED PROCESS VOCABULARY. Rows
+ * about the watch/trial machinery matched the many Inbox entries about the watch/trial machinery.
+ * The signal measured "is this row about the same subsystem as most of his recent notes" and
+ * reported it as "you raised this N times". **A number he cannot check is worse than no number**,
+ * because the order on his page is the thing he steers by.
+ *
+ * So the link between a row and his words is now a CITATION that has to RESOLVE, in either
+ * direction: the row names an `INBOX-<stamp>` that really exists, or an entry names the row's
+ * `T-nnn` handle. It under-counts — a row nobody has cited claims nothing — and that is the safe
+ * direction, because the failure of the old signal was over-claiming. */
+const inboxEntries = (() => {
   try {
-    const raw = readFileSync(join(ROOT, ".planning", "wyclau", "INBOX.md"), "utf8");
-    return raw.split(/^## INBOX-/m).slice(1).map((b) => tokens(b.slice(0, 1200)));
+    const raw = readFileSync(INBOX, "utf8");
+    return raw.split(/^## (?=INBOX-)/m).slice(1).map((b) => {
+      const id = (/^INBOX-[0-9A-Za-z]+(?:-[0-9A-Za-z]+)*/.exec(b) || [])[0];
+      const status = (/^status:\s*(.*)$/m.exec(b) || [])[1] ?? "";
+      // Live = he is still owed something. A DONE or PARKED entry is a real citation (he did raise
+      // it) but it is not an outstanding instruction, so it never buys the approval bonus.
+      return { id, body: b, live: !/^\s*\**\s*(DONE|PARKED)\b/i.test(status) };
+    }).filter((e) => e.id);
   } catch { return []; }
 })();
+const inboxById = new Map(inboxEntries.map((e) => [e.id, e]));
+
+/* A row's LINKS to his records, and the only thing that may ever be read as his approval.
+ *   cited   — `INBOX-<stamp>` ids in the row that resolve to a real entry
+ *   live    — of those, the ones he is still owed
+ *   backRef — entries that name this row's `T-nnn` handle: the same link, written from his side
+ *   tagged  — the Chart's own `Your ruling:` prefix, which `scripts/qa/rulings_triage_check.mjs`
+ *             keeps matched to a row of the SETTLED RULINGS table. That gate is what makes the tag
+ *             a pointer rather than an assertion; without it this would be prose again.
+ * Deliberately NOT here: anything the row says about itself. */
+const linksOf = (row) => {
+  const cited = [...new Set(row.raw.match(/\bINBOX-[0-9A-Za-z]+(?:-[0-9A-Za-z]+)*/g) || [])]
+    .filter((id) => inboxById.has(id));
+  const backRef = row.id ? inboxEntries.filter((e) => e.body.includes(row.id)).map((e) => e.id) : [];
+  return {
+    cited,
+    live: cited.filter((id) => inboxById.get(id).live),
+    raised: new Set([...cited, ...backRef]),
+    tagged: /^Your ruling:/i.test(row.title),
+  };
+};
+
+/* WHAT A ROW SAYS ABOUT ITSELF. Kept for one purpose only — REPORTING. A row that claims his
+   approval and cites nothing is no longer credited, and eight rows on the real Chart do exactly
+   that; some of those claims are TRUE and merely uncited. Dropping them in silence would make his
+   genuinely-approved work sink with nothing to show why, so the tool names them instead. REAP's
+   own rule turned on itself: flag, never act silently. */
+const CLAIMS_APPROVAL = /\bruled YES\b|\bhe ruled\b|\bhis ruling\b|\byour ruling\b|\bat his instruction\b|\bhis instruction\b|\bhe asked for this\b/i;
 
 const pidAlive = (pid) => {
   // process.kill(pid, 0) is the portable liveness probe; EPERM means the process exists and is
@@ -358,7 +413,16 @@ function derive(src) {
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
     .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
 
-  return { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked };
+  /* AND THE ROWS THAT CLAIM HIS APPROVAL WITHOUT CITING IT ARE NAMED, never silently demoted.
+     Some of these claims are TRUE and merely uncited — the row is real, his ruling is real, and
+     nobody wrote the pointer down. A grounding that drops them without a word would sink his own
+     approved work with nothing on the page to explain why, which is the same fault in a new
+     costume. So the tool points at exactly the rows that need a citation added. */
+  const unbackedApproval = openItems
+    .filter((row) => { const l = linksOf(row); return CLAIMS_APPROVAL.test(row.raw) && !l.tagged && !l.live.length; })
+    .map((row) => row.title);
+
+  return { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked, unbackedApproval };
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -380,18 +444,33 @@ function score(row, { reapById, settleByTitle }) {
     why.push(gated ? "blocked (GATED)" : livePointer ? "waiting on your answer" : "needs you");
   }
 
-  // APPROVED AND UNBLOCKED FLOATS TO THE VERY TOP — a decision he has already made, sitting undone,
-  // is the most expensive row on the list. This is the one that would have surfaced the staging
-  // permission line four hours before anybody noticed it.
-  /* AN INSTRUCTION COUNTS AS APPROVAL, and this pattern was WIDENED after the first real run, in
-     the open, because the spec's own acceptance test failed: "BUILD THE CHARTKEEPER — AT HIS
-     INSTRUCTION" ranked 14 of 32, and the spec says in its own words that had this been running,
-     that request would have been at the top. It matched no ruling word, because he did not rule on
-     it — he simply told us to do it. A tool that ranks his rulings and ignores his instructions is
-     reading half of him. */
-  if (!gated && !livePointer && /\bruled YES\b|\bhe ruled\b|\bhis ruling\b|\bRULED YES\b|\byour ruling\b|\bat his instruction\b|\bhis instruction\b|\bhe asked for this\b/i.test(row.raw)) {
+  /* APPROVED AND UNBLOCKED FLOATS TO THE VERY TOP — a decision he has already made, sitting
+     undone, is the most expensive row on the list. This is the one that would have surfaced the
+     staging permission line four hours before anybody noticed it.
+
+     ⚠ AND IT USED TO BE SELF-DECLARED, WHICH MADE IT NOT A MEASUREMENT AT ALL. Until 2026-09-02
+     this regex-matched approving phrases inside THE ROW'S OWN PROSE, so a row was approved because
+     it said so about itself. On the real Chart that awarded +100 to eight rows, and at least two
+     of them from a sentence about something else entirely: the Advisor-gates row, because its body
+     says the gates were disarmed *"on his ruling"* — a ruling to DISARM them, not approval to
+     repair them — and a Glass-layout row, because Wyatt's own note contains the words *"the 'your
+     ruling' section"* while describing a CARD NAME. Three more matched their own headline;
+     `★ NEXT ITEM, AT HIS INSTRUCTION` approved itself by its title.
+
+     THE HISTORY IS THE ARGUMENT FOR THE FIX, not the regex. That pattern was WIDENED by the watch
+     that wrote it, in the open, after its own row ranked 14 of 32 — CEO 91's verdict was *"fitting
+     the tool to flatter its own item."* **A signal whose author can widen it until their own row
+     wins is not a measurement.** So approval now has to come from a record the row's author does
+     not write: a resolved `INBOX-<stamp>` citation that is still live, or the `Your ruling:` tag,
+     which `scripts/qa/rulings_triage_check.mjs` keeps matched to a real settled ruling.
+
+     THE ACCEPTANCE TEST STILL HOLDS AND IT HOLDS HONESTLY: the Chartkeeper row qualifies because
+     it cites `INBOX-20260902T04xxZ`, a live entry of his own Inbox — not because it calls itself
+     the next item. */
+  const links = linksOf(row);
+  if (!gated && !livePointer && (links.tagged || links.live.length)) {
     s += 100;
-    why.push("approved and unblocked");
+    why.push(links.tagged ? "your own ruling, and nothing is blocking it" : "you asked for this yourself, and nothing is blocking it");
   }
 
   /* HALF-DONE OUTRANKS EVERYTHING EXCEPT A DECISION HE HAS ALREADY MADE — his word is
@@ -435,11 +514,16 @@ function score(row, { reapById, settleByTitle }) {
     }
   }
 
-  // HOW OFTEN HE HAS RAISED IT. Timestamped, already on disk, and the best proxy there is for what
-  // he cares about. Three sightings of the trade circle; four asks for this very tool.
-  const mine = tokens(row.raw.slice(0, 900));
-  const raised = inboxWords.filter((w) => overlap(w, mine) >= 4).length;
-  if (raised) { s += 8 * raised; why.push(`you have raised it ${raised === 1 ? "once" : `${raised} times`}`); }
+  /* HOW OFTEN HE HAS RAISED IT — counted from RESOLVED LINKS, never from word overlap. The full
+     account of what the overlap was actually measuring is in `inboxEntries` above; the short
+     version is that it told him he had raised a row he has never mentioned ten times, and told him
+     the trade-offer circle — three recorded sightings — had been raised once.
+     It now counts distinct entries of his Inbox that this row NAMES, plus entries that name this
+     row's handle. It under-counts a row nobody has cited, and that is the direction to fail in:
+     the old signal's whole failure was over-claiming, and a number he cannot check is worse than
+     no number at all. */
+  const raised = links.raised.size;
+  if (raised) { s += 8 * raised; why.push(raised === 1 ? "you asked for it in one of your notes" : `you asked for it in ${raised} of your notes`); }
 
   // SIZE — a tie-break only, small first, so the queue drains.
   const size = (headField(row, "size") || "").toUpperCase();
@@ -515,7 +599,7 @@ if (WRITE && DO.settle) {
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
 }
-const { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked } = d;
+const { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked, unbackedApproval } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 4 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
@@ -686,6 +770,7 @@ if (JSON_OUT) {
     settleUnresolved: DO.settle ? settleUnresolved : [],
     settleBundled: DO.settle ? bundledTitles : [],
     rank: ranked.map(({ row, ...r }) => r),
+    unbackedApproval,
     sweep: sweepable.map((x) => ({ title: titleOf(x.row.lines), when: x.when.toISOString().slice(0, 10) })),
   }, null, 2));
 } else {
@@ -719,6 +804,11 @@ if (JSON_OUT) {
   if (DO.rank) {
     console.log("RANK   the open list, next-to-be-completed first:");
     for (const r of ranked) console.log(`  ${String(r.rank).padStart(2)}. [${String(r.score).padStart(5)}] ${r.title.slice(0, 66)}\n         why now: ${r.whyNow}`);
+    if (unbackedApproval.length) {
+      console.log(`\n       ⚠ ${unbackedApproval.length} row(s) claim your approval in their own words and cite nothing, so they are NOT credited.`);
+      console.log("         If the record exists, add the `INBOX-<stamp>` it came from, or the `Your ruling:` tag:");
+      for (const t of unbackedApproval) console.log(`         • ${t.slice(0, 78)}`);
+    }
     console.log("");
   }
   if (DO.sweep) {
