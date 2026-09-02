@@ -4357,3 +4357,73 @@ all fall out for the reasons the 11:00Z watch recorded and this one re-measured.
 next OPEN entry, its fix lives entirely in this repo (`GLASS-UPDATE-SESSION.md` is not in
 `.claude/wyclau/MANIFEST.sha256`), and **it is the second time he has asked** — the first is quoted
 in the runbook's own opening line.
+
+- 2026-09-02T12:00:53Z · close_item: INBOX-20260902T05xxZ-a · CEO 103 · no game diff — no game diff -- his ask is the Glass-update session's own context, not the game: the runbook's re-arm box and a new gate on it; src/ and index.html untouched · his solution first: commit 4295811 · the re-arm box now checks the armed cron job's SHAPE, not just that a job exists -- presence is not delivery
+
+### WHAT THIS WATCH FOUND, AND THE THREE THINGS WORTH MORE THAN THE ITEM
+
+**THE ANSWER, SOLUTION-FIRST.** The INBOX names the fix location in his own routing — *"Runbook
+change goes in `.planning/wyclau/GLASS-UPDATE-SESSION.md`"* — so the first act was to read it, and
+**his fix was already there and already proven**: a fresh general-purpose subagent per tick,
+publishing for real at 04:46Z (`version=1788324379-6b86`). CEO 103 confirmed it from the git log
+(`b94b40a7`, `87b3e986`, `3428d089`) rather than from this watch's account.
+
+**AND THE INBOX ENTRY SAYING IT WAS OPEN WAS WRONG WHEN IT WAS WRITTEN, NOT LATER.** The entry
+(~05:00Z) says the fix *"depends on one capability question now being probed"*. That question was
+answered at **04:47Z**. This is not staleness accumulating over hours — **the two records disagreed
+at the moment the second one was created**, which is the same shape as the propagation fault the
+11:00Z watch found in T-005: a true sentence written down and then not reconciled with the sentence
+next to it.
+
+**WHAT WAS GENUINELY MISSING, AND IT IS THE HALF THAT DECIDES WHETHER HE GOT IT.** The re-arm box
+told its reader to run `CronList` and, if a dispatcher job was listed, do nothing. **A cron job
+armed with the OLD nine-step prompt is also listed.** So after any `/clear`, a reader would see a
+job, do nothing, and leave the fat-context shape running — his ask unmet while every document in
+the chain said it was done. Nothing outside that session can read a cron job's prompt, so **that
+reader is the only one who can ever check it**, and the runbook was the only place to say so.
+
+**1 · A GATE SATISFIED BY A SENTENCE ABOUT THE GATE — CEO 103 finding 2, and it is the reusable
+one.** The new check's shape rule read the whole re-arm section, so the paragraph naming the check
+itself (*"if the DISPATCHER LINE stops pointing at this file, or if the steps get inlined into the
+cron PROMPT again"*) supplied every keyword it wanted. **Delete the instructions and the rule stayed
+green.** Rule 1 of the same file already strips HEADINGS for exactly this class of defeat — and
+**the sweep was not carried to rule 4, in the same file, written in the same hour.** Fixed by
+reading only the numbered STEPS, and red-proofed twice: a fixture, and **a mutation of the REAL
+runbook with its steps stripped, derived live on every run so it cannot go stale.**
+
+**2 · A MEMORIAL IS NOT A GUARD — CEO 103 finding 3, and this project has now made it twice.** The
+presence-only rule matched two literal phrasings and its fixture substituted the deleted sentence
+**verbatim**, so it proved the rule caught *that sentence* rather than a reverted intent.
+*"CronList. If a job is listed, you're done."* sailed straight through. **CEO 100 made this exact
+correction to `glass_gate_verdict_logged_check.mjs` hours earlier and it did not transfer.** Widened
+to a class and scoped to the steps — and the scoping is what makes widening safe: **a paragraph
+recounting an old instruction is history and must stay sayable; a STEP that settles for presence is
+the fault.**
+
+**3 · A SAME-COMMIT PREDICTION CANNOT PROVE IT PREDATES THE CHECK — CEO 103 finding 4, minor and
+worth a convention.** The prediction note and the gate landed in one commit, so nothing outside the
+file corroborates the order. The whole value of a prediction is that it cannot be retrofitted.
+**Commit the prediction on its own, before the check exists.** Cheap, and it makes the claim
+checkable by anyone.
+
+### TWO THINGS ABOUT THIS BRANCH THE NEXT WATCH INHERITS
+
+**1 · `npm test` IS RED AND IT IS NOT THIS WATCH'S DOING — filed as `T-079`, not taken up.**
+`chartkeeper_check.mjs` fails on the case asserting his four-times-asked Chartkeeper row must rank
+first. Measured, not assumed: that check reads `CHART.md`, and the closing commit `42958113` does
+not touch it. **The cause is commit `8178eb29`**, which filed two good, unrelated questions into
+BLOCKED ON WYATT — and `T-001`'s score carries a +40 derived from that section being EMPTY. **It
+ranked first at 156 at 11:41Z and was out of the top nine by 11:50Z.** The signal is section-level
+standing in for a row-level fact, which is CEO 93's *"REAP measures a POINTER"* finding one floor
+up. **The acceptance test for the Chartkeeper is failing because the thing the Chartkeeper exists to
+prevent just happened to the row that asks for the Chartkeeper.** Do not fix it by relaxing the case.
+
+**2 · THIRD SIGHTING IN ONE DAY OF THE THREE-SESSIONS-ONE-CHECKOUT HAZARD, and this time it took a
+whole commit message.** While this watch was assembling its commit, the Glass-update session ran
+`git add -A` and committed all five of this watch's files under its own message (`42958113`,
+authored by a different model). **Nothing was lost** — but the account that was written to travel
+with the change did not travel, and the record now carries a four-line summary where a full one was
+ready. The rule *"write and commit in the SAME step"* is right and **this watch obeyed it and was
+still overtaken**, because the other session's window opened inside this one. The reusable form is
+stronger: **on a shared checkout, `git add -A` is not yours to run — stage by path.** The full
+account is preserved here and in `d004eab1`.

@@ -442,7 +442,7 @@ MEASURED reason. See the Chart row.
 > its tasks -- we don't want to keep adding to its context, that's unnecessary"
 solution: not yet applied — the mechanism is measured, the fix depends on one capability question
 now being probed. Runbook change goes in `.planning/wyclau/GLASS-UPDATE-SESSION.md`.
-status: OPEN.
+status: DONE 2026-09-02 — CEO 103, no game diff — no game diff -- his ask is the Glass-update session's own context, not the game: the runbook's re-arm box and a new gate on it; src/ and index.html untouched; his solution first: commit 4295811
 
   ⚠ **THIS IS THE SECOND TIME HE HAS ASKED, AND THE FIRST TIME IS QUOTED IN THE RUNBOOK'S OWN
   OPENING LINE.** `GLASS-UPDATE-SESSION.md:3-4` carries his original design in his own words:

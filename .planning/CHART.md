@@ -1014,6 +1014,34 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] `T-079` **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE
+      TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
+      take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
+      `chartkeeper_check.mjs` reads `CHART.md`, and the closing commit `42958113` does not touch
+      that file.
+      **THE FAILING CASE, in its own words:** *"the real Chart's top row is 'Your ruling: merge the
+      465-commit branch to main…' — his four-times-asked request must rank first, and the spec says
+      so in its own words."*
+      **WHAT ACTUALLY HAPPENED, and it is worth more than the red build.** At 11:41Z the Chartkeeper
+      ranked `T-001` (build the Chartkeeper — **his four-times-asked request**) **first, at 156**.
+      By 11:50Z it was not in the top nine. The only thing that changed is commit `8178eb29`, in
+      which another session filed two genuinely good, genuinely unrelated questions into
+      **BLOCKED ON WYATT**. `T-001`'s score carries a **+40 for "something it was waiting on has
+      landed"**, derived from that section being EMPTY — so filling it with anything at all silently
+      demotes every row that points there.
+      **THE DEFECT IS THE SIGNAL, NOT THE SCORE.** *"Points at BLOCKED ON WYATT, which is empty"* is
+      a section-level test standing in for a row-level fact. It cannot tell *"the question THIS row
+      waits on has been answered"* from *"somebody asked an unrelated question."* Same shape as the
+      fault CEO 93 already found in this tool: **REAP measures a POINTER, and a pointer is not the
+      thing it points at.**
+      **AND IT IS THE ACCEPTANCE TEST FAILING, WHICH IS THE POINT.** The Chartkeeper exists because
+      his repeated asks kept sinking on this list. It just happened again, to the row that asks for
+      the Chartkeeper, by the mechanism the Chartkeeper was meant to remove. **Do not fix this by
+      relaxing the gate case.**
+      **SIZE:** small-to-medium, entirely in `lib/chart_model.mjs` / `chartkeeper.mjs`, no game code.
+      Make the signal row-level — a row is unblocked when the question IT cites is answered — and
+      red-proof it by adding an unrelated BLOCKED ON WYATT row and checking the ranking does not move.
+
 - [ ] `T-076` **★★★ HIS FOUR GLASS-PAGE ASKS — FIVE HOURS OLD, ASKED FOUR TIMES, NEVER FILED AS A
       ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
       *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS

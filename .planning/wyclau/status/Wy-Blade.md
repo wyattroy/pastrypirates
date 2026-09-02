@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T11:31:11.392Z	self-publish check
+2026-09-02T11:51:56.244Z	Gate 99 landed: the re-arm box now checks the cron job's SHAPE, not just that it exists. 3 Chart rows look stale (release-trial evidence from an older build) -- first: 'Judge the 267 screenshots the release trial queued.'
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T12:16:01Z	hold off: a commit landed 31 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T12:26:01Z	hold off: a commit landed 41 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T14:15:42Z	ring: no watch on deck -- rang the next one
 2026-09-01T16:08:22Z	ring: no watch on deck -- rang the next one
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T09:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T093802Z.out/.err)
 2026-09-02T10:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T101802Z.out/.err)
 2026-09-02T10:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T105802Z.out/.err)
+2026-09-02T11:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T113803Z.out/.err)
 ```
