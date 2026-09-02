@@ -729,3 +729,17 @@ status: OPEN — FOR A WATCH, and it is a convention to write down rather than a
   **WHY IT MATTERS BEYOND ONE LINE:** he read that subject, disbelieved it, and had to ask. **An
   overstated subject does not merely mislead — it spends his trust in the numbers underneath it**,
   and those numbers were good.
+
+  ✅ **A SECOND, INDEPENDENT LOOK — added because the fidelity evidence was one agent's eyes, and
+  that is thin for 43% of the game's art.** The Advisor opened
+  `.planning/posed/board-webp-detail-1to1.png` itself rather than relaying the watch's account.
+  **On both worst-changed tiles (130,120 and 60,40): no banding and no 8x8 blocking in the open sea**
+  — which is where lossy encoding fails most visibly — **the title's serifs and flourishes hold their
+  shape, and the wheat awns survive**, those being the highest-frequency detail on the tile and the
+  first thing an encoder discards.
+  ⚠ **AND THE LIMIT OF THAT LOOK, STATED SO IT IS NOT OVERSOLD:** it is a comparison PNG viewed
+  downscaled, and the measured mean difference is **1.65/255 = 0.65% of full scale**, which is
+  **below what that view can resolve by construction.** So *"I could not see a difference"* is weaker
+  evidence than it sounds. The honest claim is the narrow one: *at the available scale, on the two
+  squares measured as worst, there is no visible artifact of the kind lossy compression produces.*
+  **Neither look replaces his own on the real board at full size.**
