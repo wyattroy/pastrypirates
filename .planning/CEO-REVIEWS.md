@@ -4834,6 +4834,11 @@ filed — see the note at the end, which is the watch's, not the CEO's.*
 
 ## CEO Review 87 — 2026-09-02T03:3xZ, Wy-Blade — the SECOND queue, on the build that would ship
 
+*Item under review (named by the recording watch, not by the CEO, so the close gate can trace this
+verdict to its row): **judge the 0137Z queue** — the Chart row "Your ruling: judge the 0137Z queue —
+the screenshots of the build that would actually be staged", which is his standing pre-ship ruling
+INBOX-20260902T0050Z applied to the second queue.*
+
 **HIS ASK, VERBATIM** (INBOX-20260902T0050Z, his own pick in the question UI): *"Judge the screenshots first"* — before staging, before release. Applied here to the 0137Z trial's queue.
 
 **VERDICT: DONE.** *"He asked for the screenshots to be judged, and they were judged, all of them."*

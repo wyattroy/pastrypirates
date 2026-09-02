@@ -3094,3 +3094,5 @@ stamps a screenshot with the run that took it. Nothing is sailing right now, so 
 was still intact — and the window is only open until the next trial starts.
 `node scripts/qa/judge_the_queue.mjs --snapshot=judge-0137Z-shots --before=2030-01-01T00:00:00Z`
 took **820 files, 0 already rewritten**. The evidence is out of reach now.
+
+- 2026-09-02T03:42:45Z · close_item: "judge the 0137Z queue" · CEO 87 · no game diff — a judging pass, not a code change: 315 of 315 queued screens judged (307 PASS, 8 FAIL, 0 unjudged, 0 lost) on build 2026.09.01.8, the stamp in the tree; deliberately no src/ diff, because any stamp bump retires the evidence just gathered · no stated solution

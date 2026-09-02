@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T03:04:14.830Z	The sea trial finished -- all 10 legs on build 2026.09.01.8, the build actually in the tree right now. All 820 screenshots were preserved this time (last trial lost 252 to the same overwrite bug); a full judging pass is running on them. Next: the findings, then your call on staging
+2026-09-02T03:34:43.483Z	CORRECTION to what I told you last tick: the 'tablet is fine' claim for the End of Voyage bug was wrong -- that screenshot turned out to be from an older build, not in this trial's queue at all, so phone-vs-tablet is unproven again (the phone bug itself is still real and confirmed). Separately, a third sighting confirms the trade-circle name-clipping bug is engine/size/mode-independent (now seen on WebKit desktop too), which strengthens the case for one universal fix rather than a patch
 ```
 
 ## Long run in flight (LONG-RUN)
