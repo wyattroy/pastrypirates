@@ -5,18 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T22:39:21.955Z	self-publish check
+2026-09-02T23:29:34.554Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "INBOX-20260902T1830Z / T-090 BUILD — an answered question leaves BLOCKED ON WYATT in the same act that records the ruling (his stated top priority, above all SEO work). Files I expect to own: scripts/wyclau/glass.mjs, a new scripts/wyclau/retire_answered.mjs, a new scripts/qa/answered_question_retired_check.mjs, package.json gates, .planning/CHART.md. NO game code — no src/, no index.html.",
+  "handle": "T-090",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-02T23:01:17.257Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T20:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T205802Z.out/.err)
 2026-09-01T21:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T210802Z.out/.err)
 2026-09-01T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T211802Z.out/.err)
 2026-09-01T21:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T212802Z.out/.err)
@@ -56,4 +63,5 @@ None recorded.
 2026-09-02T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T211801Z.out/.err, kit: readable)
 2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
 2026-09-02T22:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T222801Z.out/.err, kit: readable)
+2026-09-02T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T225801Z.out/.err, kit: readable)
 ```
