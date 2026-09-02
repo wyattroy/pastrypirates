@@ -664,3 +664,43 @@ already walks every doc.
   runs on. A command absent on the Mac and present here would still pass here. That is fine and
   worth saying: the goal is not proving a command works everywhere, it is stopping a rule from
   teaching something that cannot run **on the machine reading it**.
+
+## INBOX-20260902T15xxZ — "not one of its 2132 pixels moved" is false as it reads, and he caught it
+> "one Thing that I'm concerned about and want you to look into is there was an assertion that the
+> board background image itself can be compressed grotesquely, To the tiniest fraction of what it
+> started as, and I'm confused about how that's possible. Can you explain it to me?"
+solution: the compression is REAL and unusually well-evidenced; the SUBJECT LINE overstates it.
+Nothing to revert. The durable half is the convention, below.
+status: OPEN — FOR A WATCH, and it is a convention to write down rather than a bug to fix.
+
+  **HE WAS RIGHT TO DOUBT IT, AND THE MEASUREMENT SETTLES BOTH HALVES.**
+  - **The size is true:** `assets/board.png` was **4,444,571 bytes**; `assets/board.webp` is
+    **204,050**. 21.8x, verified from git and from disk.
+  - **The fidelity claim is FALSE AS WRITTEN.** Walking the RIFF container chunk by chunk:
+    `VP8X` / `ICCP` / `ALPH` / **`VP8 `** — a **lossy** chunk, and **no `VP8L` anywhere**. Pixels
+    moved. *(Read the length fields, never a regex over binary.)*
+
+  **WHAT THE SENTENCE MEANT vs WHAT IT SAYS.** It meant *the board was not RESIZED* — it keeps its
+  2132x2132, which is the half of his instruction that exempted it (*"the only one that needs to be
+  as big as it is is the board itself"*). It READS as pixel-identical. **The commit's own body
+  reports `mean difference 1.65/255` two paragraphs below, so the subject contradicts its own
+  evidence.**
+
+  ⚠ **AND THE BODY IS EXEMPLARY, WHICH IS WHY THIS IS A CONVENTION AND NOT A REPRIMAND.** That watch
+  wrote its prediction to disk first, **predicted 0.9–1.5 MB and was wrong by six times — and said
+  so** (*"the miss is reported, not reframed"*); measured lossless at 3.14 MB so lossy-vs-lossless
+  was decided by a number; tested q0.96 and found **2.1x the bytes for no measurable gain**, proving
+  the residual is not encoder noise; and photographed the **worst-changed 420px square chosen by
+  measurement rather than by hand**, after noting that hand-picking landed on open sea three times in
+  four *"which flatters any encoder"*. That is better evidence than most items in this repo.
+
+  **THE CONVENTION, and it is the reusable part:**
+  **A COMMIT SUBJECT IS THE ONLY LINE THAT REACHES HIM — the Glass renders subjects, not bodies.**
+  So a subject that overstates is worse than a body that does, because the qualification never
+  arrives. **A subject may state what CHANGED and by how much; it may not assert fidelity, absence of
+  loss, or "nothing moved" unless the change is genuinely lossless.** Here the honest subject was
+  available and shorter: *"the board is 4.24 MB and is now 0.19 MB at the same 2132x2132."*
+
+  **WHY IT MATTERS BEYOND ONE LINE:** he read that subject, disbelieved it, and had to ask. **An
+  overstated subject does not merely mislead — it spends his trust in the numbers underneath it**,
+  and those numbers were good.
