@@ -287,5 +287,45 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
   else pass("a note containing a version number is not cut at the version number");
 }
 
+// 10/10 — AND THE SAME CLASS AGAIN, FOUND BY PHOTOGRAPHING HIS REAL PAGE: a Chart row's title is
+//        HARD-WRAPPED in CHART.md, and the Tasks card was reading the first PHYSICAL LINE. So row 1
+//        of his own page — the row about this very ask — read "…his words: *"claude my" and simply
+//        stopped: cut mid-phrase, no ellipsis to say so, and a naked markdown asterisk left behind.
+//        His ask 5's own parenthetical names this: "the page clipping content rather than the
+//        content being wrong". A line break in a source file is not a place a sentence ends.
+{
+  const wrapped = [
+    "- [ ] **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: *\"claude my",
+    "      friend, you just HAVE to fix the glass.\"***",
+    "      ⟨`T-078`⟩",
+    "- [ ] **Build the kit-behind detector — the half of `T-078` he asked for.**",
+  ].join("\n");
+  const card = (/<h2>The Chart \(Tasks To Do\)[\s\S]*?<\/section>/.exec(
+    render({ chart: CHART(ONE_ROW, wrapped), status: HELD })) || [""])[0];
+  const first = (/<li>([\s\S]*?)<\/li>/.exec(card) || [null, ""])[1];
+
+  if (/^Fix the glass[\s\S]*my$/.test(first.trim()))
+    fail(`the row is cut where CHART.md happens to wrap: "${first.trim()}" — a line break in the source is not the end of his sentence`);
+  else if (!/friend/.test(first))
+    fail(`the row stops before its title does: "${first.trim()}" — the continuation lines of the row are not being read`);
+  else if (!/…$/.test(first.trim()))
+    fail(`the row is shortened with no sign that it was: "${first.trim()}" — a clipped line must say it is clipped`);
+  else pass("a row whose title wraps in CHART.md is read to the end of the title, and says when it is clipped");
+
+  // `~` is NOT in this class on purpose: `~~` is strikethrough and must go, but a lone `~` is the
+  // word "about" and this Chart writes "~90 minutes" in a dozen places.
+  /* A HANDLE IN THE MIDDLE OF A SENTENCE IS HIS CONTENT, NOT FILING. This case exists because the
+     fix above caused it: reading the whole paragraph made an unanchored handle-strip eat one
+     mid-clause, and his page read "the half of he asked for and nobody has built". Caught by
+     photographing the real page, not by this gate — which is why the case is here now. */
+  if (!/the half of T-078 he asked for/.test(card))
+    fail(`a row handle written inside the prose was eaten: ${JSON.stringify(((/<li>[^<]*half of[^<]*<\/li>/.exec(card) || [""])[0]).slice(0, 90))} — only a LEADING handle is filing`);
+  else pass("a handle quoted inside a row's own sentence survives; only a leading one is stripped");
+
+  if (/[*`]/.test(card))
+    fail(`raw markdown reaches his page: ${JSON.stringify((/[^<>]*[*`][^<>]*/.exec(card) || [""])[0].trim().slice(0, 80))} — emphasis and code ticks are for the file, not for him`);
+  else pass("markdown emphasis and code ticks are stripped before he reads them");
+}
+
 console.log(failed ? "\nFAIL" : "\nPASS");
 process.exit(failed ? 1 : 0);

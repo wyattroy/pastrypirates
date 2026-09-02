@@ -5,18 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T19:14:52.307Z	self-publish check
+2026-09-02T19:27:26.242Z	CEO 117's T-105 verdict landed (8838d73d, confirmed on the tree) and T-105 is now rank 2, the second open row on the Chart; 10 rows on the Chart look stale and are flagged for a watch to close, nothing closed automatically.
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "his five Glass asks — verify each one on the real rendered page, fix what is not right, and close the row",
+  "handle": "T-088",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-02T19:30:29.859Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T19:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T192803Z.out/.err)
 2026-09-01T20:08:04Z	ring: no watch on deck -- rang the next one (output: watch-20260901T200805Z.out/.err)
 2026-09-01T20:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T201803Z.out/.err)
 2026-09-01T20:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T202802Z.out/.err)
@@ -56,4 +63,5 @@ None recorded.
 2026-09-02T17:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T173802Z.out/.err, kit: readable)
 2026-09-02T18:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T181801Z.out/.err, kit: readable)
 2026-09-02T18:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T184801Z.out/.err, kit: readable)
+2026-09-02T19:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T192801Z.out/.err, kit: readable)
 ```

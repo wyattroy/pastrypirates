@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { stateOf } from "./lib/chart_model.mjs";
+import { chunk, stateOf, titleOf } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -122,7 +122,12 @@ const DEMO = argv.includes("--demo");
 /* Markdown markers the Chart uses that this page renders literally if they survive. Kept as
    ONE function because they were being stripped ad hoc in three places and ~~ was missed in
    all of them -- it reached the published page as raw tildes across a struck-through row. */
-const unmark = (s) => String(s).replace(/\*\*|~~/g, "");
+/* ⚠ AND SINGLE `*` AND BACKTICKS WERE STILL GETTING THROUGH, 2026-09-02. Photographed on his own
+   page: `…his words: *"claude my` and `the half of \`T-078\` he asked for`. The pair-only rule
+   caught bold and strikethrough and let every italic and every inline code span past it.
+   `~` ALONE IS DELIBERATELY LEFT: `~~` is strikethrough and goes, a lone `~` is "about", and this
+   Chart says "~90 minutes" in a dozen places — stripping it would promote an estimate to a fact. */
+const unmark = (s) => String(s).replace(/\*\*|~~/g, "").replace(/[*`]/g, "");
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const tryReadTimestamp = (p) => {
@@ -346,7 +351,9 @@ function deShout(s) {
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
    ones so the Tasks card stays scannable rather than a wall of text. */
 function shortTask(s) {
-  let t = deShout(unmark(s).replace(/\s*\*\([^)]*\)\*\s*$/, "").trim());
+  /* THE ASIDE IS STRIPPED BEFORE `unmark`, NOT AFTER — its own asterisks are how it is recognised,
+     and `unmark` now takes single asterisks, so the old order would have quietly retired this. */
+  let t = deShout(unmark(String(s).replace(/\s*\*\([^)]*\)\*\s*$/, "")).trim());
   const words = t.split(/\s+/).filter(Boolean);
   return words.length > 16 ? words.slice(0, 16).join(" ") + "…" : t;
 }
@@ -431,7 +438,17 @@ if (chart !== null) {
   // reboot checklist (the only checklist section today) plus any Chart-inbox items, in that
   // order — the checklist is the standing plan, the inbox is what just arrived.
   const stepSec = chart.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
-  const openChecklist = (stepSec.match(/^- \[ \] .*$/gm) || []).map((l) => shortTask(l.replace(/^- \[ \] /, "")));
+  /* ⚑ CONVERGED 2026-09-02, and the divergence had already reached his screen. This read
+   * `/^- \[ \] .*$/gm` — the row's first PHYSICAL LINE — while `lib/chart_model.mjs` carried a
+   * `titleOf()` whose own comment said it was "the one-line title a human (and the Glass) sees".
+   * Two definitions of one thing, one of them claiming to be the other's. Rule 23's question —
+   * *what makes these two agree?* — had the answer "nothing", and the cost was visible in row 1 of
+   * his real page: `…his words: *"claude my`, cut where CHART.md happens to wrap. There is now one
+   * reader, and `chunk()` is the same row-boundary rule the Chartkeeper ranks and sweeps by, so a
+   * row cannot mean one thing to the page and another to the tool that orders it. */
+  const openChecklist = chunk(stepSec, "checklist")
+    .filter((c) => c.type === "row" && /^- \[ \] /.test(c.lines[0]))
+    .map((c) => shortTask(titleOf(c.lines)));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
      SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
      pending. Feeding the whole inbox in made the Tasks card count answered ideas as work left to

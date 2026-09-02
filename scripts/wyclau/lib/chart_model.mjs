@@ -156,14 +156,41 @@ export function tableRows(sectionText) {
  *  and stop sweeping with everything still green. Rule 23 in miniature. */
 export const rowKey = (kind, chunkIndex) => `${kind}#${chunkIndex}`;
 
-/** The one-line title a human (and the Glass) sees: the row's first line, markers stripped. */
+/** The one-line title a human (and the Glass) sees: the row's opening paragraph, unwrapped and
+ *  markers stripped.
+ *
+ *  ⚠ A LINE BREAK IN A SOURCE FILE IS NOT A PLACE A SENTENCE ENDS, AND THIS READ THE FIRST LINE.
+ *  Found 2026-09-02T19:4xZ by photographing his real page rather than by reading this file: row 1
+ *  of the Glass — the row about his own "you just HAVE to fix the glass" ask — rendered as
+ *  `Fix the glass — his five asks from the screenshot, 2026-09-02T16:1xZ. his words: *"claude my`
+ *  and stopped, because `CHART.md` happens to hard-wrap there. Cut mid-phrase, no ellipsis to say
+ *  it had been cut, and a naked markdown asterisk left behind. His ask 5's own words name the
+ *  class: "the page clipping content rather than the content being wrong."
+ *
+ *  THE PARAGRAPH, NOT THE WHOLE ROW. Joining every line would hand callers a 200-line essay under
+ *  a heading called `titleOf`; stopping at the first blank line is exactly "the title as it was
+ *  typed, with the wrapping taken back out". Rows here put their handle and their body below that
+ *  break, which is why the boundary is the row's own convention rather than a length.
+ *
+ *  `~` SURVIVES ON PURPOSE. `~~` is strikethrough and goes; a lone `~` is "about" — the Chart says
+ *  "~90 minutes" in a dozen places, and stripping it would quietly promote an estimate to a fact.
+ */
 export function titleOf(rowLines) {
-  return rowLines[0]
+  const paragraph = [];
+  for (const l of rowLines) { if (!l.trim()) break; paragraph.push(l.trim()); }
+  return paragraph.join(" ")
     .replace(/^- \[[ xX]\] /, "")
     .replace(/^[-*] /, "")
-    .replace(/`T-\d{3}`\s*/, "")
+    /* ⚠ ANCHORED, AND IT WAS NOT — a regression this file's own change caused and a photograph of
+       his page caught before it shipped. Unanchored, and now reading the whole opening paragraph
+       rather than one line, this ate a handle in the MIDDLE of a sentence: "the half of `T-078` he
+       asked for" rendered as "the half of he asked for". A row's own filing handle leads the title
+       (or arrives as ⟨…⟩); a handle inside the prose is Wyatt being told which row is meant. */
+    .replace(/^`T-\d{3}`\s*/, "")
     .replace(/⟨[^⟩]*⟩\s*/g, "")
-    .replace(/\*\*|~~|`/g, "")
+    .replace(/\*\*|~~/g, "")
+    .replace(/[*`]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
