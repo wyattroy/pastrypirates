@@ -116,9 +116,18 @@ export function parseChart(text) {
   const stepChunks = chunk(stepText, "checklist");
   const inboxChunks = /\(empty/.test(inboxText) ? [] : chunk(inboxText, "inbox");
 
+  /* `key` IS THE ONLY THING IN HERE GUARANTEED UNIQUE, AND THAT IS WHY IT EXISTS. Everything else a
+     caller might reach for as an identity can repeat: two rows may share a title (nothing forbids
+     it), and `id` is null until a write pass allocates one. `new Map(pairs)` keeps the LAST value
+     for a repeated key without a word, so a title-keyed lookup silently hands one row's verdict to
+     another — measured 2026-09-02: REAP's "⚠ STALE-CANDIDATE" flag was written into a row it had
+     never judged, and `score()` gave it the +40 that goes with it.
+     A chunk index is unique within its own chunk list by construction, and `kind` separates the two
+     lists — so this is derived, not a counter somebody has to remember to bump. */
   const mk = (c, kind, i) => ({
     kind,
     chunkIndex: i,
+    key: `${kind}#${i}`,
     lines: c.lines,
     raw: bodyOf(c.lines),
     title: titleOf(c.lines),

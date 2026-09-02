@@ -141,7 +141,42 @@ const inboxEntries = (() => {
     }).filter((e) => e.id);
   } catch { return []; }
 })();
-const inboxById = new Map(inboxEntries.map((e) => [e.id, e]));
+/* ⚠ ONE ID CAN NAME TWO OF HIS NOTES, AND `new Map(pairs)` HIDES THAT. This was
+ * `new Map(entries.map(e => [e.id, e]))`, which keeps the LAST pair for a repeated key and says
+ * nothing — so whichever note he happened to type SECOND decided, for both of them, whether a
+ * citation of that stamp counts as an outstanding instruction worth +100. CEO 94 found the real
+ * instance: `INBOX.md` carries two different entries under `INBOX-20260902T05xxZ`.
+ *
+ * SIZED HONESTLY, BECAUSE THE MEASUREMENT CAME FIRST: on 2026-09-02 both colliding entries were
+ * open and no row cited that stamp, so **nothing on his page was wrong**. The defect is that the
+ * answer was UNGROUNDED — it turned on file order, which is the same fault as reading a row's own
+ * prose about itself. It is fixed here rather than left because the day a row cites that stamp,
+ * nothing would say so.
+ *
+ * TWO RULES, and both are this file's existing ones applied to its own inputs:
+ *   UNDER-CLAIM WHEN AMBIGUOUS — an id naming two notes only counts as live when EVERY note under
+ *   it is live. We cannot tell which one the row meant, and over-claiming is the failure the whole
+ *   grounding pass was written to end.
+ *   FLAG, NEVER ABSORB — the duplicate is a fault in HIS record and can only be repaired in
+ *   `INBOX.md`, so the report names it. A reader that silently copes makes the collision permanent. */
+const inboxById = (() => {
+  const m = new Map();
+  for (const e of inboxEntries) {
+    const prev = m.get(e.id);
+    if (prev) prev.push(e);
+    else m.set(e.id, [e]);
+  }
+  return m;
+})();
+const ambiguousInboxIds = [...inboxById].filter(([, es]) => es.length > 1).map(([id]) => id);
+/** True only when every entry sharing this id is still live. See the two rules above.
+ *  The length guard is not decoration: `[].every()` is TRUE, so an unknown id would otherwise come
+ *  back live — a citation of a stamp in no Inbox at all buying the approval bonus, which is exactly
+ *  what gate case 11b exists to stop. */
+const idIsLive = (id) => {
+  const es = inboxById.get(id) ?? [];
+  return es.length > 0 && es.every((e) => e.live);
+};
 
 /* HIS RULINGS, from the Chart's own two tables. The `item` cell of every row of `## RULED` and
  * `## SETTLED RULINGS` — the record a harvest writes when he taps a ruling on the Glass.
@@ -177,7 +212,7 @@ const linksOf = (row) => {
   const backRef = row.id ? inboxEntries.filter((e) => e.body.includes(row.id)).map((e) => e.id) : [];
   return {
     cited,
-    live: cited.filter((id) => inboxById.get(id).live),
+    live: cited.filter((id) => idIsLive(id)),
     raised: new Set([...cited, ...backRef]),
     taggedClaim: /^Your ruling:/i.test(row.title),
   };
@@ -381,9 +416,17 @@ function derive(src) {
   const reap = [];
   for (const row of openItems) {
     const reasons = reasonsFor({ raw: row.raw, context: row.raw, title: row.title });
-    if (reasons.length) reap.push({ id: row.id, kind: row.kind, title: row.title, reason: reasons.join("; ") });
+    if (reasons.length) reap.push({ id: row.id, key: row.key, kind: row.kind, title: row.title, reason: reasons.join("; ") });
   }
-  const reapById = new Map(reap.map((r) => [r.title, r.reason]));
+  /* KEYED BY `row.key`, NEVER BY TITLE — the same fault as the Inbox collision above, and worse
+     where it lands. Nothing forbids two rows from sharing a first line, and a title-keyed lookup
+     hands one row's verdict to the other: `score()` reads this map to decide a −1000 blocked
+     penalty and a +40 "something it was waiting on has landed", and the write pass reads it to
+     stamp "⚠ STALE-CANDIDATE" into the file HE reads. Measured 2026-09-02 with two same-titled
+     rows: the innocent one scored 40, was told something it had never waited on had landed, and
+     had the other's stale flag written underneath it. `row.key` is unique by construction
+     (`chart_model.mjs`). */
+  const reapByKey = new Map(reap.map((r) => [r.key, r.reason]));
 
   // ── SETTLE ──
   /* ⚠ IT COUNTS WHAT IT LOOKED AT, NOT ONLY WHAT IT FOUND, and that is not decoration.
@@ -426,14 +469,14 @@ function derive(src) {
         : parsed.blockedQuestions.some((q) => q.includes(row.title.slice(0, 40)));
 
     settle.push({
-      id: row.id, kind: row.kind, title: row.title, fate, resolved,
+      id: row.id, key: row.key, kind: row.kind, title: row.title, fate, resolved,
       claims: judged, settled, open,
       why: fate === "VALIDATE"
         ? `every one of its ${judged.length} parts derives finished`
         : `half done — ${settled.length} of ${judged.length} parts derive finished, the rest is real work`,
     });
   }
-  const settleByTitle = new Map(settle.map((s) => [s.title, s]));
+  const settleByKey = new Map(settle.map((s) => [s.key, s]));
   const settleUnresolved = settle.filter((s) => !s.resolved).map((s) => s.title);
 
   // ── RANK ──
@@ -442,7 +485,7 @@ function derive(src) {
   // a file that no longer exists.
   const ruleTokens = rulingItems(src).map((s) => tokens(s));
   const ranked = openItems
-    .map((row) => ({ row, ...score(row, { reapById, settleByTitle, ruleTokens }) }))
+    .map((row) => ({ row, ...score(row, { reapByKey, settleByKey, ruleTokens }) }))
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
     .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
 
@@ -458,7 +501,7 @@ function derive(src) {
     })
     .map((row) => row.title);
 
-  return { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked, unbackedApproval };
+  return { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval };
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -467,12 +510,12 @@ function derive(src) {
    is a ranking that only looks like it works (the gate proves this by ranking the same rows from
    two different file orders and demanding the same answer).
    ──────────────────────────────────────────────────────────────────────────────────────────── */
-function score(row, { reapById, settleByTitle, ruleTokens }) {
+function score(row, { reapByKey, settleByKey, ruleTokens }) {
   const why = [];
   let s = 0;
   const gated = /\bGATED:/.test(row.raw);
   const needsWyatt = (headField(row, "needs") || "").toLowerCase() === "wyatt";
-  const livePointer = /BLOCKED ON WYATT/i.test(row.raw) && !reapById.has(row.title);
+  const livePointer = /BLOCKED ON WYATT/i.test(row.raw) && !reapByKey.has(row.key);
 
   // BLOCKED SINKS TO THE BOTTOM, ALWAYS. The spec: "this alone fixes most of the present list."
   if (gated || needsWyatt || livePointer) {
@@ -519,7 +562,7 @@ function score(row, { reapById, settleByTitle, ruleTokens }) {
      never been started. Describing a half-done row to him as finished is worse than leaving it
      unranked: he steers by these phrases. So a row SETTLE has judged is described by SETTLE, and
      the whole-row verdict is not allowed to speak over it. */
-  const st = settleByTitle.get(row.title);
+  const st = settleByKey.get(row.key);
   if (st) { s += st.fate === "VALIDATE" ? 60 : 50; why.push(st.why); }
   /* SOMETHING IT WAS WAITING ON HAS LANDED — and this sentence used to read "looks finished —
      needs a verdict, not work", which was a lie about four live rows at once.
@@ -536,7 +579,7 @@ function score(row, { reapById, settleByTitle, ruleTokens }) {
      thing on the list to pick up). Only the sentence changes, because the sentence is the whole
      of what he steers by — "an order he cannot read is an order he cannot overrule", and an order
      he reads WRONGLY is worse than either. */
-  else if (reapById.has(row.title)) { s += 40; why.push("something it was waiting on has landed"); }
+  else if (reapByKey.has(row.key)) { s += 40; why.push("something it was waiting on has landed"); }
 
   // PLAYER-FACING OUTRANKS INSTRUMENT-FACING. This is the rulebook's own THE POINT, made
   // mechanical: "is the game better than it was this morning, in a way a player would notice?"
@@ -636,7 +679,7 @@ if (WRITE && DO.settle) {
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
 }
-const { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked, unbackedApproval } = d;
+const { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 4 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
@@ -730,11 +773,18 @@ if (WRITE) {
       const done = marker === "checklist" ? /^- \[[xX]\]/.test(out[i].lines[0]) : null;
       if (done === false) slots.push(i);
     }
+    /* WHICH ROW'S TEXT ENDS UP IN EACH SLOT — tracked, never re-derived from the text afterwards.
+       This used to look the row's verdict up by `titleOf(lines)` after placement, and two rows
+       sharing a first line therefore got each other's flags written into HIS file. A chunk starts
+       out holding the row parsed at that same index; a reorder moves a known row into a known slot.
+       Both are facts we have; the title was a guess dressed as an identity. */
+    const keyAt = new Map(slots.map((i) => [i, `${marker}#${i}`]));
     const order = ranked.filter((r) => r.kind === marker);
     if (slots.length === order.length) {
       for (let k = 0; k < slots.length; k++) {
         const before = out[slots[k]].lines.join("\n");
         out[slots[k]] = { type: "row", lines: order[k].row.lines.slice() };
+        keyAt.set(slots[k], order[k].row.key);
         if (out[slots[k]].lines.join("\n") !== before) wrote.reordered++;
       }
     }
@@ -744,8 +794,8 @@ if (WRITE) {
       const had = idOf(lines);
       lines = withId(lines, had ?? nextId());
       if (!had) wrote.ids++;
-      const st = settleByTitle.get(titleOf(lines));
-      const reason = reapById.get(titleOf(lines));
+      const st = settleByKey.get(keyAt.get(i));
+      const reason = reapByKey.get(keyAt.get(i));
       if (st) { lines = withSettle(lines, st); wrote.flags++; }
       else if (reason) { lines = withStale(lines, reason); wrote.flags++; }
       out[i].lines = lines;
@@ -768,9 +818,12 @@ if (WRITE) {
   //    which is what makes the `done` count start meaning "done this week".
   if (DO.sweep && sweepable.length) {
     const stamps = [];
-    stepOut = stepOut.map((c) => {
+    // Same rule as the flags above: a DONE row is identified by the slot it was parsed from, never
+    // by its title. Done rows are never moved by the reorder, so a chunk index still names one.
+    const sweepByKey = new Map(sweepable.map((x) => [x.row.key, x]));
+    stepOut = stepOut.map((c, i) => {
       if (c.type !== "row") return c;
-      const hit = sweepable.find((x) => titleOf(x.row.lines) === titleOf(c.lines));
+      const hit = sweepByKey.get(`checklist#${i}`);
       if (!hit) return c;
       const id = idOf(c.lines) ?? "T-???";
       const when = hit.when.toISOString().slice(0, 10);
@@ -802,6 +855,7 @@ here: the full text of every row is below, under the handle the Chart still poin
 if (JSON_OUT) {
   console.log(JSON.stringify({
     chart: CHART, treeStamp, now: NOW.toISOString(), wrote: WRITE ? wrote : null,
+    ambiguousInboxIds,
     reap,
     settle: DO.settle ? settle : [],
     settleUnresolved: DO.settle ? settleUnresolved : [],
@@ -813,6 +867,16 @@ if (JSON_OUT) {
 } else {
   console.log(`THE CHARTKEEPER — ${CHART}`);
   console.log(`tree stamp ${treeStamp ?? "(unreadable)"} · ${parsed.openRows.length} open rows + ${parsed.openIdeas.length} unfated ideas = ${openItems.length} tasks on his phone\n`);
+  /* NAMED, NOT ABSORBED. A stamp naming two of his notes can only be repaired in INBOX.md, and a
+     reader that silently copes with it makes the collision permanent. Until it is repaired, a
+     citation of that stamp is deliberately not credited as an outstanding instruction — we cannot
+     tell which of the two notes the row meant. */
+  if (ambiguousInboxIds.length) {
+    console.log(`⚠ ${ambiguousInboxIds.length} stamp(s) in your Inbox name MORE THAN ONE note, so a row citing them cannot be`);
+    console.log("  read as approval — give one of each pair a distinct stamp in .planning/wyclau/INBOX.md:");
+    for (const id of ambiguousInboxIds) console.log(`       • ${id}  (${inboxById.get(id).length} entries)`);
+    console.log("");
+  }
   if (DO.reap) {
     console.log(reap.length === 0
       ? "REAP   the Chart is fine — every pointer on it still resolves.\n"
