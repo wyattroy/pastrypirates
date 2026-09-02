@@ -487,6 +487,22 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   one of them. This is the screen a new player sees last and the one most likely to be screenshotted
   at launch. Rule 26: pose the End of Voyage at 390×664 before and after; do not go looking for a
   rate. Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+  **⚑ REPRODUCED ON THE CURRENT BUILD, IN A SECOND MODE — AND NOW SCOPED. Watch 2026-09-02T03:00Z,
+  judging the 0137Z queue.** The automatic judge found it again on its own, unprompted, at
+  `solo-phone-023-settled.png` — **solo**, not pass-and-play, on build `2026.09.01.8`, which is the
+  stamp in the tree. Opened by eye and it is the identical fault down to the detail: *The
+  Silver-Tongued Ledger*'s winner — **Davy Scones, in pink** — sliced horizontally with only the
+  tops of the letters clearing the button's frosted backing, while *Crustbeard* on the right card
+  survives by sitting a few pixels higher. **So it is not one screen in one mode; it is what the
+  End of Voyage does on a phone.**
+  **AND THE SCOPE IS NARROWER THAN THE ROW ASSUMED, WHICH MAKES THE FIX EASIER RATHER THAN HARDER:
+  it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-031-settled.png`, same
+  run, same build, same screen: four award cards in one row, **every winner's name fully legible**
+  (Davy Scones, Crustbeard, Dough Hook, Flaky Jack), the whole stats table readable, and *Play
+  again!* sitting clear BELOW the content with space around it. Nothing is covered. So the
+  posed pair rule 26 asks for has a third picture already taken: **pose 390×664 before and after,
+  and check it against the tablet, which is what the screen is supposed to look like.**
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
   deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
@@ -579,8 +595,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 | Question | Recommendation | since |
 |---|---|---|
 | **On your iPhone or your Mac's Safari: in the black-market card — *"They'll find ye one more ingredient — for 10 🌕."* — do you SEE a gold coin after the 10, or a blank gap and a stray full stop?** Ten seconds, and your phone is the only real Safari this project has. | **Recommended: tell us either way, then we make the coin an image everywhere regardless.** The game currently draws its own money two different ways — a picture in the captains' panel, a typed symbol in the sentences — and one of them came out blank in testing. Even if your Safari is fine, one coin drawn one way is the rule we already hold ourselves to. | 2026-09-02 |
+| **You asked tonight how big the recipe pictures actually get drawn. On the screen where you CHOOSE your recipe, the one you have picked is the one you cannot see — the orange "Bake this!" pill sits on top of its pastry and covers nearly all of it.** Should it move? | **Recommended: move the pill below the picture (or into the card's top corner), so both pastries stay visible while you choose.** But this is a real trade and it is yours, not ours: the pill was put over the art deliberately on 2026-08-13 to solve a different problem — *"nothing said how to commit a recipe"*, the confirming second tap was undiscoverable — and it has not moved since. Moving it off the art may put that back. **Size: a few lines of CSS, no logic.** Seen on all six legs, all three modes, three sizes, both engines, so it is how the screen always looks — not a glitch. | 2026-09-02 |
 
-*One question is open (above), found by the judging pass.
+*Two questions are open (above), both found by a judging pass.
 Otherwise: The recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
 00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
 size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
