@@ -1056,6 +1056,45 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] `T-083` **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
+      2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
+      **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
+      ordering, and the door should read what's at the top. the rank algorithm should prioritize my
+      requests over bugs that the Watch generated; and i need a way to say DO THIS NOW such that
+      RANK puts it at the top -- eg a checkbox underneath the ideas list that says 'Add to top of
+      list'"*
+      **WHY IT MATTERS MORE THAN IT LOOKS: there are TWO orderings today and rule 23 says that is the
+      defect.** The Door has its own rule (`SKILL.md:81` — INBOX oldest-first, then the Chart) and
+      RANK has another. *What makes these two agree?* **Nothing.** His design deletes one of them.
+      **AND THE MEASURED COST OF OLDEST-FIRST:** 8 open Inbox items, the oldest from the previous
+      day, so **anything he writes now is automatically his lowest-priority item.** That inversion —
+      not anyone's discipline — is what forced him to interrupt and repeat himself five times on
+      2026-09-02.
+      **1 · CONVERGE THE TWO DERIVATIONS FIRST — nothing else works until this lands.** Patch 4's own
+      caveat: RANK reorders *within the open-row slots the file already has* and **cannot reorder
+      across the two sections the Glass concatenates** (checklist rows, then unfated inbox entries).
+      *"The Door reads what is at the top"* is meaningless until there is ONE list to be at the top
+      of. This is `PENDING-KIT-PATCHES.md` patch 5 — `glass.mjs` imports
+      `scripts/wyclau/lib/chart_model.mjs` and the duplicated fate/concat block is deleted.
+      **Unblocked as of the `vendor_check` inversion.** Its gate
+      (`chart_model_agrees_with_glass_check.mjs`) becomes a tautology once one function cannot
+      disagree with itself and should be **RETIRED, not kept** — patch 5 says so itself.
+      **2 · RANK GAINS A SOURCE SIGNAL.** *"prioritize my requests over bugs that the Watch
+      generated."* **Derive it, never add a field:** his items carry his words (an Inbox entry with a
+      `>` quote block, or a Chart row quoting him); watch-filed rows carry a watch stamp. Rule 9.
+      **3 · THE DOOR DROPS ITS OWN RULE.** `SKILL.md:81`'s *"INBOX first — the oldest OPEN item"*
+      becomes *"work whatever RANK put first."* **Delete the old rule rather than adding beside it**
+      — leaving both is the two-orderings fault re-created.
+      **4 · THE "ADD TO TOP" CHECKBOX**, under the Ideas box on the Glass, and the harvest carries
+      the flag through so RANK sees it. **This is the half that removes HIM from the mechanism:**
+      every interrupt on 2026-09-02 required him to notice, interrupt and repeat himself.
+      ⚠ **ONE SLOT, NOT A QUEUE.** Ticking it on a second item must displace the first, deliberately.
+      **A gate fails the build on two.** An interrupt with a queue is just another backlog, which is
+      the fault this whole design removes.
+      ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
+      taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
+      exactly what happened all night.
+
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
