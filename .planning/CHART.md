@@ -986,7 +986,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
       ⟨`T-025`⟩
   Captain's log) on the thin-surface architecture (design, section IV)
-- [ ] **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE
+- [x] **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE (closed 2026-09-02 · CEO 104 · no game diff — no game code is right -- the ask is the Chartkeeper's ranking signal, not the game: commit ed827799, npm test 99/99)
       ⟨`T-079`⟩
       TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
       take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
@@ -1108,6 +1108,51 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE FIX IS THE NOTE'S WORDING, NOT YOUR CALL'S LOGIC** — the reaper's line must say it is
       talking about **stale rows to clean up**, never about a question waiting on him. Rule 8: a
       word that means "waiting on Wyatt" must mean that everywhere on this page.
+
+- [ ] **TWO DIFFERENT ROWS ON THIS CHART BOTH CARRY `T-079`, AND THE HANDLE IS NOW LOAD-BEARING.**
+      Found 2026-09-02T12:5xZ by the watch that closed `T-079`, while trying to close it: the close
+      gate could not find the row by handle because there are two. `CHART.md:990` (the npm-test row,
+      just closed) and `CHART.md:1166` (**THE PROJECT OWNS ITS DOOR**) share it.
+      **WHY IT MATTERS MORE TODAY THAN IT DID YESTERDAY.** As of `ed827799` a handle is no longer a
+      label — it is the LINK that decides whether a row is hidden from him. A question of his that
+      names `T-079` would sink **both** rows, and a settled ruling naming it would flag both stale.
+      This is block 12's own fault class (`new Map(pairs)` keeps the last value for a repeated key)
+      arriving one floor up, in his record instead of in the code.
+      **THE GATE THAT WOULD CATCH IT EXISTS AND IS POINTED AT A FIXTURE.** `chartkeeper_check.mjs`
+      case 7 asserts "every allocated id is distinct" — on `MIXED`, never on the real Chart. **A
+      gate aimed at the wrong tree is not silent, it is reassuring** (`HARD-WON-LESSONS.md` §3).
+      **DO NOT RENUMBER THE OLDER ROW.** A handle is allocated once and never reused — a CEO
+      verdict, a ledger entry and this row all point at `T-079` meaning the npm-test row. Give the
+      NEWER row (the Door row, filed by hand in `5e75bcf3` alongside `T-078`/`T-080`/`T-081`) a free
+      handle, then add the real-Chart case. **Sizing: minutes for the renumber, one case for the
+      gate. Red-proof by leaving the duplicate in place and watching the new case fail.**
+
+- [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
+      do, and until somebody does, NOTHING is ever marked "waiting on Wyatt".** CEO 104's one
+      sentence for him says exactly this.
+      **WHAT THE TOOL ALREADY TELLS YOU** — run `node scripts/wyclau/chartkeeper.mjs --rank` and
+      read the last two warnings. Today: **4 rows talk about his BLOCKED ON WYATT table and name no
+      question** (the Chartkeeper row, the staging-deploy row, the npm-test row and the Your-Call
+      wording row), and **2 of his open questions name no task** (*"May an unattended watch READ the
+      claude-kit folder?"* and *"Do you want `SCHEDULED` to stop hiding your ideas?"*).
+      **THE JOB:** for each of his questions, write the `T-nnn` of every row it actually holds up
+      into the question's own cell. Same for `SETTLED RULINGS`, whose rows currently name their
+      subjects in prose only — the staging-permission ruling is the worked example: it is settled,
+      the row it freed is still open at rank 32, and no machine can see the connection.
+      ⚠ **THIS IS A CONTENT JUDGEMENT, WHICH IS WHY IT WAS LEFT.** Attaching a question to a row
+      HIDES that row from him. The Chartkeeper row is the trap: its remaining half really is
+      kit-blocked, but it is a BUNDLE with unblocked parts (this watch worked one), and sinking a
+      bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
+      bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
+
+- [ ] **`unattachedMentions` STILL WORD-SEARCHES FOR THE HEADING — CEO 104's one residual, and it is
+      advisory only.** `chartkeeper.mjs`, in `derive()`: the list of rows that need a link is found
+      by `/BLOCKED ON WYATT/i.test(row.raw)`, the very grep `ed827799` removed from the SCORE. So a
+      row that says *"waiting on his call"* in different words is never listed as needing a handle.
+      **It cannot sink anything any more** — that is why it is a blind spot in a helper report
+      rather than a live defect, and why it was not fixed in the same pass. **Sizing: small.** The
+      honest version derives the candidate set from something structural (a row with no handle at
+      all cannot be linked, and that IS derivable) rather than from a phrase.
 
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
