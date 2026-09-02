@@ -24,7 +24,10 @@ const ING_IMG={};ING_ALL.forEach(i=>ING_IMG[i]=`${ASSET_BASE}ingredients/${i}.pn
 // blackened silhouette of each ingredient, same alpha shape as ING_IMG — rendered at 30%
 // opacity to leave a "hole" where a crate used to sit once it's taken
 const ING_HOLE_IMG={};ING_ALL.forEach(i=>ING_HOLE_IMG[i]=`${ASSET_BASE}ingredients/holes/${i}.png`);
-const BOARD_IMG=`${ASSET_BASE}board.png`;
+/* WEBP — the frozen v1 shares the one converted file, exactly as Wyatt ruled for the recipe art
+   (INBOX-20260902T0048Z). assets/board.png no longer exists; leaving this pointing at it would
+   blank /classic's board while every gate stayed green. Same 2132x2132 pixels, 4.24 MB -> 0.19 MB. */
+const BOARD_IMG=`${ASSET_BASE}board.webp`;
 const DOCK_IMG=`${ASSET_BASE}dock.png`;
 const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
 const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;

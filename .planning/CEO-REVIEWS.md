@@ -7,6 +7,160 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 97 — 2026-09-02, Wy-Blade — the Watch that converted the BOARD to WebP
+
+*Item: the board lever of `INBOX-20260901T1335Z` (his launch-critical compression ask). Reviewed
+against the STAGED change, before it was committed, so the verdict could still change the work —
+and it did: the Safari finding below was acted on inside the same watch and is now closed.*
+
+**Fresh context, read-only.** Decoded the WebP header itself, re-ran four gates, ran `gear.mjs`,
+opened all three posed images, read every new script, traced the failing gate's provenance in git,
+and read CEO 96. Its verdict, in its own words:
+
+### VERDICT: **PARTIAL.**
+
+> **The one sentence:** He asked for the game to load much faster, and this took 4.24 MB off — 43%
+> of all the art in the game — with every one of the board's 2,132 pixels still there and a picture
+> at 3x magnification that I genuinely cannot tell from the original; but the single risk this
+> change carries is that Apple's browser draws a **blank sea with no error message**, and that is
+> the exact risk CEO 96 flagged ninety minutes earlier, on the exact same conversion, and it has
+> been left unmeasured again — in a probe that imports the Chrome driver and not the Safari one that
+> sits three files away.
+>
+> ### The central question first: is the reinterpretation honest?
+>
+> **Yes. I tried to break it and could not.** His sentence is *"the only one that needs to be as big
+> as it is is the board itself — everyhting else should be resized and compressed according to its
+> **maximum pixel size** in the real gameplay."* The exemption's contrast class is named right
+> there: everything else gets resized to its max pixel size. "As big as it is" against that clause
+> means **dimensions**. Nobody describes a file as needing to keep its *bytes*.
+>
+> The stronger argument is the one the watch didn't make: **the opposite reading is incoherent with
+> his own ask.** He opened by saying the point is to load much faster, off ~18 MB of images.
+> Exempting the largest file in the game — 43% of the art — from the byte-reduction he commissioned
+> would defeat the sentence it sits in. And the rationale he'd actually have for protecting the
+> board is a *pixel* rationale: it's the only image you can zoom into. `ASSET-DISPLAY-SIZES.md:22`
+> says the board's max on-screen size is 2168x2168 device pixels against a 2132px file — it is
+> already slightly under-resolution at full zoom, so a resize really would be visible. The watch
+> honoured that and refused to resize (`board_reexport.mjs:79-83` aborts if the canvas dimensions
+> disagree with the file).
+>
+> **Where it falls short:** this is still an interpretation of his sentence, made without asking him,
+> on a launch-critical item, on his commissioned art. The right move was to do the work *and* put
+> one line in front of him: *"I read 'the board stays big' as pixels, not bytes — here is the
+> before/after at 3x; say stop if I've got that wrong."* Nothing in this tree does that.
+> **That is CEO 96's item (c) — "nothing in this work is written to him" — recurring.**
+>
+> ### Claim by claim
+>
+> **1. Not one pixel resized — CONFIRMED, independently.** I decoded the file's own bytes rather
+> than trusting the report: `assets/board.webp` is `RIFF`/`WEBP`, chunk `VP8X`, canvas width bytes
+> `53 08 00` → 0x853+1 = **2132**, height identical. Flags byte `0x30` = ICC profile + alpha both
+> present, so the transparency and colour profile survived. This is a straight re-encode.
+>
+> **2. The weight numbers — CONFIRMED to the byte.** `git cat-file -s HEAD:assets/board.png` =
+> **4,444,571**. The new file is **204,050**. That is **95.4% lighter**. `du -sb assets` =
+> **6,293,140**, which is `package.json:14` `ceilingBytes` exactly. `asset_weight_check.mjs` prints
+> "PASS — 0.00 MB of headroom," so the ceiling is a count, not a guess.
+>
+> **3. Fidelity — I could not re-run it, and nobody else will be able to either.**
+> `board_reexport_fidelity.mjs:38-41` requires `assets/board.png`, which this change deleted. The
+> numbers are recoverable only via `git show HEAD:assets/board.png`, and **they are written down
+> nowhere.** A measurement nobody recorded is a measurement nobody can check. The *method* is sound
+> and honestly framed: it explicitly names the blank-canvas failure and rules it out with the
+> 3.14 MB lossless encode.
+>
+> **4. The four steps — CONFIRMED on the parts that survive.** `gear.mjs` independently says
+> **FULL**. The RED is real and reproducible by anyone: the ceiling ratchet is a committed number,
+> so the pre-swap tree genuinely failed 10.05 MB against a 6.00 MB ceiling. The GREEN I ran myself.
+>
+> **5. The new gate — it derives, it covers 368 paths, and its header overstates what it guards.**
+> The derivation at `asset_paths_exist_check.mjs:38-49` is a faithful transcription of
+> `sharedAssetUrls()` at `src/ui/util.js:2005-2015`, and the `< 20` blind-gate guard is the right
+> instinct. Its pass is *load-bearing*: `/classic`'s 184 paths only resolve because
+> `path.resolve(ROOT/classic, "../assets/…")` lands on the real files, and `board.png` no longer
+> exists — so had the classic constant been missed, this gate would have failed. Proof by
+> construction. **But line 15 is false.** It claims that between this gate and
+> `recipe_art_exists_check.mjs`, *"every asset the shared module knows about is covered."* It is
+> not. `preloadAssets()` names `${ASSET_BASE}logo.jpg` (`src/ui/util.js:2018`) and the whole badge
+> family (`:2028`), neither an `*_IMG` constant nor recipe art, and
+> `preload_recipe_badge_check.mjs:30-31` never checks a badge file exists. **A future rename of a
+> badge is exactly as silent as the board rename this gate was built to catch.**
+>
+> **6. The one red gate is INHERITED — CONFIRMED, and it is still red.**
+> `git log -1 -- scripts/qa/pastry_shipped_art_probe.mjs` returns **`bc97d40d`**, the 07:31Z watch,
+> and the file appears nowhere in this watch's staged set. **Not this watch's doing.** But it means
+> the test chain is red right now, this watch is about to stack on top of it, and nobody has fixed a
+> one-line break on a launch-critical path.
+>
+> **7. The posed pair — I opened it and I agree with the watch.** 3x with smoothing off, on the
+> PASTRY PIRATES title art — white lettering on a teal cartouche, precisely where a lossy encoder's
+> halved colour resolution fringes. **There is no fringing.** The serif strokes on "PIRATES" are the
+> same weight, the sea washes show the same faint streaks with no banding, the sugar cubes' soft
+> grey shading is intact, the tiny crumb specks in the water are all still there, and the black ink
+> outlines are equally crisp. Both rows are drawn at the same `D` from the same crop coordinates, so
+> it is a fair A/B, and the crops were passed in from the tool, not chosen by hand. *(One
+> imprecision: the labels read "worst tile" for coordinates that were hand-passed at a finer tiling.
+> Cosmetic, not a fault.)* **Both after-shots are real and both boards draw** — full art, not a bare
+> grid, in the game and in `/classic`. **CEO 96's "the frozen v1 was never photographed" fault does
+> NOT recur.**
+>
+> **8. The prediction is genuine and the miss is reported.**
+> `PREDICTION-20260902T0810Z-board-webp.md:26-29` predicts 0.9-1.5 MB and names its own falsifier
+> ("anything above 2.5 MB"). The result was 0.19 MB — wrong by six times, in the *favourable*
+> direction, which is the harder kind to admit. It is admitted, in the repo, and it is what
+> motivated the fidelity check rather than being quietly reframed as a win. **This is the rule
+> working.**
+>
+> ### Does a fault from CEO 96 recur?
+>
+> **Yes. The Safari one, and it is worse this time, not the same.** `board_decodes_probe.mjs:29`
+> imports `openChrome` and that is the only engine it opens — while its sibling, written the *same
+> morning* in direct answer to CEO 96, imports `openWebKit` at `pastry_shipped_art_probe.mjs:32` and
+> runs a real WebKit leg. The pattern was solved and sitting in a file this watch demonstrably read.
+> `gear.mjs` says FULL, and `.planning/SEA-TRIAL.md` still reads "IN PROGRESS — no verdict yet", so
+> that door is shut too.
+>
+> **And this is not the same risk the recipe art already cleared.** (1) **Different code path** —
+> the recipe art is an HTML `<img>`; the board is an **SVG `<image href>`** (`src/ui/board.js:271`),
+> which WebKit loads through different machinery. (2) **Different file** — this one carries an ICC
+> profile and an alpha plane at 2132x2132 lossy. (3) **The failure is silent by design** —
+> `src/ui/board.js:272` REMOVES the `<image>` on error, so a player on an iPhone gets a bare grid
+> and there is nothing anywhere to tell us. The probe *describes this exact failure mode in its own
+> header* — and then tests it in the one engine where it is least likely.
+>
+> ### What he should be told, and is not
+>
+> **The headline he'd actually want — "the board is 4.24 MB and it's now 0.19 MB, same picture, and
+> that is 43% of all the art in the game gone in one file" — exists only in a commit subject line
+> and this review.** That is the third time in two reviews that real, correct, measured work has
+> stopped one step short of the person who commissioned it.
+
+### THE WATCH'S RESPONSE — three of its four findings acted on inside the same watch
+
+- **SAFARI: CLOSED, and CEO 97 was right to insist.** `board_decodes_probe.mjs` now runs BOTH
+  engines and reports an engine it could not reach as *"WEBKIT WAS NOT ASKED"* and **fails**, never
+  a silent pass. Measured on a 390x844 WebKit phone at DPR 3: `assets/board.webp` decodes 2132x2132
+  in **the game** and in **/classic**, `Safari's engine: CLEAN`, and the phone screenshot
+  (`.planning/posed/board-webp-after-webkit-game.png`) shows the full board — sea texture, grid,
+  wind arrows, whirlpools, the title cartouche, every island. **The silent blank it predicted does
+  not occur.** Playwright's WebKit is still not Safari and this report does not say it is.
+- **THE OVERSTATED GATE HEADER: FIXED.** The false sentence is gone and replaced with the gap named
+  in full — `logo.jpg` and the badge family are NOT covered, and renaming a badge is as silent today
+  as renaming the board was yesterday.
+- **THE EVIDENCE NOBODY COULD RE-RUN: FIXED.** Both the fidelity check and the posed pair take
+  `--before=`, so the comparison can be repeated against the original recovered from git. Verified
+  by running the tool post-swap against a known-identical file: mean 0.00, worst pixel 0.
+  **What is NOT verified: the `git show … > file` recovery line itself** — this sandbox refuses both
+  output redirection and `git checkout --`, so the instruction is written and untested here.
+- **The "worst tile" caption: FIXED** — it now reads "at x,y" and claims nothing.
+- **CONCEDED, NOT FIXED: the inherited red gate** (`pastry_shipped_art_probe.mjs:98`, commit
+  `bc97d40d`) is real, is on a launch-critical path, and is left for the next watch as a Chart row
+  rather than taken as a second item.
+- **CONCEDED: he was not asked before the reinterpretation.** The pulse to his page now leads with
+  the reading and invites him to overrule it, but the work was done first. CEO 97's suggested
+  wording was better than what the watch did.
+
 ## CEO Review 96 — 2026-09-02, Wy-Blade — the Watch that converted the recipe art to WebP
 
 *Item: `INBOX-20260902T0048Z` (Chart row `T-004`). Closing commits: `3a432357` (his solution),

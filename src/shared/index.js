@@ -33,7 +33,11 @@ const ING_IMG={};ING_ALL.forEach(i=>ING_IMG[i]=`${ASSET_BASE}ingredients/${i}.pn
 // blackened silhouette of each ingredient, same alpha shape as ING_IMG — rendered at 30%
 // opacity to leave a "hole" where a crate used to sit once it's taken
 const ING_HOLE_IMG={};ING_ALL.forEach(i=>ING_HOLE_IMG[i]=`${ASSET_BASE}ingredients/holes/${i}.png`);
-const BOARD_IMG=`${ASSET_BASE}board.png`;
+/* WEBP, AND EVERY ONE OF ITS 2132x2132 PIXELS IS STILL THERE. His ask, INBOX-20260901T1335Z:
+   "compressing the images to make the game load MUCH faster... the only one that needs to be as big
+   as it is is the board itself" — that exempts the board's SIZE, not its bytes. 4.24 MB -> 0.19 MB,
+   same dimensions, re-encoded by scripts/qa/board_reexport.mjs. /classic reads this same file. */
+const BOARD_IMG=`${ASSET_BASE}board.webp`;
 const DOCK_IMG=`${ASSET_BASE}dock.png`;
 const WIND_ARROW_IMG=`${ASSET_BASE}wind-arrow.png`;
 const TRADE_SWIRL_IMG=`${ASSET_BASE}trade-swirl.png`;
