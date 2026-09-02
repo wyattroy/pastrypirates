@@ -1163,6 +1163,26 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+> ### ⚠ `T-098` – `T-104` ARE THE SAME SEVEN THINGS AS `INBOX-20260902T1907*`. WORK THEM FROM THE INBOX.
+>
+> **Two sessions harvested his 3:07–3:09 PM writing off the Glass within minutes of each other** —
+> the Glass-update session filed all seven here as `T-098`–`T-104` (`996ee621`, `7042c7e0`), and the
+> Advisor filed five of them into `.planning/wyclau/INBOX.md` as `INBOX-20260902T190715Z` through
+> `…190743Z`. **Neither was wrong and neither knew about the other until they compared notes by
+> message.** Nothing was lost; the cost is that the same job is now claimable twice.
+>
+> **THE INBOX COPY IS AUTHORITATIVE, for a mechanical reason and not a preference:** he wrote these
+> as *instructions* — several say "ask me", "do not write any code this session", "recommend, don't
+> just build" — and the INBOX is the only one of the two that the Door reads FIRST, that carries a
+> `solution:` line in his own words, and that `close_item.mjs` can close. **A row here cannot be
+> closed by the gate.** The two `DO NOW` asks (`T-103`, `T-104`) additionally have real task rows at
+> the top of `FOR A WATCH`; that is where they get worked.
+>
+> **AND THIS IS EXACTLY WHAT `T-105` LAYER C IS FOR** — an idempotent harvest keyed on the idea's own
+> id (`i1788376035472`) would have made the second harvest a no-op instead of a duplicate, and the
+> question *"has this already been filed?"* would be answered by the data rather than by two sessions
+> messaging each other. **Filed here as the second live instance in one hour.**
+
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"Do Now: in the Glass, Add a
       ⟨`T-104`⟩
   \"DO now\" button next to \"Send to the Chart\" button that tells RANK to put this task at the
