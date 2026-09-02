@@ -76,7 +76,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
-            "statusMessage": "Checking CLAUDE.md \u00a74 \u2014 read the doc first"
+            "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
           },
           {
             "type": "command",
@@ -87,6 +87,18 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/advisor-triages-watch-works.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Is another session mid-edit in this file?"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/claim-before-game-code.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Claimed the item before changing the game?"
           }
         ]
       }
