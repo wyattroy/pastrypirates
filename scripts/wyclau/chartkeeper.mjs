@@ -28,10 +28,21 @@
  *          stub.
  *          ⚠ THIS IS THE DESIGN HE OVERRULED — see the 🛑 banner in `.planning/SPEC-CHARTKEEPER.md`.
  *          His ruling: EVERY completed row leaves, immediately, with NO stub. It is still the
- *          seven-day version here because the change cannot land alone: `glass.mjs:392` derives his
+ *          seven-day version here because the change cannot land alone: `glass.mjs` derives his
  *          "done" count by counting `- [x]` rows in the Chart, so sweeping them all takes his page
- *          to "0 done" — and `glass.mjs` is VENDORED from claude-kit, which is outside an unattended
- *          watch's reach. Filed in `.planning/wyclau/PENDING-KIT-PATCHES.md`.
+ *          to "0 done".
+ *          ⚠ THAT CITATION USED TO READ `glass.mjs:392` AND WENT STALE THE SAME DAY IT WAS WRITTEN —
+ *          the three-fate-states change moved the done-count derivation and 392 is now
+ *          `COMMITTED_WORDS`. Caught by CEO 105. **A line number in a comment is a claim that rots
+ *          the moment anyone edits above it**, which is why the reference is now to the FILE and the
+ *          BEHAVIOUR ("counts `- [x]` rows") — both of which survive an edit. Grep for the behaviour,
+ *          not the line.
+ *          ⚠ AND THE OTHER HALF OF THE OLD SENTENCE IS ALSO DEAD, so it is corrected rather than
+ *          left: it said `glass.mjs` is VENDORED and therefore out of an unattended watch's reach.
+ *          Wyatt inverted `vendor_check` on 2026-09-02 — the project copy is now the truth — so
+ *          **glass.mjs is editable here and this is no longer blocked.** What remains is only the
+ *          ORDER: re-source the done count from `CHART-LOG.md` first, then sweep. Filed in
+ *          `.planning/wyclau/PENDING-KIT-PATCHES.md` as patch 6.
  *
  * WHERE IT RUNS (the spec's split, and the split is the point): SETTLE, RANK and SWEEP in the
  * WATCH, which has write authority and a CEO gate — arithmetic can act unattended. REAP in report

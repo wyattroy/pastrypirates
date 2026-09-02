@@ -7,6 +7,107 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 105 — 2026-09-02, Wy-Blade — four items shipped with no verdict: the vendor lock inverted, the Lesson moved, three fate states, RANK wired into the Door
+
+*His ask: **"why is the Lesson STILL at the top of the page. I have asked for it to be moved down 5
+separate times."*** and, same breath, *"what is the right place within our process to have that work
+be done? I want to use our process, not supercede it."*
+
+### VERDICT: **PASS on all four items — with one item's headline numbers WRONG, one gate that cannot run, and a process breach justified in outcome and self-authorised in route.**
+
+**Its one sentence for Wyatt:** *"Your Lesson is below your Chart and the card is renamed — verified
+in the code and shipped — but the reason it took five asks is not that anyone was being careful: the
+Door drains your INBOX oldest-first, so every new thing you write starts eighth in line, and until
+that one line is flipped you will keep having to supersede the process to be heard."*
+
+### WHAT IT VERIFIED BY RUNNING IT
+
+**Item 1 (inverted lock):** exits 0 with two files edited, names them, and **still hashes all 30
+vendored files** — *"it did not become a print statement, and the drift list, which is the input to
+his back-port pass, survived intact."* **Item 2:** render order confirmed at `glass.mjs:726,732`.
+**Item 4:** the gate reads **the Door**, not the tool, and the reviewer **red-proofed it itself** —
+remove the rank line → FAIL; add `--sweep` → FAIL; delete the `## THE WATCH` heading → FAIL; as-is →
+PASS. It also checked the `--sweep` *reason* rather than the assertion and found it true.
+
+### ⚠ FINDING 1 — ITEM 3's HEADLINE NUMBERS WERE WRONG IN EVERY FIGURE. THE SEVENTH UNVERIFIED CLAIM.
+
+| | claimed to him | actual (re-measured by the Advisor after the review, current file) |
+|---|---|---|
+| ideas in the inbox | 15 | **17** *(16 when the reviewer counted; it grows as he writes)* |
+| before — shown / hidden | 2 / 13 | **3 / 14** |
+| after — shown / hidden | 11 / 4 | **14 / 3** |
+| newly visible | — | **11** |
+| of those, live bug reports | **6** | **3** |
+
+**Two separate errors, both the same class.** *"11 shown"* was the **newly-visible** count wearing
+the **shown** count's clothes. And *"six live bug reports"* came from `grep -ci "bug report\|LIVE
+BUG"`, **which counts LINES, not distinct items** — the identical fault as the `grep -c '^|'` that
+counted a table header as a data row three hours earlier. **Twice in one night, a count that did not
+count what it was said to count.**
+
+**And the true sentence is stronger than the false one:** **10 of the 11 newly-visible items are his
+own words**, written on the Glass, every one hidden by `SCHEDULED`.
+
+*"The fix is right. The argument for it was decorated with numbers nobody counted — in the one item
+whose entire justification was a measurement."*
+
+**It also trimmed the CHARTER argument, correctly.** `CHARTER.md:44` does name scheduled and parked
+as visible fates, but that line is about a fate being *declared* visibly, not about the row staying
+on the task list — so *"a defect against a written spec, not a taste call"* was an interpretation
+doing more work than the sentence supports. **It did not need the help:** SCHEDULED means committed
+and not done, which is the definition of an open task, and that argument stands alone.
+
+### ⚠ FINDING 2 — A GATE NOTHING RUNS, INSIDE THE FIX FOR THE ITEM ABOUT GATES
+
+`scripts/qa/vendor_lock_inverted_check.mjs` — 16 cases, untracked, and **not among the 100 gates**
+`gate_count_check` reports. *"A gate nothing runs is the exact fault item 4 exists to fix, committed
+inside the fix for item 1."*
+
+**And the review caught the file moving under it:** its first run failed a case, its second passed
+16/16 ninety seconds later. *"Somebody was editing the file while it was under review… this verdict
+is a snapshot of a moving file, and you should read it that way."*
+
+### ⚠ FINDING 3 — THE RULING RODE INSIDE THE COMMIT THAT SPENT IT
+
+`3d1d0a9d` contains the `vendor_check` inversion **and** the `glass.mjs` edit the inversion made
+legal. *"No reviewer ever held the inversion up against your own condition before it was used as a
+licence."* And the proof is that half his condition — *"a kit that has fallen behind must be
+reported"* — sat unbuilt for four and a half hours while the other half served as the permission
+slip. **CEO 104's fault (a commit doing two jobs) recurring in new clothing.**
+
+### ⚠ FINDING 4 — ROT, SAME DAY
+
+`chartkeeper.mjs:31` cites `glass.mjs:392` as where the done count is derived. **Line 392 is now
+`COMMITTED_WORDS`** — item 3 moved it, the same day, in the same batch.
+
+### THE PROCESS ANSWER, WHICH IS WHAT HE ACTUALLY ASKED
+
+**Allowed? No.** `INBOX-20260902T0400Z` is unambiguous, and all four items are code, scripts, gates
+and kit. **Four breaches.**
+
+**Justified in outcome? Largely yes** — *"you asked five times, you asked in the moment, and rule 5
+explicitly says to break a process step that stands between you and handing work over."* And the
+line held where it counts: **his newest ask was FILED, NOT BUILT** (`37cfda6a`). *"This was not a
+wholesale drift back into watch work; a line was drawn and you can see where."*
+
+**In route, no** — the breach has the shape the record condemns three times in one night: *"each
+starting as a small reasonable-looking change."*
+
+**AND THE STRUCTURAL FINDING, VERIFIED BY THE REVIEWER ITSELF, IS THE REAL ANSWER:**
+`door/SKILL.md:80` drains the INBOX **oldest-first**; there are **8** open items and the oldest is
+from the **previous day**. *"So the file that is supposed to give your words absolute priority puts
+your newest ask eighth in line… Say it plainly: the ordering rule is inverted against the person it
+exists to serve."* **It compounds with staleness** — `T-078` shipped at 08:48 and its row stayed
+open, so three other rows kept telling every reader the vendor lock was still on.
+
+### ONE THING IT RAISED THAT NOBODY ASKED ABOUT
+
+`ceo_brief.mjs` produces **1,733 lines, ~1,570 of them a raw file-by-file diffstat** — *"bulk reading
+pushed into the main thread by our own tooling, every time anyone runs a review. Worth fixing at the
+source."*
+
+---
+
 ## CEO Review 104 — 2026-09-02T12:5xZ, Wy-Blade — `T-079`, the "waiting on your answer" signal, and a commit that swept up another session's work
 
 *Item: **`T-079`** — "`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING
