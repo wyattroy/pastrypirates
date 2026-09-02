@@ -7,6 +7,46 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 110 — 2026-09-02, Wy-Blade — `INBOX-20260901T1440Z`, the black console window (commit `f568f60a`)
+
+*His words, verbatim: **"this strange window popped up automatically, do you know what it's doing?"*** Watch 2026-09-02T16:09Z.
+
+### VERDICT: **PARTIAL.** *"The window is correctly explained and genuinely fixed at the boundary — I ran the gate and watched its red proof fire — but the one file that registers this item still says OPEN and still repeats, as fact, the explanation this watch disproved; and the fix's own gate now puts that same black node.exe window on his screen every time we run the checks."*
+
+**One sentence for Wyatt:** *"We found out what that black window really was — not what we first guessed — and stopped the sea trial from making one; but the note that tracks this job still says it's unsolved and still tells the next person the wrong cause, and the new safety check now flashes that same black window on your screen for about a second every time we run the checks."*
+
+### WHAT IT VERIFIED RATHER THAN READ
+
+- **Ran the gate twice**, timed: PASS both, 1.038s and 1.088s. The red-proof line is reachable only when PowerShell returned the literal `VISIBLE` (`detached_trial_windowless_check.mjs:160-161`), so the instrument is **not** blind on this machine, and the blindness path exists and would fail.
+- `stray_probe_check` PASS. `vendor_check` PASSED with drift, `start_trial_detached.mjs` correctly listed as ahead of the kit, consistent with his 2026-09-02T12:39:56Z ruling. `git status` clean, `f568f60a` at HEAD.
+- Counted every child-process call in `sea_trial.mjs` — 4, all carrying the shared option — **and every one deeper in the tree.**
+
+### ITS SIX FINDINGS
+
+1. **The Inbox still says OPEN and still states the disproved mechanism as fact** (`INBOX.md:220-221`). The corrected cause was written into five code comments and the commit body, *"and in none of them is the item register. The whole point of this item was to answer 'do you know what it's doing?'; the answer is in five code comments and absent from the one file a person opens."*
+2. **The ledger holds a claim and no outcome** — it ended mid-claim, on *"…before changing a line."*
+3. **The gate's green sentence asserted inheritance it never measured.** Its stand-in spawned two leaf children and no grandchild, while **five spawn sites in a real voyage carry no flag at all and depend on that inheritance** — `playtest_gate.mjs:93,319`, `lib/cdp.mjs:35,40`, `lib/wk.mjs:92`. It had been measured once, in a scratch file this same commit's `.gitignore` rule guarantees can never be committed. *"The only evidence for the claim that covers most of the tree is deliberately excluded from the repo, while the gate's green text asserts it every run."*
+4. **The coverage half accepted `windowsHide: false`** — matching the word, not the value. *"The one way this gate goes green on a broken file, and catching that file is its entire job."*
+5. **The fix's own gate puts a black console on his screen on every `npm test`** — measured under a second, so the header's "about half a second" is honest, but `npm test` runs constantly and inside every sea trial. *"That is a ruling about his screen, made without him."*
+6. **No end-to-end RED, and the one end-to-end run could not have seen his window** — `--gear=COSMETIC --judge=off` left only the `npm test` child, which is `cmd.exe`, not `node.exe`. It quoted this watch's own prediction file back: *"A fix for an unreproduced window is not a fix; it is a guess with a commit hash."*
+
+### DOES CEO 109 RECUR?
+
+- Finding 1 (asked for X, X did not happen) — **no.**
+- Finding 2 (*the thing that ends the item is nowhere he reads*) — **YES, RECURS.**
+- Finding 3 (*the row he sees contradicts the work that landed*) — **YES, and worse**: the Inbox row *"states the disproved cause as 'mechanism known' and routes the next reader to claude-kit for a fix that already landed here."*
+- Finding 4 (*a sentence tidier than the record*) — **YES, fifth verdict running** — the gate's own PASS line.
+
+### WHAT THE WATCH DID WITH IT, IN THE SAME WATCH
+
+**3, 4 and 6 are fixed; 5 is now his to rule on; 1 and 2 are what the close gate writes.**
+- **6 — the end-to-end RED now exists, on the real file.** `sea_trial.mjs` recovered at `f568f60a^`, started detached exactly as `start_trial_detached.mjs` starts it: its child reported **VISIBLE-WINDOW**. The live file, same launch: **console, no window**. The first attempt at this aimed at the ~300ms `gear.mjs` child and caught nothing, because a PowerShell probe costs ~400ms to start — and it reported "none" for a process that was merely *gone*, collapsing two answers into one word. Both faults were the instrument's, and both are named here rather than in a footnote. ⚠ **THE HONEST LIMIT: the child observed is `cmd.exe`, not the `node.exe` he read in his window's title.** Same parent, same mechanism, same fix — but the specific window he saw is almost certainly the 85-minute voyage child, and that one is still inferred.
+- **3 — the gate now spawns a real grandchild** with no options at all and asserts it inherits. The PASS line is split in two so neither sentence claims more than it tested.
+- **4 — the coverage half now requires `NO_CONSOLE_WINDOW` or `windowsHide: true`**, not the bare word.
+- **5 — parked as a question in BLOCKED ON WYATT**, with the measured 1.0–1.1s and a marked recommendation, because it is a ruling about his screen.
+
+---
+
 ## CEO Review 109 — 2026-09-02, Wy-Blade — the measurement is now honest, and it says the prize is 2.3%. Nobody has told him that.
 
 *His words for this third, verbatim (`INBOX-20260901T1335Z`, Chart `T-087`): **"everything else should be resized and compressed according to its maximum pixel size in the real gameplay."*** Watch 2026-09-02T15:39Z, commit `00e85bf2`.
