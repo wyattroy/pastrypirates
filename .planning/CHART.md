@@ -1367,7 +1367,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
-| <!--qid:admin-console-where--> **Your player-count console — where should it live?** You asked for *"a firebase admin console so I can see how many people are playing"*. **Measured first: the current game has NO stats or admin page at all** — `stats.html` and `lab.html` do not exist at the repo root; the only one in the repo is `classic/stats.html`, inside the frozen v1. So this is a new surface however it is built, and where it goes is yours. | **Recommended: a new `/stats.html`, blocked in `robots.txt`** — it matches the v1 precedent exactly, you can open it from any device without logging into Firebase, and being robots-blocked keeps it from competing with the game in search. · **Or** fold it into the game as a screen only you can reach — fewer files, but it puts an admin view inside the thing real players load. · **Or** keep it off the site entirely as a script you run on the laptop — safest, and useless from your phone. | 2026-09-02 7:40 PM ET |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -1408,6 +1407,7 @@ carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
+| <!--qid:admin-console-where--> **Your player-count console — where should it live?** You asked for *"a firebase admin console so I can see how many people are playing"*. **Measured first: the current game has NO stats or admin page at all** — `stats.html` and `lab.html` do not exist at the repo root; the only one in the repo is `classic/stats.html`, inside the frozen v1. So this is a new surface however it is built, and where it goes is yours. | put it at /stats.html behind a simple curtain and block it from robots.txt | |
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
