@@ -7,6 +7,77 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 98 — 2026-09-02, Wy-Blade — the Watch that converted THE REST OF THE ART to WebP
+
+*Item: **`T-058`**, the remaining-PNG lever of `INBOX-20260901T1335Z` — his *"compressing the images
+to make the game load MUCH faster… this is launch critical"*. Commits `05f63b12`, `86e70439`.
+Previous verdict handed over: CEO 97 (PARTIAL, the board).*
+
+### VERDICT: **PARTIAL** — in its own words
+
+> **The item happened.** T-058 as scoped — the format trade on the remaining PNG art — was
+> executed, and every load-bearing number I could check independently is true. This is the cleanest
+> of the three conversions, and all three of CEO 97's faults were fixed rather than repeated. What
+> keeps it off a YES is that the commit I was told "states the whole claim" states a rule the work
+> does not follow, and the trial column is missing.
+
+**What it verified for itself rather than taking from the report:** `du -sb assets` = **4,073,895**
+bytes, exactly `package.json:11`'s ceiling. `ING_FMT`/`ING_HOLE_FMT` match disk file for file in
+both trees. Every other `*_IMG` constant matches disk in both trees. `about.html:155,173` fully
+fixed. Badges' hardcoded `.png` still correct. **`preloadAssets()` (`src/ui/util.js:2016-2028`)
+derives its list from those constants, so the 2.1 MB genuinely comes off the BOOT PATH** — its
+words: *"it genuinely makes the game boot faster, not just `du` smaller."* The WebKit arm is real
+(`art_decodes_probe.mjs:28,113` — an unreached engine fails). It opened both posed sheets: *"I can
+see no difference in either pair."*
+
+### The findings, and what this watch did about each — in the same pass, before writing to Wyatt
+
+1. **"The commit's own account of its rule is false for 6 of the 31 files it shipped."** `05f63b12`
+   says the tool keeps a file only if it is "at least 31% smaller"; six `holes/` files shipped at
+   12–32% via a separate `--floor=0` run, disclosed only in the NEXT commit. **ACCEPTED AND FIXED
+   IN THE RECORD** — `.planning/ASSET-WEBP-2026-09-02.md` now opens with a box stating the override
+   and why it was defensible. CEO 98's own framing is the reusable part: *"the override is the
+   honest, defensible part, so hiding it in a follow-up is pure self-inflicted damage."*
+2. **"The 31% floor is a judgement with a citation, not a derivation — and finding 1 proves it."**
+   The recipe-art figure is real, but Wyatt approved converting a family, never a floor. **ACCEPTED
+   AND FIXED** — `png_family_reexport.mjs`'s comment claimed rule 9 and no longer does; it now says
+   plainly what is anchored, what is not, and why a threshold you waive by judgement is not a
+   derivation.
+3. **"The 1.12 MB of refused icons closes the FORMAT question and is presented as if it closed the
+   ask."** All four refusal rules are format tests, and rule 3's wording had inverted his sentence.
+   `ASSET-DISPLAY-SIZES.md` measures `flip-heads` x7.07, `crown` x5.93, `cupcake` x5.88 oversize.
+   **ACCEPTED AND FIXED** in both the tool header and the record's "what is left" table — including
+   CEO 98's own caveat that the ratios are a lead, not a licence, because that table never saw
+   `index.html:708-710` paint flip-heads at 502 device pixels.
+4. **"No sea trial, and the commit does not say so."** **ACCEPTED, NOT FIXABLE HERE, AND NOW
+   STATED** — see the NOT-RUN paragraph in the closing commit. CEO 98 grants the substitutes are
+   strong; the fault was silence, not the absence.
+5. **"Nothing is written to him yet… the third consecutive item where the headline reached a commit
+   subject and not the person who commissioned it."** **ACCEPTED** — the Glass note is written in
+   the closing commit, leading with the number it says he would want.
+6. **"`htmlAssetUrls()` at `:76` uses a non-recursive `readdirSync`."** Latent, not live. **FIXED** —
+   the walk is recursive, and it immediately failed on a throwaway `/gsd-sketch` mockup, which is
+   why `notes/` is now skipped with that reason written at the call site. Re-red-proofed after.
+7. **"Four `tmp_*.mjs` scratch files are committed."** **ACCEPTED, NOT FIXED** — this sandbox
+   refuses `rm`, `git reset` and `git restore --staged`, so they can be neither deleted nor
+   unstaged from here. Left named in the commit for a session with a shell that can remove them.
+
+### Recurrence check
+
+**No CEO 97 fault recurs, and one was pre-empted.** Its words: *"All three were fixed, and one was
+pre-empted before I could raise it."* The Chrome-only probe is closed; the overstating gate header
+is closed *"the hard way — the new header spends eight lines naming what it does not cover"*; and
+the unrepeatable-measurement fault *"does not recur: commit `86e70439`, three minutes later, writes
+`.planning/ASSET-WEBP-2026-09-02.md`… The watch read its own review and acted on it before being
+asked."*
+
+**But it names a fault that HAS now recurred three times running, and it is not technical:**
+
+> **"Real, correct, measured work stopping one step short of Wyatt. CEO 96 called it, CEO 97 called
+> it, and the Glass is still empty. That is the finding to carry into the closing commit."**
+
+---
+
 ## CEO Review 97 — 2026-09-02, Wy-Blade — the Watch that converted the BOARD to WebP
 
 *Item: **THE BOARD IS WEBP** (Chart row `T-057`), the board lever of `INBOX-20260901T1335Z` — his

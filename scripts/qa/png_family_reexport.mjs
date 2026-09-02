@@ -34,9 +34,20 @@
  *   1. **the WebP is not smaller** — a flat few-colour icon is PNG's best case and WebP's worst,
  *      and shipping a heavier file to make a folder tidy is the opposite of what he asked for;
  *   2. **any alpha byte moved at all** — see above;
- *   3. **the canvas came back a different size** — that would be a resize, and he exempted nothing
- *      from keeping its pixels except by measurement.
+ *   3. **the canvas came back a different size** — this tool changes FORMAT and never dimensions,
+ *      so a size change here is a bug in the encode, not a decision.
  * A refusal is not a failure of the run. It is the run doing its job, and the report names them.
+ *
+ * ⚠ AND A REFUSAL HERE SETTLES THE FORMAT QUESTION ONLY. CEO 98's finding 3, and the wording it
+ * corrects had inverted Wyatt's own sentence — rule 3 above used to read "he exempted nothing from
+ * keeping its pixels", which is backwards: he exempted **the board** from resizing and asked for
+ * *"everything else… resized and compressed according to its maximum pixel size in the real
+ * gameplay."* **This tool does not resize and cannot answer the resize half.** So when it refuses
+ * 90 icons, the honest reading is *"WebP does not pay for these"*, never *"these are done."*
+ * `.planning/ASSET-DISPLAY-SIZES.md` measures several of them well over their largest on-screen
+ * size — `icons/flip-heads.png` x7.07, `crown.png` x5.93, `cupcake.png` x5.88 — and that table has
+ * its own known blind spot (it never saw the flip ceremony paint flip-heads at 502 device pixels,
+ * `index.html:708-710`), so those ratios are a lead to measure, not a licence to shrink.
  *
  * THE QUALITY POINT IS THE ONE THE BOARD CHOSE BY MEASUREMENT, not by taste: q0.92. The 08:10Z
  * watch measured q0.96 at 2.1x the bytes for a mean improvement of 1.65 -> 1.58 on 4.5M pixels,
@@ -53,14 +64,25 @@ const arg = (n, d) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || `=${
 const QUALITY = Number(arg("quality", 0.92));
 const ONLY = arg("in", "");
 const CHUNK = 4 << 20;
-/* THE ACCEPTANCE FLOOR IS TAKEN FROM A TRADE WYATT HAS ALREADY RULED ON, not chosen (rule 9).
-   The two conversions he has approved on this library are the board at 95% lighter and the recipe
-   art at 31% (`INBOX-20260902T0048Z`, his word: "Do it"). **31% is the SMALLEST saving he has
-   accepted**, so that is the floor, and 0.31 is where it is written. Below it a file is not what
-   "compressing the images to make the game load MUCH faster" is about: it still costs a re-encode,
-   a reference edit in two games, and — on the small flat icons, which is exactly where the tiny
-   savings live — the WORST fidelity in the whole library. A 0.3 KB saving nobody can measure is
-   not worth a picture moving by 10/255. */
+/* ⚠ THE ACCEPTANCE FLOOR IS A JUDGEMENT WITH A CITATION, NOT A DERIVATION — and this comment said
+   otherwise for one commit. CEO 98's finding 2, and it is right: an earlier version claimed the
+   floor was "taken from a trade Wyatt has already ruled on, not chosen (rule 9)."
+   **The citation is real and the derivation is not.** What is true: the smallest conversion he has
+   approved on this library is the recipe art at 31% (`INBOX-20260902T0048Z`, his word "Do it",
+   commit 3a43235), so 0.31 is anchored to something rather than picked out of the air. What is NOT
+   true: he approved converting a FAMILY; he never set a floor, and no quantity the game computes
+   produces this number. Rule 9 is about deriving a moving quantity from what the game already
+   knows — that is not what this is, and dressing a threshold up as a derivation is exactly the
+   habit rule 9 exists to catch.
+   WHY THERE IS A FLOOR AT ALL, which stands on its own: below it a file is not what "compressing
+   the images to make the game load MUCH faster" is about. It still costs a lossy re-encode of his
+   commissioned art, a reference edit in two games, and — on the small flat icons, which is exactly
+   where the tiny savings live — the WORST fidelity in the whole library. `icons/blocked-slash.png`
+   is the worked example: 0% lighter, colour moved 9.96/255.
+   AND IT IS OVERRIDABLE ON PURPOSE (`--floor=0`), because a family with NO fidelity to trade has
+   nothing to protect. That is not a loophole; it is why the number is a flag and not a constant.
+   Any run that overrides it owes the reason in the same breath — see the `holes/` note in
+   `.planning/ASSET-WEBP-2026-09-02.md`. */
 const FLOOR = Number(arg("floor", 0.31));
 
 function walk(dir, out = []) {

@@ -70,17 +70,36 @@ function assetUrls(mod) {
    business (stylesheets, scripts, the manifest) and is left alone on purpose: this gate is about
    art, and widening it to every URL would make it fail on things that are not pictures. */
 const HTML_URL_RE = /(?:src|href)\s*=\s*["']([^"']+)["']|url\(\s*["']?([^"')]+)["']?\s*\)/g;
-function htmlAssetUrls(dir) {
-  const out = [];
+/* RECURSIVE, and it was not for one commit — CEO 98's finding 6. A flat `readdirSync` saw only the
+   top-level pages of each tree, so a page added in a subdirectory would be invisible to the very
+   gate written because `about.html` was invisible. Latent rather than live (every project page is
+   top-level today), and a latent blind spot in a freshly-written guard is the one most likely to
+   go unnoticed later. `.planning/`, `node_modules/` and the scratch/profile directories are
+   skipped: they are full of captured HTML from probes and playtests, and a gate that fails on a
+   screenshot contact sheet from August is a gate people learn to ignore. */
+const SKIP_DIR = /^(\.|node_modules$|classic$|art-review$|notes$|sea-trial-shots$|judge-)/;
+/* `notes/sketches/` earns its place on that list by having failed this gate the minute the walk
+   went recursive: `notes/sketches/09-recipe-card/option-c-real-art.html` names two pastry files up
+   a relative path that does not resolve from where it sits. It is a throwaway design mockup
+   (`/gsd-sketch`), it is not served, and no player can reach it. **A gate that fails on a mockup is
+   a gate people learn to pass with `--force`** — the subject here is the pages the GAME ships. */
+function htmlAssetUrls(dir, root = dir, out = []) {
   if (!fs.existsSync(dir)) return out;
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.isDirectory()) {
+      // `classic` is skipped only from the ROOT walk — it is its own tree, with its own htmlRoot.
+      if (SKIP_DIR.test(e.name) && !(dir !== root && e.name === "classic")) continue;
+      htmlAssetUrls(path.join(dir, e.name), root, out);
+      continue;
+    }
     if (!e.isFile() || !e.name.endsWith(".html")) continue;
+    const rel = path.relative(root, path.join(dir, e.name)).split(path.sep).join("/");
     const text = fs.readFileSync(path.join(dir, e.name), "utf8");
     for (const m of text.matchAll(HTML_URL_RE)) {
       const u = m[1] || m[2];
       if (!u) continue;
       const clean = u.split("?")[0].split("#")[0];
-      if (/(^|\/)assets\//.test(clean) && !/^https?:/.test(clean)) out.push([e.name, clean]);
+      if (/(^|\/)assets\//.test(clean) && !/^https?:/.test(clean)) out.push([rel, clean]);
     }
   }
   return out;

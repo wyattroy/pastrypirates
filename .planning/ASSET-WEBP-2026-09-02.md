@@ -27,6 +27,20 @@ PNG families in scope: 121 files, 4,191,954 bytes. **31 converted, 90 refused.**
 `assets.ceilingBytes` is 4,073,895 — the real total to the byte, so the next increase is a decision
 somebody takes rather than drift nobody sees.
 
+> ### ⚠ THE 31% FLOOR WAS OVERRIDDEN ON 6 OF THE 31, AND THE COMMIT THAT SHIPPED THEM DID NOT SAY SO
+>
+> **CEO 98's finding 1, and it is fair.** Commit `05f63b12`'s message states the tool "keeps a file
+> only if it passes four tests: … and at least 31% smaller." Six `ingredients/holes/` files shipped
+> at **12%, 19%, 20%, 23%, 24% and 32%**, converted in a separate run with `--floor=0`. The
+> override is disclosed further down this file and was defensible — those files are pure
+> silhouettes and measured **0.00 difference on every pixel**, so there was no fidelity to trade —
+> **but it reached the record one commit later than the work it describes.**
+>
+> **Why that is worth a box rather than a footnote:** the override is the *honest* part. Burying it
+> turns a good decision into something a reader discovers, which is how a project stops trusting
+> its own commit messages. *"No future tense in an append-only record"* has a sibling: **no rule in
+> a commit message that the commit did not follow.**
+
 ## What the columns mean
 
 - **solid** — mean absolute colour difference, worst channel per pixel, over pixels whose SOURCE
@@ -103,17 +117,37 @@ pixels. Rule 26 — the number could not settle it, the picture could.
   measurable colour movement, in exchange for bytes nobody can perceive. `icons/blocked-slash.png`
   is the worked example: **0% lighter, and its colour would have moved 9.96/255.**
 
-## What is left in `assets/`, honestly
+## What is left in `assets/` — and "refused" does NOT mean "finished"
 
-| | |
-|---|---|
-| pastries (WebP already, `T-004`) | 1.18 MB |
-| icons — 90 refused PNGs | 1.12 MB |
-| top level (board.webp + the JPEGs) | 0.85 MB |
-| islands | 0.35 MB |
-| everything else | 0.39 MB |
+| | | |
+|---|---|---|
+| pastries | 1.18 MB | WebP already (`T-004`) |
+| **icons — 90 refused PNGs** | **1.12 MB** | **format settled, SIZE NEVER TRIED** |
+| top level (board.webp + 4 JPEGs) | 0.85 MB | board done; the JPEGs untried |
+| islands | 0.35 MB | done this watch |
+| everything else | 0.39 MB | mixed |
 
-**The largest untouched block is now the three JPEGs** — `about-screenshot.jpg` 273 KB,
+> ### ⚠ THE ICONS ARE SETTLED FOR FORMAT ONLY. CEO 98's finding 3, and the first version of this
+> ### table read as though they were done.
+>
+> Every one of the four refusal rules in `png_family_reexport.mjs` is a FORMAT test. **That tool
+> does not resize and cannot answer the half of his sentence that says so:** *"everything else
+> should be resized and compressed according to its maximum pixel size in the real gameplay."*
+> Saying "90 refused" and stopping there tells a reader the block is closed. It is not.
+>
+> **`.planning/ASSET-DISPLAY-SIZES.md` already measures several of these well over the largest size
+> any screen asks for** — `icons/flip-heads.png` **x7.07** (`:61`), `crown.png` **x5.93** (`:78`),
+> `cupcake.png` **x5.88** (`:79`), `sound-on.png` **x4.17** (`:96`).
+>
+> ⚠ **AND THAT TABLE HAS A KNOWN BLIND SPOT, so those ratios are a LEAD, not a licence.**
+> `index.html:708-710` paints `flip-heads` at **502 device pixels** during the flip ceremony, which
+> its x7.07 row never saw. A session that shrinks on those numbers alone will soften the coin in
+> the one moment the game shows it biggest. Measure the ceremony first.
+>
+> CEO 83 sized the whole remaining resize lever at ~0.15–0.25 MB and that estimate predates this
+> measurement of the icon tier; it should be re-taken, not repeated.
+
+**The other untouched block is the four JPEGs** — `about-screenshot.jpg` 273 KB,
 `about-recipes.jpg` 114 KB, `logo.jpg` 92 KB, `welcome-backdrop.jpg` 71 KB. They are already a
 lossy format; whether WebP beats JPEG on them is a separate measurement nobody has taken, and it is
 worth at most a few hundred KB. **It is not the same trade and should not be assumed to pay.**
