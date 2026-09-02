@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T03:34:43.483Z	CORRECTION to what I told you last tick: the 'tablet is fine' claim for the End of Voyage bug was wrong -- that screenshot turned out to be from an older build, not in this trial's queue at all, so phone-vs-tablet is unproven again (the phone bug itself is still real and confirmed). Separately, a third sighting confirms the trade-circle name-clipping bug is engine/size/mode-independent (now seen on WebKit desktop too), which strengthens the case for one universal fix rather than a patch
+2026-09-02T04:06:00.740Z	Filed a live bug report you just wrote in: post-trade denial narration missing, flagged for a full narration-audit sweep.
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T10:26:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 21 min ago -- hold off
 2026-09-01T10:36:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 31 min ago -- hold off
 2026-09-01T10:46:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 41 min ago -- hold off
 2026-09-01T10:56:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 51 min ago -- hold off
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T01:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T014802Z.out/.err)
 2026-09-02T02:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T021802Z.out/.err)
 2026-09-02T02:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T025802Z.out/.err)
+2026-09-02T03:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T034802Z.out/.err)
 ```
