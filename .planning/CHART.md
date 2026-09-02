@@ -441,6 +441,19 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+- [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
+  found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
+  description. Not fixed (one item; and any `src/` change retires the trial at sea).**
+  `passplay-phone-039-settled.png`, End of Voyage, 390×664. The judge said *"Play again button
+  floats over the bottom achievement card, covering its content instead of sitting below the scroll
+  area."* Opening the picture shows the sharper version: the sticky button and its frosted backing
+  cover the BOTTOM of both award cards, and on the left card the winner's name — **Davy Scones, in
+  pink** — is sliced horizontally, with only the tops of the letters showing above the button's
+  edge. The right card's *Peg Leg Meg* survives only because it sits a few pixels higher.
+  **What a player sees:** the voyage ends, two awards are handed out, and you cannot read who won
+  one of them. This is the screen a new player sees last and the one most likely to be screenshotted
+  at launch. Rule 26: pose the End of Voyage at 390×664 before and after; do not go looking for a
+  rate. Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
   deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
