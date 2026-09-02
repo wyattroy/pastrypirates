@@ -3297,18 +3297,27 @@ function promptTick(force){
          pixels tighter than the gate so a fix does not sit exactly on the threshold it satisfies. */
       if (pillB && pillB.height > 0){
         const pill = { l: pillB.left, t: pillB.top, r: pillB.right, b: pillB.bottom };
+        /* THE PETAL BREATHES, SO THE CLEARANCE RESERVES THE SWELL — D-44's rule, which every other
+           spacing in this function already obeys and the first version of this one did not. The
+           attention vocabulary grows a circle to --pp4GrowPeak; a 70px petal paints ~80px at the
+           peak, so a margin measured against the resting box very nearly vanishes exactly when the
+           circle is largest. The gate reads the PAINTED rect, so a fix that only clears the resting
+           one would pass here and still be flagged there. `SWELL` is the same expression `HALF` and
+           `SEP` above are built from — never a second number to keep in step. */
+        const SWELL = Math.round(D * S.growPeak);
         const onPill = (l, t) => {
           const px2 = Math.max(pill.l, Math.min(l + D / 2, pill.r));
           const py2 = Math.max(pill.t, Math.min(t + D / 2, pill.b));
-          return Math.hypot(l + D / 2 - px2, t + D / 2 - py2) < D / 2 - 2;
+          return Math.hypot(l + D / 2 - px2, t + D / 2 - py2) < SWELL / 2 + 2;
         };
         for (let pass = 0; pass < 3; pass++){
           let shifted = false;
           spots = spots.map(sp => {
             if (!onPill(sp[0], sp[1])) return sp;
             shifted = true;
-            const outs = [[0, pill.b + AIR - sp[1]], [0, pill.t - D - AIR - sp[1]],
-                          [pill.r + AIR - sp[0], 0], [pill.l - D - AIR - sp[0], 0]];
+            const OUT = (SWELL - D) / 2 + AIR;   // the swell's overhang, plus the file's own air
+            const outs = [[0, pill.b + OUT - sp[1]], [0, pill.t - D - OUT - sp[1]],
+                          [pill.r + OUT - sp[0], 0], [pill.l - D - OUT - sp[0], 0]];
             outs.sort((a, b2) => (Math.abs(a[0]) + Math.abs(a[1])) - (Math.abs(b2[0]) + Math.abs(b2[1])));
             /* AND WHEN THE ONLY WAY OFF THE QUESTION IS ONTO A HULL, TAKE IT — that is D-38, not a
                compromise of it. Wyatt, 2026-08-21: "always keep the prompt and buttons closer to

@@ -32,6 +32,11 @@ import { serve, launch, attach, killAll, sleep, REPO } from "../mp_rig.mjs";
 import { freshProfileDir } from "../lib/cdp.mjs";
 
 const PORT = 8494, DBG = 9394;
+const SHOOT_ALL = process.argv.includes("--shoot-all");
+/* `--tag=before|after` prefixes the filenames. Without it the two halves of a matched pair have
+   the SAME name and the second run silently overwrites the first — which is exactly what happened
+   here on 2026-09-02, destroying a set of before-shots that had already been taken. */
+const TAG = (process.argv.find(a => a.startsWith("--tag=")) || "").slice(6);
 const url = serve(PORT);
 /* ABSOLUTE, AND FRESHENED — rule 18, plus the Windows fault cdp.mjs already carries. A relative
    `--user-data-dir` never brought Chrome up here at all (measured: "no chrome on 9394", twenty
@@ -74,6 +79,32 @@ const pose = (a, d, ax, ay, dx, dy) => `(async()=>{try{
      {label:"Call "+(g.players[${d}].name||("Captain "+${d})),value:"d",seat:${d}}]);
   return {ok:true};
 }catch(e){return {err:String(e.message).slice(0,160)}}})()`;
+
+/* WAIT FOR THE SCREEN A PLAYER ACTUALLY SEES — and this probe got it wrong first.
+   A flat 1600ms wait photographed the prompt MID-REVEAL every single time: the message was still
+   typing ("it's free, and ye" with the rest to come) and not one call circle had been revealed
+   yet. Two whole before/after passes were taken at that moment before the screenshots were opened
+   and showed it. The pill grows as it types — this file's own placement comments say so — so a
+   layout read then is a layout that is still moving, which is precisely the quantity rule 26 says
+   not to measure.
+   So: poll until at least one circle is genuinely PAINTED (opacity, visibility, a real box) and
+   the pill's and circles' rects have stopped changing, and REPORT whether it settled or hit the
+   cap, because "it settled" and "we gave up waiting" are different facts. */
+const SETTLED = `(()=>{try{
+  const ap=document.getElementById('actionPanel'); if(!ap) return '';
+  const msg=ap.querySelector('.apMsg'); if(!msg) return '';
+  const btns=[...ap.querySelectorAll('.apBtn')];
+  const shown=btns.filter(b=>{const s=getComputedStyle(b); const r=b.getBoundingClientRect();
+    return r.width>4 && s.visibility!=='hidden' && parseFloat(s.opacity||'1')>0.5;});
+  if(!shown.length) return '';
+  /* QUANTISED TO 8px, FOR SETTLE_PROBE'S OWN REASON — copied from it rather than re-derived, after
+     re-deriving it at 2px and watching all 21 poses report STILL MOVING at the cap. Half this board
+     never stops: the petal breathes at --pp4GrowPeak, ships glide, the ripple pulses. 8px separates
+     "arriving" from "breathing" without naming a single element. */
+  const q=v=>Math.round(v/8);
+  const rect=e=>{const r=e.getBoundingClientRect();return q(r.left)+','+q(r.top)+','+q(r.width)+','+q(r.height);};
+  return (msg.textContent||'').length+'|'+rect(msg)+'|'+shown.map(rect).join(';');
+}catch(e){return ''}})()`;
 
 /* THE GATE'S OWN MATH, and the lift's own arithmetic, read off what is painted. */
 const MEASURE = `(async()=>{try{
@@ -135,7 +166,7 @@ async function boot(tag, w, h, mobile){
 }
 
 const LEGS = [["phone", 390, 844, true], ["phone-short", 390, 664, true], ["tablet", 768, 1024, false]];
-let covered = 0, measured = 0, clampBound = 0, notRun = 0;
+let covered = 0, measured = 0, clampBound = 0, notRun = 0, stillMoving = 0;
 const shots = [];
 
 for (const [tag, w, h, mob] of LEGS){
@@ -158,7 +189,12 @@ for (const [tag, w, h, mob] of LEGS){
   for (const [ax, ay, dx, dy] of POSES){
     const p = await C.ev(pose(seats[0], seats[1], ax, ay, dx, dy));
     if (!p || p.err){ console.log(`  pose(${ax},${ay})/(${dx},${dy}): POSE FAILED — ${p ? p.err : "no result"}`); notRun++; continue; }
-    await sleep(1600);                                  // let the stage tick place, lift and re-place
+    let last = "", same = 0, settled = false;
+    for (let i = 0; i < 50; i++){                       // bounded: 50 x 200ms = 10s ceiling
+      const sig = await C.ev(SETTLED);
+      if (sig && sig === last){ if (++same >= 3){ settled = true; break; } } else { same = 0; last = sig; }
+      await sleep(200);
+    }
     const m = await C.ev(MEASURE);
     if (!m || m.err){ console.log(`  pose(${ax},${ay})/(${dx},${dy}): NOT RUN — ${m ? m.err : "no measurement"}`); notRun++; continue; }
     if (!m.radial){ console.log(`  pose(${ax},${ay})/(${dx},${dy}): NOT RUN — not radial (stage=${m.stage})`); notRun++; continue; }
@@ -172,14 +208,20 @@ for (const [tag, w, h, mob] of LEGS){
     const cb = m.pillTop > m.wantTop + 1;
     if (m.covered){ covered++; if (cb) clampBound++; }
     const flag = m.covered ? (cb ? "  <-- COVERED (lift clamp-bound)" : "  <-- COVERED (lift NOT clamped)") : "";
-    console.log(`  boats (${ax},${ay})/(${dx},${dy})  pill top ${m.pillTop} h${m.pillH}  lift wanted ${m.wantTop}  circles top ${m.blockTop}${flag}`);
+    if (!settled) stillMoving++;
+    console.log(`  boats (${ax},${ay})/(${dx},${dy})  ${settled ? "settled" : "STILL MOVING at the 10s cap"}  pill top ${m.pillTop} h${m.pillH}  lift wanted ${m.wantTop}  circles top ${m.blockTop}${flag}`);
     for (const r of m.rows) console.log(`      seat ${r.seat} "${r.label}" at ${r.x},${r.y}  clearance ${-r.deep}px${r.onAsk ? "  ON THE ASK" : ""}`);
-    if (m.covered && shots.length < 4){ const f = `w54-${tag}-${ax}${ay}-${dx}${dy}.png`; await C.shot(f); shots.push(f); }
+    /* `--shoot-all` photographs EVERY pose, not only the failing ones, because a fix's evidence is
+       a matched pair and the failing-only default cannot produce the second half of one (rule 26).
+       Shots land wherever MP_RIG_SHOTS points; pass it .planning/posed to keep a pair. */
+    if ((SHOOT_ALL || m.covered) && shots.length < 24){
+      const f = `w54${TAG ? "-" + TAG : ""}-${tag}-${ax}${ay}-${dx}${dy}.png`; await C.shot(f); shots.push(f);
+    }
   }
 }
 
 console.log(`\n=== W5-4 VERDICT ===`);
-console.log(`  poses measured: ${measured}   NOT RUN: ${notRun}   circle on the ask: ${covered} (${clampBound} of them with the lift clamp-bound)`);
+console.log(`  poses measured: ${measured}   NOT RUN: ${notRun}   still moving at the cap: ${stillMoving}   circle on the ask: ${covered} (${clampBound} of them with the lift clamp-bound)`);
 if (shots.length) console.log(`  shots: ${shots.join(", ")}`);
 if (!measured){ console.log("  NOTHING MEASURED — not a pass."); killAll(); process.exit(2); }
 killAll();
