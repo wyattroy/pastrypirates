@@ -691,6 +691,15 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       corresponding harvested ruling. Red-proof both ways.
       *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
       third time. That is a repair, not the fix.)*
+      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
+      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
+      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
+      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
+      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
+      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
+      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
+      the design, and the gap between the two steps is a page that lies to him — so the move must be
+      atomic, which is what this row already says.
 
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
