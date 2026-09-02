@@ -275,18 +275,78 @@ function pillHtml(c) {
     + '<p class="pillMeta">' + esc(c.h) + " · " + esc(c.when) + "</p></div></details>";
 }
 
+/* ⚠ A SENTENCE ENDS WITH PUNCTUATION FOLLOWED BY A SPACE. A VERSION NUMBER NEVER IS.
+   Wyatt's screenshot, 2026-09-02T16:1xZ: his note on the page read *"evidence from before today's
+   2026."* and stopped mid-sentence. The old split was `/[^.!?]+[.!?]*​/g` — punctuation ALONE — so
+   the first dot of the build stamp `2026.09.01.8` ended the sentence and everything he actually
+   wanted to say was thrown away. Same for a file name, a decimal, an ellipsis.
+   Requiring the whitespace costs nothing and is what a full stop actually is. */
 function shortNote(s) {
   const t = String(s).trim();
-  const sentences = t.match(/[^.!?]+[.!?]*/g) || [t];
-  let out = sentences[0].trim();
-  if (out.length < 60 && sentences[1]) out = (out + " " + sentences[1].trim()).trim();
+  const sentences = t.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean);
+  let out = (sentences[0] ?? t).trim();
+  if (out.length < 60 && sentences[1]) out = (out + " " + sentences[1]).trim();
   return out.length > 200 ? out.slice(0, 200).trim() + "…" : out;
+}
+/* ⚑ HIS ASK 5, 2026-09-02: "the Glass is SHOUTING at me." The Glass is innocent — `shortTask` takes
+   each Chart row's first line verbatim, and watches write row titles in ALL CAPS for emphasis inside
+   CHART.md. He offered two fixes and the recommendation was (a), de-shout at render time, because it
+   cannot regress; (b) a convention that rows are written in sentence case is prose, and prose rules
+   fail here.
+   THE RULE HAS TO TELL AN ACRONYM FROM SHOUTING, AND THE DISTINGUISHING FACT IS NOT THE WORD — IT IS
+   THE PHRASE. `CEO`, `RED`, `QA`, `GSD` are names and arrive ALONE. Shouting arrives in a row. So:
+   downcase a run of TWO OR MORE consecutive all-caps words, and leave a lone one exactly as written.
+   Derived from that one observation, not from a list of blessed acronyms — a list like that rots the
+   first time somebody writes a new one.
+   A token carrying a DIGIT or a DOT is an identifier (`T-088`, `CHART.md`, `2026`), never shouting,
+   so it is neither downcased nor counted.
+   A ONE-LETTER WORD IS A JOINER, not a break: measured on his real Chart, "FROM A HAND-TYPED NUMBER"
+   survived a first version of this because the `A` in the middle ended the run. It now carries the
+   run through, and is itself downcased — except `I`, which is a word in English that is always
+   capital. That is a fact about the language, not a list of exceptions.
+
+   ⚠ THE COST, STATED BECAUSE IT IS VISIBLE ON HIS PAGE AND HE SHOULD NOT DISCOVER IT: a PROPER NOUN
+   caught inside a shouting run comes back lowercase — `WYATT'S OWN TEXT` renders as "wyatt's own
+   text". Render-time de-shouting cannot know a name from a noun, and no derivation available here
+   can. This is exactly the trade his own row named: (a) de-shout at render time, immediate and
+   cannot regress, versus (b) a convention that rows are written in sentence case, durable but prose.
+   (a) is shipped; (b) is the follow-up, and it is the only thing that gets his name's capital back. */
+function deShout(s) {
+  const parts = String(s).split(/(\s+)/);
+  /* THE DOT TEST IS ABOUT THE WORD, NOT ITS PUNCTUATION. Measured: `NUMBER.` at the end of a
+     sentence was read as an identifier because of its own full stop, so "FROM A HAND-TYPED NUMBER."
+     came through shouted while the same phrase mid-sentence did not. Trim the edges first; a dot
+     INSIDE a word (`CHART.md`) still protects it. */
+  const core = (w) => w.replace(/^[^A-Za-z0-9]+/, "").replace(/[^A-Za-z0-9]+$/, "");
+  const shouty = (w) => { const c = core(w); return /[A-Z]{2,}/.test(c) && c === c.toUpperCase() && !/[0-9.]/.test(c); };
+  /* ⚠ A JOINER IS A ONE-LETTER WORD, NEVER PUNCTUATION. The first version let any punctuation-only
+     token carry a run through, and on his real Chart that reached ACROSS a clause boundary and ate
+     the acronym on the far side: "STILL WORD-SEARCHES FOR THE HEADING — CEO 104's" came back as
+     "…the heading — ceo 104's". A dash is where a sentence turns; it ends the shouting. */
+  const joiner = (w) => /^\s+$/.test(w) || /^[A-Za-z]$/.test(core(w));
+  let i = 0;
+  while (i < parts.length) {
+    if (!shouty(parts[i])) { i++; continue; }
+    let j = i;
+    while (j < parts.length && (shouty(parts[j]) || joiner(parts[j]))) j++;
+    while (j > i && !shouty(parts[j - 1])) j--;          // a run ends on its last shouted word
+    const shouted = parts.slice(i, j).filter(shouty).length;
+    if (shouted >= 2) {
+      for (let k = i; k < j; k++) {
+        if (shouty(parts[k])) parts[k] = parts[k].toLowerCase();
+        else if (!/^\s+$/.test(parts[k]) && !/\bI\b/.test(parts[k])) parts[k] = parts[k].toLowerCase();
+      }
+    }
+    i = j;
+  }
+  const out = parts.join("");
+  return out.replace(/^(\W*)([a-z])/, (_, lead, c) => lead + c.toUpperCase());
 }
 /* Checklist/task lines carry real operational detail (not a commit subject), so this keeps more
    of them — it only drops markdown bold and a trailing *(parenthetical aside)*, then caps long
    ones so the Tasks card stays scannable rather than a wall of text. */
 function shortTask(s) {
-  let t = unmark(s).replace(/\s*\*\([^)]*\)\*\s*$/, "").trim();
+  let t = deShout(unmark(s).replace(/\s*\*\([^)]*\)\*\s*$/, "").trim());
   const words = t.split(/\s+/).filter(Boolean);
   return words.length > 16 ? words.slice(0, 16).join(" ") + "…" : t;
 }
@@ -310,8 +370,23 @@ const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git
 // --- the Chart: checklist tallies + task text + blocked-on-Wyatt + inbox items ---
 const chart = tryRead(join(ROOT, ".planning", "CHART.md"));
 let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = null;
+/* HIS ASK 3's DANGEROUS HALF. "If there are no calls for me to make, don't show the Your Call box"
+   is one conditional — but `blocked.length === 0` is reachable for TWO completely different reasons,
+   and they must not look the same to him:
+     (a) genuinely nothing waiting;
+     (b) a question written into `## BLOCKED ON WYATT` as PROSE rather than a table row — the
+         renderer takes only lines beginning with `|` and skips paragraphs in silence, so the card
+         truthfully reports (0) while a real question waits. That is T-077, still open, and he
+         caught it in a screenshot on 2026-09-02.
+   Hiding (a) is what he asked for. Hiding (b) would bury a real question completely, which is
+   strictly worse than the miscount it replaced. So this flag exists, it fails toward SHOWING, and
+   the card says out loud that it could not read something. */
+let blockedUnreadable = false;
 if (chart !== null) {
   const blockSec = chart.split(/^## BLOCKED ON WYATT$/m)[1]?.split(/^## /m)[0] ?? "";
+  blockedUnreadable = blockSec.split("\n")
+    .map((l) => l.trim())
+    .some((l) => l !== "" && !l.startsWith("|"));
   blocked = blockSec.split("\n")
     .filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|-+/.test(l) && !/^\|\s*---/.test(l))
     .map((l) => l.split("|").map((c) => c.trim()).filter(Boolean))
@@ -442,6 +517,51 @@ if (chart !== null) {
   checklist = { done: doneToday, open: tasks.length };
 }
 
+/* --- WHAT IS BEING WORKED ON RIGHT NOW — his ask 1, 2026-09-02T16:1xZ: "what is being worked on
+   RIGHT NOW? that needs to be visible just underneath the emoji status."
+
+   DERIVED, NEVER TYPED. The Door already requires a watch to CLAIM its item in `.planning/
+   CTO-LEDGER.md` before touching anything, and the close gate writes a `close_item:` line into the
+   same file when it finishes — so the fact is already on disk, in order, in one place.
+
+   THE RULE: the newest claim heading is in hand UNLESS a `close_item:` line appears AFTER it. That
+   is what "between watches" actually looks like in the record, and it needs no invented staleness
+   constant to detect.
+
+   ⚠ AND THE LINE HE ASKED FOR IS THE ONE THAT CAN LIE MOST EASILY, so two decisions are deliberate:
+     - it names the CLAIM TIME as an absolute stamp, never "N minutes ago". A relative age computed
+       at publish time and then frozen on a static page is precisely the fault of his ask 2, two
+       lines below this one; an absolute time cannot rot.
+     - a ledger that cannot be read renders as UNREADABLE, never as "nothing in hand" — this file's
+       standing rule, and here it matters more than usual, because "nothing in hand" is a claim
+       about the whole relay. */
+const ledgerRaw = tryRead(join(ROOT, ".planning", "CTO-LEDGER.md"));
+const inHand = (() => {
+  if (ledgerRaw === null) return { state: "unreadable" };
+  const lines = ledgerRaw.split("\n");
+  let claimIdx = -1, claim = null, closeIdx = -1;
+  lines.forEach((l, i) => {
+    const m = /^#{2,4}\s+WATCH\s+(\S+)\s*[—–-]+\s*claims?\b(.*)$/i.exec(l);
+    if (m) {
+      claimIdx = i;
+      const rest = unmark(m[2]);
+      const handle = (/`([^`]+)`/.exec(rest) || [])[1]
+        ?? (/\b((?:T-\d+|INBOX-[0-9A-Za-z]+))/.exec(rest) || [])[1]
+        ?? rest.replace(/^[\s:,-]+/, "").split(/,|\s+—\s+/)[0].trim();
+      claim = { when: m[1], handle: handle || "an unnamed item" };
+    }
+    if (/close_item\s*:/.test(l)) closeIdx = i;
+  });
+  if (claimIdx === -1) return { state: "none" };
+  if (closeIdx > claimIdx) return { state: "none" };
+  return { state: "held", ...claim };
+})();
+const inHandHtml = inHand.state === "unreadable"
+  ? `<span class="bad">unreadable: .planning/CTO-LEDGER.md could not be read — this page cannot tell you what is in hand</span>`
+  : inHand.state === "none"
+    ? `<b>Nothing in hand</b> — no watch has claimed an item since the last one closed.`
+    : `<b>In hand:</b> ${esc(inHand.handle)} <span class="muted">· claimed ${esc(inHand.when)}</span>`;
+
 // --- restarts (the watchdog appends here) ---
 // ⚠ THE HONESTY GAP A RELAY CAUGHT, 2026-08-31: restarts.log is machine-local and gitignored
 // (.gitignore:82), so a page generated anywhere but the Razer has NO file to read, and the old
@@ -458,10 +578,17 @@ const restartsEmptyMsg = restartsRaw === null
   ? `No restarts.log on this machine (<b>${esc(MACHINE)}</b>) — it is local and gitignored, so this page cannot see another machine's log. This is NOT evidence of zero restarts.`
   : `None recorded on <b>${esc(MACHINE)}</b> — the Bell has not needed to ring a watch here.`;
 
-const rows = (list, empty) => list === null
+/* HIS ASK 4, and the SECOND time he has asked (INBOX-20260902T13xxZ, then again 2026-09-02T16:1xZ):
+   "the Chart is still not using numbers -- it's using bullet points. it needs numbers."
+   Only the Tasks card takes `ordered` — the Bell's log is a list of events, not a queue. The point
+   of the numbers is that RANK now orders the Tasks list, and without them the ordering he asked for
+   four times is invisible on the page. */
+const rows = (list, empty, ordered = false) => list === null
   ? `<p class="bad">unreadable: source file could not be parsed</p>`
   : list.length === 0 ? `<p class="muted">${empty}</p>`
-  : `<ul>${list.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  : ordered
+    ? `<ol>${list.map((x) => `<li>${x}</li>`).join("")}</ol>`
+    : `<ul>${list.map((x) => `<li>${x}</li>`).join("")}</ul>`;
 
 // --- v2 state: what the page needs to rebuild itself. A fresh generation always starts with an
 // EMPTY ideas list — page-born ideas must already have been harvested to the Chart (see header).
@@ -618,6 +745,10 @@ const PAGE = `<meta charset="utf-8">
     font-size:.95rem;}
   .pulseline .age{font-weight:700;color:var(--ink);}
   .pulseline .pulsenote{color:var(--muted);}
+  /* HIS ASK 1 — "what is being worked on RIGHT NOW? that needs to be visible just underneath the
+     emoji status." Directly under the pulse line, above the page's own age, because what is in hand
+     outranks how old the photograph is. */
+  .inhandline{margin:0 0 .15rem;font-size:.95rem;}
   .pulseline.stale .age{color:var(--stale);}
   /* ITEM (a) of the age fix — a second, quieter line: when was this PAGE last regenerated and
      published, as distinct from when real WORK last happened (the line above). The two can
@@ -696,14 +827,15 @@ const PAGE = `<meta charset="utf-8">
     <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
     <span class="pulsenote" id="noteText">${esc(shortNote(note))}</span>
   </div>
-  <p class="publishedline" id="publishedLine">page published —</p>
+  <p class="inhandline" id="inHand">${inHandHtml}</p>
+  <p class="publishedline" id="publishedLine">page published moments ago — it cannot see anything newer than that</p>
   ${relayedNote ? `<p class="relayNote">From another session, folded in on this pulse: ${esc(relayedNote)}</p>` : ""}
 
-  <section class="card accentCard">
+  ${askList.length === 0 && !blockedUnreadable ? "" : `<section class="card accentCard">
     <h2>Your call (${askList.length}${DEMO ? " + 2 demo" : ""})</h2>
     ${askList.length === 0
-      ? `<p class="muted">Nothing waiting — every question you've been asked is ruled, and the Watch has what it needs.</p>`
-      : `<div id="asks">${askList.map((b) => `<div class="ask" data-id="${esc(b.id)}">
+      ? `<p class="bad">This page could not read part of BLOCKED ON WYATT — there is content in that section that is not a table row, so a question may be waiting there that this card cannot show. Open .planning/CHART.md.</p>`
+      : `${blockedUnreadable ? `<p class="bad">…and there is more in that section this page could not read — content that is not a table row. Open .planning/CHART.md.</p>` : ""}<div id="asks">${askList.map((b) => `<div class="ask" data-id="${esc(b.id)}">
       <p class="q">${esc(b.q)}${b.id.startsWith("demo-") ? `<span class="demoTag">example — not real</span>` : ""}</p>
       <p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>
       <div class="ruleRow">
@@ -714,7 +846,7 @@ const PAGE = `<meta charset="utf-8">
       <textarea class="rnote" rows="2" placeholder="A note, if you want one — your words outrank the button."></textarea>
       <p class="muted rstate"></p>
     </div>`).join("")}</div>`}
-  </section>
+  </section>`}
 
   <section class="card">
     <h2>Ideas</h2>
@@ -741,7 +873,7 @@ const PAGE = `<meta charset="utf-8">
          been LOST — which would be worse than the ever-growing number it replaced. -->
     <h2>The Chart (Tasks To Do) — ${checklist === null ? "?" : checklist.done} done today · ${checklist === null ? "?" : checklist.open} open</h2>
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
+      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.", true)}
   </section>
 
   <section class="card">
@@ -807,6 +939,17 @@ const PAGE = `<meta charset="utf-8">
     // page no longer can.
     var tProgress = new Date(state.lastProgressAt || state.generatedAt);
     var tPublished = new Date(state.generatedAt);
+    /* HIS ASK 2, 2026-09-02: he read "last progress 25 min ago" while work was four minutes old.
+       ⚠ THE ROW THAT FILED THIS ASKED FOR A FIX THAT WAS ALREADY BUILT — "make the page compute its
+       own age in the browser". It already did, and had for a day: tick() runs every 30s and both
+       clocks are live. So implementing the row as written would have changed nothing and been
+       reported as a fix. Measured before touching it, which is the only reason it was caught.
+       THE REAL DEFECT IS THAT BOTH LIVE NUMBERS ARE BOUNDED BY A FROZEN ONE. lastProgressAt is
+       whatever was true when this page was PUBLISHED; a static page cannot learn about work that
+       lands afterwards. His 25 minutes was arithmetically honest and factually stale, and nothing on
+       the page said so. This sentence is that missing half — it rides on every update of the
+       published line, so it can never drift away from the number it qualifies. */
+    var BLIND = " — it cannot see anything newer than that";
     function fmtAge(ms){
       var m = Math.floor(ms/60000);
       return m < 1 ? "moments ago" : m + " min ago";
@@ -830,14 +973,14 @@ const PAGE = `<meta charset="utf-8">
         age.textContent = lr.what + (lr.progress ? " -- " + lr.progress : "") + ", still running";
         emoji.textContent = "⚙️";
         p.className = "pulseline";
-        if (pub) pub.textContent = "page published " + fmtAge(publishedMs);
+        if (pub) pub.textContent = "page published " + fmtAge(publishedMs) + BLIND;
         return;
       }
       age.textContent = "last progress " + fmtAge(progressMs);
       var stale = Math.floor(progressMs/60000) > 45;
       emoji.textContent = stale ? "🔴" : "🟢";
       p.className = stale ? "pulseline stale" : "pulseline";
-      if (pub) pub.textContent = "page published " + fmtAge(publishedMs);
+      if (pub) pub.textContent = "page published " + fmtAge(publishedMs) + BLIND;
     }
     tick(); setInterval(tick, 30000);
 
