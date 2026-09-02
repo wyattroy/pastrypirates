@@ -5800,3 +5800,40 @@ see is written to `.planning/wyclau/GLASS-NOTE.md` and committed, and the Glass 
 to publish (Door step 6b).
 
 - 2026-09-02T22:16:58Z · close_item: INBOX-20260902T190715Z · CEO 122 · no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- src/ and index.html untouched · his solution first: commit a13c365 · his three parts shipped in a13c3655; both lastmod dates derived from git log -1 --format=%cs, red-proofed against a hand-typed date
+
+## WATCH 2026-09-02T22:30Z (6:30 PM ET) — Wy-Blade — CLAIMS `INBOX-20260902T190723Z`, the rules-page content split
+
+**SITUATION, six lines.**
+- **Watch started** 2026-09-02T22:30:12Z (6:30 PM ET) on Wy-Blade, branch
+  `claude/cloud-handoff-planning-a9ay1u`, clean tree, `can_push` OK, last commit `17f99bd4`.
+- **Last progress:** the 22:00Z watch closed `INBOX-20260902T190715Z` (his sitemap fix) through the
+  gate — `T-098`, CEO 122 (**YES**), commit `a13c3655`.
+- **Blocked on Wyatt:** the `BLOCKED ON WYATT` table is **empty** as this watch starts — zero rows,
+  so his Your Call card has nothing in it. That is part of why this item is the right one to take:
+  it exists to put questions there.
+- **Detached trial in flight:** none started by this watch; no live long run is claimed above.
+- **`CHART.md` is CLEAN this watch** (the 22:00Z watch could not run the rank pass because another
+  session had that file mid-edit, and said the next watch should). **This watch owes and will run
+  `chartkeeper.mjs --rank --write`.**
+- **What THIS watch will do:** `INBOX-20260902T190723Z` — *"decide the content split before anything
+  gets built… ask me 2-5 questions… Do not write any code this session."* Homework first, then his
+  questions into `BLOCKED ON WYATT` with recommendations marked, then the gate.
+
+**WHY THIS ITEM AND NOT AN OLDER OPEN ONE.** Same walk the 22:00Z watch published, one step on: the
+items older than this are all spoken for (`1340Z` his own backlog routing; `0058Z` the Advisor's;
+`04xxZ` built; `05xxZ-b` a multi-watch design; `05xxZ-c` his call; `13xxZ`/`14xxZ` measured already
+built; `17xxZ`/`192000Z` belong to the watches that built them; `190715Z` closed at 22:16Z). This is
+now **the oldest OPEN item that is his own words, unblocked, unbuilt and one watch in size.** The
+three items after it (`190730Z` build the page, `190737Z` credits page, `190743Z` regenerate the
+sitemap) are all blocked on this one by his own sentence — *"following the content split I approved
+in the previous session"* — so it is also the row that unblocks the most.
+
+**HOW A WATCH ASKS HIM 2-5 QUESTIONS WHEN IT HAS NO QUESTION UI — stated, not slipped past.** A
+Bell-launched watch on this machine has `SendMessage`, `Agent` and `ListAgents` and **no
+`AskUserQuestion` and no `Artifact`**, and he is not at the keyboard. His question surface in this
+system is the Glass's **Your Call** card, which renders `## BLOCKED ON WYATT`'s table rows — that is
+where a watch parks a taste question with a marked recommendation (the Door, Advisor section). So
+the questions go there, one row each, recommendation marked. **If that is the wrong channel he can
+say so in one tap; the alternative is not asking him at all.**
+
+- 2026-09-02T22:30Z · INBOX-20260902T190723Z · START · claimed the rules-page content split; homework then questions into BLOCKED ON WYATT; no code, at his instruction
