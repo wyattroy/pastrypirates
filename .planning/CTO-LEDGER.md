@@ -5259,3 +5259,30 @@ the Glass-update session is asked directly at the Door's step 6b.
 _dollar_replace_proof.mjs` (the throwaway that proved the dollar fault), plus the two the previous
 watch named — `scripts/qa/_peek_glass.mjs` and `.planning/wyclau/_commitmsg.txt`. All UNTRACKED;
 this watch staged files explicitly rather than `git add -A` so none of them can ride along.
+
+⚠ **AND THEN THE LITTER BIT, WITHIN ONE MINUTE OF BEING NAMED. THIS WATCH'S ENTIRE CLOSE IS
+COMMITTED UNDER ANOTHER SESSION'S SUBJECT LINE, AND THAT SUBJECT IS A VERBATIM DUPLICATE OF
+`74009349`.** Commit **`3a2baed8`** — *"CEO 112 said ask 2 must not be ticked and the in-hand line
+had no producer"* — contains **only** this watch's six record files (CEO 115, the `T-097` row, this
+ledger entry, the closed INBOX fate, the Glass note, the status file). It contains nothing of the
+work its message describes; that work is already on the branch as `74009349`.
+
+**THE MECHANISM, and it is the shared-checkout hazard already filed at `INBOX-20260902T05xxZ-c`,
+one turn further on.** `.planning/wyclau/_commitmsg.txt` is UNTRACKED, was left behind by the
+`74009349` watch, and is the file every session here passes to `git commit -F`. Between this
+watch's `git add` and its `git commit`, a peer session on this same checkout ran that command
+against the **stale** file and swept this watch's staged index into its own commit. This watch's
+own `git commit -F` then found nothing staged and printed *"nothing added to commit"*.
+
+**NOT AMENDED, deliberately.** The peer is live — it committed `5c3145af` seconds later, folding
+this watch's note into his published page — and rewriting a live peer's commit on a shared checkout
+trades a wrong subject for a possible lost one. **The content is correct, pushed, and on his page.**
+The correction lives here instead, which is what an append-only record is for.
+
+**THE REUSABLE PART, and it is one line of a runbook, not a hook:** *an untracked, shared,
+long-lived `_commitmsg.txt` is a loaded gun on a checkout three sessions write.* Every prior fault
+in this family — the allowlist that matched one spelling, the report at a hardcoded path, the queue
+every trial overwrote — is the same shape: **a shared artifact with no owner.** The fix is the one
+`sea_trial.mjs` already took: a per-session filename. **`git commit -F -` with a heredoc, which
+`docs/GIT-AND-DEPLOY.md:475` already mandates in those words, has no such file at all** — and this
+watch used `-F <path>` anyway, which is how it walked into it.
