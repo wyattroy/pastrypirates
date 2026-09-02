@@ -4792,3 +4792,27 @@ moment the rain arrived, so "after" was photographed at 9s and "before" at 91s �
 still mid-load in the earlier one. **Two pictures taken at different moments are not a pair: the
 difference they show is the clock.** Both runs now poll and photograph inside the same fixed 45s
 window, and the note is in the script at the line that would otherwise do it again.
+
+### WATCH 2026-09-02T15:39Z — claims `T-087`, the RESIZE third of `INBOX-20260901T1335Z`
+
+- **Watch started** 2026-09-02T15:39:17Z, Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`.
+  `can_push.mjs`: can publish. `stray_probe_check`: PASS — **no debug-port browsers running at all**
+  (the 183 found this morning are gone and nothing has re-leaked since). No `LONG-RUN` marker.
+- **Last progress**: `18c2c8d9` (Glass note folded in), `8549a623` (the preload half + CEO 108).
+- **Previous watch closed**: nothing — deliberately. It shipped the preload fix (`rain-streaks.png`,
+  144/144 warmed, gated) and CEO 108 returned **PARTIAL**, so `INBOX-20260901T1335Z` stayed OPEN and
+  its unanswered third became Chart row `T-087`.
+- **Blocked on Wyatt**: `## BLOCKED ON WYATT` holds **zero table rows** — nothing is waiting on him.
+- **Detached trial in flight**: none (no `LONG-RUN`, no live pid).
+- **No Artifact tool in this session**, so the Glass is not published from here: the pulse is written
+  to `GLASS-NOTE.md` for the next session that can publish.
+- **THIS WATCH TAKES `T-087`.** It is both the oldest OPEN Inbox item's remainder and, independently,
+  the Chartkeeper's **rank 1 of 43** at score 108 (*"you asked for this yourself, and nothing is
+  blocking it"*). **Claimed.**
+  **The first honest act is not a resize — it is a re-measurement.** `ASSET-DISPLAY-SIZES.md` was
+  generated 2026-09-01T23:55Z, before both WebP renames; its table names `assets/board.png`, seven
+  islands and 21 pastries, **none of which exist on disk**. Acting on its 25 candidates would be
+  acting on a file describing a library this game no longer has. So: re-run the probe against the
+  current tree, then decide from THAT what is genuinely drawn smaller than it ships — and pose every
+  candidate before it moves, because the one thing already measured here is that resizing down
+  softens art on a retina phone.
