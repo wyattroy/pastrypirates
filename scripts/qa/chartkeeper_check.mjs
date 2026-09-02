@@ -386,5 +386,248 @@ The fixture now carries a Z the way the real file does.
   else pass("report mode changes nothing on disk");
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   10. PASS 2 — SETTLE. A HALF-DONE ROW IS NOT ALLOWED TO STAY HALF-DONE.
+
+   WYATT ADDED THIS PASS HIMSELF, after reading the spec's first draft, and it is the half the
+   04:19Z build missed entirely — that build was written from a copy of the spec taken before his
+   banner landed. His words, verbatim: "Half-Stale items should be prioritized to be either
+   validated as finished, worked on until finished, or in the worst case, i should be asked if I am
+   satisfied with their state."
+
+   WHY IT IS A REAL DEFECT AND NOT A TIDINESS FEATURE. REAP asks its questions of the WHOLE row. So
+   a row bundling three jobs, one of them finished, comes back FLAGGED — and RANK then tells him it
+   "looks finished — needs a verdict, not work" while two thirds of it is untouched work. That is an
+   instrument reporting a defect the Chart does not have, which is rule 6's own territory. The
+   Blade-hour row has been doing exactly this for days: three jobs under one checkbox, one of them
+   measurably done, the measurement filed 500 lines away, and the row unmoved.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ⚠ THE FIXTURE IS BUILT SO THAT ALL FOUR OUTCOMES ARE PRESENT AT ONCE — bundled-and-half-done,
+   bundled-and-wholly-done, bundled-with-nothing-to-carry, and not bundled at all. A pass that
+   answers the same way to everything therefore fails on at least one of them no matter which way it
+   is stuck, which is guardrail 2 of the spec applied to this pass instead of to REAP. */
+const BUNDLED = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] **THE BLADE HOUR — three jobs under one checkbox**
+      part 1: register the Bell — See BLOCKED ON WYATT, and he answered that one hours ago.
+      part 2: ring-test the Bell in both directions — nobody has done this and there is no
+      pointer of any kind in it.
+      part 3: the O2 publish test — nobody has done this either, and it has no pointer either.
+- [ ] **AN ORDINARY ROW WITH ONE CLAIM IN IT** — plain work in \`src/ui/flow.js\` that nobody has
+      started. Filed 2026-09-02T04:19Z.
+- [ ] **EVERY PART OF THIS ROW IS ALREADY FINISHED**
+      part 1: the first trial — cites \`.planning/SEA-TRIAL-fixture-never-written.md\`, which is
+      not on disk.
+      part 2: the second trial — measured on build \`2000.01.01.1\`, which is not the stamp in
+      the tree.
+- [ ] **BUNDLED ON THE FIRST LINE AND NOWHERE ELSE** · register the thing · ring-test it · publish from O2, and See BLOCKED ON WYATT about that, which he answered hours ago.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+| **What colour should the lantern be?** the taste call on the lantern colour | Recommended: brass | 2026-09-02 |
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+
+const settleOf = (json, match) => (json?.settle || []).find((s) => new RegExp(match).test(s.title || ""));
+
+/* 10a. IT MUST SEE THE HALF-DONE ROW, AND NAME WHICH PARTS ARE FINISHED AND WHICH ARE NOT.
+        "Half-stale" is DERIVED, never a flag somebody sets: the row carries more than one checkable
+        claim and REAP's own questions come back TRUE for some of them and not others. */
+{
+  const p = chartFile("settle-detect", BUNDLED);
+  const r = runJson([`--chart=${p}`, "--settle"]);
+  if (!r.json) fail(`--settle --json produced no JSON a caller can read. Got: ${r.out.trim().slice(0, 160)}`);
+  else if (!Array.isArray(r.json.settle)) fail("there is no SETTLE pass — a row that is partly done drifts in the middle of the list forever, which is the exact drift his instruction is about");
+  else {
+    const blade = settleOf(r.json, "THE BLADE HOUR");
+    if (!blade) fail("did not see the bundled row as half-done — three jobs under one checkbox, one of them finished, is the worked example in his own spec");
+    else {
+      if (!(blade.settled?.length === 1 && blade.open?.length === 2))
+        fail(`named ${blade.settled?.length ?? "?"} finished part(s) and ${blade.open?.length ?? "?"} open — the fixture has exactly one finished of three`);
+      else pass("named exactly which parts of the bundled row are finished and which are not");
+      if (!blade.settled?.[0]?.reason) fail("a part was called finished with no derived reason — an unexplained verdict is an opinion");
+      else pass("every finished part carries the derived reason that produced it");
+    }
+    const ordinary = settleOf(r.json, "AN ORDINARY ROW WITH ONE CLAIM");
+    if (ordinary) fail("called a row with one claim in it half-done — a pass that fires on everything is as useless as one that fires on nothing");
+    else pass("left the row with a single claim alone");
+  }
+}
+
+/* 10b. THE THREE FATES ARE HIS, IN HIS ORDER: validate finished, work it until finished, or ask
+        him — and the third is last because his attention is the scarcest thing this project spends.
+        Which fate a row gets is DERIVED: every part finished → VALIDATE; some finished and each
+        part has its own text to carry → SPLIT; some finished but there is nothing to carry onto
+        the parts → ASK, because a split with nothing in it is a worse answer than a question. */
+{
+  const p = chartFile("settle-fates", BUNDLED);
+  const r = runJson([`--chart=${p}`, "--settle"]);
+  const want = [
+    ["EVERY PART OF THIS ROW IS ALREADY FINISHED", "VALIDATE", "every part derives finished, so it needs a verdict and not work"],
+    ["THE BLADE HOUR", "SPLIT", "some parts are finished and the rest is real work, and each part has its own text"],
+    ["BUNDLED ON THE FIRST LINE AND NOWHERE ELSE", "ASK", "there is nothing to carry onto the parts, so it is a question for him"],
+  ];
+  for (const [title, fate, why] of want) {
+    const got = settleOf(r.json, title)?.fate;
+    if (got !== fate) fail(`"${title.slice(0, 40)}…" got fate ${JSON.stringify(got)}, wanted ${fate} — ${why}`);
+    else pass(`${fate}: ${why}`);
+  }
+}
+
+/* 10c. ⚠ THE MISREPORT THIS PASS EXISTS TO STOP, AND IT IS ALREADY ON HIS PAGE.
+        REAP flags the bundled row (one of its pointers really is dead), and RANK then labels it
+        "looks finished — needs a verdict, not work". Two thirds of that row is untouched work.
+        A row that is PARTLY finished must never be described to him as finished. */
+{
+  const p = chartFile("settle-not-finished", BUNDLED);
+  const r = runJson([`--chart=${p}`, "--settle", "--rank"]);
+  const blade = (r.json?.rank || []).find((x) => /THE BLADE HOUR/.test(x.title || ""));
+  if (!blade) fail("the bundled row vanished from the ranking");
+  else if (/looks finished/.test(blade.whyNow || ""))
+    fail(`told him a half-done row "looks finished": ${JSON.stringify(blade.whyNow)} — two of its three parts are untouched work`);
+  else if (!/half[- ]done/i.test(blade.whyNow || ""))
+    fail(`the half-done row's why-now says ${JSON.stringify(blade.whyNow)} — it must say plainly that it is half done, or he cannot overrule the position`);
+  else pass("a half-done row is described as half done, never as finished");
+}
+
+/* 10d. IT MUST ACT, NOT MERELY OBSERVE. SPLIT gives each unfinished part its own checkable row —
+        "a bundled row can never be ticked" is the audit's own finding, and splitting is how a
+        bundle becomes tickable. ASK puts one question, with the measurement attached, where he
+        will see it. AND NOTHING MAY BE LOST: the parent keeps its full text, verbatim. */
+{
+  const p = chartFile("settle-act", BUNDLED);
+  const before = readFileSync(p, "utf8");
+  run([`--chart=${p}`, "--settle", "--write"]);
+  const after = readFileSync(p, "utf8");
+
+  if ((after.match(/^- \[x\]/gm) || []).length > (before.match(/^- \[x\]/gm) || []).length)
+    fail("SETTLE ticked a box — closing is a claim about WORK and belongs to a watch behind close_item.mjs");
+  else pass("SETTLE ticked no boxes");
+
+  for (const part of ["ring-test the Bell in both directions", "the O2 publish test"]) {
+    if (!new RegExp(`^- \\[ \\] [^\\n]*${part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "m").test(after))
+      fail(`"${part}" did not become a row of its own — it is still buried in a bundle that can never be ticked`);
+    else pass(`"${part}" is now its own checkable row`);
+  }
+  /* ⚠ WRITTEN AS LINE CONTAINMENT, NOT AS ONE CONTIGUOUS BLOCK, AND THE FIRST VERSION WAS THE
+     OTHER WAY. It demanded the parent's whole body appear verbatim — and that fails on CORRECT
+     behaviour, because the write legitimately inserts the row's ⟨handle⟩ line underneath its first
+     line. This gate has now made the over-specified mistake three times (cases 4 and 5 carry the
+     other two), so the shape is worth naming: assert the property that matters — NOTHING IS LOST —
+     never the exact bytes around it. */
+  const parentBody = (before.match(/^- \[ \] \*\*THE BLADE HOUR[\s\S]*?(?=\n- \[)/m) || [""])[0];
+  const lost = parentBody.split("\n").map((l) => l.trim()).filter(Boolean).filter((l) => !after.includes(l));
+  if (lost.length)
+    fail(`the split lost ${lost.length} line(s) of the parent row's own text — the essays are the graveyard, and a split that summarises loses it. First: ${JSON.stringify(lost[0].slice(0, 70))}`);
+  else pass("every line of the parent row's text survived the split");
+
+  if (!/^\|[^\n]*BUNDLED ON THE FIRST LINE/m.test(after))
+    fail("the row that could only be resolved by asking him never reached BLOCKED ON WYATT — a question nobody can see is not a question");
+  else if (!/^\|[^\n]*BUNDLED ON THE FIRST LINE[^\n]*1 of 3/m.test(after))
+    fail("the question carries no measurement — his own instruction is that he is asked with the state attached, never in the abstract");
+  else pass("the un-derivable row became one question in BLOCKED ON WYATT, with its measurement attached");
+}
+
+/* 10e. THE ENFORCEMENT, and without it this pass is a suggestion: A ROW MAY NOT SURVIVE A FULL
+        WRITE PASS STILL HALF-DONE AND UNRESOLVED. The spec, in its own words: "the whole point of
+        his instruction is that 'partly done' stops being a place a row can live." A row is resolved
+        when its open parts each have a row of their own, or when a question about it is in front of
+        him — both DERIVED from the file, never from a flag the tool wrote to itself. */
+{
+  const p = chartFile("settle-enforce", BUNDLED);
+  const before = runJson([`--chart=${p}`, "--settle"]);
+  if (!(before.json?.settleUnresolved || []).length)
+    fail("nothing was unresolved before the write, so this case cannot fail and is therefore not a check");
+  else pass(`${before.json.settleUnresolved.length} row(s) unresolved before the write — the case can fail`);
+  run([`--chart=${p}`, "--settle", "--write"]);
+  const after = runJson([`--chart=${p}`, "--settle"]);
+  const left = after.json?.settleUnresolved;
+  if (!Array.isArray(left)) fail("the tool does not report which half-done rows are still unresolved — an enforcement nobody can read is not an enforcement");
+  else if (left.length) fail(`${left.length} row(s) survived a full write pass still half-done and unresolved: ${JSON.stringify(left.slice(0, 2))}`);
+  else pass("no row survived the write pass still half-done — 'partly done' is not a place a row can live");
+}
+
+/* 10f. AND IT MUST STILL BE IDEMPOTENT WITH SETTLE ON. This is the case that would catch the
+        obvious way to build this wrong: a split that re-splits every run, adding the same child
+        rows again and again. Two sessions share this branch — a rewrite that differs every run
+        conflicts on every push. */
+{
+  const p = chartFile("settle-idem", BUNDLED);
+  run([`--chart=${p}`, "--write"]);
+  const first = readFileSync(p, "utf8");
+  run([`--chart=${p}`, "--write"]);
+  const second = readFileSync(p, "utf8");
+  if (first !== second) fail("running the full pass twice produced two different files — SETTLE is re-acting on rows it has already resolved");
+  else pass("the full pass including SETTLE is idempotent");
+  const firstLines = (BUNDLED.match(/^- \[[ x]\][^\n]*/gm) || []);
+  const afterLines = (first.match(/^- \[[ x]\][^\n]*/gm) || []);
+  const changed = firstLines.filter((l) => !afterLines.includes(l));
+  if (changed.length) fail(`SETTLE altered ${changed.length} existing row first-line(s) — the first line is what the Glass renders to him. First: ${JSON.stringify(changed[0].slice(0, 90))}`);
+  else pass("every existing row's first line survived SETTLE byte for byte");
+}
+
+/* 10h. ⚠ IT MUST SAY WHAT IT LOOKED AT, NOT ONLY WHAT IT FOUND — AND IT MUST SEE THE CHART'S OWN
+        BUNDLING SHAPES. This case exists because of a near miss that a green gate could not see.
+        The first build of SETTLE passed every case above and then, pointed at the REAL Chart, saw
+        ZERO bundled rows — including the Blade hour, which is the audit's own worked example. It
+        writes its three jobs as a comma list after a colon ("…: register the Bell, the ring test
+        both directions, the O2 publish test — runbook …"), a shape the fixture did not contain.
+        A pass that is silent on a healthy Chart and a pass that has gone blind print the same line,
+        so the count of what it EXAMINED is the only thing that tells them apart. */
+{
+  const COMMA = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
+      directions, the O2 publish test — runbook \`scripts/wyclau/RAZER-SETUP.md\`
+- [ ] **A ROW WHOSE FIRST LINE IS ORDINARY PROSE** — it mentions a colon: and then, some commas,
+      but it is one job and must not be split into pieces nobody wrote. Filed 2026-09-02T04:19Z.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+  const p = chartFile("settle-bundled", COMMA);
+  const r = runJson([`--chart=${p}`, "--settle"]);
+  const seen = r.json?.settleBundled;
+  if (!Array.isArray(seen))
+    fail("the tool never says how many rows it examined — a pass that is silent on a healthy Chart and a pass that has gone blind print the same line");
+  else if (!seen.some((t) => /Blade hour/.test(t)))
+    fail(`did not recognise the Blade hour as a bundled row (examined ${JSON.stringify(seen)}) — it is the audit's own worked example, and its three jobs are a comma list after a colon`);
+  else pass("recognised the Chart's comma-list bundling shape, and says how many rows it examined");
+  if (Array.isArray(seen) && seen.some((t) => /ORDINARY PROSE/.test(t)))
+    fail("split an ordinary prose first line into parts — a false split puts a row on his page that nobody wrote, which is worse than a bundle going unnoticed");
+  else pass("left an ordinary prose first line alone");
+  const text = run([`--chart=${p}`, "--settle"]).out;
+  if (!/looked at \d+ row/.test(text))
+    fail("the human-readable report does not say what it looked at either");
+  else pass("the report names how many bundled rows it examined");
+}
+
+/* 10g. AND IT MUST CHANGE NOTHING WITHOUT --write. The Glass-update session runs this tool in
+        report mode; a pass that quietly edits his Chart from a read-only session is the same class
+        of fault as an instrument that writes into the thing it measures. */
+{
+  const p = chartFile("settle-readonly", BUNDLED);
+  const before = readFileSync(p, "utf8");
+  run([`--chart=${p}`, "--settle"]);
+  if (readFileSync(p, "utf8") !== before) fail("SETTLE changed the Chart without --write");
+  else pass("SETTLE in report mode changes nothing on disk");
+}
+
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
 process.exit(failures === 0 ? 0 : 1);

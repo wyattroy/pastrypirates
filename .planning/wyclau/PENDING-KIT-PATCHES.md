@@ -139,3 +139,37 @@ the two drifting apart is a red gate rather than a silent wrong list. Red-proofe
 inbox half of `tasks`: it fails with *"the Glass says 4 open and chart_model says 3"*. After this
 patch that gate becomes a tautology and should be **retired**, not kept — which is the correct end
 state, because one function cannot disagree with itself.
+
+---
+
+## 6. `glass.mjs`'s "done" count blocks HIS OWN SWEEP RULING, and it is the only thing blocking it
+
+**File:** `scripts/wyclau/glass.mjs:392` — `const doneChecklist = (stepSec.match(/^- \[x\]/gim) || []).length;`
+
+**His ruling, 🛑 banner of `.planning/SPEC-CHARTKEEPER.md`, 2026-09-02:** SWEEP takes **every**
+completed row out of `CHART.md` immediately, with **no stub** — *"The chart should therefore only
+show WHERE WE ARE GOING."* And, in the question UI, the dependent decision: the `done` count
+becomes **"DONE TODAY"**, derived from `CHART-LOG.md` and resetting each day. He was offered "done
+this week" and "remove it entirely" and picked today, consistent with his 2026-08-31 reason: *"I
+want to see that the work is being done, right at the top, at a glance."*
+
+**Why it is a KIT patch and not a watch's item — measured 2026-09-02T05:1xZ, not assumed.**
+`glass.mjs` is line 1 of `.claude/wyclau/MANIFEST.sha256`, so editing it here fails
+`scripts/qa/vendor_check.mjs`. And the kit itself is out of reach: a read of
+`C:\Users\wyatt\Projects\claude-kit` from a watch on this machine is **REFUSED**, not empty — the
+same wall the staging deploy hit, and the same answer: a person has to open it.
+
+**Why the sweep cannot simply ship without it.** The line above is the ONLY source of the number on
+his Tasks card, and it counts `- [x]` rows *in the Chart*. Sweep them all and the card reads
+**"0 done"** — a visible regression on the page he steers by, in exchange for a tidier file. That
+trade is not one a watch may make on his behalf, which is why `chartkeeper.mjs`'s SWEEP is still
+the overruled seven-day-with-a-stub version and says so in its own header.
+
+**Fix shape:** read `.planning/CHART-LOG.md`, count the rows whose close stamp is today's UTC date,
+and render that as *"N done today"*. It pairs naturally with patch 5 — both are the Glass learning
+to read the same model the Chartkeeper already reads.
+
+**What catches a silent revert:** the same gate as patch 5,
+`scripts/qa/chart_model_agrees_with_glass_check.mjs`, extended with a done-count case; and
+`rulings_triage_check.mjs`, which must be re-pointed at the log in the same change (banner repair
+2) and re-proved in BOTH directions rather than weakened to silence.

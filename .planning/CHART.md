@@ -88,11 +88,40 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       against a fixture and compares counts; CEO 91: *"the best thing in this pass"*). The Chart is
       re-ordered, every row has a `T-nnn` handle on its own line, and **nothing was lost** —
       CEO 91 measured +5 net lines, open 31→31, done 27→27, sections 8→8.
+      ### ⚑ BANNER ITEM 1 — SETTLE — IS BUILT, 2026-09-02T05:3xZ. Items 2 and 3 are still open, and item 2 is BLOCKED.
+      **`--settle` is pass 2 of four and it is live**, in `chartkeeper.mjs`, behind 17 new
+      behavioural cases in `chartkeeper_check.mjs` (RED 11 first, then green; `npm test` 94/94).
+      It derives a row's CLAIMS from the row's own text, runs REAP's existing probes against each
+      one, and forces the row to his three fates in his order — **VALIDATE** (every part derives
+      finished → propose a close through `close_item.mjs`; it never ticks), **SPLIT** (some parts
+      finished → each unfinished part becomes a row of its own, purely additive, the parent's essay
+      kept verbatim), **ASK** (nothing to carry onto the parts → one question into BLOCKED ON WYATT
+      **with the measurement attached**). Enforced, not suggested: `settleUnresolved` names any row
+      that survives a write pass still half-done, and case 10e fails if one does.
+      **THE LIVE MISREPORT IT FIXES, and it was on his page:** one dead pointer anywhere inside a
+      bundle made REAP flag the WHOLE row, so RANK handed him *"looks finished — needs a verdict,
+      not work"* for a row two thirds of which nobody had started. SETTLE's verdict now speaks over
+      REAP's on any row it has judged, in the ranking and in the file.
+      **WHAT IT SAYS ABOUT TODAY'S CHART, honestly: 5 bundled rows examined, 0 half-done.** The
+      Blade hour (`T-021`) IS bundled and IS one-third finished, but the evidence for that third is
+      PROSE in its body, not a pointer any probe can ask the world about — and prose-grepping is the
+      fault this project keeps paying for. SETTLE will act the first time a finished part carries a
+      real pointer. **The tool now prints how many rows it EXAMINED, not just what it found**,
+      because a pass that is silent on a healthy Chart and a pass that has gone blind print the same
+      line — a gap that nearly shipped behind 16 green cases (`.planning/wyclau/PREDICTION-20260902T0515Z-settle.md`).
       **⚠ IT WAS BUILT TO THE SUPERSEDED SPEC.** The 🛑 banner at the top of
       `SPEC-CHARTKEEPER.md` landed six and a half minutes before the build committed and was never
       re-read. **Read the banner FIRST.** What it requires and nobody has built:
-        1. **SETTLE — a NEW pass, his, pass 2 of four.** Does not exist: zero occurrences in the code.
-        2. **SWEEP takes EVERY completed row, immediately, and leaves NO stub.** The code is the
+        1. ~~**SETTLE — a NEW pass, his, pass 2 of four.**~~ **DONE 2026-09-02T05:3xZ — see above.**
+        2. **SWEEP takes EVERY completed row, immediately, and leaves NO stub.** ⚠ **BLOCKED, AND
+           THE BLOCKER IS MEASURED, NOT GUESSED — it is the same shape as the staging permission.**
+           The banner says three repairs must land in the same change, and the first is
+           `glass.mjs:392`, which derives his "done" count by counting `- [x]` rows in `CHART.md`.
+           Sweep them all without that repair and his Tasks card reads **"0 done"**.
+           **`glass.mjs` is VENDORED** — line 1 of `.claude/wyclau/MANIFEST.sha256` — and the
+           claude-kit checkout is outside an unattended watch's permitted directories: a read of
+           `C:\Users\wyatt\Projects\claude-kit` is **refused**, not empty. So this needs a session
+           with the kit open, or Wyatt. Filed in `PENDING-KIT-PATCHES.md`. The code is still the
            overruled seven-day-with-a-stub version (`chartkeeper.mjs:250,258,348-351`), and **three
            gate cases now DEFEND the overruled design** — they must go red before they go green.
         3. **The three repairs the banner says must land in the same change:** the Glass's `done`

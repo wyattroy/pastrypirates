@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* chartkeeper.mjs — THE CHART RE-PRIORITISES ITSELF. Three passes, and it never closes anything.
+/* chartkeeper.mjs — THE CHART RE-PRIORITISES ITSELF. Four passes, and it never closes anything.
  *
  * WYATT ASKED FOR THIS FOUR TIMES AND THE FIRST THREE ARE STILL ON THE CHART MARKED "SCHEDULED".
  * 2026-09-02T00:59:32Z, 03:45:45Z, 03:46:13Z, 03:49:02Z, then in full:
@@ -12,35 +12,44 @@
  *
  * Spec: `.planning/SPEC-CHARTKEEPER.md` (written by the Advisor, verified by CEO 89).
  *
- * THE THREE PASSES
+ * THE FOUR PASSES
  *   REAP   finds rows whose POINTER is dead — a question that has been answered, a report that was
  *          never written, a pid that is not running, a build stamp older than the tree. It FLAGS.
  *          IT NEVER TICKS A BOX. Ticking is a claim about WORK; the reaper only ever measures the
  *          pointer. `mark_glass_published.mjs` is the cautionary tale two files away: a stamp that
  *          could only say one thing recorded a publish that had not happened.
+ *   SETTLE forces a row that is PARTLY done to one of three fates — validate it finished, split it
+ *          so the unfinished parts can be worked, or ask him. His pass, added after he read the
+ *          spec's first draft; REAP catches wholly-dead rows and RANK orders wholly-live ones, and
+ *          before this a half-done row drifted between them AND was described to him as finished.
  *   RANK   orders the open list from signals derived entirely from the repo, and gives every row a
  *          `why-now:` phrase — because an order he cannot read is an order he cannot overrule.
  *   SWEEP  moves done rows older than seven days into `.planning/CHART-LOG.md`, leaving a one-line
- *          stub. The Chart stops growing, nothing is lost, and "done" starts meaning "done this
- *          week" instead of a number that only ever goes up.
+ *          stub.
+ *          ⚠ THIS IS THE DESIGN HE OVERRULED — see the 🛑 banner in `.planning/SPEC-CHARTKEEPER.md`.
+ *          His ruling: EVERY completed row leaves, immediately, with NO stub. It is still the
+ *          seven-day version here because the change cannot land alone: `glass.mjs:392` derives his
+ *          "done" count by counting `- [x]` rows in the Chart, so sweeping them all takes his page
+ *          to "0 done" — and `glass.mjs` is VENDORED from claude-kit, which is outside an unattended
+ *          watch's reach. Filed in `.planning/wyclau/PENDING-KIT-PATCHES.md`.
  *
- * WHERE IT RUNS (the spec's split, and the split is the point): RANK and SWEEP in the WATCH, which
- * has write authority and a CEO gate — arithmetic can act unattended. REAP in report mode in the
- * Glass-update session, which is the only session that reads his live page — judgement belongs
- * where a human is looking.
+ * WHERE IT RUNS (the spec's split, and the split is the point): SETTLE, RANK and SWEEP in the
+ * WATCH, which has write authority and a CEO gate — arithmetic can act unattended. REAP in report
+ * mode in the Glass-update session, which is the only session that reads his live page — judgement
+ * belongs where a human is looking.
  *
  * USAGE
- *   node scripts/wyclau/chartkeeper.mjs                      # report on everything, touch nothing
- *   node scripts/wyclau/chartkeeper.mjs --reap --json        # the Glass-update session's pass
- *   node scripts/wyclau/chartkeeper.mjs --rank --sweep --write   # the Watch's pass
- *   --chart=<path> --log=<path> --now=<iso>                  # for gates and fixtures
+ *   node scripts/wyclau/chartkeeper.mjs                             # report on all four, touch nothing
+ *   node scripts/wyclau/chartkeeper.mjs --reap --json               # the Glass-update session's pass
+ *   node scripts/wyclau/chartkeeper.mjs --settle --rank --sweep --write   # the Watch's pass
+ *   --chart=<path> --log=<path> --now=<iso>                         # for gates and fixtures
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ID_RE, bodyOf, chunk, overlap, parseChart, replaceSection, titleOf, tokens,
+  ID_RE, bodyOf, chunk, overlap, parseChart, replaceSection, section, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -58,8 +67,13 @@ const NOW = new Date(opt("now", new Date().toISOString()));
 const JSON_OUT = flag("json");
 const WRITE = flag("write");
 // No pass named means all three, in report mode — the safe default for a session that just looks.
-const anyPass = flag("reap") || flag("rank") || flag("sweep");
-const DO = { reap: !anyPass || flag("reap"), rank: !anyPass || flag("rank"), sweep: !anyPass || flag("sweep") };
+const anyPass = flag("reap") || flag("settle") || flag("rank") || flag("sweep");
+const DO = {
+  reap: !anyPass || flag("reap"),
+  settle: !anyPass || flag("settle"),
+  rank: !anyPass || flag("rank"),
+  sweep: !anyPass || flag("sweep"),
+};
 
 if (!existsSync(CHART)) {
   console.error(`chartkeeper: no Chart at ${CHART}`);
@@ -78,7 +92,9 @@ const original = readFileSync(CHART, "utf8");
    from the input, re-derived from scratch every run, and re-attached on the write. A flag that
    stops being true therefore disappears on its own, with nobody having to remember to delete it. */
 const STALE_MARK = "⚠ STALE-CANDIDATE —";
-const input = original.split("\n").filter((l) => !l.includes(STALE_MARK)).join("\n");
+const SETTLE_MARK = "⚑ SETTLE —";
+const isFlagLine = (l) => l.includes(STALE_MARK) || l.includes(SETTLE_MARK);
+const input = original.split("\n").filter((l) => !isFlagLine(l)).join("\n");
 let text = input;
 
 /* ── THE TREE'S OWN FACTS. Everything REAP and RANK judge against is read here, once, from the
@@ -98,53 +114,60 @@ const inboxWords = (() => {
   } catch { return []; }
 })();
 
-const parsed = parseChart(text);
-const openItems = parsed.tasks;
-
-/* ────────────────────────────────────────────────────────────────────────────────────────────
-   PASS 1 — REAP. Ask the WORLD a question about the row's pointer; never read a stored flag.
-   Each probe returns a reason string or null. A row with no pointers in it can never be flagged,
-   which is how the Chartkeeper is able to say "the Chart is fine" (guardrail 4).
-   ──────────────────────────────────────────────────────────────────────────────────────────── */
-const blockedTokens = parsed.blockedQuestions.map((q) => tokens(q));
-
 const pidAlive = (pid) => {
   // process.kill(pid, 0) is the portable liveness probe; EPERM means the process exists and is
   // simply not ours. `tasklist` is refused by this machine's sandbox, so this is the only route.
   try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; }
 };
 
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   PASS 1 — REAP. Ask the WORLD a question about the row's pointer; never read a stored flag.
+   Each probe returns a reason string or null. A row with no pointers in it can never be flagged,
+   which is how the Chartkeeper is able to say "the Chart is fine" (guardrail 4).
+
+   ⚠ A PROBE'S SUBJECT IS NO LONGER ALWAYS A WHOLE ROW, AND THAT IS THE ENABLING CHANGE FOR SETTLE.
+   The spec's detection rule for a half-done row is *"REAP's derived questions come back TRUE for
+   some and not others"* — so the same probes have to be askable of ONE PART of a row. A subject is
+   therefore `{ raw, context, title }`:
+     raw      the text whose POINTERS are being judged — a whole row, or one part of it
+     context  the text used for WORD MATCHING only, which for a part is the part PLUS the row's
+              first line. Without that a three-word part has too few distinctive words to match a
+              question against, and every part would come back looking abandoned. The two are
+              deliberately separate: widening `raw` instead would let a pointer in the row's
+              preamble be credited to every part under it.
+   Rule 23: one set of probes, two kinds of subject — never a second copy for parts.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
 const PROBES = [
-  function deadPointerToWyatt(row) {
-    if (!/BLOCKED ON WYATT/i.test(row.raw)) return null;
-    const mine = tokens(row.raw);
-    if (blockedTokens.some((q) => overlap(q, mine) >= 3)) return null;
-    return parsed.blockedQuestions.length === 0
+  function deadPointerToWyatt(sub, ctx) {
+    if (!/BLOCKED ON WYATT/i.test(sub.raw)) return null;
+    const mine = tokens(sub.context ?? sub.raw);
+    if (ctx.blockedTokens.some((q) => overlap(q, mine) >= 3)) return null;
+    return ctx.parsed.blockedQuestions.length === 0
       ? "points at BLOCKED ON WYATT, which is empty — the question it is waiting on has been answered"
       : "points at BLOCKED ON WYATT, but no question there matches it any more — it was answered and nothing moved the row";
   },
-  function reportNeverWritten(row) {
-    const cited = row.raw.match(/[.\w/-]*SEA-TRIAL[\w.-]*\.md/g) || [];
+  function reportNeverWritten(sub) {
+    const cited = sub.raw.match(/[.\w/-]*SEA-TRIAL[\w.-]*\.md/g) || [];
     const missing = cited.map((c) => c.replace(/^`|`$/g, "")).filter((c) => !existsSync(abs(c.startsWith(".planning") ? c : join(".planning", c))));
     return missing.length ? `cites a trial report that is not on disk: ${missing[0]}` : null;
   },
-  function pidLongDead(row) {
-    const m = /\bpid\s+(\d{2,7})\b/i.exec(row.raw);
+  function pidLongDead(sub) {
+    const m = /\bpid\s+(\d{2,7})\b/i.exec(sub.raw);
     if (!m) return null;
     return pidAlive(Number(m[1])) ? null : `warns readers off on account of pid ${m[1]}, which is not running`;
   },
-  function evidenceRetired(row) {
+  function evidenceRetired(sub) {
     if (!treeStamp) return null;
-    const stamps = [...new Set(row.raw.match(/\b20\d\d\.\d\d\.\d\d\.\d+\b/g) || [])];
+    const stamps = [...new Set(sub.raw.match(/\b20\d\d\.\d\d\.\d\d\.\d+\b/g) || [])];
     if (!stamps.length) return null;
     const older = stamps.filter((s) => s < treeStamp);
     if (!older.length || stamps.includes(treeStamp)) return null;
     return `measured on build ${older[0]}; the tree is ${treeStamp}, so its evidence no longer describes this game`;
   },
-  function supersededByAnotherRow(row) {
-    const mine = tokens(row.title);
-    for (const other of openItems) {
-      if (other === row) continue;
+  function supersededByAnotherRow(sub, ctx) {
+    const mine = tokens(sub.title);
+    for (const other of ctx.openItems) {
+      if (other.title === sub.title) continue;
       const m = /supersedes ([^.*)\n]{6,80})/i.exec(other.raw);
       if (!m) continue;
       if (overlap(tokens(m[1]), mine) >= 2) return `superseded — the row "${other.title.slice(0, 60)}" says in its own text that it supersedes this`;
@@ -153,25 +176,8 @@ const PROBES = [
   },
 ];
 
-/* THE PROBES ALWAYS RUN; ONLY THE REPORTING IS OPTIONAL. Caught on the first live run: RANK gives
-   a stale-looking row +40 ("looks finished — needs a verdict, not work"), so with `--rank` alone
-   that signal silently vanished and the same Chart ranked two different ways depending on which
-   flags you happened to type. A score that changes with the caller's flags is not a score. The
-   probes are pure reads and cost nothing worth saving. */
-const reap = [];
-for (const row of openItems) {
-  const reasons = PROBES.map((p) => p(row)).filter(Boolean);
-  if (reasons.length) reap.push({ id: row.id, kind: row.kind, title: row.title, reason: reasons.join("; ") });
-}
-const reapById = new Map(reap.map((r) => [r.title, r.reason]));
-
-/* ────────────────────────────────────────────────────────────────────────────────────────────
-   PASS 2 — RANK. Every signal is derived from the repo, and every signal contributes a phrase to
-   `why-now:`. The tie-break is the TITLE, never the file position: a ranking that reads position
-   is a ranking that only looks like it works (the gate proves this by ranking the same rows from
-   two different file orders and demanding the same answer).
-   ──────────────────────────────────────────────────────────────────────────────────────────── */
 const HEAD = /⟨([^⟩]*)⟩/;
+const HEAD_LINE = /^\s*⟨[^⟩]*⟩\s*$/;
 const headField = (row, name) => {
   const m = HEAD.exec(row.lines[0]);
   if (!m) return null;
@@ -179,7 +185,182 @@ const headField = (row, name) => {
   return f ? f[1].trim() : null;
 };
 
-function score(row) {
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   PASS 2 — SETTLE. A HALF-DONE ROW IS NOT ALLOWED TO STAY HALF-DONE.
+
+   WYATT ADDED THIS PASS HIMSELF after reading the spec's first draft, and his sentence is the
+   whole specification: *"Half-Stale items should be prioritized to be either validated as
+   finished, worked on until finished, or in the worst case, i should be asked if I am satisfied
+   with their state."*
+
+   THE HOLE IT PLUGS. REAP catches rows that are wholly dead. RANK orders rows that are wholly
+   live. A row that is PARTLY satisfied falls between them and drifts in the middle of the list
+   forever — and worse than drifting, it gets MISDESCRIBED: one dead pointer anywhere in a bundle
+   makes REAP flag the whole row, and RANK then tells Wyatt it "looks finished — needs a verdict,
+   not work" while two thirds of it is untouched work. That is an instrument reporting a defect
+   the Chart does not have, which is rule 6's own territory, and it is live on his page today.
+
+   THE WORKED EXAMPLE IS THE BLADE HOUR: three jobs under one checkbox, one of them measurably
+   done for days, the measurement filed 500 lines away, the row unmoved. **A bundled row can never
+   be ticked** — that is the audit's own finding, and splitting is how a bundle becomes tickable.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* A PART MARKER, and the reason it is a small list rather than a clever regex: these are the four
+   shapes this Chart actually uses to enumerate ("(a)", "1.", "PART 1", "part 2:"). A looser rule
+   starts finding parts inside ordinary prose, and a false split puts a row on his page that
+   nobody wrote. When in doubt this pass finds NOTHING, which costs a drifting row; the other
+   direction costs him a list he cannot trust. */
+const PART_MARKER = /^\s*(?:\([a-z]\)|(?:PART|Part|part)\s+\d+|\d+\.)\s*[:.—-]?\s+/;
+
+/** A row's checkable claims, derived from the row's own text and never from a flag.
+ *  Two derivations, in this order, first one that yields at least two parts:
+ *    1. BODY PART BLOCKS — a marked line plus its continuation. Each part has TEXT OF ITS OWN,
+ *       so a split can carry the measurement onto the part it belongs to (`carriable`).
+ *    2. FIRST-LINE `·` SEGMENTS — the Chart's own inline bundling shape. There is nothing to
+ *       carry, which is exactly why a row like this ends up as a QUESTION for him instead of a
+ *       split: a split with nothing in it is a worse answer than asking.
+ */
+function claimsOf(row) {
+  const lines = row.lines;
+  const blocks = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (HEAD_LINE.test(lines[i]) || isFlagLine(lines[i])) continue;
+    if (PART_MARKER.test(lines[i])) blocks.push([lines[i]]);
+    else if (blocks.length) blocks[blocks.length - 1].push(lines[i]);
+  }
+  const clean = (s) => s.replace(/\*\*|~~|`/g, "").replace(/\s+/g, " ").trim();
+  if (blocks.length >= 2) {
+    return blocks.map((b) => ({
+      // The part's own title is everything before its first em-dash — the Chart writes
+      // "part 2: ring-test the Bell — nobody has done this", and the half before the dash is the
+      // job while the half after it is the commentary.
+      title: clean(b[0].replace(PART_MARKER, "")).split(/\s+—\s+|\s+--\s+/)[0].trim(),
+      text: b.join("\n"),
+      carriable: true,
+    }));
+  }
+  const segs = lines[0].split(" · ");
+  if (segs.length >= 3) {
+    // segs[0] is the row's own headline, not a part of it.
+    return segs.slice(1).map((s) => ({ title: clean(s), text: s, carriable: false }));
+  }
+  /* 3. FIRST-LINE COMMA LIST AFTER A COLON. Added after pointing this pass at the real Chart and
+        watching it see NOTHING — including the Blade hour, which is the audit's own worked example
+        of a bundled row. It writes its parts as "…: register the Bell, the ring test both
+        directions, the O2 publish test — runbook …", which neither derivation above can see.
+        THREE guards keep this off ordinary prose, and they are why it demands three parts rather
+        than two: the list must follow a colon, must stop at the first em-dash (everything after it
+        is commentary, not a job), and every part must be at least two words. A false split puts a
+        row on his page that nobody wrote, which is far worse than a bundle that goes unnoticed. */
+  /* ⚠ AND IT READS ACROSS THE LINE WRAP, which the first version did not. The Chart hard-wraps at
+     about 100 characters, so the Blade hour's own list is cut in half — "…register the Bell, the
+     ring test both" on line one and "directions, the O2 publish test" on line two. Reading only
+     `lines[0]` found two parts where there are three, fell under the three-part guard, and saw
+     nothing. A row's opening sentence is a sentence, not a line. */
+  const flat = lines
+    .filter((l) => !HEAD_LINE.test(l) && !isFlagLine(l))
+    .join(" ").replace(/\s+/g, " ")
+    .replace(/^- \[[ xX]\] /, "").replace(/^[-*] /, "");
+  const opening = flat.split(/\s+—\s+|\s+--\s+/)[0].slice(0, 400);
+  if (opening.includes(":")) {
+    const parts = opening.slice(opening.indexOf(":") + 1).split(/,\s+/).map(clean)
+      .filter((s) => { const w = s.split(/\s+/).length; return w >= 2 && w <= 12; });
+    if (parts.length >= 3) return parts.map((s) => ({ title: s, text: s, carriable: false }));
+  }
+  return [];
+}
+
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   ONE DERIVATION, RUN AS MANY TIMES AS THE FILE CHANGES. SETTLE is the first pass that ADDS rows,
+   so everything downstream of it — the ids, the ranking, the slot arithmetic in the rewrite —
+   would otherwise be reasoning about a file that no longer exists. Rather than patch the new rows
+   into three separate structures and hope they stay in step (rule 23's exact failure), the whole
+   derivation is a function and it is simply run again on the new text.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+function derive(src) {
+  const parsed = parseChart(src);
+  const openItems = parsed.tasks;
+  const ctx = { parsed, openItems, blockedTokens: parsed.blockedQuestions.map((q) => tokens(q)) };
+  const reasonsFor = (sub) => PROBES.map((p) => p(sub, ctx)).filter(Boolean);
+
+  /* THE PROBES ALWAYS RUN; ONLY THE REPORTING IS OPTIONAL. Caught on the first live run: RANK gives
+     a stale-looking row +40 ("looks finished"), so with `--rank` alone that signal silently
+     vanished and the same Chart ranked two different ways depending on which flags you happened to
+     type. A score that changes with the caller's flags is not a score. */
+  const reap = [];
+  for (const row of openItems) {
+    const reasons = reasonsFor({ raw: row.raw, context: row.raw, title: row.title });
+    if (reasons.length) reap.push({ id: row.id, kind: row.kind, title: row.title, reason: reasons.join("; ") });
+  }
+  const reapById = new Map(reap.map((r) => [r.title, r.reason]));
+
+  // ── SETTLE ──
+  /* ⚠ IT COUNTS WHAT IT LOOKED AT, NOT ONLY WHAT IT FOUND, and that is not decoration.
+     "An instrument that reports a result without saying what it touched" is named in this repo as
+     its oldest recurring fault, and this pass is unusually exposed to it: SETTLE is SILENT on a
+     healthy Chart by design, so a SETTLE that has gone blind and a Chart with nothing half done
+     print exactly the same line. `bundled` is the difference between them — how many rows this
+     pass could even have an opinion about. It was worth building: pointed at the real Chart the
+     first time, this pass saw ZERO bundled rows, including the Blade hour, and that gap in the
+     claim derivation would have shipped invisibly behind a green gate. */
+  const settle = [];
+  const bundledTitles = [];
+  for (const row of openItems) {
+    const claims = claimsOf(row);
+    if (claims.length < 2) continue;
+    bundledTitles.push(row.title);
+    const judged = claims.map((c) => ({
+      title: c.title,
+      reason: reasonsFor({ raw: c.text, context: `${row.lines[0]}\n${c.text}`, title: row.title })[0] ?? null,
+    }));
+    const settled = judged.filter((c) => c.reason);
+    const open = judged.filter((c) => !c.reason);
+    // No part derives finished ⇒ this is an ordinary bundled row with work left in all of it, and
+    // RANK handles it perfectly well. "Half-done" means SOME of it is done.
+    if (!settled.length) continue;
+
+    /* THE THREE FATES, TRIED IN HIS ORDER. The third is last because his attention is the scarcest
+       thing this project spends — a question is the price of not being able to derive an answer. */
+    const fate = open.length === 0 ? "VALIDATE" : claims[0].carriable ? "SPLIT" : "ASK";
+
+    /* RESOLVED IS DERIVED FROM THE FILE, NEVER FROM A FLAG THIS TOOL WROTE TO ITSELF — which is the
+       same rule that keeps REAP's own flags pure output. A SPLIT is resolved when each unfinished
+       part is a row in its own right; an ASK is resolved when a question naming the row is in front
+       of him; a VALIDATE needs nothing, because proposing is all this tool may do (closing is a
+       claim about WORK and belongs to a watch behind close_item.mjs). */
+    const resolved = fate === "VALIDATE"
+      ? true
+      : fate === "SPLIT"
+        ? open.every((c) => openItems.some((o) => o.title !== row.title && o.title.toLowerCase().includes(c.title.toLowerCase())))
+        : parsed.blockedQuestions.some((q) => q.includes(row.title.slice(0, 40)));
+
+    settle.push({
+      id: row.id, kind: row.kind, title: row.title, fate, resolved,
+      claims: judged, settled, open,
+      why: fate === "VALIDATE"
+        ? `every one of its ${judged.length} parts derives finished`
+        : `half done — ${settled.length} of ${judged.length} parts derive finished, the rest is real work`,
+    });
+  }
+  const settleByTitle = new Map(settle.map((s) => [s.title, s]));
+  const settleUnresolved = settle.filter((s) => !s.resolved).map((s) => s.title);
+
+  // ── RANK ──
+  const ranked = openItems
+    .map((row) => ({ row, ...score(row, { reapById, settleByTitle }) }))
+    .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
+    .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
+
+  return { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked };
+}
+
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   PASS 3 — RANK. Every signal is derived from the repo, and every signal contributes a phrase to
+   `why-now:`. The tie-break is the TITLE, never the file position: a ranking that reads position
+   is a ranking that only looks like it works (the gate proves this by ranking the same rows from
+   two different file orders and demanding the same answer).
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+function score(row, { reapById, settleByTitle }) {
   const why = [];
   let s = 0;
   const gated = /\bGATED:/.test(row.raw);
@@ -206,8 +387,19 @@ function score(row) {
     why.push("approved and unblocked");
   }
 
+  /* HALF-DONE OUTRANKS EVERYTHING EXCEPT A DECISION HE HAS ALREADY MADE — his word is
+     "prioritized", and this is where that word becomes arithmetic.
+
+     ⚠ AND IT MUST BE ASKED BEFORE "LOOKS FINISHED", NOT AFTER. One dead pointer anywhere inside a
+     bundle makes REAP flag the WHOLE row, so before this pass existed the Blade hour was ranked
+     with the phrase "looks finished — needs a verdict, not work" while two of its three jobs had
+     never been started. Describing a half-done row to him as finished is worse than leaving it
+     unranked: he steers by these phrases. So a row SETTLE has judged is described by SETTLE, and
+     the whole-row verdict is not allowed to speak over it. */
+  const st = settleByTitle.get(row.title);
+  if (st) { s += st.fate === "VALIDATE" ? 60 : 50; why.push(st.why); }
   // LOOKS FINISHED. A stale candidate is cheap to close and is inflating the count he steers by.
-  if (reapById.has(row.title)) { s += 40; why.push("looks finished — needs a verdict, not work"); }
+  else if (reapById.has(row.title)) { s += 40; why.push("looks finished — needs a verdict, not work"); }
 
   // PLAYER-FACING OUTRANKS INSTRUMENT-FACING. This is the rulebook's own THE POINT, made
   // mechanical: "is the game better than it was this morning, in a way a player would notice?"
@@ -237,13 +429,75 @@ function score(row) {
   return { s, whyNow: why.join(" · ") };
 }
 
-const ranked = openItems
-  .map((row) => ({ row, ...score(row) }))
-  .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
-  .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   SETTLE'S ONE ACTION, AND IT RUNS BEFORE EVERYTHING ELSE READS THE FILE.
+
+   ⚠ IT ADDS ROWS AND IT NEVER REWRITES ONE. The parent keeps its full text, verbatim — the essays
+   are the graveyard (rule 10) that stops the next session re-running a settled argument, and a
+   split that summarised would burn it. So a split is purely additive: each unfinished part becomes
+   a new row of its own, immediately under the parent, pointing back at it.
+
+   AND IT NEVER TOUCHES A FIRST LINE. CEO 91's regression is one file away in the comments: the
+   first line is what the Glass renders to Wyatt, so nothing this tool writes may land on one.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+function applySettle(src, d) {
+  let out = src;
+  const stamp = NOW.toISOString().slice(0, 10);
+
+  for (const [kind, heading] of [["checklist", "STEP 1 CHECKLIST"], ["inbox", "THE IDEA INBOX"]]) {
+    const p = parseChart(out);
+    const chunks = kind === "checklist" ? p.stepChunks : p.inboxChunks;
+    if (!chunks.length) continue;
+    let changed = false;
+    const rebuilt = [];
+    for (const c of chunks) {
+      rebuilt.push(c);
+      if (c.type !== "row") continue;
+      const s = d.settle.find((x) => x.fate === "SPLIT" && !x.resolved && x.title === titleOf(c.lines));
+      if (!s) continue;
+      const marker = kind === "checklist" ? "- [ ] " : "- ";
+      for (const cl of s.open) {
+        rebuilt.push({ type: "row", lines: [
+          `${marker}${cl.title}`,
+          `      ↳ split out by the Chartkeeper from "${s.title.slice(0, 58)}", which keeps the full account of every part.`,
+        ] });
+        changed = true;
+        wrote.split++;
+      }
+    }
+    if (changed) out = replaceSection(out, heading, rebuilt.map((c) => c.lines.join("\n")).join("\n"));
+  }
+
+  /* FATE 3 — ASK HIM, and always WITH THE MEASUREMENT ATTACHED. His instruction is that he is asked
+     whether he is satisfied with the row's state; a question that does not say what the state IS
+     makes him go and look, which is the cost this whole system exists to remove. */
+  const asks = d.settle.filter((x) => x.fate === "ASK" && !x.resolved);
+  if (asks.length) {
+    const body = section(out, "BLOCKED ON WYATT");
+    if (body !== null) {
+      const rows = asks.map((s) =>
+        `| **${s.title.slice(0, 70)}** — ${s.settled.length} of ${s.claims.length} parts already derive finished (${s.settled[0].reason}); the rest is untouched work. Are you satisfied with it as it stands? | Recommended: split it, so each part can be ticked on its own | ${stamp} |`);
+      out = replaceSection(out, "BLOCKED ON WYATT", `${body.replace(/\s+$/, "")}\n${rows.join("\n")}\n\n`);
+      wrote.asked += rows.length;
+    }
+  }
+  return out;
+}
+
+let wrote = { ids: 0, flags: 0, reordered: 0, archived: 0, split: 0, asked: 0 };
+
+let d = derive(text);
+if (WRITE && DO.settle) {
+  const applied = applySettle(text, d);
+  // Re-derive from scratch rather than patching what is already in memory. The new rows need ids,
+  // ranks and slots exactly like every other row, and there is only one piece of code that knows
+  // how to give them those.
+  if (applied !== text) { text = applied; d = derive(text); }
+}
+const { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
-   PASS 3 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
+   PASS 4 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
    out of the row, it stays — an archiver that guesses at ages will eventually archive something
    that was finished this morning, and that is a worse failure than a long Chart.
    ──────────────────────────────────────────────────────────────────────────────────────────── */
@@ -266,7 +520,7 @@ const sweepable = DO.sweep
    every run conflicts on every push.
    ──────────────────────────────────────────────────────────────────────────────────────────── */
 function stripStale(lines) {
-  return lines.filter((l) => !l.includes(STALE_MARK));
+  return lines.filter((l) => !isFlagLine(l));
 }
 
 /* ⚠ THE HANDLE GOES ON ITS OWN LINE, NOT INTO THE ROW'S FIRST LINE. Caught by CEO 91 by looking at
@@ -282,7 +536,7 @@ function stripStale(lines) {
    first line survives the write byte for byte.
    Ids already written inline by the previous version are MIGRATED, not reallocated: the number is
    lifted off line one and re-emitted below, so nothing that already points at `T-007` breaks. */
-const HEAD_LINE = /^\s*⟨[^⟩]*⟩\s*$/;
+// (HEAD_LINE is declared once, up beside the passes that read it.)
 const idOf = (lines) => (ID_RE.exec(lines.join("\n")) || [])[1] ?? null;
 
 function withId(lines, id) {
@@ -299,8 +553,19 @@ function withStale(lines, reason) {
   out.push(`      ${STALE_MARK} ${reason}`);
   return out;
 }
-
-let wrote = { ids: 0, flags: 0, reordered: 0, archived: 0 };
+/* SETTLE'S VERDICT REPLACES REAP'S ON A ROW IT HAS JUDGED, in the file exactly as it does in the
+   ranking. Otherwise a half-done row carries "⚠ STALE-CANDIDATE" — a sentence that says the whole
+   row looks finished — sitting directly above the parts of it nobody has started. */
+function withSettle(lines, s) {
+  const out = lines.slice();
+  const tail = s.fate === "VALIDATE"
+    ? `Close it through close_item.mjs with a CEO verdict — this tool never ticks. (${s.settled[0].reason})`
+    : s.fate === "SPLIT"
+      ? `Each unfinished part is now a row of its own, just below.`
+      : `Asked in BLOCKED ON WYATT — it cannot be decided from the repo.`;
+  out.push(`      ${SETTLE_MARK} ${s.why}. ${tail}`);
+  return out;
+}
 
 if (WRITE) {
   // 1. ALLOCATE IDS. Never reused: the next id is one past the highest that has ever appeared in
@@ -337,8 +602,10 @@ if (WRITE) {
       const had = idOf(lines);
       lines = withId(lines, had ?? nextId());
       if (!had) wrote.ids++;
+      const st = settleByTitle.get(titleOf(lines));
       const reason = reapById.get(titleOf(lines));
-      if (reason) { lines = withStale(lines, reason); wrote.flags++; }
+      if (st) { lines = withSettle(lines, st); wrote.flags++; }
+      else if (reason) { lines = withStale(lines, reason); wrote.flags++; }
       out[i].lines = lines;
     }
     // Done rows get ids too — an archive stub needs a handle to point at.
@@ -393,7 +660,11 @@ here: the full text of every row is below, under the handle the Chart still poin
 if (JSON_OUT) {
   console.log(JSON.stringify({
     chart: CHART, treeStamp, now: NOW.toISOString(), wrote: WRITE ? wrote : null,
-    reap, rank: ranked.map(({ row, ...r }) => r),
+    reap,
+    settle: DO.settle ? settle : [],
+    settleUnresolved: DO.settle ? settleUnresolved : [],
+    settleBundled: DO.settle ? bundledTitles : [],
+    rank: ranked.map(({ row, ...r }) => r),
     sweep: sweepable.map((x) => ({ title: titleOf(x.row.lines), when: x.when.toISOString().slice(0, 10) })),
   }, null, 2));
 } else {
@@ -405,6 +676,24 @@ if (JSON_OUT) {
       : `REAP   ${reap.length} stale candidate(s). FLAGGED, NOT CLOSED — a watch closes through close_item.mjs.`);
     for (const r of reap) console.log(`       • ${r.title.slice(0, 78)}\n         ${r.reason}`);
     if (reap.length) console.log("");
+  }
+  if (DO.settle) {
+    console.log(settle.length === 0
+      ? `SETTLE looked at ${bundledTitles.length} row(s) that bundle more than one job, and none of them is half done.\n`
+      : `SETTLE ${settle.length} half-done row(s), out of ${bundledTitles.length} that bundle more than one job. A row is not allowed to stay half done (his instruction).`);
+    for (const s of settle) {
+      console.log(`       • [${s.fate}] ${s.title.slice(0, 66)}\n         ${s.why}${s.resolved ? "" : "  ← NOT YET RESOLVED"}`);
+      for (const c of s.settled) console.log(`           ✓ ${c.title.slice(0, 60)} — ${c.reason.slice(0, 90)}`);
+      for (const c of s.open) console.log(`           · ${c.title.slice(0, 60)} — no evidence it is finished`);
+    }
+    /* THE ENFORCEMENT, SAID OUT LOUD. The spec: "a row may not survive a full pass still
+       half-stale. If one does, that is a defect in SETTLE, and the gate should say so by name."
+       In report mode this is simply the list of what a write pass would act on. */
+    if (settleUnresolved.length && WRITE) {
+      console.log(`\n       ⚠ ${settleUnresolved.length} row(s) are STILL half done after this write — that is a defect in SETTLE, not in the Chart:`);
+      for (const t of settleUnresolved) console.log(`         • ${t.slice(0, 78)}`);
+    }
+    if (settle.length) console.log("");
   }
   if (DO.rank) {
     console.log("RANK   the open list, next-to-be-completed first:");
@@ -418,6 +707,6 @@ if (JSON_OUT) {
     for (const x of sweepable) console.log(`       • ${x.when}  ${titleOf(x.row.lines).slice(0, 70)}`);
   }
   console.log(WRITE
-    ? `\nWROTE  ${wrote.ids} id(s) allocated · ${wrote.flags} flag(s) · ${wrote.reordered} row(s) moved · ${wrote.archived} archived`
+    ? `\nWROTE  ${wrote.ids} id(s) allocated · ${wrote.flags} flag(s) · ${wrote.reordered} row(s) moved · ${wrote.split} part(s) split out · ${wrote.asked} question(s) put to him · ${wrote.archived} archived`
     : "\n(report only — nothing on disk changed. Add --write to act.)");
 }
