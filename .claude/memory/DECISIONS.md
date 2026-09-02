@@ -49,6 +49,39 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-09-02, 3:33 PM — YOUR CALL CARRIES ONLY WHAT IS GENUINELY HIS, AND HIS TAP QUEUES A CLOSE RATHER THAN PERFORMING ONE
+
+Two rulings, question UI, on his own idea (`INBOX-20260902T193000Z`): *"do you want to put those in
+the Your Call section so I can approve/deny them being closed?"*
+
+**RULING 1 — "Only what's genuinely yours."** The Your Call card gets **only** the rows where his
+say-so IS the answer — today one or two, e.g. *"merge the 465-commit branch to main"*. The
+**stale-evidence** rows (6 of 10) go to a watch to RE-MEASURE on the current build. The
+**already-ruled** rows (3 of 10) close automatically, because he answered them at 12:39 PM.
+**The alternatives he did not pick:** send him all ten and let him judge each (simplest, no matcher
+fix needed — and it hands him our homework and re-asks what he settled hours earlier); or send him
+the say-so rows plus the already-ruled ones so he can confirm they landed.
+
+**RULING 2 — "Your tap queues it, a watch closes it." HE CHOSE AGAINST THE MARKED RECOMMENDATION,
+AND THAT IS THE POINT OF RECORDING IT.** His approval MARKS a row; the next watch runs it through
+the normal gate — a fresh reviewer's verdict plus evidence — before it leaves his list.
+**The recommendation he rejected** was that his tap close the row outright, on the reasoning that
+nobody outranks him on *"is this finished from my side"*. **He chose the stronger record over the
+faster page.**
+
+⚠ **THE COST OF RULING 2, STATED ONCE AND NOT RE-ARGUED, BECAUSE A FUTURE SESSION WILL BE TEMPTED TO
+"FIX" IT:** an approved row **stays on his page until a watch runs**, which is the delay he has been
+frustrated by all day. He was shown that trade and took it anyway. **Do not quietly upgrade his tap
+to an immediate close because a session judges the wait too long** — that is his decision to revisit,
+not ours. If the wait bites him, the option he passed over (close now, a watch audits after) is on
+the record and he can call for it.
+
+**And the reason the split exists at all:** the sweep's one label — *"looks already finished"* — was
+covering three unrelated conditions, and every reader of his page drew the wrong conclusion from it,
+the Advisor included, to his face. See `INBOX-20260902T193000Z`.
+
+---
+
 ## 2026-09-02, 3:04 PM — WRITE EVERY TIME HE READS IN HIS LOCAL TIME, NEVER UTC
 
 Wyatt: *"always write to me in my local time -- your UTC is confusing"*.
