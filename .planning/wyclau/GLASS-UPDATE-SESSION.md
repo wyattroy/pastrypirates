@@ -61,6 +61,14 @@ publish. This session IS the terminal.
 > line and the session publishes that tick itself, in the main context, and this box gets corrected.
 > **Do not let an inferred capability quietly become a stated one.**
 >
+> **✅ CONFIRMED, 2026-09-02T04:46Z, on the first dispatched tick under this shape.** A
+> general-purpose subagent, given exactly the nine steps above as its entire prompt, harvested a new
+> idea, ran the reap, regenerated the note, **published `glass.html` via the Artifact tool, re-read
+> it to confirm `generatedAt`, and ran `mark_glass_published.mjs --version=<id>` successfully** —
+> `LAST-PUBLISH` shows a real version and commit from that run
+> (`version=1788324379-6b86 commit=4e96e6b6`). No fallback to the main context was needed. **The
+> caveat above is now closed: publish from a subagent works, not merely inferred.**
+>
 > **ONE PUBLISHER IS UNCHANGED** — one subagent per tick, never two. The rule was never about which
 > context does the publishing; it was about there being exactly one.
 
