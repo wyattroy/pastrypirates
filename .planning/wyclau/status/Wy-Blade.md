@@ -5,16 +5,16 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T21:50:52.968Z	self-publish check
+2026-09-02T22:14:56.723Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
 ```
 {
-  "item": "his DO NOW button on the Glass — the interrupt that puts a task at the top of RANK",
-  "handle": "T-104",
+  "item": "his sitemap.xml fix -- drop the two tags Google ignores, add a lastmod derived from git",
+  "handle": "T-098",
   "watch": "Wy-Blade",
-  "claimedAt": "2026-09-02T21:20:44.604Z",
+  "claimedAt": "2026-09-02T22:01:32.351Z",
   "staleAfterMinutes": 90
 }
 ```
@@ -24,7 +24,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T20:38:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T203804Z.out/.err)
 2026-09-01T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T204802Z.out/.err)
 2026-09-01T20:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T205802Z.out/.err)
 2026-09-01T21:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260901T210802Z.out/.err)
@@ -64,4 +63,5 @@ None recorded.
 2026-09-02T19:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T195801Z.out/.err, kit: readable)
 2026-09-02T20:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T203801Z.out/.err, kit: readable)
 2026-09-02T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T211801Z.out/.err, kit: readable)
+2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
 ```

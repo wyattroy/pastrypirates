@@ -5708,3 +5708,76 @@ is not, and it carries `Co-Authored-By: Claude Sonnet 5` for a build made by a d
 different session. **This is `T-093`'s own second bullet happening again: `CHART.md` and the working
 tree are shared, git stages whole files, and `git add <path>` is no safer than `git add -A`.** Third
 recorded instance. It is the argument for that row, not an anecdote beside it.
+
+---
+
+## WATCH 2026-09-02T22:00Z (6:00 PM ET) — Wy-Blade — CLAIMS `INBOX-20260902T190715Z`, his sitemap fix
+
+**THE SITUATION, in six lines.**
+- Watch started 2026-09-02T22:00Z (6:00 PM ET) on `claude/cloud-handoff-planning-a9ay1u`; `can_push.mjs` clean.
+- Last progress: `0e099684`, 21:5xZ — Layer B shipped, and its receipt records a clock under the name `artifactVersion`.
+- The previous watch closed nothing: it left `T-105`/DO NOW at CEO 121 PARTIAL, deliberately not ticked.
+- Blocked on Wyatt: the merge to `main`, the black-flash trade, the staging-deploy command form.
+- No detached trial in flight — no `.planning/wyclau/LONG-RUN` marker on this machine.
+- THIS WATCH: his sitemap fix, `INBOX-20260902T190715Z`, COSMETIC gear, his own stated solution first.
+
+**WHY THIS ITEM AND NOT THE LITERAL OLDEST OPEN ONE — stated, not slipped past.** The Door picks the
+oldest OPEN Inbox item. Walking the list, every item older than this one is already spoken for:
+`1340Z` is his own "backlog" routing; `0058Z` is the Advisor's own to build; `04xxZ`'s Chartkeeper is
+built; `05xxZ-b` (blast radius) is a multi-watch design; `05xxZ-c` is his call; `13xxZ` and `14xxZ`
+were **measured as already built before being taken up** — `glass.mjs:693-698` renders the Tasks card
+as `<ol>` and `:1108` paints his In-hand line, and `stray_probe_check.mjs` is already in `npm test`;
+`17xxZ` and `192000Z` belong to the watches that built them. `INBOX-20260902T190715Z` is the oldest
+OPEN item that is **his own words, unblocked, unbuilt, and one watch in size.**
+
+### CLOSED — `T-098`, CEO 122 (**YES**), and the CEO still caught a sentence of mine that was false
+
+**WHAT HE GETS:** `sitemap.xml` no longer carries the two tags Google throws away, and both entries
+now carry the one tag Google actually reads — **and neither date was typed by anyone.**
+`https://playpastrypirates.com/` → `index.html @ 2026-09-01`, `/about.html` → `about.html @
+2026-09-02`, each recomputed by running his own command, `git log -1 --format=%cs -- <page>`.
+
+**THE FOUR STEPS, in order, none skipped.**
+- **RED FIRST**, before `sitemap.xml` was touched: `scripts/qa/sitemap_lastmod_check.mjs` failed with
+  **exactly his four complaints** — `<changefreq>` 2x, `<priority>` 2x, and both URLs with no
+  `<lastmod>`.
+- **THE FIX:** `scripts/qa/sitemap_write.mjs` reads the URL list out of the existing file (which
+  pages belong in the index is editorial — a generator that walked the directory would re-add
+  `lab.html` and `stats.html`), drops the two tags, and derives every date from git.
+- **GREEN:** that same check, 2 of 2 urls ok.
+- **SWEEP:** `npm test` **110/110** (ceiling 109 → 110, justification in `package.json`;
+  `quiet_gate_report.mjs` offers zero retirement candidates for the seventh raise running). **No
+  game code — `src/` and `index.html` untouched**, so no sea trial: an 85-minute voyage cannot
+  observe an XML file only a crawler reads, and he set the gear himself at COSMETIC.
+
+**RED-PROOFED, and it is the falsifier the prediction named in advance** — *"if the gate stays green
+when I put a wrong date in the file by hand, it is measuring its own regeneration rather than the
+file on disk, and it is worthless."* `2026-08-14` typed into the live file: caught, named against
+git's answer, and told which command repairs it.
+
+⚠ **A SENTENCE OF MINE WAS FALSE AND THE CEO CAUGHT IT — TENTH CONSECUTIVE VERDICT ON THE SAME
+FAULT, and mine was load-bearing.** I wrote that `gear.mjs` read FULL *"only because the whole
+branch is ahead of `origin/main`"*, listing ~200 files nobody touched — and used that to discount
+the gear. **Re-run against the real change it prints `behaviour can change in: package.json,
+sitemap.xml`: two files, both mine.** The `origin/main...HEAD` fallback (`gear.mjs:149`) only runs
+when nothing is uncommitted (`:36-38`), so I had quoted a reading taken at watch start on a clean
+tree, before I had written a line. **The skip is still right and the reason I gave was about a
+different run.** Withdrawn here rather than quietly dropped.
+
+⚠ **AND A REAL COST THIS INTRODUCES, SURFACED RATHER THAN LEFT TO BE TRIPPED OVER (CEO 122's finding
+10): the next commit touching `index.html` or `about.html` without running the writer turns `npm
+test` RED**, and on this branch `index.html` is committed most days. **Kept strict on purpose.** His
+whole complaint is that a stale `lastmod` fails silently on both sides — Google quietly discounts
+the dates and nothing here ever observes it — so the only cure is a thing that stops being silent.
+The repair is one command and the failure message names it. Letting `npm test` regenerate the file
+was considered and rejected: **a guard that repairs its own subject can never be seen to fail**,
+which is the fault this suite keeps paying for.
+
+**ALSO WORTH HIS KNOWING:** his note said *"Don't touch `scripts/deploy-preview.sh`"* — **that file
+does not exist in this repo.** The real one is `scripts/deploy-staging.sh`, and its
+`--exclude=sitemap.xml` (line 154) is intact and untouched, so rule 14 holds.
+
+**Four of the CEO's eleven findings were repairs and all four are done:** the false header claim
+about preserving other tags, the "never committed" refusal reported behind the "no lastmod" one, a
+`robots.txt` imprecision, and this ledger entry itself — which at review time recorded the claim and
+none of the work.

@@ -7,6 +7,82 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 122 — 2026-09-02T22:2xZ (6:2x PM ET), Wy-Blade — `T-098`, his sitemap.xml fix
+
+**Number checked at FILING time.** Highest on file was 121; this is 122.
+
+**HIS ASK, VERBATIM** (written on the Glass, 2026-09-02, 3:07 PM ET — `INBOX-20260902T190715Z`):
+*"Remove changefreq and priority. Add lastmod to both entries. DERIVE the dates, do not hand-type
+them — an inaccurate lastmod gets discounted by Google, and a hand-typed date is wrong the moment
+work continues."*
+
+**VERDICT: YES** — the first YES in some time, and it still carried a recurrence. Its own summary,
+quoted whole because it is the sentence he should read:
+
+> You asked for three things in `sitemap.xml` and all three happened, exactly as you specified.
+> `changefreq` and `priority` are gone from both entries, both entries now carry a `<lastmod>`, and
+> the dates are genuinely computed by running your own command rather than typed — I ran the check
+> myself and it recomputes `2026-09-01` for the home page and `2026-09-02` for the About page, which
+> match `git log -1 --format=%cs` to the day. The file is still valid sitemap XML and it is still
+> excluded from the staging sync; no deploy script was touched. The new gate is real — it reads the
+> file off disk and compares it to a fresh answer out of git, so it genuinely can fail. Two things
+> were said about the work that are not true, though, and one of them matters.
+
+**⚠ THE STANDING FAULT RECURS — TENTH CONSECUTIVE VERDICT.** Nine previous reviews found
+"summarising lines that round toward finished"; this is ten. **The false sentence was mine and it
+was load-bearing:** I wrote that `gear.mjs` printed FULL *"only because the whole branch is ahead of
+`origin/main` — it lists ~200 files nobody touched this watch"*, and used that to discount the
+gear's verdict. Run against the actual change it prints `why: behaviour can change in:
+package.json, sitemap.xml` — **two files, both of them mine.** The `origin/main...HEAD` fallback at
+`gear.mjs:149` only runs when nothing is uncommitted (`gear.mjs:36-38`), so the reading I quoted was
+of a clean tree at watch start, before I had written a line. **Verified by re-running it after the
+verdict landed; the CEO is right and the sentence is withdrawn.** The skip is still correct — the
+gear reads FULL because `package.json` and `sitemap.xml` are not on its exclusion list, and `src/`
+and `index.html` are untouched — but the reason I gave was about a different run.
+
+### The eleven findings, and what happened to each
+
+1. **The gear sentence, above — WITHDRAWN AND CORRECTED**, here and in the ledger, in the open.
+2. **A false behavioural claim in a script header** (`sitemap_write.mjs:16`): *"everything else about
+   an entry is preserved in the order it was written"* — the writer emits `<loc>` and `<lastmod>`
+   and nothing else, so an `<xhtml:link>` or `<image:image>` would vanish. Harmless today, and
+   exactly the kind of comment CLAUDE.md's *"a comment is not a measurement"* rule forbids.
+   **FIXED** — the header now says what the code does and warns the next person adding a tag.
+3. **The ledger entry recorded the claim and none of the work.** The opposite failure to CEO 121's,
+   and fair: from outside, an item was claimed and nothing was done to it. **FIXED** — the full
+   four-step account, the red-proof and the gear correction are now in `CTO-LEDGER.md`.
+4. **Everything he asked for is in the artifact, verified independently** (`sitemap.xml:1-11`): the
+   four dead tags removed, two `<lastmod>` added, both dates re-derived from his own commands,
+   schema-valid 0.9 with `<loc>` before `<lastmod>` as the XSD sequence requires.
+5. **The dates are derived and no date is hand-typed anywhere** — it grepped both scripts and the XML.
+6. **The gate can fail** — it read the code to check the one thing that would make it worthless:
+   whether it measures its own regeneration. It does not; the dependency runs the other way
+   (`sitemap_write.mjs:30` imports *from* the check). Applying it to the pre-change file yields
+   exactly the 4 problems claimed. ⚠ **Its own limitation, stated first, which is the right way
+   round:** *"I could not execute crafted inputs — `node -e` is blocked by permissions in this
+   session — so this finding is by reading, not by running."* The running half is the watch's
+   red-proof: `2026-08-14` typed into the live file by hand, caught and named.
+7. **An ordering wrinkle in the refusals:** a page that exists, has no `<lastmod>` and was never
+   committed reported the missing tag rather than the truer "never committed". **FIXED** — the
+   derived answer is now computed first, so the reader is never sent to add a tag that cannot be
+   derived.
+8. **Rule 14 honoured** — `--exclude=sitemap.xml` intact at `deploy-staging.sh:154`, no deploy
+   script modified. ⚠ **And worth telling Wyatt: `scripts/deploy-preview.sh` DOES NOT EXIST in this
+   repo.** His note named it; the real script is `deploy-staging.sh`, which is what was checked.
+9. **The sweep is real** — `npm test` green with the gate wired in, and it independently re-ran
+   `quiet_gate_report.mjs` to confirm the ceiling-raise justification (`0 of 18`) rather than taking
+   the commit's word for it.
+10. **AN UNDISCLOSED OPERATIONAL COST, AND THIS IS THE FINDING THAT MATTERS.** Nothing regenerates
+    `sitemap.xml` automatically, so **the next commit touching `index.html` or `about.html` without
+    running the writer turns `npm test` red.** On this branch `index.html` is committed most days.
+    **ACTED ON, NOT ARGUED AWAY:** it is now written into the gate's own header, into the ledger, and
+    into the report Wyatt reads. **Kept strict deliberately** — his complaint is that a stale date
+    fails silently on both sides, so the cure has to be something that stops being silent, and the
+    repair is one command the failure message names. The alternative (let `npm test` regenerate the
+    file) was rejected because a guard that repairs its own subject can never be seen to fail.
+11. **A minor imprecision about `robots.txt`** in a header — `/classic` is kept out of the index by
+    `noindex,follow`, not by a Disallow. **FIXED.**
+
 ## CEO Review 121 — 2026-09-02T21:5xZ, Wy-Blade — `T-104`, his "DO NOW" button
 
 **Number checked at FILING time.** Highest on file was 120; this is 121. Commit `c8a475a6`.

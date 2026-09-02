@@ -2,12 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://playpastrypirates.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-09-01</lastmod>
   </url>
   <url>
     <loc>https://playpastrypirates.com/about.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <lastmod>2026-09-02</lastmod>
   </url>
 </urlset>
