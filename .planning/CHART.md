@@ -59,6 +59,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   keep-working/pulse/thresholds hooks and the watchdog judgement stack DELETED · npm test 81/81
 - [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
   directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
+  **PARTIALLY DERIVABLE, measured 2026-09-02T03:5xZ: `schtasks /Query /TN "wyclau-bell" /V` on
+  this machine shows the task registered and Enabled (Status: Ready, last ran 23:48, next 23:58)
+  — the Bell-registration third is done. The ring-test and O2-publish thirds are not checkable
+  this way; still needs Wyatt or a session that can run them.**
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
   Captain's log) on the thin-surface architecture (design, section IV)
 - [x] **Your ruling: judge the 0137Z queue — the screenshots of the build that would actually be (closed 2026-09-02 · CEO 87 · no game diff — a judging pass, not a code change: 315 of 315 queued screens judged (307 PASS, 8 FAIL, 0 unjudged, 0 lost) on build 2026.09.01.8, the stamp in the tree; deliberately no src/ diff, because any stamp bump retires the evidence just gathered)
@@ -821,6 +825,22 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   - **Written on the Glass, 2026-09-02T03:46:13Z**: *"rename Tasks to The Chart (Tasks To Do)."*
     New naming ask, same card. → **SCHEDULED, same Glass-focused session as the two above** —
     rename the "Tasks" card's heading to "The Chart (Tasks To Do)".
+  - **Written on the Glass, 2026-09-02T03:49:02Z**: *"Make all tasks in The Chart expandable for
+    fuller context. Let me write a comment under each one if I choose to. Order the list with the
+    next-to-be-completed at the top. re-order the list dynamically. Remove items from the list
+    after they are complete (eg. The Blade Hour -- can you derive whether or not this was
+    completed, or do you need me to tell you?)"* → **SCHEDULED, same Glass-focused session as the
+    three above** — five asks on the Tasks card: (1) expandable rows for more context, (2) a
+    per-item comment box, (3) sort next-to-complete first, (4) that ordering re-derived live not
+    fixed, (5) auto-remove completed items.
+    **His embedded question, answered by measurement rather than deferred:** partly derivable.
+    Checked `schtasks /Query /TN "wyclau-bell" /V` directly on this machine just now — the task IS
+    registered, **Status: Ready, Scheduled Task State: Enabled**, last ran 23:48, next run 23:58 —
+    so the Bell-registration third of that item is genuinely done. But "The Blade hour" checklist
+    row bundles three things (register the Bell, the ring test both directions, the O2 publish
+    test) and only the first is checkable this way — the other two need either his confirmation or
+    a session that can run that test. Not marking the checklist row complete on one-third evidence;
+    left `[ ]` with this measurement attached so the next session doesn't have to re-derive it.
 
 - **Wyatt, LIVE BUG REPORT, 2026-08-31 21:00Z, two screenshots**: *"after I send something to you in the ideas box, the page css breaks; and i'm not sure if the idea was sent. i need to be able to send another idea immediately afterwards, without waiting. i need to know that my first idea was sent, and added to the chart."* → **ALL THREE NOW FIXED — THE CORRUPTION WAS ROOT-CAUSED 2026-09-01 03:50Z, AFTER THREE WRONG ATTEMPTS. Awaiting only his own look at the live page.** *(This line said "THE THIRD — THE ACTUAL CORRUPTION — IS UNEXPLAINED" for two days, and that was true when written. The escaper the page uses to save itself was a no-op — authored inside a template literal, its backslashes halved on the way out, so it replaced `<` with `<` — and every self-publish therefore wrote a live closing script tag into the document, ending the real script early and turning the rest of the page into stray markup. Found by clicking Send in a real browser and rendering what came back. Gate `glass_self_publish_check.mjs`, red first.)*
   - **✅ Fixed, verified**: "send another immediately, without waiting" and "know it was sent" — the Send button's success handler was an empty comment (relied entirely on the platform's own view reload, never re-enabled, never confirmed). Now updates local state, clears the box, repaints the visible list, shows an honest confirmation ("Saved to the page — a session will harvest it to the Chart soon." — not overclaiming it's already in the Chart), and re-enables immediately. Same fix applied to the rulings-save flow for consistency (rule 8). Gate `scripts/qa/glass_send_confirms_check.mjs`, red-proofed against the exact pre-fix empty handler.
