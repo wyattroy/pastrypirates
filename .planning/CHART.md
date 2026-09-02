@@ -862,6 +862,39 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⟨`T-007`⟩
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so.
       ⟨`T-008`⟩
+- [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
+      by an independent read-only verification of the sweep, which was looking for lost rows and
+      found this instead. In the sweep commit `a70451f2`, the row two lines above this one had its
+      curly apostrophe **U+2019 turned into ASCII `'`** — *"the Glass’s Ideas box"* became *"the
+      Glass's Ideas box"* — while the row was being re-emitted with its `T-008` handle.
+      **WHY THIS IS NOT PEDANTRY.** CEO 91's rule is that a row's FIRST LINE IS HIS and the tool
+      never touches a character of it; there is a gate case asserting exactly that ("every row's
+      first line survived the write byte for byte") and it is GREEN, so it is not asserting what it
+      claims — the likeliest reading is that the fixtures contain no non-ASCII punctuation, which is
+      the `\Z`-in-the-fixture lesson from this same file family, again. This project has already
+      paid for one character of punctuation once: *"Attack's − is U+2212, not ASCII."*
+      **AND THE SHAPE IS WORSE THAN THE INSTANCE.** A write pass that normalises a character today
+      normalises a word tomorrow, in the one document that carries his words verbatim, with a green
+      gate over it. Nothing here is urgent — the row is open, the meaning is unchanged — but the
+      SILENCE is the defect.
+      Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
+      and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
+- [ ] **WHAT IS LEFT OF THE CHARTKEEPER AFTER SWEEP SHIPPED — the remainder of `T-001`, split out
+      so his top row can close on what it actually promised.** All four passes now exist and all
+      four RUN (RANK from the Door, SWEEP from `close_item.mjs`). These are the follow-ons, not the
+      Chartkeeper:
+      **1. RANKING SIGNAL A IS HALF DONE.** A row citing a REAL BUT UNRELATED live Inbox entry is
+      still credited — CEO 94 wrote a fictional *"repaint the bilge pump widget"* row, pasted a live
+      stamp into it and it ranked #1. Its fix (require the cited entry to name the row's `T-nnn`)
+      would today zero every row, because there are no backrefs at all. **A design choice about his
+      record, not a patch.**
+      **2. HIS 03:49Z GLASS ASKS ARE STILL NOT BUILT** — expandable rows, and a comment box under
+      each item. Both need `glass.mjs`, which is no longer vendored-locked, so they are ordinary
+      work for the first watch that takes them. They are also the half that makes the ranking
+      legible: a perfectly ordered list still reads as gibberish at 90 truncated characters a row.
+      **3. TWO REAP PROBES HAVE NO GATE CASE AT ALL** — `supersededByAnotherRow` and `pidLongDead`.
+      **4. THE DUPLICATE HANDLES** are their own open row and are named by
+      `chart_sweep_conserves_check.mjs` on every run: `T-057`, `T-058`, `T-059`, `T-078`, `T-079`.
 
 ## BLOCKED ON WYATT
 
