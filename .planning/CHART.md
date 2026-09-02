@@ -1105,6 +1105,55 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"I want to give Pastry Pirates' rules a
+      ⟨`T-099`⟩
+  real, findable page, and I need to decide the content split before anything gets built.
+
+  The situation, verified 2026-09-02:
+  - index.html has a "How to play" modal (around line 2685) holding 765 words of detailed rules:
+    the wind rule and the ghost needle, crate prices rising as an island empties, how a broadside
+    resolves downwind, the trade winds, storms, the shot clock. It's the best writing on the site.
+  - It lives in a JavaScript pop-up with no URL. Nobody can link to it, search for it, or land on
+    it from Google.
+  - about.html separately has a shorter "How it plays" section (The goal / Your turn / Coming
+    home), plus "What the captains are saying" and "Credits". About 1,665 words total.
+
+  So there are already two overlapping accounts of the rules, and if a new page joins them that's
+  three pages competing for the same search.
+
+  Ask me 2-5 questions with the question UI to settle: which page becomes THE rules page, what
+  About keeps, and whether the in-game modal shows the full text or a short version that links out.
+
+  Do not write any code this session. Come back with a recommendation and let me approve it."* →
+  **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
+  harvest-and-publish only.** Reads as: a content-architecture decision (rules-modal vs. about.html
+  vs. a new page) he wants walked through with the question UI, not built yet.
+
+- **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Fix sitemap.xml at the repo root of
+      ⟨`T-098`⟩
+  playpastrypirates.com.
+
+  Two problems, both verified 2026-09-02:
+  1. It uses \<changefreq\> and \<priority\> on both entries. Google publicly ignores both tags —
+     they're dead weight from the 2005 spec.
+  2. It has no \<lastmod\>, which is the one tag Google actually uses to decide what's worth
+     re-crawling.
+
+  Remove changefreq and priority. Add lastmod to both entries.
+
+  DERIVE the dates, do not hand-type them — an inaccurate lastmod gets discounted by Google, and a
+  hand-typed date is wrong the moment work continues. Use the last commit date of the page each
+  entry points at:
+    git log -1 --format=%cs -- index.html
+    git log -1 --format=%cs -- about.html
+
+  Note: sitemap.xml is a site-identity file (docs/GIT-AND-DEPLOY.md §1). It must never be copied
+  to the preview/staging repo. Don't touch scripts/deploy-preview.sh — just be aware.
+
+  Gear: COSMETIC. This is not game code."* → **NOT YET FATED — harvested verbatim, not
+  investigated. This session's mandate is harvest-and-publish only.** Reads as: a small, scoped
+  SEO fix to the live sitemap, self-contained and already speced by him.
+
 - **Wyatt, ruled on the Glass, 2026-09-02T17:06:59.448Z** (question: *"That black window you asked
       ⟨`T-096`⟩
   about is fixed — but the check that keeps it fixed flashes one for about a second every time we
