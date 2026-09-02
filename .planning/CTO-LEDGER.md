@@ -3611,3 +3611,88 @@ Glass-update session consumed the pulse mid-watch, which is the relay working.
   take — **the two ranking signals CEO 91 measured unsound.** Chosen because banner item 2 is
   blocked on the vendored kit and this is not: `chartkeeper.mjs` and `lib/chart_model.mjs` are
   absent from `.claude/wyclau/MANIFEST.sha256`, checked, so they are this repo's own files.
+
+### WHAT THIS WATCH DID — one signal DONE, one HALF DONE, and the CEO said so. `T-001` NOT ticked.
+
+**THE MEASUREMENT CAME FIRST AND IT IS THE PART WORTH KEEPING.** Both signals were audited against
+the REAL Chart before a line changed (`.planning/wyclau/PREDICTION-20260902T0605Z-ranking-signals.md`
+was committed before the measurement existed).
+
+- **Signal A, "approved and unblocked" (+100), was awarded to EIGHT rows, and three of them were
+  matching their own headline.** `★ NEXT ITEM, AT HIS INSTRUCTION` approved itself by its title.
+  Two more were about something else entirely: the Advisor-gates row, because its body says the
+  gates were disarmed *"on his ruling"* — a ruling to DISARM them, not approval to repair them —
+  and a Glass-layout row, because Wyatt's own note contains the words *"the 'your ruling' section"*
+  while naming a CARD.
+- **Signal B told him he had raised the `can_push` row TEN TIMES.** He has never mentioned it; it
+  is a tool fault a session found. Its ten "matches" were entries about the Advisor being
+  record-only, a destroyed note, and the change-gate verdict. The trade-offer circle — three
+  recorded sightings — read *"raised it once"*, and the one entry it matched was about screenshots.
+
+**MY OWN PREDICTION WAS HALF WRONG AND THE CORRECTION IS BETTER THAN THE PREDICTION.** I guessed
+the counts tracked ROW LENGTH. They do not: the 900-character cap flattens length out, and a
+4,695-character row scored 1 while a 487-character one scored 5. They tracked **shared process
+vocabulary** — rows about the watch/trial machinery matched the many Inbox entries about the
+watch/trial machinery. The signal measured *"is this row about the same subsystem as most of his
+recent notes"* and reported it as *"you raised this N times."* Written into the code, the gate and
+the Chart, because it is the kind of wrong answer that looks obviously right.
+
+**BUILT AND GREEN.** Both signals now derive from a RESOLVED CITATION of one of his own records —
+a live `INBOX-<stamp>` the row names, or a `Your ruling:` tag that resolves against the Chart's own
+rulings tables. Twelve new assertions (cases 11a, 11a-ii, 11b, 11c, 11d, 11e), RED first with six
+failures, `npm test` 94/94 green three times. Commits `27c0278b`, `9dbac237` and the tool commit
+between them. **The acceptance test holds and holds honestly:** T-001 still ranks first, now because
+it cites a live entry of his Inbox rather than because it calls itself the next item.
+
+**CEO 94 SAID PARTIAL AND BROKE MY FIX IN ABOUT A MINUTE.** Its verdict is on the record in full.
+Signal B it scored **DONE**. Signal A it scored **PARTIAL**, and it was right twice:
+1. **I asserted a gate does something it does not, in TWO files.** I wrote that
+   `rulings_triage_check.mjs` "keeps the `Your ruling:` tag matched to a real settled ruling". It
+   walks one direction only — rulings → rows (`:92-98`) — and never asks whether a tagged row
+   corresponds to any ruling. It proved it: *"Your ruling: repaint the bilge pump widget"* on a
+   Chart with EMPTY rulings tables scored 100. **That is rule 6 one commit after being caught for
+   it — a claim about an instrument, believed from its header instead of measured.** Fixed in this
+   watch: the tag now resolves against the tables, case 11a-ii red-proofed as a pair (tables
+   present → 100, tables stripped → nothing), and the fixture case 11a runs against now carries the
+   tables, which was its "green for an unrelated reason" finding.
+2. **A second behavioural claim in a comment** — "eight rows on the real Chart do exactly that"
+   where the tool's own report says four. Eight CLAIM approval; four cite nothing. Corrected.
+
+**AND WRITING THE CHART ROW DEMONSTRATED THE REMAINING HOLE, LIVE.** I named two Inbox entries by
+their raw ids as evidence about OTHER rows, and the tool instantly counted them as T-001's own
+citations and printed *"you asked for it in 3 of your notes"* at him. Caught by looking at the
+output, reworded, verified back to one. **A pointer written for a human reader became a score.**
+
+**WHAT I DID NOT DO, NAMED SO NOBODY READS IT AS DONE.**
+- **The unrelated-stamp hole is open.** CEO 94 pasted a real live stamp into a fictional bilge-pump
+  row and it ranked #1 at 108. Its proposed fix — require the cited entry to name the row's `T-nnn`
+  handle — **would today zero every row**, because the Inbox contains no backrefs at all (it
+  measured that itself). That needs the backref convention established on the Advisor's side and a
+  decision about what a one-sided citation is worth: a design choice about his record, not a patch.
+  Written into `T-001` with the reproduction.
+- **Two rows were demoted that should not have been** — the WebP row and the row that is literally
+  his quoted words. CEO 94 is right that refusing to edit a row I do not own over-applies CEO 91's
+  lesson. The tool NAMES both with the exact one-line repair; writing citations into his rows is
+  the Advisor's job under his record-only ruling. Filed.
+- **Banner item 2 (sweep every completed row) — still BLOCKED** on the vendored `glass.mjs`. 28
+  completed rows are still on his list and his *"only show WHERE WE ARE GOING"* is not delivered.
+- **`T-001` IS NOT TICKED and nothing was closed through the gate.** The CEO said PARTIAL on the
+  thing the item names. Half of signal A survives.
+
+**HOUSEKEEPING, AND ONE INCIDENT WORTH MORE THAN THE FEATURE.** No browser and no server were
+started. `gear.mjs` reads FULL — that is the 465-commit branch, not this change, which touches
+`scripts/wyclau/`, `scripts/qa/` and `.planning/` only; no `src/`, no `index.html`, nothing a
+player can reach, so `npm test` is the honest depth and a sea trial cannot say anything about a
+Chart-ordering tool. No Artifact tool in this session, so the Glass was not published and
+`mark_glass_published.mjs` was not stamped; the pulse went to `GLASS-NOTE.md` and the Glass-update
+session consumed it mid-watch.
+
+⚠ **THE GATE FILE WAS DESTROYED MID-WATCH BY ANOTHER SESSION, AND THE RULE I BROKE WAS WRITTEN
+HOURS EARLIER.** Between proving RED and writing the fix I left `chartkeeper_check.mjs` uncommitted
+across tool calls. Another session in this shared checkout ran a checkout-moving command — reflog:
+`reset: moving to HEAD` — and the file came back at 660 lines with every new case gone. It later
+reappeared, so the rewritten copy had to be de-duplicated by hand. **`INBOX-20260902T05xxZ-c`
+recorded this exact hazard hours before, in these words: "on a shared checkout, write and commit in
+the SAME step, never leave an edit uncommitted across a tool call."** Third sighting. Rule 16
+anticipated two sessions on one BRANCH; three in one WORKING TREE is a different animal, and
+reading the rule is plainly not enough to obey it.

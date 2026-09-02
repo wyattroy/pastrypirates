@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T05:45:36.657Z	self-publish check
+2026-09-02T06:37:16.218Z	Ranking-signal fix's CEO 94 verdict got committed to the Chart (it had landed in code but not the record); the Chart still has 6 stale rows pointing at answered questions or an outdated build -- 'BUILD THE CHARTKEEPER' is the first one.
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T10:56:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 51 min ago -- hold off
 2026-09-01T11:06:01Z	no engine, and no commit for 55 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
 2026-09-01T11:16:01Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T11:26:01Z	hold off: an engine is already running -- never stack a second on it
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T03:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T034802Z.out/.err)
 2026-09-02T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T041802Z.out/.err)
 2026-09-02T05:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T050803Z.out/.err)
+2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
 ```
