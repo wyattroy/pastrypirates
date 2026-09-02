@@ -177,36 +177,38 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
 // 4/9 — THE PAGE IS A PHOTOGRAPH AND MUST SAY SO. His ask 2: he read "last progress 25 min ago"
 //       while work was four minutes old. The number was honest; the page was 13 minutes stale and
 //       nothing on it said the first number is bounded by the second.
+//
+// ⚠ REWRITTEN 2026-09-02T17:xxZ, `T-095`, BECAUSE HE OVERRULED THE WORDING — NOT THE PROPERTY.
+//   This block used to assert a second line reading "page published N min ago — it cannot see
+//   anything newer than that", a `var BLIND` holding that clause, every assignment carrying it, and
+//   an "(as of this page)" suffix on the progress figure. He replaced all of it, in his own words:
+//   "'page published 3 min ago — it cannot see anything newer than that' should be up next to
+//   '🟢 last progress 6 min ago' as one status bar with fewer words: '🟢 Progress: 6 min ago.
+//   🟢 Updated: 4 min ago.'"
+//   THE PROPERTY THOSE CASES DEFENDED SURVIVES AND IS ASSERTED BELOW: the page must always say how
+//   old it is, live, beside the number bounded by it. What changed is that the Updated CLOCK carries
+//   that instead of an apologising sentence. Deleting the cases would have been the wrong move; so
+//   would keeping them, because they would have failed on a page he had personally specified.
 {
   const html = render({ chart: CHART(ONE_ROW), status: HELD });
-  const served = (/<p class="publishedline"[^>]*>([^<]*)<\/p>/.exec(html) || [null, ""])[1];
-  const blind = /cannot see (anything|work) newer/i;
-  if (!blind.test(served)) fail(`the published line's first paint reads "${served.trim()}" — with JavaScript off, or before the first tick, nothing tells him this page cannot see work newer than its own publish`);
-  else pass("the first paint says the page cannot see anything newer than its publish");
+  const bar = (/<div class="pulseline" id="pulse">([\s\S]*?)<\/div>/.exec(html) || [null, ""])[1];
+  if (!/id="updated"/.test(bar)) fail("the status bar has no Updated clock — nothing on the page says how old the photograph is, so the progress figure is again presented as current");
+  else if (!/Progress:/.test(bar) || !/Updated:/.test(bar)) fail(`the bar does not carry both of his labels: "${bar.replace(/<[^>]+>/g, " ").trim()}"`);
+  else pass("both clocks are in one bar, so the frozen number is read beside the page's own age");
 
-  /* ONE DEFINITION, AND EVERY WRITER USES IT (rule 23). The clause could have been typed into each
-     assignment; two copies of a sentence are two things kept in step by nothing, and this page has
-     already been bitten by exactly that (the fate rule, which diverged by eleven rows in hours). So
-     the assertion is in two parts: the constant says the true thing, and no assignment writes the
-     line without it. */
-  const decl = (/var BLIND\s*=\s*("[^"]*")/.exec(html) || [null, ""])[1];
-  if (!blind.test(decl)) fail(`the client's blindness clause is ${decl || "missing entirely"} — the live line no longer tells him the number is bounded by the page's own age`);
-  else pass("the client carries one definition of the blindness clause and it says the true thing");
-
-  const assignments = html.match(/pub\.textContent\s*=\s*[^;]+;/g) || [];
-  const bare = assignments.filter((a) => !/\bBLIND\b/.test(a));
-  if (assignments.length === 0) fail("the client script no longer sets the published line at all — the live minute count is gone");
-  else if (bare.length) fail(`${bare.length} of ${assignments.length} published-line assignments write the age without the blindness clause — after one tick he is back to reading a frozen number as current`);
-  else pass("every live update of the published line goes through that one clause");
-
-  /* AND THE CLAUSE MUST BE ON THE NUMBER HE READS, not only on the line under it. CEO 112: "the
-     number he objected to is unchanged and still the prominent one." The frozen figure is the one
-     labelled "last progress"; once the page is more than a minute old that label must say whose
-     clock it is on. This is a mitigation and the file says so — the cure is republishing on landing. */
-  const ageAssign = (/age\.textContent\s*=\s*"last progress"?[^;]*;/.exec(html) || [""])[0];
-  if (!/as of this page/i.test(ageAssign)) fail(`the "last progress" figure is written as \`${ageAssign.slice(0, 90)}\` — on a page that is minutes old it presents a frozen number as current, which is exactly what he reported at 16:12`);
-  else if (!/publishedMs/.test(ageAssign)) fail("the 'as of this page' clause is unconditional — a page published seconds ago should not disclaim itself");
-  else pass("the last-progress figure says whose clock it is on once the page is no longer fresh");
+  /* AND THE AGE MUST BE LIVE, not a figure decided at publish. Both clocks are recomputed by the
+     client every 30 seconds; the assertion is that the client is what writes them, because a value
+     written only in Node is frozen the moment the page is saved — which is the whole of his ask. */
+  const js = (/<script>([\s\S]*)<\/script>/.exec(html) || [null, ""])[1];
+  const upd = (/upd\.textContent\s*=\s*[^;]+;/.exec(js) || [""])[0];
+  /* The PROGRESS clock has one deliberate exception and it is not drift: when a long job is at sea
+     the same slot reports the job's own progress ("7 of 10 legs, still running") instead of a
+     minute count, because a slow job is work and not silence. So the assertion is that the ordinary
+     branch counts minutes from Date.now(), not that every write to that element does. */
+  const ageWrites = (js.match(/\bage\.textContent\s*=\s*[^;]+;/g) || []);
+  if (!/fmtAge\(publishedMs\)/.test(upd)) fail(`the Updated clock is written as \`${upd.slice(0, 90) || "not written at all"}\` — it must count from Date.now() in his browser, or its number is whatever Node baked in and will age on screen`);
+  else if (!ageWrites.some((w) => /fmtAge\(progressMs\)/.test(w))) fail("no branch writes the Progress clock from a live minute count — the figure he objected to is frozen again");
+  else pass("both clocks are recomputed in his browser, through one age formatter");
 }
 
 // 5/9 — HIDE "YOUR CALL" WHEN IT IS EMPTY. His ask 3, one conditional.

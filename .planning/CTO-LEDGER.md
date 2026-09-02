@@ -5065,3 +5065,44 @@ headless Chrome and `cdp.mjs`'s `close()` leans on `pkill`, which does not exist
 (superseded by `glass_peek.mjs`) and `.planning/wyclau/_commitmsg.txt`. Both are UNTRACKED and were
 never staged, so neither reaches the branch; `rm`, `Remove-Item` and `git mv` were each refused on
 them by this session's sandbox.
+
+---
+
+### WATCH 2026-09-02T17:36Z — claims `T-095`, his three "chaotic again" Glass faults
+
+**THE SITUATION, six lines.**
+- **Watch started** 2026-09-02T17:36Z on `claude/cloud-handoff-planning-a9ay1u`; `can_push.mjs`
+  clean (tracking upstream, no rebase or merge in progress); `git pull --rebase` already up to date.
+- **Last progress**: `3ca04974` (handoff before his context clear).
+- **The previous watch (16:49Z) did NOT close `T-088`** — four of its five shipped, CEO 112 PARTIAL,
+  commits `d0908e64` / `c8cca404` / `74009349`. Its ask 2 is explicitly superseded by `T-095`.
+- **Blocked on Wyatt**: the `npm test` window-flash trade (ruled "Keep it" 17:06Z, harvested by
+  `778c6f92`), and `INBOX-20260902T05xxZ-c` (the Watch's staging permission, dismissed not ruled).
+- **Detached trial in flight**: none — no `.planning/wyclau/LONG-RUN`, no live pid.
+- **THIS WATCH TAKES `T-095`.** Claimed.
+
+**WHY `T-095` AND NOT THE INBOX'S OLDEST OPEN ROW, stated so the Door's rule is not quietly bent.**
+The Door orders by the Inbox, oldest first. Walked: `1335Z` is ruled finished by him (`d4b7700d`) and
+only its status line is stale; `1340Z` is his own "add to the backlog"; `0058Z` is assigned to the
+Advisor by name; `05xxZ-c` is his call, deliberately untouched. Then come `04xxZ`, `05xxZ-b`,
+`13xxZ`, `14xxZ`, `15xxZ` — and finally **`INBOX-20260902T17xxZ`, his newest, whose own words are
+"add to top of chart for a watch to fix."** That is an ordering instruction from him, newer than every
+row above it, and `T-095` is where it was filed. **His words outrank the Chart and the Door's default
+order alike; this is him using that.**
+
+⚠ **STILL OWED, AND NOT TAKEN BY THIS WATCH EITHER — the 16:49Z watch flagged it and it holds.**
+`INBOX-20260901T1335Z` reads `status: OPEN` although he ruled it finished; **no `close_item` line for
+it exists in this ledger**, so the gate never ran and the fate was never written. The Door forbids
+ticking the Inbox by hand. It is a three-minute gate run, and until it is run it misroutes the
+orientation of every watch that walks that list — **it should be the next watch's item, taken first.**
+
+**NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: `ToolSearch` returns no Artifact tool of
+any kind. So this watch cannot harvest or publish the Glass; its pulse goes to
+`.planning/wyclau/GLASS-NOTE.md`, it must not stamp `mark_glass_published`, and it uses the Door's
+step 6b instead — `ListAgents` shows a live **`Glass update`** session to ask.
+
+**WHAT `T-095` IS, in his words, three parts.** Spec `.planning/SPEC-GLASS-CALM.md` (CEO 112 approved
+item 2 and rejected items 1 and 3 as first written; both rejections were re-measured and applied):
+(1) `In hand` shows a handle and an ISO timestamp — he wants the WORK; (2) two status lines, one of
+them apologising, become one bar in his own wording; (3) the red "could not read" warning on his page
+— debug and fix the cause, which is prose sitting in `## BLOCKED ON WYATT`.

@@ -683,6 +683,7 @@ the three still carrying work also have a checklist row above, which is where he
 | The plan document vs the measured tree | **"Yes — make the measured table the plan of record"** | **DONE 2026-08-31 18:35Z.** The only one of the four genuinely unbuilt when picked up. Republished [One Engine, One Director](https://claude.ai/code/artifact/715b29fe-fe33-4038-9e61-a20ef6676570) §07: each of the six migration steps now carries its real status inline (four SHIPPED, one dead-premise-closed, one largely-enforced) instead of reading as a plain to-build list; the footer's "nothing has been built" claim corrected to match. Nothing else on the page touched. |
 | The cutover moment | **"After the exit test verdict"** — the 24-hour no-silent-stall run finishes first | **SCHEDULED** — gated on the exit test verdict. |
 | The Razer hour | done 2026-08-31, 16:19Z | **CLOSED 2026-08-31 16:19Z.** Watchdog registered, engine launched, stall test passed through the scheduled task. |
+| **That black window you asked about is fixed — but the check that keeps it fixed flashes one for about a second every time we run the checks. Is that price OK?** The window was the sea trial's own helper process, and it is gone. To make sure it stays gone, the new safety check deliberately opens one itself for about a second and confirms it can see it — because a check that can't tell a window from no window would go green forever on a broken build, which is how 183 hidden browsers piled up on your laptop this morning. The cost: `npm test` runs often, and inside every sea trial, so you will see a brief black flash more often than before. Measured: the whole check takes 1.0–1.1 seconds. *(The recommendation that stood with it: **keep it** — a one-second flash you understand is a better trade than a check that can quietly go blind, and the flash is now the ONLY window the trial makes, where before it made a window that sat there for 85 minutes. Alternatives offered: (b) run the flashing half only in the sea trial, not in every `npm test` — quieter, but then a laptop that never sails never checks; (c) drop the self-test, which makes the check unfalsifiable and is the option this project has been burned by three times.)* | **"keep it"** — ruled on the Glass 2026-09-02T17:06Z; his exact words to the Advisor at 17:38Z were *"I apprroved 'keep it'"* | **CLOSED, NOTHING TO BUILD — the flashing self-test stays in `npm test`** (`scripts/qa/detached_trial_windowless_check.mjs`). Removed from BLOCKED ON WYATT 2026-09-02T18:xxZ. ⚠ **AND THIS IS THE FOURTH INSTANCE IN ONE DAY OF A QUESTION HE HAS ANSWERED STILL BEING ASKED, WHICH IS THE PART WORTH KEEPING.** He ruled at 17:06Z, it was harvested to the record at 17:21Z (`778c6f92`), and **nothing retired the question**, so his page went on asking him something he had already answered for another half hour — and he was angry, correctly. Harvesting a ruling and RETIRING the question are two moves, and only the first has ever been automatic. |
 
 ## T-001 — 2026-09-02 — THE CHARTKEEPER — BUILT AND RUNNING. What is left is SWEEP alone. Full spec: (closed 2026-09-02 · CEO 107 · no game diff — no game diff — the ask is his Chart's own upkeep, not the game; src/ and index.html untouched, stamp unchanged)
 
@@ -897,3 +898,70 @@ the three still carrying work also have a checklist row above, which is where he
       **Do not resize anything here without a posed pair.** Resizing down softens art on a retina
       phone (measured, `INBOX-20260902T0048Z`), and this probe's zoom ceiling has been wrong twice
       in opposite directions.
+
+## BOOKKEEPING — questions that have left `BLOCKED ON WYATT`
+
+*Moved out of `CHART.md` on 2026-09-02 by the watch that fixed the Glass. **Nothing here was
+deleted and nothing here is waiting on him** — every question below is already ruled, and each note
+says where it went. They lived in the `## BLOCKED ON WYATT` section as prose, and prose in that
+section is exactly what put a red "this page could not read part of BLOCKED ON WYATT" warning on his
+Glass, above his real decisions. His words: "what is causing this? debug and fix." This was the
+cause. A gate now keeps that section to table rows, blanks and HTML comments —
+`scripts/qa/glass_calm_check.mjs`, case 10.*
+
+*The four blocks below are **verbatim**, changed only where a note said "below" or "here" about a
+section that is now in a different file. **The settled black-window row is NOT one of the four** —
+it was a live table row, and it is at the foot of SETTLED RULINGS above, question text intact with
+its recommendation folded into the same cell so the table keeps three columns.*
+
+*(This section carries no `T-nnn` handle on purpose: it is not a swept row, so
+`chart_sweep_conserves_check.mjs` neither owns it nor is confused by it, and
+`chartkeeper.mjs --sweep` preserves everything from the first `## ` heading onward. **And no row
+here names a live handle in its text**: `hisAnswerLanded` (`chartkeeper.mjs:303`) reads a settled
+row for the handles it mentions and stamps "your answer landed" on every open row it finds — so a
+handle written as decoration in a closed row tells his Chart he ruled on work he has never seen.
+It did exactly that, on two rows, and CEO 114 caught it.)*
+
+*(the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
+is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED. The row
+about `SCHEDULED` hiding your ideas was RULED YES 2026-09-02T12:28:02.757Z, moved to RULED,
+awaiting triage. The row about an unattended watch reading the claude-kit folder was RULED YES
+2026-09-02T12:39:56.363Z, moved to RULED, awaiting triage.)*
+
+*The "May an unattended watch READ the claude-kit folder?" question was RULED YES ON THE GLASS
+2026-09-02T12:39:56.363Z, no note attached. Harvested to RULED, awaiting triage: someone
+needs to actually widen `.claude/settings.json` so a Bell-started watch can read outside this
+repo, per the recommendation that was standing there, and confirm it really does unblock the five
+dammed-up claude-kit patches. Not done there — that session's mandate was harvest-and-publish only,
+never settings changes.*
+
+*The "Do you want `SCHEDULED` to stop hiding your ideas?" question was RULED YES ON THE GLASS
+2026-09-02T12:28:02.757Z, no note attached. Harvested to RULED, awaiting triage: fixing it
+touches `glass.mjs` (vendored from claude-kit at the time) and every row already tagged SCHEDULED in
+THE IDEA INBOX — this is the same defect `T-076` already named. Not done there — that session's
+mandate was harvest-and-publish only, never settings or code changes.*
+
+*The staging-publish-permission question — **"May a watch publish to staging on its own?"** — was
+RULED YES ON THE GLASS 2026-09-02T04:03:36Z, no note attached. Harvested to RULED, awaiting
+triage: someone needs to actually add the line to `.claude/settings.json`
+(`"Bash(bash scripts/deploy-staging.sh*)"`, the recommendation that was standing there) and confirm
+it lets an unattended watch publish to staging without the production path being reachable. Not
+done there — that session's mandate was harvest-and-publish only, never settings changes. The "Bake
+this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
+**"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — SETTLED,
+nothing to build. The black-market gold-coin question was answered 2026-09-02T03:50:58Z as
+a cut-off note, then CLARIFIED by his own follow-up idea 2026-09-02T03:54:47Z — he tested it
+himself on Safari/staging.6 and the coin renders correctly; SETTLED, nothing to build.
+Otherwise: the recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
+00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
+size they are displayed at?"** — harvested to RULED, awaiting triage (his format-change
+approval, plus his own follow-up question about the display-size measurement, both unanswered
+yet by the watch that picks this up). The trade-fan question was RULED ON THE GLASS 2026-09-01
+14:16Z — "Don't touch the trade fan, it's fine" — now DECISIONS.md relay-addendum ruling 5; the
+first real tap-to-rule harvest, answered and filed within the hour. Two questions resolved 2026-09-01: **rsync** — he
+installed it on the Razer (his pick, option (a)); deploys are mechanically unblocked from both
+machines. **The sail-square scope question** — he ruled the same morning: fix it NOW, with his
+stated camera-zoom solution; shipped, staged, and his own playtest passed all five checks the
+same day (staging checklist 2026-09-01, items 1–5 PASSED — item 5 was the framing taste call,
+so the wider camera is settled, not pending). The removed rows are in git history at `CHART.md`,
+2026-09-01.*

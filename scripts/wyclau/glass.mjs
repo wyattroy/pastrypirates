@@ -384,7 +384,17 @@ let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = n
 let blockedUnreadable = false;
 if (chart !== null) {
   const blockSec = chart.split(/^## BLOCKED ON WYATT$/m)[1]?.split(/^## /m)[0] ?? "";
-  blockedUnreadable = blockSec.split("\n")
+  /* THE READER STAYS BROAD AND DUMB, AND THAT IS THE POINT — it flags ANYTHING it cannot parse, and
+     the first draft of the fix tried to make it cleverer instead. That draft warned only on prose
+     containing a "?", and it was measured against the real section: THREE of the five prose blocks
+     quote his own already-answered questions, marks and all, so the red warning would still have
+     been on his page after the work was reported done (CEO 112).
+     ONE EXCEPTION, AND ONLY ONE: an HTML comment. A note addressed to WRITERS is not content he is
+     missing — the section's own "table rows or nothing" warning was itself the first thing this
+     detector flagged, in red, above his real decisions. The rule is enforced on the writer's side by
+     `scripts/qa/glass_calm_check.mjs`, so with that gate green there is never anything here to
+     find; this line only stops the fence from tripping the alarm it exists to prevent. */
+  blockedUnreadable = blockSec.replace(/<!--[\s\S]*?-->/g, "").split("\n")
     .map((l) => l.trim())
     .some((l) => l !== "" && !l.startsWith("|"));
   blocked = blockSec.split("\n")
@@ -540,8 +550,25 @@ if (chart !== null) {
    worked on right now". It is derived from a `staleAfterMinutes` the block declares itself, so there
    is no new constant on this page.
 
-   AND THE TIME IS ABSOLUTE, NEVER "N MINUTES AGO". A relative age computed at publish and then
-   frozen on a static page is precisely the fault of his ask 2, rendered one line below this one. */
+   ⚠ THIS COMMENT USED TO END: "AND THE TIME IS ABSOLUTE, NEVER 'N MINUTES AGO'. A relative age
+   computed at publish and then frozen on a static page is precisely the fault of his ask 2."
+   **THE REASON IS FALSE AND HALF THE TRAP IS REAL, AND BOTH HALVES MATTER.** A relative age is
+   frozen only if it is computed HERE, in Node. `tick()` runs every 30 seconds in his browser and
+   already renders live relative clocks, so a relative age computed THERE is not frozen at all.
+   Wyatt then ruled on the absolute version directly (2026-09-02T17:xxZ): "i don't know or care
+   about the 'T-088 · claimed 2026-09-02T16:49Z' -- i want to know the content of it." An ISO
+   timestamp is the one format on this page he would have to do arithmetic on.
+
+   SO THE CLOCK — AND THE COLD VERDICT WITH IT — BELONGS TO THE BROWSER. What is built here is a
+   time-free first paint for a reader with JavaScript off; `claimedAt` and `staleAfterMinutes` ride
+   in `glassState` and `tick()` writes the living line. COLD had to move with the clock: it was
+   decided here, so a page left open on his phone went on claiming work was in hand forever.
+
+   AND THE HANDLE IS A DATA ATTRIBUTE, NOT A SENTENCE. `T-095` is filing; machines need it and he
+   does not. It is NOT looked up in the Chart to get a title — CEO 112 rejected that, because
+   `⟨T-088⟩` sits on two different rows and a lookup would have told him confidently that we were
+   resizing artwork while we fixed his page. The words come from the claim marker, which has
+   demanded them since the day it was written. */
 const inHand = (() => {
   let dir;
   try { dir = readdirSync(join(WY, "status")); }
@@ -567,8 +594,21 @@ const inHand = (() => {
   if (!best) return sawBlock ? { state: "none" } : { state: "unreadable", why: "no machine has published an In hand block yet" };
   const ageMin = (Date.now() - Date.parse(best.claimedAt)) / 60000;
   const cold = !(ageMin >= 0 && ageMin <= best.staleAfterMinutes);
-  return { state: cold ? "cold" : "held", item: best.item, at: best.claimedAt, watch: best.watch ?? "" };
+  /* THE WORDS, AND ONLY THE WORDS. Three sources in falling order of trust, and the last one is the
+     one that matters: a marker written before `handle` existed must never render BLANK.
+       1. split field — `item` is already just the words;
+       2. legacy marker shaped "T-nnn — words" — strip the handle off the front and keep the handle;
+       3. anything else — print it whole. */
+  const legacy = /^\s*(T-\d+)\s*[—–-]\s*(.+)$/.exec(best.item);
+  const words = best.handle ? best.item : (legacy ? legacy[2] : best.item);
+  const handle = best.handle ?? (legacy ? legacy[1] : null);
+  return { state: cold ? "cold" : "held", item: best.item, words, handle,
+    at: best.claimedAt, stale: best.staleAfterMinutes, watch: best.watch ?? "" };
 })();
+/* The handle rides as a data attribute so machines keep it and he never reads it. */
+const inHandItemHtml = (inHand.state === "held" || inHand.state === "cold")
+  ? `<span class="inHandItem"${inHand.handle ? ` data-handle="${esc(inHand.handle)}"` : ""}>${esc(inHand.words)}</span>`
+  : "";
 const inHandHtml = inHand.state === "unreadable"
   ? `<span class="bad">unreadable: ${esc(inHand.why)} — this page cannot tell you what is in hand</span>`
   : inHand.state === "none"
@@ -579,9 +619,12 @@ const inHandHtml = inHand.state === "unreadable"
        exactly what is true: no watch has recorded one. `publish_status.mjs` warns any watch that is
        about to leave the page in this state. */
     ? `<b>Nothing recorded in hand</b> <span class="muted">— no watch has claimed since the last close.</span>`
+    /* NO TIME IN THE FIRST PAINT — `tick()` owns it (see the block comment above). With JavaScript
+       off he loses the age, which is a smaller loss than a frozen number presented as current; the
+       state word is still true as of publish, and it is all Node can honestly say. */
     : inHand.state === "cold"
-      ? `<b>⚠ Claimed, and cold:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}, and no watch has moved since</span>`
-      : `<b>In hand:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}</span>`;
+      ? `<b>⚠ Claimed, and cold:</b> ${inHandItemHtml}<span class="muted" id="inHandAge"> — and no watch has moved since</span>`
+      : `<b>In hand:</b> ${inHandItemHtml}<span class="muted" id="inHandAge"></span>`;
 
 // --- restarts (the watchdog appends here) ---
 // ⚠ THE HONESTY GAP A RELAY CAUGHT, 2026-08-31: restarts.log is machine-local and gitignored
@@ -704,7 +747,14 @@ try {
     .split("\n").filter((l) => /^## /.test(l)).map((l) => unmark(l.slice(3)).trim()).slice(0, 6);
 } catch { rulingHeads = null; }
 
-const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, longRun, ideas: [], rulings: {} };
+/* `inHand` rides in the state so the BROWSER can age the claim and decide COLD — his 2026-09-02
+   correction; see the long comment above the derivation. Null unless something is genuinely held,
+   so the client has nothing to say when the record has nothing to say. */
+const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, longRun,
+  inHand: (inHand.state === "held" || inHand.state === "cold")
+    ? { item: inHand.words, handle: inHand.handle ?? null, claimedAt: inHand.at, staleAfterMinutes: inHand.stale }
+    : null,
+  ideas: [], rulings: {} };
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
@@ -769,12 +819,12 @@ const PAGE = `<meta charset="utf-8">
   /* HIS ASK 1 — "what is being worked on RIGHT NOW? that needs to be visible just underneath the
      emoji status." Directly under the pulse line, above the page's own age, because what is in hand
      outranks how old the photograph is. */
-  .inhandline{margin:0 0 .15rem;font-size:.95rem;}
-  .pulseline.stale .age{color:var(--stale);}
-  /* ITEM (a) of the age fix — a second, quieter line: when was this PAGE last regenerated and
-     published, as distinct from when real WORK last happened (the line above). The two can
-     legitimately differ; showing both is the point. */
-  .publishedline{font-size:.78rem;color:var(--muted);margin:0 0 1.3rem;}
+  .inhandline{margin:0 0 1.3rem;font-size:.95rem;}
+  /* EACH CLOCK COLOURS ITSELF. This used to hang off the CONTAINER (.pulseline.stale .age), which
+     was correct while there was one clock and is a lie with two: a page published moments ago
+     beside progress from an hour ago is exactly the state he reported, and one shared class cannot
+     show it. Same 45-minute rule for both, declared once in the client. */
+  .pulseline .age.stale{color:var(--stale);}
   .relayNote{font-size:.88rem;color:var(--muted);margin:-.7rem 0 1.3rem;font-style:italic;}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(31,66,73,.05);}
@@ -844,12 +894,20 @@ const PAGE = `<meta charset="utf-8">
 <script type="application/json" id="glassState">__GLASS_STATE__</script>
 <div class="sheet">
   <h1>The Glass</h1>
+  <!-- HIS ITEM 2, 2026-09-02T17:xxZ, and the wording is his own, adopted verbatim: "'page published
+       3 min ago — it cannot see anything newer than that' should be up next to '🟢 last progress 6
+       min ago' as ONE STATUS BAR WITH FEWER WORDS: '🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago.'"
+       BOTH CLOCKS STAY — that was his own 2026-08-31 ask and they are load-bearing: Progress answers
+       "is work landing", Updated answers "how old is this page", and the fact that they can disagree
+       IS the signal. The apology that used to hang off the second one is gone; the Updated clock
+       says the same thing in two words. TWO DOTS, colouring independently, because a fresh page
+       reporting stale progress is exactly the state he reported. -->
   <div class="pulseline" id="pulse">
-    <span id="pulseEmoji">🟢</span><span class="age" id="age">—</span>
+    <span id="pulseEmoji">🟢</span><span class="age" id="age">Progress: —</span>
+    <span id="updatedEmoji">🟢</span><span class="age" id="updated">Updated: —</span>
     <span class="pulsenote" id="noteText">${esc(shortNote(note))}</span>
   </div>
   <p class="inhandline" id="inHand">${inHandHtml}</p>
-  <p class="publishedline" id="publishedLine">page published moments ago — it cannot see anything newer than that</p>
   ${relayedNote ? `<p class="relayNote">From another session, folded in on this pulse: ${esc(relayedNote)}</p>` : ""}
 
   ${askList.length === 0 && !blockedUnreadable ? "" : `<section class="card accentCard">
@@ -968,18 +1026,58 @@ const PAGE = `<meta charset="utf-8">
        THE REAL DEFECT IS THAT BOTH LIVE NUMBERS ARE BOUNDED BY A FROZEN ONE. lastProgressAt is
        whatever was true when this page was PUBLISHED; a static page cannot learn about work that
        lands afterwards. His 25 minutes was arithmetically honest and factually stale, and nothing on
-       the page said so. This sentence is that missing half — it rides on every update of the
-       published line, so it can never drift away from the number it qualifies. */
-    var BLIND = " — it cannot see anything newer than that";
+       the page said so.
+       ⚠ AND THE SENTENCE THAT USED TO BE THE ANSWER HERE IS GONE, ON HIS OWN INSTRUCTION
+       (2026-09-02T17:xxZ). It read "— it cannot see anything newer than that", hanging off a second
+       line under the bar; he replaced both lines with ONE bar in his own words: "🟢 Progress: 6 min
+       ago. 🟢 Updated: 4 min ago." The honesty it carried did not go with it — the Updated clock IS
+       the statement that this page is a photograph, and it is now the second dot's whole job.
+       THE CURE IS STILL NEITHER OF THOSE: it is republishing when work lands, the Door's step 6b. */
+    /* ONE STALENESS RULE, DECLARED ONCE, USED BY BOTH DOTS. It is the same 45 minutes the single
+       dot already used — no new constant was invented for the second one. Two copies of a threshold
+       are two things kept in step by nothing, which is the fault this page keeps having. */
+    var STALE_MIN = 45;
     function fmtAge(ms){
       var m = Math.floor(ms/60000);
       return m < 1 ? "moments ago" : m + " min ago";
     }
+    /* HIS IN-HAND LINE, WRITTEN HERE AND NOT IN NODE — so the age is live and, more importantly, so
+       the COLD verdict is live: a page left open on his phone must stop claiming work is in hand
+       once the claim goes stale, rather than holding a judgement made at publish time.
+       Built with textContent rather than innerHTML: the item words are a machine-written record, but
+       they are still text this page did not author, and this is the one place a claim string reaches
+       the DOM. */
+    function paintInHand(){
+      var ih = document.getElementById("inHand"), m = state.inHand;
+      if (!ih || !m || !m.claimedAt || !(m.staleAfterMinutes > 0)) return;
+      var ms = Date.now() - new Date(m.claimedAt).getTime();
+      var cold = !(ms >= 0 && ms/60000 <= m.staleAfterMinutes);
+      var lead = document.createElement("b");
+      lead.textContent = cold ? "⚠ Claimed, and cold:" : "In hand:";
+      var words = document.createElement("span");
+      words.className = "inHandItem";
+      if (m.handle) words.setAttribute("data-handle", m.handle);
+      words.textContent = m.item;
+      var age = document.createElement("span");
+      age.className = "muted"; age.id = "inHandAge";
+      age.textContent = " · started " + fmtAge(ms) + (cold ? ", and no watch has moved since" : "");
+      ih.innerHTML = "";
+      ih.appendChild(lead); ih.appendChild(document.createTextNode(" "));
+      ih.appendChild(words); ih.appendChild(age);
+    }
     function tick(){
       var age = document.getElementById("age"), emoji = document.getElementById("pulseEmoji"),
-          p = document.getElementById("pulse"), pub = document.getElementById("publishedLine");
+          upd = document.getElementById("updated"), updEmoji = document.getElementById("updatedEmoji");
       var progressMs = Date.now() - tProgress.getTime();
       var publishedMs = Date.now() - tPublished.getTime();
+      paintInHand();
+      /* THE UPDATED CLOCK IS WRITTEN FIRST AND UNCONDITIONALLY, so no branch below can forget it.
+         It is also the thing that replaced the apology he objected to: "it cannot see anything newer
+         than that" is what a page's own age already means, in two words instead of eight. */
+      if (upd) upd.textContent = "Updated: " + fmtAge(publishedMs);
+      var pageStale = Math.floor(publishedMs/60000) > STALE_MIN;
+      if (updEmoji) updEmoji.textContent = pageStale ? "🔴" : "🟢";
+      if (upd) upd.className = pageStale ? "age stale" : "age";
       // A LONG JOB IS WORK, NOT SILENCE. If a slow job was progressing when this page was
       // generated, say so instead of counting minutes since the last pulse and calling it death --
       // that was the false red Wyatt reported. The job's OWN staleness rule decides how long it may
@@ -991,24 +1089,21 @@ const PAGE = `<meta charset="utf-8">
         lrLive = lrAgeMin >= 0 && lrAgeMin <= lr.staleAfterMinutes;
       }
       if (lrLive) {
-        age.textContent = lr.what + (lr.progress ? " -- " + lr.progress : "") + ", still running";
+        age.textContent = "Progress: " + lr.what + (lr.progress ? " -- " + lr.progress : "") + ", still running";
         emoji.textContent = "⚙️";
-        p.className = "pulseline";
-        if (pub) pub.textContent = "page published " + fmtAge(publishedMs) + BLIND;
+        age.className = "age";
         return;
       }
-      /* ⚠ THE CLAUSE GOES ON THE NUMBER HE READS, NOT ONLY ON THE LINE BELOW IT. CEO 112: "the
-         number he objected to is unchanged and still the prominent one." True — and this is still
-         not a cure. The cure is the page being republished when work lands (the Door's step 6b),
-         because a static page CANNOT learn about a commit made after it was generated. What this
-         does is stop the frozen number presenting itself as current: once the page is more than a
-         minute old, the age says whose clock it is on. */
-      age.textContent = "last progress " + fmtAge(progressMs)
-        + (Math.floor(publishedMs/60000) >= 1 ? " (as of this page)" : "");
-      var stale = Math.floor(progressMs/60000) > 45;
+      /* ⚠ THE "(as of this page)" CLAUSE THAT USED TO BE APPENDED HERE IS GONE, AND ITS JOB MOVED
+         RATHER THAN BEING DROPPED. CEO 112 required that the number he objected to say whose clock
+         it is on; his own item-2 wording puts the answer immediately beside it — "🟢 Progress: 6 min
+         ago. 🟢 Updated: 4 min ago." — and asked explicitly for FEWER words. The Updated clock is now
+         the bound on this number, one dot away, in his phrasing instead of ours. Still not a cure:
+         the cure is republishing when work lands, the Door's step 6b. */
+      age.textContent = "Progress: " + fmtAge(progressMs);
+      var stale = Math.floor(progressMs/60000) > STALE_MIN;
       emoji.textContent = stale ? "🔴" : "🟢";
-      p.className = stale ? "pulseline stale" : "pulseline";
-      if (pub) pub.textContent = "page published " + fmtAge(publishedMs) + BLIND;
+      age.className = stale ? "age stale" : "age";
     }
     tick(); setInterval(tick, 30000);
 

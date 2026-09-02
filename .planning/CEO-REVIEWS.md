@@ -7,6 +7,111 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 114 — 2026-09-02T18:0xZ, Wy-Blade — `T-095`, his three "chaotic again" Glass faults, BUILT
+
+*Item: **`T-095`** — Wyatt, 2026-09-02T17:xxZ, verbatim: **"the glass looks chaotic again. 1. In Hand
+needs to give me context on what is being worked on -- i don't know or care about the 'T-088 ·
+claimed 2026-09-02T16:49Z' -- i want to know the content of it. 2. 'page published 3 min ago — it
+cannot see anything newer than that' should be up next to '🟢 last progress 6 min ago' as one status
+bar with fewer words: '🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago.' 3. '…and there is more in
+that section this page could not read — content that is not a table row. Open .planning/CHART.md.'
+--> what is causing this? debug and fix. create a plan to fix these, review with ceo, add to top of
+chart for a watch to fix."** Plan reviewed by CEO 112; THIS review judges the BUILD. Uncommitted
+working tree. Previous verdicts handed over: CEO 113, 112, 111, 110.*
+
+### VERDICT: **PASS** — with two record-integrity findings to fix before commit
+
+**Its one sentence for Wyatt:** *"All three are genuinely done and I checked them in the real
+generated page rather than a test rig — but your page has not actually been republished yet, so you
+will not see any of it until a session with the Artifact tool pushes it, and two lines were added to
+your Chart claiming you ruled 'keep it' on things you never ruled on."*
+
+**PER ITEM, verified against `.planning/wyclau/glass.html` — the real generator's output over the
+real Chart, ledger and status files — never a fixture:**
+- **Item 1 — DONE.** `glass.mjs:609-627` splits the field; `glass.html:138` renders
+  `<b>In hand:</b> <span class="inHandItem" data-handle="T-095">fixing the Glass — his three chaotic
+  faults</span>`. No handle in the sentence, no ISO timestamp. The clock AND the COLD verdict moved
+  to the browser for real — `glass.mjs:1050-1069` (`paintInHand`) computes from `Date.now()`,
+  `:750-756` puts `claimedAt`/`staleAfterMinutes` into `glassState`. CEO 112's required correction of
+  the shouting `THE TIME IS ABSOLUTE` comment landed in the same change (`:553-570`).
+- **Item 2 — DONE.** `glass.mjs:905-909` is one bar, two dots; `:1093-1096` and `:1105-1107` colour
+  independently through one `var STALE_MIN = 45` (`:1039`) — no new constant, as CEO 112 pinned. The
+  `BLIND` apology reaches him nowhere: it survives only inside HTML comments and code comments.
+  Word count on that bar: ~15 → 6.
+- **Item 3 — DONE, AND NOT BY GOING BLIND. Proved, not accepted.** `glass.mjs:387` strips HTML
+  comments then flags anything else non-tabular. **This CEO broke it two ways and both went red:**
+  forcing `blockedUnreadable = false` reddened case 9 (*"the fix made the reader blind instead of
+  making the section clean"*); removing the comment-strip reddened case 8. `CHART.md:1023-1041` is
+  now two comments and an empty table; `grep "could not read"` on the rendered page returns **zero**.
+
+**THE RED-FIRST CLAIM WAS NOT TAKEN ON FAITH.** Reverting the in-hand line to its old shape put
+**three** cases red with accurate messages. `npm test` run in full by this CEO: **exit 0, 108 gates**,
+`gate_count_check` and `gate_ceiling_check` both live. Tree restored exactly (128 insertions / 33
+deletions, unchanged).
+
+**NOTHING OF HIS WAS DELETED.** Open rows 50 before, 50 after. The four prose blocks are at
+`CHART-LOG.md:903-958`, differing only in deictic words ("below"/"here" → "there"), which is correct.
+
+### ⚠ FINDING 1 — TWO FALSE LINES WERE ADDED TO HIS CHART
+
+`.planning/CHART.md:198`, on the `T-095` row: *"⚠ STALE-CANDIDATE — your answer landed —
+**"keep it"** … and nothing moved this row."* **He never ruled "keep it" about the Glass-calm work,
+and no settled row names `T-095`** — the handle appears only at `:154`, `:156` and `:198` (the flag
+itself). The same flag sits on `T-090` at `:147`, where *"nothing moved this row"* is now false too:
+this watch retired that question. **Neither reaches the Glass** (`shortTask` truncates;
+`grep "your answer landed" glass.html` = 0), but `chartkeeper.mjs:303`'s flags feed SETTLE, and a
+stale "his answer landed" on `T-090` risks a later pass proposing to close a defect he has reported
+three times and which is still open. **Delete both lines before committing.**
+
+### FINDING 2 — "VERBATIM" IS OVERSTATED, AND IT IS THE RECURRING SHAPE AT SMALL SCALE
+
+`CHART-LOG.md:904` says the moved content is "verbatim". The four prose blocks effectively are. **The
+black-window row is not** (`CHART-LOG.md:686` vs `CHART.md` at HEAD `:1021`): the mechanism
+explanation, the measured *"183 hidden browsers piled up on your laptop this morning"*, and **both
+rejected alternatives (b) and (c)** were dropped. That is rule-10 graveyard content. His ruling
+itself — "keep it" — is preserved intact.
+
+### FINDING 3 — A PREDICTION WAS WRONG AND NOBODY SAID SO
+
+`PREDICTION-20260902T1736Z-glass-calm.md:25-36` (P2) predicted the in-hand line would have to be
+written twice with a no-JavaScript fallback. What shipped drops the age from the first paint
+entirely. The trade-off is disclosed honestly in a code comment (`glass.mjs:622-624`) — but rule 6's
+working form asks that a wrong prediction be named out loud, and no line does.
+
+### FINDING 4 — HIS PAGE HAS NOT BEEN REPUBLISHED, AND THAT IS THE PART HE NEEDS TOLD
+
+No Artifact tool in that session (stated in the watch's ledger entry). The fix is in the generator
+and in the local `glass.html`; the note is queued in `GLASS-NOTE.md`. **Until a session with the
+Artifact tool republishes, the Glass he taps still shows the old chaotic page.** Disclosed in the
+record, to the watch's credit — but the record is not him.
+
+### FINDING 5 — minor
+
+`scripts/qa/_peek_glass.mjs:4` documents its own usage as `node scripts/qa/glass_peek.mjs`, a
+filename that does not exist. Untracked, so `doc_command_check` never sees it; the next reader pastes
+a broken command. *(The script itself is sound and its photograph is genuine — it renders the REAL
+Chart, ledger and status files through the REAL generator at 390×844 DPR 2.)*
+
+### RECURRENCE — CEO 113's fault DOES NOT RECUR AT THE HEADLINE. The streak breaks.
+
+CEO 113: *"a headline out ahead of an honest body… fifth or sixth verdict on this branch touching the
+same shape."* **`GLASS-NOTE.md:7` — the one sentence he will actually read — makes four claims, and
+all four were checked in the rendered page and hold.** The Chart row is still unticked; there is no
+premature close entry. The shape survives only in miniature, twice, in the record rather than in
+anything he reads: findings 1 and 2 above.
+
+**CEO 112's findings 1 and 2 do not recur** — the rejected title lookup and the rejected question-mark
+predicate were both correctly avoided, verified by reading the built code, not the plan.
+
+### WHAT THIS CEO DID NOT VERIFY
+
+Behaviour in a live browser over time (the 30-second `tick()` was read, never watched); the claimed
+"RED run failed 11 of 14" against the pre-change `glass.mjs` (three independent red-proofs were run
+instead, in both directions); and the provenance of the two false stale flags — only that they are
+new relative to HEAD and unsupported by the record as it now stands.
+
+---
+
 ## CEO Review 113 — 2026-09-02T17:4xZ, Wy-Blade — `T-088`, his five Glass asks, BUILT
 
 *Item: **`T-088`** — Wyatt, 2026-09-02T16:1xZ, with a screenshot of his own page: **"claude my friend,

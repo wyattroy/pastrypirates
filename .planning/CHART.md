@@ -111,6 +111,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
       Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
       loop. **Until that ships, "put it at the top" is something only a session can do for him.**
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -141,11 +142,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
-
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -167,6 +163,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
@@ -195,9 +195,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
 
-
-
-
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -213,6 +210,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+
+
+
+
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -459,6 +460,42 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE PROOF A GATE IS WARRANTED:** five prose blocks are in that section right now
       (`CHART.md:956-1010`) on a tree where `npm test` is green. Nothing in the build can see them;
       the only thing that notices is the renderer, at read time, on his page, in red.
+- [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
+      ⟨`T-088`⟩
+      by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
+      hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
+      **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
+      *"the seat wyatt actually playtests"* (row 10), *"a character of wyatt's own text"* (row 20),
+      *"git stages whole files"* row (25), and the section name itself as *"blocked on wyatt"*
+      (row 2). **WHY:** `shortTask()` sentence-cases any run of two or more all-caps words, and
+      watches write row titles in capitals for emphasis — so `WYATT` inside a shouting run is
+      lowercased along with everything else. The rule has no notion of a proper noun.
+      **The existing carve-outs are the shape to follow and they are already derived rather than
+      listed** — a lone all-caps word is a name, a token carrying a digit is an identifier, a lone
+      `I` is a fact about English. His own name is the same kind of fact. ⚠ **Do not "fix" it with a
+      list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
+      holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
+      **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
+- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
+      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
+      **Sizing: this is a rule and a hook, not a feature.**
+      ⟨`T-091`⟩
+      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
+      the same question to him through the question UI at roughly **12:22**, and closed the item on
+      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
+      He had to decide the same thing twice and then work out why.
+      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
+      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
+      the failure this system exists to stop."* **The Advisor read neither the page nor
+      `BLOCKED ON WYATT` before asking.**
+      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
+      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
+      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
+      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
+      a hook that silently swallows a real question is worse than the double-ask it prevents.
+      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
+      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
+      thirty seconds and it would have caught this one.
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
       ⟨`T-094`⟩
@@ -568,6 +605,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
       ⟨`T-008`⟩
       by an independent read-only verification of the sweep, which was looking for lost rows and
@@ -586,10 +628,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       SILENCE is the defect.
       Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
       and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
       ⟨`T-074`⟩
@@ -618,27 +656,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
   fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
   which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
-
-- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
-      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
-      **Sizing: this is a rule and a hook, not a feature.**
-      ⟨`T-091`⟩
-      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
-      the same question to him through the question UI at roughly **12:22**, and closed the item on
-      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
-      He had to decide the same thing twice and then work out why.
-      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
-      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
-      the failure this system exists to stop."* **The Advisor read neither the page nor
-      `BLOCKED ON WYATT` before asking.**
-      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
-      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
-      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
-      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
-      a hook that silently swallows a real question is worse than the double-ask it prevents.
-      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
-      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
-      thirty seconds and it would have caught this one.
 
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
@@ -1010,59 +1027,34 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ## BLOCKED ON WYATT
 
-*⚠ THIS SECTION IS TABLE ROWS OR NOTHING. `glass.mjs:311-321` renders **only** lines beginning with
-`|` and skips every paragraph in silence — so a question written here as prose is invisible on his
-page, and Your Call truthfully reports **(0)** while a real question waits. He caught exactly that
-in a screenshot, 2026-09-02. **A question is not ASKED until it is a row in this table.** Diagnosis
-and fix: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) §2.*
+<!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
+     (scripts/qa/glass_calm_check.mjs, case 10). glass.mjs renders only lines beginning with "|" and
+     skips every paragraph — so a question written here as prose is invisible on his page, and Your
+     Call truthfully reports (0) while a real question waits. He caught exactly that in a screenshot,
+     2026-09-02. A QUESTION IS NOT ASKED UNTIL IT IS A ROW IN THIS TABLE.
+
+     AND THIS NOTE IS A COMMENT FOR THE SAME REASON, which is the joke that cost him a red warning:
+     as prose, the paragraph forbidding prose was itself the first thing the detector flagged — in
+     red, above his real decisions — along with four blocks of historical bookkeeping. His words,
+     2026-09-02T17:xxZ: "'…and there is more in that section this page could not read…' → what is
+     causing this? debug and fix." This was the cause. The four notes moved to CHART-LOG.md.
+     ⚠ AND HIS ARROW IS WRITTEN → HERE, NOT AS TWO DASHES AND AN ANGLE BRACKET, BECAUSE THAT SEQUENCE
+     CLOSES AN HTML COMMENT. Quoting him verbatim inside this fence ended the comment mid-sentence
+     and put six lines of it straight back into the section as prose — the gate caught it in one
+     run. Anything quoted in here has to be checked for it.
+
+     The reader was deliberately NOT made cleverer. The first draft warned only on prose containing a
+     "?", and three of the five blocks quoted his own already-answered questions, marks and all — so
+     the warning would have survived the fix. Fence the writer, keep the reader broad and dumb.
+     Diagnosis: SPEC-GLASS-CALM.md and SPEC-VISIBILITY-AND-INJECTION.md §2. -->
 
 | Question | Recommendation | since |
 |---|---|---|
-| **That black window you asked about is fixed — but the check that keeps it fixed flashes one for about a second every time we run the checks. Is that price OK?** The window was the sea trial's own helper process, and it is gone. To make sure it stays gone, the new safety check deliberately opens one itself for about a second and confirms it can see it — because a check that can't tell a window from no window would go green forever on a broken build, which is how 183 hidden browsers piled up on your laptop this morning. The cost: `npm test` runs often, and inside every sea trial, so you will see a brief black flash more often than before. Measured: the whole check takes 1.0–1.1 seconds. | **Recommended: keep it.** A one-second flash you understand is a better trade than a check that can quietly go blind — and the flash is now the ONLY window the trial makes, where before it made a window that sat there for 85 minutes. Alternatives: (b) run the flashing half only in the sea trial, not in every `npm test` — quieter, but then a laptop that never sails never checks; (c) drop the self-test, which makes the check unfalsifiable and is the option this project has been burned by three times. | 2026-09-02T16:5xZ |
 
-*(the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
-is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below. The row
-about `SCHEDULED` hiding your ideas was RULED YES 2026-09-02T12:28:02.757Z, moved to RULED below,
-awaiting triage. The row about an unattended watch reading the claude-kit folder was RULED YES
-2026-09-02T12:39:56.363Z, moved to RULED below, awaiting triage.)*
-
-*The "May an unattended watch READ the claude-kit folder?" question was RULED YES ON THE GLASS
-2026-09-02T12:39:56.363Z, no note attached. Harvested to RULED below, awaiting triage: someone
-needs to actually widen `.claude/settings.json` so a Bell-started watch can read outside this
-repo, per the recommendation that was standing here, and confirm it really does unblock the five
-dammed-up claude-kit patches. Not done here — this session's mandate is harvest-and-publish only,
-never settings changes.*
-
-*The "Do you want `SCHEDULED` to stop hiding your ideas?" question was RULED YES ON THE GLASS
-2026-09-02T12:28:02.757Z, no note attached. Harvested to RULED below, awaiting triage: fixing it
-touches `glass.mjs` (vendored from claude-kit) and every row already tagged SCHEDULED in THE IDEA
-INBOX — this is the same defect `T-076` already named. Not done here — this session's mandate is
-harvest-and-publish only, never settings or code changes.*
-
-*The staging-publish-permission question — **"May a watch publish to staging on its own?"** — was
-RULED YES ON THE GLASS 2026-09-02T04:03:36Z, no note attached. Harvested to RULED below, awaiting
-triage: someone needs to actually add the line to `.claude/settings.json`
-(`"Bash(bash scripts/deploy-staging.sh*)"`, the recommendation that was standing here) and confirm
-it lets an unattended watch publish to staging without the production path being reachable. Not
-done here — this session's mandate is harvest-and-publish only, never settings changes. The "Bake
-this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
-**"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — SETTLED
-below, nothing to build. The black-market gold-coin question was answered 2026-09-02T03:50:58Z as
-a cut-off note, then CLARIFIED by his own follow-up idea 2026-09-02T03:54:47Z — he tested it
-himself on Safari/staging.6 and the coin renders correctly; SETTLED below, nothing to build.
-Otherwise: the recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
-00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
-size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
-approval, plus his own follow-up question about the display-size measurement, both unanswered
-yet by the watch that picks this up). The trade-fan question was RULED ON THE GLASS 2026-09-01
-14:16Z — "Don't touch the trade fan, it's fine" — now DECISIONS.md relay-addendum ruling 5; the
-first real tap-to-rule harvest, answered and filed within the hour. Two questions resolved 2026-09-01: **rsync** — he
-installed it on the Razer (his pick, option (a)); deploys are mechanically unblocked from both
-machines. **The sail-square scope question** — he ruled the same morning: fix it NOW, with his
-stated camera-zoom solution; shipped, staged, and his own playtest passed all five checks the
-same day (staging checklist 2026-09-01, items 1–5 PASSED — item 5 was the framing taste call,
-so the wider camera is settled, not pending). The removed rows are in git history at this file,
-2026-09-01.*
+<!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
+     when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
+     that have left BLOCKED ON WYATT". Nothing was deleted. They are backward-looking, and his
+     ruling is that the Chart shows only where we are going. -->
 
 ## RULED — his answers, waiting to be triaged
 

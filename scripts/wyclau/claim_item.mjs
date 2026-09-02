@@ -17,8 +17,19 @@
  * claim is too. The ledger stays the human narrative it is good at instead of being asked to be a
  * database.
  *
- *   node scripts/wyclau/claim_item.mjs --item="T-088 — his five Glass asks" [--stale=90]
+ *   node scripts/wyclau/claim_item.mjs --item="his five Glass asks" [--handle=T-088] [--stale=90]
  *   node scripts/wyclau/claim_item.mjs --release        # nothing in hand (close_item does this too)
+ *
+ * THE HANDLE IS A SEPARATE FIELD, AND THAT IS WYATT'S OWN CORRECTION — 2026-09-02T17:xxZ: "In Hand
+ * needs to give me context on what is being worked on -- i don't know or care about the 'T-088 ·
+ * claimed 2026-09-02T16:49Z' -- i want to know the content of it." A handle is a filing code for
+ * machines; he has never needed to type one. So the page prints `item` and keeps `handle` in a
+ * data attribute.
+ *
+ * ⚠ AND NOT BY LOOKING THE TITLE UP IN THE CHART, which was the first design and CEO 112 rejected
+ * it: `⟨T-088⟩` sits on TWO rows of `.planning/CHART.md`, so a lookup picks one and tells him
+ * confidently that we are resizing artwork while we are fixing his page. The words were always
+ * here — this script has refused a blank `--item` since the day it was written.
  *
  * MACHINE-LOCAL, exactly like LONG-RUN: `.planning/wyclau/IN-HAND`, gitignored. It reaches the
  * branch only by being summarized into `.planning/wyclau/status/<hostname>.md` by
@@ -53,18 +64,24 @@ if (argv.includes("--release")) {
 
 const item = arg("item");
 if (!item) {
-  console.error("claim_item: --item=\"<handle> — <what it is>\" is required.");
+  console.error("claim_item: --item=\"<what it is, in words>\" is required (--handle=T-nnn is separate and optional).");
   console.error("A claim nobody can read is the thing this replaces; refusing rather than writing a blank one.");
   process.exit(1);
 }
 const stale = Number(arg("stale") ?? 90);
 if (!(stale > 0)) { console.error(`claim_item: --stale must be a positive number of minutes, got "${arg("stale")}"`); process.exit(1); }
+/* OPTIONAL BY DESIGN. A handle is filing, and work can be claimed that has no row yet; requiring one
+ * would make the honest case (an Inbox item with no Chart handle) impossible to claim. The reader
+ * falls back to stripping a leading "T-nnn — " off `item`, which is how every marker written before
+ * this field was shaped. */
+const handle = arg("handle");
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify({
   item,
+  ...(handle ? { handle } : {}),
   watch: os.hostname(),
   claimedAt: new Date().toISOString(),
   staleAfterMinutes: stale,
 }, null, 2) + "\n");
-console.log(`in hand: ${item} — run publish_status.mjs and commit the status file so his page can see it`);
+console.log(`in hand: ${item}${handle ? ` (${handle})` : ""} — run publish_status.mjs and commit the status file so his page can see it`);
