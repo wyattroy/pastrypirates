@@ -105,6 +105,20 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    item without a CEO verdict on file, a game-code diff or a stated one-line reason, and the
    solution-first evidence. Do not tick the Chart or the INBOX by hand — the gate writes the tick,
    the ledger entry, and the INBOX fate together, so they cannot disagree.
+6a. **RE-PRIORITISE THE CHART BEFORE YOU PUBLISH IT:**
+   `node scripts/wyclau/chartkeeper.mjs --rank --write`. It orders the open list so the
+   next-to-be-completed is at the top and gives every row a `why-now:` phrase Wyatt can overrule.
+   **It never ticks a box** — closing stays yours, behind `close_item.mjs`. Include `CHART.md` in
+   the commit you were already making.
+   **NOT `--sweep`:** its current form is the seven-day-with-a-stub version he OVERRULED (every
+   completed row leaves immediately, no stub), and sweeping today would zero the done count on his
+   page before that count is re-sourced from `CHART-LOG.md`. That is kit patch 6.
+   **WHY THIS LINE EXISTS, because it is the whole story of 2026-09-02:** he asked for the Chart to
+   re-prioritise itself **four times**. The tool was built, gated and green — and this line was
+   missing, so it ran only when a human typed it. His top ask sat at **31 of 39** and kept sinking.
+   The reason the line was missing is that this file was VENDORED and no watch was allowed to edit
+   it; his ruling inverted that (the project owns its copy), and this is the first edit under it.
+   **A capability nothing invokes is a capability that never runs.**
 6. **Republish the Glass** (harvest first — always), `mark_glass_published.mjs --version=<id>`, then
    `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
    include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its

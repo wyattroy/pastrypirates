@@ -1281,5 +1281,32 @@ const ATTACHED = (extraQuestion = "") => `# THE CHART — fixture
   else pass("the printed report names them too");
 }
 
+/* ⚑ THE WIRING CASE — added 2026-09-02 with the Door line it guards.
+ *
+ * A TOOL NOBODY INVOKES IS A TOOL THAT NEVER RUNS, and this project has now paid for that twice in
+ * one file: `chartkeeper.mjs --rank` was built, gated and green for hours while Wyatt asked FOUR
+ * TIMES why his Chart would not re-prioritise itself. Nothing was broken. The Door — the file that
+ * tells a watch what to do each run — simply never named it, so it ran only when a human typed it,
+ * and his top ask sank to 31 of 39.
+ *
+ * The old blocker was that the Door was VENDORED and no watch could add the line. His ruling
+ * inverted that (the project owns its copy). This case is what stops the line being lost again to
+ * a careless edit or a re-vendor, and it is deliberately about the DOOR rather than the tool:
+ * the tool passing its own tests proves nothing about whether anything calls it. */
+{
+  const doorPath = join(ROOT, ".claude", "skills", "door", "SKILL.md");
+  const door = existsSync(doorPath) ? readFileSync(doorPath, "utf8") : "";
+  const watchSection = door.split(/^## THE WATCH/m)[1]?.split(/^## /m)[0] ?? "";
+  if (!watchSection) {
+    fail("could not find the Door's THE WATCH section — this case cannot check anything, which is worse than failing");
+  } else if (!/chartkeeper\.mjs\s+--rank\s+--write/.test(watchSection)) {
+    fail("the Door's watch routine does not run `chartkeeper.mjs --rank --write` — RANK exists and nothing calls it, so his Chart will not re-prioritise itself (he asked four times)");
+  } else if (/chartkeeper\.mjs[^\n]*--sweep/.test(watchSection)) {
+    fail("the Door runs --sweep, which is still the seven-day-with-a-stub version he OVERRULED; sweeping now also zeroes the done count on his page");
+  } else {
+    pass("the Door's watch routine runs `chartkeeper.mjs --rank --write`, and not --sweep");
+  }
+}
+
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
 process.exit(failures === 0 ? 0 : 1);
