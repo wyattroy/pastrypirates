@@ -1509,3 +1509,53 @@ status: OPEN — his half is done; the publishing half is being run now, and his
   **What the live run would add is confirmation of a result already measured once, at the price of
   the only remaining way to destroy his writing.** That is a bad trade, and the classifier refusing
   it twice is the system agreeing.
+
+## INBOX-20260902T2156Z — LAYER B SHIPPED AND ITS RECEIPT RECORDS A CLOCK UNDER THE NAME `artifactVersion`
+
+> Not his words — the Advisor's finding, measured 5:56 PM ET, minutes after the receipt shipped.
+> **This is the fix for "the stamp is a clock" storing a different clock.**
+
+solution: the receipt must carry the ARTIFACT VERSION ID — the `1788385523-b046` form the Artifact tool reports and that changes on every save, including his — never `glassState.generatedAt`.
+
+status: OPEN — FOR A WATCH, and it should be near the top: `T-105`'s Layer B is currently unable to do the one thing it exists for.
+
+  **WHAT IS ON DISK RIGHT NOW** (`.planning/wyclau/LAST-HARVEST`, written 21:55:11Z by
+  `scripts/wyclau/mark_glass_harvest.mjs:79`):
+  ```json
+  { "artifactVersion": "2026-09-02T21:08:44.245Z", "harvestedAt": "2026-09-02T21:55:11.170Z",
+    "ideaIds": ["i1788385507236"], "rulingKeys": ["t-105-...", "t-105-..."] }
+  ```
+  **`artifactVersion` holds a TIMESTAMP.** The real version id of the page it read is
+  `1788385523-b046`.
+
+  **THE MEASUREMENT THAT SETTLES IT — two versions, same field, one contains his writing and the
+  other does not:**
+
+  | artifact version | `generatedAt` | ideas | rulings |
+  |---|---|---|---|
+  | `1788385436-4b8b` | **2026-09-02T21:08:44.245Z** | 0 | 1 |
+  | `1788385523-b046` | **2026-09-02T21:08:44.245Z** | **1** (his Google Analytics idea) | **2** |
+
+  **IDENTICAL. `generatedAt` is stamped when a SESSION regenerates the page and never moves when
+  WYATT saves into it** — and his saves are the entire thing the receipt exists to detect. **So a
+  comparison against this field returns "unchanged" at the exact moment he has written something.**
+
+  ⚠ **THIS IS THE SPEC'S OWN FAULT, REPRODUCED INSIDE THE FIX FOR IT, AND THE FIELD NAME IS WHY IT
+  WILL SURVIVE REVIEW.** `SPEC-GLASS-HARVEST-SAFETY.md` Layer B says the receipt must carry the
+  version *"because a time alone can never answer the question; an id can."* The field is **named**
+  `artifactVersion`, the runbook reads that name (`GLASS-UPDATE-SESSION.md:217`), and a gate asserts
+  the writer stores something under it (`glass_harvest_hook_check.mjs:277-279`) — **but nothing
+  checks WHAT.** A gate that asserts a field is populated is not a gate that asserts it is the right
+  quantity. **The name promises an identity and the value is a clock, so every reader downstream
+  inherits the wrong belief with no way to notice.**
+
+  **THE FIX IS ONE VALUE, NOT A REDESIGN:** whoever performs the read must pass the Artifact tool's
+  reported version id — the `<epoch>-<hash>` form — to `mark_glass_harvest.mjs --version=`. Then add
+  the gate that is missing: **fail if `artifactVersion` parses as a date**, and red-proof it against
+  today's file, which does.
+
+  ⚠ **AND IT MATTERS LESS THAN IT LOOKS, WHICH MUST BE SAID SO NOBODY PANICS.** `INBOX-20260902T2100Z`
+  measured that the runtime already REFUSES a stale publish, so his words are not at risk from this.
+  **What is at risk is the belief that Layer B works** — and `glass_harvest_hook_check.mjs:137`
+  already says in its own output that *"`artifactVersion` HAS NO MACHINE READER YET… layer B is a
+  file format plus a paragraph."* That honesty is why this was cheap to find.
