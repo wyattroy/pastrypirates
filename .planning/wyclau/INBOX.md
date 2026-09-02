@@ -1244,3 +1244,57 @@ status: OPEN — FOR A WATCH. `T-105`, the top row of `### ⚑ FOR A WATCH`.
   **AND HAND-PLACING THE ROW WOULD HAVE BEEN THE FAILURE, NOT THE FIX** — the Chart says exactly
   that two rows below, about his own DO NOW asks. A row placed by hand sits where the next
   `--rank --write` decides, and `928ae2d6` moved fifteen rows in one pass.
+
+## INBOX-20260902T193000Z — his idea: put the "looks already finished" rows in Your Call so he can approve or deny closing them
+
+**HIS WORDS, VERBATIM:**
+
+> how do we fix this: "he sweep flags 10 rows that look already finished but are still open. That's
+> the same class as this morning's — work that's done and hasn't left your list — and nobody has
+> closed them because closing runs through a gate that needs a watch. It's the largest remaining
+> source of noise in what you're reading."
+>
+> idea: do you want to put those in the Your Call section so I can approve/deny them being closed?
+
+solution: his idea is right for ONE of the three kinds hiding under that flag and wrong for the other two — see below. Answered, not built (his standing ruling: a question gets an answer and a Chart row, never a build).
+
+status: OPEN — FOR A WATCH.
+
+  ⚠ **FIRST, A CORRECTION THE ADVISOR OWES HIM: "10 rows that look already finished" IS THE
+  ADVISOR'S OWN SENTENCE AND IT IS WRONG FOR SIX OF THE TEN.** It was repeated from the note on his
+  page. Ran `node scripts/wyclau/chartkeeper.mjs --reap` and read every line. **Not one of the ten
+  is flagged "this looks finished."** They are three different faults wearing one label:
+
+  | kind | count | what the reaper actually says | whose call is it? |
+  |---|---|---|---|
+  | **Evidence went stale when the build moved** | **6** | *"measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game"* | **nobody's — it needs RE-MEASURING.** He cannot know whether a trade-offer circle still clips a captain's name; that is a screenshot |
+  | **He ruled and the row never moved** | **3** | *"your answer landed — 'yes' — ruled 2026-09-02T12:39:56Z — and nothing moved this row"* | **already his, already given.** Asking again is `T-090`'s exact fault |
+  | **A pointer is dead** | 1 (overlaps) | *"warns readers off on account of pid 45256, which is not running"* | nobody's — it is a fact on disk |
+
+  **AND ONE OF THE THREE "HE RULED" FLAGS IS A MIS-ATTRIBUTION, VERIFIED BY READING THE ROW.**
+  `T-078` (`CHART.md:1047`) is *"GATED: recurrence. One `<img>` reserved its box and did not paint,
+  once, in one headless WebKit frame… Chase it only if it is seen again."* It is matched against his
+  **12:39:56Z ruling about whether a watch may read the claude-kit folder.** The two have nothing to
+  do with each other. **So the reaper's "he answered this" signal can fire on a row he never
+  answered** — and under his proposal that row would be put to him as a question, which is the
+  failure the proposal exists to reduce.
+
+  **THE ANSWER TO HIS IDEA, PLAINLY: right instinct, wrong pile — and it is worth having for the
+  small pile.**
+  - **The 6 stale-evidence rows must NOT go to Your Call.** Handing him *"is this still broken?"* is
+    handing him our homework; the honest move is to re-measure on the current build, which is a
+    watch's job and mostly a screenshot.
+  - **The 3 he-already-ruled rows must NOT go to Your Call.** He answered at 12:39:56Z. Putting them
+    back in front of him is literally re-asking a settled question — **the fault he was furious
+    about at 1:38 PM today, and the reason `T-090` exists.**
+  - **What his idea IS right for is the residue** — rows whose fate is genuinely his say-so and
+    nobody else's. `"Your ruling: merge the 465-commit branch to main — GATED: his own final
+    say-so"` is exactly that shape. **That pile is one or two rows, not ten**, and Your Call is the
+    right home for it.
+
+  **THE DEEPER FIX, AND IT IS THE SAME SHAPE AS `T-105`:** the noise is not that these rows are
+  unclosed. It is that **one label — "looks already finished" — is doing duty for three unrelated
+  conditions, so every reader of his page, including the Advisor, drew the wrong conclusion from
+  it.** Split the reap output by kind, name each kind in the note in his words, and route each to
+  its own owner: re-measure, close, or ask him. **A flag that means three things cannot be acted on
+  by anybody.**
