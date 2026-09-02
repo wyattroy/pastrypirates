@@ -232,16 +232,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       strips `**` and `~~`, not backticks). Handles now live on their own line; gate case 7b asserts
       every row's first line survives the write byte for byte; the rendered page was opened and
       checked afterwards. **Twenty-two green cases and none of them had looked at the picture.**
-- [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
-      ⟨`T-002`⟩
-      `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
-      fires once then waves every later edit through — and forges evidence
-      `advisor-triages-watch-works.cjs` reads. That one is also blind to **untracked** files
-      (`:83` excludes `??`), which is half the collision its own header cites. And `isGameCode()`
-      is false for `scripts/qa/*`, `.claude/hooks/*` and `.planning/*`, so it would not have fired
-      once during the night that earned it. **Both are unregistered from settings.json as of
-      2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
-      works and stays armed.
+- [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
+      ⟨`T-006`⟩
 - [x] **Your ruling: judge the 0137Z queue — the screenshots of the build that would actually be (closed 2026-09-02 · CEO 87 · no game diff — a judging pass, not a code change: 315 of 315 queued screens judged (307 PASS, 8 FAIL, 0 unjudged, 0 lost) on build 2026.09.01.8, the stamp in the tree; deliberately no src/ diff, because any stamp bump retires the evidence just gathered)
       ⟨`T-033`⟩
   staged.** His standing pre-ship ruling (INBOX-20260902T0050Z, question UI): *"Judge the
@@ -249,14 +241,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   trial landed with its eyes shut (the `vision.mjs` fix landed while it was already at sea) and
   deferred **315 screens** on build `2026.09.01.8`, which is the stamp in the tree. Claimed by the
   watch of 2026-09-02T03:00Z, which is also the last gate standing between here and staging.
-- [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
-      ⟨`T-003`⟩
-      *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
-      `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
-      not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
-      is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
-      His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
+- [ ] Your ruling: the cutover moment — **gated on the exit test verdict**, which is his own condition
+      ⟨`T-007`⟩
 
 *Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
 (2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
@@ -302,8 +288,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       first failure, so run them separately to see that. The probe's need is legitimate — it
       photographs the frozen v1 — so the fix is to build that URL the way the gate expects rather
       than to weaken the gate.
-- [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
-      ⟨`T-006`⟩
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — root-caused and fixed 2026-09-01; **awaiting his look on the live page**
+      ⟨`T-008`⟩
 - [x] **The money symbol: this row's diagnosis was wrong, and the corrected answer is below — (closed 2026-09-02 · CEO 101 · no game diff — answered, not fixed: no game change is right -- the residual is T-078, recurrence-gated)
       ⟨`T-005`⟩
   nothing on screen is a raw emoji and there is no rule-23 sweep to do.** Measured 2026-09-02T11:xxZ:
@@ -340,15 +326,20 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   23's: one coin, the image, everywhere.**
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 
-- [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
-      ⟨`T-078`⟩
-  WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
-  carrying an open question. What is proven is what it is NOT: not a font (the same card's bare 🏴
-  was font-drawn in that frame), not a missing file (the same URL painted four times in the CAPTAINS
-  panel of that frame), not an engine difference (the next run's same leg was clean). **Seen once.
-  Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
-  never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
-  Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+- [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
+      ⟨`T-013`⟩
+  circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
+  Found by CEO 84, which pointed out the answer was already sitting unread in the probe's own data.
+  Measured both ways on the same 21 poses: **15 wrong-boat before this watch's fix, 16 after** — so
+  it is pre-existing and this change neither caused nor cured it. **DO NOT read that as a live
+  15-in-21 defect.** `scripts/qa/w52_call_beside_boat.mjs`, which was built for exactly this
+  question and does NOT move anyone, reports 11 of 12 circles nearest their own boat at an 11px
+  gap. The difference is that `w54` teleports two captains to fixed squares and leaves the other
+  two where they were, which can strand a third hull nearer than the named one. **Which instrument
+  is telling the truth is the first thing to settle**, and it is a posed question, not a rate.
+  Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
+  someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
+  lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
 
 - [x] Charter approved (2026-08-31, amendment: daily lessons)
       ⟨`T-034`⟩
@@ -660,44 +651,84 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   **DO NOT MAKE A RELEASE DECISION ON THAT REPORT UNTIL THIS IS FIXED** — rule 24 stands on opening
   the report and believing it, and right now it is lying in the pessimistic direction. Pessimistic
   is the safe direction and it is still a lie.
-- [ ] Your ruling: the cutover moment — **gated on the exit test verdict**, which is his own condition
-      ⟨`T-007`⟩
+- [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
+      ⟨`T-012`⟩
+  IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
+  MEASURED, and deliberately not called a defect.** `solo-tablet-wk-018-settled.png` shows
+  *"Both fire 🪙 HEADS — but Davy Scones's firing"* and stops; `src/orchestrator.js:700` writes
+  *"…firing downwind and the shot hits!"*, so six words are missing from the screen. **Either** the
+  screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27
+  desktop and 5 of 20 phone screens in this project's own record) **or** the wrapped second line is
+  clipped by the card and every downwind battle in the game ends mid-phrase on every engine.
+  **The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past
+  the reveal, photograph the card. Do not run a trial for this.**
+  *Separate lead on the screen immediately BEFORE it, observed once:* the flip ceremony reads
+  *"Crosswind — two heads and the cannonballs collide"* while the card that follows reads *"↓ DAVY
+  SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
+  reminder; that is a source question, not a screenshot one.
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 - [x] **THE RELEASE TRIAL'S ONE PLAYER-FACING FINDING IN TEN LEGS: a call circle drawn on the question it answers.** (closed 2026-09-02 · CEO 84 · commit e191ad7 (1 game file))
       ⟨`T-049`⟩
   `2026-09-01T1914Z-Wy-Blade`, leg `passplay-phone`, `no-cover-ask` — *"Call Flaky Jack" over
   "Davy Scones — a battle's brewi[ng]"*. You are asked by name to pick a winner and the circle you
   must tap covers the sentence asking you. Posed, not sailed (rule 26):
   `scripts/qa/w54_call_clear_of_ask.mjs`, 21 posed fights across 390x844, 390x664 and 768x1024.
-- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — root-caused and fixed 2026-09-01; **awaiting his look on the live page**
-      ⟨`T-008`⟩
-- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
-      ⟨`T-027`⟩
-      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
-      tried it. Sizing: one line of config, or one command from an attended session.**
-      Everything ahead of the deploy passed on this watch: `npm test` green through its last
-      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
-      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
-      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
-      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
-      forms, one answer; stopped there rather than hunting a fourth wording.
-      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
-      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
-      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
-      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
-      rule 14 — the one that takes the live game down.
-      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
-      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
-      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
-      and every successful staging deploy this project has had was run by an ATTENDED session.
-      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
-      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
-      moved off the question it asks, the storm glide and the guest's camera are all missing from
-      the address he plays.
-      **The fix is his, and the watch deliberately did not take it** — adding
-      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
-      unattended watch the ability to publish to a public address, which is not a repair a watch
-      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-      ⚠ STALE-CANDIDATE — points at BLOCKED ON WYATT, which is empty — the question it is waiting on has been answered
+- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
+      ⟨`T-017`⟩
+  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
+  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
+  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
+  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
+  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
+  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
+  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
+  `judge-1914Z-shots/` and are the "before" of the posed pair.
+  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
+  compact label as `short:` — the captain's name as line one of a two-line label inside a
+  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
+  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
+  shorten (his standing instruction on the call circles: *"Fix this universally, not through
+  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
+  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+
+  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
+  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
+  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
+  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
+  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
+  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
+  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
+  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
+  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
+  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
+  name to the disc, written once.
+- [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
+      ⟨`T-020`⟩
+  TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
+  deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
+  Sizing: ONE LINE plus a gate.** `scripts/playtest_gate.mjs:358` defines the leg as
+  `{ W:390, H:664, mobile:true, dsf:2, guestW:390, guestH:664 }` and its own comment says *"Both
+  seats phone-sized, because a crew game between two phones is what he and a friend play."* Line 421
+  opens the **host** with `mobile: !!def.mobile, dsf: def.dsf || 1`. **Line 429 opens the GUEST with
+  neither** — only `W, H, dbgPort, httpPort, serveRoot, profileDir` — and `scripts/lib/cdp.mjs:34`
+  defaults them to **`mobile = false, dsf = 1`**, with touch emulation gated behind `if (mobile)` at
+  line 70. So that seat is a 390×664 **desktop** window at 1×, fine pointer, no touch. The size was
+  set; the device was not.
+  **PROVEN IN THE PICTURES, NOT ONLY IN THE SOURCE:** `crew-phone-host-012-settled.png` (780×1300)
+  reads *"**Tap** and hold the sea to reveal the board"*; `crew-phone-guest-012-settled.png`
+  (390×664), same leg, same run, reads *"**Click** and hold…"*. `src/ui/stage.js:547-551` derives
+  that verb from `matchMedia("(pointer: coarse)")`, so it is the device, not host vs guest.
+  **AND THE FIX FOR THE IDENTICAL FAULT IS ALREADY WRITTEN THREE LINES ABOVE THE BUG**, in
+  `scripts/lib/cdp.mjs:65-69`: *"Measured: the phone leg's screenshot came back reading 'Click and
+  hold the sea' where a real phone says 'Tap and hold' (D-40). A phone leg that does not emulate a
+  phone tests the wrong game."* It was applied to the solo phone leg and never swept to the crew
+  guest — rule 8's sweep, missed once, three weeks ago.
+  **WHAT IT COSTS:** the leg's own comment says most of Wyatt's 35 findings came from crew-on-a-phone,
+  and half of that leg's evidence — every guest-seat tap target, every touch-only path, every
+  2×-device-pixel judgement — was taken on a device no player has. **It also ANSWERS an open row:**
+  `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
+  2026-08-30. Not measured"* — it is now measured, and it is the instrument.
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 - [x] **★★ `deploy-staging.sh` COULD NOT RUN ON THE BLADE AT ALL — and it was NOT the permission
       ⟨`T-010`⟩
       wall. FIXED AND STAGING IS LIVE** (closed 2026-09-02 · CEO 90 · commits `ecd2067c` + `3066ee07` ·
@@ -768,20 +799,150 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
-- [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
-      ⟨`T-013`⟩
-  circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
-  Found by CEO 84, which pointed out the answer was already sitting unread in the probe's own data.
-  Measured both ways on the same 21 poses: **15 wrong-boat before this watch's fix, 16 after** — so
-  it is pre-existing and this change neither caused nor cured it. **DO NOT read that as a live
-  15-in-21 defect.** `scripts/qa/w52_call_beside_boat.mjs`, which was built for exactly this
-  question and does NOT move anyone, reports 11 of 12 circles nearest their own boat at an 11px
-  gap. The difference is that `w54` teleports two captains to fixed squares and leaves the other
-  two where they were, which can strand a third hull nearer than the named one. **Which instrument
-  is telling the truth is the first thing to settle**, and it is a posed question, not a rate.
-  Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
-  someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
-  lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
+- [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
+      ⟨`T-003`⟩
+      *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
+      `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
+      not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
+      is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
+      His reasoning: the untappable sail square that cost days was caught by looking, not structure.
+      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
+- [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
+      ⟨`T-016`⟩
+  launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
+  `2026.09.01.7`; the fix above bumped it to `.8`, so **staging now needs another ~90-minute
+  trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
+  gate that blocked staging is open — the only thing missing is a trial of the code that would
+  actually ship.
+      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
+- [ ] **★★★ HIS FOUR GLASS-PAGE ASKS — FIVE HOURS OLD, ASKED FOUR TIMES, NEVER FILED AS A
+      ⟨`T-076`⟩
+      ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
+      *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
+      AGO."*
+      **He is right, and the reason is measurable rather than mysterious:** all four asks live in
+      `## THE IDEA INBOX` (this file, ~line 1320) tagged **SCHEDULED**. `glass.mjs:385` counts an
+      inbox entry as an open task **only when it has NO fate** — and `SCHEDULED` is a fate. **So
+      marking them "SCHEDULED" made them invisible on his own page AND invisible to a Watch picking
+      its one item, simultaneously.** They have never had a `- [ ]` row or a `T-` handle. A watch
+      noticed two of them and wrote *"STILL NOT BUILT AND NOT FILED ANYWHERE ELSE"* (line ~225) and
+      still did not file them.
+      **THIS IS THE AUDIT'S OWN HEADLINE, PLAYING OUT AGAINST THE AUDIT ITSELF:** *"a row that says
+      SCHEDULED with no owner and no position in a queue is a parked row wearing a better word."*
+      **THE FOUR, in his words, oldest first:**
+      1. **00:59:32Z** — *"You need to update Tasks list dynamically — it is stale."* (the
+         Chartkeeper; REAP is live, RANK is not — see `PENDING-KIT-PATCHES.md` 4)
+      2. **00:59:32Z, repeated 03:45:45Z** — *"Move The Lesson section below it."* / *"Move The
+         Lesson to below Tasks."* **Asked twice. One CSS/DOM move in `glass.mjs`.**
+      3. **03:46:13Z** — *"rename Tasks to The Chart (Tasks To Do)."* **One string.**
+      4. **03:49:02Z** — *"Make all tasks in The Chart expandable for fuller context. Let me write a
+         comment under each one if I choose to. Order the list with the next-to-be-completed at the
+         top. re-order the list dynamically. Remove items from the list after they are complete."*
+      **SIZING, HONESTLY: items 2 and 3 are minutes and are pure `glass.mjs`.** Item 4's expandable
+      rows and comment box are a bigger piece of the same file. **`glass.mjs` IS VENDORED — edit in
+      claude-kit, then re-vendor**, which is the friction that has been quietly deferring all of
+      this. **Do items 2 and 3 first and publish, so he sees movement on the page within one tick.**
+      ⚠ **AND THE ADVISOR'S OWN RECOMMENDATION WAS TO SHIP THIS HALF FIRST** —
+      `SPEC-CHARTKEEPER.md`: *"a perfectly-ranked list still reads as gibberish on his phone if
+      every row is 90 truncated characters."* **That recommendation was made and then not carried
+      into a row anybody could take.** The backend half has had seven watches; the half he can see
+      has had none.
+- [ ] **★★★ INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE THAT UNBLOCKS
+      ⟨`T-078`⟩
+      EVERYTHING ELSE.** 2026-09-02, question UI. **Sizing: small, and it is the highest-leverage
+      small thing on this Chart.**
+      **His model, which reverses what the tooling enforces:** *"claude-kit is intended to be a repo
+      where the DESIGN of our system is made… but our system must operate LOCALLY in its OWN REPO."*
+      Today `scripts/qa/vendor_check.mjs:47-58` finds every `VENDORED-FROM` and **fails the build on
+      any local edit** — the kit is authoritative at runtime, which is exactly backwards.
+      **What it becomes:** the project copy is the truth. The check no longer blocks a local edit; it
+      **reports that the KIT is behind** — a condition that has already occurred and went unnoticed
+      (claude-kit commit `8691117`: *"the kit's glass.mjs was 104 lines behind the repo it vendors
+      into"*).
+      **WHY THIS IS FIRST: five patches and two of his own rulings are dammed behind this one gate.**
+      `PENDING-KIT-PATCHES.md` 1, 2, 5 and 6 are all `glass.mjs`; patch 4 is the Door. **The moment
+      the lock inverts, every one of them becomes an ordinary project edit.**
+      ⚠ **DO NOT ALSO DELETE THE CHECK.** He chose *invert*, not *delete*, over an option that
+      offered deletion — the drift signal is the point, only its direction was wrong. Red-proof both
+      ways: a local edit must NOT fail; a kit that has fallen behind must be reported.
+- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
+      ⟨`T-027`⟩
+      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
+      tried it. Sizing: one line of config, or one command from an attended session.**
+      Everything ahead of the deploy passed on this watch: `npm test` green through its last
+      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
+      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
+      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
+      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
+      forms, one answer; stopped there rather than hunting a fourth wording.
+      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
+      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
+      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
+      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
+      rule 14 — the one that takes the live game down.
+      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
+      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
+      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
+      and every successful staging deploy this project has had was run by an ATTENDED session.
+      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
+      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
+      moved off the question it asks, the storm glide and the guest's camera are all missing from
+      the address he plays.
+      **The fix is his, and the watch deliberately did not take it** — adding
+      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
+      unattended watch the ability to publish to a public address, which is not a repair a watch
+      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
+- [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
+      ⟨`T-074`⟩
+      CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
+      reads `2026-09-02T10:35:50Z` (written only by step 4) and `GATE-LOG`'s newest line is still
+      `10:29:01Z` (the watch's own bench test). **The tick ran step 4 and left no verdict at step 3.**
+      ⚠ **THE ABSENCE OF THAT LINE IS THE NEW MECHANISM WORKING, NOT FAILING** — before 10:33Z there
+      was no way on earth to tell a skipped gate from an unwired one, and the very first use of the
+      log caught a skip. Do not read this row as "the fix did not work."
+      **WHAT IS ACTUALLY MISSING: a gate the tick cannot walk past.** Step 3 is an instruction in a
+      runbook, and `glass_gate_verdict_logged_check.mjs` case 8 can only check that the runbook SAYS
+      the right thing — it cannot see whether the session typed the command. Fix shape: make the
+      later steps refuse. A `mark_glass_published.mjs` that declines to stamp when `GATE-LOG` has no
+      line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
+      (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
+      non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
+- [x] **Record the change-gate's verdict even when it is overridden** — the runbook's override (closed 2026-09-02 · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows)
+      ⟨`T-018`⟩
+      clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
+      The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
+      record' are different things, and only the second is auditable."* Override the ACTION, not the
+      CHECK. From outside, a skipped gate and an unwired gate look identical.
+      ### ⚑ THE MECHANISM SHIPPED 2026-09-02T10:33Z AND ITS FIRST USE CAUGHT A REAL SKIP — TWO ROWS BELOW CARRY WHAT IS LEFT.
+      `glass_gate_log.mjs` wraps the gate, appends one line to `.planning/wyclau/GATE-LOG` on every
+      run, and hands back the gate's own exit code; `--harvested` overrides only the exit code, so
+      the gate's REAL verdict is still what gets written down. Runbook step 3 calls it
+      unconditionally. Gate `glass_gate_verdict_logged_check.mjs`, 14 cases, red-proofed twice
+      (once with no wrapper at all, once with three deliberate breakages after CEO 100).
+- [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
+      ⟨`T-014`⟩
+  `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
+  reading `.planning/wyclau/LONG-RUN`. But the trial's own progress writer,
+  `scripts/wyclau/longrun_status.mjs:108-119`, rewrites that marker as a fixed five-field object —
+  it deliberately preserves `startedAt` and **drops `pid`, `runId`, `reportPath` and `logPath`**,
+  every field `start_trial_detached.mjs` calls the birth certificate. Measured live at 19:15:19Z,
+  62 seconds after launch: the marker held `what/startedAt/updatedAt/progress/staleAfterMinutes`
+  and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
+  fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
+  which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
+- [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
+      ⟨`T-015`⟩
+  NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
+  in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
+  once, to the same path. Nothing stamps a picture with the run that took it. **So a queue judged
+  after a later run describes a mixture of runs, silently** — and a session reading it cannot tell.
+  The rate, measured on the 1914Z run's own queue while a later trial sailed: **107 of its 343
+  screens overwritten by 02:20Z, 252 by 02:35Z — 145 lost in fifteen minutes.** The player-facing
+  cost is the same as the not-run column's: a release decision made on visual evidence that quietly
+  describes a build nobody shipped. **Sizing: small.** Rule 9's shape is a path derived from the run
+  — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
+  session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
+  stopgap and is NOT the fix; it protects one run, by hand, after the fact.
 - [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
       ⟨`T-011`⟩
   this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
@@ -816,172 +977,53 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
   > the explicit branch name**, because that is the form that works. (b) costs one line and removes
   > the failure entirely.
-- [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
-      ⟨`T-012`⟩
-  IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
-  MEASURED, and deliberately not called a defect.** `solo-tablet-wk-018-settled.png` shows
-  *"Both fire 🪙 HEADS — but Davy Scones's firing"* and stops; `src/orchestrator.js:700` writes
-  *"…firing downwind and the shot hits!"*, so six words are missing from the screen. **Either** the
-  screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27
-  desktop and 5 of 20 phone screens in this project's own record) **or** the wrapped second line is
-  clipped by the card and every downwind battle in the game ends mid-phrase on every engine.
-  **The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past
-  the reveal, photograph the card. Do not run a trial for this.**
-  *Separate lead on the screen immediately BEFORE it, observed once:* the flip ceremony reads
-  *"Crosswind — two heads and the cannonballs collide"* while the card that follows reads *"↓ DAVY
-  SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
-  reminder; that is a source question, not a screenshot one.
-  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-- [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
-      ⟨`T-014`⟩
-  `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
-  reading `.planning/wyclau/LONG-RUN`. But the trial's own progress writer,
-  `scripts/wyclau/longrun_status.mjs:108-119`, rewrites that marker as a fixed five-field object —
-  it deliberately preserves `startedAt` and **drops `pid`, `runId`, `reportPath` and `logPath`**,
-  every field `start_trial_detached.mjs` calls the birth certificate. Measured live at 19:15:19Z,
-  62 seconds after launch: the marker held `what/startedAt/updatedAt/progress/staleAfterMinutes`
-  and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
-  fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
-  which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
-- [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
-      ⟨`T-015`⟩
-  NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
-  in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
-  once, to the same path. Nothing stamps a picture with the run that took it. **So a queue judged
-  after a later run describes a mixture of runs, silently** — and a session reading it cannot tell.
-  The rate, measured on the 1914Z run's own queue while a later trial sailed: **107 of its 343
-  screens overwritten by 02:20Z, 252 by 02:35Z — 145 lost in fifteen minutes.** The player-facing
-  cost is the same as the not-run column's: a release decision made on visual evidence that quietly
-  describes a build nobody shipped. **Sizing: small.** Rule 9's shape is a path derived from the run
-  — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
-  session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
-  stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-- [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
-      ⟨`T-016`⟩
-  launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
-  `2026.09.01.7`; the fix above bumped it to `.8`, so **staging now needs another ~90-minute
-  trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
-  gate that blocked staging is open — the only thing missing is a trial of the code that would
-  actually ship.
-      ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
-- [x] **Record the change-gate's verdict even when it is overridden** — the runbook's override (closed 2026-09-02 · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows)
-      ⟨`T-018`⟩
-      clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
-      The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
-      record' are different things, and only the second is auditable."* Override the ACTION, not the
-      CHECK. From outside, a skipped gate and an unwired gate look identical.
-      ### ⚑ THE MECHANISM SHIPPED 2026-09-02T10:33Z AND ITS FIRST USE CAUGHT A REAL SKIP — TWO ROWS BELOW CARRY WHAT IS LEFT.
-      `glass_gate_log.mjs` wraps the gate, appends one line to `.planning/wyclau/GATE-LOG` on every
-      run, and hands back the gate's own exit code; `--harvested` overrides only the exit code, so
-      the gate's REAL verdict is still what gets written down. Runbook step 3 calls it
-      unconditionally. Gate `glass_gate_verdict_logged_check.mjs`, 14 cases, red-proofed twice
-      (once with no wrapper at all, once with three deliberate breakages after CEO 100).
-- [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
-      ⟨`T-074`⟩
-      CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
-      reads `2026-09-02T10:35:50Z` (written only by step 4) and `GATE-LOG`'s newest line is still
-      `10:29:01Z` (the watch's own bench test). **The tick ran step 4 and left no verdict at step 3.**
-      ⚠ **THE ABSENCE OF THAT LINE IS THE NEW MECHANISM WORKING, NOT FAILING** — before 10:33Z there
-      was no way on earth to tell a skipped gate from an unwired one, and the very first use of the
-      log caught a skip. Do not read this row as "the fix did not work."
-      **WHAT IS ACTUALLY MISSING: a gate the tick cannot walk past.** Step 3 is an instruction in a
-      runbook, and `glass_gate_verdict_logged_check.mjs` case 8 can only check that the runbook SAYS
-      the right thing — it cannot see whether the session typed the command. Fix shape: make the
-      later steps refuse. A `mark_glass_published.mjs` that declines to stamp when `GATE-LOG` has no
-      line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
-      (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
-      non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
-- [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
-      ⟨`T-075`⟩
-      untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,
-      surfaced nowhere on his page. **The gitignore is correct and is not the thing to change** —
-      a tracked log line committed beside the note reset would make that commit touch two files, so
-      `newestWorkCommit()` would read it as work landing and republish an unchanged page: the echo
-      tick removed the same day. `publish_status.mjs` is the mechanism that already carries exactly
-      these machine-local instruments into the tracked `status/<host>.md`, and **it is vendored** —
-      so this is a kit patch, alongside the others in `PENDING-KIT-PATCHES.md`.
-- [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
-      ⟨`T-019`⟩
-  2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
-  `crew-desktop-guest-012-settled.png` is the screen a watch read by eye and found the trade-offer
-  circle whose *"Flaky Jack"* label hangs out of both sides of its own disc (the row above). The
-  automatic pass reached the same file and wrote `"verdict":"PASS", "issues":[], "confidence":0.85`.
-  A second reader opened the picture and confirmed the clipping independently. **The judge is not
-  useless** — it found `passplay-phone-039-settled.png` on its own — **but its clean count is a
-  FLOOR, not a ceiling**, and any release decision quoting it must say so. Same shape as the green
-  suite that blessed the build Wyatt then found seven bugs in. **Not an action item on its own**;
-  it is the caveat that belongs beside every judged-screen number from here on.
-  **HOW STRONG THE CAVEAT IS, MEASURED RATHER THAN ASSERTED (CEO 86's finding 2):** the false PASS
-  was found because a human had already flagged that screen, not by sampling. Four further PASS
-  screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
-  screens a human has examined, one was wrong — and four screens cannot bound an error rate across
-  218. It says the judge is not wrong constantly; it does not say the pile is clean.
-- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
-      ⟨`T-017`⟩
-  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
-  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
-  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
-  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
-  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
-  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
-  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
-  `judge-1914Z-shots/` and are the "before" of the posed pair.
-  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
-  compact label as `short:` — the captain's name as line one of a two-line label inside a
-  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
-  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
-  shorten (his standing instruction on the call circles: *"Fix this universally, not through
-  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
-  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
-
-  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
-  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
-  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
-  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
-  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
-  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
-  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
-  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
-  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
-  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
-  name to the disc, written once.
-- [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
-      ⟨`T-020`⟩
-  TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
-  deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
-  Sizing: ONE LINE plus a gate.** `scripts/playtest_gate.mjs:358` defines the leg as
-  `{ W:390, H:664, mobile:true, dsf:2, guestW:390, guestH:664 }` and its own comment says *"Both
-  seats phone-sized, because a crew game between two phones is what he and a friend play."* Line 421
-  opens the **host** with `mobile: !!def.mobile, dsf: def.dsf || 1`. **Line 429 opens the GUEST with
-  neither** — only `W, H, dbgPort, httpPort, serveRoot, profileDir` — and `scripts/lib/cdp.mjs:34`
-  defaults them to **`mobile = false, dsf = 1`**, with touch emulation gated behind `if (mobile)` at
-  line 70. So that seat is a 390×664 **desktop** window at 1×, fine pointer, no touch. The size was
-  set; the device was not.
-  **PROVEN IN THE PICTURES, NOT ONLY IN THE SOURCE:** `crew-phone-host-012-settled.png` (780×1300)
-  reads *"**Tap** and hold the sea to reveal the board"*; `crew-phone-guest-012-settled.png`
-  (390×664), same leg, same run, reads *"**Click** and hold…"*. `src/ui/stage.js:547-551` derives
-  that verb from `matchMedia("(pointer: coarse)")`, so it is the device, not host vs guest.
-  **AND THE FIX FOR THE IDENTICAL FAULT IS ALREADY WRITTEN THREE LINES ABOVE THE BUG**, in
-  `scripts/lib/cdp.mjs:65-69`: *"Measured: the phone leg's screenshot came back reading 'Click and
-  hold the sea' where a real phone says 'Tap and hold' (D-40). A phone leg that does not emulate a
-  phone tests the wrong game."* It was applied to the solo phone leg and never swept to the crew
-  guest — rule 8's sweep, missed once, three weeks ago.
-  **WHAT IT COSTS:** the leg's own comment says most of Wyatt's 35 findings came from crew-on-a-phone,
-  and half of that leg's evidence — every guest-seat tap target, every touch-only path, every
-  2×-device-pixel judgement — was taken on a device no player has. **It also ANSWERS an open row:**
-  `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
-  2026-08-30. Not measured"* — it is now measured, and it is the instrument.
-  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-- [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
-      ⟨`T-021`⟩
-  directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
-  **PARTIALLY DERIVABLE, measured 2026-09-02T03:5xZ: `schtasks /Query /TN "wyclau-bell" /V` on
-  this machine shows the task registered and Enabled (Status: Ready, last ran 23:48, next 23:58)
-  — the Bell-registration third is done. The ring-test and O2-publish thirds are not checkable
-  this way; still needs Wyatt or a session that can run them.**
-- [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
-      ⟨`T-022`⟩
-  release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
+- [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
+      ⟨`T-024`⟩
+      real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
+      session that commits a note and the session that next publishes are not the same one. Same
+      class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
+      propose a mechanism itself.
+- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
+      ⟨`T-025`⟩
+  Captain's log) on the thin-surface architecture (design, section IV)
+- [ ] **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE
+      ⟨`T-079`⟩
+      TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
+      take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
+      `chartkeeper_check.mjs` reads `CHART.md`, and the closing commit `42958113` does not touch
+      that file.
+      **THE FAILING CASE, in its own words:** *"the real Chart's top row is 'Your ruling: merge the
+      465-commit branch to main…' — his four-times-asked request must rank first, and the spec says
+      so in its own words."*
+      **WHAT ACTUALLY HAPPENED, and it is worth more than the red build.** At 11:41Z the Chartkeeper
+      ranked `T-001` (build the Chartkeeper — **his four-times-asked request**) **first, at 156**.
+      By 11:50Z it was not in the top nine. The only thing that changed is commit `8178eb29`, in
+      which another session filed two genuinely good, genuinely unrelated questions into
+      **BLOCKED ON WYATT**. `T-001`'s score carries a **+40 for "something it was waiting on has
+      landed"**, derived from that section being EMPTY — so filling it with anything at all silently
+      demotes every row that points there.
+      **THE DEFECT IS THE SIGNAL, NOT THE SCORE.** *"Points at BLOCKED ON WYATT, which is empty"* is
+      a section-level test standing in for a row-level fact. It cannot tell *"the question THIS row
+      waits on has been answered"* from *"somebody asked an unrelated question."* Same shape as the
+      fault CEO 93 already found in this tool: **REAP measures a POINTER, and a pointer is not the
+      thing it points at.**
+      **AND IT IS THE ACCEPTANCE TEST FAILING, WHICH IS THE POINT.** The Chartkeeper exists because
+      his repeated asks kept sinking on this list. It just happened again, to the row that asks for
+      the Chartkeeper, by the mechanism the Chartkeeper was meant to remove. **Do not fix this by
+      relaxing the gate case.**
+      **SIZE:** small-to-medium, entirely in `lib/chart_model.mjs` / `chartkeeper.mjs`, no game code.
+      Make the signal row-level — a row is unblocked when the question IT cites is answered — and
+      red-proof it by adding an unrelated BLOCKED ON WYATT row and checking the ranking does not move.
+- [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
+      ⟨`T-002`⟩
+      `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
+      fires once then waves every later edit through — and forges evidence
+      `advisor-triages-watch-works.cjs` reads. That one is also blind to **untracked** files
+      (`:83` excludes `??`), which is half the collision its own header cites. And `isGameCode()`
+      is false for `scripts/qa/*`, `.claude/hooks/*` and `.planning/*`, so it would not have fired
+      once during the night that earned it. **Both are unregistered from settings.json as of
+      2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
+      works and stays armed.
 - [x] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling) — SHIPPED 2026-08-31 19:52Z. `gates.ceiling` in `package.json` (started at the exact current total, 71, so the next gate is the first conscious decision) + `scripts/qa/gate_ceiling_check.mjs`, red-proofed by planting `total=72` on the real file and watching it fail before restoring it. `scripts/qa/quiet_gate_report.mjs` (advisory, NOT in `npm test` — retirement stays a human call, per `docs/HARD-WON-LESSONS.md` §12i) lists real wired-in per-bug gates only, after a scoping bug caught before shipping: it first matched every `w##_/q##_` FILE in `scripts/qa/`, including one-off probes never wired into the suite at all. `scripts/qa/gate_archive/` exists for retirements. Full policy: `docs/GATE-RETIREMENT.md`. npm test 71/71.
       ⟨`T-050`⟩
 - [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
@@ -1014,134 +1056,48 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
-- [ ] `T-078` **★★★ INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE THAT UNBLOCKS
-      EVERYTHING ELSE.** 2026-09-02, question UI. **Sizing: small, and it is the highest-leverage
-      small thing on this Chart.**
-      **His model, which reverses what the tooling enforces:** *"claude-kit is intended to be a repo
-      where the DESIGN of our system is made… but our system must operate LOCALLY in its OWN REPO."*
-      Today `scripts/qa/vendor_check.mjs:47-58` finds every `VENDORED-FROM` and **fails the build on
-      any local edit** — the kit is authoritative at runtime, which is exactly backwards.
-      **What it becomes:** the project copy is the truth. The check no longer blocks a local edit; it
-      **reports that the KIT is behind** — a condition that has already occurred and went unnoticed
-      (claude-kit commit `8691117`: *"the kit's glass.mjs was 104 lines behind the repo it vendors
-      into"*).
-      **WHY THIS IS FIRST: five patches and two of his own rulings are dammed behind this one gate.**
-      `PENDING-KIT-PATCHES.md` 1, 2, 5 and 6 are all `glass.mjs`; patch 4 is the Door. **The moment
-      the lock inverts, every one of them becomes an ordinary project edit.**
-      ⚠ **DO NOT ALSO DELETE THE CHECK.** He chose *invert*, not *delete*, over an option that
-      offered deletion — the drift signal is the point, only its direction was wrong. Red-proof both
-      ways: a local edit must NOT fail; a kit that has fallen behind must be reported.
+- [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
+      ⟨`T-022`⟩
+  release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
 
-- [ ] `T-079` **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
-      RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
-      gate case.**
-      `.claude/skills/door/SKILL.md` is vendored, and `PENDING-KIT-PATCHES.md` patch 4 records the
-      cost in one sentence: *"The Watch never runs the Chartkeeper, because the Door is vendored."*
-      **He asked for the Chart to re-prioritise itself four times; REAP shipped because its home is
-      not vendored, RANK did not because its home is.**
-      **The insertion is already written and measured** — patch 4 carries the exact text for the
-      watch's step 6, plus its own caveat that RANK reorders only within existing open-row slots and
-      cannot reorder across the two sections the Glass concatenates.
-      **Add the wiring case to `scripts/qa/chartkeeper_check.mjs`** — assert the Door's watch section
-      names `chartkeeper.mjs` — red-proofed by deleting the line. Patch 4's own words: *"A capability
-      nothing checks is a capability that quietly stops running."*
+- [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
+      ⟨`T-019`⟩
+  2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
+  `crew-desktop-guest-012-settled.png` is the screen a watch read by eye and found the trade-offer
+  circle whose *"Flaky Jack"* label hangs out of both sides of its own disc (the row above). The
+  automatic pass reached the same file and wrote `"verdict":"PASS", "issues":[], "confidence":0.85`.
+  A second reader opened the picture and confirmed the clipping independently. **The judge is not
+  useless** — it found `passplay-phone-039-settled.png` on its own — **but its clean count is a
+  FLOOR, not a ceiling**, and any release decision quoting it must say so. Same shape as the green
+  suite that blessed the build Wyatt then found seven bugs in. **Not an action item on its own**;
+  it is the caveat that belongs beside every judged-screen number from here on.
+  **HOW STRONG THE CAVEAT IS, MEASURED RATHER THAN ASSERTED (CEO 86's finding 2):** the false PASS
+  was found because a human had already flagged that screen, not by sampling. Four further PASS
+  screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
+  screens a human has examined, one was wrong — and four screens cannot bound an error rate across
+  218. It says the judge is not wrong constantly; it does not say the pile is clean.
 
-- [ ] `T-080` **THREE FATE STATES — `SCHEDULED` MUST STOP HIDING HIS IDEAS. His ruling, question UI,
-      2026-09-02.** Depends on `T-078`. **Sizing: small, pure `glass.mjs`.**
-      **Measured with the page's own logic before it was put to him: 15 ideas, 2 shown, 13 HIDDEN —
-      9 of them by the single word `SCHEDULED`**, which `glass.mjs:375` treats as identical to
-      SHIPPED and CLOSED.
-      **And it contradicts the approved Charter in writing.** `CHARTER.md`: *"Every idea gets a
-      **visible** fate (shipped / scheduled / parked-with-reason) within a day."* Scheduled and
-      parked are named as VISIBLE fates. **This is a defect against a written spec, not a taste
-      call.**
-      **The shape he chose:** OPEN shows · **SCHEDULED shows and says so** · **PARKED shows dimmed,
-      with its reason** · only genuinely-finished words hide (SHIPPED · DONE · FIXED · CLOSED ·
-      HARVESTED · ROOT-CAUSED). Expected result: **11 shown, 4 hidden.**
-      **Derive the three buckets from one list each and gate that no word appears in two** —
-      red-proof by planting `SCHEDULED` in the finished list.
+- [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
+      ⟨`T-021`⟩
+  directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
+  **PARTIALLY DERIVABLE, measured 2026-09-02T03:5xZ: `schtasks /Query /TN "wyclau-bell" /V` on
+  this machine shows the task registered and Enabled (Status: Ready, last ran 23:48, next 23:58)
+  — the Bell-registration third is done. The ring-test and O2-publish thirds are not checkable
+  this way; still needs Wyatt or a session that can run them.**
 
-- [ ] `T-081` **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
-      his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
-      `T-078`, and do not bundle the generalisation with it.**
-      **His words:** *"the kit is 'production' and the local version of it is 'staging'… i don't want
-      to be the human cherrypicking; i want the design of the kit itself to be architecturally
-      extensible."* And his amendment to the adoption ruling: a project must also have **a way to
-      update to the latest kit as it becomes available.**
-      **`git subtree` answers both halves with machinery this project already trusts:** the kit's
-      files live in the repo and are edited in place; `subtree pull` is "update to the latest";
-      `subtree push` is "staging promotes to production". **Promotion is a merge, never a copy —
-      rule 2 of his own release process** — so there is real ancestry, real conflicts when two things
-      genuinely disagree, and it is reversible. A copy has no ancestry and therefore cannot tell an
-      improvement from a divergence.
-      ⚠ **THE HALF NO MECHANISM PERFORMS, AND IT MUST NOT BE PROMISED:** a subtree push sends
-      pastrypirates' code upstream **verbatim**, and his ruling 4 is that the kit holds GENERALISED
-      versions. `close_item.mjs:49-52` hardcodes four `.planning/` paths; `start_trial_detached.mjs`
-      **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
-      Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
-      **build the plumbing, defer the framework.**
+- [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
+      ⟨`T-075`⟩
+      untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,
+      surfaced nowhere on his page. **The gitignore is correct and is not the thing to change** —
+      a tracked log line committed beside the note reset would make that commit touch two files, so
+      `newestWorkCommit()` would read it as work landing and republish an unchanged page: the echo
+      tick removed the same day. `publish_status.mjs` is the mechanism that already carries exactly
+      these machine-local instruments into the tracked `status/<host>.md`, and **it is vendored** —
+      so this is a kit patch, alongside the others in `PENDING-KIT-PATCHES.md`.
 
 
-- [ ] `T-079` **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE
-      TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
-      take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
-      `chartkeeper_check.mjs` reads `CHART.md`, and the closing commit `42958113` does not touch
-      that file.
-      **THE FAILING CASE, in its own words:** *"the real Chart's top row is 'Your ruling: merge the
-      465-commit branch to main…' — his four-times-asked request must rank first, and the spec says
-      so in its own words."*
-      **WHAT ACTUALLY HAPPENED, and it is worth more than the red build.** At 11:41Z the Chartkeeper
-      ranked `T-001` (build the Chartkeeper — **his four-times-asked request**) **first, at 156**.
-      By 11:50Z it was not in the top nine. The only thing that changed is commit `8178eb29`, in
-      which another session filed two genuinely good, genuinely unrelated questions into
-      **BLOCKED ON WYATT**. `T-001`'s score carries a **+40 for "something it was waiting on has
-      landed"**, derived from that section being EMPTY — so filling it with anything at all silently
-      demotes every row that points there.
-      **THE DEFECT IS THE SIGNAL, NOT THE SCORE.** *"Points at BLOCKED ON WYATT, which is empty"* is
-      a section-level test standing in for a row-level fact. It cannot tell *"the question THIS row
-      waits on has been answered"* from *"somebody asked an unrelated question."* Same shape as the
-      fault CEO 93 already found in this tool: **REAP measures a POINTER, and a pointer is not the
-      thing it points at.**
-      **AND IT IS THE ACCEPTANCE TEST FAILING, WHICH IS THE POINT.** The Chartkeeper exists because
-      his repeated asks kept sinking on this list. It just happened again, to the row that asks for
-      the Chartkeeper, by the mechanism the Chartkeeper was meant to remove. **Do not fix this by
-      relaxing the gate case.**
-      **SIZE:** small-to-medium, entirely in `lib/chart_model.mjs` / `chartkeeper.mjs`, no game code.
-      Make the signal row-level — a row is unblocked when the question IT cites is answered — and
-      red-proof it by adding an unrelated BLOCKED ON WYATT row and checking the ranking does not move.
-
-- [ ] `T-076` **★★★ HIS FOUR GLASS-PAGE ASKS — FIVE HOURS OLD, ASKED FOUR TIMES, NEVER FILED AS A
-      ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
-      *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
-      AGO."*
-      **He is right, and the reason is measurable rather than mysterious:** all four asks live in
-      `## THE IDEA INBOX` (this file, ~line 1320) tagged **SCHEDULED**. `glass.mjs:385` counts an
-      inbox entry as an open task **only when it has NO fate** — and `SCHEDULED` is a fate. **So
-      marking them "SCHEDULED" made them invisible on his own page AND invisible to a Watch picking
-      its one item, simultaneously.** They have never had a `- [ ]` row or a `T-` handle. A watch
-      noticed two of them and wrote *"STILL NOT BUILT AND NOT FILED ANYWHERE ELSE"* (line ~225) and
-      still did not file them.
-      **THIS IS THE AUDIT'S OWN HEADLINE, PLAYING OUT AGAINST THE AUDIT ITSELF:** *"a row that says
-      SCHEDULED with no owner and no position in a queue is a parked row wearing a better word."*
-      **THE FOUR, in his words, oldest first:**
-      1. **00:59:32Z** — *"You need to update Tasks list dynamically — it is stale."* (the
-         Chartkeeper; REAP is live, RANK is not — see `PENDING-KIT-PATCHES.md` 4)
-      2. **00:59:32Z, repeated 03:45:45Z** — *"Move The Lesson section below it."* / *"Move The
-         Lesson to below Tasks."* **Asked twice. One CSS/DOM move in `glass.mjs`.**
-      3. **03:46:13Z** — *"rename Tasks to The Chart (Tasks To Do)."* **One string.**
-      4. **03:49:02Z** — *"Make all tasks in The Chart expandable for fuller context. Let me write a
-         comment under each one if I choose to. Order the list with the next-to-be-completed at the
-         top. re-order the list dynamically. Remove items from the list after they are complete."*
-      **SIZING, HONESTLY: items 2 and 3 are minutes and are pure `glass.mjs`.** Item 4's expandable
-      rows and comment box are a bigger piece of the same file. **`glass.mjs` IS VENDORED — edit in
-      claude-kit, then re-vendor**, which is the friction that has been quietly deferring all of
-      this. **Do items 2 and 3 first and publish, so he sees movement on the page within one tick.**
-      ⚠ **AND THE ADVISOR'S OWN RECOMMENDATION WAS TO SHIP THIS HALF FIRST** —
-      `SPEC-CHARTKEEPER.md`: *"a perfectly-ranked list still reads as gibberish on his phone if
-      every row is 90 truncated characters."* **That recommendation was made and then not carried
-      into a row anybody could take.** The backend half has had seven watches; the half he can see
-      has had none.
-- [ ] `T-077` **The Glass's own note contradicts its Your Call card, and he caught it in a
+- [ ] **The Glass's own note contradicts its Your Call card, and he caught it in a
+      ⟨`T-077`⟩
       screenshot.** Filed 2026-09-02T07:xxZ. **Sizing: one sentence of wording.**
       His screenshot: the note reads *"reap flags 6 rows as likely already answered, first: the
       Chartkeeper's Blocked-on-Wyatt question"* directly above **YOUR CALL (0) — "Nothing waiting."**
@@ -1206,16 +1162,57 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
+- [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
+      ⟨`T-079`⟩
+      RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
+      gate case.**
+      `.claude/skills/door/SKILL.md` is vendored, and `PENDING-KIT-PATCHES.md` patch 4 records the
+      cost in one sentence: *"The Watch never runs the Chartkeeper, because the Door is vendored."*
+      **He asked for the Chart to re-prioritise itself four times; REAP shipped because its home is
+      not vendored, RANK did not because its home is.**
+      **The insertion is already written and measured** — patch 4 carries the exact text for the
+      watch's step 6, plus its own caveat that RANK reorders only within existing open-row slots and
+      cannot reorder across the two sections the Glass concatenates.
+      **Add the wiring case to `scripts/qa/chartkeeper_check.mjs`** — assert the Door's watch section
+      names `chartkeeper.mjs` — red-proofed by deleting the line. Patch 4's own words: *"A capability
+      nothing checks is a capability that quietly stops running."*
 
-- [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
-      ⟨`T-024`⟩
-      real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
-      session that commits a note and the session that next publishes are not the same one. Same
-      class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
-      propose a mechanism itself.
-- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
-      ⟨`T-025`⟩
-  Captain's log) on the thin-surface architecture (design, section IV)
+- [ ] **THREE FATE STATES — `SCHEDULED` MUST STOP HIDING HIS IDEAS. His ruling, question UI,
+      ⟨`T-080`⟩
+      2026-09-02.** Depends on `T-078`. **Sizing: small, pure `glass.mjs`.**
+      **Measured with the page's own logic before it was put to him: 15 ideas, 2 shown, 13 HIDDEN —
+      9 of them by the single word `SCHEDULED`**, which `glass.mjs:375` treats as identical to
+      SHIPPED and CLOSED.
+      **And it contradicts the approved Charter in writing.** `CHARTER.md`: *"Every idea gets a
+      **visible** fate (shipped / scheduled / parked-with-reason) within a day."* Scheduled and
+      parked are named as VISIBLE fates. **This is a defect against a written spec, not a taste
+      call.**
+      **The shape he chose:** OPEN shows · **SCHEDULED shows and says so** · **PARKED shows dimmed,
+      with its reason** · only genuinely-finished words hide (SHIPPED · DONE · FIXED · CLOSED ·
+      HARVESTED · ROOT-CAUSED). Expected result: **11 shown, 4 hidden.**
+      **Derive the three buckets from one list each and gate that no word appears in two** —
+      red-proof by planting `SCHEDULED` in the finished list.
+
+- [ ] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
+      ⟨`T-081`⟩
+      his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
+      `T-078`, and do not bundle the generalisation with it.**
+      **His words:** *"the kit is 'production' and the local version of it is 'staging'… i don't want
+      to be the human cherrypicking; i want the design of the kit itself to be architecturally
+      extensible."* And his amendment to the adoption ruling: a project must also have **a way to
+      update to the latest kit as it becomes available.**
+      **`git subtree` answers both halves with machinery this project already trusts:** the kit's
+      files live in the repo and are edited in place; `subtree pull` is "update to the latest";
+      `subtree push` is "staging promotes to production". **Promotion is a merge, never a copy —
+      rule 2 of his own release process** — so there is real ancestry, real conflicts when two things
+      genuinely disagree, and it is reversible. A copy has no ancestry and therefore cannot tell an
+      improvement from a divergence.
+      ⚠ **THE HALF NO MECHANISM PERFORMS, AND IT MUST NOT BE PROMISED:** a subtree push sends
+      pastrypirates' code upstream **verbatim**, and his ruling 4 is that the kit holds GENERALISED
+      versions. `close_item.mjs:49-52` hardcodes four `.planning/` paths; `start_trial_detached.mjs`
+      **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
+      Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
+      **build the plumbing, defer the framework.**
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -1242,6 +1239,15 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ STALE-CANDIDATE — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.01.8, so its evidence no longer describes this game
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
       ⟨`T-028`⟩
+- [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
+      ⟨`T-078`⟩
+  WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
+  carrying an open question. What is proven is what it is NOT: not a font (the same card's bare 🏴
+  was font-drawn in that frame), not a missing file (the same URL painted four times in the CAPTAINS
+  panel of that frame), not an engine difference (the next run's same leg was clean). **Seen once.
+  Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
+  never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
+  Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment
       ⟨`T-029`⟩
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment
