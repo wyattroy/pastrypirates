@@ -5,15 +5,16 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T17:24:20.258Z	self-publish check
+2026-09-02T17:54:35.501Z	12 rows on your Chart look already finished — the first: a trade-offer circle fix measured on a build the tree has since moved past.
 ```
 
 ## In hand (IN-HAND)
 ```
 {
-  "item": "T-088 — fix the Glass: his five asks",
+  "item": "fixing the Glass — his three chaotic faults",
+  "handle": "T-095",
   "watch": "Wy-Blade",
-  "claimedAt": "2026-09-02T17:15:13.953Z",
+  "claimedAt": "2026-09-02T17:54:49.841Z",
   "staleAfterMinutes": 90
 }
 ```
@@ -23,7 +24,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T18:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T182803Z.out/.err)
 2026-09-01T18:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T184803Z.out/.err)
 2026-09-01T19:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T190803Z.out/.err)
 2026-09-01T19:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T192803Z.out/.err)
@@ -63,4 +63,5 @@ None recorded.
 2026-09-02T15:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T153802Z.out/.err, kit: readable)
 2026-09-02T16:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T160802Z.out/.err, kit: readable)
 2026-09-02T16:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T164802Z.out/.err, kit: readable)
+2026-09-02T17:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T173802Z.out/.err, kit: readable)
 ```
