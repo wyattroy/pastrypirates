@@ -369,7 +369,7 @@ status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md` as THE ADV
 > "I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly.
 > I'm not sure what caused your rig to miss it, but it's working correctly as is"
 solution: his own — verified on the real device. **Do not "fix" the coin.** The open question in `.planning/CHART.md`'s RULED table (*"gold coin, or blank gap?"*, ruled 2026-09-02T03:50:58Z and recorded as cut off) is ANSWERED: **gold coin, correct, Safari, staging build .6.** A watch should close that row through the gate.
-status: OPEN — FOR A WATCH, and the item is the INSTRUMENT, not the game.
+status: DONE 2026-09-02 — CEO 101, no game diff — no game change is right: the game never draws U+1F315 at all, so no font was ever asked to -- commit fb15f76a; his solution first: commit fb15f76
   ⚠ THE FINDING IS THAT OUR RIG DISAGREES WITH A REAL DEVICE. Something in the automated pass showed a gap where his own Safari shows the coin. That is an instrument reporting a defect the game does not have — rule 6's own territory, and the most expensive error class this project has: four of five defects put to him on 2026-08-20 were not real, and the two days spent on them are why the rule exists.
   THE NARROW QUESTION: does the headless capture render `🌕` at all? Emoji depend on installed fonts, and a container lacking the emoji font draws nothing where a phone draws a coin. If that is the cause then **every emoji-based visual finding from the rig is suspect** — including any among tonight's 315 judged screens — and they should be re-read with that in mind before anything is acted on.
   DO NOT close this by declaring the coin fixed. Nothing about the game changed; he looked and it was already right.

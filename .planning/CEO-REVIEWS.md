@@ -9,7 +9,7 @@
 
 ## CEO Review 101 — 2026-09-02, Wy-Blade — the rig never blanked an emoji, and three documents said it did
 
-*Item: **`INBOX-20260902T0405Z`** / Chart row **`T-005`** — Wyatt: "I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly. I'm not sure what caused your rig to miss it, but it's working correctly as is." Claim commit `e50a7b6e`; the work was reviewed in the working tree before its commit, at the CEO-cadence hook's insistence. Previous verdict handed over: CEO 100 (PARTIAL, `INBOX-20260902T0120Z`). **Its four findings were all accepted and all four are fixed in the closing commit — the account below has the detail.***
+*Item: **`INBOX-20260902T0405Z`** / Chart row **`T-005`** — Wyatt: "I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly. I'm not sure what caused your rig to miss it, but it's working correctly as is." Claim commit `e50a7b6e`; the work was reviewed in the working tree before its commit, at the CEO-cadence hook's insistence. Closing commit **`fb15f76a`**. Chart row as it now reads, for the close gate's traceability check: *"The money symbol: this row's diagnosis was wrong"* — its residual is split out as `T-078`. Previous verdict handed over: CEO 100 (PARTIAL, `INBOX-20260902T0120Z`). **Its four findings were all accepted and all four are fixed in the closing commit — the account below has the detail.***
 
 ### VERDICT: **PARTIAL** — in its own words
 

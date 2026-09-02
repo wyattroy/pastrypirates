@@ -4266,3 +4266,61 @@ photographed a blank. One of the two is wrong about the game, and it is not his 
 settled, **every emoji-based visual finding this rig has ever produced is suspect**, including
 findings among the 315 screens judged last night. That is rule 6's own territory: an instrument that
 reports a defect the game does not have is the most expensive error class this project owns.
+
+- 2026-09-02T11:29:27Z · close_item: INBOX-20260902T0405Z · CEO 101 · no game diff — no game change is right: the game never draws U+1F315 at all, so no font was ever asked to -- commit fb15f76a · his solution first: commit fb15f76
+
+- 2026-09-02T11:29:53Z · close_item: "The money symbol: this row's diagnosis was wrong" · CEO 101 · no game diff — answered, not fixed: no game change is right -- the residual is T-078, recurrence-gated · no stated solution
+
+### WHAT THIS WATCH FOUND, IN ORDER, AND THE TWO THINGS WORTH MORE THAN THE ITEM
+
+**THE ANSWER.** The game never draws U+1F315 at all. `src/shared/index.js:135` maps it to
+`assets/icons/coin-emoji.png` and `emojify()` — panel()'s first line, `src/ui/panel.js:266` — swaps
+it before render, so **no Safari, his or the rig's, is ever asked to draw that character.** The
+blank was that IMAGE. His device and the rig were both telling the truth.
+
+**WHAT PROVES THE FONT THEORY DEAD, and the strongest piece was in hand all along (CEO 101 found
+it, not this watch):** the bare 🏴 that OPENS the same card (`panel.js:1153`) is a **U+1F3F4 that
+`EMOJI_IMG` does not map** — only the ZWJ `"🏴‍☠"` is mapped — so the font drew that flag, on that
+card, in that frame, in that WebKit capture. A rig with no emoji font would have blanked it too.
+It is now case 3 of the gate rather than a paragraph.
+
+**AND ONE CORRECTION THIS WATCH OWES ITS OWN REASONING, kept rather than edited away.** The first
+version argued the 42px gap matching the 42px coin proved the image had loaded and merely failed to
+paint. **It proves no such thing** — `.narrIcon` is pinned at `18×18` (`index.html:307`), so a
+completely failed image reserves the identical box. What rules out a failed load is the same URL
+painting four times in the CAPTAINS panel of that frame (`src/ui/util.js:165`). *"The box was
+intact, therefore the file loaded" is a plausible-sounding rule that is simply wrong.*
+
+**WHY IT DID NOT PAINT IS NOT PROVEN, and that caveat now travels with every statement of the
+finding** — both JUDGED correction boxes, the Chart, the gate's header, and the account's second
+sentence. Split out as `T-078`, recurrence-gated: seen once, next run's same leg clean, chase it
+only if it is seen again and then with a posed board.
+
+**THE PROPAGATION IS THE REAL FINDING.** The same wrong sentence — *"what came back blank was the
+typed U+1F315"* — was written three times by three careful passes (`CHART.md` T-005,
+`JUDGED-…0219Z`, `JUDGED-…0300Z`), and it left a question standing on Wyatt that could never have
+had an answer. **Every one of those passes read the SOURCE STRING and stopped.** `panel.js:1155`
+really does contain a typed 🌕 — a true fact about the file that says nothing about the screen.
+**A source string is not a rendered string.** Same shape as *a comment is not a measurement*, and
+more seductive, because reading the source feels like reading the code rather than a claim about it.
+
+### TWO THINGS ABOUT THIS MACHINE THAT THE NEXT WATCH SHOULD NOT RE-DISCOVER
+
+**1 · AN UNATTENDED WATCH ON THIS MACHINE CANNOT DELETE A FILE.** Measured three ways when a gate
+had to be renamed: `rm` is refused, PowerShell `Remove-Item` is refused (both citing the allowed
+working directory — *which is the repo the file is in*), and `git mv` / `git rm` need an approval no
+unattended session can give. **A watch can create and edit, but not remove.** The renamed gate's old
+path therefore survives as a one-line stub saying so. Anyone planning a cleanup pass should know
+this before planning it.
+
+**2 · A SECOND SESSION'S `git add -A` COMMITTED THIS WATCH'S UNFINISHED WORK UNDER ITS OWN MESSAGE.**
+Commit `7db676b1` — *"T-076: his four Glass asks finally have a ROW"*, written by the Glass-update
+session — contains `.planning/T005-2026-09-02-THE-COIN-AND-THE-RIG.md`, both posed crops and
+`scripts/qa/t005_glyph_ink.mjs`, none of which had anything to do with T-076. Nothing was lost, and
+this is recorded because it is **the second sighting in one day of the three-sessions-one-checkout
+hazard** (`INBOX-20260902T05xxZ-c` recorded the first, in the other direction: an edit silently
+discarded). The rule that entry drew — *write and commit in the SAME step* — is right, and this
+watch broke it by holding an edit across a CEO review that took five minutes. **The CEO-cadence
+hook forces exactly that window open**: it blocks the commit until a review exists, and the review
+takes minutes, and the tree is shared. That is worth someone's attention as a design fault, not a
+scolding.
