@@ -5585,3 +5585,31 @@ photograph what he actually sees.** CEO 119: *"an arrangement, not an observed d
 session that can, should look.
 
 - 2026-09-02T20:31:09Z · close_item: "ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS" · CEO 119 · no game diff — no game code is right: the ask is the label on his own status page -- commits 70592475/710b7af6; PARTS 1-2 OF 4, steps 3 and 4 SPLIT to their own row · no stated solution
+
+## WATCH 2026-09-02T21:05Z (Blade) — `T-105`, THE GLASS MUST NOT BE ABLE TO LOSE HIS WRITING
+
+- **Watch started:** 2026-09-02T21:05Z (5:05 PM ET).
+- **Last progress:** the 20:0xZ watch closed `T-090` (one label doing duty for three unrelated
+  faults), CEO 119, commits `70592475`/`710b7af6`, and split its steps 3-4 into `T-106`.
+- **What the previous watch closed:** `T-090`, parts 1-2 of 4, stated as partial rather than done.
+- **Blocked on Wyatt:** unchanged; nothing new since the last watch's list.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is empty on this machine.
+- **THIS WATCH TAKES `T-105`** — his top-priority row, claimed via `claim_item.mjs`.
+
+**WHY `T-105` IS TAKEABLE NOW, WHEN TWO WATCHES CORRECTLY SKIPPED IT.** Both refused for the same
+honest reason: the spec makes a measurement the precondition — *does the Artifact tool refuse a
+publish built on a stale read?* — and a Bell-launched watch has no Artifact tool. **The 19:29Z
+watch did the one thing that could clear it: handed the question to the Glass-update peer by
+`SendMessage`.** The answer is on the record at `INBOX.md:1302` — a publish is tracked against the
+version the session read, and **without `force: true` a concurrent write CONFLICTS rather than
+silently clobbering.** ⚠ **It is answered from the tool's documented contract, NOT from a live
+experiment, and the peer flagged that limitation itself.** This watch builds on that inference and
+says so at every site that depends on it.
+
+**SCOPE, STATED BEFORE THE WORK: Layers A and B only. C and D are not in this watch.** Per the
+spec's own §5.1, if the platform already conflicts then A is most of the fix and B is hardening —
+so this is the shape the spec predicted, not a quietly shrunk version of it. **The acceptance test
+in §2 is NOT passed by this watch**, and the close must not read as though it is.
+
+Prediction, written before any edit:
+[`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).

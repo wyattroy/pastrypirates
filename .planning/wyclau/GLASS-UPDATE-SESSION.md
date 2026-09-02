@@ -162,7 +162,18 @@ publish. This session IS the terminal.
 >    the check said is on the record whether or not it decided anything. It is machine-local by
 >    design — a tracked log line committed beside the note reset would revive the echo tick.
 >    Gate: `scripts/qa/glass_gate_verdict_logged_check.mjs`.
-> 4. `date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST`
+> 4. **STAMP WHAT YOU READ, NOT WHEN YOU LOOKED:**
+>    `node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the step-2 read returned>`
+>    — add `--ideas=<ids>` / `--rulings=<keys>` if step 2 carried anything across. **A bare call is
+>    refused**, the same way `mark_glass_published.mjs` refuses one.
+>
+>    ⚠ **THIS USED TO BE `date -u … > LAST-HARVEST`, AND WYATT RETIRED IT IN ONE SENTENCE**
+>    (2026-09-02, `T-105`): *"the harvest stamp records when a session looked. It is not evidence
+>    the page hasn't changed since. Your page carries its own version number — that's the fact that
+>    can answer 'is a republish safe?', and a clock never can."* **It is not a theory: on 2026-09-02
+>    this tick harvested at 3:07:08 PM and found nothing, his first idea landed at 3:07:15 PM, six
+>    more followed, and the stamp then read "fresh" for thirty minutes.** Seven ideas survived by
+>    luck of ordering.
 > 4b. **REAP THE CHART, IN REPORT MODE ONLY:** `node scripts/wyclau/chartkeeper.mjs --reap`
 >    — it lists rows whose POINTER is dead: a question he has already answered, a trial report that
 >    was never written, a pid that is not running, a build stamp older than the tree. **It changes
@@ -193,7 +204,30 @@ publish. This session IS the terminal.
 >    queued note still said a sea trial was sailing and warned him not to close a console window
 >    that had closed an hour earlier. If a note has gone stale, rewrite it to what is true now.
 > 6. `node scripts/wyclau/glass.mjs --note "<one plain sentence about what actually moved>"`
+> 6b. **RE-READ THE LIVE PAGE AND COMPARE ITS VERSION TO YOUR RECEIPT — IN THE SAME BREATH AS THE
+>    PUBLISH, NOT BACK AT STEP 2.** `Artifact action:"read"` the same url, and compare the version
+>    it returns with `artifactVersion` in `.planning/wyclau/LAST-HARVEST`.
+>    - **Same version → nothing changed under you. Publish.**
+>    - **Different version → HE WROTE SOMETHING (or another session published).** Go back to step 2:
+>      harvest what is new, commit it, re-stamp with the new version, then come back here.
+>
+>    **WHY THIS STEP EXISTS AND WHY IT IS HERE RATHER THAN EARLIER.** Steps 3 to 6 are minutes of
+>    real work — a gate, a reap, a staleness judgement, a page regeneration. **So even a perfectly
+>    executed tick has a multi-minute gap between the only moment his words are observed and the
+>    moment they can be destroyed.** The incident that earned the whole of `T-105` used seven
+>    seconds of that gap. A guard that runs before minutes of unrelated work is a guard about the
+>    past. `.planning/SPEC-GLASS-HARVEST-SAFETY.md` §3.
+>
 > 7. Publish `.planning/wyclau/glass.html` with the Artifact tool, passing that same url.
+>    ⚠ **NEVER PASS `force`. NOT ONCE, NOT TO GET PAST A CONFLICT.** A publish is tracked against
+>    the version you last read, and a publish over a NEWER version is refused and hands you the live
+>    content back — the platform fails closed, which almost nothing else here does. **A conflict is
+>    not an obstacle. It is the system telling you he wrote something.** On conflict: re-read,
+>    harvest what is new, then publish. `force` is the single flag that turns that refusal off, and
+>    it is the only way left to lose his writing at this step.
+>    *(The refusal is read from the tool's documented contract and from the conflict notifications
+>    this page produces in practice; a controlled live test has not been run —
+>    `INBOX.md`, `INBOX-20260902T192000Z`. Refusing `force` is right either way.)*
 > 8. `node scripts/wyclau/mark_glass_published.mjs --version=<id>` — **`--version` is REQUIRED and a
 >    bare call exits 1.** The id is the artifact version the publish produced; the publish
 >    confirmation does not print it inline, so **re-read the artifact and take the version from the
