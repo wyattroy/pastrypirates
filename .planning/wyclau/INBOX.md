@@ -998,3 +998,178 @@ status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md`; no build,
   could tell whether something had just happened or happened an hour ago. **A timestamp he has to
   convert is a fact he cannot use at a glance**, which is rule 3's own test applied to numbers
   rather than to words.
+
+---
+
+# HIS FIVE IDEAS OF 2026-09-02, 3:07 PM LOCAL — HARVESTED OFF THE LIVE PAGE AT 3:08 PM
+
+> **THEY WERE SEVEN SECONDS FROM BEING UNPROTECTED AND NOBODY WOULD HAVE KNOWN.** The Glass's own
+> harvest ran at `19:07:08Z` and found an empty ideas box, correctly, and stamped `LAST-HARVEST`
+> fresh. **His first idea landed at `19:07:15.472Z` — seven seconds later.** From that moment
+> `.claude/hooks/glass-harvest-first.cjs` would have green-lit any republish for the next thirty
+> minutes (`FRESH_MIN = 30`), and a republish regenerates the page from disk and drops whatever is
+> in `glassState`. This is `INBOX-20260902T1845Z` (commit `a20901e8`), filed twenty minutes
+> earlier as a theory, arriving with his actual writing in it.
+>
+> **THE ONE-LINE VERSION, and it should drive the fix: a harvest stamp records when a session
+> LOOKED. It is not evidence the page has not changed since.** The page carries its own version id
+> and `generatedAt`; those are the facts that can answer *"is a republish safe?"*, and a clock
+> never can.
+>
+> Harvested by the Advisor from artifact version `1788376063-5f8d`, five ideas, `rulings: {}`.
+> **His text below is VERBATIM — copied out of `glassState` by script, never retyped.**
+
+## INBOX-20260902T190715Z — fix `sitemap.xml` — drop `changefreq`/`priority`, add a DERIVED `lastmod`
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788376035472`, 2026-09-02T19:07:15.472Z):
+
+> Fix sitemap.xml at the repo root of playpastrypirates.com.
+>
+> Two problems, both verified 2026-09-02:
+> 1. It uses <changefreq> and <priority> on both entries. Google publicly
+>    ignores both tags — they're dead weight from the 2005 spec.
+> 2. It has no <lastmod>, which is the one tag Google actually uses to
+>    decide what's worth re-crawling.
+>
+> Remove changefreq and priority. Add lastmod to both entries.
+>
+> DERIVE the dates, do not hand-type them — an inaccurate lastmod gets
+> discounted by Google, and a hand-typed date is wrong the moment work
+> continues. Use the last commit date of the page each entry points at:
+>   git log -1 --format=%cs -- index.html
+>   git log -1 --format=%cs -- about.html
+>
+> Note: sitemap.xml is a site-identity file (docs/GIT-AND-DEPLOY.md §1).
+> It must never be copied to the preview/staging repo. Don't touch
+> scripts/deploy-preview.sh — just be aware.
+>
+> Gear: COSMETIC. This is not game code.
+
+solution: his own, in full: remove `changefreq` and `priority`, add `lastmod` to both entries, and DERIVE each date from `git log -1 --format=%cs -- <page>` rather than typing it. Gear COSMETIC, his call. `sitemap.xml` is a site-identity file — it never leaves this repo (rule 14).
+
+status: OPEN — FOR A WATCH.
+
+## INBOX-20260902T190723Z — decide the content split for a real, findable RULES PAGE — questions first, NO code
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788376043138`, 2026-09-02T19:07:23.138Z):
+
+> I want to give Pastry Pirates' rules a real, findable page, and I need
+> to decide the content split before anything gets built.
+>
+> The situation, verified 2026-09-02:
+> - index.html has a "How to play" modal (around line 2685) holding 765
+>   words of detailed rules: the wind rule and the ghost needle, crate
+>   prices rising as an island empties, how a broadside resolves downwind,
+>   the trade winds, storms, the shot clock. It's the best writing on the
+>   site.
+> - It lives in a JavaScript pop-up with no URL. Nobody can link to it,
+>   search for it, or land on it from Google.
+> - about.html separately has a shorter "How it plays" section (The goal /
+>   Your turn / Coming home), plus "What the captains are saying" and
+>   "Credits". About 1,665 words total.
+>
+> So there are already two overlapping accounts of the rules, and if a new
+> page joins them that's three pages competing for the same search.
+>
+> Ask me 2-5 questions with the question UI to settle: which page becomes
+> THE rules page, what About keeps, and whether the in-game modal shows
+> the full text or a short version that links out.
+>
+> Do not write any code this session. Come back with a recommendation and
+> let me approve it.
+
+solution: his own, and it is a PROCESS instruction as much as a task: ask him 2-5 questions with the QUESTION UI to settle which page becomes THE rules page, what About keeps, and whether the in-game modal shows the full text or a short version that links out. **Write no code this session.** Come back with a recommendation and let him approve it.
+
+status: OPEN — FOR A WATCH.
+
+## INBOX-20260902T190730Z — build the rules page, with ONE source for the rules (his own citation of rule 23)
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788376050726`, 2026-09-02T19:07:30.726Z):
+
+> Build the rules page for playpastrypirates.com, following the content
+> split I approved in the previous session.
+>
+> THE HARD CONSTRAINT, and it's the reason this needs care:
+>
+> The in-game "How to play" modal (index.html, around line 2685) and the
+> new rules page must NOT be two copies of the same 765 words. Two things
+> kept in step by discipline will drift — that's rule 23 in
+> .claude/CLAUDE.md, ONE DISPLAY PATH, and this is exactly the shape it
+> warns about. Six months from now someone fixes a wind rule in one place
+> and not the other, and the game contradicts its own rules page.
+>
+> Before writing anything, answer this out loud: what makes these two
+> agree? If the honest answer is "we keep them in sync," that's the defect,
+> and you should design it differently before writing a line. There is no
+> build step in this project — vanilla HTML/CSS/JS, native ES modules —
+> so whatever you propose has to work without one.
+>
+> Also required:
+> - Wire the footer links (index.html has .footerHow / .footerCredits)
+> - Give the page proper <title>, meta description, and og: tags matching
+>   the house pattern in index.html
+> - Screenshot the result before handing it over, and screenshot the
+>   in-game modal too to prove it still works (rule 19)
+> - Run the sea trial: node 4/scripts/qa/gear.mjs, then sea_trial.mjs
+> - Bump PP4_STAMP in src/ui/stage.js before pushing
+>
+> Every push to main is served to real players immediately. Read the diff.
+
+solution: his own: build it to the split he approves in the item above, and answer OUT LOUD, before writing anything, what makes the in-game modal and the page agree — if the honest answer is "we keep them in sync", redesign before writing a line. No build step exists in this project, so the answer has to work without one.
+
+status: OPEN — FOR A WATCH.
+
+  ⚠ **BLOCKED ON THE ITEM ABOVE BY HIS OWN WORDS** — it opens *"following the content split I approved in the previous session"*, and he has not been asked yet. **Do not start this one first.**
+
+## INBOX-20260902T190737Z — pull the Credits modal out into its own page — and credits are NOT pirate speak
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788376057123`, 2026-09-02T19:07:37.123Z):
+
+> Pull the Credits modal (index.html, around line 2717) out into its own
+> page at playpastrypirates.com so I have a URL to send collaborators.
+>
+> REGISTER WARNING, and it's easy to get wrong: credits are NOT in pirate
+> speak. They're outside the game world and written in my own plain
+> first-person voice. A "ye"/"you" difference between the credits and the
+> rest of the game is correct and deliberate — never "fix" it. See
+> .claude/CLAUDE.md §2, the voice boundary.
+>
+> Same one-source constraint as the rules page: the modal and the page
+> must not become two copies that drift.
+
+solution: his own: one page, one source, and the credits keep his own plain first-person voice — a `ye`/`you` difference from the rest of the game is correct and must never be "fixed".
+
+status: OPEN — FOR A WATCH.
+
+## INBOX-20260902T190743Z — regenerate `sitemap.xml` once the new pages exist — and consider generating it
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788376063555`, 2026-09-02T19:07:43.555Z):
+
+> Regenerate sitemap.xml at the repo root of playpastrypirates.com now
+> that the new pages exist.
+>
+> Include every genuinely public page. Verified 2026-09-02, these are
+> correctly EXCLUDED and should stay out:
+> - classic/ — deliberately meta noindex,follow so v1 can't compete with
+>   the front door
+> - lab.html, stats.html, classic/lab.html, classic/stats.html, /4/ —
+>   blocked in robots.txt
+> - art-review/, scripts/, .planning/ — working files, not the site
+>
+> Use <lastmod> only. No <changefreq>, no <priority> — Google ignores both.
+> Derive each lastmod from git, don't hand-type.
+>
+> Consider whether this file should be generated by a script from the
+> actual pages rather than hand-maintained — a hand-kept sitemap goes
+> stale silently the next time a page is added. Recommend, don't just
+> build; flag it as a small job and let me decide.
+>
+> Then remind me to resubmit sitemap.xml in Google Search Console under
+> the playpastrypirates.com property (not wyattroy.com — check the
+> property picker, they look identical).
+
+solution: his own: `lastmod` only, derived from git; every genuinely public page, with `classic/`, `lab.html`, `stats.html`, `/4/`, `art-review/`, `scripts/` and `.planning/` staying OUT. RECOMMEND rather than build on whether it should be script-generated, and let him decide. Then remind him to resubmit in Google Search Console under the **playpastrypirates.com** property.
+
+status: OPEN — FOR A WATCH.
+
+  ⚠ **BLOCKED ON THE TWO PAGES EXISTING** — *"now that the new pages exist"*. Until then the first sitemap item stands on its own.
