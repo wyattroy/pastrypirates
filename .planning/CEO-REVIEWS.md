@@ -7,6 +7,129 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 96 — 2026-09-02, Wy-Blade — the Watch that converted the recipe art to WebP
+
+**Fresh context, read-only.** Ran the brief, read the four commits, ran `npm test` end to end, ran
+both asset gates itself, measured all 21 shipped files with `file`, compared their pixel sizes
+against the pre-change table, opened both posed phone screenshots and compared them, and read the
+new gate, the probe, the prediction and CEO 95. Its verdict, in its own words:
+
+### VERDICT: **PARTIAL.**
+
+> **The one sentence:** The conversion he asked for is real, correct and measured — half a megabyte
+> off every boot with not one pixel touched, verified independently — but the *question* he attached
+> to "Do it" has not actually been answered to him, and the one risk this change carries (Safari)
+> was written down as the thing that would prove the watch wrong and then left unmeasured, on a
+> machine that has a WebKit driver sitting in `scripts/lib/wk.mjs`.
+>
+> ### 1. Each thing he asked for
+>
+> **(a) "Do it" — convert the 21 recipe illustrations. DONE.** 21 WebP files, 21 PNGs gone. Every
+> one is still 512 pixels wide, and each height matches the intrinsic size recorded for its PNG in
+> `.planning/ASSET-DISPLAY-SIZES.md:36-65` exactly. **"Not one pixel resized" is true.** `file`
+> reports every one *"with alpha"*, so the transparent cutout survived. **The masters were refused,
+> as claimed** — `art-review/pastries/01-….png` is 2048x2048, and if the alpha guard had let a
+> master through, `pastry_reexport.mjs:99-100` would have written it at 896px wide; every shipped
+> file is 512. That is proof by geometry, not by reading the log. **The weight claim is exact:**
+> 1,789,207 → 1,238,980 bytes, a saving of 550,227. `assets/` now weighs 10,533,661, which is the
+> figure in `package.json` to the byte. **The picture is unchanged** — went over both posed shots:
+> same torte, same plate, same cream and cherry, same soft shadow, same brown card behind it with
+> **no opaque block**, which is the exact failure W5-1 paid for.
+>
+> **(b) "/classic shares the converted files." DONE on the files, PARTIAL on the proof.** `classic/`
+> has no `assets/` folder and its `ASSET_BASE` is `"../assets/"` (`classic/src/shared/index.js:22`),
+> so the frozen v1 really does read the same 21 files and really would have shown 21 empty frames.
+> **What is missing is the picture** — the probe checks classic's files decode; it never photographs
+> classic's modal, though its own header says it does.
+>
+> **(c) "…what is the maximum size they are displayed at?" NOT DONE — this is the gap.** The number
+> exists and is right, but it is in a code comment and a probe table. **Nothing in this work is
+> written to him**, and his two documents now carry two different numbers with nothing reconciling
+> them: `CHART.md:268-269` says **580 device pixels** (a 2x phone), commit `3a432357` says
+> **692–879** (a 3x phone). Both true, neither labelled. The answer somebody should just tell him:
+> *the picture is capped at **220 pixels tall** by one line of CSS (`index.html:344`), on every
+> device including a laptop, so it is never drawn wider than about **290 layout pixels**. What
+> changes is how many real screen dots go into those 290: 290 on an old screen, 580 on a 2x phone,
+> **879 on his 3x phone**. The files are 512 wide, so on his own phone the art is stretched about
+> 1.7x — which is why it reads as "already too small".*
+> **And one path nobody has measured, flagged as unmeasured rather than asserted:** the card has a
+> print/PDF button and the print stylesheet (`index.html:401-425`) does not override the 220px cap.
+> A printer works at roughly three times a screen's density, so the printed copy asks *more* of the
+> same 512-pixel file than any screen does. No probe in this repo has ever looked at it.
+>
+> **(d) The parent, launch-critical ask. PARTIAL, and honestly so.** `assets/` was 17.79 MB when he
+> raised it and is 10.05 MB now. `.planning/ASSET-DISPLAY-SIZES.md:16` still lists 25 candidate
+> files (~0.34 MB) and 74 files the probe never reached. `T-004` correctly still unticked.
+>
+> ### 2. Delivered but not asked for
+> Four things, all small, all in service of the ask, none displaced it: gate 95; the byte print on
+> `asset_weight_check.mjs`; the ceiling ratcheted to exactly today's total — **worth him knowing
+> that the next person who adds any picture at all gets a red build** until they raise it; and the
+> rule-19 probe. **This is not the "built a tool instead of fixing the game" failure.**
+>
+> ### 3. Claims the repo does not support
+> **One outright false claim, and it is CEO 95's fault wearing a new coat.**
+> `pastry_shipped_art_probe.mjs:16-17` states it writes `pastry-webp-shipped-classic.png`. **The
+> code never writes that second file** — there is one `t.shot(...)`, at line 101. A reader believes
+> the frozen v1 was photographed. It was not.
+> **Second, weaker: the RED proof for gate 95 is asserted, not recorded.** The broken state was
+> never committed, so no future reader can reproduce the 42-of-42 red. Contrast the asset-weight
+> gate, whose RED *is* a real commit anyone can check out. **One gate met the standard; the other
+> was described as meeting it.**
+> **What I could verify about the gate instead, and it is reassuring:** it genuinely derives — it
+> printed two different base paths it could only have got by reading each tree's own
+> `shared/index.js`, and an extension it could only have got by evaluating each tree's own `r.img=`
+> template. **Two limits, named so nobody over-trusts it:** it asks only *does a file exist here*,
+> so a zero-byte or corrupt file passes; and on Windows a wrong-case rename passes locally and 404s
+> on the live server.
+> **Not verified:** *"the other 94 gates all passed over that broken build"* — cannot rebuild that
+> state, though it is consistent in shape: `preload_recipe_badge_check.mjs:29` matches a regex
+> against source text and provably cannot see a missing file. **Verified:** `npm test` runs clean.
+>
+> ### 4. CEO 95's fault — recurred, in new clothing
+> **Yes.** CEO 95's headline was *a behavioural claim written into something a reader trusts that
+> the code contradicts*. §3's first finding is the same fault at a smaller blast radius, one watch
+> later. The two comments the watch did write for the same fault are clean.
+>
+> ### 5. The risk the watch named and then did not measure
+> Its own prediction file said *"Safari refuses WebP… 'should not' is not a measurement."* Then it
+> was not measured. **This repo owns a WebKit driver** (`scripts/lib/wk.mjs`) and the sea trial runs
+> three WebKit legs. The instrument was on the shelf. The probe used Chrome only.
+> **Related, and honestly declared in advance:** `gear.mjs` reads FULL and names the sea trial. No
+> trial ran. The watch stated that deviation in the ledger *before* doing the work, which is a
+> reasoned call, not a skipped one, and I mostly agree with it — **but that reasoning is precisely
+> what makes the WebKit leg the one thing that should have run, because the un-gated risk is the
+> browser, not the path.**
+>
+> ### 6. Bulk reading
+> **Found none.** The heaviest reads available are extracted for it by `ceo_brief.mjs`. The two
+> things it did read in the main thread — the posed screenshots and the rendered modal — belong
+> there by design.
+
+### THE WATCH'S RESPONSE — both actionable findings fixed in the same watch, before the close
+
+1. **The false header is now true, and it was made true by DOING the thing rather than by deleting
+   the sentence.** `pastry_shipped_art_probe.mjs` now photographs the frozen v1's own recipe modal
+   through `classic/src/ui/recipe.js`'s own `openRecipeModal()`:
+   `.planning/posed/pastry-webp-shipped-classic.png`, slot **290x220 CSS**, natural 512x420. The
+   picture is clean — cake, plate, cream, the transparent cutout, Download PDF and Email to myself
+   all intact on the cream card. **CEO 96 was right that this was the claim that would have covered
+   the gap it found in §1(b), and it did.**
+2. **SAFARI'S ENGINE IS MEASURED NOW, AND IT IS CLEAN.** The probe mounts `openWebKit()` as a
+   second engine and asks the same question: **webkit / the game 21 of 21, webkit / /classic 21 of
+   21.** Written so the two outcomes cannot be confused — an engine that will not start prints
+   `UNREACHABLE` and **fails the probe**, because *"a probe that prints the same thing whether it
+   looked or not is worthless"*. ⚠ **Playwright WebKit is not Safari and this report does not say it
+   is** — his phone remains the only real Safari this project has. What is now excluded is the whole
+   class CEO 96 was worried about: the codec itself.
+3. **His question is ANSWERED TO HIM**, in the watch's reply and on the Glass, in CEO 96's own
+   framing — 220px tall cap, ≈290 layout pixels wide, 879 real dots on his 3x phone against a
+   512-wide file. The two conflicting numbers in his documents are reconciled by labelling which
+   screen each belongs to. **The print path CEO 96 raised is recorded as UNMEASURED, not answered.**
+4. **The un-reproducible RED is accepted as a fair hit.** The broken state was real (42 of 42, both
+   trees) and it was not committed, so nobody can check it out. Noted for the next gate: commit the
+   red, or the claim is only as good as the author.
+
 ## CEO Review 95 — 2026-09-02, Wy-Blade — the Watch that fixed the duplicate-key collision
 
 **Fresh context, read-only.** Read the commits in order, the prediction note, both changed tool
