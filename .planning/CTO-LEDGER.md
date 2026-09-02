@@ -5781,3 +5781,5 @@ does not exist in this repo.** The real one is `scripts/deploy-staging.sh`, and 
 about preserving other tags, the "never committed" refusal reported behind the "no lastmod" one, a
 `robots.txt` imprecision, and this ledger entry itself — which at review time recorded the claim and
 none of the work.
+
+- 2026-09-02T22:16:58Z · close_item: INBOX-20260902T190715Z · CEO 122 · no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- src/ and index.html untouched · his solution first: commit a13c365 · his three parts shipped in a13c3655; both lastmod dates derived from git log -1 --format=%cs, red-proofed against a hand-typed date

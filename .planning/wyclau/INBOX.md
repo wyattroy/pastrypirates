@@ -1054,7 +1054,7 @@ status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md`; no build,
 
 solution: his own, in full: remove `changefreq` and `priority`, add `lastmod` to both entries, and DERIVE each date from `git log -1 --format=%cs -- <page>` rather than typing it. Gear COSMETIC, his call. `sitemap.xml` is a site-identity file — it never leaves this repo (rule 14).
 
-status: OPEN — FOR A WATCH.
+status: DONE 2026-09-02 — CEO 122, no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- src/ and index.html untouched; his solution first: commit a13c365
 
 ## INBOX-20260902T190723Z — decide the content split for a real, findable RULES PAGE — questions first, NO code
 
