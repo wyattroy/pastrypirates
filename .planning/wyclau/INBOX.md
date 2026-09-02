@@ -758,9 +758,16 @@ status: OPEN — FOR A WATCH. Sizing: small, and it is an instrument fix, not ga
 solution: extend `scripts/doc_command_check.js` to verify SHELL commands the docs teach, not only
 `node …` ones. Start with the two verbs that actually appear: does the binary exist on this machine,
 and if not, is the line labelled with the machine it belongs to?
-status: OPEN — FOR A WATCH. Sizing: small. It is a widening of a gate that already exists and
-already walks every doc.
+status: DONE 2026-09-02 — CEO 116, no game diff — no game code is right: the ask is the DOC GATE and the docs it guards -- scripts/doc_command_check.js, five docs; src/ and index.html untouched; his solution first: commit 4168647
 
+  ⚠ **THE SECOND ENTRY EVER TO HIT THE MULTI-LINE `status:` FAULT, AND THE FIRST TO ACTUALLY HIT
+  IT.** CEO 115 caught this shape at `INBOX-20260901T1335Z` before the gate ran and collapsed that
+  entry to one line by hand. Nobody widened the warning to the rest of the file, so this entry —
+  whose status wrapped onto a second line reading *"already walks every doc."* — went through the
+  gate and left that fragment orphaned directly beneath a line reading **DONE**. Repaired here, in
+  the open. **The durable fix is `close_item.mjs`'s regex, and it is still not written**: its
+  end-anchor stops at the first newline, so any wrapped status line does this. That is the same
+  gate, the same two lines, as the dollar-sign fault already filed as `T-097`.
   **WHAT THIS EXPLAINS.** Rule 17 told every session to run `pkill -f remote-debugging-port`.
   **Neither `pkill` nor `pgrep` exists in Git Bash on the Blade** — the machine that runs the relay —
   so the rule was decorative there for as long as Windows has run it, and a tidy-up written as

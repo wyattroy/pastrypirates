@@ -112,6 +112,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
       loop. **Until that ships, "put it at the top" is something only a session can do for him.**
 
+- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF. THEY ARE THE TOP TWO ROWS FOR THAT REASON
+      ⟨`T-103`⟩
+      AND NO OTHER.** Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
+      THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
+      which is the exact sinking he has now complained about five times.
+      ⟨`T-103`⟩ ⟨`T-104`⟩
+      **HIS WORDS, VERBATIM, BOTH:**
+      1. *"DO NOW: build a way for me to drag to reprioritize the chart, in The Glass."* ⟨`T-103`⟩
+      2. *"Do Now: in the Glass, Add a \"DO now\" button next to \"Send to the Chart\" button that
+         tells RANK to put this task at the top"* ⟨`T-104`⟩
+      **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
+      carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
+      the design and it is his — then build these two as its interface.** They are not a separate
+      idea and must not be designed twice.
+      ⚠ **AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose,
+      twice, because the button that would have let him say it does not exist yet — and the request
+      for that button then sank to the bottom of the list.** The feature is its own acceptance test:
+      **had `T-104` been shipped, `T-104` would not have needed rescuing by hand.** That is the same
+      sentence the Chartkeeper audit already earned once (`INBOX-20260902T04xxZ`), now true a second
+      time, of a different tool, in one day. **A hand-placement like this one is the failure, not the
+      fix** — it works once and generalises to nothing.
+      **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
+      no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
+      harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -142,6 +166,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -163,10 +192,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
@@ -195,6 +220,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
 
+
+
+
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -210,10 +238,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-
-
-
-
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -503,6 +527,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
       was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
       publish the moment it lands work.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
       ⟨`T-093`⟩
       **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
@@ -546,68 +575,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
       API is small; the migration is every caller; the gate is the part that makes it stick.
 
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
-      BE ABLE TO LOSE HIS WRITING.** Designed 2026-09-02, 3:15 PM ET; **design only, the build is
-      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
-      ⟨`T-105`⟩
-      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
-      session looked. It is not evidence the page hasn't changed since. Your page carries its own
-      version number — that's the fact that can answer 'is a republish safe?', and a clock never
-      can."* **Identity, not a clock.**
-      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
-      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
-      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
-      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
-      republish, which regenerates the page from disk and drops `glassState`. **They survived by
-      luck of ordering, not by design.**
-      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
-      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
-      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
-      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
-      the **artifact version id**, not a time, and is compared immediately before publishing —
-      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
-      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
-      submits it**, so his words are never in only one place.
-      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
-      Do not let a smaller layer ship under that word.
-      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
-      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
-      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
-      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
-      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
-      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
-      a staleness judgement and a regeneration in between — **so even a perfect tick has a
-      multi-minute gap between the read and the destructive act.** Move the check to step 7.
-      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
-
-- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF. THEY ARE THE TOP TWO ROWS FOR THAT REASON
-      AND NO OTHER.** Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
-      THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
-      which is the exact sinking he has now complained about five times.
-      ⟨`T-103`⟩ ⟨`T-104`⟩
-      **HIS WORDS, VERBATIM, BOTH:**
-      1. *"DO NOW: build a way for me to drag to reprioritize the chart, in The Glass."* ⟨`T-103`⟩
-      2. *"Do Now: in the Glass, Add a \"DO now\" button next to \"Send to the Chart\" button that
-         tells RANK to put this task at the top"* ⟨`T-104`⟩
-      **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
-      carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
-      the design and it is his — then build these two as its interface.** They are not a separate
-      idea and must not be designed twice.
-      ⚠ **AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose,
-      twice, because the button that would have let him say it does not exist yet — and the request
-      for that button then sank to the bottom of the list.** The feature is its own acceptance test:
-      **had `T-104` been shipped, `T-104` would not have needed rescuing by hand.** That is the same
-      sentence the Chartkeeper audit already earned once (`INBOX-20260902T04xxZ`), now true a second
-      time, of a different tool, in one day. **A hand-placement like this one is the failure, not the
-      fix** — it works once and generalises to nothing.
-      **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
-      no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
-      harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
-
 - [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
       ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
@@ -647,6 +614,40 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
+
+- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
+      BE ABLE TO LOSE HIS WRITING.** Designed 2026-09-02, 3:15 PM ET; **design only, the build is
+      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
+      ⟨`T-105`⟩
+      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
+      session looked. It is not evidence the page hasn't changed since. Your page carries its own
+      version number — that's the fact that can answer 'is a republish safe?', and a clock never
+      can."* **Identity, not a clock.**
+      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
+      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
+      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
+      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
+      republish, which regenerates the page from disk and drops `glassState`. **They survived by
+      luck of ordering, not by design.**
+      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
+      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
+      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
+      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
+      the **artifact version id**, not a time, and is compared immediately before publishing —
+      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
+      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
+      submits it**, so his words are never in only one place.
+      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
+      Do not let a smaller layer ship under that word.
+      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
+      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
+      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
+      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
+      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
+      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
+      a staleness judgement and a regeneration in between — **so even a perfect tick has a
+      multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
 
 - [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
       ⟨`T-008`⟩

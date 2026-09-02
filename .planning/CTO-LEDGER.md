@@ -5322,3 +5322,5 @@ incident: `pkill`/`pgrep` do not exist in Git Bash on the Blade — the machine 
 so rule 17 was decorative here for as long as Windows has run it, and `doc_command_check.js`
 reported green beside it the whole time because **its subject is `node …` invocations and markdown
 links; a bare shell command is invisible to it.**
+
+- 2026-09-02T19:20:14Z · close_item: INBOX-20260902T15xxZ · CEO 116 · no game diff — no game code is right: the ask is the DOC GATE and the docs it guards -- scripts/doc_command_check.js, five docs; src/ and index.html untouched · his solution first: commit 4168647 · the docs' shell commands are checked now: 99 commands, 12 fixtures, and pkill was decorative here for months
