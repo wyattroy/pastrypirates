@@ -4553,3 +4553,74 @@ all** — the tool reports the four rows and two questions that need linking ins
 chosen direction of failure: a row that turns out to need him costs a watch minutes, while a row
 wrongly hidden costs him his own order, which is the complaint that started this. Filed as its own
 row, with the trap named: **a bundle with unblocked parts must be SPLIT, not sunk.**
+
+## WATCH 2026-09-02T13:10Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T13:10Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+  `git rev-list` both directions read 0 and 0, so the sync was a no-op and the dirty tree below was
+  never at risk from it.
+- **Last progress:** `f142ab9f`, landed at **13:10:19Z, while this watch was orienting** — the Door's
+  step 6a, `chartkeeper.mjs --rank --write`. Before it, `1965c272` (the Glass relay tick, 13:07:16Z).
+- **The previous watch closed `T-079`** (the npm-test row), CEO 104, commit `ed827799`. It filed
+  three rows out of that pass and took none of them.
+- **Blocked on Wyatt, unchanged and not re-measured this watch:** the board-compression reading
+  (`INBOX-20260901T1335Z`), the staging permission spelling (`INBOX-20260902T05xxZ-c`).
+  ⚑ **The kit-blocked list is NOT unchanged — it is stale. See the finding below.**
+- **Detached trial in flight: none.** No `.planning/wyclau/LONG-RUN`, so no pid to confirm.
+- **No Artifact tool in this session** — this watch writes `GLASS-NOTE.md` and commits it; the
+  Glass-update session folds it in.
+- **THIS WATCH TAKES `T-078`** — finish the vendor-lock inversion to his own stated condition, and
+  gate it. Claimed.
+
+⚠ **A SECOND SESSION IS LIVE IN THIS CHECKOUT RIGHT NOW, AND IT DESTROYED THIS WATCH'S CLAIM WHILE
+THE CLAIM WAS BEING WRITTEN. SEVENTH SIGHTING, AND THE MECHANISM IS NEW.** The sequence, timed:
+at 13:09Z `git status` showed `.claude/skills/door/SKILL.md` and `scripts/qa/chartkeeper_check.mjs`
+modified, uncommitted, with **no ledger claim anywhere** — mtimes 13:07:49Z and 13:08:25Z, the
+SKILL.md one *later* than the gate one, which is the signature of a red-proof in progress. This
+watch therefore chose an item on disjoint files and wrote this entry. Its commit was **blocked by
+the CEO-cadence hook** (correctly — the hook says retry). Between the block and the retry,
+`f142ab9f` landed and **the working tree came back clean**: this entry was gone, unstaged and
+uncommitted, with no error and no conflict.
+**THE NEW MECHANISM, AND IT IS NOT THE ONE ALREADY ON THE RECORD.** `f142ab9f` is clean — it used a
+commit pathspec and touched only its own two files, so it did **not** sweep this entry up the way
+`ed827799` swept a Glass harvest one watch ago. What ate it is the *other* half of that session's
+work: its own commit message says it red-proofed by swapping the command out and then **restoring**
+it. A restore spelled `git checkout -- .` or `git restore .` discards **every other session's
+uncommitted work in the tree**, silently, while being an entirely correct thing to do to your own
+file. **So the five earlier sightings were about a careless `git add`; this one is about a careful
+red-proof.** The rule the 12:20Z watch wrote — *commit with a pathspec* — protects the session doing
+the restoring and does nothing for anyone else in the tree.
+**THE FORM THAT ACTUALLY HOLDS, and it is one word: restore BY PATH.** `git checkout -- <the file
+you broke>`, never `.`, never `-A`. A red-proof knows exactly which file it planted the fault in.
+**And the cheap insurance for everyone else: an uncommitted edit in a shared checkout is not saved
+work.** This entry survived only because it was still in the writing session's context.
+**WHAT WOULD HAVE MADE THE WHOLE COLLISION VISIBLE IN TEN SECONDS: a ledger claim.** The Door
+already says claim before touching anything. This is the first recorded case of the *absence* of a
+claim costing a later watch its item choice, on top of costing it its entry.
+
+**WHY `T-078`, walking the Inbox oldest-first as the Door requires.** `20260901T1335Z`,
+`20260901T1340Z`, `20260901T1440Z`, `20260902T0058Z` and `05xxZ-c` fall out for the reasons the
+11:00Z, 11:40Z and 12:20Z watches recorded. `20260902T04xxZ` — his four-times-asked Chartkeeper — is
+his stated highest priority, and `chartkeeper.mjs --rank` puts its row `T-001` first at 116. **Every
+remaining piece of `T-001` either just shipped in `f142ab9f` or lands in `chartkeeper.mjs` /
+`chartkeeper_check.mjs`** — SWEEP, the duplicate handle, `unattachedMentions` — which is the file a
+live session is in. So the reachable piece of his top item is the one thing all the others are
+recorded as waiting on.
+
+⚑ **AND THAT DEPENDENCY IS THE FINDING: `T-078` SHIPPED FOUR AND A HALF HOURS AGO AND NOBODY MOVED
+THE RECORD.** `vendor_check.mjs` was inverted in `3d1d0a9d` at 08:48:38Z and today reports *"PASSED
+(with drift) — 2 local file(s) ahead of claude-kit"*, exit 0. Yet the row is still open, still
+marked ★★★ THE KEYSTONE, at rank 13 — and **three other places still tell every reader the lock is
+on**: the `T-079` Door row (*"Depends on `T-078`"*), the `T-001` banner item 2 (*"`glass.mjs` is
+VENDORED … so this needs a session with the kit open, or Wyatt"*), and every watch's blocked-on-the-
+kit line, this one included until it was checked. `f142ab9f`'s own message names the same thing from
+the other side: *"That block had been gone for twenty minutes … and the watch's information was
+stale."* **A row that is done but still open does not merely clutter his list — it propagates a
+false blocker into every row that cites it.** That is his original complaint with teeth in it.
+
+**AND IT IS NOT ACTUALLY FINISHED, WHICH IS WHY THIS IS AN ITEM AND NOT A TICK.** His ruling carried
+a condition in his own words — *"DO NOT ALSO DELETE THE CHECK … Red-proof both ways: a local edit
+must NOT fail; a kit that has fallen behind must be reported."* The first half shipped. The second
+did not. Prediction written before measuring:
+`.planning/wyclau/PREDICTION-20260902T1310Z-vendor.md`.
