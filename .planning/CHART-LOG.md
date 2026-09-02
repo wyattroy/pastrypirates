@@ -1074,3 +1074,31 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
       Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
       loop. **Until that ships, "put it at the top" is something only a session can do for him.**
+
+## T-090 — 2026-09-02 — ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY READER OF HIS PAGE HAS DRAWN (closed 2026-09-02 · CEO 119 · no game diff — no game code is right: the ask is the label on his own status page -- commits 70592475/710b7af6; PARTS 1-2 OF 4, steps 3 and 4 SPLIT to their own row) THE WRONG CONCLUSION FROM IT — INCLUDING THE ADVISOR, TO HIS FACE. His idea, 3:30 PM ET, INBOX-20260902T193000Z: "do you want to put those in the Your Call section so I can approve/deny them being closed?" His page says "N tasks on your list look already finished." Ran node scripts/wyclau/chartkeeper.mjs --reap and read all ten: not one of them is flagged "looks finished." Six say the evidence is stale because the build moved on, three say he ruled and the row never moved, one says a pid is dead. THE ANSWER TO HIS IDEA: right instinct, wrong pile. Stale-evidence rows need RE-MEASURING, not his approval — he cannot know from a phone whether a trade circle still clips a name. Already-ruled rows must never go back to him; that is T-090's exact fault, the one he was furious about at 1:38 PM today. Your Call is right for the residue only — rows whose fate is genuinely his say-so, like "merge the 465-commit branch to main — his own final say-so". That pile is one or two rows, not ten. ⚠ AND THE "HE ALREADY RULED" SIGNAL CAN FIRE ON A ROW HE NEVER RULED ON. VERIFIED: T-078 (CHART.md:1047) is "chase it only if it is seen again" about an <img> that failed to paint once in a WebKit frame — matched against his 12:39:56Z ruling on whether a watch may read the claude-kit folder. Unrelated. Under his proposal, unfixed, that row would be put to him as a question — the very failure the proposal exists to reduce. Fix the matcher before wiring anything to his page. THE BUILD, in order: (1) split the reap by KIND and name each kind in the note in his words; (2) fix the ruling-to-row matcher and red-proof it on T-078; (3) route each kind to its owner — re-measure, close, or ask him; (4) only then, his Your Call pile. Sizing: chartkeeper.mjs and glass.mjs. No game code, no sea trial.
+
+- [x] **ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY READER OF HIS PAGE HAS DRAWN (closed 2026-09-02 · CEO 119 · no game diff — no game code is right: the ask is the label on his own status page -- commits 70592475/710b7af6; PARTS 1-2 OF 4, steps 3 and 4 SPLIT to their own row)
+      ⟨`T-090`⟩
+      THE WRONG CONCLUSION FROM IT — INCLUDING THE ADVISOR, TO HIS FACE.** His idea, 3:30 PM ET,
+      `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call section so I can
+      approve/deny them being closed?"*
+      **His page says "N tasks on your list look already finished."** Ran
+      `node scripts/wyclau/chartkeeper.mjs --reap` and read all ten: **not one of them is flagged
+      "looks finished."** Six say *the evidence is stale because the build moved on*, three say *he
+      ruled and the row never moved*, one says *a pid is dead*.
+      **THE ANSWER TO HIS IDEA: right instinct, wrong pile.** Stale-evidence rows need RE-MEASURING,
+      not his approval — he cannot know from a phone whether a trade circle still clips a name.
+      Already-ruled rows must never go back to him; that is `T-090`'s exact fault, the one he was
+      furious about at 1:38 PM today. **Your Call is right for the residue only** — rows whose fate
+      is genuinely his say-so, like *"merge the 465-commit branch to main — his own final say-so"*.
+      **That pile is one or two rows, not ten.**
+      ⚠ **AND THE "HE ALREADY RULED" SIGNAL CAN FIRE ON A ROW HE NEVER RULED ON. VERIFIED:** `T-078`
+      (`CHART.md:1047`) is *"chase it only if it is seen again"* about an `<img>` that failed to paint
+      once in a WebKit frame — matched against his **12:39:56Z ruling on whether a watch may read the
+      claude-kit folder**. Unrelated. **Under his proposal, unfixed, that row would be put to him as a
+      question — the very failure the proposal exists to reduce.** Fix the matcher before wiring
+      anything to his page.
+      **THE BUILD, in order:** (1) split the reap by KIND and name each kind in the note in his
+      words; (2) fix the ruling-to-row matcher and red-proof it on `T-078`; (3) route each kind to
+      its owner — re-measure, close, or ask him; (4) only then, his Your Call pile.
+      **Sizing: `chartkeeper.mjs` and `glass.mjs`. No game code, no sea trial.**

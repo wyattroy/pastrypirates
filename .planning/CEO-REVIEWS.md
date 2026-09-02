@@ -13,7 +13,8 @@
 
 **HIS ASK, VERBATIM** (`INBOX-20260902T193000Z`, reading the "N tasks look already finished" line on
 his own page): *"idea: do you want to put those in the Your Call section so I can approve/deny them
-being closed?"* Chart row `T-090`. **Commits `70592475` and `710b7af6`.**
+being closed?"* Chart row `T-090` — **ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY
+READER OF HIS PAGE HAS DRAWN THE WRONG CONCLUSION FROM IT.** **Commits `70592475` and `710b7af6`.**
 
 **VERDICT: PARTIAL.** In its words: *"The two hard parts of what you asked for genuinely happened,
 and they happened honestly… But the row's own build order has four steps, and only two are done…

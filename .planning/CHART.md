@@ -91,31 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       a staleness judgement and a regeneration in between — **so even a perfect tick has a
       multi-minute gap between the read and the destructive act.** Move the check to step 7.
       **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
-- [ ] **ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS, AND EVERY READER OF HIS PAGE HAS DRAWN
-      ⟨`T-090`⟩
-      THE WRONG CONCLUSION FROM IT — INCLUDING THE ADVISOR, TO HIS FACE.** His idea, 3:30 PM ET,
-      `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call section so I can
-      approve/deny them being closed?"*
-      **His page says "N tasks on your list look already finished."** Ran
-      `node scripts/wyclau/chartkeeper.mjs --reap` and read all ten: **not one of them is flagged
-      "looks finished."** Six say *the evidence is stale because the build moved on*, three say *he
-      ruled and the row never moved*, one says *a pid is dead*.
-      **THE ANSWER TO HIS IDEA: right instinct, wrong pile.** Stale-evidence rows need RE-MEASURING,
-      not his approval — he cannot know from a phone whether a trade circle still clips a name.
-      Already-ruled rows must never go back to him; that is `T-090`'s exact fault, the one he was
-      furious about at 1:38 PM today. **Your Call is right for the residue only** — rows whose fate
-      is genuinely his say-so, like *"merge the 465-commit branch to main — his own final say-so"*.
-      **That pile is one or two rows, not ten.**
-      ⚠ **AND THE "HE ALREADY RULED" SIGNAL CAN FIRE ON A ROW HE NEVER RULED ON. VERIFIED:** `T-078`
-      (`CHART.md:1047`) is *"chase it only if it is seen again"* about an `<img>` that failed to paint
-      once in a WebKit frame — matched against his **12:39:56Z ruling on whether a watch may read the
-      claude-kit folder**. Unrelated. **Under his proposal, unfixed, that row would be put to him as a
-      question — the very failure the proposal exists to reduce.** Fix the matcher before wiring
-      anything to his page.
-      **THE BUILD, in order:** (1) split the reap by KIND and name each kind in the note in his
-      words; (2) fix the ruling-to-row matcher and red-proof it on `T-078`; (3) route each kind to
-      its owner — re-measure, close, or ask him; (4) only then, his Your Call pile.
-      **Sizing: `chartkeeper.mjs` and `glass.mjs`. No game code, no sea trial.**
 
 *Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
 (2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else

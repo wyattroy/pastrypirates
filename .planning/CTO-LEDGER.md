@@ -5525,3 +5525,63 @@ message, not a second item.
 
 `T-090` is rank 2 by the project's own tool, is entirely in-repo, and is a wrongness he can SEE on
 his own page right now.
+
+**THE PREDICTION FOR THIS ITEM, AND ITS OUTCOME, ARE BOTH IN
+[`PREDICTION-20260902T2001Z-T090.md`](wyclau/PREDICTION-20260902T2001Z-T090.md) — written before,
+answered before the close, WHERE I WAS WRONG first.** CEO 118's third finding was that the previous
+watch wrote a prediction and never wrote back the result; CEO 119 found it recurring here and it is
+answered rather than left. **I predicted two faults and there were three, and the third was the
+root: a row was identified by the first `T-nnn` ANYWHERE in its text, so the live row *"BUILD THE
+KIT-BEHIND DETECTOR — the half of `T-078` he asked for"* had been answering to `T-078` while its own
+handle line said `T-084`.** Every signal keyed on a row's id was reading it as a different row.
+Nothing reported it and nothing could: a wrong identity does not throw, it produces confident,
+well-formed nonsense.
+
+**WHAT SHIPPED, AND WHAT DID NOT — the second half stated first because it is the half a summary
+drops.** The row's build order has four steps. **Steps 1 and 2 are done. Step 3 shipped as a printed
+OWNER string and not as anything that routes, and step 4 — his Your Call pile, which is the part his
+idea was actually about — is not built.** Both are split into a row of their own, which now ranks 4
+of 53, directly behind his three top asks. CEO 119 named the omission and refused to let the close
+stand without it; that was the right call and it is the sixth verdict running to catch the same
+"rounds toward finished" shape.
+
+**THE FIVE FAULTS, each carrying whose job it is, written once and read by the report, the flag in
+`CHART.md`, the ranking phrase and the line on his page:** `answered` (close it) · `unblocked` (his
+ruling freed it, do the work) · `superseded` (close it) · `dead-pointer` (correct the wording) ·
+`stale-evidence` (re-measure it — **not his to answer, and it is seven of the nine**). The Glass
+runbook no longer asks a session to compose that sentence; the tool prints a `FOR THE NOTE` block
+and the tick copies it. **That composing step is exactly where it went wrong.**
+
+⚑ **AND CEO 119 FOUND, ON THE LIVE CHART, THE ONE THING THIS FIX COULD NOT SEE: five handles are
+each carried by TWO different open rows** — `T-090`, `T-103`, `T-088`, `T-008`, `T-079` — *"the same
+fault the commit says it rooted out, in a form the fix does not cover."* My guard only knew handles
+closed in the archive. It knows both now, claims nothing from either, and prints the list on every
+run; red-proofed by removing the new half and watching the case go red. **The repair itself is
+content work** — other rows point at these handles — and is its own row with the measured list in it.
+
+**RED FIRST, seven cases, all failing on this morning's code.** One of them passed VACUOUSLY on its
+first run — it read a field nothing sets yet, so `undefined` slipped through the test it was written
+to fail — and was strengthened to assert the reason text until it went red. **A check that cannot
+fail is not a check**, and this one was mine, caught in the same hour I wrote the rule down.
+
+**SWEEP:** `npm test` **108/108**. `stray_probe_check` PASS — no debug-port browsers running at all;
+this watch started no browser and no server.
+
+⚠ **A REGRESSION I CAUSED AND THE SWEEP CAUGHT.** I hand-allocated `T-120`/`T-121` to the two new
+rows. Handles are allocated by `nextId()` and never by hand, so that raised the ceiling and made
+**fourteen numbers below it look like rows that had fallen out of both records** —
+`chart_sweep_conserves_check` went red on exactly that. The head lines came off; the write pass
+assigned them.
+
+⚠ **AND ONE THING I COULD NOT DO, unchanged from the last watch and not routed around:** `git mv` of
+`scripts/qa/tmp_rowcount_measure.mjs` out of the gate directory is **refused by this machine's
+sandbox**. That is CEO 118's fourth finding, now unfixed across two watches. A session with
+permission finishes it in one command.
+
+⚠ **WHAT IS NOT PROVEN: the published page.** The tool's own sentences were written into
+`GLASS-NOTE.md` in his register and the Glass session consumed the file mid-watch, which is good
+evidence the delivery path is live — but **a Bell-launched watch has no Artifact tool and cannot
+photograph what he actually sees.** CEO 119: *"an arrangement, not an observed delivery."* The next
+session that can, should look.
+
+- 2026-09-02T20:31:09Z · close_item: "ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS" · CEO 119 · no game diff — no game code is right: the ask is the label on his own status page -- commits 70592475/710b7af6; PARTS 1-2 OF 4, steps 3 and 4 SPLIT to their own row · no stated solution
