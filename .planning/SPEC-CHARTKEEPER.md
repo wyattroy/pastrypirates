@@ -1,5 +1,25 @@
 # SPEC — THE CHARTKEEPER
 
+> # 🛑 STOP — THIS SPEC CHANGED AT 2026-09-02T05:xxZ, AFTER A WATCH HAD ALREADY STARTED BUILDING IT.
+>
+> **If you are that Watch, or you began from a copy of this file taken before this banner existed,
+> RE-READ IT BEFORE YOU WRITE ANOTHER LINE.** The live heartbeat at the time of writing said the
+> build would *"archive finished items after a week"* — **that is the superseded design.**
+>
+> **Wyatt read the first draft and gave three changes. Two of them alter code that is already being
+> written:**
+>
+> 1. **SWEEP takes EVERY completed row, immediately, and leaves NO stub.** Not "older than 7 days".
+>    The age threshold is deleted, not tuned — it was a constant nobody could defend (rule 9).
+> 2. **There is a NEW pass, SETTLE (now pass 2 of four),** which forces every half-done row to one
+>    of three fates. It did not exist in the draft.
+> 3. **The governing sentence, which outranks the rest of this document:** *"The chart should
+>    therefore only show WHERE WE ARE GOING — accurately, constantly updating."*
+>
+> **And two repairs must land in the SAME change or the build goes red:** the Glass's `done` count
+> (it counts `- [x]` rows that will no longer exist) and `rulings_triage_check.mjs` (it fails when a
+> settled ruling has no checklist row). Both are specified under PASS 4.
+
 *Written by the Advisor 2026-09-02 at Wyatt's instruction: audit the Chart, design (do not build) a
 system that keeps it re-prioritised, current, and self-pruning, wired into the process. **This is a
 build spec for a Watch.** Highest priority after the item currently in hand.*
@@ -126,11 +146,28 @@ no handles, and no exit.**
 
 ## PART 2 — THE DESIGN
 
+> ## ⚑ HIS GOVERNING SENTENCE, GIVEN 2026-09-02 AFTER READING THE FIRST DRAFT. IT OUTRANKS
+> ## EVERYTHING BELOW IT.
+>
+> *"The chart should therefore only show **WHERE WE ARE GOING** — accurately, constantly updating."*
+>
+> **Read that as an exclusion, because that is what makes it a design and not a mood: nothing that
+> has already happened belongs in `CHART.md`.** Not a finished row, not a finished row kept "for
+> context", not a stub. The record is not being thrown away — it moves (SWEEP, below) — but it
+> stops living in the file whose only job is the road ahead.
+>
+> **The test for any future addition to this file: could a reader mistake it for something still
+> to do? If it is about the past, it is in the wrong document.**
+>
+> He gave two other changes in the same breath, and both are folded in below: **half-stale rows
+> must be forced to a fate** (the new SETTLE pass) and **SWEEP takes every completed row, not the
+> old ones** (PASS 4, rewritten).
+
 ### The one-sentence shape
 
-**`scripts/wyclau/chartkeeper.mjs` — three passes over `CHART.md` (REAP, RANK, SWEEP) that derive
-every judgement from facts the repo already holds, run on every Watch tick and reported on every
-Glass tick, and never tick a box.**
+**`scripts/wyclau/chartkeeper.mjs` — four passes over `CHART.md` (REAP, SETTLE, RANK, SWEEP) that
+derive every judgement from facts the repo already holds, run on every Watch tick and reported on
+every Glass tick, and never tick a box.**
 
 ### The enabling change: give each row a machine-readable head
 
@@ -170,7 +207,44 @@ row and lists them. Ticking a box is a claim about *work*; the reaper only ever 
 `mark_glass_published.mjs` had** — a stamp that could only say one thing. Closing stays a Watch's
 job, behind `close_item.mjs` and a CEO verdict.
 
-### PASS 2 — RANK (order the list)
+### PASS 2 — SETTLE (a half-done row is not allowed to stay half-done)
+
+**His instruction, verbatim:** *"Half-Stale items should be prioritized to be either validated as
+finished, worked on until finished, or in the worst case, i should be asked if I am satisfied with
+their state."*
+
+**This plugs a real hole the first draft had, and he found it by reading.** REAP catches rows that
+are wholly dead. RANK orders rows that are wholly live. **A row that is PARTLY satisfied falls
+between them and simply drifts in the middle of the list forever** — which is exactly what the
+Blade hour has been doing: three jobs under one checkbox, one of them measurably done for days,
+the measurement filed 500 lines away, and the row unmoved.
+
+**A half-stale row gets one of three fates on every pass. They are tried IN THIS ORDER, and the
+third is the last resort because his attention is the scarcest thing this project spends
+(Principle 5).**
+
+| | fate | when | what the pass does |
+|---|---|---|---|
+| 1 | **VALIDATE FINISHED** | every remaining part is derivable, and derives TRUE | close it through the normal gate — `close_item.mjs` and a CEO verdict. SETTLE proposes; it never ticks |
+| 2 | **SPLIT AND WORK** | some parts are done and the rest is real work | **split the row so each part is its own checkable item**, carry the measurement onto the part it belongs to, close the done parts, and let RANK order the rest normally |
+| 3 | **ASK HIM** | neither of the above can be decided from the repo | it goes to **BLOCKED ON WYATT** as one question — *"this is the state; are you satisfied with it?"* — **with the measurement attached, never as an abstract** |
+
+> **THE ENFORCEMENT, and without it this pass is a suggestion: A ROW MAY NOT SURVIVE A FULL PASS
+> STILL HALF-STALE.** If one does, that is a defect in SETTLE, and the gate should say so by name.
+> The whole point of his instruction is that "partly done" stops being a place a row can live.
+
+**How a row is detected as half-stale** — derived, never a flag somebody sets: it carries **more
+than one checkable claim** (a list, an "and", a numbered set like the Blade hour's three), and
+REAP's derived questions come back **TRUE for some and not others**. That is the signal, and it is
+the same machinery REAP already runs.
+
+**Fate 2 is the common case and the valuable one.** *"A bundled row can never be ticked"* is the
+audit's own finding; splitting is how a bundle becomes tickable. The Blade hour is the worked
+example: Bell registered (close it), ring-test both directions (rank it), O2 publish test (rank
+it) — three rows, one of which disappears immediately, instead of one row that can never be
+finished.
+
+### PASS 3 — RANK (order the list)
 
 Sort by a score derived entirely from the repo, highest first:
 
@@ -187,23 +261,67 @@ Sort by a score derived entirely from the repo, highest first:
 *"player-facing, he has raised it three times"*. **An order he cannot read is an order he cannot
 overrule**, and overruling it must stay trivially easy.
 
-### PASS 3 — SWEEP (give done rows an exit)
+### PASS 4 — SWEEP (completed rows LEAVE. All of them. No stub.)
 
-Move every `- [x]` row older than **7 days** out of CHART.md into `.planning/CHART-LOG.md`, leaving a
-one-line stub: date · title · CEO number · archive link. The Chart stops growing; the record loses
-nothing; and the Glass's `done` count becomes **"done this week"**, which is a number that means
-something.
+**His instruction, verbatim:** *"The Sweep should remove all rows that are completed and move them
+to a separate document — either one that currently exists, or a new one just for the record, you
+decide."*
+
+**Changed from the first draft, which said "older than 7 days" and left a one-line stub behind.**
+Both halves of that are now wrong under his governing sentence: an age threshold is a constant
+nobody can defend (rule 9), and **a stub is still the past sitting in a document about the
+future.** A finished row leaves completely, the moment it is finished.
+
+**MY DECISION ON THE DESTINATION, since he left it to me: a NEW file, `.planning/CHART-LOG.md`.**
+Not `CTO-LEDGER.md`, and the reasons are mechanical rather than tidy-minded:
+
+1. **The ledger is actively appended to by every live session**, and rule 16 records that two
+   sessions appending to it *"conflict on every push"*. SWEEP runs unattended on every Watch tick.
+   **Pointing an automatic writer at the file two humans-in-the-loop already fight over is
+   manufacturing the exact collision rule 16 exists to prevent.**
+2. **A dedicated file can be GATED, and a mixed-purpose one cannot.** With `CHART-LOG.md` holding
+   nothing but swept Chart rows, a check can assert something real and red-proofable: *every closed
+   `T-nnn` appears in exactly one of the two files, never both, never neither.* Against a
+   1,700-line ledger carrying six other kinds of entry, that check cannot be written.
+3. **The ledger answers "who did what, when."** The Chart log answers "what got finished." Those
+   look similar and are not: the first is about sessions, the second about items. Merging them
+   makes both harder to read and neither easier to derive.
+
+**What a swept row keeps:** its `T-nnn` id, its close stamp (`closed <date> · CEO <n> · <commit>`),
+its full essay verbatim. **Nothing is summarised on the way out** — a summary is a lossy copy, and
+the essays are the graveyard (rule 10) that stops the next session re-running a settled argument.
+
+> ### ⚠ SWEEPING EVERY DONE ROW BREAKS TWO THINGS THAT READ THEM. FIX BOTH IN THE SAME CHANGE.
+>
+> **1 · The Glass's `done` count goes to zero.** `glass.mjs:392` derives it by counting `- [x]`
+> inside `## STEP 1 CHECKLIST`. Sweep them all and the card reads *"0 done."* **Re-source it from
+> `CHART-LOG.md`, windowed** — done today, or done this week — which is the number that was
+> actually worth showing all along. *(This is the second time in this spec that a claim about
+> `glass.mjs`'s counting has had to be corrected. Read the code, not this paragraph.)*
+>
+> **2 · `scripts/qa/rulings_triage_check.mjs` fails the build** when a settled ruling with work
+> outstanding has no checklist row (`:132-137`, and that direction is red-proofed). Sweeping a
+> ruling's row the moment it closes is *correct* and the gate must learn it: **a ruling with no
+> outstanding work needs no row.** Change the gate in the same commit, and re-prove both
+> directions — do not weaken it to silence.
+
+**WHAT DOES NOT GET SWEPT, and this is my call to flag rather than make silently:** the
+`SETTLED RULINGS` table. It is a lookup keyed by question, the Glass deliberately does not render
+it, and the gate above depends on it. It is not a to-do list wearing a costume, so it is not what
+his sentence is aimed at. **If he wants it gone too, it is one line to add — his to say.**
 
 ### WHERE IT RUNS — his two options, and my recommendation is *both, with different authority*
 
 | | **The Watch** | **The Glass-update session** |
 |---|---|---|
-| runs | **RANK + SWEEP**, and *acts* — rewrites the order, archives, commits | **REAP only, in report mode**, immediately after the harvest |
+| runs | **SETTLE + RANK + SWEEP**, and *acts* — resolves half-stale rows, rewrites the order, sweeps the finished ones out, commits | **REAP only, in report mode**, immediately after the harvest |
 | why there | it already has write authority, a CEO gate, and `close_item.mjs` as a natural hook point | it is the only session that reads his live page, and reaping is a judgement about whether something **he is waiting on** has landed |
-| output | a re-ordered CHART.md in the commit it was already making | stale candidates written into `GLASS-NOTE.md`, so he sees *"5 rows look dead, and here is why"* rather than a silent rewrite |
+| output | a re-ordered CHART.md carrying only unfinished work, plus the swept rows appended to `CHART-LOG.md`, in the commit it was already making | stale candidates written into `GLASS-NOTE.md`, so he sees *"5 rows look dead, and here is why"* rather than a silent rewrite — **plus any half-stale row SETTLE could not resolve, which is fate 3 reaching him** |
 
 **The split is the point: ranking is arithmetic, reaping is judgement.** Put the arithmetic where it
-can act unattended; put the judgement where a human is looking.
+can act unattended; put the judgement where a human is looking. **SETTLE sits with the Watch because
+two of its three fates are ACTIONS** — closing a row and splitting a row — **and its third fate is a
+question, which the Glass session then carries to him.**
 
 ### THE GUARDRAILS THAT STOP THIS BECOMING THE NEXT THING THAT ROTS
 
@@ -215,6 +333,13 @@ can act unattended; put the judgement where a human is looking.
 3. **Every ordering decision must be explainable in one phrase** (the `why-now:` string above).
 4. **The Chartkeeper must be able to say "the Chart is fine."** A pass that always finds something is
    a pass that is measuring itself.
+5. **SWEEP MUST BE REVERSIBLE AND LOSSLESS, and a gate must prove it.** Every closed `T-nnn` appears
+   in exactly one of `CHART.md` / `CHART-LOG.md` — never both, never neither — and the swept text is
+   byte-identical to what left. **This is the guard against the one way this feature can do real
+   harm: a sweep that quietly eats work.** Red-proof it by planting a row in both files, and by
+   planting one in neither.
+6. **SETTLE may not leave a row half-stale.** If a full pass ends with one still bundled and
+   partly-true, the gate fails and names it. Without this, fate 2 is advice.
 
 ### WHAT WYATT GETS ON THE PAGE — his five 03:49Z asks, all satisfied by this
 
@@ -224,16 +349,21 @@ can act unattended; put the judgement where a human is looking.
 | a comment box under each item | writes into the row's head as `note:`, harvested like any Glass write |
 | next-to-be-completed at the top | RANK |
 | re-ordered dynamically | RANK runs on every tick |
-| completed items removed | SWEEP |
+| completed items removed | SWEEP — **all of them, immediately, no stub**, per his 2026-09-02 change |
+| *(his new one)* half-done things stop drifting | SETTLE — validate, split-and-work, or ask him |
 
 Plus the two already-scheduled Glass asks that belong in the same pass: **rename the card to "The
 Chart (Tasks To Do)"** and **move The Lesson below Tasks** (asked twice).
 
 ### SIZING, HONESTLY
 
-- **The Chartkeeper itself** (script + row-head convention + two wire-ups + gate): **MEDIUM** — call
-  it a day for a Watch, most of it retrofitting heads onto 29 open and 27 done rows, not writing the
-  three passes.
+- **The Chartkeeper itself** (script + row-head convention + two wire-ups + gates): **MEDIUM**, and
+  his three changes push it up within medium rather than out of it. Most of the work is still
+  retrofitting heads onto the open rows and the first big sweep of the closed ones — not writing the
+  four passes. **SETTLE is the only genuinely new logic**, and it reuses REAP's derived questions.
+- **Two dependent repairs land in the same change, not after it:** the Glass's `done` count
+  re-sourced from `CHART-LOG.md`, and `rulings_triage_check.mjs` taught that a ruling with no
+  outstanding work needs no row.
 - **The Glass-side rendering** (expandable, per-item comment, rename, Lesson reorder): **SMALLER, and
   separate.**
 
