@@ -4,6 +4,3 @@
      this file back to this template. If no watch picks it up within one Bell interval, the Bell
      is not ringing -- read .planning/wyclau/status/ for that machine's own account. -->
 ---
-
-watch 11:40Z: taking up your "clear the Glass Update Session between ticks" — checking the fix
-actually reached the running session, not just the runbook.

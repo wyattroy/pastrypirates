@@ -72,7 +72,7 @@ publish. This session IS the terminal.
 > **ONE PUBLISHER IS UNCHANGED** — one subagent per tick, never two. The rule was never about which
 > context does the publishing; it was about there being exactly one.
 
-> ## ⚑ FIRST ACTION AFTER A `/clear`: RUN `CronList`. RE-ARM IF IT IS EMPTY.
+> ## ⚑ FIRST ACTION AFTER A `/clear`: RUN `CronList` AND READ THE ARMED JOB'S PROMPT.
 >
 > **Wyatt clears this session deliberately — that is the design, not an accident.** The moment he
 > does, everything the session was told is gone, **including any instruction to check on itself.**
@@ -88,13 +88,33 @@ publish. This session IS the terminal.
 > not survive, the Glass silently stops updating and Wyatt gets a frozen page with no signal that it
 > froze** — the precise failure this whole subsystem exists to prevent.
 >
+> ### ⚠ AND PRESENCE IS NOT SHAPE — CHECK THE PROMPT, NOT JUST THAT A JOB EXISTS
+>
+> **This box used to say only that if a dispatcher job was listed, there was nothing to do.**
+> **A job armed with the OLD nine-step prompt is also listed.** So a reader following that
+> instruction would see a job, do nothing, and leave the fat-context shape running — Wyatt's ask
+> (`INBOX-20260902T05xxZ-a`, and it is the second time he asked) silently unmet while every
+> document in the chain says it is done. **Committed is not delivered, and a presence check cannot
+> tell the two apart.** Nothing outside this session can read a cron job's prompt, so this reader
+> is the only one who can ever check it.
+>
 > **DO NOT REASON ABOUT WHICH IT IS. MEASURE IT — it is a two-second check that is right either way:**
 >
-> 1. `CronList`. If the dispatcher job is there, nothing to do.
-> 2. If it is empty, `CronCreate` — cron `*/15 * * * *`, recurring — with the dispatcher prompt
->    from *"Making it recur without him"* below.
-> 3. **Say which happened, in one line**, and record it in this box so the next reader inherits a
->    measurement instead of the question.
+> 1. `CronList`. **Read the armed job's PROMPT, not merely that a job is listed.**
+> 2. **Compare it to the dispatcher line in *"Making it recur without him"* below.** It should be
+>    the short pointer — *run one Glass tick, spawn a FRESH subagent, give it the steps from this
+>    file*. **If it carries the steps themselves, that is the old fat-context shape: `CronDelete`
+>    it and re-arm with the dispatcher line.** Same repair if `CronList` comes back empty.
+> 3. To arm or re-arm: `CronCreate` — cron `*/15 * * * *`, recurring — with the dispatcher prompt
+>    from *"Making it recur without him"* below, and nothing else in it.
+> 4. **Say which of the three happened, in one line** — armed and correctly shaped, armed with the
+>    wrong prompt and replaced, or empty and armed — and record it in this box, so the next reader
+>    inherits a measurement instead of the question.
+>
+> **Held by `scripts/qa/glass_session_thin_check.mjs`**, which fails the build if this box goes
+> back to checking presence alone, if the dispatcher line stops pointing at this file, or if the
+> steps get inlined into the cron prompt again. It cannot see the live job — only you can, at
+> step 1. That division is the point, and it is stated in the gate's own header.
 >
 > ### ✅ MEASURED 2026-09-02, AND THE ANSWER IS: THE CRON SURVIVES A `/clear`.
 >
