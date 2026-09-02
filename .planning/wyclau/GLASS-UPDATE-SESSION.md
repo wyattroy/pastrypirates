@@ -145,6 +145,14 @@ publish. This session IS the terminal.
 >    BEFORE the change-gate below — never after it, and never skipped because nothing "moved". Only
 >    this read can see what he typed; no script can.** A republish without this deletes
 >    what he wrote, silently and completely.**
+>    ⚑ **AND IF AN IDEA CARRIES `"now": true`, HE PRESSED DO NOW ON IT. Carry the row over as
+>    normal, then run ONE MORE COMMAND — the flag does not travel by itself:**
+>    `node scripts/wyclau/chartkeeper.mjs --do-now=<the T-nnn of the row you just wrote>`
+>    That command puts his row at the top of RANK and RELEASES whatever was pinned before, in the
+>    same act, because his design is one slot and not a queue. **A pin you copy as prose is a pin
+>    that reaches nothing** — RANK reads the `now: yes` field the command writes, and nothing else.
+>    (`T-104`, his words: *"Add a 'DO now' button next to 'Send to the Chart' button that tells RANK
+>    to put this task at the top"*. The button is the easy half; this line is the joint.)
 > 3. **NOW ASK WHETHER THIS TICK HAS ANYTHING TO SAY. THIS COMMAND RUNS ON EVERY TICK, WITHOUT
 >    EXCEPTION:** `node scripts/wyclau/glass_gate_log.mjs`
 >    — and **if step 2 found ideas or rulings, run it as

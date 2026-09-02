@@ -54,18 +54,19 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
-- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF, AND THAT IS THE ONLY REASON THEY ARE THIS
+- [ ] **⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.**
       ⟨`T-103`⟩
-      HIGH.** *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
-      it. **A row must not claim its own position: RANK decides that and moves rows under it.**
-      Measured 3:22 PM ET: score 108, rank 3 of 53.)* Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
+      *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
+      it. **A row must not claim its own position: RANK decides that and moves rows under it.**)*
+      Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
       THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
       which is the exact sinking he has now complained about five times.
-      ⟨`T-103`⟩ ⟨`T-104`⟩
-      **HIS WORDS, VERBATIM, BOTH:**
-      1. *"DO NOW: build a way for me to drag to reprioritize the chart, in The Glass."* ⟨`T-103`⟩
-      2. *"Do Now: in the Glass, Add a \"DO now\" button next to \"Send to the Chart\" button that
-         tells RANK to put this task at the top"* ⟨`T-104`⟩
+      **HIS WORDS, VERBATIM:** *"DO NOW: build a way for me to drag to reprioritize the chart, in
+      The Glass."*
+      *(He wrote a second DO NOW note in the same breath — the button — and it was under this same
+      checkbox until 21:5xZ. It is now the row below, and its handle is `T-104`. The bracketed
+      handle tags that used to sit in this paragraph were removed with the split: they made `T-104`
+      a handle carried by two open rows, which is the fault that silently mis-attributed `T-078`.)*
       **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
       carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
       the design and it is his — then build these two as its interface.** They are not a separate
@@ -80,6 +81,39 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
       no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
       harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
+      ⚑ **SPLIT 2026-09-02T21:5xZ. THE SECOND OF HIS TWO NOTES — THE BUTTON — IS BUILT AND IS NOW
+      THE ROW DIRECTLY BELOW. WHAT IS LEFT ON THIS ROW IS THE DRAG, AND ONLY THE DRAG.**
+      Two notes under one checkbox meant RANK's number-one row could only ever be half-closed.
+      **CEO 121 caught the commit claiming this split in the past tense while `CHART.md` had not
+      been touched** — the eighth verdict to find a sentence tidier than the record, and this is the
+      correction. **The head line above still reads `T-103`, so this row is the drag.**
+      **WHAT THE DRAG STILL NEEDS, and it is genuinely more than the button was:** the Tasks card
+      renders plain strings (`glass.mjs`'s `openChecklist` → `shortTask`), so **no task on his page
+      carries its handle** — there is nothing for a drag to identify yet. Dragging also has to
+      persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
+      read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
+
+- [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
+      ⟨`T-104`⟩
+      Deliberately NOT ticked: one joint is still a session remembering something.**
+      Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
+      button next to "Send to the Chart" button that tells RANK to put this task at the top"*
+      **WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code:** the
+      button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box,
+      paints a `DO NOW` tag on it at once, and tells him one slot displaced the other. A session
+      carries it over with `chartkeeper.mjs --do-now=<handle>`, and RANK puts that row first with
+      **YOU SAID DO NOW** beside it. Two pins cannot exist: pinning releases the previous one in the
+      same act, and two arriving by hand fail the build naming both. The press, photographed:
+      [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png).
+      ⚠ **THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a
+      SESSION reading the page by hand.** `do_now_check.mjs` case 9 fails the build if the harvest
+      runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a
+      session typed it. **Closing it for real means the harvest carrying the flag mechanically**,
+      which is the same shape as `T-105`'s remaining layers and is probably one job with them.
+      ⚠ **AND THE DOOR STILL DOES NOT SAY IT.** `.claude/skills/door/SKILL.md`'s own harvest step
+      names the ideas and the rulings and not the pin; `.claude/` is refused to an unattended watch
+      (CEO 120's finding, unchanged across three watches now), so a session with permission owes it
+      one line. **Sizing: SMALL.**
 
 *Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
 (2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
@@ -1244,17 +1278,22 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
 > messaging each other. **Filed here as the second live instance in one hour.**
 
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"Do Now: in the Glass, Add a
-      ⟨`T-104`⟩
   \"DO now\" button next to \"Send to the Chart\" button that tells RANK to put this task at the
-  top"* → **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
-  harvest-and-publish only.** Companion to T-103 (drag-to-reprioritize) -- both are UI asks for the
-  Glass/Chart pairing, filed one minute apart.
+  top"* → **SCHEDULED — built 2026-09-02T21:4xZ, commit `c8a475a6`, CEO 121; the row that carries
+  it is `T-104` at the top of FOR A WATCH, open because one joint is still a session remembering a
+  command.** Companion to the drag ask below; the two were filed one minute apart.
 
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"DO NOW: build a way for me
-      ⟨`T-103`⟩
-  to drag to reprioritize the chart, in The Glass."* → **NOT YET FATED — harvested verbatim, not
-  investigated. This session's mandate is harvest-and-publish only.** He tagged this DO NOW
-  himself — flag it for the next session/watch to pick up first, ahead of T-098 through T-102.
+  to drag to reprioritize the chart, in The Glass."* → **SCHEDULED — the row that carries it is
+  `T-103` at the top of FOR A WATCH.** He tagged this DO NOW himself.
+
+  ⚑ **THE HANDLE LINES CAME OFF BOTH OF THESE, 2026-09-02T21:5xZ, AND THAT IS THE FIX AND NOT A
+  TIDY-UP.** Each of these entries carried `⟨T-104⟩` / `⟨T-103⟩` while the real task rows carried
+  the same handles — so **two open rows answered to each handle**, which is the fault the note above
+  already names and the same shape that once made a live row answer to `T-078`, a handle that had
+  closed hours earlier. **An idea and the task written from it are one job, and one job has one
+  handle.** The task row keeps it; the harvest entry keeps his words and points. Three duplicate
+  pairs remain (`T-088`, `T-008`, `T-079`) and they are somebody's row, not this watch's item.
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Regenerate sitemap.xml at the repo
       ⟨`T-102`⟩

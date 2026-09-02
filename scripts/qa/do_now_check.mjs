@@ -223,6 +223,20 @@ const pinnedRows = (p) =>
     else pass('the DO NOW button sits beside "Send to the Chart"');
     if (!/DO NOW/i.test(page)) fail("the button carries no label he would recognise as his own words");
     else pass("it is labelled in his own words");
+    /* ⚠ THE WIRE, AND IT WAS THE HOLE CEO 121 PUT FIRST. Every other assertion here passed on a
+       page whose button was connected to NOTHING: delete the one listener line and the id, the
+       label, the flag and the tag are all still in the source. "The button would look like it
+       worked and reach nothing" is this gate's own sentence about the danger, and it was the one
+       thing the gate could not see. It must not merely be listened to — it must reach the SAME
+       send path as the ordinary button, or his pin is a second implementation waiting to drift. */
+    const wire = /doNow\.addEventListener\(\s*"click"[\s\S]{0,120}?\}\s*\)/.exec(page);
+    const sendWire = /send\.addEventListener\(\s*"click"[\s\S]{0,120}?\}\s*\)/.exec(page);
+    const called = (m) => (m ? (/\b([A-Za-z_$][\w$]*)\s*\(/g, [...m[0].matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)].map((x) => x[1]).filter((n) => n !== "addEventListener" && n !== "function")) : []);
+    if (!wire) fail("the DO NOW button is drawn and nothing listens to it — a control he can press that reaches nothing is worse than no control");
+    else if (!called(wire).length) fail("the DO NOW listener calls nothing");
+    else if (!called(sendWire).some((n) => called(wire).includes(n)))
+      fail(`the DO NOW button does not go through the same send path as "Send to the Chart" (${JSON.stringify(called(wire))} vs ${JSON.stringify(called(sendWire))}) — two ways for an idea to reach the page is two things that will drift`);
+    else pass("the button is wired, and to the SAME send path as Send to the Chart — one way in, two doors");
     /* The page's own script must WRITE the flag onto the idea and READ it back when it repaints,
        or the button is decoration.
        ⚠ SAID PLAINLY: THESE TWO ARE SOURCE-SHAPE ASSERTIONS, NOT BEHAVIOUR. There is no DOM here,
@@ -249,6 +263,30 @@ const pinnedRows = (p) =>
     else if (!/he wants done now/i.test(tasksCard.split(/DO NOW/i)[1]?.slice(0, 200) ?? ""))
       fail("the Tasks card marks something as DO NOW, but not the row that carries the pin");
     else pass("the pinned row is marked DO NOW on his own Tasks card");
+  }
+}
+
+/* ── 9. THE JOINT. Between his tap and RANK sits a session reading the page by hand, and that is
+      the one step no code can take for it. CEO 121: "a session harvests his pinned idea, sees the
+      DO NOW tag on the page, writes a row — and unless it happens to have read this commit, never
+      runs `--do-now=`, and RANK never learns." A capability nothing invokes is a capability that
+      never runs; this project has the sentence written down twice already.
+      So the instruction is not left to be remembered: the build fails if the harvest step stops
+      naming the command. ⚠ IT IS STILL AN INSTRUCTION — this proves the SENTENCE is there, not
+      that a session typed it. That is the honest ceiling of a human joint, and naming the ceiling
+      is better than pretending it is closed. ───────────────────────────────────────────────── */
+{
+  const RUNBOOK = join(ROOT, ".planning", "wyclau", "GLASS-UPDATE-SESSION.md");
+  let book = "";
+  try { book = readFileSync(RUNBOOK, "utf8"); } catch { fail(`could not read ${RUNBOOK} — the harvest instruction lives there`); }
+  if (book) {
+    const harvest = book.split(/HARVEST FIRST/)[1]?.slice(0, 2500) ?? "";
+    if (!harvest) fail("the runbook has no HARVEST FIRST step any more — this check is pointed at the wrong place and should be repaired, not deleted");
+    else if (!/--do-now=/.test(harvest))
+      fail("the harvest step does not tell the session to run chartkeeper --do-now= — so his pin reaches the Chart as prose and RANK never learns of it");
+    else if (!/"now"\s*:\s*true|`now`|now.*true/i.test(harvest))
+      fail("the harvest step names the command but not the flag that triggers it — a session cannot tell which idea he pinned");
+    else pass("the harvest step names both the flag it must look for and the command that carries it");
   }
 }
 
