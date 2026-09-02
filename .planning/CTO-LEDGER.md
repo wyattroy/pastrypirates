@@ -3696,3 +3696,30 @@ recorded this exact hazard hours before, in these words: "on a shared checkout, 
 the SAME step, never leave an edit uncommitted across a tool call."** Third sighting. Rule 16
 anticipated two sessions on one BRANCH; three in one WORKING TREE is a different animal, and
 reading the rule is plainly not enough to obey it.
+
+---
+
+## WATCH 2026-09-02T06:49Z — Wy-Blade — T-001, THE DUPLICATE-KEY COLLISION IN HIS OWN RECORD
+
+- **Watch started** 2026-09-02T06:49Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  clean tree, `can_push.mjs` clean (tracking upstream, no rebase or merge in progress).
+- **Last progress:** the 06:0xZ watch grounded both RANK signals in his own records. Signal B DONE,
+  signal A PARTIAL (CEO 94). `npm test` 94.
+- **What the previous watch closed:** nothing ticked. It named three gaps it explicitly did not
+  take, and one of them is a silent wrong answer rather than a missing feature.
+- **Blocked on Wyatt:** `BLOCKED ON WYATT` is empty. Two rulings sit in `RULED` awaiting triage.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is empty, nothing at sea.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: a `ToolSearch` for the Artifact tool
+  returns nothing. So this watch cannot publish the Glass and must not stamp
+  `mark_glass_published.mjs`; its pulse goes to `.planning/wyclau/GLASS-NOTE.md` for the next
+  session that can publish.
+- **THIS WATCH TAKES:** `T-001`, and inside it CEO 94's third finding — **two different Inbox
+  entries share one id, the tool keys them in a `Map`, and one silently overwrites the other, so
+  the survivor's status decides both.** Chosen over the other two named gaps because it is the only
+  one that can produce a WRONG number on his page rather than a missing one; the unrelated-stamp
+  hole is a design decision about his record (his call, not a watch's), and the tokeniser change
+  touches every signal at once and deserves its own measurement.
+- **Gear:** `gear.mjs` reads FULL, and that is the 465-commit branch being compared to `origin/main`
+  — not this change, which touches `scripts/wyclau/`, `scripts/qa/` and `.planning/` only. No
+  `src/`, no `index.html`, nothing a player can reach. `npm test` is the honest depth; a sea trial
+  cannot say anything about a Chart-ordering tool.
