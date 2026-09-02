@@ -1014,6 +1014,74 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] `T-078` **★★★ INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE THAT UNBLOCKS
+      EVERYTHING ELSE.** 2026-09-02, question UI. **Sizing: small, and it is the highest-leverage
+      small thing on this Chart.**
+      **His model, which reverses what the tooling enforces:** *"claude-kit is intended to be a repo
+      where the DESIGN of our system is made… but our system must operate LOCALLY in its OWN REPO."*
+      Today `scripts/qa/vendor_check.mjs:47-58` finds every `VENDORED-FROM` and **fails the build on
+      any local edit** — the kit is authoritative at runtime, which is exactly backwards.
+      **What it becomes:** the project copy is the truth. The check no longer blocks a local edit; it
+      **reports that the KIT is behind** — a condition that has already occurred and went unnoticed
+      (claude-kit commit `8691117`: *"the kit's glass.mjs was 104 lines behind the repo it vendors
+      into"*).
+      **WHY THIS IS FIRST: five patches and two of his own rulings are dammed behind this one gate.**
+      `PENDING-KIT-PATCHES.md` 1, 2, 5 and 6 are all `glass.mjs`; patch 4 is the Door. **The moment
+      the lock inverts, every one of them becomes an ordinary project edit.**
+      ⚠ **DO NOT ALSO DELETE THE CHECK.** He chose *invert*, not *delete*, over an option that
+      offered deletion — the drift signal is the point, only its direction was wrong. Red-proof both
+      ways: a local edit must NOT fail; a kit that has fallen behind must be reported.
+
+- [ ] `T-079` **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
+      RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
+      gate case.**
+      `.claude/skills/door/SKILL.md` is vendored, and `PENDING-KIT-PATCHES.md` patch 4 records the
+      cost in one sentence: *"The Watch never runs the Chartkeeper, because the Door is vendored."*
+      **He asked for the Chart to re-prioritise itself four times; REAP shipped because its home is
+      not vendored, RANK did not because its home is.**
+      **The insertion is already written and measured** — patch 4 carries the exact text for the
+      watch's step 6, plus its own caveat that RANK reorders only within existing open-row slots and
+      cannot reorder across the two sections the Glass concatenates.
+      **Add the wiring case to `scripts/qa/chartkeeper_check.mjs`** — assert the Door's watch section
+      names `chartkeeper.mjs` — red-proofed by deleting the line. Patch 4's own words: *"A capability
+      nothing checks is a capability that quietly stops running."*
+
+- [ ] `T-080` **THREE FATE STATES — `SCHEDULED` MUST STOP HIDING HIS IDEAS. His ruling, question UI,
+      2026-09-02.** Depends on `T-078`. **Sizing: small, pure `glass.mjs`.**
+      **Measured with the page's own logic before it was put to him: 15 ideas, 2 shown, 13 HIDDEN —
+      9 of them by the single word `SCHEDULED`**, which `glass.mjs:375` treats as identical to
+      SHIPPED and CLOSED.
+      **And it contradicts the approved Charter in writing.** `CHARTER.md`: *"Every idea gets a
+      **visible** fate (shipped / scheduled / parked-with-reason) within a day."* Scheduled and
+      parked are named as VISIBLE fates. **This is a defect against a written spec, not a taste
+      call.**
+      **The shape he chose:** OPEN shows · **SCHEDULED shows and says so** · **PARKED shows dimmed,
+      with its reason** · only genuinely-finished words hide (SHIPPED · DONE · FIXED · CLOSED ·
+      HARVESTED · ROOT-CAUSED). Expected result: **11 shown, 4 hidden.**
+      **Derive the three buckets from one list each and gate that no word appears in two** —
+      red-proof by planting `SCHEDULED` in the finished list.
+
+- [ ] `T-081` **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
+      his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
+      `T-078`, and do not bundle the generalisation with it.**
+      **His words:** *"the kit is 'production' and the local version of it is 'staging'… i don't want
+      to be the human cherrypicking; i want the design of the kit itself to be architecturally
+      extensible."* And his amendment to the adoption ruling: a project must also have **a way to
+      update to the latest kit as it becomes available.**
+      **`git subtree` answers both halves with machinery this project already trusts:** the kit's
+      files live in the repo and are edited in place; `subtree pull` is "update to the latest";
+      `subtree push` is "staging promotes to production". **Promotion is a merge, never a copy —
+      rule 2 of his own release process** — so there is real ancestry, real conflicts when two things
+      genuinely disagree, and it is reversible. A copy has no ancestry and therefore cannot tell an
+      improvement from a divergence.
+      ⚠ **THE HALF NO MECHANISM PERFORMS, AND IT MUST NOT BE PROMISED:** a subtree push sends
+      pastrypirates' code upstream **verbatim**, and his ruling 4 is that the kit holds GENERALISED
+      versions. `close_item.mjs:49-52` hardcodes four `.planning/` paths; `start_trial_detached.mjs`
+      **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
+      Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
+      **build the plumbing, defer the framework.**
+
+
 - [ ] `T-079` **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE
       TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
       take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
