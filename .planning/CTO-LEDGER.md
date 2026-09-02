@@ -4227,3 +4227,42 @@ so the runbook is ours to change.
 - 2026-09-02T10:46:27Z · close_item: INBOX-20260902T0120Z · CEO 100 · no game diff — no game-code change is right: the ask is about the Glass tick's own runbook and its change-gate, not the game -- .gitignore, package.json, a runbook, a QA gate and a new wyclau script; src/ and index.html untouched · his solution first: commit 229843c · the change-gate now runs on every tick and leaves a verdict; --harvested overrides the action, never the check
 
 - 2026-09-02T10:46:55Z · close_item: "Record the change-gate's verdict even when it is overridden" · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows · no stated solution
+
+---
+
+## WATCH 2026-09-02T11:00Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T11:00Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+- **Last progress:** `74068d44` (the 10:19Z watch's note folded into a fresh publish and stamped);
+  `LAST-PUBLISH` reads `2026-09-02T10:56:00.851Z … version=1788346534-4c0f commit=11821268`, so
+  that watch's note reached him.
+- **The previous watch closed `INBOX-20260902T0120Z` / `T-018`** — the Glass change-gate now runs on
+  every tick and leaves a verdict. CEO 100 PARTIAL; its two leftovers are `T-074` and `T-075`.
+- **Blocked on Wyatt / blocked on the kit, unchanged:** the board-compression reading
+  (`INBOX-20260901T1335Z`); the staging permission spelling (`INBOX-20260902T05xxZ-c`); and the
+  Chartkeeper's whole remaining half (kit patches 4, 5 and 6 — re-measured this watch, an `ls` of
+  `C:\Users\wyatt\Projects\claude-kit\plugins\wyclau\scripts\wyclau\` is **REFUSED**, not empty).
+- **Detached trial in flight: none.** No `.planning/wyclau/LONG-RUN`, so no pid to confirm; an
+  unattended watch cannot start one here.
+- **THIS WATCH TAKES `INBOX-20260902T0405Z` / `T-005`** — *"I just tested the black market coin bug
+  on safari, staging.6 and the coin appeared correctly. I'm not sure what caused your rig to miss
+  it, but it's working correctly as is."* Claimed. **The item is the INSTRUMENT, not the game.**
+
+**WHY THIS ITEM, walking the Inbox oldest-first as the Door requires.** `20260901T1335Z` — its named
+next lever (`T-058`, the 8.24 MB of PNGs) was CLOSED at 08:1xZ by CEO 98; what is left in that entry
+is the board-reading flag, which is his to overrule, not a watch's to work. `20260901T1340Z` (the
+Glass's baked-in line breaks) and `20260901T1440Z` (the black console) are both **vendored** files.
+`20260902T0058Z` is the Advisor's own by his instruction. **`20260902T04xxZ` (the Chartkeeper) is his
+stated highest priority and is the #1 row in the tool's own ranking — and every piece of it that is
+left is kit-blocked**, which this watch re-measured rather than inherited: SWEEP cannot ship without
+`glass.mjs:392` (patch 6), the wiring cannot ship without the vendored Door (patch 4), and the
+convergence is patch 5. **Parked, not skipped.** `05xxZ-a`, `-b` and `-c` are design questions he has
+not ruled on.
+
+**`0405Z` IS THE OLDEST OPEN, IN-REPO, UNBLOCKED ENTRY MARKED FOR A WATCH — and it is the one that
+decides whether a whole class of evidence can be believed.** His real Safari shows the coin; our rig
+photographed a blank. One of the two is wrong about the game, and it is not his phone. Until that is
+settled, **every emoji-based visual finding this rig has ever produced is suspect**, including
+findings among the 315 screens judged last night. That is rule 6's own territory: an instrument that
+reports a defect the game does not have is the most expensive error class this project owns.
