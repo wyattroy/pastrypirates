@@ -14,6 +14,12 @@ plus the three dependent repairs `SPEC-CHARTKEEPER.md`'s 🛑 banner says must l
 Commits: `66848bdc` (the reasoning), with most of the code inside `a70451f2`, a commit made by a
 DIFFERENT session in the same checkout whose message is about the glass/chart_model convergence.*
 
+*Chart row this verdict closes, quoted so `close_item.mjs` can trace it — **added by the watch after
+the fact, and it touches nothing the CEO wrote**: "THE CHARTKEEPER — BUILT AND RUNNING. What is left
+is SWEEP alone." The gate matches a verdict to a row by the row's own first forty characters, and a
+CEO naturally titles its review after the WORK rather than after the row; that is the seam, and it
+is worth noting rather than working around silently — the next watch will hit it too.*
+
 *His ask, verbatim: **"audit the chart ('tasks') which has MANY completed tasks still stale on it,
 and design -- BUT DONT BUILD -- a system that will dynamically reprioritize it, update it, and move
 things around it that is built into this process somehow -- either with the Glass Update Session, or

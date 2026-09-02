@@ -4666,3 +4666,59 @@ finished work LEAVE it.** Four files move together or the build goes red — the
 seven-day-with-a-stub design (`chartkeeper_check.mjs`).
 
 Prediction written before measuring: `.planning/wyclau/PREDICTION-20260902T1350Z-sweep.md`.
+
+- 2026-09-02T14:36:33Z · close_item: "THE CHARTKEEPER — BUILT AND RUNNING. What is left is SWEEP a" · CEO 107 · no game diff — no game diff — the ask is his Chart's own upkeep, not the game; src/ and index.html untouched, stamp unchanged · no stated solution · T-001 SPLIT: SWEEP is his version and it RUNS -- 36 rows off his Chart, nothing lost, npm test 102/102
+
+### WATCH 13:50Z CLOSED — and four things worth more than the item
+
+**PREDICTION vs RESULT** (`PREDICTION-20260902T1350Z-sweep.md`, written before the files were
+opened). Right on three: the `x.when &&` half of the filter WAS the hidden second reason a finished
+row could never leave; `glass.mjs`'s line number WAS wrong (428, not 392) while its behaviour was
+right; and the item WAS unremarkable work sitting behind a blocker that had died at 08:48Z. **Wrong
+on one, and it is the one that mattered:** I predicted the risk was the sweep losing a row. It did
+not lose one. The actual damage was the two things CEO 107 found — a safety net that could not
+detect the failure it was named for, and a header that rotted in four minutes.
+
+**1 · A SECOND SESSION COMMITTED THIS WATCH'S ENTIRE ITEM UNDER ITS OWN COMMIT MESSAGE. NINTH
+SIGHTING, AND THE FIRST THAT COST THE REASONING RATHER THAN THE WORK.** `a70451f2` is titled
+*"CONVERGED: glass.mjs and chart_model are one reading now"* and contains ten files of this item —
+`chartkeeper.mjs`, `close_item.mjs`, both new gates, the rewritten gate cases. The code is safe. The
+WHY is not in the log where the code is, which is precisely what this repo's long commit messages
+exist to be (rule 10). `66848bdc` carries the reasoning and touches two files.
+**AND THAT SESSION RAN THE SWEEP ON THE REAL CHART USING THIS WATCH'S HALF-FINISHED CODE** — 612
+lines out of `CHART.md` at 14:03Z, uncommitted tooling, no ledger claim. It happened to be correct.
+**The earlier sightings were about a careless `git add` or a bare-path restore. This one is about a
+session RUNNING another session's work-in-progress against the live record**, which no rule in the
+Door currently addresses. The claim was in the ledger and pushed at 13:52Z; nothing consults it.
+
+**2 · A RANKING SIGNAL DIED SILENTLY WHEN A RECORD CHANGED ADDRESS, and the ID-STABILITY case caught
+it, which is the useful part.** After `## SETTLED RULINGS` left `CHART.md`, the same fixture ranked
+two different ways on consecutive runs. Nothing about the tool was wrong: `settledNaming` and
+`rulingItems` read the Chart and only the Chart, so a row whose +100 came from *"his answer is in and
+nothing moved"* lost it the moment its evidence was archived. **The general shape, and it is the
+lesson of the day: when a record moves, the thing that READS it does not fail — it quietly starts
+answering "no".** Both readers now follow the table to the log.
+
+**3 · A SHARED SCRATCH FILE BECAME A CHANNEL BETWEEN TESTS** the moment SWEEP started READING the
+archive as well as writing it. Case 7 swept a fixture's settled table into the common log; case 12c,
+whose whole point is that exactly ONE of its twins has a live ruling, then found both. **A shared
+scratch file is fine while it is only ever written. The day anything reads it back, it is shared
+state between tests** — and shared state between tests is how a green suite starts describing a
+system nobody has. The log is now derived per-fixture.
+
+**4 · THE TOOL REWROTE A CHARACTER OF HIS OWN TEXT AND A GREEN GATE DID NOT SEE IT.** `U+2019` →
+ASCII `'` in `T-008`'s first line, inside `a70451f2`. Found by an independent read-only verification
+that was looking for lost rows. The gate asserting *"every row's first line survived the write byte
+for byte"* is green, so it is not asserting what it says — almost certainly because no fixture
+contains non-ASCII punctuation, which is the `\Z`-in-the-fixture lesson from this same file family,
+again. Filed as its own Chart row with the repair named (put curly quotes in the fixture and watch
+it fail). **Not fixed here: it is a different defect found while verifying this one.**
+
+**WHAT THIS WATCH COULD NOT DO, in the open.** (a) `.claude/skills/door/SKILL.md` is refused to this
+session — two attempts — so step 6a still says `NOT --sweep`, a rule that expired today. The sweep
+runs from `close_item.mjs` regardless, and the stale sentence is REPORTED by
+`chartkeeper_check.mjs` every run rather than left unguarded (CEO 107's finding). (b) File deletion
+is refused too, so three stray probe files a CEO sub-agent left are still on disk:
+`.tmp-ceo107b-chart-probe.cjs` (repo root, invisible to `git status` behind the `.tmp-` ignore rule),
+`claude-kit/ceo107b-chart-probe.cjs`, and `%TEMP%\ceo107b\.probe`. **A refusal is a permission
+setting, not a fact** (CEO 106) — a session with write access should remove them.

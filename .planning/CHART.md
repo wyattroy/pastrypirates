@@ -53,188 +53,6 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [ ] **THE CHARTKEEPER — BUILT AND RUNNING. What is left is SWEEP alone. Full spec:
-      ⟨`T-001`⟩
-      ✅ **SHIPPED 2026-09-02:** REAP runs every Glass tick (report-only, and it flags stale rows on
-      his page). RANK runs in **every watch**, wired into the Door at step 6a with a gate that fails
-      if the line is ever removed. And the two derivations were CONVERGED — before that, RANK was
-      ordering a list missing eleven rows, ten of them his own words.
-      ⏳ **STILL OPEN: SWEEP, and only SWEEP.** The version that exists is the seven-day-with-a-stub
-      form he **OVERRULED** (his ruling: every completed row leaves immediately, no stub). It cannot
-      ship until the Glass's done count is re-sourced from `CHART-LOG.md` — sweeping today would
-      take his page to "0 done". **That single dependency is the whole of what remains here.**
-      [`.planning/SPEC-CHARTKEEPER.md`](SPEC-CHARTKEEPER.md).** His words, 2026-09-02
-      (INBOX-20260902T04xxZ): *"design -- BUT DONT BUILD -- a system that will dynamically
-      reprioritize it, update it, and move things around it that is built into this process
-      somehow -- either with the Glass Update Session, or in the watch … then give the full spec to
-      the Watch to build it, **highest priority after what it is currently working on**."*
-      **He has now asked for this four times and the first three are still sitting in the IDEA
-      INBOX marked "SCHEDULED"** (00:59:32Z, 03:45:45Z/03:46:13Z, 03:49:02Z) — the fix for the
-      Chart's inability to reprioritise was itself filed on the Chart and never rose. That is the
-      acceptance test.
-      **Shape:** `scripts/wyclau/chartkeeper.mjs`, three passes — REAP (flags stale rows from
-      derived facts, **never ticks a box**), RANK (orders by approved-and-unblocked, blocked,
-      player-facing, evidence-retired, how often HE has raised it, size), SWEEP (done rows older
-      than 7 days move to `.planning/CHART-LOG.md`). RANK+SWEEP run in the **Watch** and act;
-      REAP runs in the **Glass-update session** in report mode only. Sizing: **MEDIUM** for the
-      Chartkeeper, **smaller and separate** for the Glass-side rendering (expandable rows,
-      per-item comment, rename the card to "The Chart (Tasks To Do)", move The Lesson below it).
-      **Recommendation: ship the Glass-side half first or alongside** — a perfectly ranked list
-      still reads as gibberish if every row is 90 truncated characters of a 200-line essay.
-      The spec also names **five open rows measured dead** (701, 380, 420, 674, 647) with the
-      evidence for each; close them through the gate, each with its own CEO verdict.
-
-      ### ⚑ HALF-BUILT 2026-09-02T04:19Z. CEO 91 said **NO** and it was right. What is done, what is left.
-      **The tool exists, is green, and its ranking is live on his page** —
-      `scripts/wyclau/chartkeeper.mjs` + `lib/chart_model.mjs`, gates `chartkeeper_check.mjs` (24
-      behavioural cases) and `chart_model_agrees_with_glass_check.mjs` (runs the REAL `glass.mjs`
-      against a fixture and compares counts; CEO 91: *"the best thing in this pass"*). The Chart is
-      re-ordered, every row has a `T-nnn` handle on its own line, and **nothing was lost** —
-      CEO 91 measured +5 net lines, open 31→31, done 27→27, sections 8→8.
-      ### ⚑ BANNER ITEM 1 — SETTLE — IS BUILT, 2026-09-02T05:3xZ. Items 2 and 3 are still open, and item 2 is BLOCKED.
-      **`--settle` is pass 2 of four and it is live**, in `chartkeeper.mjs`, behind 17 new
-      behavioural cases in `chartkeeper_check.mjs` (RED 11 first, then green; `npm test` 94/94).
-      It derives a row's CLAIMS from the row's own text, runs REAP's existing probes against each
-      one, and forces the row to his three fates in his order — **VALIDATE** (every part derives
-      finished → propose a close through `close_item.mjs`; it never ticks), **SPLIT** (some parts
-      finished → each unfinished part becomes a row of its own, purely additive, the parent's essay
-      kept verbatim), **ASK** (nothing to carry onto the parts → one question into BLOCKED ON WYATT
-      **with the measurement attached**). Enforced, not suggested: `settleUnresolved` names any row
-      that survives a write pass still half-done, and case 10e fails if one does.
-      **THE MISREPORT IT FIXES — and CEO 93 found the first fix was only HALF of it, which is the
-      most useful thing to come out of this pass.** RANK used to say *"looks finished — needs a
-      verdict, not work"* about any row REAP had flagged. SETTLE's verdict now speaks over REAP's
-      on any row it has judged — but the fault was never really about bundles. **REAP measures a
-      POINTER**, and a row can have every pointer in it resolve and still be entirely unstarted;
-      this very row was being labelled "looks finished" while its own text said half of it was
-      blocked and unbuilt. The phrase is now *"something it was waiting on has landed"*, which is
-      true, and the +40 that lifts such rows is unchanged and correct. Gate case 10i, red-proofed
-      both ways.
-      ⚠ **AND ONE CORRECTION THIS ROW OWES, kept rather than edited away:** the first version of
-      this entry said the old phrase "was on his page". It was not. `whyNow` prints to the console
-      only — never into `CHART.md`, never onto the Glass. What reaches his page is the score's
-      effect on ORDER. Every session that runs the tool read the wrong sentence; he did not.
-      **WHAT IT SAYS ABOUT TODAY'S CHART, honestly: 5 bundled rows examined, 0 half-done.** The
-      Blade hour (`T-021`) IS bundled and IS one-third finished, but the evidence for that third is
-      PROSE in its body, not a pointer any probe can ask the world about — and prose-grepping is the
-      fault this project keeps paying for. SETTLE will act the first time a finished part carries a
-      real pointer. **The tool now prints how many rows it EXAMINED, not just what it found**,
-      because a pass that is silent on a healthy Chart and a pass that has gone blind print the same
-      line — a gap that nearly shipped behind 16 green cases (`.planning/wyclau/PREDICTION-20260902T0515Z-settle.md`).
-      **⚠ IT WAS BUILT TO THE SUPERSEDED SPEC.** The 🛑 banner at the top of
-      `SPEC-CHARTKEEPER.md` landed six and a half minutes before the build committed and was never
-      re-read. **Read the banner FIRST.** What it requires and nobody has built:
-        1. ~~**SETTLE — a NEW pass, his, pass 2 of four.**~~ **DONE 2026-09-02T05:3xZ — see above.**
-        2. **SWEEP takes EVERY completed row, immediately, and leaves NO stub.** ⚠ **BLOCKED, AND
-           THE BLOCKER IS MEASURED, NOT GUESSED — it is the same shape as the staging permission.**
-           The banner says three repairs must land in the same change, and the first is
-           `glass.mjs:392`, which derives his "done" count by counting `- [x]` rows in `CHART.md`.
-           Sweep them all without that repair and his Tasks card reads **"0 done"**.
-           **`glass.mjs` is VENDORED** — line 1 of `.claude/wyclau/MANIFEST.sha256` — and the
-           claude-kit checkout is outside an unattended watch's permitted directories: a read of
-           `C:\Users\wyatt\Projects\claude-kit` is **refused**, not empty. So this needs a session
-           with the kit open, or Wyatt. Filed in `PENDING-KIT-PATCHES.md` as item 6. The code is
-           still the overruled seven-day-with-a-stub version — **find it by NAME, not by number:
-           `SEVEN_DAYS`, `sweepable`, and the `type: "prose"` stub inside the `DO.sweep` block of
-           the write.** *(This citation read `chartkeeper.mjs:250,258,348-351` for one commit and
-           CEO 93 caught it: the SETTLE commit added 435 lines and those numbers then landed inside
-           an unrelated comment block. The spec's own banner warns about exactly this, and a row
-           about stale pointers had gone stale in the commit that wrote it — twice now, in the same
-           document family. **Cite a symbol, never a line.**)* **Three gate cases now DEFEND the
-           overruled design** — they must go red before they go green.
-        3. **The three repairs the banner says must land in the same change:** the Glass's `done`
-           count becomes "done today" from `CHART-LOG.md`; `rulings_triage_check.mjs` reads the log
-           not the Chart; the `SETTLED RULINGS` table is swept too.
-      ### ⚑ NEXT, AND CEO 95 SAYS IT OUTRANKS ANY MORE INTERNAL WORK: NOBODY RUNS THIS TOOL.
-      CEO 95, 2026-09-02, in its own words: *"A ranking tool nobody runs does not clean your list."*
-      It looked for an invocation and found none — not in `.claude/`, not in `package.json`; only a
-      mention in `GLASS-UPDATE-SESSION.md`. **That is not new information** — this row already says
-      *"the Chart re-prioritises only when somebody types the command"*, and the wiring is filed as
-      `PENDING-KIT-PATCHES.md` items 4 and 5, blocked on a vendored `glass.mjs`/Door outside an
-      unattended watch's reach. **But it is the right ranking of what is left**: Wyatt's complaint
-      was finished tasks sitting on his list, and the pass that moves them runs only when a human
-      types it. Whoever can reach claude-kit should take patch 4 before any more keying work.
-      ### ⚑ THE DUPLICATE-KEY COLLISION — DONE 2026-09-02T06:49Z, CEO 95 PARTIAL, and the PARTIAL was earned.
-      **Three lookups keyed on things that can repeat, all fixed.** `new Map(pairs)` keeps the last
-      value for a repeated key in silence: his Inbox had two notes under one stamp
-      (`INBOX-20260902T05xxZ`, since repaired to give the second its own `-a`), and `reapById` /
-      `settleByTitle` / `applySettle`'s split match / SWEEP all keyed on a row's TITLE, which nothing
-      forbids two rows from sharing. Rows now carry `row.key`, unique by construction
-      (`chart_model.mjs`'s `rowKey`), and the write pass tracks which row landed in which slot
-      instead of re-deriving identity from the text afterwards. Ten new gate cases (block 12),
-      five red first; `npm test` 94.
-      **SIZED HONESTLY, AND THE MEASUREMENT CAME BEFORE THE FIX: nothing on his page was wrong.**
-      Both colliding entries were open and no row cited that stamp. The defect was that the answer
-      was UNGROUNDED — it turned on file order — not that it was wrong. The real Chart's ranking is
-      byte-identical before and after.
-      ⚠ **AND CEO 95 CAUGHT THE SAME FAULT CEO 94 CAUGHT, ONE COMMIT LATER, IN THE SAME FILE.** The
-      first version of the new banner told him a row citing an ambiguous stamp *"cannot be read as
-      approval"* — **false in exactly the case that had actually happened in his Inbox**, where both
-      notes were open and the citation therefore WAS credited. A behavioural claim written into the
-      one place he reads. The code was the half that was right; the words are now the code's, and
-      gate case 12a-ii holds them there. Two more comment claims of the same shape were corrected in
-      the same pass. Full verdict and response: `.planning/CEO-REVIEWS.md`, CEO 95.
-      ### ⚑ THE TWO UNSOUND RANKING SIGNALS — WORKED 2026-09-02T06:0xZ. One is DONE, one is HALF DONE, and CEO 94 says exactly where the line is.
-      **SIGNAL B — the false "you have raised it N times" — is DONE (CEO 94's own scoring).** It
-      was a five-letter token overlap over 900 characters of essay, and on the real Chart it told
-      him he had raised the `can_push` row — a tool fault a session found, which he has never
-      mentioned — **ten times**. It now counts DISTINCT RESOLVED CITATIONS: entries of his Inbox
-      the row names, plus entries naming the row's `T-nnn` handle. `can_push` now reads *"no signal
-      either way"*.
-      ⚠ **AND THE OBVIOUS DIAGNOSIS WAS WRONG, which is the reusable half:** it was not tracking row
-      LENGTH — the 900-character cap flattens that out (a 4,695-char row scored 1, a 487-char row
-      scored 5). It tracked **shared process vocabulary**: rows about the watch/trial machinery
-      matched the many Inbox entries about the watch/trial machinery. It measured *"is this row
-      about the same subsystem as most of his recent notes"* and reported it as *"you raised this N
-      times."*
-      **SIGNAL A — approved-and-unblocked (+100) — IS HALF DONE, AND CEO 94 BROKE IT IN A MINUTE.**
-      The prose regex is gone; approval now needs a resolved `INBOX-<stamp>` that is still live, or
-      a `Your ruling:` tag that resolves against the Chart's own rulings tables. Two of CEO 94's
-      findings were faults introduced in the same watch and are fixed in it (`9dbac237`): the tag
-      used to be credited on a Chart with **empty** rulings tables, because the file claimed in two
-      places that `rulings_triage_check.mjs` enforces it and **that gate only walks rulings → rows**
-      (`rulings_triage_check.mjs:92-98`); and a comment said "eight rows" where the tool's own
-      report says four. Gate cases 11a, 11a-ii, 11b, 11c, 11d, 11e — twelve assertions, RED first
-      (six failures), `npm test` 94 green.
-      **WHAT IS STILL OPEN, AND IT IS THE NEXT STEP HERE, WITH CEO 94'S OWN REPRODUCTION:**
-        • **A row citing a REAL BUT UNRELATED live Inbox entry is still credited.** CEO 94 wrote a
-          fictional *"repaint the bilge pump widget, nobody has ever mentioned this"* row, pasted
-          this row's own live Inbox stamp into it, and **it scored 108 and ranked #1** against a real
-          player-facing bug. Nothing checks the entry is ABOUT the row. Its proposed fix — require
-          the cited entry to name the row's `T-nnn` handle — **would today zero every row on the
-          list**, because `grep -o "T-0[0-9][0-9]" .planning/wyclau/INBOX.md` returns NOTHING: there
-          are no backrefs at all. So this needs the backref convention established on the Advisor's
-          side first, plus a decision about what a one-sided citation is worth. **A design choice
-          about his record, not a patch.**
-        • **Two rows were demoted that should not have been, and the repair is one line each.**
-          The tool NAMES them in its report. *"Convert the recipe art to WebP"* — his ruling was
-          *"do it"* and his 2026-09-02T00:48Z Inbox entry is live and right there; it fell from
-          +100 to 30 for want of a citation that is not a matter of judgement. And the row that is
-          literally his quoted words (*"Make Glass…"*, 2026-09-01 02:13:52Z) now scores **0** at
-          rank 27. Writing those citations in is the Advisor's job under his 2026-09-02T04:00Z
-          record-only ruling.
-        • **`INBOX.md:390` and `:409` are two different entries sharing one id** (the
-          `2026-09-02T05:xx` stamp). The tool keys them in a Map, so one silently overwrites the
-          other and the survivor's status decides both. Found by CEO 94.
-      ⚠ **AND WRITING THIS ROW DEMONSTRATED THE HOLE, WHICH IS WHY THE WORDING ABOVE IS INDIRECT.**
-      The first draft named those two entries by their raw `INBOX-…` ids as evidence about OTHER
-      rows — and the tool immediately counted them as THIS row's citations and printed *"you asked
-      for it in 3 of your notes"* at him. A pointer written for a human reader became a score. So
-      the ids are spelled out in prose here instead. **That is not the fix; it is the bug wearing a
-      workaround**, and it is the sharpest argument for the two-sided citation above.
-      **REAP CATCHES 4 OF THE AUDIT'S 5.** The 24-hour-run row is missed: *"the 24h exit test"*
-      tokenises to an empty set through the five-letter filter (`chart_model.mjs:196`). Two probes,
-      `supersededByAnotherRow` and `pidLongDead`, have no gate case at all.
-      **STILL NOT BUILT AND NOT FILED ANYWHERE ELSE:** his 03:49Z asks for **expandable rows** and
-      **a comment box under each item**. Both need `glass.mjs`, which is vendored.
-      **THE WATCH-SIDE WIRING IS FILED, NOT RUNNING** — `PENDING-KIT-PATCHES.md` 4 and 5. Until a
-      session with claude-kit applies patch 4, **the Chart re-prioritises only when somebody types
-      the command.** REAP is wired and live in `GLASS-UPDATE-SESSION.md` step 4b.
-      **ONE REGRESSION THIS WATCH CAUSED AND FIXED:** the handle was first written inline, so every
-      task on his page read `` `T-001` ★ NEXT ITEM… `` with literal backticks (`glass.mjs:122`
-      strips `**` and `~~`, not backticks). Handles now live on their own line; gate case 7b asserts
-      every row's first line survives the write byte for byte; the rendered page was opened and
-      checked afterwards. **Twenty-two green cases and none of them had looked at the picture.**
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -467,6 +285,24 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
+- [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
+      ⟨`T-008`⟩
+      by an independent read-only verification of the sweep, which was looking for lost rows and
+      found this instead. In the sweep commit `a70451f2`, the row two lines above this one had its
+      curly apostrophe **U+2019 turned into ASCII `'`** — *"the Glass’s Ideas box"* became *"the
+      Glass's Ideas box"* — while the row was being re-emitted with its `T-008` handle.
+      **WHY THIS IS NOT PEDANTRY.** CEO 91's rule is that a row's FIRST LINE IS HIS and the tool
+      never touches a character of it; there is a gate case asserting exactly that ("every row's
+      first line survived the write byte for byte") and it is GREEN, so it is not asserting what it
+      claims — the likeliest reading is that the fixtures contain no non-ASCII punctuation, which is
+      the `\Z`-in-the-fixture lesson from this same file family, again. This project has already
+      paid for one character of punctuation once: *"Attack's − is U+2212, not ASCII."*
+      **AND THE SHAPE IS WORSE THAN THE INSTANCE.** A write pass that normalises a character today
+      normalises a word tomorrow, in the one document that carries his words verbatim, with a green
+      gate over it. Nothing here is urgent — the row is open, the meaning is unchanged — but the
+      SILENCE is the defect.
+      Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
+      and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
 - [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
       ⟨`T-074`⟩
       CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
@@ -591,6 +427,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       every row is 90 truncated characters."* **That recommendation was made and then not carried
       into a row anybody could take.** The backend half has had seven watches; the half he can see
       has had none.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
       ⟨`T-002`⟩
       `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
@@ -601,10 +442,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       once during the night that earned it. **Both are unregistered from settings.json as of
       2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
       works and stays armed.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
@@ -712,6 +549,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
 
+
 - [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
       ⟨`T-079`⟩
       RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
@@ -726,7 +564,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **Add the wiring case to `scripts/qa/chartkeeper_check.mjs`** — assert the Door's watch section
       names `chartkeeper.mjs` — red-proofed by deleting the line. Patch 4's own words: *"A capability
       nothing checks is a capability that quietly stops running."*
-
 
 - [ ] **THREE FATE STATES — `SCHEDULED` MUST STOP HIDING HIS IDEAS. His ruling, question UI,
       ⟨`T-080`⟩
@@ -773,6 +610,23 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       honest version derives the candidate set from something structural (a row with no handle at
       all cannot be linked, and that IS derivable) rather than from a phrase.
 
+- [ ] **WHAT IS LEFT OF THE CHARTKEEPER AFTER SWEEP SHIPPED — the remainder of `T-001`, split out
+      ⟨`T-001`⟩
+      so his top row can close on what it actually promised.** All four passes now exist and all
+      four RUN (RANK from the Door, SWEEP from `close_item.mjs`). These are the follow-ons, not the
+      Chartkeeper:
+      **1. RANKING SIGNAL A IS HALF DONE.** A row citing a REAL BUT UNRELATED live Inbox entry is
+      still credited — CEO 94 wrote a fictional *"repaint the bilge pump widget"* row, pasted a live
+      stamp into it and it ranked #1. Its fix (require the cited entry to name the row's `T-nnn`)
+      would today zero every row, because there are no backrefs at all. **A design choice about his
+      record, not a patch.**
+      **2. HIS 03:49Z GLASS ASKS ARE STILL NOT BUILT** — expandable rows, and a comment box under
+      each item. Both need `glass.mjs`, which is no longer vendored-locked, so they are ordinary
+      work for the first watch that takes them. They are also the half that makes the ranking
+      legible: a perfectly ordered list still reads as gibberish at 90 truncated characters a row.
+      **3. TWO REAP PROBES HAVE NO GATE CASE AT ALL** — `supersededByAnotherRow` and `pidLongDead`.
+      **4. THE DUPLICATE HANDLES** are their own open row and are named by
+      `chart_sweep_conserves_check.mjs` on every run: `T-057`, `T-058`, `T-059`, `T-078`, `T-079`.
 - [ ] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
       ⟨`T-081`⟩
       his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
@@ -812,6 +666,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       kit-blocked, but it is a BUNDLE with unblocked parts (this watch worked one), and sinking a
       bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
       bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
+
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -836,7 +691,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.01.8, so its evidence no longer describes this game
-
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
   WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
@@ -847,7 +701,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-
 - [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
       ⟨`T-028`⟩
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment
@@ -862,39 +715,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⟨`T-007`⟩
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so.
       ⟨`T-008`⟩
-- [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
-      by an independent read-only verification of the sweep, which was looking for lost rows and
-      found this instead. In the sweep commit `a70451f2`, the row two lines above this one had its
-      curly apostrophe **U+2019 turned into ASCII `'`** — *"the Glass’s Ideas box"* became *"the
-      Glass's Ideas box"* — while the row was being re-emitted with its `T-008` handle.
-      **WHY THIS IS NOT PEDANTRY.** CEO 91's rule is that a row's FIRST LINE IS HIS and the tool
-      never touches a character of it; there is a gate case asserting exactly that ("every row's
-      first line survived the write byte for byte") and it is GREEN, so it is not asserting what it
-      claims — the likeliest reading is that the fixtures contain no non-ASCII punctuation, which is
-      the `\Z`-in-the-fixture lesson from this same file family, again. This project has already
-      paid for one character of punctuation once: *"Attack's − is U+2212, not ASCII."*
-      **AND THE SHAPE IS WORSE THAN THE INSTANCE.** A write pass that normalises a character today
-      normalises a word tomorrow, in the one document that carries his words verbatim, with a green
-      gate over it. Nothing here is urgent — the row is open, the meaning is unchanged — but the
-      SILENCE is the defect.
-      Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
-      and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
-- [ ] **WHAT IS LEFT OF THE CHARTKEEPER AFTER SWEEP SHIPPED — the remainder of `T-001`, split out
-      so his top row can close on what it actually promised.** All four passes now exist and all
-      four RUN (RANK from the Door, SWEEP from `close_item.mjs`). These are the follow-ons, not the
-      Chartkeeper:
-      **1. RANKING SIGNAL A IS HALF DONE.** A row citing a REAL BUT UNRELATED live Inbox entry is
-      still credited — CEO 94 wrote a fictional *"repaint the bilge pump widget"* row, pasted a live
-      stamp into it and it ranked #1. Its fix (require the cited entry to name the row's `T-nnn`)
-      would today zero every row, because there are no backrefs at all. **A design choice about his
-      record, not a patch.**
-      **2. HIS 03:49Z GLASS ASKS ARE STILL NOT BUILT** — expandable rows, and a comment box under
-      each item. Both need `glass.mjs`, which is no longer vendored-locked, so they are ordinary
-      work for the first watch that takes them. They are also the half that makes the ranking
-      legible: a perfectly ordered list still reads as gibberish at 90 truncated characters a row.
-      **3. TWO REAP PROBES HAVE NO GATE CASE AT ALL** — `supersededByAnotherRow` and `pidLongDead`.
-      **4. THE DUPLICATE HANDLES** are their own open row and are named by
-      `chart_sweep_conserves_check.mjs` on every run: `T-057`, `T-058`, `T-059`, `T-078`, `T-079`.
 
 ## BLOCKED ON WYATT
 
