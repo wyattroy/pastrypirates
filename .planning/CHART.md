@@ -441,6 +441,42 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+- [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
+  TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
+  deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
+  Sizing: ONE LINE plus a gate.** `scripts/playtest_gate.mjs:358` defines the leg as
+  `{ W:390, H:664, mobile:true, dsf:2, guestW:390, guestH:664 }` and its own comment says *"Both
+  seats phone-sized, because a crew game between two phones is what he and a friend play."* Line 421
+  opens the **host** with `mobile: !!def.mobile, dsf: def.dsf || 1`. **Line 429 opens the GUEST with
+  neither** — only `W, H, dbgPort, httpPort, serveRoot, profileDir` — and `scripts/lib/cdp.mjs:34`
+  defaults them to **`mobile = false, dsf = 1`**, with touch emulation gated behind `if (mobile)` at
+  line 70. So that seat is a 390×664 **desktop** window at 1×, fine pointer, no touch. The size was
+  set; the device was not.
+  **PROVEN IN THE PICTURES, NOT ONLY IN THE SOURCE:** `crew-phone-host-012-settled.png` (780×1300)
+  reads *"**Tap** and hold the sea to reveal the board"*; `crew-phone-guest-012-settled.png`
+  (390×664), same leg, same run, reads *"**Click** and hold…"*. `src/ui/stage.js:547-551` derives
+  that verb from `matchMedia("(pointer: coarse)")`, so it is the device, not host vs guest.
+  **AND THE FIX FOR THE IDENTICAL FAULT IS ALREADY WRITTEN THREE LINES ABOVE THE BUG**, in
+  `scripts/lib/cdp.mjs:65-69`: *"Measured: the phone leg's screenshot came back reading 'Click and
+  hold the sea' where a real phone says 'Tap and hold' (D-40). A phone leg that does not emulate a
+  phone tests the wrong game."* It was applied to the solo phone leg and never swept to the crew
+  guest — rule 8's sweep, missed once, three weeks ago.
+  **WHAT IT COSTS:** the leg's own comment says most of Wyatt's 35 findings came from crew-on-a-phone,
+  and half of that leg's evidence — every guest-seat tap target, every touch-only path, every
+  2×-device-pixel judgement — was taken on a device no player has. **It also ANSWERS an open row:**
+  `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
+  2026-08-30. Not measured"* — it is now measured, and it is the instrument.
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+- [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — red-proofed
+  2026-09-02, filed so nobody reads "1 FAIL in 120" as "the screens are clean".**
+  `crew-desktop-guest-012-settled.png` is the screen a watch read by eye and found the trade-offer
+  circle whose *"Flaky Jack"* label hangs out of both sides of its own disc (the row above). The
+  automatic pass reached the same file and wrote `"verdict":"PASS", "issues":[], "confidence":0.85`.
+  A second reader opened the picture and confirmed the clipping independently. **The judge is not
+  useless** — it found `passplay-phone-039-settled.png` on its own — **but its clean count is a
+  FLOOR, not a ceiling**, and any release decision quoting it must say so. Same shape as the green
+  suite that blessed the build Wyatt then found seven bugs in. **Not an action item on its own**;
+  it is the caveat that belongs beside every judged-screen number from here on.
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
   a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
