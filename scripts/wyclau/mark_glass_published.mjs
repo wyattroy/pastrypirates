@@ -41,7 +41,6 @@
 // which is precisely why it must not be able to lie to them.
 
 import { writeFileSync, mkdirSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -77,14 +76,30 @@ then you cannot publish and must not stamp. Write what you wanted shown into
 
 /* RECORD WHAT WAS PUBLISHED, not merely that something was. Without this the receipt says a publish
    happened and nothing can ask "of what?" — so glass_needs_publish.mjs has nothing to compare the
-   current state against and every tick must publish. Same quantity glass.mjs uses for "last
-   progress" (newest commit across ALL refs), deliberately, so the page and the change-gate can
-   never disagree about what counts as work landing. Derived here rather than passed in: a caller
+   current state against and every tick must publish.
+
+   ⚠ CORRECTED SAME DAY, CEO 82: this used to say "same quantity glass.mjs uses for last progress …
+   so the page and the change-gate can never disagree". FALSE from the moment the note-reset filter
+   landed — glass.mjs still computes its last-progress commit unfiltered. The gate and this stamp
+   agree with each other (one function, imported below); the PAGE runs slightly ahead of both right
+   after a note reset, overstating freshness. Overstating never suppresses a publish, so it is
+   tolerated — but it is a real divergence and is stated rather than papered over. A comment that
+   makes a behavioural claim rots, and this one rotted the day it was written.
+
+   Derived here rather than passed in: a caller
    that has to type it is a caller that can mistype it. If git will not answer, the stamp says so
-   rather than inventing a hash — and glass_needs_publish reads a missing commit as PUBLISH. */
+   rather than inventing a hash — and glass_needs_publish reads a missing commit as PUBLISH.
+
+   ⚠ IMPORTED FROM glass_needs_publish.mjs, NEVER REPEATED HERE. Rule 23: two things that must
+   agree are ONE thing, or they will drift. The first version of the echo-tick fix put a pathspec in
+   the gate and left this file recording an UNFILTERED head — so the gate would have compared a
+   filtered hash against an unfiltered stamp, they could never match, and the result would have been
+   a permanent false PUBLISH. Caught before shipping by asking what makes these two agree; the
+   honest answer was "nothing", so now there is only one definition of "the newest work commit". */
 let head = "unknown";
 try {
-  head = execFileSync("git", ["-C", ROOT, "log", "-1", "--format=%H", "--all"], { encoding: "utf8" }).trim() || "unknown";
+  const { newestWorkCommit } = await import("./glass_needs_publish.mjs");
+  head = newestWorkCommit(ROOT) || "unknown";
 } catch { head = "unknown"; }
 
 const nowIso = new Date().toISOString();

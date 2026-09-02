@@ -85,6 +85,26 @@ const src = readFileSync(SCRIPT, "utf8");
   else pass("resolves more paths to PUBLISH than to NOTHING-MOVED, as a safe default should");
 }
 
+/* 3b. THE LOOP MUST NOT PUBLISH ON ITS OWN HOUSEKEEPING — the echo tick.
+      MEASURED 2026-09-02, reported by the running publisher rather than theorised: every real note
+      cost TWO publishes. `fb6deef4` was a watch adding a note AND a ledger entry (real work), so
+      that tick published and stamped at fb6deef4 — and THEN committed the note reset as
+      `7b191d1e`, whose entire diff is GLASS-NOTE.md, 19 deletions, nothing else. The next tick saw
+      7b191d1e ≠ fb6deef4, called it work landed, and republished a page carrying nothing new.
+      One wasted publish per note, predictably, forever.
+      THE FIX IS NOT TO REORDER THE STAMP. Stamping after the commit would record a hash newer than
+      what was actually published, so work landing in that window would be swallowed — a false
+      NOTHING-MOVED, which is the dangerous direction. Instead the commit comparison IGNORES commits
+      whose entire diff is GLASS-NOTE.md, because that file already has its OWN dedicated check
+      above: a note being ADDED is caught by "is a note queued", and a note being REMOVED is
+      housekeeping by construction. One signal, one owner — counting the note twice is what created
+      the echo. */
+{
+  if (!/exclude\)?\.planning\/wyclau\/GLASS-NOTE\.md|exclude.*GLASS-NOTE/.test(src))
+    fail("counts its own GLASS-NOTE.md reset as work landed — every real note costs a second, empty publish on the next tick (measured: fb6deef4 -> 7b191d1e)");
+  else pass("ignores commits whose only change is GLASS-NOTE.md — the note has its own check, and counting it twice is the echo tick");
+}
+
 // 4. IT MUST SAY, ITSELF, THAT IT CANNOT SEE THE PAGE. The one way this tool could do real harm is
 //    by being trusted to decide whether the harvest is needed. It cannot: only a session with the
 //    Artifact tool can read what Wyatt typed.

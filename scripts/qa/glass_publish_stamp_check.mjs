@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRIPT = join(ROOT, "scripts", "wyclau", "mark_glass_published.mjs");
+const SIBLING = join(ROOT, "scripts", "wyclau", "glass_needs_publish.mjs");
 
 let failures = 0;
 const fail = (msg) => { console.log(`  FAIL  ${msg}`); failures++; };
@@ -41,12 +42,34 @@ const pass = (msg) => console.log(`  ok    ${msg}`);
 /* Run the stamper against a THROWAWAY tree so the real .planning/wyclau/LAST-PUBLISH is never
    touched. The script derives its target from its own location, so the copy must sit at the same
    depth: <sandbox>/scripts/wyclau/mark_glass_published.mjs -> <sandbox>/.planning/wyclau/. */
+/* ⚠ THE SANDBOX MUST BE A REAL GIT REPO WITH A REAL SIBLING SCRIPT — CEO 82, and this was a live
+   trap rather than a tidiness point. The first version copied ONLY mark_glass_published.mjs, so its
+   `await import("./glass_needs_publish.mjs")` could never resolve, the catch fired on every run, and
+   `head` was the literal string "unknown" in EVERY assertion. The gate was green on a path where
+   the commit derivation was 100% broken, and would have stayed green if that derivation broke in
+   production. THE PRODUCTION CONSEQUENCE IS NOT BENIGN: glass_needs_publish matches
+   /commit=([0-9a-f]{7,40})/, "unknown" does not match, so the stamp reads as "no commit recorded"
+   and the gate returns PUBLISH on every tick forever — the exact clock-driven behaviour Wyatt
+   objected to, restored silently, with npm test reporting all gates green.
+   A gate that cannot fail in the one dimension the fix depends on is rule 6's own sentence,
+   reproduced inside the gate written to enforce it. */
 function runInSandbox(args) {
   const box = mkdtempSync(join(tmpdir(), "glass-stamp-"));
   mkdirSync(join(box, "scripts", "wyclau"), { recursive: true });
   mkdirSync(join(box, ".planning", "wyclau"), { recursive: true });
   const copy = join(box, "scripts", "wyclau", "mark_glass_published.mjs");
   writeFileSync(copy, readFileSync(SCRIPT));
+  // The sibling the stamper imports its one definition of "newest work commit" from.
+  writeFileSync(join(box, "scripts", "wyclau", "glass_needs_publish.mjs"), readFileSync(SIBLING));
+  // A real repo with a real commit, so the derivation runs for real instead of falling into catch.
+  const git = (...a) => execFileSync("git", ["-C", box, ...a], { stdio: ["ignore", "pipe", "pipe"] });
+  try {
+    git("init", "-q");
+    git("config", "user.email", "gate@example.invalid");
+    git("config", "user.name", "gate");
+    git("add", "-A");
+    git("commit", "-q", "-m", "sandbox");
+  } catch { /* no git here: the assertions below will show it as a real failure, not hide it */ }
   const stamp = join(box, ".planning", "wyclau", "LAST-PUBLISH");
   writeFileSync(stamp, "SENTINEL-UNTOUCHED\n");
   let code = 0, out = "";
@@ -88,6 +111,10 @@ console.log("LAST-PUBLISH must be a receipt, not an assertion\n");
   else pass("stamps when given the version the publish returned");
   if (!r.after.includes("1788301109-8c5c")) fail("stamped without recording the version — the receipt has no number on it");
   else pass("records the artifact version in the stamp");
+  // AND THE COMMIT, FOR REAL. Not "unknown": a 40-hex sha, derived through the sibling import.
+  const sha = (r.after.match(/commit=([0-9a-f]{40})/) || [])[1];
+  if (!sha) fail(`stamped no real commit sha — the change-gate reads that as "nothing to compare" and publishes on every tick forever. Got: ${r.after.trim()}`);
+  else pass(`records a real 40-hex commit (${sha.slice(0,7)}), so the derivation actually ran`);
 }
 
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
