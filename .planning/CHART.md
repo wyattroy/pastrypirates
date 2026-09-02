@@ -142,6 +142,35 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         3. **The three repairs the banner says must land in the same change:** the Glass's `done`
            count becomes "done today" from `CHART-LOG.md`; `rulings_triage_check.mjs` reads the log
            not the Chart; the `SETTLED RULINGS` table is swept too.
+      ### ⚑ NEXT, AND CEO 95 SAYS IT OUTRANKS ANY MORE INTERNAL WORK: NOBODY RUNS THIS TOOL.
+      CEO 95, 2026-09-02, in its own words: *"A ranking tool nobody runs does not clean your list."*
+      It looked for an invocation and found none — not in `.claude/`, not in `package.json`; only a
+      mention in `GLASS-UPDATE-SESSION.md`. **That is not new information** — this row already says
+      *"the Chart re-prioritises only when somebody types the command"*, and the wiring is filed as
+      `PENDING-KIT-PATCHES.md` items 4 and 5, blocked on a vendored `glass.mjs`/Door outside an
+      unattended watch's reach. **But it is the right ranking of what is left**: Wyatt's complaint
+      was finished tasks sitting on his list, and the pass that moves them runs only when a human
+      types it. Whoever can reach claude-kit should take patch 4 before any more keying work.
+      ### ⚑ THE DUPLICATE-KEY COLLISION — DONE 2026-09-02T06:49Z, CEO 95 PARTIAL, and the PARTIAL was earned.
+      **Three lookups keyed on things that can repeat, all fixed.** `new Map(pairs)` keeps the last
+      value for a repeated key in silence: his Inbox had two notes under one stamp
+      (`INBOX-20260902T05xxZ`, since repaired to give the second its own `-a`), and `reapById` /
+      `settleByTitle` / `applySettle`'s split match / SWEEP all keyed on a row's TITLE, which nothing
+      forbids two rows from sharing. Rows now carry `row.key`, unique by construction
+      (`chart_model.mjs`'s `rowKey`), and the write pass tracks which row landed in which slot
+      instead of re-deriving identity from the text afterwards. Ten new gate cases (block 12),
+      five red first; `npm test` 94.
+      **SIZED HONESTLY, AND THE MEASUREMENT CAME BEFORE THE FIX: nothing on his page was wrong.**
+      Both colliding entries were open and no row cited that stamp. The defect was that the answer
+      was UNGROUNDED — it turned on file order — not that it was wrong. The real Chart's ranking is
+      byte-identical before and after.
+      ⚠ **AND CEO 95 CAUGHT THE SAME FAULT CEO 94 CAUGHT, ONE COMMIT LATER, IN THE SAME FILE.** The
+      first version of the new banner told him a row citing an ambiguous stamp *"cannot be read as
+      approval"* — **false in exactly the case that had actually happened in his Inbox**, where both
+      notes were open and the citation therefore WAS credited. A behavioural claim written into the
+      one place he reads. The code was the half that was right; the words are now the code's, and
+      gate case 12a-ii holds them there. Two more comment claims of the same shape were corrected in
+      the same pass. Full verdict and response: `.planning/CEO-REVIEWS.md`, CEO 95.
       ### ⚑ THE TWO UNSOUND RANKING SIGNALS — WORKED 2026-09-02T06:0xZ. One is DONE, one is HALF DONE, and CEO 94 says exactly where the line is.
       **SIGNAL B — the false "you have raised it N times" — is DONE (CEO 94's own scoring).** It
       was a five-letter token overlap over 900 characters of essay, and on the real Chart it told

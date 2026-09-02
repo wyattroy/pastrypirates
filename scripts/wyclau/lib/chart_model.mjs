@@ -88,6 +88,13 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/** The one place the row-identity format is written. Every consumer that needs to name a row by its
+ *  position — the Chartkeeper's write pass, its sweep — imports this rather than re-typing
+ *  `${kind}#${i}`. CEO 95 caught three hand-written copies of it and named the failure exactly:
+ *  they would not error, they would silently return nothing, so the tool would stop writing flags
+ *  and stop sweeping with everything still green. Rule 23 in miniature. */
+export const rowKey = (kind, chunkIndex) => `${kind}#${chunkIndex}`;
+
 /** The one-line title a human (and the Glass) sees: the row's first line, markers stripped. */
 export function titleOf(rowLines) {
   return rowLines[0]
@@ -127,7 +134,7 @@ export function parseChart(text) {
   const mk = (c, kind, i) => ({
     kind,
     chunkIndex: i,
-    key: `${kind}#${i}`,
+    key: rowKey(kind, i),
     lines: c.lines,
     raw: bodyOf(c.lines),
     title: titleOf(c.lines),

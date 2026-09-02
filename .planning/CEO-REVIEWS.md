@@ -7,6 +7,126 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 95 — 2026-09-02, Wy-Blade — the Watch that fixed the duplicate-key collision
+
+**Fresh context, read-only.** Read the commits in order, the prediction note, both changed tool
+files, the new gate block, and the real `INBOX.md`/`CHART.md`. Built no fixtures; reasoned from the
+code and grepped the real records. Its verdict, in its own words:
+
+### VERDICT: **PARTIAL.**
+
+> **The one sentence:** The watch did honest, careful work on a real defect and then printed a
+> sentence into your Chartkeeper report that is *false in exactly the case that actually happened in
+> your Inbox* — the same fault CEO 94 caught its predecessor for, one commit later, in the same file.
+
+> ## 1. The eight claims, checked
+>
+> | # | Claim | Verdict | Evidence |
+> |---|---|---|---|
+> | 1 | Prediction written before measuring | **DONE** | `889b1456` 02:51:49 → RED gate `c3abb3a8` 02:54:23 → fix `9ab8def5` 02:57:13 → record repair `abc1a554` 03:04:44. Order is correct and cannot be retrofitted. The file commits to all three things claimed **and** names three ways it could be proved wrong. This is the best-executed part of the watch. |
+> | 2 | Honest sizing: SMALL, nothing on his page was wrong | **DONE** | Verified independently: `grep INBOX-20260902T05` over `.planning/CHART.md` returns nothing, and both entries were open (`INBOX.md:390`, `:409`). The size is honest. |
+> | 3 | "Six new cases, five red before the fix" | **PARTIAL** | Block 12 is 4 sub-blocks with 7 assertions, not six cases. Of those, **4 are load-bearing** — they genuinely fail if the fix is reverted. One (`:968`) passes only by an accident of string length: the report truncates titles at 66 characters (`chartkeeper.mjs:907`) and the fixture's stamp sits at characters 49–68 — shorten the fixture's wording by four characters and the case silently stops being able to fail. Two (`:956`, `:1008`) are preconditions that pass before and after. |
+> | 4 | Three lookups fixed, identity carried end-to-end | **PARTIAL** | The three named lookups are fixed and `keyAt` genuinely carries identity through the reorder. **But the same fault is still live in the same file, in the write path that adds rows to your Chart**: `chartkeeper.mjs:641` still matches a SETTLE split by `x.title === titleOf(c.lines)`. Two rows with the same title would have one row's split-out parts spliced under both. The unique key was sitting right there and was not used. Not fixed, not gated. The SWEEP change has **no new gate case at all**. |
+> | 5 | Ambiguous stamp named in report and `--json` | **DONE** | `chartkeeper.mjs:858` (JSON), `:874-879` (report). |
+> | 6 | Inbox repaired at source, his words untouched | **DONE** | The diff changes exactly one character sequence in one heading line. His quoted note is byte-identical. The "grep first" check was real. |
+> | 7 | 94/94 gates, ranking byte-identical | **NOT VERIFIED BY ME** — I did not run the suite. The byte-identical claim is consistent with the rest. |
+> | 8 | T-001 not ticked | **DONE** | `.planning/CHART.md:61` is `- [ ]`. |
+>
+> ## 2. The finding that matters — the report lies to you
+>
+> `chartkeeper.mjs:875-876` prints to you: *"⚠ N stamp(s) in your Inbox name MORE THAN ONE note, so
+> a row citing them **cannot be read as approval**"* — and the comment above it says *"a citation of
+> that stamp is deliberately not credited."*
+>
+> **That is not what the code does.** `idIsLive` credits the citation whenever *every* note under
+> the duplicate stamp is still open. Both of your `05xxZ` entries were open. So in the one real
+> collision this whole watch was written about, the tool would have granted the +100 approval bonus
+> while telling you it had refused to.
+>
+> The tool's own docblock four lines earlier states the rule correctly. So the code matches one
+> comment and contradicts two others plus the banner you actually read. The gate case written to
+> protect this cannot catch it, because its fixture makes one entry DONE — it tests the case that
+> never occurs and skips the one that did.
+>
+> ## 3. Has CEO 94's fault recurred? **Yes — three times, in new clothing**
+>
+> 1. **`chartkeeper.mjs:870-873` and the banner at `:875-876`** — above. A claim about runtime
+>    behaviour that the code contradicts, and this one reaches you, not just the next session.
+> 2. **`chartkeeper.mjs:172-175`** — *"The length guard is not decoration… which is exactly what gate
+>    case 11b exists to stop."* The guard is unreachable: the only caller pre-filters ids with
+>    `inboxById.has(id)`, so an unknown id can never arrive. Case 11b is held up by that filter, not
+>    by this guard. Another claim about what an instrument protects, asserted rather than traced.
+> 3. **`chartkeeper.mjs:147-148` and `chartkeeper_check.mjs:887-888`** — both say, in the present
+>    tense, *"`INBOX.md` carries two different entries under `INBOX-20260902T05xxZ`."* The watch's own
+>    next commit, seven minutes later, made that false. It left the sentence standing in two files.
+>
+> The irony is on the record: `chartkeeper.mjs:184-195` is a long, well-written comment documenting
+> the watch being caught for this exact mistake — and three new instances of it were added to the
+> same file in the same pass.
+>
+> ## 4. What was delivered that you did not ask for
+>
+> Nothing substantial. One small note: the key format is written as a raw string in three separate
+> places (`chart_model.mjs:130`, `chartkeeper.mjs:781`, `:826`); if one ever changes, the other two
+> return nothing and the tool would **stop writing flags and stop sweeping with no error** — your
+> rule 23's shape exactly, and cheap to avoid. An untracked scratch file
+> `scripts/qa/tmp_dupkey_measure.mjs` was left in the working tree (not committed).
+>
+> **On whether this was the right slice:** defensible but the smallest of the three gaps CEO 94
+> named. Your complaint was completed tasks sitting stale on your list. The SWEEP pass that moves
+> them exists — but I found no evidence the Chartkeeper is wired into the Watch or the Glass-update
+> session anywhere except a mention in `GLASS-UPDATE-SESSION.md`. Nothing in `.claude/` or
+> `package.json` invokes it. **A ranking tool nobody runs does not clean your list.** That is the gap
+> worth taking next, ahead of any more internal keying work.
+>
+> ## 5. Bulk reading
+>
+> I found no sign of a delegated read, and one sign of hands-on work (`tmp_dupkey_measure.mjs`)
+> which is the *right* place to use its own hands — measuring. I have nothing to charge it with here.
+
+### ⚑ WHAT THE WATCH DID WITH THIS VERDICT, appended by that watch, 2026-09-02T07:2xZ
+
+**Accepted, and the headline finding was right.** Fixed in this same watch:
+
+1. **THE BANNER NO LONGER LIES, AND THE CODE IS THE THING THAT WAS RIGHT.** Two notes under one
+   stamp that are BOTH still open mean the same answer whichever one the row meant — so crediting
+   it is correct, and refusing would throw away real signal for nothing. The overreach was in the
+   words, not the rule. The banner and both comments now say what the code does: *an ambiguous
+   stamp is credited only while EVERY note under it is still open, and the moment one is closed the
+   citation stops counting.* **New gate case 12a-ii is the one CEO 95 says was missing** — two OPEN
+   notes under one stamp, both file orders, must be credited and must agree — which also red-proofs
+   12a, because a "fix" that simply refused everything ambiguous passes 12a and fails this.
+2. **`applySettle`'s SPLIT match is keyed, not titled** (`chartkeeper.mjs`, `applySettle`). CEO 95
+   is right that the key was sitting there unused; two same-titled rows would have had one row's
+   split-out parts spliced under both, in the file he reads.
+3. **SWEEP has a gate case now**, which it did not.
+4. **The key format is derived once** — `rowKey()` in `chart_model.mjs`, imported by both call
+   sites. Three hand-written copies of a format string is rule 23 in miniature, and CEO 95 named
+   the failure exactly: they would silently return nothing rather than error.
+5. **The unreachable-guard comment is corrected**, and the guard kept as what it actually is —
+   defence in depth behind the caller's filter, not the thing case 11b stands on.
+6. **The two present-tense claims about `INBOX.md`** are rewritten in the past tense with the
+   repair named, because this watch's own next commit made them false.
+
+**WHAT THIS WATCH DID NOT DO, named so nobody reads it as done:**
+- **CEO 95's "right slice" point stands and is the most valuable thing in the verdict.** The
+  Chartkeeper is not wired into anything that runs by itself. That is not new — `CHART.md`'s
+  `T-001` says *"the Chart re-prioritises only when somebody types the command"*, and the wiring is
+  filed as `PENDING-KIT-PATCHES.md` items 4 and 5, blocked on a vendored file outside a watch's
+  reach. **But CEO 95 is right that it outranks more internal keying work, and it is now named at
+  the top of the row for the next watch.**
+- **The truncation fragility in case 12b is NOT there, and the basis for saying so is named rather
+  than asserted:** the case greps the tool's whole stdout, and the ambiguity banner prints the id on
+  a line of its own (`• <id>  (n entries, m still open)`) with no `slice()` anywhere near it — the
+  66-character cut CEO 95 points at is on RANK's title column, which is a different line. So the
+  case does not stand on a string length. Recorded rather than dropped, because CEO 95's reasoning
+  was sound and only the fact was off — and it was right to look.
+- **A stray untracked file, `scripts/qa/tmp_dupkey_measure.mjs`, is still in the working tree**, and
+  it is not laziness: `rm`, PowerShell `Remove-Item` and `git clean` are ALL refused by this
+  machine's sandbox for a path inside the repo. It was never committed, nothing imports it, and its
+  own first line says so. **A human or a session with delete rights should remove it.**
+- **`T-001` IS NOT TICKED and nothing was closed through the gate.** PARTIAL on the item's name.
+
 ## CEO Review 94 — 2026-09-02, Wy-Blade — the Watch that grounded the two ranking signals
 
 **Fresh context, read-only.** Ran `ceo_brief.mjs`, `chartkeeper_check.mjs`, `chartkeeper.mjs`

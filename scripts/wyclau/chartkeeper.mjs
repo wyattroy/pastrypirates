@@ -49,7 +49,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ID_RE, bodyOf, chunk, overlap, parseChart, replaceSection, section, titleOf, tokens,
+  ID_RE, bodyOf, chunk, overlap, parseChart, replaceSection, rowKey, section, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -145,7 +145,10 @@ const inboxEntries = (() => {
  * `new Map(entries.map(e => [e.id, e]))`, which keeps the LAST pair for a repeated key and says
  * nothing — so whichever note he happened to type SECOND decided, for both of them, whether a
  * citation of that stamp counts as an outstanding instruction worth +100. CEO 94 found the real
- * instance: `INBOX.md` carries two different entries under `INBOX-20260902T05xxZ`.
+ * instance: `INBOX.md` carried two different entries under `INBOX-20260902T05xxZ` until the watch
+ * that wrote this gave the second one its own stamp (`-a`). **Past tense on purpose** — the first
+ * version of this sentence was written in the present, and this watch's own next commit made it
+ * false in two files (CEO 95).
  *
  * SIZED HONESTLY, BECAUSE THE MEASUREMENT CAME FIRST: on 2026-09-02 both colliding entries were
  * open and no row cited that stamp, so **nothing on his page was wrong**. The defect is that the
@@ -170,9 +173,13 @@ const inboxById = (() => {
 })();
 const ambiguousInboxIds = [...inboxById].filter(([, es]) => es.length > 1).map(([id]) => id);
 /** True only when every entry sharing this id is still live. See the two rules above.
- *  The length guard is not decoration: `[].every()` is TRUE, so an unknown id would otherwise come
- *  back live — a citation of a stamp in no Inbox at all buying the approval bonus, which is exactly
- *  what gate case 11b exists to stop. */
+ *  The length guard is DEFENCE IN DEPTH, and saying so is the point: `[].every()` is TRUE, so an
+ *  unknown id would come back live from this function alone. What actually stops a citation of a
+ *  stamp in no Inbox (gate case 11b) is the caller's own `inboxById.has(id)` filter in `linksOf`,
+ *  which means this guard is unreachable today. **The first version of this comment credited the
+ *  guard with holding case 11b up. It does not** — CEO 95 traced the caller and found the claim
+ *  asserted rather than followed, which is CEO 94's finding in new clothing. The guard stays,
+ *  because a second caller would arrive without that filter and nothing would say so. */
 const idIsLive = (id) => {
   const es = inboxById.get(id) ?? [];
   return es.length > 0 && es.every((e) => e.live);
@@ -635,10 +642,17 @@ function applySettle(src, d) {
     if (!chunks.length) continue;
     let changed = false;
     const rebuilt = [];
-    for (const c of chunks) {
+    /* KEYED BY POSITION, NOT BY TITLE. This matched `x.title === titleOf(c.lines)`, and CEO 95
+       caught it surviving the pass that fixed the same fault three lines away: two rows sharing a
+       first line would have had ONE row's split-out parts spliced in under BOTH of them, in the
+       file he reads. `chunks` is freshly parsed at the top of this loop, so a chunk's index is
+       exactly the index its row was parsed at. */
+    const splitByKey = new Map(d.settle.filter((x) => x.fate === "SPLIT" && !x.resolved).map((x) => [x.key, x]));
+    for (let ci = 0; ci < chunks.length; ci++) {
+      const c = chunks[ci];
       rebuilt.push(c);
       if (c.type !== "row") continue;
-      const s = d.settle.find((x) => x.fate === "SPLIT" && !x.resolved && x.title === titleOf(c.lines));
+      const s = splitByKey.get(rowKey(kind, ci));
       if (!s) continue;
       const marker = kind === "checklist" ? "- [ ] " : "- ";
       for (const cl of s.open) {
@@ -778,7 +792,7 @@ if (WRITE) {
        sharing a first line therefore got each other's flags written into HIS file. A chunk starts
        out holding the row parsed at that same index; a reorder moves a known row into a known slot.
        Both are facts we have; the title was a guess dressed as an identity. */
-    const keyAt = new Map(slots.map((i) => [i, `${marker}#${i}`]));
+    const keyAt = new Map(slots.map((i) => [i, rowKey(marker, i)]));
     const order = ranked.filter((r) => r.kind === marker);
     if (slots.length === order.length) {
       for (let k = 0; k < slots.length; k++) {
@@ -823,7 +837,7 @@ if (WRITE) {
     const sweepByKey = new Map(sweepable.map((x) => [x.row.key, x]));
     stepOut = stepOut.map((c, i) => {
       if (c.type !== "row") return c;
-      const hit = sweepByKey.get(`checklist#${i}`);
+      const hit = sweepByKey.get(rowKey("checklist", i));
       if (!hit) return c;
       const id = idOf(c.lines) ?? "T-???";
       const when = hit.when.toISOString().slice(0, 10);
@@ -868,13 +882,22 @@ if (JSON_OUT) {
   console.log(`THE CHARTKEEPER — ${CHART}`);
   console.log(`tree stamp ${treeStamp ?? "(unreadable)"} · ${parsed.openRows.length} open rows + ${parsed.openIdeas.length} unfated ideas = ${openItems.length} tasks on his phone\n`);
   /* NAMED, NOT ABSORBED. A stamp naming two of his notes can only be repaired in INBOX.md, and a
-     reader that silently copes with it makes the collision permanent. Until it is repaired, a
-     citation of that stamp is deliberately not credited as an outstanding instruction — we cannot
-     tell which of the two notes the row meant. */
+     reader that silently copes with it makes the collision permanent.
+     ⚠ AND THIS BANNER SAID SOMETHING THE CODE DOES NOT DO. Its first version told him a row citing
+     an ambiguous stamp "cannot be read as approval" — false in exactly the case that had actually
+     occurred in his Inbox, where BOTH notes were open and the citation therefore WAS credited.
+     CEO 95 found it one commit after CEO 94 caught the same watch for the same thing. The code was
+     the half that was right: when both notes are open the answer is the same whichever the row
+     meant, so refusing would throw away real signal. The words are now the code's. */
   if (ambiguousInboxIds.length) {
-    console.log(`⚠ ${ambiguousInboxIds.length} stamp(s) in your Inbox name MORE THAN ONE note, so a row citing them cannot be`);
-    console.log("  read as approval — give one of each pair a distinct stamp in .planning/wyclau/INBOX.md:");
-    for (const id of ambiguousInboxIds) console.log(`       • ${id}  (${inboxById.get(id).length} entries)`);
+    console.log(`⚠ ${ambiguousInboxIds.length} stamp(s) in your Inbox name MORE THAN ONE note. A row citing one of these`);
+    console.log("  counts as approved only while EVERY note under it is still open — the moment one is closed the");
+    console.log("  citation stops counting, because nobody can tell which note it meant. Give one of each pair a");
+    console.log("  distinct stamp in .planning/wyclau/INBOX.md:");
+    for (const id of ambiguousInboxIds) {
+      const es = inboxById.get(id);
+      console.log(`       • ${id}  (${es.length} entries, ${es.filter((e) => e.live).length} still open)`);
+    }
     console.log("");
   }
   if (DO.reap) {

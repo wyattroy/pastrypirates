@@ -884,10 +884,12 @@ const GROUNDED = `# THE CHART — fixture
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    12. NO KEY THIS TOOL USES IS GUARANTEED UNIQUE, AND `new Map(pairs)` KEEPS THE LAST ONE SILENTLY.
 
-   CEO 94 found the first instance: `INBOX.md` really does carry two different entries under the id
-   `INBOX-20260902T05xxZ`, and `chartkeeper.mjs` built `new Map(entries.map(e => [e.id, e]))`. So
-   whichever of his notes he happened to type SECOND decided, for both of them, whether a citation
-   of that stamp counts as an outstanding instruction worth +100.
+   CEO 94 found the first instance: `INBOX.md` carried two different entries under the id
+   `INBOX-20260902T05xxZ` — until the watch that wrote these cases gave the second one its own stamp
+   — and `chartkeeper.mjs` built `new Map(entries.map(e => [e.id, e]))`. So whichever of his notes he
+   happened to type SECOND decided, for both of them, whether a citation of that stamp counts as an
+   outstanding instruction worth +100. *(Past tense on purpose: the first version of this sentence
+   was written in the present and was made false seven minutes later by the repair — CEO 95.)*
 
    ⚠ MEASURED BEFORE IT WAS FIXED, AND THE HONEST SIZE IS SMALL: on 2026-09-02 the two colliding
    entries were BOTH open, and no row on the Chart cited that stamp at all. **Nothing on his page
@@ -901,20 +903,31 @@ const GROUNDED = `# THE CHART — fixture
    and makes the write pass stamp REAP's "⚠ STALE-CANDIDATE" sentence onto a row it never judged.
    ──────────────────────────────────────────────────────────────────────────────────────────── */
 
-/* An Inbox where one id resolves to two entries that DISAGREE — one open, one discharged. */
-const AMBIGUOUS_INBOX = (order) => {
-  const open = `## INBOX-20260101T0303Z — the first note he wrote under this stamp
+/* An Inbox where one id resolves to two entries. `mixed` = they disagree (one open, one
+   discharged); `both-open` = they agree. The two are NOT the same case and the tool must answer
+   them differently — see 12a-ii. */
+const AMB_OPEN = `## INBOX-20260101T0303Z — the first note he wrote under this stamp
 > "paint the hull"
 solution: none stated
 status: OPEN
 `;
-  const done = `## INBOX-20260101T0303Z — a different note, same stamp, and it is finished
+const AMB_OPEN2 = `## INBOX-20260101T0303Z — another note of his, same stamp, also unfinished
+> "swab the deck"
+solution: none stated
+status: OPEN
+`;
+const AMB_DONE = `## INBOX-20260101T0303Z — a different note, same stamp, and it is finished
 > "coil the ropes"
 solution: none stated
 status: DONE 2026-01-04 — CEO 2, commit def5678
 `;
+const AMBIGUOUS_INBOX = (order) => {
+  const pair = order === "open-first" ? [AMB_OPEN, AMB_DONE]
+    : order === "done-first" ? [AMB_DONE, AMB_OPEN]
+      : order === "both-open" ? [AMB_OPEN, AMB_OPEN2]
+        : [AMB_OPEN2, AMB_OPEN];
   const p = join(tmp, `ambiguous-INBOX-${order}.md`);
-  writeFileSync(p, `# THE INBOX — fixture\n\n${order === "open-first" ? open + "\n" + done : done + "\n" + open}`);
+  writeFileSync(p, `# THE INBOX — fixture\n\n${pair[0]}\n${pair[1]}`);
   return p;
 };
 
@@ -954,8 +967,40 @@ const AMBIGUOUS_CHART = `# THE CHART — fixture
   // everywhere else: an ambiguous record cannot buy the approval bonus, because we cannot tell
   // which of the two notes the row meant.
   if (a && b && a.score >= 100)
-    fail(`a citation of an ambiguous stamp still bought the +100 approval bonus (score ${a.score}, ${JSON.stringify(a.whyNow)}) — when his record cannot say which note is meant, the safe answer is not to credit it`);
-  else if (a && b) pass("an ambiguous citation is not read as an outstanding instruction");
+    fail(`a citation of a stamp whose two notes DISAGREE still bought the +100 approval bonus (score ${a.score}, ${JSON.stringify(a.whyNow)}) — one of them is closed and nobody can say which was meant, so it must not count`);
+  else if (a && b) pass("a citation of two notes that disagree is not read as an outstanding instruction");
+}
+
+/* 12a-ii. ⚠ AND AMBIGUOUS DOES NOT MEAN WORTHLESS — CEO 95 CAUGHT THIS MISSING, AND IT IS THE CASE
+        THAT ACTUALLY HAPPENED. When two notes share a stamp and BOTH are still open, the answer is
+        the same whichever one the row meant: he is owed something. Refusing to credit it would
+        throw away real signal for no gain, and the first version of the report told him it did
+        exactly that — a sentence that was false in the one real collision in his Inbox.
+        This case is also what red-proofs 12a: a "fix" that simply refused every ambiguous stamp
+        passes 12a and fails here. */
+{
+  const p = chartFile("ambiguous-both-open", AMBIGUOUS_CHART);
+  const scoreWith = (order) => {
+    const r = runJson([`--chart=${p}`, `--inbox=${AMBIGUOUS_INBOX(order)}`, "--rank"]);
+    return (r.json?.rank || []).find((x) => /AMBIGUOUS STAMP/.test(x.title || "")) || null;
+  };
+  const a = scoreWith("both-open");
+  const b = scoreWith("both-open-reversed");
+  if (!a || !b) fail("the both-open ambiguous fixture did not rank at all");
+  else {
+    if (a.score !== b.score)
+      fail(`two OPEN notes under one stamp scored ${a.score} in one file order and ${b.score} in the other — still ungrounded`);
+    else pass("two OPEN notes under one stamp give the same answer whichever was written first");
+    if (a.score < 100)
+      fail(`a row citing a stamp whose notes are BOTH still open scored only ${a.score} (${JSON.stringify(a.whyNow)}) — he is owed something either way, so refusing to credit it discards real signal, and the report claims the tool credits it`);
+    else pass("two OPEN notes under one stamp still count as an outstanding instruction");
+  }
+  // …and the banner must describe THAT behaviour, not the opposite. The first version said a row
+  // citing an ambiguous stamp "cannot be read as approval", which was false in this very case.
+  const text = run([`--chart=${p}`, `--inbox=${AMBIGUOUS_INBOX("both-open")}`, "--rank"]).out;
+  if (/cannot be\s+read as approval/.test(text))
+    fail("the report still tells him an ambiguous citation cannot be read as approval, while the code credits it — the sentence he reads must be the one the code obeys");
+  else pass("the report describes what the code does with an ambiguous stamp, not the opposite");
 }
 
 /* 12b. AND IT MUST SAY SO OUT LOUD. A duplicate id is a fault in HIS record, not in this tool, and
@@ -1026,6 +1071,57 @@ const TWINS = `# THE CHART — fixture
   else if (/STALE-CANDIDATE|⚠ STALE/.test(innocentBlock))
     fail(`the write stamped REAP's stale flag onto the row it never judged:\n${innocentBlock.trim().slice(0, 300)}`);
   else pass("the write does not stamp one row's stale flag onto its same-titled twin");
+}
+
+/* 12d. THE SWEEP MATCHED DONE ROWS BY TITLE TOO, AND HAD NO CASE AT ALL — CEO 95's finding. Two
+        finished rows sharing a first line, only ONE of them old enough to archive: the young one
+        must stay on his Chart and must not be filed into the log. `sweepable.find(title === title)`
+        cannot tell them apart, so it archives whichever it meets first. */
+const SWEEP_TWINS = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] **SOMETHING STILL OPEN** so the section is not all-done. Filed 2026-09-02T04:19Z.
+- [x] **TWO FINISHED ROWS THAT SHARE ONE FIRST LINE**
+      ⟨\`T-911\`⟩
+      This one was SHIPPED 2001-02-03 and is long past the archive age.
+- [x] **TWO FINISHED ROWS THAT SHARE ONE FIRST LINE**
+      ⟨\`T-912\`⟩
+      This one was SHIPPED ${TODAY} and must stay exactly where it is.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+{
+  const p = chartFile("sweep-twins", SWEEP_TWINS);
+  const logPath = join(tmp, "sweep-twins-LOG.md");
+  const r = runJson([`--chart=${p}`, `--log=${logPath}`, "--sweep"]);
+  const sweep = r.json?.sweep || [];
+  if (sweep.length !== 1)
+    fail(`SWEEP offered ${sweep.length} of the two same-titled done rows for archiving — only the 2001 one is old enough, so this case only means something at exactly 1`);
+  else pass("only the old one of two same-titled finished rows is offered for archiving");
+  run([`--chart=${p}`, `--log=${logPath}`, "--sweep", "--write"]);
+  const after = readFileSync(p, "utf8");
+  /* ⚠ "T-912 is still in the file" IS THE WRONG QUESTION and the first version of this case asked
+     it: an archived row leaves a stub behind that still names its handle, so that assertion is
+     true whether or not the row was swept. Ask whether it is still a TICKED ROW on his Chart. */
+  const youngStillOnChart = after.split(/^- \[[xX]\] /m).slice(1).some((b) => b.includes("T-912"));
+  if (!youngStillOnChart)
+    fail(`the write archived the row finished TODAY — it shares a first line with the 2001 one, and matching by title cannot tell them apart:\n${after}`);
+  else pass("the row finished today survives the sweep of its same-titled twin");
+  /* RED-PROOF: the case above is worthless unless the sweep actually ran. The archived row leaves a
+     one-line stub behind that still names its handle, so "T-911 is gone from the file" is the wrong
+     question — ask whether it is still a CHECKBOX row, and whether the log has it. */
+  const stillTicked = after.split(/^- \[[xX]\] /m).slice(1).some((b) => b.includes("T-911"));
+  if (stillTicked || !existsSync(logPath) || !readFileSync(logPath, "utf8").includes("T-911"))
+    fail("the 2001 row was not archived into the log, so the case above passed for the wrong reason — the sweep did nothing at all");
+  else pass("…and the old twin really was archived, so the case above could have failed");
 }
 
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
