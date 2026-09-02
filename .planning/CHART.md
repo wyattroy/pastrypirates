@@ -845,6 +845,36 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
       record' are different things, and only the second is auditable."* Override the ACTION, not the
       CHECK. From outside, a skipped gate and an unwired gate look identical.
+      ### ⚑ THE MECHANISM SHIPPED 2026-09-02T10:33Z AND ITS FIRST USE CAUGHT A REAL SKIP — TWO ROWS BELOW CARRY WHAT IS LEFT.
+      `glass_gate_log.mjs` wraps the gate, appends one line to `.planning/wyclau/GATE-LOG` on every
+      run, and hands back the gate's own exit code; `--harvested` overrides only the exit code, so
+      the gate's REAL verdict is still what gets written down. Runbook step 3 calls it
+      unconditionally. Gate `glass_gate_verdict_logged_check.mjs`, 14 cases, red-proofed twice
+      (once with no wrapper at all, once with three deliberate breakages after CEO 100).
+- [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
+      ⟨`T-074`⟩
+      CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
+      reads `2026-09-02T10:35:50Z` (written only by step 4) and `GATE-LOG`'s newest line is still
+      `10:29:01Z` (the watch's own bench test). **The tick ran step 4 and left no verdict at step 3.**
+      ⚠ **THE ABSENCE OF THAT LINE IS THE NEW MECHANISM WORKING, NOT FAILING** — before 10:33Z there
+      was no way on earth to tell a skipped gate from an unwired one, and the very first use of the
+      log caught a skip. Do not read this row as "the fix did not work."
+      **WHAT IS ACTUALLY MISSING: a gate the tick cannot walk past.** Step 3 is an instruction in a
+      runbook, and `glass_gate_verdict_logged_check.mjs` case 8 can only check that the runbook SAYS
+      the right thing — it cannot see whether the session typed the command. Fix shape: make the
+      later steps refuse. A `mark_glass_published.mjs` that declines to stamp when `GATE-LOG` has no
+      line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
+      (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
+      non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
+- [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
+      ⟨`T-075`⟩
+      untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,
+      surfaced nowhere on his page. **The gitignore is correct and is not the thing to change** —
+      a tracked log line committed beside the note reset would make that commit touch two files, so
+      `newestWorkCommit()` would read it as work landing and republish an unchanged page: the echo
+      tick removed the same day. `publish_status.mjs` is the mechanism that already carries exactly
+      these machine-local instruments into the tracked `status/<host>.md`, and **it is vendored** —
+      so this is a kit patch, alongside the others in `PENDING-KIT-PATCHES.md`.
 - [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
       ⟨`T-019`⟩
   2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
