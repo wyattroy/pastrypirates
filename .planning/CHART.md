@@ -516,6 +516,35 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
+      His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
+      ⟨`T-094`⟩
+      **HIS WORDS:** *"what is being worked on RIGHT NOW? that needs to be visible just underneath
+      the emoji status."* Then: *"design a fix, get CEO's approval, then add it to the top of the
+      chart."* **Verdict: APPROVED WITH CHANGES — and the changes were not cosmetic.**
+      **BUILD IT THIS WAY — write the claim the way the CLOSE is already written.** `close_item.mjs`
+      appends a fixed machine-written line on close; the claim half is human prose. Make them
+      symmetrical: `publish_status.mjs` gains an **`## In hand`** block in
+      `.planning/wyclau/status/<machine>.md`, the same shape as the `## Long run in flight` block it
+      already writes — and `glass.mjs` already reads that file (`:614`). One more `split`.
+      **WHY NOT THE OBVIOUS VERSION (parse the ledger):** `.planning/CTO-LEDGER.md` has **15**
+      `### WATCH` headings and **exactly 4** match a parseable shape — the tidy ones are all from the
+      last two hours, and nothing prescribes the format. **A regex over that finds nothing this
+      morning and goes silent the first time a watch words its heading its own way.**
+      **FOUR STATES, and the fourth is the point:** in hand · nothing in hand · **⚠ claimed but
+      COLD** · unreadable. **A watch can claim and end without closing — that happened twice today,
+      deliberately** — so an open claim outliving its watch is normal, and must never read as
+      "being worked on right now". COLD is derived from a `staleAfterMinutes` the block declares
+      itself, exactly as the long-run block already does. **No new constant.**
+      **THE BOUND, HONESTLY:** a stale claim is NOT self-clearing within a Bell interval. Rings were
+      **40, 60, 50 and 30 minutes** apart today, and a watch can end having pushed nothing. **Up to
+      about an hour, unbounded when the Bell is not ringing** — which is why COLD is required.
+      ✅ **AND HIS ASK 2 IS ALREADY FIXED, BY ANOTHER ROUTE — do not build it here.** The browser
+      clock the first draft proposed **already exists** (`glass.mjs:900-930`, two clocks, since
+      2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
+      was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
+      publish the moment it lands work.
+
 - [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
       ⟨`T-093`⟩
       **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
