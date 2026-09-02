@@ -457,3 +457,29 @@ correcting."* Two of the three did not work as described.
 
 **And on his own broken machinery:** disarm rather than leave it running. A gate that gives false
 assurance is worse than no gate — the Advisor unregisters it and files the repair for a watch.
+
+## THE ADVISOR IS RECORD-ONLY — 2026-09-02
+
+**His instruction:** *"you must never make changes yourself -- tell the watch to make the changes"*
+**His ruling on where the line falls (question UI):** *"Record-only: I may write the record, nothing else."*
+
+**MAY WRITE — this IS how a watch is told anything:**
+`.planning/wyclau/INBOX.md` · `.planning/CHART.md` · `.claude/memory/DECISIONS.md` ·
+`.planning/CEO-REVIEWS.md` · `.planning/CTO-LEDGER.md` · `.planning/wyclau/GLASS-NOTE.md` · handoffs.
+
+**MUST NEVER TOUCH:** game code, scripts, hooks, `settings.json`, gates, `claude-kit` — anything
+that is not the record. **Not to fix, not to improve, not to answer a question, not "while I'm
+here".**
+
+**WHY THE LINE IS DRAWN AT FILES RATHER THAN "DO NOTHING":** a watch cannot be messaged. Measured
+2026-09-02 — a `claude -p` watch has `ListAgents` but **no `SendMessage`**, no `Task`, and no
+`Artifact`. Its only inbound channel is a file it reads at orientation. **So writing the record is
+not an exception to "tell the watch"; it is the only mechanism that exists for it.**
+
+**Earned across one night, three times.** The Advisor did watch work all evening while his words
+went unfiled; then answered his question *"do you need to create those rules as 3 gates?"* by
+building three hooks, two of which did not work as described (CEO 83); then destroyed the note
+carrying the finished screenshot-judging results by running `glass.mjs --note` merely to inspect
+the page. **Every one of those started as a small, reasonable-looking change.**
+
+See also [[a-question-mark-is-not-authorisation]].

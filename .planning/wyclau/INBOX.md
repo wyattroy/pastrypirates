@@ -313,3 +313,11 @@ status: RECOVERED, and the underlying hazard is already a Chart row.
   WHAT HAPPENED: answering his question about the Glass's Tasks card, the Advisor ran `node scripts/wyclau/glass.mjs --note "..."` simply to regenerate the page and inspect it. That command folds `GLASS-NOTE.md` into the page **and clears the file, whether or not anything is published**. It consumed a watch's note carrying the finished screenshot-judging results — 315 of 315 judged, the End-of-Voyage button finding, and two questions waiting on Wyatt. He would never have seen any of it.
   RECOVERED with `git checkout -- .planning/wyclau/GLASS-NOTE.md`; the watch had committed it, which is the only reason it survived. **A note that is committed is not a note that was delivered**, and now the reverse also bit: a note that was delivered can still be destroyed before it is published.
   THE LESSON, and it is the same one three times tonight: a command that LOOKS like a read (`--note` to regenerate and inspect) had a destructive side effect nobody warned about at the call site. The hazard was filed by a watch hours earlier and this session still walked into it.
+
+## INBOX-20260902T0400Z — the Advisor is RECORD-ONLY, permanently
+> "you must never make changes yourself -- tell the watch to make the changes"
+> Ruling, question UI: "Record-only: I may write the record, nothing else."
+solution: his own. The Advisor writes INBOX / CHART / DECISIONS / CEO-REVIEWS / CTO-LEDGER / GLASS-NOTE / handoffs — and nothing else, ever. No code, scripts, hooks, settings, gates or kit.
+status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md` as THE ADVISOR IS RECORD-ONLY.
+  THE MECHANICAL REASON THE LINE SITS AT FILES: a watch cannot be messaged. Measured tonight — a `claude -p` watch has `ListAgents` but no `SendMessage`, no `Task`, no `Artifact`. Its only inbound channel is a file it reads at orientation. Writing the record is not an exception to "tell the watch"; it is the only mechanism that exists for it.
+  EARNED THREE TIMES IN ONE NIGHT, each starting as a small reasonable-looking change: watch work done while his words went unfiled; three hooks built in answer to a question (two broken, CEO 83); and the note carrying the screenshot results destroyed by a command run only to inspect the page.
