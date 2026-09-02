@@ -839,7 +839,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
-- [ ] **Record the change-gate's verdict even when it is overridden** — the runbook's override
+- [x] **Record the change-gate's verdict even when it is overridden** — the runbook's override (closed 2026-09-02 · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows)
       ⟨`T-018`⟩
       clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
       The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on

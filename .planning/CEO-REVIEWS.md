@@ -9,7 +9,7 @@
 
 ## CEO Review 100 — 2026-09-02, Wy-Blade — the Glass tick's change-gate must RUN and leave a verdict
 
-*Item: **`INBOX-20260902T0120Z`** / Chart row **`T-018`** (`.planning/CHART.md:842-847`) — "run `glass_needs_publish.mjs` on EVERY tick and log its verdict, even when the harvest has already forced a publish. Change the runbook's override clause so it overrides the ACTION, not the CHECK." Commits `905a246` (claim), `229843cf` (the work). Previous verdict handed over: CEO 99 (PARTIAL, T-059).*
+*Item: **`INBOX-20260902T0120Z`** / Chart row **`T-018`**, titled *"Record the change-gate's verdict even when it is overridden"* (`.planning/CHART.md:842-847`) — "run `glass_needs_publish.mjs` on EVERY tick and log its verdict, even when the harvest has already forced a publish. Change the runbook's override clause so it overrides the ACTION, not the CHECK." Commits `905a246` (claim), `229843cf` (the work). Previous verdict handed over: CEO 99 (PARTIAL, T-059).*
 
 ### VERDICT: **PARTIAL** — in my own words
 

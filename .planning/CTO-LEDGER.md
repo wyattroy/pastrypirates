@@ -4223,3 +4223,7 @@ Chartkeeper) is that same kit refusal. `0405Z`, `05xxZ-a`, `05xxZ-b` and `05xxZ-
 design question he has not ruled on. **`0120Z` is the oldest OPEN entry marked FOR A WATCH whose fix
 lives entirely in this repo** — `GLASS-UPDATE-SESSION.md` is not in `.claude/wyclau/MANIFEST.sha256`,
 so the runbook is ours to change.
+
+- 2026-09-02T10:46:27Z · close_item: INBOX-20260902T0120Z · CEO 100 · no game diff — no game-code change is right: the ask is about the Glass tick's own runbook and its change-gate, not the game -- .gitignore, package.json, a runbook, a QA gate and a new wyclau script; src/ and index.html untouched · his solution first: commit 229843c · the change-gate now runs on every tick and leaves a verdict; --harvested overrides the action, never the check
+
+- 2026-09-02T10:46:55Z · close_item: "Record the change-gate's verdict even when it is overridden" · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows · no stated solution
