@@ -321,3 +321,12 @@ solution: his own. The Advisor writes INBOX / CHART / DECISIONS / CEO-REVIEWS / 
 status: DONE 2026-09-02 — recorded in `.claude/memory/DECISIONS.md` as THE ADVISOR IS RECORD-ONLY.
   THE MECHANICAL REASON THE LINE SITS AT FILES: a watch cannot be messaged. Measured tonight — a `claude -p` watch has `ListAgents` but no `SendMessage`, no `Task`, no `Artifact`. Its only inbound channel is a file it reads at orientation. Writing the record is not an exception to "tell the watch"; it is the only mechanism that exists for it.
   EARNED THREE TIMES IN ONE NIGHT, each starting as a small reasonable-looking change: watch work done while his words went unfiled; three hooks built in answer to a question (two broken, CEO 83); and the note carrying the screenshot results destroyed by a command run only to inspect the page.
+
+## INBOX-20260902T0405Z — the black-market coin is FINE on real Safari; the rig is what was wrong
+> "I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly.
+> I'm not sure what caused your rig to miss it, but it's working correctly as is"
+solution: his own — verified on the real device. **Do not "fix" the coin.** The open question in `.planning/CHART.md`'s RULED table (*"gold coin, or blank gap?"*, ruled 2026-09-02T03:50:58Z and recorded as cut off) is ANSWERED: **gold coin, correct, Safari, staging build .6.** A watch should close that row through the gate.
+status: OPEN — FOR A WATCH, and the item is the INSTRUMENT, not the game.
+  ⚠ THE FINDING IS THAT OUR RIG DISAGREES WITH A REAL DEVICE. Something in the automated pass showed a gap where his own Safari shows the coin. That is an instrument reporting a defect the game does not have — rule 6's own territory, and the most expensive error class this project has: four of five defects put to him on 2026-08-20 were not real, and the two days spent on them are why the rule exists.
+  THE NARROW QUESTION: does the headless capture render `🌕` at all? Emoji depend on installed fonts, and a container lacking the emoji font draws nothing where a phone draws a coin. If that is the cause then **every emoji-based visual finding from the rig is suspect** — including any among tonight's 315 judged screens — and they should be re-read with that in mind before anything is acted on.
+  DO NOT close this by declaring the coin fixed. Nothing about the game changed; he looked and it was already right.
