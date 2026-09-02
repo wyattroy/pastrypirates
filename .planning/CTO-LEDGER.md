@@ -5838,4 +5838,74 @@ say so in one tap; the alternative is not asking him at all.**
 
 - 2026-09-02T22:30Z · INBOX-20260902T190723Z · START · claimed the rules-page content split; homework then questions into BLOCKED ON WYATT; no code, at his instruction
 
+### CLOSED — `INBOX-20260902T190723Z` / `T-099`, CEO 124 (**PARTIAL**), and the ask was to ASK, so the deliverable is a question he can tap
+
+**WHAT HE GETS:** five rows at the top of his **Your Call** card, one tap each, recommendation
+marked — the three he named (which page is THE rules page · what About keeps · full-or-short modal)
+plus the register question and one that only bites once the Credits page ships. The reasoning is
+`.planning/SPEC-RULES-PAGE-SPLIT.md`. **No code, at his instruction** — `index.html`, `about.html`
+and `src/` untouched, `gear.mjs` has nothing of this watch's to weigh.
+
+**THE HOMEWORK CHANGED HIS QUESTION, WHICH IS THE PART WORTH KEEPING.** He wrote that there are
+*"two overlapping accounts of the rules"*. There are not. **There is one correct account trapped in
+the in-game modal and one on the public About page that is wrong in at least four places** — a
+**fish** action the game does not have (`about.html:187` against `src/ui/flow.js:2310, 2318, 2322,
+2416`, and `:301`, *"v2 rule 3: fishing is gone entirely"*), a dock flip that wins a **crate** when
+it pays coins, a bake-off framed as a **tiebreak** when it is how every captain wins
+(`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`), and a wind that **charges** you to sail when
+`index.html:2833` says *"Sailing is free."* Filed as `T-114`, **not fixed** — which sentences
+survive depends on the split he approves, and a correction written today could be deleted tomorrow
+by his own answer to question 2.
+
+**THE MEASURED REASON BEHIND QUESTION 3, because it is the one that could have been guessed wrong.**
+`src/orchestrator.js:2501-2510`: every amount in the modal is an empty `data-rule` span filled from
+`rulesFacts(cfg)` — **the cfg of the voyage being played**, refilled on every open, so a two-player
+table sees its own crate prices. **A static page can only ever show the four-seat default.** That is
+why the recommendation keeps the full text in the modal rather than linking out of a game on a shot
+clock — and it is also the honest half of the answer to `T-100`'s *"what makes these two agree?"*:
+the page is the copy that cannot be live, so its numbers must be generated from the same
+`rulesFacts` and gated, never typed.
+
+⚠ **THE ONE THING CEO 124 REQUIRED THAT THIS WATCH COULD NOT DO, AND IT IS NOT A DETAIL: IT CANNOT
+PUBLISH HIS PAGE.** A Bell-launched watch on this machine has `SendMessage`, `Agent` and
+`ListAgents` and **no `Artifact` tool**. The CEO's finding stands in full — *"the questions may never
+have reached his page… someone must confirm the five questions are visible before telling him he has
+been asked."* Door step 6b was taken: the note is in `GLASS-NOTE.md`, committed, and the
+Glass-update session was asked to publish. **Until it does, he has not been asked.**
+
+⚠ **AND `npm test` ATE THAT NOTE, WHICH IS AN OPEN CHART ROW AND BIT TWICE TODAY.** The note was
+written and committed, then the closing `npm test` run wiped `GLASS-NOTE.md` back to its template.
+Restored from its own commit — **which only worked because it had been committed first**, and that
+is the whole value of the "a note that is committed is not a note that was delivered" rule pointing
+the other way for once. The row is already on the Chart; this is a second sighting for whoever takes
+it.
+
+⚠ **`npm test` WAS RED WHEN THIS WATCH ARRIVED, AND NOT BY ITS HAND.** Two `T-105` rulings sat in
+`CHART.md`'s `## RULED` **with their verdicts already written**, which `rulings_triage_check.mjs`
+fails on by design — step 3 of the Chart's own three-move process (move the row to SETTLED) had not
+been taken. Moved to `CHART-LOG.md`'s `## SETTLED RULINGS`; **110/110 gates, zero FAIL lines.** Not
+this item, done anyway, because a watch cannot honestly call `npm test` its sweep while it is red for
+somebody else's reason.
+
+⚠ **NINTH SIGHTING OF `T-093`, AND THIS TIME IT TOOK THIS WATCH'S WORK.** The five questions, the
+`T-114` row and the whole `--rank --write` pass were committed by **another live session's**
+`git add -A`, in commit `19c0c785` ("CEO 123…"), while this watch was still working. The removal half
+of the rulings repair went out in that commit and the addition half stayed in the tree — one discard
+away from losing both of his 5:43 and 5:45 PM rulings, as CEO 124 found. Disclosed on the row itself
+in `CHART-LOG.md`. **Two sessions were live in this tree throughout; nothing on disk said so until
+`git status` showed another session's `CEO-REVIEWS.md` draft sitting in it.**
+
+**SIX OF CEO 124's REPAIRS APPLIED, and the two it called REQUIRED handled honestly:** the untracked
+spec and the split repair are committed (required 2, fixed); the publish is named as impossible here
+rather than worked around (required 1, **not fixed**); the fourth About error adopted and credited;
+"four questions" corrected to five and a wrong internal pointer fixed; `"the modal's 765 words"`
+reduced to `"the modal's text"` — **a caveat written and then contradicted forty lines later, which
+is the tenth-consecutive fault in miniature**; and `6:3x PM ET`, an invented digit in a timestamp,
+replaced with a real reading.
+
+**WHAT IS DELIBERATELY LEFT OPEN.** `T-099` stays on the Chart with a note saying why: the questions
+are asked and the recommendation is written, but **the decision is his**, and `T-100` (build the
+page) and `T-101` (the credits page) are blocked on question 1 by his own sentence — *"following the
+content split I approved in the previous session."*
+
 - 2026-09-02T22:48:21Z · close_item: INBOX-20260902T190723Z · CEO 124 · no game diff — no game code is right: he said do not write any code this session -- the deliverable is five questions in his Your Call card and a recommendation he approves; index.html, about.html and src/ untouched · his solution first: commit 2b2ef25
