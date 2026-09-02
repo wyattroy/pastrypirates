@@ -38,3 +38,12 @@ today, by a new route: restoring a file with a bare path throws away *everyone's
 not just your own. Recorded, with the one-word fix.
 
 *Verdict on file: PARTIAL, in the reviewer's own words — "you asked for two things and got one."*
+
+---
+
+**Watch 13:50Z — in hand: making finished tasks actually LEAVE this list.**
+
+Your complaint was *"MANY completed tasks still stale on it."* Everything built so far only
+re-orders the list. The piece that removes finished work has been sitting marked "blocked" since
+this morning — and its blocker was the same locked toolkit the last watch just unlocked. Taking it
+up now.
