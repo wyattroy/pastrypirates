@@ -656,5 +656,195 @@ const settleOf = (json, match) => (json?.settle || []).find((s) => new RegExp(ma
   else pass("SETTLE in report mode changes nothing on disk");
 }
 
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   11. THE TWO SIGNALS THAT DECIDE HIS ORDER MUST BE GROUNDED IN HIS OWN RECORDS.
+
+   CEO 91 measured both of these unsound, and the measurement that earned these cases is worth
+   more than the cases. Run against the REAL Chart, "approved and unblocked" was awarded to eight
+   rows, and at least two of them from a sentence about something else — the Advisor-gates row,
+   because its body says the gates were disarmed *"on his ruling"* (a ruling to DISARM them, not
+   approval to repair them), and a Glass-layout row, because Wyatt's own note contains the words
+   *"the 'your ruling' section"* while describing a CARD NAME. Three more were matching their OWN
+   HEADLINE: `★ NEXT ITEM, AT HIS INSTRUCTION` approved itself by its title.
+
+   AND THE HISTORY IS THE ARGUMENT, NOT THE REGEX. That pattern was WIDENED by the watch that
+   wrote it, in the open, after its own row ranked 14 of 32. CEO 91: *"fitting the tool to flatter
+   its own item."* A signal whose author can widen it until their own row wins is not a
+   measurement — so approval must come from a record the row's author does not write.
+
+   THE RULE THESE CASES ENFORCE: a row is credited with his approval, or with his attention, only
+   through a RESOLVED CITATION of one of his own records — an `INBOX-<stamp>` id that really
+   exists in `INBOX.md`, or the `Your ruling:` tag, which `rulings_triage_check.mjs` already keeps
+   matched to a real settled ruling. Prose counts for nothing.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* A FIXTURE INBOX, so these cases judge what the tool DOES rather than what today's real Inbox
+   happens to contain. Two entries, one live and one discharged — because "he asked for this" and
+   "he asked for this and it is done" must not score the same. */
+const FIXTURE_INBOX = `# THE INBOX — fixture
+
+## INBOX-20260101T0101Z — he asked for the lantern to be brass
+> "make the lantern brass"
+solution: none stated
+status: OPEN
+
+## INBOX-20260101T0202Z — a thing he asked for that is already finished
+> "fix the anchor"
+solution: none stated
+status: DONE 2026-01-02 — CEO 1, commit abc1234
+`;
+const inboxFile = () => {
+  const p = join(tmp, "fixture-INBOX.md");
+  writeFileSync(p, FIXTURE_INBOX);
+  return p;
+};
+
+const GROUNDED = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] **A ROW THAT APPROVES ITSELF** — at his instruction, his ruling, he asked for this. Every
+      approving phrase in the language and not one citation of anything he ever wrote.
+- [ ] **A ROW WITH A RESOLVED CITATION** — his words are on file at INBOX-20260101T0101Z and that
+      entry is still open.
+- [ ] Your ruling: the lantern is brass — tagged the way the Chart's own triage process tags a
+      row lifted out of his rulings table.
+- [ ] **A ROW CITING A DISCHARGED ASK** — he raised it at INBOX-20260101T0202Z and that entry is
+      closed, so the work is not waiting on anybody.
+- [ ] **A ROW CITING A STAMP THAT DOES NOT EXIST** — filed at INBOX-19990909T0909Z, his ruling,
+      at his instruction.
+- [ ] **A PLAIN ROW** with nothing in it either way. Filed 2026-09-02T04:19Z.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+
+/* 11a. SELF-DECLARED APPROVAL MUST COUNT FOR NOTHING — and a real citation must still count, in
+        the same pass. A scorer that credits nobody is exactly as useless as one that credits
+        everybody, which is why both halves are asserted against one fixture. */
+{
+  const p = chartFile("grounded", GROUNDED);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]);
+  const by = (re) => (r.json?.rank || []).find((x) => re.test(x.title || ""));
+  const selfish = by(/APPROVES ITSELF/);
+  const cited = by(/RESOLVED CITATION/);
+  const tagged = by(/lantern is brass/);
+  if (!selfish || !cited || !tagged) {
+    fail(`could not rank the grounding fixture — got ${JSON.stringify((r.json?.rank || []).map((x) => x.title))}`);
+  } else {
+    if (selfish.score >= 100)
+      fail(`a row that simply typed "at his instruction" into its own text scored ${selfish.score} (${JSON.stringify(selfish.whyNow)}) — any session can float its own work to the top of his list by writing a sentence`);
+    else pass("a row that approves itself in its own prose is credited with nothing");
+    if (selfish.score >= cited.score)
+      fail(`the self-approving row (${selfish.score}) ranked at or above the row citing his actual words (${cited.score}) — the order is still self-declared`);
+    else pass("his own record outranks a row's account of itself");
+    if (cited.score < 100)
+      fail(`a row citing a live entry of his own Inbox scored only ${cited.score} (${JSON.stringify(cited.whyNow)}) — grounding must not mean crediting nobody`);
+    else pass("a resolved citation of his Inbox is credited");
+    if (tagged.score < 100)
+      fail(`a "Your ruling:" row scored only ${tagged.score} (${JSON.stringify(tagged.whyNow)}) — that tag is gate-enforced against a real settled ruling by rulings_triage_check.mjs and is exactly as good as a citation`);
+    else pass('the gate-enforced "Your ruling:" tag is credited');
+  }
+}
+
+/* 11b. A CITATION THAT DOES NOT RESOLVE IS NOT A CITATION, and a DISCHARGED ask is not an
+        outstanding one. Both are REAP's own principle: ask the world about the pointer, never
+        read the row's assertion. Without this, grounding is one copy-pasted stamp away from being
+        exactly as gameable as the prose it replaced. */
+{
+  const p = chartFile("grounded-unresolved", GROUNDED);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]);
+  const by = (re) => (r.json?.rank || []).find((x) => re.test(x.title || ""));
+  const ghost = by(/STAMP THAT DOES NOT EXIST/);
+  const done = by(/DISCHARGED ASK/);
+  if (!ghost || !done) fail("the unresolved-citation rows vanished from the ranking");
+  else {
+    if (ghost.score >= 100)
+      fail(`a row citing INBOX-19990909T0909Z — a stamp that is in no Inbox — scored ${ghost.score} (${JSON.stringify(ghost.whyNow)})`);
+    else pass("a citation that resolves to nothing is credited with nothing");
+    if (/nothing is blocking it/i.test(done.whyNow || ""))
+      fail(`a row citing an ask he has already had closed was called approved-and-unblocked: ${JSON.stringify(done.whyNow)} — a discharged instruction is not outstanding work`);
+    else pass("a discharged ask does not read as an outstanding approval");
+    // …but it IS still one of his notes, so the attention half must still see it. Red-proofs the
+    // case above: a tool that simply ignored discharged entries would pass it for the wrong reason.
+    if (!/one of your notes/i.test(done.whyNow || ""))
+      fail(`the discharged-ask row says ${JSON.stringify(done.whyNow)} — he did raise it, and the attention signal must still count a closed note`);
+    else pass("a discharged ask still counts as one of his notes");
+  }
+}
+
+/* 11c. THE COUNT HE READS MUST BE TRUE. "you have raised it N times" was a five-letter token
+        overlap over 900 characters of essay, and on the real Chart it printed **"you have raised
+        it 10 times"** at the `can_push` row — a tool fault a session found, which he has never
+        mentioned. Its ten "matches" were entries about the Advisor being record-only, a destroyed
+        note, and the change-gate verdict. Meanwhile the trade-offer circle, with three recorded
+        sightings, read "raised it once" — and the single entry it matched was about judging
+        screenshots.
+        ⚠ AND THE FIRST DIAGNOSIS WAS WRONG, WHICH IS WHY THIS COMMENT SAYS SO: the prediction note
+        guessed the counts tracked ROW LENGTH. They do not — the 900-character cap flattens that
+        out (a 4,695-char row scored 1, a 487-char row scored 5). What they actually tracked was
+        SHARED PROCESS VOCABULARY: rows about the watch/trial machinery matched the many Inbox
+        entries about the watch/trial machinery. The signal measured "is this row about the same
+        subsystem as most of his recent notes" and reported it as "you raised this N times".
+        A number he cannot check is worse than no number, because he steers by it. */
+{
+  const p = chartFile("grounded-count", GROUNDED);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]);
+  const by = (re) => (r.json?.rank || []).find((x) => re.test(x.title || ""));
+  const plain = by(/A PLAIN ROW/);
+  const cited = by(/RESOLVED CITATION/);
+  const num = (s) => { const m = /\b(\d+)\b/.exec(String(s || "")); return m ? Number(m[1]) : 0; };
+  if (!plain || !cited) fail("the counting fixture did not rank");
+  else {
+    if (/of your notes|you asked/i.test(plain.whyNow || ""))
+      fail(`told him he had raised a row that names none of his notes: ${JSON.stringify(plain.whyNow)} — silence is the honest answer, not a guessed number`);
+    else pass("a row that cites none of his words claims none of his attention");
+    if (num(cited.whyNow) > 1)
+      fail(`claimed ${JSON.stringify(cited.whyNow)} for a row that cites exactly ONE of his entries — the number must be countable from the record`);
+    else pass("the count he reads equals the citations that actually resolve");
+  }
+}
+
+/* 11d. AND THE ROWS THAT CLAIM APPROVAL WITHOUT CITING ANYTHING MUST BE NAMED, not silently
+        demoted. Eight rows on the real Chart claim it today; some of those claims are TRUE and
+        merely uncited, and a tool that drops them without a word makes his genuinely-approved
+        work sink with no way to notice. REAP's rule, applied to itself: flag, never act silently. */
+{
+  const p = chartFile("grounded-report", GROUNDED);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]);
+  const named = r.json?.unbackedApproval;
+  if (!Array.isArray(named))
+    fail("the tool never reports which rows claim his approval without citing it — a row demoted in silence is a row nobody can repair");
+  else if (!named.some((t) => /APPROVES ITSELF/.test(t)))
+    fail(`did not name the self-approving row as an uncited claim (named ${JSON.stringify(named)})`);
+  else if (named.some((t) => /RESOLVED CITATION|lantern is brass|A PLAIN ROW/.test(t)))
+    fail(`named a properly-cited or entirely silent row as an uncited claim (${JSON.stringify(named)}) — the report must point at the rows that need a citation added, not at every row`);
+  else pass("rows claiming his approval with nothing to back it are named, so the citation can be added");
+  const text = run([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]).out;
+  if (!/claim your approval/i.test(text))
+    fail("the human-readable report is silent about uncited approval claims");
+  else pass("the printed report names them too");
+}
+
+/* 11e. THE SPEC'S ACCEPTANCE TEST, ON THE REAL CHART, AFTER THE GROUNDING. His four-times-asked
+        Chartkeeper row must still come first — that is the whole reason this tool exists, and a
+        grounding that buries it has traded one wrong order for another. It qualifies honestly:
+        its row cites `INBOX-20260902T04xxZ`, a live entry of his own Inbox, rather than calling
+        itself the next item. */
+{
+  const r = runJson(["--rank"]);
+  const top = (r.json?.rank || [])[0];
+  if (!top) fail("ranking the real Chart produced nothing");
+  else if (!/CHARTKEEPER/i.test(top.title || ""))
+    fail(`the real Chart's top row is ${JSON.stringify(top.title)} — his four-times-asked request must rank first, and the spec says so in its own words`);
+  else pass(`the acceptance test holds on the real Chart: "${top.title.slice(0, 50)}" ranks first`);
+}
+
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
 process.exit(failures === 0 ? 0 : 1);

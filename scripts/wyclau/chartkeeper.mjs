@@ -42,7 +42,7 @@
  *   node scripts/wyclau/chartkeeper.mjs                             # report on all four, touch nothing
  *   node scripts/wyclau/chartkeeper.mjs --reap --json               # the Glass-update session's pass
  *   node scripts/wyclau/chartkeeper.mjs --settle --rank --sweep --write   # the Watch's pass
- *   --chart=<path> --log=<path> --now=<iso>                         # for gates and fixtures
+ *   --chart=<path> --log=<path> --inbox=<path> --now=<iso>          # for gates and fixtures
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -63,6 +63,7 @@ const abs = (p) => (isAbsolute(p) ? p : resolve(ROOT, p));
 
 const CHART = abs(opt("chart", join(ROOT, ".planning", "CHART.md")));
 const LOG = abs(opt("log", join(ROOT, ".planning", "CHART-LOG.md")));
+const INBOX = abs(opt("inbox", join(ROOT, ".planning", "wyclau", "INBOX.md")));
 const NOW = new Date(opt("now", new Date().toISOString()));
 const JSON_OUT = flag("json");
 const WRITE = flag("write");
