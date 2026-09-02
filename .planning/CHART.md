@@ -516,6 +516,40 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **`CHART.md` IS A HOT FILE THREE SESSIONS WRITE, AND GIT STAGES WHOLE FILES — so an
+      uncommitted edit is always carried by whoever commits next, into THEIR commit message.**
+      Filed 2026-09-02T16:4xZ after it happened five times in one session. **Sizing: the mitigation
+      is a habit and one line of the Door; the structural answer is bigger and is his call.**
+      ⟨`T-092`⟩
+      **THE MECHANISM, MEASURED RATHER THAN GUESSED — and the first guess was wrong.** It is NOT
+      `git add -A`: neither the Door nor `close_item.mjs` prescribes it, checked. What actually
+      happens is plainer and unavoidable in git: **`close_item.mjs` legitimately stages `CHART.md`
+      for its own sweep, and staging a file takes the WHOLE file** — including another session's
+      uncommitted lines in it. **`git add .planning/CHART.md` is no safer than `git add -A`. Path
+      precision does not help, because the unit git stages is the file.**
+      **WHAT IT COSTS, and it is not lost work — it is a corrupted record.** On 2026-09-02 at
+      12:38:33, commit `59f8b7a7` — *"watch 16:09Z closes his black window"* — carried `T-090`,
+      `T-091` and a `BLOCKED ON WYATT` repair written by a different session. The rows work. **But
+      the reasoning for them now lives under a commit about a console window**, so `git log -S` for
+      *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and CEO 105 both flagged
+      "one commit doing two jobs" as a fault; this is the third instance and the first where it was
+      done TO a session rather than BY one.**
+      **THE WINDOW IS AS WIDE AS WHATEVER YOU DO BETWEEN EDITING AND COMMITTING**, and the worst
+      offender is the obvious one: **running `npm test` first makes the window minutes wide.**
+      **THE HABIT, which is cheap and works today: COMMIT FIRST, TEST AFTER** — the reverse of what
+      feels careful. If the suite then fails, fix it in a second commit; a red commit that is
+      honestly described beats a correct commit filed under someone else's subject. *(The Door's
+      step 6 currently says "Commit (`git pull --rebase` first), push" at the END of a sequence that
+      includes running the suite. One reordered sentence.)*
+      ⚠ **AND THE STRUCTURAL QUESTION, WHICH IS HIS AND IS NOT SMALL:** this is the cost of one plan
+      file that every session writes. Principle 1 says one of everything, and that is right — but
+      **`CHART.md` is now edited by the Advisor, the Glass-update session and every watch, and git
+      has no smaller unit than the file.** The options are (a) live with it and keep the window
+      shut, (b) split the Chart so different writers touch different files, which trades this
+      collision for a drift problem the project has already paid for, or (c) have every writer go
+      through `chartkeeper.mjs` so there is one process editing it rather than three. **(c) is the
+      one that fits rule 23's question — *what makes these two agree?* — and it is the largest.**
+
 - [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
       he has now reported this exact fault TWICE, about two different cards.** Filed
       2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
