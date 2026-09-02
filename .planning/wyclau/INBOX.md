@@ -1798,3 +1798,47 @@ status: OPEN — FOR A WATCH, at his stated priority. **The five rows were retir
   read what's at the top."* **The fix for "the top of my list isn't what gets worked" is itself 27th
   on that list.** Same shape as the Chartkeeper this morning, and it is the second time today the
   cure has been found sitting below the disease.
+
+## INBOX-20260902T1955Z — REDESIGN THE GLASS TO RUN OFF FIREBASE, HOSTED ON GITHUB PAGES IN THE STAGING REPO
+
+**HIS WORDS, VERBATIM:**
+
+> i want you to redesign the Glass to run off firebase instead -- there is too much bullshit
+> involved with all these limitations. We can host it on github pages in the staging repo. scope
+> this and get ceo's eyes on it
+
+solution: his own — **Firebase instead of an Artifact document, served from `wyattroy/pastrypirates-staging` on GitHub Pages.** He asked for it SCOPED and CEO'd, **not built.**
+
+status: OPEN — FOR A WATCH, after the CEO verdict and after he answers the one question that gates the schema (public vs curtain vs real auth).
+
+  **SCOPE: [`SPEC-GLASS-ON-FIREBASE.md`](../SPEC-GLASS-ON-FIREBASE.md).** A fresh CEO is reviewing it.
+
+  **HE SAID THIS EIGHT MINUTES AFTER THE LIMIT BIT HIM, AND THAT IS THE ARGUMENT.** The Artifact tool
+  returned `429 — daily publish limit reached (200)`; his answer sat correct in the record from
+  7:43:48 PM and could not reach his screen until UTC midnight. **The mechanism that keeps his page
+  current is what exhausted the quota that then could not update his page.**
+
+  **THE SCOPE'S CENTRAL FINDING: five faults, one root.** The publish ceiling, the record-fixed-but-
+  page-stale gap (four times today), a republish being able to destroy his writing, a Bell-started
+  watch being unable to publish at all, and answered questions re-appearing six times — **all follow
+  from the page being a DOCUMENT that must be re-uploaded to change, with his words and ours inside
+  the same file.** A store instead of a document makes four of the five impossible rather than fixed.
+
+  ⚠ **AND THE COST THAT IS GENUINELY HIS TO RULE ON: the Artifact is PRIVATE; GitHub Pages is
+  PUBLIC.** `scripts/deploy-staging.sh:35` — `wyattroy/pastrypirates-staging`, served at
+  `staging.playpastrypirates.com`. **His Chart, his rulings, his instructions and every question we
+  put to him become world-readable at a guessable URL** unless something stops it. Three options in
+  the spec: accept it · his own phrase *"behind a simple curtain"* · real Firebase auth. **Only the
+  third protects the data, and the answer gates the schema.**
+
+  ⚠ **AND THE LOAD-BEARING RISK, MEASURED: THE SECURITY RULES ARE NOT IN THIS REPO.** No
+  `database.rules.json`, no `firebase.json`, no `.firebaserc` anywhere in the tree — **the game's
+  Firebase rules live only in the console.** They cannot be reviewed in a diff or gated by
+  `npm test`. **A public page plus a public config is safe only because of rules nobody here can
+  see.** Bringing them into the repo is part of this job, not a follow-up.
+
+  **SIZING, HONESTLY: this is not one watch.** Schema and rules, the page rewritten to subscribe,
+  `glass.mjs` changed from emitting a document to writing state, the harvest replaced by an HTTPS
+  read, a deploy path that does not disturb the `CNAME` guards, and a cutover running both surfaces
+  until he says the new one is better. **Do not cut over blind — the Artifact Glass is how he sees
+  everything, and a broken replacement is a day of blindness.**
