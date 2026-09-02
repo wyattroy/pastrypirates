@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T15:57:18.401Z	self-publish check
+2026-09-02T16:36:14.121Z	Nothing new from you to harvest this tick. The reaper flagged 10 open rows whose evidence now points at an old build (tree moved to 2026.09.02.1) -- first: the trade-offer-circle self-name bug.
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T16:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T164803Z.out/.err)
 2026-09-01T17:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T175803Z.out/.err)
 2026-09-01T18:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T182803Z.out/.err)
 2026-09-01T18:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T184803Z.out/.err)
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T13:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T134803Z.out/.err, kit: readable)
 2026-09-02T14:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T144802Z.out/.err, kit: readable)
 2026-09-02T15:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T153802Z.out/.err, kit: readable)
+2026-09-02T16:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T160802Z.out/.err, kit: readable)
 ```
