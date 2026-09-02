@@ -371,19 +371,55 @@ if (chart !== null) {
      the verdict must not explicitly say otherwise. A sentence that says it is still open is the
      most reliable signal on the page, and it beats any word-matching.
      Wyatt steers by the open count; over-hiding costs him more than over-showing. */
+  /* ⚑ THREE STATES, NOT TWO — WYATT'S RULING, question UI, 2026-09-02.
+   *
+   * WHAT WAS WRONG: one list of eight words decided "is this dealt with?", and SCHEDULED sat in it
+   * beside SHIPPED and CLOSED. But five of those mean FINISHED, and SCHEDULED means COMMITTED AND
+   * NOT DONE — which is the definition of an open task. So the word he uses to promise himself
+   * something was the word that hid it.
+   *
+   * MEASURED ON HIS OWN CHART before it was put to him: 15 ideas, 2 shown, 13 HIDDEN — NINE of them
+   * by SCHEDULED alone. He had asked four times for a thing that was, at that moment, invisible on
+   * his own page for exactly this reason.
+   *
+   * AND IT CONTRADICTED THE APPROVED CHARTER IN WRITING. CHARTER.md: "Every idea gets a VISIBLE
+   * fate (shipped / scheduled / parked-with-reason) within a day." Scheduled and parked are NAMED
+   * as visible fates. This was a defect against a written spec, not a taste call.
+   *
+   * THREE BUCKETS, and no word may appear in two — DERIVED from these lists, never hand-kept: */
   const DECLARED = /(?:→|->)\s*\*\*([^*]{0,160})/;
-  const FATE_WORD = /\b(SHIPPED|PARKED|SCHEDULED|HARVESTED|CLOSED|DONE|FIXED|ROOT-CAUSED)\b/;
+  const FINISHED_WORDS = ["SHIPPED", "HARVESTED", "CLOSED", "DONE", "FIXED", "ROOT-CAUSED"];
+  const COMMITTED_WORDS = ["SCHEDULED"];
+  const PARKED_WORDS = ["PARKED"];
+  const wordRe = (list) => new RegExp(String.raw`\b(${list.join("|")})\b`);
+  const FINISHED = wordRe(FINISHED_WORDS);
+  const COMMITTED = wordRe(COMMITTED_WORDS);
+  const PARKED = wordRe(PARKED_WORDS);
   const STILL_OPEN = /\bSTILL OPEN\b|\bNOT (?:SHIPPED|DONE|BUILT|FIXED)\b|\bUNCONFIRMED\b/;
-  const FATE = {
-    test(block) {
-      const m = DECLARED.exec(block);
-      if (!m) return false;
-      const verdict = m[1];
-      return FATE_WORD.test(verdict) && !STILL_OPEN.test(verdict);
-    },
+
+  /* A block's state, from its declared verdict. STILL_OPEN overrides everything, as before —
+   * a sentence saying it is still open beats any word-match, which is the lesson two earlier
+   * versions of this test were corrected for. */
+  const stateOf = (block) => {
+    const m = DECLARED.exec(block);
+    if (!m) return "open";
+    const v = m[1];
+    if (STILL_OPEN.test(v)) return "open";
+    if (FINISHED.test(v)) return "finished";
+    if (COMMITTED.test(v)) return "committed";
+    if (PARKED.test(v)) return "parked";
+    return "open";
   };
-  const openInbox = inboxBlocks.filter((b) => !FATE.test(b.all)).map((b) => b.head);
-  tasks = [...openChecklist, ...openInbox.map(shortTask)];
+
+  /* Only FINISHED hides. Committed and parked are shown, tagged, because he steers by this list
+   * and a fate he cannot see is a fate he cannot overrule. */
+  const shownInbox = inboxBlocks
+    .map((b) => ({ ...b, state: stateOf(b.all) }))
+    .filter((b) => b.state !== "finished")
+    .map((b) => b.state === "committed" ? `SCHEDULED · ${b.head}`
+              : b.state === "parked"    ? `PARKED · ${b.head}`
+              : b.head);
+  tasks = [...openChecklist, ...shownInbox.map(shortTask)];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
