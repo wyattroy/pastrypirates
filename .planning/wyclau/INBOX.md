@@ -487,3 +487,45 @@ status: OPEN — FOR A WATCH, and it is now a bigger and better item than it was
 
   **AND THE FLEET SHRINKS FROM 10 TO 5 WITH ENGINE COVERAGE INTACT**, which is the whole of his
   original claim, now with the gap closed by his own ruling.
+
+## INBOX-20260902T05xxZ-c — "is the Watch able to publish to staging now, forever?"
+> "is the Watch able to publish to staging now, forever?"
+> then, after the options were put to him and he dismissed them: "get CEO to verify your suggestion"
+solution: MEASURED, NOT RECONCILED. He DISMISSED the three options rather than choosing, so
+nothing was changed — no settings edit, no docs rewritten, no gate built — and a CEO was then
+spawned at his instruction to verify the claim and the recommendation before he decides.
+status: OPEN — his call, deliberately untouched.
+
+  **THE ANSWER IS NO, AND THE GAP IS ONE COMMAND FORM.**
+  - Allowed: `"Bash(bash scripts/deploy-staging.sh*)"` (`.claude/settings.json:11`)
+  - Instructed: `./scripts/deploy-staging.sh "what changed"` — `docs/GIT-AND-DEPLOY.md:203`,
+    `.claude/CLAUDE.md:1155`, and `.planning/wyclau/CLAUDE-next.md:24`, **the rulebook that
+    replaces CLAUDE.md at the cutover.**
+
+  **So a Watch following its own documentation is refused.** Tonight's deploy succeeded only
+  because the session happened to type the other form.
+
+  ⚠ **ONE PART OF THAT IS AN INFERENCE, NOT A MEASUREMENT, AND IT IS FLAGGED RATHER THAN HIDDEN:**
+  that `Bash(bash scripts/…)` does not match an invocation typed `./scripts/…`. Two strings were
+  read and judged different; the matcher was never tested. **After four unmeasured claims tonight
+  that is exactly the shape to distrust**, which is why the CEO was asked to settle it.
+
+  ⚠ **THIRD SIGHTING OF THE FAULT CLASS.** Two watches lost their work to `git push` when the
+  allowlist matched `git push origin <branch>` and the habit was the bare form. **The pattern: the
+  permission layer covers one spelling, the documentation teaches another, and nothing connects
+  them** — an allowlist and a runbook kept in step by discipline, which is Principle 1's own
+  failure mode.
+
+  **WHAT IS GENUINELY FIXED AND HOLDS ANYWHERE:** `deploy-staging.sh`'s own path fault — committed,
+  guarded on `uname -s`, and gated. Not machine-local, and it will not need doing again.
+
+  ⚠ **AND A HAZARD FOUND WHILE WRITING THIS ENTRY, WORTH MORE THAN THE ENTRY.** The first version
+  of it was appended to `INBOX.md`, blocked from committing by the CEO-cadence hook, and **was gone
+  from the working tree minutes later** — no error, no conflict, no trace. Three sessions share this
+  ONE checkout (this Advisor, the Glass-update session, the Chartkeeper Watch), and any of them
+  running a checkout-moving git command discards another's uncommitted work silently.
+  **Rule 16 anticipated two sessions on one BRANCH; it did not anticipate three in one WORKING
+  TREE.** The practical rule, learned the cheap way this time because the content was
+  reconstructible: **on a shared checkout, write and commit in the SAME step, never leave an edit
+  uncommitted across a tool call.** A hook that blocks a commit leaves the edit exposed, so a
+  blocked commit must be re-attempted or reverted at once, not left sitting.
