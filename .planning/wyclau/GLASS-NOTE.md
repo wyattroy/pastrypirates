@@ -5,28 +5,40 @@
      is not ringing -- read .planning/wyclau/status/ for that machine's own account. -->
 ---
 
-**The board picture was 4.34 MB. It is now 0.19 MB — and that one file was 43% of every image in
-the game.** All 2132 pixels still there; only the format underneath changed. The whole art library
-is **10.05 MB → 6.00 MB**.
+**The board item is CLOSED, not just tried.** 4.24 MB → 0.19 MB, same 2132×2132 pixels, and a CEO
+review (97) ran on it since the last pulse — verdict PARTIAL, headline right, four findings, all
+four now dealt with:
 
-**⚠ FIRST, THE JUDGEMENT CALL I MADE FOR YOU, SO YOU CAN OVERRULE IT.** You wrote *"the only one
-that needs to be as big as it is is the board itself."* I read that as being about **how big it is
-on screen**, not how many bytes it takes to send — because the sentence it sits in is about
-resizing things to their maximum on-screen size, and because your reason for protecting the board is
-that it's the one picture you can zoom into. (It's already very slightly *under*-resolution at full
-zoom, so shrinking it really would show.) **If you meant leave the board alone entirely, say so and
-I'll put it back** — it's one command.
+- **Safari was the real gap and is fixed.** The board loads as an SVG `<image>` (not a plain `<img>`)
+  and the code silently deletes it on any decode failure — so a WebKit refusal would have shown a
+  player a bare grid with no error, ever. The probe now drives both engines and FAILS loudly if
+  WebKit wasn't reached. Measured on a real 390×844 Safari phone: decodes clean, full board on
+  screen, in both games.
+- **The gate's own claim was overstated** ("every asset the shared module knows about is covered" —
+  it didn't cover the logo or badges); that line is gone and the gap is named instead.
+- **The before/after numbers are now reproducible and logged**, not just asserted once.
+- **You still haven't been asked, and that one stands as-is.** My read of *"the only one that needs
+  to be as big as it is is the board itself"* — that it's about on-screen size, not bytes — held up
+  under a CEO trying to break it, but you're the one who gets the final word. Say so and it's one
+  command to put back.
 
-**I looked hard before believing it.** The tool finds the square of the board that changed *most* and
-photographs that, rather than one I'd pick — otherwise it lands on open sea and flatters itself. The
-worst square turned out to be your PASTRY PIRATES title art. At 3× magnification I compared the
-lettering's serifs, the skull's teeth, the wheat, the sugar cubes and the crumbs in the water: I
-can't tell them apart. Then I opened the board in a real browser in both games and on a **Safari**
-phone — full board, every time.
+**Two things opened up behind it, both on the Chart now:** 8.24 MB of the other art (islands 1.67
+MB, icons 1.20 MB, plus smaller families) has never had this same trade tried on it — the board
+went 95% lighter, but it's smooth painted wash, PNG's worst case, so a flat icon may barely move
+and that has to be measured per family, not assumed. Separately, `npm test` has been red since
+about 08:00Z on one gate that isn't this work's fault (a probe importing a path from the wrong
+tree) — 95 of 96 gates still pass, it's just chained behind `&&` so that's easy to miss.
 
-**What I got wrong, on the record:** I predicted the saving would be about 1 MB. It was 0.19 MB —
-six times better than I said.
+---
 
-*Not done: 8.24 MB of other pictures have never had this tried on them — the islands are 1.67 MB,
-the icons 1.20 MB. Same trade, next item. And one unrelated check has been failing since ~08:00Z
-from an earlier watch; it's written down for whoever's next.*
+**08:51Z — I've picked that up: the same trade on the rest of the pictures.** One correction to the
+line above first, because it was written before the board conversion landed: it isn't 8.24 MB left,
+it's **4.00 MB** — that number still counted the board. The islands (1.67 MB) and the icons
+(1.20 MB) are the two real ones.
+
+**I don't expect another 95%.** The board is soft painted colour, which is the case this format wins
+hardest on. The icons are small and flat, which is the case it wins *least* on — some may not shrink
+at all, and I'll leave those alone rather than ship a heavier file to make a folder tidy. The islands
+and icons are also cut-out shapes with see-through edges, and the board wasn't, so the thing I'm
+checking hardest is that the transparency survives — that's the failure this project has had before,
+where the numbers were right and the picture was wrong.

@@ -4003,3 +4003,44 @@ its first failure, which is why the 95-of-96 figure required running the gates s
 first was harvested and published by another session mid-watch (the file came back to its template
 under this watch's feet, which is the relay working). The second, the closing note, is committed for
 the next capable session. `mark_glass_published.mjs` was correctly **not** stamped, either time.
+
+---
+
+### WATCH 2026-09-02T08:51Z — SITUATION, AND THE CLAIM
+
+- **Watch started:** 2026-09-02T08:51:13Z, on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+  says CAN PUBLISH (tracking upstream, no rebase, no merge).
+- **Last progress:** `3125584a`, 08:44Z — the 08:10Z watch's closing account.
+- **The previous watch closed:** `T-057`, THE BOARD IS WEBP — 4.24 MB → 0.19 MB at its own
+  2132×2132, CEO 97 PARTIAL, commit `fbbf44ad`.
+- **Blocked on Wyatt:** the Chart's BLOCKED ON WYATT table is EMPTY — and the Chartkeeper's REAP
+  pass flags four rows for pointing at it as though it were not. Not this watch's item.
+- **Detached trial in flight:** NONE. `.planning/wyclau/LONG-RUN` does not exist, so no pid is
+  claimed and nothing is at sea.
+- **THIS WATCH TAKES:** `T-058`, the next lever of the oldest OPEN Inbox item
+  `INBOX-20260901T1335Z` (*"compressing the images to make the game load MUCH faster… this is
+  launch critical"*). **CLAIMED: try the proven WebP trade on the remaining PNG families.**
+
+**WHY THIS AND NOT `T-001`, WHICH HIS OWN INSTRUCTION MARKS ★ NEXT — the reasoning, so a later
+reader can overrule it.** `T-001` (BUILD THE CHARTKEEPER) is ranked #1 by the tool and carries his
+words *"highest priority after what it is currently working on."* **Every part of it still open is
+out of this watch's reach, measured not assumed:** banner items 2 and 3 and `PENDING-KIT-PATCHES`
+4 and 5 all require `glass.mjs`, which is VENDORED from claude-kit — and a `Glob` of
+`C:\Users\wyatt\Projects\claude-kit` from this session is **refused**, not empty. What is left
+in-repo is internal keying work, and **CEO 95 explicitly ranked that below the wiring**: *"A ranking
+tool nobody runs does not clean your list… Whoever can reach claude-kit should take patch 4 before
+any more keying work."* This watch cannot reach claude-kit. So the Door's own ordering applies —
+the oldest OPEN Inbox item — and `T-058` is ranked #2 by the tool at 108, behind only the blocked
+row.
+
+**THE ROW'S OWN NUMBER IS ALREADY STALE, and that is the first thing this watch owes.** `T-058`
+says *"8.24 MB of PNGs"*. That figure was taken BEFORE `board.png` (4.24 MB) was converted and
+deleted by the watch two hours ago. Measured now (`scripts/qa/tmp_asset_census.mjs`): `assets/` is
+**6.00 MB in 149 files — PNG 121 files 4.00 MB**, WebP 22 files 1.38 MB, JPEG 6 files 0.63 MB. The
+real remaining lever is **4.00 MB, not 8.24 MB.**
+
+- **Gear:** `gear.mjs` reads FULL.
+- **Prediction, written before the first measurement:**
+  `.planning/wyclau/PREDICTION-20260902T0851Z-png-webp.md` — including the two things that would
+  prove it wrong (any file getting BIGGER as WebP; any measurable movement in the ALPHA channel,
+  which is the difference between these families and the board).
