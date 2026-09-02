@@ -198,15 +198,96 @@ what the system told it.** CEO 120 found it. Replace that line with:
        node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the read returned>
 ```
 
-and add a `deny(reason)` helper plus the `FORCED` and `BARE` texts (`MISSING` is the existing one,
-with step 3 corrected as above). Suggested wording, his register:
+> ### ⚠ THIS SECTION USED TO BE PROSE — *"add a `deny(reason)` helper … suggested wording"* — AND
+> **PASTING 2a AND 2b WITHOUT IT WOULD HAVE BROKEN THE GUARD SILENTLY.** 2b calls `deny(FORCED)`
+> and `return deny(...)`, neither of which existed, so the hook would throw
+> `ReferenceError: deny is not defined` on **every** Artifact call — and `.claude/settings.json`
+> registers it ending `2>/dev/null || true`, so a throwing hook **fails OPEN**: the guard stops
+> guarding and nothing says so. Found by CEO 126, in a file that claimed four times over to be
+> verbatim and to need no derivation. **It is real code now.**
 
-- **`FORCED`** — *"A Glass publish carrying `force` is refused. The platform rejects a publish built
-  on an older version than the live page; that is the strongest protection his words have and this
-  flag switches it off. Re-read the page, harvest anything new, stamp the version, publish normally."*
-- **`BARE`** — *"That stamp records WHEN you looked, not WHAT you read, and a clock cannot answer 'has
-  he written something since?'. Re-read the page and stamp it with
-  `node scripts/wyclau/mark_glass_harvest.mjs --version=<id>`."*
+**Replace everything from `const reason = ...` down to and including the final `main();`** — i.e. the
+whole tail of the file from the line beginning `  const reason = \`HARVEST BEFORE YOU REPUBLISH` —
+**with this:**
+
+```js
+  return deny(stampText.trim() ? BARE : MISSING);
+}
+
+function deny(reason) {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: reason,
+    },
+  }));
+  process.exit(0);
+}
+
+const MISSING = `HARVEST BEFORE YOU REPUBLISH THE GLASS — his words are on that page, and this
+publish would overwrite them.
+
+The Glass is two-way. Wyatt writes ideas ON the published page; they live in its
+<script id="glassState"> block and NOWHERE ELSE. glass.mjs always regenerates with an
+empty ideas list, because a script cannot read the artifact. So publishing over a live
+page that holds unharvested ideas deletes them silently and completely.
+
+DO THIS FIRST — three steps, about a minute:
+
+  1. READ THE LIVE PAGE
+       Artifact  action:"read"  url:"https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2"
+     then find its state block:
+       grep -o 'id="glassState">[^<]*' <the saved file>
+
+  2. IF ideas[] IS NOT EMPTY, move every entry into .planning/CHART.md under
+     "## THE IDEA INBOX" — his words verbatim, plus your recommendation — and commit.
+     Each idea gets a fate (SHIPPED / SCHEDULED where / PARKED why) within a day.
+     AND FOR EVERY RULING YOU HARVEST, RETIRE ITS QUESTION IN THE SAME COMMIT:
+       node scripts/wyclau/retire_answered.mjs --qid=<key> --verdict="<his words>"
+
+  3. STAMP WHICH VERSION YOU READ — never hand-write this file — then publish:
+       node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the read returned>
+
+WHY A HOOK AND NOT A NOTE. This rule was written in the Door and printed by glass.mjs on
+every run, and on 2026-08-31 at 17:26:36Z an engine republished the Glass without reading
+the live page anyway. Nothing was lost — the list happened to be empty. A prompt you are
+holding is a prompt you can skip; a rule that fires at the moment of the action is not.
+
+This cannot prove you copied the ideas across — nothing here can read the artifact either.
+It only guarantees you were asked at the right moment. Stamp it and the retry goes through.`;
+
+const BARE = `THAT STAMP RECORDS WHEN YOU LOOKED, NOT WHAT YOU READ — and a clock cannot
+answer the only question that matters here: has he written something since?
+
+Wyatt, 2026-09-02: "the harvest stamp records when a session looked. It is not evidence
+the page hasn't changed since. Your page carries its own version number — that's the fact
+that can answer 'is a republish safe?', and a clock never can."
+
+Re-read the live page and stamp the version it returns:
+
+  Artifact  action:"read"  url:"https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2"
+  node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the read returned>
+
+An old receipt is fine — age was never the question. A bare timestamp is not.`;
+
+const FORCED = `A GLASS PUBLISH CARRYING \`force\` IS REFUSED, receipt or no receipt.
+
+The platform itself rejects a publish built on an older version than the live page, and
+that refusal is the strongest protection his words have. This flag is the one thing that
+switches it off. Never pass \`force\` on the Glass.
+
+If you hit a conflict, that is the protection working: he wrote something after you read
+the page. Re-read it, harvest what is new, stamp the version, and publish normally.`;
+
+main();
+```
+
+**Why `deny`, `MISSING`, `BARE` and `FORCED` may sit below `main()`'s definition and still work:**
+`function deny` is a declaration and hoists, and the three `const`s are initialised at module load —
+`main()` is only *called* on the last line, after all of them exist. **Paste it exactly as written
+and run `node .claude/hooks/glass-harvest-first.cjs < /dev/null` once before trusting it**; a hook
+that throws fails open here, so "no output" is not the same as "allowed on purpose".
 
 **What goes green when this lands:** `glass_harvest_hook_check.mjs`'s `bareDenied`, `agedAllowed`,
 `forceDenied` and `hookTextClean` flags.
@@ -221,7 +302,10 @@ With all five flags true, `glass_harvest_hook_check.mjs` **FAILS on purpose**, p
 > the pending block."*
 
 Do exactly that: turn `bare()`, `agedReceipt()` and `forceProbe()` into real `fail()` assertions,
-delete the PENDING block, **and delete line 243's exemption** —
+delete the PENDING block, **and delete case 9's exemption for the hook** — the line reading
 `if (rel.endsWith("glass-harvest-first.cjs") && handStamp(line)) continue;` — which exists only
 because the hook's deny text was a known offender. Leaving it makes case 9 weaker than it reads.
+*(Find it by that text, not by a line number: this file first cited "line 243" and the watch's own
+edits to that same file had already pushed it to 265 — a stale citation written by the session that
+made it stale, which is the cheapest kind of rot there is. CEO 126 caught it.)*
 Then `npm test`, and close `T-105` through `scripts/wyclau/close_item.mjs`.

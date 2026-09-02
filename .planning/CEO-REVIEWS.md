@@ -7,6 +7,62 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 126 — 2026-09-03T00:0xZ (8:0x PM ET), Wy-Blade — `T-105`'s blocked half: the two `.claude/` repairs. **PARTIAL**
+
+**Number checked at FILING time.** Highest on file was 125; this is 126.
+
+**THE ASK IT JUDGED:** the Bell's standing `/door` instruction — *"work exactly ONE item through the
+full Proof … close it through the gate, republish the Glass, and END YOUR TURN"* — against the item
+claimed, `T-105`'s two `.claude/` file repairs, which Wyatt's 5:43:55 PM ruling was believed to have
+unblocked.
+
+**ITS ONE-LINE ANSWER TO THE NARROW QUESTION, UNPARAPHRASED:**
+
+> The watch proved your 5:43 PM ruling cannot unlock those two files — a real finding that kills a
+> premise three watches had been stalled on — but it then left its own work uncommitted for another
+> session to rescue, and never got the message onto your page, so the one thing it made for you is
+> sitting in a repo file you will never open.
+
+**WHAT IT VERIFIED AND HELD, checked against disk rather than taken on trust:** both refusals are
+real (`git log -5 -- .claude/` newest is `4f14262a`, predating the watch; `FRESH_MIN` still at
+`glass-harvest-first.cjs:37`; `door/SKILL.md` has zero matches for `retire_answered|mark_glass_harvest`).
+`npm test` exits 0. No game code (`git diff HEAD -- src/ index.html about.html` empty). `T-105` is
+honestly open. Three of the four repair anchors match byte for byte.
+
+⚑ **AND IT MADE THE CENTRAL FINDING STRONGER THAN THE WATCH HAD.** `.claude/settings.json:28-29`
+already grants bare `Edit` and `Write` project-wide — **so both refusals happened under a blanket
+grant.** That settles beyond argument that the wall is the harness's and not this project's, and the
+watch never cited it. It also confirmed the `SendMessage` refusal was correct rather than convenient,
+by loading that tool's own schema.
+
+**ITS FIVE FINDINGS. Four fixed in the same watch; the fourth was fixed by somebody else first.**
+
+1. **The ledger entry ended on a future-tense promise the watch did not keep** — *"This watch pastes
+   both in the same edit"* — with no outcome beneath it, in the file whose own convention forbids
+   exactly that. **Eighth consecutive verdict on this branch about a sentence rounding toward
+   finished.** FIXED: a WHAT ACTUALLY HAPPENED section, claim block left as written.
+2. ⚑ **THE SHARPEST: `CLAUDE-DIR-REPAIRS-PENDING.md` claimed "verbatim" and "derives nothing" four
+   times over, and its §2c was PROSE while §2b already called `deny(FORCED)`.** Pasting 2a and 2b
+   would have thrown `ReferenceError: deny is not defined` on every Artifact call — and
+   `settings.json:62` registers the hook ending `2>/dev/null || true`, **so it fails OPEN. The
+   repair spec for the guard would have silently disabled the guard.** FIXED: §2c is real code.
+3. **The Glass was never republished, so the paragraph written FOR Wyatt is on disk only.** TRUE and
+   only half-fixable here: the Artifact publish is 429-limited until UTC midnight (the peer session
+   hit it twice) and a Bell watch has no Artifact tool. The message was re-added to `GLASS-NOTE.md`
+   after a peer rewrite dropped it, with an instruction to regenerate before publishing.
+4. **The watch left its own work uncommitted and the Glass-update session rescued it** (`c8a55e42`;
+   `b7ee8c54` swept 356 lines in without naming them). Fixed by the peer, not by the watch. Two live
+   sessions on one branch, and the work survived on the peer's diligence.
+5. **A stale `line 243` citation for the case-9 exemption, moved to 265 by the watch's own edits to
+   that same file.** FIXED in both documents, which now say to find it by its text, never a number.
+
+**ITS ANSWER TO "IS A WATCH WITH NO CODE FIX A WATCH THAT DID ITS JOB?"** — *"On the finding, yes.
+It wrote the falsifier before the attempt, and that is the only reason this reads as a dead premise
+rather than a reframed win… That is a real deliverable. But it then stopped one step short of the
+person, twice."*
+
+---
+
 ## CEO Review 125 — 2026-09-02T23:4xZ (7:4x PM ET), Wy-Blade — `T-090` / `INBOX-20260902T1830Z`+`1857Z`, BUILDING the answered-question retirement
 
 **Number checked at FILING time.** Highest on file was 124; this is 125.
