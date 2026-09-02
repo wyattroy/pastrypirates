@@ -4626,3 +4626,43 @@ did not. Prediction written before measuring:
 `.planning/wyclau/PREDICTION-20260902T1310Z-vendor.md`.
 
 - 2026-09-02T13:39:37Z · close_item: "INVERT `vendor_check.mjs` — HIS RULING" · CEO 106 · no game diff — no game code is right -- the ask is the vendoring gate; inversion finished to his condition and gated, kit-behind detector SPLIT to its own row · no stated solution
+
+## WATCH 2026-09-02T13:50Z — SWEEP, the half of his top ask that stopped being blocked four hours ago
+
+- **Watch started** 2026-09-02T13:50Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+  `git pull --rebase` was a no-op ("Already up to date").
+- **Last progress:** `ab7ff6c7`, 13:39Z — the previous watch closing `T-078` as a SPLIT and filing
+  the two halves it could not finish.
+- **The previous watch closed `T-078`** — the `vendor_check.mjs` inversion, CEO 106, with the
+  kit-behind detector split out to its own row.
+- **Blocked on Wyatt, unchanged and not re-measured this watch:** the board-compression reading
+  (`INBOX-20260901T1335Z`), the staging permission spelling (`INBOX-20260902T05xxZ-c`).
+- **Detached trial in flight: none.** No `.planning/wyclau/LONG-RUN`, so no pid to confirm.
+- **No Artifact tool in this session** — this watch writes `GLASS-NOTE.md` and commits it; the
+  Glass-update session folds it in.
+- **THIS WATCH TAKES `T-001` BANNER ITEMS 2 AND 3 — SWEEP TAKES EVERY COMPLETED ROW, IMMEDIATELY,
+  WITH NO STUB, PLUS THE THREE REPAIRS THE SPEC SAYS MUST LAND IN THE SAME CHANGE.** Claimed.
+
+**WHY THIS ITEM, and for once both orderings name it.** Walking the Inbox oldest-first as the Door
+still requires: `20260901T1335Z`, `20260901T1340Z`, `20260901T1440Z`, `20260902T0058Z` and
+`05xxZ-c` fall out for the reasons the 11:00Z, 11:40Z, 12:20Z and 13:10Z watches recorded. The next
+one is `20260902T04xxZ` — his four-times-asked Chartkeeper — and `chartkeeper.mjs --rank` puts its
+row `T-001` first at **116**. Inbox-oldest and RANK agree.
+
+**AND ITS BLOCKER DIED FOUR HOURS AGO.** Banner item 2 has read BLOCKED since 05:3xZ with a measured
+reason: sweeping every done row takes the Glass's "done" count to zero, the repair for that is
+`glass.mjs`, and `glass.mjs` was VENDORED so a watch could not touch it. **`3d1d0a9d` inverted
+`vendor_check.mjs` at 08:48Z and `T-078` closed it at 13:39Z.** The gate now reports *"PASSED (with
+drift) — 3 ahead"*, exit 0, and `C:\Users\wyatt\Projects\claude-kit` reads fine in this session.
+**This is the first watch for which item 2 is ordinary work** — which is the second time today a
+row has sat marked BLOCKED for hours after its blocker was removed.
+
+**WHAT IT IS, in his terms:** his original complaint was *"MANY completed tasks still stale on it"*.
+Every piece of the Chartkeeper built so far re-ORDERS his list. **This is the piece that makes
+finished work LEAVE it.** Four files move together or the build goes red — the sweep itself
+(`chartkeeper.mjs`), the Glass's done count (`glass.mjs`), the rulings gate
+(`rulings_triage_check.mjs`), and the gate cases that currently DEFEND the overruled
+seven-day-with-a-stub design (`chartkeeper_check.mjs`).
+
+Prediction written before measuring: `.planning/wyclau/PREDICTION-20260902T1350Z-sweep.md`.
