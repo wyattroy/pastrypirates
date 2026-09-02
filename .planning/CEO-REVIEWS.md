@@ -7,6 +7,101 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 124 — 2026-09-02T22:4xZ (6:44 PM ET), Wy-Blade — `T-099` / `INBOX-20260902T190723Z`, the rules-page content split, QUESTIONS ONLY
+
+**Number checked at FILING time.** Highest on file was 123; this is 124.
+
+**HIS ASK, VERBATIM:** *"I want to give Pastry Pirates' rules a real, findable page, and I need to
+decide the content split before anything gets built… Ask me 2-5 questions with the question UI to
+settle: which page becomes THE rules page, what About keeps, and whether the in-game modal shows the
+full text or a short version that links out. Do not write any code this session. Come back with a
+recommendation and let me approve it."*
+
+**VERDICT: PARTIAL — the thinking is right and every fact in it checks out, but the questions may
+never have reached his page, and the recommendation document is not in git.**
+
+*The CEO's own words below, unparaphrased, because the paraphraser is the one with the motive.*
+
+> **1. REQUIRED — the five questions were written to the Chart, but nothing shows the Glass was
+> republished, so his page may still say "Your call (0)."** The questions are real rows
+> (`.planning/CHART.md:1309-1313`). The last publish of his page is commit `850056cf` at **18:20** —
+> eleven minutes *before* the watch even claimed the item. Every publish leaves a commit that says
+> "glass: publish…"; there is none after 18:20. The Chart says exactly what that means, in its own
+> words at `CHART.md:406-409`: *"A fix that has not been republished is a fix he cannot see, and from
+> where he sits those are identical to nothing having happened."* This is today's fifth-instance
+> fault wearing the other face — that one was answered questions that never left his page; this is
+> new questions that may never have arrived on it. **Someone must confirm the five questions are
+> visible before telling him he has been asked.**
+>
+> **2. REQUIRED — the recommendation document is untracked, and half of the tidy-up is uncommitted.**
+> `SPEC-RULES-PAGE-SPLIT.md` shows as `??`. Worse, the two rulings it moved are split across a
+> committed half and an uncommitted one: the removal from `CHART.md`'s RULED landed in commit
+> `19c0c785`, while the matching addition to `CHART-LOG.md:686-687` is still in the working tree.
+> **If that working tree were discarded right now, both of Wyatt's 5:43 and 5:45 PM rulings would
+> disappear from the record entirely.**
+>
+> **3. The three claimed About-page errors are all REAL — I checked each one independently.** The
+> fish action does not exist (`src/ui/flow.js:2310, 2318, 2322, 2416`; deleted at `:301`). The flip
+> pays coins, not a crate (`index.html:2835-2836`). Getting home does not win
+> (`index.html:2846-2850`; `BAKEOFF_ENABLED=true`, `src/shared/index.js:466`). **Every citation in
+> the watch's table pointed at the exact right line.**
+>
+> **4. OBSERVATION — "wrong in three places" is an undercount; there is a fourth.**
+> `about.html:181-182` says the wind *"sets your sailing budget… cheap with it, dear against it"*.
+> `index.html:2833` says **"Sailing is free."**
+>
+> **5. The measured reason behind question 3 is TRUE.** `src/orchestrator.js:2501-2510` fills every
+> `data-rule` span from the live game's cfg, re-run on every open.
+>
+> **6. "Do not write any code" was honoured.** `src/`, `index.html` and `about.html` are untouched.
+>
+> **7. OBSERVATION — the document says four questions; five shipped, and one internal pointer sends
+> him to the wrong one.** *"that is his call and it is Q4 below"* — Q4 is the pirate-voice question,
+> not the credits one. **Small, and it is the same species as the headline fault: the write-up is
+> tidier than what shipped.**
+>
+> **8. On the recurring fault — mostly good, with a half-slip.** The word counts were correctly
+> flagged as *his* numbers, not re-counted. **But then the recommendation repeats "the modal's 765
+> words" as fact after promising not to.**
+>
+> **9. The rulings move was the right call, and is honestly labelled — but the "npm test was red"
+> part is unverified by me.** Two blemishes: the rows stamp themselves *"6:3x PM ET"* — **a made-up
+> digit in a timestamp is worse than no timestamp** — and the note does not mention that the
+> `CHART.md` half went out inside another session's commit. I did not run `npm test` (read-only).
+>
+> **What I would put to him:** the questions themselves are good — one tap each, recommendation
+> marked, and they are exactly the three he named plus two he would have hit anyway. **The risk is
+> that he never sees them.** Republish and confirm, then commit the document, before he is told the
+> split is waiting on him.
+
+### WHAT THE WATCH DID ABOUT IT, SAME TURN — six repairs, and the two REQUIRED ones honestly
+
+- **FINDING 2, the untracked document and the split repair: FIXED.** `SPEC-RULES-PAGE-SPLIT.md` and
+  the `CHART-LOG.md` half are in this watch's commit. The CEO is right that they were one discard
+  away from being lost.
+- **FINDING 1, the publish: NOT FIXED, AND IT CANNOT BE FIXED BY THIS WATCH — said plainly rather
+  than worked around.** A Bell-launched watch on this machine has **no `Artifact` tool**, so it
+  physically cannot republish his page. What it can do, and did, is Door step 6b: write the note to
+  `GLASS-NOTE.md`, commit it, and message the Glass-update session asking it to publish.
+  **So the CEO's warning stands in full: until that session publishes, he has not been asked.** It
+  is recorded here rather than closed, and it is named in the ledger and on the note.
+- **FINDING 4, the fourth error: ADOPTED.** Added to the `T-114` row and to the spec, credited to the
+  CEO — with the more useful conclusion attached: the count went 3 → 4 the moment a second reader
+  looked, so the honest scope is *re-read the whole section*, not *fix four sentences*.
+- **FINDING 7, four-versus-five and the wrong pointer: FIXED.** The document says five, and the
+  credits pointer names the fifth question instead of Q4.
+- **FINDING 8, the half-slip: FIXED.** *"the modal's 765 words"* is now *"the modal's text"*. The
+  caveat was written and then contradicted forty lines later, which is the fault in miniature.
+- **FINDING 9, the invented digit: FIXED** — `6:3x PM ET` is now `6:38 PM ET`, a real reading — **and
+  the disclosure the CEO asked for is written onto the row itself**: the removal half went out inside
+  another live session's `git add -A` (commit `19c0c785`), which is the ninth sighting of `T-093`.
+
+⚠ **AND ONE THING THE CEO COULD NOT SEE, DISCLOSED HERE BECAUSE IT BEARS ON FINDING 9.** `npm test`
+was run by this watch twice: **RED on arrival** (two verdict-carrying rulings sitting in `## RULED`,
+which `rulings_triage_check.mjs` fails on by design) and **GREEN after the move — 110/110 gates, zero
+FAIL lines.** The CEO is right that it did not verify this; the run is this watch's word, and the
+command that reproduces it is `npm test`.
+
 ## CEO Review 123 — 2026-09-02T22:4xZ (6:4x PM ET), Wy-Blade — `T-107` / `INBOX-20260902T1830Z`, the answered-question-retire plan, DESIGN ONLY
 
 **HIS ASK, VERBATIM:** *"get the ceo to verify your fix plan, then add it to the TOP of the fix list."* — clarified: *"by fix list I mean Task List/ Chart"*.

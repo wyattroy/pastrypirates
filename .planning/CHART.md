@@ -1253,9 +1253,16 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
       (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
       two on the same day bake **together**.
+      **AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW.**
+      `about.html:181-182` says the wind *"sets your sailing budget for the turn — cheap with it,
+      dear against it"*, which tells a stranger that sailing costs something. `index.html:2833`:
+      **"Sailing is free."** The wind caps the RANGE, it never charges.
       ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
       round.** The full comparison and the reasoning are in
       [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
+      ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
+      **Nobody has ever checked this page against the game it describes**, so the honest scope is
+      "re-read the whole section", not "fix four sentences".
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
