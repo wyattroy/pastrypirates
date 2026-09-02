@@ -753,8 +753,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ## BLOCKED ON WYATT
 
-*(empty — the staging-publish-permission question below was RULED YES 2026-09-02T04:03:36Z,
-moved to RULED, awaiting triage.)*
+| Question | Recommendation | since |
+|---|---|---|
+| **Your YES on unattended staging publish doesn't fully unblock it — the file that grants the permission is itself protected from an unattended session.** A watch tried to add the line to `.claude/settings.json` right after you ruled YES and hit the same "requires approval" wall, one step further back. So tonight's build (`2026.09.01.8`, staging is still on `.6`) is still stuck, and every future night is too until this file is touched by hand. | **(Recommended) Two things, about a minute total, whenever you're at a terminal:** (1) run `bash scripts/deploy-staging.sh "release candidate 2026.09.01.8"` to put tonight's build up now — it refuses to touch the real game, stamps the copy, and reports back whether it landed; (2) add `"Bash(bash scripts/deploy-staging.sh*)",` to the allow list in `.claude/settings.json` (right under `"Bash(node scripts/*)"`) so future nights don't hit this wall again. **Also a correction owed to you**: an earlier note called the build "green and trial-covered" — the automated tests are green, but the sea trial's own headline verdict is FAILED (known settle-timing noise, not a broken game); it should still go to staging, but the "trial passed" framing was wrong and a fresh reviewer caught it. | 2026-09-02 |
 
 *The staging-publish-permission question — **"May a watch publish to staging on its own?"** — was
 RULED YES ON THE GLASS 2026-09-02T04:03:36Z, no note attached. Harvested to RULED below, awaiting
@@ -868,6 +869,14 @@ convergences. Every row below was checked against the tree, not against the docu
 
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
+
+- **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:12:13Z**: *"in the recipe popup
+  modal (viewable at the end of the game and whenever you click your own recipe) the print and pdf
+  buttons cover up the X to close the modal -- redesign the modal header to accommodate the X"* →
+  **SCHEDULED, next game-code session — a real defect report.** A player who opens their recipe
+  (from End of Voyage or by clicking their own recipe mid-game) can't close the modal because the
+  Print/PDF buttons sit on top of the X. Needs a header layout fix so all three controls have room
+  — not investigated here, this session's mandate is harvest-and-publish only.
 
 - **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:04:27Z**: *"New bug: post-trade
   denial narration is gone. Find out what happened to it; also, audit the entire game to see which
