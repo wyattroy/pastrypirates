@@ -1681,7 +1681,18 @@ status: OPEN — FOR A WATCH. This is the answer that unblocks `INBOX-20260902T1
 
 solution: he agrees with the recommendation that was standing on that question, and names deleting About's "How it plays" section. **Read the recommendation as it stood — his "agree with your rec" points at it, and it is the operative half.**
 
-status: OPEN — FOR A WATCH, **and the wording is flagged, not guessed.**
+status: OPEN — FOR A WATCH. **THE WORDING IS CONFIRMED BY HIM, 6:52 PM ET, question UI: "That's the whole instruction."**
+
+  ✅ **HE WAS ASKED AND HE ANSWERED: THE NOTE IS COMPLETE AND THE PAGE DID NOT TRUNCATE HIM.** He
+  simply did not close the quotation mark. **So the operative instruction is exactly: delete the
+  "How it plays" section from `about.html`, and nothing further.** About keeps "What the captains
+  are saying" and "Credits"; the rules live only on the new `/rules.html`.
+  ⚠ **AND A SUSPICION RAISED IN THIS FILE IS THEREBY WITHDRAWN, IN THE OPEN.** The entry below
+  reasoned from commit `1d852187` (*"his page was cutting his own words off"*) that the page may
+  have eaten the rest of his sentence. **It did not.** The truncation fault is real and separately
+  filed; **it did not happen here, and inferring it from a missing quote mark was one step past the
+  evidence.** Asking him cost one question and settled it — which is the cheaper move whenever his
+  own words are the thing in doubt.
 
   ⚠ **THE NOTE ENDS MID-QUOTE: `delete "how it plays` — an opening quotation mark with no close.**
   It is recorded here exactly as stored, and **nobody should complete that sentence on his behalf.**

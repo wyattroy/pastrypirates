@@ -49,6 +49,35 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-09-02, 6:50 PM — THE RULES GET THEIR OWN PAGE AT `/rules.html`, WRITTEN FROM THE CURRENT GAME
+
+Two rulings on the Glass, plus one confirmation through the question UI.
+
+**RULING 1, 6:50:08 PM, verbatim:** *"Do a new /rules.html that explains the rules -- using the
+latest version of the game."*
+**The alternatives he did not pick:** promoting the in-game "How to play" modal to a page, or making
+`about.html` the rules page. **He chose a NEW page.**
+
+⚠ **THE SECOND HALF OF THAT SENTENCE IS A SEPARATE INSTRUCTION AND IT IS THE ONE THAT WILL GET
+SKIPPED.** *"Using the latest version of the game."* The in-game modal's 765 words and `about.html`'s
+account are both prose somebody wrote at some point; **neither is evidence of what the game does
+today.** The rules must be checked against the shipped game — the wind rule, crate pricing as an
+island empties, how a broadside resolves downwind, the shot clock — not copied forward. **Copying is
+what produces three pages that disagree.**
+
+**RULING 2, 6:50:32 PM, verbatim:** *"Agree with your rec -- delete "how it plays"*
+**Confirmed 6:52 PM, question UI, when the note was flagged as possibly cut off:** *"That's the
+whole instruction."* **So: delete the "How it plays" section from `about.html`, nothing further.**
+About keeps "What the captains are saying" and "Credits".
+
+**AND A CORRECTION THAT BELONGS WITH IT: the page did NOT truncate him.** The note ended on an
+unclosed quotation mark and the Advisor inferred, from the separately-real truncation fault
+(`1d852187`), that his sentence had been eaten. **It had not — he simply did not close the quote.**
+One question settled it. **Whenever HIS OWN WORDS are the thing in doubt, ask him rather than
+reason about the mechanism that might have mangled them.**
+
+---
+
 ## 2026-09-02, 5:43 PM — A WATCH MAY EDIT HOOKS AND SKILLS
 
 Wyatt, ruled on the Glass 5:43:55 PM ET: *"Let the watch write them -- I allow edits to hooks and
