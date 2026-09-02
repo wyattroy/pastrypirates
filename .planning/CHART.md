@@ -53,8 +53,16 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [ ] **★ NEXT ITEM, AT HIS INSTRUCTION — BUILD THE CHARTKEEPER. Full spec:
+- [ ] **THE CHARTKEEPER — BUILT AND RUNNING. What is left is SWEEP alone. Full spec:
       ⟨`T-001`⟩
+      ✅ **SHIPPED 2026-09-02:** REAP runs every Glass tick (report-only, and it flags stale rows on
+      his page). RANK runs in **every watch**, wired into the Door at step 6a with a gate that fails
+      if the line is ever removed. And the two derivations were CONVERGED — before that, RANK was
+      ordering a list missing eleven rows, ten of them his own words.
+      ⏳ **STILL OPEN: SWEEP, and only SWEEP.** The version that exists is the seven-day-with-a-stub
+      form he **OVERRULED** (his ruling: every completed row leaves immediately, no stub). It cannot
+      ship until the Glass's done count is re-sourced from `CHART-LOG.md` — sweeping today would
+      take his page to "0 done". **That single dependency is the whole of what remains here.**
       [`.planning/SPEC-CHARTKEEPER.md`](SPEC-CHARTKEEPER.md).** His words, 2026-09-02
       (INBOX-20260902T04xxZ): *"design -- BUT DONT BUILD -- a system that will dynamically
       reprioritize it, update it, and move things around it that is built into this process
@@ -352,8 +360,18 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
-- [ ] **★★★ HIS FOUR GLASS-PAGE ASKS — FIVE HOURS OLD, ASKED FOUR TIMES, NEVER FILED AS A
+- [ ] **HIS FOUR GLASS-PAGE ASKS — THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box. FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A
       ⟨`T-076`⟩
+      ✅ **SHIPPED 2026-09-02, in this order:** the Chart re-prioritises itself (RANK runs in every
+      watch via the Door, and the two derivations were converged so it ranks the list he actually
+      sees) · The Lesson moved BELOW the Chart · the card renamed to *The Chart (Tasks To Do)* ·
+      next-to-be-completed first, re-ordered on every tick.
+      ⏳ **STILL OPEN, and they are the two that need new interface rather than new ordering:**
+      **expandable rows** for fuller context, and **a comment box under each item**. Both are
+      `glass.mjs`, both are now editable in-repo, and neither is blocked.
+      ⛔ **NOT part of this row:** *remove items once complete* — SWEEP exists but is still the
+      seven-day-with-a-stub form he OVERRULED, and it cannot ship until the done count is
+      re-sourced from `CHART-LOG.md`. That is kit patch 6, filed separately.
       ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
       *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
       AGO."*
