@@ -615,3 +615,67 @@ something a gate can read:
 `.planning/` paths; `start_trial_detached.mjs:35-36` **exits 2** if `scripts/sea_trial.mjs` is
 missing — *"sea trial"* being a name he coined for this game; `longrun_status.mjs:74` derives its
 ceiling from *"the longest sea trial on record here."*
+
+## EXTENSIBILITY: DO IT ONCE, AT THE END — 2026-09-02, his rulings plus the call he delegated
+
+**Three rulings, and one decision he handed to the Advisor with his values attached.**
+
+| | HIS RULING |
+|---|---|
+| The kit's entry point (interview → mission → steps) | **AFTER THE GAME LAUNCHES.** The pitch is stronger with a shipped game as its evidence, and the interview is the piece most improved by having watched one real vision go end to end. |
+| Game vs kit, competing for the same hour | **THE GAME WINS, UNTIL IT LAUNCHES.** A rule a watch can apply without asking him. After the launch, the order flips. |
+| A daily "what did the framework learn" moment | **REJECTED, twice.** *"I don't need to know how the framework improved, every day. I just want the framework to improve!"* **Do not build a reporting ritual for this.** |
+
+**His question, and the values he gave for answering it:** *"once we get the framework built and
+working, is it a simple separate project to say 'make our claude kit in pastry pirates extensible to
+any project'? and do that once, at the end?"* … *"i don't want this claude-kit extensibility project
+to eat up our work on pastry pirates; but i DO want claude kit to be designed in such a way that we
+can easily make it extensible whenever we want."*
+
+### THE ANSWER: YES — DEFER IT, AND THE REASON IS MEASURED RATHER THAN PREFERRED
+
+**The retrofit cost today is small and countable.** Every known violation of the framework test is a
+string or a path:
+
+- `close_item.mjs:49-52` — four hardcoded `.planning/` paths
+- `start_trial_detached.mjs:35-36` — hardcodes `scripts/sea_trial.mjs`, **exits 2** without it
+- `longrun_status.mjs:74` — a ceiling derived from *"the longest sea trial on record here"*
+
+**That is three files and an afternoon.** Deferring is cheap *because the list is short*, and this
+project's own record says extracting generality from working code has never failed here — it is his
+own method (*"build all of this by using it"*).
+
+### THE ONE PIECE OF MACHINERY, AND IT IS NOT A PROCESS
+
+**A non-blocking counter, not a ritual.** A gate that runs in `npm test`, prints *"N shared files
+carry project-specific references"*, **blocks nothing and nags nobody.**
+
+Its job is not to remind him — he has rejected that twice and he is right. **Its job is to keep
+"do it at the end" an honest choice instead of a hope.** Three files is a deferral; forty is a
+deferral that has quietly become the problem, and nothing today would tell him which he is in.
+
+**And when he is ready, the gate's output IS the task list** — the extensibility project scopes
+itself, with no archaeology.
+
+**It flips to blocking the day the game launches**, when his own priority ruling flips the order.
+One line changed, at a moment already defined.
+
+### THE ONE EXCEPTION WORTH DISCIPLINE NOW — STRUCTURE, NOT STRINGS
+
+**Retrofit cost is not uniform, and this is the part that decides whether "at the end" works:**
+
+- **A hardcoded path or name is CHEAP to retrofit.** Find it, parameterise it, done. All three known
+  violations are this kind.
+- **A structural assumption is NOT.** If the Glass is built to parse *the shape of Pastry Pirates'
+  plan file* — `## STEP 1 CHECKLIST`, `## THE IDEA INBOX`, `- [ ]` rows with a particular fate
+  vocabulary — that is not a rename. That is the framework knowing what a plan *is*, and unpicking
+  it later is a rewrite rather than a sweep.
+
+**So the only rule to carry during the game's run, and it fires a handful of times rather than
+daily:** *when about to make a shared file depend on the SHAPE of something Pastry Pirates-specific,
+stop and ask whether the shape should be declared rather than assumed.* **Strings can wait. Shapes
+cannot.**
+
+**Recommendation to him in one line:** defer the extensibility project entirely, keep one silent
+counter so the deferral stays measured, and spend the discipline only on structural coupling — which
+is where retrofitting actually gets expensive.
