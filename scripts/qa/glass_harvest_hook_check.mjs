@@ -77,6 +77,22 @@ else ok("2/9 a valid receipt lets the publish through (the guard lets go)");
  * file", which is the harness refusing to let an agent rewrite its own hook config without a human
  * present. That is a good rule and the watch did not work around it.
  *
+ * ⚠ AND WYATT'S PERMISSION RULING DOES NOT LIFT IT — MEASURED 2026-09-02T23:4xZ, WITH HIS GRANT
+ * ALREADY IN FORCE, AFTER TWO WATCHES STALLED HERE WAITING FOR EXACTLY THAT GRANT.
+ * He ruled on the Glass at 5:43:55 PM ET: "Let the watch write them -- I allow edits to hooks and
+ * skills". `CHART.md:145` and commit `0472a129` read that as the wall coming down; `0472a129`
+ * measured that `.claude/settings.json` denies only `Read(.env*)` and concluded "nothing under
+ * `.claude/` is blocked by this project". THE MEASUREMENT IS RIGHT AND THE CONCLUSION IS WRONG.
+ * The 23:39Z watch attempted both files after his ruling and got refused on both — the hook as a
+ * "sensitive file", the Door as an ungranted write. THE REFUSAL IS THE HARNESS'S OWN PROTECTION ON
+ * THE Edit/Write TOOL, NOT THIS PROJECT'S ALLOWLIST, so he cannot lift it by ruling: it is not his
+ * rule. A plain `node` script writing the same bytes would sail past it, and building one would be
+ * defeating the protection rather than satisfying it — so no watch should.
+ * THE ROUTE THAT DOES EXIST IS A SESSION WITH A HUMAN PRESENT. Both edits are written out verbatim
+ * in `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md` so whoever applies them derives nothing, and
+ * a watch hands them over with `SendMessage` to an interactive peer. STOP WAITING FOR ANOTHER
+ * RULING FROM HIM; it cannot help, and that is the finding this comment exists to carry.
+ *
  * SO WHY IS THIS A REPORTING BLOCK AND NOT THREE FAILURES? Because a permanently red gate is a gate
  * everybody learns to run past, and it would block every other session's `npm test` on a repair
  * only Wyatt can perform. Instead it reports the state and — THIS IS THE PART THAT MATTERS — it
@@ -134,6 +150,8 @@ if (fixed) {
   console.log(`    hook: bare-timestamp denied=${pending.bareDenied}  aged-receipt allowed=${pending.agedAllowed}  force denied=${pending.forceDenied}  deny-text free of the hand-written stamp=${pending.hookTextClean}`);
   console.log(`    door: SKILL.md stamps and compares the version=${pending.doorCompares}`);
   console.log("    Fix: .claude/hooks/glass-harvest-first.cjs and .claude/skills/door/SKILL.md — see .planning/SPEC-GLASS-HARVEST-SAFETY.md layers A and B.");
+  console.log("    ⚠ HIS 5:43 PM PERMISSION RULING DOES NOT LIFT THIS — measured 23:4xZ with the grant in force, both writes still refused. The wall is the harness's sensitive-file protection, not .claude/settings.json.");
+  console.log("    ROUTE: both edits are written out verbatim in .planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md — hand them to an interactive session (SendMessage), which can accept the prompt. Do NOT write them from a script; that defeats the protection rather than satisfying it.");
   console.log("    ⚠ SO `artifactVersion` HAS NO MACHINE READER YET (CEO 120 finding 3): the receipt is written, and the only thing that compares it is a session obeying the runbook. Until the hook reads it, layer B is a file format plus a paragraph.");
 }
 

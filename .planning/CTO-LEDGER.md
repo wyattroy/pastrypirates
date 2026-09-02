@@ -6009,3 +6009,32 @@ exactly: *"nobody has yet seen a question leave his page, which is the only evid
 it independently. `gear.mjs` reads FULL because it weighs everything ahead of `origin/main` on this
 branch rather than this watch's own diff; the honest gear for this change is planning tooling, and
 no sea trial was run or claimed.
+
+---
+
+## WATCH 2026-09-02T23:39Z (7:39 PM ET), Wy-Blade — CLAIMING `T-105`'s BLOCKED HALF: the two `.claude/` files his 5:43 PM ruling unblocked
+
+**SITUATION AS THIS WATCH FOUND IT.** Started 23:39:56Z. Tree clean, `can_push` green on
+`claude/cloud-handoff-planning-a9ay1u`, nothing behind. Last progress: the 23:00Z watch built parts
+1–3 of the answered-question retirement (`T-090`, CEO 125), and the commit after it, `554a2d10`, put
+a REAL question on his page in the new `qid` format so the acceptance test finally has a subject.
+Blocked on Wyatt: that one question (`admin-console-where`), waiting for his tap. No detached trial
+in flight — `longrun_status.mjs` exits 2, *"no LONG-RUN marker"*.
+
+**WHAT THIS WATCH TAKES UP, AND WHY IT IS THE RIGHT ONE.** `T-105` is rank 1 on the Chart and its
+remaining half has been blocked for two watches on a wall that **no longer exists**: every one of its
+repairs lands in `.claude/`, and Wyatt ruled on the Glass at 2026-09-02 5:43:55 PM ET — ***"Let the
+watch write them -- I allow edits to hooks and skills"***. Two separate watches recorded that wall as
+a standing fact about the machine; his ruling retired it and nothing has moved the row since.
+`CHART.md:145` says so in its own words: *"your answer landed … and nothing moved this row"*.
+
+**THE THREE RED CASES ARE ALREADY WRITTEN — step 1 of the four steps was done by the 21:0xZ watch**
+and is sitting in `scripts/qa/glass_harvest_hook_check.mjs`'s PENDING block, with the exact
+instruction for whoever lands the fix: *"promote these three to hard assertions and delete this
+block."* This watch is that session.
+
+**A RIDER, NAMED RATHER THAN SMUGGLED.** The Door's harvest paragraph is the file `T-105`'s repair
+(e) edits, and it is ALSO where CEO 125's required repair 2 for `T-090` goes — the retire command
+that stops his answered questions re-showing, his stated top priority. Both are a few lines in one
+paragraph. **This watch pastes both in the same edit and closes only `T-105`;** `T-090` stays open
+for its own acceptance test, which needs his tap and cannot be run from here.
