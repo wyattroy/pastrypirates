@@ -15,8 +15,11 @@ no game code was changed. The subject is the instrument.*
 
 **The game never draws 🌕 at all**, so no font — his Safari's or the rig's — was ever asked to.
 `src/shared/index.js:135` maps that character to `assets/icons/coin-emoji.png`, and `emojify()`
-swaps it for an `<img>` before anything renders. **What came back blank was that IMAGE, with its
-layout box intact.**
+swaps it for an `<img>` before anything renders. **What came back blank was that IMAGE.**
+
+**WHY IT DID NOT PAINT IS NOT PROVEN, AND THAT CAVEAT TRAVELS WITH EVERY SENTENCE ON THIS PAGE.**
+What is proven is what it is *not* — not a font, not a missing file, not an engine difference — and
+that is enough to answer his question and void the one that was sitting on him.
 
 ## THE MEASUREMENT THAT SETTLES IT — two pictures and one number
 
@@ -29,13 +32,31 @@ Same leg, same engine, same machine, same 140×50 box at (440,920). The tool is
 | **01:37Z** (coin)  | tree of 2026-09-02T01:37Z | `ink@5x13` `ink@21x18` **`gap@39x3` `ink@42x36` `gap@78x3`** `ink@81x8` |
 
 **The blank gap is 42 px. The coin plus its cling margins is 42 px. The full stop begins at column
-81 in both.** The `<img>` had its full width and painted nothing.
+81 in both.** So the text around the icon is laid out identically in the two runs: nothing reflowed,
+nothing was mid-typing, the sentence is complete and the icon's slot is where it belongs.
 
-**And the file was loaded at that instant** — the CAPTAINS panel of that very frame paints the same
-`assets/icons/coin-emoji.png` four times (`src/ui/util.js:165`, read, not assumed). So it is not a
-missing file, not a missing font, and not a Safari-versus-Chrome difference. **It is one `<img>`
-that reserved its box and did not paint in the frame the camera caught** — a paint transient in a
-headless WebKit capture.
+> ### ⚠ AND THAT WIDTH MATCH PROVES LESS THAN THE FIRST DRAFT OF THIS PAGE CLAIMED. CEO 101 CAUGHT IT.
+>
+> It said the matching width showed the image had loaded and merely failed to paint. **It does not.**
+> `.narrIcon` is pinned at `width:18px; height:18px; margin:0 1px` (`index.html:307`) — a fixed CSS
+> box, not the picture's own size — so **a completely failed image reserves exactly the same 42
+> device pixels.** The width match rules out a reflow, and nothing more.
+>
+> **What actually rules out a failed load is the rest of the frame:** the CAPTAINS panel paints the
+> same `assets/icons/coin-emoji.png` **four times** in that very screenshot (`src/ui/util.js:165`,
+> read, not assumed). The file was fetched and decoded at that instant.
+>
+> *Recorded rather than quietly rewritten, because "the box was intact, therefore the file loaded"
+> is a plausible-sounding rule that is simply wrong, and the next person to reuse it would be too.*
+
+**And there is a second, stronger disproof of the font theory that this watch had in hand and did
+not use — also CEO 101's.** The 🏴 that OPENS the same card (`src/ui/panel.js:1153`) is a **bare
+U+1F3F4**, and `EMOJI_IMG` holds only the ZWJ sequence `"🏴‍☠"` — so that flag is *not* swapped. It
+is a typed emoji, drawn by the font, on the same card, in the same frame, in the same headless
+WebKit capture where the coin came back blank. **If the rig had no emoji font, the flag would be
+blank too. It is not.** That control is now case 3 of the gate.
+
+So: not a missing font, not a missing file, not a Safari-versus-Chrome difference.
 
 Pictures: [`posed/t005-1914Z-crop.png`](posed/t005-1914Z-crop.png) (the gap) and
 [`posed/t005-0137Z-crop.png`](posed/t005-0137Z-crop.png) (the coin), both magnified 5× from the
@@ -74,7 +95,15 @@ source feels like reading the code rather than reading a claim about it.
 **No game code.** `src/` and `index.html` are untouched, deliberately — his words were *"it's
 working correctly as is"*, and the transient is in a headless capture, not in the game.
 
-- **`scripts/qa/typed_emoji_never_reaches_screen_check.mjs`** — 5 cases, in `npm test` (98 gates).
+- **`scripts/qa/emoji_with_art_never_reaches_screen_check.mjs`** — 5 cases, in `npm test` (98 gates).
+  ⚠ **It shipped for about an hour under the name `typed_emoji_never_reaches_screen_check.mjs`, and
+  that name was FALSE** — the bare 🏴 above is a typed emoji that does reach the screen. CEO 101
+  caught it, and the point is not the typo: **a gate whose NAME claims more than its cases prove is
+  this very item's fault one level up**, and the name is what gets printed every time the suite
+  runs. Renamed rather than narrowed in a comment. *(The old path survives as a one-line stub
+  pointing here, because an unattended watch on this machine cannot delete a file — `rm`,
+  PowerShell `Remove-Item` and `git mv`/`git rm` are all refused. Measured, not assumed. Whoever is
+  here with a person at the keyboard: delete it.)*
   It asserts the fact three documents misread: the typed emoji is gone from `emojify()`'s output and
   the coin image is in its place. **Red-proofed** by deleting `"🌕"` from `EMOJI_IMG`: cases 1 and 4
   go red.

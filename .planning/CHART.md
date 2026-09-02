@@ -304,22 +304,21 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       than to weaken the gate.
 - [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
       ⟨`T-006`⟩
-- [ ] **⚠ THIS ROW'S DIAGNOSIS WAS WRONG AND IS CORRECTED BELOW — the money symbol is NOT a raw
+- [ ] **The money symbol: this row's diagnosis was wrong, and the corrected answer is below —
       ⟨`T-005`⟩
-  emoji on screen, and there is no rule-23 sweep to do.** Measured 2026-09-02T11:xxZ by the watch
-  that took `INBOX-20260902T0405Z`:
+  nothing on screen is a raw emoji and there is no rule-23 sweep to do.** Measured 2026-09-02T11:xxZ:
   [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
   **`src/shared/index.js:135` maps 🌕 to `assets/icons/coin-emoji.png` and `emojify()` swaps it
   before anything renders**, so the typed character never reaches the DOM and no Safari — his or
-  the rig's — is ever asked to draw it. What was blank was that IMAGE with its layout box intact:
-  the gap is **42 px** and the coin in the next run's same box is **42 px**, full stop at the same
-  column, while the same file painted four times in the CAPTAINS panel of that very frame
-  (`src/ui/util.js:165`). **His Safari and the rig were both right.** The question this row put to
-  him is VOID, not unanswered, and `BLOCKED ON WYATT` has nothing here. Guarded by
-  `scripts/qa/typed_emoji_never_reaches_screen_check.mjs` (5 cases, red-proofed, in `npm test`).
-  **What is left of this row is only the unproven bit: why one `<img>` reserved its width and did
-  not paint, once, in one frame.** Chase it only if it recurs, with a posed board
-  (`docs/DRIVING-THE-GAME.md` §5e), never another rate over a voyage.
+  the rig's — is ever asked to draw it. What was blank was that IMAGE. **What rules out a failed
+  load is not the gap's width** — `.narrIcon` is pinned at 18×18 (`index.html:307`), so a failed
+  image reserves the same box (CEO 101) — **but the same file painting four times in the CAPTAINS
+  panel of that very frame** (`src/ui/util.js:165`). And the card's own opening 🏴 is a bare
+  U+1F3F4 that `EMOJI_IMG` does not map, so the font drew it, in that same frame: **a rig with no
+  emoji font would have blanked that too.** **His Safari and the rig were both right.** The question
+  this row put to him is VOID, not unanswered, and `BLOCKED ON WYATT` has nothing here. Guarded by
+  `scripts/qa/emoji_with_art_never_reaches_screen_check.mjs` (5 cases, red-proofed, in `npm test`).
+  **Nothing is left of THIS row — the residual is `T-078`, on its own, recurrence-gated.**
   *The original text is kept below, struck, because a wrong reading nobody can see is a wrong
   reading that comes back:*
   ~~**THE GAME'S MONEY SYMBOL IS A RAW EMOJI IN SOME STRINGS AND AN IMAGE IN OTHERS, AND THE EMOJI
@@ -340,7 +339,16 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   blanks it, the currency disappears from the page that explains the currency. **The fix is rule
   23's: one coin, the image, everywhere.**
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-      ⚠ STALE-CANDIDATE — points at BLOCKED ON WYATT, which is empty — the question it is waiting on has been answered
+
+- [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
+      ⟨`T-078`⟩
+  WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
+  carrying an open question. What is proven is what it is NOT: not a font (the same card's bare 🏴
+  was font-drawn in that frame), not a missing file (the same URL painted four times in the CAPTAINS
+  panel of that frame), not an engine difference (the next run's same leg was clean). **Seen once.
+  Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
+  never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
+  Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 
 - [x] Charter approved (2026-08-31, amendment: daily lessons)
       ⟨`T-034`⟩
