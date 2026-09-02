@@ -1397,8 +1397,9 @@ convergences. Every row below was checked against the tree, not against the docu
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
 **Harvested rulings, 2026-09-02, verbatim from the Glass (`glassState`, generatedAt
-2026-09-02T22:37:19.175Z). Three of the four rules-page questions (Your Call table, above) now have
-answers. NOT YET TRIAGED — this session's mandate is harvest-and-publish only.**
+2026-09-02T22:37:19.175Z, second read at the same generatedAt after he kept answering mid-tick — all
+five rules-page questions in the Your Call table above are now answered). NOT YET TRIAGED — this
+session's mandate is harvest-and-publish only.**
 
 - `rules-page-1-of-4-which-page-becomes-th` — **RULES PAGE 1 of 4 — which page becomes THE rules
   page? You asked for this split before anything gets built.** His answer (choice: note, at
@@ -1410,9 +1411,16 @@ answers. NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
   plays\""*
 
 - `rules-page-3-of-4-does-the-in-game-moda` — **RULES PAGE 3 of 4 — does the in-game modal show the
-  full rules, or a short version that links out?** His answer (choice: yes — i.e. the recommended
-  option, full text with the modal staying the source; no note attached, at
-  2026-09-02T22:50:48.826Z).
+  full rules, or a short version that links out?** His answer (choice: yes, at
+  2026-09-02T22:51:10.628Z): *"Do your recommendation -- full text, modal stays the source."*
+
+- `rules-page-4-of-4-does-the-rules-page-s` — **RULES PAGE 4 of 4 — does the rules page speak
+  pirate, or in your own plain voice?** His answer (choice: note, at 2026-09-02T22:51:18.219Z):
+  *"Pirate speak!"*
+
+- `and-once-credits-has-its-own-page-does` — **And once Credits has its own page — does About keep
+  its credits list?** His answer (choice: note, at 2026-09-02T22:51:58.611Z): *"Keep a short list on
+  About and link out"*
 
 > ### ⚠ `T-098` – `T-104` ARE THE SAME SEVEN THINGS AS `INBOX-20260902T1907*`. WORK THEM FROM THE INBOX.
 >
