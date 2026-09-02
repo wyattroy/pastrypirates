@@ -7,6 +7,131 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 102 — 2026-09-02, Wy-Blade — the wall he was told is physical is one line of config, and the taxonomy does not survive its own file list
+
+*Item: **"we need a better way to add tasks to the watch than modifying vendored files… redesign the
+process (without actually coding any of it) and give me 2-3 proposals… get CEO review."** Reviewed:
+`.planning/SPEC-KIT-BOUNDARY.md`. Nothing was built.*
+
+### VERDICT: **PARTIAL**
+
+**Its one sentence for Wyatt:** *"Your instinct is right and the fix may be much smaller than the
+three proposals suggest — the shared toolkit is sitting on this laptop and is perfectly readable;
+what is fenced off is the unattended night worker, and that fence is set in a file this repo owns,
+so before choosing an architecture, spend five minutes testing whether one line of settings unblocks
+four of the five stuck fixes tonight."*
+
+**What it verified as TRUE:** `glass.mjs` is shared and locked (`MANIFEST.sha256:1`,
+`vendor_check.mjs:47-58`, ten files locked). **This session never edited it** — *"I looked hard,
+because this was the serious one"* — and it calls the correction *"the more useful version of your
+complaint: nobody broke the rule, the rule stopped the work."* `T-076`/`T-077` are real takeable
+rows. Five patches blocked, two of them his rulings, patch 2 a real bug. The escalation trigger says
+*"if it costs a third"* and the box still reads *"it has now cost two."*
+
+### ⚠ FINDING 1 — "PHYSICALLY UNREACHABLE" IS FALSE, AND IT IS THE SIXTH UNMEASURED CLAIM
+
+The spec said the kit is *"PHYSICALLY UNREACHABLE from the machine that runs the relay"*, inherited
+verbatim from `PENDING-KIT-PATCHES.md` patch 6 (*"REFUSED, not empty"*) **and repeated without
+testing it.** The reviewer listed `C:/Users/wyatt/Projects/claude-kit` and **read ten files in it.**
+*"Nothing about the machine refuses anything."*
+
+**What is actually true is narrower and much better news:** `bell.ps1:98-100` launches the watch as
+`Start-Process claude -ArgumentList "-p", … -WorkingDirectory $Repo` — **no `--add-dir`.** A `-p`
+session has no human to approve a read outside its folder, so that read dies. **That is Claude
+Code's permission fence, scoped to a folder, set in `.claude/settings.json` — which is in NEITHER
+lock list** (it grepped both manifests: zero hits). *"The thing described as a law of physics looks
+like one line of settings."*
+
+**It held itself to the same standard:** *"I did not run a `claude -p` watch and prove the read is
+refused, nor prove that lifting the fence works there."* **So Part A below is a prediction, and one
+five-minute test nobody has run.**
+
+### ⚠ FINDING 2 — THE TAXONOMY IS CONTRADICTED BY ITS OWN FILE LIST
+
+The spec put `bell.ps1`, `can_push`, `close_item`, `start_trial_detached` in **MECHANISM —
+"genuinely portable, rightly shared."** Three of the four are soaked in this project:
+
+- `close_item.mjs:49-52` hardcodes `.planning/CHART.md`, `INBOX.md`, `CEO-REVIEWS.md`,
+  `CTO-LEDGER.md`; `:85` requires a literal `- [ ]` row.
+- `start_trial_detached.mjs:35-36` hardcodes `scripts/sea_trial.mjs` and **exits 2 without it.**
+  *"Sea trial"* is a name Wyatt coined for this game. **A repo without one cannot run the file.**
+- `longrun_status.mjs:74` derives its ceiling from *"the longest sea trial on record here."*
+
+And PRESENTATION leaks the other way: `glass.mjs` stamps the heartbeat, reads the long-job marker
+and parses the Chart's fate words. *"Nearly every file straddles it. A boundary drawn on a taxonomy
+that its own files contradict will be argued about every week."*
+
+### ⚠ FINDING 3 — "ALL FOUR GLASS ASKS LAND IN `glass.mjs`" IS FALSE
+
+Ask 1 (*"update Tasks list dynamically"*) is patch 4, whose file is `.claude/skills/door/SKILL.md`.
+**So Proposal 1 would have left his OLDEST ask blocked**, against its own headline claim that *"the
+taste queue goes to zero, permanently."*
+
+### ⚠ FINDING 4 — THE DECIDING QUESTION WAS ANSWERABLE HERE, AND THE ANSWER IS "NO OTHER USER"
+
+The spec handed him *"is any repo other than pastrypirates running wyclau?"* **The reviewer answered
+it from the repo in about five minutes:**
+
+- `claude-kit/.claude-plugin/marketplace.json` lists **one** plugin, `org`. **wyclau is not in the
+  catalogue at all** — it cannot be installed, only copied.
+- `claude-kit/README.md` never mentions wyclau; of what it does describe it says *"Nobody has
+  installed these yet."*
+- Of four project folders on this machine, **exactly one** has `.claude/wyclau/VENDORED-FROM`.
+- claude-kit commit `8691117`: *"the kit's glass.mjs was **104 lines behind the repo it vendors
+  into**."* **The master copy was trailing its only copy.**
+
+*"The document put that question to you when it could have put the answer in front of you."* It
+declines to say "zero" as a fact, because it cannot see the Mac.
+
+### ITS JUDGEMENT ON THE THREE
+
+**P1** — right instinct, wrong shape; its own rule (*"config declares DATA, never behaviour"*) is
+broken by his own ask 4, which IS behaviour. Plus finding 3. **P2** — *"the evidence selects it"*;
+its stated cost is hypothetical while the tax is measured. *"A library with one user is not a
+library."* **P3** — *"correctly diagnosed and should not be adopted… the shadow-fork trap wearing a
+watch"*, and its expiry gate is itself a shared-file change, inheriting the blockage it routes
+around. **The recommendation (P1+P3) is judged "the weakest of the available combinations."**
+
+### ⭐ ITS FOURTH OPTION, IN TWO PARTS
+
+**PART A — TONIGHT, AND IT IS NOT AN ARCHITECTURE.** Add the kit's path to the additional-directories
+permission in `.claude/settings.json` — a project-local edit to an unlocked file. A night worker
+could then open the kit, fix the bug it just proved, run `install.sh vendor`, and ship it in the same
+run. *"This should be tried before any architecture is chosen, because if it works, four of the five
+blocked patches unblock tonight and the redesign becomes a calm decision instead of an emergency."*
+**Stated as a prediction, not a measurement.**
+
+**PART B — SHRINK THE SHARED SET INSTEAD OF STEERING IT.** Move the project-soaked files OUT of the
+shared set and into this repo as ordinary project code — `glass.mjs`, `close_item.mjs`,
+`start_trial_detached.mjs`, `longrun_status.mjs`'s ceiling. **What stays shared is what is actually
+portable:** the Bell, `can_push`, the publish plumbing.
+
+*"It answers your sentence exactly — 'there should be no reason to modify those files for a specific
+project.' It removes the reason by removing the file from 'those files'."* **No config language, no
+overlay, no expiry gate, no ownership inversion.** `install.sh:31-33` already derives what to copy
+from one list, so shrinking a module is a list edit. **Unblocks 4 of the 5** (1, 2, 5, 6 are all
+`glass.mjs`). Patch 4 still needs the Door handled separately.
+
+**AND IT SHARPENED THE CLOSING RULE INTO SOMETHING A GATE CAN CHECK:** *no string a person reads may
+live in a shared file* — **"and no shared file may name a `.planning/` path or a game concept."**
+
+### RECURRENCE — CEO 101's fault recurred TWICE, in the document written to be careful
+
+*"Both are sentences written wider than the evidence beneath them. The session's own admitted context
+flagged exactly this shape as tonight's recurring risk, and it recurred anyway."*
+
+**The credit it insisted on recording in the same breath:** the correction contradicting Wyatt's own
+premise — *"this session never edited it"* — in bold, on the first page, *"when agreeing would have
+been easier. That is the behaviour the CEO exists to reward, and it is why this is PARTIAL and not
+NO."*
+
+### CONTEXT DISCIPLINE — none found, and the opposite flagged
+
+*"If anything the reading was too thin, not too thick — the four facts that answer P2's deciding
+question, and the four files that break the taxonomy, were all one directory listing away."*
+
+---
+
 ## CEO Review 101 — 2026-09-02, Wy-Blade — the rig never blanked an emoji, and three documents said it did
 
 *Item: **`INBOX-20260902T0405Z`** / Chart row **`T-005`** — Wyatt: "I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly. I'm not sure what caused your rig to miss it, but it's working correctly as is." Claim commit `e50a7b6e`; the work was reviewed in the working tree before its commit, at the CEO-cadence hook's insistence. Closing commit **`fb15f76a`**. Chart row as it now reads, for the close gate's traceability check: *"The money symbol: this row's diagnosis was wrong"* — its residual is split out as `T-078`. Previous verdict handed over: CEO 100 (PARTIAL, `INBOX-20260902T0120Z`). **Its four findings were all accepted and all four are fixed in the closing commit — the account below has the detail.***
