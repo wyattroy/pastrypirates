@@ -1485,3 +1485,27 @@ status: OPEN — his half is done; the publishing half is being run now, and his
   `INBOX-20260902T2100Z`, run 4:55–4:58 PM on a disposable artifact: **REFUSED.** His run is the
   live-page confirmation of a result that has already been measured once, which is why it is worth
   doing and why it is not worth risking his words for.
+
+  ⚠ **HIS LIVE-PAGE RUN CANNOT BE COMPLETED FROM THESE SESSIONS, AND THE REASON IS ITSELF EVIDENCE.**
+  The stale-reader session tried and **Claude Code's own auto-mode classifier refused to spawn the
+  step that would publish a stale write over his live page** — even with the safety net verified
+  (it checked `ee020107` was real and authored by him before agreeing to try). **It surfaced the
+  block rather than routing around it, which is the correct behaviour and is recorded here as
+  such.** Second refusal of this shape today; the first was the disposable-artifact experiment's
+  live variant, which is why that one was run on a throwaway page instead.
+
+  **AND THE ADVISOR CANNOT SUBSTITUTE ITSELF: it is no longer a stale reader.** It read the page at
+  5:46 PM to harvest his idea, so its base version is current and a publish from it would simply
+  succeed, testing nothing. **The one session that WAS stale is the one the classifier stopped.**
+
+  **RECOMMENDATION, AND IT IS TO SPEND NOTHING FURTHER ON THIS: treat Layer A as measured true and
+  close the question.** The evidence already on file:
+  1. **A stale publish was REFUSED**, quoted verbatim, on the same artifact runtime the Glass runs
+     on (`INBOX-20260902T2100Z`, 4:58 PM).
+  2. **A second, independent gate refused a publish by a session that had never viewed the live
+     version** — found by the peer without looking for it.
+  3. **The Glass is not a special case of that runtime**; nothing distinguishes it from the test
+     artifact except its content.
+  **What the live run would add is confirmation of a result already measured once, at the price of
+  the only remaining way to destroy his writing.** That is a bad trade, and the classifier refusing
+  it twice is the system agreeing.
