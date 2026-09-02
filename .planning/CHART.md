@@ -523,6 +523,57 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **⚑⚑⚑ HIS INSTRUCTION, 6:30 PM ET: "add it to the TOP of the fix list — by fix list I mean
+      Task List/ Chart". AN ANSWERED QUESTION MUST LEAVE HIS PAGE IN THE SAME ACT THAT RECORDS THE
+      ANSWER.** `INBOX-20260902T1830Z`. Plan: [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](SPEC-ANSWERED-QUESTIONS-RETIRE.md).
+      **Design only — the build is yours.**
+      ⟨`T-107`⟩
+      **HE HAS NOW HIT THIS FIVE TIMES IN TWELVE HOURS.** Most recently he answered two questions at
+      5:43 and 5:45 PM, got the "waiting" confirmation, left — and photographed his page still asking
+      both at 6:25 PM. **Nothing he did was wrong and nothing was lost: his answers saved, harvested
+      and filed. Only the step that removes the question does not exist.**
+      **THE INVARIANT: a question and its answer are ONE OBJECT.** Recording the answer and retiring
+      the question are two acts today, joined by a session remembering — rule 23's forbidden shape.
+      **MEASURED BEFORE THE PLAN WAS WRITTEN:** the join already exists and is deterministic —
+      `glass.mjs:430` slugs a question's first 40 chars into its id and `glassState.rulings` is keyed
+      by it; slugging his two real rows reproduces both stored keys character for character. **So
+      retirement needs no new schema.**
+      ⚠ **AND THE SAME JOIN CAN SILENTLY MIS-ATTRIBUTE HIS RULINGS — PROVEN BY CONSTRUCTION, NOT
+      THEORISED.** Two different questions on one item both slug to
+      `t-105-should-the-harvest-retire-the-row`. **His answer to one would retire the other, and the
+      record would show him answering a question he never saw.** A duplicate question is an
+      annoyance; a mis-attributed ruling is a corrupted decision. **HARDEN THE JOIN BEFORE
+      AUTOMATING ON IT — that ordering is the plan's one hard constraint.**
+      **FOUR PARTS, IN ORDER:** (1) a stable explicit id per question, not derived from its prose;
+      (2) retirement folded into the harvest as ONE commit; (3) **the gate that would have gone RED
+      five times today** — fail if any `BLOCKED ON WYATT` row slugs to a key that already has a
+      ruling, red-proofed against today's pre-repair file; (4) **close on the SYMPTOM**: answer a
+      question on the live page and assert it disappears **with no human editing `CHART.md`**.
+      ⚠ **WHY PART 4 EXISTS: `T-090` was named "an answered question never leaves BLOCKED ON WYATT"
+      and closed through the gate at 4:31 PM having built the reap-label split instead.** That work
+      was real and good; the fault the row was named for shipped unfixed and the row closed anyway.
+      `close_item.mjs` cannot catch it — it wants a CEO verdict, a diff and solution-first evidence,
+      and **all three existed.** An item can close honestly while the thing it is named after is
+      still broken.
+      **Sizing: `glass.mjs`, the harvest, one new gate. No game code, no sea trial.**
+
+- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
+      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
+      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
+      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
+      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
+      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
+      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
+      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
+      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
+      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
+      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
+      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
+      two on the same day bake **together**.
+      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
+      round.** The full comparison and the reasoning are in
+      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
+
 - [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
       ⟨`T-088`⟩
       by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
@@ -1253,6 +1304,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
+| **RULES PAGE 1 of 4 — which page becomes THE rules page?** You asked for this split before anything gets built. | **A new /rules.html carrying the How-to-play modal's words (recommended)** · or grow About's "How it plays" into it · or leave it in the modal. About's rules section leaves in the same change either way, so this is still two pages, not three. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 2 of 4 — what does About keep?** | **Keep the hero, screenshots, captains' quotes and credits; DELETE "How it plays" and put 2-3 sentences plus a link in its place (recommended)** · or keep a fuller summary there. Delete rather than correct: three things it says about your game are measurably wrong today. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 3 of 4 — does the in-game modal show the full rules, or a short version that links out?** | **Full text, and the modal stays the source (recommended)** · or a short version linking out. Measured reason: the modal's amounts are filled from the LIVE voyage's settings, so a two-player table sees its own crate prices; a page can only ever show the four-seat default, and linking out walks a player off the board on a shot clock. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 4 of 4 — does the rules page speak pirate, or in your own plain voice?** | **Pirate speak, because it is the modal's text unchanged (recommended)** · or plain voice, which means the modal changes too. One register is the price of one source: two voices is two texts kept in step by hand, which is the drift you cited rule 23 about. | 2026-09-02 6:30 PM ET |
+| **And once Credits has its own page — does About keep its credits list?** | **Keep a short list on About and link to the full page (recommended)** · or drop it from About entirely. Only bites once INBOX-20260902T190737Z ships. | 2026-09-02 6:30 PM ET |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
