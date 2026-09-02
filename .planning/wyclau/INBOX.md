@@ -1173,3 +1173,36 @@ solution: his own: `lastmod` only, derived from git; every genuinely public page
 status: OPEN — FOR A WATCH.
 
   ⚠ **BLOCKED ON THE TWO PAGES EXISTING** — *"now that the new pages exist"*. Until then the first sitemap item stands on its own.
+
+## INBOX-20260902T191500Z — DESIGN A PERMANENT SOLUTION TO THE HARVEST-STAMP HAZARD, AND PUT IT AT THE TOP
+
+**HIS WORDS, VERBATIM:**
+
+> design a permanent solution to this problem: "That's the exact hazard I filed twenty minutes ago
+> as a theory, arriving with your actual writing in it. The one-line version, and it's what the fix
+> has to be built on: the harvest stamp records when a session looked. It is not evidence the page
+> hasn't changed since. Your page carries its own version number — that's the fact that can answer
+> "is a republish safe?", and a clock never can." then add it to the chart at the top priority
+
+solution: his own, and it is the invariant the whole design hangs on — **a republish is safe if and only if the version of the page you HARVESTED is the version that is LIVE. Identity, not a clock.** Design only; the build is a watch's.
+
+status: DONE 2026-09-02 — designed at [`SPEC-GLASS-HARVEST-SAFETY.md`](../SPEC-GLASS-HARVEST-SAFETY.md), CEO'd, filed as the TOP row of `### ⚑ FOR A WATCH`. Nothing built, per "design".
+
+  **WHAT THE DESIGN FOUND THAT HIS SENTENCE DID NOT YET NAME, and it is bigger than the stamp:**
+  the guard is in the wrong PLACE, not merely made of the wrong material.
+  `.planning/wyclau/GLASS-UPDATE-SESSION.md`'s tick reads the live page at **step 2** and publishes
+  at **step 7**, with a change gate, a stamp, a Chart reap, a staleness judgement and a full page
+  regeneration in between. **So even a perfectly executed tick has a multi-minute gap between the
+  read and the destructive act.** Today's loss used seven seconds of that gap. **Moving the check
+  to step 7, against the live page, matters more than fixing what the stamp is made of.**
+
+  **AND THE CHEAPEST LAYER MAY ALREADY EXIST.** The Artifact tool carries optimistic concurrency —
+  a publish over a newer version is refused and hands back the live content — which is his
+  invariant, already implemented, and **it fails CLOSED**, which nothing else here does. Whether his
+  in-page save actually raises that conflict **is not known and is flagged in the spec as the first
+  experiment**, because a design resting on an unmeasured claim is the fault this project owns.
+
+  **THE ONLY LAYER THAT EARNS THE WORD "PERMANENT"** is the one that stops his words living in a
+  single place: the page persisting each idea the moment he submits it, before any session is
+  involved. The other three narrow the window; that one removes it. **The spec says so in those
+  terms rather than letting "permanent" be claimed by a narrower fix.**

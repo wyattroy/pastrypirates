@@ -162,6 +162,8 @@ The trigger both times was a command beginning `cd /tmp && …` (to write a prob
 every later relative path silently resolved against the wrong tree.
 
 ```bash
+# LINUX cloud container (paths and `python3` are that machine's) — the lesson is the ABSOLUTE
+# path, not the interpreter; on Windows the interpreter is `python`.
 # not this
 python3 - <<'PY'
 p='src/ui/util.js'          # resolves in BOTH trees
@@ -223,6 +225,7 @@ A server started after a cwd reset served from the wrong root. `/v2/index.html` 
 which the probe rendered as *"the welcome screen is missing"* — a convincing phantom boot failure.
 
 ```bash
+# LINUX cloud container — on Windows the interpreter is `python`, not `python3`.
 python3 -m http.server 8493 --directory /home/user/pastrypirates
 ```
 
@@ -701,6 +704,9 @@ Immune to params, bodies, template literals and nesting alike.
   reported as verified by a command that had already been killed.
 
   ```bash
+  # Mac / Linux ONLY — neither `pkill` nor `pgrep` exists in Git Bash on Windows, which is the
+  # machine that runs the relay. Ask `node scripts/qa/stray_probe_check.mjs` instead: it works
+  # everywhere and prints the right kill command for the machine you are on.
   pkill -9 -f "[r]emote-debugging-port"   # the bracket cannot match its own command line
   ```
 

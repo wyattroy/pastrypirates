@@ -550,6 +550,40 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
+      BE ABLE TO LOSE HIS WRITING.** Designed 2026-09-02, 3:15 PM ET; **design only, the build is
+      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
+      ⟨`T-105`⟩
+      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
+      session looked. It is not evidence the page hasn't changed since. Your page carries its own
+      version number — that's the fact that can answer 'is a republish safe?', and a clock never
+      can."* **Identity, not a clock.**
+      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
+      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
+      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
+      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
+      republish, which regenerates the page from disk and drops `glassState`. **They survived by
+      luck of ordering, not by design.**
+      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
+      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
+      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
+      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
+      the **artifact version id**, not a time, and is compared immediately before publishing —
+      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
+      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
+      submits it**, so his words are never in only one place.
+      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
+      Do not let a smaller layer ship under that word.
+      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
+      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
+      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
+      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
+      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
+      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
+      a staleness judgement and a regeneration in between — **so even a perfect tick has a
+      multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
+
 - [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF. THEY ARE THE TOP TWO ROWS FOR THAT REASON
       AND NO OTHER.** Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
       THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
