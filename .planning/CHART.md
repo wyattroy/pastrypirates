@@ -516,6 +516,49 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
+      ⟨`T-093`⟩
+      **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
+      chart is actually functioning -- this is nonsense, what's happening right now."*
+      **THIS OVERRIDES HIS EARLIER PRIORITY RULING** (*"the game wins any contested hour until it
+      launches"*, same day). He has looked at the result and reversed it: **the Chart is the
+      instrument he steers by, and a broken instrument makes every other priority unreliable.**
+
+      **WHAT IS ACTUALLY WRONG, measured today rather than asserted:**
+      - **Three sessions write `CHART.md`** — the Advisor, the Glass-update session, every watch —
+        and **git's smallest unit is the FILE.** So `close_item.mjs` staging the Chart for its own
+        sweep carries another session's uncommitted lines into its commit. **Five times in one
+        session.** `git add <path>` is no safer than `git add -A`; path precision cannot help.
+      - **The cost is a corrupted record, not lost work.** Commit `59f8b7a7` — *"watch closes his
+        black window"* — carries `T-090`, `T-091` and a card repair written by a different session.
+        `git log -S` for *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and 105
+        both flagged one-commit-two-jobs; this is the third instance.**
+      - **And rows go stale faster than anyone closes them** — the reaper has flagged **10** all
+        afternoon, unchanged, because one watch closes one item every 30–60 minutes.
+
+      **THE FIX HE CHOSE, and it is rule 23's own answer:** *what makes these two agree?* — **nothing
+      does, so make there be one.** Every writer goes through `chartkeeper.mjs`: it reads, edits and
+      commits the Chart, and no session hand-edits `CHART.md` again.
+
+      **WHAT THAT MEANS CONCRETELY, in the order it should be built:**
+      1. **A write API on `chartkeeper.mjs`** — add a row, close a row, mark GATED, retire a blocked
+         question — each one *read → modify → commit* in a single act, so no window exists for
+         another session to carry the edit. `close_item.mjs` already does exactly this for closing;
+         **it is the worked example and the pattern to copy, not to reinvent.**
+      2. **The Advisor, the Glass session and the Door all call it** instead of editing the file.
+      3. **A gate that fails when `CHART.md` changes in a commit that did not go through it** —
+         derivable from the commit's own touched-files, and the only thing that stops hand-editing
+         creeping back. Without it this is a convention, and Principle 2 says conventions fail here.
+
+      ⚠ **THE ONE THING TO GET RIGHT, because it is where this design can go wrong:** a single writer
+      must not become a single point of failure. **If `chartkeeper.mjs` refuses or crashes, a session
+      must still be able to record his words** — the Inbox is not the Chart and must stay
+      hand-writable, so a harvest is never blocked by a tool being broken. **Losing his words is
+      worse than a messy Chart.**
+
+      **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
+      API is small; the migration is every caller; the gate is the part that makes it stick.
+
 - [ ] **`CHART.md` IS A HOT FILE THREE SESSIONS WRITE, AND GIT STAGES WHOLE FILES — so an
       uncommitted edit is always carried by whoever commits next, into THEIR commit message.**
       Filed 2026-09-02T16:4xZ after it happened five times in one session. **Sizing: the mitigation
