@@ -3589,3 +3589,25 @@ both are fixed in this same watch rather than handed on.**
 — another session had `package.json` and `scripts/deploy-staging.sh` uncommitted in the shared tree
 for the whole watch and neither was touched. `GLASS-NOTE.md` was checked before writing, and the
 Glass-update session consumed the pulse mid-watch, which is the relay working.
+
+---
+
+## WATCH 2026-09-02T06:0xZ — Wy-Blade — T-001, THE TWO UNSOUND RANKING SIGNALS
+
+- **Watch started** 2026-09-02T06:0xZ on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  clean tree, `can_push.mjs` clean (tracking upstream, no rebase or merge in progress).
+- **Last progress:** the 05:11Z watch built `--settle` (banner item 1) behind 19 gate cases and
+  took CEO 93's three corrections in the same watch. `npm test` 94.
+- **What the previous watch closed:** nothing was ticked — SETTLE is built and green, the row says
+  so, and banner item 2 (sweep every completed row) is BLOCKED on a vendored `glass.mjs` repair a
+  watch cannot reach.
+- **Blocked on Wyatt:** `BLOCKED ON WYATT` is empty. Two rulings sit in `RULED` awaiting triage.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is empty, nothing at sea.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: a `ToolSearch` for the Artifact tool
+  returns nothing. So this watch cannot publish the Glass and must not stamp
+  `mark_glass_published.mjs`; its pulse goes to `.planning/wyclau/GLASS-NOTE.md` for the next
+  session that can publish.
+- **THIS WATCH TAKES:** `T-001`, and inside it the item the last watch named and explicitly did not
+  take — **the two ranking signals CEO 91 measured unsound.** Chosen because banner item 2 is
+  blocked on the vendored kit and this is not: `chartkeeper.mjs` and `lib/chart_model.mjs` are
+  absent from `.claude/wyclau/MANIFEST.sha256`, checked, so they are this repo's own files.
