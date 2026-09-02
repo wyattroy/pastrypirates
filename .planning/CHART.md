@@ -439,9 +439,12 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
-| **Your recipe pictures cannot be made smaller — they are already too small. May I change their FORMAT instead?** The 21 pastry pictures are the heaviest art left after the board. Measured at the recipe card on a phone, every one of them is drawn BIGGER than the file it comes from — about 40% bigger — so shrinking them was never possible; they are slightly soft on a phone today. What CAN come off is the file format: saved as WebP instead of PNG the same 21 pictures go **1.71 MB → 1.18 MB (31% lighter) with not a single pixel changed.** I photographed one, same card, same phone, both ways: `.planning/posed/pastry-png-phone.png` and `pastry-webp-phone.png` — I cannot tell them apart. **Two things you should know before ruling.** (1) It is a re-save of your commissioned art, so a little detail is thrown away by definition even where I cannot see it. (2) **The frozen v1 at `/classic` reads the same picture folder**, so doing this means either editing that frozen game too or leaving the old copies behind and saving nothing. | **Yes, but not yet** — take the 0.53 MB, and let the same watch that does it also convert `/classic`'s one line so the old game keeps its pictures. It is the only remaining lever on load time that does not cost image quality on screen. *(If you would rather not touch `/classic` at all, say so and I will park the whole idea — half of it is not worth doing.)* | 2026-09-01 23:5xZ |
 
-*One question is open, above. The trade-fan question was RULED ON THE GLASS 2026-09-01
+*Nothing is open. The recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
+00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
+size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
+approval, plus his own follow-up question about the display-size measurement, both unanswered
+yet by the watch that picks this up). The trade-fan question was RULED ON THE GLASS 2026-09-01
 14:16Z — "Don't touch the trade fan, it's fine" — now DECISIONS.md relay-addendum ruling 5; the
 first real tap-to-rule harvest, answered and filed within the hour. Two questions resolved 2026-09-01: **rsync** — he
 installed it on the Razer (his pick, option (a)); deploys are mechanically unblocked from both
@@ -476,11 +479,13 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*Nothing is waiting: all eight of his rulings were triaged 2026-09-01 and moved to SETTLED
-RULINGS below. Three carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
+*One ruling is waiting, freshly harvested 2026-09-02 (row below, `now` cell empty by design —
+not yet triaged). The prior eight were triaged 2026-09-01 and moved to SETTLED RULINGS below;
+three carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
+| Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
