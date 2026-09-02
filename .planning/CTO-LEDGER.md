@@ -4044,3 +4044,83 @@ real remaining lever is **4.00 MB, not 8.24 MB.**
   `.planning/wyclau/PREDICTION-20260902T0851Z-png-webp.md` — including the two things that would
   prove it wrong (any file getting BIGGER as WebP; any measurable movement in the ALPHA channel,
   which is the difference between these families and the board).
+
+- 2026-09-02T09:31:06Z · close_item: "THE SAME TRADE IS UNTRIED ON 8.24 MB OF PNGs" · CEO 98 · commit 05f63b1 (2 game files) · no stated solution · 31 more pictures are WebP and 90 were refused because the trade did not pay: assets/ 6.00 MB -> 3.89 MB (17.79 MB when he raised it), all 2.1 MB off the boot path; 8 broken About-page pictures found and the paths gate taught to read HTML; CEO 98 PARTIAL, all four findings dealt with in the watch
+
+### WATCH 2026-09-02T08:51Z — CLOSING ACCOUNT
+
+**THE NUMBERS, so a later reader can check them rather than trust them.** `assets/` **6,293,140 →
+4,073,895 bytes**, which is `package.json`'s `ceilingBytes` to the byte (CEO 98 re-measured it with
+`du -sb` rather than believing the report). PNG families in scope 121 files / 4,191,954 bytes; **31
+converted, 90 refused.** Islands 1.67 → 0.35 MB, ingredients 0.36 → 0.11, boats 0.17 → 0.03. Every
+converted file's ALPHA moved by **0**, which was the whole risk — these are cut-outs and the board
+was not. Per-file table: `.planning/ASSET-WEBP-2026-09-02.md`, written precisely because deleting
+31 PNGs makes the measurement unrepeatable (CEO 97's third finding, pre-empted).
+
+**WHERE THE PREDICTION WAS RIGHT AND WHERE IT WAS WRONG**
+(`.planning/wyclau/PREDICTION-20260902T0851Z-png-webp.md`, written before the first measurement):
+- **RIGHT:** the row's 8.24 MB was stale and still counted the deleted board (real subject 4.00 MB).
+  The whole PNG set landing at 1.4–2.4 MB — it landed at 1.87. Icons behaving completely differently
+  from islands. That "some individual icons may be BIGGER as WebP" — 64 of them were.
+- **WRONG, and it is written into the tool with a date on it:** *"Lossless WebP is frequently the
+  right one"* for flat icons. It won for **1 file in 121**. PNG's entropy coding is already at least
+  as good as WebP's on this library's flat art. The arm stays because it is cheap and because it is
+  why we now KNOW that instead of assuming it.
+- **WRONG in the other direction:** islands predicted at 60–85% lighter came in at 59–90%, so the
+  band held; but I expected icons at 25–55% lighter and the honest answer is that as a family they
+  do not pay at all.
+
+**THE THING NO STATIC CHECK COULD SEE, and it was live.** `about.html` names seven ingredient
+pictures directly in `<img src>`. The conversion broke **eight** of them and
+`asset_paths_exist_check.mjs` printed PASS over 368 paths — because every asset gate in this repo
+derives its list from `sharedAssetUrls()`, i.e. from JavaScript constants, and none of them had ever
+read an HTML page. Fixed, gate extended to both trees' HTML (449 paths), red-proofed twice — once
+before the recursive walk and once after. **The About page is where Wyatt speaks in his own voice
+(§2 of the rules), so a row of broken-image glyphs there is not cosmetic.**
+
+**FOUR THINGS THIS WATCH GOT WRONG, in the open.**
+1. **The commit message stated a rule the commit broke** — a 31% floor, overridden on 6 of 31 files,
+   disclosed one commit late. CEO 98's finding 1. The override was defensible; hiding it was not.
+2. **The floor's comment claimed rule 9 and had no right to.** A citation is not a derivation.
+3. **The posed-pair tool photographed the game crashing and the crash was mine** — it navigated to
+   the game's own URL and replaced `document.body` under a running clock timer, so the first sheet
+   carried *"The voyage has run aground — TypeError … at setClockUI (src/ui/panel.js:130)"*. Nothing
+   was wrong with the game. It loads a scriptless directory listing now, and the note is at the call
+   site so nobody hunts that crash later. **A screenshot carrying a crash the screenshot caused is
+   exactly the evidence that starts a two-day hunt.**
+4. **The Glass note was written and then destroyed before it was committed** — wiped back to its
+   template by another session's Glass pass while it sat uncommitted in this shared checkout. That
+   is `INBOX-20260902T0350Z` happening again, and the rule to prevent it was already written down
+   (`INBOX-20260902T05xxZ-c`: on a shared checkout, write and commit in the SAME step). Rewritten
+   and committed atomically.
+
+**WHY THIS WATCH DID NOT TAKE `T-001`, which his own instruction marks ★ NEXT** — recorded at the
+top of this watch and repeated here so it is not lost: every open part of the Chartkeeper needs
+`glass.mjs`, vendored from claude-kit, and a read of that checkout from this session is **REFUSED,
+not empty**. CEO 95 had already ranked the remaining in-repo keying work below the wiring nobody can
+reach from here. **A session that CAN reach `C:\Users\wyatt\Projects\claude-kit` should take it.**
+
+**NOT SAILED, and stated rather than implied (CEO 98's finding 4).** `.planning/SEA-TRIAL.md` still
+reads IN PROGRESS on build `2026.09.01.1`; no trial was started this watch, and an unattended watch
+cannot run one. What stands in its place: `art_decodes_probe.mjs` — 110 paths × 2 trees × **2
+engines** (Chromium, and WebKit at a 390×844 phone), all decoding, red-proofed by corrupting
+`islands/5.webp`'s bytes while leaving its path in place; a seeded solo voyage photographed with 44
+board images and zero decode failures; and two posed sheets at 2×/3× nearest-neighbour with the
+originals recovered from git so anyone can redo them. **Strong, and not a voyage.**
+
+**INHERITED AND LEFT, DELIBERATELY:** `npm test` is **95 of 96**, unchanged from the first minute of
+this watch to the last. `game_url_check.js` rejects `scripts/qa/pastry_shipped_art_probe.mjs:98`,
+committed in `bc97d40d` by the 07:31Z watch. **Not taken — that is a second item** — and it is Chart
+row `T-059`.
+
+**SANDBOX LIMITS, confirmed again so nobody re-derives them:** `rm`, `git reset`, `git restore
+--staged`, `git restore --source`, output redirection, `node -e`, `pkill`, `ps` and PowerShell
+`Get-Process` are all **refused**. Consequences: (a) four `tmp_*.mjs` scratch files could be neither
+deleted nor unstaged and are in `05f63b12` — whoever next has a shell that can delete should remove
+them; (b) **this watch cannot prove with `ps` that no browser is left running.** What it can say:
+every probe opens its browser inside a `try` with `finally { killAll() }` / `close()`, and every run
+completed and printed its final line, so each teardown executed. That is evidence, not a clean-desk
+claim, and the difference is the point.
+
+**THE GLASS:** no Artifact tool in this session, so the pulse is in `GLASS-NOTE.md` for the next
+capable session. `mark_glass_published.mjs` correctly **not** stamped.

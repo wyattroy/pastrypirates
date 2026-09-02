@@ -281,7 +281,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       both engines and both games photographed, Safari included. New gate
       `asset_paths_exist_check.mjs` — 368 asset paths across both trees, derived from the game's own
       `sharedAssetUrls()`, red-proofed.
-- [ ] **THE SAME TRADE IS UNTRIED ON 8.24 MB OF PNGs — the next lever of his launch-critical
+- [x] **THE SAME TRADE IS UNTRIED ON 8.24 MB OF PNGs — the next lever of his launch-critical (closed 2026-09-02 · CEO 98 · commit 05f63b1 (2 game files))
       ⟨`T-058`⟩
       compression ask** (`INBOX-20260901T1335Z`, *"make the game load MUCH faster"*). Measured
       2026-09-02T08:1xZ: islands **1.67 MB**, icons **1.20 MB**, ingredients 0.36 MB, compass
