@@ -3902,3 +3902,51 @@ stamped; the pulse went to `GLASS-NOTE.md`.
 - 2026-09-02T08:00:09Z · close_item: INBOX-20260902T0048Z · CEO 96 · commit 3a43235 (1 game file) · his solution first: commit 3a43235 · the 21 recipe illustrations are WebP: 1.71 MB -> 1.18 MB, not one pixel resized, /classic shares them, both engines and both games photographed
 
 - 2026-09-02T08:00:24Z · close_item: "Convert the recipe art to WebP" · CEO 96 · commit 3a43235 (1 game file) · no stated solution · same item as INBOX-20260902T0048Z, closed through this gate minutes earlier: converted not resized, /classic sharing the files, both engines clean
+
+## WATCH 2026-09-02T08:10Z — Wy-Blade — the BOARD is 43% of the whole library
+
+- **Watch started** 2026-09-02T08:10Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  HEAD `76662a7c`, `can_push.mjs` clean. The tree's one dirty file was
+  `.planning/wyclau/GLASS-NOTE.md`, byte-identical to HEAD and differing only in line endings —
+  cleared with `git pull --rebase --autostash`, because a bare `git checkout --` is refused here.
+  `scripts/qa/tmp_dupkey_measure.mjs` is still untracked, still not mine to fix.
+- **Last progress:** the 07:31Z watch closed `T-004` — the 21 recipe illustrations are WebP,
+  1.71 MB → 1.18 MB, no pixel resized, CEO 96. A later session published the Glass and reset
+  `GLASS-NOTE.md` (`76662a7c`), so his page is current as of that pulse.
+- **Blocked on Wyatt:** the Chart's BLOCKED ON WYATT table is empty.
+- **Detached trial in flight:** none. `.planning/wyclau/LONG-RUN` is absent; nothing at sea.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Re-measured, not inherited: a `ToolSearch` for an artifact
+  read/publish tool returns Google Drive, WebFetch, Monitor and DesignSync and nothing else. So
+  this watch does not publish and must not stamp `mark_glass_published.mjs`; its pulse goes to
+  `.planning/wyclau/GLASS-NOTE.md`.
+- **CLAUDE-KIT IS STILL OUT OF REACH, RE-MEASURED THIS WATCH.** A `Glob` of
+  `C:\Users\wyatt\Projects\claude-kit` is **refused** — *"haven't granted it yet"*, not empty. So
+  `T-001`'s whole remainder (SWEEP, the three banner repairs, the wiring CEO 95 ranked top) is
+  still blocked here, exactly as the 07:31Z watch found. **`T-001` has no unblocked part for a
+  watch on this machine**, which is why this watch is not on it.
+
+- **THIS WATCH TAKES:** the next lever of the oldest OPEN Inbox item, `INBOX-20260901T1335Z`
+  (*"compressing the images to make the game load MUCH faster… this is launch critical"*).
+  **CLAIMED: convert `assets/board.png` to WebP at its own pixel size.**
+
+  **THE MEASUREMENT THAT PICKED IT, taken before the claim** (`scripts/qa/tmp_asset_census.mjs`):
+  `assets/` is 10.05 MB in 149 files, and **`board.png` alone is 4.34 MB of it — 43%.** The next
+  file down is 636 KB. Every other family put together is 5.7 MB. By format: PNG 122 files
+  8.24 MB, WebP 21 files 1.18 MB, JPEG 6 files 0.63 MB. **The single biggest remaining lever in
+  his launch-critical ask is one file**, and no watch has touched it because the item's own notes
+  read his *"the only one that needs to be as big as it is is the board itself"* as exempting the
+  board entirely.
+  **IT DOES NOT — and that reading is what has kept 43% of the library untouched for two days.**
+  His sentence is about PIXELS: it sits inside *"everything else should be resized and compressed
+  according to its maximum pixel size"*, i.e. the board is the one image that keeps its
+  resolution. The bytes behind those pixels are exactly what *"compressing the images"* asks for,
+  and the recipe art proved the trade on this very library ten minutes ago with his own ruling
+  behind it: **convert, do not resize.**
+
+  **SOLUTION-FIRST:** his stated solution for this item is *compress every image; the board keeps
+  its size*. That is precisely what this change is — 2132×2132 in, 2132×2132 out, format only.
+- **Gear:** `gear.mjs` will read FULL. The honest reach is narrow and stated rather than assumed:
+  it touches `assets/board.png` and whatever references it. It changes no behaviour, no layout, no
+  timing. Its risk is one shape — **a path the game asks for that no longer exists on disk, or a
+  board that decodes visibly softer than it did** — and both are a gate plus a posed pair, not a
+  voyage.
