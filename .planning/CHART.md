@@ -535,6 +535,13 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   tops of the letters clearing the button's frosted backing, while *Crustbeard* on the right card
   survives by sitting a few pixels higher. **So it is not one screen in one mode; it is what the
   End of Voyage does on a phone.**
+  **AND A THIRD SIGHTING IN THE SAME RUN, ON THE OTHER ENGINE:** `solo-phone-wk-028-settled.png`,
+  **WebKit** — the judge's own unaided words: *"'Play again!' button overlaps and obscures the award
+  cards below it, cutting off the 'Crustbeard' name and the left card's captain name mid-text."*
+  **So within this one run: three phone legs, two modes, BOTH engines, all failing the same way —
+  while the tablet and desktop legs are clean.** That is as well-characterised as a layout fault
+  gets short of a posed pair, and it makes this the one player-facing defect in the release
+  evidence rather than a suspicion.
   **AND THE SCOPE IS NARROWER THAN THE ROW ASSUMED, WHICH MAKES THE FIX EASIER RATHER THAN HARDER:
   it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-022-settled.png` — in the
   0137Z queue, written 02:03Z, so same run and same build — is the same screen on a tablet: four
