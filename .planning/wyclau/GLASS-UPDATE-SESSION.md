@@ -72,6 +72,35 @@ publish. This session IS the terminal.
 > **ONE PUBLISHER IS UNCHANGED** — one subagent per tick, never two. The rule was never about which
 > context does the publishing; it was about there being exactly one.
 
+> ## ⚑ FIRST ACTION AFTER A `/clear`: RUN `CronList`. RE-ARM IF IT IS EMPTY.
+>
+> **Wyatt clears this session deliberately — that is the design, not an accident.** The moment he
+> does, everything the session was told is gone, **including any instruction to check on itself.**
+>
+> **THIS BOX EXISTS BECAUSE THAT EXACT HOLE OPENED ON 2026-09-02.** A session was told *"after he
+> clears you, run `CronList` and re-arm if empty"* — **and the clear erased the instruction before
+> it could be acted on.** The advice was correct and unreachable, which is the same thing as wrong.
+> **Anything the next context needs must be HERE, not in a message.** That is the whole reason the
+> dispatcher shape points at this file instead of carrying steps in a prompt.
+>
+> **WHY IT MATTERS:** cron jobs are session-only and documented as gone *"when Claude exits"* —
+> which names **exit**, not **clear**, and those are not obviously the same event. **If the job did
+> not survive, the Glass silently stops updating and Wyatt gets a frozen page with no signal that it
+> froze** — the precise failure this whole subsystem exists to prevent.
+>
+> **DO NOT REASON ABOUT WHICH IT IS. MEASURE IT — it is a two-second check that is right either way:**
+>
+> 1. `CronList`. If the dispatcher job is there, nothing to do.
+> 2. If it is empty, `CronCreate` — cron `*/15 * * * *`, recurring — with the dispatcher prompt
+>    from *"Making it recur without him"* below.
+> 3. **Say which happened, in one line**, and record it in this box so the next reader inherits a
+>    measurement instead of the question.
+>
+> **MEASURED SO FAR:** on 2026-09-02 the session PROCESS survived a `/clear` — it still reported as
+> started 7h earlier and was still reachable by name (though its listed name had changed to
+> *"Glass update"*, which is worth knowing if you are trying to message it). **Whether the cron job
+> itself survived is NOT yet recorded here. Whoever learns it, write it down.**
+
 ## The instruction to paste into it
 
 > You are the Glass-update session. Your only job is to keep Wyatt's status page current. Do no
