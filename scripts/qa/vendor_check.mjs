@@ -132,13 +132,36 @@ for (const s of summaries) {
   console.log("");
 }
 
+/* ⚑ INVERTED 2026-09-02, WYATT'S RULING (question UI). THE PROJECT COPY IS THE TRUTH.
+ *
+ * HIS FRAMING: "claude-kit is intended to be a repo where the DESIGN of our system is made... but
+ * our system must operate LOCALLY in its OWN REPO... at the beginning of a project, claude-kit is
+ * added to it. then all of the instructions and processes in claude-kit start running within the
+ * project's repo." The kit is upstream DESIGN, not a runtime dependency — so a local edit is the
+ * system working, and blocking it was backwards.
+ *
+ * WHAT THIS CHECK USED TO DO: exit 1 on any local edit. WHAT IT COST, measured: five patches
+ * dammed in PENDING-KIT-PATCHES.md, two of them his own rulings — including the Chartkeeper he
+ * asked for four times, and moving The Lesson below Tasks, which he asked for FIVE times and which
+ * never moved because no session that could see the ask was allowed to make the edit.
+ *
+ * WHY IT IS NOT DELETED: he was offered "delete it entirely" and chose "invert it". The drift
+ * signal is the point; only its DIRECTION was wrong. A divergence is now news about the KIT being
+ * behind — a condition that has already happened unnoticed (claude-kit commit 8691117: "the kit's
+ * glass.mjs was 104 lines behind the repo it vendors into").
+ *
+ * AND IT IS STILL A REAL CHECK, not a print statement: it hashes every vendored file and names
+ * exactly which ones diverge, which is the input to his ruling 3 — the batched back-port pass that
+ * promotes local improvements upstream. Its output IS that pass's task list. */
 if (fail.length) {
-  for (const f of fail) console.log(`  FAIL  ${f}`);
-  console.log("\n  Edit these in claude-kit, never here, then re-vendor. If the change was");
-  console.log("  deliberate and belongs to this repo alone, it does not belong in a vendored area.");
-  console.log("\nFAILED — at least one vendored copy has been changed inside this repo.");
-  process.exit(1);
+  for (const f of fail) console.log(`  DRIFT  ${f.replace(/EDITED IN PLACE/g, "this repo is AHEAD of the kit")}`);
+  console.log(`\n  ${fail.length} file(s) have moved on here and not yet in claude-kit.`);
+  console.log("  That is the system working: the project owns its copy and the kit is upstream design.");
+  console.log("  These files are the task list for the next back-port pass — generalise them and");
+  console.log("  push them up. Do NOT revert them, and do NOT edit them in the kit first.");
+  console.log(`\nPASSED (with drift) — ${fail.length} local file(s) ahead of claude-kit.`);
+  process.exit(0);
 }
 
-console.log(`PASSED — nobody has edited any of the ${areas.length} vendored area(s). That is not the same as any of them being current.`);
+console.log(`PASSED — no drift: all ${areas.length} vendored area(s) still match what was vendored.`);
 console.log(`NOT CHECKED, and only a machine holding claude-kit can: whether the kit has moved forward. Run its own "check" command from there.`);

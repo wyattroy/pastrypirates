@@ -678,6 +678,20 @@ const PAGE = `<meta charset="utf-8">
     <div id="ideaList"></div>
   </section>
 
+  <!-- HIS EDIT 1: Tasks moved ABOVE Shipped Today. What is still to do outranks what is done.
+       AND ABOVE THE LESSON, 2026-09-02 — he asked for that FIVE times and it did not move:
+       00:59:32Z "Move The Lesson section below it" · 03:45:45Z "Move The Lesson to below Tasks"
+       · and three more since. The reason it never moved is worth keeping, because it is the whole
+       failure of that night in one line: this file is VENDORED, so the edit was legal only from
+       claude-kit, and every session that could see the ask could not make it. His ruling inverted
+       that (the project copy is the truth); this is the first edit made under it.
+       WHERE HE IS GOING OUTRANKS WHAT HE LEARNED YESTERDAY. -->
+  <section class="card">
+    <h2>The Chart (Tasks To Do) — ${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open</h2>
+    ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
+      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
+  </section>
+
   <section class="card">
     <h2>${newestLesson && newestLesson.date === TODAY ? "Today's lesson" : "The lesson"}</h2>
     ${lessons === null ? `<p class="bad">unreadable: .planning/wyclau/LESSONS.md missing or unparseable</p>`
@@ -685,15 +699,6 @@ const PAGE = `<meta charset="utf-8">
       : `${newestLesson.date === TODAY ? "" : `<p class="muted">No lesson yet today — the day's close owes one. The newest, from ${esc(newestLesson.date)}:</p>`}
       <p style="font-weight:600;margin:.2rem 0 .35rem">${esc(newestLesson.title)}</p>
       <p style="white-space:pre-line;margin:.2rem 0;font-size:.95rem">${esc(newestLesson.body)}</p>`}
-  </section>
-
-  <!-- HIS EDIT 1: Tasks moved ABOVE Shipped Today. What is still to do outranks what is done. -->
-
-  <!-- HIS EDIT 1: Tasks moved ABOVE Shipped Today. What is still to do outranks what is done. -->
-  <section class="card">
-    <h2>Tasks (${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open)</h2>
-    ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
   </section>
 
   <!-- HIS EDIT 3: "Shipped Today is in the left column, and Your Rulings is on the right column.

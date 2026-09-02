@@ -72,7 +72,16 @@ function renderWith(chart) {
   rmSync(dir, { recursive: true, force: true });
   return {
     rulingsCard: (/<table id="ruled">([\s\S]*?)<\/table>/.exec(html) || ["", ""])[1],
-    tasksCard: (/<h2>Tasks \(([\s\S]*?)<\/section>/.exec(html) || ["", ""])[0],
+    /* ⚠ BROKE 2026-09-02 AND IT IS THE SAME FAULT AS CASE 4's FIXTURE, TWICE IN ONE DAY.
+       This was `/<h2>Tasks \(/` — anchored to the card's exact heading text. Wyatt then had the
+       card renamed to "The Chart (Tasks To Do)" (his ask, made five times), and this gate went red
+       reporting "3 rulings on neither card" — a false alarm about the RECORD caused by a change to
+       the PAGE. A check that locates content by a user-facing string breaks every time the words
+       change, and the words are exactly what he keeps changing.
+       FIXED BY ANCHORING TO STRUCTURE, NOT COPY: the card is the one whose heading carries the
+       "N done · N open" counts, which is a fact about what the card IS rather than what it is
+       called. Rename it again and this keeps working. */
+    tasksCard: (/<h2>[^<]*\bdone\b[^<]*\bopen\b[\s\S]*?<\/section>/.exec(html) || ["", ""])[0],
   };
 }
 
