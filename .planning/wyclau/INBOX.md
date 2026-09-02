@@ -591,3 +591,37 @@ no sea trial; COSMETIC gear plus a rendered screenshot.
   picks the **oldest** OPEN item, and there are **8**, the oldest from the previous day. So his
   newest ask is his lowest-priority ask, which is the exact inversion that made him supersede the
   process tonight rather than a failure of it.
+
+## INBOX-20260902T14xxZ — 183 abandoned headless Chromes, 15 GB, and the rule-17 check that could not fail
+> Not his words — the Advisor's own finding at the end of the session, recorded because the record
+> is the point and because he was asleep on the machine.
+solution: killed all 183 (nothing was at sea — no `LONG-RUN` marker, checked first). The durable
+half is the CHECK, not the kill.
+status: OPEN — FOR A WATCH. Sizing: small, and it is an instrument fix, not game code.
+
+  **WHAT WAS FOUND:** 183 `chrome.exe` processes carrying `--remote-debugging-port`, **oldest from
+  2026-09-01 10:17 — over a day old** — holding **15,097 MB of working set** on the laptop he was
+  sleeping next to. Rule 17 exists because he once found 21% CPU each on two abandoned probes *while
+  debugging a performance problem*, and later 53% CPU across thirteen. **183 is an order of magnitude
+  past either.**
+
+  ⚠ **AND THE CHECK THAT WAS SUPPOSED TO CATCH IT REPORTED ALL CLEAR.** CLAUDE.md rule 17 prints
+  `pkill -f remote-debugging-port`, and this session's own tidy-up ran `pgrep -f remote-debugging-port
+  || echo "no headless chrome"`. **`pgrep` does not exist on this machine** — Git Bash has no
+  procps — so the command errored, the `||` branch fired, and it printed *"no headless chrome"*
+  **while 183 were running.** A check that cannot fail, in the last command of a session spent
+  correcting checks that cannot fail.
+
+  **THE FIX IS TWO LINES AND IT IS NOT THE KILL:**
+  1. **CLAUDE.md rule 17's command is Mac-only.** `pkill`/`pgrep` are absent on the Blade, which is
+     where the relay actually runs. It needs the PowerShell form beside it —
+     `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -match 'remote-debugging-port' }`
+     — or a `node scripts/qa/…` wrapper that works on both, which is the shape this repo prefers.
+  2. **A gate should assert the count is zero at the end of a watch**, the way `close_item.mjs`
+     asserts a CEO verdict exists. **Leftover probes are currently invisible to every instrument the
+     project has**, which is why a day's worth accumulated with nobody noticing.
+
+  **WHERE THEY CAME FROM, stated honestly rather than guessed:** not measured. No browser was
+  launched by this session. The plausible sources are the sea trials and the sail-containment probes,
+  both of which drive Chrome — but which one leaked, and whether it leaks on every run or only on a
+  crash, is unmeasured and should not be reported as known.
