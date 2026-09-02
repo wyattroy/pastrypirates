@@ -732,11 +732,16 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ## BLOCKED ON WYATT
 
-| Question | Recommendation | since |
-|---|---|---|
-| **May a watch publish to staging on its own?** The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered *"This command requires approval."* Staging is two builds behind (`2026.09.01.6` on the wire vs `2026.09.01.8` in the tree). | **(Recommended) Allow it — one line in `.claude/settings.json`: `"Bash(bash scripts/deploy-staging.sh*)"`.** The script cannot reach production: it refuses to copy `CNAME`, verifies staging's own CNAME names the staging host, stamps only the published copy, and polls the live URL afterwards to say whether it really landed. The alternative is that you or an attended session run it by hand each time — which is what has happened every time so far, and it is why parts 2 and 3 of your release order have sat open for two days with the evidence already complete. | 2026-09-02 |
+*(empty — the staging-publish-permission question below was RULED YES 2026-09-02T04:03:36Z,
+moved to RULED, awaiting triage.)*
 
-*The "Bake this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
+*The staging-publish-permission question — **"May a watch publish to staging on its own?"** — was
+RULED YES ON THE GLASS 2026-09-02T04:03:36Z, no note attached. Harvested to RULED below, awaiting
+triage: someone needs to actually add the line to `.claude/settings.json`
+(`"Bash(bash scripts/deploy-staging.sh*)"`, the recommendation that was standing here) and confirm
+it lets an unattended watch publish to staging without the production path being reachable. Not
+done here — this session's mandate is harvest-and-publish only, never settings changes. The "Bake
+this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
 **"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — SETTLED
 below, nothing to build. The black-market gold-coin question was answered 2026-09-02T03:50:58Z as
 a cut-off note, then CLARIFIED by his own follow-up idea 2026-09-02T03:54:47Z — he tested it
@@ -780,7 +785,7 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*One ruling is waiting, freshly harvested (row below, `now` cell empty by design — not yet
+*Two rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
 triaged). Two more rulings landed and were triaged straight to SETTLED below since both resolve
 to "nothing to build." The prior eight were triaged 2026-09-01; three carried work and are in the
 STEP 1 CHECKLIST, tagged "Your ruling:".*
@@ -788,6 +793,7 @@ STEP 1 CHECKLIST, tagged "Your ruling:".*
 | item | HIS RULING | now |
 |---|---|---|
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
+| May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
