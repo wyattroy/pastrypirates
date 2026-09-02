@@ -304,10 +304,27 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       than to weaken the gate.
 - [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
       ⟨`T-006`⟩
-- [ ] **THE GAME'S MONEY SYMBOL IS A RAW EMOJI IN SOME STRINGS AND AN IMAGE IN OTHERS, AND THE EMOJI
+- [ ] **⚠ THIS ROW'S DIAGNOSIS WAS WRONG AND IS CORRECTED BELOW — the money symbol is NOT a raw
       ⟨`T-005`⟩
+  emoji on screen, and there is no rule-23 sweep to do.** Measured 2026-09-02T11:xxZ by the watch
+  that took `INBOX-20260902T0405Z`:
+  [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+  **`src/shared/index.js:135` maps 🌕 to `assets/icons/coin-emoji.png` and `emojify()` swaps it
+  before anything renders**, so the typed character never reaches the DOM and no Safari — his or
+  the rig's — is ever asked to draw it. What was blank was that IMAGE with its layout box intact:
+  the gap is **42 px** and the coin in the next run's same box is **42 px**, full stop at the same
+  column, while the same file painted four times in the CAPTAINS panel of that very frame
+  (`src/ui/util.js:165`). **His Safari and the rig were both right.** The question this row put to
+  him is VOID, not unanswered, and `BLOCKED ON WYATT` has nothing here. Guarded by
+  `scripts/qa/typed_emoji_never_reaches_screen_check.mjs` (5 cases, red-proofed, in `npm test`).
+  **What is left of this row is only the unproven bit: why one `<img>` reserved its width and did
+  not paint, once, in one frame.** Chase it only if it recurs, with a posed board
+  (`docs/DRIVING-THE-GAME.md` §5e), never another rate over a voyage.
+  *The original text is kept below, struck, because a wrong reading nobody can see is a wrong
+  reading that comes back:*
+  ~~**THE GAME'S MONEY SYMBOL IS A RAW EMOJI IN SOME STRINGS AND AN IMAGE IN OTHERS, AND THE EMOJI
   RENDERED BLANK ON THE WEBKIT LEG. Found by the vision judge 2026-09-02, confirmed by eye, traced
-  to one line. Not fixed (one item; and the durable version is a sweep, not a patch).**
+  to one line. Not fixed (one item; and the durable version is a sweep, not a patch).**~~
   `solo-tablet-wk-026-settled.png`: the black-market card reads *"They'll find ye one more ingredient
   — for **10⬜.**"* — a blank where the coin belongs, then an orphaned full stop.
   `src/ui/panel.js:1155` writes ``for <b>${bmPrice}🌕.</b>`` — a raw **U+1F315** glyph. The coins in
@@ -988,6 +1005,49 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
+- [ ] `T-076` **★★★ HIS FOUR GLASS-PAGE ASKS — FIVE HOURS OLD, ASKED FOUR TIMES, NEVER FILED AS A
+      ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
+      *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
+      AGO."*
+      **He is right, and the reason is measurable rather than mysterious:** all four asks live in
+      `## THE IDEA INBOX` (this file, ~line 1320) tagged **SCHEDULED**. `glass.mjs:385` counts an
+      inbox entry as an open task **only when it has NO fate** — and `SCHEDULED` is a fate. **So
+      marking them "SCHEDULED" made them invisible on his own page AND invisible to a Watch picking
+      its one item, simultaneously.** They have never had a `- [ ]` row or a `T-` handle. A watch
+      noticed two of them and wrote *"STILL NOT BUILT AND NOT FILED ANYWHERE ELSE"* (line ~225) and
+      still did not file them.
+      **THIS IS THE AUDIT'S OWN HEADLINE, PLAYING OUT AGAINST THE AUDIT ITSELF:** *"a row that says
+      SCHEDULED with no owner and no position in a queue is a parked row wearing a better word."*
+      **THE FOUR, in his words, oldest first:**
+      1. **00:59:32Z** — *"You need to update Tasks list dynamically — it is stale."* (the
+         Chartkeeper; REAP is live, RANK is not — see `PENDING-KIT-PATCHES.md` 4)
+      2. **00:59:32Z, repeated 03:45:45Z** — *"Move The Lesson section below it."* / *"Move The
+         Lesson to below Tasks."* **Asked twice. One CSS/DOM move in `glass.mjs`.**
+      3. **03:46:13Z** — *"rename Tasks to The Chart (Tasks To Do)."* **One string.**
+      4. **03:49:02Z** — *"Make all tasks in The Chart expandable for fuller context. Let me write a
+         comment under each one if I choose to. Order the list with the next-to-be-completed at the
+         top. re-order the list dynamically. Remove items from the list after they are complete."*
+      **SIZING, HONESTLY: items 2 and 3 are minutes and are pure `glass.mjs`.** Item 4's expandable
+      rows and comment box are a bigger piece of the same file. **`glass.mjs` IS VENDORED — edit in
+      claude-kit, then re-vendor**, which is the friction that has been quietly deferring all of
+      this. **Do items 2 and 3 first and publish, so he sees movement on the page within one tick.**
+      ⚠ **AND THE ADVISOR'S OWN RECOMMENDATION WAS TO SHIP THIS HALF FIRST** —
+      `SPEC-CHARTKEEPER.md`: *"a perfectly-ranked list still reads as gibberish on his phone if
+      every row is 90 truncated characters."* **That recommendation was made and then not carried
+      into a row anybody could take.** The backend half has had seven watches; the half he can see
+      has had none.
+- [ ] `T-077` **The Glass's own note contradicts its Your Call card, and he caught it in a
+      screenshot.** Filed 2026-09-02T07:xxZ. **Sizing: one sentence of wording.**
+      His screenshot: the note reads *"reap flags 6 rows as likely already answered, first: the
+      Chartkeeper's Blocked-on-Wyatt question"* directly above **YOUR CALL (0) — "Nothing waiting."**
+      **BOTH ARE CORRECT AND THEY READ AS A LIE.** Measured: `## BLOCKED ON WYATT` contains **zero
+      table rows** (`grep -c '^|'` → 0), and `glass.mjs:311-321` builds Your Call only from table
+      rows — so **(0) is literally true.** The note is the REAPER reporting Chart rows that *mention*
+      an already-answered blocked question. Two different subjects, one page, no way for him to tell.
+      **THE FIX IS THE NOTE'S WORDING, NOT YOUR CALL'S LOGIC** — the reaper's line must say it is
+      talking about **stale rows to clean up**, never about a question waiting on him. Rule 8: a
+      word that means "waiting on Wyatt" must mean that everywhere on this page.
 
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩

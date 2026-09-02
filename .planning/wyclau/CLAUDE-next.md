@@ -21,7 +21,7 @@ Glass (`node scripts/wyclau/glass.mjs --note "..."` — at least every 20 minute
 ## Safety — real damage lives here
 
 1. **`main` is production.** Every push to it is served to real players immediately. It requires
-   Wyatt's approval, always. Staging (`./scripts/deploy-staging.sh`) is pre-approved.
+   Wyatt's approval, always. Staging (`npm run deploy:staging`) is pre-approved.
 2. **`CNAME`, `robots.txt`, `sitemap.xml` never leave this repo** — they claim the live domain.
    Deploy with the scripts; never hand-roll a sync.
 3. **Assume another session is on this branch.** `git pull --rebase` before every commit; claim an

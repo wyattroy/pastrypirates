@@ -8,6 +8,7 @@
       "mcp__github__actions_list",
       "mcp__github__actions_get",
       "Bash(node scripts/*)",
+      "Bash(npm run deploy:staging*)",
       "Bash(bash scripts/deploy-staging.sh*)",
       "Bash(node .claude/gsd-core/bin/gsd-tools.cjs *)",
       "Bash(npm test*)",

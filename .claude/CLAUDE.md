@@ -1152,7 +1152,7 @@ git checkout -b aug28-topic                  # dated branch: monthDD-topic
 npm test                                     # 19 gates, exit 0
 node scripts/qa/gear.mjs                     # how deep must this be tested?
 node scripts/sea_trial.mjs                   # sail it at that gear
-./scripts/deploy-staging.sh "what changed"   # -> staging.playpastrypirates.com
+npm run deploy:staging -- "what changed"   # -> staging.playpastrypirates.com
 #  ...Wyatt plays staging. Stamp must read <stamp>-STAGING/<branch>.
 #  ...ON HIS APPROVAL ONLY:
 git checkout main && git merge aug28-topic && git push origin main && git pull origin main
