@@ -248,7 +248,7 @@ status: OPEN — the durable guard is this session's own to build (he asked for 
 ## INBOX-20260902T0050Z — judge the 267 queued screenshots before anything ships
 > Ruling, question UI: "Judge the screenshots first" — chosen over publishing to staging in parallel, and over going straight to production.
 solution: run the vision pass over the screens the 1914Z trial queued, BEFORE staging or release.
-status: OPEN — FOR A WATCH. Trial `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10 of 10 legs on build `2026.09.01.7` with NOTHING in the not-run column, but its vision judge was blind. Its own words: "THE JUDGE CANNOT SEE — every visual verdict below is worthless; the structural half still stands." 267 screens are queued and explicitly marked NOT cleared. His reasoning, in his own pick: the untappable sail square that cost days was caught by looking, not by structure. Note the tree is now `.8`, so the judged build trails the branch.
+status: CLAIMED by watch 2026-09-02T01:52Z (Wy-Blade). Trial `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10 of 10 legs on build `2026.09.01.7` with NOTHING in the not-run column, but its vision judge was blind. Its own words: "THE JUDGE CANNOT SEE — every visual verdict below is worthless; the structural half still stands." 267 screens are queued and explicitly marked NOT cleared. His reasoning, in his own pick: the untappable sail square that cost days was caught by looking, not by structure. Note the tree is now `.8`, so the judged build trails the branch.
 
 ## INBOX-20260902T0048Z — the recipe pictures: what size are they actually drawn at?
 > "Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"

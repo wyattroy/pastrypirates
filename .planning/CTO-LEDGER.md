@@ -2844,3 +2844,38 @@ scratch `scripts/qa/tmp_boot_diag.mjs`** — this sandbox refuses `git reset`, s
 should check `git status` before a bare `git commit`. Every Chrome and server this watch started
 was killed by the probes' own `killAll()`; the only browser still running is the detached trial's,
 which is meant to be.
+
+### WATCH 2026-09-02T01:52Z — SITUATION AND CLAIM
+
+- **watch started** 2026-09-02T01:52Z, Wy-Blade (win32), branch `claude/cloud-handoff-planning-a9ay1u`.
+  `can_push.mjs`: can publish, tracking upstream, no rebase or merge in progress.
+- **last progress** — the watch of 2026-09-02T00:12Z closed the call-circle-on-the-ask item
+  (CEO 84, commit `e191ad7`), which bumped the stamp to `2026.09.01.8`.
+- **detached trial in flight** — `2026-09-02T0137Z-Wy-Blade`, pid 24232, 10 legs at FULL gear on
+  build `2026.09.01.8`. `longrun_status.mjs`: *"progressing (0/10 legs), last moved 10 min ago --
+  hold off"*. Not restarted. Its log already reads **"1b/2 can the judge open a screenshot? FAIL —
+  the eyes are SHUT → judging DEFERRED to the queue"**, so this run will queue its screens unjudged,
+  exactly as the 1914Z run did.
+- **blocked on Wyatt** — nothing new; the Chart's BLOCKED ON WYATT table stands.
+- **no Artifact tool in this session**, so the Glass cannot be published from here. The pulse goes to
+  `.planning/wyclau/GLASS-NOTE.md` for the next session that can, per the Door.
+
+**THE ITEM I AM CLAIMING: INBOX-20260902T0050Z — judge the queued screenshots before anything
+ships** (his ruling, question UI: *"Judge the screenshots first"*).
+
+**Why not the older OPEN item.** INBOX-20260901T1335Z (compress/preload/resize) is older and still
+OPEN, and its one remaining lever is the WebP pastry conversion he has already ruled DO IT
+(INBOX-20260902T0048Z). **It is gated right now by the trial sailing on this machine**: the 21
+pastry PNGs are in the trial's own watched file list, a trial is loading them this minute, and
+changing game bytes mid-run is how the last two trials had their evidence retired — twice, at
+88 minutes each. It is the right item for the first watch after 24232 lands.
+
+**AND THE ITEM I CLAIMED IS BLOCKED BY SOMETHING THAT IS NOT WHAT THE TRIAL SAYS IT IS.** Measured
+this watch, not inferred: `node scripts/qa/judge_can_see_check.mjs` does not report a blind judge —
+**it crashes before it ever reaches one**, with
+`ENOENT: copyfile 'C:\...\sea-trial-shots\crew-desktop-guest-001-settled.png' ->
+'C:\...\Temp\ppjudge-fstKR5\C:\Users\...\crew-desktop-guest-001-settled.png'`. The destination is a
+temp dir with a whole absolute Windows path glued on. `scripts/lib/vision.mjs:117` takes the
+basename with `String(abs).split("/").pop()` — a POSIX separator — so on Windows the "basename" is
+the entire path. **The eyes are not shut on this machine; the staging step never opens them.**
+This watch's work: prove that RED, fix it, prove the same check GREEN, then judge the queue.
