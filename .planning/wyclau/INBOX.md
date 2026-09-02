@@ -1704,3 +1704,42 @@ status: OPEN — FOR A WATCH. **THE WORDING IS CONFIRMED BY HIM, 6:52 PM ET, que
   idle caution: **the possibility that the page ate the rest of his sentence is a measured
   behaviour, not a hypothetical.** Whoever picks this up should confirm the wording with him before
   deleting anything from a public page.
+
+## INBOX-20260902T1857Z — SIXTH INSTANCE, AND HIS PRIORITY RULING: THE RE-ASKING OUTRANKS THE SEO WORK
+
+**HIS WORDS, VERBATIM:**
+
+> I still see that the top priorities on the chart are not necessarily the ones i'm getting asked
+> questions about -- are those really being worked on?
+
+> AND the page continues to re-show me thw e questions AFTER they're harvested. this is NOT fixed
+> and it is a PRIORITY more than any of the SEO work
+
+solution: his own — **the answered-question retirement (`T-090`) outranks the rules-page / sitemap / SEO work, and nothing SEO-shaped is picked up before it.**
+
+status: OPEN — FOR A WATCH, at his stated priority. **The five rows were retired by hand at 6:58 PM; the hand repair is the third today and is NOT the fix.**
+
+  **HE IS RIGHT TWICE, AND BOTH ARE MEASURED.**
+
+  **1. THE RE-ASKING — SIXTH INSTANCE, AND THE SHARPEST EVIDENCE YET.** All five rules-page
+  questions were answered by him between 6:50 and 6:53 PM, harvested by three separate commits
+  (`4c0d6008`, `cb7cfc89`, `4f14262a`), **and all five were still rows in `## BLOCKED ON WYATT` at
+  6:58 PM.** ⚠ **AND THE HARVEST WROTE THE CONDITION DOWN ITSELF:** *"all five rules-page questions
+  in the Your Call table above are now answered"* — **then left all five asking, because "this
+  session's mandate is harvest-and-publish only."** **It detected the exact fault and had no
+  authority to act on it.** That is not a session being careless; it is the job being split in two
+  with only one half owned.
+
+  **2. THE TOP OF THE CHART IS NOT WHAT IS BEING WORKED, AND THE DOOR SAYS SO IN WRITING.**
+  `.claude/skills/door/SKILL.md:80-81`: *"Pick ONE item. **INBOX first — the oldest OPEN item**; his
+  words outrank the Chart. Otherwise the top unblocked Chart item."* **So a watch works the OLDEST
+  INBOX entry, and the Chart's RANK decides nothing about what happens next.** Measured against the
+  last ninety minutes: watches worked the DO NOW button, his sitemap ask and the rules-page split —
+  **all older INBOX entries — while ranks 1, 2, 3 and 5 were never claimed at all.**
+
+  ⚠ **AND HIS OWN FIX FOR THIS IS ON THE CHART, RANKED 27th, SCORING ZERO.** `T-083`, *"ONE QUEUE,
+  RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE"*, carrying his words: *"the
+  door should not read oldest-first; the RANK algorithm should do the ordering, and the door should
+  read what's at the top."* **The fix for "the top of my list isn't what gets worked" is itself 27th
+  on that list.** Same shape as the Chartkeeper this morning, and it is the second time today the
+  cure has been found sitting below the disease.
