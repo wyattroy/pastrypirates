@@ -3320,3 +3320,81 @@ that.** A fresh reviewer caught this; I did not catch myself.
 **WHAT THE NEXT WATCH INHERITS, PLAINLY.** Everything ahead of the deploy is done and green.
 His YES is on the record. If the allow-list line has landed by then, the whole of parts 2 and 3 is
 one command; if it has not, it is still one command run by a human. Do not re-derive any of this.
+
+---
+
+## WATCH 2026-09-02T04:19Z — Wy-Blade — BUILD THE CHARTKEEPER. Claim written before the first edit.
+
+**SITUATION, six lines.**
+1. **Watch started** 2026-09-02T04:19:09Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`:
+   *can publish* — tracking upstream, no rebase or merge in progress.
+2. **Last progress** `98d3745b` (04:17Z) — the Advisor published the Chart audit as a page he can tap.
+3. **The previous watch (03:48Z) closed NOTHING**, correctly: parts 2 and 3 of ruling 12 (stage it,
+   hand him the link) are blocked on a permission, not on evidence. CEO 88: **NOT DONE**, and its
+   central finding is that Wyatt was awake at the Glass inside that watch's first six minutes and
+   was never asked the one question that would have unblocked it.
+4. **Blocked on Wyatt:** one line in `.claude/settings.json`
+   (`"Bash(bash scripts/deploy-staging.sh*)"`) or one attended run of
+   `bash scripts/deploy-staging.sh`. He has already ruled YES on the policy (04:03:36Z); the file
+   that grants it is itself protected from an unattended session. Staging still serves
+   `2026.09.01.6`; the tree is `2026.09.01.8`.
+5. **Nothing is at sea.** `.planning/wyclau/LONG-RUN` does not exist; no trial pid to check.
+6. **THIS WATCH TAKES: the Chartkeeper** — `.planning/CHART.md:674`, the row marked
+   **★ NEXT ITEM, AT HIS INSTRUCTION**, spec at `.planning/SPEC-CHARTKEEPER.md`. Claimed here
+   before any edit. It is not the oldest OPEN inbox item, and that is deliberate: his own words in
+   INBOX-20260902T04xxZ are *"give the full spec to the Watch to build it, highest priority after
+   what it is currently working on"*, and the previous watch's item is closed out as blocked. His
+   instruction outranks the file order.
+
+**NO ARTIFACT TOOL IN THIS SESSION**, so this watch cannot harvest or publish the Glass. Stated
+plainly rather than guessed at: `ToolSearch` for the artifact tools returns Drive, Monitor and
+DesignSync — there is no `Artifact` in this session's schema. So this watch APPENDS to
+`GLASS-NOTE.md` and clears nothing. `glass.mjs --note` is deliberately not run — it resets that
+file unconditionally, which is how a watch's screenshot results were destroyed at 03:50Z
+(INBOX-20260902T0350Z).
+
+> **CORRECTED WITHIN THE SAME WATCH, AND IT MATTERS FOR THE NEXT ONE.** Sixty seconds earlier I
+> wrote here that `GLASS-NOTE.md` held an UNPUBLISHED note, reasoning from timestamps: the note was
+> committed at `98d3745b` and `LAST-PUBLISH` named the *previous* commit. **The reasoning was sound
+> and the conclusion was wrong** — the live Advisor session published it at 04:19:54Z and reset the
+> file while I was typing. `LAST-PUBLISH` now reads `version=1788322784-7814 commit=98d3745b`.
+> The note reached him. **The reusable part: with two sessions on one branch, a timestamp
+> comparison is a reading of a moving file, not a fact** — and the honest instrument is
+> `LAST-PUBLISH` read at the moment you need it (INBOX-20260902T0120Z says the same thing about
+> the notification stream).
+
+**A SECOND SESSION IS LIVE ON THIS BRANCH RIGHT NOW AND I AM NAMING IT BEFORE I EDIT ANYTHING.**
+`git status` shows `.planning/SPEC-CHARTKEEPER.md` **modified and uncommitted** — the Advisor
+folding CEO 89's corrections into the very spec this watch is building from. So: every `git add` in
+this watch names its paths explicitly, never `-A`, and this watch does not touch
+`SPEC-CHARTKEEPER.md`, `GLASS-NOTE.md`'s marker template, or `CHART.md`'s Advisor-owned sections
+beyond its own row. **Two of CEO 89's corrections change what gets built, and they are the reason
+reading the uncommitted diff was worth the minute:**
+  1. **The Glass's open count is NOT just the checklist.** `glass.mjs:385-386` is
+     `tasks = [...openChecklist, ...openInbox.map(shortTask)]` — every IDEA INBOX entry that has
+     not declared a fate is a task on his phone. **RANK and SWEEP must cover those too, or the
+     Chartkeeper perfectly reorders a list that is not the list he reads.**
+  2. **Line numbers are not durable handles** — the spec's own citations went stale in the commit
+     that published it. Its instruction to the builder: replace them with `T-nnn` ids as the first
+     act.
+
+**GEAR.** `gear.mjs` prints FULL, and the reason it prints FULL is that the tree is clean, so it
+falls back to reading the whole branch against `origin/main` — 150-odd files including all of
+`src/`. That is a reading about the BRANCH, not about this change. This change touches
+`scripts/wyclau/`, `scripts/qa/`, `.planning/` and docs; it cannot touch game code and must not bump
+`PP4_STAMP` (the spec says so in its own last line). Gear will be re-run against the real diff
+before closing, and that reading is the one that counts.
+
+**PREDICTION, WRITTEN BEFORE THE WORK (rule 6's working form).** I expect the expensive part of this
+item to be the part the spec sizes as cheap — *"most of it retrofitting heads onto 29 open and 27
+done rows"* — and I expect that retrofit to be avoidable, because a head that a script can allocate
+is not a head a human has to type. I predict `size`/`touches`/`needs` can be DERIVED for almost
+every row from what the row already says (a cited `src/` path means player-facing; a `GATED:` marker
+means blocked; a "See BLOCKED ON WYATT" pointer means needs-Wyatt), leaving only `size:` genuinely
+hand-written, and that making the head OPTIONAL rather than mandatory is what lets the tool run on
+day one instead of after a 56-row edit. **What would prove me wrong:** if RANK cannot separate the
+five measured-dead rows and the staging row from the rest of the list without hand-written fields —
+i.e. if the derived score puts the staging permission line anywhere but at or near the top on the
+first real run — then the derivation is not carrying the weight and the hand-written head is the
+honest answer after all. The spec's own acceptance test is the same shape: had the Chartkeeper been
+running, *his own four-times-repeated request* would have been at the top of the list.
