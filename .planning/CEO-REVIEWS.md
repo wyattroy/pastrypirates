@@ -7,6 +7,101 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 111 — 2026-09-02, Wy-Blade — the "what is being worked on right now" design
+
+*His ask: **"what is being worked on RIGHT NOW? that needs to be visible just underneath the emoji
+status."** Then: **"how do you plan to fix 1.? design a fix, get CEO's approval, then add it to the
+top of the chart."*** Reviewed: `.planning/SPEC-WHAT-IS-IN-HAND.md`. Nothing was built.
+
+### VERDICT: **APPROVED WITH CHANGES — "do not build it on the two premises that are wrong."**
+
+**Its one sentence for Wyatt:** *"The plan is the right shape and I'd back it — but two of the facts
+it stands on don't hold: the claim it wants to read is written in free-form English that only fell
+into a tidy pattern about two hours ago (11 of the last 15 don't match), and the browser-side clock
+it proposes to build is already built and shipping and is exactly what failed you at 16:12 — so if
+you build it as written, the line goes blank the first time a watch words a heading its own way, and
+question 2 comes back."*
+
+### ⚠ FINDING 1 — "ALREADY ON DISK IN A CLEAN SHAPE" IS FALSE. 4 OF 15.
+
+`.planning/CTO-LEDGER.md` holds **15** `### WATCH` headings; **4** match the shape the draft
+proposed to parse. The rest are prose a watch typed — `— SITUATION AND CLAIM`,
+`— DID NOT CLOSE ITS ITEM, DELIBERATELY`, one with a short timestamp and no date. Even among the
+four, the item is sometimes backticked and sometimes not. **And nothing prescribes the format:**
+`door/SKILL.md` step 2 says only *"Claim it in the ledger."*
+
+*"The last four watches happened to word it the same way, and a regex over that would have found
+nothing eight hours ago. That is not a clean shape on disk; it is a coincidence two hours old."*
+
+**Re-counted independently by the Advisor after the review: 15 total, 4 matching. Exact.** The
+draft's error was reading `tail -4` and calling it a format.
+
+### ⚠ FINDING 2 — "THE AGE MUST BE COMPUTED IN THE BROWSER" — IT ALREADY IS, AND THAT IS WHAT FAILED HIM
+
+`glass.mjs` (≈:900-930) is a client script that parses `glassState` and renders **two** clocks —
+*"last progress N min ago"* and *"page published N min ago"* — re-ticking on a timer, deliberately,
+since 2026-08-31. **Verified independently.**
+
+*"The fault is not the clock. It is the data."* `lastProgressAt` is the newest commit **at
+generation time**; a published page cannot learn about a later commit. The file's own comment says
+so: *"Neither can see work that happens after this page was generated; only republishing closes
+that gap."*
+
+**So the claimed shared fix with his question 2 was "a plan to rebuild something that exists."**
+*"Do not book question 2 as covered by this, or he will report the same thing again next week and
+the record will say it was fixed."* **⇒ Question 2 is instead closed by the Door's new step 6b**,
+shipped the same hour: the watch messages the Glass to publish the moment it lands work.
+
+### FINDING 3 — THE BOUND WAS A HEDGE DRESSED AS A GUARANTEE
+
+The draft said a stale claim is *"bounded and self-clearing within one Bell interval."* **False.**
+The Bell rings a watch; that watch works before writing its own claim. Today's rings were **40, 60,
+50 and 30 minutes** apart, and `door/SKILL.md` step 4 exists precisely because **a watch can end
+having pushed nothing.** *"The real bound is up to about an hour, and unbounded when the Bell isn't
+ringing."* It also noted the page's existing **45-minute red dot** already covers an hour-old claim.
+
+### FINDING 4 — A MISSING STATE, AND IT IS THE ONE HE IS COMPLAINING ABOUT
+
+*"The missing fourth state is CLAIMED BUT COLD. A claim whose watch is gone is neither 'in hand' nor
+'nothing' nor 'unreadable'. The age is how you show it — but name the state, or nobody will build
+for it."* It also established that **a watch can claim and end without closing — twice today, by
+deliberate choice** — so an open claim outliving its watch is the normal case, not the failure case.
+And separately: **the Advisor does not claim at all**, so a session doing exactly what he asked is
+invisible to this line by design.
+
+### ⭐ ITS FOURTH OPTION, ADOPTED IN FULL — write the claim the way the CLOSE is already written
+
+*"Stop parsing prose."* The close half is machine-written and durable (`close_item.mjs` appends a
+fixed line); the claim half is a human sentence. **Make them symmetrical.**
+`publish_status.mjs` already writes `.planning/wyclau/status/<machine>.md`, **and `glass.mjs` already
+reads it** — its `## Long run in flight` block is *already the exact shape needed*, read under the
+rule *"every doubt resolves to NOT LIVE."* Add an `## In hand` block of the same shape.
+
+*"The 'cold' state falls out for free — the marker declares its own staleness, so the page derives
+liveness instead of hoping the next watch shows up. That is Rule 9 satisfied properly; the spec gets
+to 'no constant' only by having no liveness rule at all, which is why it has to hand-wave the
+bound."* And: *"the ledger stays the human narrative it is good at and stops being asked to be a
+database, which is what breaks it."*
+
+### RECURRENCE — the same fault, in a fifth consecutive verdict
+
+*"The fault named in four and five consecutive verdicts — **a sentence tidier than the record** —
+RECURS, twice. Both are the same move: a confident sentence about the state of the world that two
+minutes of checking contradicts. It cost nothing here because nothing was built. It would have cost
+a day if it had been."*
+
+**Credit it insisted on:** the traps he has already ruled against — a timer, publishing more often —
+were explicitly declined and CEO 80 cited correctly. Rule 7 clean: this is his ask, in his words.
+
+### WHAT WAS DONE ABOUT IT
+
+**All four changes applied and both premises re-measured by the Advisor rather than taken on trust.**
+The spec now leads with a stop-banner naming its own false claims, adopts the status-file source,
+carries the four states with COLD defined by a self-declared `staleAfterMinutes`, states the real
+bound, and explicitly does **not** claim question 2. Filed as `T-094`.
+
+---
+
 ## CEO Review 110 — 2026-09-02, Wy-Blade — `INBOX-20260901T1440Z`, the black console window (commit `f568f60a`)
 
 *His words, verbatim: **"this strange window popped up automatically, do you know what it's doing?"*** Watch 2026-09-02T16:09Z.
