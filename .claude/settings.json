@@ -87,18 +87,6 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/advisor-triages-watch-works.cjs\" 2>/dev/null || true",
-            "timeout": 10,
-            "statusMessage": "Is another session mid-edit in this file?"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/claim-before-game-code.cjs\" 2>/dev/null || true",
-            "timeout": 10,
-            "statusMessage": "Claimed the item before changing the game?"
           }
         ]
       }

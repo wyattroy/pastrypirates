@@ -442,3 +442,18 @@ loop), his approval of the actual merge still comes after he plays staging, per 
 standing release process.
 
 **Do not re-ask whether the branch should be trialed and staged — that part is settled.**
+
+## A QUESTION MARK IS NOT AUTHORISATION — 2026-09-02
+
+**His ruling (question UI):** when he asks something that implies work, the answer is *"Answer, and
+triage it as a Chart row"* — give the answer, the recommendation and the size, **then write the
+Chart row so a watch can take it.** Nothing gets built until he says build it.
+
+**Earned the same night.** He asked *"Do you need to create those rules as 3 gates for this advisor
+session to make sure they are ALWAYS followed?"* — a question. The session built three hooks and
+told him they worked. CEO 83: *"He did not authorise this session to build them. You answered his
+question by doing the work — which is the exact behaviour the first two sentences he said were
+correcting."* Two of the three did not work as described.
+
+**And on his own broken machinery:** disarm rather than leave it running. A gate that gives false
+assurance is worse than no gate — the Advisor unregisters it and files the repair for a watch.

@@ -664,6 +664,42 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 - [x] **ONE PUBLISHER for the Glass** — SHIPPED 2026-08-31. `.planning/wyclau/GLASS-NOTE.md`, tracked: another session writes there and commits instead of publishing; the Bosun folds it into the page and resets the file on its next pulse. Gate `glass_note_relay_check.mjs`, red-proofed (the pre-fix code cannot even run the check — the mechanism did not exist to test). Screenshotted before shipping.
 - [x] **Fold the Helm into the Glass** — decision cards live INSIDE the Glass, derived from this file's own tables; the Helm URL serves a retirement notice (2026-08-31, his instruction)
 
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
+- [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
+      *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
+      `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
+      not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
+      is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
+      His reasoning: the untappable sail square that cost days was caught by looking, not structure.
+- [ ] **Convert the recipe art to WebP — CONVERT, DO NOT RESIZE** — his ruling: do it, and `/classic`
+      shares the converted files. ⚠ The Advisor measured the scope and it is smaller than the item
+      claimed: files are 512×~385px; the largest they are ever drawn is 220px tall
+      (`index.html:344`), ≈290 CSS px wide. **On a 2× phone that is 580 DEVICE pixels against a
+      512px file — the art is already slightly upscaled.** "40% too big" was a 1× reading. Resizing
+      down would visibly soften every modern phone. Saving is compression alone (~0.53 MB).
+      Screenshot a phone before and after.
+- [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
+      `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
+      fires once then waves every later edit through — and forges evidence
+      `advisor-triages-watch-works.cjs` reads. That one is also blind to **untracked** files
+      (`:83` excludes `??`), which is half the collision its own header cites. And `isGameCode()`
+      is false for `scripts/qa/*`, `.claude/hooks/*` and `.planning/*`, so it would not have fired
+      once during the night that earned it. **Both are unregistered from settings.json as of
+      2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
+      works and stays armed.
+- [ ] **Record the change-gate's verdict even when it is overridden** — the runbook's override
+      clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
+      The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
+      record' are different things, and only the second is auditable."* Override the ACTION, not the
+      CHECK. From outside, a skipped gate and an unwired gate look identical.
+- [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
+      real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
+      session that commits a note and the session that next publishes are not the same one. Same
+      class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
+      propose a mechanism itself.
+
 ## BLOCKED ON WYATT
 
 | Question | Recommendation | since |
