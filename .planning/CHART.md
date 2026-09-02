@@ -143,6 +143,24 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       handing him our homework — he cannot know from a phone whether a trade circle still clips a
       captain's name, and that is seven of the nine. **And never the `answered` ones**: he already
       answered those, and re-asking is the exact fault he was furious about at 1:38 PM.
+      ⚑ **HE RULED ON THE TAP ITSELF AT 3:33 PM ET, QUESTION UI, AND CHOSE AGAINST THE MARKED
+      RECOMMENDATION — WHICH IS EXACTLY WHY THIS PARAGRAPH EXISTS.** *"Your tap queues it, a watch
+      closes it."* **His approval MARKS the row; it does not close it.** The next watch takes the
+      marked row through the normal gate — a fresh reviewer's verdict plus evidence — before it
+      leaves his list. The recommendation he rejected was that his tap close the row outright, on
+      the reasoning that nobody outranks him on *"is this finished from my side"*. **He chose the
+      stronger record over the faster page.** (`DECISIONS.md`, 2026-09-02 3:33 PM; commit `3602c85a`.)
+      ⚠ **THE COST IS REAL, HE TOOK IT KNOWINGLY, AND IT MUST NOT BE "IMPROVED" AWAY:** a row he has
+      approved **stays on his page until a watch runs** — the very delay he was frustrated by all
+      day. He was shown that trade in the question and passed over the fast option. **Do not upgrade
+      his tap to an immediate close because a session judges the wait too long.** If it bites him,
+      the option he declined (close now, a watch audits after) is on the record and he can call for
+      it. **This is his decision to revisit, not ours.**
+      ⚠ **AND THE WATCH THAT BUILT `T-090` COULD NOT HAVE SEEN EITHER RULING — they were made at
+      3:33 PM and sat uncommitted in the Advisor's tree until 4:52 PM, while `7c5cf6a2` landed at
+      4:31 PM.** Nothing was lost, but it is the third instance today of the same shape: **a decision
+      that exists only in a session's working tree is a decision no other session can obey.** Commit
+      his words the moment he says them.
       **Sizing: `chartkeeper.mjs`'s routing plus `glass.mjs`'s Your Call card. No game code, no sea
       trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
       that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
