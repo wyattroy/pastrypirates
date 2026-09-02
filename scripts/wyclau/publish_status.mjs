@@ -43,6 +43,12 @@ const host = os.hostname();
 const heartbeat = read(path.join(WY, "HEARTBEAT"));
 const restarts = read(path.join(WY, "restarts.log"));
 const longRun = read(path.join(WY, "LONG-RUN"));
+/* WHAT THIS MACHINE'S WATCH HAS IN HAND — his ask, 2026-09-02: "what is being worked on RIGHT NOW?"
+ * Written by scripts/wyclau/claim_item.mjs, read by glass.mjs the same way it already reads the
+ * long-run block. Deliberately the SAME SHAPE as that block rather than a new one: the reader is
+ * then a copy of one already hardened by a real incident (the false red of 2026-08-31), and every
+ * doubt in it resolves to NOT LIVE. */
+const inHand = read(path.join(WY, "IN-HAND"));
 
 const RESTART_TAIL = 40; // enough to cover a bad day; the full log stays on the machine that wrote it
 const lines = [];
@@ -55,6 +61,11 @@ lines.push("## Last pulse (HEARTBEAT)");
 lines.push(heartbeat === null
   ? "No HEARTBEAT file — this machine has never pulsed (or the file was cleaned)."
   : "```\n" + heartbeat.trim() + "\n```");
+lines.push("");
+lines.push("## In hand (IN-HAND)");
+lines.push(inHand === null
+  ? "None recorded."
+  : "```\n" + inHand.trim() + "\n```");
 lines.push("");
 lines.push("## Long run in flight (LONG-RUN)");
 lines.push(longRun === null

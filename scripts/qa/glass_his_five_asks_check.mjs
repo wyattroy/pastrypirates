@@ -29,7 +29,7 @@
 
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { hostname, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -46,20 +46,47 @@ console.log("the Glass does the five things he asked for, and none of them lie\n
    .planning/. `glass.mjs --note` REWRITES .planning/wyclau/glass.html AND CLEARS GLASS-NOTE.md
    unconditionally; a watch's unpublished note to Wyatt has already been destroyed once by a command
    run only to inspect the page (INBOX-20260902T0350Z). A gate must not be the second time. */
-function render({ chart, ledger = null, note = "gate: glass_his_five_asks" }) {
+function render({ chart, status = HELD, note = "gate: glass_his_five_asks" }) {
   const dir = mkdtempSync(join(tmpdir(), "glass-five-asks-"));
   mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
-  mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
+  mkdirSync(join(dir, ".planning", "wyclau", "status"), { recursive: true });
   writeFileSync(join(dir, "scripts", "wyclau", "glass.mjs"), readFileSync(GLASS));
   writeFileSync(join(dir, "scripts", "wyclau", "lib", "chart_model.mjs"),
     readFileSync(join(ROOT, "scripts", "wyclau", "lib", "chart_model.mjs")));
   writeFileSync(join(dir, ".planning", "CHART.md"), chart);
-  if (ledger !== null) writeFileSync(join(dir, ".planning", "CTO-LEDGER.md"), ledger);
+  if (status !== null) writeFileSync(join(dir, ".planning", "wyclau", "status", "a-machine.md"), status);
   execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "glass.mjs"), "--note", note], { stdio: "pipe" });
   const html = readFileSync(join(dir, ".planning", "wyclau", "glass.html"), "utf8");
   rmSync(dir, { recursive: true, force: true });
   return html;
 }
+
+/* THE REAL WRITER, NEVER A PARAPHRASE OF ITS OUTPUT — the fixture is produced by running
+   claim_item.mjs and publish_status.mjs, so a change to either shape fails this gate instead of
+   quietly passing against a hand-typed copy of last week's format. */
+function statusFile({ item, ageMinutes = 0, stale = 90 } = {}) {
+  const dir = mkdtempSync(join(tmpdir(), "glass-claim-"));
+  mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
+  if (item !== null) {
+    execFileSync(process.execPath, [join(ROOT, "scripts", "wyclau", "claim_item.mjs"), `--dir=${dir}`, `--item=${item}`, `--stale=${stale}`], { stdio: "pipe" });
+    if (ageMinutes) {
+      const p = join(dir, ".planning", "wyclau", "IN-HAND");
+      const m = JSON.parse(readFileSync(p, "utf8"));
+      m.claimedAt = new Date(Date.now() - ageMinutes * 60000).toISOString();
+      writeFileSync(p, JSON.stringify(m, null, 2) + "\n");
+    }
+  }
+  try { execFileSync(process.execPath, [join(ROOT, "scripts", "wyclau", "publish_status.mjs"), `--dir=${dir}`], { stdio: "pipe" }); } catch { /* exit 3 = unchanged */ }
+  const out = readFileSync(join(dir, ".planning", "wyclau", "status", `${hostname()}.md`), "utf8");
+  rmSync(dir, { recursive: true, force: true });
+  return out;
+}
+const HELD = statusFile({ item: "T-088 — his five Glass asks" });
+const RELEASED = statusFile({ item: null });
+const COLD = statusFile({ item: "T-088 — his five Glass asks", ageMinutes: 200 });
+// A status file written before the In hand block existed: it says NOTHING about what is in hand,
+// which is not the same as saying nothing is.
+const OLD_SHAPE = HELD.split("## In hand")[0];
 
 const CHART = (blockedBody, tasks = "- [ ] **A THING STILL TO DO.**") => `# THE CHART — fixture
 
@@ -91,27 +118,18 @@ allowed to flash a console window on every npm test?*
 
 `;
 
-const LEDGER_HELD = `# THE CTO LEDGER — fixture
-
-### WATCH 2026-09-02T16:49Z — claims \`T-088\`, his five Glass asks
-
-Body text that must not be mistaken for the handle.
-`;
-const LEDGER_CLOSED = `${LEDGER_HELD}
-- 2026-09-02T17:20:00Z · close_item: T-088 · CEO 111 · no game diff — the Glass is his interface
-`;
-
 // The one place the page names what is in hand. Located by id, not by its words, so renaming the
 // label does not silently retire this whole gate (the correction rulings_triage_check.mjs had to
 // make when he renamed a card).
 const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(html) || [null, null])[1];
+const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
 
 // 1/9 — WHAT IS BEING WORKED ON RIGHT NOW. His ask 1.
 {
-  const line = inHandLine(render({ chart: CHART(ONE_ROW), ledger: LEDGER_HELD }));
+  const line = inHandLine(render({ chart: CHART(ONE_ROW), status: HELD }));
   if (line === null) fail('nothing on the page says what is being worked on right now — his ask 1 ("that needs to be visible just underneath the emoji status") is not rendered at all');
-  else if (!/T-088/.test(line)) fail(`the in-hand line reads "${line.replace(/<[^>]+>/g, "").trim()}" — it does not name the item the ledger says is claimed`);
-  else pass("a live claim in the ledger is named at the top of the page");
+  else if (!/T-088/.test(line)) fail(`the in-hand line reads "${plain(line)}" — it does not name the item the status file says is claimed`);
+  else pass("a live claim reaches the top of the page");
 }
 
 // 2/9 — AND IT MUST GO QUIET WHEN THE WATCH ENDS. His own words in the row: "Between watches there
@@ -119,28 +137,47 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
 //       makes the feature worth having; a status line that keeps showing a completed item is the lie
 //       the page told all day.
 {
-  const line = inHandLine(render({ chart: CHART(ONE_ROW), ledger: LEDGER_CLOSED }));
-  if (line === null) fail("the in-hand line vanishes entirely once the item is closed — he cannot tell 'nothing in hand' from 'this feature broke'");
-  else if (/T-088/.test(line)) fail(`the item was CLOSED by a later ledger line and the page still shows it as in hand: "${line.replace(/<[^>]+>/g, "").trim()}"`);
-  else if (!/nothing in hand/i.test(line)) fail(`between watches the line reads "${line.replace(/<[^>]+>/g, "").trim()}" rather than saying nothing is in hand`);
-  else pass("a claim closed by a later ledger line renders as nothing in hand");
+  const line = inHandLine(render({ chart: CHART(ONE_ROW), status: RELEASED }));
+  if (line === null) fail("the in-hand line vanishes entirely once the item is released — he cannot tell 'nothing in hand' from 'this feature broke'");
+  else if (/T-088/.test(line)) fail(`the claim was released and the page still shows it as in hand: "${plain(line)}"`);
+  else if (!/nothing in hand/i.test(line)) fail(`between watches the line reads "${plain(line)}" rather than saying nothing is in hand`);
+  else pass("a released claim renders as nothing in hand");
 }
 
-// 3/9 — A MISSING LEDGER IS UNREADABLE, NEVER "nothing in hand". This file's own standing rule: a
-//       source that cannot be read renders as unreadable, never as empty success.
+// 3/9 — CLAIMED BUT COLD. The state the design's first draft missed and the one he is actually
+//       complaining about: a watch can claim and END WITHOUT CLOSING — twice on 2026-09-02, both
+//       deliberate. An open claim outliving its watch is normal here and must never read as work in
+//       progress. Derived from a staleAfterMinutes the block declares itself, so no new constant.
 {
-  const line = inHandLine(render({ chart: CHART(ONE_ROW), ledger: null }));
-  if (line === null) fail("no ledger at all and the in-hand line is simply absent — a page that cannot read its source must say so");
-  else if (/nothing in hand/i.test(line)) fail("no CTO-LEDGER.md at all and the page reports 'nothing in hand' — it is stating a fact it has no source for");
-  else if (!/unreadable/i.test(line)) fail(`no ledger, and the line reads "${line.replace(/<[^>]+>/g, "").trim()}" instead of naming itself unreadable`);
-  else pass("no ledger renders as unreadable rather than as a confident 'nothing in hand'");
+  const line = inHandLine(render({ chart: CHART(ONE_ROW), status: COLD }));
+  if (line === null) fail("the in-hand line is missing on a stale claim");
+  else if (!/cold/i.test(plain(line))) fail(`a claim 200 minutes old, past its own 90-minute staleness, still reads as work in progress: "${plain(line)}"`);
+  else if (!/T-088/.test(line)) fail("a cold claim stops naming its item — he cannot tell what was abandoned");
+  else pass("a claim past its own declared staleness reads as cold, and still names the item");
+}
+
+// 4/9 — SILENCE IS NOT "NOTHING". Two ways the page can have no claim to show and they must not look
+//       alike: no status file at all, and a status file written before this block existed. Both are
+//       "nobody has said", which is not "nothing is in hand" — and "nothing in hand" is a claim
+//       about the whole relay.
+{
+  const none = inHandLine(render({ chart: CHART(ONE_ROW), status: null }));
+  if (none === null) fail("no status file at all and the in-hand line is simply absent — a page that cannot read its source must say so");
+  else if (/nothing in hand/i.test(none)) fail("no status file at all and the page reports 'nothing in hand' — it is stating a fact it has no source for");
+  else if (!/unreadable/i.test(none)) fail(`no status file, and the line reads "${plain(none)}" instead of naming itself unreadable`);
+  else pass("no status file renders as unreadable rather than a confident 'nothing in hand'");
+
+  const old = inHandLine(render({ chart: CHART(ONE_ROW), status: OLD_SHAPE }));
+  if (/nothing in hand/i.test(old)) fail("a status file written before the In hand block existed renders as 'nothing in hand' — the page is answering a question that machine never answered");
+  else if (!/unreadable/i.test(old)) fail(`a status file with no In hand block reads "${plain(old)}"`);
+  else pass("a status file that predates the block says so rather than answering for it");
 }
 
 // 4/9 — THE PAGE IS A PHOTOGRAPH AND MUST SAY SO. His ask 2: he read "last progress 25 min ago"
 //       while work was four minutes old. The number was honest; the page was 13 minutes stale and
 //       nothing on it said the first number is bounded by the second.
 {
-  const html = render({ chart: CHART(ONE_ROW), ledger: LEDGER_HELD });
+  const html = render({ chart: CHART(ONE_ROW), status: HELD });
   const served = (/<p class="publishedline"[^>]*>([^<]*)<\/p>/.exec(html) || [null, ""])[1];
   const blind = /cannot see (anything|work) newer/i;
   if (!blind.test(served)) fail(`the published line's first paint reads "${served.trim()}" — with JavaScript off, or before the first tick, nothing tells him this page cannot see work newer than its own publish`);
@@ -164,7 +201,7 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
 
 // 5/9 — HIDE "YOUR CALL" WHEN IT IS EMPTY. His ask 3, one conditional.
 {
-  const html = render({ chart: CHART(EMPTY_TABLE), ledger: LEDGER_HELD });
+  const html = render({ chart: CHART(EMPTY_TABLE), status: HELD });
   if (/Your call/i.test(html)) fail('the BLOCKED ON WYATT table is empty and the "Your call" card is still on the page — his ask 3 was "if there are no calls for me to make, don\'t show the Your Call box"');
   else pass("an empty blocked table hides the Your call card entirely");
 }
@@ -173,7 +210,7 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
 //       renderer takes only `|` rows, so a question written as a paragraph renders as (0) while it
 //       genuinely waits. Hiding the card at (0) would bury it completely.
 {
-  const html = render({ chart: CHART(PROSE_ONLY), ledger: LEDGER_HELD });
+  const html = render({ chart: CHART(PROSE_ONLY), status: HELD });
   if (!/Your call/i.test(html)) fail("a question written into BLOCKED ON WYATT as a paragraph makes the card vanish — the page now hides a real question instead of merely miscounting it");
   else if (!/could not read/i.test(html)) fail('the card is shown but says nothing about the paragraph it could not parse — he reads "(0)" beside a section that has content');
   else pass("a blocked section with unparseable content keeps the card and says so");
@@ -183,7 +220,7 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
 //       RANK orders the list now, so without numbers the ordering he asked for four times is
 //       invisible.
 {
-  const html = render({ chart: CHART(ONE_ROW, "- [ ] **First thing.**\n- [ ] **Second thing.**"), ledger: LEDGER_HELD });
+  const html = render({ chart: CHART(ONE_ROW, "- [ ] **First thing.**\n- [ ] **Second thing.**"), status: HELD });
   const card = (/<h2>The Chart \(Tasks To Do\)[\s\S]*?<\/section>/.exec(html) || [""])[0];
   if (!card) fail("the Tasks card could not be found at all");
   else if (!/<ol>/.test(card)) fail("the Tasks list is still bullets — he has asked twice for numbers, and the rank order the Chartkeeper writes is unreadable without them");
@@ -204,7 +241,7 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
     "- [ ] **I asked him and the answer was no.**",
     "- [ ] **STILL WORD-SEARCHES FOR THE HEADING — CEO 104's one residual.**",
   ].join("\n");
-  const html = render({ chart: CHART(ONE_ROW, rows), ledger: LEDGER_HELD });
+  const html = render({ chart: CHART(ONE_ROW, rows), status: HELD });
   const card = (/<h2>The Chart \(Tasks To Do\)[\s\S]*?<\/section>/.exec(html) || [""])[0];
   if (/FIX THE GLASS/.test(card)) fail('the Tasks card still shouts "FIX THE GLASS" at him — his ask 5');
   else if (!/Fix the glass/.test(card)) fail("the shouting row is neither shouted nor sentence-cased — the de-shouting mangled it");
@@ -231,7 +268,7 @@ const inHandLine = (html) => (/<p[^>]*id="inHand"[^>]*>([\s\S]*?)<\/p>/.exec(htm
 //       a full stop. A sentence ends with punctuation FOLLOWED BY A SPACE; a version number never is.
 {
   const note = "This is evidence from before today's 2026.09.01.8 build and it still stands.";
-  const html = render({ chart: CHART(ONE_ROW), ledger: LEDGER_HELD, note });
+  const html = render({ chart: CHART(ONE_ROW), status: HELD, note });
   const shown = (/<span class="pulsenote" id="noteText">([^<]*)<\/span>/.exec(html) || [null, ""])[1];
   if (/2026\.$/.test(shown.trim())) fail(`his note is cut at the version number: "${shown.trim()}" — the dot inside 2026.09.01.8 is being read as the end of a sentence`);
   else if (!/still stands/.test(shown)) fail(`his note is truncated to "${shown.trim()}" — the whole sentence is one sentence and fits`);

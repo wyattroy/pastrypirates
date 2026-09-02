@@ -101,6 +101,11 @@ w1-crewphone-recheck/
 .planning/wyclau/LONG-RUN
 # Detached-trial stdout/stderr logs (start_trial_detached.mjs) — bulky, machine-local.
 .planning/wyclau/detached/
+# What THIS machine's watch has in hand (scripts/wyclau/claim_item.mjs). Exactly the same nature as
+# LONG-RUN above and ignored for exactly the same reason: committed, it would tell every other
+# machine that IT is working on something. It reaches the branch the one way a machine-local
+# instrument is allowed to — summarized into .planning/wyclau/status/<hostname>.md.
+.planning/wyclau/IN-HAND
 
 # Claude Code local settings are MACHINE-LOCAL by design (the file even points at
 # /opt/homebrew). It was tracked once and shipped the Mac's 82-entry approval history

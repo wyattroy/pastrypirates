@@ -192,5 +192,19 @@ if (!args["no-sweep"]) {
   }
 }
 
+/* AND PUT THE HANDS DOWN. His ask, 2026-09-02: the page must say what is being worked on RIGHT NOW,
+   and "between watches there is no claim: render 'nothing in hand', NEVER the last thing finished."
+   The claim is machine-written (`claim_item.mjs`); this is the other end of it, here rather than in
+   the Door for the same reason the sweep is here — a step a human has to remember is a step that
+   gets skipped, and the failure is silent and reads as work in progress.
+   Like the sweep, it NEVER fails the close: the tick and the ledger line are already on disk. */
+try {
+  execFileSync(process.execPath, [path.join(here, "claim_item.mjs"), `--dir=${repo}`, "--release"], { stdio: "pipe" });
+  console.log("  hands down — nothing in hand on this machine (publish_status.mjs carries that to his page)");
+} catch (e) {
+  console.log(`  ⚠ THE CLOSE IS WRITTEN AND THE CLAIM WAS NOT RELEASED: ${String(e.message).split("\n")[0]}`);
+  console.log("  -> his page will keep showing this item as in hand; run `node scripts/wyclau/claim_item.mjs --release`.");
+}
+
 console.log(`CLOSED ${isInbox ? item : `"${item.slice(0, 60)}"`} — CEO ${ceoN}, ${closeEvidence}, ${solutionEvidence}.`);
 console.log("Now: commit (pull --rebase first), push, republish the Glass, END the turn.");

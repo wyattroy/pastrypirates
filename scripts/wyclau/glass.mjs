@@ -520,47 +520,62 @@ if (chart !== null) {
 /* --- WHAT IS BEING WORKED ON RIGHT NOW — his ask 1, 2026-09-02T16:1xZ: "what is being worked on
    RIGHT NOW? that needs to be visible just underneath the emoji status."
 
-   DERIVED, NEVER TYPED. The Door already requires a watch to CLAIM its item in `.planning/
-   CTO-LEDGER.md` before touching anything, and the close gate writes a `close_item:` line into the
-   same file when it finishes — so the fact is already on disk, in order, in one place.
+   ⚠ THE FIRST BUILD OF THIS PARSED THE LEDGER'S PROSE, AND THAT WAS MEASURED WRONG THE SAME HOUR.
+   `.planning/CTO-LEDGER.md` holds **40** `WATCH` headings and **exactly 4** carry a parseable
+   "— claims `X`" shape — all four from the last two hours. The rest are free prose ("— situation and
+   claim", "— DID NOT CLOSE ITS ITEM, DELIBERATELY", one with no date at all), and nothing prescribes
+   a format: the Door says only *"Claim it in the ledger."* **A regex over that would have shown him
+   nothing this morning**, and would go silent again the first time a watch worded its heading
+   differently. Spec, CEO-approved with changes: `.planning/SPEC-WHAT-IS-IN-HAND.md`.
 
-   THE RULE: the newest claim heading is in hand UNLESS a `close_item:` line appears AFTER it. That
-   is what "between watches" actually looks like in the record, and it needs no invented staleness
-   constant to detect.
+   SO THE CLAIM IS WRITTEN THE WAY THE CLOSE ALREADY IS — machine-written, by
+   `scripts/wyclau/claim_item.mjs`, into a `## In hand` block of `.planning/wyclau/status/<machine>.md`,
+   which is TRACKED and which this file already reads for the long-run block twenty lines below. Same
+   shape, same discipline: every doubt resolves to NOT LIVE.
 
-   ⚠ AND THE LINE HE ASKED FOR IS THE ONE THAT CAN LIE MOST EASILY, so two decisions are deliberate:
-     - it names the CLAIM TIME as an absolute stamp, never "N minutes ago". A relative age computed
-       at publish time and then frozen on a static page is precisely the fault of his ask 2, two
-       lines below this one; an absolute time cannot rot.
-     - a ledger that cannot be read renders as UNREADABLE, never as "nothing in hand" — this file's
-       standing rule, and here it matters more than usual, because "nothing in hand" is a claim
-       about the whole relay. */
-const ledgerRaw = tryRead(join(ROOT, ".planning", "CTO-LEDGER.md"));
+   FOUR STATES, and the fourth is the one he is actually complaining about:
+     in hand · nothing in hand · CLAIMED BUT COLD · unreadable
+   **COLD exists because a watch can claim and end without closing — twice on 2026-09-02, both
+   deliberate.** An open claim outliving its watch is normal here, and it must never read as "being
+   worked on right now". It is derived from a `staleAfterMinutes` the block declares itself, so there
+   is no new constant on this page.
+
+   AND THE TIME IS ABSOLUTE, NEVER "N MINUTES AGO". A relative age computed at publish and then
+   frozen on a static page is precisely the fault of his ask 2, rendered one line below this one. */
 const inHand = (() => {
-  if (ledgerRaw === null) return { state: "unreadable" };
-  const lines = ledgerRaw.split("\n");
-  let claimIdx = -1, claim = null, closeIdx = -1;
-  lines.forEach((l, i) => {
-    const m = /^#{2,4}\s+WATCH\s+(\S+)\s*[—–-]+\s*claims?\b(.*)$/i.exec(l);
-    if (m) {
-      claimIdx = i;
-      const rest = unmark(m[2]);
-      const handle = (/`([^`]+)`/.exec(rest) || [])[1]
-        ?? (/\b((?:T-\d+|INBOX-[0-9A-Za-z]+))/.exec(rest) || [])[1]
-        ?? rest.replace(/^[\s:,-]+/, "").split(/,|\s+—\s+/)[0].trim();
-      claim = { when: m[1], handle: handle || "an unnamed item" };
-    }
-    if (/close_item\s*:/.test(l)) closeIdx = i;
-  });
-  if (claimIdx === -1) return { state: "none" };
-  if (closeIdx > claimIdx) return { state: "none" };
-  return { state: "held", ...claim };
+  let dir;
+  try { dir = readdirSync(join(WY, "status")); }
+  catch { return { state: "unreadable", why: ".planning/wyclau/status/ could not be read" }; }
+  let best = null, sawBlock = false, malformed = false;
+  for (const f of dir) {
+    if (!f.endsWith(".md")) continue;
+    const body = tryRead(join(WY, "status", f));
+    if (body === null) { malformed = true; continue; }
+    const block = body.split(/^## In hand[^\n]*$/m)[1];
+    if (block === undefined) continue;            // an older status file, written before this existed
+    sawBlock = true;
+    if (/^\s*None recorded\./m.test(block.split(/^## /m)[0])) continue;
+    const json = (block.match(/```\s*([\s\S]*?)```/) || [])[1];
+    let m; try { m = JSON.parse(json); } catch { malformed = true; continue; }
+    if (!m || !m.item || !m.claimedAt || !(m.staleAfterMinutes > 0)) { malformed = true; continue; }
+    if (!best || Date.parse(m.claimedAt) > Date.parse(best.claimedAt)) best = m;
+  }
+  if (malformed && !best) return { state: "unreadable", why: "an In hand block exists but could not be parsed" };
+  /* A status file that PREDATES this block is not evidence that nothing is in hand — it is evidence
+     that nobody has said. Those two must not render alike, which is this file's standing rule and
+     matters most here: "nothing in hand" is a claim about the whole relay. */
+  if (!best) return sawBlock ? { state: "none" } : { state: "unreadable", why: "no machine has published an In hand block yet" };
+  const ageMin = (Date.now() - Date.parse(best.claimedAt)) / 60000;
+  const cold = !(ageMin >= 0 && ageMin <= best.staleAfterMinutes);
+  return { state: cold ? "cold" : "held", item: best.item, at: best.claimedAt, watch: best.watch ?? "" };
 })();
 const inHandHtml = inHand.state === "unreadable"
-  ? `<span class="bad">unreadable: .planning/CTO-LEDGER.md could not be read — this page cannot tell you what is in hand</span>`
+  ? `<span class="bad">unreadable: ${esc(inHand.why)} — this page cannot tell you what is in hand</span>`
   : inHand.state === "none"
-    ? `<b>Nothing in hand</b> — no watch has claimed an item since the last one closed.`
-    : `<b>In hand:</b> ${esc(inHand.handle)} <span class="muted">· claimed ${esc(inHand.when)}</span>`;
+    ? `<b>Nothing in hand</b> — the next watch takes the top of the Chart.`
+    : inHand.state === "cold"
+      ? `<b>⚠ Claimed, and cold:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}, and no watch has moved since</span>`
+      : `<b>In hand:</b> ${esc(inHand.item)} <span class="muted">· claimed ${esc(inHand.at)}</span>`;
 
 // --- restarts (the watchdog appends here) ---
 // ⚠ THE HONESTY GAP A RELAY CAUGHT, 2026-08-31: restarts.log is machine-local and gitignored
