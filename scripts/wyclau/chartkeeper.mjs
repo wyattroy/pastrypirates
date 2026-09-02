@@ -143,14 +143,34 @@ const inboxEntries = (() => {
 })();
 const inboxById = new Map(inboxEntries.map((e) => [e.id, e]));
 
+/* HIS RULINGS, from the Chart's own two tables. The `item` cell of every row of `## RULED` and
+ * `## SETTLED RULINGS` — the record a harvest writes when he taps a ruling on the Glass.
+ *
+ * ⚠ THIS EXISTS BECAUSE THE FIRST VERSION ASSERTED A GATE DOES SOMETHING IT DOES NOT. That version
+ * credited any row whose title begins `Your ruling:` and said, in this file and in
+ * `chartkeeper_check.mjs`, that `scripts/qa/rulings_triage_check.mjs` "keeps the tag matched to a
+ * real settled ruling" and so "makes the tag a pointer rather than an assertion". **It does not.**
+ * That gate walks one direction only — rulings → rows, asking whether every owing settled ruling
+ * has a task row (`rulings_triage_check.mjs:92-98`). It never asks whether a `Your ruling:` row
+ * corresponds to any ruling. CEO 94 measured it: a row titled *"Your ruling: repaint the bilge
+ * pump widget"*, on a Chart with EMPTY rulings tables, scored 100.
+ * **That is rule 6 exactly — a claim about what an instrument does, believed from its header
+ * rather than measured** — and it was written one commit after being caught for putting an
+ * unmeasured behavioural claim in a comment. So the tag now has to RESOLVE, here, against the
+ * table it names. */
+const rulingItems = (src) => ["RULED", "SETTLED RULINGS"].flatMap((h) => (section(src, h) ?? "")
+  .split("\n")
+  .filter((l) => l.startsWith("|") && !/^\|\s*item\b/i.test(l) && !/^\|\s*:?-+/.test(l))
+  .map((l) => (l.split("|")[1] ?? "").trim())
+  .filter(Boolean));
+
 /* A row's LINKS to his records, and the only thing that may ever be read as his approval.
- *   cited   — `INBOX-<stamp>` ids in the row that resolve to a real entry
- *   live    — of those, the ones he is still owed
- *   backRef — entries that name this row's `T-nnn` handle: the same link, written from his side
- *   tagged  — the Chart's own `Your ruling:` prefix, which `scripts/qa/rulings_triage_check.mjs`
- *             keeps matched to a row of the SETTLED RULINGS table. That gate is what makes the tag
- *             a pointer rather than an assertion; without it this would be prose again.
- * Deliberately NOT here: anything the row says about itself. */
+ *   cited      — `INBOX-<stamp>` ids in the row that resolve to a real entry
+ *   live       — of those, the ones he is still owed
+ *   backRef    — entries that name this row's `T-nnn` handle: the same link, from his side
+ *   taggedClaim— the row wears the Chart's own `Your ruling:` prefix. A CLAIM, not yet a pointer;
+ *                `score()` only credits it once it resolves against `rulingItems` above.
+ * Deliberately NOT here: anything else the row says about itself. */
 const linksOf = (row) => {
   const cited = [...new Set(row.raw.match(/\bINBOX-[0-9A-Za-z]+(?:-[0-9A-Za-z]+)*/g) || [])]
     .filter((id) => inboxById.has(id));
@@ -159,15 +179,23 @@ const linksOf = (row) => {
     cited,
     live: cited.filter((id) => inboxById.get(id).live),
     raised: new Set([...cited, ...backRef]),
-    tagged: /^Your ruling:/i.test(row.title),
+    taggedClaim: /^Your ruling:/i.test(row.title),
   };
 };
+/* The tag resolves when some ruling of his shares two distinctive words with the row's title. Two
+   is deliberately low: `rulings_triage_check.mjs` uses the mirror of this test in the other
+   direction with three words, and over-crediting here costs a wrong order while under-crediting
+   hides work he has already approved. Both errors are visible in the report. */
+const tagResolves = (row, ruleTokens) => ruleTokens.some((t) => overlap(t, tokens(row.title)) >= 2);
 
-/* WHAT A ROW SAYS ABOUT ITSELF. Kept for one purpose only — REPORTING. A row that claims his
-   approval and cites nothing is no longer credited, and eight rows on the real Chart do exactly
-   that; some of those claims are TRUE and merely uncited. Dropping them in silence would make his
-   genuinely-approved work sink with nothing to show why, so the tool names them instead. REAP's
-   own rule turned on itself: flag, never act silently. */
+/* WHAT A ROW SAYS ABOUT ITSELF. Kept for one purpose only — REPORTING. Eight rows on the real
+   Chart CLAIM his approval in their own prose; four of them cite nothing that resolves and are the
+   ones named. Some of those claims are TRUE and merely uncited. Dropping them in silence would
+   make his genuinely-approved work sink with nothing to show why, so the tool names them instead.
+   REAP's own rule turned on itself: flag, never act silently.
+   *(The first version of this comment said "eight rows … do exactly that", conflating the eight
+   who claim with the four who cite nothing. The tool's own report says four. Corrected in the
+   open, because a behavioural claim in a comment is the mistake this file keeps making.)* */
 const CLAIMS_APPROVAL = /\bruled YES\b|\bhe ruled\b|\bhis ruling\b|\byour ruling\b|\bat his instruction\b|\bhis instruction\b|\bhe asked for this\b/i;
 
 const pidAlive = (pid) => {
@@ -409,8 +437,12 @@ function derive(src) {
   const settleUnresolved = settle.filter((s) => !s.resolved).map((s) => s.title);
 
   // ── RANK ──
+  // His rulings are re-read from THIS text, not from the file on disk: SETTLE can have added rows
+  // and moved the sections before RANK ever runs, and a table read once would be a table read from
+  // a file that no longer exists.
+  const ruleTokens = rulingItems(src).map((s) => tokens(s));
   const ranked = openItems
-    .map((row) => ({ row, ...score(row, { reapById, settleByTitle }) }))
+    .map((row) => ({ row, ...score(row, { reapById, settleByTitle, ruleTokens }) }))
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
     .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
 
@@ -420,7 +452,10 @@ function derive(src) {
      approved work with nothing on the page to explain why, which is the same fault in a new
      costume. So the tool points at exactly the rows that need a citation added. */
   const unbackedApproval = openItems
-    .filter((row) => { const l = linksOf(row); return CLAIMS_APPROVAL.test(row.raw) && !l.tagged && !l.live.length; })
+    .filter((row) => {
+      const l = linksOf(row);
+      return CLAIMS_APPROVAL.test(row.raw) && !(l.taggedClaim && tagResolves(row, ruleTokens)) && !l.live.length;
+    })
     .map((row) => row.title);
 
   return { parsed, openItems, reap, reapById, settle, settleByTitle, settleUnresolved, bundledTitles, ranked, unbackedApproval };
@@ -432,7 +467,7 @@ function derive(src) {
    is a ranking that only looks like it works (the gate proves this by ranking the same rows from
    two different file orders and demanding the same answer).
    ──────────────────────────────────────────────────────────────────────────────────────────── */
-function score(row, { reapById, settleByTitle }) {
+function score(row, { reapById, settleByTitle, ruleTokens }) {
   const why = [];
   let s = 0;
   const gated = /\bGATED:/.test(row.raw);
@@ -469,9 +504,10 @@ function score(row, { reapById, settleByTitle }) {
      it cites `INBOX-20260902T04xxZ`, a live entry of his own Inbox — not because it calls itself
      the next item. */
   const links = linksOf(row);
-  if (!gated && !livePointer && (links.tagged || links.live.length)) {
+  const tagged = links.taggedClaim && tagResolves(row, ruleTokens);
+  if (!gated && !livePointer && (tagged || links.live.length)) {
     s += 100;
-    why.push(links.tagged ? "your own ruling, and nothing is blocking it" : "you asked for this yourself, and nothing is blocking it");
+    why.push(tagged ? "your own ruling, and nothing is blocking it" : "you asked for this yourself, and nothing is blocking it");
   }
 
   /* HALF-DONE OUTRANKS EVERYTHING EXCEPT A DECISION HE HAS ALREADY MADE — his word is

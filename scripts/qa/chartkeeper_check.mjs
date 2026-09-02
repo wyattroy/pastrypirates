@@ -720,6 +720,17 @@ const GROUNDED = `# THE CHART — fixture
 | Question | Recommendation | since |
 |---|---|---|
 
+## RULED — his answers, waiting to be triaged
+
+| item | HIS RULING | now |
+|---|---|---|
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The lantern is brass | **"brass"** — ruled on the Glass 2026-01-01 | **AWAITING the repaint.** |
+
 ## THE IDEA INBOX
 
 - **A fated idea** — handled → **SHIPPED** 2026-09-01.
@@ -748,9 +759,33 @@ const GROUNDED = `# THE CHART — fixture
       fail(`a row citing a live entry of his own Inbox scored only ${cited.score} (${JSON.stringify(cited.whyNow)}) — grounding must not mean crediting nobody`);
     else pass("a resolved citation of his Inbox is credited");
     if (tagged.score < 100)
-      fail(`a "Your ruling:" row scored only ${tagged.score} (${JSON.stringify(tagged.whyNow)}) — that tag is gate-enforced against a real settled ruling by rulings_triage_check.mjs and is exactly as good as a citation`);
-    else pass('the gate-enforced "Your ruling:" tag is credited');
+      fail(`a "Your ruling:" row whose ruling IS in the Chart's rulings table scored only ${tagged.score} (${JSON.stringify(tagged.whyNow)}) — grounding must not mean crediting nobody`);
+    else pass('a "Your ruling:" tag that resolves to a real ruling of his is credited');
   }
+}
+
+/* 11a-ii. ⚠ AND THE TAG ITSELF MUST RESOLVE — CEO 94 BROKE THE FIRST VERSION OF THIS IN A MINUTE.
+        The first grounding credited any row whose title began `Your ruling:` and justified it, here
+        and in `chartkeeper.mjs`, by saying `rulings_triage_check.mjs` "keeps the tag matched to a
+        real settled ruling". **IT DOES NOT.** That gate walks one direction only — rulings → rows,
+        asking whether every owing settled ruling has a task row (`rulings_triage_check.mjs:92-98`).
+        It never asks whether a `Your ruling:` row corresponds to any ruling. CEO 94 measured it: a
+        row titled "Your ruling: repaint the bilge pump widget", on a Chart whose rulings tables are
+        EMPTY, scored 100 and printed "your own ruling, and nothing is blocking it".
+        THAT IS RULE 6, ONE COMMIT AFTER BEING CAUGHT FOR IT: a claim about what an instrument does,
+        believed from its header instead of measured. The fixture above carries the rulings tables;
+        this one strips them, and the same tagged row must now be worth nothing. */
+{
+  const NO_RULINGS = GROUNDED.replace(/\n## RULED[\s\S]*?(?=\n## THE IDEA INBOX)/, "\n");
+  if (/## SETTLED RULINGS/.test(NO_RULINGS))
+    fail("the no-rulings fixture still contains a rulings table — this case cannot fail and is therefore not a check");
+  const p = chartFile("grounded-untagged", NO_RULINGS);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--rank"]);
+  const tagged = (r.json?.rank || []).find((x) => /lantern is brass/.test(x.title || ""));
+  if (!tagged) fail("the tagged row vanished from the ranking on the no-rulings fixture");
+  else if (tagged.score >= 100)
+    fail(`a "Your ruling:" row scored ${tagged.score} (${JSON.stringify(tagged.whyNow)}) on a Chart with NO rulings tables at all — the tag is being read as a claim, not resolved as a pointer`);
+  else pass("a `Your ruling:` tag with no ruling behind it is credited with nothing");
 }
 
 /* 11b. A CITATION THAT DOES NOT RESOLVE IS NOT A CITATION, and a DISCHARGED ask is not an
