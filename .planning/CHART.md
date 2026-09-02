@@ -952,6 +952,14 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, ruled on the Glass, 2026-09-02T16:10:03.916Z** (question: *"Your images ask, last
+      ⟨`T-089`⟩
+  third: shrinking the rest of the art is worth about 2%. Call it finished, or spend a watch on
+  it?"*, `.planning/CHART.md` BLOCKED-ON-WYATT row, choice `no`): *"It's finished -- push it to
+  sea trial."* → **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
+  harvest-and-publish only.** Reads as: stop spending watches on the image-resize tail (the
+  unmeasured third of the library included) and move straight to the sea trial instead.
+
 - **Wyatt, written on the Glass, 2026-09-02T13:18:28.755Z**: *"Remove the \"Your rulings in hand\"
       ⟨`T-087`⟩
   box from the Glass"* → **NOT YET FATED — harvested verbatim, not investigated. This session's
