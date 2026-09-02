@@ -531,3 +531,87 @@ continuing."* **Nothing on this is to be designed or built until that context ar
 > outside the repo, then land it in a single write-and-commit.*
 >
 > **Rule 16 anticipated two sessions on one BRANCH. It did not anticipate three in one WORKING TREE.**
+
+## THE VISION FOR CLAUDE-KIT — 2026-09-02. Read this before designing anything about the kit.
+
+**This is the context that was missing from every kit discussion before it, and it reverses at least
+one recommendation that had already been given. His words:**
+
+> *"we're building this kit so that I can share the kit itself with Anthropic. as a pitch about a
+> different way that normal consumers of Claude code can work with Claude. I wanna tell them the
+> story about pastry pirates and how I wanted to design this game that got more and more complex
+> until none of the normal Claude tooling worked for me and my purposes anymore. So I needed to
+> build a completely new framework for how to interact with Claude. And that framework is extensible
+> for anyone's project. Anyone who has huge ideas that they want to run autonomously in the
+> background from a backlog. They can… just install my Claude kit in their repo, and it will do
+> things like interview them about their vision and turn that vision into a concrete mission
+> collaboratively with them and break that mission into steps, and it will give them their own
+> [Glass] page that they can use to write to their own… the watch, which they will be running on
+> their own machine. to execute their own giant vision.*
+>
+> *And I want to build all of this by using it to make pastry pirates, but I also want the thing
+> that we make in pastry pirates to not be designed with a bunch of shitty small patches that apply
+> just to pastry pirates. I want it to be a framework… ideally, as we make modifications to our
+> process with pastry pirates, there's also a routine within our little pastry pirates build that
+> allows us to extensively add those changes to Claude kit itself.*
+>
+> *But that's not because Claude kit should always be allowed to be modified. Like, if some random
+> person on the outside of the world installs Claude, we don't want them to be able to modify Claude
+> kit. **It's not an open source project.** It's something that I want to be able to use, design, and
+> tweak to make better before I ship it to the rest of the world and share it with Anthropic."*
+
+### WHAT THIS ESTABLISHES, AND IT IS LOAD-BEARING FOR EVERY KIT DECISION
+
+1. **claude-kit is a PRODUCT AND A PITCH, not internal tooling.** Its audience is Anthropic and then
+   the world. Pastry Pirates is the development environment and the origin story, not the customer.
+2. **The story IS part of the product.** *"none of the normal Claude tooling worked for me anymore"*
+   — the war stories, the corrections kept in the open, the rules that record what they cost, are
+   the pitch's evidence rather than overhead.
+3. **THE PRODUCT'S ENTRY POINT DOES NOT EXIST YET.** He named it: **interview the user about their
+   vision → turn it into a concrete mission collaboratively → break the mission into steps → give
+   them their own Glass → give them their own Watch on their own machine.** Nothing in claude-kit
+   does the first three today.
+4. **TWO ROLES, AND THEY ARE NOT SYMMETRIC — this is the part every earlier design missed:**
+
+   | | **AUTHOR** (him, in pastrypirates and any repo he stress-tests in) | **CONSUMER** (anyone who installs it) |
+   |---|---|---|
+   | reads the kit | yes | yes |
+   | runs it locally in their own repo | yes | yes |
+   | **changes flow back UP to the kit** | **YES — that is the whole method** | **NO. Explicitly not.** |
+
+   *"It's not an open source project."* **A consumer installs, uses and updates. Only the author
+   promotes.**
+
+### THE CORRECTION THIS FORCES TO ADVICE ALREADY GIVEN
+
+**The Advisor recommended "build the plumbing, defer the framework — wyclau has one user, so every
+abstraction is a guess about a consumer that does not exist."** *(2026-09-02, after CEO 102 measured
+that wyclau is in no catalogue and vendored by exactly one repo.)*
+
+**That reasoning was sound on the evidence available and its conclusion is now wrong.** The second
+consumer is not hypothetical — **the second consumer is the pitch**, and generality is the
+deliverable rather than a nicety. **What survives from it:** his own method already says
+*"build all of this by using it to make pastry pirates"*, which is extraction from working code, not
+speculative abstraction. **The sequencing was right; the dismissal was not.**
+
+### THE CONSEQUENCE NOBODY HAS TO BUILD
+
+**The author/consumer asymmetry is a GIT PERMISSION, not a mechanism.** A consumer cannot push to
+`github.com/wyattroy/claude-kit` because they do not have write access. **The property he asked for
+— "we don't want them to be able to modify Claude kit" — is already enforced by the platform**, and
+any code written to enforce it again would be ceremony. What the kit must provide the consumer is
+**pull** (update to the latest) and nothing else; what it must provide the author is **push**.
+
+### THE TEST THAT KEEPS IT A FRAMEWORK RATHER THAN A PILE OF PATCHES
+
+*"not designed with a bunch of shitty small patches that apply just to pastry pirates"* — the check
+is applied **at the moment of writing**, not in a cleanup pass, and CEO 102 already sharpened it into
+something a gate can read:
+
+> **No string a person reads may live in a shared file, and no shared file may name a `.planning/`
+> path or a game concept.**
+
+**Measured examples of what fails that test today:** `close_item.mjs:49-52` hardcodes four
+`.planning/` paths; `start_trial_detached.mjs:35-36` **exits 2** if `scripts/sea_trial.mjs` is
+missing — *"sea trial"* being a name he coined for this game; `longrun_status.mjs:74` derives its
+ceiling from *"the longest sea trial on record here."*
