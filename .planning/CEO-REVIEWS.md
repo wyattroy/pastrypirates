@@ -7,6 +7,103 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 115 — 2026-09-02T18:2xZ, Wy-Blade — `INBOX-20260901T1335Z`, his launch-critical image ask, CLOSING ON HIS RULING
+
+*Item: **`INBOX-20260901T1335Z`** — Wyatt, 2026-09-01T13:35Z, verbatim: **"There's one more SUPER
+important step we must finish before launch -- compressing the images to make the game load MUCH
+faster. it's about 18mb of images, from memory. but the only one that needs to be as big as it is is
+the board itself -- everyhting else should be resized and compressed according to its maximum pixel
+size in the real gameplay. this is launch critical; as part of it, we need to load all game assets up
+front; i notice sometimes that the 'fire the ovens' graphic loads dynamically when it is called, which
+will make it appear blank on slow connections. Bad engineerign!"** **Nothing was built this watch** —
+the item is being closed on his own 16:10:03.916Z ruling, *"It's finished -- push it to sea trial."*
+Previous verdicts handed over: CEO 114, 113–110, and **CEO 109 on this very item**.*
+
+### VERDICT: **PARTIAL** — close it, yes. Not with that command.
+
+**Its one sentence for Wyatt:** *"You were right to call it finished and the big numbers are real —
+your art really is 3.89 MB on disk, I counted every file — but the exact command this watch was about
+to run would have written 'DONE' onto your record with the sentence 'Still not closed' left dangling
+directly underneath it, and it names the one commit whose headline you already told us was false."*
+
+**JUDGEMENT CALL 1 — the closing commit. Right to reject `d4b7700d`; wrong to land on `fbbf44ad`.**
+`git show --stat d4b7700d` → two files, `.claude/memory/DECISIONS.md` and `.planning/CHART.md`. **No
+game code**, so `close_item.mjs:118-122` would have REFUSED the command the previous watch assembled
+into `INBOX.md:58-67`. It could never have run; catching that is this watch earning its keep. But
+`fbbf44ad` is the third-best of three. **`05f63b12` is the right one:** two game files
+(`src/shared/index.js`, `src/ui/stage.js`) against one; its subject is *"assets/ is 6.00 MB -> 3.89
+MB"* — **the exact number his ruling quotes** — where `fbbf44ad`'s subject is the one already recorded
+as false at `INBOX.md:773` (*"not one of its 2132 pixels moved"*, contradicted by its own body's
+`mean difference 1.65/255`); and it is the terminal compression commit, so it produced the library he
+ruled on.
+
+**JUDGEMENT CALL 2 — `--solution-commit`. `00e85bf2` is a filing convenience; use `7405f1e4`.**
+His solution is two verbs (`INBOX.md:43`). `git show --stat 00e85bf2` → seven files, all `.planning/`,
+`scripts/` and `package.json`: **zero bytes of art, zero game code.** CEO 109 finding 1 already said
+it — *"HE ASKED FOR PICTURES TO BE RESIZED AND NO PICTURE WAS RESIZED."* It fixed the measuring tape.
+Naming it as "the commit that implemented his stated solution" writes into a permanent ledger line a
+claim the previous CEO disproved, **and the gate cannot catch it: `close_item.mjs:138-142` checks only
+that the sha exists.** `7405f1e4` is honest — `src/ui/util.js:2029-2042` derives picture URLs from the
+page's own stylesheets, `:2043-2061` warms them at boot, `preload_covers_css_art_check.mjs` is live in
+`package.json:22`, and his own worked example is covered (`FLAME_IMG`, `src/shared/index.js:756`,
+picked up by `sharedAssetUrls()` at `:2005-2015`). **The resize half was RETIRED by his ruling, not
+implemented, and the close must say so in those words.**
+
+**JUDGEMENT CALL 3 — is closing honest? YES.** The ruling is on disk verbatim at `CHART.md:1093-1099`,
+timestamped `2026-09-02T16:10:03.916Z`, choice recorded `no`, harvested into `DECISIONS.md` by
+`d4b7700d`. Its premise matches `ASSET-DISPLAY-SIZES.md:14` — **12 files, 0.10 MB, ~0.09 MB
+recoverable, all 4–12 KB icons.** `BLOCKED ON WYATT` (`CHART.md:1006-1008`) is header-only, so CEO
+114's *"an answered question never leaves blocked on wyatt"* does **not** recur here.
+⚠ **The caveat, and it is the fifth "sentence tidier than the record" on this branch — this time in a
+sentence HE read and ruled on.** He was asked *"worth about 2%"* (`CHART.md:1095`) while the same
+watch filed `CHART.md:146-165` saying **1.25 MB — 32% of the library — has no measured gameplay
+maximum at all**, a row whose own words are *"it decides whether `T-087`'s 2.3% is the real answer or
+an underestimate."* **He ruled on a floor presented as a figure.** Mitigating: that row stays open
+after the close, because an INBOX close touches only the status line and the ledger.
+
+**JUDGEMENT CALL 4 — the numbers. Two verified exactly, one only corroborated.**
+- **3.89 MB — VERIFIED.** `du -sb assets` = **4,073,895 bytes**, 149 files, and the directory holds no
+  non-image files. Holds to the decimal.
+- **2.3% — VERIFIED.** 0.09 ÷ 3.885 = 2.32%, matching `ASSET-DISPLAY-SIZES.md:14`.
+- **17.79 MB — NOT INDEPENDENTLY VERIFIED, and I will not pretend otherwise.** The sandbox refused
+  `git ls-tree -r -l 087101f9^ assets`. It rests on commit `087101f9`'s own subject. The chain
+  17.79 → 10.70 → 6.00 → 3.89 is internally consistent and its endpoint is measured, but **a commit
+  subject is not a measurement** and this project has been bitten by exactly that this week.
+
+**JUDGEMENT CALL 5 — does naming `fbbf44ad` drag the overstatement in? Yes, avoidably.** The ledger
+records the sha, but **the Glass renders subjects, not bodies** — the whole reasoning of the open
+convention item at `INBOX.md:773-800`. `05f63b12` sidesteps it and is the better commit anyway.
+
+**⚠ THE FINDING THAT WOULD HAVE SHIPPED A SELF-CONTRADICTING RECORD — `INBOX.md:44-47`.** This item
+was **the first entry in the file with a multi-line `status:` block, and the gate has never met one.**
+`close_item.mjs:152-153` uses `/^status:.*$/m` — no `s` flag, so `$` stops at the first newline. It
+would have replaced line 44 alone and left three orphaned lines, ending *"Still not closed, and now
+for a better reason"*, directly beneath a line reading **DONE**. Every entry above it (`INBOX.md:26`,
+`:33`) is single-line; the gate was written against those. **Fix before running the close: collapse
+the block to one line — that is editing the OPEN state, which is not what `INBOX.md:52-54`'s "NOT
+hand-patched, deliberately" forbids; that forbids hand-writing the DONE.**
+
+**THE RECURRING FAULT — it recurs, for the fifth verdict running, in three places at once.** CEO 108,
+109, 113 and 114 each found a sentence tidier than the record. Here: (a) `fbbf44ad`'s subject, already
+caught and still being cited as the closing commit; (b) `--solution-commit=00e85bf2` filed as "the
+commit that implemented his solution" when CEO 109 proved no picture was resized; (c) *"worth about
+2%"* put to him as a figure while the same watch called it possibly an underestimate. **The pattern is
+now stable enough to name: this branch's failure is not doing less than it claims — the work is
+genuinely good — it is that the summarising line always rounds toward finished.**
+
+**WHAT THE CLOSE MUST SAY OUT LOUD AND CURRENTLY DOES NOT.** (1) The resize third was **retired by his
+ruling, not implemented** — 1 picture of 149 on his actual verb (CEO 109 finding 1). His call, and he
+is entitled to it, but the record must not read as though it was built. (2) **2.3% is a FLOOR** —
+1.25 MB / 32% of the library is unmeasured (`CHART.md:146-165`), row stays open. (3) **His second
+clause**, *"push it to sea trial"* → `T-016` (`CHART.md:377-383`), and `.planning/SEA-TRIAL.md:1` still
+reads *"THIS RUN IS DEAD. IT DID NOT FINISH."* — **no completed trial exists for ~200 replaced images,
+a lossily re-encoded board and a rewritten boot warm-up. Fourth consecutive verdict raising this.**
+(4) The `17.79` provenance is a commit subject nobody has re-run.
+
+**Rule 17 on exit:** this CEO started no browser and no server.
+
+---
+
 ## CEO Review 114 — 2026-09-02T18:0xZ, Wy-Blade — `T-095`, his three "chaotic again" Glass faults, BUILT
 
 *Item: **`T-095`** — Wyatt, 2026-09-02T17:xxZ, verbatim: **"the glass looks chaotic again. 1. In Hand

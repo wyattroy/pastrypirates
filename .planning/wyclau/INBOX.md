@@ -41,10 +41,32 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — **AND THE LAST PART IS NOW A QUESTION FOR HIM RATHER THAN A JOB: RESIZING THE REST IS
-WORTH 2.3%.** Watch 2026-09-02T15:39Z, **CEO 109 (PARTIAL)**, commit `00e85bf2`, Chart rows `T-087`
-(the question) and `T-088` (the unmeasured third). Still not closed, and now for a better reason:
-the work left is his decision, not a watch's.
+status: DONE 2026-09-02 — CEO 115, commit 05f63b1 (2 game files); his solution first: commit 7405f1e
+
+  ⚠ **THIS `status:` USED TO RUN ACROSS FOUR LINES, AND THAT ALONE WOULD HAVE CORRUPTED THE CLOSE.**
+  `close_item.mjs:152-153` rewrites the fate with a multiline regex whose end-anchor stops at the
+  first newline. It would have replaced line one and left *"Still not closed, and now for a better
+  reason"* orphaned directly beneath a line reading **DONE**, in the one file whose entire purpose is
+  that the three records cannot disagree. Found by CEO 115 before the gate ran. Collapsed to one line
+  here — which is editing the OPEN state, not hand-writing the fate — and the detail it carried is
+  immediately below. **Every entry above this one is single-line; this was the first multi-line
+  status block the gate had ever met.**
+
+  ⚠ **AND THE FIRST ATTEMPT AT THIS VERY PARAGRAPH BLEW THE FILE UP — a SECOND, WORSE FAULT IN THE
+  SAME LINE OF THE SAME GATE, and it is the one that would have gone unnoticed.**
+  `close_item.mjs:158` (and `:152`) call `String.replace` with the rewritten section as the
+  REPLACEMENT string, and JavaScript reads dollar-sequences in a replacement string as commands.
+  This paragraph quoted the regex, so it contained a dollar followed by a backtick — **which means
+  "insert everything before the match"** — and the gate spliced the file's own first 34 lines into
+  the middle of this entry, silently, while printing `CLOSED`. **Repaired by hand; the prose here now
+  names the anchor in words rather than quoting it, so it cannot recur in this entry.**
+  **THE DURABLE FIX IS ONE CHARACTER OF THE GATE and it is not written yet:** both calls need a
+  replacer FUNCTION (`() => updated`) instead of a string, after which no INBOX text can ever be
+  read as an instruction. **Any entry of his containing a dollar sign will corrupt this file until
+  that lands** — a price list, a "$5 bug bounty", anything. Filed as a Chart row by this watch.
+
+  **THE STATE AS THE 15:39Z WATCH LEFT IT.** Watch 2026-09-02T15:39Z, **CEO 109 (PARTIAL)**, commit
+  `00e85bf2`, Chart rows `T-087` (the question) and `T-088` (the unmeasured third).
 
   ⚠ **HE MADE THAT DECISION AT 2026-09-02T12:24:03Z AND THIS LINE STILL SAYS OPEN — SO THIS IS THE
   OLDEST "OPEN" ITEM IN THE FILE AND THE DOOR SENDS EVERY NEW WATCH STRAIGHT AT CLOSED WORK.**

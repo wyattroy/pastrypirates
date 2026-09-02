@@ -431,6 +431,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
+- [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
+      ⟨`T-097`⟩
+      SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
+      `close_item.mjs:152` and `:158` call `String.replace` with the rewritten section as the
+      REPLACEMENT string, and JavaScript reads dollar-sequences in a replacement string as commands.
+      A paragraph that merely QUOTED the gate's own regex contained a dollar followed by a backtick —
+      *"insert everything before the match"* — and the gate spliced the file's first 34 lines into the
+      middle of an entry. **It exited 0 and printed `CLOSED INBOX-20260901T1335Z`.** Repaired by hand
+      the same minute; the damage was 34 duplicated lines, not lost words, because the duplication
+      happened to be an insertion.
+      **PROVEN, NOT REASONED** — `"HEAD\nBODY\nTAIL".replace("BODY", payload)` with a dollar-backtick
+      payload yields `"HEAD\nX HEAD\n Y\nTAIL"`; the same call with `() => payload` yields the literal.
+      **THE FIX IS ONE CHARACTER CLASS: pass a replacer FUNCTION at both call sites.** After that no
+      INBOX text can ever be read as an instruction.
+      ⚠ **WHY THIS IS NOT A CURIOSITY: THE INBOX IS THE ONE FILE THAT HOLDS HIS WORDS VERBATIM.**
+      A "$5 bug bounty", a price, a shell snippet, `$foo` in a bug report — any of those in an item of
+      his corrupts the record at the exact moment that item is closed. **And the same line has a
+      SECOND fault already recorded in `INBOX-20260901T1335Z`'s own entry:** the fate regex has no `s`
+      flag, so a multi-line `status:` block is only half-replaced, leaving text under a line reading
+      DONE. **Both live in `close_item.mjs:152-158`; fix them together.**
+      **Sizing: small — two call sites, plus a red-first fixture whose status block is multi-line and
+      whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
+      edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
+      so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -521,6 +545,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
       **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
       API is small; the migration is every caller; the gate is the part that makes it stick.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
       ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
@@ -560,10 +589,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
       ⟨`T-008`⟩

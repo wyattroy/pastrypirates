@@ -5171,3 +5171,91 @@ publishes, the page he taps is the old chaotic one.**
 
 **LOCAL LITTER STILL HERE, named again so a human can remove it:** `scripts/qa/_peek_glass.mjs` and
 `.planning/wyclau/_commitmsg.txt`. Both UNTRACKED, never staged; `rm` is refused to this session too.
+
+---
+
+### WATCH 2026-09-02T18:19Z — Wy-Blade — situation and claim
+
+- **Watch started** 2026-09-02T18:19Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+  clean — tracking upstream, no rebase or merge in progress. `git pull --rebase`: already up to date.
+- **Last progress** 2026-09-02T18:15Z, commit `4d8fffd8` — the previous watch repairing two INBOX
+  entries that misroute orientation.
+- **The previous watch closed** `T-095`, his three "chaotic again" Glass faults, CEO 114 PASS
+  (`0b63026c` / `b239f3cf`).
+- **Blocked on Wyatt:** unchanged. Nothing in that table is a watch's to answer.
+- **Detached trial in flight: NONE** — no `.planning/wyclau/LONG-RUN` marker on this machine.
+  ⚠ **AND THE TREE IS NOW UNTRIED: the stamp reads `2026.09.02.1` and every sea-trial report on
+  disk sailed `2026.09.01.8` or older.** Named here and deliberately NOT taken — one item per
+  watch, and this belongs to the release item `INBOX-20260901T1315Z`, whose own status says parts 2
+  and 3 wait on a verdict. **His 16:10:03Z ruling ends "push it to sea trial", so this is the next
+  watch's strongest candidate.**
+- **THIS WATCH TAKES** `INBOX-20260901T1335Z`, his launch-critical image ask. It is the OLDEST
+  `status: OPEN` entry in the file **and he ruled it finished at 16:10:03Z** — so it aims every
+  fresh watch at closed work. Closing it through the gate is the whole item.
+
+- 2026-09-02T18:29:04Z · close_item: INBOX-20260901T1335Z · CEO 115 · commit 05f63b1 (2 game files) · his solution first: commit 7405f1e · his own 16:10Z ruling: 17.79->3.89 MB, preload 144/144 gated; the resize third was RETIRED by him, not built; 2.3% is a FLOOR (T-088, 1.25 MB unmeasured); his second clause 'push it to sea trial' -> T-016
+
+**CLOSED, AND THE THREE THINGS THE CLOSE HAD TO SAY OUT LOUD (CEO 115).**
+1. **The resize third was RETIRED by his ruling, not implemented.** On his actual verb the score is
+   one picture of 149 (CEO 109 finding 1: *"HE ASKED FOR PICTURES TO BE RESIZED AND NO PICTURE WAS
+   RESIZED"*). His call and he is entitled to it — but the record must not read as though it was built.
+2. **2.3% is a FLOOR, not a figure.** `CHART.md:146-165` says 1.25 MB — **32% of the library** — has
+   no measured gameplay maximum at all, and that row's own words are *"it decides whether `T-087`'s
+   2.3% is the real answer or an underestimate."* **He ruled on a floor presented to him as a
+   figure.** The row stays open after the close, so nothing is lost — only the basis was narrower
+   than he was told. **Fifth "sentence tidier than the record" on this branch, and the first one
+   inside a sentence HE read.**
+3. **His ruling has two clauses and this close carries one.** *"push it to sea trial"* is a
+   directive: `T-016`, `CHART.md:377-383`. `.planning/SEA-TRIAL.md:1` still opens *"THIS RUN IS DEAD.
+   IT DID NOT FINISH."*, the tree stamps `2026.09.02.1`, and no completed trial exists for ~200
+   replaced images, a lossily re-encoded board and a rewritten boot warm-up. **Fourth consecutive
+   verdict raising this, and it is the next watch's strongest candidate.**
+4. **The `17.79 MB` headline is a commit subject nobody has re-run.** `3.89 MB` and `2.3%` were
+   re-measured by CEO 115 (`du -sb assets` = 4,073,895 bytes over 149 files, no non-image files) and
+   hold to the decimal. The starting number rests on `087101f9`'s own words.
+
+**THE PREVIOUS WATCH'S ASSEMBLED COMMAND COULD NEVER HAVE RUN, AND CHECKING IT IS MOST OF WHAT THIS
+WATCH DID.** `INBOX.md:58-67` named `--commit=d4b7700d`; that commit touches `.claude/memory/
+DECISIONS.md` and `.planning/CHART.md` and **no game code**, so `close_item.mjs:118-122` refuses it.
+CEO 115 then rejected my substitute too, with better reasons than I had: `05f63b12` over `fbbf44ad`
+because it carries two game files instead of one, is the terminal compression commit, and its subject
+is *"assets/ is 6.00 MB -> 3.89 MB"* — **the exact number his ruling quotes** — where `fbbf44ad`'s is
+the one already on the record as false. And `--solution-commit=7405f1e4` over `00e85bf2`, because
+`00e85bf2` contains zero bytes of art and zero game code: naming it as *"the commit that implemented
+his stated solution"* would have written into a permanent ledger line a claim CEO 109 had already
+disproved. **The gate cannot catch that — `close_item.mjs:138-142` checks only that the sha exists.**
+
+⚠ **AND THE GATE ITSELF HAS TWO FAULTS IN THE SAME TWO LINES. ONE WAS CAUGHT BEFORE IT FIRED; THE
+OTHER I WALKED STRAIGHT INTO, AND IT IS THE WORSE ONE.**
+- **Caught (CEO 115):** this was the **first INBOX entry with a multi-line `status:` block**, and
+  `close_item.mjs:152` uses a multiline regex whose end-anchor stops at the first newline. It would
+  have left *"Still not closed, and now for a better reason"* orphaned under a line reading **DONE**,
+  in the one file whose whole purpose is that the three records cannot disagree. Collapsed to one
+  line before running the gate.
+- **NOT caught, by me:** `:152` and `:158` pass the rewritten section as a **replacement STRING**, and
+  JavaScript reads dollar-sequences in a replacement string as commands. My collapsed paragraph
+  QUOTED the gate's own regex, so it contained a dollar followed by a backtick — *"insert everything
+  before the match"* — and **the gate spliced the file's own first 34 lines into the middle of the
+  entry while printing `CLOSED` and exiting 0.** Repaired by hand within the minute (`git checkout`
+  is refused to this session, so the injected block was deleted with an explicit edit and the result
+  verified: one `# THE INBOX` heading, one of each duplicated entry, diff reviewed line by line).
+  **Proven rather than reasoned:** `"HEAD\nBODY\nTAIL".replace("BODY", <dollar-backtick payload>)`
+  returns `"HEAD\nX HEAD\n Y\nTAIL"`; with `() => payload` it returns the literal.
+  **THE REASON THIS IS NOT A CURIOSITY: the INBOX is the one file that holds his words verbatim.** A
+  "$5 bug bounty", a price, a shell snippet — any dollar sign in an item of his corrupts the record
+  at the exact moment that item is closed, silently. **Filed as `T-097`, not taken: one item per
+  watch, and the file is vendored from claude-kit, so which tree it lands in is a real decision.**
+
+**SWEEP:** `npm test` — **108/108 gates, suite ceiling live**, no `FAIL` line and no `npm ERR` in the
+output. *(The exit code itself was not captured: output redirection is refused to this session on
+every path tried, so the honest claim is the grep, not `exit 0`.)* `stray_probe_check` **PASS — no
+debug-port browsers running at all.** No browser or server was started by this watch.
+
+**HIS PAGE IS NOT REPUBLISHED BY ME — this session has no Artifact tool** (it has `SendMessage`,
+`Agent`, `ListAgents`; measured by the tool list, not assumed). The note went to `GLASS-NOTE.md` and
+the Glass-update session is asked directly at the Door's step 6b.
+
+**LOCAL LITTER, named because deletion is refused to this session too:** `scripts/qa/
+_dollar_replace_proof.mjs` (the throwaway that proved the dollar fault), plus the two the previous
+watch named — `scripts/qa/_peek_glass.mjs` and `.planning/wyclau/_commitmsg.txt`. All UNTRACKED;
+this watch staged files explicitly rather than `git add -A` so none of them can ride along.
