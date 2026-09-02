@@ -122,7 +122,9 @@ export function parseChart(text) {
     lines: c.lines,
     raw: bodyOf(c.lines),
     title: titleOf(c.lines),
-    id: (ID_RE.exec(c.lines[0]) || [])[1] ?? null,
+    // The handle is read from the WHOLE row, never just its first line: the first line is what the
+    // Glass renders to Wyatt, so nothing machine-readable is allowed to live there (CEO 91).
+    id: (ID_RE.exec(bodyOf(c.lines)) || [])[1] ?? null,
     done: kind === "checklist" ? /^- \[[xX]\]/.test(c.lines[0]) : hasFate(bodyOf(c.lines)),
   });
 

@@ -268,10 +268,30 @@ const sweepable = DO.sweep
 function stripStale(lines) {
   return lines.filter((l) => !l.includes(STALE_MARK));
 }
+
+/* ⚠ THE HANDLE GOES ON ITS OWN LINE, NOT INTO THE ROW'S FIRST LINE. Caught by CEO 91 by looking at
+   the rendered page, which is the only place it was visible: the first version inserted the id
+   straight after the checkbox, and `glass.mjs:122`'s `unmark` strips `**` and `~~` but NOT
+   backticks — so every task on Wyatt's phone came out reading "`T-001` ★ NEXT ITEM, AT HIS
+   INSTRUCTION…", literal backticks and all, with the handle eating one of the sixteen words the
+   card shows him.
+   **A handle is for machines and the first line is for him.** So the row's first line is now never
+   touched by this tool at all, and the head lives on an indented line underneath, where the Glass
+   never looks. Rule 19: the change was green in every gate and wrong on the one surface that
+   matters, because no gate had looked at the picture. There is one now — the gate asserts the
+   first line survives the write byte for byte.
+   Ids already written inline by the previous version are MIGRATED, not reallocated: the number is
+   lifted off line one and re-emitted below, so nothing that already points at `T-007` breaks. */
+const HEAD_LINE = /^\s*⟨[^⟩]*⟩\s*$/;
+const idOf = (lines) => (ID_RE.exec(lines.join("\n")) || [])[1] ?? null;
+
 function withId(lines, id) {
-  if (ID_RE.test(lines[0])) return lines;
+  const existing = idOf(lines);
   const out = lines.slice();
-  out[0] = out[0].replace(/^(- \[[ xX]\] |[-*] )/, (m) => `${m}\`${id}\` `);
+  // Migrate an inline handle off the first line, keeping its number.
+  out[0] = out[0].replace(/(^- \[[ xX]\] |^[-*] )`T-\d{3}`\s*/, "$1");
+  if (out.some((l) => HEAD_LINE.test(l))) return out;
+  out.splice(1, 0, `      ⟨\`${existing ?? id}\`⟩`);
   return out;
 }
 function withStale(lines, reason) {
@@ -314,16 +334,19 @@ if (WRITE) {
     // 2. Ids and stale flags, applied AFTER placement so they follow the row, not the slot.
     for (const i of slots) {
       let lines = stripStale(out[i].lines);
-      if (!ID_RE.test(lines[0])) { lines = withId(lines, nextId()); wrote.ids++; }
-      const title = titleOf(lines);
-      const reason = reapById.get(title);
+      const had = idOf(lines);
+      lines = withId(lines, had ?? nextId());
+      if (!had) wrote.ids++;
+      const reason = reapById.get(titleOf(lines));
       if (reason) { lines = withStale(lines, reason); wrote.flags++; }
       out[i].lines = lines;
     }
     // Done rows get ids too — an archive stub needs a handle to point at.
     for (let i = 0; i < out.length; i++) {
       if (out[i].type !== "row" || slots.includes(i)) continue;
-      if (!ID_RE.test(out[i].lines[0])) { out[i].lines = withId(out[i].lines, nextId()); wrote.ids++; }
+      const had = idOf(out[i].lines);
+      out[i].lines = withId(out[i].lines, had ?? nextId());
+      if (!had) wrote.ids++;
     }
     return out;
   };
@@ -340,7 +363,7 @@ if (WRITE) {
       if (c.type !== "row") return c;
       const hit = sweepable.find((x) => titleOf(x.row.lines) === titleOf(c.lines));
       if (!hit) return c;
-      const id = (ID_RE.exec(c.lines[0]) || [])[1] ?? "T-???";
+      const id = idOf(c.lines) ?? "T-???";
       const when = hit.when.toISOString().slice(0, 10);
       const ceo = (/CEO\s*(?:Review\s*)?(\d{1,3})/i.exec(c.lines.join(" ")) || [])[1];
       stamps.push({ id, when, title: titleOf(c.lines), text: c.lines.join("\n") });

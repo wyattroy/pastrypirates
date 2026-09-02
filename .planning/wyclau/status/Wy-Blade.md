@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T04:06:00.740Z	Filed a live bug report you just wrote in: post-trade denial narration missing, flagged for a full narration-audit sweep.
+2026-09-02T04:59:19.304Z	watch 04:19Z: the Chartkeeper's handles moved off the lines you read
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T10:36:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 31 min ago -- hold off
 2026-09-01T10:46:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 41 min ago -- hold off
 2026-09-01T10:56:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 51 min ago -- hold off
 2026-09-01T11:06:01Z	no engine, and no commit for 55 min (over 45) -- LAUNCH. A recent tool call does not count: LAST-ACTIVITY stays warm while Wyatt types, and that is the signal that used to hold this off while nothing landed.
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T02:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T021802Z.out/.err)
 2026-09-02T02:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T025802Z.out/.err)
 2026-09-02T03:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T034802Z.out/.err)
+2026-09-02T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T041802Z.out/.err)
 ```

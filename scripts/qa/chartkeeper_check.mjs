@@ -309,6 +309,36 @@ The fixture now carries a Z the way the real file does.
   else pass("a second run allocates nothing new — ids are stable across runs");
 }
 
+/* 7b. THE ROW'S FIRST LINE IS WYATT'S, AND THE WRITE MUST NOT TOUCH A CHARACTER OF IT.
+      ⚠ THIS CASE EXISTS BECAUSE THERE WAS NO CASE LIKE IT AND THE TOOL SHIPPED A REGRESSION ONTO
+      HIS PHONE. `glass.mjs:386` renders each open row's FIRST LINE as a task; `glass.mjs:122`
+      strips `**` and `~~` and NOT backticks. The first version put the handle inline after the
+      checkbox, so all 32 tasks on his page came out reading "`T-001` ★ NEXT ITEM, AT HIS
+      INSTRUCTION…" — literal backticks, and the handle eating one of the sixteen words the card
+      shows him. Twenty-two green cases, and every one of them was looking at structure while the
+      thing that broke was the picture. Found by a CEO that opened the rendered page.
+      The rule this encodes: **a handle is for machines, and the first line is for him.** */
+{
+  const p = chartFile("first-line", MIXED);
+  const before = (readFileSync(p, "utf8").match(/^- \[[ x]\][^\n]*/gm) || []);
+  run([`--chart=${p}`, "--reap", "--rank", "--write"]);
+  const after = (readFileSync(p, "utf8").match(/^- \[[ x]\][^\n]*/gm) || []);
+  const changed = before.filter((l) => !after.includes(l));
+  if (changed.length)
+    fail(`the write altered ${changed.length} row first-line(s), which is exactly what the Glass renders to Wyatt. First: ${JSON.stringify(changed[0].slice(0, 90))}`);
+  else pass("every row's first line survived the write byte for byte — nothing machine-readable leaks onto his page");
+  // Every ROW gets a handle — the checklist's `- [ ]`/`- [x]` rows AND the IDEA INBOX's `- **…**`
+  // blocks, because the Glass counts both as tasks. Derived from the fixture, never hand-typed.
+  const inboxRows = (MIXED.split(/^## THE IDEA INBOX$/m)[1] || "").match(/^- /gm) || [];
+  const expected = before.length + inboxRows.length;
+  const handles = (readFileSync(p, "utf8").match(/^\s*⟨[^⟩]*⟩\s*$/gm) || []);
+  if (handles.length !== expected)
+    fail(`${handles.length} handle line(s) for ${expected} rows (${before.length} checklist + ${inboxRows.length} inbox) — every row needs exactly one, on its own line`);
+  else if (new Set(handles.map((h) => h.trim())).size !== handles.length)
+    fail("two rows carry the same handle line — a duplicate handle is worse than none");
+  else pass(`every one of the ${expected} rows carries exactly one distinct handle, on a line of its own`);
+}
+
 /* 8. THE WRITE MUST BE IDEMPOTENT AND MUST LOSE NOTHING. Two sessions share this branch and this
       file; a pass that rewrites CHART.md differently every run would conflict on every push, and a
       pass that drops a row would delete work nobody could prove was ever there. */
