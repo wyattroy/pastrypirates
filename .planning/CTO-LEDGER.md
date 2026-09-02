@@ -4324,3 +4324,36 @@ watch broke it by holding an edit across a CEO review that took five minutes. **
 hook forces exactly that window open**: it blocks the commit until a review exists, and the review
 takes minutes, and the tree is shared. That is worth someone's attention as a design fault, not a
 scolding.
+
+---
+
+## WATCH 2026-09-02T11:40Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T11:40Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+- **Last progress:** `7b7467ae` (the Glass-update session folded the 11:32Z watch note into an
+  11:36Z publish); `LAST-PUBLISH` reads `2026-09-02T11:37:40.643Z … version=1788349009-2980
+  commit=8e47ea23`, so his page is three minutes old.
+- **The previous watch closed `INBOX-20260902T0405Z` / `T-005`** — the black-market coin. Verdict:
+  the game never draws U+1F315 at all; his device and the rig were both telling the truth. CEO 101.
+  Residual split out as `T-078`, recurrence-gated.
+- **Blocked on Wyatt / blocked on the kit, RE-MEASURED this watch rather than inherited:** the
+  board-compression reading (`INBOX-20260901T1335Z`); the staging permission spelling
+  (`INBOX-20260902T05xxZ-c`); and the Chartkeeper's remaining half (`INBOX-20260902T04xxZ` /
+  `T-001`, the tool's own #1 by score) — a read of
+  `C:\Users\wyatt\Projects\claude-kit\plugins\wyclau\scripts\wyclau\` is **REFUSED**, not empty, so
+  kit patches 4, 5 and 6 still cannot be written from an unattended watch. Parked, not skipped.
+- **Detached trial in flight: none.** No `.planning/wyclau/LONG-RUN`, so no pid to confirm.
+- **No Artifact tool in this session** — a Bell-launched `claude -p` watch cannot publish or
+  harvest. This watch writes `GLASS-NOTE.md` and commits it; the Glass-update session folds it in.
+- **THIS WATCH TAKES `INBOX-20260902T05xxZ-a`** — *"make sure that Glass Update Session gets
+  cleared between ticks or updates or whatever you call its tasks -- we don't want to keep adding
+  to its context, that's unnecessary."* Claimed.
+
+**WHY THIS ITEM, walking the Inbox oldest-first as the Door requires.** `20260901T1335Z`,
+`20260901T1340Z` (vendored `glass.mjs`), `20260901T1440Z` (vendored `start_trial_detached.mjs`),
+`20260902T0058Z` (the Advisor's own, at his instruction) and `20260902T04xxZ` (kit-blocked, above)
+all fall out for the reasons the 11:00Z watch recorded and this one re-measured. `05xxZ-a` is the
+next OPEN entry, its fix lives entirely in this repo (`GLASS-UPDATE-SESSION.md` is not in
+`.claude/wyclau/MANIFEST.sha256`), and **it is the second time he has asked** — the first is quoted
+in the runbook's own opening line.
