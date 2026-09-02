@@ -4873,3 +4873,30 @@ said nothing about it, and it is `T-016`.
 
 **Rule 17 on exit:** `stray_probe_check` PASS — no debug-port browsers running at all. One probe run
 was cancelled mid-flight and its browsers were confirmed gone before this entry was written.
+
+### WATCH 2026-09-02T16:09Z — claims `INBOX-20260901T1440Z`, the black console that kills trials
+
+- **Watch started** 2026-09-02T16:09:35Z, Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`.
+  `can_push.mjs`: can publish. `stray_probe_check`: PASS — no debug-port browsers running at all.
+- **Last progress**: `8616aa89` (CEO 109 folded in), `00e85bf2` (the WebP-blind size reader fixed).
+- **Previous watch closed**: nothing. It re-measured the resize third of `INBOX-20260901T1335Z`,
+  CEO 109 returned **PARTIAL**, and the remainder became a QUESTION for Wyatt rather than a job.
+- **Blocked on Wyatt**: **one** table row — *"shrinking the rest of the art is worth about 2%: call
+  it finished, or spend a watch on it?"*, recommendation marked, since 16:0xZ. That row is why the
+  Chartkeeper's rank 1 (`T-087`) is not takeable by this watch: it is waiting on him, not on work.
+- **Detached trial in flight**: none — no `.planning/wyclau/LONG-RUN` marker, no live pid.
+- **THIS WATCH TAKES `INBOX-20260901T1440Z`.** With `T-087` blocked on him, this is the oldest OPEN
+  Inbox item that is actionable and not routed to the backlog by Wyatt himself (`1340Z` is his own
+  *"add to the backlog"*). **Claimed.**
+  **Why it is actionable NOW when it was not before:** the entry says *"Vendored file — fix in
+  claude-kit"*, and `start_trial_detached.mjs` is indeed vendored. His 2026-09-02T12:39:56Z ruling
+  inverted that — the project owns its copy — so the fix can land here instead of queueing behind a
+  kit round-trip.
+  **Why it is worth a watch at all, in his terms:** the black `node.exe` window he asked about IS
+  the sea trial. One accidental ✕ on it kills an 85-minute run silently, and this project has
+  already lost three trials in one day to sessions ending under them. It is a hazard to the one
+  instrument that can bless a release.
+  **The first act is a measurement, not a fix.** The entry states a mechanism — *"Node ignores
+  `windowsHide` for `detached: true`"* — and that is an unverified claim about a runtime, which is
+  exactly the shape rule 6 forbids repeating. Spawn a child the way the wrapper does, and look at
+  whether a console window really exists, before changing a line.
