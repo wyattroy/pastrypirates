@@ -2900,3 +2900,66 @@ This watch's work: prove that RED, fix it, prove the same check GREEN, then judg
 4. **WHAT WOULD PROVE ME WRONG:** if after the fix the eye test still dies on a path, the diagnosis
    is wrong. If the queue's screens then judge fine through a route that never touches `stageImages`,
    then this was never what blocked the release evidence and I have fixed something adjacent.
+
+### WATCH 2026-09-02T01:52Z — CLOSING ACCOUNT (item NOT closed, and that is the honest state)
+
+**HOW THE PREDICTION SCORED, said out loud because that is the whole point of writing it first.**
+(1) **Right** — the Mac separator was it, and `judge_can_see_check.mjs` now prints *"PASS 3 of 3
+screenshot(s) came back with a real verdict"*, which it has never printed on this machine.
+(2) **Wrong, in the pessimistic direction** — I predicted the judge might still be unavailable for a
+real second reason (`judge-queue.json` warns the `claude -p` route is what the queue exists to
+replace). It is not. The judge works fine here and has all along; nothing was ever wrong with it.
+(3) **Half right** — the second same-shape derivation at the old `vision.mjs:245` is real and is
+fixed, but it would only have bitten a NATIVE path; the mixed paths `playtest_gate.mjs` writes into
+the queue survived it by luck. That luck is exactly why the fault stayed invisible on the machine
+that writes the queue and fatal on the one that reads it.
+
+**WHAT A PLAYER GETS, which is the check that matters:** nothing directly — no game code changed.
+What the PROJECT gets is that the release evidence can now include what a screen looks like. Every
+trial on this machine had been reporting its whole visual half as forfeit on the strength of an
+instrument that crashed before it ever reached the judge.
+
+**⚠ CEO REVIEW 85 SAID PARTIAL, AND IT WAS RIGHT ON FIVE COUNTS. Full text in `CEO-REVIEWS.md`.**
+The one that mattered most: **every timestamp in my first write-up was local time with a `Z` stamped
+on it by me**, four hours out — and that error reversed the conclusion. On the true clock the queue
+is the 1914Z trial's OWN queue, written `2026-09-01T20:42:16Z` with `runid.json` reading
+`2026.09.01.7` in the same second. I had dismissed it as an orphan from an earlier run and judged
+five screens instead of the list he asked for. *Rule 6 at the level of units: the number was never
+measured in the unit it was reported in.*
+
+**AND ITS URGENCY CALL WAS RIGHT, AND THE RATE GOT WORSE WHILE I WROTE.** Screens of the 1914Z run
+already overwritten by the trial sailing on this machine: **107 at 02:20Z (CEO 85's measurement),
+252 at 02:35Z (mine) — 145 lost in fifteen minutes.** Preserved instead of parked:
+`judge-1914Z-shots/` now holds that run's own queue, its `runid.json`, and its **221 surviving
+screenshots**; 122 were already gone. **The deadline is now removed, not met** — the pictures are out
+of the sailing trial's reach, so the judging can be finished by any later watch without losing more.
+
+**THE JUDGING PASS IS RUNNING, NOT FINISHED, AND THE ITEM IS NOT CLOSED.** It writes
+`judge-1914Z-shots/judge-results.json` after **every** batch and skips anything already judged, so it
+is shared across sessions by design. **The next watch resumes it with one command:**
+
+```
+node scripts/qa/judge_the_queue.mjs --judge=judge-1914Z-shots
+```
+
+First real verdict off the automatic pass, so it is not a theoretical instrument:
+`passplay-phone-039-settled.png` — *"Play again button floats over the bottom achievement card,
+covering its content instead of sitting below the scroll area."*
+
+**TWO CHART ROWS WRITTEN, because CEO 83's finding 7 recurred here and I am not repeating it a third
+time:** the trade-offer circle that cannot hold its own captain's name (`src/ui/flow.js:2183-2184`,
+two legs, two sizes, both images preserved as the "before"), and *a trial's screenshots are destroyed
+by the next trial* with the 107→252 rate in it. Neither was fixed — one item per watch, and any
+`src/` change bumps the stamp and would retire the sailing trial's evidence for the third time in a
+day.
+
+**LEFT UNDONE, NAMED RATHER THAN BURIED.** (a) The item itself — 24 of 343 judged when this was
+written, and the pass is still going. (b) **No tappable link, and CEO 85's criticism stands in
+full**: this session has no Artifact tool, so it cannot publish the Glass; the pulse is in
+`GLASS-NOTE.md` for the next session that can. (c) `git push` is refused by this sandbox — every
+commit below is local until a session with push rights lands them, and until then this watch is
+invisible from every other machine, which is the exact blindness the relay exists to remove.
+
+**HOUSEKEEPING.** No browser or server was started by this watch; the only Chrome running is the
+detached trial's, which is meant to be. The background judging process is `claude -p` calls, no
+browser. The trial (pid 24232) was not restarted and its files were read, never written.

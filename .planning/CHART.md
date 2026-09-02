@@ -413,6 +413,34 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
+- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
+  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
+  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
+  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
+  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
+  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
+  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
+  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
+  `judge-1914Z-shots/` and are the "before" of the posed pair.
+  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
+  compact label as `short:` — the captain's name as line one of a two-line label inside a
+  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
+  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
+  shorten (his standing instruction on the call circles: *"Fix this universally, not through
+  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
+  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+- [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
+  NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
+  in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
+  once, to the same path. Nothing stamps a picture with the run that took it. **So a queue judged
+  after a later run describes a mixture of runs, silently** — and a session reading it cannot tell.
+  The rate, measured on the 1914Z run's own queue while a later trial sailed: **107 of its 343
+  screens overwritten by 02:20Z, 252 by 02:35Z — 145 lost in fifteen minutes.** The player-facing
+  cost is the same as the not-run column's: a release decision made on visual evidence that quietly
+  describes a build nobody shipped. **Sizing: small.** Rule 9's shape is a path derived from the run
+  — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
+  session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
+  stopgap and is NOT the fix; it protects one run, by hand, after the fact.
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
   a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:

@@ -5,26 +5,22 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T01:20:10.102Z	self-publish check
+2026-09-02T02:07:27.060Z	IMPORTANT: a sea trial is actively sailing right now (3/10 legs as of a few minutes ago, build 2026.09.01.8) -- do not close its console window, that IS the run. The Windows judge-blindness bug this trial exists to catch is already fixed (landed this session) -- the trial is now verifying that fix for real
 ```
 
 ## Long run in flight (LONG-RUN)
 ```
 {
-  "what": "sea trial (detached)",
-  "progress": "starting",
-  "updatedAt": "2026-09-02T01:37:57.560Z",
+  "what": "sea trial, 10 legs",
   "startedAt": "2026-09-02T01:37:57.560Z",
-  "runId": "2026-09-02T0137Z-Wy-Blade",
-  "pid": 24232,
-  "reportPath": ".planning\\SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md",
-  "logPath": ".planning\\wyclau\\detached\\trial-2026-09-02T0137Z-Wy-Blade.out"
+  "updatedAt": "2026-09-02T02:11:41.174Z",
+  "progress": "4/10 legs",
+  "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T09:56:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:06:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:16:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 11 min ago -- hold off
 2026-09-01T10:26:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 21 min ago -- hold off
@@ -64,4 +60,5 @@
 2026-09-01T22:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T224803Z.out/.err)
 2026-09-01T23:28:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T232803Z.out/.err)
 2026-09-02T00:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T000803Z.out/.err)
+2026-09-02T01:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T014802Z.out/.err)
 ```

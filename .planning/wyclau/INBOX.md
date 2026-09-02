@@ -248,7 +248,38 @@ status: OPEN — the durable guard is this session's own to build (he asked for 
 ## INBOX-20260902T0050Z — judge the 267 queued screenshots before anything ships
 > Ruling, question UI: "Judge the screenshots first" — chosen over publishing to staging in parallel, and over going straight to production.
 solution: run the vision pass over the screens the 1914Z trial queued, BEFORE staging or release.
-status: CLAIMED by watch 2026-09-02T01:52Z (Wy-Blade). Trial `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10 of 10 legs on build `2026.09.01.7` with NOTHING in the not-run column, but its vision judge was blind. Its own words: "THE JUDGE CANNOT SEE — every visual verdict below is worthless; the structural half still stands." 267 screens are queued and explicitly marked NOT cleared. His reasoning, in his own pick: the untappable sail square that cost days was caught by looking, not by structure. Note the tree is now `.8`, so the judged build trails the branch.
+status: OPEN — **IN PROGRESS, and the judging is now UNBLOCKED and RESUMABLE.** Watch
+2026-09-02T01:52Z, CEO 85 (**PARTIAL**). Not closed: a judging pass that is running is not a judging
+pass that is finished.
+
+  **THE EYES WERE NEVER SHUT — the judge could not pick the picture up.** Every trial on this machine
+  printed *"the eyes are SHUT"* and forfeited its whole visual half. `scripts/lib/vision.mjs`
+  copies each screenshot into the judge's own scratch folder first, and worked the filename out with
+  a Mac separator (`split("/")`), so a Windows `path.join` path became a copy to
+  `<temp>\ppjudge-x\C:\Users\...\shot.png` and threw ENOENT — `judge_can_see_check.mjs` crashed, and
+  `sea_trial.mjs:197` reads that crash as a verdict about the judge. **The judge works and always
+  did.** Fixed with one shared `baseName()` and `path.join`, plus a second same-shape derivation in
+  `judgeBatch` collapsed onto `stage.names[i]` (rule 23). Gate
+  `scripts/qa/judge_stages_by_basename_check.mjs`, RED 6/7 → GREEN 9/9, npm test 91.
+  **Consequence for every future trial: it judges as it sails, and there is no queue to work off.**
+
+  **THE 1914Z QUEUE IS PRESERVED — 221 of its 343 screens; 122 were already destroyed.** Every trial
+  writes the same filenames and writes its queue last to the same path, so the run sailing on this
+  machine was overwriting the very screens he asked about: **107 gone at 02:20Z, 252 by 02:35Z.**
+  They are now in `judge-1914Z-shots/` with that run's own `judge-queue.json` and `runid.json`
+  (`2026.09.01.7`), out of reach. Filed as its own Chart row; the stopgap is not the fix.
+
+  **RESUME THE PASS WITH ONE COMMAND** — it writes results after every batch and skips what is done:
+  `node scripts/qa/judge_the_queue.mjs --judge=judge-1914Z-shots`
+
+  **FOUND SO FAR.** By eye, two of five screens: **a trade-offer circle cannot hold its own captain's
+  name** (*Crustbeard* clipped by its own disc on tablet, *Flaky Jack* hanging out both sides on the
+  crew-desktop guest) — `src/ui/flow.js:2183-2184`, Chart row written, not fixed (a stamp bump would
+  retire the sailing trial for the third time in a day). By the automatic judge, first verdict:
+  `passplay-phone-039-settled.png` — *"Play again button floats over the bottom achievement card."*
+  Account: `.planning/JUDGED-2026-09-02T0152Z.md`.
+
+  *His ask as filed, kept:* Trial `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10 of 10 legs on build `2026.09.01.7` with NOTHING in the not-run column, but its vision judge was blind. Its own words: "THE JUDGE CANNOT SEE — every visual verdict below is worthless; the structural half still stands." 267 screens are queued and explicitly marked NOT cleared. His reasoning, in his own pick: the untappable sail square that cost days was caught by looking, not by structure. Note the tree is now `.8`, so the judged build trails the branch.
 
 ## INBOX-20260902T0048Z — the recipe pictures: what size are they actually drawn at?
 > "Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"
