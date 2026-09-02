@@ -1105,6 +1105,13 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"Do Now: in the Glass, Add a
+      ⟨`T-104`⟩
+  \"DO now\" button next to \"Send to the Chart\" button that tells RANK to put this task at the
+  top"* → **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
+  harvest-and-publish only.** Companion to T-103 (drag-to-reprioritize) -- both are UI asks for the
+  Glass/Chart pairing, filed one minute apart.
+
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"DO NOW: build a way for me
       ⟨`T-103`⟩
   to drag to reprioritize the chart, in The Glass."* → **NOT YET FATED — harvested verbatim, not
