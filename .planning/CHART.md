@@ -441,6 +441,39 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+- [ ] **THE GAME'S MONEY SYMBOL IS A RAW EMOJI IN SOME STRINGS AND AN IMAGE IN OTHERS, AND THE EMOJI
+  RENDERED BLANK ON THE WEBKIT LEG. Found by the vision judge 2026-09-02, confirmed by eye, traced
+  to one line. Not fixed (one item; and the durable version is a sweep, not a patch).**
+  `solo-tablet-wk-026-settled.png`: the black-market card reads *"They'll find ye one more ingredient
+  — for **10⬜.**"* — a blank where the coin belongs, then an orphaned full stop.
+  `src/ui/panel.js:1155` writes ``for <b>${bmPrice}🌕.</b>`` — a raw **U+1F315** glyph. The coins in
+  the CAPTAINS panel of the same screenshot render perfectly because those are `<img>`
+  (`assets/icons/coin-emoji.png`). **Two representations of one coin (rule 23), and one of them can
+  vanish.**
+  **Measured:** it is ONE missing glyph on that build, not a missing emoji font — the 🏴 two lines
+  above it renders fine — and not a slow-loading image. **NOT measured:** whether real Safari does
+  the same; Playwright WebKit is not Safari and no report may say it is. **His phone is the only
+  real Safari this project has — asked in BLOCKED ON WYATT.**
+  **Why it is worth asking:** 🌕 is raw emoji in dozens of strings including the How to Play page
+  (`index.html:2835-2847` — crate prices, the black market, the call bounty, Muse). If any Safari
+  blanks it, the currency disappears from the page that explains the currency. **The fix is rule
+  23's: one coin, the image, everywhere.**
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+- [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
+  IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
+  MEASURED, and deliberately not called a defect.** `solo-tablet-wk-018-settled.png` shows
+  *"Both fire 🪙 HEADS — but Davy Scones's firing"* and stops; `src/orchestrator.js:700` writes
+  *"…firing downwind and the shot hits!"*, so six words are missing from the screen. **Either** the
+  screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27
+  desktop and 5 of 20 phone screens in this project's own record) **or** the wrapped second line is
+  clipped by the card and every downwind battle in the game ends mid-phrase on every engine.
+  **The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past
+  the reveal, photograph the card. Do not run a trial for this.**
+  *Separate lead on the screen immediately BEFORE it, observed once:* the flip ceremony reads
+  *"Crosswind — two heads and the cannonballs collide"* while the card that follows reads *"↓ DAVY
+  SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
+  reminder; that is a source question, not a screenshot one.
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
   description. Not fixed (one item; and any `src/` change retires the trial at sea).**
@@ -480,8 +513,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-- [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — red-proofed
-  2026-09-02, filed so nobody reads "1 FAIL in 120" as "the screens are clean".**
+- [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
+  2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
   `crew-desktop-guest-012-settled.png` is the screen a watch read by eye and found the trade-offer
   circle whose *"Flaky Jack"* label hangs out of both sides of its own disc (the row above). The
   automatic pass reached the same file and wrote `"verdict":"PASS", "issues":[], "confidence":0.85`.
@@ -490,6 +523,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   FLOOR, not a ceiling**, and any release decision quoting it must say so. Same shape as the green
   suite that blessed the build Wyatt then found seven bugs in. **Not an action item on its own**;
   it is the caveat that belongs beside every judged-screen number from here on.
+  **HOW STRONG THE CAVEAT IS, MEASURED RATHER THAN ASSERTED (CEO 86's finding 2):** the false PASS
+  was found because a human had already flagged that screen, not by sampling. Four further PASS
+  screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
+  screens a human has examined, one was wrong — and four screens cannot bound an error rate across
+  218. It says the judge is not wrong constantly; it does not say the pile is clean.
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
   a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
@@ -540,8 +578,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
+| **On your iPhone or your Mac's Safari: in the black-market card — *"They'll find ye one more ingredient — for 10 🌕."* — do you SEE a gold coin after the 10, or a blank gap and a stray full stop?** Ten seconds, and your phone is the only real Safari this project has. | **Recommended: tell us either way, then we make the coin an image everywhere regardless.** The game currently draws its own money two different ways — a picture in the captains' panel, a typed symbol in the sentences — and one of them came out blank in testing. Even if your Safari is fine, one coin drawn one way is the rule we already hold ourselves to. | 2026-09-02 |
 
-*Nothing is open. The recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
+*One question is open (above), found by the judging pass.
+Otherwise: The recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
 00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
 size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
 approval, plus his own follow-up question about the display-size measurement, both unanswered

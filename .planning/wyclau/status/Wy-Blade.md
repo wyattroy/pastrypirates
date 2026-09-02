@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T02:07:27.060Z	IMPORTANT: a sea trial is actively sailing right now (3/10 legs as of a few minutes ago, build 2026.09.01.8) -- do not close its console window, that IS the run. The Windows judge-blindness bug this trial exists to catch is already fixed (landed this session) -- the trial is now verifying that fix for real
+2026-09-02T02:34:17.892Z	Trial still sailing, 5/10 legs as of a few minutes ago -- don't close the console window, that IS the run. Nothing else waiting on you; the recipe-picture WebP conversion you approved is queued behind this trial landing
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,15 +13,14 @@
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-02T01:37:57.560Z",
-  "updatedAt": "2026-09-02T02:11:41.174Z",
-  "progress": "4/10 legs",
+  "updatedAt": "2026-09-02T02:39:38.842Z",
+  "progress": "7/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T10:06:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:16:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 11 min ago -- hold off
 2026-09-01T10:26:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 21 min ago -- hold off
 2026-09-01T10:36:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 31 min ago -- hold off
@@ -61,4 +60,5 @@
 2026-09-01T23:28:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T232803Z.out/.err)
 2026-09-02T00:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T000803Z.out/.err)
 2026-09-02T01:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T014802Z.out/.err)
+2026-09-02T02:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T021802Z.out/.err)
 ```
