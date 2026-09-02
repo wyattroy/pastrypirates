@@ -1325,3 +1325,56 @@ documentation and observed side-effects, not a controlled experiment. **A genuin
 worth running by whoever can get it approved** (e.g. Wyatt explicitly authorizing a probe publish, or
 running it against a disposable test artifact rather than the live Glass) — do not treat this entry as
 closing that question definitively.
+
+## INBOX-20260902T2100Z — LAYER A IS MEASURED, NOT INFERRED: a stale republish IS refused. And it corrects what he was told.
+
+> Not his words — the Advisor's experiment, run on a disposable artifact so his live page was never
+> the subject. Settles the one question `T-105` was blocked on.
+
+solution: none needed — this is a measurement. It re-scopes the build.
+
+status: DONE 2026-09-02 — measured; consequences written into the `T-105` row and the spec.
+
+  **THE EXPERIMENT, run 4:55–4:58 PM ET on a throwaway artifact
+  (`1130683a-f8ce-49de-8f10-43adbcf1d0c9`), never on the Glass:**
+  1. Advisor published `rev 1`. Its tracked base version became rev 1.
+  2. The Glass-update session published `rev 2` at **4:57:45 PM** — standing in for Wyatt typing an
+     idea, which saves the page as a new version.
+  3. Advisor republished `rev 1` unchanged, **no `force`**, still holding the stale base.
+
+  **RESULT — REFUSED, verbatim:** *"Publish refused — nothing was merged or published: a newer
+  version (1788382665-1bce) published by another session or agent at 2026-09-02T20:57:45Z is live
+  and this publish was not built on it."* It saved the live source to disk and required it to be
+  read in full before any further publish.
+
+  **AND A SECOND, INDEPENDENT GATE WAS HIT BY THE PEER WITHOUT BEING ASKED TO LOOK FOR ONE.** Its
+  own first publish was refused too, for a different reason: *"you hadn't viewed the live version of
+  this artifact, so the publish was refused."* **So there are TWO enforcement points, not one** — a
+  read-gate (you cannot publish a page you have never looked at) and a stale-base gate (you cannot
+  publish over a version you did not build on).
+
+  ⚠ **THE CORRECTION THE ADVISOR OWES HIM, AND IT IS RULE 6 POINTING AT ITSELF.** He was told, in
+  those words, that his seven ideas *"survived by luck of ordering, not by design"* and that any
+  republish in the thirty-minute window *"would have"* destroyed them. **The first half is now
+  measured false.** A tick that read at 3:07:08, then published after he wrote at 3:07:15, would
+  have been **REFUSED** — the loss it was warned about could not have happened silently. **A hazard
+  was reported as a near-miss without ever measuring the protection**, which is precisely the fault
+  the rule names, committed while writing a spec about not doing that.
+
+  **WHAT STANDS, UNCHANGED AND STILL WORTH FIXING:** the harvest stamp is still a clock and still
+  cannot answer *"is a republish safe?"* — **it is simply not the last line of defence, and nobody
+  knew that.** A guard that has never been tested and a guard that does nothing look identical from
+  inside.
+
+  **WHAT THIS DOES TO `T-105`, and it makes the job SMALLER:**
+  - **Layer A is TRUE BY DEFAULT and now measured.** The remaining work is to make it un-loseable:
+    the runbook already says *"NEVER PASS `force`"* (`GLASS-UPDATE-SESSION.md:222-230`), and `force`
+    appears nowhere in the Glass publish path — **but nothing enforces that, so it is a sentence, and
+    sentences are what failed here.** A gate that fails the build on `force` near a Glass publish is
+    the whole of Layer A's remaining cost.
+  - **Layer B drops from mandatory to a convenience.** Comparing versions before publishing turns a
+    refusal into a smooth re-harvest; it is no longer what stands between him and losing work.
+  - **THE REAL RESIDUAL EXPOSURE MOVED, AND IT IS NOW THE MERGE.** The tool refuses and hands back
+    the live source *to merge*. **A careless merge can still drop his words** — the difference is
+    that it is a visible act by a session that has been handed his text, not a silent overwrite.
+    Layers C and D are now aimed at that, and it is a much narrower target.
