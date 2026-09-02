@@ -1575,3 +1575,45 @@ status: OPEN — FOR A WATCH, and it should be near the top: `T-105`'s Layer B i
   **`mark_glass_published.mjs` STILL REFUSES AN EMPTY VALUE and is still right to** — its own header
   is quoted approvingly in the spec. **It simply cannot tell a timestamp from a version id**, which
   is the same gap one level down: refusing absence is not the same as checking kind.
+
+## INBOX-20260902T1825Z — HE ANSWERED TWO QUESTIONS AND THE PAGE KEPT ASKING BOTH. FIFTH INSTANCE, AND `T-090` WAS CLOSED FOUR HOURS AGO.
+
+**HIS WORDS, VERBATIM** (with a screenshot of his own page):
+
+> I already answered both of these about 15 minutes ago. Please tell me why the page still shows
+> them, and is still asking me to answer them again
+
+> I wrote the answers into the boxes, got a successful "waiting" message below, and left them.
+
+solution: retire the question the moment the ruling is harvested — one act, not two. Done by hand here for the second time today, which is the proof that hand repair does not generalise.
+
+status: DONE 2026-09-02 — both rows retired to `RULED` with his verdicts; the durable fix is the top of the Chart.
+
+  **NOTHING HE DID WAS WRONG AND NOTHING WAS LOST.** He typed both answers into the note boxes at
+  **5:43:55 PM** and **5:45:23 PM**; the page saved them; the "waiting" confirmation he saw was
+  truthful; the harvest read them and they are in `INBOX-20260902T2143Z`, `…214523Z` and
+  `DECISIONS.md`. **Every step worked except the one that removes the question.**
+
+  **THE CAUSE, MEASURED IN ONE COMMAND, NOT INFERRED:** both questions were still literal table rows
+  in `## BLOCKED ON WYATT` in `CHART.md` at 6:25 PM, 40 minutes after he ruled. The Glass renders
+  that table verbatim. **Harvesting a ruling writes his answer into the record and deletes nothing.**
+
+  ⚠ **AND THE SCREEN CONTRADICTED ITSELF IN A WAY HE SHOULD NOT HAVE HAD TO NOTICE.** The same
+  screenshot shows the status line reading *"2 tasks were freed by your rulings and the work is
+  still to do"* — **the page knew his rulings had landed** — directly above a card asking both
+  questions again, **with both note boxes empty**. So the page simultaneously reported that his
+  answers were processed and showed no trace that he had ever answered. **A surface that both
+  confirms and forgets the same act is worse than one that never confirmed.**
+
+  ⚠ **FIFTH INSTANCE TODAY, AND `T-090` — THE ITEM WHOSE ONE-LINE NAME WAS "AN ANSWERED QUESTION
+  NEVER LEAVES BLOCKED ON WYATT" — WAS CLOSED THROUGH THE GATE AT 4:31 PM.** What it actually built
+  was the reap LABEL split (five named kinds) and a matcher fix. **Both are real and good work. The
+  fault the row was named for shipped unfixed, and the row closed anyway.** The gate cannot catch
+  this: it checks for a CEO verdict, a diff and solution-first evidence, and all three existed.
+  **An item can close honestly while the thing it is named after is still broken — the close proves
+  work happened, never that the symptom is gone.**
+
+  **THE FIX THAT WOULD HAVE PREVENTED ALL FIVE, and it is one sentence:** the harvest that records a
+  ruling must, in the SAME act, delete the row that asked it. Two separate steps kept in step by
+  discipline is the shape `.claude/CLAUDE.md` rule 23 forbids by name, and this is its fifth
+  demonstration in twelve hours.
