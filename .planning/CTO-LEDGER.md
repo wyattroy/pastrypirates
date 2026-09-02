@@ -4954,3 +4954,49 @@ is a ruling about his screen, so it is a **BLOCKED ON WYATT** row with the numbe
 recommendation, not a decision a watch makes for him.
 
 **Rule 17 on exit:** `stray_probe_check` PASS — no debug-port browsers running at all.
+
+---
+
+### WATCH 2026-09-02T16:49Z — claims `T-088`, his five Glass asks
+
+**THE SITUATION, six lines.**
+- **Watch started** 2026-09-02T16:49:21Z, on `claude/cloud-handoff-planning-a9ay1u`, `can_push.mjs`
+  clean (tracking upstream, no rebase or merge in progress).
+- **Last progress**: `81db6002` (T-092, CHART.md is a hot file three sessions write).
+- **The previous watch (16:09Z) closed** `INBOX-20260901T1440Z` — his black console window — CEO 110
+  PARTIAL, commits `f568f60a` and `8c89680e`.
+- **Blocked on Wyatt**: the `npm test` window-flash trade (16:3xZ), and `INBOX-20260902T05xxZ-c`
+  (the Watch's staging permission, which he dismissed rather than ruled on).
+- **Detached trial in flight**: none — no `.planning/wyclau/LONG-RUN` marker, no live pid.
+- **THIS WATCH TAKES `T-088`.** It is rank 1 on the Chart and it is his own instruction about where
+  it goes: *"claude my friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the
+  TOP of the chart."* **Claimed.**
+
+**WHY IT OUTRANKS THE INBOX'S OLDEST OPEN ROWS, stated so the Door's rule is not quietly bent.** The
+Door says Inbox first, oldest first. Walked in order: `1335Z` is closed on his ruling (`d4b7700d` —
+*"call the last 2.3% finished"*) and **only its status line is stale**; `1340Z` is his own *"add to
+the backlog"*; `0058Z` is assigned to
+the Advisor by name; `05xxZ-c` is his call and deliberately untouched. **The oldest Inbox row that is
+open, actionable and mine is `INBOX-20260902T13xxZ` — and asks 1 and 4 of `T-088` ARE that row**, so
+taking `T-088` takes it and three more of his asks with it.
+
+⚠ **AND ONE RECORD FAULT FOUND WHILE WALKING THAT LIST, REPORTED RATHER THAN HAND-PATCHED.**
+`INBOX-20260901T1335Z` — his launch-critical image ask — still reads `status: OPEN` although he ruled
+it finished and `d4b7700d` shipped the close. **No `close_item` line for it exists anywhere in this
+ledger**, so the gate never ran and the fate was never written. The Door forbids ticking the Inbox by
+hand, so this watch does not, and it does not silently absorb it into its own item either: **the next
+watch should run the gate on it.** The cost of leaving it is concrete and it nearly landed on this
+watch — the Door routes by the oldest OPEN Inbox row, so a closed item that still reads OPEN aims
+every future watch at work that is already done.
+
+**NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: `ToolSearch` returns no Artifact tool of
+any kind. So this watch **cannot harvest the Glass and cannot publish it** — its pulse goes to
+`.planning/wyclau/GLASS-NOTE.md` for the next session that can, and it must not stamp
+`mark_glass_published`.
+
+**WHAT `T-088` IS, in his words, five parts, all in `scripts/wyclau/glass.mjs`:** (1) show what is
+being worked on right now under the status dot, and *"nothing in hand"* between watches; (2) the
+page's "last progress N min ago" ages on screen after publish — make it compute its own age in the
+browser; (3) hide the `YOUR CALL` card when it is genuinely empty, and never when it is merely
+unparseable; (4) numbers not bullets; (5) stop the page shouting his Chart's ALL-CAPS row titles back
+at him.
