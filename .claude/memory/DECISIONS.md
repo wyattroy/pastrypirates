@@ -735,3 +735,39 @@ gate should fail the build on two.
 **And it must be visible on the page.** He must be able to see what he pinned and whether it has been
 taken; an interrupt he cannot see is indistinguishable from one that was ignored, which is precisely
 what happened all night.
+
+## THE IMAGE-WEIGHT ASK IS CLOSED — his ruling, question UI, 2026-09-02
+
+**His ask, `INBOX-20260901T1335Z`, launch critical:** *"compressing the images to make the game load
+MUCH faster… but the only one that needs to be as big as it is is the board itself — everything else
+should be resized and compressed according to its maximum pixel size in the real gameplay."*
+
+**HIS RULING: CALL IT FINISHED.** Offered "spend one watch on the last 0.09 MB" and "leave it open
+until after launch", he chose finished.
+
+| | |
+|---|---|
+| started | **17.79 MB** |
+| now | **3.89 MB** — a 78% reduction |
+| still recoverable | **~0.09 MB across 12 files — 2.3% of what remains** |
+
+**WHAT WAS ACTUALLY DONE:** compression across the library; the board alone **4.24 MB → 0.19 MB** at
+its own 2132×2132 (lossy WebP q0.92, mean error 1.65/255, lossless measured at 3.14 MB so the choice
+was decided by a number); preload of **144 of 144** pictures warmed at boot, gated; and resize
+applied where it paid.
+
+⚠ **AND THE REASON THIS TOOK A DAY LONGER THAN IT SHOULD HAVE, kept because it is the lesson:**
+- **An exclusion written from a PARAPHRASE.** `asset_quantize.mjs` carried
+  `EXCLUDE = new Set(['assets/board.png'])`, justified as *"Wyatt named it the one file that stays as
+  it is."* **He did not.** His sentence exempted the board from **RESIZING**, inside a clause about
+  maximum on-screen pixel size — not from compression. That paraphrase then propagated into every
+  later measurement (*"excluding board.png, 6.36 MB remains"*), so **43% of the game's art stopped
+  being counted as work at all** while the launch-critical item stayed open.
+- **A measurement blind to a third of its subject.** The resize probe looked for PNGs and **stopped
+  seeing 53 of 149 pictures the day the library became WebP** (`00e85bf2`). Every conclusion drawn
+  from it after that day described two-thirds of the library.
+- **And his page showed him 9% when the truth was 2.3%** (CEO 109) — so the number he was steering by
+  was four times the real prize.
+
+**THE REUSABLE PART:** *an exclusion written from a paraphrase of what somebody wanted is invisible
+once it is in the code, because every later reader inherits the paraphrase and not the sentence.*

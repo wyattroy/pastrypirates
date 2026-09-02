@@ -53,7 +53,7 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [ ] **RESIZING THE REST OF THE ART IS WORTH ABOUT 2% — GATED: his call, and the measuring is DONE. A MEASURED NUMBER, NOT A
+- [x] **THE IMAGE-WEIGHT ASK IS CLOSED — HIS RULING 2026-09-02: call it finished.** 17.79 MB -> 3.89 MB, a 78% reduction; preload 144/144 gated; the last 0.09 MB (2.3%) deliberately left. A MEASURED NUMBER, NOT A
       ⟨`T-087`⟩
       GUESS. His question is in BLOCKED ON WYATT.** *"everything else should be resized… according
       to its maximum pixel size in the real gameplay"*, `INBOX-20260901T1335Z`. Re-measured
