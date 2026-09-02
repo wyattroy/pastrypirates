@@ -4900,3 +4900,57 @@ was cancelled mid-flight and its browsers were confirmed gone before this entry 
   `windowsHide` for `detached: true`"* — and that is an unverified claim about a runtime, which is
   exactly the shape rule 6 forbids repeating. Spawn a child the way the wrapper does, and look at
   whether a console window really exists, before changing a line.
+
+- 2026-09-02T16:35:58Z · close_item: INBOX-20260901T1440Z · CEO 110 · no game diff — no game code is right: the black window is the SEA TRIAL's child process, not the game -- fixed in sea_trial.mjs, src/ and index.html untouched · no stated solution
+
+### WATCH 16:09Z — CLOSED `INBOX-20260901T1440Z`. CEO 110 PARTIAL, and four of its six findings are fixed above it.
+
+**PREDICTION vs RESULT** (`.planning/PREDICTION-20260902T1609Z-detached-console.md`, written before a
+single measurement). **P1 right, and it was the whole item:** I predicted the Inbox's stated
+mechanism was WRONG — that `detached: true` gives a child no console at all, so `windowsHide` being
+a no-op there is true and irrelevant. Measured with `AttachConsole`: detached spawns fail to attach,
+non-detached ones succeed. **P2 right:** the window belongs one level DOWN — a console-less parent
+spawning a console child makes Windows hand it a brand-new console, `IsWindowVisible` TRUE, one
+`conhost.exe` child. **P3 right:** the fix is a spawn flag, not a rewrite.
+
+**WHAT SHIPPED** (`f568f60a`, then `8c89680e`). `scripts/lib/child_window.mjs` carries the option and
+the derivation; `sea_trial.mjs` spreads it at all four child-process calls. **One flag at the
+boundary covers the whole subtree** — `windowsHide` is CREATE_NO_WINDOW, the child gets a console
+with no window, and everything it spawns inherits that. Gate
+`scripts/qa/detached_trial_windowless_check.mjs`: coverage derived by a balanced-paren scan of
+`sea_trial.mjs` (RED 4 of 4 sites bare → GREEN 4 of 4 covered), plus a Windows behaviour half that
+red-proofs itself. Ceiling 105 → 106, reason in `package.json`, `quiet_gate_report.mjs` offers zero
+retirement candidates for the third raise running. npm test 106/106.
+
+**THE END-TO-END, WHICH ONLY EXISTS BECAUSE CEO 110 REFUSED THE FIRST ONE.** It quoted this watch's
+own prediction file back — *"a fix for an unreproduced window is not a fix; it is a guess with a
+commit hash"* — and it was right: the window had been reproduced on a faithful stand-in and never on
+`sea_trial.mjs` itself. Recovered at `f568f60a^`, started detached exactly as
+`start_trial_detached.mjs` starts it: **`cmd.exe -> VISIBLE-WINDOW`**. Live file, same launch:
+**`cmd.exe -> console, no window`**.
+⚠ **THE LIMIT: that child is `cmd.exe`, not the `node.exe` his window's title read.** Same parent,
+same mechanism, same fix — but the window he actually saw is almost certainly the 85-minute voyage
+child (`sea_trial.mjs:223`), and that one remains inferred.
+
+**TWO INSTRUMENT FAULTS ON THE WAY, RECORDED BECAUSE THEY ARE THE REUSABLE PART.** (1) The first
+probe counted `conhost.exe` children and could not tell any of four spawn cases apart — four
+identical zeros, a check that could not fail, caught only because two of the four were *expected* to
+differ. (2) The first end-to-end aimed at the ~300ms `gear.mjs` child while a PowerShell probe costs
+~400ms to start, and reported `none` for a process that was merely GONE — collapsing "no window" and
+"no process" into the one word that reads as a pass.
+
+**FOUR OF CEO 110'S SIX FINDINGS ARE FIXED ABOVE ITS OWN VERDICT; the other two are this entry and
+the Inbox fate the gate just wrote.** The one that mattered most: **the gate's PASS line asserted
+that children inherit the windowless console while its stand-in spawned two LEAF children and no
+grandchild** — and five spawn sites in a real voyage (`playtest_gate.mjs:93,319`, `lib/cdp.mjs:35,40`,
+`lib/wk.mjs:92`) rest entirely on that inheritance. **Fifth verdict running on a sentence tidier than
+the record, this time inside the gate written to stop them.** It now spawns a real grandchild and
+asserts it separately. Its coverage half also accepted `windowsHide: false` — the word, not the
+value — and now requires the constant or an explicit `true`.
+
+**LEFT FOR HIM, DELIBERATELY:** the gate's red proof opens the very object he pointed at, for about a
+second, on every `npm test` — and `npm test` runs inside every sea trial. Measured at 1.0–1.1s. That
+is a ruling about his screen, so it is a **BLOCKED ON WYATT** row with the number and a marked
+recommendation, not a decision a watch makes for him.
+
+**Rule 17 on exit:** `stray_probe_check` PASS — no debug-port browsers running at all.

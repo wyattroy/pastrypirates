@@ -868,3 +868,32 @@ the three still carrying work also have a checklist row above, which is where he
       strips `**` and `~~`, not backticks). Handles now live on their own line; gate case 7b asserts
       every row's first line survives the write byte for byte; the rendered page was opened and
       checked afterwards. **Twenty-two green cases and none of them had looked at the picture.**
+
+## T-087 — 2026-09-02 — THE IMAGE-WEIGHT ASK IS CLOSED — HIS RULING 2026-09-02: call it finished. 17.79 MB -> 3.89 MB, a 78% reduction; preload 144/144 gated; the last 0.09 MB (2.3%) deliberately left. A MEASURED NUMBER, NOT A
+
+- [x] **THE IMAGE-WEIGHT ASK IS CLOSED — HIS RULING 2026-09-02: call it finished.** 17.79 MB -> 3.89 MB, a 78% reduction; preload 144/144 gated; the last 0.09 MB (2.3%) deliberately left. A MEASURED NUMBER, NOT A
+      ⟨`T-087`⟩
+      GUESS. His question is in BLOCKED ON WYATT.** *"everything else should be resized… according
+      to its maximum pixel size in the real gameplay"*, `INBOX-20260901T1335Z`. Re-measured
+      2026-09-02T15:5xZ, commit `00e85bf2`, **CEO 109 (PARTIAL)**.
+      **COMPRESS is done and large** — `assets/` is **3,873,895 bytes (3.89 MB)** against the
+      17.79 MB he raised it at. **PRELOAD is done** — 144 of 144 pictures warmed at boot, gated.
+      **RESIZE has happened to exactly ONE file**: `assets/about-recipes.jpg`, −137 KB, `a086edcf`.
+      **WHAT IS ACTUALLY LEFT: 12 files, 0.10 MB on disk, ~0.09 MB recoverable — 2.3% of the
+      library — and every one of the twelve is a 4–12 KB icon.**
+      [`.planning/ASSET-DISPLAY-SIZES.md`](ASSET-DISPLAY-SIZES.md) is regenerated and trustworthy
+      for the first time since the WebP renames.
+      ⚠ **AND THE LIST IT REPLACED WAS A TRAP, WHICH IS WHY NOBODY SHOULD HAVE WORKED IT.** The old
+      *"25 candidates / ~0.34 MB"* was led by `icons/flip-heads.png` at **x7.07** — **the
+      flippenator coin.** Its only sighting was an 18px inline icon in the About page's prose; its
+      real slot is 119–211 CSS px in the flip ceremony, a screen the probe never reaches, which is
+      also why its siblings `flip-tails` and `flip-socket` come back NOT SEEN. **Cutting it to 54px
+      would have destroyed the coin.** Same for `crown` (x5.93) and `cupcake` (x5.88) — all three
+      peaking at the same 18×18 slot. The probe now separates gameplay peaks from off-game ones and
+      the exclusion is derived from the surface names it already records, not a list of filenames.
+      Verified independently by CEO 109 down to `src/ui/board.js:2368` and `index.html:2127-2130`.
+      **THE ONE THING THAT WOULD STILL CHANGE THIS NUMBER, and it is now `T-088`:** about **1.25 MB
+      — a third of the library — has no measured gameplay maximum at all.**
+      **Do not resize anything here without a posed pair.** Resizing down softens art on a retina
+      phone (measured, `INBOX-20260902T0048Z`), and this probe's zoom ceiling has been wrong twice
+      in opposite directions.

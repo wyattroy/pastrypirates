@@ -218,7 +218,33 @@ status: DONE 2026-09-01 — CEO 69, commit f2dff2c (2 game files); his solution 
 > doing?" — a black `C:\Program Files\nodejs\node.exe` console, which is the detached release
 > trial itself (screenshot in the session record, read element by element).
 solution: none stated
-status: OPEN — mechanism known: Node ignores `windowsHide` for `detached: true` console children on Windows, so start_trial_detached.mjs's trial gets its own visible console (black — stdio goes to the log). The hazard is real, not cosmetic: one accidental ✕ kills an 85-minute trial silently. Fix shape: launch the detached child windowless on Windows (e.g. via a hidden powershell wrapper or CREATE_NO_WINDOW-equivalent), red-proofed on the Blade. Vendored file — fix in claude-kit.
+status: DONE 2026-09-02 — CEO 110, no game diff — no game code is right: the black window is the SEA TRIAL's child process, not the game -- fixed in sea_trial.mjs, src/ and index.html untouched
+
+  **THE ANSWER TO HIS QUESTION, IN ONE LINE: that window is the sea trial's HELPER process, and it
+  is gone.** Commits `f568f60a` and `8c89680e`, watch 2026-09-02T16:09Z, **CEO 110 (PARTIAL)**.
+
+  ⚠ **THIS ENTRY USED TO STATE A MECHANISM AS "known" AND IT WAS WRONG — corrected here rather than
+  quietly dropped, because a watch was routed by it.** It said *"Node ignores `windowsHide` for
+  `detached: true`… so the trial gets its own visible console"*, and *"Vendored file — fix in
+  claude-kit."* Measured with `AttachConsole` against real spawns: **a `detached: true` child has NO
+  CONSOLE AT ALL** (attach fails; a non-detached one succeeds). The wrapper was innocent and the fix
+  was never in claude-kit. **The window is made one level DOWN: a process with no console that
+  spawns a console child makes Windows hand that child a BRAND-NEW console, and a brand-new console
+  is a visible black window.** So every child `sea_trial.mjs` started was one of these.
+  **The fix is one flag at that boundary** — `windowsHide: true` gives a console with *no window*,
+  and everything spawned below inherits it, which is why four spawn sites cover a whole voyage.
+  `scripts/lib/child_window.mjs` carries the derivation; `scripts/qa/detached_trial_windowless_check.mjs`
+  fails the build if a fifth spawn site ever arrives without it.
+
+  **PROVEN ON THE REAL FILE, BEFORE AND AFTER** — `sea_trial.mjs` recovered at `f568f60a^` and
+  started detached exactly as the wrapper starts it: **`VISIBLE-WINDOW`**; the live file, same
+  launch: **`console, no window`**. ⚠ The child observed is `cmd.exe`; **the `node.exe` in his
+  window's title is almost certainly the 85-minute voyage child, and that one is inferred, not
+  photographed.**
+
+  **ONE THING WAITING ON HIM, in BLOCKED ON WYATT:** the gate proves itself by opening that same
+  window for about a second on every `npm test` (measured 1.0–1.1s). Keeping a check that can
+  actually fail costs him a brief flash; that trade is his to make, not a watch's.
 
 ## INBOX-20260901T1317Z — the "Tap and hold the sea" hint's attention animation flashes rapidly
 > "\"Tap and hold the sea to reveal the board\" tooltip hint's attention-animation, which should be

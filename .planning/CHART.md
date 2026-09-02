@@ -53,32 +53,64 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [x] **THE IMAGE-WEIGHT ASK IS CLOSED — HIS RULING 2026-09-02: call it finished.** 17.79 MB -> 3.89 MB, a 78% reduction; preload 144/144 gated; the last 0.09 MB (2.3%) deliberately left. A MEASURED NUMBER, NOT A
-      ⟨`T-087`⟩
-      GUESS. His question is in BLOCKED ON WYATT.** *"everything else should be resized… according
-      to its maximum pixel size in the real gameplay"*, `INBOX-20260901T1335Z`. Re-measured
-      2026-09-02T15:5xZ, commit `00e85bf2`, **CEO 109 (PARTIAL)**.
-      **COMPRESS is done and large** — `assets/` is **3,873,895 bytes (3.89 MB)** against the
-      17.79 MB he raised it at. **PRELOAD is done** — 144 of 144 pictures warmed at boot, gated.
-      **RESIZE has happened to exactly ONE file**: `assets/about-recipes.jpg`, −137 KB, `a086edcf`.
-      **WHAT IS ACTUALLY LEFT: 12 files, 0.10 MB on disk, ~0.09 MB recoverable — 2.3% of the
-      library — and every one of the twelve is a 4–12 KB icon.**
-      [`.planning/ASSET-DISPLAY-SIZES.md`](ASSET-DISPLAY-SIZES.md) is regenerated and trustworthy
-      for the first time since the WebP renames.
-      ⚠ **AND THE LIST IT REPLACED WAS A TRAP, WHICH IS WHY NOBODY SHOULD HAVE WORKED IT.** The old
-      *"25 candidates / ~0.34 MB"* was led by `icons/flip-heads.png` at **x7.07** — **the
-      flippenator coin.** Its only sighting was an 18px inline icon in the About page's prose; its
-      real slot is 119–211 CSS px in the flip ceremony, a screen the probe never reaches, which is
-      also why its siblings `flip-tails` and `flip-socket` come back NOT SEEN. **Cutting it to 54px
-      would have destroyed the coin.** Same for `crown` (x5.93) and `cupcake` (x5.88) — all three
-      peaking at the same 18×18 slot. The probe now separates gameplay peaks from off-game ones and
-      the exclusion is derived from the surface names it already records, not a list of filenames.
-      Verified independently by CEO 109 down to `src/ui/board.js:2368` and `index.html:2127-2130`.
-      **THE ONE THING THAT WOULD STILL CHANGE THIS NUMBER, and it is now `T-088`:** about **1.25 MB
-      — a third of the library — has no measured gameplay maximum at all.**
-      **Do not resize anything here without a posed pair.** Resizing down softens art on a retina
-      phone (measured, `INBOX-20260902T0048Z`), and this probe's zoom ceiling has been wrong twice
-      in opposite directions.
+- [ ] **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: *"claude my
+      friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the
+      chart."* Every one is `glass.mjs`, which is editable in-repo. Sizing: 1, 3, 4 and 5 are each
+      MINUTES. Only 2 needs thought.**
+      ⟨`T-088`⟩
+
+      **1 · WHAT IS BEING WORKED ON RIGHT NOW, under the status dot.** *"what is being worked on
+      RIGHT NOW? that needs to be visible just underneath the emoji status."* Derive it from the
+      newest `claims` line in `.planning/CTO-LEDGER.md` — the Door already requires a claim before a
+      watch touches anything, so the fact is on disk. **Between watches there is no claim: render
+      *"nothing in hand"*, NEVER the last thing finished.** A status line that keeps showing a
+      completed item is the lie this page has told all day.
+
+      **2 · "LAST PROGRESS 25 MIN AGO" WHEN WORK WAS 4 MINUTES OLD — and the number is not lying,
+      the PAGE is stale.** Measured at 16:12:47Z: `HEARTBEAT` said **16:09:00Z**, four minutes
+      earlier. The page had been published 13 minutes before and **a published page is a STATIC
+      photograph** — its "25 min ago" was computed at publish time and has been ageing on screen
+      ever since. `glass_needs_publish.mjs` then correctly declines to republish when nothing has
+      *changed*, so **the staleness he sees is worst exactly when the relay is quietly working.**
+      **THE FIX IS NOT MORE PUBLISHING** — he charged the timer design once already and CEO 80
+      upheld him. **Make the page compute its own age in the browser** from the timestamps embedded
+      in it: it already carries `generatedAt`, so a few lines of client script can render *"last
+      progress N min ago"* live and, better, say *"this page is N minutes old"* when it is stale
+      rather than presenting an aged number as current.
+
+      **3 · HIDE `YOUR CALL` WHEN IT IS EMPTY.** *"if there are no calls for me to make, don't show
+      the Your Call box."* One conditional. **⚠ And do NOT hide it when the count is 0 for the wrong
+      reason:** the card renders only `|` table rows in `## BLOCKED ON WYATT`, so a question written
+      there as PROSE renders as `(0)` while genuinely waiting — that is `T-077`, still open. **Hide
+      an empty card; never hide an unparseable one. If the section has content the renderer could
+      not read, the card must say so.**
+
+      **4 · NUMBERS, NOT BULLETS.** *"the Chart is still not using numbers -- it's using bullet
+      points. it needs numbers."* `<ol>` instead of `<ul>`. **This is the second time he has asked**
+      (INBOX-20260902T13xxZ). RANK now orders the list, so the numbers are the whole point: without
+      them the ordering he asked for four times is invisible.
+
+      **5 · THE ALL-CAPS SHOUTING — the Glass is innocent and the CHART is the culprit.**
+      `glass.mjs:288` `shortTask()` takes each row's first line, strips markdown, truncates to 16
+      words — **and renders whatever the row says, verbatim.** Watches write row titles in ALL CAPS
+      for emphasis inside `CHART.md`, so the page inherits the shouting. **TWO POSSIBLE FIXES AND
+      THEY ARE NOT EQUIVALENT:** (a) sentence-case the title at render time — one line, immediate,
+      and it cannot regress; (b) a convention that rows are written in sentence case — durable but
+      it is prose, and prose rules fail here (Principle 2). **Recommend (a) now and (b) as a gate
+      later.** *(Related, same screenshot: his note read* "evidence from before today's 2026." —
+      **cut off mid-sentence.** *The note text is being truncated too, and that is the same class:
+      the page clipping content rather than the content being wrong.)*
+
+      **WHERE HIS EARLIER GLASS ASKS WENT, because he asked and deserves the honest list:**
+      **expandable rows** and **a comment box under each item** are `T-076`, filed and open.
+      **Numbers** and **what-is-being-worked-on** were filed at INBOX-20260902T13xxZ and were sitting
+      NINTH in an eight-item oldest-first queue. **Hiding Your Call and the ALL-CAPS are new here.**
+      **Nothing was lost — but nothing was built either, and that is the point of his message.**
+
+      **AND HOW HE PRIORITISES THEM HIMSELF is already designed and unbuilt: `T-083`** — RANK becomes
+      the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
+      Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
+      loop. **Until that ships, "put it at the top" is something only a session can do for him.**
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -109,6 +141,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -136,10 +173,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
 
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
-
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -155,6 +188,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+
+
+
 
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
@@ -177,10 +213,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
-
-
-
-
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -479,75 +511,63 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
   > the explicit branch name**, because that is the form that works. (b) costs one line and removes
   > the failure entirely.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
+- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
+      he has now reported this exact fault TWICE, about two different cards.** Filed
+      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
+      ⟨`T-090`⟩
+      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
+      this question on the Glass once -- now it seems to be asking me again."*
+      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
+      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
+      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
+      answer creates a row; **nothing retires the question.**
+      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
+      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
+      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
+      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
+      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
+      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
+      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
+      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
+      the row and writes the ledger together so they cannot disagree.
+      **AND GATE IT, because the ungated twin is what allowed this:** extend
+      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
+      corresponding harvested ruling. Red-proof both ways.
+      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
+      third time. That is a repair, not the fix.)*
+
+- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
+      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
+      **Sizing: this is a rule and a hook, not a feature.**
+      ⟨`T-091`⟩
+      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
+      the same question to him through the question UI at roughly **12:22**, and closed the item on
+      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
+      He had to decide the same thing twice and then work out why.
+      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
+      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
+      the failure this system exists to stop."* **The Advisor read neither the page nor
+      `BLOCKED ON WYATT` before asking.**
+      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
+      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
+      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
+      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
+      a hook that silently swallows a real question is worse than the double-ask it prevents.
+      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
+      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
+      thirty seconds and it would have caught this one.
+
 - [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
       ⟨`T-024`⟩
       real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
       session that commits a note and the session that next publishes are not the same one. Same
       class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
       propose a mechanism itself.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **FIX THE GLASS — his five asks from the screenshot, 2026-09-02T16:1xZ. HIS WORDS: *"claude my
-      friend, you just HAVE to fix the glass. Don't do it yourself -- put it to the TOP of the
-      chart."* Every one is `glass.mjs`, which is editable in-repo. Sizing: 1, 3, 4 and 5 are each
-      MINUTES. Only 2 needs thought.**
-      ⟨`T-088`⟩
-
-      **1 · WHAT IS BEING WORKED ON RIGHT NOW, under the status dot.** *"what is being worked on
-      RIGHT NOW? that needs to be visible just underneath the emoji status."* Derive it from the
-      newest `claims` line in `.planning/CTO-LEDGER.md` — the Door already requires a claim before a
-      watch touches anything, so the fact is on disk. **Between watches there is no claim: render
-      *"nothing in hand"*, NEVER the last thing finished.** A status line that keeps showing a
-      completed item is the lie this page has told all day.
-
-      **2 · "LAST PROGRESS 25 MIN AGO" WHEN WORK WAS 4 MINUTES OLD — and the number is not lying,
-      the PAGE is stale.** Measured at 16:12:47Z: `HEARTBEAT` said **16:09:00Z**, four minutes
-      earlier. The page had been published 13 minutes before and **a published page is a STATIC
-      photograph** — its "25 min ago" was computed at publish time and has been ageing on screen
-      ever since. `glass_needs_publish.mjs` then correctly declines to republish when nothing has
-      *changed*, so **the staleness he sees is worst exactly when the relay is quietly working.**
-      **THE FIX IS NOT MORE PUBLISHING** — he charged the timer design once already and CEO 80
-      upheld him. **Make the page compute its own age in the browser** from the timestamps embedded
-      in it: it already carries `generatedAt`, so a few lines of client script can render *"last
-      progress N min ago"* live and, better, say *"this page is N minutes old"* when it is stale
-      rather than presenting an aged number as current.
-
-      **3 · HIDE `YOUR CALL` WHEN IT IS EMPTY.** *"if there are no calls for me to make, don't show
-      the Your Call box."* One conditional. **⚠ And do NOT hide it when the count is 0 for the wrong
-      reason:** the card renders only `|` table rows in `## BLOCKED ON WYATT`, so a question written
-      there as PROSE renders as `(0)` while genuinely waiting — that is `T-077`, still open. **Hide
-      an empty card; never hide an unparseable one. If the section has content the renderer could
-      not read, the card must say so.**
-
-      **4 · NUMBERS, NOT BULLETS.** *"the Chart is still not using numbers -- it's using bullet
-      points. it needs numbers."* `<ol>` instead of `<ul>`. **This is the second time he has asked**
-      (INBOX-20260902T13xxZ). RANK now orders the list, so the numbers are the whole point: without
-      them the ordering he asked for four times is invisible.
-
-      **5 · THE ALL-CAPS SHOUTING — the Glass is innocent and the CHART is the culprit.**
-      `glass.mjs:288` `shortTask()` takes each row's first line, strips markdown, truncates to 16
-      words — **and renders whatever the row says, verbatim.** Watches write row titles in ALL CAPS
-      for emphasis inside `CHART.md`, so the page inherits the shouting. **TWO POSSIBLE FIXES AND
-      THEY ARE NOT EQUIVALENT:** (a) sentence-case the title at render time — one line, immediate,
-      and it cannot regress; (b) a convention that rows are written in sentence case — durable but
-      it is prose, and prose rules fail here (Principle 2). **Recommend (a) now and (b) as a gate
-      later.** *(Related, same screenshot: his note read* "evidence from before today's 2026." —
-      **cut off mid-sentence.** *The note text is being truncated too, and that is the same class:
-      the page clipping content rather than the content being wrong.)*
-
-      **WHERE HIS EARLIER GLASS ASKS WENT, because he asked and deserves the honest list:**
-      **expandable rows** and **a comment box under each item** are `T-076`, filed and open.
-      **Numbers** and **what-is-being-worked-on** were filed at INBOX-20260902T13xxZ and were sitting
-      NINTH in an eight-item oldest-first queue. **Hiding Your Call and the ALL-CAPS are new here.**
-      **Nothing was lost — but nothing was built either, and that is the point of his message.**
-
-      **AND HOW HE PRIORITISES THEM HIMSELF is already designed and unbuilt: `T-083`** — RANK becomes
-      the single ordering authority, the Door stops draining oldest-first, and **a checkbox under the
-      Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
-      loop. **Until that ships, "put it at the top" is something only a session can do for him.**
 
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
       ⟨`T-025`⟩
@@ -838,7 +858,6 @@ and fix: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) 
 | Question | Recommendation | since |
 |---|---|---|
 | **That black window you asked about is fixed — but the check that keeps it fixed flashes one for about a second every time we run the checks. Is that price OK?** The window was the sea trial's own helper process, and it is gone. To make sure it stays gone, the new safety check deliberately opens one itself for about a second and confirms it can see it — because a check that can't tell a window from no window would go green forever on a broken build, which is how 183 hidden browsers piled up on your laptop this morning. The cost: `npm test` runs often, and inside every sea trial, so you will see a brief black flash more often than before. Measured: the whole check takes 1.0–1.1 seconds. | **Recommended: keep it.** A one-second flash you understand is a better trade than a check that can quietly go blind — and the flash is now the ONLY window the trial makes, where before it made a window that sat there for 85 minutes. Alternatives: (b) run the flashing half only in the sea trial, not in every `npm test` — quieter, but then a laptop that never sails never checks; (c) drop the self-test, which makes the check unfalsifiable and is the option this project has been burned by three times. | 2026-09-02T16:5xZ |
-| **Your images ask, last third: shrinking the rest of the art is worth about 2%. Call it finished, or spend a watch on it?** You asked for everything except the board to be resized to the biggest size the game ever draws it. That is now measured properly for the first time: **12 files, and cutting all twelve saves about 0.09 MB out of 3.89 MB.** They are 4–12 KB icons. Compressing already took the art from 17.79 MB to 3.89 MB, so this last slice is a rounding error — and every cut risks softening a picture on a retina phone, so each one wants a before/after screenshot. **Separately: a third of the library (1.25 MB) has never been measured at all, and that number could go up.** | **Recommended: call the resize half FINISHED and spend the watch on measuring the unmeasured third instead** — it is the only thing that could change the answer. Alternatives: (b) cut the twelve anyway, ~0.09 MB, one watch; (c) leave both and move to the sea trial, which no build on this branch has ever completed. | 2026-09-02T16:0xZ |
 
 *(the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
 is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below. The row
