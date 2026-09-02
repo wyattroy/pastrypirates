@@ -3125,3 +3125,53 @@ took **820 files, 0 already rewritten**. The evidence is out of reach now.
   evidence. Fixing it bumps the stamp and retires all 315 judged screens — the trap that has cost
   four trials in a day — so the next watch should decide *fix first* or *stage first* knowingly,
   rather than discover it afterwards.
+
+---
+
+## WATCH 2026-09-02T03:48Z — Wy-Blade — parts 2 and 3 of ruling 12: stage it, and hand him the link
+
+**SITUATION AT THE BELL.**
+- **Watch started** 2026-09-02T03:48Z on `claude/cloud-handoff-planning-a9ay1u`, Wy-Blade.
+  `can_push.mjs`: can publish (tracking, no rebase or merge in flight). Tree at `da7fe9be`,
+  0 ahead / 0 behind origin.
+- **Last progress** `da7fe9be` (03:48:04Z) — an ADVISOR session is live on this branch tonight and
+  was still committing as this watch woke: two harvest commits (his Tasks-card rename idea, the
+  reiterated Tasks/Lesson reorder), and it has written
+  `.planning/HANDOFF-2026-09-02-ADVISOR-NIGHT.md`. **Read that handoff rather than re-deriving it.**
+  It published the Glass at 03:48:39Z, `version=1788320906-25bc` (`LAST-PUBLISH`).
+- **The previous watch (03:00Z) closed** INBOX-20260902T0050Z — the 0137Z judging pass, 315 of 315
+  screens judged, CEO 87, no game diff. It deliberately fixed nothing and staged nothing, and named
+  the choice it was leaving: *fix first or stage first, knowingly.*
+- **Blocked on Wyatt:** three things, all in the handoff's table — the End-of-Voyage button on a
+  phone, the "Bake this!" badge, and ten seconds on his iPhone about the black-market coin. **None
+  of them blocks staging**; staging is what puts them in front of him.
+- **Detached trial in flight: NONE.** `.planning/wyclau/LONG-RUN` is absent and pid 24232 is gone;
+  the 0137Z run finished with a complete report. Nothing is sailing, so nothing can be disturbed.
+- **THIS WATCH TAKES ONE ITEM: INBOX-20260901T1315Z, parts 2 and 3 — stage the release and hand
+  Wyatt the link.**
+
+**WHY THIS ITEM, and it is a choice between two defensible ones, so here is the reasoning rather
+than a bare pick.** His ruling 12 is the oldest live Inbox item and its own words are *"run the
+trial in a way that survives session death, **stage it, hand you the link**"*. Part 1 has been done
+and proven twice. Parts 2 and 3 have been correctly held for two days behind three gates, and **all
+three are open for the first time tonight**: `npm test` is green, the trial sailed 10 of 10 legs,
+and as of the 03:00Z watch every one of its 315 screens has been judged on `2026.09.01.8` — the
+stamp in the tree. The evidence is not merely adequate; the NOT-RUN column is empty and the
+unjudged column is empty, which has never both been true before.
+
+**AND IT IS THE ONE ITEM THAT RETIRES NOTHING.** Every other open item changes game code or assets,
+which bumps the stamp and throws away those 315 judged screens — that has now happened four times
+in one day and is the single biggest cost the project is paying. Staging touches no source file:
+the deploy script stamps the COPY, never the tree. So this watch converts complete evidence into
+the only thing that can actually rule on it — Wyatt playing it — without spending the evidence.
+
+**The four older OPEN Inbox items, each with its reason rather than a bare skip.** (1335Z
+compress/resize) its remaining executable lever IS the WebP conversion below, so it is not
+separately actionable. (0048Z recipe pictures, his ruling *"Do it"*) real, scoped, and a watch's —
+but it rewrites `assets/`, `src/` and `classic/`, retiring the 315 screens for the fifth time; it
+is the right item for the watch AFTER this one, ideally batched with the two real defects so one
+trial pays for all three. (1340Z Glass line breaks) his own routing is *backlog* and the generator
+is vendored from claude-kit. (1440Z black console) vendored, "fix in claude-kit" by its own filing.
+
+**CLAIMED: INBOX-20260901T1315Z parts 2 and 3.** No `src/`, `index.html`, `assets/` or `classic/`
+change will be made by this watch — a stamp bump would retire the very evidence being staged on.
