@@ -1367,6 +1367,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
+| <!--qid:admin-console-where--> **Your player-count console — where should it live?** You asked for *"a firebase admin console so I can see how many people are playing"*. **Measured first: the current game has NO stats or admin page at all** — `stats.html` and `lab.html` do not exist at the repo root; the only one in the repo is `classic/stats.html`, inside the frozen v1. So this is a new surface however it is built, and where it goes is yours. | **Recommended: a new `/stats.html`, blocked in `robots.txt`** — it matches the v1 precedent exactly, you can open it from any device without logging into Firebase, and being robots-blocked keeps it from competing with the game in search. · **Or** fold it into the game as a screen only you can reach — fewer files, but it puts an admin view inside the thing real players load. · **Or** keep it off the site entirely as a script you run on the laptop — safest, and useless from your phone. | 2026-09-02 7:40 PM ET |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
