@@ -1648,3 +1648,48 @@ status: OPEN — FOR A WATCH. **This entry stays OPEN deliberately: it is the BU
      decision. **That is why the plan hardens the join BEFORE automating on it.**
   3. **The handle eats 5 of the 40 characters**, and questions sharing a handle are exactly the ones
      asked together — **as his two were today.**
+
+## INBOX-20260902T225008Z — HIS RULING: a new `/rules.html`, built from the latest version of the game
+
+**HIS WORDS, VERBATIM** (Glass ruling `rules-page-1-of-4-which-page-becomes-th`, 2026-09-02T22:50:08.719Z = 6:50:08 PM ET):
+
+> Do a new /rules.html that explains the rules -- using the latest version of the game.
+
+**THE QUESTION:** *"RULES PAGE 1 of 4 — which page becomes THE rules page? You asked for this split before anything gets built."*
+
+solution: his own — **a NEW page at `/rules.html`**, not the About page and not the in-game modal promoted. And **written from the CURRENT game**, which is a second instruction inside the same sentence.
+
+status: OPEN — FOR A WATCH. This is the answer that unblocks `INBOX-20260902T190730Z` (build the rules page).
+
+  ⚠ **"USING THE LATEST VERSION OF THE GAME" IS NOT DECORATION — IT IS THE HALF THAT WILL GET
+  SKIPPED.** The in-game "How to play" modal holds 765 words written at some earlier point;
+  `about.html` holds another account. **Neither is evidence of what the game does today.** Whoever
+  builds this must check the rules against the shipped game — the wind rule, crate pricing as an
+  island empties, how a broadside resolves downwind, the shot clock — rather than copying the best
+  existing prose forward. **Copying is what makes three pages that disagree.**
+  **AND RULE 23 STILL GOVERNS IT** (`INBOX-20260902T190730Z`, his own words): the modal and the new
+  page must not become two copies. His ruling says which page is authoritative; it does not say the
+  other may drift.
+
+## INBOX-20260902T225032Z — HIS RULING on what About keeps — ⚠ AND HIS NOTE APPEARS TRUNCATED
+
+**HIS WORDS, VERBATIM AND UNEDITED** (Glass ruling `rules-page-2-of-4-what-does-about-keep`, 2026-09-02T22:50:32.687Z = 6:50:32 PM ET):
+
+> Agree with your rec -- delete "how it plays
+
+**THE QUESTION:** *"RULES PAGE 2 of 4 — what does About keep?"*
+
+solution: he agrees with the recommendation that was standing on that question, and names deleting About's "How it plays" section. **Read the recommendation as it stood — his "agree with your rec" points at it, and it is the operative half.**
+
+status: OPEN — FOR A WATCH, **and the wording is flagged, not guessed.**
+
+  ⚠ **THE NOTE ENDS MID-QUOTE: `delete "how it plays` — an opening quotation mark with no close.**
+  It is recorded here exactly as stored, and **nobody should complete that sentence on his behalf.**
+  Two readings, and they are not the same job: *delete the "How it plays" section from About* (most
+  likely, and it matches the standing recommendation), or *delete it and something further he was
+  still typing*.
+  **AND TRUNCATION OF HIS WORDS IS A LIVE, KNOWN FAULT ON THIS PAGE — commit `1d852187` today:
+  *"his page was cutting his own words off wherever CHART.md happens to wrap."*** So this is not
+  idle caution: **the possibility that the page ate the rest of his sentence is a measured
+  behaviour, not a hypothetical.** Whoever picks this up should confirm the wording with him before
+  deleting anything from a public page.
