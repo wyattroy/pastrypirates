@@ -3723,3 +3723,56 @@ reading the rule is plainly not enough to obey it.
   — not this change, which touches `scripts/wyclau/`, `scripts/qa/` and `.planning/` only. No
   `src/`, no `index.html`, nothing a player can reach. `npm test` is the honest depth; a sea trial
   cannot say anything about a Chart-ordering tool.
+
+### WHAT THIS WATCH DID — four collisions fixed, and the honest size is SMALL. `T-001` NOT ticked.
+
+**THE PREDICTION WENT ON DISK BEFORE THE MEASUREMENT AND IT HELD ON EVERY POINT.**
+`.planning/wyclau/PREDICTION-20260902T0649Z-duplicate-keys.md`, committed `889b1456` at 02:51:49,
+before the RED gate at 02:54:23 and the fix at 02:57:13. It named three ways it could be proved
+wrong. All three predictions held: exactly one colliding id, the wrong answer LATENT rather than
+visible, and no duplicate row titles today.
+
+**THE HONEST SIZE, SAID FIRST BECAUSE IT IS THE PART THAT COULD BE OVERSOLD: nothing on his page
+was wrong.** Both entries under `INBOX-20260902T05xxZ` were open, and no row on the Chart cited that
+stamp at all. **The defect was that the value was UNGROUNDED — it turned on the order he happened to
+write his notes in — not that it was wrong.** The real Chart's ranking is byte-identical before and
+after this watch. This was a guard, not a repair.
+
+**FOUR LOOKUPS, ONE SHAPE.** `new Map(pairs)` keeps the last value for a repeated key in silence.
+(1) his Inbox, keyed by a stamp two notes shared; (2) `reapById` and (3) `settleByTitle`, keyed by a
+row's TITLE, which nothing forbids two rows from sharing; (4) `applySettle`'s split match and SWEEP,
+same. Rows now carry `row.key` — unique by construction, defined once as `rowKey()` in
+`chart_model.mjs` — and the write pass TRACKS which row landed in which slot rather than
+re-deriving identity from the text afterwards. The record itself was repaired too: the second
+`05xxZ` note has its own stamp now, after grepping that nothing anywhere cites either.
+**Ten gate cases (block 12), five red first. `npm test` 94/94.**
+
+**CEO 95 SAID PARTIAL AND THE HEADLINE FINDING WAS RIGHT.** The banner I added told him a row citing
+an ambiguous stamp *"cannot be read as approval"* — **false in exactly the case that had happened in
+his Inbox**, where both notes were open and the citation therefore WAS credited. A behavioural claim
+written into the one place he reads. **That is CEO 94's finding, one commit later, in the same
+file.** The code was the half that was right — two open notes mean the same answer whichever was
+meant — so the words became the code's, and case 12a-ii now fails if they drift apart. It also
+red-proofs 12a: a "fix" that simply refused every ambiguous stamp passes 12a and fails 12a-ii.
+Three more findings of CEO 95's fixed in the same watch: `applySettle` still keyed on title three
+lines from the fault just fixed; SWEEP had no gate case at all; and a comment crediting an
+unreachable guard with holding case 11b up when the caller's filter is what holds it.
+
+**WHAT THIS WATCH DID NOT DO.**
+- **CEO 95's best point stands and is now the top note on `T-001`: nothing runs this tool.** It
+  re-orders his list only when somebody types the command. Not new — the row already said so, and
+  the wiring is `PENDING-KIT-PATCHES.md` 4 and 5, blocked on a vendored file — but CEO 95 is right
+  that it outranks more internal keying work, and his complaint was a stale list.
+- **`T-001` IS NOT TICKED and nothing was closed through `close_item.mjs`.** The row has parts that
+  are blocked (a vendored `glass.mjs`) and parts that are design decisions for Wyatt.
+- The other two gaps CEO 94 named are untouched by design: the unrelated-stamp hole (his call) and
+  the tokeniser (touches every signal at once, deserves its own measurement).
+
+**HOUSEKEEPING, AND ONE THING A HUMAN MUST DO.** No browser and no server were started. Commits used
+explicit pathspecs throughout. ⚠ **An untracked scratch file, `scripts/qa/tmp_dupkey_measure.mjs`,
+is still in the tree and this session could not delete it** — `rm`, PowerShell `Remove-Item` and
+`git clean` are all refused by this machine's sandbox for a path inside the repo, measured three
+ways, not assumed. It was never committed and nothing imports it; its own first line says DELETE ME.
+**Anyone with delete rights should remove it.** No Artifact tool in this session (measured: a
+`ToolSearch` returns nothing), so the Glass was not published and `mark_glass_published.mjs` was not
+stamped; the pulse went to `GLASS-NOTE.md`.
