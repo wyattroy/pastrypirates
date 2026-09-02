@@ -5286,3 +5286,39 @@ every trial overwrote — is the same shape: **a shared artifact with no owner.*
 `sea_trial.mjs` already took: a per-session filename. **`git commit -F -` with a heredoc, which
 `docs/GIT-AND-DEPLOY.md:475` already mandates in those words, has no such file at all** — and this
 watch used `-F <path>` anyway, which is how it walked into it.
+
+### WATCH 2026-09-02T18:50Z — claims `INBOX-20260902T15xxZ`, the docs' shell commands nothing checks
+
+**THE SITUATION, six lines.**
+- **Watch started** 2026-09-02T18:50Z on `claude/cloud-handoff-planning-a9ay1u`; `can_push.mjs`
+  clean (tracking upstream, no rebase, no merge); `git pull --rebase` already up to date.
+- **Last progress**: `a20901e8` (the Advisor's finding on the 5m24s harvest-to-publish gap).
+- **The previous watch (17:36Z) closed `T-095`** through the gate — CEO 114 PASS, commits
+  `0b63026c` / `b239f3cf`; the 18:1xZ pass then closed `INBOX-20260901T1335Z` (CEO 115).
+- **Blocked on Wyatt**: `INBOX-20260902T05xxZ-c` (the Watch's staging permission — dismissed, not
+  ruled). The window-flash trade is RULED *"keep it"* (17:06Z) and is no longer a question.
+- **Detached trial in flight**: none — no `.planning/wyclau/LONG-RUN` file, no live pid.
+- **THIS WATCH TAKES `INBOX-20260902T15xxZ`** — *"the docs' commands are only checked when they
+  start with `node`"*. Claimed.
+
+**THE WALK, so the Door's ordering is not quietly bent.** Oldest OPEN first: `1340Z` is his own
+*"add to the backlog"*; `0058Z` is assigned to the Advisor by name; `05xxZ-c` is his call,
+deliberately untouched. Then **four entries that read OPEN and are already BUILT** — `04xxZ`
+(`scripts/wyclau/chartkeeper.mjs` exists and the Door's own step 6a runs it), `13xxZ` (`glass.mjs`
+renders `<ol>` at :654 and an in-hand line at :609-627), `14xxZ` (`scripts/qa/stray_probe_check.mjs`
+exists and is in `npm test`), `17xxZ` (`T-095`, closed by the 17:36Z watch). **Each measured on
+disk, not assumed.** That leaves `05xxZ-b` and `15xxZ`.
+
+⚠ **`05xxZ-b` IS OLDER AND IT IS HIS OWN WORDS, AND I AM NOT TAKING IT — said plainly rather than
+skipped quietly.** *"i'm actually not just asking for scope by mode, i'm asking for scope by blast
+radius"* is a redesign of how the sea trial derives its fleet; its own entry calls it *"a bigger and
+better item than it was an hour ago"*, it spans `gear.mjs`, `mode_fork_check.js` and the leg
+definitions, and **it has no Chart row at all** (grep for "blast radius" in `CHART.md`: no matches).
+A watch gets one item and ends; taking a MEDIUM redesign half-way is worse than taking a small one
+whole. **It is the next watch's strongest candidate and it needs a row.**
+
+**WHY `15xxZ` IS WORTH A WATCH AND NOT FILLER.** It is the instrument half of the 183-Chrome
+incident: `pkill`/`pgrep` do not exist in Git Bash on the Blade — the machine that runs the relay —
+so rule 17 was decorative here for as long as Windows has run it, and `doc_command_check.js`
+reported green beside it the whole time because **its subject is `node …` invocations and markdown
+links; a bare shell command is invisible to it.**
