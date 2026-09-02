@@ -30,6 +30,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openChrome } from "../lib/cdp.mjs";
 import { openWebKit } from "../lib/wk.mjs";
+/* WHERE EACH GAME LIVES IS NOT THIS FILE'S TO DECIDE. The first version of this probe hand-typed
+   `/classic/src/ui/recipe.js`, which is precisely what `game_url_check.js` forbids and why it
+   exists — and it turned the whole suite red for about ninety minutes on 2026-09-02. Both trees
+   now come from the one place that owns them. */
+import { GAME_PATH, CLASSIC_PATH } from "../lib/chrome.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -39,8 +44,8 @@ fs.mkdirSync(OUT, { recursive: true });
 const RECIPE_INDEX = 20;   // the same subject every earlier step of this item photographed
 
 const TREES = [
-  { name: "the game", page: "/index.html", mod: "/src/ui/recipe.js" },
-  { name: "/classic", page: "/classic/index.html", mod: "/classic/src/ui/recipe.js" },
+  { name: "the game", page: `${GAME_PATH}index.html`, mod: `${GAME_PATH}src/ui/recipe.js` },
+  { name: "/classic", page: `${CLASSIC_PATH}index.html`, mod: `${CLASSIC_PATH}src/ui/recipe.js` },
 ];
 
 let bad = 0;
@@ -92,10 +97,10 @@ try {
   /* ---- 2. THE FROZEN v1's OWN MODAL, photographed. It shares these files and nobody here opens
      it, so a picture of it is the only thing that can say it is really all right. Its modal takes
      an ingredient list and needs no game, so it opens directly. ---- */
-  await t.nav(`${base}/classic/index.html`);
+  await t.nav(`${base}${CLASSIC_PATH}index.html`);
   await sleep(2500);
   const classicOpened = await t.ev(`(async()=>{
-    const m=await import('/classic/src/ui/recipe.js');
+    const m=await import('${CLASSIC_PATH}src/ui/recipe.js');
     if(m.attachPastryArt) m.attachPastryArt();
     m.openRecipeModal(m.RECIPE_BOOK[${RECIPE_INDEX}].ings);
     const im=document.querySelector('.recipeModalThumb');
@@ -112,10 +117,10 @@ try {
   console.log(`  wrote .planning/posed/pastry-webp-shipped-classic.png`);
 
   // ---- 3. photograph the modal in the real game, at the phone size he plays on ----
-  await t.nav(`${base}/index.html`);
+  await t.nav(`${base}${GAME_PATH}index.html`);
   await sleep(1200);
   await t.ev("localStorage.clear()");
-  await t.nav(`${base}/index.html`);
+  await t.nav(`${base}${GAME_PATH}index.html`);
   await sleep(2500);
   await t.ev(`document.getElementById('choiceSolo').click()`);
   for (let i = 0; i < 40; i++) {
@@ -130,7 +135,7 @@ try {
   }
   await sleep(2500);
   const opened = await t.ev(`(async()=>{
-    const m=await import('/src/ui/recipe.js');
+    const m=await import('${GAME_PATH}src/ui/recipe.js');
     m.openRecipeModal(m.RECIPE_BOOK[${RECIPE_INDEX}].ings);
     const im=document.querySelector('.recipeModalThumb');
     if(!im) return 'no thumb';

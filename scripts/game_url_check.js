@@ -47,26 +47,46 @@ const PROSE_OK = new Set([OWNER, path.join(SCRIPTS, "lib_twin_check.js"), path.j
 
 console.log("game_url_check — one spelling of where the game is served, and it must be the game\n");
 
-// 1. GAME_PATH must actually point at the game. This is the check that would have caught the cutover.
-let gamePath = null;
-{
+/* ONE QUESTION, ASKED OF EVERY TREE THE FLEET CAN NAVIGATE TO: does this path really hold a game?
+   Not "a file is there" — the game specifically. Every driver's first act is clicking #choiceSolo,
+   so its absence is precisely what breaks them, and a directory listing or the wrong tree's
+   index.html would both sail past a mere existence check.
+
+   ONE function rather than one per constant, and that is rule 23 rather than tidiness: the second
+   tree's guard was first written as a copy of the first tree's, and two checks kept in step by
+   discipline are two checks that drift. This is also the seam the red-proof drives, so the thing
+   proved able to fail is the thing that runs. */
+const whyNotAGame = (p) => {
+  const idx = path.join(REPO, p, "index.html");
+  if (!fs.existsSync(idx)) return `${path.relative(REPO, idx)} does not exist`;
+  if (!fs.readFileSync(idx, "utf8").includes("choiceSolo")) return "its index.html has no #choiceSolo — that is not a game the drivers can drive";
+  return null;
+};
+
+const treeCase = (constName, what) => {
   const src = fs.readFileSync(OWNER, "utf8");
-  const m = src.match(/export const GAME_PATH\s*=\s*["'`]([^"'`]*)["'`]/);
-  if (!m) fail("scripts/lib/chrome.mjs does not export GAME_PATH — the fleet has no single spelling");
-  else {
-    gamePath = m[1];
-    const idx = path.join(REPO, gamePath, "index.html");
-    if (!fs.existsSync(idx)) fail(`GAME_PATH is "${gamePath}" but ${path.relative(REPO, idx)} does not exist`);
-    else {
-      const html = fs.readFileSync(idx, "utf8");
-      /* Not "a file is there" — the game specifically. Every driver's first act is clicking
-         #choiceSolo, so its absence is precisely what breaks them, and a directory listing or the
-         wrong tree's index.html would both pass a mere existence check. */
-      if (!html.includes("choiceSolo")) fail(`GAME_PATH "${gamePath}" has an index.html with no #choiceSolo — that is not the game the drivers drive`);
-      else pass(`GAME_PATH "${gamePath}" serves the game (index.html has #choiceSolo)`);
-    }
-  }
-}
+  const m = src.match(new RegExp(`export const ${constName}\\s*=\\s*["'\`]([^"'\`]*)["'\`]`));
+  if (!m) { fail(`scripts/lib/chrome.mjs does not export ${constName} — ${what} has no single spelling`); return null; }
+  const why = whyNotAGame(m[1]);
+  if (why) fail(`${constName} is "${m[1]}" but ${why}`);
+  else pass(`${constName} "${m[1]}" serves ${what} (index.html has #choiceSolo)`);
+  return m[1];
+};
+
+// 1. GAME_PATH must actually point at the game. This is the check that would have caught the cutover.
+treeCase("GAME_PATH", "the game the drivers drive");
+
+/* 1b. AND THE SAME QUESTION OF THE FROZEN v1. `/classic` is v1, not developed, and it shares this
+   repo's `assets/` folder — so a probe that photographs it (to prove a format change did not blank
+   the old game's recipe art) has to name it. The moment a script names it as a string literal we
+   are back to a path nothing makes agree, which is what case 3 forbids.
+
+   So CLASSIC_PATH joined GAME_PATH in chrome.mjs on 2026-09-02, and this case is the price of it:
+   the second tree gets a single spelling AND a guard, exactly as the first one does. Without this,
+   moving or renaming `classic/` would leave every classic-facing probe navigating to a directory
+   listing and reporting the frozen game as broken — the 2026-08-26 failure, replayed on the tree
+   nobody watches. */
+treeCase("CLASSIC_PATH", "the frozen v1");
 
 // 2. Nobody else may hardcode a local game URL.
 {
@@ -144,9 +164,16 @@ let gamePath = null;
   const pathRe = /["'`]([^"'`]*\b4\/(?:src|index\.html)[^"'`]*)["'`]/;
   const catchesRead = readRe.test(deadRead) && pathRe.test(deadRead);
   const sparesProse = !(readRe.test(proseOnly) && pathRe.test(proseOnly));
-  if (catchesURL && catchesImport && sparesCDP && catchesRead && sparesProse)
-    pass("red-proof: catches the URL, the import and the dead file read; spares the CDP fetch and plain prose");
-  else fail(`red-proof FAILED (url:${catchesURL} import:${catchesImport} sparesCDP:${sparesCDP} read:${catchesRead} sparesProse:${sparesProse})`);
+  /* …and cases 1/1b, through the REAL function they run on, not a copy of it. A tree constant
+     pointing somewhere with no index.html must be condemned; the tree that genuinely holds a game
+     must be spared. `scripts/` is the honest negative here — it is a real directory in this repo
+     with no index.html in it, so this proves the check looks at CONTENT rather than merely at
+     whether the string is non-empty. */
+  const catchesBogusTree = whyNotAGame("/no-such-tree/") !== null && whyNotAGame("scripts") !== null;
+  const sparesRealTree   = whyNotAGame("/") === null;
+  if (catchesURL && catchesImport && sparesCDP && catchesRead && sparesProse && catchesBogusTree && sparesRealTree)
+    pass("red-proof: catches the URL, the import, the dead file read and a tree constant that holds no game; spares the CDP fetch, plain prose and the real tree");
+  else fail(`red-proof FAILED (url:${catchesURL} import:${catchesImport} sparesCDP:${sparesCDP} read:${catchesRead} sparesProse:${sparesProse} bogusTree:${catchesBogusTree} realTree:${sparesRealTree})`);
 }
 
 console.log(`\n${failures ? "FAIL" : "PASS"} — ${failures} failure(s)`);
