@@ -912,3 +912,59 @@ status: OPEN — the ruling is filed; the retire is with the live `T-095` watch;
   again is the only rational thing he can do. **The record was right and every reader of it was
   wrong**, which is why the fix has to be in the harvest, not in a sentence telling sessions to
   look harder.
+
+## INBOX-20260902T1845Z — a Glass publish went out 5m24s after its last harvest, and NOBODY CAN SAY WHETHER THE PAGE WAS RE-READ
+
+> Not his words — the Advisor's finding, raised with the Glass-update session, whose own answer is
+> the reason this is filed rather than waved through.
+
+solution: none stated. The durable half is that the harvest stamp must be written BY THE READ, not by a later step a session can skip — and that `FRESH_MIN = 30` is far wider than anything the real cadence needs.
+
+status: OPEN — FOR A WATCH. **Sizing: small, and it is an instrument fix, not game code.** No game
+diff; `glass-harvest-first.cjs` plus the Glass runbook.
+
+  **WHAT WAS OBSERVED.** `.planning/wyclau/LAST-PUBLISH` recorded `2026-09-02T18:41:38.381Z …
+  version=1788374482-bcc8 commit=5d8f6279`, while `.planning/wyclau/LAST-HARVEST` still read
+  `2026-09-02T18:36:14Z` — **a gap of 5m24s.** Every other publish this session watched go by had a
+  harvest stamp within about half a minute of it: 17:21:26/17:21:56, 17:34:13/17:34:41,
+  17:54:29/17:54:55, 18:06:25/18:07:12, 18:36:14/18:36:48. *(Those pairs are this session's own
+  observations at the time — `LAST-PUBLISH` holds ONE line and is overwritten on every publish, so
+  they cannot be re-derived from disk. That is itself worth noticing: **the file that records
+  publishes keeps no history**, so the only way to see a cadence is to be watching.)*
+
+  **NOTHING BROKE A RULE, WHICH IS THE POINT.** `.claude/hooks/glass-harvest-first.cjs:37` sets
+  `FRESH_MIN = 30` — a harvest stamp up to **thirty minutes** old satisfies the gate, and its own
+  comment calls itself *"a speed bump, not a wall."* So the publish was permitted by design. **The
+  window the design permits is sixty times wider than the gap every honest tick actually shows.**
+
+  ⚠ **AND THE SUPERVISING SESSION CANNOT TELL WHETHER ITS OWN PROTOCOL RAN.** Asked directly, the
+  Glass-update session answered — and the honesty of this answer is why it is quoted rather than
+  paraphrased: *"I dispatch each tick to a fresh subagent and only see its final natural-language
+  report, not its actual tool-call transcript — so I don't have direct visibility into whether its
+  Artifact read at 18:41 was a genuine fresh fetch or whether it reasoned from something stale…
+  I'm not going to assert the innocent explanation as fact when I can't back it with evidence."*
+  Its runbook's step 4 writes the stamp immediately once step 3 returns PUBLISH, **so if all nine
+  steps had run in order the stamp would have moved. It did not.** Two readings remain and neither
+  is distinguishable from outside: the read happened and the bookkeeping was skipped, or the read
+  did not happen.
+
+  **WHY THIS IS THE WORST PLACE IN THE SYSTEM FOR AN UNVERIFIABLE STEP.** The harvest is the ONLY
+  thing standing between a republish and deleting what Wyatt typed into the Ideas box — his words
+  live in the page's own `glassState` and nowhere else. **And the failure is unfalsifiable after the
+  fact: the page reads empty whether he wrote nothing or whether it was overwritten.** So this class
+  of fault can never be caught by looking afterwards; it can only be prevented.
+
+  **THE SHAPE OF THE FIX, and it is rule 9's:**
+  1. **The stamp should be written by the thing that PERFORMS the read**, not by a numbered step
+     further down a runbook that a session can skip while still reporting success. A stamp a session
+     writes about itself is a comment, not a measurement (`.claude/CLAUDE.md` §1).
+  2. **`FRESH_MIN = 30` should be derived, not typed.** The real harvest→publish gap is ~30 seconds
+     and the tick cadence is ~15 minutes; thirty minutes is wide enough to cover an entire tick's
+     worth of his writing. Rule 9: derive it from the cadence the system already knows.
+  3. **A report is not a transcript.** The supervising session judges each tick from a subagent's
+     prose summary — the same shape as every "a check that cannot fail" fault on this branch. If a
+     tick's evidence is a sentence it wrote about itself, the gate is decorative.
+
+  **WHAT WAS ACTUALLY DONE ABOUT THE LIVE RISK:** the Glass-update session ran a fresh tick with a
+  genuine harvest immediately, which establishes whether anything is unharvested NOW. It cannot
+  establish what was on the page between 18:36:14Z and 18:41:38Z, and nobody should claim it does.
