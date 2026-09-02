@@ -1396,6 +1396,24 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+**Harvested rulings, 2026-09-02, verbatim from the Glass (`glassState`, generatedAt
+2026-09-02T22:37:19.175Z). Three of the four rules-page questions (Your Call table, above) now have
+answers. NOT YET TRIAGED — this session's mandate is harvest-and-publish only.**
+
+- `rules-page-1-of-4-which-page-becomes-th` — **RULES PAGE 1 of 4 — which page becomes THE rules
+  page? You asked for this split before anything gets built.** His answer (choice: note, at
+  2026-09-02T22:50:08.719Z): *"Do a new /rules.html that explains the rules -- using the latest
+  version of the game."*
+
+- `rules-page-2-of-4-what-does-about-keep` — **RULES PAGE 2 of 4 — what does About keep?** His
+  answer (choice: note, at 2026-09-02T22:50:37.757Z): *"Agree with your rec -- delete \"how it
+  plays\""*
+
+- `rules-page-3-of-4-does-the-in-game-moda` — **RULES PAGE 3 of 4 — does the in-game modal show the
+  full rules, or a short version that links out?** His answer (choice: yes — i.e. the recommended
+  option, full text with the modal staying the source; no note attached, at
+  2026-09-02T22:50:48.826Z).
+
 > ### ⚠ `T-098` – `T-104` ARE THE SAME SEVEN THINGS AS `INBOX-20260902T1907*`. WORK THEM FROM THE INBOX.
 >
 > **Two sessions harvested his 3:07–3:09 PM writing off the Glass within minutes of each other** —
