@@ -96,10 +96,19 @@ publish. This session IS the terminal.
 > 3. **Say which happened, in one line**, and record it in this box so the next reader inherits a
 >    measurement instead of the question.
 >
-> **MEASURED SO FAR:** on 2026-09-02 the session PROCESS survived a `/clear` — it still reported as
-> started 7h earlier and was still reachable by name (though its listed name had changed to
-> *"Glass update"*, which is worth knowing if you are trying to message it). **Whether the cron job
-> itself survived is NOT yet recorded here. Whoever learns it, write it down.**
+> ### ✅ MEASURED 2026-09-02, AND THE ANSWER IS: THE CRON SURVIVES A `/clear`.
+>
+> Wyatt cleared the session; `CronList` immediately afterwards showed job **`b2a4d78d` still armed,
+> `*/15`, carrying the same dispatcher prompt.** No re-arm was needed. The session PROCESS survived
+> too — still reporting as started 7h earlier and still reachable — **though its listed name had
+> changed to *"Glass update"*, which matters if you are trying to message it and a message under the
+> old name bounces.**
+>
+> ⚠ **KEEP THE SCOPE HONEST, AND STILL RUN THE CHECK.** That is **one observation, one machine, one
+> clear** — it is not a law about `/clear`, and the session that measured it said so itself rather
+> than overclaiming. `CronList` costs two seconds and the downside of skipping it is a status page
+> that stops updating without saying so. **Run it anyway; if it ever comes back empty, correct this
+> box rather than assuming the run was odd.**
 
 ## The instruction to paste into it
 
