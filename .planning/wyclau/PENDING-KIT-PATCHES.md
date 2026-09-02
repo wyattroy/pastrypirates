@@ -76,3 +76,66 @@ until CEO Review 77 found it. An 88-minute release trial was in flight at the ti
 **What catches a silent revert:** `scripts/qa/glass_note_relay_check.mjs` already exercises the
 relay ("picked up once, gone by the second run"). Whoever applies this fix should extend that gate
 with a case for the unpublished path, red-proofed, in the same commit.
+
+---
+
+## 4. The Watch never runs the Chartkeeper, because the Door is vendored
+
+**File:** `.claude/skills/door/SKILL.md`, THE WATCH section, step 6 (the one that republishes the
+Glass and runs `publish_status.mjs`).
+
+**Why now:** Wyatt asked four times for the Chart to re-prioritise itself, and the tool now exists
+and is green — `scripts/wyclau/chartkeeper.mjs`, spec at `.planning/SPEC-CHARTKEEPER.md`, gates
+`chartkeeper_check.mjs` and `chart_model_agrees_with_glass_check.mjs`. **His instruction named two
+possible homes: the Glass-update session, or the watch. The first is wired** (step 4b of
+`.planning/wyclau/GLASS-UPDATE-SESSION.md` — REAP in report mode, and that file is not vendored).
+**The second cannot be, from here.** The spec's split is deliberate: reaping is a judgement and
+belongs where a human is looking; ranking is arithmetic and belongs where it can act unattended.
+Until this patch lands, the arithmetic half runs only when somebody types the command.
+
+**The exact insertion**, into the Door's watch step 6, before `publish_status.mjs`:
+
+> **Re-prioritise the Chart before you publish it:**
+> `node scripts/wyclau/chartkeeper.mjs --rank --sweep --write`. It orders the open list so the
+> next-to-be-completed is at the top, gives every row a `why-now:` phrase Wyatt can overrule, and
+> moves rows done more than seven days ago into `.planning/CHART-LOG.md` behind a one-line stub.
+> **It never ticks a box** — closing stays yours, behind `close_item.mjs`. Include `CHART.md` and
+> `CHART-LOG.md` in the commit you were already making.
+
+**What catches a silent revert:** nothing today, and that is stated rather than papered over —
+`vendor_check.mjs` compares the Door against the kit's hash, so it enforces that the two MATCH, not
+that either one contains this line. **Whoever applies this should add the wiring case to
+`scripts/qa/chartkeeper_check.mjs`** (assert the Door's watch section names `chartkeeper.mjs`),
+red-proofed by deleting the line and watching it go red, in the same commit. A capability nothing
+checks is a capability that quietly stops running.
+
+**One measured caveat for whoever applies it.** RANK re-orders rows *within the open-row slots the
+file already has*, so headings, prose and done rows never move. It cannot reorder ACROSS the two
+sections the Glass concatenates (`glass.mjs:386`: open checklist rows, then unfated inbox entries),
+so a top-ranked idea still renders after every checklist row. Fixing that properly means converging
+`glass.mjs` onto `scripts/wyclau/lib/chart_model.mjs` — which is patch 5.
+
+---
+
+## 5. `glass.mjs` and `chart_model.mjs` derive "what is open" separately
+
+**File:** `scripts/wyclau/glass.mjs:374-393` — the `DECLARED`/`FATE_WORD`/`STILL_OPEN` fate test and
+the `tasks = [...openChecklist, ...openInbox]` concatenation.
+
+**Why now:** rule 23's design-time question is *what makes these two agree?*, and today the honest
+answer is "nothing". `scripts/wyclau/lib/chart_model.mjs` is that logic extracted, with the fate
+test's two recorded mistakes (one caught by CEO Review 63) carried across intact. **The Chartkeeper
+already uses it; the Glass cannot, because it is vendored and the kit is outside the Razer session's
+allowed directory** — measured, not assumed: an `ls` of the kit path is refused outright.
+
+**Fix shape:** `import { parseChart } from "./lib/chart_model.mjs"` in `glass.mjs`, delete the
+duplicated block, and vendor `lib/chart_model.mjs` alongside it (it will need adding to the kit's
+wyclau file list and therefore to `MANIFEST.sha256`).
+
+**What catches a silent revert:** `scripts/qa/chart_model_agrees_with_glass_check.mjs`, which
+already exists and already runs in `npm test`. It builds a throwaway tree, runs the REAL `glass.mjs`
+against a fixture Chart and compares the number it renders to the number the model computes — so
+the two drifting apart is a red gate rather than a silent wrong list. Red-proofed by removing the
+inbox half of `tasks`: it fails with *"the Glass says 4 open and chart_model says 3"*. After this
+patch that gate becomes a tautology and should be **retired**, not kept — which is the correct end
+state, because one function cannot disagree with itself.

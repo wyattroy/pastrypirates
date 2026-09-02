@@ -37,6 +37,20 @@ publish. This session IS the terminal.
 >    commit, no report. Exit **0 / `PUBLISH`** means carry on. (If step 2 found ideas or rulings, you
 >    are publishing regardless of what this says — his words landing on the Chart is itself a change.)
 > 4. `date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST`
+> 4b. **REAP THE CHART, IN REPORT MODE ONLY:** `node scripts/wyclau/chartkeeper.mjs --reap`
+>    — it lists rows whose POINTER is dead: a question he has already answered, a trial report that
+>    was never written, a pid that is not running, a build stamp older than the tree. **It changes
+>    nothing** (no `--write` here, ever) and **it never ticks a box** — closing is a claim about
+>    work and belongs to a watch behind `close_item.mjs`. If it finds anything, put one plain line
+>    in the note: *"N tasks on your list look already finished — here's the first."* If it says the
+>    Chart is fine, say nothing about it.
+>    **WHY REAPING LIVES HERE AND RANKING LIVES IN THE WATCH:** ranking is arithmetic and can act
+>    unattended; reaping is a JUDGEMENT about whether something *he* is waiting on has landed, and a
+>    judgement belongs where a human is looking. This is the session that reads his live page.
+>    *(The audit that earned this: five of his 29 open tasks were already finished, 17% of what he
+>    reads, and one of them had been actionable for four hours because he ruled YES and nobody moved
+>    the row. `.planning/SPEC-CHARTKEEPER.md`.)*
+>
 > 5. **READ `.planning/wyclau/GLASS-NOTE.md` BEFORE folding it in, and check it is still TRUE.**
 >    The relay carries words forward faithfully and cannot know they have expired — on 2026-09-01 a
 >    queued note still said a sea trial was sailing and warned him not to close a console window

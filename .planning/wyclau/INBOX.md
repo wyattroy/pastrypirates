@@ -405,3 +405,38 @@ MEASURED reason. See the Chart row.
   **This is rule 6 twice in four minutes, in a session whose entire deliverable was an audit that
   says "never report a defect as confirmed before you have measured it."** The right shape was
   available and cheap both times: say "I don't know why `!` was refused", then look.
+
+## INBOX-20260902T05xxZ — the Glass-update session must start each tick CLEAN
+> "make sure that Glass Update Session gets cleared between ticks or updates or whatever you call
+> its tasks -- we don't want to keep adding to its context, that's unnecessary"
+solution: not yet applied — the mechanism is measured, the fix depends on one capability question
+now being probed. Runbook change goes in `.planning/wyclau/GLASS-UPDATE-SESSION.md`.
+status: OPEN.
+
+  ⚠ **THIS IS THE SECOND TIME HE HAS ASKED, AND THE FIRST TIME IS QUOTED IN THE RUNBOOK'S OWN
+  OPENING LINE.** `GLASS-UPDATE-SESSION.md:3-4` carries his original design in his own words:
+  *"could we just start an interactive session, once, called Glass update, that is fed a clear
+  instruction, updates the glass with whatever it needs to, **then clears itself afterwards**?"*
+  **The document was written from that sentence and then specified a mechanism that cannot do the
+  last four words of it.** Same shape as the Chartkeeper: his instruction was recorded faithfully
+  and the part that was hard to build quietly did not get built.
+
+  **THE MECHANISM, MEASURED FROM THE TOOL'S OWN CONTRACT RATHER THAN GUESSED.** `GLASS-UPDATE-
+  SESSION.md:57` says *"Arm ONE recurring mechanism inside the session — a cron job carrying the
+  steps above as its prompt."* `CronCreate`'s own description is explicit about what that does:
+  *"Schedule a prompt to be **enqueued**"* and *"Jobs live only in this Claude session."* **So every
+  tick appends a full transcript — the harvest read, the artifact HTML, the gate output, the publish
+  confirmation — to ONE conversation that never resets.** The Glass reads the live page on every
+  tick and that page is ~80-100KB; a session ticking all night is carrying every copy of it.
+
+  **WHY IT MATTERS BEYOND WASTE, and this is the part worth keeping:** he has already been told, in
+  his own words back on 2026-08-28, that a session which fills its context *"gets stupid and stale,
+  and by the time it does, it is too late to notice."* The Glass session is the ONE session that can
+  destroy his writing — step 2 of its runbook is the only thing standing between a republish and
+  deleting what he typed into the Ideas box. **A degrading context is worst exactly there.**
+
+  **WHY `/clear` IS NOT THE ANSWER:** it is a UI command, and a cron-enqueued prompt cannot type it.
+  **AND WHY A `claude -p` RESTART IS NOT THE ANSWER EITHER:** that is how the Bell runs a Watch, and
+  a `-p` session has no Artifact tool on this machine — which is the entire reason this publisher has
+  to be interactive and hand-started (`GLASS-UPDATE-SESSION.md:6-11`, measured 2026-09-01).
+  **So the fix has to keep ONE long-lived interactive session and stop the WORK from landing in it.**
