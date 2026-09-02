@@ -1400,3 +1400,38 @@ status: DONE 2026-09-02 — measured. ⚠ The commit that recorded this said the
     the live source *to merge*. **A careless merge can still drop his words** — the difference is
     that it is a visible act by a session that has been handed his text, not a silent overwrite.
     Layers C and D are now aimed at that, and it is a much narrower target.
+
+## INBOX-20260902T2143Z — HIS RULING: a watch MAY edit hooks and skills. Harvested off the Glass.
+
+**HIS WORDS, VERBATIM** (Glass ruling `t-105-your-top-priority-item-is-half-bu`, 2026-09-02T21:43:55.901Z = 5:43:55 PM ET):
+
+> Let the watch write them -- I allow edits to hooks and skills
+
+**THE QUESTION HE WAS ANSWERING, verbatim as it stood on his page:**
+
+> ⟨T-105⟩ Your top-priority item is half built and the other half is two files a watch is not
+> allowed to touch — everything under .claude/ is refused for an unattended session. Do you want to
+> make those two edits yourself (about five minutes at the laptop), or let a watch write them?
+
+solution: his own — **a watch writes the two `.claude/` edits.** He grants edits to hooks and skills.
+
+status: OPEN — the ruling is recorded and pushed; whether the ALLOWLIST actually permits it is a separate, mechanical question and is being measured, not assumed.
+
+  ⚠ **THIS WAS UNHARVESTED WHEN FOUND, AND THE STAMP SAID EVERYTHING WAS FINE.** He ruled at
+  5:43:55 PM. `LAST-HARVEST` read **5:08:36 PM** and `LAST-PUBLISH` **5:09:06 PM** — the republish
+  his tap caused carried no session stamp at all, which is exactly how it was spotted: **a version
+  bump with no publish receipt is the signature of HIM writing, not of a tick.** That test is worth
+  keeping; it is cheaper than reading the page and it is what caught this.
+
+  **AND IT IS THE SECOND TIME TODAY THAT A "FRESH" STAMP SAT OVER WORDS OF HIS NOBODY HAD READ** —
+  the first was seven seconds after a harvest at 3:07 PM, this one thirty-five minutes after one.
+  Neither was at risk of silent destruction (`INBOX-20260902T2100Z` measured that), **but both sat
+  unread**, which is a different failure and the one that actually costs him: a ruling nobody
+  harvests is a decision he has to make twice.
+
+  **WHAT THE RULING DOES NOT SETTLE, AND MUST NOT BE ASSUMED TO:** whether `.claude/settings.json`
+  mechanically lets an unattended watch write those files. **His permission and the allowlist are
+  two different things** — that is the exact fault class already on this branch three times over
+  (the staging deploy he ruled YES on at 4:03 AM and which stayed blocked because the allowlist
+  covered one command spelling and the docs taught another). **Do not report this ruling as
+  unblocking the work until the allowlist has been read.**
