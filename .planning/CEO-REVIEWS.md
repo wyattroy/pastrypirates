@@ -9,6 +9,9 @@
 
 ## CEO Review 106 — 2026-09-02T13:4xZ, Wy-Blade — `T-078`, the vendor lock's second half, and a ruling that was 31 minutes old and unharvested
 
+*Item: `T-078` — the Chart row **INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE
+THAT UNBLOCKS EVERYTHING ELSE**. Closing commit: `9c4edb48`.*
+
 *His ask, verbatim, as given to the reviewer: **"claude-kit is intended to be a repo where the
 DESIGN of our system is made... but our system must operate LOCALLY in its OWN REPO."** Plus the
 condition the Chart row records in his words: **"DO NOT ALSO DELETE THE CHECK … Red-proof both

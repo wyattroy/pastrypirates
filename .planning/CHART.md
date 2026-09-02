@@ -847,7 +847,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       every row is 90 truncated characters."* **That recommendation was made and then not carried
       into a row anybody could take.** The backend half has had seven watches; the half he can see
       has had none.
-- [ ] **★★★ INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE THAT UNBLOCKS
+- [x] **★★★ INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE THAT UNBLOCKS (closed 2026-09-02 · CEO 106 · no game diff — no game code is right -- the ask is the vendoring gate; inversion finished to his condition and gated, kit-behind detector SPLIT to its own row)
       ⟨`T-078`⟩
       EVERYTHING ELSE.** 2026-09-02, question UI. **Sizing: small, and it is the highest-leverage
       small thing on this Chart.**
@@ -865,198 +865,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **DO NOT ALSO DELETE THE CHECK.** He chose *invert*, not *delete*, over an option that
       offered deletion — the drift signal is the point, only its direction was wrong. Red-proof both
       ways: a local edit must NOT fail; a kit that has fallen behind must be reported.
-- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
-      ⟨`T-027`⟩
-      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
-      tried it. Sizing: one line of config, or one command from an attended session.**
-      Everything ahead of the deploy passed on this watch: `npm test` green through its last
-      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
-      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
-      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
-      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
-      forms, one answer; stopped there rather than hunting a fourth wording.
-      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
-      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
-      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
-      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
-      rule 14 — the one that takes the live game down.
-      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
-      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
-      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
-      and every successful staging deploy this project has had was run by an ATTENDED session.
-      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
-      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
-      moved off the question it asks, the storm glide and the guest's camera are all missing from
-      the address he plays.
-      **The fix is his, and the watch deliberately did not take it** — adding
-      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
-      unattended watch the ability to publish to a public address, which is not a repair a watch
-      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-- [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
-      ⟨`T-074`⟩
-      CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
-      reads `2026-09-02T10:35:50Z` (written only by step 4) and `GATE-LOG`'s newest line is still
-      `10:29:01Z` (the watch's own bench test). **The tick ran step 4 and left no verdict at step 3.**
-      ⚠ **THE ABSENCE OF THAT LINE IS THE NEW MECHANISM WORKING, NOT FAILING** — before 10:33Z there
-      was no way on earth to tell a skipped gate from an unwired one, and the very first use of the
-      log caught a skip. Do not read this row as "the fix did not work."
-      **WHAT IS ACTUALLY MISSING: a gate the tick cannot walk past.** Step 3 is an instruction in a
-      runbook, and `glass_gate_verdict_logged_check.mjs` case 8 can only check that the runbook SAYS
-      the right thing — it cannot see whether the session typed the command. Fix shape: make the
-      later steps refuse. A `mark_glass_published.mjs` that declines to stamp when `GATE-LOG` has no
-      line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
-      (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
-      non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
-- [x] **Record the change-gate's verdict even when it is overridden** — the runbook's override (closed 2026-09-02 · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows)
-      ⟨`T-018`⟩
-      clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
-      The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
-      record' are different things, and only the second is auditable."* Override the ACTION, not the
-      CHECK. From outside, a skipped gate and an unwired gate look identical.
-      ### ⚑ THE MECHANISM SHIPPED 2026-09-02T10:33Z AND ITS FIRST USE CAUGHT A REAL SKIP — TWO ROWS BELOW CARRY WHAT IS LEFT.
-      `glass_gate_log.mjs` wraps the gate, appends one line to `.planning/wyclau/GATE-LOG` on every
-      run, and hands back the gate's own exit code; `--harvested` overrides only the exit code, so
-      the gate's REAL verdict is still what gets written down. Runbook step 3 calls it
-      unconditionally. Gate `glass_gate_verdict_logged_check.mjs`, 14 cases, red-proofed twice
-      (once with no wrapper at all, once with three deliberate breakages after CEO 100).
-- [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
-      ⟨`T-014`⟩
-  `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
-  reading `.planning/wyclau/LONG-RUN`. But the trial's own progress writer,
-  `scripts/wyclau/longrun_status.mjs:108-119`, rewrites that marker as a fixed five-field object —
-  it deliberately preserves `startedAt` and **drops `pid`, `runId`, `reportPath` and `logPath`**,
-  every field `start_trial_detached.mjs` calls the birth certificate. Measured live at 19:15:19Z,
-  62 seconds after launch: the marker held `what/startedAt/updatedAt/progress/staleAfterMinutes`
-  and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
-  fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
-  which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
-- [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
-      ⟨`T-015`⟩
-  NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
-  in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
-  once, to the same path. Nothing stamps a picture with the run that took it. **So a queue judged
-  after a later run describes a mixture of runs, silently** — and a session reading it cannot tell.
-  The rate, measured on the 1914Z run's own queue while a later trial sailed: **107 of its 343
-  screens overwritten by 02:20Z, 252 by 02:35Z — 145 lost in fifteen minutes.** The player-facing
-  cost is the same as the not-run column's: a release decision made on visual evidence that quietly
-  describes a build nobody shipped. **Sizing: small.** Rule 9's shape is a path derived from the run
-  — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
-  session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
-  stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-- [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
-      ⟨`T-011`⟩
-  this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
-  fixed (one item). Sizing: small.** The Door's own words are *"a watch that pushes nothing is
-  invisible, and an invisible watch is indistinguishable from a dead one."* `can_push.mjs` is the
-  guard against exactly that, and it checks **four** faults — detached HEAD, no upstream, rebase in
-  progress, merge in progress (`scripts/wyclau/can_push.mjs:21`). **A sandbox or permission layer
-  that refuses `git push` outright is not among them**, so the script prints `can publish` and the
-  watch works a full turn into a void.
-  **It has now happened twice, to two different watches, both on `claude/cloud-handoff-planning-a9ay1u`:**
-  the 01:52Z watch (commit `33e94b89` local-only; rescued by the 02:19Z watch, which flagged it as
-  *"worth a row if it happens a third time"*) and this 03:00Z watch (two commits held locally).
-  **Both watches did everything right and neither could tell in advance.**
-  **Why it is worse than an ordinary failure:** the previous occurrence was only caught because a
-  LATER watch on the same machine happened to be able to push and noticed the stranded commit. That
-  is luck, not a mechanism. If both watches in a row are refused, the work is simply gone from every
-  other machine's view while the ledger says it happened.
-  **Fix shape, and it must not be a fifth hand-typed case:** the honest check is to ask git whether
-  a push would succeed rather than to enumerate reasons it might not — `git push --dry-run` against
-  the upstream — and report the refusal in the script's own words. Rule 9: derive the answer,
-  never keep a list.
-  > **⚠ SHARPENED AT THE END OF THE SAME WATCH, AND THE REAL CAUSE IS MUCH NARROWER — AND FIXABLE
-  > TODAY.** The push was **not** refused by anything about pushing. It was refused by the **command
-  > FORM**. Measured, in this order, on one machine in one session:
-  > `git push` → refused · `git push origin HEAD` → refused · `git push origin <branch-name>` →
-  > **SUCCEEDED**, `916067cc..89bf93d4`.
-  > So the permission allowlist evidently matches `git push origin <branch>` and not the bare or
-  > `HEAD` forms. **That means two watches lost their work to a habit of typing `git push`, not to a
-  > sandbox that forbids publishing** — and the 01:52Z watch's commit sat stranded for half an hour
-  > for the same reason.
-  > **Two cheap fixes, and they are independent:** (a) `can_push.mjs` should run `git push --dry-run`
-  > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
-  > the explicit branch name**, because that is the form that works. (b) costs one line and removes
-  > the failure entirely.
-- [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
-      ⟨`T-024`⟩
-      real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
-      session that commits a note and the session that next publishes are not the same one. Same
-      class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
-      propose a mechanism itself.
-- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
-      ⟨`T-025`⟩
-  Captain's log) on the thin-surface architecture (design, section IV)
-- [x] **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE (closed 2026-09-02 · CEO 104 · no game diff — no game code is right -- the ask is the Chartkeeper's ranking signal, not the game: commit ed827799, npm test 99/99)
-      ⟨`T-079`⟩
-      TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
-      take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
-      `chartkeeper_check.mjs` reads `CHART.md`, and the closing commit `42958113` does not touch
-      that file.
-      **THE FAILING CASE, in its own words:** *"the real Chart's top row is 'Your ruling: merge the
-      465-commit branch to main…' — his four-times-asked request must rank first, and the spec says
-      so in its own words."*
-      **WHAT ACTUALLY HAPPENED, and it is worth more than the red build.** At 11:41Z the Chartkeeper
-      ranked `T-001` (build the Chartkeeper — **his four-times-asked request**) **first, at 156**.
-      By 11:50Z it was not in the top nine. The only thing that changed is commit `8178eb29`, in
-      which another session filed two genuinely good, genuinely unrelated questions into
-      **BLOCKED ON WYATT**. `T-001`'s score carries a **+40 for "something it was waiting on has
-      landed"**, derived from that section being EMPTY — so filling it with anything at all silently
-      demotes every row that points there.
-      **THE DEFECT IS THE SIGNAL, NOT THE SCORE.** *"Points at BLOCKED ON WYATT, which is empty"* is
-      a section-level test standing in for a row-level fact. It cannot tell *"the question THIS row
-      waits on has been answered"* from *"somebody asked an unrelated question."* Same shape as the
-      fault CEO 93 already found in this tool: **REAP measures a POINTER, and a pointer is not the
-      thing it points at.**
-      **AND IT IS THE ACCEPTANCE TEST FAILING, WHICH IS THE POINT.** The Chartkeeper exists because
-      his repeated asks kept sinking on this list. It just happened again, to the row that asks for
-      the Chartkeeper, by the mechanism the Chartkeeper was meant to remove. **Do not fix this by
-      relaxing the gate case.**
-      **SIZE:** small-to-medium, entirely in `lib/chart_model.mjs` / `chartkeeper.mjs`, no game code.
-      Make the signal row-level — a row is unblocked when the question IT cites is answered — and
-      red-proof it by adding an unrelated BLOCKED ON WYATT row and checking the ranking does not move.
-- [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
-      ⟨`T-002`⟩
-      `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
-      fires once then waves every later edit through — and forges evidence
-      `advisor-triages-watch-works.cjs` reads. That one is also blind to **untracked** files
-      (`:83` excludes `??`), which is half the collision its own header cites. And `isGameCode()`
-      is false for `scripts/qa/*`, `.claude/hooks/*` and `.planning/*`, so it would not have fired
-      once during the night that earned it. **Both are unregistered from settings.json as of
-      2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
-      works and stays armed.
-- [x] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling) — SHIPPED 2026-08-31 19:52Z. `gates.ceiling` in `package.json` (started at the exact current total, 71, so the next gate is the first conscious decision) + `scripts/qa/gate_ceiling_check.mjs`, red-proofed by planting `total=72` on the real file and watching it fail before restoring it. `scripts/qa/quiet_gate_report.mjs` (advisory, NOT in `npm test` — retirement stays a human call, per `docs/HARD-WON-LESSONS.md` §12i) lists real wired-in per-bug gates only, after a scoping bug caught before shipping: it first matched every `w##_/q##_` FILE in `scripts/qa/`, including one-off probes never wired into the suite at all. `scripts/qa/gate_archive/` exists for retirements. Full policy: `docs/GATE-RETIREMENT.md`. npm test 71/71.
-      ⟨`T-050`⟩
-- [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
-      ⟨`T-051`⟩
-- [x] **Full sea trial against the 465-commit branch — RAN, FAILED 2026-08-31 23:56Z.** Started 21:31:53Z, 144 min, `.planning/SEA-TRIAL-465-check.md`. **7 of 10 legs FAILED with the identical crash** (every Chromium leg — solo, pass-and-play, crew, desktop/phone/tablet): `TypeError: Cannot read properties of undefined (reading 'replace') at pname (src/ui/util.js:289:27) at pn (...)`. `pname(i)` does `NAMES[i].replace(...)`; `pn()` wraps it and is called all over event narration as `pn(e.p)`/`pn(order[i])` with an event-participant or turn-order index. Traced the likely site: `showTurnOrderIntro()` (`src/ui/flow.js:2965`) succeeded (its own screen rendered, screenshot-confirmed) — the crash lands in the FIRST post-turn-order event narration, most likely the dock heads/tails line (`src/ui/util.js:499`, `pn(e.p)`), which crashes uniformly across every mode right at the start of day 1. Checked the graveyard (rule 10): the recent `p`→`player` local-variable rename (`b3c7b12c`) is function-scoped by design and does not touch the engine's event emission (`this.ev({t:"dock",p:p.idx,...})` at `src/engine/index.js:996` is unchanged) — RULED OUT as the cause, not confirmed as it. 3 WebKit legs (`-wk`) additionally NOT RUN — Playwright isn't installed on this machine (`~/.pw` missing), a Razer setup gap, not a code defect. **NOT MEASURED YET**: the exact line producing the undefined index — the crash trace was truncated by the test harness's own 200-char console-capture limit, found and widened to 2000 chars (`scripts/lib/cdp.mjs`, commit `27a9f382`) so the next run will show it directly; a quick single-leg repro to get that trace timed out after 10 min without completing and was not re-attempted this session. **NOT DEPLOYED TO STAGING** — a build that cannot finish a single voyage is not ready to show him.
-      ⟨`T-052`⟩
-- [x] **wyclau source moves to claude-kit as the kit's second module; pastrypirates vendors it — SHIPPED 2026-08-31.** *(his pick 2026-08-31)* `claude-kit/plugins/wyclau/` now holds the canonical edit source (glass.mjs, mark_glass_published.mjs, watchdog.ps1/.sh, wyclau-pulse.cjs, wyclau-stop-keep-working.cjs, Door SKILL.md); `install.sh` generalized to multi-module (`vendor/check <repo> [module]`, default `org`), the `org` case unchanged. pastrypirates' `.claude/wyclau/` is a pure tracking anchor (VENDORED-FROM + MANIFEST.sha256, 7 files hashed) — the real files stay exactly where they already worked (`scripts/wyclau/*`, `.claude/hooks/wyclau-*.cjs`, `.claude/skills/door/SKILL.md`), nothing moved or renamed. Verified byte-identical to pastrypirates' current source before vendoring. **CEO Review 55: YES**, independently verified all seven points (full text in `CEO-REVIEWS.md`); its one actionable flag (no local marker showing a file is vendored) fixed same-pass — a header comment added to all seven files, both repos, re-vendored. `bash install.sh check <this repo> wyclau` reports IN STEP against claude-kit `e61b4fe`. npm test 74/74.
-      ⟨`T-053`⟩
-- [x] Mechanically enforce the Glass harvest rule — `.claude/hooks/glass-harvest-first.cjs` + gate `glass_harvest_hook_check` (red first on the unregistered-hook case, red-proofed both ways), 2026-08-31
-      ⟨`T-054`⟩
-- [x] **THE KEEP-WORKING STOP HOOK — SHIPPED 2026-08-31.** Wyatt: *"why have you stopped working? your mission is to continuously work until every single task is finished... we already know that behavioral fixes get ignored."* `.claude/hooks/wyclau-stop-keep-working.cjs`, registered in `settings.json`'s `Stop` array. First shipped **firing in every session, interactive included** (his live correction that day, overriding his own first answer "only unattended"); **superseded the same day by the Quartermaster's scope change**: fires ONLY in a session `scripts/wyclau/watchdog.ps1` started, gated on an environment stamp (`$env:PP_BOSUN = "1"`, set immediately before `Start-Process`, inherited by the child) rather than an inference — never in Wyatt's terminal, never in a cloud session. **The preemption slot (`PREEMPT.md`) was removed in the same change** — it existed to protect Wyatt's interactive window, which no longer runs this hook at all; steering now goes through the Chart's `BLOCKED ON WYATT` table as normal. Three brakes remain, in order: (0) `stop_hook_active` never blocks twice in one turn; (1) the Glass publish lag (moved here from `npm test`, CEO Review 52); (2) gives up on the 4th check of the same stuck item with no commit landing in between, having blocked on 1/2/3 (an off-by-one CEO Review 52 also found and fixed — the first version gave up after only 2 blocks); (3) allows the stop once every open `STEP 1 CHECKLIST` line is either done or carries the literal marker `GATED:` — including indented lines, another CEO Review 52 finding (the original regex only matched column zero). The Door's 6th situation-report line, "watchdog stamp: PRESENT/ABSENT", is the Quartermaster's silent-failure guard for `Start-Process`'s env inheritance, which could not be tested from a container. Gate `scripts/qa/wyclau_stop_hook_check.mjs`, 16 cases against the real hook file (never a copy — HARD-WON-LESSONS §12i), red-proofed in both directions per the Quartermaster's instruction: `PP_BOSUN` unset with real unblocked work present still allows the stop; a planted broken gate blocks when it should not. npm test 72/72.
-      ⟨`T-055`⟩
-- [x] **GLASS REDESIGN — Wyatt's seven priorities, in his words** — SHIPPED 2026-08-31 18:37Z, rendered and screenshotted locally (light + dark) before publishing, one real mojibake bug found and fixed by looking at the picture. Full detail in `scripts/wyclau/glass.mjs`'s own header.
-      ⟨`T-056`⟩
-  - **[x] LAST PROGRESS VS PAGE PUBLISHED — SHIPPED 2026-08-31 20:04Z.** His measured finding: the dot read 🔴 54 min ago while a commit had landed 12 minutes earlier, because the old code drove the dot from `state.generatedAt` (page age) not real evidence. Two numbers now shown and computed separately: "last progress" (the newer of HEARTBEAT/LAST-ACTIVITY, read BEFORE this run's own write, so running glass.mjs is never mistaken for progress) and "page published" (`generatedAt`). **Traced and stated honestly, not oversold**: since the page is static once published, neither number can retroactively reflect work that happens AFTER the last generation — the exact reported false alarm is closed only by the third part, republishing being made mechanical. Red-proofed: ran genuinely red before the first publish+mark, genuinely green after.
-    - **⚠ CORRECTION, CEO Review 52, SAME DAY, IN THE OPEN.** The line above originally said the publish-lag check lived in `scripts/qa/glass_publish_lag_check.mjs`, wired into `npm test`. CEO Review 52 found that real and correct — AND a genuine defect: it made the game's own release gate (`npm test`, required green before staging/merge per CLAUDE.md §6) dependent on whether the wyclau DASHBOARD had been republished recently. A stale Glass could have blocked a real game fix from reaching players. **Moved the same day**: the check now lives as a brake inside `.claude/hooks/wyclau-stop-keep-working.cjs` (fires on session Stop, never on `npm test`); the standalone gate script was deleted; `gates.total`/`ceiling` correctly dropped 72→71 with the removal, then rose 71→72 again for the Stop-hook's own gate (`scripts/qa/wyclau_stop_hook_check.mjs`, 14 cases, red-proofed both by planting a broken hook and by fabricating an unregistered `settings.json`). Also corrected the same review caught: `glass.mjs`'s own comment had overclaimed that an "administrative re-run… now correctly shows an older last progress" as settled behaviour — measured instead, `.claude/hooks/wyclau-pulse.cjs` stamps LAST-ACTIVITY on every tool call rate-limited to one minute, so during active work the two numbers are typically within about a minute of each other; the comment now says so.
-  1. Save space -- remove "Pastry Pirates -- the engine's one honest window. Branch claude/cloud-handoff-planning-a9ay1u."
-  2. "I want to see that the work is being done, right at the top, at a glance. A small emoji + a timestamp since last progress is perfect -- remove the entire 'Alive' box."
-  3. Rename "Write to Claude" to **Ideas** and put it below Your Call.
-  4. Reformat Shipped Today: **remove the commit codes -- they mean nothing to me** -- make them more visual and clearer to read, ideally 5-7 words each. His two examples of what is inscrutable: "`f3d3ee9b` ledger: the harvest hazard fired for real (safely) -- evidence, not prediction" and "`3934d9d4` ledger: retract the Glass v2 claim -- the Mac boardroom session claimed first, and holds it". Put below Your Call. *(Note for whoever builds it: a generator cannot summarise a bad subject line into a good one. The durable half is a commit convention -- sessions write a subject he can read -- with the generator stripping prefixes, hashes and everything after the dash. Say which half you did.)*
-  5. Put **Your Call in its own box** (above Shipped Today), and **show him a few test calls** so he can check the format is intuitive.
-  6. **Merge "On the Chart" with "The Reboot Checklist" -- one source of tasks**, reprioritised as needed, which the Blade Pirates process is always working. *(This item lives in the merged list once it exists.)*
-  7. Reformat everything to look **more like a dashboard**, easily scannable, and **matching the colours of the game**.
-
-- [x] **ONE PUBLISHER for the Glass** — SHIPPED 2026-08-31. `.planning/wyclau/GLASS-NOTE.md`, tracked: another session writes there and commits instead of publishing; the Bosun folds it into the page and resets the file on its next pulse. Gate `glass_note_relay_check.mjs`, red-proofed (the pre-fix code cannot even run the check — the mechanism did not exist to test). Screenshotted before shipping.
-      ⟨`T-057`⟩
-- [x] **Fold the Helm into the Glass** — decision cards live INSIDE the Glass, derived from this file's own tables; the Helm URL serves a retirement notice (2026-08-31, his instruction)
-      ⟨`T-058`⟩
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] `T-083` **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
+- [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
+      ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
       **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
       ordering, and the door should read what's at the top. the rank algorithm should prioritize my
@@ -1094,6 +904,238 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
+- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
+      ⟨`T-027`⟩
+      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
+      tried it. Sizing: one line of config, or one command from an attended session.**
+      Everything ahead of the deploy passed on this watch: `npm test` green through its last
+      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
+      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
+      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
+      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
+      forms, one answer; stopped there rather than hunting a fourth wording.
+      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
+      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
+      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
+      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
+      rule 14 — the one that takes the live game down.
+      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
+      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
+      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
+      and every successful staging deploy this project has had was run by an ATTENDED session.
+      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
+      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
+      moved off the question it asks, the storm glide and the guest's camera are all missing from
+      the address he plays.
+      **The fix is his, and the watch deliberately did not take it** — adding
+      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
+      unattended watch the ability to publish to a public address, which is not a repair a watch
+      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
+- [x] **Record the change-gate's verdict even when it is overridden** — the runbook's override (closed 2026-09-02 · CEO 100 · no game diff — no game diff -- the ask is the Glass tick's runbook and its change-gate, not the game; shipped as glass_gate_log.mjs + glass_gate_verdict_logged_check.mjs (14 cases, red-proofed twice), commit 229843cf. What is LEFT is T-074 and T-075, written as their own rows)
+      ⟨`T-018`⟩
+      clause lets a tick skip `glass_needs_publish.mjs` when the harvest already forced a publish.
+      The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
+      record' are different things, and only the second is auditable."* Override the ACTION, not the
+      CHECK. From outside, a skipped gate and an unwired gate look identical.
+      ### ⚑ THE MECHANISM SHIPPED 2026-09-02T10:33Z AND ITS FIRST USE CAUGHT A REAL SKIP — TWO ROWS BELOW CARRY WHAT IS LEFT.
+      `glass_gate_log.mjs` wraps the gate, appends one line to `.planning/wyclau/GATE-LOG` on every
+      run, and hands back the gate's own exit code; `--harvested` overrides only the exit code, so
+      the gate's REAL verdict is still what gets written down. Runbook step 3 calls it
+      unconditionally. Gate `glass_gate_verdict_logged_check.mjs`, 14 cases, red-proofed twice
+      (once with no wrapper at all, once with three deliberate breakages after CEO 100).
+- [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
+      ⟨`T-074`⟩
+      CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
+      reads `2026-09-02T10:35:50Z` (written only by step 4) and `GATE-LOG`'s newest line is still
+      `10:29:01Z` (the watch's own bench test). **The tick ran step 4 and left no verdict at step 3.**
+      ⚠ **THE ABSENCE OF THAT LINE IS THE NEW MECHANISM WORKING, NOT FAILING** — before 10:33Z there
+      was no way on earth to tell a skipped gate from an unwired one, and the very first use of the
+      log caught a skip. Do not read this row as "the fix did not work."
+      **WHAT IS ACTUALLY MISSING: a gate the tick cannot walk past.** Step 3 is an instruction in a
+      runbook, and `glass_gate_verdict_logged_check.mjs` case 8 can only check that the runbook SAYS
+      the right thing — it cannot see whether the session typed the command. Fix shape: make the
+      later steps refuse. A `mark_glass_published.mjs` that declines to stamp when `GATE-LOG` has no
+      line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
+      (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
+      non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
+- [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
+      ⟨`T-014`⟩
+  `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
+  reading `.planning/wyclau/LONG-RUN`. But the trial's own progress writer,
+  `scripts/wyclau/longrun_status.mjs:108-119`, rewrites that marker as a fixed five-field object —
+  it deliberately preserves `startedAt` and **drops `pid`, `runId`, `reportPath` and `logPath`**,
+  every field `start_trial_detached.mjs` calls the birth certificate. Measured live at 19:15:19Z,
+  62 seconds after launch: the marker held `what/startedAt/updatedAt/progress/staleAfterMinutes`
+  and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
+  fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
+  which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
+- [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
+      ⟨`T-015`⟩
+  NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
+  in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,
+  once, to the same path. Nothing stamps a picture with the run that took it. **So a queue judged
+  after a later run describes a mixture of runs, silently** — and a session reading it cannot tell.
+  The rate, measured on the 1914Z run's own queue while a later trial sailed: **107 of its 343
+  screens overwritten by 02:20Z, 252 by 02:35Z — 145 lost in fifteen minutes.** The player-facing
+  cost is the same as the not-run column's: a release decision made on visual evidence that quietly
+  describes a build nobody shipped. **Sizing: small.** Rule 9's shape is a path derived from the run
+  — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
+  session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
+  stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+- [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
+      ⟨`T-084`⟩
+      built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
+      **His condition, in his own words:** *"DO NOT ALSO DELETE THE CHECK. Red-proof both ways: a
+      local edit must NOT fail; **a kit that has fallen behind must be reported**."* The first half
+      shipped and is gated (`vendor_lock_inverted_check.mjs`). **The second half does not exist** —
+      `vendor_check.mjs` currently prints, honestly, that it did NOT check whether claude-kit has
+      moved forward, on every path. That admission is a placeholder, not the answer.
+      **WHY IT WAS "IMPOSSIBLE" AND WHY IT IS NOT — read this before starting, it is the whole
+      story.** Three watches recorded a read of `C:\Users\wyatt\Projects\claude-kit` as REFUSED and
+      each concluded the kit was unreachable. **Wyatt was asked and ruled "yes" at
+      2026-09-02T12:39:56.363Z** (his RULED table, below) — and thirty-one minutes later a watch
+      still wrote *"THE HALF OF HIS SENTENCE THAT CANNOT BE BUILT HERE"* into a gate, because the
+      ruling had not been harvested. CEO 106 caught it. **A REFUSAL IS A PERMISSION SETTING, NOT A
+      FACT ABOUT THE WORLD.** The fence was `bell.ps1`'s launch line carrying no `--add-dir`; it now
+      carries one (commit `9c4edb48`, gated both ways in `bell_check.mjs`).
+      **SO THE FIRST WATCH THE BELL RINGS AFTER `9c4edb48` CAN READ THE KIT. Check that first** —
+      if the read is still refused, the ring predates the change or the kit is not beside the repo,
+      and the launcher's own log line now says `kit: readable` or `kit: not present`.
+      **Sizing: small-to-medium.** `install.sh check <repo> wyclau` already answers the question
+      from a tree holding both; the work is calling it (or hashing the kit's copies directly) and
+      reporting BEHIND as news, in the same four-kind vocabulary `vendor_check.mjs` now uses.
+      **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
+      not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
+      currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
+- [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
+      ⟨`T-011`⟩
+  this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
+  fixed (one item). Sizing: small.** The Door's own words are *"a watch that pushes nothing is
+  invisible, and an invisible watch is indistinguishable from a dead one."* `can_push.mjs` is the
+  guard against exactly that, and it checks **four** faults — detached HEAD, no upstream, rebase in
+  progress, merge in progress (`scripts/wyclau/can_push.mjs:21`). **A sandbox or permission layer
+  that refuses `git push` outright is not among them**, so the script prints `can publish` and the
+  watch works a full turn into a void.
+  **It has now happened twice, to two different watches, both on `claude/cloud-handoff-planning-a9ay1u`:**
+  the 01:52Z watch (commit `33e94b89` local-only; rescued by the 02:19Z watch, which flagged it as
+  *"worth a row if it happens a third time"*) and this 03:00Z watch (two commits held locally).
+  **Both watches did everything right and neither could tell in advance.**
+  **Why it is worse than an ordinary failure:** the previous occurrence was only caught because a
+  LATER watch on the same machine happened to be able to push and noticed the stranded commit. That
+  is luck, not a mechanism. If both watches in a row are refused, the work is simply gone from every
+  other machine's view while the ledger says it happened.
+  **Fix shape, and it must not be a fifth hand-typed case:** the honest check is to ask git whether
+  a push would succeed rather than to enumerate reasons it might not — `git push --dry-run` against
+  the upstream — and report the refusal in the script's own words. Rule 9: derive the answer,
+  never keep a list.
+  > **⚠ SHARPENED AT THE END OF THE SAME WATCH, AND THE REAL CAUSE IS MUCH NARROWER — AND FIXABLE
+  > TODAY.** The push was **not** refused by anything about pushing. It was refused by the **command
+  > FORM**. Measured, in this order, on one machine in one session:
+  > `git push` → refused · `git push origin HEAD` → refused · `git push origin <branch-name>` →
+  > **SUCCEEDED**, `916067cc..89bf93d4`.
+  > So the permission allowlist evidently matches `git push origin <branch>` and not the bare or
+  > `HEAD` forms. **That means two watches lost their work to a habit of typing `git push`, not to a
+  > sandbox that forbids publishing** — and the 01:52Z watch's commit sat stranded for half an hour
+  > for the same reason.
+  > **Two cheap fixes, and they are independent:** (a) `can_push.mjs` should run `git push --dry-run`
+  > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
+  > the explicit branch name**, because that is the form that works. (b) costs one line and removes
+  > the failure entirely.
+- [x] **`npm test` IS RED, AND WHAT IT IS RED ABOUT IS HIS OWN TOP PRIORITY FALLING OFF THE (closed 2026-09-02 · CEO 104 · no game diff — no game code is right -- the ask is the Chartkeeper's ranking signal, not the game: commit ed827799, npm test 99/99)
+      ⟨`T-079`⟩
+      TOP OF HIS LIST.** Filed by the 11:40Z watch, which found it in its own sweep and did NOT
+      take it (one item per watch). **Not caused by that watch's change** — measured, not assumed:
+      `chartkeeper_check.mjs` reads `CHART.md`, and the closing commit `42958113` does not touch
+      that file.
+      **THE FAILING CASE, in its own words:** *"the real Chart's top row is 'Your ruling: merge the
+      465-commit branch to main…' — his four-times-asked request must rank first, and the spec says
+      so in its own words."*
+      **WHAT ACTUALLY HAPPENED, and it is worth more than the red build.** At 11:41Z the Chartkeeper
+      ranked `T-001` (build the Chartkeeper — **his four-times-asked request**) **first, at 156**.
+      By 11:50Z it was not in the top nine. The only thing that changed is commit `8178eb29`, in
+      which another session filed two genuinely good, genuinely unrelated questions into
+      **BLOCKED ON WYATT**. `T-001`'s score carries a **+40 for "something it was waiting on has
+      landed"**, derived from that section being EMPTY — so filling it with anything at all silently
+      demotes every row that points there.
+      **THE DEFECT IS THE SIGNAL, NOT THE SCORE.** *"Points at BLOCKED ON WYATT, which is empty"* is
+      a section-level test standing in for a row-level fact. It cannot tell *"the question THIS row
+      waits on has been answered"* from *"somebody asked an unrelated question."* Same shape as the
+      fault CEO 93 already found in this tool: **REAP measures a POINTER, and a pointer is not the
+      thing it points at.**
+      **AND IT IS THE ACCEPTANCE TEST FAILING, WHICH IS THE POINT.** The Chartkeeper exists because
+      his repeated asks kept sinking on this list. It just happened again, to the row that asks for
+      the Chartkeeper, by the mechanism the Chartkeeper was meant to remove. **Do not fix this by
+      relaxing the gate case.**
+      **SIZE:** small-to-medium, entirely in `lib/chart_model.mjs` / `chartkeeper.mjs`, no game code.
+      Make the signal row-level — a row is unblocked when the question IT cites is answered — and
+      red-proof it by adding an unrelated BLOCKED ON WYATT row and checking the ranking does not move.
+- [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
+      ⟨`T-024`⟩
+      real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
+      session that commits a note and the session that next publishes are not the same one. Same
+      class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
+      propose a mechanism itself.
+- [x] Gate retirement policy wired (quiet per-bug gates → archive; suite ceiling) — SHIPPED 2026-08-31 19:52Z. `gates.ceiling` in `package.json` (started at the exact current total, 71, so the next gate is the first conscious decision) + `scripts/qa/gate_ceiling_check.mjs`, red-proofed by planting `total=72` on the real file and watching it fail before restoring it. `scripts/qa/quiet_gate_report.mjs` (advisory, NOT in `npm test` — retirement stays a human call, per `docs/HARD-WON-LESSONS.md` §12i) lists real wired-in per-bug gates only, after a scoping bug caught before shipping: it first matched every `w##_/q##_` FILE in `scripts/qa/`, including one-off probes never wired into the suite at all. `scripts/qa/gate_archive/` exists for retirements. Full policy: `docs/GATE-RETIREMENT.md`. npm test 71/71.
+      ⟨`T-050`⟩
+- [x] **Glass v2 — the two-way interface** (ideas box on the page; the page saves itself; sessions woken by his writes; harvest rule in the Door; gate `glass_roundtrip_check`, red-proofed both ways) — shipped 2026-08-31, first live save pending Wyatt's first tap
+      ⟨`T-051`⟩
+- [x] **Full sea trial against the 465-commit branch — RAN, FAILED 2026-08-31 23:56Z.** Started 21:31:53Z, 144 min, `.planning/SEA-TRIAL-465-check.md`. **7 of 10 legs FAILED with the identical crash** (every Chromium leg — solo, pass-and-play, crew, desktop/phone/tablet): `TypeError: Cannot read properties of undefined (reading 'replace') at pname (src/ui/util.js:289:27) at pn (...)`. `pname(i)` does `NAMES[i].replace(...)`; `pn()` wraps it and is called all over event narration as `pn(e.p)`/`pn(order[i])` with an event-participant or turn-order index. Traced the likely site: `showTurnOrderIntro()` (`src/ui/flow.js:2965`) succeeded (its own screen rendered, screenshot-confirmed) — the crash lands in the FIRST post-turn-order event narration, most likely the dock heads/tails line (`src/ui/util.js:499`, `pn(e.p)`), which crashes uniformly across every mode right at the start of day 1. Checked the graveyard (rule 10): the recent `p`→`player` local-variable rename (`b3c7b12c`) is function-scoped by design and does not touch the engine's event emission (`this.ev({t:"dock",p:p.idx,...})` at `src/engine/index.js:996` is unchanged) — RULED OUT as the cause, not confirmed as it. 3 WebKit legs (`-wk`) additionally NOT RUN — Playwright isn't installed on this machine (`~/.pw` missing), a Razer setup gap, not a code defect. **NOT MEASURED YET**: the exact line producing the undefined index — the crash trace was truncated by the test harness's own 200-char console-capture limit, found and widened to 2000 chars (`scripts/lib/cdp.mjs`, commit `27a9f382`) so the next run will show it directly; a quick single-leg repro to get that trace timed out after 10 min without completing and was not re-attempted this session. **NOT DEPLOYED TO STAGING** — a build that cannot finish a single voyage is not ready to show him.
+      ⟨`T-052`⟩
+- [x] **wyclau source moves to claude-kit as the kit's second module; pastrypirates vendors it — SHIPPED 2026-08-31.** *(his pick 2026-08-31)* `claude-kit/plugins/wyclau/` now holds the canonical edit source (glass.mjs, mark_glass_published.mjs, watchdog.ps1/.sh, wyclau-pulse.cjs, wyclau-stop-keep-working.cjs, Door SKILL.md); `install.sh` generalized to multi-module (`vendor/check <repo> [module]`, default `org`), the `org` case unchanged. pastrypirates' `.claude/wyclau/` is a pure tracking anchor (VENDORED-FROM + MANIFEST.sha256, 7 files hashed) — the real files stay exactly where they already worked (`scripts/wyclau/*`, `.claude/hooks/wyclau-*.cjs`, `.claude/skills/door/SKILL.md`), nothing moved or renamed. Verified byte-identical to pastrypirates' current source before vendoring. **CEO Review 55: YES**, independently verified all seven points (full text in `CEO-REVIEWS.md`); its one actionable flag (no local marker showing a file is vendored) fixed same-pass — a header comment added to all seven files, both repos, re-vendored. `bash install.sh check <this repo> wyclau` reports IN STEP against claude-kit `e61b4fe`. npm test 74/74.
+      ⟨`T-053`⟩
+- [x] Mechanically enforce the Glass harvest rule — `.claude/hooks/glass-harvest-first.cjs` + gate `glass_harvest_hook_check` (red first on the unregistered-hook case, red-proofed both ways), 2026-08-31
+      ⟨`T-054`⟩
+- [x] **THE KEEP-WORKING STOP HOOK — SHIPPED 2026-08-31.** Wyatt: *"why have you stopped working? your mission is to continuously work until every single task is finished... we already know that behavioral fixes get ignored."* `.claude/hooks/wyclau-stop-keep-working.cjs`, registered in `settings.json`'s `Stop` array. First shipped **firing in every session, interactive included** (his live correction that day, overriding his own first answer "only unattended"); **superseded the same day by the Quartermaster's scope change**: fires ONLY in a session `scripts/wyclau/watchdog.ps1` started, gated on an environment stamp (`$env:PP_BOSUN = "1"`, set immediately before `Start-Process`, inherited by the child) rather than an inference — never in Wyatt's terminal, never in a cloud session. **The preemption slot (`PREEMPT.md`) was removed in the same change** — it existed to protect Wyatt's interactive window, which no longer runs this hook at all; steering now goes through the Chart's `BLOCKED ON WYATT` table as normal. Three brakes remain, in order: (0) `stop_hook_active` never blocks twice in one turn; (1) the Glass publish lag (moved here from `npm test`, CEO Review 52); (2) gives up on the 4th check of the same stuck item with no commit landing in between, having blocked on 1/2/3 (an off-by-one CEO Review 52 also found and fixed — the first version gave up after only 2 blocks); (3) allows the stop once every open `STEP 1 CHECKLIST` line is either done or carries the literal marker `GATED:` — including indented lines, another CEO Review 52 finding (the original regex only matched column zero). The Door's 6th situation-report line, "watchdog stamp: PRESENT/ABSENT", is the Quartermaster's silent-failure guard for `Start-Process`'s env inheritance, which could not be tested from a container. Gate `scripts/qa/wyclau_stop_hook_check.mjs`, 16 cases against the real hook file (never a copy — HARD-WON-LESSONS §12i), red-proofed in both directions per the Quartermaster's instruction: `PP_BOSUN` unset with real unblocked work present still allows the stop; a planted broken gate blocks when it should not. npm test 72/72.
+      ⟨`T-055`⟩
+- [x] **GLASS REDESIGN — Wyatt's seven priorities, in his words** — SHIPPED 2026-08-31 18:37Z, rendered and screenshotted locally (light + dark) before publishing, one real mojibake bug found and fixed by looking at the picture. Full detail in `scripts/wyclau/glass.mjs`'s own header.
+      ⟨`T-056`⟩
+  - **[x] LAST PROGRESS VS PAGE PUBLISHED — SHIPPED 2026-08-31 20:04Z.** His measured finding: the dot read 🔴 54 min ago while a commit had landed 12 minutes earlier, because the old code drove the dot from `state.generatedAt` (page age) not real evidence. Two numbers now shown and computed separately: "last progress" (the newer of HEARTBEAT/LAST-ACTIVITY, read BEFORE this run's own write, so running glass.mjs is never mistaken for progress) and "page published" (`generatedAt`). **Traced and stated honestly, not oversold**: since the page is static once published, neither number can retroactively reflect work that happens AFTER the last generation — the exact reported false alarm is closed only by the third part, republishing being made mechanical. Red-proofed: ran genuinely red before the first publish+mark, genuinely green after.
+    - **⚠ CORRECTION, CEO Review 52, SAME DAY, IN THE OPEN.** The line above originally said the publish-lag check lived in `scripts/qa/glass_publish_lag_check.mjs`, wired into `npm test`. CEO Review 52 found that real and correct — AND a genuine defect: it made the game's own release gate (`npm test`, required green before staging/merge per CLAUDE.md §6) dependent on whether the wyclau DASHBOARD had been republished recently. A stale Glass could have blocked a real game fix from reaching players. **Moved the same day**: the check now lives as a brake inside `.claude/hooks/wyclau-stop-keep-working.cjs` (fires on session Stop, never on `npm test`); the standalone gate script was deleted; `gates.total`/`ceiling` correctly dropped 72→71 with the removal, then rose 71→72 again for the Stop-hook's own gate (`scripts/qa/wyclau_stop_hook_check.mjs`, 14 cases, red-proofed both by planting a broken hook and by fabricating an unregistered `settings.json`). Also corrected the same review caught: `glass.mjs`'s own comment had overclaimed that an "administrative re-run… now correctly shows an older last progress" as settled behaviour — measured instead, `.claude/hooks/wyclau-pulse.cjs` stamps LAST-ACTIVITY on every tool call rate-limited to one minute, so during active work the two numbers are typically within about a minute of each other; the comment now says so.
+  1. Save space -- remove "Pastry Pirates -- the engine's one honest window. Branch claude/cloud-handoff-planning-a9ay1u."
+  2. "I want to see that the work is being done, right at the top, at a glance. A small emoji + a timestamp since last progress is perfect -- remove the entire 'Alive' box."
+  3. Rename "Write to Claude" to **Ideas** and put it below Your Call.
+  4. Reformat Shipped Today: **remove the commit codes -- they mean nothing to me** -- make them more visual and clearer to read, ideally 5-7 words each. His two examples of what is inscrutable: "`f3d3ee9b` ledger: the harvest hazard fired for real (safely) -- evidence, not prediction" and "`3934d9d4` ledger: retract the Glass v2 claim -- the Mac boardroom session claimed first, and holds it". Put below Your Call. *(Note for whoever builds it: a generator cannot summarise a bad subject line into a good one. The durable half is a commit convention -- sessions write a subject he can read -- with the generator stripping prefixes, hashes and everything after the dash. Say which half you did.)*
+  5. Put **Your Call in its own box** (above Shipped Today), and **show him a few test calls** so he can check the format is intuitive.
+  6. **Merge "On the Chart" with "The Reboot Checklist" -- one source of tasks**, reprioritised as needed, which the Blade Pirates process is always working. *(This item lives in the merged list once it exists.)*
+  7. Reformat everything to look **more like a dashboard**, easily scannable, and **matching the colours of the game**.
+
+- [x] **ONE PUBLISHER for the Glass** — SHIPPED 2026-08-31. `.planning/wyclau/GLASS-NOTE.md`, tracked: another session writes there and commits instead of publishing; the Bosun folds it into the page and resets the file on its next pulse. Gate `glass_note_relay_check.mjs`, red-proofed (the pre-fix code cannot even run the check — the mechanism did not exist to test). Screenshotted before shipping.
+      ⟨`T-057`⟩
+- [x] **Fold the Helm into the Glass** — decision cards live INSIDE the Glass, derived from this file's own tables; the Helm URL serves a retirement notice (2026-08-31, his instruction)
+      ⟨`T-058`⟩
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
+- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
+      ⟨`T-025`⟩
+  Captain's log) on the thin-surface architecture (design, section IV)
+
+- [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
+      ⟨`T-085`⟩
+      was refused permission to make, and its absence has already cost one item.**
+      The ruling: *"May an unattended watch READ the claude-kit folder?"* — **"yes"**, ruled on the
+      Glass 2026-09-02T12:39:56.363Z. It is in the RULED table below and **nowhere else**
+      (`grep "claude-kit folder" .claude/memory/DECISIONS.md` → 0). `CLAUDE.md` §5: *"A ruling he
+      made that nobody harvested is the failure this system exists to stop."*
+      **The entry is already written** — it is in the ledger under WATCH 13:10Z and in commit
+      `9c4edb48`'s message, including the alternative he did not pick (leave the fence up and keep
+      routing kit work to a human) and the scope limit (**this ruling is about READING; nothing in
+      it authorises a watch to PUSH to claude-kit**). Paste it in.
+      ⚠ `.claude/memory/DECISIONS.md` is permission-protected: an unattended watch's edit is
+      refused. **Whoever takes this needs a session that can write it** — or the protection needs
+      changing, which is a question for Wyatt, not a repair for a watch.
+
+- [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
+      ⟨`T-002`⟩
+      `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
+      fires once then waves every later edit through — and forges evidence
+      `advisor-triages-watch-works.cjs` reads. That one is also blind to **untracked** files
+      (`:83` excludes `??`), which is half the collision its own header cites. And `isGameCode()`
+      is false for `scripts/qa/*`, `.claude/hooks/*` and `.planning/*`, so it would not have fired
+      once during the night that earned it. **Both are unregistered from settings.json as of
+      2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
+      works and stays armed.
 
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
@@ -1148,51 +1190,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       talking about **stale rows to clean up**, never about a question waiting on him. Rule 8: a
       word that means "waiting on Wyatt" must mean that everywhere on this page.
 
-- [ ] **TWO DIFFERENT ROWS ON THIS CHART BOTH CARRY `T-079`, AND THE HANDLE IS NOW LOAD-BEARING.**
-      Found 2026-09-02T12:5xZ by the watch that closed `T-079`, while trying to close it: the close
-      gate could not find the row by handle because there are two. `CHART.md:990` (the npm-test row,
-      just closed) and `CHART.md:1166` (**THE PROJECT OWNS ITS DOOR**) share it.
-      **WHY IT MATTERS MORE TODAY THAN IT DID YESTERDAY.** As of `ed827799` a handle is no longer a
-      label — it is the LINK that decides whether a row is hidden from him. A question of his that
-      names `T-079` would sink **both** rows, and a settled ruling naming it would flag both stale.
-      This is block 12's own fault class (`new Map(pairs)` keeps the last value for a repeated key)
-      arriving one floor up, in his record instead of in the code.
-      **THE GATE THAT WOULD CATCH IT EXISTS AND IS POINTED AT A FIXTURE.** `chartkeeper_check.mjs`
-      case 7 asserts "every allocated id is distinct" — on `MIXED`, never on the real Chart. **A
-      gate aimed at the wrong tree is not silent, it is reassuring** (`HARD-WON-LESSONS.md` §3).
-      **DO NOT RENUMBER THE OLDER ROW.** A handle is allocated once and never reused — a CEO
-      verdict, a ledger entry and this row all point at `T-079` meaning the npm-test row. Give the
-      NEWER row (the Door row, filed by hand in `5e75bcf3` alongside `T-078`/`T-080`/`T-081`) a free
-      handle, then add the real-Chart case. **Sizing: minutes for the renumber, one case for the
-      gate. Red-proof by leaving the duplicate in place and watching the new case fail.**
-
-- [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
-      do, and until somebody does, NOTHING is ever marked "waiting on Wyatt".** CEO 104's one
-      sentence for him says exactly this.
-      **WHAT THE TOOL ALREADY TELLS YOU** — run `node scripts/wyclau/chartkeeper.mjs --rank` and
-      read the last two warnings. Today: **4 rows talk about his BLOCKED ON WYATT table and name no
-      question** (the Chartkeeper row, the staging-deploy row, the npm-test row and the Your-Call
-      wording row), and **2 of his open questions name no task** (*"May an unattended watch READ the
-      claude-kit folder?"* and *"Do you want `SCHEDULED` to stop hiding your ideas?"*).
-      **THE JOB:** for each of his questions, write the `T-nnn` of every row it actually holds up
-      into the question's own cell. Same for `SETTLED RULINGS`, whose rows currently name their
-      subjects in prose only — the staging-permission ruling is the worked example: it is settled,
-      the row it freed is still open at rank 32, and no machine can see the connection.
-      ⚠ **THIS IS A CONTENT JUDGEMENT, WHICH IS WHY IT WAS LEFT.** Attaching a question to a row
-      HIDES that row from him. The Chartkeeper row is the trap: its remaining half really is
-      kit-blocked, but it is a BUNDLE with unblocked parts (this watch worked one), and sinking a
-      bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
-      bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
-
-- [ ] **`unattachedMentions` STILL WORD-SEARCHES FOR THE HEADING — CEO 104's one residual, and it is
-      advisory only.** `chartkeeper.mjs`, in `derive()`: the list of rows that need a link is found
-      by `/BLOCKED ON WYATT/i.test(row.raw)`, the very grep `ed827799` removed from the SCORE. So a
-      row that says *"waiting on his call"* in different words is never listed as needing a handle.
-      **It cannot sink anything any more** — that is why it is a blind spot in a helper report
-      rather than a live defect, and why it was not fixed in the same pass. **Sizing: small.** The
-      honest version derives the candidate set from something structural (a row with no handle at
-      all cannot be linked, and that IS derivable) rather than from a phrase.
-
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -1246,6 +1243,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
+
 - [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
       ⟨`T-079`⟩
       RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
@@ -1277,6 +1275,34 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **Derive the three buckets from one list each and gate that no word appears in two** —
       red-proof by planting `SCHEDULED` in the finished list.
 
+- [ ] **TWO DIFFERENT ROWS ON THIS CHART BOTH CARRY `T-079`, AND THE HANDLE IS NOW LOAD-BEARING.**
+      ⟨`T-079`⟩
+      Found 2026-09-02T12:5xZ by the watch that closed `T-079`, while trying to close it: the close
+      gate could not find the row by handle because there are two. `CHART.md:990` (the npm-test row,
+      just closed) and `CHART.md:1166` (**THE PROJECT OWNS ITS DOOR**) share it.
+      **WHY IT MATTERS MORE TODAY THAN IT DID YESTERDAY.** As of `ed827799` a handle is no longer a
+      label — it is the LINK that decides whether a row is hidden from him. A question of his that
+      names `T-079` would sink **both** rows, and a settled ruling naming it would flag both stale.
+      This is block 12's own fault class (`new Map(pairs)` keeps the last value for a repeated key)
+      arriving one floor up, in his record instead of in the code.
+      **THE GATE THAT WOULD CATCH IT EXISTS AND IS POINTED AT A FIXTURE.** `chartkeeper_check.mjs`
+      case 7 asserts "every allocated id is distinct" — on `MIXED`, never on the real Chart. **A
+      gate aimed at the wrong tree is not silent, it is reassuring** (`HARD-WON-LESSONS.md` §3).
+      **DO NOT RENUMBER THE OLDER ROW.** A handle is allocated once and never reused — a CEO
+      verdict, a ledger entry and this row all point at `T-079` meaning the npm-test row. Give the
+      NEWER row (the Door row, filed by hand in `5e75bcf3` alongside `T-078`/`T-080`/`T-081`) a free
+      handle, then add the real-Chart case. **Sizing: minutes for the renumber, one case for the
+      gate. Red-proof by leaving the duplicate in place and watching the new case fail.**
+- [ ] **`unattachedMentions` STILL WORD-SEARCHES FOR THE HEADING — CEO 104's one residual, and it is
+      ⟨`T-086`⟩
+      advisory only.** `chartkeeper.mjs`, in `derive()`: the list of rows that need a link is found
+      by `/BLOCKED ON WYATT/i.test(row.raw)`, the very grep `ed827799` removed from the SCORE. So a
+      row that says *"waiting on his call"* in different words is never listed as needing a handle.
+      **It cannot sink anything any more** — that is why it is a blind spot in a helper report
+      rather than a live defect, and why it was not fixed in the same pass. **Sizing: small.** The
+      honest version derives the candidate set from something structural (a row with no handle at
+      all cannot be linked, and that IS derivable) rather than from a phrase.
+
 - [ ] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
       ⟨`T-081`⟩
       his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
@@ -1297,6 +1323,25 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
       Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
       **build the plumbing, defer the framework.**
+
+- [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
+      ⟨`T-079`⟩
+      do, and until somebody does, NOTHING is ever marked "waiting on Wyatt".** CEO 104's one
+      sentence for him says exactly this.
+      **WHAT THE TOOL ALREADY TELLS YOU** — run `node scripts/wyclau/chartkeeper.mjs --rank` and
+      read the last two warnings. Today: **4 rows talk about his BLOCKED ON WYATT table and name no
+      question** (the Chartkeeper row, the staging-deploy row, the npm-test row and the Your-Call
+      wording row), and **2 of his open questions name no task** (*"May an unattended watch READ the
+      claude-kit folder?"* and *"Do you want `SCHEDULED` to stop hiding your ideas?"*).
+      **THE JOB:** for each of his questions, write the `T-nnn` of every row it actually holds up
+      into the question's own cell. Same for `SETTLED RULINGS`, whose rows currently name their
+      subjects in prose only — the staging-permission ruling is the worked example: it is settled,
+      the row it freed is still open at rank 32, and no machine can see the connection.
+      ⚠ **THIS IS A CONTENT JUDGEMENT, WHICH IS WHY IT WAS LEFT.** Attaching a question to a row
+      HIDES that row from him. The Chartkeeper row is the trap: its remaining half really is
+      kit-blocked, but it is a BUNDLE with unblocked parts (this watch worked one), and sinking a
+      bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
+      bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -1429,7 +1474,7 @@ STEP 1 CHECKLIST, tagged "Your ruling:".*
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
-| May an unattended watch READ the claude-kit folder? The kit was described as "physically unreachable"; the fence is `bell.ps1:98-100`, which launches an unattended watch with no added directories, so it cannot see outside this repo. | **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached | |
+| May an unattended watch READ the claude-kit folder? The kit was described as "physically unreachable"; the fence is `bell.ps1:98-100`, which launches an unattended watch with no added directories, so it cannot see outside this repo. | **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached | **APPLIED 13:5xZ, commit `9c4edb48`** — `bell.ps1` passes `--add-dir <kit>`, derived from `$Repo` and only when the directory exists; gated both ways in `bell_check.mjs`. ⚠ **Your answer sat here unharvested for 31 minutes and in that time it cost the item that depended on it** (CEO 106): a watch wrote "cannot be built here" about the very half of `T-078` you had just unblocked. Still to do: the entry in `DECISIONS.md` (`T-085`, this watch was refused permission) and the detector itself (`T-084`). |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
@@ -1486,6 +1531,7 @@ convergences. Every row below was checked against the tree, not against the docu
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
 - **Wyatt, written on the Glass, 2026-09-02T13:18:28.755Z**: *"Remove the \"Your rulings in hand\"
+      ⟨`T-087`⟩
   box from the Glass"* → **NOT YET FATED — harvested verbatim, not investigated. This session's
   mandate is harvest-and-publish only.**
 

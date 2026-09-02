@@ -4624,3 +4624,5 @@ a condition in his own words — *"DO NOT ALSO DELETE THE CHECK … Red-proof bo
 must NOT fail; a kit that has fallen behind must be reported."* The first half shipped. The second
 did not. Prediction written before measuring:
 `.planning/wyclau/PREDICTION-20260902T1310Z-vendor.md`.
+
+- 2026-09-02T13:39:37Z · close_item: "INVERT `vendor_check.mjs` — HIS RULING" · CEO 106 · no game diff — no game code is right -- the ask is the vendoring gate; inversion finished to his condition and gated, kit-behind detector SPLIT to its own row · no stated solution
