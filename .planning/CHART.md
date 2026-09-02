@@ -1030,6 +1030,21 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
+      ⟨`T-073`⟩
+  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
+  You can see the spreadsheet with our plan for the SFX here:
+  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
+  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
+  easiest way to get the files to you"* → **SCHEDULED, next audio/game-code session — an asset
+  request, not a code defect.** He wants new SFX added, and has linked (1) a Drive folder holding
+  the audio files and (2) a spreadsheet with the SFX plan. Read `docs/AUDIO.md` first (CLAUDE.md
+  §4) — three audio defects are already live there and this should not be layered on top of them
+  blind. Not investigated here — this session's mandate is harvest-and-publish only. His own
+  instruction is the first step for whoever picks this up: try to actually reach both Drive links
+  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link
+  is reachable, tell him the easiest way to get the files across instead of guessing.
+
 - **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:15:44Z**: *"The \"black spot of
       ⟨`T-059`⟩
   bad tides\" prize should be handed out every game to the player who flipped the most tails -- it's
