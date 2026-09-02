@@ -4172,3 +4172,21 @@ behind it evidence gathered from a broken instrument** — `T-059` is one gate, 
 path, and it unblocks every watch behind it.
 
 - 2026-09-02T10:06:58Z · close_item: "IS RED AND HAS BEEN SINCE ~08:00Z" · CEO 99 · no game diff — measured, no game-code change is right: the fault was a QA probe hand-typing where the frozen v1 is served, so the fix is CLASSIC_PATH in lib/chrome.mjs plus gate cases 1b and 2b -- npm test back to 96/96, commit cb86ff45 · no stated solution
+
+### ⚠ OBSERVED AT THE END OF THIS WATCH, NOT ACTED ON: A SECOND GLASS NOTE WAS CLEARED WITH NO PUBLISH STAMP
+
+**The first note of this watch was published and stamped** — `.planning/wyclau/LAST-PUBLISH` reads
+`2026-09-02T09:51:41.567Z Glass published version=1788342669-30cc commit=d9c2cad8`. That is the
+handshake working, and it is the citation that answers CEO 99's finding 3.
+
+**The SECOND note — the one carrying the result — was reset to the bare template minutes later and
+`LAST-PUBLISH` did not move.** Its text is not lost: it is in commit `f838017f`. But a note cleared
+without a stamp is precisely `INBOX-20260902T0350Z` — a `glass.mjs --note` run consumes
+`GLASS-NOTE.md` unconditionally, published or not.
+
+**NOT UNDONE, DELIBERATELY.** Restoring it would be this watch overwriting another live session's
+change in a shared checkout on an inference, and the inference could be wrong — the publisher may
+stamp late. **What is certain is the observation, so the observation is what is recorded.** Whoever
+next holds the Glass: if version `1788342669-30cc` is the newest on the page, the RESULT note never
+reached Wyatt and `f838017f` has its text. **And the durable fix is the one already filed and still
+unbuilt: `glass.mjs --note` must not clear a file it did not publish.**
