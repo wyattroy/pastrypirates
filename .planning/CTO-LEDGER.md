@@ -4722,3 +4722,22 @@ is refused too, so three stray probe files a CEO sub-agent left are still on dis
 `.tmp-ceo107b-chart-probe.cjs` (repo root, invisible to `git status` behind the `.tmp-` ignore rule),
 `claude-kit/ceo107b-chart-probe.cjs`, and `%TEMP%\ceo107b\.probe`. **A refusal is a permission
 setting, not a fact** (CEO 106) — a session with write access should remove them.
+
+### WATCH 2026-09-02T14:51Z — claims INBOX-20260901T1335Z's LAST UNANSWERED HALF
+
+- **Watch started** 2026-09-02T14:51:05Z, Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`.
+  `can_push.mjs`: can publish. `stray_probe_check`: PASS (3 browsers, every one with a live
+  launcher). No `LONG-RUN` marker — nothing at sea.
+- **Last progress**: `410d5f7b` (the stray-browser gate), `50501f36` (T-001 closed as a split).
+- **Previous watch closed**: `T-001` SPLIT — SWEEP is his version and it runs; 36 rows left the Chart.
+- **Blocked on Wyatt**: the table is empty; two rows carry STALE-CANDIDATE against his 12:39:56Z
+  kit ruling, which is still unharvested (`T-085`).
+- **Detached trial in flight**: none.
+- **THIS WATCH TAKES** the oldest OPEN Inbox item, per the Door: `INBOX-20260901T1335Z` — his
+  launch-critical *"compressing the images to make the game load MUCH faster… we need to load all
+  game assets up front"*. **Claimed.** Both of its Chart rows (`T-057` board, `T-058` the rest) have
+  closed since it was filed, and `assets/` is **4.3 MB against the 17.79 MB he raised it at**. The
+  half of his sentence nobody has answered is the half he actually wrote: **every measurement on
+  this item has been in BYTES, and he asked about TIME and about a graphic that "appears blank on
+  slow connections."** This watch measures the thing he asked for, on the real build, and either
+  closes his item on that evidence or names what is still cold.
