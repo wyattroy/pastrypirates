@@ -49,6 +49,41 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-09-02, 5:43 PM — A WATCH MAY EDIT HOOKS AND SKILLS
+
+Wyatt, ruled on the Glass 5:43:55 PM ET: *"Let the watch write them -- I allow edits to hooks and
+skills"*.
+
+**The question he answered:** *"⟨T-105⟩ Your top-priority item is half built and the other half is
+two files a watch is not allowed to touch — everything under .claude/ is refused for an unattended
+session. Do you want to make those two edits yourself (about five minutes at the laptop), or let a
+watch write them?"* **The alternative he did not pick:** making the two edits himself at the laptop.
+
+**The ruling stands and is broad: an unattended watch may write hooks and skills.** It is not
+limited to the two `T-105` files.
+
+⚠ **AND THE QUESTION CONTAINED AN UNVERIFIED PREMISE, MEASURED FALSE THE SAME MINUTE — WHICH DOES
+NOT WEAKEN THE RULING, BUT DOES CHANGE WHAT IT UNBLOCKS.** *"Everything under `.claude/` is refused
+for an unattended session"* is **not true of this project's allowlist.**
+`.claude/settings.json`'s `permissions.allow` carries bare **`Edit`** and **`Write`** — every file —
+and its entire `deny` list is three entries, all of them `Read(.env*)`/`Read(.secrets)`. **Nothing
+under `.claude/` is denied by this project.**
+
+**So the refusal a watch actually hit is real but its CAUSE was never measured** — a watch recorded
+it honestly (*"refused by this session's write permissions — recorded as a fact about this machine,
+not as a guess about why"*) and a later question turned that into a stated cause. **The likeliest
+remaining explanation is the harness's own behaviour for unattended sessions, which no project
+setting can grant.**
+
+**THE STANDING CONSEQUENCE:** his permission is now on the record and no allowlist change is needed
+or was made. **If a watch is still refused, the blocker is not this ruling and not this repo** — the
+next watch to hit it must report the refusal's exact words rather than infer a cause, and nobody
+should tell him the work is unblocked until an edit has actually landed. This is the fourth time on
+this branch that a permission he granted and a mechanism that enforces it turned out to be different
+things.
+
+---
+
 ## 2026-09-02, 3:33 PM — YOUR CALL CARRIES ONLY WHAT IS GENUINELY HIS, AND HIS TAP QUEUES A CLOSE RATHER THAN PERFORMING ONE
 
 Two rulings, question UI, on his own idea (`INBOX-20260902T193000Z`): *"do you want to put those in
