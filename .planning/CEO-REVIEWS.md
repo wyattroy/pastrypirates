@@ -7,6 +7,106 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 106 — 2026-09-02T13:4xZ, Wy-Blade — `T-078`, the vendor lock's second half, and a ruling that was 31 minutes old and unharvested
+
+*His ask, verbatim, as given to the reviewer: **"claude-kit is intended to be a repo where the
+DESIGN of our system is made... but our system must operate LOCALLY in its OWN REPO."** Plus the
+condition the Chart row records in his words: **"DO NOT ALSO DELETE THE CHECK … Red-proof both
+ways: a local edit must NOT fail; a kit that has fallen behind must be reported."** Fresh context,
+handed CEO 104's verdict and told to check whether any of its three faults recur.*
+
+### VERDICT: **PARTIAL**
+
+> Half one of his sentence is delivered and honestly proven. Half two is not delivered, and the
+> reason given for not delivering it was ruled away by Wyatt 31 minutes before this work started.
+>
+> **FINDING 1 — the second half of his ruling was declared impossible on a blocker he had already
+> removed.** `.planning/CHART.md:1432`. His condition has two halves: *"a local edit must NOT fail;
+> a kit that has fallen behind must be reported."* The watch delivers half one and answers half two
+> with a printed disclaimer (`scripts/qa/vendor_check.mjs:227-228`), then cements that disclaimer as
+> the permanent right answer in a gate case whose comment reads *"THE HALF OF HIS SENTENCE THAT
+> CANNOT BE BUILT HERE"*. **It can be built here.** `.planning/CHART.md:1432` carries this row in
+> the *"Your ruling"* checklist: *"May an unattended watch READ the claude-kit folder? … the fence
+> is `bell.ps1:98-100`, which launches an unattended watch with no added directories"* — **"yes" —
+> ruled on the Glass 2026-09-02T12:39:56.363Z**. Ruled 12:39:56Z. This watch claimed the item at
+> 13:10Z. The fence is exactly where his row says it is — a `Start-Process` whose `ArgumentList` is
+> `("-p", prompt)` and nothing else; one `--add-dir` satisfies the ruling. The "now" column of that
+> row is **empty**, and the ruling is **not in `.claude/memory/DECISIONS.md`** (grepped: no match).
+> So this is `HARD-WON-LESSONS.md` §12k recurring verbatim — *a ruling he made that nobody
+> harvested* — and the item that fell through it is the second half of the very ruling being closed.
+> The watch's own prediction file names this as its strongest disproof and then accepted the
+> blocker from a stale memory of two earlier refusals instead of from his ruling table. I
+> re-measured the refusal myself — a read of the kit is still refused for me too — but *that is a
+> permission grant, not a fact about the world*, and he had already granted it.
+>
+> **FINDING 2 — CEO 104's word-search fault RECURS, inside the gate that congratulates itself for
+> removing it.** `scripts/qa/vendor_lock_inverted_check.mjs:128` and `:183`. Cases 2c and 4e both
+> asserted on the sentence *"task list for the next back-port pass"*, which is user-facing prose.
+> Reword it — as sessions in this repo reword output lines constantly — and **both cases pass
+> forever without examining anything.** They fail open, silently, exactly like `unattachedMentions`
+> word-searching for a heading in CEO 104. The file's case-3 comment explicitly diagnoses this class
+> and switches case 3b to a structural assertion; two cases in the same file were left on the prose.
+>
+> **FINDING 3 — the file's contract line has rotted into a false statement.**
+> `scripts/qa/vendor_check.mjs:34-36`: *"So a PASS here means 'nobody has edited any copy'."* The
+> real run prints `PASSED (with drift) — 2 ahead` with two files edited here. A PASS now means the
+> opposite of what the line says, and neither inverting commit touched the header. Rule 6's other
+> half, in the first thing the next reader reads.
+>
+> **FINDING 4 — the honest-admission line misdirects the reader to another machine.**
+> `scripts/qa/vendor_check.mjs:227`: *"only a machine holding claude-kit can"* — **this machine
+> holds it.** The boundary is permission, not possession, and the sentence sends the next reader
+> looking for a different computer instead of for one line in the watch launcher.
+>
+> **What HELD, tested, not taken on trust.** His half that shipped is real — case 1 proves a local
+> edit exits 0 and is named as *ahead of the kit*, running the real code as a subprocess against a
+> real fixture tree. **The six red-first cases check out**: reading `git show 3d1d0a9d`, 2c and 4e
+> hit the unconditional back-port paragraph, 3 and 3b hit `exit 0` plus a column-0 `PASSED (with
+> drift)`, 6 and 6b hit a drift path that never printed `NOT CHECKED`. Exactly six, exactly those.
+> **The `--repo=` seam is a real seam, not a backdoor** — default unchanged, no production branch
+> reads it, and case 7 runs the *unseamed* invocation against the live repo, which is CEO 104's
+> third fault and it does **not** recur. **GONE is classified correctly** and I could not make it
+> mislead. **`exit 1` on BLIND is defensible** and is not the old lock: it fires on *no manifest at
+> all*, never on an edit — one caveat, the remedy it prints needs the kit, so the one fatal
+> condition is unfixable from a session without kit access. **The ledger and prediction are not
+> overstated;** both are unusually careful, and the prediction names its own disproof.
+>
+> **One process note.** The whole delivery is uncommitted, in a tree where this watch's own ledger
+> entry records another live session destroying uncommitted work with a bare-path `git restore`.
+>
+> ### For Wyatt, in my words
+> **You asked for two things and got one: a local edit no longer fails the build, and that half is
+> properly proven — but "tell me when the kit has fallen behind" was written off as impossible on
+> this machine, half an hour after you personally ruled "yes" to the one permission that makes it
+> possible, and nobody had filed your ruling anywhere a session would look.**
+
+### WHAT THE WATCH DID WITH IT — all four findings verified against the code before acting
+
+**Finding 1 is right and it was the item's other half, so the fence came down rather than the
+finding being noted.** `scripts/wyclau/bell.ps1` now passes `--add-dir <kit>` to every watch it
+rings, derived from `$Repo` (the kit is a sibling on every machine that has both) and added **only
+if the directory exists**, so a machine without the kit — every cloud container — is not turned
+into a launch failure. The dry-run line prints the real argument list so a check can see the fence
+is down rather than read a paraphrase of it.
+**THE DETECTOR ITSELF IS NOT BUILT, AND THIS WATCH COULD NOT BUILD IT: its own session was launched
+before that change, so its read of the kit is still refused** (verified, not assumed). It is the
+open remainder of `T-078`, on the Chart, and it is now unblocked for the first watch the Bell rings.
+**The gate comment that said "CANNOT BE BUILT HERE" is corrected in place rather than deleted**,
+because the wrong reason is the lesson: **a refusal is a permission setting, not a fact about the
+world.**
+**Findings 2, 3 and 4 are fixed.** 2c/4e now assert on the `N ahead` count in the verdict line —
+the structural fact the back-port pass actually consumes — and were red-proofed by planting a
+GONE-classified-as-AHEAD fault and watching 2c fail alone. The header's rotted contract line is
+replaced with a verdict table that says what PASSED / PASSED (with drift) / FAILED each mean. The
+admission line now says the boundary is permission, names his ruling and its timestamp, and points
+at `bell.ps1` instead of at an imaginary other computer.
+**ONE THING THE CEO ASKED FOR THAT DID NOT HAPPEN, said plainly rather than buried: the ruling is
+still not in `.claude/memory/DECISIONS.md`.** That file is permission-protected against this
+watch — the edit was attempted and refused. The entry is written and waiting in the ledger and on
+the Chart for a session that can write it.
+
+---
+
 ## CEO Review 105 — 2026-09-02, Wy-Blade — four items shipped with no verdict: the vendor lock inverted, the Lesson moved, three fate states, RANK wired into the Door
 
 *His ask: **"why is the Lesson STILL at the top of the page. I have asked for it to be moved down 5
