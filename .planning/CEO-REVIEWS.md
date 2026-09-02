@@ -7,6 +7,113 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 94 — 2026-09-02, Wy-Blade — the Watch that grounded the two ranking signals
+
+**Fresh context, read-only.** Ran `ceo_brief.mjs`, `chartkeeper_check.mjs`, `chartkeeper.mjs`
+against the REAL Chart, `npm test`, and built its own fixtures to try to break the fix. Its
+verdict, in its own words:
+
+### VERDICT: **PARTIAL.**
+
+> **One sentence for Wyatt:** *"The number the tool used to make up about you is genuinely fixed —
+> but the badge that floats a task to the top of your list is still something a session writes
+> about its own task, and I put a made-up job about a bilge pump at #1 in about a minute to prove
+> it."*
+>
+> **"Ground or cut signal B — 'you have raised it N times'." → DONE.** The token-overlap guess is
+> gone. The two false sentences CEO 91 named are dead: the `can_push` row reads *"no signal either
+> way"* (was "raised it 10 times"), and the trade-offer circle reads *"a player can see it"* with
+> no attention claim. The replacement counts citations that must resolve, which is checkable by
+> opening two files.
+>
+> **"Ground or cut signal A." → PARTIAL, and this is the finding.** It is grounded *in form* and
+> still self-declared *in fact*. Both halves fail:
+> - **The Inbox half is one pasted stamp away.** `linksOf()` checks only that an `INBOX-<stamp>`
+>   in the row EXISTS and is LIVE. Nothing checks the entry is *about* the row. I wrote a two-row
+>   fixture — a fictional *"repaint the bilge pump widget, nobody has ever mentioned this"* row
+>   with `INBOX-20260902T04xxZ` pasted in, against a real player-facing sail-square bug. **The
+>   bilge pump scored 108 and ranked #1**, printing *"you asked for this yourself"*. Worse, gate
+>   case 11b's own comment claims this is covered; 11b only tests a stamp that does not exist.
+> - **The `Your ruling:` half is pure prose, and the file says twice that a gate backs it.** Both
+>   `chartkeeper.mjs` and `chartkeeper_check.mjs` state that `rulings_triage_check.mjs` "keeps the
+>   tag matched to a real settled ruling". **It does not.** That gate walks rulings → rows only
+>   (`rulings_triage_check.mjs:92-98`). Measured: *"Your ruling: repaint the bilge pump widget"* on
+>   a Chart with EMPTY rulings tables scores **100**.
+>
+> **"Approval must come from a record the row's author does not write." → NOT MET.** Both accepted
+> sources are written by whoever writes the row.
+>
+> **Claims checked:** RED-first CONFIRMED structurally (the pre-fix tool has no `linksOf`, no
+> `inboxEntries`, no `unbackedApproval`, no `--inbox`; every one of the six had to fail) — *"I did
+> not execute the old tool through the gate and say so rather than implying I did."* · claim 2
+> REFUTED as stated · claim 3 CONFIRMED as arithmetic, OVERSTATED as a sentence · claim 4
+> CONFIRMED · `npm test` 94 CONFIRMED · **the acceptance test CONFIRMED, and better than claimed:**
+> the citation at `CHART.md:64` was added by the *Advisor* in `1255c1c0`, before this watch existed
+> — *"This watch did not plant its own ticket."*
+>
+> **A gate case green for an unrelated reason:** 11a's fourth assertion passed against a fixture
+> that contains **no `## RULED` and no `## SETTLED RULINGS` section at all** — it could not
+> distinguish a gate-enforced tag from a typed one.
+>
+> **Does the count print a number not countable from the record?** The number is countable; the
+> sentence is not earned. `grep -o "T-0[0-9][0-9]" .planning/wyclau/INBOX.md` returns **nothing**,
+> so **100% of "you asked for it in N of your notes" currently comes from stamps a session typed
+> into its own row.** Minor, same area: `INBOX.md:390` and `:409` are two entries sharing the id
+> `INBOX-20260902T05xxZ`; the Map silently keeps one.
+>
+> **Did grounding cost him anything real?** Two of the four demoted rows are real losses:
+> **"Convert the recipe art to WebP"** — his ruling was *"do it"* and `INBOX-20260902T0048Z` is
+> right there and live; it sank from +100 to 30 for want of a citation that is not a matter of
+> judgement. And **the row that is literally his quoted words** ("Make Glass…", 2026-09-01
+> 02:13:52Z) now scores **0** at rank 27. *"The watch's refusal to hand-edit rows is principled for
+> its OWN row — that is exactly the fault CEO 91 caught. Applying it to a row it does not own cost
+> you a demotion it could have repaired."*
+>
+> **Recurrence against CEO 93:** dead-pointer phrase fixed and stayed fixed · stale line citations
+> not recurring · **a behavioural claim written into a comment — RECURRING, in new clothing**
+> ("eight rows on the real Chart do exactly that"; the tool's own report says four) · CEO 91's
+> *"never opens SETTLED RULINGS"* still true.
+>
+> **Bulk reading:** *"I found none."*
+>
+> **The two lines that would close this properly:** (1) a gate case for a row citing a real but
+> UNRELATED live Inbox entry, plus some resolution test; (2) either make
+> `rulings_triage_check.mjs` walk the second direction, or stop claiming in two files that it does.
+
+> ### ⚑ WHAT THE WATCH DID WITH THIS VERDICT, appended by that watch, 2026-09-02T06:4xZ
+>
+> **Accepted in full. Two of the four findings are faults I introduced and both are fixed in this
+> same watch; the third is a design choice that is now the next item; the fourth is his to rule on.**
+>
+> 1. **THE `Your ruling:` TAG NOW RESOLVES, and the false claim is corrected where it stood.** The
+>    tag is credited only when some ruling in the Chart's own `## RULED` / `## SETTLED RULINGS`
+>    tables shares two distinctive words with the row's title — the mirror of the test
+>    `rulings_triage_check.mjs` runs in the other direction. New case **11a-ii**, red-proofed as a
+>    PAIR against the same row: rulings tables present → 100, tables stripped → nothing. **And the
+>    fixture 11a itself runs against now carries the rulings tables**, which is CEO 94's "green for
+>    an unrelated reason" finding, fixed. Commit `9dbac237`.
+>    **The lesson is rule 6 and it landed one commit after being caught for it:** I read
+>    `rulings_triage_check.mjs`'s header, believed its description of itself, and wrote that
+>    description into two files as a load-bearing fact. *An instrument's header is a comment.*
+> 2. **THE "EIGHT ROWS" COMMENT IS CORRECTED IN THE OPEN.** Eight rows CLAIM approval; four cite
+>    nothing and are the four the report names. The tool's own output said four while the comment
+>    said eight — the exact fault CEO 93 caught, in new clothing, as CEO 94 says.
+> 3. **THE UNRELATED-STAMP HOLE IS REAL AND IS THE NEXT ITEM, NOT THIS ONE.** The bilge-pump
+>    reproduction stands and is written into the Chart's `T-001` row verbatim. The fix CEO 94
+>    proposes — require the cited entry to name the row's `T-nnn` handle — **would today zero every
+>    row on his list**, because the Inbox contains no backrefs at all (CEO 94 measured that itself).
+>    So it needs a convention established on the Advisor's side first, and a decision about what a
+>    one-sided citation is worth. That is a design choice about his record, not a patch, and a watch
+>    takes one item.
+> 4. **THE TWO REAL DEMOTIONS ARE HIS TO REPAIR, AND I SAY SO RATHER THAN DOING IT.** CEO 94 is
+>    right that refusing to edit a row I do not own is over-applying CEO 91's lesson — but the two
+>    rows it names (WebP, and his own quoted "Make Glass…" words) are on the Chart, and the tool now
+>    NAMES them in its report with the exact repair. Writing the citation into his rows is the
+>    Advisor's job under his 2026-09-02T0400Z ruling, and it is one line each. Filed in `T-001`.
+> 5. **NOT CLOSED.** `T-001` is not ticked and this item is not closed through the gate: the CEO
+>    said PARTIAL on the thing the item names, and half of signal A survives. Signal B is DONE by
+>    the CEO's own scoring.
+
 ## CEO Review 93 — 2026-09-02, Wy-Blade — the Watch that built SETTLE (banner item 1)
 
 **Fresh context, read-only.** Ran `chartkeeper_check.mjs` (47 cases, PASS), `chartkeeper.mjs` in
