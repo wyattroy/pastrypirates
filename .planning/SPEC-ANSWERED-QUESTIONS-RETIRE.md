@@ -58,7 +58,7 @@ annoyance; a mis-attributed ruling is a corrupted decision.
 
 **Three properties make this likely rather than exotic:**
 1. **Truncation at 40 characters**, so only the opening of a question distinguishes it.
-2. **The `⟨T-105⟩` handle eats the first 5**, and questions carrying the same handle are exactly the
+2. **The `⟨T-105⟩` handle eats the first 6** (`t-105-`; the draft said 5 — CEO 123), and questions carrying the same handle are exactly the
    ones most likely to be asked together — **as his two were today.**
 3. **House style front-loads the shared framing** (*"Should the harvest…"*, *"Do you want to…"*).
 
@@ -91,11 +91,27 @@ both of his questions. This is the part that catches the *recurrence*, and the w
 worth more than the fix.
 
 ### PART 4 — CLOSE ON THE SYMPTOM, NOT ON THE WORK
-**`T-090` was named *"an answered question never leaves `BLOCKED ON WYATT`"* and closed through the
-gate at 4:31 PM having built the reap-label split instead. Both halves of that are true and the
-second was good work — but the fault it was named for shipped unfixed, and the row closed anyway.**
-`close_item.mjs` cannot see this: it requires a CEO verdict, a diff and solution-first evidence, and
-**all three existed.**
+
+> ⚠ **THIS SECTION'S FIRST DRAFT BLAMED A SESSION FOR SOMETHING IT DID NOT DO, AND THE CORRECTION IS
+> LEFT VISIBLE.** It said *"`T-090` was named 'an answered question never leaves BLOCKED ON WYATT'
+> and closed through the gate at 4:31 PM having built the reap-label split instead… the row closed
+> anyway."* **CEO 123 checked it and it is false; verified here rather than taken on its word.**
+> **Two different open rows were carrying the handle `T-090`.** The one that closed (`7c5cf6a2`) is
+> *"ONE LABEL IS DOING DUTY FOR THREE UNRELATED FAULTS"* — named for what it built, reviewed as that
+> subject by CEO 119. **The answered-question row never closed; it is open at `CHART.md:366` right
+> now.** And the closing session **disclosed the collision in its own commit message** — *"five
+> handles on his Chart are each carried by two different open rows, including the handle of this
+> very row"*. **It was not hidden. It was read past, by me.**
+>
+> **THE REAL FAULT HERE IS AMBIGUOUS HANDLES, WHICH IS A DIFFERENT ITEM** (`CHART.md:905`) — and the
+> lesson is sharper than the accusation was: **a handle shared by two rows makes every claim about
+> "that item" unfalsifiable**, including an accusation. This spec's own row then committed the same
+> fault an hour later by taking `T-107`, which was also already in use.
+
+**What still stands, and it is why Part 4 exists:** an item genuinely CAN close honestly while its
+named fault stands, and `close_item.mjs` cannot see that — it requires a CEO verdict, a diff and
+solution-first evidence (`close_item.mjs:90, 108, 131`), and **all three can be present while the
+symptom is untouched.**
 
 **So this item's acceptance test IS the symptom, and it must be run, not reasoned about:** answer a
 question on the live page, let the harvest run, and **assert the question is gone from his page with
@@ -109,10 +125,16 @@ Written before building, so it cannot be retrofitted:
    missed — a question containing markdown the parser normalises differently, say — then Part 2's
    join is unreliable and Part 1 is not merely first, it is mandatory. **Check by slugging every row
    in `RULED` against every key ever seen, not just today's two.**
-2. **If `glassState.rulings` is cleared on republish**, the harvest may see a ruling exactly once,
-   and a missed harvest loses the retirement trigger permanently. **Measure whether rulings persist
-   across a republish before relying on them as the trigger** — if they do not, the trigger must be
-   the record, not the page.
+2. ✅ **FIRED, AND IT WAS ANSWERABLE FROM THE REPO IN THIRTY SECONDS — I SHOULD HAVE LOOKED.** It
+   read: *"If `glassState.rulings` is cleared on republish, the harvest may see a ruling exactly
+   once… measure whether rulings persist before relying on them as the trigger."* **`glass.mjs:800`
+   constructs the page state as `ideas: [], rulings: {} }` — hardcoded. A session republish wipes
+   them every time.** They exist only inside the published artifact, between republishes.
+   **CONSEQUENCE FOR PART 2, and it must be fixed before anyone builds from it: the trigger is
+   "every ruling THE HARVEST READ from the live page, before any republish" — never "every key in
+   `glassState.rulings`", which is empty the moment a session regenerates.** Found by CEO 123; the
+   spec had parked it as future work when `grep` answered it. **Rule 20: read the subsystem's own
+   file before writing a measurement task for somebody else.**
 3. **If Part 3's gate cannot be made to fail on today's pre-repair file**, it is not a gate. Build it
    red first or not at all.
 

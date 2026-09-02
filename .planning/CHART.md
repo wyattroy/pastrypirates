@@ -54,6 +54,96 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
+- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
+      BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
+      `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
+      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
+      **CEO 117 returned PARTIAL and its two corrections are already folded into the spec** — Layer
+      D was specifying something that already ships (`glass.mjs:1218`), and Layer A's "unknown" was
+      half answered in `glass.mjs:22-23`. **Read the spec, not this row's summary of it.**
+      ⟨`T-105`⟩
+      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
+      session looked. It is not evidence the page hasn't changed since. Your page carries its own
+      version number — that's the fact that can answer 'is a republish safe?', and a clock never
+      can."* **Identity, not a clock.**
+      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
+      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
+      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
+      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
+      republish, which regenerates the page from disk and drops `glassState`. **They survived by
+      luck of ordering, not by design.**
+      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
+      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
+      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
+      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
+      the **artifact version id**, not a time, and is compared immediately before publishing —
+      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
+      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
+      submits it**, so his words are never in only one place.
+      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
+      Do not let a smaller layer ship under that word.
+      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
+      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
+      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
+      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
+      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
+      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
+      a staleness judgement and a regeneration in between — **so even a perfect tick has a
+      multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      ✅ **MEASURED 2026-09-02 4:58 PM ET, AND IT MAKES THIS ROW SMALLER — READ THIS BEFORE THE
+      SPEC.** The Layer A question this row called "the first move, a measurement not code" was run
+      on a DISPOSABLE artifact, never on the Glass, and **a stale republish was REFUSED**: *"a newer
+      version ... is live and this publish was not built on it."* A second gate surfaced unlooked-for
+      — the peer's own publish was refused for never having viewed the live version. **Two
+      enforcement points; his invariant is already in the runtime.**
+      ⚠ **SO THE ROW'S OWN ACCEPTANCE-TEST STORY OVERSTATED THE DANGER, AND THAT IS CORRECTED
+      RATHER THAN QUIETLY DROPPED:** the 3:07 PM sequence could not have destroyed his ideas
+      silently — that publish would have been refused. **A hazard was reported as a near-miss
+      without anyone measuring the protection.** What still stands is that the harvest stamp is a
+      clock and cannot answer the question; it was simply never the last line of defence.
+      **WHAT IS ACTUALLY LEFT, in order:** (1) **Layer A = ONE GATE** that fails the build on `force`
+      near a Glass publish — the runbook already says "NEVER PASS `force`"
+      (`GLASS-UPDATE-SESSION.md:222-230`) and nothing enforces it, and a sentence is what failed
+      here; (2) Layer B drops to a convenience, still delete `FRESH_MIN`; (3) **the residual exposure
+      MOVED to the MERGE** — the tool hands back the live source to merge, and a careless merge can
+      still drop his words, visibly rather than silently. Aim C and D there.
+      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
+
+      ---
+      **⚑ WORKED 2026-09-02T21:0xZ, CEO 120 (PARTIAL), commit `cd3bd96b`. NOT CLOSED, AND THE
+      REASON IS NOT THE EVIDENCE — HALF THE FIX IS BEHIND A PERMISSION A WATCH MAY NOT GRANT
+      ITSELF.**
+      **WHAT SHIPPED:** the harvest stamp stops being a clock. `scripts/wyclau/mark_glass_harvest.mjs`
+      writes a receipt naming the artifact VERSION that was read and refuses a versionless stamp;
+      `GLASS-UPDATE-SESSION.md` gains **step 6b — re-read the live page and compare the version in
+      the same breath as the publish** (the spec's §3 says moving the guard there matters more than
+      fixing the stamp), and step 7 forbids `force`. A derived gate over **11 instruction files**
+      fails the build if any of them ever teaches a forced publish or a hand-written stamp.
+      **WHAT IS BLOCKED, AND IT IS THE HALF THAT MAKES IT MECHANICAL:** the hook still decides on
+      `FRESH_MIN = 30`, and its own deny text still prints the retired `date -u … > ${STAMP}` at the
+      one moment that fires immediately before the destructive act. Three invariants were written
+      FIRST and went **RED** against it — a bare timestamp accepted, a receipt denied for being old,
+      a forced publish allowed. **The fix is two files in `.claude/`, and every write there is
+      refused for an unattended watch** ("sensitive file" / "requested permissions to write").
+      Measured, not assumed: `.claude/hooks/glass-harvest-first.cjs` AND
+      `.claude/skills/door/SKILL.md` were both attempted and both refused. **So the wall is
+      `.claude/` entirely — hooks, skills and `settings.json` — which is a standing fact about every
+      future item whose fix lands there.**
+      **THE THREE RED CASES ARE NOT DELETED AND NOT LEFT RED.** They sit in a PENDING block in
+      `scripts/qa/glass_harvest_hook_check.mjs` that reports the live state on every `npm test` and
+      **FAILS THE MOMENT THE HOOK IS REPAIRED**, so the exemption cannot outlive its reason.
+      ⚠ **AND THE HONEST HEADLINE: HIS WORDS CAN STILL BE LOST.** `artifactVersion` has no machine
+      reader yet — the only thing that compares it is a session obeying the runbook. Layers C and D
+      are not built, and **the acceptance test in the spec's §2 is not passed.**
+      ⚠ **CEO 120's sharpest finding, recorded because it is the cheapest thing left:** the row's own
+      first line says *measure before building*, and no live measurement was made. **If the platform
+      really does conflict, most of layer B is hardening rather than the fix; if it does not, layer A
+      is worthless and B is mandatory.** One test settles it — type an idea into the page, then
+      publish from a session that read it beforehand, and record what comes back.
+      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
+      [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — **"Let the watch write them -- I allow edits to hooks and skills"** — ruled on the Glass 2026-09-02 5:43:55 PM ET — and nothing moved this row
+
 - [ ] **A FIELD NAMED `artifactVersion` HOLDS A CLOCK, IN BOTH RECEIPTS, AND THE GATE CANNOT SEE IT
       ⟨`T-111`⟩
       BECAUSE IT ONLY CHECKS THE NAME.** `INBOX-20260902T2156Z`, measured 2026-09-02 5:56 and
@@ -88,6 +178,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ✅ **HIS WORDS WERE NEVER AT RISK FROM THIS** — the runtime refuses a stale publish regardless
       (`INBOX-20260902T2100Z`). What was at risk is every reader believing these receipts mean
       something they do not.
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.**
       ⟨`T-103`⟩
@@ -127,10 +221,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       carries its handle** — there is nothing for a drag to identify yet. Dragging also has to
       persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
       read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 - [ ] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
       ⟨`T-106`⟩
@@ -173,7 +263,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **Sizing: `chartkeeper.mjs`'s routing plus `glass.mjs`'s Your Call card. No game code, no sea
       trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
       that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
-
 - [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
       ⟨`T-112`⟩
       note to him, an hour after the same hazard was filed about a session doing it by hand.**
@@ -197,10 +286,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
       destroy-then-repair is still a window, and this project has already lost a note inside one.
       **Sizing: SMALL. No game code.**
-
-
-
-
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -307,6 +392,76 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
   someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
   lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
+- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
+      he has now reported this exact fault TWICE, about two different cards.** Filed
+      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
+      ⟨`T-090`⟩
+      ⚑⚑⚑ **HIS INSTRUCTION, 2026-09-02 6:30 PM ET: *"add it to the TOP of the fix list -- by fix
+      list I mean Task List/ Chart"*. `INBOX-20260902T1830Z`. THE PLAN IS WRITTEN AND CEO-VERIFIED:
+      [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](SPEC-ANSWERED-QUESTIONS-RETIRE.md), **CEO 123 — YES, with
+      three corrections, all applied.** Design only; the build is yours.
+      **FIFTH INSTANCE AT 6:25 PM**, and it is the one he photographed: he answered two questions at
+      5:43 and 5:45 PM, got the "waiting" confirmation, left, and his page still asked both forty
+      minutes later. **Nothing he did was wrong and nothing was lost.**
+      ⚠ **AND THE RECORD BEING FIXED IS NOT THE SAME EVENT AS HIS PAGE BEING FIXED.** The rows were
+      retired at 6:26 PM in `17f99bd4`; the Glass session then read his page and found it STILL
+      showing "Your call (2)". **It took a republish. A fix that has not been republished is a fix he
+      cannot see, and from where he sits those are identical to nothing having happened.**
+      **MEASURED BEFORE THE PLAN WAS WRITTEN, and CEO 123 reproduced both independently:**
+      the join already exists — `glass.mjs:430` slugs a question's first 40 characters into its id and
+      `glassState.rulings` is keyed by it, and slugging his two real rows reproduces both stored keys
+      character for character. **So retirement needs no new schema.**
+      ⚠ **BUT THE SAME JOIN CAN SILENTLY MIS-ATTRIBUTE HIS RULINGS — PROVEN BY CONSTRUCTION.** Two
+      different questions on one item both slug to `t-105-should-the-harvest-retire-the-row`. **His
+      answer to one would retire the other, and the record would show him answering a question he
+      never saw.** A duplicate question wastes his time; a mis-attributed ruling corrupts a decision.
+      **HARDEN THE JOIN BEFORE AUTOMATING ON IT — the plan's one hard constraint, and CEO 123 agreed
+      it is correct rather than over-caution.**
+      ⚠ **AND THE TRIGGER IS NOT WHAT THE FIRST DRAFT SAID.** `glass.mjs:800` hardcodes
+      `rulings: {}`, so **a republish wipes them**; the trigger is *every ruling the harvest READ from
+      the live page, before any republish*.
+      **FOUR PARTS, IN ORDER:** (1) a stable explicit id per question, not derived from its prose;
+      (2) retirement folded into the harvest as ONE commit; (3) **the gate that would have gone RED
+      five times today** — fail if any `BLOCKED ON WYATT` row slugs to a key that already has a
+      ruling, red-proofed against the pre-repair file; (4) **close on the SYMPTOM** — answer a
+      question on the live page and assert it leaves, **with no human editing `CHART.md`**.
+      ⚠ **RANK, READ AND NOT ASSERTED:** this row is where the plan lives **because CEO 123 showed a
+      separate row was the worse construction** — it scored 108 at rank 4 while duplicating the
+      handle `T-107`, and this row already carries four of his notes.
+      **AFTER THE MERGE, MEASURED AT 6:50 PM ET: score 140, rank 2 of 59.** The only row above it is
+      his own earlier top-priority item at 204. **He asked for the TOP and this is SECOND — said
+      here, on the surface he actually reads, because the previous attempt put that disclosure in a
+      commit message and CEO 123 caught it: *"he reads the Chart; he does not read commit
+      messages."*** A row must not claim its own position; RANK decides and moves rows under it.
+      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
+      this question on the Glass once -- now it seems to be asking me again."*
+      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
+      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
+      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
+      answer creates a row; **nothing retires the question.**
+      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
+      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
+      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
+      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
+      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
+      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
+      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
+      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
+      the row and writes the ledger together so they cannot disagree.
+      **AND GATE IT, because the ungated twin is what allowed this:** extend
+      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
+      corresponding harvested ruling. Red-proof both ways.
+      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
+      third time. That is a repair, not the fix.)*
+      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
+      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
+      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
+      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
+      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
+      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
+      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
+      the design, and the gap between the two steps is a page that lies to him — so the move must be
+      atomic, which is what this row already says.
 - [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
       ⟨`T-012`⟩
   IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
@@ -363,39 +518,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
-- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
-      he has now reported this exact fault TWICE, about two different cards.** Filed
-      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
-      ⟨`T-090`⟩
-      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
-      this question on the Glass once -- now it seems to be asking me again."*
-      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
-      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
-      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
-      answer creates a row; **nothing retires the question.**
-      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
-      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
-      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
-      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
-      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
-      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
-      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
-      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
-      the row and writes the ledger together so they cannot disagree.
-      **AND GATE IT, because the ungated twin is what allowed this:** extend
-      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
-      corresponding harvested ruling. Red-proof both ways.
-      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
-      third time. That is a repair, not the fix.)*
-      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
-      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
-      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
-      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
-      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
-      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
-      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
-      the design, and the gap between the two steps is a page that lies to him — so the move must be
-      atomic, which is what this row already says.
 - [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
       ⟨`T-027`⟩
       WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
@@ -486,6 +608,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -494,6 +621,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
 - [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
@@ -518,61 +646,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
       edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **⚑⚑⚑ HIS INSTRUCTION, 6:30 PM ET: "add it to the TOP of the fix list — by fix list I mean
-      Task List/ Chart". AN ANSWERED QUESTION MUST LEAVE HIS PAGE IN THE SAME ACT THAT RECORDS THE
-      ANSWER.** `INBOX-20260902T1830Z`. Plan: [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](SPEC-ANSWERED-QUESTIONS-RETIRE.md).
-      **Design only — the build is yours.**
-      ⟨`T-107`⟩
-      **HE HAS NOW HIT THIS FIVE TIMES IN TWELVE HOURS.** Most recently he answered two questions at
-      5:43 and 5:45 PM, got the "waiting" confirmation, left — and photographed his page still asking
-      both at 6:25 PM. **Nothing he did was wrong and nothing was lost: his answers saved, harvested
-      and filed. Only the step that removes the question does not exist.**
-      **THE INVARIANT: a question and its answer are ONE OBJECT.** Recording the answer and retiring
-      the question are two acts today, joined by a session remembering — rule 23's forbidden shape.
-      **MEASURED BEFORE THE PLAN WAS WRITTEN:** the join already exists and is deterministic —
-      `glass.mjs:430` slugs a question's first 40 chars into its id and `glassState.rulings` is keyed
-      by it; slugging his two real rows reproduces both stored keys character for character. **So
-      retirement needs no new schema.**
-      ⚠ **AND THE SAME JOIN CAN SILENTLY MIS-ATTRIBUTE HIS RULINGS — PROVEN BY CONSTRUCTION, NOT
-      THEORISED.** Two different questions on one item both slug to
-      `t-105-should-the-harvest-retire-the-row`. **His answer to one would retire the other, and the
-      record would show him answering a question he never saw.** A duplicate question is an
-      annoyance; a mis-attributed ruling is a corrupted decision. **HARDEN THE JOIN BEFORE
-      AUTOMATING ON IT — that ordering is the plan's one hard constraint.**
-      **FOUR PARTS, IN ORDER:** (1) a stable explicit id per question, not derived from its prose;
-      (2) retirement folded into the harvest as ONE commit; (3) **the gate that would have gone RED
-      five times today** — fail if any `BLOCKED ON WYATT` row slugs to a key that already has a
-      ruling, red-proofed against today's pre-repair file; (4) **close on the SYMPTOM**: answer a
-      question on the live page and assert it disappears **with no human editing `CHART.md`**.
-      ⚠ **WHY PART 4 EXISTS: `T-090` was named "an answered question never leaves BLOCKED ON WYATT"
-      and closed through the gate at 4:31 PM having built the reap-label split instead.** That work
-      was real and good; the fault the row was named for shipped unfixed and the row closed anyway.
-      `close_item.mjs` cannot catch it — it wants a CEO verdict, a diff and solution-first evidence,
-      and **all three existed.** An item can close honestly while the thing it is named after is
-      still broken.
-      **Sizing: `glass.mjs`, the harvest, one new gate. No game code, no sea trial.**
-
-- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
-      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
-      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
-      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
-      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
-      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
-      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
-      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
-      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
-      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
-      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
-      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
-      two on the same day bake **together**.
-      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
-      round.** The full comparison and the reasoning are in
-      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
 
 - [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
       ⟨`T-088`⟩
@@ -1141,95 +1214,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
       bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
 
-- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
-      BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
-      `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
-      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
-      **CEO 117 returned PARTIAL and its two corrections are already folded into the spec** — Layer
-      D was specifying something that already ships (`glass.mjs:1218`), and Layer A's "unknown" was
-      half answered in `glass.mjs:22-23`. **Read the spec, not this row's summary of it.**
-      ⟨`T-105`⟩
-      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
-      session looked. It is not evidence the page hasn't changed since. Your page carries its own
-      version number — that's the fact that can answer 'is a republish safe?', and a clock never
-      can."* **Identity, not a clock.**
-      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
-      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
-      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
-      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
-      republish, which regenerates the page from disk and drops `glassState`. **They survived by
-      luck of ordering, not by design.**
-      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
-      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
-      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
-      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
-      the **artifact version id**, not a time, and is compared immediately before publishing —
-      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
-      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
-      submits it**, so his words are never in only one place.
-      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
-      Do not let a smaller layer ship under that word.
-      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
-      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
-      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
-      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
-      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
-      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
-      a staleness judgement and a regeneration in between — **so even a perfect tick has a
-      multi-minute gap between the read and the destructive act.** Move the check to step 7.
-      ✅ **MEASURED 2026-09-02 4:58 PM ET, AND IT MAKES THIS ROW SMALLER — READ THIS BEFORE THE
-      SPEC.** The Layer A question this row called "the first move, a measurement not code" was run
-      on a DISPOSABLE artifact, never on the Glass, and **a stale republish was REFUSED**: *"a newer
-      version ... is live and this publish was not built on it."* A second gate surfaced unlooked-for
-      — the peer's own publish was refused for never having viewed the live version. **Two
-      enforcement points; his invariant is already in the runtime.**
-      ⚠ **SO THE ROW'S OWN ACCEPTANCE-TEST STORY OVERSTATED THE DANGER, AND THAT IS CORRECTED
-      RATHER THAN QUIETLY DROPPED:** the 3:07 PM sequence could not have destroyed his ideas
-      silently — that publish would have been refused. **A hazard was reported as a near-miss
-      without anyone measuring the protection.** What still stands is that the harvest stamp is a
-      clock and cannot answer the question; it was simply never the last line of defence.
-      **WHAT IS ACTUALLY LEFT, in order:** (1) **Layer A = ONE GATE** that fails the build on `force`
-      near a Glass publish — the runbook already says "NEVER PASS `force`"
-      (`GLASS-UPDATE-SESSION.md:222-230`) and nothing enforces it, and a sentence is what failed
-      here; (2) Layer B drops to a convenience, still delete `FRESH_MIN`; (3) **the residual exposure
-      MOVED to the MERGE** — the tool hands back the live source to merge, and a careless merge can
-      still drop his words, visibly rather than silently. Aim C and D there.
-      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
-
-      ---
-      **⚑ WORKED 2026-09-02T21:0xZ, CEO 120 (PARTIAL), commit `cd3bd96b`. NOT CLOSED, AND THE
-      REASON IS NOT THE EVIDENCE — HALF THE FIX IS BEHIND A PERMISSION A WATCH MAY NOT GRANT
-      ITSELF.**
-      **WHAT SHIPPED:** the harvest stamp stops being a clock. `scripts/wyclau/mark_glass_harvest.mjs`
-      writes a receipt naming the artifact VERSION that was read and refuses a versionless stamp;
-      `GLASS-UPDATE-SESSION.md` gains **step 6b — re-read the live page and compare the version in
-      the same breath as the publish** (the spec's §3 says moving the guard there matters more than
-      fixing the stamp), and step 7 forbids `force`. A derived gate over **11 instruction files**
-      fails the build if any of them ever teaches a forced publish or a hand-written stamp.
-      **WHAT IS BLOCKED, AND IT IS THE HALF THAT MAKES IT MECHANICAL:** the hook still decides on
-      `FRESH_MIN = 30`, and its own deny text still prints the retired `date -u … > ${STAMP}` at the
-      one moment that fires immediately before the destructive act. Three invariants were written
-      FIRST and went **RED** against it — a bare timestamp accepted, a receipt denied for being old,
-      a forced publish allowed. **The fix is two files in `.claude/`, and every write there is
-      refused for an unattended watch** ("sensitive file" / "requested permissions to write").
-      Measured, not assumed: `.claude/hooks/glass-harvest-first.cjs` AND
-      `.claude/skills/door/SKILL.md` were both attempted and both refused. **So the wall is
-      `.claude/` entirely — hooks, skills and `settings.json` — which is a standing fact about every
-      future item whose fix lands there.**
-      **THE THREE RED CASES ARE NOT DELETED AND NOT LEFT RED.** They sit in a PENDING block in
-      `scripts/qa/glass_harvest_hook_check.mjs` that reports the live state on every `npm test` and
-      **FAILS THE MOMENT THE HOOK IS REPAIRED**, so the exemption cannot outlive its reason.
-      ⚠ **AND THE HONEST HEADLINE: HIS WORDS CAN STILL BE LOST.** `artifactVersion` has no machine
-      reader yet — the only thing that compares it is a session obeying the runbook. Layers C and D
-      are not built, and **the acceptance test in the spec's §2 is not passed.**
-      ⚠ **CEO 120's sharpest finding, recorded because it is the cheapest thing left:** the row's own
-      first line says *measure before building*, and no live measurement was made. **If the platform
-      really does conflict, most of layer B is hardening rather than the fix; if it does not, layer A
-      is worthless and B is mandatory.** One test settles it — type an idea into the page, then
-      publish from a session that read it beforehand, and record what comes back.
-      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
-      [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
-
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -1254,6 +1238,24 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
+- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
+      ⟨`T-114`⟩
+      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
+      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
+      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
+      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
+      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
+      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
+      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
+      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
+      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
+      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
+      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
+      two on the same day bake **together**.
+      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
+      round.** The full comparison and the reasoning are in
+      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
@@ -1304,11 +1306,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
-| **RULES PAGE 1 of 4 — which page becomes THE rules page?** You asked for this split before anything gets built. | **A new /rules.html carrying the How-to-play modal's words (recommended)** · or grow About's "How it plays" into it · or leave it in the modal. About's rules section leaves in the same change either way, so this is still two pages, not three. | 2026-09-02 6:30 PM ET |
-| **RULES PAGE 2 of 4 — what does About keep?** | **Keep the hero, screenshots, captains' quotes and credits; DELETE "How it plays" and put 2-3 sentences plus a link in its place (recommended)** · or keep a fuller summary there. Delete rather than correct: three things it says about your game are measurably wrong today. | 2026-09-02 6:30 PM ET |
-| **RULES PAGE 3 of 4 — does the in-game modal show the full rules, or a short version that links out?** | **Full text, and the modal stays the source (recommended)** · or a short version linking out. Measured reason: the modal's amounts are filled from the LIVE voyage's settings, so a two-player table sees its own crate prices; a page can only ever show the four-seat default, and linking out walks a player off the board on a shot clock. | 2026-09-02 6:30 PM ET |
-| **RULES PAGE 4 of 4 — does the rules page speak pirate, or in your own plain voice?** | **Pirate speak, because it is the modal's text unchanged (recommended)** · or plain voice, which means the modal changes too. One register is the price of one source: two voices is two texts kept in step by hand, which is the drift you cited rule 23 about. | 2026-09-02 6:30 PM ET |
-| **And once Credits has its own page — does About keep its credits list?** | **Keep a short list on About and link to the full page (recommended)** · or drop it from About entirely. Only bites once INBOX-20260902T190737Z ships. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 1 of 4 — which page becomes THE rules page?** You asked for this split before anything gets built. Holds up ⟨`T-114`⟩ and the rules page itself. | **A new /rules.html carrying the How-to-play modal's words (recommended)** · or grow About's "How it plays" into it · or leave it in the modal. About's rules section leaves in the same change either way, so this is still two pages, not three. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 2 of 4 — what does About keep?** Holds up ⟨`T-114`⟩, the three wrong sentences on that page. | **Keep the hero, screenshots, captains' quotes and credits; DELETE "How it plays" and put 2-3 sentences plus a link in its place (recommended)** · or keep a fuller summary there. Delete rather than correct: three things it says about your game are measurably wrong today. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 3 of 4 — does the in-game modal show the full rules, or a short version that links out?** Holds up ⟨`T-100`⟩, building the page. | **Full text, and the modal stays the source (recommended)** · or a short version linking out. Measured reason: the modal's amounts are filled from the LIVE voyage's settings, so a two-player table sees its own crate prices; a page can only ever show the four-seat default, and linking out walks a player off the board on a shot clock. | 2026-09-02 6:30 PM ET |
+| **RULES PAGE 4 of 4 — does the rules page speak pirate, or in your own plain voice?** Holds up ⟨`T-100`⟩, building the page. | **Pirate speak, because it is the modal's text unchanged (recommended)** · or plain voice, which means the modal changes too. One register is the price of one source: two voices is two texts kept in step by hand, which is the drift you cited rule 23 about. | 2026-09-02 6:30 PM ET |
+| **And once Credits has its own page — does About keep its credits list?** Holds up ⟨`T-101`⟩, the credits page. | **Keep a short list on About and link to the full page (recommended)** · or drop it from About entirely. Only bites once INBOX-20260902T190737Z ships. | 2026-09-02 6:30 PM ET |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -1340,15 +1342,15 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*Four rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
-triaged). Two more rulings landed and were triaged straight to SETTLED below since both resolve
-to "nothing to build." The prior eight were triaged 2026-09-01; three carried work and are in the
-STEP 1 CHECKLIST, tagged "Your ruling:".*
+*Three rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
+triaged). The two `T-105` rulings that carried verdicts were moved to SETTLED RULINGS in
+[`CHART-LOG.md`](CHART-LOG.md) by the 6:30 PM ET watch of 2026-09-02 — **they were written with
+their verdicts and left here, which had `npm test` RED on that watch's arrival.** Step 3 of the
+process above is the move, and it is not optional. The prior eight were triaged 2026-09-01; three
+carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
-| ⟨`T-105`⟩ May a watch make the two `.claude/` edits, or should he? | **"Let the watch write them -- I allow edits to hooks and skills"** — ruled on the Glass 2026-09-02 5:43:55 PM ET | **SETTLED, nothing to build.** Recorded in `DECISIONS.md`. ⚠ The question's premise was measured FALSE the same minute: `.claude/settings.json` allows bare `Edit`/`Write` and denies only `Read(.env*)` — **nothing under `.claude/` is blocked by this project.** His permission stands; no allowlist change was needed or made. |
-| ⟨`T-105`⟩ Run the one-minute stale-publish test on his live page? | **"Done -- I wrote about adding google analytics and firebase"** — ruled on the Glass 2026-09-02 5:45:23 PM ET | **SETTLED, and his half is done.** His idea is harvested (`INBOX-20260902T214507Z`). The publishing half **cannot be run** — the auto-mode classifier refused it twice. The answer was already measured on a disposable artifact at 4:58 PM: **REFUSED** (`INBOX-20260902T2100Z`). |
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
