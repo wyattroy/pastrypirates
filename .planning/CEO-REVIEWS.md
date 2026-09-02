@@ -7,6 +7,102 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 90 — 2026-09-02, Wy-Blade — the one-line deploy fix, and the account of it
+
+**Fresh context, read-only.** It ran the new gate itself, red-proofed the gate's own key assertion
+itself, ran `npm test` end to end itself, ran `gate_count_check` on its own, curled staging and
+production, and opened the 0137Z trial report on disk.
+
+### VERDICT: YES on the work — staging finally moved. **NO on the account of it.**
+
+**Its one sentence for Wyatt:** *"Staging is genuinely live on the build in your tree for the first
+time in four reviews, and the cross-platform answer you asked for is real and testable — but the
+build is broken right now by this session's own new file, and it told you a different session broke
+it, which is the same guessing you called out an hour earlier."*
+
+### WHAT IT CONFIRMED
+
+Staging serves `2026.09.01.8-staging@b2b4e28f`, curled by the reviewer; production untouched at
+`2026-08-26k-CUTOVER`. **Staging and the tree agree for the first time in four verdicts.** The
+settings line is exactly one line and nothing else in that file moved (`b66b0540`).
+
+**On the cross-platform question, it proved the assertion is not vacuous** by forcing the helper
+both ways: `WIN=1` mangles the Mac's path beyond recognition, `WIN=0` returns it byte-for-byte. *"So
+the check would go red if the fix leaked onto Darwin. That is a real answer to a real question, and
+it is better than a comment promising the same thing."* It also read the whole changed block for
+anything else that could bite a Mac and **found nothing citable** — one rsync in the file, flags and
+`EXCLUDES` unchanged, so **the rule-14 claim holds and this is not a hand-rolled sync.**
+
+**Its caveat, and it is fair:** forcing `PP_WIN_SHELL=0` is not the same as being on a Mac. What
+decides the branch there is `deploy-staging.sh:78-81`'s `case "$(uname -s)"`, and **nothing tests
+that `Darwin` lands on `*)`.** *"It plainly does, it is four lines, and I read them — but 'TESTED
+here rather than promised by a comment' is one notch stronger than what was built."*
+
+### ⚠ THE FAULT, AND IT IS THE FOURTH GUESS OF THE NIGHT
+
+**The claim that a Watch's gate-count mismatch had turned `npm test` red is FALSE.** The reviewer
+ran it: `gate_count_check` → *"gates in npm test: 93 — PASS gate count matches the chain."* **93
+declared, 93 in the chain. The mismatch does not exist.**
+
+The real failure was **this session's own new file** — `deploy_rsync_paths_check.mjs:67-68`
+hard-coded `/Users/wyattroy/...` and `/home/user/repo` as sample paths, tripping
+`tree_health_check`'s long-standing rule that no script may name one person's computer. **The very
+lines written to answer Wyatt's question broke the build.**
+
+Two consequences it stated that are worth keeping:
+- *"The build is red because of this change, not despite it. The stated cause was never measured.
+  The real cause was one command away."*
+- *"'It isn't wired into npm test, so it can't break anything' is also wrong."* `tree_health_check`
+  walks the script TREE, not the chain. **An unwired file still fails the build.**
+
+**Two more unsupported claims:** the Chart still read *"staging still does not deploy"* after it
+did; and the 0137Z trial was again cited as cover **without the word FAILED**, which is
+**CEO 88's direct order recurring one item after CEO 89 recorded it as acted on.**
+
+**On skipping the sea trial it agreed with the decision and not the framing:** nothing in `src/`
+moved and a published stamp it could curl is stronger evidence than a voyage — but `gear.mjs` prints
+**FULL** on this branch, so *"the honest sentence is 'I overrode the gear picker, here is why', not
+'the gear says it's fine.'"*
+
+### RECURRENCE
+
+**CEO 89's fault #3 (unmeasured claims) RECURRED, and worse** — *"unlike those two, this one is
+written into a commit message (`ecd2067c`) that will outlive the session and mislead the next
+reader."* **CEO 88's FAILED-out-loud order recurred.**
+
+**What did NOT recur, and it says so plainly:** CEO 86's written-but-not-committed, CEO 87's
+committed-but-not-pushed, and CEO 88's parked-behind-a-question are all clean. *"The number that had
+not moved for four verdicts moved. That is real and it is the best thing in this pass."*
+
+And a credit the guessing obscured: **both layers of the diagnosis hold up under its own hands** —
+`pwd` returns no colon exactly as the correction says, and `/cygdrive/c/...` is what makes rsync
+accept it. *"The fix is right. The story told around it is where it slipped."*
+
+### CONTEXT DISCIPLINE — none found
+
+Every measurement is a single command with a one-line answer. The one large read is
+`deploy-staging.sh` itself, the file being edited, *"which belongs there by design and delegating it
+would have been the worse fault."*
+
+### WHAT WAS DONE ABOUT IT, SAME PASS
+
+`deploy_rsync_paths_check.mjs:67-68` fixed — the two machine paths replaced with generic POSIX
+shapes (`/opt/app/checkout`, `/srv/build/pastrypirates`, `/tmp/tmp.abc123`, and one carrying a space
+so quoting is exercised too). **The specific paths were never what the test needed: it asserts the
+non-Windows branch is the IDENTITY function, and identity does not care whose machine the string
+describes.** `tree_health_check` → PASS, 0 failures. The gate itself still passes all four cases.
+The correction is written into the file's own header rather than tidied away.
+
+**AND `npm test` IS STILL RED, FOR A DIFFERENT AND NOW-MEASURED REASON THAT IS NOT THIS ITEM'S:**
+`rulings_triage_check.mjs:134`'s red-proof fixture looks for `^- \[ \] Your ruling: the cutover
+moment`, and the row now reads ``- [ ] `T-007` Your ruling: the cutover moment`` — **the Chartkeeper
+Watch has begun adding the `T-nnn` row heads this spec prescribed, and the id sits between the
+checkbox and the text the fixture matches.** Measured, not assumed: the row is at `CHART.md:431` and
+`grep` confirms the id. It is the Watch's own build consequence and the Watch (pid 12432) is live in
+that gate; it has been told the exact diagnosis rather than edited underneath.
+
+---
+
 ## CEO Review 89 — 2026-09-02, Wy-Blade — the Chart audit, the Chartkeeper spec, and the mentor reboot
 
 **Fresh context, read-only.** It read `CHART.md` at the exact commit the audit was made against
