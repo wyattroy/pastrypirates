@@ -625,3 +625,42 @@ status: OPEN — FOR A WATCH. Sizing: small, and it is an instrument fix, not ga
   launched by this session. The plausible sources are the sea trials and the sail-containment probes,
   both of which drive Chrome — but which one leaked, and whether it leaks on every run or only on a
   crash, is unmeasured and should not be reported as known.
+
+## INBOX-20260902T15xxZ — the docs' commands are only checked when they start with `node`
+> Not his words — a finding surfaced while fixing rule 17, filed so it is not lost.
+solution: extend `scripts/doc_command_check.js` to verify SHELL commands the docs teach, not only
+`node …` ones. Start with the two verbs that actually appear: does the binary exist on this machine,
+and if not, is the line labelled with the machine it belongs to?
+status: OPEN — FOR A WATCH. Sizing: small. It is a widening of a gate that already exists and
+already walks every doc.
+
+  **WHAT THIS EXPLAINS.** Rule 17 told every session to run `pkill -f remote-debugging-port`.
+  **Neither `pkill` nor `pgrep` exists in Git Bash on the Blade** — the machine that runs the relay —
+  so the rule was decorative there for as long as Windows has run it, and a tidy-up written as
+  `pgrep … || echo "no stray probes"` printed the all-clear on a full machine as readily as an empty
+  one. **That is how 183 debug-port browsers holding 15,097 MB accumulated for a day beside a laptop
+  he was asleep next to.**
+
+  ⚠ **AND THE GATE THAT EXISTS TO CATCH EXACTLY THIS COULD NOT SEE IT.**
+  `scripts/doc_command_check.js` walks every doc and asserts that **every `node …` command and every
+  relative link resolves**. It has caught real rot — a home-rooted `~/.claude/…` path that worked on
+  one machine, 35 lines of docs naming deleted files. **But its subject is `node` invocations and
+  markdown links. A bare shell command is invisible to it**, so the single most-repeated safety
+  instruction in the rulebook went unverified for months while the gate reported green beside it.
+
+  **This is the project's own recurring shape, one level up:** *an instrument whose subject is
+  narrower than the thing it is believed to guard.* `doc_command_check` never claimed to check shell
+  commands — but every session reading a green suite beside rule 17 had no way to know the rule
+  itself was untested. **A gate's silence about what it does NOT cover is what makes it reassuring**
+  (`docs/HARD-WON-LESSONS.md` §3: *a gate aimed at the wrong tree is not silent, it is reassuring*).
+
+  **THE SHAPE OF THE FIX, and it should stay small.** Not a shell interpreter — just: for each
+  fenced `bash` block in the docs, take the first word of each line; if it is not a shell keyword and
+  not present on this machine, **fail unless the line is annotated with the platform it belongs to**
+  (the corrected rule 17 now carries `# Mac / Linux ONLY — absent in Git Bash`, which is exactly the
+  annotation such a check would accept). **Derived, never a list of blessed commands** — rule 9.
+
+  **AND THE HONEST LIMIT, stated so nobody oversells it:** this can only ever check the machine it
+  runs on. A command absent on the Mac and present here would still pass here. That is fine and
+  worth saying: the goal is not proving a command works everywhere, it is stopping a rule from
+  teaching something that cannot run **on the machine reading it**.
