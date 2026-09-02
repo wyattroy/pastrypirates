@@ -447,9 +447,29 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
-- [ ] `T-010` **★★ `deploy-staging.sh` CANNOT RUN ON THE BLADE AT ALL — and it is NOT the permission wall,
-      which is now removed. MEASURED 2026-09-02T05:xxZ, not fixed (record-only Advisor). Sizing:
-      ONE LINE plus a gate.** With `"Bash(bash scripts/deploy-staging.sh*)"` added to
+- [x] `T-010` **★★ `deploy-staging.sh` COULD NOT RUN ON THE BLADE AT ALL — and it was NOT the permission
+      wall. FIXED AND STAGING IS LIVE** (closed 2026-09-02 · CEO 90 · commits `ecd2067c` + `3066ee07` ·
+      no game diff — `scripts/deploy-staging.sh` paths + one new gate; `src/` and `index.html` untouched,
+      `PP4_STAMP` not bumped).
+      **STAGING SERVES `2026.09.01.8-staging@b2b4e28f`, curled by a fresh CEO — up from `2026.09.01.6`,
+      and the first time in four verdicts that staging and the tree agree.** The fix keeps the rsync
+      line byte-identical (rule 14) and changes only the paths handed to it: a `rsync_path()` helper
+      gated on `uname -s`, plus `MSYS_NO_PATHCONV=1`. **Wyatt asked, before it was written, whether it
+      would still let the Mac and the cloud containers deploy** — so `scripts/qa/deploy_rsync_paths_check.mjs`
+      FORCES the non-Windows branch and asserts byte-identity, and CEO 90 proved that assertion can
+      fail (Windows branch on → the Mac's path is mangled; off → identical). **Its fair caveat, kept
+      rather than buried: forcing an env var is not literally being on Darwin, and nothing tests that
+      `Darwin` lands on the `*)` arm — four lines, read and correct, but one notch weaker than
+      "tested".**
+      ⚠ **AND THE GATE WRITTEN TO ANSWER HIS QUESTION BROKE THE BUILD, which is the lesson worth more
+      than the fix.** Its two sample paths were the Mac's and a container's, hard-coded — tripping
+      `tree_health_check`'s rule that no script may name one person's computer. The session then told
+      Wyatt *a different session* had turned `npm test` red **without running `gate_count_check`**,
+      which reports 93 declared against 93 in the chain. **The fourth unmeasured claim of the night,
+      and the only one written into a commit message where it would outlive the session.** Fixed with
+      generic POSIX shapes — identity does not care whose machine a string names.
+      *(The original filing follows, kept because its measurements are what found the cause.)*
+      With `"Bash(bash scripts/deploy-staging.sh*)"` added to
       `.claude/settings.json` at Wyatt's instruction, the script runs and dies at
       `scripts/deploy-staging.sh:133` — `rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/staging/"`
       — with *"The source and destination cannot both be remote."*
@@ -474,7 +494,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       script's rsync arguments resolve on this machine, red-proofed by pointing it at the `/c/` form.
       **WHY IT MATTERS BEYOND TONIGHT:** staging has been stuck on `2026.09.01.6` for four CEO
       verdicts running while the tree is on `.8`, and every account of *why* has named the permission
-      layer. **The permission layer was real and is now gone, and staging still does not deploy.**
+      layer. **The permission layer was real and is now gone — and at the moment this was written,
+      staging still did not deploy.** *(That sentence was true when filed and is now false: it deploys.
+      CEO 90 caught it still standing on the page an hour later, which is precisely the staleness the
+      Chartkeeper exists to reap — a row correct at its writing and wrong on his phone.)*
       Every "staging is blocked on Wyatt" line written before this row was, at best, half the answer.
       **The same shape is already on the record:** `openWebKit()` handed a raw Windows path to
       `import()`, which read `c:` as a protocol and reported *"playwright not found"* while
