@@ -3494,3 +3494,32 @@ gates with `tree_health_check` green (93/93) and `rulings_triage_check` green. T
 regenerated locally to inspect the Tasks card; `GLASS-NOTE.md` held only its template at that
 moment, so nothing was consumed — checked before running, because `glass.mjs --note` destroyed a
 watch's screenshot results at 03:50Z.
+
+---
+
+## WATCH 2026-09-02T05:11Z — Wy-Blade — T-001, THE SETTLE PASS (banner item 1)
+
+- **Watch started** 2026-09-02T05:11Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  0 ahead / 0 behind, `can_push.mjs` clean.
+- **Last progress:** the 04:19Z watch half-built the Chartkeeper; **CEO 91 said NO** because it was
+  built to the spec Wyatt had already overruled six minutes earlier. Ranking is live on his page and
+  the `T-nnn` handle regression it caused was fixed in that same watch.
+- **Blocked on Wyatt:** nothing new. `BLOCKED ON WYATT` is empty; his 04:03Z staging ruling has been
+  applied to `.claude/settings.json` and the deploy now fails for a different, measured reason.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is empty, nothing is at sea.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: a `ToolSearch` for the Artifact tool
+  returns nothing. So this watch cannot publish the Glass and must not stamp
+  `mark_glass_published.mjs`. Its pulse goes to `.planning/wyclau/GLASS-NOTE.md` for the next
+  session that can publish.
+- **THIS WATCH TAKES:** `T-001`, and inside it **banner item 1 — the SETTLE pass**, which does not
+  exist in the code at all (zero occurrences).
+
+**WHY SETTLE AND NOT SWEEP, MEASURED BEFORE CHOOSING.** The banner's item 2 (sweep every completed
+row, no stub) carries three repairs it says must land in the same change, and the first of them is
+`glass.mjs`'s `done` count. **`glass.mjs` is VENDORED** — it is line 1 of
+`.claude/wyclau/MANIFEST.sha256` — and the kit is outside this session's permitted directories:
+a read of `C:\Users\wyatt\Projects\claude-kit` was **refused**, not empty. So the repair cannot be
+made here, and sweeping without it takes his Tasks card to **"0 done"** on the page he steers by
+(`glass.mjs:392` counts `- [x]` inside `## STEP 1 CHECKLIST` and nothing else). **That is a
+blocker, not a preference**, and it is the same shape as the staging-permission blocker: a watch
+meets a wall a person has to open. SETTLE is entirely inside non-vendored files.
