@@ -4124,3 +4124,20 @@ claim, and the difference is the point.
 
 **THE GLASS:** no Artifact tool in this session, so the pulse is in `GLASS-NOTE.md` for the next
 capable session. `mark_glass_published.mjs` correctly **not** stamped.
+
+**⚠ FOUND WHILE VERIFYING THE TICK, FLAGGED NOT TAKEN — `T-nnn` HANDLES ARE NOT UNIQUE, AND FIVE
+COLLIDE TODAY.** `grep -o "T-0[0-9][0-9]" .planning/CHART.md | sort | uniq -d` returns **`T-001`,
+`T-021`, `T-057`, `T-058`, `T-059`**. `T-058` is on both this watch's row (line 285) and a shipped
+2026-08-31 row (line 957); `T-057` on the board row and on "ONE PUBLISHER for the Glass".
+
+**This is the duplicate-key fault the 06:49Z watch already fixed one layer down.** That watch made
+`row.key` unique by construction in `chart_model.mjs` because `new Map(pairs)` silently keeps the
+last value for a repeated key. The HANDLES the Chartkeeper prints onto his page were not covered by
+that fix, and they are the identifier a human — and CEO 94's proposed two-sided citation rule —
+would key on.
+
+**Nothing was mis-closed by it today:** `close_item.mjs` matches on a substring of the row TITLE,
+not on the handle, so it found the right row. **The exposure is everything that reads a handle**:
+CEO 94's open design item wants Inbox entries to name a row's `T-nnn` to prove a citation is about
+that row, and with duplicates that check would credit the wrong row. Belongs to `T-001`
+(the Chartkeeper), whoever can reach claude-kit. **Not taken — this watch has closed its one item.**
