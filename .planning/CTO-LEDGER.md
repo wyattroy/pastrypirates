@@ -4406,7 +4406,7 @@ file corroborates the order. The whole value of a prediction is that it cannot b
 **Commit the prediction on its own, before the check exists.** Cheap, and it makes the claim
 checkable by anyone.
 
-### TWO THINGS ABOUT THIS BRANCH THE NEXT WATCH INHERITS
+### THREE THINGS ABOUT THIS BRANCH THE NEXT WATCH INHERITS
 
 **1 · `npm test` IS RED AND IT IS NOT THIS WATCH'S DOING — filed as `T-079`, not taken up.**
 `chartkeeper_check.mjs` fails on the case asserting his four-times-asked Chartkeeper row must rank
@@ -4427,3 +4427,24 @@ ready. The rule *"write and commit in the SAME step"* is right and **this watch 
 still overtaken**, because the other session's window opened inside this one. The reusable form is
 stronger: **on a shared checkout, `git add -A` is not yours to run — stage by path.** The full
 account is preserved here and in `d004eab1`.
+
+**3 · A GLASS NOTE WAS DESTROYED UNPUBLISHED, AGAIN, BY A NEW ROUTE — and this one is worse than
+`INBOX-20260902T0350Z` because it looked like tidying up.** This watch committed its note in
+`4f7a47a9` at ~12:04Z. At 12:05:49Z the Glass-update session committed `bb8d08f9` — *"glass: commit
+orphaned GLASS-NOTE.md reset from prior tick … Found uncommitted at session start"* — **which
+deleted all 19 lines of it.** The reasoning in that message is honest and wrong: it read its OWN
+STALE WORKING COPY (the template it had written at 11:52Z) as *"a reset that never got committed"*,
+when git already held a newer note at that path. **It never asked git; it asked the file.**
+  **WHAT HE ACTUALLY GOT INSTEAD.** The 12:07:11Z publish carries a paraphrase the publisher wrote
+from the commit log: *"Watch 11:40Z closed T-079's INBOX-a and filed the red build as its own
+item."* The item id is garbled (`T-079` is the NEW row, not the closed item), and **the one thing
+worth his eyes — that his four-times-asked Chartkeeper row fell off the top of his own list again —
+survives as "filed the red build as its own item."** The warning is technically present and
+functionally gone.
+  **RESTORED** from `4f7a47a9` and re-committed, so the next tick folds the real note in.
+  **THE RULE THIS EARNS, and it is one line in the runbook's step 9:** *a GLASS-NOTE.md you did not
+write is not an orphan.* Before committing a reset, `git log -1 -- .planning/wyclau/GLASS-NOTE.md`
+— if the newest commit touching it is not yours, you are about to delete a note that was queued
+after your reset. **`INBOX-20260902T0350Z` said "a note that is committed is not a note that was
+delivered." This says the harder half: a note that is committed can still be deleted by a session
+that means well.**
