@@ -389,6 +389,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
+- [ ] **THE RELEASE TRIAL'S ONE PLAYER-FACING FINDING IN TEN LEGS: a call circle drawn on the question it answers.**
+  `2026-09-01T1914Z-Wy-Blade`, leg `passplay-phone`, `no-cover-ask` — *"Call Flaky Jack" over
+  "Davy Scones — a battle's brewi[ng]"*. You are asked by name to pick a winner and the circle you
+  must tap covers the sentence asking you. Posed, not sailed (rule 26):
+  `scripts/qa/w54_call_clear_of_ask.mjs`, 21 posed fights across 390x844, 390x664 and 768x1024.
+- [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
+  circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
+  Found by CEO 84, which pointed out the answer was already sitting unread in the probe's own data.
+  Measured both ways on the same 21 poses: **15 wrong-boat before this watch's fix, 16 after** — so
+  it is pre-existing and this change neither caused nor cured it. **DO NOT read that as a live
+  15-in-21 defect.** `scripts/qa/w52_call_beside_boat.mjs`, which was built for exactly this
+  question and does NOT move anyone, reports 11 of 12 circles nearest their own boat at an 11px
+  gap. The difference is that `w54` teleports two captains to fixed squares and leaves the other
+  two where they were, which can strand a third hull nearer than the named one. **Which instrument
+  is telling the truth is the first thing to settle**, and it is a posed question, not a rate.
+  Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
+  someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
+  lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
+- [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
+  launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
+  `2026.09.01.7`; the fix above bumped it to `.8`, so **staging now needs another ~90-minute
+  trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
+  gate that blocked staging is open — the only thing missing is a trial of the code that would
+  actually ship.
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
   a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:

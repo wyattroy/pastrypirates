@@ -1,5 +1,95 @@
 # CEO reviews — the standing record
 
+## CEO Review 84 — 2026-09-02, item: the release trial's one player-facing finding (`no-cover-ask`)
+
+**Item:** the Chart row *"a call circle drawn on the question it answers"*.
+**Closing commits:** `e191ad74` (the fix and the posed probe) and `bfa515c2` (the swell, and the
+probe's own settle fault). Build stamp `2026.09.01.8`.
+
+Fresh context. It ran `npm test` itself, ran the W5-2 source gate itself, read both commits' real
+diffs, and opened the before/after screenshots.
+
+**VERDICT: PARTIAL.**
+
+**1. Ruling 12 — "run the trial so it survives session death, stage it, hand you the link"**
+| part | verdict |
+|---|---|
+| run the trial detached, surviving session death | **DONE** |
+| stage it | **NOT DONE** |
+| hand you the link | **NOT DONE** |
+
+> The trial genuinely survived… *"10 of 10 voyage(s) sailed · 88 min · sailed on win32 (Wy-Blade)"*
+> — the first release trial that counted its own legs honestly. **Two thirds of your ruling did not
+> happen, and the excuse has since expired.** The watch's reason was that `npm test` was red on a
+> vendored-file check… **But I ran the whole suite myself just now and it is green.** So the gate
+> that blocked staging is open, and nothing has been staged.
+>
+> **And there is a cost nobody told you about.** The fix bumped the build number from
+> `2026.09.01.7` to `.8`. The 88-minute trial that was ruling 12's whole cargo tested `.7`.
+> **Fixing the bug retired the evidence.** Before anything can be staged you now need another full
+> trial — another ~90 minutes. That is a real number about your release date and it appears
+> nowhere in the watch's account.
+
+**2. The item it actually took — the one player-facing bug in ten voyages: DONE, and done well.**
+It verified the prediction predated the first measurement by file timestamps (prediction 8:16pm,
+first measurement screenshot 8:49pm) rather than taking the claim on trust, checked the posed
+prompt matches `src/ui/flow.js:3109-3112`, and opened the pictures:
+
+> In `w54-before-phone-short-20-50.png` the two white circles sit squarely on the second line: you
+> can read *"…ee, and ye get 2🪙 …r right"* and nothing else — the question is destroyed. In
+> `w54-after-phone-short-20-50.png` both lines read cleanly and the circles sit below. … This is a
+> real before-and-after, not a rerun of the same screen.
+
+**3. "Is it one rule for both?" — HALF AND HALF, and it says so:**
+
+> The **question bubble** is now a real convergence… for a one-ship prompt the new shared line is
+> character-for-character the old one. That is the right shape and it cannot drift.
+> The **circle push** is not. The ordinary layout *refuses* any arrangement that lands on the
+> question; the battle layout now *shoves* the circle off it. Two different mechanisms enforcing
+> one rule, kept in step by nobody — which is the exact fault the commit cites rule 23 about, in
+> the same breath. Defensible, because the two are structurally different searches, but it should
+> be named rather than filed under "convergence".
+
+**4. THE FINDING THAT MATTERED, and it was right:**
+
+> The twenty-one battles this fix was actually tuned on were **never checked** for whether each
+> circle is beside the captain it names — even though the probe records where every boat is and
+> where every circle is. It had the answer in its hand on all 21 and reported only "did it cover
+> the words". … **the one question you have asked about these buttons twice was free to measure,
+> was visible in the watch's own screenshot, and was neither measured nor noticed.**
+> The related risk, in code: `src/ui/stage.js` deliberately allows a call circle to land **on a
+> boat** when that is the only way off the question. It never checks *whose* boat.
+
+**5. Recurrence:** the two faults CEO 83 caught — a near-forged posed pair, and an instrument fault
+labelled rather than fixed — are **not present**; it called the probe's own self-caught faults
+*"the process working, and the best thing about this watch."* But CEO 83's HEADLINE fault — an ask
+left completely untouched — **recurred**: staging and the link, again.
+
+**6. One sentence for Wyatt (its words):**
+
+> **The bug is genuinely fixed and I can see it in the pictures — but your release did not move an
+> inch, the reason it could not move has since evaporated, and the one thing you have asked about
+> these buttons twice (that they sit beside the right captain) was sitting unread in the watch's
+> own screenshot.**
+
+**WHAT THE WATCH DID WITH FINDING 4, BEFORE CLOSING — measured, not promised.** The probe now asks
+the beside-the-boat question on every pose (nearest by EDGE, the correction `w52_call_beside_boat.mjs`
+already earned), and it was baselined both ways on the same 21 poses:
+
+| | circle on the ask | a circle nearest the WRONG captain |
+|---|---|---|
+| before the fix | **11** | **15** |
+| after the fix | **0** | **16** |
+
+So the covering is fixed and **the wrong-boat problem is pre-existing, large, and untouched by this
+change** — 15 before, 16 after, which is inside the run-to-run spread of a probe that boots a fresh
+board each time. **It is NOT declared a live 15-in-21 defect**, because the purpose-built probe
+disagrees: `w52_call_beside_boat.mjs` measures the same question without teleporting anyone and
+reports 11 of 12 circles nearest their own boat at an 11px gap. The difference is that this probe
+moves two captains to fixed squares and leaves the other two where they were, which can strand a
+third hull nearer than the named one. **Which instrument is right is open, and it is filed as its
+own item rather than answered here.**
+
 ## CEO Review 73 — 2026-09-01, item: image preload (INBOX-20260901T1335Z, partial)
 
 Fresh context, verified live (re-ran the probe, the new gate, `module_graph_check`, `can_push_check`).

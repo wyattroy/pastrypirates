@@ -120,20 +120,33 @@ const MEASURE = `(async()=>{try{
   const near=(c,box2)=>{const cx=c.l+c.w/2, cy=c.t+c.h/2;
     const px=Math.max(box2.l,Math.min(cx,box2.r)), py=Math.max(box2.t,Math.min(cy,box2.b));
     return Math.min(c.w,c.h)/2 - Math.hypot(cx-px,cy-py);};
+  /* AND IS EACH CIRCLE STILL BESIDE THE CAPTAIN IT NAMES? Wyatt has asked for this twice
+     (W5-2, and INBOX-20260901T1332Z: "not on top of, or next to, someone else"). CEO 84 found
+     that this probe already held every boat rect and every circle rect on all 21 poses and never
+     asked — the answer was free and unread. Nearest BY EDGE, not by centre, which is the
+     correction w52_call_beside_boat.mjs already earned: "beside" is adjacency. */
+  const boats=(bd.boardShipEls()||[]).map(e=>{const r=e.getBoundingClientRect();
+    return {l:r.left,t:r.top,r:r.right,b:r.bottom};});
+  const edgeGap=(a,c)=>{const dx=Math.max(c.l-a.r,a.l-c.r,0),dy=Math.max(c.t-a.b,a.t-c.b,0);
+    return Math.round(Math.hypot(dx,dy));};
   const rows=btns.map(bt=>{const r=R(bt); const d=near(r,mr);
-    return {label:(bt.textContent||'').trim().slice(0,18), seat:bt.dataset?bt.dataset.seat:null,
+    const seat=bt.dataset&&bt.dataset.seat!=null?+bt.dataset.seat:null;
+    let nearest=null,nd=1e9;
+    boats.forEach((bo,i)=>{const g=edgeGap(r,bo); if(g<nd){nd=g;nearest=i;}});
+    const mine=seat!=null&&boats[seat]?boats[seat]:null;
+    return {label:(bt.textContent||'').trim().slice(0,18), seat,
       x:Math.round(r.l), y:Math.round(r.t), w:Math.round(r.w),
-      onAsk: d > 4, deep: Math.round(d*100)/100};});
+      onAsk: d > 4, deep: Math.round(d*100)/100,
+      nearest, gapToMine: mine?edgeGap(r,mine):null, wrongBoat: seat!=null&&nearest!==seat};});
   const blockTop=Math.min(...btns.map(b=>R(b).t));
   // where the boats actually ARE on screen, so a pose that did not move them is visible
-  const ships=(bd.boardShipEls()||[]).map(e=>{const r=e.getBoundingClientRect();
-    return Math.round(r.left)+','+Math.round(r.top);});
+  const ships=boats.map(b=>Math.round(b.l)+','+Math.round(b.t));
   return {radial: !!(box&&box.classList.contains('radial')), ships:ships.join(' '),
     stage: ap.dataset?(ap.dataset.pp4Stage||null):null,
     msg:(msg.textContent||'').trim().slice(0,34),
     pillTop:Math.round(mr.t), pillH:Math.round(mr.h), pillL:Math.round(mr.l), pillW:Math.round(mr.w),
     wantTop:Math.round(blockTop-mr.h-10), blockTop:Math.round(blockTop),
-    rows, covered: rows.some(r=>r.onAsk)};
+    rows, covered: rows.some(r=>r.onAsk), wrongBoat: rows.some(r=>r.wrongBoat)};
 }catch(e){return {err:String(e.message).slice(0,160)}}})()`;
 
 async function boot(tag, w, h, mobile){
@@ -166,7 +179,7 @@ async function boot(tag, w, h, mobile){
 }
 
 const LEGS = [["phone", 390, 844, true], ["phone-short", 390, 664, true], ["tablet", 768, 1024, false]];
-let covered = 0, measured = 0, clampBound = 0, notRun = 0, stillMoving = 0;
+let covered = 0, measured = 0, clampBound = 0, notRun = 0, stillMoving = 0, wrongBoat = 0;
 const shots = [];
 
 for (const [tag, w, h, mob] of LEGS){
@@ -210,7 +223,8 @@ for (const [tag, w, h, mob] of LEGS){
     const flag = m.covered ? (cb ? "  <-- COVERED (lift clamp-bound)" : "  <-- COVERED (lift NOT clamped)") : "";
     if (!settled) stillMoving++;
     console.log(`  boats (${ax},${ay})/(${dx},${dy})  ${settled ? "settled" : "STILL MOVING at the 10s cap"}  pill top ${m.pillTop} h${m.pillH}  lift wanted ${m.wantTop}  circles top ${m.blockTop}${flag}`);
-    for (const r of m.rows) console.log(`      seat ${r.seat} "${r.label}" at ${r.x},${r.y}  clearance ${-r.deep}px${r.onAsk ? "  ON THE ASK" : ""}`);
+    if (m.wrongBoat) wrongBoat++;
+    for (const r of m.rows) console.log(`      seat ${r.seat} "${r.label}" at ${r.x},${r.y}  clearance ${-r.deep}px  gap to own boat ${r.gapToMine}px  nearest ${r.nearest}${r.wrongBoat ? " <-- WRONG BOAT" : ""}${r.onAsk ? "  ON THE ASK" : ""}`);
     /* `--shoot-all` photographs EVERY pose, not only the failing ones, because a fix's evidence is
        a matched pair and the failing-only default cannot produce the second half of one (rule 26).
        Shots land wherever MP_RIG_SHOTS points; pass it .planning/posed to keep a pair. */
@@ -221,7 +235,8 @@ for (const [tag, w, h, mob] of LEGS){
 }
 
 console.log(`\n=== W5-4 VERDICT ===`);
-console.log(`  poses measured: ${measured}   NOT RUN: ${notRun}   still moving at the cap: ${stillMoving}   circle on the ask: ${covered} (${clampBound} of them with the lift clamp-bound)`);
+console.log(`  poses measured: ${measured}   NOT RUN: ${notRun}   still moving at the cap: ${stillMoving}`);
+console.log(`  circle on the ask: ${covered} (${clampBound} of them with the lift clamp-bound)   a circle nearest the WRONG captain: ${wrongBoat}`);
 if (shots.length) console.log(`  shots: ${shots.join(", ")}`);
 if (!measured){ console.log("  NOTHING MEASURED — not a pass."); killAll(); process.exit(2); }
 killAll();
