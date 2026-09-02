@@ -53,26 +53,32 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 (`scripts/wyclau/close_item.mjs` — no tick without a CEO verdict). Design, published:
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
-- [ ] **THE THIRD OF HIS THREE ASKS HAS NO ROW AND ITS ONLY RECORD IS NOW FICTION — "resized…
+- [ ] **RESIZING THE REST OF THE ART IS WORTH ABOUT 2% — AND THAT IS NOW A MEASURED NUMBER, NOT A
       ⟨`T-087`⟩
-      according to its maximum pixel size in the real gameplay", `INBOX-20260901T1335Z`.**
-      Filed 2026-09-02T16:xxZ at **CEO 108's** finding, by the watch that closed the preload half.
+      GUESS. His question is in BLOCKED ON WYATT.** *"everything else should be resized… according
+      to its maximum pixel size in the real gameplay"*, `INBOX-20260901T1335Z`. Re-measured
+      2026-09-02T15:5xZ, commit `00e85bf2`, **CEO 109 (PARTIAL)**.
       **COMPRESS is done and large** — `assets/` is **3,873,895 bytes (3.89 MB)** against the
       17.79 MB he raised it at. **PRELOAD is done** — 144 of 144 pictures warmed at boot, gated.
-      **RESIZE has happened to exactly ONE file in the whole library**: `assets/about-recipes.jpg`,
-      −137 KB, commit `a086edcf`. Everything since has been re-encoding with the pixel dimensions
-      untouched, and every commit says so honestly — but nobody has carried the remainder forward.
-      ⚠ **AND THE MEASUREMENT IT WOULD START FROM IS STALE IN A WAY THAT READS AS CURRENT.**
-      [`.planning/ASSET-DISPLAY-SIZES.md`](ASSET-DISPLAY-SIZES.md) was generated 2026-09-01T23:55Z,
-      **before both WebP renames**. Its table names `assets/board.png`, all seven islands and all 21
-      pastries — **none of which exist on disk.** It offers 25 candidates / ~0.34 MB recoverable and
-      74 files it never reached. **Re-run it before believing a single row of it:**
-      `node scripts/qa/asset_display_size_probe.mjs`.
-      **SIZING, HONESTLY: ~0.34 MB of 3.89 MB, about 9%, and it is the RISKIEST of the three asks.**
-      The pastries were measured and turned out to be **40% too SMALL**, not too big, and the same
-      probe's zoom ceiling has been wrong twice in opposite directions. **Resizing down softens art
-      on a retina phone**, so every candidate wants its own posed pair before it ships. Do not treat
-      the 25 as a worklist.
+      **RESIZE has happened to exactly ONE file**: `assets/about-recipes.jpg`, −137 KB, `a086edcf`.
+      **WHAT IS ACTUALLY LEFT: 12 files, 0.10 MB on disk, ~0.09 MB recoverable — 2.3% of the
+      library — and every one of the twelve is a 4–12 KB icon.**
+      [`.planning/ASSET-DISPLAY-SIZES.md`](ASSET-DISPLAY-SIZES.md) is regenerated and trustworthy
+      for the first time since the WebP renames.
+      ⚠ **AND THE LIST IT REPLACED WAS A TRAP, WHICH IS WHY NOBODY SHOULD HAVE WORKED IT.** The old
+      *"25 candidates / ~0.34 MB"* was led by `icons/flip-heads.png` at **x7.07** — **the
+      flippenator coin.** Its only sighting was an 18px inline icon in the About page's prose; its
+      real slot is 119–211 CSS px in the flip ceremony, a screen the probe never reaches, which is
+      also why its siblings `flip-tails` and `flip-socket` come back NOT SEEN. **Cutting it to 54px
+      would have destroyed the coin.** Same for `crown` (x5.93) and `cupcake` (x5.88) — all three
+      peaking at the same 18×18 slot. The probe now separates gameplay peaks from off-game ones and
+      the exclusion is derived from the surface names it already records, not a list of filenames.
+      Verified independently by CEO 109 down to `src/ui/board.js:2368` and `index.html:2127-2130`.
+      **THE ONE THING THAT WOULD STILL CHANGE THIS NUMBER, and it is now `T-088`:** about **1.25 MB
+      — a third of the library — has no measured gameplay maximum at all.**
+      **Do not resize anything here without a posed pair.** Resizing down softens art on a retina
+      phone (measured, `INBOX-20260902T0048Z`), and this probe's zoom ceiling has been wrong twice
+      in opposite directions.
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -103,11 +109,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
-
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -135,6 +136,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
 
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -150,6 +155,28 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+
+- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
+      ⟨`T-088`⟩
+      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
+      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
+      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
+      shrink, and that is 27% of the library sitting outside the answer.
+      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
+      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
+      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
+      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
+      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
+      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
+      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
+      measured, not assuming.
+      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
+      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
+      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
+      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
+      current candidate list are FLOORS, not values** — 2 of the 12.
+      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
+      the real answer or an underestimate.** No game code.
 
 
 
@@ -751,8 +778,9 @@ and fix: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) 
 
 | Question | Recommendation | since |
 |---|---|---|
+| **Your images ask, last third: shrinking the rest of the art is worth about 2%. Call it finished, or spend a watch on it?** You asked for everything except the board to be resized to the biggest size the game ever draws it. That is now measured properly for the first time: **12 files, and cutting all twelve saves about 0.09 MB out of 3.89 MB.** They are 4–12 KB icons. Compressing already took the art from 17.79 MB to 3.89 MB, so this last slice is a rounding error — and every cut risks softening a picture on a retina phone, so each one wants a before/after screenshot. **Separately: a third of the library (1.25 MB) has never been measured at all, and that number could go up.** | **Recommended: call the resize half FINISHED and spend the watch on measuring the unmeasured third instead** — it is the only thing that could change the answer. Alternatives: (b) cut the twelve anyway, ~0.09 MB, one watch; (c) leave both and move to the sea trial, which no build on this branch has ever completed. | 2026-09-02T16:0xZ |
 
-*(empty — the row about the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
+*(the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
 is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below. The row
 about `SCHEDULED` hiding your ideas was RULED YES 2026-09-02T12:28:02.757Z, moved to RULED below,
 awaiting triage. The row about an unattended watch reading the claude-kit folder was RULED YES

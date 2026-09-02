@@ -41,10 +41,44 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — **PRELOAD IS NOW FINISHED AND PROVEN; RESIZE IS THE ONE PART STILL GENUINELY UNDONE,
-and it finally has a row of its own (`T-087`).** Watch 2026-09-02T14:51Z, **CEO 108 (PARTIAL)**,
-commit `7405f1e4`. Deliberately NOT closed: his ask has three parts and one of them has happened to
-exactly one file.
+status: OPEN — **AND THE LAST PART IS NOW A QUESTION FOR HIM RATHER THAN A JOB: RESIZING THE REST IS
+WORTH 2.3%.** Watch 2026-09-02T15:39Z, **CEO 109 (PARTIAL)**, commit `00e85bf2`, Chart rows `T-087`
+(the question) and `T-088` (the unmeasured third). Still not closed, and now for a better reason:
+the work left is his decision, not a watch's.
+
+  **THE MEASUREMENT THAT ANSWERS HIS SENTENCE HAD BEEN BLIND TO MORE THAN HALF THE LIBRARY.**
+  `.planning/ASSET-DISPLAY-SIZES.md` is the only answer this project has to *"resized… according to
+  its maximum pixel size in the real gameplay"*. Its generator read PNG and JPEG headers and then did
+  `if (!nat) continue;` — so when ~200 files were renamed to `.webp`, **53 of 149 pictures, 2.09 MB,
+  `assets/board.webp` among them, vanished from the report in silence.** Not listed as unmeasured.
+  Absent, under a heading that still claimed to cover every picture. RED 53 missing → GREEN 149 of
+  149; reader extracted to `scripts/lib/imagesize.mjs`, gated by
+  `display_size_reads_every_picture_check.mjs`, and **cross-checked against Chromium's own decoder on
+  all 149 files** (exact agreement; red-proofed with a deliberate one-pixel error). npm test 105/105.
+
+  ⚠ **AND THE LIST NOBODY HAD ACTED ON WAS LED BY THE FLIPPENATOR COIN.** The old *"25 candidates /
+  ~0.34 MB"* put `icons/flip-heads.png` at the top at **x7.07** — because its only sighting was an
+  18px inline icon in the About page's prose. **Its real slot is 119–211 CSS px in the flip
+  ceremony**, a screen the probe never reaches, which is also why its two siblings come back NOT
+  SEEN. Cutting it to 54px would have wrecked the most theatrical moment in the game. `crown` and
+  `cupcake` were the next two rows, same 18×18 slot. His sentence says *"in the real gameplay"*, so a
+  peak found off the game is not a peak, and the probe now says so in the report. CEO 109 verified
+  the coin claim independently down to `src/ui/board.js:2368`.
+
+  **WHAT IS HONESTLY LEFT: 12 files, ~0.09 MB recoverable of 3.89 MB — 2.3% — and all twelve are
+  4–12 KB icons.** That is in his BLOCKED ON WYATT table as a question with a marked recommendation
+  (call it finished, or spend a watch). **One reply closes this item.**
+
+  ⚠ **ONE CORRECTION THIS WATCH OWES IN THE OPEN.** Commit `00e85bf2`'s body says the board's
+  `x0.49` — under-resolved, not over — is *"visible for the first time"* and right *"for a reason
+  nobody had measured"*. **It had been measured the previous night with identical numbers**, under
+  the old name `board.png`, in the very table this watch's own prediction file quotes. The board was
+  renamed, not newly measured. Fourth verdict running on a sentence tidier than the record.
+
+*Below, the state as it stood before that watch:* **PRELOAD IS NOW FINISHED AND PROVEN; RESIZE IS
+THE ONE PART STILL GENUINELY UNDONE, and it finally has a row of its own (`T-087`).** Watch
+2026-09-02T14:51Z, **CEO 108 (PARTIAL)**, commit `7405f1e4`. Deliberately NOT closed: his ask has
+three parts and one of them has happened to exactly one file.
 
   **THE LAST PICTURE IN THE GAME THAT WAITED UNTIL IT WAS NEEDED.** A probe that derives the set of
   pictures the game can draw from four places it names them — and never from the warm-up list —

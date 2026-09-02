@@ -4816,3 +4816,60 @@ window, and the note is in the script at the line that would otherwise do it aga
   current tree, then decide from THAT what is genuinely drawn smaller than it ships — and pose every
   candidate before it moves, because the one thing already measured here is that resizing down
   softens art on a retina phone.
+
+### WATCH 15:39Z — DID NOT CLOSE ITS ITEM EITHER, AND CEO 109 IS AGAIN THE REASON
+
+**PREDICTION vs RESULT** (`.planning/PREDICTION-20260902T1539Z-resize.md`, written before the probe
+was run once). **Right on 1:** the size reader was blind to WebP and said nothing about it — I
+guessed 1.61 MB and it was **2.09 MB, 53 of 149 files, over HALF the library.** **Right on 2:** the
+honest remainder is small. **Right on 3:** nothing shipped a resize. **And CEO 109 found the flaw in
+3's falsifier, which is the useful part:** *"a candidate so plainly oversized (say x2 or more, on a
+file of real weight)"* — six of the twelve survivors ARE above x2, and *"real weight"* is the
+adjustable word that let all six through. **A falsifier with a soft term in it cannot fire.** Next
+time the threshold goes in kilobytes.
+
+**WHAT SHIPPED** (`00e85bf2`): the resize measurement had been silently dropping every `.webp` since
+the day the library became WebP — `intrinsic()` read PNG and JPEG, the caller does
+`if (!nat) continue;`. RED 53 files / 2.09 MB missing → GREEN 149 of 149, by extracting the reader
+to `scripts/lib/imagesize.mjs` and gating it. **Verified against an INDEPENDENT decoder** — Chromium
+`naturalWidth` on all 149, exact agreement, red-proofed with a one-pixel error. Ceiling 104 → 105,
+reason in `package.json`, `quiet_gate_report.mjs` still offers zero retirement candidates.
+npm test 105/105. No `src/` or `index.html` change.
+
+**THE FINDING THAT MATTERED MORE THAN THE FIX.** The candidate list fell from 25 files / 0.31 MB to
+**12 / 0.10 MB (~0.09 MB recoverable, 2.3%)** — because its top three rows, sorted by how attractive
+they looked, were all peaking at the same 18×18 slot in the About page's prose. The first of them was
+**`icons/flip-heads.png`, the flippenator coin.** CEO 109 verified that independently to the pixel:
+`src/shared/index.js:70` → `src/ui/board.js:2368` → `#flipCoinWrap`, real slot 119–211 CSS px
+(`index.html:2127-2130`), file 382px. **It is under-resolved already, and the list was recommending
+cutting it to 54px.**
+
+**FOUR THINGS CEO 109 NAMED, and three of them are now done rather than noted:**
+
+1. **`CHART.md`'s `T-087` was still telling him 9% and 0.34 MB, on his own page, one line above the
+   commit that disproved it** — *"He is being shown 9% and 0.34 MB by one panel and the fix for it by
+   the panel underneath."* Rewritten from the new report. **This is the recurrence of CEO 108's own
+   finding: produce the number, fail to carry it to him.**
+2. **The number that ends the item was in a commit body and nowhere he reads.** It is now the Chart
+   row's headline and a **BLOCKED ON WYATT** question with a marked recommendation — the one reply
+   that can close `T-087`.
+3. **1.25 MB has no measured gameplay maximum at all** — 74 NOT SEEN, 13 off-game, plus CEO 83's
+   camera-layer caveat that makes 2 of the 12 surviving ratios FLOORS. Filed as `T-088`, with
+   CEO 109's own hand-check of `crown` and `cupcake` (63 KB, ~4× oversized at their real slots)
+   written into it.
+4. ⚠ **A SENTENCE IN `00e85bf2`'S BODY IS FALSE AND I HAD THE DISPROOF OPEN.** It says the board's
+   `x0.49` is *"visible for the first time"* and that his instruction to leave the board's pixels
+   alone was right *"for a reason nobody had measured"*. **It had been measured the previous night,
+   with the identical numbers** — `00e85bf2^:.planning/ASSET-DISPLAY-SIZES.md:22`, under the old name
+   `assets/board.png`. My own prediction file quotes that table. The board was RENAMED, not newly
+   measured. **Fourth verdict running on a sentence tidier than the record**, and the branch filed
+   the convention forbidding it yesterday. It has at least moved out of the subject line.
+
+**AND THE STANDING RISK, NOW ITS THIRD VERDICT: no completed sea trial exists for anything on this
+branch.** `.planning/SEA-TRIAL.md` still opens *"THIS RUN IS DEAD. IT DID NOT FINISH."* ~200 image
+files replaced, the board re-encoded lossily, the boot warm-up rewritten. This watch changed no game
+code so it owes no trial of its own — but three consecutive commits on his launch-critical item have
+said nothing about it, and it is `T-016`.
+
+**Rule 17 on exit:** `stray_probe_check` PASS — no debug-port browsers running at all. One probe run
+was cancelled mid-flight and its browsers were confirmed gone before this entry was written.

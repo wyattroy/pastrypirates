@@ -7,6 +7,90 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 109 — 2026-09-02, Wy-Blade — the measurement is now honest, and it says the prize is 2.3%. Nobody has told him that.
+
+*His words for this third, verbatim (`INBOX-20260901T1335Z`, Chart `T-087`): **"everything else should be resized and compressed according to its maximum pixel size in the real gameplay."*** Watch 2026-09-02T15:39Z, commit `00e85bf2`.
+
+### VERDICT: **PARTIAL.** *"The instrument fix is real, gated, red-proofed and it stopped somebody destroying the flippenator coin — I checked that claim to the pixel and it is true. But no picture was resized, for the second watch running on an item he called launch critical, and the number his answer now amounts to — about 0.09 MB of a 3.89 MB library — is not written anywhere he reads. The page he actually opens still tells him the opposite."*
+
+**One sentence for Wyatt:** *"The tool that was supposed to answer 'which pictures are bigger than the game ever draws them' had been silently skipping 53 of your 149 pictures — including the board — and it is now fixed and can't go blind again; the honest answer it gives is that resizing the rest is worth about 0.09 MB out of 3.89 MB, which means this third of your ask is nearly finished by being nearly worthless, and somebody should tell you that in those words rather than leave a page up saying there's 0.34 MB waiting."*
+
+---
+
+### WHAT I VERIFIED RATHER THAN READ
+
+- **The 53-of-149 headline is exactly right.** `assets/` holds **149** image files (the gate prints it) and **53** of them are `.webp` (I listed them). The previous report contains the string "webp" **zero times** (`git show 00e85bf2^:.planning/ASSET-DISPLAY-SIZES.md`). The old private reader (`scripts/qa/asset_display_size_probe.mjs` at `00e85bf2^`, lines 303-316) handled a PNG signature and JPEG SOF markers and nothing else, and the caller does `if (!nat) continue;`. The subject line is true.
+- **`npm test` run end to end: PASS**, and the new gate is in the chain. Ceiling raised 104 → 105 with its reason written into `package.json`.
+- **The new gate is not vacuous.** `display_size_reads_every_picture_check.mjs:59` refuses to pass on an empty walk, and `:44` derives its file set from the same pattern the probe uses. It names no format and no filename — CEO 107's "exemption pinned to one name" lesson is inverted here, correctly, for the second watch running.
+- **The WebP reader is right, and I confirmed it without a browser.** The old report — written *before* the rename, by the *PNG* reader — gives `assets/board.png` as `2132x2132`, wants `4337`, `x0.49` (`00e85bf2^:.planning/ASSET-DISPLAY-SIZES.md:22`). The new WebP reader gives `assets/board.webp` the identical `2132x2132 / 4337 / x0.49` (`:52`). Same for islands/3 (`1463x399`), compass-dial (`640x638`), dock and trade-swirl (`363x287`), wind-arrow (`362x287`). Two independent decoders, six files, exact agreement. I did not need the Chromium check to believe the numbers.
+- **The "before/after" arithmetic is coherent.** 12 gameplay candidates (0.10 MB) + 13 off-game (0.20 MB) = the 25 files / ~0.31 MB the commit quotes as the "before". So the fall from 25 to 12 is the effect of the gameplay split, correctly attributed in the commit body.
+- **Rule 17 clean** — `stray_probe_check`: no debug-port browsers. Working tree clean.
+
+### THE FLIP-HEADS CLAIM — TRUE, AND IT IS THE BEST THING IN THIS COMMIT
+
+I had this checked independently against the source. It holds at every step:
+
+- `assets/icons/flip-heads.png` is the flippenator coin: `src/shared/index.js:70` defines it, `src/ui/board.js:2368` and `:2383` paint it onto `#flipCoinWrap`, which `index.html:2999` declares and `src/ui/stage.js:1843-1877` is the ceremony's coin.
+- Its real slot is **2.2 × `--flipCoinD`** (`index.html:2127-2130`), and on a phone ≤480px `--flipCoinD` is `clamp(54px,19.5cqw,96px)` (`index.html:1257-1261`) — so **119 to 211 CSS pixels**. `index.html:706-709` already records the measured figure: a 76px box painted at 167px = **502 device pixels**.
+- The probe's only sighting of it is `about.html:184`, an inline `.narrIcon` at `width:18px` (`about.html:63`) — 54 device pixels.
+- The file carries 382×384. So at its real slot it is **under-resolved already**, and cutting it to 54px would have wrecked the most theatrical moment in the game. It sat at the top of the old candidate list because the list was sorted by how attractive it looked.
+
+**This is the watch earning its keep.** It is also, precisely, rule 26's lesson arriving from the other direction: the instrument found a number, and the number was about the instrument's reach, not about the game.
+
+### THE FOUR THINGS I AM NAMING
+
+**1 · HE ASKED FOR PICTURES TO BE RESIZED AND NO PICTURE WAS RESIZED — SECOND WATCH RUNNING.** `git show --stat 00e85bf2`: seven files, all of them `.planning/`, `package.json` and `scripts/`. Zero bytes of art. CEO 108 finding 3 said "exactly one picture has ever been resized"; that is still the count. **I judge the re-measurement legitimate rather than a substitute, and I want to be precise about why:** the file it would have worked from named `assets/board.png` and 28 other files *that are not on disk*, and its top three rows would have destroyed the coin. You cannot resize from a map of a library you no longer have. But legitimate is not the same as done, and two watches into a launch-critical item the score on his actual verb is 1 of 149.
+
+**2 · THE ONE NUMBER THAT ENDS THIS ITEM IS NOWHERE HE READS: ~0.09 MB OF 3.89 MB.** `.planning/ASSET-DISPLAY-SIZES.md:14` — 12 files, 0.10 MB today, **~0.09 MB recoverable**. That is **2.3% of the library**, and the twelve are 4–12 KB icons. The commit body states it; the commit *subject*, which is the only line the Glass renders, does not; the Chart does not; the ledger has no closing entry at all (`.planning/CTO-LEDGER.md` ends at line 4818, on the claim). **The honest headline of this watch is "the resize third of your ask is worth about 2% and here is why" — a finding that could close `T-087` today — and it is buried under a paragraph about a size reader.** This is CEO 108's finding 2 in new clothing: the watch produced the number and did not carry it to him.
+
+**3 · THE CHART ROW HE ACTUALLY SEES NOW CONTRADICTS THE WORK, AND IT IS ON THE GLASS.** `.planning/CHART.md:56-75` is unchanged by this commit. It still reads *"ITS ONLY RECORD IS NOW FICTION"*, still says the report was generated `2026-09-01T23:55Z` before both renames, still says it *"names `assets/board.png`… none of which exist on disk"*, still offers *"25 candidates / ~0.34 MB"*, still instructs *"Re-run it before believing a single row of it"* — and still sizes the item at *"~0.34 MB of 3.89 MB, about 9%"*. Every one of those sentences was made false by the commit one line above it in the log. I confirmed the stale headline is what his page renders: `.planning/wyclau/glass.html:157` and `:257` carry *"THE THIRD OF HIS THREE ASKS HAS NO ROW AND ITS ONLY RECORD IS NOW FICTION…"* directly above the new commit's pill. **He is being shown 9% and 0.34 MB by one panel and the fix for it by the panel underneath.** Fixing the measurement and leaving the row that quotes the broken measurement is half a job.
+
+**4 · ONE SENTENCE IN THE COMMIT IS FALSE, AND THE WATCH HAD THE DISPROOF OPEN.** The body says: *"Also visible for the first time: `assets/board.webp` reads x0.49 … His own instruction to leave the board's pixels alone was right **for a reason nobody had measured**."* It had been measured, the previous night, with the identical numbers, in the file this watch was reading: `00e85bf2^:.planning/ASSET-DISPLAY-SIZES.md:22` — `| 4340 | 2132x2132 | 2168x2168 | 4337 | x0.49 | assets/board.png |`. The watch's own prediction (`.planning/PREDICTION-20260902T1539Z-resize.md:11-12`) quotes that very table. The board was renamed, not newly measured. **This is CEO 108's fault (b) — "a sentence tidier than the record" — recurring for the fourth verdict running**, though credit where it is due: it has moved out of the subject line (which is true this time) and into the body.
+
+### ON THE GAMEPLAY / OFF-GAME SPLIT — HONEST IN PRINCIPLE, UNFINISHED IN PRACTICE
+
+The split is real code, derived from surface names, not a filename list (`asset_display_size_probe.mjs:~351`, `const GAMEPLAY = (where) => !/\/(welcome|about)$/.test(where || '')`). I checked it actually fires: `where` is `"phone/about"`, not `"phone/about/img"`, so the anchor matches. And its epistemics are right — *"a peak found off the game is not a peak"* is his sentence being obeyed, not dodged.
+
+**But it converts 13 files / 0.20 MB from "candidate" to "unknown", and nothing in the repo asks anyone to go and measure them.** Two of those are not the coin and are worth checking:
+
+- **`assets/icons/crown.png`** (320×315, 35 KB) does have gameplay slots: `.crown img { width:15px; height:15px }` (`index.html:428`) in the captains panel, an 18px `narrIcon` in the End-of-Voyage banner (`src/ui/board.js:2072`), and the victory confetti pop (`src/ui/board.js:2024`) at roughly 34–38 CSS px on a full-size board.
+- **`assets/icons/cupcake.png`** (253×320, 28 KB) the same: ≤18px everywhere in HTML, ~34–38 CSS px in `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`).
+
+At ~38 CSS px on a 2× screen those are still carrying **four times** the pixels they can use. **That is 63 KB — more than half the size of the entire remaining candidate list — sitting in a bucket labelled "do not shrink" with no follow-up.** The split is the right idea; it needs a second half that goes and measures the excluded slots, and right now nothing in the Chart or the ledger says so.
+
+### IS THE 12-FILE LIST TRUSTWORTHY?
+
+**As a floor, yes. As a complete answer, no — and the report says so itself, in three places, which is to its credit.** `.planning/ASSET-DISPLAY-SIZES.md:45` — **74 files / 1.05 MB NOT SEEN**, 27% of the library the probe's five surfaces never reach (the whole badge family, the battle icons, every ingredient "hole"). `:29` — 13 more files off-game. `:47` — the standing CEO 83 caveat that HTML `<img>` inside camera layers is measured at whatever zoom happened to be on, so `trade-swirl` and `wind-arrow` ratios are **floors, not values**, and that is *still* unfixed. **Add it up: about 1.25 MB, a third of the library, has no measured gameplay maximum at all.** The twelve rows are trustworthy; the claim "this is what is left" is not, and the report does not make that claim.
+
+### THE PREDICTION — GENUINELY WRITTEN FIRST, WITH ONE SOFT FALSIFIER
+
+`.planning/PREDICTION-20260902T1539Z-resize.md` predicts the blindness (`:21-35`), predicts the small remainder (`:42-48`), and predicts *"nothing ships a resize this watch"* (`:53`). Predictions 1 and 2 were both right and both name real disproofs. **Prediction 3's escape hatch is the weak one:** *"a candidate so plainly oversized (say x2 or more, on a file of real weight)"* — six of the twelve survivors are above x2 (`sound-on` x4.17, `scroll` x3.63, `ribbon` and `storybook` x3.56, `door` x3.53), and "real weight" is the undefined word that let all six through. A falsifier with an adjustable term in it is a falsifier that cannot fire. Say the threshold in kilobytes next time.
+
+### WHAT HE DID NOT ASK FOR
+
+Nothing substantial, and rule 7 is clean. The library, the gate and the browser cross-check all serve the ask directly, and `imagesize_matches_browser_check.mjs:20-21` says out loud that it is *not* in `npm test` and why — a script honest about its own scope, which is exactly what this project keeps needing.
+
+### ⚠ THE STANDING RISK, THIRD VERDICT IN A ROW
+
+`.planning/SEA-TRIAL.md` still opens *"THIS RUN IS DEAD. IT DID NOT FINISH."* `gear.mjs` reads this branch as **FULL** — 200-odd replaced image files, a lossily re-encoded board, a rewritten boot warm-up. This commit touches no game code so it does not owe a trial of its own, and I am not charging it for that. But **no completed sea trial exists for anything on this branch**, it is the biggest open risk before launch, and this is the third consecutive commit on his launch-critical item to say nothing about it.
+
+### DID IT SPEND ITS OWN HEAD ON READING IT COULD HAVE DELEGATED?
+
+I found no evidence of bulk reading. The prediction, the gate and the library each cite narrow, specific locations; the one genuinely large artifact (`ASSET-DISPLAY-SIZES.md`) is the file being rewritten, which belongs in the main thread by design. I cannot see the transcript and will not invent an answer.
+
+### DOES THE PREVIOUS VERDICT'S FAULT RECUR?
+
+CEO 108 named **(a) an exemption pinned to one name** — *does not recur, inverted again*: the gate deliberately contains no format name and no filename, and the split derives from surfaces the probe already records. **(b) a sentence tidier than the record** — **recurs**, see finding 4: "visible for the first time" and "a reason nobody had measured", against a table the watch itself had quoted. It has at least moved out of the subject line. **And CEO 108's finding 2 — "named the gap and did not close it" — recurs in a new shape**: this watch produced the number that ends the item (~0.09 MB, 2.3%) and left it in a commit body instead of the Chart row that is telling him 9%.
+
+### WHAT WOULD MAKE THIS DONE
+
+1. Rewrite `.planning/CHART.md:56-75` from the new report: 12 candidates, 0.10 MB, **~0.09 MB recoverable, 2.3%** — and delete the "ONLY RECORD IS NOW FICTION" headline, because it is no longer fiction and it is on his page.
+2. Say the 2.3% to him in plain words, and ask whether he wants the twelve 4–12 KB icons cut at all. That question may close `T-087` in one reply.
+3. Open a row for the **1.25 MB that has no measured gameplay maximum** — the 74 NOT SEEN, the 13 off-game (crown and cupcake first), and the CEO 83 zoom-ceiling caveat that makes two current ratios floors.
+4. Correct the "visible for the first time" sentence in the ledger when the watch closes.
+
+---
+
 ## CEO Review 108 — 2026-09-02, Wy-Blade — the last cold picture is 900 bytes, and the question he actually asked is still unanswered
 
 *His ask, verbatim (INBOX-20260901T1335Z): **"compressing the images to make the game load MUCH
