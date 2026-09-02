@@ -906,8 +906,36 @@ again.
 - **Kill it the moment you have the answer**, not when the task ends.
 - **Never leave a probe running across a reply.** He is at the keyboard, on the machine it is heating.
 
+> ### ⚠ THE COMMAND THIS RULE USED TO PRINT DOES NOT EXIST ON THE MACHINE THAT RUNS THE RELAY.
+>
+> It read `pkill -f remote-debugging-port; pkill -f http.server`. **Neither `pkill` nor `pgrep` is
+> installed in Git Bash on the Blade** — verified by running them, twice, independently (exit 127,
+> "command not found"). So a tidy-up written as `pgrep … || echo "no headless chrome"` **printed the
+> all-clear every time, on an empty machine or on a full one.**
+>
+> **What that cost, 2026-09-02: 183 `chrome.exe` processes carrying `--remote-debugging-port`, the
+> oldest more than a day old, holding 15,097 MB, on the laptop he was asleep next to** — while the
+> session's own rule-17 check reported no stray probes. **This rule was decorative on Windows for as
+> long as Windows has run the relay, and nothing said so.**
+
+**ASK THE GATE, NOT A SHELL BUILTIN — it works on every machine and it says what it actually saw:**
+
 ```bash
-pkill -f remote-debugging-port; pkill -f http.server
+node scripts/qa/stray_probe_check.mjs      # in npm test; PASS/FAIL, never "all clear" on a blind look
+```
+
+**ABANDONED MEANS ORPHANED, which is what this rule always meant.** A debug-port browser whose
+launcher is still alive is a probe somebody is *using*; one whose parent has exited is abandoned.
+The gate reports parent liveness and judges on that — so a posed board you are in the middle of
+photographing (rules 19 and 26) does not fail the build, and a sixteenth probe added tomorrow needs
+nobody to register it. *(The first version exempted only a live sea trial, and 15 scripts here
+launch browsers while one writes that marker — an exemption pinned to one name, caught by CEO 107.)*
+
+**To actually kill them,** the gate prints the right command for the machine you are on. On Windows
+that is a `Get-CimInstance … | Stop-Process`; on Mac and Linux the old `pkill` line is still correct:
+
+```bash
+pkill -f remote-debugging-port; pkill -f http.server     # Mac / Linux ONLY — absent in Git Bash
 ```
 
 ### Absolute paths, always
