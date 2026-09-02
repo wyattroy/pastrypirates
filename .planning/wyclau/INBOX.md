@@ -440,3 +440,50 @@ status: OPEN.
   a `-p` session has no Artifact tool on this machine — which is the entire reason this publisher has
   to be interactive and hand-started (`GLASS-UPDATE-SESSION.md:6-11`, measured 2026-09-01).
   **So the fix has to keep ONE long-lived interactive session and stop the WORK from landing in it.**
+
+## INBOX-20260902T05xxZ-b — CORRECTION from him: scope by BLAST RADIUS, not by mode. And solo-tablet is Safari.
+> "i'm actually not just asking for scope by mode, i'm asking for scope by blast radius.
+>  Yes, use solo-tablet as safari."
+solution: his ruling on the engine seat is APPLIED to the design below. The blast-radius framing
+REPLACES the "scope by mode" reading in INBOX-20260902T0436Z — that entry's last paragraph was too
+small, and this entry supersedes it.
+status: OPEN — FOR A WATCH, and it is now a bigger and better item than it was an hour ago.
+
+  **HE IS RIGHT AND THE DIFFERENCE IS NOT SEMANTIC.** "Scope by mode" asks *which of three modes
+  does this touch* — one axis, three answers. **"Scope by blast radius" asks what the change can
+  REACH**, and mode is only one of the things it reaches. The others are already the axes the fleet
+  is built from:
+
+  | axis | what a blast radius says about it | how it is derivable TODAY |
+  |---|---|---|
+  | **mode** | can this change behave differently in solo / pass-and-play / crew? | `scripts/mode_fork_check.js` already enumerates every fork in code that draws |
+  | **size** | is this layout, or gated on a breakpoint or the `mobile` flag? | CSS breakpoints in `index.html`; `def.mobile`/`dsf` in `playtest_gate.mjs` |
+  | **engine** | does it touch anything WebKit renders differently — `matchMedia`, emoji, an animation? | the `-wk` legs exist; the fault classes are on the record |
+  | **surface** | which SCREENS can it appear on — one moment, or every board? | the module graph: what imports the changed file, and what draws |
+
+  **THE KEY PROPERTY, AND IT IS WHY THIS IS BETTER THAN A FOURTH GEAR:** blast radius does not pick
+  one of four fixed fleets. **It derives the MINIMUM leg set that covers every surface the change can
+  reach** — which can be smaller than his five (a pass-and-play handoff change sails pass-and-play
+  and nothing else) or larger (a change to `src/shared/visibility.js` reaches all three modes by
+  construction, and should say so and sail them). His five-leg grid stops being a rule and becomes
+  what you get when the radius is "most of the game" — the common case, and the right default.
+
+  ⚠ **THE ONE RULE THAT MAKES IT SAFE, AND IT MUST BE WRITTEN BEFORE ANY CODE: AN UNKNOWN RADIUS IS
+  A FULL RADIUS.** A derivation that cannot resolve what a change reaches must return the FULL fleet,
+  loudly, never a guess and never a smaller set. **The failure mode of this feature is shipping
+  something untested because the reach was under-estimated**, and that is exactly the shape of the
+  faults this project already owns: the gate aimed at the wrong tree, `sailedHere()` returning false
+  for every leg, the judge that could not see. **Under-scoping is the only way this idea hurts him,
+  so it must fail toward MORE testing, never less.**
+
+  **HIS RULING ON THE ENGINE SEAT, APPLIED: `solo-tablet` IS THE SAFARI LEG.** That answers the hole
+  flagged in the earlier entry — the five-leg grid had no engine axis and would have quietly dropped
+  WebKit. The five become:
+  **`solo-phone` · `solo-tablet-wk` (Safari, and the overlap seat) · `solo-desktop` ·
+  `passplay-tablet` · `crew-tablet`.**
+  The overlap seat carrying the second engine is efficient rather than confounded: the trial judges
+  each screen on its own merits, and the one comparison that IS a diff — host vs guest — happens
+  inside `crew-tablet`, on one engine.
+
+  **AND THE FLEET SHRINKS FROM 10 TO 5 WITH ENGINE COVERAGE INTACT**, which is the whole of his
+  original claim, now with the gap closed by his own ruling.
