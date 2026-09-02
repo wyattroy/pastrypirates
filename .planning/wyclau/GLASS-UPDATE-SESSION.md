@@ -17,6 +17,53 @@ relay.
 "something else" was **the next watch** — a relay with no terminal, because no watch here can
 publish. This session IS the terminal.
 
+> ## ⚑ EACH TICK RUNS IN A FRESH SUBAGENT. THE SESSION ITSELF STAYS EMPTY.
+> ### His instruction, 2026-09-02 — and it is the SECOND time, because the first is quoted at the top of this file.
+>
+> *"make sure that Glass Update Session gets cleared between ticks or updates or whatever you call
+> its tasks -- we don't want to keep adding to its context, that's unnecessary"*
+>
+> **His original design already said it** — *"…updates the glass with whatever it needs to, **then
+> clears itself afterwards**"* — **and this document was written from that sentence and then
+> specified a mechanism that cannot do its last four words.**
+>
+> **MEASURED, from `CronCreate`'s own contract rather than assumed:** it *"schedules a prompt to be
+> **enqueued**"* and *"jobs live only in this Claude session."* So under the old shape every tick
+> appended a full transcript — including a **~100KB read of the live artifact** — to one
+> conversation that never reset. Ticking all night, the session carries every copy of that page.
+>
+> **WHY THIS IS WORSE HERE THAN ANYWHERE ELSE.** Wyatt, 2026-08-28: a session that fills its context
+> *"gets stupid and stale, and by the time it does, it is too late to notice."* **This is the one
+> session that can destroy his writing** — step 2 below is the only thing standing between a
+> republish and deleting what he typed into the Ideas box. A degrading context is least affordable
+> exactly there.
+>
+> **TWO OBVIOUS FIXES THAT DO NOT WORK, so nobody re-proposes them:** `/clear` is a UI command and a
+> cron-enqueued prompt cannot type it. Restarting as `claude -p` is how the Bell runs a Watch, and a
+> `-p` session **has no Artifact tool on this machine** — which is the whole reason this publisher
+> is interactive and hand-started (see the section above).
+>
+> ### THE SHAPE: THE SESSION BECOMES A DISPATCHER, NOT A WORKER.
+>
+> The cron prompt is now one line — **"run one Glass tick"** — and the session's only job is to
+> **spawn a fresh general-purpose subagent carrying the nine steps below as its whole prompt.** The
+> subagent harvests, gates, publishes, stamps, commits, and **returns ONE LINE.** The session's
+> context grows by that one line per tick instead of a full transcript.
+>
+> **A fresh subagent per tick IS "clears itself afterwards"** — it is the only mechanism available
+> here that starts clean and still holds the Artifact tool.
+>
+> **MEASURED 2026-09-02, because the whole design rests on it:** a general-purpose subagent under an
+> interactive session **has `Artifact` in its tool list**, and a live `action: "list"` call returned
+> real data. ⚠ **PUBLISH ITSELF WAS NOT DEMONSTRATED, ONLY READ** — the schema is live and the read
+> path works, and publishing is inferred from that. **So the FIRST tick under this shape must check
+> it and say so:** if the subagent's publish fails for want of the tool, it reports that in its one
+> line and the session publishes that tick itself, in the main context, and this box gets corrected.
+> **Do not let an inferred capability quietly become a stated one.**
+>
+> **ONE PUBLISHER IS UNCHANGED** — one subagent per tick, never two. The rule was never about which
+> context does the publishing; it was about there being exactly one.
+
 ## The instruction to paste into it
 
 > You are the Glass-update session. Your only job is to keep Wyatt's status page current. Do no
@@ -68,7 +115,23 @@ publish. This session IS the terminal.
 
 ## Making it recur without him
 
-Arm ONE recurring mechanism inside the session — a cron job carrying the steps above as its prompt.
+Arm ONE recurring mechanism inside the session — a cron job whose prompt is **the dispatcher line,
+not the steps**:
+
+> Run one Glass tick. Spawn a FRESH general-purpose subagent and give it the nine steps from
+> `.planning/wyclau/GLASS-UPDATE-SESSION.md` as its entire prompt. Do not do the work yourself and
+> do not read the artifact in this context — the whole point is that this session stays empty.
+> When it returns, print its one line and nothing else.
+
+**The steps stay in this file rather than in the cron prompt**, which is the other half of keeping
+the session thin: a prompt that carries nine steps carries them into the context on every fire.
+A prompt that carries a POINTER carries nothing.
+
+**And it means the runbook can be edited without re-arming the cron** — the subagent reads this file
+at spawn time, so a correction here reaches the next tick. Under the old shape the steps were frozen
+into a cron prompt set hours earlier, which is its own version of the staleness this file's step 5
+warns about.
+
 **One publisher, never two.** `glass.mjs` records what two cost, measured the same day it was
 written: *the Razer engine and a second session both published within five minutes, and the
 platform's own conflict guard fired three times.* An earlier version of this file said `/loop 15m`
