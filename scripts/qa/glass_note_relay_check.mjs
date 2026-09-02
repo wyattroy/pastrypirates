@@ -33,6 +33,10 @@ function scratchRun({ noteContent }) {
   mkdirSync(join(dir, "scripts", "wyclau"), { recursive: true });
   mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
   writeFileSync(join(dir, "scripts", "wyclau", "glass.mjs"), readFileSync(GLASS));
+  /* glass.mjs IMPORTS ./lib/chart_model.mjs since the 2026-09-02 convergence, so a staged copy
+     without its dependency dies with ERR_MODULE_NOT_FOUND. */
+  mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
+  writeFileSync(join(dir, "scripts", "wyclau", "lib", "chart_model.mjs"), readFileSync(join(ROOT, "scripts", "wyclau", "lib", "chart_model.mjs")));
   writeFileSync(join(dir, ".planning", "CHART.md"), "# Chart\n\n## STEP 1 CHECKLIST\n\n## BLOCKED ON WYATT\n\n## THE IDEA INBOX\n\n*(empty)*\n\n## RULED\n\n| item | HIS RULING | now |\n|---|---|---|\n");
   if (noteContent !== null) writeFileSync(join(dir, ".planning", "wyclau", "GLASS-NOTE.md"), noteContent);
   const out = execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "glass.mjs"), "--note", "relay gate"], { encoding: "utf8" });
@@ -80,6 +84,10 @@ function scratchRun({ noteContent }) {
   mkdirSync(join(dir, "scripts", "wyclau"), { recursive: true });
   mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
   writeFileSync(join(dir, "scripts", "wyclau", "glass.mjs"), readFileSync(GLASS));
+  /* glass.mjs IMPORTS ./lib/chart_model.mjs since the 2026-09-02 convergence, so a staged copy
+     without its dependency dies with ERR_MODULE_NOT_FOUND. */
+  mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
+  writeFileSync(join(dir, "scripts", "wyclau", "lib", "chart_model.mjs"), readFileSync(join(ROOT, "scripts", "wyclau", "lib", "chart_model.mjs")));
   writeFileSync(join(dir, ".planning", "CHART.md"), "# Chart\n\n## STEP 1 CHECKLIST\n\n## BLOCKED ON WYATT\n\n## THE IDEA INBOX\n\n*(empty)*\n\n## RULED\n\n| item | HIS RULING | now |\n|---|---|---|\n");
   const template = readFileSync(GLASS, "utf8").match(/const GLASS_NOTE_TEMPLATE = `([\s\S]*?)`;/)[1];
   writeFileSync(join(dir, ".planning", "wyclau", "GLASS-NOTE.md"), template + "One-time message.\n");

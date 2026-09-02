@@ -159,5 +159,38 @@ if (isInbox) {
 }
 fs.appendFileSync(LEDGER,
   `\n- ${nowIso} · close_item: ${isInbox ? item : `"${item.slice(0, 60)}"`} · CEO ${ceoN} · ${closeEvidence} · ${solutionEvidence}${args.summary ? ` · ${String(args.summary)}` : ""}\n`);
+
+/* ⚑ AND THE ROW LEAVES THE CHART IN THE SAME BREATH — his ruling, 2026-09-02: *"SWEEP takes EVERY
+   completed row, immediately."* IMMEDIATELY is the word this block exists to honour. Sweeping in a
+   later step means a finished row sits on his page until somebody happens to run the tool; sweeping
+   HERE means the tick and the departure are one act, and there is no window in which the Chart says
+   a thing is done.
+
+   THIS IS THE HOOK POINT THE SPEC NAMES, not a convenience: `SPEC-CHARTKEEPER.md`'s "where it runs"
+   table puts SWEEP in the Watch because *"it already has write authority, a CEO gate, and
+   `close_item.mjs` as a natural hook point."*
+
+   ⚠ IT NEVER FAILS THE CLOSE. The tick, the fate and the ledger line are already on disk by the
+   time this runs, and they are the record. If the sweep cannot run, the close still happened and
+   the row is merely still visible — so this reports LOUDLY and exits 0, rather than turning a
+   filing problem into a lost close. `--no-sweep` is for tests that want the tick alone. */
+if (!args["no-sweep"]) {
+  try {
+    const out = execFileSync(process.execPath,
+      /* ⚠ --chart AND --log, NEVER --repo. The Chartkeeper has no `--repo` flag: it roots itself
+         from its own file location, so a run passed `--repo=/tmp/fixture` would have ignored the
+         flag in silence and swept the REAL Chart. Pass the two paths this file already resolved. */
+      [path.join(here, "chartkeeper.mjs"), `--chart=${CHART}`,
+       `--log=${path.join(repo, ".planning", "CHART-LOG.md")}`, "--sweep", "--write"],
+      { encoding: "utf8", cwd: repo });
+    const line = out.split("\n").find((l) => l.startsWith("SWEEP")) ?? "";
+    console.log(line ? `  ${line.trim()}` : "  swept (the Chartkeeper printed no SWEEP line — worth a look)");
+    console.log("  ⚠ COMMIT .planning/CHART-LOG.md TOO — a sweep whose archive is not committed is a deletion.");
+  } catch (e) {
+    console.log(`  ⚠ THE TICK IS WRITTEN AND THE SWEEP DID NOT RUN: ${String(e.message).split("\n")[0]}`);
+    console.log("  -> the row is closed and still on his Chart; run `node scripts/wyclau/chartkeeper.mjs --sweep --write` by hand.");
+  }
+}
+
 console.log(`CLOSED ${isInbox ? item : `"${item.slice(0, 60)}"`} — CEO ${ceoN}, ${closeEvidence}, ${solutionEvidence}.`);
 console.log("Now: commit (pull --rebase first), push, republish the Glass, END the turn.");

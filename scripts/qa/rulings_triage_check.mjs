@@ -61,11 +61,23 @@ function sectionRows(md, heading) {
 const checklistRows = (md) => (md.split(/^## STEP 1 CHECKLIST[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "")
   .match(/^- \[ \] .*$/gm) || [];
 
+/* ⚠ A SECOND HELPER FOR THIS EXACT REPAIR WAS WRITTEN HERE AT 14:0xZ AND REMOVED AGAIN, BY A WATCH
+   THAT DID NOT KNOW ANOTHER SESSION WAS IN THIS FILE. Both sessions were making the same dependent
+   repair from `SPEC-CHARTKEEPER.md` — the settled table moved to `CHART-LOG.md`, so this gate has to
+   read it there. The version below won on merit: passing `settledMd` as a PARAMETER keeps the
+   fixtures isolated, where the removed one read the real log inside the helper and would have judged
+   every fixture against the real tree.
+   **Recorded rather than tidied away, because the duplication is the finding**: neither session had
+   claimed this file in the ledger, so nothing on disk said it was taken. Eighth sighting. */
+
 function renderWith(chart) {
   const dir = mkdtempSync(join(tmpdir(), "rulings-triage-"));
   mkdirSync(join(dir, "scripts", "wyclau"), { recursive: true });
   mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
   writeFileSync(join(dir, "scripts", "wyclau", "glass.mjs"), readFileSync(GLASS));
+  /* glass.mjs IMPORTS ./lib/chart_model.mjs since the 2026-09-02 convergence — a staged copy without its dependency dies with ERR_MODULE_NOT_FOUND. */
+  mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
+  writeFileSync(join(dir, "scripts", "wyclau", "lib", "chart_model.mjs"), readFileSync(join(ROOT, "scripts", "wyclau", "lib", "chart_model.mjs")));
   writeFileSync(join(dir, ".planning", "CHART.md"), chart);
   execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "glass.mjs"), "--note", "triage gate"], { stdio: "pipe" });
   const html = readFileSync(join(dir, ".planning", "wyclau", "glass.html"), "utf8");
@@ -86,7 +98,16 @@ function renderWith(chart) {
 }
 
 // The rule, in one function, so the real Chart and the red-proof fixtures are judged identically.
-function violations(md) {
+/* ⚑ SETTLED RULINGS MOVED OUT OF THE CHART — 2026-09-02, Wyatt's ruling that the Chart shows only
+   WHERE WE ARE GOING. The sweep took that table to `.planning/CHART-LOG.md`, so reading it from the
+   Chart found NOTHING and this half of the gate silently stopped checking anything — a check that
+   cannot fail, arriving through a change nobody connected to it. SPEC-CHARTKEEPER.md named it as a
+   dependent repair before the sweep shipped; this is it.
+   `settledMd` IS A PARAMETER, NOT A FILE READ, and that matters: the first attempt read the real log
+   inside this function, which meant every FIXTURE below was silently judged against the real tree.
+   Case 5 caught it immediately. A gate that mixes fixture data with real data is not isolated, and
+   an unisolated fixture proves nothing. */
+function violations(md, settledMd) {
   const out = [];
   for (const r of sectionRows(md, "RULED")) {
     if (DECLARED.test(r.now)) out.push(`"${r.item.slice(0, 60)}" sits in ## RULED with a verdict already written (${r.now.slice(0, 40)}…) -- a ruling with a fate has been triaged and belongs in ## SETTLED RULINGS, off the card.`);
@@ -98,7 +119,7 @@ function violations(md) {
      guards was gone. Scoped to rows that declare themselves, so an accidental word match in
      somebody else's task can never stand in for a ruling's own row. */
   const checklist = checklistRows(md).filter((l) => /Your ruling:/i.test(l)).join("\n").toLowerCase();
-  for (const r of sectionRows(md, "SETTLED RULINGS")) {
+  for (const r of sectionRows(settledMd ?? md, "SETTLED RULINGS")) {
     if (!OUTSTANDING.test(r.now)) continue;
     const key = r.item.replace(/[`*]/g, "").toLowerCase().split(/\s+/).filter((w) => w.length > 4).slice(0, 3);
     if (!key.length || !key.every((w) => checklist.includes(w))) {
@@ -109,10 +130,19 @@ function violations(md) {
 }
 
 const realChart = readFileSync(join(ROOT, ".planning", "CHART.md"), "utf8");
+/* The settled table now lives in the log (his sweep ruling). Read it here, ONCE, and hand it in —
+   so the real call is judged against the real log and every fixture below is judged against itself. */
+const realSettled = (() => {
+  try {
+    const log = readFileSync(join(ROOT, ".planning", "CHART-LOG.md"), "utf8");
+    if (/^## SETTLED RULINGS/m.test(log)) return log;
+  } catch { /* no log yet — the sweep has not run on this tree */ }
+  return realChart;
+})();
 
 // 1/5 -- THE REAL CHART OBEYS THE LIFECYCLE.
 {
-  const v = violations(realChart);
+  const v = violations(realChart, realSettled);
   if (v.length) v.forEach((m) => fail(m));
   else pass(`the Chart's rulings lifecycle holds: ${sectionRows(realChart, "RULED").length} waiting to be triaged, ${sectionRows(realChart, "SETTLED RULINGS").length} settled.`);
 }
@@ -153,7 +183,11 @@ const realChart = readFileSync(join(ROOT, ".planning", "CHART.md"), "utf8");
      future row-head decoration (an id, a star, a size tag) cannot break it again. */
   const bad = realChart.replace(/^- \[ \] .*Your ruling: the cutover moment.*$/m, "");
   if (bad === realChart) fail("the red-proof could not find the checklist row it meant to delete -- the fixture is stale, so case 4 proves nothing.");
-  else if (!violations(bad).length) fail("the gate cannot fail: a ruling that still owes work had its only task row deleted and nothing objected.");
+  else /* ⚑ THE SETTLED SOURCE MUST BE HANDED IN HERE TOO — 2026-09-02. The sweep moved SETTLED RULINGS
+     out of the Chart and into the log, so a fixture built from the Chart alone contains NO owing
+     rulings at all, and this red-proof silently had nothing to detect. It said so rather than
+     passing, which is the design working twice in one file. */
+  if (!violations(bad, realSettled).length) fail("the gate cannot fail: a ruling that still owes work had its only task row deleted and nothing objected.");
   else pass("red-proof: deleting an owing ruling's checklist row is caught.");
 }
 

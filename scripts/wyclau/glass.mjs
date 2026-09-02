@@ -70,6 +70,9 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
+/* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
+   its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
+import { stateOf } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -387,30 +390,22 @@ if (chart !== null) {
    * as visible fates. This was a defect against a written spec, not a taste call.
    *
    * THREE BUCKETS, and no word may appear in two — DERIVED from these lists, never hand-kept: */
-  const DECLARED = /(?:→|->)\s*\*\*([^*]{0,160})/;
-  const FINISHED_WORDS = ["SHIPPED", "HARVESTED", "CLOSED", "DONE", "FIXED", "ROOT-CAUSED"];
-  const COMMITTED_WORDS = ["SCHEDULED"];
-  const PARKED_WORDS = ["PARKED"];
-  const wordRe = (list) => new RegExp(String.raw`\b(${list.join("|")})\b`);
-  const FINISHED = wordRe(FINISHED_WORDS);
-  const COMMITTED = wordRe(COMMITTED_WORDS);
-  const PARKED = wordRe(PARKED_WORDS);
-  const STILL_OPEN = /\bSTILL OPEN\b|\bNOT (?:SHIPPED|DONE|BUILT|FIXED)\b|\bUNCONFIRMED\b/;
-
-  /* A block's state, from its declared verdict. STILL_OPEN overrides everything, as before —
-   * a sentence saying it is still open beats any word-match, which is the lesson two earlier
-   * versions of this test were corrected for. */
-  const stateOf = (block) => {
-    const m = DECLARED.exec(block);
-    if (!m) return "open";
-    const v = m[1];
-    if (STILL_OPEN.test(v)) return "open";
-    if (FINISHED.test(v)) return "finished";
-    if (COMMITTED.test(v)) return "committed";
-    if (PARKED.test(v)) return "parked";
-    return "open";
-  };
-
+  /* ⚑ CONVERGED 2026-09-02 — THIS FILE NO LONGER OWNS A COPY OF THE FATE RULE.
+   *
+   * It used to define DECLARED / the three word lists / stateOf right here, and
+   * `lib/chart_model.mjs` defined its own. **They diverged within hours of the three-state change
+   * landing: the model saw 3 open ideas while this page rendered 14** — a gap of eleven, ten of
+   * which were Wyatt's own words, so the Chartkeeper's RANK was ordering a list that did not
+   * contain his requests at all.
+   *
+   * That is rule 23 exactly: *what makes these two agree?* — and until this import existed, the
+   * honest answer was "nothing". The gate written to watch for it
+   * (`chart_model_agrees_with_glass_check.mjs`) compares COUNTS on a fixture and did not catch a
+   * real-Chart divergence, which is worth knowing about that gate.
+   *
+   * The old blocker was that this file was VENDORED and could not import from the repo's own lib.
+   * Wyatt inverted that (the project copy is the truth), so the convergence patch 5 describes is
+   * simply done here. */
   /* Only FINISHED hides. Committed and parked are shown, tagged, because he steers by this list
    * and a fate he cannot see is a fate he cannot overrule. */
   const shownInbox = inboxBlocks
@@ -423,10 +418,28 @@ if (chart !== null) {
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
-  // lived in that one section. Scoped to the same source as the list, so the two cannot drift:
-  // done = checked items in STEP 1 CHECKLIST; open = the list this card actually renders.
-  const doneChecklist = (stepSec.match(/^- \[x\]/gim) || []).length;
-  checklist = { done: doneChecklist, open: tasks.length };
+  // lived in that one section. Scoped to the same source as the list, so the two cannot drift.
+  //
+  // ⚑ AND THE "done" HALF MOVED HOUSE ON 2026-09-02, BECAUSE THE FACT DID. It used to count the
+  // ticked rows in STEP 1 CHECKLIST. His ruling the same day is that a completed row LEAVES
+  // CHART.md the moment it is finished -- so that count was about to become permanently 0, on the
+  // very card he reads to see "that the work is being done, right at the top, at a glance" (his
+  // words, 2026-08-31). **This dependency is the entire reason the sweep sat blocked for eight
+  // hours**, and it is worth naming as a shape: when a record moves, the thing that COUNTS it does
+  // not fail -- it quietly starts answering zero.
+  //
+  // He was offered "done this week" and "remove it entirely" and chose TODAY (question UI,
+  // 2026-09-02). A number that only ever grows -- 27, 28, 29 -- cannot tell him whether today went
+  // anywhere; a daily one can. Derived from CHART-LOG.md's own entry stamps, never hand-typed.
+  //
+  // A MISSING LOG IS 0, NOT AN ERROR, and that is deliberate rather than a fail-open: a repo that
+  // has never swept anything genuinely has no finished work on record today. The card's OTHER half
+  // (the open list) is what goes "unreadable" when CHART.md cannot be read, and it still does.
+  const chartLog = tryRead(join(ROOT, ".planning", "CHART-LOG.md")) ?? "";
+  const today = new Date().toISOString().slice(0, 10);
+  const doneToday = (chartLog.match(/^## T-\d{3} — (\d{4}-\d{2}-\d{2}) /gm) || [])
+    .filter((h) => h.includes(today)).length;
+  checklist = { done: doneToday, open: tasks.length };
 }
 
 // --- restarts (the watchdog appends here) ---
@@ -723,7 +736,10 @@ const PAGE = `<meta charset="utf-8">
        that (the project copy is the truth); this is the first edit made under it.
        WHERE HE IS GOING OUTRANKS WHAT HE LEARNED YESTERDAY. -->
   <section class="card">
-    <h2>The Chart (Tasks To Do) — ${checklist === null ? "?" : checklist.done} done · ${checklist === null ? "?" : checklist.open} open</h2>
+    <!-- "done TODAY", not "done". The number resets at midnight by design (his pick over "this
+         week"), and an unlabelled count that silently drops to 0 overnight reads as work having
+         been LOST — which would be worse than the ever-growing number it replaced. -->
+    <h2>The Chart (Tasks To Do) — ${checklist === null ? "?" : checklist.done} done today · ${checklist === null ? "?" : checklist.open} open</h2>
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
       : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.")}
   </section>

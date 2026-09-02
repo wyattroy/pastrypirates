@@ -58,8 +58,20 @@ const chartFile = (name, body) => {
    ids doing it. **A test that writes into the tree it measures is the same fault as an instrument
    that writes into the thing it measures**, which is the bug this gate caught in the tool itself an
    hour earlier. Pinning it in the helper means a future case cannot forget. */
+/* ⚠ AND THE PIN IS PER-CHART, NOT ONE SHARED DEFAULT — the second half of the same lesson, learned
+   when SWEEP started READING the archive as well as writing it. `chartkeeper.mjs` now merges the
+   log's `## SETTLED RULINGS` into his rulings, because that table moved house and every signal
+   reading it had to follow (see `derive`). The moment it did, one shared fixture archive became a
+   channel between cases: case 7 swept MIXED's settled table — which names `T-902` — into the common
+   log, and case 12c, whose whole point is that exactly ONE of its twins has a live ruling, found
+   BOTH of them named and went red. Nothing was wrong with the tool.
+   **A shared scratch file is fine while it is only ever written and never read back.** The day
+   anything reads it, it is shared state between tests, and shared state between tests is how a
+   green suite starts describing a system nobody has. Derive the log from the chart it belongs to. */
 const run = (args) => {
-  const pinned = args.some((a) => a.startsWith("--log=")) ? args : [...args, `--log=${join(tmp, "default-CHART-LOG.md")}`];
+  const chartArg = args.find((a) => a.startsWith("--chart="))?.slice(8) ?? "default";
+  const own = `${chartArg.split(/[\\/]/).pop().replace(/\.md$/, "")}-LOG.md`;
+  const pinned = args.some((a) => a.startsWith("--log=")) ? args : [...args, `--log=${join(tmp, own)}`];
   try {
     return { code: 0, out: execFileSync(process.execPath, [KEEPER, ...pinned], { encoding: "utf8", cwd: ROOT }) };
   } catch (e) {
@@ -245,38 +257,128 @@ The fixture now carries a Z the way the real file does.
   }
 }
 
-/* 5. SWEEP MUST GIVE DONE ROWS AN EXIT, AND MUST NOT ARCHIVE THIS WEEK'S. "27 done" is not a fact
-      about this week; it is a number that grows forever and therefore says nothing.
+/* 5. SWEEP TAKES EVERY COMPLETED ROW, IMMEDIATELY, AND LEAVES NO STUB — HIS RULING, and it
+      OVERRULES the design the first version of this case defended.
 
-      ⚠ THE SECOND OVER-SPECIFIED ASSERTION, AND THE SAME CORRECTION. It first demanded the swept
-      row's TITLE be absent from the Chart — but the spec asks for a one-line stub carrying exactly
-      that title, so a reader following an old reference lands somewhere instead of nowhere. What
-      must actually be true: the checkbox goes (so the `done` count starts meaning "done this
-      week"), the essay goes, the archive has all of it, and a non-checkbox stub stays. */
+      Wyatt, 2026-09-02, `SPEC-CHARTKEEPER.md`'s 🛑 banner: *"SWEEP takes EVERY completed row,
+      immediately, and leaves NO stub. Not 'older than 7 days'."* And the sentence the spec says
+      outranks the rest of that document: *"The chart should therefore only show WHERE WE ARE
+      GOING — accurately, constantly updating."*
+
+      ⚠ THIS CASE USED TO ASSERT THE OPPOSITE, IN BOTH HALVES, AND WAS GREEN. It demanded that a
+      row finished today STAY ("the 7-day window is the whole point") and that a one-line stub
+      REMAIN ("an old reference to that row now lands nowhere"). Both are the draft he read and
+      changed. **Three green cases were holding the overruled design in place**, which is why this
+      had to go red before it went green — the age threshold is a constant nobody could defend
+      (rule 9), and a stub is still the past sitting in a document about the future.
+
+      THE THREE THINGS THIS NOW PROVES, and the third is the one the old filter silently dropped:
+      every done row leaves whatever its age · nothing is left behind pointing at the archive ·
+      **a done row carrying NO readable date leaves too.** `sweepable`'s old `x.when && …` meant a
+      row nobody had dated could never be archived at all, so "sweep every completed row" would
+      still have quietly kept some — a second, invisible reason a finished row stays on his list. */
+const SWEEP_ALL = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] **SOMETHING STILL OPEN** so the section is not all-done. Filed 2026-09-02T04:19Z.
+- [x] **A DONE ROW FROM LONG AGO** — SHIPPED 2001-02-03.
+- [x] **A DONE ROW FROM TODAY** — SHIPPED ${TODAY}.
+      This row has a second line, and the essay must reach the archive verbatim: PRESERVE-ME.
+- [x] **A DONE ROW CARRYING NO DATE AT ALL** — finished, and nobody ever wrote down when.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The deploy permission, long since dealt with | **"we fixed it"** | CLOSED, already done. |
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
 {
-  const p = chartFile("sweep", MIXED);
+  const p = chartFile("sweep", SWEEP_ALL);
   const log = join(tmp, "CHART-LOG.md");
   const doneBefore = (readFileSync(p, "utf8").match(/^- \[x\]/gm) || []).length;
   run([`--chart=${p}`, `--log=${log}`, "--sweep", "--write"]);
   const after = readFileSync(p, "utf8");
   const doneAfter = (after.match(/^- \[x\]/gm) || []).length;
-  if (doneAfter !== doneBefore - 1)
-    fail(`the done-checkbox count went ${doneBefore} → ${doneAfter}; exactly one row was old enough to archive. Done rows never leaving is why most of the Chart is history`);
-  else pass("the archived row's checkbox left the Chart — 'done' can start meaning 'done this week'");
-  if (/^- \[x\][^\n]*A DONE ROW FROM LONG AGO/m.test(after))
-    fail("the row from 2001 is still an open checkbox row on the Chart");
-  else if (!/↳[^\n]*A DONE ROW FROM LONG AGO/.test(after))
-    fail("no stub left behind — an old reference to that row now lands nowhere");
-  else pass("a one-line stub stays behind, pointing at the archive");
+  if (doneBefore !== 3) fail(`the fixture no longer has the three done rows this case is about (found ${doneBefore}) — it proves nothing`);
+  else if (doneAfter !== 0)
+    fail(`${doneAfter} of ${doneBefore} finished rows are still on the Chart after a sweep — his ruling is EVERY completed row, immediately, and "MANY completed tasks still stale on it" was the complaint that started this`);
+  else pass("every finished row left the Chart — none survived on age or on a missing date");
+
+  if (/↳/.test(after))
+    fail("a stub was left behind — he overruled the stub: a pointer to the past is still the past sitting in a document about the future");
+  else if (/A DONE ROW FROM LONG AGO|A DONE ROW FROM TODAY|A DONE ROW CARRYING NO DATE/.test(after))
+    fail("a swept row's title is still somewhere in CHART.md — the row is meant to leave completely");
+  else pass("nothing was left behind pointing at the archive — no stub, no title");
+
+  if (!/SOMETHING STILL OPEN/.test(after))
+    fail("the sweep took an OPEN row with it — a sweep that eats unfinished work is worse than a long Chart");
+  else pass("the open row is untouched");
+
   if (!existsSync(log)) fail("wrote no archive file — a sweep that deletes instead of archiving loses the record");
   else {
     const archived = readFileSync(log, "utf8");
-    if (!/A DONE ROW FROM LONG AGO/.test(archived)) fail("the archived row is not in the archive — the sweep dropped it on the floor");
-    else pass("the archived row's full text is in the archive");
+    for (const t of ["A DONE ROW FROM LONG AGO", "A DONE ROW FROM TODAY", "A DONE ROW CARRYING NO DATE AT ALL"]) {
+      if (!archived.includes(t)) fail(`"${t}" is on neither the Chart nor the log — the sweep dropped it on the floor`);
+    }
+    if (!archived.includes("PRESERVE-ME"))
+      fail("a swept row's body did not reach the archive — the essays are the graveyard (rule 10) and nothing may be summarised on the way out");
+    else pass("all three rows, bodies included, are in the archive verbatim");
   }
-  if (!/^- \[x\][^\n]*A DONE ROW FROM TODAY/m.test(after))
-    fail("archived a row finished today — the 7-day window is the whole point");
-  else pass("left this week's done row in place");
+}
+
+/* 5b. THE SETTLED RULINGS TABLE GOES TOO — his ruling, question UI, 2026-09-02, made against a
+       recommendation to KEEP it. The strict reading of his own sentence wins: nothing
+       backward-looking survives in CHART.md, including a lookup table of decisions already made. */
+{
+  const p = chartFile("sweep-rulings", SWEEP_ALL);
+  const log = join(tmp, "CHART-LOG-rulings.md");
+  run([`--chart=${p}`, `--log=${log}`, "--sweep", "--write"]);
+  const after = readFileSync(p, "utf8");
+  const archived = existsSync(log) ? readFileSync(log, "utf8") : "";
+  if (/^## SETTLED RULINGS/m.test(after))
+    fail("the SETTLED RULINGS table is still in CHART.md — he was offered KEEP with a recommendation and overruled it");
+  else if (!/The deploy permission, long since dealt with/.test(archived))
+    fail("the SETTLED RULINGS table left CHART.md and did not arrive in the log — that is a deletion, not a sweep");
+  else pass("the SETTLED RULINGS table moved to the log with everything else");
+}
+
+/* 5c. THE GUARDRAIL THE SPEC ASKS FOR BY NAME: every closed handle appears in EXACTLY ONE of the
+       two files — never both, never neither. This is the check that makes a destructive rewrite of
+       the file he reads safe to run unattended, and it is the reason the spec chose a dedicated
+       CHART-LOG.md over the ledger: against a 1,700-line file carrying six other kinds of entry,
+       this assertion cannot be written at all. */
+{
+  const p = chartFile("sweep-conserve", SWEEP_ALL);
+  const log = join(tmp, "CHART-LOG-conserve.md");
+  /* ⚠ `--write` ON ITS OWN RUNS EVERY PASS, SWEEP INCLUDED (`anyPass` is false, so all four are
+     on). The first version of this case used it to "just allocate handles" and then had nothing
+     left to follow — the rows it meant to track had already been archived by the setup step. Name
+     the pass you want. */
+  run([`--chart=${p}`, "--rank", "--write"]);           // allocate handles WITHOUT sweeping
+  const before = readFileSync(p, "utf8");
+  const doneHandles = before.split(/^- \[[xX]\] /m).slice(1)
+    .map((b) => (/T-\d{3}/.exec(b.split(/^- \[/m)[0]) || [])[0]).filter(Boolean);
+  run([`--chart=${p}`, `--log=${log}`, "--sweep", "--write"]);
+  const after = readFileSync(p, "utf8");
+  const archived = existsSync(log) ? readFileSync(log, "utf8") : "";
+  if (doneHandles.length !== 3) fail(`expected three finished handles to follow, found ${doneHandles.length} — this case cannot see its own subject`);
+  else {
+    const both = doneHandles.filter((h) => after.includes(h) && archived.includes(h));
+    const neither = doneHandles.filter((h) => !after.includes(h) && !archived.includes(h));
+    if (neither.length) fail(`${neither.join(", ")} is in NEITHER file — a swept row was lost, which is the one failure that cannot be undone`);
+    else if (both.length) fail(`${both.join(", ")} is in BOTH files — the Chart still carries what the log now owns, so the two records can disagree`);
+    else pass("every finished handle is in exactly one of the two files — never both, never neither");
+  }
 }
 
 /* 6. IT MUST COVER THE UNFATED IDEA INBOX ENTRIES. Caught by CEO 89 before a line was built, and it
@@ -318,7 +420,9 @@ The fixture now carries a Z the way the real file does.
   else pass("every allocated id is distinct");
   run([`--chart=${p}`, "--write"]);
   const ids2 = (rowsOnly(readFileSync(p, "utf8")).match(/\bT-\d{3}\b/g) || []);
-  if (ids2.join(",") !== ids.join(",")) fail(`a second run changed the ids (${ids.length} → ${ids2.length}) — ids must be allocated once and never reused`);
+  /* THE COUNTS WERE THE ONLY THING THIS MESSAGE PRINTED, AND THEY MATCHED WHILE THE IDS DIFFERED —
+     "7 → 7" told a reader nothing about a case that had genuinely failed. Print the lists. */
+  if (ids2.join(",") !== ids.join(",")) fail(`a second run changed the ids — ids must be allocated once and never reused\n        run 1: ${ids.join(" ")}\n        run 2: ${ids2.join(" ")}`);
   else pass("a second run allocates nothing new — ids are stable across runs");
 }
 
@@ -1118,30 +1222,34 @@ const SWEEP_TWINS = `# THE CHART — fixture
 
 - **A fated idea** — handled → **SHIPPED** 2026-09-01.
 `;
+/* ⚠ REWRITTEN 2026-09-02 WHEN SWEEP BECAME HIS VERSION, AND THE REASON IS WORTH THE PARAGRAPH.
+       This case used to lean on the age filter to make its point: two same-titled done rows, only
+       the 2001 one old enough, so archiving the young one proved the sweep was matching by TITLE.
+       **Take the age filter away and that leverage is gone** — under his ruling both twins leave,
+       so "the young one stayed" can no longer be the tell.
+       The fault it guards has not gone anywhere, so the case is re-pointed rather than deleted:
+       two finished rows sharing one first line must arrive in the log as TWO DISTINCT ENTRIES, and
+       an OPEN row sharing that same first line must survive untouched. A title-keyed sweep fails
+       both halves — it files one entry and it cannot tell the open twin from the finished ones. */
 {
   const p = chartFile("sweep-twins", SWEEP_TWINS);
   const logPath = join(tmp, "sweep-twins-LOG.md");
-  const r = runJson([`--chart=${p}`, `--log=${logPath}`, "--sweep"]);
-  const sweep = r.json?.sweep || [];
-  if (sweep.length !== 1)
-    fail(`SWEEP offered ${sweep.length} of the two same-titled done rows for archiving — only the 2001 one is old enough, so this case only means something at exactly 1`);
-  else pass("only the old one of two same-titled finished rows is offered for archiving");
   run([`--chart=${p}`, `--log=${logPath}`, "--sweep", "--write"]);
   const after = readFileSync(p, "utf8");
-  /* ⚠ "T-912 is still in the file" IS THE WRONG QUESTION and the first version of this case asked
-     it: an archived row leaves a stub behind that still names its handle, so that assertion is
-     true whether or not the row was swept. Ask whether it is still a TICKED ROW on his Chart. */
-  const youngStillOnChart = after.split(/^- \[[xX]\] /m).slice(1).some((b) => b.includes("T-912"));
-  if (!youngStillOnChart)
-    fail(`the write archived the row finished TODAY — it shares a first line with the 2001 one, and matching by title cannot tell them apart:\n${after}`);
-  else pass("the row finished today survives the sweep of its same-titled twin");
-  /* RED-PROOF: the case above is worthless unless the sweep actually ran. The archived row leaves a
-     one-line stub behind that still names its handle, so "T-911 is gone from the file" is the wrong
-     question — ask whether it is still a CHECKBOX row, and whether the log has it. */
-  const stillTicked = after.split(/^- \[[xX]\] /m).slice(1).some((b) => b.includes("T-911"));
-  if (stillTicked || !existsSync(logPath) || !readFileSync(logPath, "utf8").includes("T-911"))
-    fail("the 2001 row was not archived into the log, so the case above passed for the wrong reason — the sweep did nothing at all");
-  else pass("…and the old twin really was archived, so the case above could have failed");
+  const archived = existsSync(logPath) ? readFileSync(logPath, "utf8") : "";
+  for (const h of ["T-911", "T-912"]) {
+    if (after.split(/^- \[[xX]\] /m).slice(1).some((b) => b.includes(h)))
+      fail(`${h} is still a ticked row on the Chart — every completed row leaves, and a twin is not an exception`);
+    if (!archived.includes(h))
+      fail(`${h} never reached the log — two rows sharing one first line were keyed by title, so one silently overwrote the other`);
+  }
+  const entries = (archived.match(/^## T-91[12] /gm) || []).length;
+  if (entries !== 2)
+    fail(`the log holds ${entries} entries for the two same-titled finished rows — it must hold both, separately, or a title-keyed sweep has eaten one`);
+  else pass("two finished rows sharing one first line arrive in the log as two distinct entries");
+  if (!/^- \[ \][^\n]*SOMETHING STILL OPEN/m.test(after))
+    fail("the OPEN row was swept — matching by anything other than the row's own slot cannot tell an open row from a finished one");
+  else pass("the open row sharing the section survives the sweep of both twins");
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -1299,13 +1407,40 @@ const ATTACHED = (extraQuestion = "") => `# THE CHART — fixture
   const watchSection = door.split(/^## THE WATCH/m)[1]?.split(/^## /m)[0] ?? "";
   if (!watchSection) {
     fail("could not find the Door's THE WATCH section — this case cannot check anything, which is worse than failing");
-  } else if (!/chartkeeper\.mjs\s+--rank\s+--write/.test(watchSection)) {
-    fail("the Door's watch routine does not run `chartkeeper.mjs --rank --write` — RANK exists and nothing calls it, so his Chart will not re-prioritise itself (he asked four times)");
-  } else if (/chartkeeper\.mjs[^\n]*--sweep/.test(watchSection)) {
-    fail("the Door runs --sweep, which is still the seven-day-with-a-stub version he OVERRULED; sweeping now also zeroes the done count on his page");
+  } else if (!/chartkeeper\.mjs[^\n]*--rank[^\n]*--write/.test(watchSection)) {
+    fail("the Door's watch routine does not run `chartkeeper.mjs … --rank … --write` — RANK exists and nothing calls it, so his Chart will not re-prioritise itself (he asked four times)");
   } else {
-    pass("the Door's watch routine runs `chartkeeper.mjs --rank --write`, and not --sweep");
+    pass("the Door's watch routine runs `chartkeeper.mjs --rank --write`");
   }
+}
+
+/* ⚑ THE SWEEP'S OWN WIRING CASE, AND ITS INVOKER IS DELIBERATELY NOT THE DOOR.
+ *
+ * The Door is a step somebody performs at the END of a watch. SWEEP is his ruling that a completed
+ * row leaves **immediately** — and "immediately" and "next time a watch reaches step 6a" are not the
+ * same promise. The moment a row becomes finished is the moment `close_item.mjs` ticks it, so that
+ * is where the sweep is wired: the tick and the departure are one act, and no window exists in
+ * which the Chart says a thing is done.
+ *
+ * `SPEC-CHARTKEEPER.md` names this hook point itself — SWEEP belongs to the Watch because it
+ * "already has write authority, a CEO gate, and `close_item.mjs` as a natural hook point."
+ *
+ * ⚠ AND THE HONEST PART: the Door's step 6a still says `NOT --sweep`, with a reason that expired
+ * when sweep became his design. **That line was not corrected because this session was refused
+ * write access to `.claude/skills/door/SKILL.md`** — two attempts, both denied, and routing around
+ * a refusal with a shell command is not a repair. The sweep runs regardless, from the close gate,
+ * which is why the build is green rather than blocked; the Door's stale sentence is filed as its
+ * own row. This case guards the invoker that EXISTS. */
+{
+  const closer = join(ROOT, "scripts", "wyclau", "close_item.mjs");
+  const src = existsSync(closer) ? readFileSync(closer, "utf8") : "";
+  if (!src) {
+    fail("scripts/wyclau/close_item.mjs is missing — this case cannot check anything, which is worse than failing");
+  } else if (!/chartkeeper\.mjs[\s\S]{0,400}?--sweep/.test(src)) {
+    fail("closing an item does not sweep — a row he has finished stays on his Chart until somebody types the command, and 'MANY completed tasks still stale on it' is the complaint that started this");
+  } else if (!/no-sweep/.test(src)) {
+    fail("the sweep in close_item.mjs cannot be turned off, so nothing can test the tick on its own");
+  } else pass("closing an item sweeps it off the Chart in the same act — 'immediately' means immediately");
 }
 
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);

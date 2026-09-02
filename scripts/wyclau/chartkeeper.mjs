@@ -60,7 +60,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ID_RE, bodyOf, chunk, overlap, parseChart, replaceSection, rowKey, section, titleOf, tokens,
+  ID_RE, bodyOf, chunk, dropSection, overlap, parseChart, replaceSection, rowKey, section,
+  tableRows, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -75,6 +76,9 @@ const abs = (p) => (isAbsolute(p) ? p : resolve(ROOT, p));
 const CHART = abs(opt("chart", join(ROOT, ".planning", "CHART.md")));
 const LOG = abs(opt("log", join(ROOT, ".planning", "CHART-LOG.md")));
 const INBOX = abs(opt("inbox", join(ROOT, ".planning", "wyclau", "INBOX.md")));
+/* The archive, read fresh every time rather than cached: the write pass appends to it mid-run, and
+   a stale copy would be a record of the file as it was before this very sweep. */
+const archiveText = () => (existsSync(LOG) ? readFileSync(LOG, "utf8") : "");
 const NOW = new Date(opt("now", new Date().toISOString()));
 const JSON_OUT = flag("json");
 const WRITE = flag("write");
@@ -443,6 +447,18 @@ function claimsOf(row) {
    ──────────────────────────────────────────────────────────────────────────────────────────── */
 function derive(src) {
   const parsed = parseChart(src);
+  /* ⚑ HIS SETTLED RULINGS MOVED HOUSE, AND TWO RANKING SIGNALS HAD TO MOVE WITH THEM.
+     Caught by the ID-STABILITY case, of all things, which is the useful part: after SWEEP started
+     taking `## SETTLED RULINGS` out of CHART.md, the same fixture ranked two different ways on two
+     consecutive runs. Nothing about ids was wrong — a row whose priority came from *"his answer is
+     in and this never moved"* silently lost that +100 the moment the table left the file, because
+     `settledNaming` and `rulingItems` both read the Chart and only the Chart.
+     **That is the whole failure mode of moving a record: the record survives and everything that
+     READS it quietly starts answering "no".** So the rulings are read from wherever they now live —
+     the Chart for the ones still being triaged, the log for the ones already swept — and a row's
+     score cannot change just because its evidence was archived. */
+  const settledInLog = tableRows(section(archiveText(), "SETTLED RULINGS") ?? "");
+  if (settledInLog.length) parsed.settled = [...parsed.settled, ...settledInLog];
   const openItems = parsed.tasks;
   /* THE ONE LINK, DERIVED ONCE AND READ BY BOTH CONSUMERS (rule 23). REAP asks it to find rows his
      answer has already freed; `score()` asks it to find rows he is still being asked about. When
@@ -530,7 +546,10 @@ function derive(src) {
   // His rulings are re-read from THIS text, not from the file on disk: SETTLE can have added rows
   // and moved the sections before RANK ever runs, and a table read once would be a table read from
   // a file that no longer exists.
-  const ruleTokens = rulingItems(src).map((s) => tokens(s));
+  // …and the same for the tag-resolution source: `Your ruling:` must still resolve against a
+  // ruling that has been swept, or every one of his answered rulings loses its row's +100 the day
+  // the row it settled is archived.
+  const ruleTokens = rulingItems(`${src}\n${archiveText()}`).map((s) => tokens(s));
   const ranked = openItems
     .map((row) => ({ row, ...score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming: ctx.blockedNaming }) }))
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
@@ -757,11 +776,27 @@ if (WRITE && DO.settle) {
 const { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
-   PASS 4 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
-   out of the row, it stays — an archiver that guesses at ages will eventually archive something
-   that was finished this morning, and that is a worse failure than a long Chart.
+   PASS 4 — SWEEP. EVERY completed row leaves, the moment it is finished. No age, no stub.
+
+   HIS RULING, 2026-09-02, `SPEC-CHARTKEEPER.md`'s 🛑 banner, overruling the draft he was shown:
+   *"SWEEP takes EVERY completed row, immediately, and leaves NO stub. Not 'older than 7 days'."*
+   And the sentence the spec says outranks the rest of that document: *"The chart should therefore
+   only show WHERE WE ARE GOING — accurately, constantly updating."*
+
+   ⚠ WHAT THIS PARAGRAPH USED TO SAY, AND WHY DELETING IT IS NOT LOSING AN ARGUMENT. It read: *"A
+   done row leaves only when its age can be ESTABLISHED. If no date can be read out of the row, it
+   stays — an archiver that guesses at ages will eventually archive something that was finished
+   this morning, and that is a worse failure than a long Chart."* That reasoning was sound about
+   the SEVEN-DAY design and evaporates without it: with no age test there is nothing to guess at,
+   so an undated row has no reason to stay. **It had teeth, though — `x.when &&` was a SECOND,
+   invisible reason a finished row could sit on his list forever, independent of the threshold.**
+   Delete only the threshold and undated rows would still have quietly survived a sweep that
+   claims to take everything. Gate case 5 carries an undated fixture row for exactly that.
+
+   WHAT A ROW'S DATE IS STILL FOR: the archive entry's stamp, and through it the Glass's "done
+   today" count. A row that carries no date is archived with none — never with today's, which
+   would be an invented fact about when work finished (rule 6).
    ──────────────────────────────────────────────────────────────────────────────────────────── */
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 const lastDateIn = (s) => {
   const all = s.match(/\b20\d\d-\d\d-\d\d\b/g) || [];
   if (!all.length) return null;
@@ -769,7 +804,6 @@ const lastDateIn = (s) => {
 };
 const sweepable = DO.sweep
   ? parsed.doneRows.map((r) => ({ row: r, when: lastDateIn(r.raw) }))
-      .filter((x) => x.when && NOW - x.when > SEVEN_DAYS)
   : [];
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -888,36 +922,53 @@ if (WRITE) {
   let stepOut = rebuild(parsed.stepChunks, "checklist");
   const inboxOut = rebuild(parsed.inboxChunks, "inbox");
 
-  // 3. SWEEP. The row's full text goes to the archive; a one-line stub stays behind so a reader
-  //    following an old reference lands somewhere rather than nowhere. The stub is NOT a checkbox,
-  //    which is what makes the `done` count start meaning "done this week".
+  // 3. SWEEP. The row's full text goes to the archive and NOTHING is left behind — his ruling.
+  //    The stub the first version left ("↳ `T-nnn` … → CHART-LOG") was the draft he read and
+  //    overruled: a pointer to the past is still the past sitting in a document about the future.
+  //    A reader following an old reference lands nowhere on the Chart and everywhere in the log,
+  //    which is what the handle is FOR — `T-nnn` is grep-able across both files and never reused.
   if (DO.sweep && sweepable.length) {
     const stamps = [];
     // Same rule as the flags above: a DONE row is identified by the slot it was parsed from, never
     // by its title. Done rows are never moved by the reorder, so a chunk index still names one.
     const sweepByKey = new Map(sweepable.map((x) => [x.row.key, x]));
-    stepOut = stepOut.map((c, i) => {
-      if (c.type !== "row") return c;
+    stepOut = stepOut.flatMap((c, i) => {
+      if (c.type !== "row") return [c];
       const hit = sweepByKey.get(rowKey("checklist", i));
-      if (!hit) return c;
+      if (!hit) return [c];
       const id = idOf(c.lines) ?? "T-???";
-      const when = hit.when.toISOString().slice(0, 10);
-      const ceo = (/CEO\s*(?:Review\s*)?(\d{1,3})/i.exec(c.lines.join(" ")) || [])[1];
+      // NO DATE IS PRINTED AS NO DATE. Falling back to today would file a row under the day it was
+      // ARCHIVED as if that were the day it was FINISHED — and the Glass's "done today" count reads
+      // exactly this stamp, so the invented fact would land on his page as a number (rule 6).
+      const when = hit.when ? hit.when.toISOString().slice(0, 10) : "date not recorded";
       stamps.push({ id, when, title: titleOf(c.lines), text: c.lines.join("\n") });
       wrote.archived++;
-      return {
-        type: "prose",
-        lines: [`  ↳ \`${id}\` ${when}${ceo ? ` · CEO ${ceo}` : ""} · ${titleOf(c.lines).slice(0, 90)} → [CHART-LOG](CHART-LOG.md)`],
-      };
+      return [];
     });
+    /* HIS SECOND RULING IN THE SAME ROUND, made against a recommendation to KEEP: the SETTLED
+       RULINGS table goes too. It is twelve rows of decisions already made, and the strict reading
+       of his own sentence wins — nothing backward-looking survives in CHART.md. It moves whole,
+       under its own heading, so `rulings_triage_check.mjs` can go on asking the same question of
+       it at its new address. */
+    let ruledOut = "";
+    if (parsed.settled.length) {
+      const sec = section(text, "SETTLED RULINGS");
+      if (sec !== null && sec.trim()) {
+        ruledOut = `\n## SETTLED RULINGS — swept off the Chart ${NOW.toISOString().slice(0, 10)}, kept on the record forever\n${sec.replace(/\s+$/, "")}\n`;
+        text = dropSection(text, "SETTLED RULINGS");
+        wrote.archived += parsed.settled.length;
+      }
+    }
     const header = existsSync(LOG) ? readFileSync(LOG, "utf8") : `# THE CHART LOG — closed rows, kept forever
 
-*Rows the Chartkeeper swept off [\`CHART.md\`](CHART.md) after seven days done. Nothing is lost
-here: the full text of every row is below, under the handle the Chart still points at. Swept by
-\`scripts/wyclau/chartkeeper.mjs --sweep --write\`, never by hand.*
+*Rows the Chartkeeper swept off [\`CHART.md\`](CHART.md) the moment they were finished — his
+ruling, 2026-09-02: every completed row leaves immediately and leaves no stub, because the Chart
+"should only show WHERE WE ARE GOING". Nothing is lost here: the full text of every row is below,
+under the handle it was closed with. Swept by \`scripts/wyclau/chartkeeper.mjs --sweep --write\`,
+never by hand.*
 `;
     const added = stamps.map((s) => `\n## ${s.id} — ${s.when} — ${s.title}\n\n${s.text}\n`).join("");
-    writeFileSync(LOG, header + added);
+    writeFileSync(LOG, header + added + ruledOut);
   }
 
   const join_ = (chunks) => chunks.map((c) => c.lines.join("\n")).join("\n");
@@ -939,7 +990,7 @@ if (JSON_OUT) {
     unbackedApproval,
     unattachedMentions,
     unattachedQuestions,
-    sweep: sweepable.map((x) => ({ title: titleOf(x.row.lines), when: x.when.toISOString().slice(0, 10) })),
+    sweep: sweepable.map((x) => ({ title: titleOf(x.row.lines), when: x.when ? x.when.toISOString().slice(0, 10) : null })),
   }, null, 2));
 } else {
   console.log(`THE CHARTKEEPER — ${CHART}`);
@@ -1012,10 +1063,13 @@ if (JSON_OUT) {
     console.log("");
   }
   if (DO.sweep) {
+    /* SAY WHAT WAS EXAMINED, NOT ONLY WHAT WAS FOUND — the same correction SETTLE needed. A pass
+       that is silent on a Chart with nothing finished and a pass that has gone blind print the
+       identical line, and one of those is a broken tool. */
     console.log(sweepable.length === 0
-      ? "SWEEP  nothing done for longer than seven days.\n"
-      : `SWEEP  ${sweepable.length} done row(s) ready to archive into ${LOG}`);
-    for (const x of sweepable) console.log(`       • ${x.when}  ${titleOf(x.row.lines).slice(0, 70)}`);
+      ? `SWEEP  ${parsed.doneRows.length} finished row(s) on the Chart, nothing to archive.\n`
+      : `SWEEP  ${sweepable.length} finished row(s) leaving the Chart for ${LOG}`);
+    for (const x of sweepable) console.log(`       • ${x.when ? x.when.toISOString().slice(0, 10) : "(no date)"}  ${titleOf(x.row.lines).slice(0, 70)}`);
   }
   console.log(WRITE
     ? `\nWROTE  ${wrote.ids} id(s) allocated · ${wrote.flags} flag(s) · ${wrote.reordered} row(s) moved · ${wrote.split} part(s) split out · ${wrote.asked} question(s) put to him · ${wrote.archived} archived`

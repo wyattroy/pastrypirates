@@ -5,20 +5,29 @@
  * "what is open" differently from `glass.mjs`, it will perfectly re-order a list his phone does not
  * render, and nothing would ever say so.
  *
- * ⚠ THE CONVERGENCE IS NOT FINISHED, AND SAYING SO IS THE POINT. `glass.mjs` is VENDORED from
- * claude-kit (`.claude/wyclau/MANIFEST.sha256`), and the kit lives outside this session's allowed
- * working directory — measured, not assumed: an `ls` of the kit path is refused. So the second
- * consumer could not be converged onto this module in the watch that wrote it. What exists instead
- * is `scripts/qa/chart_model_agrees_with_glass_check.mjs`, which runs the REAL `glass.mjs` against a
- * fixture and fails if the two derivations disagree. That turns a silent drift into a red gate,
- * which is the second-best answer; the best one is one function, and it is a named follow-up in
- * `.planning/wyclau/PENDING-KIT-PATCHES.md`.
+ * ✅ THE CONVERGENCE IS FINISHED — 2026-09-02. `glass.mjs` now IMPORTS `stateOf` from this file.
+ * There is one fate rule and one place it lives.
  *
- * THE FATE TEST BELOW IS COPIED DELIBERATELY, WITH ITS SCARS. `glass.mjs` records getting it wrong
- * twice in opposite directions (CEO Review 63 caught one), and those two mistakes are why the rule
- * is "the fate must be DECLARED — an arrow, then a bold verdict — and the verdict must not
- * explicitly say otherwise". Changing it here without changing it there is exactly the drift the
- * gate above exists to catch.
+ * ⚠ THIS HEADER SAID THE OPPOSITE FOR A DAY, IN THREE WAYS, AND ALL THREE WERE WRONG BY THE TIME
+ * ANYONE READ THEM — which is the exact rot this project's rules forbid, sitting in the file whose
+ * whole job is to stop two things drifting:
+ *   1. *"THE CONVERGENCE IS NOT FINISHED"* — it is, see above.
+ *   2. *"the kit lives outside this session's allowed working directory — measured, not assumed: an
+ *      `ls` of the kit path is refused."* **FALSE.** CEO 102 listed the kit and read ten files in
+ *      it; a later session verified the same. What is fenced is an unattended `claude -p` watch,
+ *      because `bell.ps1` launches it with no added directories — a permission setting, not physics.
+ *      **That sentence carried the word "measured" and had not been re-measured since.**
+ *   3. *"THE FATE TEST BELOW IS COPIED DELIBERATELY"* — it was, and then `glass.mjs` moved to three
+ *      states and this file did not. **Measured at the moment of the fix: the model saw 3 open ideas
+ *      while his page rendered 14.** A gap of eleven, ten of which were Wyatt's own words. So the
+ *      Chartkeeper's RANK was ordering a list that did not contain his requests — precisely the
+ *      failure the paragraph above it warns about, happening underneath it.
+ *
+ * THE LESSON, and it is worth more than the fix: **writing the module was not the convergence.**
+ * Two copies of a rule are two copies whether or not one of them is called "the model", and a gate
+ * that compares COUNTS ON A FIXTURE did not notice the real Chart diverging by eleven rows.
+ * The scars the old comment protected are preserved in `stateOf` below — the DECLARED-verdict rule
+ * and the STILL_OPEN override are both there, and both were earned (CEO Review 63 caught one).
  */
 
 /* A section body: everything under `## <NAME>` up to the next `## `. The same split `glass.mjs`
@@ -30,16 +39,52 @@ export function section(text, heading) {
   return after.split(/^## /m)[0];
 }
 
-const DECLARED = /(?:→|->)\s*\*\*([^*]{0,160})/;
-const FATE_WORD = /\b(SHIPPED|PARKED|SCHEDULED|HARVESTED|CLOSED|DONE|FIXED|ROOT-CAUSED)\b/;
-const STILL_OPEN = /\bSTILL OPEN\b|\bNOT (?:SHIPPED|DONE|BUILT|FIXED)\b|\bUNCONFIRMED\b/;
+/* ⚑ THREE STATES, AND THIS MODULE IS NOW THE ONE PLACE THEY LIVE — 2026-09-02, Wyatt's ruling.
+ *
+ * WHAT WAS HERE: one list of eight words, with SCHEDULED among them, deciding "is this dealt with?".
+ * `glass.mjs` was changed to three states the same day and THIS FILE WAS NOT — so for a few hours
+ * the two derivations this module exists to unify were themselves diverged. **Measured before the
+ * fix: the model saw 3 open ideas while his page rendered 14 — a gap of ELEVEN, ten of which were
+ * his own words.** RANK was ordering a list that did not contain his requests at all, which is the
+ * precise failure this file's own header warns about, happening inside it.
+ *
+ * The lesson is the header's, sharpened: writing the module was not the convergence. **Two copies
+ * of a rule are two copies whether or not one of them is called "the model."** The convergence is
+ * `glass.mjs` IMPORTING these, which it now does.
+ *
+ * FINISHED hides. COMMITTED and PARKED are still OPEN WORK and stay on his list — his Charter names
+ * scheduled and parked as VISIBLE fates, and SCHEDULED means committed-and-not-done, which is the
+ * definition of an open task. */
+export const DECLARED = /(?:→|->)\s*\*\*([^*]{0,160})/;
+export const FINISHED_WORDS = ["SHIPPED", "HARVESTED", "CLOSED", "DONE", "FIXED", "ROOT-CAUSED"];
+export const COMMITTED_WORDS = ["SCHEDULED"];
+export const PARKED_WORDS = ["PARKED"];
+const wordRe = (list) => new RegExp(String.raw`\b(${list.join("|")})\b`);
+const FINISHED = wordRe(FINISHED_WORDS);
+const COMMITTED = wordRe(COMMITTED_WORDS);
+const PARKED = wordRe(PARKED_WORDS);
+export const STILL_OPEN = /\bSTILL OPEN\b|\bNOT (?:SHIPPED|DONE|BUILT|FIXED)\b|\bUNCONFIRMED\b/;
+
+/* The one state function. A sentence saying it is still open beats any word-match — that override
+   is the lesson two earlier versions of this test were corrected for, and it survives here. */
+export function stateOf(block) {
+  const m = DECLARED.exec(block);
+  if (!m) return "open";
+  const v = m[1];
+  if (STILL_OPEN.test(v)) return "open";
+  if (FINISHED.test(v)) return "finished";
+  if (COMMITTED.test(v)) return "committed";
+  if (PARKED.test(v)) return "parked";
+  return "open";
+}
 
 /** True when an IDEA INBOX block has announced a fate. Wyatt steers by the open count, so
  *  over-hiding costs him more than over-showing — hence "declared", never "mentioned". */
+/* `hasFate` now means ONLY "is it finished?" — it is the thing that decides whether a row leaves
+   his list, and committed/parked rows must not. Kept under its old name because callers ask it a
+   yes/no question about hiding; anything wanting the three-way answer calls `stateOf`. */
 export function hasFate(block) {
-  const m = DECLARED.exec(block);
-  if (!m) return false;
-  return FATE_WORD.test(m[1]) && !STILL_OPEN.test(m[1]);
+  return stateOf(block) === "finished";
 }
 
 /* CHUNKING. A section is a sequence of chunks, each either a ROW (a `- [ ]`/`- [x]` line plus its
@@ -212,6 +257,28 @@ export function replaceSection(text, heading, newBody) {
   const nextHit = nextRe.exec(rest);
   const bodyEnd = nextHit ? bodyStart + nextHit.index : text.length;
   return text.slice(0, bodyStart) + newBody + text.slice(bodyEnd);
+}
+
+/** Remove a whole section — its heading AND its body — from the file.
+ *
+ *  `replaceSection(text, h, "")` is NOT this: it empties the body and leaves the heading standing,
+ *  which is right for a section that will be refilled and wrong for one that has moved out of the
+ *  document entirely. Added 2026-09-02 for his ruling that the SETTLED RULINGS table leaves
+ *  `CHART.md` with the swept rows — an orphaned `## SETTLED RULINGS` above nothing is exactly the
+ *  stub he overruled, wearing a heading instead of an arrow.
+ *
+ *  Deliberately built on the SAME index arithmetic as `replaceSection` rather than a second regex.
+ *  Two functions that must agree about where a section ends are one function's worth of agreement
+ *  and two functions' worth of drift (rule 23), and the last regex that tried to find that boundary
+ *  did it with `\Z` and tripled the file. */
+export function dropSection(text, heading) {
+  const headRe = new RegExp(`^## ${heading}[^\\n]*$`, "m");
+  const m = headRe.exec(text);
+  if (!m) return text;
+  const bodyStart = m.index + m[0].length;
+  const nextHit = /^## /m.exec(text.slice(bodyStart));
+  const bodyEnd = nextHit ? bodyStart + nextHit.index : text.length;
+  return text.slice(0, m.index) + text.slice(bodyEnd);
 }
 
 /* TOKENS — the crude, honest way two pieces of prose are compared here. Distinctive words only:
