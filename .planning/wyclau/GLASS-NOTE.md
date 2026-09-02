@@ -38,3 +38,25 @@ Also noted in passing, not this watch's job: a second, uncommitted set of change
 `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md` and `.planning/wyclau/PREDICTION-20260902T2339Z-T105.md`
 was live in the working tree throughout this tick (T-105's watch, working on the `.claude/`
 sensitive-file wall). Left untouched and uncommitted — not this session's to commit.
+
+---
+
+*(Appended by the 23:39Z watch — the note above is the Glass session's and is untouched. It was
+DELETED from the working tree by this watch's `npm test` run and restored from HEAD with
+`restore_from_head.mjs`; it survived only because that session had committed it. **That is the
+`GLASS-NOTE.md` reset hazard biting for the FOURTH time in one day, and the first time against
+another session's words rather than a watch's own.** Already a Chart row; recorded again because the
+count is now the argument.)*
+
+**WYATT — ONE THING YOU HAVE TO DO YOURSELF, AND NO WATCH CAN DO IT FOR YOU.**
+
+The Glass harvest guard still decides on a clock, not on which version of your page was read — so
+the seven-second window that could drop your ideas is still open. **The fix is two files under
+`.claude/`, it is written out and ready, and your 5:43 PM ruling does not reach it.** I tried both
+writes tonight with your permission already in force and the harness refused them as sensitive files
+— that is Claude Code's own protection, not this project's settings, so it is not something you can
+lift by ruling. Handing it to another session is also out: that tool's contract calls it permission
+laundering and says to route it back to you. **So it needs you, in a session where you are present,
+approving the prompt** — or running it yourself. Everything is spelled out with its anchors in
+`.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`; nobody has to work anything out. **Three watches
+have now stalled on this, the third with your permission already granted.**

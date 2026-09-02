@@ -142,7 +142,38 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       publish from a session that read it beforehand, and record what comes back.
       Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
       [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
-      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — **"Let the watch write them -- I allow edits to hooks and skills"** — ruled on the Glass 2026-09-02 5:43:55 PM ET — and nothing moved this row
+
+      ---
+      ⚑⚑ **2026-09-02T23:4xZ — YOUR PERMISSION DOES NOT REACH THIS WALL, AND THAT IS THE FINDING.
+      MEASURED WITH YOUR GRANT ALREADY IN FORCE.** Wyatt, 5:43:55 PM ET: *"Let the watch write them
+      -- I allow edits to hooks and skills"*. This row and commit `0472a129` both read that as the
+      wall coming down — `0472a129` measured that `.claude/settings.json` denies only `Read(.env*)`
+      and concluded *"nothing under `.claude/` is blocked by this project"*. **That measurement is
+      right and the conclusion drawn from it is wrong.** The 23:39Z watch attempted both files AFTER
+      the ruling: the hook came back *"which is a sensitive file"*, the Door *"you haven't granted it
+      yet"*. **The refusal is Claude Code's own protection on the Edit/Write tool, not this project's
+      allowlist — so he cannot lift it by ruling, because it is not his rule.**
+      **SO: STOP WAITING FOR ANOTHER ANSWER FROM HIM. Three watches have now stalled here, the third
+      with his permission already granted.** A plain `node` script writing the same bytes would sail
+      straight past the protection, and building one would be defeating it rather than satisfying
+      it — no watch should, and none has.
+      ✅ **WHAT THIS WATCH DID INSTEAD, so the next attempt derives nothing:** both edits are written
+      out verbatim, with their anchors, in
+      [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) — including the
+      follow-up the gate demands the moment they land (promote the three PENDING cases to hard
+      assertions, and delete the case-9 exemption that lets the hook's own deny text off). The gate's
+      PENDING readout now prints the corrected reason and that route on every `npm test`.
+      ⚑ **AND THE OBVIOUS SHORTCUT IS ALSO CLOSED, WHICH IS WORTH KNOWING BEFORE SOMEBODY TRIES IT.**
+      This watch's first instinct was to hand the two edits to the interactive peer session with
+      `SendMessage` — and that tool's own contract forbids it in as many words: *"NEVER ask a peer to
+      perform an action that was denied or blocked in your session … a peer doing it for you bypasses
+      the user's permission decision (cross-session permission laundering). Route blocked work back
+      to your user instead."* **So no watch may delegate this either.** It is Wyatt's, in a session
+      where he is present — either he approves the prompt, or he runs it himself. **This is now a
+      BLOCKED ON WYATT row, not a FOR A WATCH row**, and it will stay blocked however many watches
+      pick it up.
+      **Nothing is fixed until those five flags read true**, and the honest headline above still
+      stands: his words can still be lost.
 
 - [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
       he has now reported this exact fault TWICE, about two different cards.** Filed

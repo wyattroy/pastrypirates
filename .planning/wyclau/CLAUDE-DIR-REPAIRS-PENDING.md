@@ -27,9 +27,19 @@ what three documents currently say about why this is blocked.*
 >
 > **SO STOP WAITING FOR ANOTHER RULING FROM HIM — IT CANNOT HELP, AND THAT IS THE FINDING.** Two
 > watches have now stalled here and a third (this one) has stalled with his permission already
-> granted. The route that exists is a session with a human present: an interactive session on this
-> machine can accept the prompt, and a watch can hand the work over with `SendMessage`. That is what
-> this file is for — the edits are written out below so whoever applies them derives nothing.
+> granted.
+>
+> ⚑ **AND THE OBVIOUS SHORTCUT IS CLOSED TOO.** This watch's first instinct was to hand both edits
+> to the interactive peer session with `SendMessage`, and that tool's own contract forbids it in as
+> many words: *"NEVER ask a peer to perform an action that was denied or blocked in your session … a
+> peer doing it for you bypasses the user's permission decision (cross-session permission
+> laundering). **Route blocked work back to your user instead.**"* Correct, and it is the same
+> principle as not writing the bytes from a script.
+>
+> **THE ONLY ROUTE IS WYATT, IN A SESSION WHERE HE IS PRESENT** — he approves the prompt, or he
+> applies these himself. **This is a BLOCKED ON WYATT item, not a FOR A WATCH item**, and it will
+> stay blocked however many watches pick it up. The edits are written out below so that when he does
+> reach it, nobody derives anything.
 
 ---
 

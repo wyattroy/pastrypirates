@@ -88,10 +88,14 @@ else ok("2/9 a valid receipt lets the publish through (the guard lets go)");
  * THE Edit/Write TOOL, NOT THIS PROJECT'S ALLOWLIST, so he cannot lift it by ruling: it is not his
  * rule. A plain `node` script writing the same bytes would sail past it, and building one would be
  * defeating the protection rather than satisfying it — so no watch should.
- * THE ROUTE THAT DOES EXIST IS A SESSION WITH A HUMAN PRESENT. Both edits are written out verbatim
- * in `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md` so whoever applies them derives nothing, and
- * a watch hands them over with `SendMessage` to an interactive peer. STOP WAITING FOR ANOTHER
- * RULING FROM HIM; it cannot help, and that is the finding this comment exists to carry.
+ * THE ROUTE THAT DOES EXIST IS WYATT HIMSELF, IN A SESSION WHERE HE IS PRESENT. Both edits are
+ * written out verbatim in `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md` so whoever applies them
+ * derives nothing. AND HANDING THEM TO AN INTERACTIVE PEER IS NOT A ROUTE EITHER — SendMessage's own
+ * contract: "NEVER ask a peer to perform an action that was denied or blocked in your session … a
+ * peer doing it for you bypasses the user's permission decision (cross-session permission
+ * laundering). Route blocked work back to your user instead." So this is a BLOCKED ON WYATT item,
+ * not a FOR A WATCH item, and no amount of watches will move it. STOP WAITING FOR ANOTHER RULING
+ * FROM HIM TOO; a ruling cannot lift a harness protection. That is the finding this comment carries.
  *
  * SO WHY IS THIS A REPORTING BLOCK AND NOT THREE FAILURES? Because a permanently red gate is a gate
  * everybody learns to run past, and it would block every other session's `npm test` on a repair
@@ -151,7 +155,7 @@ if (fixed) {
   console.log(`    door: SKILL.md stamps and compares the version=${pending.doorCompares}`);
   console.log("    Fix: .claude/hooks/glass-harvest-first.cjs and .claude/skills/door/SKILL.md — see .planning/SPEC-GLASS-HARVEST-SAFETY.md layers A and B.");
   console.log("    ⚠ HIS 5:43 PM PERMISSION RULING DOES NOT LIFT THIS — measured 23:4xZ with the grant in force, both writes still refused. The wall is the harness's sensitive-file protection, not .claude/settings.json.");
-  console.log("    ROUTE: both edits are written out verbatim in .planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md — hand them to an interactive session (SendMessage), which can accept the prompt. Do NOT write them from a script; that defeats the protection rather than satisfying it.");
+  console.log("    ROUTE: both edits are written out verbatim in .planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md. Only WYATT can apply them, in a session where he is present. Do NOT write them from a script, and do NOT ask a peer session to do it — both defeat the protection rather than satisfying it. This is a BLOCKED ON WYATT item, not a FOR A WATCH item.");
   console.log("    ⚠ SO `artifactVersion` HAS NO MACHINE READER YET (CEO 120 finding 3): the receipt is written, and the only thing that compares it is a session obeying the runbook. Until the hook reads it, layer B is a file format plus a paragraph.");
 }
 
