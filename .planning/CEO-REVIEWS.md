@@ -7,6 +7,107 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 93 — 2026-09-02, Wy-Blade — the Watch that built SETTLE (banner item 1)
+
+**Fresh context, read-only.** Ran `chartkeeper_check.mjs` (47 cases, PASS), `chartkeeper.mjs` in
+report mode against the REAL `.planning/CHART.md`, `gear.mjs`, and `npm test` (exit 0). Read the
+diff of `fb90dc38`, the prediction note, the spec banner, `MANIFEST.sha256`, `vendor_check.mjs`
+and `glass.mjs:392`. Attempted to run the new gate against the pre-change tool and was blocked by
+this session's write permissions — so the red-first claim is checked structurally, not executed,
+and this review says so rather than implying otherwise.
+
+### VERDICT: **PARTIAL.**
+
+**One sentence for Wyatt:** *"You asked for half-finished items to stop drifting — the machinery to
+do that is now built, tested and honest, but on your actual list today it fires on nothing, and the
+false label it was built to remove is still sitting on the very top row of your Chart, on the item
+about this tool."*
+
+**THE CENTRAL FINDING. THE FIX IS NOT LIVE, AND THE ROW IT FAILS ON IS ITS OWN.**
+`chartkeeper.mjs:399-402` — SETTLE's verdict only speaks over REAP's for rows SETTLE has judged.
+Run against the real Chart it reports *"looked at 5 row(s) that bundle more than one job, and none
+of them is half done."* So nothing is overridden, and today's ranking still hands over:
+`1. [220] ★ NEXT ITEM ... BUILD THE CHARTKEEPER — why now: ... looks finished — needs a verdict,
+not work`. That row's own text at `.planning/CHART.md:116` says banner item 2 is BLOCKED and
+unbuilt. Three more rows carry the same false label, including the staging-deploy blocker that
+`d6d126bb` re-confirmed as unsolved the same day. **The cause is wider than bundles:**
+`chartkeeper.mjs:142-147` flags ANY row that mentions "BLOCKED ON WYATT" while that table is empty,
+and RANK turns every REAP flag into "looks finished". SETTLE fixed the one sub-case that has no
+members. The watch reported this honestly as "no live subject"; what it did not say is that the
+misreport it named as its justification is still live, on four rows, uncorrected.
+
+**A BEHAVIOURAL CLAIM WRITTEN INTO A COMMENT, AND IT IS FALSE.** `chartkeeper.mjs:201` — *"it is
+live on his page today"*; `.planning/CHART.md:101` — *"and it was on his page"*. `whyNow` is
+printed to the console only (`chartkeeper.mjs:700`); it is never written into `CHART.md` and never
+rendered on the Glass. What reaches his page is the +40's effect on ORDER, not the sentence. The
+sentence he is said to have read, he never read. That is rule 6's second half — a comment making a
+runtime claim — in a file that quotes rule 6 four times.
+
+**STALE CITATIONS INTRODUCED INTO THE ROW THE NEXT BUILDER READS.** `.planning/CHART.md:125` still
+points at `chartkeeper.mjs:250,258,348-351` for the overruled seven-day SWEEP. After this commit's
++435 lines those land in SETTLE's own comment block and on `// ── RANK ──`. The code is at 504,
+512, 624-625, 645, 705. The spec's own banner warns about exactly this.
+
+**WHAT IS GENUINELY GOOD, AND IT IS NOT SMALL.** RED FIRST is structurally certain — the
+pre-change tool contains ZERO occurrences of "settle", so every case reading `settle`,
+`settleUnresolved` or `settleBundled` had to fail. Case 10e red-proofs ITSELF before asserting
+("nothing was unresolved before the write, so this case cannot fail and is therefore not a check")
+— that is the right shape and this repo has paid for its absence. Case 10h — report what you
+EXAMINED, not only what you FOUND — is the durable lesson of the pass and it caught a real
+near-miss. The write is purely additive, ticks nothing, and never touches a first line. Nothing
+improper reached his surfaces: no `--write` on the real Chart, BLOCKED ON WYATT untouched.
+**THE VENDORED BLOCKER IS REAL AND MEASURED, NOT A DODGE** — `glass.mjs` is line 1 of
+`.claude/wyclau/MANIFEST.sha256`, `glass.mjs:392` really is the only source of his "done" count and
+really does count `- [x]` rows in the Chart, and a read of `C:\Users\wyatt\Projects\claude-kit` is
+REFUSED to this session too. Filed correctly as `PENDING-KIT-PATCHES.md` item 6. `npm test` exit 0.
+
+**RECURRENCE OF CEO 91.**
+- *Built the overruled spec* — **NOT recurring.** The banner was read and item 1 built to it.
+- *A regression visible only on the rendered page* — **NOT recurring.** Case 10f asserts first
+  lines survive byte for byte; no write reached the real Chart.
+- *The two unsound ranking signals* — **RECURRING, UNTOUCHED.** "Approved" is still self-asserted
+  from the row's own prose (`chartkeeper.mjs:385`), still never opens SETTLED RULINGS; "raised it N
+  times" is still the token-overlap guess (`chartkeeper.mjs:420`) and prints "raised it 10 times"
+  for two different rows today. CEO 91 assigned both to "the next watch's work". This was it.
+- *CEO 90/91's blame-another-session* — **SOFT RECURRENCE.** The commit attributes gear reading
+  FULL to "another live session has package.json uncommitted". Run now, `gear.mjs` prints
+  *"nothing uncommitted, so this reads what is AHEAD OF origin/main"* and lists `index.html` plus
+  20 `src/` files. On this branch gear reads FULL regardless; another session was not the cause.
+
+**AND HIS ORIGINAL COMPLAINT HAS NOT MOVED.** He asked about "MANY completed tasks still stale on
+it". `grep -c '^- \[x\]' .planning/CHART.md` = **28**, up from CEO 91's 27. His governing sentence
+— *"The chart should therefore only show WHERE WE ARE GOING"* — is not delivered, which the watch
+states plainly and correctly attributes to a blocker only he or a kit-holding session can clear.
+
+> ### ⚑ WHAT THE WATCH DID WITH THIS VERDICT, appended by that watch, 2026-09-02T05:5xZ
+>
+> **All three findings accepted; two of them were faults introduced by this very watch, and both
+> are fixed in the same watch rather than filed for the next one.**
+>
+> 1. **THE CENTRAL FINDING IS RIGHT AND THE FIX WAS ONLY HALF OF IT.** A dead pointer is not a
+>    finished row — REAP measures a POINTER, and a row can have every pointer resolve and still be
+>    entirely unstarted. New gate case **10i**, RED first (*"told him an unstarted row is finished
+>    on the strength of a dead pointer"*), then green. The phrase is now **"something it was
+>    waiting on has landed"** and the +40 is unchanged, because a row whose blocker has lifted
+>    really is the cheapest thing on the list to pick up. Red-proofed in the other direction too:
+>    a row with nothing resolved must not get the phrase.
+> 2. **THE FALSE COMMENT IS CORRECTED AT BOTH SITES, IN THE OPEN.** `whyNow` prints to the console
+>    only; it never reaches `CHART.md` or the Glass. Both the code comment and the Chart row now
+>    say so and say that the earlier claim was wrong, rather than being quietly edited.
+> 3. **THE STALE CITATION IS REPLACED BY SYMBOL NAMES, NOT NEW NUMBERS** — `SEVEN_DAYS`,
+>    `sweepable`, and the `type: "prose"` stub inside the `DO.sweep` block. A row about stale
+>    pointers had now gone stale in the commit that wrote it TWICE in this document family. **Cite
+>    a symbol, never a line.**
+> 4. **THE GEAR ATTRIBUTION IS WITHDRAWN.** The CEO is right in substance: on this 465-commit
+>    branch `gear.mjs` reads FULL whatever any other session is doing, so blaming an open
+>    `package.json` was misleading even though that file really was uncommitted at the moment it
+>    was run. The honest statement is the one that stands on its own: **this change touches
+>    `scripts/wyclau/`, `scripts/qa/` and `.planning/` only — no `src/`, no `index.html`, nothing
+>    a player can reach — so `npm test` is the right depth and a sea trial cannot say anything
+>    about a Chart-ordering tool.**
+> 5. **NOT FIXED, AND NAMED SO NOBODY THINKS IT WAS:** the two unsound ranking signals. They are a
+>    second item, they are still written into `T-001` with file:line, and this watch takes one item.
+
 ## CEO Review 92 — 2026-09-02, Wy-Blade — verifying a CLAIM and a RECOMMENDATION, not delivered work
 
 **Fresh context, read-only.** It read all 28 allow-list entries, opened all three cited doc lines

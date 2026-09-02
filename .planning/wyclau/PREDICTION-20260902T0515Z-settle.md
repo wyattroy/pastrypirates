@@ -56,10 +56,26 @@ valuable thing here:
 > `FAIL  told him a half-done row "looks finished": "looks finished — needs a verdict, not work"
 > — two of its three parts are untouched work`
 
-**That is not a missing feature, it is a live misreport.** One dead pointer anywhere inside a
-bundle makes REAP flag the WHOLE row, and RANK then hands Wyatt the sentence "looks finished" for a
+**That is not a missing feature, it is a misreport.** One dead pointer anywhere inside a
+bundle makes REAP flag the WHOLE row, and RANK then produced the sentence "looks finished" for a
 row nobody has started two thirds of. Rule 6's own territory, reached from the opposite direction:
 not an unmeasured claim, but a measurement of the wrong subject.
+
+> ### ⚠ AND MY FIX WAS HALF OF IT. CEO 93 FOUND THE OTHER HALF BY RUNNING THE TOOL ON THE REAL CHART.
+>
+> I fixed the BUNDLED case and reported the misreport as fixed. **It was still wrong on four live
+> rows**, including the Chartkeeper's own — labelled *"looks finished"* while its own text said
+> half of it was blocked and unbuilt. **The fault was never about bundles.** REAP measures a
+> POINTER; a row can have every pointer in it resolve and still be entirely unstarted. Fixed
+> properly: the phrase is now *"something it was waiting on has landed"*, red-proofed both ways in
+> gate case 10i, with the +40 unchanged because a row whose blocker has lifted really is the
+> cheapest thing on the list to pick up.
+>
+> **AND ONE CLAIM OF MINE WAS SIMPLY FALSE:** I wrote, in a code comment and in the Chart row, that
+> the wrong phrase was *"live on his page"*. It was not. `whyNow` prints to the console only —
+> never into `CHART.md`, never onto the Glass. What reaches his page is the score's effect on
+> ORDER. **A comment making a runtime claim, in the file whose own comments warn against exactly
+> that.** Corrected at both sites in the open rather than edited away.
 
 **WRONG about one thing, and I only found it because I pointed the finished pass at the REAL Chart
 instead of trusting the green gate.** Every case passed and the tool then reported **zero bundled

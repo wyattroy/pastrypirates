@@ -3523,3 +3523,69 @@ made here, and sweeping without it takes his Tasks card to **"0 done"** on the p
 (`glass.mjs:392` counts `- [x]` inside `## STEP 1 CHECKLIST` and nothing else). **That is a
 blocker, not a preference**, and it is the same shape as the staging-permission blocker: a watch
 meets a wall a person has to open. SETTLE is entirely inside non-vendored files.
+
+### WHAT THIS WATCH DID — `T-001` banner item 1, SETTLE. NOT CLOSED, and the row says why.
+
+**BUILT AND GREEN.** `--settle` is pass 2 of four in `chartkeeper.mjs`, behind 19 new behavioural
+cases (10a–10i) in `chartkeeper_check.mjs`. RED FIRST, 11 failures, then green; `npm test` 94/94
+twice, before and after the CEO's corrections. Commit `fb90dc38` and its follow-up.
+
+It derives a row's CLAIMS from the row's own text, runs REAP's **existing** probes against each one
+(rule 23 — one set of probes, two kinds of subject, never a second copy), and forces the row to his
+three fates in his order: **VALIDATE** (propose a close; it never ticks), **SPLIT** (each unfinished
+part becomes a row of its own, purely additive, the parent's essay kept verbatim), **ASK** (one
+question into BLOCKED ON WYATT *with the measurement attached*). Enforced rather than suggested:
+`settleUnresolved` names any row that survives a write pass still half-done, and case 10e fails if
+one does — and red-proofs itself before asserting.
+
+**THE THING WORTH CARRYING, and it is not the feature.** Every case passed and the finished pass
+then saw **ZERO bundled rows on the real Chart** — including the Blade hour, the audit's own worked
+example. Two faults in the claim derivation, neither visible to any fixture I had written: the
+Chart bundles as a **comma list after a colon**, and it **hard-wraps**, so that list is cut across
+two lines. Reading `lines[0]` found two parts where there are three. **A row's opening sentence is a
+sentence, not a line.** The durable half is now case 10h: **the tool reports how many rows it
+EXAMINED, not only what it found** — because a pass that is silent on a healthy Chart and a pass
+that has gone blind print exactly the same line. It examines 5 bundled rows now.
+
+**CEO 93 SAID PARTIAL AND IT WAS RIGHT ON ALL THREE FINDINGS. Two were faults I introduced, and
+both are fixed in this same watch rather than handed on.**
+
+1. **MY FIX WAS HALF THE FAULT.** I fixed the BUNDLED case and reported the misreport fixed. It was
+   still wrong on four live rows — including this very row, labelled *"looks finished"* while its
+   own text said half of it was blocked and unbuilt. **The fault was never about bundles: REAP
+   measures a POINTER, and a row can have every pointer resolve and still be entirely unstarted.**
+   Case 10i, RED first, then green; the phrase is now *"something it was waiting on has landed"*,
+   the +40 unchanged because a row whose blocker has lifted really is the cheapest thing to pick up.
+2. **I WROTE A FALSE BEHAVIOURAL CLAIM INTO A COMMENT** — *"it is live on his page today"*. It is
+   not: `whyNow` prints to the console only, never into `CHART.md`, never onto the Glass. What
+   reaches his page is the score's effect on ORDER. **A comment making a runtime claim, in the file
+   whose own comments warn against exactly that.** Corrected at both sites in the open.
+3. **A ROW ABOUT STALE POINTERS WENT STALE IN THE COMMIT THAT WROTE IT** — my `chartkeeper.mjs:250,
+   258,348-351` citation was invalidated by my own +435 lines. Replaced with SYMBOL NAMES
+   (`SEVEN_DAYS`, `sweepable`, the `type: "prose"` stub). **Cite a symbol, never a line.**
+4. **AND I WITHDRAW THE GEAR ATTRIBUTION.** I wrote that `gear.mjs` read FULL because another
+   session had `package.json` uncommitted. That file really was uncommitted at that moment, but the
+   CEO is right in substance: **on this 465-commit branch gear reads FULL whatever anyone else is
+   doing**, so naming another session was misleading. The claim that stands on its own is the
+   honest one: this change touches `scripts/wyclau/`, `scripts/qa/` and `.planning/` only — no
+   `src/`, no `index.html`, nothing a player can reach — so `npm test` is the right depth, and a
+   sea trial cannot say anything about a Chart-ordering tool.
+
+**WHAT I DID NOT DO, NAMED SO NOBODY READS IT AS DONE.**
+- **Banner item 2 (sweep every completed row, no stub) — BLOCKED, measured.** Its first mandated
+  same-change repair is `glass.mjs:392`, the only source of his "done" count, which counts `- [x]`
+  rows in `CHART.md`. Sweep them all without it and his card reads **"0 done"**. `glass.mjs` is
+  line 1 of `.claude/wyclau/MANIFEST.sha256` and the claude-kit checkout is **REFUSED** to a watch
+  here — CEO 93 independently confirmed the refusal from its own session. Filed as
+  `PENDING-KIT-PATCHES.md` item 6. **His governing sentence — "the chart should only show WHERE WE
+  ARE GOING" — is therefore NOT delivered, and 28 completed rows are still on his list.**
+- **The two unsound ranking signals CEO 91 found** — untouched, a second item, still written into
+  `T-001` with file:line. A watch takes one item.
+- **No `--write` on the real Chart**, so nothing this watch built has changed what he sees. That was
+  deliberate: the acting half is wired through the vendored Door (`PENDING-KIT-PATCHES.md` 4) and a
+  second session was live in the tree throughout.
+
+**HOUSEKEEPING.** No browser and no server were started. Commits used explicit pathspecs throughout
+— another session had `package.json` and `scripts/deploy-staging.sh` uncommitted in the shared tree
+for the whole watch and neither was touched. `GLASS-NOTE.md` was checked before writing, and the
+Glass-update session consumed the pulse mid-watch, which is the relay working.

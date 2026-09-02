@@ -198,7 +198,14 @@ const headField = (row, name) => {
    forever — and worse than drifting, it gets MISDESCRIBED: one dead pointer anywhere in a bundle
    makes REAP flag the whole row, and RANK then tells Wyatt it "looks finished — needs a verdict,
    not work" while two thirds of it is untouched work. That is an instrument reporting a defect
-   the Chart does not have, which is rule 6's own territory, and it is live on his page today.
+   the Chart does not have, which is rule 6's own territory.
+
+   ⚠ THIS PARAGRAPH SAID "and it is live on his page today" AND THAT WAS FALSE — corrected here
+   rather than edited away, because it is exactly the mistake this file's own comments warn about.
+   `whyNow` is printed to the console and nowhere else; it is never written into `CHART.md` and the
+   Glass never renders it. What reaches Wyatt's page is the SCORE's effect on ORDER. The sentence
+   is read by every session that runs this tool, which is worth fixing and is not the same claim.
+   A comment that describes runtime behaviour rots; this one was wrong the day it was written.
 
    THE WORKED EXAMPLE IS THE BLADE HOUR: three jobs under one checkbox, one of them measurably
    done for days, the measurement filed 500 lines away, the row unmoved. **A bundled row can never
@@ -398,8 +405,22 @@ function score(row, { reapById, settleByTitle }) {
      the whole-row verdict is not allowed to speak over it. */
   const st = settleByTitle.get(row.title);
   if (st) { s += st.fate === "VALIDATE" ? 60 : 50; why.push(st.why); }
-  // LOOKS FINISHED. A stale candidate is cheap to close and is inflating the count he steers by.
-  else if (reapById.has(row.title)) { s += 40; why.push("looks finished — needs a verdict, not work"); }
+  /* SOMETHING IT WAS WAITING ON HAS LANDED — and this sentence used to read "looks finished —
+     needs a verdict, not work", which was a lie about four live rows at once.
+
+     ⚠ CEO 93 CAUGHT THIS BY RUNNING THE TOOL AGAINST THE REAL CHART AFTER SETTLE SHIPPED, and the
+     correction is worth more than the pass that prompted it. SETTLE fixed the BUNDLED case and I
+     reported the misreport as fixed — but the fault was never really about bundles. REAP measures
+     a POINTER: a question that has been answered, a pid that is dead, a report now on disk. That
+     is a genuine, useful signal, and it says NOTHING WHATEVER about whether the work is done. A
+     row can have every pointer in it resolve and still be entirely unstarted — the Chartkeeper's
+     own row was being labelled "looks finished" while its own text said half of it was blocked
+     and unbuilt.
+     THE SCORE IS UNCHANGED AND CORRECT (+40: a row whose blocker has lifted really is the cheapest
+     thing on the list to pick up). Only the sentence changes, because the sentence is the whole
+     of what he steers by — "an order he cannot read is an order he cannot overrule", and an order
+     he reads WRONGLY is worse than either. */
+  else if (reapById.has(row.title)) { s += 40; why.push("something it was waiting on has landed"); }
 
   // PLAYER-FACING OUTRANKS INSTRUMENT-FACING. This is the rulebook's own THE POINT, made
   // mechanical: "is the game better than it was this morning, in a way a player would notice?"

@@ -98,10 +98,19 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       kept verbatim), **ASK** (nothing to carry onto the parts → one question into BLOCKED ON WYATT
       **with the measurement attached**). Enforced, not suggested: `settleUnresolved` names any row
       that survives a write pass still half-done, and case 10e fails if one does.
-      **THE LIVE MISREPORT IT FIXES, and it was on his page:** one dead pointer anywhere inside a
-      bundle made REAP flag the WHOLE row, so RANK handed him *"looks finished — needs a verdict,
-      not work"* for a row two thirds of which nobody had started. SETTLE's verdict now speaks over
-      REAP's on any row it has judged, in the ranking and in the file.
+      **THE MISREPORT IT FIXES — and CEO 93 found the first fix was only HALF of it, which is the
+      most useful thing to come out of this pass.** RANK used to say *"looks finished — needs a
+      verdict, not work"* about any row REAP had flagged. SETTLE's verdict now speaks over REAP's
+      on any row it has judged — but the fault was never really about bundles. **REAP measures a
+      POINTER**, and a row can have every pointer in it resolve and still be entirely unstarted;
+      this very row was being labelled "looks finished" while its own text said half of it was
+      blocked and unbuilt. The phrase is now *"something it was waiting on has landed"*, which is
+      true, and the +40 that lifts such rows is unchanged and correct. Gate case 10i, red-proofed
+      both ways.
+      ⚠ **AND ONE CORRECTION THIS ROW OWES, kept rather than edited away:** the first version of
+      this entry said the old phrase "was on his page". It was not. `whyNow` prints to the console
+      only — never into `CHART.md`, never onto the Glass. What reaches his page is the score's
+      effect on ORDER. Every session that runs the tool read the wrong sentence; he did not.
       **WHAT IT SAYS ABOUT TODAY'S CHART, honestly: 5 bundled rows examined, 0 half-done.** The
       Blade hour (`T-021`) IS bundled and IS one-third finished, but the evidence for that third is
       PROSE in its body, not a pointer any probe can ask the world about — and prose-grepping is the
@@ -121,9 +130,15 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
            **`glass.mjs` is VENDORED** — line 1 of `.claude/wyclau/MANIFEST.sha256` — and the
            claude-kit checkout is outside an unattended watch's permitted directories: a read of
            `C:\Users\wyatt\Projects\claude-kit` is **refused**, not empty. So this needs a session
-           with the kit open, or Wyatt. Filed in `PENDING-KIT-PATCHES.md`. The code is still the
-           overruled seven-day-with-a-stub version (`chartkeeper.mjs:250,258,348-351`), and **three
-           gate cases now DEFEND the overruled design** — they must go red before they go green.
+           with the kit open, or Wyatt. Filed in `PENDING-KIT-PATCHES.md` as item 6. The code is
+           still the overruled seven-day-with-a-stub version — **find it by NAME, not by number:
+           `SEVEN_DAYS`, `sweepable`, and the `type: "prose"` stub inside the `DO.sweep` block of
+           the write.** *(This citation read `chartkeeper.mjs:250,258,348-351` for one commit and
+           CEO 93 caught it: the SETTLE commit added 435 lines and those numbers then landed inside
+           an unrelated comment block. The spec's own banner warns about exactly this, and a row
+           about stale pointers had gone stale in the commit that wrote it — twice now, in the same
+           document family. **Cite a symbol, never a line.**)* **Three gate cases now DEFEND the
+           overruled design** — they must go red before they go green.
         3. **The three repairs the banner says must land in the same change:** the Glass's `done`
            count becomes "done today" from `CHART-LOG.md`; `rulings_triage_check.mjs` reads the log
            not the Chart; the `SETTLED RULINGS` table is swept too.

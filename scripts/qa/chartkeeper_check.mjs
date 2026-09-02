@@ -618,6 +618,33 @@ const settleOf = (json, match) => (json?.settle || []).find((s) => new RegExp(ma
   else pass("the report names how many bundled rows it examined");
 }
 
+/* 10i. ⚠ A DEAD POINTER IS NOT A FINISHED ROW, AND SAYING SO WAS THE WHOLE FAULT — NOT THE BUNDLE.
+        CEO 93 found this by running the tool against the REAL Chart after SETTLE shipped: the
+        half-done case had been fixed and the phrase was STILL WRONG on four live rows, including
+        the Chartkeeper's own, whose text says in the same breath that half of it is blocked and
+        unbuilt. REAP measures a POINTER — "the question you were waiting on has been answered",
+        "that pid is dead". That is a real and useful signal and it is NOT a claim about the work.
+        A row can have every pointer resolve and still be entirely unstarted.
+        So the score stays (+40: a row whose blocker has lifted really is cheap to revisit) and only
+        the SENTENCE changes, because the sentence is what a reader steers by. */
+{
+  const p = chartFile("dead-pointer-phrasing", MIXED);
+  const r = runJson([`--chart=${p}`, "--reap", "--rank"]);
+  const dead = (r.json?.rank || []).find((x) => /A DEAD POINTER/.test(x.title || ""));
+  const gated = (r.json?.rank || []).find((x) => /A GATED ROW/.test(x.title || ""));
+  if (!dead) fail("the row with the dead pointer vanished from the ranking");
+  else if (/finish/i.test(dead.whyNow || ""))
+    fail(`told him an unstarted row is finished on the strength of a dead pointer: ${JSON.stringify(dead.whyNow)} — REAP measures the pointer, never the work`);
+  else if (!/waiting on|landed|resolved/i.test(dead.whyNow || ""))
+    fail(`the dead-pointer row's why-now says ${JSON.stringify(dead.whyNow)} — it must say what actually changed, or the +40 that lifted it is unexplained`);
+  else pass("a dead pointer is described as something that has LANDED, never as work that is finished");
+  // Red-proofed the other way in the same breath: a row with no dead pointer must not get the
+  // phrase either, or the check above would pass on a tool that says it about everything.
+  if (gated && /waiting on|landed|resolved/i.test(gated.whyNow || "") && !/blocked/i.test(gated.whyNow || ""))
+    fail("said something had landed for a row with no resolved pointer in it");
+  else pass("a row with nothing resolved does not get the phrase");
+}
+
 /* 10g. AND IT MUST CHANGE NOTHING WITHOUT --write. The Glass-update session runs this tool in
         report mode; a pass that quietly edits his Chart from a read-only session is the same class
         of fault as an instrument that writes into the thing it measures. */
