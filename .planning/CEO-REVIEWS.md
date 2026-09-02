@@ -7,6 +7,86 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 89 — 2026-09-02, Wy-Blade — the Chart audit, the Chartkeeper spec, and the mentor reboot
+
+**Fresh context, read-only.** It read `CHART.md` at the exact commit the audit was made against
+(`06a1c4ed`), ran the checkbox counts itself, measured the row lengths itself, curled staging
+itself, and opened the mentor files on disk itself.
+
+### VERDICT: YES — and the streak of four "NOT DONE" verdicts is broken.
+
+**Its one sentence for Wyatt:** *"You asked four times for the Chart to reprioritise itself and all
+four asks are still sitting on the Chart marked 'SCHEDULED' — that is the finding, the spec to fix
+it is written and not built exactly as you said, mentor is genuinely running on this machine for the
+first time ever, and the only thing standing between your game and staging is one line of config
+that only you can type."*
+
+**Per-ask:** read the handoff DONE (inferred from output, no transcript) · audit DONE, *"and it is
+the good part"* · design-not-build DONE, and **genuinely not built** (`scripts/wyclau/` has no
+`chartkeeper.mjs`, no `CHART-LOG.md`, `PP4_STAMP` still `2026.09.01.8`) · CEO verification DONE ·
+mentor reboot DONE, *"and I can prove it fired"* · handing the spec to the Watch **PARTIAL** —
+*"Filing is not handing."*
+
+**What it re-measured rather than took:** 27 done / 29 open — *"exactly 27 and 29"*. All five dead
+rows land on their cited lines at `06a1c4ed`, five for five, *"and all five are genuinely dead"* —
+zero `Bash(bash …)` rules across all 25 in `settings.json`, both trial reports reading
+`10 of 10 · did NOT run: none`, three `JUDGED-*.md` present, and `CHART.md:74` really does say
+*"supersedes the 24h exit test"*. The two row lengths: *"Exactly 206 and exactly 52. No rounding, no
+flattery."* The headline **undersells itself** — four Glass asks, not two, *"which is the right
+direction to be wrong in"*. Mentor verified end to end, including that the import target exists and
+the skill is byte-identical to the kit; its proof it took was that **the `mentor` skill appeared in
+the reviewer's own available-skills list partway through the review**.
+
+### THE THREE FAULTS IT FOUND — all fixed the same pass, in the open
+
+1. **⚠ THE ONE THAT WOULD HAVE MIS-BUILT THE THING.** The spec said `glass.mjs` derives its counts
+   from `- [x]`/`- [ ]` inside `## STEP 1 CHECKLIST` *"with no other logic of any kind."* **False.**
+   `glass.mjs:385-386,393` adds every IDEA INBOX entry that has not declared a fate, judged by a
+   three-regex test whose own comments record it being got wrong twice (once by CEO 63). *"The
+   number 29 was right. The mechanism described is not — it was right by luck."* **Consequence:
+   RANK and SWEEP must cover unfated inbox entries or the Chartkeeper reorders a list that is not
+   the one his phone renders.** Corrected in the spec with the code quoted.
+2. **A document about stale pointers shipped with two stale pointers.** The five citations were
+   exact at `06a1c4ed`; **the same commit that published the spec (`1255c1c0`) inserted a 21-line
+   row at `CHART.md:671`**, so `674` is now the Chartkeeper row itself and `701` is the WebP row.
+   Fixed by finding every row by TITLE and flagging it as the best argument in the document for the
+   `T-nnn` ids the spec proposes.
+3. **Two hand-typed numbers, against rule 9.** *"CHART.md is 1,015 lines"* — it was **1,027** at the
+   audited commit. And *"252 of 343 pictures destroyed before judging"* — **252 is the eventual
+   total; 107 were gone by 02:20Z and the 02:19Z watch saved 221**, so the before-judging number is
+   not 252. Both corrected; the line count deleted rather than retyped.
+
+**Its one gap — since closed.** It found `GLASS-NOTE.md` back at its bare template and the audit
+living only at a repo path, against rule 27. **The audit was published while the review ran** —
+https://claude.ai/code/artifact/f931b014-f69f-4f13-98d2-16056f7d59a2 — and the link queued in
+`GLASS-NOTE.md` (`98d3745b`). The verdict is kept exactly as written; the timing is the correction.
+
+### RECURRENCE — checked at all three layers, and broken
+
+| | where the work got stuck | this session |
+|---|---|---|
+| CEO 86 | written but **not committed** | committed — `1255c1c0` |
+| CEO 87 | committed but **not pushed** | pushed — 0 ahead, 0 behind |
+| CEO 88 | **parked behind a question nobody asked** | the question is in front of him, with both exact commands |
+
+Both of CEO 88's specific asks were done: *"commit your own rows in your own commit"* (`1255c1c0`
+holds exactly three files, all this session's), and *"say FAILED out loud wherever the 0137Z trial
+is cited as cover"* — the new blocked row carries the correction in his direction. *"That is a
+verdict acted on rather than absorbed."*
+
+**One number that has not moved, four verdicts running:** staging still serves
+`2026.09.01.6-staging@60f969c4`, two builds behind. Now waiting on one line only Wyatt can type.
+
+### CONTEXT DISCIPLINE — no fault found
+
+*"The shape of what came out is lean."* Trial claims are single-line quotes, the settings claim is
+one grep, the `schtasks` measurement one command. On the one big read: *"The one big read is
+`CHART.md` itself, all 1,027 lines — and delegating that would have been the worse mistake. It is the
+record of Wyatt's own words, it is the subject being audited, and the audit's best findings are
+precisely the ones a summary destroys. This is rule 22 territory and it belongs in the main thread."*
+
+---
+
 ## CEO Review 88 — 2026-09-02T04:2xZ, Wy-Blade — INBOX-20260901T1315Z ruling 12, parts 2 and 3: STAGE IT, HAND HIM THE LINK
 
 **Fresh context, read-only until this append. Everything below was checked in the repo by me.** I ran

@@ -9,8 +9,8 @@ still stale on it, and design -- BUT DONT BUILD -- a system that will dynamicall
 update it, and move things around it that is built into this process somehow -- either with the
 Glass Update Session, or in the watch."*
 
-**And he has asked for this before — twice, on the Glass, and both asks are still sitting in the
-IDEA INBOX marked "SCHEDULED":**
+**And he has asked for this before — FOUR times, on the Glass, and every one of them is still
+sitting in the IDEA INBOX marked "SCHEDULED":**
 
 - **2026-09-02T00:59:32Z** — *"You need to update Tasks list dynamically — it is stale. Add this to
   your session that updates glass. Move The Lesson section below it."*
@@ -25,25 +25,59 @@ IDEA INBOX marked "SCHEDULED":**
 > was itself filed on the Chart, marked SCHEDULED, and never rose. **A row that says SCHEDULED with
 > no owner and no position in a queue is a parked row wearing a better word.** Whoever builds this
 > should read that as the acceptance test: if the Chartkeeper had been running, this spec's own
-> request — written by Wyatt, twice, unblocked, tiny — would have been at the top of the list.
+> request — written by Wyatt four times, unblocked, tiny — would have been at the top of the list.
 
 ---
 
 ## PART 1 — THE AUDIT, AS MEASURED
 
 Counts read from the file, not remembered: **27 done · 29 open** — which is exactly what the Glass
-says, because `glass.mjs:345-346,392` derives both by counting `- [x]` and `- [ ]` inside
-`## STEP 1 CHECKLIST`, in file order, with no other logic of any kind.
+says today.
+
+> ### ⚠ CORRECTED BY CEO 89 BEFORE A LINE WAS BUILT, AND THE CORRECTION CHANGES THE BUILD
+>
+> The first version of this paragraph said the Glass derives both counts by counting `- [x]` and
+> `- [ ]` inside `## STEP 1 CHECKLIST` *"in file order, with no other logic of any kind."*
+> **That is false, and it was false in a way that would have mis-built the Chartkeeper.**
+>
+> `glass.mjs:385-386,393` reads:
+> ```js
+> const openInbox = inboxBlocks.filter((b) => !FATE.test(b.all));
+> tasks = [...openChecklist, ...openInbox.map(shortTask)];
+> ```
+> — so **the open count is the checklist's open rows PLUS every IDEA INBOX entry that has not
+> declared a fate**, decided by a three-regex test (`DECLARED` + `FATE_WORD`, minus `STILL_OPEN`,
+> `glass.mjs:374-376`) whose own comments record it being got wrong **twice**, once caught by CEO
+> Review 63. The `done` count (`:392`) really is just `- [x]` inside the checklist.
+>
+> **29 was right tonight by luck** — every inbox entry currently declares a fate, so the inbox
+> contributed zero. **THE CONSEQUENCE FOR WHOEVER BUILDS THIS: RANK and SWEEP must cover the
+> unfated inbox entries too, or the Chartkeeper will perfectly reorder a list that is not the list
+> his phone renders.** An unfated inbox entry is a task on his screen; treat it as one.
+>
+> *(This is rule 6 catching its own author: the mechanism was read and then paraphrased into a
+> tidier sentence than the code supports.)*
 
 ### FIVE OF THE 29 OPEN ROWS ARE DEAD OR ANSWERED — 17% of what he reads
 
-| line | row | why it is stale | evidence |
-|---|---|---|---|
-| **701** | *"THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE … The fix is his … See BLOCKED ON WYATT"* | **He ruled YES at 2026-09-02T04:03:36Z.** BLOCKED ON WYATT is now empty and says so in its own body, so the row's pointer aims at nothing. The item became actionable four hours before this audit and nobody moved it. | `.claude/settings.json` still contains **zero** `Bash(bash …)` entries — verified by grep. Staging serves `2026.09.01.6`; the tree is `2026.09.01.8`. |
-| **380** | *"RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending … do not start a second trial while pid 45256 is alive"* | The verdict landed hours ago, and a **newer** trial has since superseded it entirely. The row still warns a reader off a trial on account of a long-dead pid. | `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md` exists and is complete; `.planning/wyclau/LONG-RUN` is **empty** — nothing is at sea. |
-| **420** | *"THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX … staging now needs another ~90-minute trial"* | **That trial ran and landed.** | `SEA-TRIAL-2026-09-02T0137Z-Wy-Blade` — build `2026.09.01.8`, 10 of 10 sailed, **NOT-RUN column empty**, and `2026.09.01.8` is the stamp in `src/ui/stage.js` right now. |
-| **674** | *"Judge the 267 screenshots the release trial queued"* | **Judged.** | `.planning/JUDGED-2026-09-02T0152Z.md` and `-0219Z.md` are the accounts of that queue; `-0300Z.md` judged the newer queue 315 of 315. *(Honest caveat: 252 of the 1914Z run's 343 pictures were destroyed by an overlapping trial before judging — which is precisely open row 487, so the caveat has a home.)* |
-| **647** | *"24-hour unattended engine run, zero silent stalls — GATED"* | **Superseded.** Row 74 says so in its own text: *"The 48-hour shakedown (DECISIONS ruling 14; **supersedes the 24h exit test**)"*. Two rows for one thing, and the dead one still counts against him. | CHART.md:74 |
+> ### ⚠ THE LINE NUMBERS BELOW WENT STALE IN THE COMMIT THAT PUBLISHED THIS FILE. CEO 89 CAUGHT IT.
+>
+> They were exact at `06a1c4ed`, the commit the audit was made against. **The same commit that
+> published this spec (`1255c1c0`) inserted a 21-line row at `CHART.md:671`**, so in the file a
+> Watch will actually open, `674` is now the Chartkeeper row itself and `701` is the WebP row.
+> **Find each row by its TITLE, quoted below — never by the number.** *(A document about stale
+> pointers shipped with two stale pointers, which is the most useful thing in it: it is proof that a
+> line number cannot be a durable handle, and it is exactly why the row head this spec proposes
+> allocates a `T-nnn` id instead. **Whoever builds this should replace these citations with those
+> ids as its first act.**)*
+
+| row (find by title) | why it is stale | evidence |
+|---|---|---|
+| *"THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE … The fix is his … See BLOCKED ON WYATT"* | **He ruled YES at 2026-09-02T04:03:36Z.** BLOCKED ON WYATT is now empty and says so in its own body, so the row's pointer aims at nothing. The item became actionable four hours before this audit and nobody moved it. | `.claude/settings.json` still contains **zero** `Bash(bash …)` entries — verified by grep. Staging serves `2026.09.01.6`; the tree is `2026.09.01.8`. |
+| *"RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending … do not start a second trial while pid 45256 is alive"* | The verdict landed hours ago, and a **newer** trial has since superseded it entirely. The row still warns a reader off a trial on account of a long-dead pid. | `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md` exists and is complete; `.planning/wyclau/LONG-RUN` is **empty** — nothing is at sea. |
+| *"THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX … staging now needs another ~90-minute trial"* | **That trial ran and landed.** | `SEA-TRIAL-2026-09-02T0137Z-Wy-Blade` — build `2026.09.01.8`, 10 of 10 sailed, **NOT-RUN column empty**, and `2026.09.01.8` is the stamp in `src/ui/stage.js` right now. |
+| *"Judge the 267 screenshots the release trial queued"* | **Judged.** | `.planning/JUDGED-2026-09-02T0152Z.md` and `-0219Z.md` are the accounts of that queue; `-0300Z.md` judged the newer queue 315 of 315. *(Honest caveat, **corrected by CEO 89**: the first version said "252 of 343 destroyed before judging". **252 is the eventual total lost, not the number lost before anyone looked** — `JUDGED-…0300Z.md:21-23` records that the 02:19Z watch **saved 221 of the 343**, and the Chart's own row measures 107 gone by 02:20Z and 252 by 02:35Z, after the judging passes at 0152Z and 0219Z. The caveat stands and is smaller than stated; it already has its own open row — "A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL".)* |
+| *"24-hour unattended engine run, zero silent stalls — GATED"* | **Superseded.** Row 74 says so in its own text: *"The 48-hour shakedown (DECISIONS ruling 14; **supersedes the 24h exit test**)"*. Two rows for one thing, and the dead one still counts against him. | the row titled *"The 48-hour shakedown"*, in its own text |
 
 ### TWO MORE ARE PARTLY STALE
 
@@ -72,7 +106,10 @@ WHICH IS HIS QUESTION AND IS STILL OPEN: a…"*. **The content is excellent and 
 ask for expandable rows is the correct instinct: nothing is missing, it just has no handle.
 
 **3 · Done rows never leave.** 27 of them, some a fortnight old, several hundreds of lines long.
-CHART.md is 1,015 lines and roughly 60% of it is history. The `done` count grows forever and
+**CEO 89 caught a hand-typed number here** — the first version said "1,015 lines", and the file was
+**1,027** at the audited commit and is longer now. That is rule 9 failing inside a document about
+rule 9, so the number is deleted rather than corrected: **run `wc -l .planning/CHART.md` — whatever
+it says, well over half of it is closed history.** The `done` count grows forever and
 therefore means nothing — *"27 done"* is not a fact about this week.
 
 ### WHAT IS GENUINELY OPEN AND CORRECTLY SO
