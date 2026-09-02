@@ -46,6 +46,26 @@ WORTH 2.3%.** Watch 2026-09-02T15:39Z, **CEO 109 (PARTIAL)**, commit `00e85bf2`,
 (the question) and `T-088` (the unmeasured third). Still not closed, and now for a better reason:
 the work left is his decision, not a watch's.
 
+  ⚠ **HE MADE THAT DECISION AT 2026-09-02T12:24:03Z AND THIS LINE STILL SAYS OPEN — SO THIS IS THE
+  OLDEST "OPEN" ITEM IN THE FILE AND THE DOOR SENDS EVERY NEW WATCH STRAIGHT AT CLOSED WORK.**
+  Commit `d4b7700d`, whose own subject is *"his launch-critical image ask is CLOSED on his ruling:
+  17.79 MB → 3.89 MB, call the last 2.3% finished"* — put to him in the question UI with the real
+  numbers, and **he chose finished over spending a watch on the remaining 0.09 MB.** Flagged by the
+  16:49Z watch, still true at 18:1xZ, and flagged again by the `T-095` watch.
+  **NOT hand-patched, deliberately** — the tick, the fate and the ledger entry are written together
+  by the gate so they cannot disagree, and a status line edited by hand is exactly the drift this
+  file exists to stop. **The next watch closes it, and the evidence is already assembled:**
+  ```
+  node scripts/wyclau/close_item.mjs --item="INBOX-20260901T1335Z" --ceo=109 \
+    --commit=d4b7700d --solution-commit=00e85bf2 \
+    --summary="closed on his own ruling: call the last 2.3% finished"
+  ```
+  **Check `--solution-commit` before running it.** His solution has three parts landing in three
+  commits — compress `fbbf44ad` (the board, 4.24 MB → 0.19 MB), preload `7405f1e4` (144 of 144
+  warmed at boot), resize `00e85bf2` (the measurement that produced the 2.3% he ruled on). `00e85bf2`
+  is named above because it is the one his ruling was made against; a watch that judges otherwise
+  should say so rather than take this line's word for it.
+
   **THE MEASUREMENT THAT ANSWERS HIS SENTENCE HAD BEEN BLIND TO MORE THAN HALF THE LIBRARY.**
   `.planning/ASSET-DISPLAY-SIZES.md` is the only answer this project has to *"resized… according to
   its maximum pixel size in the real gameplay"*. Its generator read PNG and JPEG headers and then did
@@ -806,7 +826,7 @@ status: OPEN — FOR A WATCH, and it is a convention to write down rather than a
 
 ---
 
-### INBOX-20260902T17xxZ — OPEN → SPEC'D, CEO'D, FILED AS `T-095` (the build is a watch's)
+## INBOX-20260902T17xxZ — the Glass looks chaotic again: his three faults, SPEC'D, CEO'D, FILED AS `T-095`
 
 **HIS WORDS, VERBATIM:**
 
@@ -818,8 +838,18 @@ status: OPEN — FOR A WATCH, and it is a convention to write down rather than a
 > that is not a table row. Open .planning/CHART.md." --> what is causing this? debug and fix. create
 > a plan to fix these, review with ceo, add to top of chart for a watch to fix
 
-**`solution:`** — he stated his own wording for item 2 and it is adopted verbatim. Items 1 and 3 he
-described as outcomes, not mechanisms.
+solution: item 2 in his own words — one status bar with fewer words, "🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago." Items 1 and 3 he described as outcomes, not mechanisms.
+
+status: OPEN — built as `T-095` (commit `0b63026c`, CEO 114); closing belongs to the watch that built it, through the gate.
+
+⚠ **THE HEADING AND THE `solution:` LINE ON THIS ENTRY WERE THE WRONG SHAPE UNTIL 18:1xZ, AND THAT IS
+WHY IT COULD NOT BE CLOSED.** It was written `### INBOX-…` with a bolded `**`solution:`**` and **no
+`status:` line at all**. `close_item.mjs:75-79` splits the file on `^## ` and matches `^solution:` and
+`^status:` at line start, so this entry was invisible to the gate as a section, reported "no stated
+solution" although his wording for item 2 is right here, and had no status line to rewrite —
+`close_item.mjs:154` refuses with *"the entry has no 'status:' line — fix the entry format first"*.
+**An entry in a different shape is an entry that reads OPEN forever.** Found by the `T-095` watch at
+close; repaired here by the Advisor, whose file this is.
 
 **DONE BY THE ADVISOR:** cause of item 3 measured (`## BLOCKED ON WYATT` holds five prose blocks and
 no hidden question — the first is a paragraph *I* wrote forbidding prose); plan written to
@@ -836,8 +866,7 @@ items 1 and 3 as first written**; every finding re-measured and applied; row fil
 > 1. i already answered this in the glass. again. what, PLEASE CLAUDE, IS GOING ON. I apprroved
 > "keep it" but DUDE COME ON FIX THE GLASS I AM SO FRUSTRATED AT REPEATING MYSELF
 
-`solution:` his ruling is **"keep it"** on the black-window flash check — recorded, and the question
-must stop being put to him. The Glass fix he is demanding is `T-090`.
+solution: his ruling is "keep it" on the black-window flash check — recorded, and the question must stop being put to him. The Glass fix he is demanding is T-090.
 
 status: OPEN — the ruling is filed; the retire is with the live `T-095` watch; the durable fix is
 `T-090` and it is now the top item.
