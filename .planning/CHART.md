@@ -708,11 +708,12 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
-| **You asked tonight how big the recipe pictures actually get drawn. On the screen where you CHOOSE your recipe, the one you have picked is the one you cannot see — the orange "Bake this!" pill sits on top of its pastry and covers nearly all of it.** Should it move? | **Recommended: move the pill below the picture (or into the card's top corner), so both pastries stay visible while you choose.** But this is a real trade and it is yours, not ours: the pill was put over the art deliberately on 2026-08-13 to solve a different problem — *"nothing said how to commit a recipe"*, the confirming second tap was undiscoverable — and it has not moved since. Moving it off the art may put that back. **Size: a few lines of CSS, no logic.** Seen on all six legs, all three modes, three sizes, both engines, so it is how the screen always looks — not a glitch. | 2026-09-02 |
 
-*One question is open (above). The black-market gold-coin question was answered on the Glass
-2026-09-02T03:50:58Z, but as a note that reads cut off mid-sentence — harvested verbatim to RULED
-below rather than guessed at; needs him to finish the thought before it can be triaged.
+*Nothing is open. The "Bake this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
+**"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — SETTLED
+below, nothing to build. The black-market gold-coin question was answered 2026-09-02T03:50:58Z as
+a cut-off note, then CLARIFIED by his own follow-up idea 2026-09-02T03:54:47Z — he tested it
+himself on Safari/staging.6 and the coin renders correctly; SETTLED below, nothing to build.
 Otherwise: the recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
 00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
 size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
@@ -752,14 +753,14 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*Two rulings are waiting, freshly harvested (rows below, `now` cells empty by design — not yet
-triaged). The prior eight were triaged 2026-09-01 and moved to SETTLED RULINGS below; three
-carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
+*One ruling is waiting, freshly harvested (row below, `now` cell empty by design — not yet
+triaged). Two more rulings landed and were triaged straight to SETTLED below since both resolve
+to "nothing to build." The prior eight were triaged 2026-09-01; three carried work and are in the
+STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
-| Black-market gold coin: on iPhone/Mac Safari, does *"…for 10 🌕"* show a gold coin or a blank gap + stray full stop? | **Note, not a button choice — and it reads as CUT OFF mid-sentence: "In the past (earlier today) it was a"** — ruled on the Glass 2026-09-02T03:50:58.777Z. Copied verbatim; not completed on his behalf. Needs him to finish the thought or confirm what he meant before this can be triaged. | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
@@ -770,6 +771,8 @@ the three still carrying work also have a checklist row above, which is where he
 
 | item | HIS RULING | now |
 |---|---|---|
+| The "Bake this!" pill covering the recipe art you're choosing | **"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — ruled on the Glass 2026-09-02T03:54:24.991Z | **CLOSED, NOTHING TO BUILD.** He rejects the recommendation to move it — the covering is deliberate (confirmation affordance, built 2026-08-13), not a defect. Removed from BLOCKED ON WYATT. |
+| Black-market gold coin: on iPhone/Mac Safari, does *"…for 10 🌕"* render correctly? | First answer landed as a note that read cut off mid-sentence (2026-09-02T03:50:58Z); clarified by his own follow-up 2026-09-02T03:54:47Z: **"I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly. I'm not sure what caused your rig to miss it, but it's working correctly as is/"** | **CLOSED, NOTHING TO BUILD.** He tested it himself on the real device this project's rulebook says is the only real Safari — coin renders fine on staging.6. The recommendation to make the coin an image everywhere is now unsupported by evidence; not doing it on a guess. Removed from BLOCKED ON WYATT. |
 | The Glass's Ideas box corrupting the page after a save | **Reported four times** | **ROOT-CAUSED AND FIXED 2026-09-01.** The page's own escaper was a no-op, so every save wrote a live closing script tag into the document and broke it. Found by clicking Send in a real browser and rendering what the page saved. Gate `glass_self_publish_check.mjs`, red first. Awaiting his look on the live page. |
 | Merge the 465-commit branch to `main` via the normal release loop | **"Do it" / "re merge: do it, a"** — ruled on the Glass 2026-08-31 23:39:57Z, confirmed live in chat the same message, choosing option (a) (run the trial now with active foreground monitoring) | **STAGED, AWAITING THE RELEASE TRIAL.** The `pname()` crash was root-caused and fixed 2026-09-01 (10/10 legs finished on `2026.08.31.2`); the sail-camera fix landed after that verdict, so build `2026.09.01.2` needs its own trial. Staging serves `2026.09.01.2-staging@159e26e1` and **Wyatt played it 2026-09-01: all five checklist items PASSED.** The remaining merge gate is the full trial — queued as the first Watch cargo (INBOX), run detached so it cannot die with a session — then his final say-so. |
 | Live audio defect (8s full-volume storm per ship) | **"Yes — delete the line"** | **CLOSED, NOT BUILT — the ruling was on a stale premise.** Measured 2026-08-31 18:12Z: `soundForEvent({t:"anchorHold"})` returns `{name:"fishing",bus:"master"}`, `EVENT_SOUND` declares `anchorHold` exactly once (`src/ui/audio.js:105`), and `node scripts/audio_mapping_test.js` PASSes all three of DEFECT-1/2's own regression guards. The fix shipped at the cutover, commit `fb74eedc`, before today — `docs/AUDIO.md`'s own correction box says so and names this exact trap. There is no line to delete. Same shape as the sea-trial-PR correction the same day: a question was put to him from a stale reading. |
@@ -811,6 +814,18 @@ convergences. Every row below was checked against the tree, not against the docu
 
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
+
+- **⚑ Wyatt, written on the Glass, 2026-09-02T03:55:25Z, LIKELY EXPLAINS A REAL BUG**: *"you must
+  build a submit button underneath every Your Call entry, and not record my responses until I
+  press it -- otherwise they may get cut off by your processes."* → **SCHEDULED, next Glass-focused
+  session — flagged as higher priority than the other three.** This appears to be the root cause
+  of the gold-coin ruling landing cut off mid-sentence minutes earlier ("In the past (earlier
+  today) it was a") — his own diagnosis of why. The ruling textarea currently likely saves on
+  every keystroke or on blur rather than on an explicit submit, so a save mid-typing captures a
+  partial string. Recommend: add an explicit "Submit" button under each ruling's note field,
+  disable/hide it until there is text, and only write to `glassState.rulings` on that click —
+  matching the pattern the Send-to-Chart idea box already uses. Not fixed here — this session's
+  mandate is harvest-and-publish only, never product work on the page itself.
 
 - **Wyatt, written on the Glass, 2026-09-02T00:59:32Z**: *"You need to update Tasks list
   dynamically — it is stale. Add this to your session that updates glass. Move The Lesson section
