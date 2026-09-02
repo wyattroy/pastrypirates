@@ -671,6 +671,40 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **★★ `deploy-staging.sh` CANNOT RUN ON THE BLADE AT ALL — and it is NOT the permission wall,
+      which is now removed. MEASURED 2026-09-02T05:xxZ, not fixed (record-only Advisor). Sizing:
+      ONE LINE plus a gate.** With `"Bash(bash scripts/deploy-staging.sh*)"` added to
+      `.claude/settings.json` at Wyatt's instruction, the script runs and dies at
+      `scripts/deploy-staging.sh:133` — `rsync -a --delete "${EXCLUDES[@]}" "$SRC/" "$WORK/staging/"`
+      — with *"The source and destination cannot both be remote."*
+      **TWO LAYERS, BOTH MEASURED, NEITHER GUESSED (an earlier guess in this same session said
+      "a Windows drive-letter colon" and that was WRONG — `pwd` returns `/c/Users/...`, no colon):**
+      1. **Git Bash rewrites any argument beginning with `/` into a Windows path before the exe sees
+         it.** So `/c/Users/…` reaches rsync as `C:\Users\…`, rsync reads `C:` as a *hostname*, and
+         with both arguments converted it reports both as remote. **Proof:** with
+         `MSYS_NO_PATHCONV=1` the "both remote" error disappears entirely and rsync parses both as
+         local paths. With only ONE argument converted it says *"ssh: Could not resolve hostname c:"*
+         — naming the phantom host out loud.
+      2. **The rsync on PATH is a CYGWIN build**, `/c/ProgramData/chocolatey/bin/rsync` 3.4.1 — it
+         wants `/cygdrive/c/…` and does not resolve Git Bash's `/c/…`. **Proof:** its own error
+         message resolves a relative path to `/cygdrive/c/Users/wyatt/Projects/pastrypirates/…`.
+      **THE WORKING FORM, VERIFIED AT EXIT 0:**
+      `MSYS_NO_PATHCONV=1 rsync -a --dry-run /cygdrive/c/…/package.json /cygdrive/c/…/rtest5`
+      **THE FIX, AND IT MUST NOT BE A HAND-ROLLED SYNC (rule 14 — two sessions came within one
+      command of taking the live game down here):** inside `deploy-staging.sh`, keep the rsync line
+      exactly as it is and make the PATHS right — `SRC="$(cygpath -u "$(cygpath -w "$SRC")")"` or
+      simply `/c/` → `/cygdrive/c/`, with `MSYS_NO_PATHCONV=1` exported for the call. **Derive it
+      from `cygpath`, never a string swap somebody typed** (rule 9). Gate it: a check that the
+      script's rsync arguments resolve on this machine, red-proofed by pointing it at the `/c/` form.
+      **WHY IT MATTERS BEYOND TONIGHT:** staging has been stuck on `2026.09.01.6` for four CEO
+      verdicts running while the tree is on `.8`, and every account of *why* has named the permission
+      layer. **The permission layer was real and is now gone, and staging still does not deploy.**
+      Every "staging is blocked on Wyatt" line written before this row was, at best, half the answer.
+      **The same shape is already on the record:** `openWebKit()` handed a raw Windows path to
+      `import()`, which read `c:` as a protocol and reported *"playwright not found"* while
+      playwright was installed — Chart row "Sail the three Safari legs", 2026-09-01. **Second
+      sighting of a Windows path read as a protocol. Sweep for a third (rule 8).**
+
 - [ ] **★ NEXT ITEM, AT HIS INSTRUCTION — BUILD THE CHARTKEEPER. Full spec:
       [`.planning/SPEC-CHARTKEEPER.md`](SPEC-CHARTKEEPER.md).** His words, 2026-09-02
       (INBOX-20260902T04xxZ): *"design -- BUT DONT BUILD -- a system that will dynamically
