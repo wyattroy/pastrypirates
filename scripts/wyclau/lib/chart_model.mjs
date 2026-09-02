@@ -88,6 +88,22 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/** The rows of a markdown table, header and rule excluded.
+ *
+ *  THE HEADER IS FOUND BY POSITION, NOT BY ITS WORDS. The first version of this filter skipped a
+ *  header by matching the literal `| Question`, which is the heading of exactly one of the Chart's
+ *  two tables — `SETTLED RULINGS` opens `| item |`, so its header would have been read as a real
+ *  ruling. A header is the `|` line immediately above the `|---|` rule, and that is derivable in
+ *  every table there will ever be. */
+export function tableRows(sectionText) {
+  const lines = (sectionText ?? "").split("\n").filter((l) => l.trim().startsWith("|"));
+  const isRule = (l) => /^\|[\s:|-]+$/.test(l.trim());
+  return lines
+    .filter((l, i) => !isRule(l) && !isRule(lines[i + 1] ?? ""))
+    .map((l) => ({ raw: l, cells: l.split("|").map((c) => c.trim()).filter(Boolean) }))
+    .filter((r) => r.cells.length >= 2);
+}
+
 /** The one place the row-identity format is written. Every consumer that needs to name a row by its
  *  position — the Chartkeeper's write pass, its sweep — imports this rather than re-typing
  *  `${kind}#${i}`. CEO 95 caught three hand-written copies of it and named the failure exactly:
@@ -147,18 +163,19 @@ export function parseChart(text) {
   const rows = stepChunks.map((c, i) => (c.type === "row" ? mk(c, "checklist", i) : null)).filter(Boolean);
   const ideas = inboxChunks.map((c, i) => (c.type === "row" ? mk(c, "inbox", i) : null)).filter(Boolean);
 
-  // The BLOCKED ON WYATT questions, as rows of its table — the thing a "See BLOCKED ON WYATT"
-  // pointer either resolves to or does not.
-  const blockedQuestions = blockedText.split("\n")
-    .filter((l) => l.startsWith("|") && !/^\|\s*Question/i.test(l) && !/^\|\s*-+/.test(l) && !/^\|\s*---/.test(l))
-    .map((l) => l.split("|").map((c) => c.trim()).filter(Boolean))
-    .filter((c) => c.length >= 2)
-    .map((c) => c[0]);
+  // His two tables, read the same way — the questions he is still holding, and the ones he has
+  // answered. `tableRows` is shared so a change to one can never quietly stop applying to the other.
+  const blocked = tableRows(blockedText);
+  const settled = tableRows(section(text, "SETTLED RULINGS") ?? "");
+  const blockedQuestions = blocked.map((r) => r.cells[0]);
 
   return {
     stepText, inboxText, blockedText,
     stepChunks, inboxChunks,
     rows, ideas, blockedQuestions,
+    /** His open questions and his answered ones, whole lines included, so a consumer can ask
+     *  whether a question NAMES a given row rather than guessing from word overlap. */
+    blocked, settled,
     openRows: rows.filter((r) => !r.done),
     doneRows: rows.filter((r) => r.done),
     openIdeas: ideas.filter((r) => !r.done),

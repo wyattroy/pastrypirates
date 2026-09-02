@@ -79,8 +79,10 @@ const MIXED = `# THE CHART — fixture
 ## STEP 1 CHECKLIST — the reboot
 
 - [ ] **A LIVE ROW WITH A LIVE POINTER — See BLOCKED ON WYATT** for the taste call on the
+      ⟨\`T-901\`⟩
       lantern colour. Nothing about this row is finished.
 - [ ] **A DEAD POINTER — See BLOCKED ON WYATT** for the deploy permission. He answered this
+      ⟨\`T-902\`⟩
       hours ago and nothing moved it.
 - [ ] **A ROW CITING A TRIAL REPORT THAT DOES NOT EXIST** — see
       \`.planning/SEA-TRIAL-fixture-never-written.md\`, verdict pending.
@@ -101,7 +103,13 @@ The fixture now carries a Z the way the real file does.
 
 | Question | Recommendation | since |
 |---|---|---|
-| **What colour should the lantern be?** the taste call on the lantern colour | Recommended: brass | 2026-09-02 |
+| **What colour should the lantern be?** the taste call on the lantern colour — holds up \`T-901\` | Recommended: brass | 2026-09-02 |
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The deploy permission, which \`T-902\` is still waiting on | **"we fixed it"** | CLOSED, already done. |
 
 ## THE IDEA INBOX
 
@@ -298,13 +306,18 @@ The fixture now carries a Z the way the real file does.
   const p = chartFile("ids", MIXED);
   run([`--chart=${p}`, "--write"]);
   const once = readFileSync(p, "utf8");
-  const ids = once.match(/\bT-\d{3}\b/g) || [];
+  /* HANDLES ALLOCATED TO ROWS, NOT REFERENCES TO THEM. His BLOCKED ON WYATT and SETTLED RULINGS
+     tables NAME rows by handle — that link is the whole of how "waiting on your answer" is derived
+     — so a whole-file grep counts one row's id three times and calls it a duplicate allocation.
+     Table lines are his; row lines are the tool's. */
+  const rowsOnly = (s) => s.split("\n").filter((l) => !l.trim().startsWith("|")).join("\n");
+  const ids = rowsOnly(once).match(/\bT-\d{3}\b/g) || [];
   if (ids.length === 0) fail("allocated no T-nnn ids — every reference to a row stays a line number, and line numbers go stale in the commit that writes them");
   else pass(`allocated ${ids.length} stable row ids`);
   if (new Set(ids).size !== ids.length) fail(`allocated a duplicate id (${ids.length} ids, ${new Set(ids).size} distinct) — two rows sharing a handle is worse than neither having one`);
   else pass("every allocated id is distinct");
   run([`--chart=${p}`, "--write"]);
-  const ids2 = (readFileSync(p, "utf8").match(/\bT-\d{3}\b/g) || []);
+  const ids2 = (rowsOnly(readFileSync(p, "utf8")).match(/\bT-\d{3}\b/g) || []);
   if (ids2.join(",") !== ids.join(",")) fail(`a second run changed the ids (${ids.length} → ${ids2.length}) — ids must be allocated once and never reused`);
   else pass("a second run allocates nothing new — ids are stable across runs");
 }
@@ -412,7 +425,8 @@ const BUNDLED = `# THE CHART — fixture
 ## STEP 1 CHECKLIST — the reboot
 
 - [ ] **THE BLADE HOUR — three jobs under one checkbox**
-      part 1: register the Bell — See BLOCKED ON WYATT, and he answered that one hours ago.
+      part 1: register the Bell — measured on build \`2000.01.01.1\`, which is not the stamp in
+      the tree, so that part's evidence is retired.
       part 2: ring-test the Bell in both directions — nobody has done this and there is no
       pointer of any kind in it.
       part 3: the O2 publish test — nobody has done this either, and it has no pointer either.
@@ -423,7 +437,7 @@ const BUNDLED = `# THE CHART — fixture
       not on disk.
       part 2: the second trial — measured on build \`2000.01.01.1\`, which is not the stamp in
       the tree.
-- [ ] **BUNDLED ON THE FIRST LINE AND NOWHERE ELSE** · register the thing · ring-test it · publish from O2, and See BLOCKED ON WYATT about that, which he answered hours ago.
+- [ ] **BUNDLED ON THE FIRST LINE AND NOWHERE ELSE** · register the thing · ring-test it · publish from O2, measured on build \`2000.01.01.1\` which is not the stamp in the tree.
 
 ## BLOCKED ON WYATT
 
@@ -1031,7 +1045,7 @@ const TWINS = `# THE CHART — fixture
 
 - [ ] ${TWIN_TITLE}
       ⟨\`T-901\`⟩
-      This one points at BLOCKED ON WYATT, which is empty, so REAP judges its pointer dead.
+      A settled ruling of his names this one, so REAP judges its blocker lifted and unacted on.
       Filed 2026-09-02T04:19Z.
 - [ ] ${TWIN_TITLE}
       ⟨\`T-902\`⟩
@@ -1041,6 +1055,12 @@ const TWINS = `# THE CHART — fixture
 
 | Question | Recommendation | since |
 |---|---|---|
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The deploy permission, which \`T-901\` is still waiting on | **"we fixed it"** | CLOSED, already done. |
 
 ## THE IDEA INBOX
 
@@ -1122,6 +1142,143 @@ const SWEEP_TWINS = `# THE CHART — fixture
   if (stillTicked || !existsSync(logPath) || !readFileSync(logPath, "utf8").includes("T-911"))
     fail("the 2001 row was not archived into the log, so the case above passed for the wrong reason — the sweep did nothing at all");
   else pass("…and the old twin really was archived, so the case above could have failed");
+}
+
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   13. "WAITING ON YOUR ANSWER" MUST BE A FACT ABOUT THE ROW, NOT THE FIVE WORDS IT HAPPENS TO SAY.
+
+   Measured on the real Chart 2026-09-02T12:2xZ, and it is the reason `npm test` went red. The
+   signal was `/BLOCKED ON WYATT/i.test(row.raw)` — a prose-grep for a SECTION HEADING inside a
+   row's own body — held off only by REAP happening to flag the row stale. So:
+
+     · his four-times-asked Chartkeeper row sank to 31 of 39, because its spec text describes the
+       SETTLE pass writing "one question into BLOCKED ON WYATT with the measurement attached";
+     · the row filed to describe THIS defect sank with it, on the words "adding an unrelated
+       BLOCKED ON WYATT row";
+     · a one-sentence wording fix sank too, for quoting the heading it is about.
+
+   Three of the four rows the tool was hiding from him were waiting on nothing. And nothing about
+   any of them changed — another session added two good, unrelated questions to a table that had
+   been empty, and 1024 points moved.
+
+   THE PROPERTY THESE CASES DEFEND: **adding a question that names no row must not move the
+   ranking at all.** A signal derived from the ABSENCE of a match is a signal any unrelated edit
+   can flip; a signal derived from a question NAMING a row cannot be.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+const ATTACHED = (extraQuestion = "") => `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] \`T-101\` **A ROW ONE OF HIS QUESTIONS NAMES** — he really is being asked about this one,
+      and the question says so from his side of the link.
+- [ ] \`T-102\` **A ROW THAT ONLY DESCRIBES THE SECTION** — its spec says the tool writes one
+      question into BLOCKED ON WYATT with the measurement attached. Nothing here waits on him.
+- [ ] \`T-103\` **A ROW WHOSE QUESTION HE HAS ALREADY ANSWERED** — his ruling is in SETTLED
+      RULINGS and nobody moved this row afterwards.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+| **What colour should the lantern be?** Holds up \`T-101\`. | Recommended: brass | 2026-09-02 |${extraQuestion}
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The bilge pump, which holds up \`T-103\` | **"leave it alone"** | CLOSED, nothing to build. |
+
+## THE IDEA INBOX
+
+(empty)
+`;
+
+/* 13a. THE ROW A QUESTION NAMES REALLY IS SUNK. Red-proofs 13b: a tool that simply stopped sinking
+        anything would pass 13b and fail here. */
+{
+  const p = chartFile("attached", ATTACHED());
+  const r = runJson([`--chart=${p}`, "--rank"]);
+  const named = (r.json?.rank || []).find((x) => /A ROW ONE OF HIS QUESTIONS NAMES/.test(x.title || ""));
+  if (!named) fail("the row his question names vanished from the ranking");
+  else if (named.score > 0 || !/waiting on your answer/i.test(named.whyNow || ""))
+    fail(`a row a live question NAMES scored ${named.score} (${JSON.stringify(named.whyNow)}) — a question of his that names a row is the one thing that must sink it`);
+  else pass("a row one of his live questions names is sunk, and told him why");
+}
+
+/* 13b. THE ROW THAT ONLY MENTIONS THE HEADING IS LEFT ALONE — both ways. It must not be sunk as
+        blocked, and it must not be handed the +40 "something it was waiting on has landed" either:
+        nothing of his was ever waiting on it, so both verdicts are inventions. */
+{
+  const p = chartFile("attached-mention", ATTACHED());
+  const r = runJson([`--chart=${p}`, "--rank"]);
+  const mention = (r.json?.rank || []).find((x) => /ONLY DESCRIBES THE SECTION/.test(x.title || ""));
+  if (!mention) fail("the descriptive row vanished from the ranking");
+  else {
+    if (/waiting on your answer/i.test(mention.whyNow || "") || mention.score < 0)
+      fail(`a row that merely SAYS "BLOCKED ON WYATT" while describing the section scored ${mention.score} (${JSON.stringify(mention.whyNow)}) — this is the fault that sank his own top task to 31 of 39`);
+    else pass("a row that only describes the section is not read as waiting on him");
+    if (/landed|resolved/i.test(mention.whyNow || ""))
+      fail(`told him something had landed for a row no question of his has ever named: ${JSON.stringify(mention.whyNow)}`);
+    else pass("…and is not told a blocker lifted that never existed");
+  }
+  const flagged = (runJson([`--chart=${p}`, "--reap"]).json?.reap || []).map((x) => x.title || "").join(" | ");
+  if (/ONLY DESCRIBES THE SECTION/.test(flagged))
+    fail("REAP flagged the descriptive row as stale — mentioning a heading is not pointing at a question");
+  else pass("REAP leaves the descriptive row alone too");
+}
+
+/* 13c. HIS ANSWER LANDED AND NOBODY MOVED THE ROW — the signal REAP is genuinely for, now derived
+        from a POSITIVE fact (his settled ruling names the row) instead of from an absence. */
+{
+  const p = chartFile("attached-settled", ATTACHED());
+  const r = runJson([`--chart=${p}`, "--reap"]);
+  const hit = (r.json?.reap || []).find((x) => /QUESTION HE HAS ALREADY ANSWERED/.test(x.title || ""));
+  if (!hit) fail("did not flag the row whose question he has already settled — that is the stale row he reads five of every day");
+  else if (!/answer/i.test(hit.reason || ""))
+    fail(`flagged it with a reason that does not say his answer landed: ${JSON.stringify(hit.reason)}`);
+  else pass("a row his SETTLED ruling names is flagged: his answer landed and nothing moved it");
+}
+
+/* 13d. THE ACCEPTANCE PROPERTY, AND THE ONE THE SPEC ASKED FOR BY NAME: adding an unrelated
+        question must not move the ranking. The extra question below is deliberately built to share
+        four distinctive words with `T-102` — "measurement", "attached", "question", "writes" — so
+        an overlap-based signal is guaranteed to flip on it. Under the old code the ranking changed;
+        under a signal derived from naming, it cannot. */
+{
+  const EXTRA = `\n| **Should the measurement be attached to every question the tool writes?** | Recommended: yes | 2026-09-02 |`;
+  const before = runJson([`--chart=${chartFile("stable-before", ATTACHED())}`, "--rank"]);
+  const after = runJson([`--chart=${chartFile("stable-after", ATTACHED(EXTRA))}`, "--rank"]);
+  const shape = (j) => (j?.rank || []).map((x) => `${x.score} ${x.title}`).join("\n");
+  if (!before.json || !after.json) fail("ranking one of the two fixtures produced no JSON");
+  else if (shape(before.json) !== shape(after.json))
+    fail(`adding a question that names no row changed the ranking:\n--- before ---\n${shape(before.json)}\n--- after ---\n${shape(after.json)}`);
+  else pass("adding a question that names no row moves nothing — his order is his, not the last editor's");
+}
+
+/* 13e. AND THE LINKS THAT ARE MISSING MUST BE NAMED, never silently dropped. This is 11d's rule
+        turned on the new signal: a row demoted — or a question ignored — in silence is one nobody
+        can repair. The tool must say which rows talk about his table without naming a question,
+        and which of his questions name no row at all. */
+{
+  const EXTRA = `\n| **Should the measurement be attached to every question the tool writes?** | Recommended: yes | 2026-09-02 |`;
+  const p = chartFile("attached-report", ATTACHED(EXTRA));
+  const r = runJson([`--chart=${p}`, "--rank"]);
+  const mentions = r.json?.unattachedMentions;
+  const questions = r.json?.unattachedQuestions;
+  if (!Array.isArray(mentions) || !mentions.some((t) => /ONLY DESCRIBES THE SECTION/.test(t)))
+    fail(`did not name the row that talks about his table without naming a question (got ${JSON.stringify(mentions)})`);
+  else if (mentions.some((t) => /QUESTIONS NAMES|ALREADY ANSWERED/.test(t)))
+    fail(`named a properly-linked row as unattached (${JSON.stringify(mentions)})`);
+  else pass("rows that mention his table without naming a question are named, so the link can be added");
+  if (!Array.isArray(questions) || !questions.some((q) => /every question the tool writes/i.test(q)))
+    fail(`did not name the question of his that holds up no row (got ${JSON.stringify(questions)})`);
+  else if (questions.some((q) => /lantern/i.test(q)))
+    fail(`named a question that DOES hold up a row (${JSON.stringify(questions)}) — the report must point only at the broken links`);
+  else pass("questions of his that hold up no row are named too");
+  const text = run([`--chart=${p}`, "--rank"]).out;
+  if (!/name no task|names no question/i.test(text))
+    fail("the human-readable report is silent about broken links between his questions and the list");
+  else pass("the printed report names them too");
 }
 
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);

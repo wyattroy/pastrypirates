@@ -1260,10 +1260,17 @@ and fix: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) 
 | Question | Recommendation | since |
 |---|---|---|
 | **May an unattended watch READ the claude-kit folder?** This is the only thing standing between five dammed-up patches — two of them your own rulings — and a night that fixes them. *(This replaces the question "is any other repo running wyclau?", which was filed here and then **answered from the repo in five minutes** by CEO 102 and re-verified independently: **no**. wyclau is not in claude-kit's catalogue at all, only one folder on this machine vendors it, and the kit's master copy was running 104 lines behind its only consumer. Asking you a question the repo could answer was itself the failing.)* | **(Recommended) Say yes and let a watch test it tonight — it is one line and it may end the whole problem.** The kit was described as "physically unreachable"; it is not — it reads fine from an attended session. What is fenced is the unattended watch: `bell.ps1:98-100` launches it with no added directories, so it cannot see outside the repo. That fence is `.claude/settings.json`, which is NOT locked. Adding the kit path lets a watch fix the tool it just proved broken and ship it in the same run. **It widens what an unattended session may read, which is why it is yours and not mine.** Nobody has run the five-minute test. Reasoning: [`SPEC-KIT-BOUNDARY.md`](SPEC-KIT-BOUNDARY.md). | 2026-09-02 |
-| **Do you want `SCHEDULED` to stop hiding your ideas?** Measured with the page's own logic: **13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED`** — which the code treats as identical to SHIPPED and CLOSED. Your Charter says the opposite in writing: *"Every idea gets a **visible** fate (shipped / scheduled / parked-with-reason)."* | **(Recommended) Three states, not two: OPEN shows, SCHEDULED shows and says so, PARKED shows dimmed with its reason, and only genuinely-finished words hide.** This is a straight charter violation rather than a taste call, so it needs no design round — only your yes. Diagnosis: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) §1. | 2026-09-02 |
 
 *(empty — the row about the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
-is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below.)*
+is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below. The row
+about `SCHEDULED` hiding your ideas was RULED YES 2026-09-02T12:28:02.757Z, moved to RULED below,
+awaiting triage.)*
+
+*The "Do you want `SCHEDULED` to stop hiding your ideas?" question was RULED YES ON THE GLASS
+2026-09-02T12:28:02.757Z, no note attached. Harvested to RULED below, awaiting triage: fixing it
+touches `glass.mjs` (vendored from claude-kit) and every row already tagged SCHEDULED in THE IDEA
+INBOX — this is the same defect `T-076` already named. Not done here — this session's mandate is
+harvest-and-publish only, never settings or code changes.*
 
 *The staging-publish-permission question — **"May a watch publish to staging on its own?"** — was
 RULED YES ON THE GLASS 2026-09-02T04:03:36Z, no note attached. Harvested to RULED below, awaiting
@@ -1315,7 +1322,7 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*Two rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
+*Three rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
 triaged). Two more rulings landed and were triaged straight to SETTLED below since both resolve
 to "nothing to build." The prior eight were triaged 2026-09-01; three carried work and are in the
 STEP 1 CHECKLIST, tagged "Your ruling:".*
@@ -1324,6 +1331,7 @@ STEP 1 CHECKLIST, tagged "Your ruling:".*
 |---|---|---|
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
+| Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
@@ -1378,6 +1386,19 @@ convergences. Every row below was checked against the tree, not against the docu
 
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
+
+- **Wyatt, written on the Glass, 2026-09-02T12:29:35.591Z**: *"The trade winds squares should also
+      ⟨`T-082`⟩
+  be yellow-ISH not blue-ish-- they should look similar to the travellable squares, they just also
+  have dotted lines around them and show the preview when tapped. when changing the trade winds
+  highlight color, we also need to change the text that mentions \"blue squares take two taps\" --
+  that message should say something like \"tap a trade winds square twice to confirm\""* → **NOT
+  YET FATED — left open deliberately, not tagged SCHEDULED, per his own ruling above that
+  SCHEDULED hides ideas from this page until that fix ships.** A colour/copy pairing: recolour the
+  trade-wind squares to match the travellable-square yellow (keeping their dotted outline and
+  tap-to-preview), and rewrite the "blue squares take two taps" narration line to describe the new
+  colour, e.g. "tap a trade winds square twice to confirm." Not investigated here — this session's
+  mandate is harvest-and-publish only.
 
 - **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
       ⟨`T-073`⟩

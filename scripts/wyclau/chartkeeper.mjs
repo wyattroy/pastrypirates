@@ -264,13 +264,33 @@ const pidAlive = (pid) => {
    Rule 23: one set of probes, two kinds of subject — never a second copy for parts.
    ──────────────────────────────────────────────────────────────────────────────────────────── */
 const PROBES = [
-  function deadPointerToWyatt(sub, ctx) {
-    if (!/BLOCKED ON WYATT/i.test(sub.raw)) return null;
-    const mine = tokens(sub.context ?? sub.raw);
-    if (ctx.blockedTokens.some((q) => overlap(q, mine) >= 3)) return null;
-    return ctx.parsed.blockedQuestions.length === 0
-      ? "points at BLOCKED ON WYATT, which is empty — the question it is waiting on has been answered"
-      : "points at BLOCKED ON WYATT, but no question there matches it any more — it was answered and nothing moved the row";
+  /* HIS ANSWER LANDED AND NOBODY MOVED THE ROW.
+   *
+   * ⚠ THIS PROBE USED TO BE DERIVED FROM AN ABSENCE, AND THAT IS WHAT PUT `npm test` RED ON
+   * 2026-09-02. It read `/BLOCKED ON WYATT/i.test(sub.raw)` — a prose-grep for a SECTION HEADING
+   * inside a row's own body — and then declared the row stale if no question in the table shared
+   * three five-letter words with it. Over a 900-character row, three shared words is noise, so the
+   * verdict turned on what somebody else had most recently typed into HIS table. Measured: another
+   * session added two good, unrelated questions, and his own four-times-asked Chartkeeper row went
+   * from ranking FIRST at 156 to 31st at −984 with not a character of it changed. Two rows that
+   * merely QUOTE the heading — one of them the row filed to describe this very defect — went with
+   * it. `score()`'s −1000 hung on the same test; both are now derived from the same positive fact.
+   *
+   * THE FACT: a row of one of his tables NAMES this row's `T-nnn` handle. Live table ⇒ he is being
+   * asked and `score()` sinks it. SETTLED table ⇒ his answer is in and the row never moved ⇒ this
+   * flag. Neither ⇒ nothing is claimed, and `unattachedMentions` names the row so the link can be
+   * written down. The link lives on HIS side, in the question, which is what makes it unfakeable by
+   * a row's own prose — the same reason `linksOf`'s `backRef` reads his Inbox and not the row.
+   *
+   * WHOLE ROWS ONLY. An attachment is a property of a ROW, so a part of a bundle must not inherit
+   * it — otherwise every part of a settled row derives "finished" at once and SETTLE proposes a
+   * close for work nobody did. */
+  function hisAnswerLanded(sub, ctx) {
+    if (!sub.whole || !sub.id) return null;
+    if (ctx.blockedNaming(sub.id).length) return null;
+    const settled = ctx.settledNaming(sub.id);
+    if (!settled.length) return null;
+    return `your answer landed — ${settled[0].cells[1] ?? settled[0].cells[0]} — and nothing moved this row`;
   },
   function reportNeverWritten(sub) {
     const cited = sub.raw.match(/[.\w/-]*SEA-TRIAL[\w.-]*\.md/g) || [];
@@ -413,7 +433,16 @@ function claimsOf(row) {
 function derive(src) {
   const parsed = parseChart(src);
   const openItems = parsed.tasks;
-  const ctx = { parsed, openItems, blockedTokens: parsed.blockedQuestions.map((q) => tokens(q)) };
+  /* THE ONE LINK, DERIVED ONCE AND READ BY BOTH CONSUMERS (rule 23). REAP asks it to find rows his
+     answer has already freed; `score()` asks it to find rows he is still being asked about. When
+     they were two derivations the two disagreed by construction — one fired exactly when the other
+     did not, both off the same prose-grep. */
+  const naming = (rows, id) => (id ? rows.filter((r) => r.raw.includes(id)) : []);
+  const ctx = {
+    parsed, openItems,
+    blockedNaming: (id) => naming(parsed.blocked, id),
+    settledNaming: (id) => naming(parsed.settled, id),
+  };
   const reasonsFor = (sub) => PROBES.map((p) => p(sub, ctx)).filter(Boolean);
 
   /* THE PROBES ALWAYS RUN; ONLY THE REPORTING IS OPTIONAL. Caught on the first live run: RANK gives
@@ -422,7 +451,7 @@ function derive(src) {
      type. A score that changes with the caller's flags is not a score. */
   const reap = [];
   for (const row of openItems) {
-    const reasons = reasonsFor({ raw: row.raw, context: row.raw, title: row.title });
+    const reasons = reasonsFor({ raw: row.raw, context: row.raw, title: row.title, id: row.id, whole: true });
     if (reasons.length) reap.push({ id: row.id, key: row.key, kind: row.kind, title: row.title, reason: reasons.join("; ") });
   }
   /* KEYED BY `row.key`, NEVER BY TITLE — the same fault as the Inbox collision above, and worse
@@ -452,7 +481,7 @@ function derive(src) {
     bundledTitles.push(row.title);
     const judged = claims.map((c) => ({
       title: c.title,
-      reason: reasonsFor({ raw: c.text, context: `${row.lines[0]}\n${c.text}`, title: row.title })[0] ?? null,
+      reason: reasonsFor({ raw: c.text, context: `${row.lines[0]}\n${c.text}`, title: row.title, id: row.id, whole: false })[0] ?? null,
     }));
     const settled = judged.filter((c) => c.reason);
     const open = judged.filter((c) => !c.reason);
@@ -492,7 +521,7 @@ function derive(src) {
   // a file that no longer exists.
   const ruleTokens = rulingItems(src).map((s) => tokens(s));
   const ranked = openItems
-    .map((row) => ({ row, ...score(row, { reapByKey, settleByKey, ruleTokens }) }))
+    .map((row) => ({ row, ...score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming: ctx.blockedNaming }) }))
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
     .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
 
@@ -508,7 +537,22 @@ function derive(src) {
     })
     .map((row) => row.title);
 
-  return { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval };
+  /* THE LINKS THAT ARE MISSING ARE NAMED, NEVER DROPPED IN SILENCE — 11d's rule, applied to the
+     new signal. A row that talks about his table and names no question of his is not lying and is
+     not necessarily unblocked; it is simply UNREADABLE by a machine, and the honest response is to
+     say which rows need the handle written into the question. Same for a question of his that
+     holds up nothing: from his page it looks answered-and-ignored either way, and only the report
+     can tell him which. Without this, a Chart nobody had migrated would rank as though he had
+     never been asked anything at all, and the tool would say nothing about it. */
+  const unattachedMentions = openItems
+    .filter((row) => /BLOCKED ON WYATT/i.test(row.raw)
+      && !ctx.blockedNaming(row.id).length && !ctx.settledNaming(row.id).length)
+    .map((row) => row.title);
+  const unattachedQuestions = parsed.blocked
+    .filter((q) => !openItems.some((row) => row.id && q.raw.includes(row.id)))
+    .map((q) => q.cells[0]);
+
+  return { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -517,12 +561,18 @@ function derive(src) {
    is a ranking that only looks like it works (the gate proves this by ranking the same rows from
    two different file orders and demanding the same answer).
    ──────────────────────────────────────────────────────────────────────────────────────────── */
-function score(row, { reapByKey, settleByKey, ruleTokens }) {
+function score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming }) {
   const why = [];
   let s = 0;
   const gated = /\bGATED:/.test(row.raw);
   const needsWyatt = (headField(row, "needs") || "").toLowerCase() === "wyatt";
-  const livePointer = /BLOCKED ON WYATT/i.test(row.raw) && !reapByKey.has(row.key);
+  /* WAITING ON HIM IS A FACT ABOUT THIS ROW, NOT ABOUT THE WORDS IT USES. This read
+     `/BLOCKED ON WYATT/i.test(row.raw) && !reapByKey.has(row.key)` until 2026-09-02 — a heading
+     grepped out of the row's own body, cancelled by a REAP flag derived from the same grep. The
+     full account is on `hisAnswerLanded` above; the short version is that his own top task sank
+     1024 points because somebody else filed two unrelated questions. A question of his that NAMES
+     this row is the only thing that may hide it from him. */
+  const livePointer = blockedNaming(row.id).length > 0;
 
   // BLOCKED SINKS TO THE BOTTOM, ALWAYS. The spec: "this alone fixes most of the present list."
   if (gated || needsWyatt || livePointer) {
@@ -693,7 +743,7 @@ if (WRITE && DO.settle) {
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
 }
-const { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval } = d;
+const { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 4 — SWEEP. A done row leaves only when its age can be ESTABLISHED. If no date can be read
@@ -876,6 +926,8 @@ if (JSON_OUT) {
     settleBundled: DO.settle ? bundledTitles : [],
     rank: ranked.map(({ row, ...r }) => r),
     unbackedApproval,
+    unattachedMentions,
+    unattachedQuestions,
     sweep: sweepable.map((x) => ({ title: titleOf(x.row.lines), when: x.when.toISOString().slice(0, 10) })),
   }, null, 2));
 } else {
@@ -932,6 +984,19 @@ if (JSON_OUT) {
       console.log(`\n       ⚠ ${unbackedApproval.length} row(s) claim your approval in their own words and cite nothing, so they are NOT credited.`);
       console.log("         If the record exists, add the `INBOX-<stamp>` it came from, or the `Your ruling:` tag:");
       for (const t of unbackedApproval) console.log(`         • ${t.slice(0, 78)}`);
+    }
+    /* THE BROKEN LINKS BETWEEN HIS TABLE AND HIS LIST. Only a question that NAMES a row may hide
+       that row from him, so a Chart nobody has migrated ranks as though he had never been asked
+       anything — which is the right way to fail (a row that turns out to need him costs a watch
+       minutes; a row wrongly hidden costs him his own order). But it must never happen QUIETLY. */
+    if (unattachedMentions.length) {
+      console.log(`\n       ⚠ ${unattachedMentions.length} row(s) talk about your BLOCKED ON WYATT table and name no question, so nothing there holds them back.`);
+      console.log("         If one of them really is waiting on you, put its `T-nnn` into the question:");
+      for (const t of unattachedMentions) console.log(`         • ${t.slice(0, 78)}`);
+    }
+    if (unattachedQuestions.length) {
+      console.log(`\n       ⚠ ${unattachedQuestions.length} of your open question(s) name no task, so nobody can tell what they are holding up:`);
+      for (const q of unattachedQuestions) console.log(`         • ${q.replace(/\*/g, "").slice(0, 78)}`);
     }
     console.log("");
   }
