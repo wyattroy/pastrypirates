@@ -550,6 +550,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF. THEY ARE THE TOP TWO ROWS FOR THAT REASON
+      AND NO OTHER.** Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
+      THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
+      which is the exact sinking he has now complained about five times.
+      ⟨`T-103`⟩ ⟨`T-104`⟩
+      **HIS WORDS, VERBATIM, BOTH:**
+      1. *"DO NOW: build a way for me to drag to reprioritize the chart, in The Glass."* ⟨`T-103`⟩
+      2. *"Do Now: in the Glass, Add a \"DO now\" button next to \"Send to the Chart\" button that
+         tells RANK to put this task at the top"* ⟨`T-104`⟩
+      **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
+      carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
+      the design and it is his — then build these two as its interface.** They are not a separate
+      idea and must not be designed twice.
+      ⚠ **AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose,
+      twice, because the button that would have let him say it does not exist yet — and the request
+      for that button then sank to the bottom of the list.** The feature is its own acceptance test:
+      **had `T-104` been shipped, `T-104` would not have needed rescuing by hand.** That is the same
+      sentence the Chartkeeper audit already earned once (`INBOX-20260902T04xxZ`), now true a second
+      time, of a different tool, in one day. **A hand-placement like this one is the failure, not the
+      fix** — it works once and generalises to nothing.
+      **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
+      no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
+      harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
+
 - [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
       ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
