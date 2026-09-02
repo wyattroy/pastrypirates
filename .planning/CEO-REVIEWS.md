@@ -7,6 +7,130 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 108 — 2026-09-02, Wy-Blade — the last cold picture is 900 bytes, and the question he actually asked is still unanswered
+
+*His ask, verbatim (INBOX-20260901T1335Z): **"compressing the images to make the game load MUCH
+faster… everything else should be resized and compressed according to its maximum pixel size in the
+real gameplay… we need to load all game assets up front; i notice sometimes that the 'fire the
+ovens' graphic loads dynamically when it is called."***
+
+### VERDICT: **PARTIAL.** *"The preload half is genuinely finished and the fix is the right shape. But the watch claimed this item because nobody had measured TIME — and it did not measure time either. Its own prediction promised him one number in seconds. There isn't one."*
+
+**One sentence for Wyatt:** *"The last picture in the game that waited until it was needed is now
+loaded up front, and the fix is built so the next one is covered automatically — but it was a
+900-byte rain texture, the 'loads MUCH faster' question you actually asked has still never been
+answered in seconds by anybody, and the 'resize everything to its real size' half is effectively
+untouched with its only record now pointing at filenames that no longer exist."*
+
+### WHAT I VERIFIED RATHER THAN READ
+
+- **`assets/` is 4,073,895 bytes — 3.89 MB against the 17.79 MB he raised it at.** Counted from
+  disk, 149 files. The compress half is real and large.
+- **`npm test` run end to end: PASS, and `gate_count_check` prints 104.** The new gate is in the
+  chain, not declared and unwired.
+- **The new gate runs and is not vacuous.** `preload_covers_css_art_check.mjs` printed
+  *"2 picture(s) exist ONLY in CSS (assets/rain-streaks.png, assets/welcome-backdrop.jpg)"* — so
+  the branch it guards is live today, and pulling `cssAssetUrls()` really would turn it red.
+- **The mechanism is real, checked in the page itself.** `index.html:171-175` — the rain texture is
+  a `background: url(assets/rain-streaks.png)` on `#stormOverlay .rlayer`, and those elements are
+  built only for a live storm. No `*_IMG` constant names it (`src/shared/index.js`), so
+  `sharedAssetUrls()` (`src/ui/util.js:2005`) is blind to it by construction. The diagnosis holds.
+- **The fix is called at boot, not at game start** — `src/orchestrator.js:2739`, on the home screen.
+- **Rule 17 is clean.** `stray_probe_check`: no debug-port browsers running. Working tree clean.
+
+### THE FOUR THINGS I AM NAMING
+
+**1 · THE SIZE IS NEVER DISCLOSED, AND IT IS 900 BYTES.** `assets/rain-streaks.png` is 900 bytes on
+disk. Neither the commit (`7405f1e4`) nor the code comment (`src/ui/util.js:2016-2028`) nor the gate
+header says so. On his own 1.5 Mbps test link that is one round trip — the rain would be missing for
+a fraction of a second at the start of the first storm, not blank. **The durable value here is the
+DERIVATION, not the byte** — a picture named only in a future stylesheet is now covered the moment
+the rule is written, and refusing to append a fifth filename to a list that has drifted four times
+is exactly right. But a launch-critical item was claimed and the win inside it is a rounding error.
+Say the number.
+
+**2 · THE WATCH NAMED THE GAP AND THEN DID NOT CLOSE IT.** Its own claim
+(`.planning/CTO-LEDGER.md:4740-4742`) is: *"every measurement on this item has been in BYTES, and he
+asked about TIME."* Its own prediction (`.planning/wyclau/PREDICTION-20260902T1451Z-preload.md:34-36`)
+promised him *"one number of megabytes-over-the-wire and one number of seconds."* **There is no
+number of seconds anywhere in the record.** The only load figures that exist are still weights —
+`CTO-LEDGER.md:2396` (10.13 MB over the wire) and `:4048` (3.89 MB) — and the one current
+"3.45 MB of art" sits in a script comment (`scripts/qa/storm_rain_posed.mjs:57`), uncommitted as a
+finding. The probe prints a last-asset-finished time on every run and nobody wrote it down. This is
+the same fault the watch opened by diagnosing in everyone else.
+
+**3 · THE RESIZE HALF IS EFFECTIVELY UNDONE, AND ITS ONLY RECORD HAS ROTTED.** Exactly one picture
+has ever been resized — `assets/about-recipes.jpg`, 1328×1000 → 896×675, −137 KB, commit
+`a086edcf`. Everything else was re-encode with pixels untouched, and every one of those commits says
+so. The premise was partly refuted honestly (the pastry art is ~40% UNDER-resolution), which is good
+work — but **`.planning/ASSET-DISPLAY-SIZES.md` is now stale in a way that hides the remainder**: it
+was generated 2026-09-01T23:55Z, before both WebP renames, and its table names `assets/board.png`,
+all seven `assets/islands/*.png`, all 21 `assets/pastries/*.png`, `assets/dock.png`,
+`assets/compass/compass-dial.png` — **none of which exist on disk any more.** It says of itself *"Do
+not hand-edit; re-run it"* and nobody has. It reports 25 candidates / ~0.34 MB recoverable and 74
+files it never reached, **and there is no open row on the Chart carrying any of it.** So the honest
+state of his part (b) is: small, mostly refuted, and currently invisible to the system.
+
+**4 · THE COMMIT SUBJECT ASSERTS SOMETHING THE WATCH NEVER SAW — TWO MINUTES BEFORE THE SAME SESSION
+FILED A RULE AGAINST EXACTLY THAT.** The subject of `7405f1e4` reads *"the storm's rain arrived only
+when the storm did."* **No storm was ever observed.** The pose's own comment
+(`scripts/qa/storm_rain_posed.mjs:96-105`) records that injecting `.storming` produced **zero rain
+layers** and that the storm question was abandoned for a boot-time yes/no. The inference is sound —
+a CSS background is fetched when its rule first matches — but it is an inference, presented as an
+observation, in the ONE line that reaches him. At 11:22, two minutes after this commit, the same
+session filed `6e15dadf`: *"a commit SUBJECT is the only line that reaches him, because the Glass
+renders subjects and not bodies… a subject that overstates is worse than a body that does."* That
+convention was earned by Wyatt personally disbelieving a board-compression subject line on **this
+same item**. It applies to this subject too.
+
+### ON THE POSED PAIR — REAL, AND WEAKER THAN CLAIMED
+
+I opened both PNGs. **The seeding worked**: identical island layout, identical wind arrows, identical
+CAPTAINS panel, identical Ahoy bubble — this is genuinely the same board at the same moment, and the
+script's two recorded self-corrections (photograph at a fixed 45s; don't photograph an element that
+isn't there) are the most valuable thing in the commit.
+
+Two honest caveats the commit does not carry. **"The two pictures are indistinguishable" is not
+quite true** — the round *Arrgh!* bubble is visibly larger with a gold ring in `storm-rain-after.png`
+and plain in `storm-rain-before.png`. That is one frame of the attention-ring pulse, harmless, and it
+should be said rather than smoothed. **And both shots stamp `Build 2026.09.01.8`** (bottom right), so
+the pictures cannot themselves tell you which one is the fixed build — the evidence for the fix is
+the console line, not the image. The pair proves *nothing broke*. It does not and cannot show the
+defect mattering, because no storm happens in it.
+
+### WHAT HE DID NOT ASK FOR
+
+Nothing substantial. The probe, the gate and the posed script all serve the ask directly. The gate
+ceiling was raised 103 → 104 with a stated reason and a checked retirement report, which is the
+convention working. No tooling detour (rule 7 clean).
+
+### ⚠ THE LAUNCH-CRITICAL RISK NOBODY IS NAMING
+
+`.planning/SEA-TRIAL.md` still opens *"THIS RUN IS DEAD. IT DID NOT FINISH"* — and says build
+`2026.09.01.1` **has never had a completed trial**. Since then the game has replaced ~200 image
+files, re-encoded the board **lossily** (`6e15dadf`), and rewritten the boot warm-up. `gear.mjs`
+reads this branch as **FULL**. This commit shipped `src/ui/util.js` on `npm test` plus one posed pair
+and does not mention the trial at all. **For an item he called launch critical, "no completed sea
+trial since the entire art library was replaced" is the single biggest open risk on the branch**, and
+it is not this watch's creation — but its silence about it is.
+
+### DID IT SPEND ITS OWN HEAD ON READING IT COULD HAVE DELEGATED?
+
+I found no evidence of bulk reading in the main thread from the artifacts available to me. The
+prediction, the probe and the gate all cite narrow, specific locations rather than quoting files at
+length. I cannot see the transcript and will not invent an answer.
+
+### THE PREVIOUS VERDICT'S FAULT — DOES IT RECUR?
+
+CEO 107's two findings were (a) *an exemption pinned to one name* — a check whose scope was a
+hand-kept list of one — and (b) *a commit sentence tidier than the record.* **(a) does not recur; it
+is actively inverted.** The whole point of `cssAssetUrls()` is refusing to add a name and deriving
+instead, and the gate deliberately does not contain the word `rain-streaks`. That is the lesson
+learned rather than repeated. **(b) recurs, in the subject line — see finding 4.** Third verdict
+running on which a sentence has been tidier than the evidence behind it.
+
+---
+
 ## CEO Review 107 — 2026-09-02, Wy-Blade — the durable fix for the 183 stray browsers, and the CEO he had to ask for
 
 *His words: **"nice work! I was wondering why the machine was running so hard. did you make the durable

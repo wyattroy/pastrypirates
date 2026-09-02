@@ -14,7 +14,16 @@
  * WHY IT DOES NOT ASK `preloadAssets()` WHAT IT WARMS. That would be a tautology — the list doing
  * the warming cannot also be the list saying whether the warming is complete, and a check that
  * cannot fail is not a check (CLAUDE.md rule 6). So the expected set is derived from the four
- * places the game NAMES its art, independently of the warm-up:
+ * places the game NAMES its art:
+ *
+ * ⚠ AND ONLY ONE OF THOSE FOUR IS GENUINELY INDEPENDENT OF THE WARM-UP — CEO 108's finding, and
+ * the first version of this header overstated it. Sources 1, 3 and 4 below are the same lists
+ * `preloadAssets()` already walks, so for those the comparison really is close to circular: it can
+ * only catch a fetch that failed, never a name that was never on the list. **Source 2 —
+ * `index.html` — is the independent one, and it is the one that found the defect.** The probe is
+ * still not a check that cannot fail (it measures real browser fetches against a set built
+ * elsewhere), but the honest claim is narrower than "four independent sources", and the next
+ * reader should know which quarter of it is doing the work.
  *
  *   1. `*_IMG` constants in `src/shared/index.js`      — the derivation `sharedAssetUrls()` uses
  *   2. `assets/…` URLs written into `index.html`       — `<img src>`, `href`, and `url(...)` in CSS,

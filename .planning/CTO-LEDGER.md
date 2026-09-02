@@ -4741,3 +4741,54 @@ setting, not a fact** (CEO 106) — a session with write access should remove th
   this item has been in BYTES, and he asked about TIME and about a graphic that "appears blank on
   slow connections."** This watch measures the thing he asked for, on the real build, and either
   closes his item on that evidence or names what is still cold.
+
+### WATCH 14:51Z — DID NOT CLOSE ITS ITEM, DELIBERATELY, AND CEO 108 IS THE REASON
+
+**PREDICTION vs RESULT** (`PREDICTION-20260902T1451Z-preload.md`, written before the probe existed).
+**Right on the one that mattered:** the gap would be in the families the `*_IMG` derivation cannot
+see — *"pictures referenced only from CSS in `index.html`"*, with the rain streaks named as a
+candidate. **Wrong on the second candidate:** the welcome backdrop is CSS-only too and I predicted
+it would be cold; it is not, because the welcome screen paints it immediately. **Wrong on (4):**
+I said the honest answer to *"does it load MUCH faster"* was worth giving him "as one number of
+seconds", and then never produced one. **Nobody has ever timed this game's boot.** The probe
+reports 3.45 MB over the wire and a localhost finish time, which is not an answer to his question.
+
+**WHAT SHIPPED:** `assets/rain-streaks.png` — 900 bytes, the storm's rain — was the last picture in
+the game fetched only when the screen that needs it appeared. RED 1 cold → GREEN 0 cold on the same
+posed boot. Fixed by a derivation over `document.styleSheets`, never a fifth name on the list.
+Gate `preload_covers_css_art_check.mjs`, red-proofed. Ceiling 103 → 104 with its reason in
+`package.json`; `quiet_gate_report.mjs` still offers zero retirement candidates. npm test 104/104.
+Stamp `2026.09.01.8` → `2026.09.02.1`. Commit `7405f1e4`.
+
+**WHY THE ITEM STAYS OPEN.** CEO 108, **PARTIAL**: his ask has three parts and **RESIZE has
+happened to exactly one file in the library** (`about-recipes.jpg`, `a086edcf`). Everything since
+re-encoded pixels untouched — honestly, in every commit — and nobody carried the remainder forward.
+It now has a row, `T-087`, with the warning that its only measurement
+(`ASSET-DISPLAY-SIZES.md`) predates both WebP renames and names files that no longer exist.
+**Closing this item as DONE would have been false, so it was not closed.**
+
+**FOUR CORRECTIONS THIS WATCH OWES, in CEO 108's words where they are sharper than mine:**
+
+1. **The commit subject states an inference as an observation.** *"the storm's rain arrived only
+   when the storm did"* — **no storm was ever observed.** The pose that tried produced zero rain
+   layers and was abandoned. *"Third verdict running"* for a sentence tidier than the record, and it
+   landed two minutes after this branch filed the convention forbidding it.
+2. **The size was dressed up by omission.** 900 bytes, not the "4 KB" I carried in my head and not a
+   launch-critical victory. The rule is the value; the byte is a rounding error, and the commit
+   should have said so.
+3. **The probe's header overstated its own independence.** Three of its four sources are the same
+   lists `preloadAssets()` walks; only `index.html` is genuinely independent — **and that is the one
+   that found the defect.** Header corrected rather than left flattering.
+4. **`assets/` is 3.89 MB, not the 4.3 MB I wrote at claim time.** That was `du`'s block count read
+   as a byte total. The real number is `package.json`'s own `ceilingBytes`: 4,073,895 bytes.
+
+**AND THE RISK CEO 108 NAMED THAT IS BIGGER THAN THE ITEM:** `gear.mjs` reads this branch as FULL,
+and this commit shipped game code on `npm test` plus a posed pair. ~200 image files have been
+replaced and the boot warm-up rewritten since any trial completed. **A trial is owed on this
+branch** — it is `T-016`'s row, and it is now further out of date, not closer.
+
+**ONE THING THE POSE TAUGHT, worth more than the fix.** The first pair broke its polling loop the
+moment the rain arrived, so "after" was photographed at 9s and "before" at 91s — and an island was
+still mid-load in the earlier one. **Two pictures taken at different moments are not a pair: the
+difference they show is the clock.** Both runs now poll and photograph inside the same fixed 45s
+window, and the note is in the script at the line that would otherwise do it again.

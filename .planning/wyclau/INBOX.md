@@ -41,7 +41,32 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — **2 of his 3 asks closed. RESIZE is nearly empty, but COMPRESSION was not: the
+status: OPEN — **PRELOAD IS NOW FINISHED AND PROVEN; RESIZE IS THE ONE PART STILL GENUINELY UNDONE,
+and it finally has a row of its own (`T-087`).** Watch 2026-09-02T14:51Z, **CEO 108 (PARTIAL)**,
+commit `7405f1e4`. Deliberately NOT closed: his ask has three parts and one of them has happened to
+exactly one file.
+
+  **THE LAST PICTURE IN THE GAME THAT WAITED UNTIL IT WAS NEEDED.** A probe that derives the set of
+  pictures the game can draw from four places it names them — and never from the warm-up list —
+  found **144 named, 143 fetched at boot, ONE cold**: `assets/rain-streaks.png`, the storm's rain.
+  It lives in a CSS `url()` in `index.html` and in no JavaScript constant, so `sharedAssetUrls()`
+  was blind to it **by construction**. Fixed with a derivation over the page's own stylesheets, not
+  by appending a fifth name to a list that has already drifted four times. **GREEN: 144 of 144.**
+  Gate `preload_covers_css_art_check.mjs`, red-proofed by deleting the derivation; npm test 104.
+
+  ⚠ **THE SIZE, STATED PLAINLY BECAUSE THE COMMIT DID NOT: that file is 900 BYTES.** On his own
+  slow link it is one round trip. **The durable value is the rule, not the byte** — any picture a
+  future stylesheet names is now covered the moment it is written. CEO 108 called the omission out
+  and it was right to.
+
+  ⚠ **AND A CORRECTION THIS WATCH OWES IN THE OPEN.** Commit `7405f1e4`'s subject says the rain
+  *"arrived only when the storm did"* — **no storm was ever observed.** The pose that tried to
+  photograph one produced zero rain layers (the game builds them only for a real storm) and the
+  attempt was abandoned; the inference is sound and it was written as an observation. That is the
+  third verdict running to find a sentence tidier than the record, and it landed two minutes after
+  the same branch filed the convention forbidding exactly that.
+
+  *Below, the state as it stood before that watch:* **2 of his 3 asks closed. RESIZE is nearly empty, but COMPRESSION was not: the
 BOARD alone was 43% of every image in the game and nobody had touched it.** Watch
 2026-09-02T08:10Z, CEO 97 (**PARTIAL**), Chart row `T-057`, commit `fbbf44ad`.
 
