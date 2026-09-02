@@ -207,15 +207,25 @@ platform's own conflict guard fired three times.* An earlier version of this fil
 > ask it 96 times a day. That matters beyond waste: step 2 is the only thing standing between a
 > republish and deleting what Wyatt typed, and a clock multiplies the unattended chances to skip it.
 >
-> **THE FIX, BUILT 2026-09-01 and now step 3 above:** `scripts/wyclau/glass_needs_publish.mjs`
-> prints `PUBLISH` (exit 0) or `NOTHING-MOVED` (exit 10) from the newest landed commit across all
-> refs and whether a note is queued. **Tick often, act rarely** — the Bell's own shape, which kept
-> its 10-minute tick through the redesign and simply asks a truthful question before acting.
+> **THE FIX, BUILT 2026-09-01:** `scripts/wyclau/glass_needs_publish.mjs` prints `PUBLISH` (exit 0)
+> or `NOTHING-MOVED` (exit 10) from the newest landed commit across all refs and whether a note is
+> queued. **Tick often, act rarely** — the Bell's own shape, which kept its 10-minute tick through
+> the redesign and simply asks a truthful question before acting.
+>
+> ⚠ **DO NOT RUN IT DIRECTLY — STEP 3 IS THE WRAPPER, `glass_gate_log.mjs`, AND HAS BEEN SINCE
+> 2026-09-02.** This box used to say "and now step 3 above" beside the raw gate's name, and CEO 100
+> found it: a reader reaching this box first would run the bare gate by hand, which leaves no line
+> in `GATE-LOG` — the exact hole `INBOX-20260902T0120Z` was raised to close, re-opened by a stale
+> sentence two hundred lines below the step it contradicted. **A pointer that goes stale inside the
+> document it points into is this project's most-repeated fault.**
 >
 > **RED-PROOFED IN BOTH DIRECTIONS before it was trusted**, because a check that can only say one
 > thing is the exact fault this file's step 8 was fixed for: with the stamp pointed at the current
 > commit it said `NOTHING-MOVED`; with a note queued it flipped to `PUBLISH`. Gate:
-> `scripts/qa/glass_needs_publish_check.mjs`, wired into `npm test` (90 gates).
+> `scripts/qa/glass_needs_publish_check.mjs`, wired into `npm test` — as is
+> `scripts/qa/glass_gate_verdict_logged_check.mjs`, which holds step 3 to the shape above.
+> *(This line used to carry a hand-typed gate count. It was wrong within a day — the number lives in
+> `package.json`'s `gates` object and nowhere else, which is the only place it can be right.)*
 >
 > **EVERY DOUBT RESOLVES TO PUBLISH** — a missing stamp, an unparseable one, a git that will not
 > answer, an unreadable note file. A broken input must never be able to SUPPRESS a publish, because

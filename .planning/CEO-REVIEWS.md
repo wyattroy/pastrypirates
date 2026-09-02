@@ -7,6 +7,78 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 100 — 2026-09-02, Wy-Blade — the Glass tick's change-gate must RUN and leave a verdict
+
+*Item: **`INBOX-20260902T0120Z`** / Chart row **`T-018`** (`.planning/CHART.md:842-847`) — "run `glass_needs_publish.mjs` on EVERY tick and log its verdict, even when the harvest has already forced a publish. Change the runbook's override clause so it overrides the ACTION, not the CHECK." Commits `905a246` (claim), `229843cf` (the work). Previous verdict handed over: CEO 99 (PARTIAL, T-059).*
+
+### VERDICT: **PARTIAL** — in my own words
+
+> **The mechanism he asked for is built, and it is built well. The thing it was supposed to produce — a Glass tick with its verdict on the record — did not happen on the very first live tick after it shipped.** I can date that to the minute. The fix landed at 10:33:54Z. A real Glass tick ran at 10:35:50Z, went past the step that was supposed to write the verdict, and wrote nothing. The gate log's newest entry is still 10:29:01Z — the watch's own bench test, five minutes *before* the tick.
+>
+> So the second half of the ask — "change the runbook's override clause" — is genuinely done, and I tried to find a second door and could not. The first half — "log its verdict on every tick" — is **available but not yet actually happening**. The item exists precisely to close the gap between "the guard is present" and "the guard is consulted," and today that gap is still open one level up: the guard is present, the runbook says to consult it in capital letters, and the first tick did not.
+>
+> There is also a hole inside the new gate itself. It never once runs the wrapper the way a tick runs it, so the one thing that would silently break the whole guard — the wrapper losing track of where the real gate lives — is invisible to `npm test`.
+
+### What I verified for myself rather than taking from the report
+
+- **The new gate is real and passes.** I ran `node scripts/qa/glass_gate_verdict_logged_check.mjs` — 12 assertions, all ok, `PASS`. The count matches the commit's claim.
+- **The runbook's override now lands on the action, not the check.** `.planning/wyclau/GLASS-UPDATE-SESSION.md:128-134` reads, unconditionally, "THIS COMMAND RUNS ON EVERY TICK, WITHOUT EXCEPTION," with `--harvested` as a variant of the *same* command rather than a licence to skip it. Read as a person following it, step 3 has no branch that ends in "don't run it."
+- **The gitignore reasoning holds — I read the function myself.** `scripts/wyclau/glass_needs_publish.mjs:105-111`: a commit is treated as real work whenever `files.length !== 1 || files[0] !== NOTE`. So a tracked log line committed beside the note reset would make that commit touch two files, and the next tick would read it as work landing and republish a page carrying nothing new. **The "echo tick" claim is correct and the gitignore is not a dodge.**
+- **`--harvested` genuinely overrides only the decision.** `scripts/wyclau/glass_gate_log.mjs:98-104`: the verdict is fixed from the gate's exit code *and* its words before `if (harvested) exitCode = 0;` ever runs. The log line at `:110-117` carries the gate's real verdict plus the words `override=harvest`. The live log confirms it — `.planning/wyclau/GATE-LOG` line 2 reads `NOTHING-MOVED exit=0 override=harvest`. **There is no flag that lets a caller skip the gate.**
+- **The sweep claim is true.** I grepped the whole repo for the old clause. `regardless of what this says` now survives only inside two comment blocks quoting history (`scripts/wyclau/glass_gate_log.mjs:18`, `scripts/qa/glass_gate_verdict_logged_check.mjs:7`). `GLASS-UPDATE-SESSION.md` is the only document that tells anyone how to run a tick; the cron prompt at `:180-183` carries a pointer to that file, not steps. One place, and it was fixed.
+- **The gate log's whole contents.** Two lines, both stamped 10:28:59Z and 10:29:01Z — the watch's own before/after measurement. **No tick has ever written to it.**
+
+### Findings, most serious first
+
+**1. The first live Glass tick after the fix shipped left no verdict — the exact defect the item was raised about, roughly two minutes after it was declared fixed.** `.planning/wyclau/LAST-HARVEST` reads `2026-09-02T10:35:50Z`, and that file is written by exactly one thing: runbook step 4 (`GLASS-UPDATE-SESSION.md:145`). `.planning/wyclau/glass.html:118` was regenerated with `"generatedAt":"2026-09-02T10:36:07.982Z"` — that is step 6. **Step 3 sits between them.** `.planning/wyclau/GATE-LOG` has not been touched since 10:29:01Z. Both the new runbook (on disk 10:28:51) and the wrapper (proven running at 10:28:59) were in place before that tick began, so this is not a race with the commit. *I can only read the tick's file traces, not its transcript — but the file traces **are** the record, and the record is silent, which is the thing the item asked to end.*
+
+**2. The new gate never runs the wrapper the way a tick runs it, so the one break that would silently defeat everything is invisible.** Every behavioural case passes an injected fake gate — `glass_gate_verdict_logged_check.mjs:86, 94, 103, 134, 149` all carry `--gate=`. Nothing exercises the default path at `glass_gate_log.mjs:80`. If that path ever goes wrong — a rename, a re-vendor moving `glass_needs_publish.mjs` — the wrapper reads the result as UNREADABLE (`:98-101`), exits 0, and **the Glass publishes on every tick forever while the log dutifully records a verdict that came from nothing.** `npm test` stays 97/97 green throughout. That is this item's own fault shape, one floor down. The fix is one case: run the wrapper with no `--gate` and fail if the verdict comes back UNREADABLE.
+
+**3. The runbook guard is a memorial to one sentence, not a guard against the class.** `glass_gate_verdict_logged_check.mjs:172` matches only the literal string `regardless of what this says`, or the words "skip"/"skipping" immediately followed by "check" or "gate". By inspection of that regex, all of these would sail through: *"you may skip step 3 when the harvest already forced a publish"*, *"step 3 is optional if step 2 found his words"*, *"no need to ask the gate"*, *"bypass the gate on a harvest tick"*, *"go straight to step 4"*. The file is admirably honest that case 8 is its weakest (`:25-35`) — but it names the weakness as "it cannot see whether a human typed the command", not as "it only catches the exact sentence I just deleted". Finding 1 shows the unnamed weakness is the one that bit. *(Side effect worth knowing: because this greps the runbook for that literal phrase, nobody can ever quote this history inside the runbook without turning the suite red.)*
+
+**4. A second, stale door in the same document.** `GLASS-UPDATE-SESSION.md:210` still reads *"THE FIX, BUILT 2026-09-01 and now step 3 above: `scripts/wyclau/glass_needs_publish.mjs`"*, and `:218` still says *"(90 gates)"*. Step 3 is now the wrapper and the suite is 97. A reader who reaches that box first can come away running the raw gate by hand — which leaves no line, which is the hole. Case 8 does not catch it because the raw gate's name is not on its list.
+
+**5. The verdict lives where Wyatt cannot read it.** `.gitignore:97`. The commit is honest about the cross-machine limit and does not overclaim, and finding-3's reasoning above says the gitignore decision itself is *correct*. But the audit trail is a 374-byte untracked file on one laptop, surfaced nowhere on the Glass. The consequence belongs on the Chart as a named gap, not only in a commit message nobody re-reads.
+
+**6. Bookkeeping, not a defect:** `T-018` at `.planning/CHART.md:842` is still unticked and still describes the defect in the present tense — *"the runbook's override clause **lets** a tick skip"*. Correct at this point in the loop (the CEO review precedes the close), but that sentence has to change when the row closes, or the Chart teaches a defect that no longer exists.
+
+### Does either CEO 99 fault recur?
+
+- **Fault 1 — "fixed one of three places and called `npm test` a sweep": NO, it does not recur.** I ran my own grep across the whole repo rather than taking the claim. There genuinely was one place, and the watch found it and said so. This is the cleanest sweep I have reviewed on this project.
+- **Fault 2 — "the note written for Wyatt was deleted instead of published": NO, not in that form.** `GLASS-NOTE.md` is back to its empty template, and `LAST-PUBLISH` records `version=1788344492-bc2c commit=905a246` — the claim note **did** reach him, published at commit `ca7f80cd`. Nothing was thrown away.
+- **But the family CEO 99 named is still visible in a weaker form.** The **result** of this work has not reached him: `LAST-PUBLISH` still names `905a246`, the *claim* commit, not `229843cf`, the fix. The 10:35Z tick regenerated the page and never stamped it — and by the runbook's own rule at `:166-170`, no version id means it cannot be said to have published. So the page he opens still describes a watch that *took* this item, not one that finished it. **And the tick that failed to carry the news is the same tick that failed to log its verdict.** One skipped step, two consequences.
+
+### The watch's response — what was fixed on this verdict, and what was not
+
+**FINDINGS 2, 3 and 4 ARE FIXED IN THIS WATCH, AND EACH ONE WAS RED-PROOFED BEFORE IT WAS BELIEVED.**
+The default gate path, the raw gate as a command, and three rewordings of the skip clause were all
+broken deliberately at once — the wrapper's default pointed at `REDPROOF_glass_needs_publish.mjs`,
+and *"step 3 is optional … just run `node scripts/wyclau/glass_needs_publish.mjs`"* pasted into the
+runbook. **All three new cases failed**, then the breakage was reverted and all fourteen passed.
+`npm test` 97/97. Finding 2 was the sharpest thing in this review: it is this item's own fault one
+floor down, and it would have stayed green forever.
+
+**FINDING 1 IS UPHELD, NOT ARGUED WITH, AND I CONFIRMED IT MYSELF.** `LAST-HARVEST` reads
+`2026-09-02T10:35:50Z`; `GATE-LOG`'s newest line is still `10:29:01Z`. A tick ran step 4 and never
+wrote a verdict at step 3. **Two things worth separating, because they point different ways:**
+- **The absence of the line IS the finding, and that is the mechanism working.** Before this
+  morning there was no way to tell a skipped gate from an unwired one; CEO 100 dated a skip to the
+  minute using a file that did not exist two hours earlier. The item's own sentence — *"only the
+  second is auditable"* — was proved by its first use, against its own author's work.
+- **It is not repaired, and cannot be from here.** The Glass-update session is a separate live
+  session on a hand-started cron. A watch reaching into it is the collision `INBOX-20260902T0058Z`
+  was written about. **The durable answer is a gate the tick cannot walk past, not a firmer
+  sentence** — filed as a Chart row rather than built, because that is a second item.
+
+**FINDING 5 IS ACCEPTED AND FILED** as its own Chart row: the verdict is machine-local for a reason
+that holds, and the cross-machine half needs `publish_status.mjs`, which is vendored and out of an
+unattended watch's reach. **FINDING 6** is handled by the close gate rewriting the row.
+
+**ON THE RESULT REACHING HIM.** Named exactly right, and it is the fourth time in this family. The
+close note goes into `GLASS-NOTE.md` and this session has no Artifact tool, so it cannot publish or
+stamp — it can only make the note true and commit it atomically. **That is the boundary, stated
+rather than papered over.**
+
 ## CEO Review 99 — 2026-09-02, Wy-Blade — the Watch that got `npm test` back to green
 
 *Item: **`T-059`** (`.planning/CHART.md:296-304`) — *"`npm test` IS RED AND HAS BEEN SINCE ~08:00Z…

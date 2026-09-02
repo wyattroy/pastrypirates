@@ -156,11 +156,41 @@ const logLines = () => {
   else pass("--harvested does NOT override the check: the gate's real verdict and the override are both on the record");
 }
 
+/* 7b. THE DEFAULT GATE PATH MUST RESOLVE — CEO 100's finding 2, and it is this item's own fault
+ *     one floor down. Every case above injects a fake gate with --gate=, so NOTHING exercised the
+ *     path the tick actually takes. If that default ever breaks — a rename, a re-vendor moving
+ *     glass_needs_publish.mjs — the wrapper reads the result as UNREADABLE, exits 0, and the Glass
+ *     publishes on EVERY tick forever while the log dutifully records a verdict that came from
+ *     nothing. `npm test` would stay green throughout. A guard that cannot see its own subject
+ *     moving is the fault this whole item is about.
+ *     --log is still redirected into the sandbox: a check must not write into the audit trail it
+ *     is checking, or every `npm test` run looks like a Glass tick. */
+{
+  const r = run([`--log=${LOG}`]);
+  const last = logLines().at(-1) ?? "";
+  if (/UNREADABLE/.test(last))
+    fail(`run with no --gate, the wrapper could not reach the real glass_needs_publish.mjs (logged UNREADABLE). Every tick would publish on a verdict that came from nothing, and this suite would stay green: ${last.slice(0, 160)}`);
+  else if (!/\b(PUBLISH|NOTHING-MOVED)\b/.test(last))
+    fail(`run with no --gate, the wrapper logged no real verdict at all: ${last.slice(0, 160)}`);
+  else pass(`the wrapper's DEFAULT gate path reaches the real check and returns a real verdict (${(last.match(/\b(PUBLISH|NOTHING-MOVED)\b/) || [])[1]}, exit ${r.code})`);
+}
+
 /* 8. THE RUNBOOK AND THE TOOL MUST NAME EACH OTHER. The weakest case in this file, and it is here
  *    for a measured reason: on 2026-09-02 the allowlist covered `bash scripts/deploy-staging.sh`
  *    while three documents taught `./scripts/deploy-staging.sh`, and nothing connected them, so a
  *    watch following its own documentation was refused. A tool nobody is told to run is CEO 95's
- *    finding about the Chartkeeper: "a ranking tool nobody runs does not clean your list." */
+ *    finding about the Chartkeeper: "a ranking tool nobody runs does not clean your list."
+ *
+ *    ⚠ WIDENED AFTER CEO 100, WHICH NAMED THE WEAKNESS THIS FILE HAD MIS-NAMED. The first version
+ *    matched only the one sentence that had just been deleted, and CEO 100 listed five rewordings
+ *    that would sail straight through — "step 3 is optional", "no need to ask the gate", "bypass
+ *    the gate on a harvest tick", "go straight to step 4". This file had honestly declared its own
+ *    weakness as "it cannot see whether a human typed the command", which was true and was NOT the
+ *    weakness that mattered. A memorial to one sentence is not a guard against a class.
+ *    THE DELIBERATE COST, stated so nobody rediscovers it as a bug: the runbook can no longer quote
+ *    the old clause verbatim without turning the suite red. It paraphrases instead, which is the
+ *    right trade — the runbook is an instruction sheet, and the history belongs here and in the
+ *    Inbox. */
 {
   const book = existsSync(RUNBOOK) ? readFileSync(RUNBOOK, "utf8") : "";
   if (!book) fail(".planning/wyclau/GLASS-UPDATE-SESSION.md is missing — the tick has no runbook to follow");
@@ -169,10 +199,27 @@ const logLines = () => {
       fail("the runbook never names `node scripts/wyclau/glass_gate_log.mjs` — the wrapper exists and nobody is told to run it, so no tick is any more auditable than before");
     else pass("the runbook's tick step names the wrapper by the exact command that exists");
 
-    const skipClause = /regardless of what this says|skip(?:ping)? (?:the |this )?(?:check|gate)/i.exec(book);
-    if (skipClause)
-      fail(`the runbook still grants a skip of the CHECK ("${skipClause[0]}") — the override must land on the action, not on whether the gate runs`);
-    else pass("the runbook grants no skip of the check itself — only of the decision it returns");
+    /* The raw gate must never appear as a COMMAND in the runbook. Naming the file in prose is fine
+       and necessary (the box explaining why it exists does); telling someone to run it is the hole,
+       because a direct run leaves no line in GATE-LOG. CEO 100 found exactly that sentence still
+       standing two hundred lines below the step that had replaced it. */
+    if (/node\s+scripts\/wyclau\/glass_needs_publish\.mjs/.test(book))
+      fail("the runbook still gives `node scripts/wyclau/glass_needs_publish.mjs` as a command to run — a direct run of the raw gate leaves no line in GATE-LOG, which is the hole this item closed");
+    else pass("the runbook never tells anyone to run the raw gate directly — only the wrapper");
+
+    const SKIP_CLAUSES = [
+      /regardless of what this says/i,
+      /\bskip(?:ping|ped)?\b[^.\n]{0,40}\b(?:check|gate|step 3)\b/i,
+      /\bstep 3\b[^.\n]{0,40}\b(?:optional|unnecessary|not needed)\b/i,
+      /\bno need to\b[^.\n]{0,40}\b(?:ask|run|check|gate)\b/i,
+      /\bbypass(?:ing)?\b[^.\n]{0,40}\b(?:check|gate|step 3)\b/i,
+      /\b(?:go|jump|straight)\b[^.\n]{0,20}\bstraight to step\b/i,
+      /\bdon'?t (?:bother|need to) (?:ask|run)\b/i,
+    ];
+    const hit = SKIP_CLAUSES.map((re) => re.exec(book)).find(Boolean);
+    if (hit)
+      fail(`the runbook grants a skip of the CHECK ("${hit[0]}") — the override must land on the action, not on whether the gate runs`);
+    else pass(`the runbook grants no skip of the check itself — ${SKIP_CLAUSES.length} rewordings tested, only the decision may be overridden`);
   }
 }
 
