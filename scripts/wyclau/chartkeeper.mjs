@@ -60,7 +60,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ID_RE, bodyOf, chunk, dropSection, overlap, parseChart, replaceSection, rowKey, section,
+  ID_RE, bodyOf, chunk, dropSection, idOfRow, overlap, parseChart, replaceSection, rowKey, section,
   tableRows, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
@@ -263,8 +263,19 @@ const pidAlive = (pid) => {
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 1 — REAP. Ask the WORLD a question about the row's pointer; never read a stored flag.
-   Each probe returns a reason string or null. A row with no pointers in it can never be flagged,
+   Each probe returns `{ fault, text }` or null. A row with no pointers in it can never be flagged,
    which is how the Chartkeeper is able to say "the Chart is fine" (guardrail 4).
+
+   ⚠ EVERY PROBE NAMES ITS OWN FAULT, AND UNTIL 2026-09-02 NONE OF THEM DID — they returned bare
+   sentences that were joined with "; " and filed under one word, "stale". Wyatt read the
+   consequence on his own page and asked about it: *"do you want to put those in the Your Call
+   section so I can approve/deny them being closed?"* Measured against the real Chart the same
+   hour: **ten rows carried that one label and not one of them was flagged "finished"** — six had
+   evidence that went stale when the build moved on (they need RE-MEASURING, which is a watch's job
+   and mostly a screenshot), three were rows his ruling had freed, one cited a dead pid. **He
+   cannot act on a flag that means three things, and neither can we**: the Advisor repeated the
+   lumped sentence back to him as fact and it was wrong for six of the ten.
+   The kinds exist inside this loop; the fault was that they died on the way out. `T-090`.
 
    ⚠ A PROBE'S SUBJECT IS NO LONGER ALWAYS A WHOLE ROW, AND THAT IS THE ENABLING CHANGE FOR SETTLE.
    The spec's detection rule for a half-done row is *"REAP's derived questions come back TRUE for
@@ -305,17 +316,45 @@ const PROBES = [
     if (ctx.blockedNaming(sub.id).length) return null;
     const settled = ctx.settledNaming(sub.id);
     if (!settled.length) return null;
-    return `your answer landed — ${settled[0].cells[1] ?? settled[0].cells[0]} — and nothing moved this row`;
+    return { fault: "answered", text: `your answer landed — ${settled[0].cells[1] ?? settled[0].cells[0]} — and nothing moved this row` };
+  },
+  /* ⚑ HIS RULING FREED THIS ROW — WHICH IS A DIFFERENT FACT FROM "HE ANSWERED IT", AND CONFLATING
+   * THE TWO IS `T-090`.
+   *
+   * The probe above only counts a link Wyatt's own question cell carries. That is the right rule for
+   * "he answered this" and it is deliberately strict, because getting it wrong puts a settled
+   * question back in front of him — the fault he was furious about on 2026-09-02.
+   *
+   * But a ruling's THIRD cell — the commentary a session writes when it applies his answer — often
+   * names the rows the answer unblocked, and that is real, useful information: a row whose blocker
+   * has just lifted is the cheapest thing on the list to pick up. Throwing it away to fix the
+   * mis-attribution would have sunk `T-085` (a two-minute edit he is waiting on) from rank 7 to
+   * nowhere. So it is kept, and told apart: **answered ⇒ close it; freed ⇒ do the work.**
+   *
+   * ⚠ AND AN AMBIGUOUS HANDLE CLAIMS NOTHING. Handles are reused in practice — `T-078` is a closed
+   * row in `CHART-LOG.md` and a live row on the Chart at the same time — so a ruling's mention of
+   * one names two different jobs. On 2026-09-02 that mis-flagged the `<img>` recurrence row with a
+   * ruling about whether a watch may read the claude-kit folder, and under the Your Call proposal
+   * that row would have been put to Wyatt as a question he has never been asked. Failing toward NO
+   * CLAIM is the only safe direction: `ctx.handleIsAmbiguous`. */
+  function hisRulingFreedThis(sub, ctx) {
+    if (!sub.whole || !sub.id) return null;
+    if (ctx.blockedNaming(sub.id).length) return null;
+    if (ctx.settledNaming(sub.id).length) return null;   // already the stronger claim above
+    if (ctx.handleIsAmbiguous(sub.id)) return null;
+    const freeing = ctx.settledFreeing(sub.id);
+    if (!freeing.length) return null;
+    return { fault: "unblocked", text: `your ruling — ${freeing[0].cells[1] ?? freeing[0].cells[0]} — freed this row, and the work is still to do` };
   },
   function reportNeverWritten(sub) {
     const cited = sub.raw.match(/[.\w/-]*SEA-TRIAL[\w.-]*\.md/g) || [];
     const missing = cited.map((c) => c.replace(/^`|`$/g, "")).filter((c) => !existsSync(abs(c.startsWith(".planning") ? c : join(".planning", c))));
-    return missing.length ? `cites a trial report that is not on disk: ${missing[0]}` : null;
+    return missing.length ? { fault: "dead-pointer", text: `cites a trial report that is not on disk: ${missing[0]}` } : null;
   },
   function pidLongDead(sub) {
     const m = /\bpid\s+(\d{2,7})\b/i.exec(sub.raw);
     if (!m) return null;
-    return pidAlive(Number(m[1])) ? null : `warns readers off on account of pid ${m[1]}, which is not running`;
+    return pidAlive(Number(m[1])) ? null : { fault: "dead-pointer", text: `warns readers off on account of pid ${m[1]}, which is not running` };
   },
   function evidenceRetired(sub) {
     if (!treeStamp) return null;
@@ -323,7 +362,7 @@ const PROBES = [
     if (!stamps.length) return null;
     const older = stamps.filter((s) => s < treeStamp);
     if (!older.length || stamps.includes(treeStamp)) return null;
-    return `measured on build ${older[0]}; the tree is ${treeStamp}, so its evidence no longer describes this game`;
+    return { fault: "stale-evidence", text: `measured on build ${older[0]}; the tree is ${treeStamp}, so its evidence no longer describes this game` };
   },
   function supersededByAnotherRow(sub, ctx) {
     const mine = tokens(sub.title);
@@ -331,11 +370,38 @@ const PROBES = [
       if (other.title === sub.title) continue;
       const m = /supersedes ([^.*)\n]{6,80})/i.exec(other.raw);
       if (!m) continue;
-      if (overlap(tokens(m[1]), mine) >= 2) return `superseded — the row "${other.title.slice(0, 60)}" says in its own text that it supersedes this`;
+      if (overlap(tokens(m[1]), mine) >= 2) return { fault: "superseded", text: `superseded — the row "${other.title.slice(0, 60)}" says in its own text that it supersedes this` };
     }
     return null;
   },
 ];
+
+/* THE FIVE FAULTS, EACH WITH THE OWNER IT ROUTES TO, WRITTEN ONCE AND READ BY EVERYTHING — the
+   report, the flag stamped into his Chart, the ranking sentence, and the line his page shows him.
+   Rule 23: the label he reads and the label the tool sorts by are ONE label, or they will drift and
+   his page will mean something the tool does not.
+
+   `owner` is what a watch does about it. `note` is the sentence for HIS page, in the second person,
+   and it is deliberately not the same words as `owner` — he is being told what is happening, not
+   given a work order. */
+const FAULTS = {
+  answered:         { owner: "close it (he already answered)", note: (n) => `${n} ${n === 1 ? "task has" : "tasks have"} your answer on the record and never moved — a watch closes ${n === 1 ? "it" : "them"}.` },
+  unblocked:        { owner: "do the work (his ruling freed it)", note: (n) => `${n} ${n === 1 ? "task was" : "tasks were"} freed by your rulings and the work is still to do — a watch picks ${n === 1 ? "it" : "them"} up.` },
+  "stale-evidence": { owner: "re-measure it on this build", note: (n) => `${n} ${n === 1 ? "task was" : "tasks were"} measured on an older build, so nobody knows yet whether ${n === 1 ? "it is" : "they are"} still broken — a watch re-measures ${n === 1 ? "it" : "them"}; not yours to answer.` },
+  "dead-pointer":   { owner: "correct the text (it points at something gone)", note: (n) => `${n} ${n === 1 ? "task points" : "tasks point"} at a file or a process that is gone — a watch corrects the wording.` },
+  superseded:       { owner: "close it (another row replaced it)", note: (n) => `${n} ${n === 1 ? "task has" : "tasks have"} been replaced by another row — a watch closes ${n === 1 ? "it" : "them"}.` },
+};
+const FAULT_ORDER = ["answered", "unblocked", "superseded", "dead-pointer", "stale-evidence"];
+/* The same five faults as the phrase RANK puts beside a row on his page. Kept beside `FAULTS` so
+   nobody can add a sixth fault and leave the ranking still saying "something it was waiting on has
+   landed" about it. */
+const FAULT_WHY = {
+  answered: "you already answered this and nothing moved",
+  unblocked: "your ruling freed it and the work is still to do",
+  superseded: "another row says it replaces this",
+  "dead-pointer": "what it points at is gone",
+  "stale-evidence": "its evidence was measured on an older build",
+};
 
 const HEAD = /⟨([^⟩]*)⟩/;
 const HEAD_LINE = /^\s*⟨[^⟩]*⟩\s*$/;
@@ -465,10 +531,24 @@ function derive(src) {
      they were two derivations the two disagreed by construction — one fired exactly when the other
      did not, both off the same prose-grep. */
   const naming = (rows, id) => (id ? rows.filter((r) => r.raw.includes(id)) : []);
+  /* ⚑ THE LINK HE WRITES AND THE LINK WE WRITE ARE NOT THE SAME LINK, AND UNTIL 2026-09-02 THIS
+     COULD NOT TELL THEM APART. `settledNaming` searched the WHOLE table row, so a handle appearing
+     anywhere — including the third cell, which is commentary a session wrote about OTHER rows —
+     read as "he answered this". On the live Chart one ruling's commentary named three handles and
+     all three rows came back flagged as answered; he had been asked about none of them.
+     The comment on `hisAnswerLanded` already stated the right design in words — *"the link lives on
+     HIS side, in the question"* — and the code did not do it. Now it does: cell 0 only. */
+  const inQuestionCell = (rows, id) => (id ? rows.filter((r) => (r.cells[0] ?? "").includes(id)) : []);
+  const inCommentary = (rows, id) => (id ? rows.filter((r) => r.cells.slice(1).join(" ").includes(id)) : []);
+  /* A HANDLE THAT ALSO NAMES A CLOSED ROW IN THE ARCHIVE NAMES TWO JOBS. Derived from the log's own
+     entry headings rather than from a list somebody keeps — `## T-078 — 2026-09-02 — …`. */
+  const closedHandles = new Set([...archiveText().matchAll(/^##\s+(T-\d+)\s+—/gm)].map((m) => m[1]));
   const ctx = {
     parsed, openItems,
     blockedNaming: (id) => naming(parsed.blocked, id),
-    settledNaming: (id) => naming(parsed.settled, id),
+    settledNaming: (id) => inQuestionCell(parsed.settled, id),
+    settledFreeing: (id) => inCommentary(parsed.settled, id),
+    handleIsAmbiguous: (id) => !!id && closedHandles.has(id.replace(/`/g, "")),
   };
   const reasonsFor = (sub) => PROBES.map((p) => p(sub, ctx)).filter(Boolean);
 
@@ -479,7 +559,22 @@ function derive(src) {
   const reap = [];
   for (const row of openItems) {
     const reasons = reasonsFor({ raw: row.raw, context: row.raw, title: row.title, id: row.id, whole: true });
-    if (reasons.length) reap.push({ id: row.id, key: row.key, kind: row.kind, title: row.title, reason: reasons.join("; ") });
+    /* `fault` IS THE FIRST PROBE'S, IN `PROBES` ORDER, AND EVERY FAULT FOUND IS ALSO CARRIED. A row
+       can genuinely be two things at once — the re-sail row cites a dead pid AND was measured on an
+       old build — and the one thing that must not happen is the two being flattened back into one
+       word. `faults` is what the report groups by when a row belongs in more than one pile. */
+    if (reasons.length) reap.push({
+      id: row.id, key: row.key, kind: row.kind, title: row.title,
+      fault: reasons[0].fault,
+      faults: [...new Set(reasons.map((r) => r.fault))],
+      reason: reasons.map((r) => r.text).join("; "),
+      /* WHY EACH FAULT, SEPARATELY. Without this the grouped report printed the whole joined string
+         under BOTH of a two-fault row's headings — so the DEAD-POINTER pile showed a sentence about
+         a build stamp, which is the lumping this change exists to remove, reappearing one level
+         down. Caught by reading the tool's own output on the real Chart, not by a gate. */
+      reasonByFault: Object.fromEntries([...new Set(reasons.map((r) => r.fault))]
+        .map((f) => [f, reasons.filter((r) => r.fault === f).map((r) => r.text).join("; ")])),
+    });
   }
   /* KEYED BY `row.key`, NEVER BY TITLE — the same fault as the Inbox collision above, and worse
      where it lands. Nothing forbids two rows from sharing a first line, and a title-keyed lookup
@@ -490,6 +585,7 @@ function derive(src) {
      had the other's stale flag written underneath it. `row.key` is unique by construction
      (`chart_model.mjs`). */
   const reapByKey = new Map(reap.map((r) => [r.key, r.reason]));
+  const reapFaultByKey = new Map(reap.map((r) => [r.key, r.fault]));
 
   // ── SETTLE ──
   /* ⚠ IT COUNTS WHAT IT LOOKED AT, NOT ONLY WHAT IT FOUND, and that is not decoration.
@@ -508,7 +604,7 @@ function derive(src) {
     bundledTitles.push(row.title);
     const judged = claims.map((c) => ({
       title: c.title,
-      reason: reasonsFor({ raw: c.text, context: `${row.lines[0]}\n${c.text}`, title: row.title, id: row.id, whole: false })[0] ?? null,
+      reason: reasonsFor({ raw: c.text, context: `${row.lines[0]}\n${c.text}`, title: row.title, id: row.id, whole: false })[0]?.text ?? null,
     }));
     const settled = judged.filter((c) => c.reason);
     const open = judged.filter((c) => !c.reason);
@@ -551,7 +647,7 @@ function derive(src) {
   // the row it settled is archived.
   const ruleTokens = rulingItems(`${src}\n${archiveText()}`).map((s) => tokens(s));
   const ranked = openItems
-    .map((row) => ({ row, ...score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming: ctx.blockedNaming }) }))
+    .map((row) => ({ row, ...score(row, { reapByKey, reapFaultByKey, settleByKey, ruleTokens, blockedNaming: ctx.blockedNaming }) }))
     .sort((a, b) => (b.s - a.s) || a.row.title.localeCompare(b.row.title))
     .map((x, i) => ({ rank: i + 1, id: x.row.id, kind: x.row.kind, title: x.row.title, score: x.s, whyNow: x.whyNow, row: x.row }));
 
@@ -582,7 +678,7 @@ function derive(src) {
     .filter((q) => !openItems.some((row) => row.id && q.raw.includes(row.id)))
     .map((q) => q.cells[0]);
 
-  return { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
+  return { parsed, openItems, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
@@ -591,7 +687,7 @@ function derive(src) {
    is a ranking that only looks like it works (the gate proves this by ranking the same rows from
    two different file orders and demanding the same answer).
    ──────────────────────────────────────────────────────────────────────────────────────────── */
-function score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming }) {
+function score(row, { reapByKey, reapFaultByKey, settleByKey, ruleTokens, blockedNaming }) {
   const why = [];
   let s = 0;
   const gated = /\bGATED:/.test(row.raw);
@@ -666,7 +762,19 @@ function score(row, { reapByKey, settleByKey, ruleTokens, blockedNaming }) {
      thing on the list to pick up). Only the sentence changes, because the sentence is the whole
      of what he steers by — "an order he cannot read is an order he cannot overrule", and an order
      he reads WRONGLY is worse than either. */
-  else if (reapByKey.has(row.key)) { s += 40; why.push("something it was waiting on has landed"); }
+  /* ⚠ AND THE SENTENCE IS NOW PER-KIND, BECAUSE ONE SENTENCE FOR FIVE FAULTS WAS THE SAME BUG ONE
+     LAYER UP. `T-090`, 2026-09-02. Measured on the real Chart: the trade-offer-circle row was told
+     "something it was waiting on has landed · a player can see it · evidence retired" — the first
+     and the last of those contradict each other, in the phrase he steers by. Nothing was waiting on
+     it; its evidence had simply gone stale. **The score is deliberately unchanged** (+40 either
+     way): re-ranking his list was not what he asked for, and a watch that quietly re-orders his
+     Chart while fixing a label is doing two things at once. What is filed for the next watch is the
+     honest question underneath — whether a row whose EVIDENCE went stale should be getting +40 at
+     all, when the same pass already docks it −20 for exactly that. */
+  else if (reapByKey.has(row.key)) {
+    s += 40;
+    why.push(FAULT_WHY[reapFaultByKey.get(row.key)] ?? "something it was waiting on has landed");
+  }
 
   // PLAYER-FACING OUTRANKS INSTRUMENT-FACING. This is the rulebook's own THE POINT, made
   // mechanical: "is the game better than it was this morning, in a way a player would notice?"
@@ -773,7 +881,7 @@ if (WRITE && DO.settle) {
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
 }
-const { parsed, openItems, reap, reapByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
+const { parsed, openItems, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
    PASS 4 — SWEEP. EVERY completed row leaves, the moment it is finished. No age, no stub.
@@ -831,7 +939,10 @@ function stripStale(lines) {
    Ids already written inline by the previous version are MIGRATED, not reallocated: the number is
    lifted off line one and re-emitted below, so nothing that already points at `T-007` breaks. */
 // (HEAD_LINE is declared once, up beside the passes that read it.)
-const idOf = (lines) => (ID_RE.exec(lines.join("\n")) || [])[1] ?? null;
+// ONE DEFINITION OF A ROW'S IDENTITY, shared with the parse (rule 23). This used to be a second
+// copy of the same first-handle-anywhere rule, so the write pass and the parse could disagree about
+// which row it was looking at — and on the live Chart they did.
+const idOf = (lines) => idOfRow(lines);
 
 function withId(lines, id) {
   const existing = idOf(lines);
@@ -842,9 +953,14 @@ function withId(lines, id) {
   out.splice(1, 0, `      ⟨\`${existing ?? id}\`⟩`);
   return out;
 }
-function withStale(lines, reason) {
+/* ⚠ THE FLAG NAMES THE FAULT AND ITS OWNER, because "STALE-CANDIDATE" on its own is the one-label
+   problem written into the file HE reads. `T-090`. The marker itself is unchanged — `stripStale`
+   and `isFlagLine` both key on it, and every flag on the Chart today carries it — so an older flag
+   is still stripped and re-derived exactly as before. Only what follows the marker changed. */
+function withStale(lines, reason, fault) {
   const out = lines.slice();
-  out.push(`      ${STALE_MARK} ${reason}`);
+  const owner = FAULTS[fault]?.owner;
+  out.push(`      ${STALE_MARK} ${fault ?? "stale"}${owner ? ` (${owner})` : ""} — ${reason}`);
   return out;
 }
 /* SETTLE'S VERDICT REPLACES REAP'S ON A ROW IT HAS JUDGED, in the file exactly as it does in the
@@ -906,7 +1022,7 @@ if (WRITE) {
       const st = settleByKey.get(keyAt.get(i));
       const reason = reapByKey.get(keyAt.get(i));
       if (st) { lines = withSettle(lines, st); wrote.flags++; }
-      else if (reason) { lines = withStale(lines, reason); wrote.flags++; }
+      else if (reason) { lines = withStale(lines, reason, reapFaultByKey.get(keyAt.get(i))); wrote.flags++; }
       out[i].lines = lines;
     }
     // Done rows get ids too — an archive stub needs a handle to point at.
@@ -1039,12 +1155,36 @@ if (JSON_OUT) {
     }
     console.log("");
   }
+  /* ⚑ GROUPED BY FAULT, AND THE SENTENCE FOR HIS PAGE IS WRITTEN HERE RATHER THAN BY WHOEVER READS
+     THIS. `T-090`. The old report printed one flat list under the words "stale candidate(s)", and
+     `GLASS-UPDATE-SESSION.md` then told the Glass tick to turn that into one line for him: *"N tasks
+     on your list look already finished."* **Neither the word "stale" nor the word "finished" was
+     true of six of the ten rows it was describing.** A human composing a summary from a lumped list
+     is the step that went wrong, so the step is gone: the tool prints the sentences, the tick copies
+     them. One label, one meaning, one owner. */
   if (DO.reap) {
-    console.log(reap.length === 0
-      ? "REAP   the Chart is fine — every pointer on it still resolves.\n"
-      : `REAP   ${reap.length} stale candidate(s). FLAGGED, NOT CLOSED — a watch closes through close_item.mjs.`);
-    for (const r of reap) console.log(`       • ${r.title.slice(0, 78)}\n         ${r.reason}`);
-    if (reap.length) console.log("");
+    if (reap.length === 0) console.log("REAP   the Chart is fine — every pointer on it still resolves.\n");
+    else {
+      const byFault = new Map();
+      for (const r of reap) for (const f of (r.faults ?? [r.fault])) {
+        if (!byFault.has(f)) byFault.set(f, []);
+        byFault.get(f).push(r);
+      }
+      const kinds = FAULT_ORDER.filter((f) => byFault.has(f));
+      console.log(`REAP   ${reap.length} row(s) whose POINTER has moved, in ${kinds.length} kind(s). FLAGGED, NOT CLOSED — a watch closes through close_item.mjs.`);
+      console.log("       (this pass measures a POINTER, never whether the work is done — a row can have every");
+      console.log("        pointer in it resolve and still be entirely unstarted.)\n");
+      for (const f of kinds) {
+        console.log(`       ${f.toUpperCase()} — ${FAULTS[f].owner}`);
+        for (const r of byFault.get(f)) console.log(`         • ${r.title.slice(0, 76)}\n           ${r.reasonByFault?.[f] ?? r.reason}`);
+        console.log("");
+      }
+      /* FOR THE NOTE — his page's own words, ready to paste. It exists because the line he read was
+         composed by hand from the list above, and got it wrong for six rows out of ten. */
+      console.log("       FOR THE NOTE (copy these lines onto his page — do not summarise them into one):");
+      for (const f of kinds) console.log(`         ${FAULTS[f].note(byFault.get(f).length)}`);
+      console.log("");
+    }
   }
   if (DO.settle) {
     console.log(settle.length === 0

@@ -5497,3 +5497,31 @@ machine's sandbox, twice. The file's first line now says in words what its name 
 gate, never in `npm test`**. A watch with permission finishes the move.
 
 - 2026-09-02T19:47:50Z · close_item: "FIX THE GLASS — his five asks from the screenshot" · CEO 118 · no game diff — no game code is right: his ask is the GLASS, his own status page, not the game -- fixed in scripts/wyclau/glass.mjs and lib/chart_model.mjs with two new gate cases; src/ and index.html untouched (commit 1d852187) · no stated solution
+
+---
+
+### WATCH 2026-09-02T20:01Z (4:01 PM ET, Wy-Blade) — SITUATION AND CLAIM
+
+- **Watch started** 2026-09-02T20:01Z. Tree clean, `can_push.mjs` OK on
+  `claude/cloud-handoff-planning-a9ay1u`.
+- **Last progress** `aa5339b3`, 3:51 PM ET — the Glass session's own note reset, ten minutes before
+  this watch woke.
+- **The previous watch closed** `T-088`, his five Glass asks (CEO 118, PASS, commit `1d852187`).
+- **Blocked on Wyatt:** unchanged; nothing new since the last watch's list.
+- **Detached trial in flight:** none — no `LONG-RUN` claimed on this machine.
+- **THIS WATCH TAKES `T-090`** — one label doing duty for three unrelated faults on his page.
+  Claimed via `claim_item.mjs`.
+
+**WHY THIS ROW AND NOT `T-105`, WHICH HE CALLED TOP PRIORITY — and this is the SECOND watch to say
+it, so it is a standing fact about the relay and not a preference.** `T-105`'s own spec makes the
+first move a measurement of whether a save Wyatt makes in the page raises the Artifact tool's
+conflict (`SPEC-GLASS-HARVEST-SAFETY.md` §4, Layer A). **A Bell-launched watch has no Artifact
+tool** — checked again this watch rather than inherited: the tool is absent from this session
+entirely. Building B and C blind would be building exactly the ceremony that spec warns against.
+**What this watch DOES do about it: hand that one measurement to the only session on this machine
+that can run it** — the live `Glass update` peer, by `SendMessage`, which Door step 6b already
+established a watch can do — so the next watch inherits an answer instead of the same wall. One
+message, not a second item.
+
+`T-090` is rank 2 by the project's own tool, is entirely in-repo, and is a wrongness he can SEE on
+his own page right now.

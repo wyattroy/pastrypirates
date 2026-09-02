@@ -793,7 +793,13 @@ const settleOf = (json, match) => (json?.settle || []).find((s) => new RegExp(ma
   if (!dead) fail("the row with the dead pointer vanished from the ranking");
   else if (/finish/i.test(dead.whyNow || ""))
     fail(`told him an unstarted row is finished on the strength of a dead pointer: ${JSON.stringify(dead.whyNow)} — REAP measures the pointer, never the work`);
-  else if (!/waiting on|landed|resolved/i.test(dead.whyNow || ""))
+  /* ⚠ THE VOCABULARY WIDENED ON 2026-09-02 AND THE ASSERTION DID NOT WEAKEN. `T-090` made this
+     sentence PER-KIND — one phrase for five different faults was the same bug one layer up, and on
+     the real Chart it produced "something it was waiting on has landed · evidence retired" about
+     one row, two clauses that contradict each other. The property under test is unchanged: the
+     phrase must say what actually CHANGED, so the +40 is explained. Only the list of ways it may
+     say it grew, and it is closed — these are `FAULT_WHY`'s five and nothing else. */
+  else if (!/waiting on|landed|resolved|already answered|freed it|points at|older build|replaces this/i.test(dead.whyNow || ""))
     fail(`the dead-pointer row's why-now says ${JSON.stringify(dead.whyNow)} — it must say what actually changed, or the +40 that lifted it is unexplained`);
   else pass("a dead pointer is described as something that has LANDED, never as work that is finished");
   // Red-proofed the other way in the same breath: a row with no dead pointer must not get the
@@ -1527,6 +1533,154 @@ const ATTACHED = (extraQuestion = "") => `# THE CHART — fixture
   } else if (!/no-sweep/.test(src)) {
     fail("the sweep in close_item.mjs cannot be turned off, so nothing can test the tick on its own");
   } else pass("closing an item sweeps it off the Chart in the same act — 'immediately' means immediately");
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   ⚑ 14. ONE LABEL MUST NOT DO DUTY FOR THREE UNRELATED FAULTS — `T-090`, his own idea, and the
+   thing he could SEE on his page: "N tasks on your list look already finished."
+
+   Measured 2026-09-02T20:0xZ against the real Chart before a line was written: ten rows carried
+   that one label and **not one of them was flagged "finished"**. Six said *the evidence went stale
+   when the build moved on* (needs RE-MEASURING — he cannot know from a phone whether a trade circle
+   still clips a name), three said *his ruling landed and nothing moved the row*, one said *a pid is
+   dead*. **A flag that means three things cannot be acted on by anybody**, and every reader of his
+   page drew the wrong conclusion from it, including the Advisor to his face.
+
+   The four cases below are the split, and they were RED on the code that shipped this morning.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ⚠ THE FIXTURE PUTS THE HANDLE WHERE THE REAL CHART PUTS IT — in the ruling's THIRD cell, the
+   commentary a session wrote about other rows, never in the question cell. That is the whole fault:
+   `settled.raw.includes(id)` searched the entire table row, so a handle mentioned in passing was
+   read as "he answered THIS". On the live Chart one ruling's commentary named three handles and all
+   three rows were flagged as answered; one of them (`T-078`) he has never been asked about at all. */
+const KINDS = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] \`T-201\` **A ROW HIS RULING ACTUALLY ANSWERED** — the question cell of his settled table
+      names this row, which is the only link he writes himself.
+- [ ] \`T-202\` **A ROW HIS RULING MERELY FREED** — named in the commentary of a ruling that was
+      about something else. The work is untouched.
+- [ ] \`T-203\` **A ROW MEASURED ON A BUILD NOBODY IS RUNNING** — its evidence cites 2001.01.01.1
+      while the tree is somewhere else entirely.
+- [ ] \`T-204\` **A ROW WHOSE HANDLE WAS REUSED** — a closed row in the archive carries this same
+      handle, so a mention of it names two different things.
+- [ ] **A ROW THAT TALKS ABOUT ANOTHER ROW — the half of \`T-201\` nobody built**, warns readers
+      ⟨\`T-205\`⟩
+      off on account of pid 999999, which is not running.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## SETTLED RULINGS — triaged, and kept on the record forever
+
+| item | HIS RULING | now |
+|---|---|---|
+| The bilge pump, which holds up \`T-201\` | **"leave it alone"** | CLOSED. Still to do: the pump housing (\`T-202\`) and the old bilge item (\`T-204\`). |
+
+## THE IDEA INBOX
+
+(empty)
+`;
+
+/* The archive that makes `T-204` ambiguous: the handle names a row that CLOSED, so the ruling's
+   mention of it cannot be pinned to the live row now carrying the same number. */
+const KINDS_LOG = `# THE CHART LOG — fixture
+
+## T-204 — 2026-01-01 — an entirely different job that finished long ago (closed 2026-01-01 · CEO 1 · no game diff)
+
+- [x] an entirely different job that finished long ago
+      ⟨\`T-204\`⟩
+`;
+
+{
+  const p = chartFile("kinds", KINDS);
+  const logPath = join(tmp, "kinds-LOG.md");
+  writeFileSync(logPath, KINDS_LOG);
+  const r = runJson([`--chart=${p}`, `--log=${logPath}`, "--reap"]);
+  const rows = r.json?.reap || [];
+  const find = (re) => rows.find((x) => re.test(x.title || ""));
+
+  /* 14a. THE LINK HE WRITES HIMSELF STILL WORKS. Red-proofs every case below: a tool that simply
+          stopped claiming anything would pass 14b/14c/14d and fail here. */
+  const answered = find(/HIS RULING ACTUALLY ANSWERED/);
+  if (!answered) fail("the row his settled question NAMES is no longer flagged at all — the signal REAP exists for was thrown out with the fault");
+  else if (answered.fault !== "answered")
+    fail(`the row his ruling answered came back as kind ${JSON.stringify(answered.fault)} — it must be "answered", the one kind whose owner is a close`);
+  else pass("a handle in his question cell still reads as: you answered this, and nothing moved the row");
+
+  /* 14b. AND A HANDLE IN THE COMMENTARY IS NOT AN ANSWER. This is the T-078 fault in miniature. */
+  const freed = find(/HIS RULING MERELY FREED/);
+  if (freed && freed.fault === "answered")
+    fail("a row named only in a ruling's COMMENTARY is reported as one he answered — that is the mis-attribution that would put a question he never saw back in front of him");
+  else if (!freed) fail("the row his ruling freed vanished from REAP — his ruling really did unblock it and that is the cheapest row on the list to pick up");
+  else if (freed.fault !== "unblocked")
+    fail(`the freed row came back as kind ${JSON.stringify(freed.fault)} — "your ruling freed this, the work is still to do" is a different fact from "you answered this"`);
+  else pass("a handle in a ruling's commentary reads as: your ruling freed this row, and the work is still to do");
+
+  /* 14c. AN AMBIGUOUS HANDLE CLAIMS NOTHING. Handles are reused in practice — `T-078` is closed in
+          CHART-LOG.md and live again on the Chart — so a mention of one names two rows and can
+          honestly be attached to neither. Failing toward NO CLAIM is the only safe direction. */
+  /* ⚠ AND IT ASSERTS ON THE REASON TEXT, NOT ONLY ON THE KIND — because a kind nobody sets yet is
+     `undefined`, and a case that reads only the kind PASSES on the broken code it was written to
+     catch. It did exactly that on the first run of this file. */
+  const reused = find(/HANDLE WAS REUSED/);
+  if (reused && (/answered|unblocked/.test(reused.fault || "") || /answer landed|ruling freed|your answer/i.test(reused.reason || "")))
+    fail(`a row whose handle is ALSO a closed row in the archive was linked to his ruling anyway (${JSON.stringify(reused.fault || reused.reason)}) — an ambiguous handle must claim nothing`);
+  else pass("a reused handle links to no ruling at all — it names two rows, so it may speak for neither");
+
+  /* 14c-bis. ⚑ A ROW IS IDENTIFIED BY ITS OWN HANDLE LINE, NOT BY THE FIRST HANDLE ANYWHERE IN ITS
+        PROSE — and until 2026-09-02 it was the latter, which is how the mis-attribution actually
+        happened. `ID_RE` took the first `T-nnn` in the whole row, so the live row **"BUILD THE
+        KIT-BEHIND DETECTOR — the half of `T-078` he asked for"** answered to `T-078`, a handle
+        belonging to a row that closed hours earlier. Every signal keyed on a row's id — his
+        questions, his rulings, how often he has raised it — was reading that row as a different
+        row. Nothing reported it, because a wrong identity produces confident, well-formed
+        nonsense. The fixture row below carries `⟨T-205⟩` and mentions `T-201` in its first line. */
+  const talksAbout = find(/TALKS ABOUT ANOTHER ROW/);
+  if (!talksAbout) fail("the row with the dead pid vanished — this case cannot check identity if the row is never flagged");
+  else if (talksAbout.id !== "T-205")
+    fail(`a row whose head line says T-205 was identified as ${JSON.stringify(talksAbout.id)} — it merely MENTIONS that handle in its prose, and every signal keyed on a row's id was reading it as another row`);
+  else if (talksAbout.fault === "answered")
+    fail("a row that only talks about another row inherited that row's settled ruling");
+  else pass("a row is identified by its own handle line, not by a handle it mentions in passing");
+
+  /* 14d. AND THE REPORT MUST SAY WHICH IS WHICH, IN A SENTENCE HE COULD READ. The runbook told the
+          Glass session to write one line — "N tasks on your list look already finished" — for
+          whatever this pass found. That sentence is composed by a human from a lumped list, which
+          is exactly how it went wrong. The tool now emits the sentences itself, one per kind. */
+  const text = run([`--chart=${p}`, `--log=${logPath}`, "--reap"]).out;
+  if (/look already finished/.test(text))
+    fail("the reap report still offers the one-label sentence he complained about");
+  else if (!/FOR THE NOTE/.test(text))
+    fail("the reap report prints no FOR THE NOTE block — the Glass session is still left to compose the sentence itself, which is how one label came to mean three things");
+  else if (!/re-measure/i.test(text) || !/freed/i.test(text))
+    fail(`the FOR THE NOTE block does not name each kind and its owner: ${JSON.stringify(text.slice(text.indexOf("FOR THE NOTE"), text.indexOf("FOR THE NOTE") + 400))}`);
+  else pass("the reap report writes his note itself, one sentence per kind, each naming whose job it is");
+}
+
+/* 14e. AND THE RUNBOOK MUST STOP TELLING THE SESSION TO COMPOSE THAT LINE. A tool that emits the
+        right sentence while the runbook still asks for the wrong one is a fix nobody applies. */
+{
+  const runbook = join(ROOT, ".planning", "wyclau", "GLASS-UPDATE-SESSION.md");
+  const src = existsSync(runbook) ? readFileSync(runbook, "utf8") : "";
+  /* ⚠ IT CHECKS THE ORDER, NOT THE ABSENCE, AND THE FIRST VERSION CHECKED THE ABSENCE — which went
+     red on this file's own war story. The old sentence has to survive somewhere: this repo's
+     comments are the graveyard (rule 10), and a correction that deletes the wrong wording teaches
+     nobody why the right one exists. What must not survive is the wrong sentence as the LIVE
+     INSTRUCTION. So: the instruction (`FOR THE NOTE`) comes first, and any mention of the old
+     wording sits after it, as history. */
+  const note = src.indexOf("FOR THE NOTE");
+  const old = src.indexOf("look already finished");
+  if (!src) fail(".planning/wyclau/GLASS-UPDATE-SESSION.md is missing — the Glass tick has no runbook");
+  else if (note < 0)
+    fail("the Glass runbook does not tell the tick to copy the tool's FOR THE NOTE block, so the sentence is still composed by hand");
+  else if (old >= 0 && old < note)
+    fail("the Glass runbook still instructs the tick to write \"N tasks on your list look already finished\" before it mentions FOR THE NOTE — the one label he complained about, still live in the file that causes it");
+  else pass("the Glass runbook hands the sentence to the tool instead of composing it");
 }
 
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);

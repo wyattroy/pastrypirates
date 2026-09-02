@@ -167,9 +167,20 @@ publish. This session IS the terminal.
 >    — it lists rows whose POINTER is dead: a question he has already answered, a trial report that
 >    was never written, a pid that is not running, a build stamp older than the tree. **It changes
 >    nothing** (no `--write` here, ever) and **it never ticks a box** — closing is a claim about
->    work and belongs to a watch behind `close_item.mjs`. If it finds anything, put one plain line
->    in the note: *"N tasks on your list look already finished — here's the first."* If it says the
->    Chart is fine, say nothing about it.
+>    work and belongs to a watch behind `close_item.mjs`. If it finds anything, **copy its
+>    `FOR THE NOTE` block into the note verbatim — one line per kind, and do not summarise them
+>    into one.** If it says the Chart is fine, say nothing about it.
+>
+>    ⚠ **THIS STEP USED TO ASK YOU TO COMPOSE THAT LINE YOURSELF, AND THAT IS WHAT WENT WRONG.**
+>    It said: put one plain line in the note, *"N tasks on your list look already finished — here's
+>    the first."* Measured 2026-09-02T20:0xZ, `T-090`: ten rows carried that sentence on his page
+>    and **not one of them was flagged "finished."** Six had evidence that went stale when the build
+>    moved on — those need RE-MEASURING, which is a watch's job and mostly a screenshot, and he
+>    cannot possibly answer them from a phone. Three were rows his own ruling had freed. One cited a
+>    dead pid. **He read that line, believed it, and proposed sending all ten back to himself for
+>    approval** — and the Advisor repeated the same wrong sentence to his face. **A flag that means
+>    three things cannot be acted on by anybody.** The tool now writes the sentences, one per kind,
+>    each naming whose job it is; a human turning that list back into one line re-creates the fault.
 >    **WHY REAPING LIVES HERE AND RANKING LIVES IN THE WATCH:** ranking is arithmetic and can act
 >    unattended; reaping is a JUDGEMENT about whether something *he* is waiting on has landed, and a
 >    judgement belongs where a human is looking. This is the session that reads his live page.

@@ -133,6 +133,36 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/** ⚑ A ROW'S IDENTITY, AND IT IS THE ROW'S OWN HANDLE LINE — never the first handle that happens to
+ *  appear in its prose.
+ *
+ *  ⚠ IT WAS THE LATTER UNTIL 2026-09-02, AND THAT IS THE ROOT OF THE MIS-ATTRIBUTION `T-090` WAS
+ *  FILED ABOUT. Identity was `ID_RE.exec(bodyOf(lines))` — the first `` `T-nnn` `` anywhere in the
+ *  row — so the live row **"BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for"**
+ *  answered to `T-078`, the handle of a row that had closed hours earlier, while its own head line
+ *  said `T-084`. Every signal keyed on a row's id read it as a different row: whether one of his
+ *  questions holds it up, whether one of his rulings freed it, how often he has raised it.
+ *
+ *  **Nothing reported it, and nothing could have**, which is why it survived: a wrong identity does
+ *  not throw, it produces confident, well-formed nonsense about the wrong row. It surfaced only
+ *  because the reap was split by kind and one pile stopped making sense.
+ *
+ *  THE ORDER: the head line `⟨`T-nnn`⟩` the Chartkeeper writes, then the pre-migration form where
+ *  the handle leads the first line (`withId` still migrates those), then nothing. **Nothing is the
+ *  right third answer** — a row with no handle of its own gets a fresh one on the next write, which
+ *  is cheap, where inheriting a neighbour's is silent and wrong. */
+const HEAD_ID_RE = /⟨\s*`(T-\d{3})`\s*⟩/;
+const LEAD_ID_RE = /^(?:- \[[ xX]\]\s+|[-*]\s+)`(T-\d{3})`/;
+export function idOfRow(rowLines) {
+  const lines = Array.isArray(rowLines) ? rowLines : String(rowLines ?? "").split("\n");
+  for (const l of lines) {
+    const m = HEAD_ID_RE.exec(l);
+    if (m) return m[1];
+  }
+  const lead = LEAD_ID_RE.exec(lines[0] ?? "");
+  return lead ? lead[1] : null;
+}
+
 /** The rows of a markdown table, header and rule excluded.
  *
  *  THE HEADER IS FOUND BY POSITION, NOT BY ITS WORDS. The first version of this filter skipped a
@@ -226,9 +256,10 @@ export function parseChart(text) {
     lines: c.lines,
     raw: bodyOf(c.lines),
     title: titleOf(c.lines),
-    // The handle is read from the WHOLE row, never just its first line: the first line is what the
-    // Glass renders to Wyatt, so nothing machine-readable is allowed to live there (CEO 91).
-    id: (ID_RE.exec(bodyOf(c.lines)) || [])[1] ?? null,
+    // The handle is read from the row's own HANDLE LINE, never from the first `T-nnn` in its prose
+    // — see `idOfRow`. It is still not read from the first line, which is what the Glass renders to
+    // Wyatt and where nothing machine-readable may live (CEO 91); that half was always right.
+    id: idOfRow(c.lines),
     done: kind === "checklist" ? /^- \[[xX]\]/.test(c.lines[0]) : hasFate(bodyOf(c.lines)),
   });
 
