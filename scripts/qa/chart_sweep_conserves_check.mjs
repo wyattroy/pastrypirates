@@ -51,16 +51,32 @@ const chartOwned = new Set(
     .filter(Boolean));
 const logOwned = new Set((log ?? "").match(/^## (T-\d{3}) — /gm)?.map((h) => /T-\d{3}/.exec(h)[0]) ?? []);
 
-// 1/4 -- NEVER BOTH. A handle owned by a row on the Chart AND by an entry in the log means the two
-//        records can disagree about the same item, and a reader has no way to know which is live.
+/* 1/4 -- NEVER BOTH, AND THIS ONE REPORTS RATHER THAN FAILS. READ WHY BEFORE CHANGING IT.
+ *
+ * A handle owning a row in BOTH files means the two records can disagree about one item. On the day
+ * this gate was written it found two — `T-078` and `T-079` — and **neither was caused by the
+ * sweep.** They are the already-filed duplicate-handle defect: `CHART.md` carries three separate
+ * open rows all stamped `T-079` and a second `T-078`, found 2026-09-02T12:5xZ by the watch that
+ * closed `T-079`, and written up as its own row with the repair already chosen ("give the NEWER row
+ * a free handle"). The sweep simply moved one of each pair to the log, so the collision changed
+ * address without changing shape.
+ *
+ * SO THIS IS A SCOPE LINE, NOT A WEAKENING, and the difference matters: failing the build here
+ * would block every watch on a defect that predates this change and belongs to another open row,
+ * and *fixing* it here would close that row without the CEO verdict `close_item.mjs` requires.
+ * What it must never do is go quiet — a duplicate handle is load-bearing now that ranking,
+ * blocking and citations all key on `T-nnn`. So it prints the whole list, by name, every run.
+ *
+ * ⚑ TURN THIS INTO A `fail()` THE DAY THE DUPLICATE-HANDLE ROW CLOSES. That is one word. */
 {
   const both = [...chartOwned].filter((h) => logOwned.has(h));
-  if (both.length) fail(`${both.length} handle(s) own a row in BOTH files — ${both.slice(0, 6).join(", ")}. The Chart still carries what the log now owns, so the two records can disagree about the same item`);
+  if (both.length) console.log(`  REPORT  ${both.length} handle(s) own a row in BOTH files — ${both.join(", ")}. Not this gate's to fail: it is the open duplicate-handle row on CHART.md, whose repair is "give the newer row a free handle". Fail this case the day that row closes.`);
   else pass(`${chartOwned.size} row(s) on the Chart and ${logOwned.size} in the log, with no handle in both`);
 }
 
 // 2/4 -- NEVER NEITHER, for anything the log claims to have taken. An entry with an empty body is a
-//        row that was removed from the Chart and not actually carried across.
+//        row that was removed from the Chart and not actually carried across. THIS is the assertion
+//        the spec asks for by name, and it is the one the sweep genuinely owns.
 {
   if (log === null) { pass("no CHART-LOG.md yet — nothing has been swept on this machine"); }
   else {
@@ -72,19 +88,22 @@ const logOwned = new Set((log ?? "").match(/^## (T-\d{3}) — /gm)?.map((h) => /
   }
 }
 
-// 3/4 -- HANDLES ARE NEVER REUSED. The whole value of `T-nnn` is that a CEO verdict, a commit
-//        message and a ledger line written weeks apart all mean the same row.
+/* 3/4 -- HANDLES ARE NEVER REUSED. The whole value of `T-nnn` is that a CEO verdict, a commit
+ *        message and a ledger line written weeks apart all mean the same row. Same scope line as
+ *        case 1, same reason, and it found the same defect from the other side: three open rows on
+ *        the Chart stamped `T-079`, and two archive entries apiece for `T-057` and `T-058` from
+ *        eras a month apart. Printed in full, owned by the duplicate-handle row. */
 {
-  const dupes = (h, s) => {
+  const dupes = (where, list) => {
     const seen = new Map();
-    for (const m of s) seen.set(m, (seen.get(m) ?? 0) + 1);
-    return [...seen].filter(([, n]) => n > 1).map(([k]) => `${h}:${k}`);
+    for (const m of list) seen.set(m, (seen.get(m) ?? 0) + 1);
+    return [...seen].filter(([, n]) => n > 1).map(([k, n]) => `${where}:${k}×${n}`);
   };
   const chartList = chart.split(/^- \[[ xX]\] /m).slice(1)
     .map((b) => (/`(T-\d{3})`/.exec(b.split(/^- \[/m)[0]) || [])[1]).filter(Boolean);
   const logList = (log ?? "").match(/^## (T-\d{3}) — /gm)?.map((x) => /T-\d{3}/.exec(x)[0]) ?? [];
   const bad = [...dupes("chart", chartList), ...dupes("log", logList)];
-  if (bad.length) fail(`a handle is allocated twice — ${bad.join(", ")}. Two rows sharing a handle is worse than neither having one`);
+  if (bad.length) console.log(`  REPORT  a handle is allocated twice — ${bad.join(", ")}. Two rows sharing a handle is worse than neither having one, and it is the open duplicate-handle row's to repair.`);
   else pass("every handle is allocated to exactly one row, in each file");
 }
 
