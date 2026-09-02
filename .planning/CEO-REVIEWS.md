@@ -7,6 +7,126 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 92 — 2026-09-02, Wy-Blade — verifying a CLAIM and a RECOMMENDATION, not delivered work
+
+**Fresh context, read-only.** It read all 28 allow-list entries, opened all three cited doc lines
+verbatim, read `deploy-staging.sh` end to end, **enumerated the `npm test` chain programmatically**,
+ran the disputed gate by hand, curled both live environments, and read the prior push incident.
+
+### VERDICT: **The claim HOLDS. One third of it does not. The recommendation is safe but is not the best option on the table.**
+
+**Its one sentence for Wyatt:** *"A Watch still cannot publish to staging by following your own
+written instructions — that part is right, and the proof was already sitting in your chart from four
+hours earlier — but the session told you the Windows fix is 'gated' when nothing in the build
+actually runs that check, and there is a cleaner fix than any of the three it offered."*
+
+### CLAIM 1 — a Watch cannot publish by following the docs. **TRUE.**
+
+`.claude/settings.json:11` allows `bash scripts/deploy-staging.sh*`; nothing else covers the script.
+`docs/GIT-AND-DEPLOY.md:203`, `.claude/CLAUDE.md:1155` and `.planning/wyclau/CLAUDE-next.md:24` all
+teach `./scripts/deploy-staging.sh`.
+
+**The untested inference was settled — by evidence already in this repo, four hours old, that this
+session was carrying and did not connect.** `CHART.md:640-641`: against
+`"Bash(git push origin claude/*)"`, `git push` was refused, `git push origin HEAD` was refused, and
+`git push origin <branch>` **succeeded** (`916067cc..89bf93d4`). **Three semantically identical
+pushes; two refused. The matcher compares text, not meaning.** And the deploy pair differs at
+character one, in the name of the program being run — no path-tidying rule inserts a `bash ` prefix
+that is not there.
+
+### CLAIM 2 — third sighting. **TRUE, and the framing was too kind to itself.**
+
+The prior incident is real at `CHART.md:616-649` (`T-011`) and `INBOX.md:513-517`. **But the push
+case was *habit* typing the wrong spelling; the deploy case is *the rulebook* teaching it.** A habit
+can be retrained by writing it down. Here the written-down thing is the wrong one. **Not merely a
+third instance — the worse form of it.**
+
+### CLAIM 3 — "committed, cross-platform-guarded and gated." **TWO OF THREE. "GATED" IS FALSE.**
+
+Committed ✓ (`ecd2067c`). Cross-platform-guarded ✓ (read and correct). **Gated ✗ —
+`scripts/qa/deploy_rsync_paths_check.mjs` was in NONE of the 93 gates.** It existed, it passed when
+run by hand, **and nothing ran it** — the more dangerous kind of check, because it reads as
+protection and provides none.
+
+Worse, and the reviewer upgraded this finding in its own follow-up: **the session had already
+written down that the file was not wired in.** `CEO-REVIEWS.md:146-148`, CEO 90, an hour earlier,
+quoting this session: *"'It isn't wired into npm test, so it can't break anything' is also wrong."*
+**So "gated" is not an unmeasured status word — it is contradicted by this session's own record, one
+file over.** Same root as Claim 1: **the record was not consulted.**
+
+**And the structural guard could not have caught it:** `gate_count_check` compares gates DECLARED
+against gates RUN, so **an orphan is in neither list and is invisible by construction.**
+
+⚠ **AND THE COMMENT WAS THE WORST PART.** `deploy-staging.sh:66` read *"…so that claim is TESTED on
+every machine rather than asserted by this comment (a comment is never evidence of runtime
+behaviour)."* **The sentence boasting that it was not a rotting comment was itself a rotting
+comment**, in the repo whose standing rule is exactly that.
+
+### THE RECOMMENDATION
+
+- **(a) allow both forms — SAFE, and this is the clearest finding.** The surface is the *script*, and
+  the script is **already reachable** via the `bash` form Wyatt approved at 04:03:36Z. A second
+  spelling changes which keystrokes reach it, not what it can do. **It genuinely cannot touch
+  production, verified by reading:** `STAGING_REPO` hardcoded (`:35`), the only push is
+  `git push -q origin HEAD:main` **after `cd "$WORK/staging"`** — a throwaway clone in a temp dir
+  (`:296`) — and `:211-214` FATALs if staging's CNAME names the production host. **Rule 14 is
+  enforced by the script, not the operator.**
+  *The one real residual risk, already realised once:* it publishes **whatever is on disk** — the
+  `physical-board/` leak, `CTO-LEDGER.md:114`. **That argues for a publish summary, not against the
+  permission.**
+- **(b) rewrite the docs — weaker, and the session was arguing against its own chart.**
+  `CHART.md:647-649` prescribes exactly (b) for the git-push twin. Same fix, opposite
+  recommendation, four hours apart, unreconciled.
+- **(c) both plus a gate — right shape, wrong order.** *"Building gate #94 tonight, while gate
+  #(orphan) above sits unwired and lying in a comment, is the wrong order."*
+
+### ⭐ THE FOURTH OPTION, WHICH IT PUTS ABOVE ALL THREE — make there be ONE spelling
+
+```json
+"deploy:staging": "bash scripts/deploy-staging.sh"
+```
+…allow `"Bash(npm run deploy:staging*)"`, and change the three doc lines to
+`npm run deploy:staging -- "what changed"`.
+
+**Then the rulebook, the runbook, `CLAUDE-next.md` and the permission file all carry the same string,
+byte for byte. There is nothing left to keep in step** — which is this project's own design test,
+*"what makes these two agree?"*. (a), (b) and (c) all keep two lists and hold them together by
+discipline or by machinery. It also kills `./`-versus-`bash` on every platform at once and survives
+the CLAUDE-next cutover. **Cost: the same size as (b).** Its stated weakness: it does not stop a
+future doc inventing a fourth spelling — only (c)'s gate does. **So: option 4 now, the gate filed
+behind the game bugs.**
+
+### ⚠ THE REVIEWER'S CORRECTION OF ITSELF, ISSUED BEFORE ITS VERDICT WAS RECORDED
+
+*"In my draft I wrote: 'Claude Code's documentation states that a trailing `*` is a prefix match on
+the raw command string…' **I had not read that documentation when I wrote it.** I dispatched a
+researcher to check it and wrote the sentence before its answer came back. That is the sixth
+unmeasured claim of the night and it is mine — in a review whose entire subject is unmeasured
+claims. Strike the citation."* **The finding survives without it**, resting on the repo's own
+git-push measurement. Its own sandbox probe was inconclusive and it said so: a control command
+covered by no rule also passed, so read-only commands bypass the allow list and the probe proved
+nothing.
+
+**Recorded because it is the right behaviour:** the reviewer caught itself, in the open, before the
+verdict was filed. So did the session, flagging its own untested inference at `INBOX.md:508-511`
+rather than smoothing it. **The fix for both is to go and measure — not to stop flagging.**
+
+### WHAT IT RAISED THAT NOBODY ASKED ABOUT
+
+**Staging is live and current** (`2026.09.01.8-staging@b2b4e28f`, curled). **Production is not** —
+`playpastrypirates.com` still serves `2026-08-26k-CUTOVER`. *"Real players are a week of work behind
+what staging is showing. 'Can the Watch publish to staging, forever?' is the smaller half of getting
+this game to people."*
+
+### WHAT WAS DONE ABOUT IT, SAME PASS
+
+**The orphan gate is wired in** — `npm test` now runs 94, `gate_count_check` agrees at 94/94, exit 0.
+**The rotted comment is corrected in place**, keeping the original wording and naming what it got
+wrong, plus the reason `gate_count_check` was structurally blind to it. **No settings change, no doc
+rewrite, no option chosen** — Wyatt dismissed those options and they remain his.
+
+---
+
 ## CEO Review 91 — 2026-09-02T05:xxZ, Wy-Blade — the Watch that BUILT the Chartkeeper
 
 **Fresh context, read-only.** It ran the tool, both new gates, `npm test`, `tree_health_check` and
