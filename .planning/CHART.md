@@ -708,11 +708,12 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
-| **On your iPhone or your Mac's Safari: in the black-market card — *"They'll find ye one more ingredient — for 10 🌕."* — do you SEE a gold coin after the 10, or a blank gap and a stray full stop?** Ten seconds, and your phone is the only real Safari this project has. | **Recommended: tell us either way, then we make the coin an image everywhere regardless.** The game currently draws its own money two different ways — a picture in the captains' panel, a typed symbol in the sentences — and one of them came out blank in testing. Even if your Safari is fine, one coin drawn one way is the rule we already hold ourselves to. | 2026-09-02 |
 | **You asked tonight how big the recipe pictures actually get drawn. On the screen where you CHOOSE your recipe, the one you have picked is the one you cannot see — the orange "Bake this!" pill sits on top of its pastry and covers nearly all of it.** Should it move? | **Recommended: move the pill below the picture (or into the card's top corner), so both pastries stay visible while you choose.** But this is a real trade and it is yours, not ours: the pill was put over the art deliberately on 2026-08-13 to solve a different problem — *"nothing said how to commit a recipe"*, the confirming second tap was undiscoverable — and it has not moved since. Moving it off the art may put that back. **Size: a few lines of CSS, no logic.** Seen on all six legs, all three modes, three sizes, both engines, so it is how the screen always looks — not a glitch. | 2026-09-02 |
 
-*Two questions are open (above), both found by a judging pass.
-Otherwise: The recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
+*One question is open (above). The black-market gold-coin question was answered on the Glass
+2026-09-02T03:50:58Z, but as a note that reads cut off mid-sentence — harvested verbatim to RULED
+below rather than guessed at; needs him to finish the thought before it can be triaged.
+Otherwise: the recipe-picture WebP question was RULED ON THE GLASS 2026-09-02
 00:58:35Z — **"Do it; but I am surprised that they are already 'too small' — what is the maximum
 size they are displayed at?"** — harvested to RULED below, awaiting triage (his format-change
 approval, plus his own follow-up question about the display-size measurement, both unanswered
@@ -751,13 +752,14 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*One ruling is waiting, freshly harvested 2026-09-02 (row below, `now` cell empty by design —
-not yet triaged). The prior eight were triaged 2026-09-01 and moved to SETTLED RULINGS below;
-three carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
+*Two rulings are waiting, freshly harvested (rows below, `now` cells empty by design — not yet
+triaged). The prior eight were triaged 2026-09-01 and moved to SETTLED RULINGS below; three
+carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
+| Black-market gold coin: on iPhone/Mac Safari, does *"…for 10 🌕"* show a gold coin or a blank gap + stray full stop? | **Note, not a button choice — and it reads as CUT OFF mid-sentence: "In the past (earlier today) it was a"** — ruled on the Glass 2026-09-02T03:50:58.777Z. Copied verbatim; not completed on his behalf. Needs him to finish the thought or confirm what he meant before this can be triaged. | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
