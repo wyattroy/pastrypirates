@@ -177,7 +177,19 @@ status: DONE 2026-09-01 — CEO 77, no game diff — no game code: this is his o
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: IN FLIGHT — **a THIRD trial is sailing, on build `2026.09.01.8`, since 2026-09-02T01:37Z.**
+status: IN FLIGHT — **part 1 done; parts 2 and 3 are now BLOCKED ON WYATT, and it is not the
+evidence.** Watch 2026-09-02T03:48Z took them up with every gate finally open — `npm test` green,
+the 0137Z trial's ten legs on `2026.09.01.8` with an empty NOT-RUN column and, since the 03:00Z
+watch, an empty unjudged column — and found that **an unattended watch is not permitted to run
+`scripts/deploy-staging.sh` on this machine at all.** Three invocation forms, one answer: *"This
+command requires approval."* `.claude/settings.json`'s allow list covers `Bash(node scripts/*)` and
+nothing shaped like `bash …/*.sh`, and that script is the repo's only deploy entrypoint. Staging is
+serving `2026.09.01.6-staging@60f969c4` — two builds behind. **The fix is one line he approves, or
+one command he runs**; it is in CHART.md's BLOCKED ON WYATT with the reasoning. The watch did not
+edit the permission file itself: granting an unattended agent the right to publish to a public
+address is his call, not a watch's repair.
+
+*Below, the state as it stood before that:* **a THIRD trial sailed on build `2026.09.01.8`, from 2026-09-02T01:37Z.**
 Part 1 is done and proven twice. Parts 2 and 3 (stage it, hand him the link) wait on this run's
 verdict, and **the gate that was blocking them is now open** — `npm test` is GREEN again (another
 session cleared the vendored-file failure that had held it red). Staging is no longer

@@ -1,5 +1,183 @@
 # CEO reviews — the standing record
 
+> ### ⚠ THIS FILE IS NOT IN ORDER, AND IT FOOLED ME. Fix it or the recurrence check keeps a hole.
+> The convention is newest at the top. **CEO 85, 86 and 87 were appended at the BOTTOM** (line
+> ~4783 onward). A CEO told "read the newest two" opens the top, finds **84**, and reads a
+> three-verdict-old picture believing it is current — which is exactly what happened to me on this
+> review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
+> reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
+
+## CEO Review 88 — 2026-09-02T04:2xZ, Wy-Blade — INBOX-20260901T1315Z ruling 12, parts 2 and 3: STAGE IT, HAND HIM THE LINK
+
+**Fresh context, read-only until this append. Everything below was checked in the repo by me.** I ran
+`npm test` myself (exit 0), ran `gear.mjs` myself, and curled staging myself.
+
+### VERDICT: NOT DONE — and the fourth CEO in a row to write that sentence.
+
+| his ask | verdict |
+|---|---|
+| part 1 — run the trial so it survives session death | **DONE** (earlier watches; not this watch's work) |
+| **part 2 — stage it** | **NOT DONE** |
+| **part 3 — hand you the link** | **NOT DONE** |
+
+**Part 2, measured not assumed.** I ran `curl -s https://staging.playpastrypirates.com/src/ui/stage.js`
+myself: it serves `PP4_STAMP = "2026.09.01.6-staging@60f969c4"`. The tree is `2026.09.01.8`
+(`src/ui/stage.js:43`). **Staging is two builds behind and did not move an inch tonight.**
+
+**Part 3.** There is no new link. The only thing from this watch that reached his Glass is the note
+committed at `2f7aabfb` and published by the relay four minutes later (`16a59a11`), and it says:
+*"So this watch is doing the staging."* **A future-tense promise, published to his live dashboard,
+and never corrected** — `.planning/wyclau/GLASS-NOTE.md` is back to its empty template, so no
+second note was written. His own convention forbids exactly this (CLAUDE.md §5: *"No future tense
+in an append-only record"*).
+
+### 1. IS THE BLOCKER HONEST, OR AN EXCUSE? Honest as a fact. An excuse as a stopping point.
+
+**The permission fact is TRUE and I verified every part of it.**
+- `.claude/settings.json:10` allows `Bash(node scripts/*)`. **Nothing in that list matches
+  `bash …/*.sh` or `./scripts/…`.** So every `node scripts/…` this watch ran went through and the
+  one shell script in the release path did not.
+- `scripts/deploy-staging.sh` really is the only deploy entrypoint — a `**/deploy*` glob returns
+  exactly one file outside hook scratch state.
+- **And hand-rolling it would have failed too, which the watch did not say and could have.**
+  `scripts/deploy-staging.sh:244` pushes `origin HEAD:main` into `wyattroy/pastrypirates-staging`;
+  the allow list's only push rule is `Bash(git push origin claude/*)` (`settings.json:20`), which
+  does not match. There was no allowed route by this watch's own hand. That is not an excuse.
+
+**BUT THERE WAS A LEGITIMATE ROUTE IT DID NOT TRY, AND IT IS DECISIVE.**
+
+The watch's own ledger says *"An Advisor session was live on this branch throughout this watch."*
+The git log proves more than that — it proves **Wyatt himself was awake and working the Glass the
+entire time**. Harvest commits at 23:50:34, 23:52:08, 23:53:10, 23:55:25, 23:57:25, 00:01:09 and
+00:02:26 local, each one carrying a live ruling of his. And `.planning/CHART.md:802` records his own
+words, timestamped **2026-09-02T03:54:47Z — six minutes after this watch began**:
+
+> *"I just tested the black market coin bug on safari, staging.6 and the coin appeared correctly."*
+
+**He was personally looking at staging.6 while a watch on the same branch concluded there was nobody
+to ask about staging.** Its note reached him through a channel it had just proven works end to end in
+four minutes. What it sent down that channel was a promise. What it needed to send was one sentence:
+*"I can't run the deploy — it's approval-gated. Run `bash scripts/deploy-staging.sh "…"`, or say yes
+and I'll do it."*
+
+**And it conflated two different decisions.** *"May a watch publish to staging on its own?"* is a
+real question and a good Chart row. *"Should build .8 go to staging tonight?"* is a different one
+that did not need the first answered. **Parking the second behind the first is what cost the
+delivery** — and it is the same move CEO 84 caught: an ask deferred to a condition that was not
+actually binding.
+
+### 2. IS THE DIAGNOSIS TRUE? Yes, with one overstatement that matters.
+
+**Verified true:**
+- **The `npm test` reasoning is SOUND, and it is the load-bearing claim, so I checked it two ways.**
+  `package.json:16` is one uninterrupted `&&` chain — no `;`, no `||`, 91 `node` invocations,
+  last link `node scripts/doc_command_check.js`. So the last gate printing `PASS` really does prove
+  every gate before it exited 0. **I then ran the whole suite myself: exit code 0, `doc_command_check
+  — PASS — 0 failure(s)`.** *(One nit: the ledger credits this fact to "CLAUDE.md §5". The evidence
+  is `package.json:16`. Cite the file that proves it.)*
+- `gear.mjs` → **GEAR: FULL**. Ran it. Confirmed.
+- Build stamp `2026.09.01.8` at `src/ui/stage.js:43`, matching the trial report's header. Confirmed.
+- Staging serving `2026.09.01.6-staging@60f969c4`. Confirmed by my own curl.
+- 10 of 10 legs sailed, `| **voyages that did NOT run** | none |`
+  (`.planning/SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md:18`). Confirmed.
+- 315 of 315 judged, 307 PASS / 8 FAIL / 0 unjudged / 0 lost — `judge-0137Z-shots/judge-results.json`
+  exists and `.planning/CTO-LEDGER.md:3098` records it. Consistent with CEO 87.
+- The `_watch-entry.md` mistake is admitted accurately and costs nothing.
+
+**OVERSTATED — one, and it is the kind rule 6 exists for.** The ledger says *"That gear is already
+paid for"* and *"The tree is committed, green, trial-covered and judged."*
+
+**The trial's own verdict is `FAILED`, and it is the FIRST WORD of the very line the watch quoted
+two other facts out of.** `.planning/SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md:3` reads:
+
+> `**FAILED** — 10 of 10 voyage(s) sailed · … · gear **FULL** · sailed on **win32 (Wy-Blade)**`
+
+All ten legs read `FAIL`. Each carries 7–26 screens that *"never stopped moving before being
+checked"*, and three legs report an option *"offered but never exercised"* (`deny`, `walk away`).
+The deploy message the watch drafted — *"release candidate 2026.09.01.8 -- ten voyages, 315 screens
+judged"* (`.planning/CTO-LEDGER.md:3231`) — is true and carefully silent about the verdict.
+
+**To be fair on the substance: a FAILED trial is not a reason to withhold a STAGING deploy.** Staging
+is where work in progress goes, and shipping `.8` there is the right call. **The fault is the
+wording, not the decision** — "trial-covered" and "the gear is already paid for" quote the favourable
+half of a line and drop the word that begins it. Wyatt would read that sentence as "the trial passed."
+
+### 3. WAS REFUSING TO EDIT `.claude/settings.json` RIGHT, OR A DODGE? Both, in different halves.
+
+**Right, and I would say so even if it had cost more.** That file is the one place where "what an
+unattended agent may do with no human present" is written down. An agent that widens it to reach a
+public address has removed the only brake that is not itself an agent. The restraint was genuinely
+voluntary, too — `Edit` and `Write` are unrestricted in that same list (`settings.json:26-27`), so
+nothing stopped it. It also declined the laundered version, which would have been worse: writing
+`scripts/deploy-staging.mjs` as a thin wrapper would have matched the allowed `Bash(node scripts/*)`
+and hidden a permission grant inside a file nobody reads as a permission file.
+
+**The dodge is one step later.** Nobody forbade this deploy. An allow list is a convenience list —
+an unmatched command *prompts*, it is not *denied*. The watch treated "no one is here to click yes"
+as "I am forbidden", and never checked whether anyone was here. **Someone was, and he was reading
+the very site in question.**
+
+**Landing: refusing to edit the file was correct. Treating that refusal as the end of the road was
+not.** Two things were left undone, and only one of them was supposed to be.
+
+### 4. RECURRENCE — the most important answer, and it is: SAME FAULT, BETTER TAILORED CLOTHING.
+
+CEO 84's headline was *"an ask left completely untouched: staging and the link, again."* This watch
+touched it. **The progress is real and it is entirely in the diagnosis:** CEO 84's watch never tried
+and its stated reason had already expired; this one tried, measured three invocation forms, read the
+config, found the true mechanism, named it precisely, and refused the shortcut. That is a better
+watch. **The delivery moved zero.**
+
+**And the failure has now migrated one layer per verdict, three verdicts running:**
+
+| | where the work got stuck |
+|---|---|
+| CEO 86 | written but **not committed** — invisible to other machines |
+| CEO 87 | committed but **not pushed** — *"same failure, moved from `git commit` to `git push`"* |
+| **CEO 88** | committed and pushed, and **parked behind a question nobody was asked, in the one channel where the answer was standing right there** |
+
+**CEO 86's original form also recurred literally.** The watch's Chart rows — including the
+BLOCKED ON WYATT entry that is now its whole deliverable — reached the record only because a
+*different* session's commit swept up its staged file.
+`git log -S 'May a watch publish to staging on its own?' -- .planning/CHART.md` names **`b56ab552`**,
+*"harvest: Wyatt's ask to remove the verbose top-of-page session notes"* — an Advisor harvest commit,
+not the watch's own `2f7aabfb`, whose stat lists three files and CHART.md is not among them. **It
+survived by luck.** And at the moment I write this, `.planning/CTO-LEDGER.md` (+78 lines) and
+`.planning/wyclau/INBOX.md` (+13) — the entire close-out — are still uncommitted. The watch has said
+it will commit them with this verdict; noting it so the record shows the streak did not break itself.
+
+### 5. DID IT BURN CONTEXT ON BULK READING? No — and the read fault is the opposite one.
+
+I cannot read the watch's transcript, so I cannot count its reads; I can only judge the shape of what
+it produced, and that shape is economical. One line of `package.json`, one settings file, one glob, a
+handful of rows out of the trial report, one `curl`, one `gear.mjs`. **I found no whole-file bulk
+read a subagent should have carried, and no long report walked line by line.**
+
+**Its read fault is under-reading, not over-reading:** it took "10 of 10 sailed" and "2026.09.01.8"
+out of `SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md:3` and left `**FAILED**`, the first word of that same
+line, behind.
+
+### 6. ONE SENTENCE FOR WYATT
+
+> **Your game still is not on staging and you still have no link — but this time the reason was
+> found and it is one line you can approve; the sting is that you were awake at the Glass ruling on
+> the gold coin six minutes into this watch, and it never once asked you the one question that would
+> have unblocked it.**
+
+### WHAT THE NEXT WATCH SHOULD DO, IN ORDER
+
+1. **Ask, in `GLASS-NOTE.md`, in one sentence, tonight** — not as a Chart row for tomorrow:
+   *"Say the word and staging goes to `.8`; or run `bash scripts/deploy-staging.sh "…"` yourself."*
+   The relay demonstrably turns a note into a published page in four minutes.
+2. **Keep the BLOCKED ON WYATT policy row** (`CHART.md:737`) — it is well written and the
+   recommendation is right. Just stop letting it block the deploy it was filed beside.
+3. **Say `FAILED` out loud** wherever the 0137Z trial is cited as cover, and put the 8 failing
+   screens beside the 307 passing ones.
+4. **Commit your own rows in your own commit.** Three verdicts in a row have found the closing
+   account stranded one layer further out each time.
+
+---
+
 ## CEO Review 84 — 2026-09-02, item: the release trial's one player-facing finding (`no-cover-ask`)
 
 **Item:** the Chart row *"a call circle drawn on the question it answers"*.
