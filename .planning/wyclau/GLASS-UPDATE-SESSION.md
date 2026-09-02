@@ -153,6 +153,23 @@ publish. This session IS the terminal.
 >    that reaches nothing** — RANK reads the `now: yes` field the command writes, and nothing else.
 >    (`T-104`, his words: *"Add a 'DO now' button next to 'Send to the Chart' button that tells RANK
 >    to put this task at the top"*. The button is the easy half; this line is the joint.)
+> 2b. ⚑ **AND FOR EVERY KEY IN `rulings`, RETIRE THE QUESTION IN THE SAME COMMIT. ONE COMMAND, ONCE
+>    PER RULING, AND IT IS NOT OPTIONAL:**
+>    `node scripts/wyclau/retire_answered.mjs --qid=<the ruling's key> --verdict="<his words, verbatim>"`
+>    It writes the ruling into `## RULED` **and deletes the question from `## BLOCKED ON WYATT`**, in
+>    one write, so the two can never disagree. Then commit both halves together with step 2's copy.
+>    ⚠ **WHY THIS LINE EXISTS, AND IT IS THE ONE FAULT HE HAS REPORTED SIX TIMES IN TWELVE HOURS.**
+>    Harvesting his answer WRITES the ruling and DELETES NOTHING, so his page goes on asking a
+>    question he has already answered. His words, 2026-09-02 6:57 PM ET: *"the page continues to
+>    re-show me thw e questions AFTER they're harvested. this is NOT fixed and it is a PRIORITY more
+>    than any of the SEO work."* And earlier, with a screenshot: *"I already answered both of these
+>    about 15 minutes ago. Please tell me why the page still shows them."*
+>    ⚠ **THE 22:5xZ TICK IS WHY THIS IS A COMMAND AND NOT A REMINDER.** It wrote *"all five
+>    rules-page questions in the Your Call table above are now answered"* into its own commit **and
+>    left all five asking**, because *"this session's mandate is harvest-and-publish only."* It
+>    detected the exact condition and had no authority to act on it. **This line is that authority.**
+>    Gate: `scripts/qa/answered_question_retired_check.mjs` fails the build if a question that
+>    already carries a ruling is still a live row.
 > 3. **NOW ASK WHETHER THIS TICK HAS ANYTHING TO SAY. THIS COMMAND RUNS ON EVERY TICK, WITHOUT
 >    EXCEPTION:** `node scripts/wyclau/glass_gate_log.mjs`
 >    — and **if step 2 found ideas or rulings, run it as

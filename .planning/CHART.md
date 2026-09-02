@@ -1310,7 +1310,36 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
      The reader was deliberately NOT made cleverer. The first draft warned only on prose containing a
      "?", and three of the five blocks quoted his own already-answered questions, marks and all — so
      the warning would have survived the fix. Fence the writer, keep the reader broad and dumb.
-     Diagnosis: SPEC-GLASS-CALM.md and SPEC-VISIBILITY-AND-INJECTION.md §2. -->
+     Diagnosis: SPEC-GLASS-CALM.md and SPEC-VISIBILITY-AND-INJECTION.md §2.
+
+     ⚑ EVERY QUESTION ROW CARRIES ITS OWN ID, AND A GATE REQUIRES IT
+     (scripts/qa/answered_question_retired_check.mjs, cases 3 and 6). It goes at the FRONT of the
+     question cell, written as an HTML comment holding "qid:" and a short slug — so the row still
+     starts with "|", and he never sees it on his page.
+
+     ⚠ THE EXACT LITERAL IS NOT PRINTED HERE, AND THAT IS NOT LAZINESS: writing one HTML comment
+     inside this one CLOSES THIS ONE at the nested comment's own terminator, and everything after it
+     lands back in the section as prose — which is precisely what the arrow warning above is about,
+     and it happened again while this paragraph was being written. Copy the form from a live row, or
+     run `node scripts/wyclau/retire_answered.mjs --list`, which prints it.
+
+     WHY. Until 2026-09-02 a question's identity was the first 40 characters of its own prose. Two
+     sibling questions that open the same way collide onto ONE id — proven, not theorised:
+       ⟨T-105⟩ Should the harvest retire the row immediately, or flag it for a watch?
+       ⟨T-105⟩ Should the harvest retire the row only after a CEO has seen it?
+     both slug to `t-105-should-the-harvest-retire-the-row`. HIS ANSWER TO ONE WOULD RETIRE THE
+     OTHER, and the record would then show him answering a question he never saw. Editing a
+     question's wording orphans the ruling he already made, for the same reason.
+
+     ⚑ AND NOBODY DELETES A ROW FROM THIS TABLE BY HAND. When he answers, ONE command records the
+     answer and removes the question together, so they cannot disagree:
+
+         node scripts/wyclau/retire_answered.mjs --qid=<id> --verdict="<his words, verbatim>"
+
+     Six times in twelve hours on 2026-09-02 a session harvested his answer and left the question
+     asking; three of those were repaired by hand, which is not a fix. His words, 6:57 PM ET:
+     "the page continues to re-show me thw e questions AFTER they're harvested. this is NOT fixed
+     and it is a PRIORITY more than any of the SEO work." -->
 
 | Question | Recommendation | since |
 |---|---|---|
@@ -1354,7 +1383,6 @@ carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 
 | item | HIS RULING | now |
 |---|---|---|
-| **The rules-page split — all five questions, 6:50–6:53 PM ET** (which page is THE rules page; what About keeps; the in-game modal; pirate voice or his own; About's credits list) | **ANSWERED, ALL FIVE.** Verbatim in `HARVESTED RULINGS` below and in `INBOX-20260902T225008Z` / `…225032Z`; ruling 1 and 2 also in `DECISIONS.md`. | **RETIRED FROM `BLOCKED ON WYATT` 2026-09-02 6:58 PM ET — BY HAND, FOR THE THIRD TIME TODAY.** ⚠ The harvest that recorded them wrote *"all five rules-page questions in the Your Call table above are now answered"* **and left all five asking**, because harvesting and retiring are different jobs and it had authority for only one. **It detected the exact condition and could not act on it.** His words, 6:57 PM: *"this is NOT fixed and it is a PRIORITY more than any of the SEO work"*. |
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |

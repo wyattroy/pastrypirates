@@ -133,6 +133,57 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/* ═══ A QUESTION'S IDENTITY — the join between a row in `## BLOCKED ON WYATT` and the ruling Wyatt
+   makes against it. ONE definition, imported by glass.mjs (which stamps it into his page),
+   retire_answered.mjs (which acts on it) and answered_question_retired_check.mjs (which gates it),
+   because three copies of a join is the shape rule 23 forbids and `idOfRow` above is what a fourth
+   copy of an identity costs.
+
+   ⚠ WHY IT IS WRITTEN DOWN RATHER THAN DERIVED, AND THE HAZARD IS PROVEN, NOT THEORISED. Until
+   2026-09-02 a question's id was the first 40 characters of its own prose, slugged
+   (`glass.mjs:430`). Two genuinely different questions on one item —
+
+       ⟨T-105⟩ Should the harvest retire the row immediately, or flag it for a watch?
+       ⟨T-105⟩ Should the harvest retire the row only after a CEO has seen it?
+
+   — both slug to `t-105-should-the-harvest-retire-the-row`. **His answer to one would retire the
+   other, and the record would show him answering a question he never saw.** A duplicate question
+   wastes his time; a mis-attributed ruling corrupts a decision. Three properties make it likely
+   rather than exotic: the truncation at 40, the `t-nnn-` handle eating six of them, and a house
+   style that front-loads the shared framing ("Should the harvest…", "Do you want…"). Editing a
+   question's wording silently orphans his existing ruling for the same reason.
+
+   THE FALLBACK IS KEPT AND IS NOT A SECOND SOURCE. A row written before this convention still gets
+   the old derived slug, so nothing in flight is orphaned by the change landing — the gate is what
+   makes the marker mandatory going forward, and the derived branch exists to keep OLD rulings
+   readable rather than to let new rows skip the marker.
+
+   THE MARKER IS AN HTML COMMENT so he never sees it: `glass.mjs` renders the question cell to his
+   page, and a filing handle on his screen is exactly the "chaotic" he has already complained about
+   (`glass_calm_check.mjs`). It sits inside a `|` line, so the section's table-rows-only fence and
+   the page's unreadable-prose detector are both untouched. */
+export const QID_RE = /<!--\s*qid:\s*([a-z0-9][a-z0-9-]{0,59})\s*-->/i;
+
+/** The question cell as Wyatt reads it: the marker taken back out. */
+export const stripQid = (cell) => String(cell ?? "").replace(QID_RE, "").trim();
+
+/** The id a ruling is stored under. Explicit marker first; the pre-2026-09-02 derived slug second.
+ *  `explicit` is returned alongside so a caller can say WHICH branch answered — a gate that cannot
+ *  tell an explicit id from a guessed one cannot report the thing it exists to report. */
+export function questionId(cell) {
+  const raw = String(cell ?? "");
+  const m = QID_RE.exec(raw);
+  if (m) return { id: m[1].toLowerCase(), explicit: true };
+  return {
+    /* Byte-for-byte the rule glass.mjs has used since the card was built. It is reproduced rather
+       than re-derived on purpose: every ruling Wyatt has ever made is keyed by it, and a "tidier"
+       version of this line would orphan all of them at once. Verified against five real keys in
+       `LAST-HARVEST` by answered_question_retired_check.mjs, case 7. */
+    id: raw.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40).replace(/^-|-$/g, ""),
+    explicit: false,
+  };
+}
+
 /** ⚑ A ROW'S IDENTITY, AND IT IS THE ROW'S OWN HANDLE LINE — never the first handle that happens to
  *  appear in its prose.
  *

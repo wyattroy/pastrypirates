@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { chunk, stateOf, titleOf } from "./lib/chart_model.mjs";
+import { chunk, stateOf, titleOf, questionId, stripQid } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -424,11 +424,18 @@ if (chart !== null) {
     .filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|-+/.test(l) && !/^\|\s*---/.test(l))
     .map((l) => l.split("|").map((c) => c.trim()).filter(Boolean))
     .filter((c) => c.length >= 2)
-    // A stable id per question so a ruling survives the wording being edited on the Chart:
-    // first 40 chars of the question, lowercased, punctuation stripped.
+    /* THE ID A RULING IS STORED UNDER — one definition, in `lib/chart_model.mjs`, imported by the
+       three things that need it: this page (which stamps it), `retire_answered.mjs` (which acts on
+       it) and `answered_question_retired_check.mjs` (which gates it).
+       ⚠ IT USED TO BE DERIVED HERE, IN ONE LINE, FROM THE QUESTION'S OWN FIRST 40 CHARACTERS — and
+       the comment above it called that "stable", which was true of a re-render and false of the two
+       things that actually happen: two sibling questions opening the same way collide onto ONE id
+       (so his answer to one retires the other), and editing a question's wording orphans the ruling
+       he already made. The derived rule is KEPT as the fallback so no existing ruling is orphaned by
+       this change landing; new rows carry `<!--qid:…-->` and the gate is what requires it. */
     .map(([q, rec, since]) => ({
-      id: q.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 40).replace(/^-|-$/g, ""),
-      q: unmark(q), rec: unmark(rec ?? ""), since: since ?? "",
+      id: questionId(q).id,
+      q: unmark(stripQid(q)), rec: unmark(rec ?? ""), since: since ?? "",
     }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
   /* WHOLE BLOCKS, not first lines. An idea's fate ("SHIPPED", "PARKED", "SCHEDULED") is written
