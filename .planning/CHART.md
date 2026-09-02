@@ -93,32 +93,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
       read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
 
-- [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
-      ⟨`T-104`⟩
-      Deliberately NOT ticked: one joint is still a session remembering something.**
-      Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
-      button next to "Send to the Chart" button that tells RANK to put this task at the top"*
-      **WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code:** the
-      button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box,
-      paints a `DO NOW` tag on it at once, and tells him one slot displaced the other. A session
-      carries it over with `chartkeeper.mjs --do-now=<handle>`, and RANK puts that row first with
-      **YOU SAID DO NOW** beside it. Two pins cannot exist: pinning releases the previous one in the
-      same act, and two arriving by hand fail the build naming both. The press, photographed:
-      [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png).
-      ⚠ **THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a
-      SESSION reading the page by hand.** `do_now_check.mjs` case 9 fails the build if the harvest
-      runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a
-      session typed it. **Closing it for real means the harvest carrying the flag mechanically**,
-      which is the same shape as `T-105`'s remaining layers and is probably one job with them.
-      ⚠ **AND THE DOOR STILL DOES NOT SAY IT.** `.claude/skills/door/SKILL.md`'s own harvest step
-      names the ideas and the rulings and not the pin; `.claude/` is refused to an unattended watch
-      (CEO 120's finding, unchanged across three watches now), so a session with permission owes it
-      one line. **Sizing: SMALL.**
-
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
-
 - [ ] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
       ⟨`T-106`⟩
       by the watch that closed it, at CEO 119's insistence and it was right to insist.** His idea,
@@ -161,6 +135,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
       that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
 
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -192,9 +170,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
-
-
-
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -216,6 +191,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
+
+
+
+
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -498,11 +477,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -523,6 +497,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
       line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
       thirty seconds and it would have caught this one.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
@@ -635,6 +613,36 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
+
+- [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
+      ⟨`T-104`⟩
+      Deliberately NOT ticked: one joint is still a session remembering something.**
+      Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
+      button next to "Send to the Chart" button that tells RANK to put this task at the top"*
+      **WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code:** the
+      button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box,
+      paints a `DO NOW` tag on it at once, and tells him one slot displaced the other. A session
+      carries it over with `chartkeeper.mjs --do-now=<handle>`, and RANK puts that row first with
+      **YOU SAID DO NOW** beside it. Two pins cannot exist: pinning releases the previous one in the
+      same act, and two arriving by hand fail the build naming both. The press, photographed:
+      [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png).
+      ⚠ **THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a
+      SESSION reading the page by hand.** `do_now_check.mjs` case 9 fails the build if the harvest
+      runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a
+      session typed it. **Closing it for real means the harvest carrying the flag mechanically**,
+      which is the same shape as `T-105`'s remaining layers and is probably one job with them.
+      ⚠ **AND THE DOOR STILL DOES NOT SAY IT — the one-line edit is written and was REFUSED, and
+      the refusal's exact words are recorded rather than its cause inferred.** The Glass runbook now
+      carries the instruction; `.claude/skills/door/SKILL.md`'s own harvest step still names the
+      ideas and the rulings and not the pin. **His ruling 5:43:55 PM ET — *"Let the watch write them
+      -- I allow edits to hooks and skills"* — is in force, and commit `0472a129` measured that this
+      project denies NOTHING under `.claude/`.** The edit was attempted anyway at 2026-09-02T22:0xZ
+      and came back: *"Claude requested permissions to write to
+      C:\Users\wyatt\Projects\pastrypirates\.claude\skills\door\SKILL.md, but you haven't granted it
+      yet."* **So the blocker is the harness's own rule for unattended sessions, which no project
+      setting can grant — the fourth time on this branch that a permission he gave and the mechanism
+      meant to carry it turned out to be different things.** One paste at the laptop finishes it; the
+      text is in `GLASS-UPDATE-SESSION.md`'s harvest step, ready to copy. **Sizing: SMALL.**
 
 - [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
       ⟨`T-008`⟩
@@ -1278,12 +1286,14 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
 > messaging each other. **Filed here as the second live instance in one hour.**
 
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"Do Now: in the Glass, Add a
+      ⟨`T-108`⟩
   \"DO now\" button next to \"Send to the Chart\" button that tells RANK to put this task at the
   top"* → **SCHEDULED — built 2026-09-02T21:4xZ, commit `c8a475a6`, CEO 121; the row that carries
   it is `T-104` at the top of FOR A WATCH, open because one joint is still a session remembering a
   command.** Companion to the drag ask below; the two were filed one minute apart.
 
 - **⚑ Wyatt, DO NOW, written on the Glass, 2026-09-02, 3:09 PM ET**: *"DO NOW: build a way for me
+      ⟨`T-109`⟩
   to drag to reprioritize the chart, in The Glass."* → **SCHEDULED — the row that carries it is
   `T-103` at the top of FOR A WATCH.** He tagged this DO NOW himself.
 
@@ -1696,6 +1706,32 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   a 5-leg reduced trial would still have caught the real regressions this project has shipped and
   later found (host/guest divergences, viewport-specific layout breaks), and scope the change
   before touching the trial script itself. → **SCHEDULED, next session that owns QA-process work.**
+
+- **Wyatt, written on the Glass, 2026-09-02, 5:45:07 PM ET**: *"Add google analytics to
+      ⟨`T-110`⟩
+  playpastrypirates.com and create a firebase admin console so I can see how many people are
+  playing"* → **ALREADY HARVESTED AND SIZED, elsewhere, before this row existed — filed here only
+  because step 2 of this runbook requires every live-page idea to land in THIS section verbatim, and
+  it had not.** The full write-up (two jobs: a third-party script on the live site, and a new
+  surface reading live multiplayer data) is `.planning/wyclau/INBOX.md`,
+  `INBOX-20260902T214507Z`. **SCHEDULED — no further action from this session.**
+
+- **Wyatt, written on the Glass, 2026-09-02, 5:43:55 PM ET, RULING on `T-105`**: *"Let the watch
+      ⟨`T-105`⟩
+  write them -- I allow edits to hooks and skills"* → **ALREADY HARVESTED**, `.claude/memory/DECISIONS.md`
+  (commit `0472a129`), which also records that the question he answered carried an unverified
+  premise (`.claude/` is not, in fact, entirely denied to a watch — `settings.json` allows bare
+  Edit/Write there). No allowlist change was made or is needed; if a watch is still refused, that is
+  a harness behaviour for unattended sessions, not this repo. Filed here for the same reason as the
+  row above.
+
+- **Wyatt, written on the Glass, 2026-09-02, 5:45:23 PM ET, RULING**: *"Done -- I wrote about
+  adding google analytics and firebase"* → **ALREADY HARVESTED**, `.planning/wyclau/INBOX.md`,
+  `INBOX-20260902T214523Z` — his half of the live conflict-test he ran himself on this page (Layer A
+  of `T-105`, already confirmed REFUSED on a disposable artifact; his run is the live-page
+  confirmation, and a session's own auto-mode classifier blocked a second, riskier attempt to repeat
+  it — see `.planning/wyclau/INBOX.md`, entries dated 21:46–21:49). Filed here for the same reason
+  as the two rows above.
 
 ## FATES DECIDED
 
