@@ -7,6 +7,95 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 112 — 2026-09-02, Wy-Blade — `SPEC-GLASS-CALM.md`, the three "chaotic again" fixes
+
+*His ask, verbatim: **"the glass looks chaotic again. 1. In Hand needs to give me context on what is
+being worked on -- i don't know or care about the 'T-088 · claimed 2026-09-02T16:49Z' -- i want to
+know the content of it. 2. 'page published 3 min ago — it cannot see anything newer than that'
+should be up next to '🟢 last progress 6 min ago' as one status bar with fewer words: '🟢 Progress:
+6 min ago. 🟢 Updated: 4 min ago.' 3. '…and there is more in that section this page could not read
+— content that is not a table row. Open .planning/CHART.md.' --> what is causing this? debug and
+fix. create a plan to fix these, review with ceo, add to top of chart for a watch to fix."***
+Reviewed: `.planning/SPEC-GLASS-CALM.md`. Nothing was built.
+
+### VERDICT: **APPROVED FOR ITEM 2. REJECTED AS WRITTEN FOR ITEMS 1 AND 3.**
+
+**Its one sentence for Wyatt:** *"Two of these three are already fixed in the data and just need a
+five-line tidy — the machine is already recording 'fix the Glass: his five asks', it's only the page
+that's still printing the code number — but the plan proposes building a lookup instead, and its
+cure for your red warning would leave the red warning exactly where it is."*
+
+### ⚠ FINDING 1 — THE TITLE LOOKUP WOULD HAVE PRINTED THE WRONG WORK
+
+`⟨T-088⟩` sits on **two different Chart rows** — `.planning/CHART.md:60` ("FIX THE GLASS — his five
+asks") and `:196` ("A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM"). *"A lookup by
+handle would pick one of the two, and the page would confidently tell him we are resizing artwork
+while we are fixing his page."* `chart_model.mjs:186-190` carries a comment about this exact class,
+where a lookup keyed on something non-unique wrote one row's verdict into another row.
+
+**And the lookup was never needed.** `.planning/wyclau/IN-HAND` already holds
+`"item": "T-088 — fix the Glass: his five asks"`; `claim_item.mjs` documents that format and refuses
+a blank one. *"What is left is genuinely small: the page still prints the code number in front of
+the words."* **⇒ Its fourth option, adopted: split `--handle` from `--item`, print the words, keep
+the handle in a `data-` attribute.**
+
+### ⚠⚠ FINDING 2 — THE PROPOSED CURE FOR THE RED WARNING DOES NOT CURE ANYTHING
+
+The plan said: sound the alarm only when the unreadable text *contains a question mark or a bold
+lead*. Run against his real page: **three of the five prose blocks contain a question mark**, because
+they are notes quoting his already-answered questions verbatim. *"So after doing the work, the red
+warning is still on his page."* The plan's own sizing called 3(b) *"the one to get right"* — and it
+is the one part that measurably fails.
+
+**⇒ Its fourth option, adopted: FENCE THE WRITER, NOT THE READER.**
+`SPEC-VISIBILITY-AND-INJECTION.md:101-103` already specified it — a gate fails the build on any
+paragraph in that section — and the plan *"quietly kept half of that sentence (the question mark) and
+dropped the half that works."* Housekeeping notes go in HTML comments: *"a structural line, not a
+guess about wording, which is the difference between this and 3(b)."*
+
+### FINDING 3 — THE COUNT WAS WRONG, AND THE COMMENT THE BUILDER WILL MEET IS WRONG TOO
+
+*"'three prose blocks and no hidden question' — the count is FIVE"* (45 non-table lines,
+`.planning/CHART.md:956-1010`). And on the relative clock: `glass.mjs:543-544` shouts *"AND THE TIME
+IS ABSOLUTE, NEVER 'N MINUTES AGO'"* on reasoning that `:986-987` disproves. *"The plan is right and
+the comment is wrong — but if it does not say so, the next person to open that file will read the
+shouting comment and stop."*
+
+### ITEM 2 — APPROVED, with one number pinned
+
+The two clocks are real, live and separate (`:969-999`, `tick()` on a 30-second interval). The plan
+asks for two independently-colouring dots, which is *"real, not decorative"* — but did not say when
+the second turns red. **⇒ Both dots take the 45-minute rule the first already uses (`:995`) — same
+rule, no new constant.**
+
+### RECURRENCE — the same fault, in a SIXTH consecutive verdict
+
+*"**A sentence tidier than the record** recurs — three instances here: 'three prose blocks' (five),
+'no hidden question' (three blocks quote questions verbatim), and a title lookup planned against a
+handle that appears on two rows. Every one took under two minutes to check. It cost nothing again,
+because again nothing was built — but item 3(b) is a fix that would have shipped, been reported as
+done, and left his red warning exactly where it is."*
+
+**Not recurring, and it said so:** CEO 111's other fault — proposing to rebuild something that
+already works — did **not** happen; `In hand:` was verified as shipped before anything was proposed.
+Rule 7 clean. The traps he has already ruled against (a timer, publishing more often) were explicitly
+declined.
+
+### WHAT WAS DONE ABOUT IT
+
+**Every finding was re-measured by the Advisor before being adopted, not taken on trust** — the two
+`T-088` rows, the five prose blocks, the three question marks, the live `tick()`, the 45-minute rule,
+and the marker's contents. All held. The spec now leads with a stop-banner naming its own two wrong
+claims, builds item 1 by splitting the field, replaces 3(b) with the writer-side gate, and requires
+the wrong comment to be corrected in the same change. Filed as `T-095`.
+
+**Its parting note, adopted into the spec:** his recipe-picture follow-up — *"what is the maximum
+size they are displayed at?"* — sits in the RULED card with an empty `now` cell
+(`.planning/CHART.md:1044`) while `.planning/ASSET-DISPLAY-SIZES.md` appears to answer it. *"He asked
+a question, we answered it in a file, and his page still shows it unanswered."*
+
+---
+
 ## CEO Review 111 — 2026-09-02, Wy-Blade — the "what is being worked on right now" design
 
 *His ask: **"what is being worked on RIGHT NOW? that needs to be visible just underneath the emoji

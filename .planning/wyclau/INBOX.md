@@ -803,3 +803,26 @@ status: OPEN — FOR A WATCH, and it is a convention to write down rather than a
   evidence than it sounds. The honest claim is the narrow one: *at the available scale, on the two
   squares measured as worst, there is no visible artifact of the kind lossy compression produces.*
   **Neither look replaces his own on the real board at full size.**
+
+---
+
+### INBOX-20260902T17xxZ — OPEN → SPEC'D, CEO'D, FILED AS `T-095` (the build is a watch's)
+
+**HIS WORDS, VERBATIM:**
+
+> the glass looks chaotic again. 1. In Hand needs to give me context on what is being worked on -- i
+> don't know or care about the " T-088 · claimed 2026-09-02T16:49Z" -- i want to know the content of
+> it. 2. "page published 3 min ago — it cannot see anything newer than that" should be up next to
+> "🟢 last progress 6 min ago" as one status bar with fewer words: "🟢 Progress: 6 min ago. 🟢
+> Updated: 4 min ago." 3. "…and there is more in that section this page could not read — content
+> that is not a table row. Open .planning/CHART.md." --> what is causing this? debug and fix. create
+> a plan to fix these, review with ceo, add to top of chart for a watch to fix
+
+**`solution:`** — he stated his own wording for item 2 and it is adopted verbatim. Items 1 and 3 he
+described as outcomes, not mechanisms.
+
+**DONE BY THE ADVISOR:** cause of item 3 measured (`## BLOCKED ON WYATT` holds five prose blocks and
+no hidden question — the first is a paragraph *I* wrote forbidding prose); plan written to
+[`SPEC-GLASS-CALM.md`](../SPEC-GLASS-CALM.md); CEO 112 run, which **approved item 2 and rejected
+items 1 and 3 as first written**; every finding re-measured and applied; row filed at the top of
+`### ⚑ FOR A WATCH` as `T-095`. **Not built here — he said "for a watch to fix".**

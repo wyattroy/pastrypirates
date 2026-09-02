@@ -516,6 +516,51 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **★★★ "THE GLASS LOOKS CHAOTIC AGAIN" — his three newest faults. CEO 112 approved item 2 and
+      REJECTED items 1 and 3 as first written; the spec is rewritten and every finding re-measured.
+      Spec: [`SPEC-GLASS-CALM.md`](SPEC-GLASS-CALM.md). Sizing: SMALL, three parts.** ⟨`T-095`⟩
+      **HIS WORDS:** *"the glass looks chaotic again. 1. In Hand needs to give me context on what is
+      being worked on -- i don't know or care about the 'T-088 · claimed 2026-09-02T16:49Z' -- i want
+      to know the content of it. 2. 'page published 3 min ago — it cannot see anything newer than
+      that' should be up next to '🟢 last progress 6 min ago' as one status bar with fewer words:
+      '🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago.' 3. '…and there is more in that section this
+      page could not read…' --> what is causing this? debug and fix."*
+      **1 · SPLIT THE FIELD — DO NOT LOOK THE TITLE UP IN THE CHART.** `claim_item.mjs` takes
+      `--handle=T-088` and `--item="fix the Glass: his five asks"` separately; the page prints the
+      words and keeps the handle in `data-handle`. **`publish_status.mjs:65-68` copies the marker's
+      JSON verbatim, so a new field arrives with that file unchanged.** Old markers carry only
+      `item` — fall back to stripping a leading `T-nnn — `, then to printing it whole; **never
+      render blank.**
+      ⚠ **WHY NOT THE LOOKUP: `⟨T-088⟩` IS ON TWO ROWS** — `CHART.md:60` (this Glass work) and
+      `:196` (the art-library measurement). A lookup picks one, and his page confidently reports the
+      wrong work. **And it was never needed: the words are already in `.planning/wyclau/IN-HAND`.**
+      **THE TIME GOES INTO `tick()`, NOT INTO THE HTML.** `inHandHtml` is built in Node
+      (`glass.mjs:570-577`), so a relative age computed there really would freeze. `tick()` runs
+      every 30s in his browser (`:999`) and already renders two live clocks — put `claimedAt` and
+      `staleAfterMinutes` into `glassState` and let it write the line. **⚠ COLD moves with it**
+      (decided in Node today, `:575`), so a page open on his phone stops claiming work is in hand
+      once the claim goes stale. **AND CORRECT THE COMMENT AT `:543-544` IN THE SAME CHANGE** — it
+      shouts *"THE TIME IS ABSOLUTE, NEVER 'N MINUTES AGO'"* on reasoning `:986-987` disproves, and
+      it will talk the next reader out of the right fix.
+      **2 · ONE STATUS BAR, HIS WORDING EXACTLY — approved as written.** `🟢 Progress: 6 min ago
+      🟢 Updated: 4 min ago`. **Keep both clocks** (his own 2026-08-31 ask — they legitimately
+      disagree, and the disagreement is the signal). **Delete the `BLIND` apology string** (`:967`).
+      **Two dots colouring independently** — today there is one (`:842`) and the published line has
+      none. **Both use the 45-minute rule the first already uses (`:996`). No new constant.**
+      **3 · FENCE THE WRITER, NOT THE READER.** ⚠ **The first plan's "warn only on a `?` or a bold
+      lead" WAS MEASURED AND FAILS: three of the five prose blocks quote his own questions verbatim,
+      question marks and all — the red warning would still be on his page after the work was
+      reported done.** Instead: **(a)** move the four historical notes to `CHART-LOG.md` and turn my
+      warning paragraph into an HTML comment; **(b)** a gate fails `npm test` when `## BLOCKED ON
+      WYATT` holds any line that is not a table row, a blank, or an HTML comment — the rule
+      `SPEC-VISIBILITY-AND-INJECTION.md:101-103` already specified; **(c)** the reader
+      (`glass.mjs:384-389`) stays broad and dumb and **must strip HTML comments before the check**.
+      **DO NOT DELETE THE DETECTOR** — Your Call truthfully read `(0)` while a real question sat in
+      prose, and he caught that in a screenshot.
+      **THE PROOF A GATE IS WARRANTED:** five prose blocks are in that section right now
+      (`CHART.md:956-1010`) on a tree where `npm test` is green. Nothing in the build can see them;
+      the only thing that notices is the renderer, at read time, on his page, in red.
+
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
       ⟨`T-094`⟩
