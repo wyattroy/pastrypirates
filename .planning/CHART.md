@@ -524,12 +524,28 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   survives by sitting a few pixels higher. **So it is not one screen in one mode; it is what the
   End of Voyage does on a phone.**
   **AND THE SCOPE IS NARROWER THAN THE ROW ASSUMED, WHICH MAKES THE FIX EASIER RATHER THAN HARDER:
-  it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-031-settled.png`, same
-  run, same build, same screen: four award cards in one row, **every winner's name fully legible**
-  (Davy Scones, Crustbeard, Dough Hook, Flaky Jack), the whole stats table readable, and *Play
-  again!* sitting clear BELOW the content with space around it. Nothing is covered. So the
-  posed pair rule 26 asks for has a third picture already taken: **pose 390×664 before and after,
-  and check it against the tablet, which is what the screen is supposed to look like.**
+  it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-022-settled.png` — in the
+  0137Z queue, written 02:03Z, so same run and same build — is the same screen on a tablet: four
+  award cards in one row, **every winner's name fully legible** (Davy Scones, Crustbeard, Dough
+  Hook, Flaky Jack), the whole stats table readable, and *Play again!* sitting clear BELOW the
+  content. Nothing is covered. So the posed pair rule 26 asks for has a third picture already
+  taken: **pose 390×664 before and after, and check it against the tablet, which is what the screen
+  is supposed to look like.**
+  > **⚠ CORRECTED IN THE OPEN, BY THE WATCH THAT GOT IT WRONG — and the correction is worth more
+  > than the row.** This first cited `solo-tablet-031-settled.png`, calling it *"same run, same
+  > build"*. **It is neither.** Its mtime is 2026-09-01T14:52Z — hours before even the 1914Z run —
+  > and `grep` finds it **not in the 0137Z queue at all**. It was caught by reading the build stamp
+  > printed in its own corner: `2026.09.01.7`, not `.8`.
+  > **THE CAUSE IS THE STOPGAP ITSELF, AND IT IS THIS ROW'S TWIN.** `judge_the_queue.mjs --snapshot`
+  > copies every PNG in `sea-trial-shots/` older than its cutoff; run with a far-future `--before`
+  > it takes **820 files when only 315 are this run's**. The other ~505 are leftovers from earlier
+  > runs that this trial never overwrote, sitting in the snapshot under ordinary-looking names with
+  > nothing to mark them. **A session reading the snapshot by filename gets an older build's picture
+  > and no warning** — which is exactly *"a queue judged after a later run describes a mixture of
+  > runs, silently"*, reproduced inside the tool meant to prevent it. The JUDGED screens are safe
+  > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
+  > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
+  > make the snapshot take only what the queue names.**
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
   deliberately not fixed by it (one item, and `playtest_gate.mjs` is being read by the trial at sea).
