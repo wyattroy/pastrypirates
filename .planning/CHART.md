@@ -1265,12 +1265,19 @@ and fix: [`SPEC-VISIBILITY-AND-INJECTION.md`](SPEC-VISIBILITY-AND-INJECTION.md) 
 
 | Question | Recommendation | since |
 |---|---|---|
-| **May an unattended watch READ the claude-kit folder?** This is the only thing standing between five dammed-up patches — two of them your own rulings — and a night that fixes them. *(This replaces the question "is any other repo running wyclau?", which was filed here and then **answered from the repo in five minutes** by CEO 102 and re-verified independently: **no**. wyclau is not in claude-kit's catalogue at all, only one folder on this machine vendors it, and the kit's master copy was running 104 lines behind its only consumer. Asking you a question the repo could answer was itself the failing.)* | **(Recommended) Say yes and let a watch test it tonight — it is one line and it may end the whole problem.** The kit was described as "physically unreachable"; it is not — it reads fine from an attended session. What is fenced is the unattended watch: `bell.ps1:98-100` launches it with no added directories, so it cannot see outside the repo. That fence is `.claude/settings.json`, which is NOT locked. Adding the kit path lets a watch fix the tool it just proved broken and ship it in the same run. **It widens what an unattended session may read, which is why it is yours and not mine.** Nobody has run the five-minute test. Reasoning: [`SPEC-KIT-BOUNDARY.md`](SPEC-KIT-BOUNDARY.md). | 2026-09-02 |
 
 *(empty — the row about the settings.json permission wall was RULED 2026-09-02T04:38:42Z: "this
 is already ruled upon -- remove it from the list, we fixed it." Moved to SETTLED below. The row
 about `SCHEDULED` hiding your ideas was RULED YES 2026-09-02T12:28:02.757Z, moved to RULED below,
-awaiting triage.)*
+awaiting triage. The row about an unattended watch reading the claude-kit folder was RULED YES
+2026-09-02T12:39:56.363Z, moved to RULED below, awaiting triage.)*
+
+*The "May an unattended watch READ the claude-kit folder?" question was RULED YES ON THE GLASS
+2026-09-02T12:39:56.363Z, no note attached. Harvested to RULED below, awaiting triage: someone
+needs to actually widen `.claude/settings.json` so a Bell-started watch can read outside this
+repo, per the recommendation that was standing here, and confirm it really does unblock the five
+dammed-up claude-kit patches. Not done here — this session's mandate is harvest-and-publish only,
+never settings changes.*
 
 *The "Do you want `SCHEDULED` to stop hiding your ideas?" question was RULED YES ON THE GLASS
 2026-09-02T12:28:02.757Z, no note attached. Harvested to RULED below, awaiting triage: fixing it
@@ -1328,7 +1335,7 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 > checklist row (it would have vanished from every surface he can see). Both directions
 > red-proofed.
 
-*Three rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
+*Four rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
 triaged). Two more rulings landed and were triaged straight to SETTLED below since both resolve
 to "nothing to build." The prior eight were triaged 2026-09-01; three carried work and are in the
 STEP 1 CHECKLIST, tagged "Your ruling:".*
@@ -1338,6 +1345,7 @@ STEP 1 CHECKLIST, tagged "Your ruling:".*
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
+| May an unattended watch READ the claude-kit folder? The kit was described as "physically unreachable"; the fence is `bell.ps1:98-100`, which launches an unattended watch with no added directories, so it cannot see outside this repo. | **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached | |
 
 ## SETTLED RULINGS — triaged, and kept on the record forever
 
