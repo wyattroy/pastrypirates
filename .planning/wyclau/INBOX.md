@@ -17,6 +17,34 @@ status: OPEN | CLAIMED by <watch/session> | DONE <date> — <pointer> | PARKED �
 
 Every item gets a visible fate within a day (charter: the Chart's every-idea-gets-a-fate rule).
 
+
+> # ⚠ HIS STANDING PRIORITY, 2026-09-02 6:57 PM ET — READ THIS BEFORE PICKING AN ITEM
+>
+> **His words, verbatim:** *"the page continues to re-show me thw e questions AFTER they're
+> harvested. this is NOT fixed and it is a PRIORITY more than any of the SEO work"*.
+>
+> **SO: `T-090` — an answered question must leave `BLOCKED ON WYATT` in the same act that records the
+> answer — IS TAKEN BEFORE ANY SEO-SHAPED ITEM** (the rules page, the credits page, `sitemap.xml`,
+> analytics). Plan, CEO-verified: [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](../SPEC-ANSWERED-QUESTIONS-RETIRE.md), CEO 123.
+>
+> ## WHY THIS BOX HAD TO BE WRITTEN, AND IT IS THE INVERSION HE COMPLAINED ABOUT, AGAIN
+>
+> `.claude/skills/door/SKILL.md:80` sends a watch to **the OLDEST open entry in this file.** There
+> are **25 open entries and his priority ruling is the LAST of them** — so by the rule as written,
+> the next watch takes *"the Glass bakes in line breaks"*, **an item he himself routed to the
+> backlog**, ahead of the thing he just called top priority. **His newest instruction is, mechanically,
+> his lowest-priority instruction.**
+>
+> **THIS BOX IS A PATCH, NOT THE FIX.** The fix is `T-083`, carrying his own design: *"the door
+> should not read oldest-first; the RANK algorithm should do the ordering, and the door should read
+> what's at the top."* **It ranks 27th, scoring zero.** Until it is built, every urgent thing he says
+> needs a hand-written box like this one — which is the same hand-repair loop as the questions.
+>
+> ⚠ **AND A PARSER HAZARD FOUND WHILE COUNTING, FLAGGED NOT FIXED:** the FORMAT TEMPLATE below
+> (`## INBOX-<UTC, e.g. 20260901T1730Z>`) carries `status: OPEN | CLAIMED by …` and **parses as an
+> open entry**. A naive "oldest open item" reader can therefore select the template itself. Not
+> measured as having happened; recorded so nobody has to rediscover it.
+
 ---
 
 ## INBOX-20260901T1309Z — guest camera stuck FULLY zoomed out (⚠ possible regression of today's sail-cam fix — investigate BEFORE the merge)
