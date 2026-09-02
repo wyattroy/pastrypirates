@@ -406,7 +406,7 @@ MEASURED reason. See the Chart row.
   says "never report a defect as confirmed before you have measured it."** The right shape was
   available and cheap both times: say "I don't know why `!` was refused", then look.
 
-## INBOX-20260902T05xxZ — the Glass-update session must start each tick CLEAN
+## INBOX-20260902T05xxZ-a — the Glass-update session must start each tick CLEAN
 > "make sure that Glass Update Session gets cleared between ticks or updates or whatever you call
 > its tasks -- we don't want to keep adding to its context, that's unnecessary"
 solution: not yet applied — the mechanism is measured, the fix depends on one capability question
