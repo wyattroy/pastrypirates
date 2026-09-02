@@ -107,7 +107,14 @@ if (!target) {
    gitignored — machine-local by nature, absent on a fresh clone. Stamping the qid onto the row we
    write puts the answered-set in git, so `answered_question_retired_check.mjs` can tell a question
    he has answered from one he has not on any machine, forever. */
-const ruledRow = `| <!--qid:${qid}--> ${stripQid(target.cell)} | ${verdict} | |`;
+/* ⚠ HIS WORDS GO INTO A TABLE CELL, AND A TABLE CELL ENDS AT A PIPE. Found by CEO 125: this row was
+   built as a bare template literal, so a `|` anywhere in a ruling he typed on his phone — a price, a
+   choice written "a|b", a stray keystroke — splits the row into extra cells and corrupts `## RULED`,
+   and a newline ends the row entirely and drops the rest of his sentence into the document as prose.
+   **The one script whose entire promise is "his words, verbatim" could be broken by his words.**
+   Escaped rather than stripped: he must be able to read back exactly what he typed. */
+const cell = (s) => String(s).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+const ruledRow = `| <!--qid:${qid}--> ${cell(stripQid(target.cell))} | ${cell(verdict)} | |`;
 
 const ruledText = section(chart, "RULED") ?? "";
 const headerRule = ruledText.split("\n").findIndex((l) => /^\|[\s:|-]+$/.test(l.trim()));

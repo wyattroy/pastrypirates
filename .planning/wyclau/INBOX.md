@@ -1658,6 +1658,33 @@ solution: his own, both halves. The plan is [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`
 
 status: OPEN — FOR A WATCH. **This entry stays OPEN deliberately: it is the BUILD, and `chartkeeper.mjs:155` treats a `DONE` entry as not live, which is what strips a row of its claim on his priority.**
 
+  **PARTS 1, 2 AND 3 ARE BUILT — watch 2026-09-02T23:00Z (7:00 PM ET), CEO 125 (PARTIAL), 111/111
+  gates. PART 4 IS NOT RUN, AND PART 4 IS THE ONE THAT IS EVIDENCE FOR HIM. Deliberately NOT closed
+  through the gate for exactly that reason** — the whole finding of `INBOX-20260902T1825Z` is that an
+  item can close honestly while the thing it is named after is still broken, and closing this one
+  tonight would be that fault committed by the item that exists to fix it.
+
+  **WHAT EXISTS NOW.** `scripts/wyclau/lib/chart_model.mjs` holds the ONE definition of a question's
+  id, imported by `glass.mjs`; `scripts/wyclau/retire_answered.mjs` writes the `RULED` row and
+  deletes the `BLOCKED ON WYATT` row in a single file write; `scripts/qa/answered_question_retired_check.mjs`
+  is in `npm test` with 12 cases. **Red-proofed on the real event, not a fixture:** his five 6:50 PM
+  rules-page questions, verbatim out of commit `cb7cfc89` — and the gate asks git whether they really
+  are verbatim there — replayed against the five keys `LAST-HARVEST` really stored his answers under.
+  **5 of 5 caught.**
+
+  ⚠ **WHAT IS HONESTLY NOT DONE, IN THE THREE PLACES IT MATTERS.**
+  1. **PART 4, THE SYMPTOM.** Nobody has watched a question leave HIS PAGE. A Bell-launched watch has
+     no `Artifact` tool and cannot read or publish it. CEO 125's closing line, verbatim: *"nobody has
+     yet seen a question leave his page, which is the only evidence he asked for."* **`BLOCKED ON
+     WYATT` is empty right now, so the next question he answers IS the test.**
+  2. **NOTHING CALLS THE SCRIPT.** The spec asks for retirement *run by the harvest*, "not a session
+     following a runbook step"; what shipped is a command a session types from a runbook step. The
+     atomic half is built, the automatic half is not, and this line is that difference said plainly.
+  3. **THE DOOR STILL TEACHES THE OLD TWO-ACT HARVEST** (`.claude/skills/door/SKILL.md:53-58`).
+     CEO 125: *"the gap that produces instance seven."* **The edit was refused by a permission prompt
+     twice**; the exact block to paste is in `CTO-LEDGER.md` under this watch. **A session with
+     permission should land it before anything else here.**
+
   **THE PLAN IN ONE LINE:** a question and its answer are one object — **recording the answer and
   retiring the question must be the same act.** Today they are two acts joined by a session
   remembering, which is rule 23's forbidden shape, and it has drifted five times in twelve hours.

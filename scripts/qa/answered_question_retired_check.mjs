@@ -32,8 +32,23 @@
 //      to it — stated rather than papered over.
 //   2. `.planning/wyclau/LAST-HARVEST`'s `rulingKeys`. EXACT — it is the receipt of what the harvest
 //      actually read off his live page — but gitignored, so it is machine-local by nature and
-//      absent on a fresh clone. It is what makes this gate red TODAY, on the machine where it
-//      happened.
+//      absent on a fresh clone.
+//
+// ⚠ AND BOTH SOURCES ARE NARROWER THAN THAT PARAGRAPH USED TO CLAIM. CEO 125 found the header
+// asserting source 2 "is what makes this gate red TODAY, on the machine where it happened" — and
+// `.planning/wyclau/LAST-HARVEST` had been overwritten to `"rulingKeys": []` SEVENTY-ONE SECONDS
+// BEFORE this file was written. So on the live tree the answered-set is empty from both sides, and
+// cases 1-3 are vacuous on BOTH sides rather than only because his queue is empty. Two structural
+// limits, stated here rather than discovered later:
+//   · SOURCE 1 ONLY EXISTS WHEN THE BUG DID NOT HAPPEN. A `qid` reaches `## RULED` only because
+//     `retire_answered.mjs` put it there — and a hand-harvest, which IS the failure, writes a RULED
+//     row with no qid. So the durable source cannot see the fault it guards.
+//   · SOURCE 2 IS ONE TICK WIDE. `mark_glass_harvest.mjs:86` rewrites the receipt whole on every
+//     harvest, so the previous tick's keys are gone — one did exactly that tonight, erasing his five
+//     — and it only carries keys at all if the harvesting session remembered `--rulings=`.
+// WHAT THIS GATE THEREFORE IS: a catch for the fault WITHIN the tick that caused it, plus a
+// permanent guard on the JOIN (cases 2, 3, 5, 6, 7) which does not depend on either source. It is
+// NOT a standing audit of the whole history, and the header must not read as though it were.
 //   3. Nothing else. DECISIONS.md was considered and rejected: it stores his rulings in prose with
 //      no question id, so joining to it would be a fuzzy word match, and a fuzzy match that RETIRES
 //      one of his questions is strictly worse than the bug — it would hide a question he never saw.
@@ -287,7 +302,26 @@ const runRetire = (dir, args) => {
   else pass("red-proof for case 9: the identical fixture is a violation until the script runs.");
 }
 
-// 11/11 -- IT REFUSES RATHER THAN SHRUGS. A no-op exiting 0 is this whole bug in a different hat:
+// 11/12 -- HIS WORDS SURVIVE A PIPE AND A NEWLINE. Found by CEO 125: the RULED row was a bare
+//          template literal, so a "|" in a ruling he typed would split the row into extra cells and
+//          corrupt the table, and a newline would drop the rest of his sentence into the document as
+//          prose. The one script promising "his words, verbatim" could be broken by his words.
+{
+  const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));
+  const hostile = `**"do it | but keep the modal"**\nsecond line — ruled on the Glass`;
+  const r = runRetire(dir, [`--qid=${REAL_HARVESTED_KEYS[0]}`, `--verdict=${hostile}`]);
+  const after = readFileSync(join(dir, ".planning", "CHART.md"), "utf8");
+  const ruled = tableRows(section(after, "RULED") ?? "");
+  if (r.code !== 0) fail(`retire_answered.mjs refused a ruling containing a pipe (exit ${r.code}) — his words must go in, not be rejected.`);
+  else if (ruled.length !== 1) fail(`a ruling containing "|" produced ${ruled.length} rows instead of 1 — his answer split the table apart.`);
+  else if (ruled[0].cells.length !== 3) fail(`a ruling containing "|" produced ${ruled[0].cells.length} cells instead of 3 — the RULED table is corrupted and his verdict is spread across columns.`);
+  else if (!ruled[0].raw.includes("keep the modal") || !ruled[0].raw.includes("second line"))
+    fail("part of his verdict did not survive — a newline dropped the rest of his sentence out of the row.");
+  else pass("red-proof: a ruling containing a pipe and a newline lands in ONE well-formed row with all of his words intact.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 12/12 -- IT REFUSES RATHER THAN SHRUGS. A no-op exiting 0 is this whole bug in a different hat:
 //          the caller is told the retirement happened and his page goes on asking.
 {
   const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));

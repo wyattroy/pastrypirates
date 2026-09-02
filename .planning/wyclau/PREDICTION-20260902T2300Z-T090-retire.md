@@ -65,8 +65,56 @@ symptom fixed without having seen his page would be the seventh instance of this
 
 # THE OUTCOME
 
-*⚠ **THIS SECTION IS DELIBERATELY EMPTY UNTIL THE WORK IS DONE**, and it was briefly not — the first
-draft of this file arrived with its own outcome already written, which is the "sentence tidier than
-the record" fault four consecutive CEO verdicts have named on this branch. A prediction whose answer
-is composed alongside the question proves nothing. **The watch fills this in after measuring, wrong
-parts first.***
+*Written back 2026-09-02T23:5xZ by the same watch, after the work and after CEO 125. Wrong parts
+first. **⚠ The first draft of this FILE arrived with its outcome already written — composed
+alongside the question, which proves nothing — and that draft was deleted before any measurement.
+It is named here rather than quietly forgotten**, because it is the same "tidier than the record"
+shape four consecutive verdicts have found on this branch, and this time it was caught in the file
+that exists to prevent it.*
+
+## WHERE I WAS WRONG
+
+**1. Prediction 4 was wrong in the half that decides how this gets reported, and CEO 125 named it
+before I did.** I predicted retirement-as-one-act would not need the harvest rewritten, and set the
+falsifier: *"if the two writes cannot be made from one process… the honest answer is the gate plus a
+runbook, said plainly rather than dressed up."* **That falsifier fired and I did not say so.** One
+script does make both writes atomically — that part held — but `SPEC-ANSWERED-QUESTIONS-RETIRE.md:78`
+asks for a script **run BY the harvest**, explicitly *"not a session following a runbook step"*, and
+what shipped is a command a session must type from a runbook step. **Nothing in the repo calls
+`retire_answered.mjs`.** So Part 2 is *the atomic half built, the automatic half not*, and the
+prose around it read as though the whole thing had landed.
+
+**2. The gate's own header made a claim I had not checked, seventy-one seconds after the fact.** It
+said `LAST-HARVEST` "is what makes this gate red TODAY" — and that file had already been overwritten
+to `"rulingKeys": []` by a later harvest. So cases 1-3 are vacuous on **both** sides, not only
+because his queue is empty, and I disclosed one side and asserted the other. **Rule 6 inside the
+gate written to enforce rule 6.** Corrected in the header, with both structural limits stated:
+source 1 only exists when the bug did NOT happen, and source 2 is one harvest tick wide.
+
+**3. I shipped the exact fault the script exists to prevent, in the script.** The RULED row was a
+bare template literal, so a `|` in a ruling he typed would have split the table and a newline would
+have dropped the rest of his sentence into the document as prose. **The one script whose whole
+promise is "his words, verbatim" could be broken by his words.** Found by CEO 125; fixed, and
+red-proofed by reverting the escape and watching case 11 go red.
+
+**4. And I wrote a nested HTML comment into the fence that warns about nested HTML comments.**
+The `## BLOCKED ON WYATT` fence documents that a comment terminator inside it ends the comment early
+and dumps the rest into the section as prose. Documenting the new marker there did precisely that,
+twice, and `glass_calm_check.mjs` caught it both times. The rule is in the file; reading it is not
+the same as obeying it.
+
+## WHERE I WAS RIGHT
+
+- **Prediction 1 held exactly, and it is the load-bearing one.** All five ids computed from
+  `cb7cfc89`'s Chart match `LAST-HARVEST`'s five real `rulingKeys` character for character (case 7),
+  the five question strings are verbatim in that commit (case 8, verified independently by CEO 125),
+  and the gate catches 5 of 5 (case 4). **No fixture was invented.**
+- **Prediction 2 was wrong about the mechanism and right to have been written down.** I expected a
+  fourth column to be free. It is not — `glass.mjs`'s reader drops empty cells, so an optional column
+  is an id present exactly when somebody remembers it, which is the failure one layer down. The
+  marker went inside the question cell instead. **Predicting the wrong shape is what stopped the
+  wrong shape shipping.**
+- **Prediction 3 held and was worth writing down.** `## BLOCKED ON WYATT` was empty, so changing the
+  id scheme orphaned nothing. That window was real and it will not come again cheaply.
+- **The falsifier I could not run, I did not run.** Part 4 — the symptom on his live page — is
+  reported NOT RUN, and both the script and the gate say so in their own output, unprompted.

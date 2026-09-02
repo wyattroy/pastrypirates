@@ -7,6 +7,66 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 125 — 2026-09-02T23:4xZ (7:4x PM ET), Wy-Blade — `T-090` / `INBOX-20260902T1830Z`+`1857Z`, BUILDING the answered-question retirement
+
+**Number checked at FILING time.** Highest on file was 124; this is 125.
+
+**VERDICT: PARTIAL.** Its own opening sentence, unedited: *"The machinery is real and it is the
+best-proved piece of work on this branch — I replayed your five 6:50 PM questions myself and the
+gate catches all five — but your page will still only stop re-asking you if a session remembers to
+type a command, the Door that every session reads was never told the command exists, and nobody has
+yet watched a question actually leave your page."*
+
+**WHAT IT VERIFIED ITSELF RATHER THAN TAKING ON THE WATCH'S WORD.** It ran the gate (11 PASS at the
+time, now 12), ran `npm test` (111 gates, `PASS — 0 failure(s)`), ran `quiet_gate_report.mjs` (0 of
+18 retirement candidates, so the ceiling raise is honest), grepped the whole `scripts/` tree for a
+second copy of the slug rule and found **exactly one** (`chart_model.mjs:182`), and opened
+`git show cb7cfc89:.planning/CHART.md` to confirm all five questions AND all five ruling keys are
+really there — *"case 4 is replaying the actual event against the actual stored keys, not a string
+somebody typed… **This is not decorative.**"* Confirmed no game code was touched.
+
+**SEVEN REQUIRED REPAIRS. FIVE APPLIED, ONE BLOCKED BY A PERMISSION, ONE IS THE OPEN PART OF THE
+ITEM.**
+
+1. **"Part 2 was NOT built as the spec specifies, and nothing in the record says so."** The spec asks
+   for retirement *run by the harvest*, "not a session following a runbook step"; what shipped is a
+   command a session types. *"I grepped every reference to `retire_answered` in the repo: every one
+   is prose or the gate's own test harness. **Nothing calls it.**"* And it caught the watch's own
+   falsifier firing unacknowledged. → **APPLIED**: said plainly on the Chart row and in the
+   prediction's outcome.
+2. **The Door still teaches the old two-act harvest** (`SKILL.md:53-58`) — *"the gap that produces
+   instance seven."* → **NOT FIXED. Two edits, two permission refusals.** Block to paste is below.
+3. **The gate's header claimed `LAST-HARVEST` "is what makes this gate red TODAY"** — and that file
+   had been overwritten to `"rulingKeys": []` **seventy-one seconds before the gate was written**.
+   *"Fifth in a row"* of the tidier-than-the-record fault. → **APPLIED**: header corrected, both
+   structural limits stated.
+4. **The durable half is blind to the fault by construction** — a `qid` reaches `RULED` only when the
+   script wrote it, i.e. only when the bug did not happen; the other source is one tick wide. →
+   **APPLIED**: written into the header and the Chart row.
+5. **`retire_answered.mjs` did not escape his words** — a `|` in a ruling he types splits the table,
+   a newline drops the rest of his sentence into the document as prose. *"The one script whose entire
+   promise is 'his words, verbatim' can be broken by his words."* → **APPLIED**, and red-proofed by
+   reverting the escape and watching the new case 11 go red.
+6. **The prediction's OUTCOME section was empty at handover.** → **APPLIED**, wrong parts first.
+7. **The Chart row still said nothing was built** — *"a watch that opens the Chart tomorrow will
+   rebuild Parts 1-3."* → **APPLIED.**
+
+**WORTH KNOWING, all checked:** a `&&node` missing-space typo in the test chain (executed fine,
+fixed anyway); `retire_answered.mjs` deletes its row by filtering the whole file rather than the
+section; case numbering was inconsistent. And two things it cleared rather than flagged: **the
+`--chart=` argument is not a hole** (absent from `npm test`, red-proofs deliberately not switchable),
+and **the row's placement is correct** — second, below his other declared top priority, with its own
+rank disclosed on the row exactly as CEO 123 required.
+
+**DOES CEO 124's FAULT RECUR? *"Yes, in new clothing."*** 124's headline was *"a fix that has not
+been republished is a fix he cannot see."* *"That has not recurred as a missing republish — it
+recurs one level up: **the fix has not been demonstrated on the symptom at all.**"* It credited the
+honesty — both the script and the gate say Part 4 is not run, unprompted — and then said the thing
+that matters: ***"nobody has yet seen a question leave his page, which is the only evidence he asked
+for."***
+
+---
+
 ## CEO Review 124 — 2026-09-02T22:4xZ (6:44 PM ET), Wy-Blade — `T-099` / `INBOX-20260902T190723Z`, the rules-page content split, QUESTIONS ONLY
 
 **Number checked at FILING time.** Highest on file was 123; this is 124.

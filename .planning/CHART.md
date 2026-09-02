@@ -148,10 +148,34 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       he has now reported this exact fault TWICE, about two different cards.** Filed
       2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
       ⟨`T-090`⟩
-      ⚑⚑⚑ **HIS INSTRUCTION, 2026-09-02 6:30 PM ET: *"add it to the TOP of the fix list -- by fix
-      list I mean Task List/ Chart"*. `INBOX-20260902T1830Z`. THE PLAN IS WRITTEN AND CEO-VERIFIED:
+      ⚑⚑⚑ **PARTS 1, 2 AND 3 ARE BUILT — 2026-09-02 ~7:0x-7:5x PM ET, CEO 125 (PARTIAL). PART 4,
+      THE ONE THAT PROVES IT ON HIS PAGE, IS NOT RUN. The row stays open for exactly that.**
+      What exists now, so nobody rebuilds it: `scripts/wyclau/lib/chart_model.mjs` holds the ONE
+      definition of a question's id (`questionId`/`stripQid`/`QID_RE`) and `glass.mjs` imports it
+      instead of its own inline slug; `scripts/wyclau/retire_answered.mjs` writes the `RULED` row and
+      deletes the `BLOCKED ON WYATT` row in a single file write;
+      `scripts/qa/answered_question_retired_check.mjs` is in `npm test` (111 gates) with 12 cases,
+      **red-proofed on the real event** — his five 6:50 PM rules-page questions, verbatim out of
+      commit `cb7cfc89` and checked against that commit by the gate itself, replayed against the five
+      keys `LAST-HARVEST` really stored his answers under: 5 of 5 caught.
+      ⚠ **AND WHAT IS HONESTLY STILL MISSING, SAID PLAINLY BECAUSE THE PROSE AROUND IT DID NOT.**
+      (a) **NOTHING CALLS THE SCRIPT.** The spec (`SPEC-ANSWERED-QUESTIONS-RETIRE.md:78-84`) asks for
+      retirement *"run by the harvest… not a session following a runbook step"*, and what shipped is
+      a command a session types from a runbook step. The atomic half is built; the automatic half is
+      not. CEO 125 found this and the watch's own prediction had set it as the falsifier.
+      (b) ⚠ **THE DOOR — THE ONE WAY INTO EVERY SESSION — STILL TEACHES THE OLD TWO-ACT HARVEST**
+      (`.claude/skills/door/SKILL.md:53-58`). **CEO 125: this is the gap that produces instance
+      seven.** The edit was written twice and REFUSED BY A PERMISSION PROMPT both times, so a watch
+      could not apply it; the exact block to paste is in the ledger under this watch. **A session
+      with permission should land it before anything else here.**
+      (c) **The gate's catch window is one harvest tick wide, and it says so now.** A `qid` reaches
+      `RULED` only when the script wrote it — i.e. only when the bug did NOT happen — and
+      `LAST-HARVEST` is rewritten whole on every tick. The permanent half is the guard on the JOIN
+      (no collisions, every question carries a written-down id), not a standing audit of history.
+      ⚑ **HIS INSTRUCTION, 2026-09-02 6:30 PM ET: *"add it to the TOP of the fix list -- by fix
+      list I mean Task List/ Chart"*. `INBOX-20260902T1830Z`. THE PLAN:
       [`SPEC-ANSWERED-QUESTIONS-RETIRE.md`](SPEC-ANSWERED-QUESTIONS-RETIRE.md), **CEO 123 — YES, with
-      three corrections, all applied.** Design only; the build is yours.
+      three corrections, all applied.**
       **FIFTH INSTANCE AT 6:25 PM**, and it is the one he photographed: he answered two questions at
       5:43 and 5:45 PM, got the "waiting" confirmation, left, and his page still asked both forty
       minutes later. **Nothing he did was wrong and nothing was lost.**
@@ -548,6 +572,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
+      ⟨`T-114`⟩
+      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
+      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
+      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
+      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
+      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
+      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
+      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
+      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
+      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
+      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
+      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
+      two on the same day bake **together**.
+      **AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW.**
+      `about.html:181-182` says the wind *"sets your sailing budget for the turn — cheap with it,
+      dear against it"*, which tells a stranger that sailing costs something. `index.html:2833`:
+      **"Sailing is free."** The wind caps the RANGE, it never charges.
+      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
+      round.** The full comparison and the reasoning are in
+      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
+      ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
+      **Nobody has ever checked this page against the game it describes**, so the honest scope is
+      "re-read the whole section", not "fix four sentences".
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -589,6 +637,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -597,10 +650,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
@@ -708,6 +757,52 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
       **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
 
+- [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
+      ⟨`T-083`⟩
+      2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
+      **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
+      ordering, and the door should read what's at the top. the rank algorithm should prioritize my
+      requests over bugs that the Watch generated; and i need a way to say DO THIS NOW such that
+      RANK puts it at the top -- eg a checkbox underneath the ideas list that says 'Add to top of
+      list'"*
+      **WHY IT MATTERS MORE THAN IT LOOKS: there are TWO orderings today and rule 23 says that is the
+      defect.** The Door has its own rule (`SKILL.md:81` — INBOX oldest-first, then the Chart) and
+      RANK has another. *What makes these two agree?* **Nothing.** His design deletes one of them.
+      **AND THE MEASURED COST OF OLDEST-FIRST:** 8 open Inbox items, the oldest from the previous
+      day, so **anything he writes now is automatically his lowest-priority item.** That inversion —
+      not anyone's discipline — is what forced him to interrupt and repeat himself five times on
+      2026-09-02.
+      **1 · CONVERGE THE TWO DERIVATIONS FIRST — nothing else works until this lands.** Patch 4's own
+      caveat: RANK reorders *within the open-row slots the file already has* and **cannot reorder
+      across the two sections the Glass concatenates** (checklist rows, then unfated inbox entries).
+      *"The Door reads what is at the top"* is meaningless until there is ONE list to be at the top
+      of. This is `PENDING-KIT-PATCHES.md` patch 5 — `glass.mjs` imports
+      `scripts/wyclau/lib/chart_model.mjs` and the duplicated fate/concat block is deleted.
+      **Unblocked as of the `vendor_check` inversion.** Its gate
+      (`chart_model_agrees_with_glass_check.mjs`) becomes a tautology once one function cannot
+      disagree with itself and should be **RETIRED, not kept** — patch 5 says so itself.
+      **2 · RANK GAINS A SOURCE SIGNAL.** *"prioritize my requests over bugs that the Watch
+      generated."* **Derive it, never add a field:** his items carry his words (an Inbox entry with a
+      `>` quote block, or a Chart row quoting him); watch-filed rows carry a watch stamp. Rule 9.
+      **3 · THE DOOR DROPS ITS OWN RULE.** `SKILL.md:81`'s *"INBOX first — the oldest OPEN item"*
+      becomes *"work whatever RANK put first."* **Delete the old rule rather than adding beside it**
+      — leaving both is the two-orderings fault re-created.
+      **4 · THE "ADD TO TOP" CHECKBOX**, under the Ideas box on the Glass, and the harvest carries
+      the flag through so RANK sees it. **This is the half that removes HIM from the mechanism:**
+      every interrupt on 2026-09-02 required him to notice, interrupt and repeat himself.
+      ⚠ **ONE SLOT, NOT A QUEUE.** Ticking it on a second item must displace the first, deliberately.
+      **A gate fails the build on two.** An interrupt with a queue is just another backlog, which is
+      the fault this whole design removes.
+      ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
+      taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
+      exactly what happened all night.
+      ✅ **STEP 4 IS BUILT — 2026-09-02T21:4xZ, `T-104`, commit `c8a475a6`, CEO 121.** It arrived as
+      his own later refinement (a BUTTON beside Send, not a checkbox under the box), and all three
+      constraints above hold: one slot enforced by the write on both sides, two pins fail the build
+      naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
+      a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
+      the Door still reads oldest-first, so there are still two orderings.**
+
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -757,52 +852,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
       was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
       publish the moment it lands work.
-
-- [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
-      ⟨`T-083`⟩
-      2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
-      **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
-      ordering, and the door should read what's at the top. the rank algorithm should prioritize my
-      requests over bugs that the Watch generated; and i need a way to say DO THIS NOW such that
-      RANK puts it at the top -- eg a checkbox underneath the ideas list that says 'Add to top of
-      list'"*
-      **WHY IT MATTERS MORE THAN IT LOOKS: there are TWO orderings today and rule 23 says that is the
-      defect.** The Door has its own rule (`SKILL.md:81` — INBOX oldest-first, then the Chart) and
-      RANK has another. *What makes these two agree?* **Nothing.** His design deletes one of them.
-      **AND THE MEASURED COST OF OLDEST-FIRST:** 8 open Inbox items, the oldest from the previous
-      day, so **anything he writes now is automatically his lowest-priority item.** That inversion —
-      not anyone's discipline — is what forced him to interrupt and repeat himself five times on
-      2026-09-02.
-      **1 · CONVERGE THE TWO DERIVATIONS FIRST — nothing else works until this lands.** Patch 4's own
-      caveat: RANK reorders *within the open-row slots the file already has* and **cannot reorder
-      across the two sections the Glass concatenates** (checklist rows, then unfated inbox entries).
-      *"The Door reads what is at the top"* is meaningless until there is ONE list to be at the top
-      of. This is `PENDING-KIT-PATCHES.md` patch 5 — `glass.mjs` imports
-      `scripts/wyclau/lib/chart_model.mjs` and the duplicated fate/concat block is deleted.
-      **Unblocked as of the `vendor_check` inversion.** Its gate
-      (`chart_model_agrees_with_glass_check.mjs`) becomes a tautology once one function cannot
-      disagree with itself and should be **RETIRED, not kept** — patch 5 says so itself.
-      **2 · RANK GAINS A SOURCE SIGNAL.** *"prioritize my requests over bugs that the Watch
-      generated."* **Derive it, never add a field:** his items carry his words (an Inbox entry with a
-      `>` quote block, or a Chart row quoting him); watch-filed rows carry a watch stamp. Rule 9.
-      **3 · THE DOOR DROPS ITS OWN RULE.** `SKILL.md:81`'s *"INBOX first — the oldest OPEN item"*
-      becomes *"work whatever RANK put first."* **Delete the old rule rather than adding beside it**
-      — leaving both is the two-orderings fault re-created.
-      **4 · THE "ADD TO TOP" CHECKBOX**, under the Ideas box on the Glass, and the harvest carries
-      the flag through so RANK sees it. **This is the half that removes HIM from the mechanism:**
-      every interrupt on 2026-09-02 required him to notice, interrupt and repeat himself.
-      ⚠ **ONE SLOT, NOT A QUEUE.** Ticking it on a second item must displace the first, deliberately.
-      **A gate fails the build on two.** An interrupt with a queue is just another backlog, which is
-      the fault this whole design removes.
-      ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
-      taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
-      exactly what happened all night.
-      ✅ **STEP 4 IS BUILT — 2026-09-02T21:4xZ, `T-104`, commit `c8a475a6`, CEO 121.** It arrived as
-      his own later refinement (a BUTTON beside Send, not a checkbox under the box), and all three
-      constraints above hold: one slot enforced by the write on both sides, two pins fail the build
-      naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
-      a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
-      the Door still reads oldest-first, so there are still two orderings.**
 
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
@@ -1097,6 +1146,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       talking about **stale rows to clean up**, never about a question waiting on him. Rule 8: a
       word that means "waiting on Wyatt" must mean that everywhere on this page.
 
+
 - [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
       ⟨`T-079`⟩
       RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
@@ -1111,7 +1161,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **Add the wiring case to `scripts/qa/chartkeeper_check.mjs`** — assert the Door's watch section
       names `chartkeeper.mjs` — red-proofed by deleting the line. Patch 4's own words: *"A capability
       nothing checks is a capability that quietly stops running."*
-
 
 - [ ] **THREE FATE STATES — `SCHEDULED` MUST STOP HIDING HIS IDEAS. His ruling, question UI,
       ⟨`T-080`⟩
@@ -1175,7 +1224,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **3. TWO REAP PROBES HAVE NO GATE CASE AT ALL** — `supersededByAnotherRow` and `pidLongDead`.
       **4. THE DUPLICATE HANDLES** are their own open row and are named by
       `chart_sweep_conserves_check.mjs` on every run: `T-057`, `T-058`, `T-059`, `T-078`, `T-079`.
-
 - [ ] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
       ⟨`T-081`⟩
       his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
@@ -1196,6 +1244,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
       Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
       **build the plumbing, defer the framework.**
+
 - [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
       ⟨`T-079`⟩
       do, and until somebody does, NOTHING is ever marked "waiting on Wyatt".** CEO 104's one
@@ -1239,31 +1288,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
-      ⟨`T-114`⟩
-      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
-      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
-      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
-      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
-      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
-      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
-      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
-      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
-      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
-      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
-      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
-      two on the same day bake **together**.
-      **AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW.**
-      `about.html:181-182` says the wind *"sets your sailing budget for the turn — cheap with it,
-      dear against it"*, which tells a stranger that sailing costs something. `index.html:2833`:
-      **"Sailing is free."** The wind caps the RANGE, it never charges.
-      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
-      round.** The full comparison and the reasoning are in
-      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
-      ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
-      **Nobody has ever checked this page against the game it describes**, so the honest scope is
-      "re-read the whole section", not "fix four sentences".
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
@@ -1426,23 +1450,28 @@ five rules-page questions in the Your Call table above are now answered). NOT YE
 session's mandate is harvest-and-publish only.**
 
 - `rules-page-1-of-4-which-page-becomes-th` — **RULES PAGE 1 of 4 — which page becomes THE rules
+      ⟨`T-115`⟩
   page? You asked for this split before anything gets built.** His answer (choice: note, at
   2026-09-02T22:50:08.719Z): *"Do a new /rules.html that explains the rules -- using the latest
   version of the game."*
 
 - `rules-page-2-of-4-what-does-about-keep` — **RULES PAGE 2 of 4 — what does About keep?** His
+      ⟨`T-116`⟩
   answer (choice: note, at 2026-09-02T22:50:37.757Z): *"Agree with your rec -- delete \"how it
   plays\""*
 
 - `rules-page-3-of-4-does-the-in-game-moda` — **RULES PAGE 3 of 4 — does the in-game modal show the
+      ⟨`T-117`⟩
   full rules, or a short version that links out?** His answer (choice: yes, at
   2026-09-02T22:51:10.628Z): *"Do your recommendation -- full text, modal stays the source."*
 
 - `rules-page-4-of-4-does-the-rules-page-s` — **RULES PAGE 4 of 4 — does the rules page speak
+      ⟨`T-118`⟩
   pirate, or in your own plain voice?** His answer (choice: note, at 2026-09-02T22:51:18.219Z):
   *"Pirate speak!"*
 
 - `and-once-credits-has-its-own-page-does` — **And once Credits has its own page — does About keep
+      ⟨`T-119`⟩
   its credits list?** His answer (choice: note, at 2026-09-02T22:51:58.611Z): *"Keep a short list on
   About and link out"*
 
