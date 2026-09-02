@@ -698,6 +698,32 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       The publisher's own words: *"'the answer was moot' and 'the gate ran and I have a verdict on
       record' are different things, and only the second is auditable."* Override the ACTION, not the
       CHECK. From outside, a skipped gate and an unwired gate look identical.
+- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
+      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
+      tried it. Sizing: one line of config, or one command from an attended session.**
+      Everything ahead of the deploy passed on this watch: `npm test` green through its last
+      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
+      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
+      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
+      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
+      forms, one answer; stopped there rather than hunting a fourth wording.
+      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
+      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
+      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
+      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
+      rule 14 — the one that takes the live game down.
+      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
+      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
+      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
+      and every successful staging deploy this project has had was run by an ATTENDED session.
+      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
+      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
+      moved off the question it asks, the storm glide and the guest's camera are all missing from
+      the address he plays.
+      **The fix is his, and the watch deliberately did not take it** — adding
+      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
+      unattended watch the ability to publish to a public address, which is not a repair a watch
+      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
 - [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
       real content into `GLASS-NOTE.md` (`4cf59101`) and it never reached Wyatt, because the
       session that commits a note and the session that next publishes are not the same one. Same
@@ -708,8 +734,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 | Question | Recommendation | since |
 |---|---|---|
+| **May a watch publish to staging on its own?** The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered *"This command requires approval."* Staging is two builds behind (`2026.09.01.6` on the wire vs `2026.09.01.8` in the tree). | **(Recommended) Allow it — one line in `.claude/settings.json`: `"Bash(bash scripts/deploy-staging.sh*)"`.** The script cannot reach production: it refuses to copy `CNAME`, verifies staging's own CNAME names the staging host, stamps only the published copy, and polls the live URL afterwards to say whether it really landed. The alternative is that you or an attended session run it by hand each time — which is what has happened every time so far, and it is why parts 2 and 3 of your release order have sat open for two days with the evidence already complete. | 2026-09-02 |
 
-*Nothing is open. The "Bake this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
+*The "Bake this!" pill question was RULED ON THE GLASS 2026-09-02T03:54:24Z —
 **"This is not a bug -- the pill only sits there as a confirmation. don't move it."** — SETTLED
 below, nothing to build. The black-market gold-coin question was answered 2026-09-02T03:50:58Z as
 a cut-off note, then CLARIFIED by his own follow-up idea 2026-09-02T03:54:47Z — he tested it
@@ -814,6 +841,19 @@ convergences. Every row below was checked against the tree, not against the docu
 
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
+
+- **Wyatt, written on the Glass, 2026-09-02T03:56:34Z**: *"Remove the verbose paragraphs from the
+  top of The Glass, eg \"From another session, folded in on this pulse: **Watch
+  2026-09-02T03:48Z — taking up the last two parts of your release order: put it on staging, and
+  hand you the link.**...\" so they never appear again -- if you need to update me, do it in one of
+  the other sections or in Your Call if it needs my choice"* → **SCHEDULED, next Glass-focused
+  session, same batch as the other Glass-layout asks above/below.** He wants the long
+  session-to-session note paragraphs that currently appear at the top of the page gone for good —
+  any update from a session should land in an existing section (Shipped Today, Your Call) instead
+  of as a standalone block of prose at the top. Not fixed here — this session's mandate is
+  harvest-and-publish only; the one-sentence `--note` this session itself writes is a narrower,
+  compact version of the same pattern he's asking to remove, so the fix likely needs to touch how
+  `glass.mjs` surfaces every session's note, not just the multi-paragraph ones.
 
 - **⚑ Wyatt, written on the Glass, 2026-09-02T03:55:25Z, LIKELY EXPLAINS A REAL BUG**: *"you must
   build a submit button underneath every Your Call entry, and not record my responses until I
