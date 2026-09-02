@@ -146,6 +146,28 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 (2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
 wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
+- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
+      ⟨`T-088`⟩
+      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
+      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
+      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
+      shrink, and that is 27% of the library sitting outside the answer.
+      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
+      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
+      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
+      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
+      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
+      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
+      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
+      measured, not assuming.
+      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
+      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
+      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
+      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
+      current candidate list are FLOORS, not values** — 2 of the 12.
+      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
+      the real answer or an underestimate.** No game code.
+
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
       built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
@@ -173,6 +195,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
 
+
+
+
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -188,31 +213,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-
-
-
-
-- [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
-      ⟨`T-088`⟩
-      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
-      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
-      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
-      shrink, and that is 27% of the library sitting outside the answer.
-      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
-      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
-      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
-      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
-      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
-      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
-      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
-      measured, not assuming.
-      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
-      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
-      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
-      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
-      current candidate list are FLOORS, not values** — 2 of the 12.
-      **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
-      the real answer or an underestimate.** No game code.
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -381,6 +381,154 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
+- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
+      he has now reported this exact fault TWICE, about two different cards.** Filed
+      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
+      ⟨`T-090`⟩
+      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
+      this question on the Glass once -- now it seems to be asking me again."*
+      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
+      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
+      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
+      answer creates a row; **nothing retires the question.**
+      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
+      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
+      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
+      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
+      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
+      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
+      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
+      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
+      the row and writes the ledger together so they cannot disagree.
+      **AND GATE IT, because the ungated twin is what allowed this:** extend
+      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
+      corresponding harvested ruling. Red-proof both ways.
+      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
+      third time. That is a repair, not the fix.)*
+      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
+      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
+      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
+      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
+      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
+      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
+      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
+      the design, and the gap between the two steps is a page that lies to him — so the move must be
+      atomic, which is what this row already says.
+- [ ] **★★★ "THE GLASS LOOKS CHAOTIC AGAIN" — his three newest faults. CEO 112 approved item 2 and
+      ⟨`T-095`⟩
+      REJECTED items 1 and 3 as first written; the spec is rewritten and every finding re-measured.
+      Spec: [`SPEC-GLASS-CALM.md`](SPEC-GLASS-CALM.md). Sizing: SMALL, three parts.** ⟨`T-095`⟩
+      **HIS WORDS:** *"the glass looks chaotic again. 1. In Hand needs to give me context on what is
+      being worked on -- i don't know or care about the 'T-088 · claimed 2026-09-02T16:49Z' -- i want
+      to know the content of it. 2. 'page published 3 min ago — it cannot see anything newer than
+      that' should be up next to '🟢 last progress 6 min ago' as one status bar with fewer words:
+      '🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago.' 3. '…and there is more in that section this
+      page could not read…' --> what is causing this? debug and fix."*
+      **1 · SPLIT THE FIELD — DO NOT LOOK THE TITLE UP IN THE CHART.** `claim_item.mjs` takes
+      `--handle=T-088` and `--item="fix the Glass: his five asks"` separately; the page prints the
+      words and keeps the handle in `data-handle`. **`publish_status.mjs:65-68` copies the marker's
+      JSON verbatim, so a new field arrives with that file unchanged.** Old markers carry only
+      `item` — fall back to stripping a leading `T-nnn — `, then to printing it whole; **never
+      render blank.**
+      ⚠ **WHY NOT THE LOOKUP: `⟨T-088⟩` IS ON TWO ROWS** — `CHART.md:60` (this Glass work) and
+      `:196` (the art-library measurement). A lookup picks one, and his page confidently reports the
+      wrong work. **And it was never needed: the words are already in `.planning/wyclau/IN-HAND`.**
+      **THE TIME GOES INTO `tick()`, NOT INTO THE HTML.** `inHandHtml` is built in Node
+      (`glass.mjs:570-577`), so a relative age computed there really would freeze. `tick()` runs
+      every 30s in his browser (`:999`) and already renders two live clocks — put `claimedAt` and
+      `staleAfterMinutes` into `glassState` and let it write the line. **⚠ COLD moves with it**
+      (decided in Node today, `:575`), so a page open on his phone stops claiming work is in hand
+      once the claim goes stale. **AND CORRECT THE COMMENT AT `:543-544` IN THE SAME CHANGE** — it
+      shouts *"THE TIME IS ABSOLUTE, NEVER 'N MINUTES AGO'"* on reasoning `:986-987` disproves, and
+      it will talk the next reader out of the right fix.
+      **2 · ONE STATUS BAR, HIS WORDING EXACTLY — approved as written.** `🟢 Progress: 6 min ago
+      🟢 Updated: 4 min ago`. **Keep both clocks** (his own 2026-08-31 ask — they legitimately
+      disagree, and the disagreement is the signal). **Delete the `BLIND` apology string** (`:967`).
+      **Two dots colouring independently** — today there is one (`:842`) and the published line has
+      none. **Both use the 45-minute rule the first already uses (`:996`). No new constant.**
+      **3 · FENCE THE WRITER, NOT THE READER.** ⚠ **The first plan's "warn only on a `?` or a bold
+      lead" WAS MEASURED AND FAILS: three of the five prose blocks quote his own questions verbatim,
+      question marks and all — the red warning would still be on his page after the work was
+      reported done.** Instead: **(a)** move the four historical notes to `CHART-LOG.md` and turn my
+      warning paragraph into an HTML comment; **(b)** a gate fails `npm test` when `## BLOCKED ON
+      WYATT` holds any line that is not a table row, a blank, or an HTML comment — the rule
+      `SPEC-VISIBILITY-AND-INJECTION.md:101-103` already specified; **(c)** the reader
+      (`glass.mjs:384-389`) stays broad and dumb and **must strip HTML comments before the check**.
+      **DO NOT DELETE THE DETECTOR** — Your Call truthfully read `(0)` while a real question sat in
+      prose, and he caught that in a screenshot.
+      **THE PROOF A GATE IS WARRANTED:** five prose blocks are in that section right now
+      (`CHART.md:956-1010`) on a tree where `npm test` is green. Nothing in the build can see them;
+      the only thing that notices is the renderer, at read time, on his page, in red.
+- [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
+      His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
+      ⟨`T-094`⟩
+      **HIS WORDS:** *"what is being worked on RIGHT NOW? that needs to be visible just underneath
+      the emoji status."* Then: *"design a fix, get CEO's approval, then add it to the top of the
+      chart."* **Verdict: APPROVED WITH CHANGES — and the changes were not cosmetic.**
+      **BUILD IT THIS WAY — write the claim the way the CLOSE is already written.** `close_item.mjs`
+      appends a fixed machine-written line on close; the claim half is human prose. Make them
+      symmetrical: `publish_status.mjs` gains an **`## In hand`** block in
+      `.planning/wyclau/status/<machine>.md`, the same shape as the `## Long run in flight` block it
+      already writes — and `glass.mjs` already reads that file (`:614`). One more `split`.
+      **WHY NOT THE OBVIOUS VERSION (parse the ledger):** `.planning/CTO-LEDGER.md` has **15**
+      `### WATCH` headings and **exactly 4** match a parseable shape — the tidy ones are all from the
+      last two hours, and nothing prescribes the format. **A regex over that finds nothing this
+      morning and goes silent the first time a watch words its heading its own way.**
+      **FOUR STATES, and the fourth is the point:** in hand · nothing in hand · **⚠ claimed but
+      COLD** · unreadable. **A watch can claim and end without closing — that happened twice today,
+      deliberately** — so an open claim outliving its watch is normal, and must never read as
+      "being worked on right now". COLD is derived from a `staleAfterMinutes` the block declares
+      itself, exactly as the long-run block already does. **No new constant.**
+      **THE BOUND, HONESTLY:** a stale claim is NOT self-clearing within a Bell interval. Rings were
+      **40, 60, 50 and 30 minutes** apart today, and a watch can end having pushed nothing. **Up to
+      about an hour, unbounded when the Bell is not ringing** — which is why COLD is required.
+      ✅ **AND HIS ASK 2 IS ALREADY FIXED, BY ANOTHER ROUTE — do not build it here.** The browser
+      clock the first draft proposed **already exists** (`glass.mjs:900-930`, two clocks, since
+      2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
+      was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
+      publish the moment it lands work.
+- [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
+      ⟨`T-093`⟩
+      **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
+      chart is actually functioning -- this is nonsense, what's happening right now."*
+      **THIS OVERRIDES HIS EARLIER PRIORITY RULING** (*"the game wins any contested hour until it
+      launches"*, same day). He has looked at the result and reversed it: **the Chart is the
+      instrument he steers by, and a broken instrument makes every other priority unreliable.**
+
+      **WHAT IS ACTUALLY WRONG, measured today rather than asserted:**
+      - **Three sessions write `CHART.md`** — the Advisor, the Glass-update session, every watch —
+        and **git's smallest unit is the FILE.** So `close_item.mjs` staging the Chart for its own
+        sweep carries another session's uncommitted lines into its commit. **Five times in one
+        session.** `git add <path>` is no safer than `git add -A`; path precision cannot help.
+      - **The cost is a corrupted record, not lost work.** Commit `59f8b7a7` — *"watch closes his
+        black window"* — carries `T-090`, `T-091` and a card repair written by a different session.
+        `git log -S` for *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and 105
+        both flagged one-commit-two-jobs; this is the third instance.**
+      - **And rows go stale faster than anyone closes them** — the reaper has flagged **10** all
+        afternoon, unchanged, because one watch closes one item every 30–60 minutes.
+
+      **THE FIX HE CHOSE, and it is rule 23's own answer:** *what makes these two agree?* — **nothing
+      does, so make there be one.** Every writer goes through `chartkeeper.mjs`: it reads, edits and
+      commits the Chart, and no session hand-edits `CHART.md` again.
+
+      **WHAT THAT MEANS CONCRETELY, in the order it should be built:**
+      1. **A write API on `chartkeeper.mjs`** — add a row, close a row, mark GATED, retire a blocked
+         question — each one *read → modify → commit* in a single act, so no window exists for
+         another session to carry the edit. `close_item.mjs` already does exactly this for closing;
+         **it is the worked example and the pattern to copy, not to reinvent.**
+      2. **The Advisor, the Glass session and the Door all call it** instead of editing the file.
+      3. **A gate that fails when `CHART.md` changes in a commit that did not go through it** —
+         derivable from the commit's own touched-files, and the only thing that stops hand-editing
+         creeping back. Without it this is a convention, and Principle 2 says conventions fail here.
+
+      ⚠ **THE ONE THING TO GET RIGHT, because it is where this design can go wrong:** a single writer
+      must not become a single point of failure. **If `chartkeeper.mjs` refuses or crashes, a session
+      must still be able to record his words** — the Inbox is not the Chart and must stay
+      hand-writable, so a harvest is never blocked by a tool being broken. **Losing his words is
+      worse than a messy Chart.**
+
+      **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
+      API is small; the migration is every caller; the gate is the part that makes it stick.
 - [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
       ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
@@ -438,6 +586,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       SILENCE is the defect.
       Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
       and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
       ⟨`T-074`⟩
       CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`
@@ -453,6 +606,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       line newer than `LAST-HARVEST` would close it mechanically — **but that file is VENDORED**
       (`.claude/wyclau/MANIFEST.sha256`), so this needs a session that can reach claude-kit, or a
       non-vendored pre-step. **Not a firmer sentence. Sentences are what failed.**
+
 - [ ] **A SECOND TRIAL CAN BE STACKED ON A LIVE ONE — the guard erases itself about a minute in. Filed 2026-09-01T19:30Z, measured, not fixed (one item).**
       ⟨`T-014`⟩
   `scripts/wyclau/start_trial_detached.mjs:56` refuses a duplicate only `if (prev && prev.pid)`,
@@ -464,6 +618,28 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
   fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
   which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
+
+- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
+      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
+      **Sizing: this is a rule and a hook, not a feature.**
+      ⟨`T-091`⟩
+      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
+      the same question to him through the question UI at roughly **12:22**, and closed the item on
+      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
+      He had to decide the same thing twice and then work out why.
+      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
+      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
+      the failure this system exists to stop."* **The Advisor read neither the page nor
+      `BLOCKED ON WYATT` before asking.**
+      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
+      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
+      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
+      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
+      a hook that silently swallows a real question is worse than the double-ask it prevents.
+      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
+      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
+      thirty seconds and it would have caught this one.
+
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
@@ -477,6 +653,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+
 - [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
       ⟨`T-011`⟩
   this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
@@ -512,127 +689,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > the explicit branch name**, because that is the form that works. (b) costs one line and removes
   > the failure entirely.
 
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **★★★ "THE GLASS LOOKS CHAOTIC AGAIN" — his three newest faults. CEO 112 approved item 2 and
-      REJECTED items 1 and 3 as first written; the spec is rewritten and every finding re-measured.
-      Spec: [`SPEC-GLASS-CALM.md`](SPEC-GLASS-CALM.md). Sizing: SMALL, three parts.** ⟨`T-095`⟩
-      **HIS WORDS:** *"the glass looks chaotic again. 1. In Hand needs to give me context on what is
-      being worked on -- i don't know or care about the 'T-088 · claimed 2026-09-02T16:49Z' -- i want
-      to know the content of it. 2. 'page published 3 min ago — it cannot see anything newer than
-      that' should be up next to '🟢 last progress 6 min ago' as one status bar with fewer words:
-      '🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago.' 3. '…and there is more in that section this
-      page could not read…' --> what is causing this? debug and fix."*
-      **1 · SPLIT THE FIELD — DO NOT LOOK THE TITLE UP IN THE CHART.** `claim_item.mjs` takes
-      `--handle=T-088` and `--item="fix the Glass: his five asks"` separately; the page prints the
-      words and keeps the handle in `data-handle`. **`publish_status.mjs:65-68` copies the marker's
-      JSON verbatim, so a new field arrives with that file unchanged.** Old markers carry only
-      `item` — fall back to stripping a leading `T-nnn — `, then to printing it whole; **never
-      render blank.**
-      ⚠ **WHY NOT THE LOOKUP: `⟨T-088⟩` IS ON TWO ROWS** — `CHART.md:60` (this Glass work) and
-      `:196` (the art-library measurement). A lookup picks one, and his page confidently reports the
-      wrong work. **And it was never needed: the words are already in `.planning/wyclau/IN-HAND`.**
-      **THE TIME GOES INTO `tick()`, NOT INTO THE HTML.** `inHandHtml` is built in Node
-      (`glass.mjs:570-577`), so a relative age computed there really would freeze. `tick()` runs
-      every 30s in his browser (`:999`) and already renders two live clocks — put `claimedAt` and
-      `staleAfterMinutes` into `glassState` and let it write the line. **⚠ COLD moves with it**
-      (decided in Node today, `:575`), so a page open on his phone stops claiming work is in hand
-      once the claim goes stale. **AND CORRECT THE COMMENT AT `:543-544` IN THE SAME CHANGE** — it
-      shouts *"THE TIME IS ABSOLUTE, NEVER 'N MINUTES AGO'"* on reasoning `:986-987` disproves, and
-      it will talk the next reader out of the right fix.
-      **2 · ONE STATUS BAR, HIS WORDING EXACTLY — approved as written.** `🟢 Progress: 6 min ago
-      🟢 Updated: 4 min ago`. **Keep both clocks** (his own 2026-08-31 ask — they legitimately
-      disagree, and the disagreement is the signal). **Delete the `BLIND` apology string** (`:967`).
-      **Two dots colouring independently** — today there is one (`:842`) and the published line has
-      none. **Both use the 45-minute rule the first already uses (`:996`). No new constant.**
-      **3 · FENCE THE WRITER, NOT THE READER.** ⚠ **The first plan's "warn only on a `?` or a bold
-      lead" WAS MEASURED AND FAILS: three of the five prose blocks quote his own questions verbatim,
-      question marks and all — the red warning would still be on his page after the work was
-      reported done.** Instead: **(a)** move the four historical notes to `CHART-LOG.md` and turn my
-      warning paragraph into an HTML comment; **(b)** a gate fails `npm test` when `## BLOCKED ON
-      WYATT` holds any line that is not a table row, a blank, or an HTML comment — the rule
-      `SPEC-VISIBILITY-AND-INJECTION.md:101-103` already specified; **(c)** the reader
-      (`glass.mjs:384-389`) stays broad and dumb and **must strip HTML comments before the check**.
-      **DO NOT DELETE THE DETECTOR** — Your Call truthfully read `(0)` while a real question sat in
-      prose, and he caught that in a screenshot.
-      **THE PROOF A GATE IS WARRANTED:** five prose blocks are in that section right now
-      (`CHART.md:956-1010`) on a tree where `npm test` is green. Nothing in the build can see them;
-      the only thing that notices is the renderer, at read time, on his page, in red.
-
-- [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
-      His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
-      ⟨`T-094`⟩
-      **HIS WORDS:** *"what is being worked on RIGHT NOW? that needs to be visible just underneath
-      the emoji status."* Then: *"design a fix, get CEO's approval, then add it to the top of the
-      chart."* **Verdict: APPROVED WITH CHANGES — and the changes were not cosmetic.**
-      **BUILD IT THIS WAY — write the claim the way the CLOSE is already written.** `close_item.mjs`
-      appends a fixed machine-written line on close; the claim half is human prose. Make them
-      symmetrical: `publish_status.mjs` gains an **`## In hand`** block in
-      `.planning/wyclau/status/<machine>.md`, the same shape as the `## Long run in flight` block it
-      already writes — and `glass.mjs` already reads that file (`:614`). One more `split`.
-      **WHY NOT THE OBVIOUS VERSION (parse the ledger):** `.planning/CTO-LEDGER.md` has **15**
-      `### WATCH` headings and **exactly 4** match a parseable shape — the tidy ones are all from the
-      last two hours, and nothing prescribes the format. **A regex over that finds nothing this
-      morning and goes silent the first time a watch words its heading its own way.**
-      **FOUR STATES, and the fourth is the point:** in hand · nothing in hand · **⚠ claimed but
-      COLD** · unreadable. **A watch can claim and end without closing — that happened twice today,
-      deliberately** — so an open claim outliving its watch is normal, and must never read as
-      "being worked on right now". COLD is derived from a `staleAfterMinutes` the block declares
-      itself, exactly as the long-run block already does. **No new constant.**
-      **THE BOUND, HONESTLY:** a stale claim is NOT self-clearing within a Bell interval. Rings were
-      **40, 60, 50 and 30 minutes** apart today, and a watch can end having pushed nothing. **Up to
-      about an hour, unbounded when the Bell is not ringing** — which is why COLD is required.
-      ✅ **AND HIS ASK 2 IS ALREADY FIXED, BY ANOTHER ROUTE — do not build it here.** The browser
-      clock the first draft proposed **already exists** (`glass.mjs:900-930`, two clocks, since
-      2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
-      was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
-      publish the moment it lands work.
-
-- [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
-      ⟨`T-093`⟩
-      **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
-      chart is actually functioning -- this is nonsense, what's happening right now."*
-      **THIS OVERRIDES HIS EARLIER PRIORITY RULING** (*"the game wins any contested hour until it
-      launches"*, same day). He has looked at the result and reversed it: **the Chart is the
-      instrument he steers by, and a broken instrument makes every other priority unreliable.**
-
-      **WHAT IS ACTUALLY WRONG, measured today rather than asserted:**
-      - **Three sessions write `CHART.md`** — the Advisor, the Glass-update session, every watch —
-        and **git's smallest unit is the FILE.** So `close_item.mjs` staging the Chart for its own
-        sweep carries another session's uncommitted lines into its commit. **Five times in one
-        session.** `git add <path>` is no safer than `git add -A`; path precision cannot help.
-      - **The cost is a corrupted record, not lost work.** Commit `59f8b7a7` — *"watch closes his
-        black window"* — carries `T-090`, `T-091` and a card repair written by a different session.
-        `git log -S` for *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and 105
-        both flagged one-commit-two-jobs; this is the third instance.**
-      - **And rows go stale faster than anyone closes them** — the reaper has flagged **10** all
-        afternoon, unchanged, because one watch closes one item every 30–60 minutes.
-
-      **THE FIX HE CHOSE, and it is rule 23's own answer:** *what makes these two agree?* — **nothing
-      does, so make there be one.** Every writer goes through `chartkeeper.mjs`: it reads, edits and
-      commits the Chart, and no session hand-edits `CHART.md` again.
-
-      **WHAT THAT MEANS CONCRETELY, in the order it should be built:**
-      1. **A write API on `chartkeeper.mjs`** — add a row, close a row, mark GATED, retire a blocked
-         question — each one *read → modify → commit* in a single act, so no window exists for
-         another session to carry the edit. `close_item.mjs` already does exactly this for closing;
-         **it is the worked example and the pattern to copy, not to reinvent.**
-      2. **The Advisor, the Glass session and the Door all call it** instead of editing the file.
-      3. **A gate that fails when `CHART.md` changes in a commit that did not go through it** —
-         derivable from the commit's own touched-files, and the only thing that stops hand-editing
-         creeping back. Without it this is a convention, and Principle 2 says conventions fail here.
-
-      ⚠ **THE ONE THING TO GET RIGHT, because it is where this design can go wrong:** a single writer
-      must not become a single point of failure. **If `chartkeeper.mjs` refuses or crashes, a session
-      must still be able to record his words** — the Inbox is not the Chart and must stay
-      hand-writable, so a harvest is never blocked by a tool being broken. **Losing his words is
-      worse than a messy Chart.**
-
-      **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
-      API is small; the migration is every caller; the gate is the part that makes it stick.
-
 - [ ] **`CHART.md` IS A HOT FILE THREE SESSIONS WRITE, AND GIT STAGES WHOLE FILES — so an
       uncommitted edit is always carried by whoever commits next, into THEIR commit message.**
       Filed 2026-09-02T16:4xZ after it happened five times in one session. **Sizing: the mitigation
@@ -666,61 +722,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       collision for a drift problem the project has already paid for, or (c) have every writer go
       through `chartkeeper.mjs` so there is one process editing it rather than three. **(c) is the
       one that fits rule 23's question — *what makes these two agree?* — and it is the largest.**
-
-- [ ] **★ AN ANSWERED QUESTION NEVER LEAVES `BLOCKED ON WYATT`, SO THE GLASS ASKS HIM FOREVER — and
-      he has now reported this exact fault TWICE, about two different cards.** Filed
-      2026-09-02T16:3xZ. **Sizing: small, and it is a lifecycle, not a feature.**
-      ⟨`T-090`⟩
-      **HIS WORDS:** *"why did my response in the glass not get completed? I already said 'Don't' to
-      this question on the Glass once -- now it seems to be asking me again."*
-      **MEASURED:** he answered on the page; a watch harvested it at **12:21:40** — its own commit
-      says *"his answer was there, unread"* — and wrote it to the Chart as `T-089`. **The question
-      row stayed in `BLOCKED ON WYATT` regardless**, so the card kept rendering it. Harvesting an
-      answer creates a row; **nothing retires the question.**
-      ⚠ **HE ALREADY REPORTED THIS ONCE, ABOUT THE OTHER CARD.** `INBOX-20260901T1310Z`: *"The
-      Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and adds
-      them to the Tasks list, then removes them from the Your Rulings list."* **That lifecycle was
-      built for `## RULED` and gated (`rulings_triage_check.mjs`). `BLOCKED ON WYATT` never got
-      one** — so the same fault sat in the card beside it, ungated, until he hit it again.
-      **THE FIX IS THE LIFECYCLE HE ALREADY SPECIFIED, APPLIED TO THE SECOND CARD:** when an answer
-      is harvested, the question **moves** — out of `BLOCKED ON WYATT`, into the log with his verdict
-      — in the same commit that records it. **One act, not two**, exactly as `close_item.mjs` ticks
-      the row and writes the ledger together so they cannot disagree.
-      **AND GATE IT, because the ungated twin is what allowed this:** extend
-      `rulings_triage_check.mjs` (or a sibling) to fail when a `BLOCKED ON WYATT` row has a
-      corresponding harvested ruling. Red-proof both ways.
-      *(The stale row itself was removed by hand 2026-09-02T16:3xZ so the page stops asking him a
-      third time. That is a repair, not the fix.)*
-      🔁 **IT IS HAPPENING AGAIN RIGHT NOW — a THIRD instance, measured 2026-09-02T17:4xZ, and this
-      one proves the hand-repair does not generalise.** He ruled **"Keep it."** on the black-window
-      flash at 17:06Z. A session harvested it correctly and committed it (`778c6f92`, *"chart:
-      harvest Glass ruling on the black-window flash check"*) — **and the question is still the ONLY
-      data row in `BLOCKED ON WYATT`**, so Your Call is asking him a question he has already
-      answered, for the third time in one day. **The harvest is not the fault; the harvest worked.
-      The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
-      the design, and the gap between the two steps is a page that lies to him — so the move must be
-      atomic, which is what this row already says.
-
-- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
-      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
-      **Sizing: this is a rule and a hook, not a feature.**
-      ⟨`T-091`⟩
-      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
-      the same question to him through the question UI at roughly **12:22**, and closed the item on
-      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
-      He had to decide the same thing twice and then work out why.
-      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
-      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
-      the failure this system exists to stop."* **The Advisor read neither the page nor
-      `BLOCKED ON WYATT` before asking.**
-      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
-      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
-      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
-      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
-      a hook that silently swallows a real question is worse than the double-ask it prevents.
-      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
-      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
-      thirty seconds and it would have caught this one.
 
 - [ ] **Committed is not delivered: a note in git is not a note on the page** — a watch committed
       ⟨`T-024`⟩
@@ -1133,6 +1134,7 @@ convergences. Every row below was checked against the tree, not against the docu
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
 - **Wyatt, ruled on the Glass, 2026-09-02T17:06:59.448Z** (question: *"That black window you asked
+      ⟨`T-096`⟩
   about is fixed — but the check that keeps it fixed flashes one for about a second every time we
   run the checks. Is that price OK?"*, `.planning/CHART.md` BLOCKED-ON-WYATT row, choice `note`):
   *"Keep it."* → **NOT YET FATED — harvested verbatim, not investigated. This session's mandate is
