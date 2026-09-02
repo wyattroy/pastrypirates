@@ -4141,3 +4141,32 @@ not on the handle, so it found the right row. **The exposure is everything that 
 CEO 94's open design item wants Inbox entries to name a row's `T-nnn` to prove a citation is about
 that row, and with duplicates that check would credit the wrong row. Belongs to `T-001`
 (the Chartkeeper), whoever can reach claude-kit. **Not taken — this watch has closed its one item.**
+
+---
+
+## WATCH 2026-09-02T09:38Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T09:38Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+- **Last progress:** `6d90cc7c` (Glass note reset) after `9df87fb5` (duplicate handles flagged, not
+  taken) after `b4634e19` (the 08:51Z watch).
+- **The previous watch closed `T-058`** — the PNG families to WebP; 17.79 MB of art is now 3.89 MB.
+  CEO 98 PARTIAL, with four self-reported faults recorded beside it.
+- **Blocked on Wyatt:** the board-compression reading (`INBOX-20260901T1335Z` — *"the only one that
+  needs to be as big as it is is the board itself"*, read as *the board keeps its PIXELS*, never put
+  to him); the 🌕-on-real-Safari question (`T-005`); the staging permission spelling
+  (`INBOX-20260902T05xxZ-c`, deliberately untouched — his call).
+- **Detached trial in flight: none.** `.planning/SEA-TRIAL.md` still reads IN PROGRESS on build
+  `2026.09.01.1`; that is the stale artifact the 08:51Z watch named, not a live run. No pid in
+  `.planning/wyclau/LONG-RUN` to confirm, and an unattended watch cannot start a trial here.
+- **THIS WATCH TAKES `T-059`** — `npm test` is RED and has been since ~08:00Z. Claimed.
+
+**WHY NOT AN INBOX ITEM, since the Door says Inbox first.** Every OPEN entry was walked:
+`20260901T1335Z` awaits his ruling on the board reading (its own status flags exactly that);
+`20260901T1340Z` (the Glass's baked-in line breaks) and `20260901T1440Z` (the black console) both
+live in **vendored** files, and a read of `C:\Users\wyatt\Projects\claude-kit` is REFUSED from an
+unattended watch; `20260902T04xxZ` (the Chartkeeper) is that same refusal, recorded by the 08:51Z
+watch; `0058Z` is the Advisor's own to build by his instruction; `0405Z`, `05xxZ-a`, `05xxZ-b` and
+`05xxZ-c` are his call or a design question he has not ruled on. **And a red suite makes every close
+behind it evidence gathered from a broken instrument** — `T-059` is one gate, on the launch-critical
+path, and it unblocks every watch behind it.
