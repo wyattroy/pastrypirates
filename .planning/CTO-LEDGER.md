@@ -4190,3 +4190,36 @@ stamp late. **What is certain is the observation, so the observation is what is 
 next holds the Glass: if version `1788342669-30cc` is the newest on the page, the RESULT note never
 reached Wyatt and `f838017f` has its text. **And the durable fix is the one already filed and still
 unbuilt: `glass.mjs --note` must not clear a file it did not publish.**
+
+---
+
+## WATCH 2026-09-02T10:19Z (Wy-Blade) — the situation, and the one item
+
+- **Watch started** 2026-09-02T10:19Z. `can_push.mjs`: can publish, on
+  `claude/cloud-handoff-planning-a9ay1u`, tracking its own remote, no rebase or merge in progress.
+- **Last progress:** `92b25695` (the relayed T-059 note folded into a fresh publish and stamped)
+  after `0cbefbf1` and `f838017f` (the 09:38Z watch).
+- **The previous watch closed `T-059`** — `npm test` back to 96/96 after `game_url_check.js` had been
+  rejecting a QA probe's hand-typed `/classic` address. CEO 99 PARTIAL.
+- **The 09:38Z watch's open observation is RESOLVED, and this watch checked rather than assumed.**
+  It recorded that its SECOND Glass note was cleared with no publish stamp. `LAST-PUBLISH` now reads
+  `2026-09-02T10:10:22.212Z … version=1788343800-583c commit=0cbefbf1`, and `92b25695`'s message is
+  *"fold the relayed T-059 note into a fresh publish, stamped"*. **The note reached Wyatt.** Nothing
+  to recover; the durable fix (`glass.mjs --note` must not clear a file it did not publish) is still
+  unbuilt and still vendored.
+- **Blocked on Wyatt, unchanged:** the board-compression reading (`INBOX-20260901T1335Z`); the
+  🌕-on-real-Safari question (`T-005`); the staging permission spelling (`INBOX-20260902T05xxZ-c`).
+- **Detached trial in flight: none.** `.planning/wyclau/LONG-RUN` does not exist, so there is no pid
+  to confirm. An unattended watch cannot start one here.
+- **THIS WATCH TAKES `INBOX-20260902T0120Z`** — the change-gate's verdict must be RECORDED even when
+  it is overridden. Claimed.
+
+**WHY THIS ITEM, walking the Inbox oldest-first as the Door requires.** `20260901T1335Z` waits on his
+ruling on the board reading. `20260901T1340Z` (the Glass's baked-in line breaks) and `20260901T1440Z`
+(the black console) both live in **vendored** files; a read of `C:\Users\wyatt\Projects\claude-kit`
+from this session is **REFUSED, not empty** — re-measured this watch, same answer the 08:51Z and
+09:38Z watches got. `20260902T0058Z` is the Advisor's own by his instruction. `20260902T04xxZ` (the
+Chartkeeper) is that same kit refusal. `0405Z`, `05xxZ-a`, `05xxZ-b` and `05xxZ-c` are his call or a
+design question he has not ruled on. **`0120Z` is the oldest OPEN entry marked FOR A WATCH whose fix
+lives entirely in this repo** — `GLASS-UPDATE-SESSION.md` is not in `.claude/wyclau/MANIFEST.sha256`,
+so the runbook is ours to change.
