@@ -41,8 +41,39 @@ status: DONE 2026-09-01 — CEO 71, commit 373bd99 (2 game files); his solution 
 > ovens\" graphic loads dynamically when it is called, which will make it appear blank on slow
 > connections. Bad engineerign!"
 solution: resize/compress every image to its maximum real-gameplay pixel size (board excepted); preload all assets up front (his words)
-status: OPEN — **2 of his 3 asks closed, and RESIZE is now nearly closed too — because there turned
-out to be almost nothing in it.** Watch 2026-09-01T23:29Z, CEO 83 (**PARTIAL**).
+status: OPEN — **2 of his 3 asks closed. RESIZE is nearly empty, but COMPRESSION was not: the
+BOARD alone was 43% of every image in the game and nobody had touched it.** Watch
+2026-09-02T08:10Z, CEO 97 (**PARTIAL**), Chart row `T-057`, commit `fbbf44ad`.
+
+  **THE BOARD: 4.24 MB → 0.19 MB, 95% lighter, all 2132×2132 pixels kept.** `assets/` is now
+  **6.00 MB**, down from 10.05 MB this morning and 17.79 MB when he raised this. WebP at q0.92;
+  q0.96 costs 2.1× the bytes for no measurable gain, so the point was chosen by a number. Fidelity
+  over 4.5M pixels: mean difference 1.65/255. Posed pair photographs the WORST-changed square — the
+  game's own PASTRY PIRATES title art — at 3×, indistinguishable. Both games and **both engines**
+  (WebKit phone at DPR 3) opened and photographed. New gate `asset_paths_exist_check.mjs`, 368
+  asset paths across both trees, derived from the game's own `sharedAssetUrls()`.
+
+  ⚠ **THIS RESTS ON A READING OF HIS SENTENCE THAT HE HAS NOT BEEN ASKED ABOUT, and it is flagged
+  rather than buried.** *"The only one that needs to be as big as it is is the board itself"* was
+  read by every previous pass as *leave the board alone*, and by this one as *the board keeps its
+  PIXELS* — because it sits inside *"resized and compressed according to its maximum pixel size"*,
+  and because the opposite reading exempts 43% of the art from a byte reduction he opened by
+  calling launch critical. CEO 97 tried to break that reading and could not. **He can still
+  overrule it; the pulse on his page leads with exactly that and it is one command to put back.**
+
+  **WHY IT SAT FOR TWO DAYS, which is the reusable part:** the 2026-09-01 pass excluded the board
+  by name (`asset_quantize.mjs`'s `EXCLUDE`) on a paraphrase of his words, and every measurement
+  after that subtracted it from the subject before reporting — *"excluding board.png, 6.36 MB
+  remains"*. **The exclusion propagated into the framing**, so the largest file in the game stopped
+  being counted as work at all. The exclusion is gone and the comment now records what it cost.
+
+  **STILL OPEN, and it is now the largest thing left: 8.24 MB of PNGs have never had this trade
+  tried on them** — islands 1.67 MB, icons 1.20 MB. Chart row `T-058`, with the two warnings that
+  matter (do not assume 95% again; those families are alpha cutouts and the board was not).
+
+*Below, the state as it stood before that watch:* **2 of his 3 asks closed, and RESIZE is now nearly
+closed too — because there turned out to be almost nothing in it.** Watch 2026-09-01T23:29Z, CEO 83
+(**PARTIAL**).
 
   **THE PASTRIES — 1.71 MB, the heaviest family after the board — ARE MEASURED, AND THEY CANNOT
   SHRINK.** All 21 measured at the recipe modal on three viewports (19 were `NOT SEEN` before).

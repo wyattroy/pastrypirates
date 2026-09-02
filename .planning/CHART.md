@@ -270,6 +270,38 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       512px file — the art is already slightly upscaled.** "40% too big" was a 1× reading. Resizing
       down would visibly soften every modern phone. Saving is compression alone (~0.53 MB).
       Screenshot a phone before and after.
+- [ ] **THE BOARD IS WEBP — 4.24 MB → 0.19 MB, and that one file was 43% of every image in the
+      ⟨`T-057`⟩
+      game.** All 2132×2132 pixels kept; format only. `assets/` 10.05 MB → 6.00 MB. His sentence
+      *"the only one that needs to be as big as it is is the board itself"* exempts the board from
+      RESIZING — it sits inside *"resized and compressed according to its maximum pixel size"* — not
+      from compression. CEO 97 tried to break that reading and could not, **but he has not been
+      asked**; the pulse invites him to overrule it and it is one command to put back.
+      Posed pair on the worst-changed square (the game's own title art) at 3×, indistinguishable;
+      both engines and both games photographed, Safari included. New gate
+      `asset_paths_exist_check.mjs` — 368 asset paths across both trees, derived from the game's own
+      `sharedAssetUrls()`, red-proofed.
+- [ ] **THE SAME TRADE IS UNTRIED ON 8.24 MB OF PNGs — the next lever of his launch-critical
+      ⟨`T-058`⟩
+      compression ask** (`INBOX-20260901T1335Z`, *"make the game load MUCH faster"*). Measured
+      2026-09-02T08:1xZ: islands **1.67 MB**, icons **1.20 MB**, ingredients 0.36 MB, compass
+      0.21 MB, boats 0.17 MB, badges 0.10 MB. The board went **95% lighter** at q0.92 with a posed
+      pair showing no visible difference at 3× on the hardest content in the game, and the recipe
+      art went 31% lighter before it — so the format is proven twice on this library.
+      ⚠ **DO NOT ASSUME 95% AGAIN.** The board is smooth painted washes, PNG's worst case. Small
+      flat icons already quantize well and may barely move; the honest step is
+      `board_reexport_fidelity.mjs`-style measurement per family, not a bulk rewrite.
+      ⚠ **AND ISLANDS/ICONS ARE ALPHA CUTOUTS**, unlike the board — check transparency survives
+      before believing a byte count (W5-1 paid for exactly that: numbers right, picture wrong).
+- [ ] **`npm test` IS RED AND HAS BEEN SINCE ~08:00Z — one line, not this watch's, on a
+      ⟨`T-059`⟩
+      launch-critical path.** `game_url_check.js` rejects `scripts/qa/pastry_shipped_art_probe.mjs:98`,
+      whose in-page `import('/classic/src/ui/recipe.js')` names a non-root tree. Committed in
+      `bc97d40d` (the 07:31Z watch, answering CEO 96). Verified at HEAD by the 08:10Z watch and
+      independently by CEO 97. **95 of 96 gates pass**; a `&&` chain hides everything after the
+      first failure, so run them separately to see that. The probe's need is legitimate — it
+      photographs the frozen v1 — so the fix is to build that URL the way the gate expects rather
+      than to weaken the gate.
 - [ ] Your ruling: merge the 465-commit branch to `main` — staged and played; **awaiting the release trial's verdict**, then his final say-so
       ⟨`T-006`⟩
 - [ ] **THE GAME'S MONEY SYMBOL IS A RAW EMOJI IN SOME STRINGS AND AN IMAGE IN OTHERS, AND THE EMOJI
