@@ -49,6 +49,29 @@ the alternative was — the alternative is what makes it a decision rather than 
 
 ---
 
+## 2026-09-02T17:06Z — KEEP THE FLASHING SELF-TEST IN `npm test`
+
+Wyatt, ruled on the Glass 17:06Z and restated to the Advisor at 17:38Z in his own words:
+*"I apprroved \"keep it\""*.
+
+**The decision:** `detached_trial_windowless_check.mjs` proves itself by opening a real console
+window for about a second on every `npm test`, and that flash stays. **The alternatives he did not
+pick:** (b) run the flashing half only inside the sea trial — quieter, but a laptop that never sails
+never checks; (c) drop the self-test, which makes the check unfalsifiable.
+
+⚠ **THIS RULING WAS PUT TO HIM TWICE, AND THE SECOND ASK IS WHY THIS ENTRY EXISTS.** He answered at
+17:06Z. It was harvested into `CHART.md` at 17:21Z (`778c6f92`) and the question row in
+`## BLOCKED ON WYATT` was never deleted, so his page kept asking. The Advisor then read that row and
+put it to him *again* at 17:33Z — having read, twelve minutes earlier, a handoff that names this
+exact question as already answered. His reply: *"what, PLEASE CLAUDE, IS GOING ON… I AM SO
+FRUSTRATED AT REPEATING MYSELF"* (`INBOX-20260902T1738Z`).
+
+**The standing consequence, and it is the reusable half:** a ruling is not harvested until the
+QUESTION IS GONE from every surface that asks it. Copying his answer into a second table while
+leaving the first one standing is not a harvest — it is a duplicate. `T-090`.
+
+---
+
 ## 2026-09-01 — THE RELAY REDESIGN: sixteen answers in one sitting
 
 **Context.** After the Bosun/Quartermaster/Watchdog degradation — his words: *"all three of those
