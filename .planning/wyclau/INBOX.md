@@ -826,3 +826,38 @@ no hidden question — the first is a paragraph *I* wrote forbidding prose); pla
 [`SPEC-GLASS-CALM.md`](../SPEC-GLASS-CALM.md); CEO 112 run, which **approved item 2 and rejected
 items 1 and 3 as first written**; every finding re-measured and applied; row filed at the top of
 `### ⚑ FOR A WATCH` as `T-095`. **Not built here — he said "for a watch to fix".**
+
+---
+
+## INBOX-20260902T1738Z — HE ANSWERED THE BLACK-FLASH QUESTION AND THE ADVISOR ASKED IT AGAIN ANYWAY
+
+**HIS WORDS, VERBATIM:**
+
+> 1. i already answered this in the glass. again. what, PLEASE CLAUDE, IS GOING ON. I apprroved
+> "keep it" but DUDE COME ON FIX THE GLASS I AM SO FRUSTRATED AT REPEATING MYSELF
+
+`solution:` his ruling is **"keep it"** on the black-window flash check — recorded, and the question
+must stop being put to him. The Glass fix he is demanding is `T-090`.
+
+status: OPEN — the ruling is filed; the retire is with the live `T-095` watch; the durable fix is
+`T-090` and it is now the top item.
+
+  **THIS WAS NOT THE GLASS FAILING FIRST. IT WAS THE ADVISOR.** He ruled *"Keep it."* at
+  **17:06Z**. It was harvested to `CHART.md` at 17:21Z (commit `778c6f92`). The handoff this
+  session read at 17:33Z **says so in its own words**, under "THE FAULTS HE CAN SEE ON HIS PAGE
+  RIGHT NOW": *"`BLOCKED ON WYATT` is asking him a question he answered at 17:06Z."* **The Advisor
+  read that line and then put the same question to him as an open decision, twelve minutes later.**
+  That is `T-091`'s fault — *a session must read the record before putting a question to him* —
+  committed by the session that filed it, in its first reply after reading it.
+
+  **AND THE GLASS FAULT UNDERNEATH IT IS REAL AND IS THE FOURTH INSTANCE TODAY.** Harvesting a
+  ruling **creates a row in `## RULED` and deletes nothing from `## BLOCKED ON WYATT`**, so the
+  page keeps rendering the answered question under "Your Call" until a human deletes the row by
+  hand. Three previous instances were hand-repaired. `T-090` says in its own words that hand repair
+  does not generalise. **It is now the top of the Chart.**
+
+  **WHAT MAKES THIS COST HIM MORE THAN A WASTED QUESTION:** every surface he can see agrees the
+  question is open — his page, the Chart's table, and the Advisor's own reply — so answering it
+  again is the only rational thing he can do. **The record was right and every reader of it was
+  wrong**, which is why the fix has to be in the harvest, not in a sentence telling sessions to
+  look harder.
