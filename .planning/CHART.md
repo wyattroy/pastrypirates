@@ -848,6 +848,18 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:04:27Z**: *"New bug: post-trade
+  denial narration is gone. Find out what happened to it; also, audit the entire game to see which
+  other narrations are now missing. we can't have them suddenly go missing, it means our process
+  is broken."* → **SCHEDULED, next game-code session — a real defect report, not a Glass-layout
+  ask, and flagged above the Glass-UI batch below because it's a regression in the game itself.**
+  Two asks: (1) find out why the narration line a player sees after a trade offer is declined has
+  stopped appearing, and (2) since this implies something upstream silently broke it, sweep every
+  other narration trigger in the game for the same silent loss rather than fixing this one line in
+  isolation. Not investigated here — this session's mandate is harvest-and-publish only, never game
+  code (rule 6/26: needs measurement — a posed before/after trade-denial, not a guess at the cause
+  — before it's called fixed).
+
 - **Wyatt, written on the Glass, 2026-09-02T03:58:29Z**: *""Shipped today" should only list tasks
   that were actually completed -- not commits that were simply recording things that I said --
   those are useless to me. I want to be able to read Shipped Today and see what was built; not a
