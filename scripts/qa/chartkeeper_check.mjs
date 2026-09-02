@@ -352,6 +352,46 @@ const SWEEP_ALL = `# THE CHART — fixture
   else pass("the SETTLED RULINGS table moved to the log with everything else");
 }
 
+/* 5d. THE ARCHIVE'S OWN PREAMBLE MUST NOT GO STALE — and it did, within four minutes, in the change
+       whose entire purpose is killing stale records. CEO 107, 2026-09-02: the log holding 36 rows
+       opened with *"swept off CHART.md after seven days done"* (the design Wyatt overruled) and
+       *"Empty as of 2026-09-02, and correctly so"*. Cause was one ternary: the header was written
+       only when the file did not exist, so it froze at whatever the first sweep on that machine
+       said. **A header written once is a comment that can rot**, in the one file he would open to
+       check nothing was lost.
+       This case plants the exact overruled wording and requires a sweep to remove it WITHOUT
+       touching the entries underneath — the second half matters, because "delete the whole file and
+       start again" would pass the first half and lose the record. */
+{
+  const p = chartFile("sweep-preamble", SWEEP_ALL);
+  const log = join(tmp, "CHART-LOG-preamble.md");
+  writeFileSync(log, `# THE CHART LOG — closed rows, kept forever
+
+*Rows the Chartkeeper swept off CHART.md after seven days done. Empty as of 2026-09-02, and
+correctly so.*
+
+## T-800 — 2026-08-30 — **AN ENTRY ARCHIVED BEFORE ALL THIS**
+
+- [x] **AN ENTRY ARCHIVED BEFORE ALL THIS** — its text must survive a preamble rewrite. KEEP-ME.
+`);
+  run([`--chart=${p}`, `--log=${log}`, "--sweep", "--write"]);
+  const after = readFileSync(log, "utf8");
+  if (/seven days done|Empty as of/.test(after))
+    fail("the archive still describes itself as the seven-day design he overruled — the preamble is written once and frozen, so it says whatever the FIRST sweep on this machine said");
+  else pass("the stale preamble was re-emitted from the tool, not inherited from the file");
+  if (!/KEEP-ME/.test(after) || !/^## T-800 /m.test(after))
+    fail("rewriting the preamble destroyed an entry that was already in the archive — a header repair must never cost a row");
+  else pass("the entries already in the archive survived the preamble rewrite");
+  /* AND IT MUST BE IDEMPOTENT: two sweeps in a row cannot keep appending preambles or re-stacking
+     entries. Two sessions share this branch and a rewrite that differs every run conflicts on every
+     push — the same reason the whole write pass is idempotent by construction. */
+  run([`--chart=${p}`, `--log=${log}`, "--sweep", "--write"]);
+  const twice = readFileSync(log, "utf8");
+  if ((twice.match(/^# THE CHART LOG/gm) || []).length !== 1 || (twice.match(/^## T-800 /gm) || []).length !== 1)
+    fail(`a second sweep duplicated the header or an entry:\n${twice.slice(0, 400)}`);
+  else pass("a second sweep leaves one header and one copy of each entry");
+}
+
 /* 5c. THE GUARDRAIL THE SPEC ASKS FOR BY NAME: every closed handle appears in EXACTLY ONE of the
        two files — never both, never neither. This is the check that makes a destructive rewrite of
        the file he reads safe to run unattended, and it is the reason the spec chose a dedicated
@@ -1411,6 +1451,19 @@ const ATTACHED = (extraQuestion = "") => `# THE CHART — fixture
     fail("the Door's watch routine does not run `chartkeeper.mjs … --rank … --write` — RANK exists and nothing calls it, so his Chart will not re-prioritise itself (he asked four times)");
   } else {
     pass("the Door's watch routine runs `chartkeeper.mjs --rank --write`");
+  }
+  /* ⚑ AND THE STALE HALF OF THAT SAME LINE IS NAMED HERE RATHER THAN LEFT UNGUARDED — CEO 107's
+     finding, and it was right: the branch that used to watch this was DELETED when sweep changed
+     hands, so a live false instruction in the file that tells every watch what to do survived,
+     recorded only in a commit-message body. *"Nobody filed it where a session would look"* is the
+     previous verdict's fault, recurring.
+     It REPORTS rather than fails for the same reason as the duplicate handles: two attempts to edit
+     `.claude/skills/door/SKILL.md` were refused by session permissions, and a gate that fails on
+     something no watch can repair blocks the relay. **The refusal is a permission setting, not a
+     fact** (CEO 106) — a session that CAN write there should delete the sentence, and then this
+     becomes a `fail()`. */
+  if (/NOT `--sweep`|NOT --sweep/.test(watchSection)) {
+    console.log("  REPORT  the Door's step 6a still says NOT --sweep, for a reason that expired 2026-09-02: sweep is now his design and the done count reads from CHART-LOG.md. The sweep runs from close_item.mjs regardless, so nothing is broken — but the Door is teaching the opposite of what the system does. Editing that file is refused to an unattended watch; a session with permission should delete the sentence and turn this into a fail().");
   }
 }
 

@@ -7,6 +7,153 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 107 — 2026-09-02T14:2xZ, Wy-Blade — `T-001` banner items 2 and 3: the SWEEP, which works, and its safety net, which does not
+
+*Item: `T-001` banner items 2 and 3 — **SWEEP takes every completed row, immediately, with no stub**,
+plus the three dependent repairs `SPEC-CHARTKEEPER.md`'s 🛑 banner says must land in the same change.
+Commits: `66848bdc` (the reasoning), with most of the code inside `a70451f2`, a commit made by a
+DIFFERENT session in the same checkout whose message is about the glass/chart_model convergence.*
+
+*His ask, verbatim: **"audit the chart ('tasks') which has MANY completed tasks still stale on it,
+and design -- BUT DONT BUILD -- a system that will dynamically reprioritize it, update it, and move
+things around it that is built into this process somehow -- either with the Glass Update Session, or
+in the watch. get the ceo to verify your plan. then give the full spec to the Watch to build it,
+highest priority after what it is currently working on."** Fresh context, handed CEO 106's verdict
+and told to check whether its fault recurs. Everything below was verified in the tree — `npm test`
+run, three gates run individually, the Chartkeeper run — not read from the commit message.*
+
+### VERDICT: **PARTIAL**
+
+> **The feature he asked for is DONE and it is on his page. The guard that stops it eating his
+> record is not built, and the commit says it is.**
+>
+> **WHAT HOLDS, and it is most of the work.** All three of his banner rulings are delivered and I
+> measured each one. Ruling 1: the age test is gone from `chartkeeper.mjs:806` and so is the stub —
+> and the watch found the SECOND half of that filter, `x.when &&`, which would have quietly kept
+> every undated row forever; an undated row now archives as *"date not recorded"* rather than being
+> filed under today, which would be an invented fact. Ruling 3, the governing sentence: `CHART.md`
+> now contains **zero** `- [x]` rows and no `## SETTLED RULINGS` section — it shows only where we
+> are going. Ruling 2, all three repairs: the Glass reads **11 done today** from `CHART-LOG.md` and
+> I checked all eleven carry a real *"closed 2026-09-02 · CEO n"* stamp, so the number on his card
+> is true; `rulings_triage_check.mjs` was re-pointed by passing the settled table in as a
+> **parameter** rather than reading the log inside the function — which is the difference between a
+> gate and a gate that judges its own fixtures against the real tree — and I ran it: 5 of 5, both
+> red-proofs live. **And nothing was lost**, which is the one irreversible risk: 36 done rows left
+> `CHART.md` and 36 `## T-nnn` entries arrived in `CHART-LOG.md`, every one carrying a body; open
+> rows went 41 → 41; the pair grew 179,489 → 199,706 bytes. `npm test` 102/102, exit 0.
+> `git diff --name-only ab7ff6c7..HEAD -- src index.html classic` is **empty** and the stamp is
+> unchanged at `2026.09.01.8`, so the "no game code" claim holds.
+>
+> **FINDING 1 — the guardrail the spec calls "the guard against the one way this feature can do
+> real harm" is not enforced, and the commit claims it was red-proofed.**
+> `SPEC-CHARTKEEPER.md:348-352` asks for one thing by name: *every closed `T-nnn` appears in exactly
+> one of the two files — never both, never neither — and the swept text is byte-identical*, and
+> *"red-proof it by planting a row in both files, and by planting one in neither."*
+> `scripts/qa/chart_sweep_conserves_check.mjs:2-7` states it enforces exactly that. It does not.
+> **`:73` and `:106` are `console.log`, not `fail()`** — the "never both" clause and the
+> handle-reuse clause cannot fail the build. **The "never neither" clause is not implemented at
+> all:** case 2 (`:80-89`) checks only that entries which *already arrived* in the log have a body
+> over 20 characters — a row deleted from `CHART.md` that never reached `CHART-LOG.md` leaves
+> nothing for it to look at. **The byte-identical clause has no case.** Neither red-proof the spec
+> names was written; at `ab7ff6c7` the log held zero `## T-nnn` headings, so this gate passes clean
+> on the pre-change tree. `66848bdc` says *"Two new gates, both red-proofed"* — true of
+> `glass_done_today_check.mjs` (3 of its 5 cases genuinely go red), **false of this one, which
+> contributes zero red-before evidence.** I ran it: it prints **PASS while reporting six defects**.
+> The watch's own prediction file (`PREDICTION-20260902T1350Z-sweep.md:54-57`) calls this check
+> *"the check I must write and red-proof, not a nicety"* — it knew, and shipped the softer thing.
+> *(Nothing was in fact lost — I verified that by hand. The finding is that if something had been,
+> the suite would have said PASS.)*
+>
+> **FINDING 2 — CEO 106's FINDING 3 recurs, four times over, in a change whose entire purpose is
+> stopping records from describing finished work as unfinished.** CEO 106 caught a header that had
+> "rotted into a false statement." Same fault, new files:
+> - **`.planning/CHART-LOG.md:3-8`** — the archive itself, and the worst of the four, because it is
+>   the artifact anyone opens: *"swept … **after seven days done**"* and *"**Empty as of
+>   2026-09-02, and correctly so** … The first sweep will land around 2026-09-07."* Printed
+>   directly above 36 swept rows. The cause is mechanical: `chartkeeper.mjs:962` writes the
+>   corrected header **only when the file does not exist**, and it already did — so the good header
+>   the watch wrote is dead code that can never render on this tree.
+> - **`scripts/wyclau/chartkeeper.mjs:27-45`** — the tool's own header still reads *"SWEEP moves
+>   done rows older than seven days … leaving a one-line stub"* and *"**It is still the seven-day
+>   version here**."* The watch was editing this file and rewrote the inline PASS 4 comment
+>   beautifully at `:779-800`. It never scrolled to the top.
+> - **`.planning/wyclau/PENDING-KIT-PATCHES.md:145-166`** — patch 6 still filed as PENDING and
+>   *"the only thing blocking it."* It shipped.
+> - **`.planning/CHART.md:62-65` and `:78`** — the top-ranked row on his list, `T-001`, still says
+>   *"⏳ STILL OPEN: SWEEP, and only SWEEP … It cannot ship until the Glass's done count is
+>   re-sourced from `CHART-LOG.md`."* If `T-001` is closed and swept at the end of this item that
+>   self-heals; if it is not, the next Watch reads its top row and rebuilds what exists.
+>
+> **FINDING 3 — the Door's gate case was DELETED rather than re-pointed, so a false instruction is
+> now unguarded.** `.claude/skills/door/SKILL.md:113-115` still tells every future session
+> ***"NOT `--sweep`: its current form is the seven-day-with-a-stub version he OVERRULED"***, for a
+> reason that expired in this very commit. The watch says plainly it was refused permission to edit
+> that file, and **that framing is right and is an improvement on CEO 106** — it attributed the
+> refusal to *"this session's permissions"*, not to the world. But the `chartkeeper_check.mjs` case
+> that asserted the Door does **not** name `--sweep` was **removed** in the same diff, so the stale
+> line lost the only thing watching it. And the gap is filed in **one commit-message body**: there
+> is no Chart row for it (grepped `CHART.md` for `--sweep` / `step 6a` — nothing), and
+> `.planning/wyclau/GLASS-NOTE.md` does not mention it. **That is CEO 106's other half exactly —
+> *nobody had filed it where a session would look.*** One row would fix it.
+>
+> **FINDING 4 — a live row and a closed row now share a handle across the two files.**
+> `.planning/CHART.md:841-842` is an **open** row (the recurrence-gated `<img>` bug, the residual of
+> `T-005`) owning `⟨T-078⟩`; `.planning/CHART-LOG.md:539` is the **closed** vendor-lock item, also
+> `T-078`. Same for `T-079`: three open rows at `CHART.md:714`, `:746`, `:796` against the closed
+> entry at `CHART-LOG.md:575`. I checked the history — **this pre-dates the sweep** (`ab7ff6c7`'s
+> `CHART.md` carried `⟨T-078⟩` twice, at `:851` and `:1372`), the watch identified it honestly, and
+> its scope argument is fair. But `T-nnn` is now what ranking, blocking and every CEO citation key
+> on, and a handle that means one thing in the log and another on the Chart is the failure the
+> handle exists to prevent. It is reported, not gated.
+>
+> **FINDING 5 — the SETTLED RULINGS sweep only fires as a passenger, and a second one would be
+> invisible.** `chartkeeper.mjs:930` nests the `dropSection("SETTLED RULINGS")` inside
+> `if (DO.sweep && sweepable.length)`. **A tick on which nothing was finished leaves his settled
+> table sitting on the Chart** — which is his ruling not being honoured on any day with no closes.
+> And because the archive is appended, a second swept table lands as a second `## SETTLED RULINGS`
+> heading, while `section()` (`chart_model.mjs:34-39`) returns only the **first** — so
+> `chartkeeper.mjs:460` and `rulings_triage_check.mjs` would both silently read the older table.
+>
+> **FINDING 6 — two assertions in the wiring case are satisfied by text that never runs.**
+> `chartkeeper_check.mjs:1439` matches `chartkeeper\.mjs…--sweep`, which the **error string in
+> `close_item.mjs`'s catch branch** satisfies; `:1442` matches `no-sweep`, which the **comment**
+> satisfies. Delete the real `execFileSync` and both stay green. That file's own header at `:11-15`
+> reads *"THIS GATE IS BEHAVIOURAL, NOT A SOURCE GREP … A check that cannot fail is not a check."*
+>
+> **FINDING 7, minor, both cosmetic.** `chartkeeper.mjs:1069-1070`: `sweepable` is `doneRows` with
+> no filter, so the zero branch can only ever print *"**0** finished row(s) on the Chart"* — and the
+> comment above it at `:1066-1068` claims the line distinguishes a Chart with nothing finished from
+> a pass that has gone blind. It cannot; both print the same. `rulings_triage_check.mjs:135`'s pass
+> line now always reports *"0 settled"* because it still counts the Chart, not the log.
+>
+> **WHAT HE DID NOT ASK FOR.** Nothing material. The `derive()` / `ruleTokens` repair
+> (`chartkeeper.mjs:447-461`, `:549`) was not in the banner, and it is the best thing in the pass:
+> the watch noticed that moving the settled table silently cost approved rows their +100 ranking
+> boost, so the same Chart ranked two ways on consecutive runs. That is *"when a record moves, the
+> thing that READS it does not fail — it quietly starts answering zero,"* and it displaced nothing.
+> The gate ceiling raise 100 → 102 followed `docs/GATE-RETIREMENT.md:16` properly — a measurement
+> (`quiet_gate_report.mjs`, zero retirement candidates) and a stated reason, not a fudge.
+>
+> **ON THE SHARED CHECKOUT.** CEO 106 flagged an uncommitted delivery. This time everything is
+> committed and pushed and the tree is clean — but the substance landed inside another session's
+> commit, and `chart_sweep_conserves_check.mjs:12-14` admits that **another session ran the sweep on
+> the real Chart while the tool was still being edited.** 612 lines left the file Wyatt reads,
+> performed by a session that did not own the item. It came out clean. It did not have to.
+>
+> **DID IT SPEND ITS OWN HEAD ON BULK READING?** I cannot see its transcript, so I will not invent
+> an answer: **I found no evidence either way in the artifacts.** What the record does show is four
+> source files it was actively editing plus his own spec — all of which belong in the main thread by
+> design. The two jobs here that were genuinely delegable are red-proofing the new gates against the
+> pre-change tree and auditing the sweep for losslessness; I ran both as subagents for this review,
+> and the second is what would have caught Finding 1 before the commit was written.
+>
+> **THE ONE SENTENCE FOR WYATT:** *Finished work now leaves your list the moment it is done — your
+> Chart is 36 rows lighter and shows only what is ahead, and the card reads "11 done today" — but
+> the alarm that was supposed to shout if the sweep ever ate one of your rows only whispers, and the
+> tool's own front page still tells the next session it hasn't been built yet.*
+
+---
+
 ## CEO Review 106 — 2026-09-02T13:4xZ, Wy-Blade — `T-078`, the vendor lock's second half, and a ruling that was 31 minutes old and unharvested
 
 *Item: `T-078` — the Chart row **INVERT `vendor_check.mjs` — HIS RULING, AND IT IS THE KEYSTONE

@@ -235,6 +235,52 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       strips `**` and `~~`, not backticks). Handles now live on their own line; gate case 7b asserts
       every row's first line survives the write byte for byte; the rendered page was opened and
       checked afterwards. **Twenty-two green cases and none of them had looked at the picture.**
+- [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
+      ⟨`T-084`⟩
+      built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
+      **His condition, in his own words:** *"DO NOT ALSO DELETE THE CHECK. Red-proof both ways: a
+      local edit must NOT fail; **a kit that has fallen behind must be reported**."* The first half
+      shipped and is gated (`vendor_lock_inverted_check.mjs`). **The second half does not exist** —
+      `vendor_check.mjs` currently prints, honestly, that it did NOT check whether claude-kit has
+      moved forward, on every path. That admission is a placeholder, not the answer.
+      **WHY IT WAS "IMPOSSIBLE" AND WHY IT IS NOT — read this before starting, it is the whole
+      story.** Three watches recorded a read of `C:\Users\wyatt\Projects\claude-kit` as REFUSED and
+      each concluded the kit was unreachable. **Wyatt was asked and ruled "yes" at
+      2026-09-02T12:39:56.363Z** (his RULED table, below) — and thirty-one minutes later a watch
+      still wrote *"THE HALF OF HIS SENTENCE THAT CANNOT BE BUILT HERE"* into a gate, because the
+      ruling had not been harvested. CEO 106 caught it. **A REFUSAL IS A PERMISSION SETTING, NOT A
+      FACT ABOUT THE WORLD.** The fence was `bell.ps1`'s launch line carrying no `--add-dir`; it now
+      carries one (commit `9c4edb48`, gated both ways in `bell_check.mjs`).
+      **SO THE FIRST WATCH THE BELL RINGS AFTER `9c4edb48` CAN READ THE KIT. Check that first** —
+      if the read is still refused, the ring predates the change or the kit is not beside the repo,
+      and the launcher's own log line now says `kit: readable` or `kit: not present`.
+      **Sizing: small-to-medium.** `install.sh check <repo> wyclau` already answers the question
+      from a tree holding both; the work is calling it (or hashing the kit's copies directly) and
+      reporting BEHIND as news, in the same four-kind vocabulary `vendor_check.mjs` now uses.
+      **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
+      not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
+      currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
+      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+- [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
+      ⟨`T-085`⟩
+      was refused permission to make, and its absence has already cost one item.**
+      The ruling: *"May an unattended watch READ the claude-kit folder?"* — **"yes"**, ruled on the
+      Glass 2026-09-02T12:39:56.363Z. It is in the RULED table below and **nowhere else**
+      (`grep "claude-kit folder" .claude/memory/DECISIONS.md` → 0). `CLAUDE.md` §5: *"A ruling he
+      made that nobody harvested is the failure this system exists to stop."*
+      **The entry is already written** — it is in the ledger under WATCH 13:10Z and in commit
+      `9c4edb48`'s message, including the alternative he did not pick (leave the fence up and keep
+      routing kit work to a human) and the scope limit (**this ruling is about READING; nothing in
+      it authorises a watch to PUSH to claude-kit**). Paste it in.
+      ⚠ `.claude/memory/DECISIONS.md` is permission-protected: an unattended watch's edit is
+      refused. **Whoever takes this needs a session that can write it** — or the protection needs
+      changing, which is a question for Wyatt, not a repair for a watch.
+      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -249,6 +295,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
   someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
   lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
+
 - [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
       ⟨`T-012`⟩
   IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
@@ -266,9 +313,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   reminder; that is a source question, not a screenshot one.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
 
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
+
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
@@ -299,7 +345,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
-
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
@@ -327,10 +372,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-
-
-
-
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -360,48 +401,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.01.8, so its evidence no longer describes this game
-- [ ] **HIS FOUR GLASS-PAGE ASKS — THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box. FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A
-      ⟨`T-076`⟩
-      ✅ **SHIPPED 2026-09-02, in this order:** the Chart re-prioritises itself (RANK runs in every
-      watch via the Door, and the two derivations were converged so it ranks the list he actually
-      sees) · The Lesson moved BELOW the Chart · the card renamed to *The Chart (Tasks To Do)* ·
-      next-to-be-completed first, re-ordered on every tick.
-      ⏳ **STILL OPEN, and they are the two that need new interface rather than new ordering:**
-      **expandable rows** for fuller context, and **a comment box under each item**. Both are
-      `glass.mjs`, both are now editable in-repo, and neither is blocked.
-      ⛔ **NOT part of this row:** *remove items once complete* — SWEEP exists but is still the
-      seven-day-with-a-stub form he OVERRULED, and it cannot ship until the done count is
-      re-sourced from `CHART-LOG.md`. That is kit patch 6, filed separately.
-      ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
-      *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
-      AGO."*
-      **He is right, and the reason is measurable rather than mysterious:** all four asks live in
-      `## THE IDEA INBOX` (this file, ~line 1320) tagged **SCHEDULED**. `glass.mjs:385` counts an
-      inbox entry as an open task **only when it has NO fate** — and `SCHEDULED` is a fate. **So
-      marking them "SCHEDULED" made them invisible on his own page AND invisible to a Watch picking
-      its one item, simultaneously.** They have never had a `- [ ]` row or a `T-` handle. A watch
-      noticed two of them and wrote *"STILL NOT BUILT AND NOT FILED ANYWHERE ELSE"* (line ~225) and
-      still did not file them.
-      **THIS IS THE AUDIT'S OWN HEADLINE, PLAYING OUT AGAINST THE AUDIT ITSELF:** *"a row that says
-      SCHEDULED with no owner and no position in a queue is a parked row wearing a better word."*
-      **THE FOUR, in his words, oldest first:**
-      1. **00:59:32Z** — *"You need to update Tasks list dynamically — it is stale."* (the
-         Chartkeeper; REAP is live, RANK is not — see `PENDING-KIT-PATCHES.md` 4)
-      2. **00:59:32Z, repeated 03:45:45Z** — *"Move The Lesson section below it."* / *"Move The
-         Lesson to below Tasks."* **Asked twice. One CSS/DOM move in `glass.mjs`.**
-      3. **03:46:13Z** — *"rename Tasks to The Chart (Tasks To Do)."* **One string.**
-      4. **03:49:02Z** — *"Make all tasks in The Chart expandable for fuller context. Let me write a
-         comment under each one if I choose to. Order the list with the next-to-be-completed at the
-         top. re-order the list dynamically. Remove items from the list after they are complete."*
-      **SIZING, HONESTLY: items 2 and 3 are minutes and are pure `glass.mjs`.** Item 4's expandable
-      rows and comment box are a bigger piece of the same file. **`glass.mjs` IS VENDORED — edit in
-      claude-kit, then re-vendor**, which is the friction that has been quietly deferring all of
-      this. **Do items 2 and 3 first and publish, so he sees movement on the page within one tick.**
-      ⚠ **AND THE ADVISOR'S OWN RECOMMENDATION WAS TO SHIP THIS HALF FIRST** —
-      `SPEC-CHARTKEEPER.md`: *"a perfectly-ranked list still reads as gibberish on his phone if
-      every row is 90 truncated characters."* **That recommendation was made and then not carried
-      into a row anybody could take.** The backend half has had seven watches; the half he can see
-      has had none.
 - [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
       ⟨`T-083`⟩
       2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
@@ -507,31 +506,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-- [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
-      ⟨`T-084`⟩
-      built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
-      **His condition, in his own words:** *"DO NOT ALSO DELETE THE CHECK. Red-proof both ways: a
-      local edit must NOT fail; **a kit that has fallen behind must be reported**."* The first half
-      shipped and is gated (`vendor_lock_inverted_check.mjs`). **The second half does not exist** —
-      `vendor_check.mjs` currently prints, honestly, that it did NOT check whether claude-kit has
-      moved forward, on every path. That admission is a placeholder, not the answer.
-      **WHY IT WAS "IMPOSSIBLE" AND WHY IT IS NOT — read this before starting, it is the whole
-      story.** Three watches recorded a read of `C:\Users\wyatt\Projects\claude-kit` as REFUSED and
-      each concluded the kit was unreachable. **Wyatt was asked and ruled "yes" at
-      2026-09-02T12:39:56.363Z** (his RULED table, below) — and thirty-one minutes later a watch
-      still wrote *"THE HALF OF HIS SENTENCE THAT CANNOT BE BUILT HERE"* into a gate, because the
-      ruling had not been harvested. CEO 106 caught it. **A REFUSAL IS A PERMISSION SETTING, NOT A
-      FACT ABOUT THE WORLD.** The fence was `bell.ps1`'s launch line carrying no `--add-dir`; it now
-      carries one (commit `9c4edb48`, gated both ways in `bell_check.mjs`).
-      **SO THE FIRST WATCH THE BELL RINGS AFTER `9c4edb48` CAN READ THE KIT. Check that first** —
-      if the read is still refused, the ring predates the change or the kit is not beside the repo,
-      and the launcher's own log line now says `kit: readable` or `kit: not present`.
-      **Sizing: small-to-medium.** `install.sh check <repo> wyclau` already answers the question
-      from a tree holding both; the work is calling it (or hashing the kit's copies directly) and
-      reporting BEHIND as news, in the same four-kind vocabulary `vendor_check.mjs` now uses.
-      **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
-      not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
-      currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
 - [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
       ⟨`T-011`⟩
   this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
@@ -575,20 +549,48 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
       ⟨`T-025`⟩
   Captain's log) on the thin-surface architecture (design, section IV)
-- [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
-      ⟨`T-085`⟩
-      was refused permission to make, and its absence has already cost one item.**
-      The ruling: *"May an unattended watch READ the claude-kit folder?"* — **"yes"**, ruled on the
-      Glass 2026-09-02T12:39:56.363Z. It is in the RULED table below and **nowhere else**
-      (`grep "claude-kit folder" .claude/memory/DECISIONS.md` → 0). `CLAUDE.md` §5: *"A ruling he
-      made that nobody harvested is the failure this system exists to stop."*
-      **The entry is already written** — it is in the ledger under WATCH 13:10Z and in commit
-      `9c4edb48`'s message, including the alternative he did not pick (leave the fence up and keep
-      routing kit work to a human) and the scope limit (**this ruling is about READING; nothing in
-      it authorises a watch to PUSH to claude-kit**). Paste it in.
-      ⚠ `.claude/memory/DECISIONS.md` is permission-protected: an unattended watch's edit is
-      refused. **Whoever takes this needs a session that can write it** — or the protection needs
-      changing, which is a question for Wyatt, not a repair for a watch.
+- [ ] **HIS FOUR GLASS-PAGE ASKS — THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box. FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A
+      ⟨`T-076`⟩
+      ✅ **SHIPPED 2026-09-02, in this order:** the Chart re-prioritises itself (RANK runs in every
+      watch via the Door, and the two derivations were converged so it ranks the list he actually
+      sees) · The Lesson moved BELOW the Chart · the card renamed to *The Chart (Tasks To Do)* ·
+      next-to-be-completed first, re-ordered on every tick.
+      ⏳ **STILL OPEN, and they are the two that need new interface rather than new ordering:**
+      **expandable rows** for fuller context, and **a comment box under each item**. Both are
+      `glass.mjs`, both are now editable in-repo, and neither is blocked.
+      ⛔ **NOT part of this row:** *remove items once complete* — SWEEP exists but is still the
+      seven-day-with-a-stub form he OVERRULED, and it cannot ship until the done count is
+      re-sourced from `CHART-LOG.md`. That is kit patch 6, filed separately.
+      ROW UNTIL NOW. THIS IS THE NEXT ITEM, AHEAD OF EVERYTHING.** Wyatt, 2026-09-02T07:xxZ:
+      *"why have NONE of my changes to the glass been made??????????? i asked for them FOUR HOURS
+      AGO."*
+      **He is right, and the reason is measurable rather than mysterious:** all four asks live in
+      `## THE IDEA INBOX` (this file, ~line 1320) tagged **SCHEDULED**. `glass.mjs:385` counts an
+      inbox entry as an open task **only when it has NO fate** — and `SCHEDULED` is a fate. **So
+      marking them "SCHEDULED" made them invisible on his own page AND invisible to a Watch picking
+      its one item, simultaneously.** They have never had a `- [ ]` row or a `T-` handle. A watch
+      noticed two of them and wrote *"STILL NOT BUILT AND NOT FILED ANYWHERE ELSE"* (line ~225) and
+      still did not file them.
+      **THIS IS THE AUDIT'S OWN HEADLINE, PLAYING OUT AGAINST THE AUDIT ITSELF:** *"a row that says
+      SCHEDULED with no owner and no position in a queue is a parked row wearing a better word."*
+      **THE FOUR, in his words, oldest first:**
+      1. **00:59:32Z** — *"You need to update Tasks list dynamically — it is stale."* (the
+         Chartkeeper; REAP is live, RANK is not — see `PENDING-KIT-PATCHES.md` 4)
+      2. **00:59:32Z, repeated 03:45:45Z** — *"Move The Lesson section below it."* / *"Move The
+         Lesson to below Tasks."* **Asked twice. One CSS/DOM move in `glass.mjs`.**
+      3. **03:46:13Z** — *"rename Tasks to The Chart (Tasks To Do)."* **One string.**
+      4. **03:49:02Z** — *"Make all tasks in The Chart expandable for fuller context. Let me write a
+         comment under each one if I choose to. Order the list with the next-to-be-completed at the
+         top. re-order the list dynamically. Remove items from the list after they are complete."*
+      **SIZING, HONESTLY: items 2 and 3 are minutes and are pure `glass.mjs`.** Item 4's expandable
+      rows and comment box are a bigger piece of the same file. **`glass.mjs` IS VENDORED — edit in
+      claude-kit, then re-vendor**, which is the friction that has been quietly deferring all of
+      this. **Do items 2 and 3 first and publish, so he sees movement on the page within one tick.**
+      ⚠ **AND THE ADVISOR'S OWN RECOMMENDATION WAS TO SHIP THIS HALF FIRST** —
+      `SPEC-CHARTKEEPER.md`: *"a perfectly-ranked list still reads as gibberish on his phone if
+      every row is 90 truncated characters."* **That recommendation was made and then not carried
+      into a row anybody could take.** The backend half has had seven watches; the half he can see
+      has had none.
 - [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
       ⟨`T-002`⟩
       `claim-before-game-code.cjs` appends the ledger path **inside its own deny branch**, so it
@@ -835,9 +837,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.01.8, so its evidence no longer describes this game
 
-- [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
-      ⟨`T-028`⟩
-
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
   WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
@@ -847,6 +846,10 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+      ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
+
+- [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
+      ⟨`T-028`⟩
 - [ ] Memory consolidation: five homes → one + pointers — GATED: same quiet moment
       ⟨`T-029`⟩
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment

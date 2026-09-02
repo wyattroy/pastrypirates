@@ -1,11 +1,15 @@
 # THE CHART LOG — closed rows, kept forever
 
-*Rows the Chartkeeper swept off [`CHART.md`](CHART.md) after seven days done. Nothing is lost
-here: the full text of every row is below, under the handle the Chart still points at. Swept by
+*Rows the Chartkeeper swept off [`CHART.md`](CHART.md) the moment they were finished — his
+ruling, 2026-09-02: every completed row leaves immediately and leaves no stub, because the Chart
+"should only show WHERE WE ARE GOING". Nothing is lost here: the full text of every row is below,
+under the handle it was closed with, and `scripts/qa/chart_sweep_conserves_check.mjs` fails the
+build if any allocated handle ends up owned by neither file. Swept by
 `scripts/wyclau/chartkeeper.mjs --sweep --write`, never by hand.*
 
-*Empty as of 2026-09-02, and correctly so: the reboot began 2026-08-31, so nothing on the Chart has
-been finished for seven days yet. The first sweep will land around 2026-09-07.*
+*This preamble is re-emitted from the tool on every sweep, so it cannot describe a design that has
+been superseded. It did exactly that for four minutes on 2026-09-02 and the fix is above the line
+that writes it.*
 
 ## T-032 — date not recorded — Day 1 — the relay: Door rewritten (watch + advisor) · the Bell · the Inbox · the close
 

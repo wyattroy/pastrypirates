@@ -927,7 +927,12 @@ if (WRITE) {
   //    overruled: a pointer to the past is still the past sitting in a document about the future.
   //    A reader following an old reference lands nowhere on the Chart and everywhere in the log,
   //    which is what the handle is FOR — `T-nnn` is grep-able across both files and never reused.
-  if (DO.sweep && sweepable.length) {
+  /* `|| existsSync(LOG)` IS NOT REDUNDANT: with nothing to sweep, this block is still the only
+     thing that can refresh a stale preamble, and a Chart with no finished rows on it is exactly the
+     state a healthy relay sits in most of the time. Guarding on `sweepable.length` alone means the
+     archive's own description of itself can only ever be corrected on a day something closes. The
+     block is byte-idempotent when there is nothing to move, so it costs no git churn. */
+  if (DO.sweep && (sweepable.length || existsSync(LOG))) {
     const stamps = [];
     // Same rule as the flags above: a DONE row is identified by the slot it was parsed from, never
     // by its title. Done rows are never moved by the reorder, so a chunk index still names one.
@@ -959,16 +964,36 @@ if (WRITE) {
         wrote.archived += parsed.settled.length;
       }
     }
-    const header = existsSync(LOG) ? readFileSync(LOG, "utf8") : `# THE CHART LOG — closed rows, kept forever
+    /* ⚑ THE PREAMBLE IS REWRITTEN EVERY RUN, NOT WRITTEN ONCE — and this is the sharpest lesson of
+       the whole pass, because the first version got it wrong in the change whose entire purpose is
+       killing stale records.
+       It read `existsSync(LOG) ? readFileSync(LOG) : <the new header>`, so the header was frozen at
+       whatever the FIRST sweep on that machine wrote. The archive therefore opened, in front of 36
+       archived rows, with *"Rows the Chartkeeper swept off CHART.md after seven days done"* — the
+       design Wyatt had already overruled — and *"Empty as of 2026-09-02, and correctly so"*. **A
+       document describing itself, wrong, at the top, in the file he would open to check nothing was
+       lost.** CEO 107 found it.
+       Derive it instead: keep everything from the first `## ` entry onward and re-emit the preamble
+       from the code, which is the only copy that can be corrected. A header that is written once is
+       a comment that can rot (rule 6), and this one did, in about four minutes. */
+    const HEADER = `# THE CHART LOG — closed rows, kept forever
 
 *Rows the Chartkeeper swept off [\`CHART.md\`](CHART.md) the moment they were finished — his
 ruling, 2026-09-02: every completed row leaves immediately and leaves no stub, because the Chart
 "should only show WHERE WE ARE GOING". Nothing is lost here: the full text of every row is below,
-under the handle it was closed with. Swept by \`scripts/wyclau/chartkeeper.mjs --sweep --write\`,
-never by hand.*
+under the handle it was closed with, and \`scripts/qa/chart_sweep_conserves_check.mjs\` fails the
+build if any allocated handle ends up owned by neither file. Swept by
+\`scripts/wyclau/chartkeeper.mjs --sweep --write\`, never by hand.*
+
+*This preamble is re-emitted from the tool on every sweep, so it cannot describe a design that has
+been superseded. It did exactly that for four minutes on 2026-09-02 and the fix is above the line
+that writes it.*
 `;
+    const existing = existsSync(LOG) ? readFileSync(LOG, "utf8") : "";
+    const firstEntry = existing.search(/^## /m);
+    const body = firstEntry === -1 ? "" : `\n${existing.slice(firstEntry).replace(/^\n+/, "")}`;
     const added = stamps.map((s) => `\n## ${s.id} — ${s.when} — ${s.title}\n\n${s.text}\n`).join("");
-    writeFileSync(LOG, header + added + ruledOut);
+    writeFileSync(LOG, HEADER + body + added + ruledOut);
   }
 
   const join_ = (chunks) => chunks.map((c) => c.lines.join("\n")).join("\n");
