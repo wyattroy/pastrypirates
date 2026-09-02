@@ -3776,3 +3776,41 @@ ways, not assumed. It was never committed and nothing imports it; its own first 
 **Anyone with delete rights should remove it.** No Artifact tool in this session (measured: a
 `ToolSearch` returns nothing), so the Glass was not published and `mark_glass_published.mjs` was not
 stamped; the pulse went to `GLASS-NOTE.md`.
+
+## WATCH 2026-09-02T07:31Z — Wy-Blade — `T-004`, CONVERT THE RECIPE ART TO WEBP (his ruling: "Do it")
+
+- **Watch started** 2026-09-02T07:31Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  HEAD `5fba1400`, `can_push.mjs` clean (tracking upstream, no rebase or merge in progress).
+  One untracked scratch file in the tree, `scripts/qa/tmp_dupkey_measure.mjs`, left by the 06:49Z
+  watch, which recorded that this machine's sandbox refuses to delete it. Not mine to fix.
+- **Last progress:** the 06:49Z watch fixed four duplicate-key lookups in the Chartkeeper. CEO 95
+  PARTIAL, `npm test` 94. Nothing ticked.
+- **What the previous watch closed:** nothing. It named CEO 95's best point as the top of `T-001`:
+  **nobody runs the Chartkeeper** — and the wiring for that is `PENDING-KIT-PATCHES.md` 4, blocked
+  on a vendored file.
+- **Blocked on Wyatt:** `BLOCKED ON WYATT` is empty.
+- **Detached trial in flight:** none — `.planning/wyclau/LONG-RUN` is absent, nothing at sea.
+- **NO ARTIFACT TOOL IN THIS SESSION.** Measured, not assumed: a `ToolSearch` for an artifact
+  read/publish tool returns Google Drive, WebFetch, Monitor and DesignSync and nothing else. So
+  this watch cannot publish the Glass and must not stamp `mark_glass_published.mjs`; its pulse goes
+  to `.planning/wyclau/GLASS-NOTE.md`.
+- **CLAUDE-KIT IS OUT OF REACH FROM HERE, RE-MEASURED THIS WATCH RATHER THAN INHERITED.**
+  `ls /c/Users/wyatt/Projects/claude-kit` is **refused** — *"Claude Code may only list files in the
+  allowed working directories"* — so `PENDING-KIT-PATCHES.md` 4, 5 and 6 are all still unreachable,
+  and with them every remaining part of `T-001`: SWEEP (blocked on `glass.mjs`'s done count), the
+  three banner repairs (same file), and the wiring CEO 95 ranked top. **`T-001` has no unblocked
+  part left for a watch on this machine.** That is why this watch is not on it.
+- **THIS WATCH TAKES:** `T-004` — the WebP conversion of the 21 recipe illustrations. It is the
+  oldest OPEN Inbox item's last remaining lever (`INBOX-20260901T1335Z`, *"compressing the images
+  to make the game load MUCH faster… this is launch critical"*), and he has already ruled on the
+  format question that parked it: `INBOX-20260902T0048Z`, question UI, **"Do it"**, with `/classic`
+  sharing the converted files. **Solution-first is unambiguous here and it is CONVERT, NOT RESIZE**
+  — his own follow-up measurement found the art already slightly upscaled on a 2x phone, so pixels
+  stay exactly where they are and only the format changes.
+- **Gear:** `gear.mjs` will read FULL against the 465-commit branch. The honest depth for this
+  change is narrower and is stated rather than assumed: it touches `assets/pastries/` (21 files),
+  **one line** in `src/ui/recipe.js` and the same line in `classic/src/ui/recipe.js`. It changes no
+  behaviour, no layout, no timing — only the bytes behind an `<img src>`. The risk it carries is
+  exactly one shape: **a path the game asks for that no longer exists on disk**, which is a gate,
+  not a voyage.
+
