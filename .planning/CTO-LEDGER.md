@@ -3049,3 +3049,48 @@ The first trial started AFTER the fix judges as it sails and leaves no queue at 
 - No browser or server was started by this watch. The only Chrome running is the detached trial's,
   which is meant to be; the judging pass is `claude -p` calls with no browser. The trial (pid 24232)
   was not restarted and its files were read, never written.
+
+---
+
+## WATCH 2026-09-02T03:00Z — Wy-Blade — judge the SECOND queue, the one on the build that would ship
+
+**SITUATION AT THE BELL.**
+- **Watch started** 2026-09-02T03:00Z on `claude/cloud-handoff-planning-a9ay1u`, Wy-Blade.
+  `can_push.mjs`: can publish (tracking `origin/…`, no rebase or merge in flight).
+- **Last progress** `c9d111ee` (the 02:19Z watch), pushed. Tree stamp `2026.09.01.8`.
+- **The previous watch CLOSED INBOX-20260902T0050Z** — 221 of 221 surviving 1914Z screens judged,
+  218 PASS / 3 FAIL, five findings filed as Chart rows, CEO 86. It also named this watch's job.
+- **Blocked on Wyatt:** the WebKit-coin question (does real Safari blank 🌕 — his phone is the only
+  real Safari this project has). Nothing else.
+- **THE DETACHED TRIAL HAS LANDED.** `2026-09-02T0137Z-Wy-Blade`, pid 24232, finished at [4594s]
+  with `RESULT: FAIL` and **315 screens queued for judging**. `.planning/wyclau/LONG-RUN` is
+  cleared, so nothing is sailing. **Its report was sitting MODIFIED AND UNCOMMITTED** — from every
+  other machine a finished 77-minute run looked unfinished. Committed at 03:00Z as `33460c9c`;
+  that is not a close of anything, it is making the run visible.
+- **THIS WATCH TAKES ONE ITEM: judge the 0137Z queue** — his standing ruling INBOX-20260902T0050Z
+  ("Judge the screenshots first — before staging, before release") applied to the second queue, and
+  the 02:19Z watch's own named handoff.
+
+**WHY THIS ITEM AND NOT ANOTHER, item by item rather than a bare skip.** The 0137Z trial sailed
+build **`2026.09.01.8`, which is the stamp in the tree right now** — so for the first time in this
+project the queued visual evidence describes the build that would actually be staged. Every other
+open item is gated behind that fact: (1335Z compress/resize and 0048Z WebP) both rewrite `assets/`
+and `src/`, bumping the stamp and retiring this evidence for the fifth time in a day — and they are
+the reason the last four trials were retired. (1340Z Glass line breaks) his own routing is *backlog*
+and the generator is vendored from claude-kit. (1440Z black console) vendored, "fix in claude-kit"
+by its own filing. (0058Z durable guard) explicitly the Advisor's, and it is already built — the
+hook fired on this watch's first edit. (0120Z glass gate verdict) real, small, and not ahead of his
+own "judge first" ruling. **1315Z, the release trial, is the item this unblocks**: its parts 2 and 3
+(stage it, hand him the link) wait on a verdict, and a verdict with 315 screens marked NOT CLEARED
+is not a verdict.
+
+**CLAIMED: the 0137Z judging pass.** `judge-0137Z-shots/` and `.planning/JUDGED-2026-09-02T0300Z.md`
+are this watch's. No `src/` change will be made — a stamp bump would retire the very evidence being
+judged, which is the fault this watch exists to stop repeating.
+
+**FIRST ACT WAS PROTECTIVE, BEFORE THE CLAIM WAS EVEN WRITTEN, AND DELIBERATELY SO.** The 1914Z
+queue lost 252 of 343 pictures to an overlapping trial (Chart row, 02:19Z watch) because nothing
+stamps a screenshot with the run that took it. Nothing is sailing right now, so the whole 0137Z run
+was still intact — and the window is only open until the next trial starts.
+`node scripts/qa/judge_the_queue.mjs --snapshot=judge-0137Z-shots --before=2030-01-01T00:00:00Z`
+took **820 files, 0 already rewritten**. The evidence is out of reach now.
