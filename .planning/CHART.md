@@ -61,6 +61,12 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
 - [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
   Captain's log) on the thin-surface architecture (design, section IV)
+- [ ] **Your ruling: judge the 0137Z queue — the screenshots of the build that would actually be
+  staged.** His standing pre-ship ruling (INBOX-20260902T0050Z, question UI): *"Judge the
+  screenshots first"* — before staging, before release — applied to the SECOND queue. The 0137Z
+  trial landed with its eyes shut (the `vision.mjs` fix landed while it was already at sea) and
+  deferred **315 screens** on build `2026.09.01.8`, which is the stamp in the tree. Claimed by the
+  watch of 2026-09-02T03:00Z, which is also the last gate standing between here and staging.
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
 
@@ -429,6 +435,27 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   shorten (his standing instruction on the call circles: *"Fix this universally, not through
   patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
   Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+- [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
+  this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
+  fixed (one item). Sizing: small.** The Door's own words are *"a watch that pushes nothing is
+  invisible, and an invisible watch is indistinguishable from a dead one."* `can_push.mjs` is the
+  guard against exactly that, and it checks **four** faults — detached HEAD, no upstream, rebase in
+  progress, merge in progress (`scripts/wyclau/can_push.mjs:21`). **A sandbox or permission layer
+  that refuses `git push` outright is not among them**, so the script prints `can publish` and the
+  watch works a full turn into a void.
+  **It has now happened twice, to two different watches, both on `claude/cloud-handoff-planning-a9ay1u`:**
+  the 01:52Z watch (commit `33e94b89` local-only; rescued by the 02:19Z watch, which flagged it as
+  *"worth a row if it happens a third time"*) and this 03:00Z watch (two commits held locally).
+  **Both watches did everything right and neither could tell in advance.**
+  **Why it is worse than an ordinary failure:** the previous occurrence was only caught because a
+  LATER watch on the same machine happened to be able to push and noticed the stranded commit. That
+  is luck, not a mechanism. If both watches in a row are refused, the work is simply gone from every
+  other machine's view while the ledger says it happened.
+  **Fix shape, and it must not be a fifth hand-typed case:** the honest check is to ask git whether
+  a push would succeed rather than to enumerate reasons it might not — `git push --dry-run` against
+  the upstream — and report the refusal in the script's own words. Rule 9: derive the answer,
+  never keep a list. Red-proof it by running it in a sandbox that refuses pushes, which is this
+  machine.
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
   in `sea-trial-shots/`, and `scripts/playtest_gate.mjs:673-682` writes `judge-queue.json` last,

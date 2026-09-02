@@ -5,23 +5,14 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T02:49:32.183Z	The automatic judging pass confirmed a real defect: on the End of Voyage screen (last screen of the game, phone size), the sticky Play Again button covers the bottom of both award cards -- one winner's name is sliced in half and unreadable. Not fixed yet, filed to the Chart; the 90-minute trial at sea takes priority
+2026-09-02T03:04:14.830Z	The sea trial finished -- all 10 legs on build 2026.09.01.8, the build actually in the tree right now. All 820 screenshots were preserved this time (last trial lost 252 to the same overwrite bug); a full judging pass is running on them. Next: the findings, then your call on staging
 ```
 
 ## Long run in flight (LONG-RUN)
-```
-{
-  "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-02T01:37:57.560Z",
-  "updatedAt": "2026-09-02T02:42:38.383Z",
-  "progress": "8/10 legs",
-  "staleAfterMinutes": 53
-}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T10:16:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 11 min ago -- hold off
 2026-09-01T10:26:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 21 min ago -- hold off
 2026-09-01T10:36:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 31 min ago -- hold off
 2026-09-01T10:46:01Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 41 min ago -- hold off
@@ -61,4 +52,5 @@
 2026-09-02T00:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T000803Z.out/.err)
 2026-09-02T01:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T014802Z.out/.err)
 2026-09-02T02:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T021802Z.out/.err)
+2026-09-02T02:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T025802Z.out/.err)
 ```
