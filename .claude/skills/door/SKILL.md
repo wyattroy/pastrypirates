@@ -110,9 +110,14 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    next-to-be-completed is at the top and gives every row a `why-now:` phrase Wyatt can overrule.
    **It never ticks a box** — closing stays yours, behind `close_item.mjs`. Include `CHART.md` in
    the commit you were already making.
-   **NOT `--sweep`:** its current form is the seven-day-with-a-stub version he OVERRULED (every
-   completed row leaves immediately, no stub), and sweeping today would zero the done count on his
-   page before that count is re-sourced from `CHART-LOG.md`. That is kit patch 6.
+   **Sweeping is not yours to run here** — `close_item.mjs` sweeps a row off the Chart in the same
+   act that closes it, which is his design: *every completed row leaves immediately, with no stub.*
+   ⚠ **THIS SENTENCE USED TO SAY "NOT `--sweep`" AND THE REASON EXPIRED THE SAME DAY IT WAS WRITTEN.**
+   It said sweep was still the seven-day-with-a-stub form he overruled, and that sweeping would zero
+   the done count on his page. Both were true when written and neither is now: another watch made
+   sweep his design and re-sourced the count from `CHART-LOG.md`. **The Door was teaching the
+   opposite of what the system does**, which `chartkeeper_check.mjs` caught and reported rather than
+   failing on — the right call for a doc drift it could not fix from an unattended session.
    **WHY THIS LINE EXISTS, because it is the whole story of 2026-09-02:** he asked for the Chart to
    re-prioritise itself **four times**. The tool was built, gated and green — and this line was
    missing, so it ran only when a human typed it. His top ask sat at **31 of 39** and kept sinking.

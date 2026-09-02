@@ -1025,18 +1025,51 @@ const GROUNDED = `# THE CHART — fixture
   else pass("the printed report names them too");
 }
 
-/* 11e. THE SPEC'S ACCEPTANCE TEST, ON THE REAL CHART, AFTER THE GROUNDING. His four-times-asked
-        Chartkeeper row must still come first — that is the whole reason this tool exists, and a
-        grounding that buries it has traded one wrong order for another. It qualifies honestly:
-        its row cites `INBOX-20260902T04xxZ`, a live entry of his own Inbox, rather than calling
-        itself the next item. */
+/* 11e. THE SPEC'S ACCEPTANCE TEST — AS A PROPERTY, ON A FIXTURE, NOT A ROW ON THE LIVE CHART.
+ *
+ * ⚠ REWRITTEN 2026-09-02, AND THE REASON IS THE WHOLE POINT OF THE REWRITE. This case used to
+ * assert that the REAL Chart's top row matched /CHARTKEEPER/i — "his four-times-asked request must
+ * rank first". That was right the day it was written and it EXPIRED the day the thing was built:
+ * RANK now runs in every watch, the Lesson moved below the Chart, the card is renamed, and only
+ * SWEEP remains, blocked behind re-sourcing the done count. A player-facing bug then legitimately
+ * outranked it — which is exactly what Wyatt asked for that morning ("stop building process, drain
+ * player-facing bugs") — and this gate went RED for the tool behaving correctly.
+ *
+ * A CHECK PINNED TO ONE ROW'S CONTENT FAILS THE DAY THAT ROW IS DELIVERED, and it fails in the
+ * worst direction: it trains the next reader to edit the check rather than believe the tool.
+ * Same fault as two others fixed hours earlier in this repo — rulings_triage_check anchored to the
+ * literal card heading, and case 4's red-proof anchored to a row prefix that a `T-nnn` id broke.
+ * Third time in one day that a check located its subject by words somebody was free to change.
+ *
+ * SO THE PROPERTY IS TESTED INSTEAD, on a fixture where it can never expire: a row he has asked for
+ * REPEATEDLY must outrank an equivalent row nobody asked for. That is the thing RANK exists to do,
+ * it is what the spec's acceptance test was really about, and it stays true forever. */
 {
-  const r = runJson(["--rank"]);
-  const top = (r.json?.rank || [])[0];
-  if (!top) fail("ranking the real Chart produced nothing");
-  else if (!/CHARTKEEPER/i.test(top.title || ""))
-    fail(`the real Chart's top row is ${JSON.stringify(top.title)} — his four-times-asked request must rank first, and the spec says so in its own words`);
-  else pass(`the acceptance test holds on the real Chart: "${top.title.slice(0, 50)}" ranks first`);
+  const HIS_VS_THEIRS = [
+    "## STEP 1 CHECKLIST",
+    "",
+    "- [ ] A DEFECT A WATCH FOUND ON ITS OWN - filed by the 09:00Z watch from a trial screenshot.",
+    "      Nobody asked for it. It is real work and it is not his request.",
+    "",
+    "- [ ] A THING HE HAS ASKED FOR REPEATEDLY - see INBOX-20260902T04xxZ, and he raised it again.",
+    "      His words, twice on the Glass.",
+    "",
+    "## THE IDEA INBOX",
+    "",
+    "## BLOCKED ON WYATT",
+    "",
+  ].join("\n");
+  const pProp = chartFile("his-outranks-theirs", HIS_VS_THEIRS);
+  const rProp = runJson([`--chart=${pProp}`, "--rank"]);
+  const titlesProp = (rProp.json?.rank || []).map((x) => x.title || "");
+  const hisAt = titlesProp.findIndex((t) => /ASKED FOR REPEATEDLY/i.test(t));
+  const theirsAt = titlesProp.findIndex((t) => /A WATCH FOUND ON ITS OWN/i.test(t));
+  if (hisAt === -1 || theirsAt === -1)
+    fail("the fixture rows did not both survive ranking — this case proves nothing as written");
+  else if (hisAt > theirsAt)
+    fail(`a row nobody asked for outranked one he has asked for repeatedly (his at ${hisAt}, theirs at ${theirsAt}) — that inversion is the entire thing RANK exists to prevent`);
+  else
+    pass("a row he has asked for repeatedly outranks an equivalent row nobody asked for");
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────────
