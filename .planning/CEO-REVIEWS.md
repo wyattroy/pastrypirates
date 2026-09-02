@@ -7,6 +7,59 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 119 — 2026-09-02T21:xxZ, Wy-Blade — `T-090`, one label doing duty for three faults
+
+**Number checked at FILING time.** Highest on file was 118; this is 119.
+
+**HIS ASK, VERBATIM** (`INBOX-20260902T193000Z`, reading the "N tasks look already finished" line on
+his own page): *"idea: do you want to put those in the Your Call section so I can approve/deny them
+being closed?"* Chart row `T-090`. **Commits `70592475` and `710b7af6`.**
+
+**VERDICT: PARTIAL.** In its words: *"The two hard parts of what you asked for genuinely happened,
+and they happened honestly… But the row's own build order has four steps, and only two are done…
+step 4 — your Your Call pile, which is the part your idea was actually about — is not built and, as
+of right now, is not filed anywhere either."*
+
+**ITS SIX FINDINGS, IN ITS WORDS, ALL SIX ACTED ON, NONE ARGUED WITH:**
+1. **Part 4 unbuilt AND unfiled, and the commit never says so.** *"Closing `T-090` on this diff would
+   be dishonest as it stands."* → successor row filed; it ranks 4th, behind his three top asks.
+2. **Step 3 delivered naming, not routing.** *"Nothing re-measures, nothing closes, nothing asks him…
+   If step 3 is being counted as done, it is being counted twice."* → folded into the new row and
+   named as deferred.
+3. ⚑ **Two live rows on his Chart share the handle `T-090`** — *"the same fault the commit says it
+   rooted out, in a form the fix does not cover"* (`CHART.md:95` and `:320`; the guard at
+   `chartkeeper.mjs:551` only knew archived handles). Measured after the fix: **five pairs**, not
+   one. → an ambiguous handle now includes a duplicate among OPEN rows, claims nothing, and is
+   printed on every run; red-proofed. The repair is content work and is its own row.
+4. **The `unblocked` kind is real — it checked both rows itself — but its provenance is softer than
+   the file's own stated rule** (a cell sessions write, carrying the same +40 as one he writes).
+   → disclosed in the prediction file rather than defended.
+5. **The sentence he reads had not changed yet.** *"The commit's present-tense 'the tick copies it'
+   describes an arrangement, not an observed delivery."* → the block was written into
+   `GLASS-NOTE.md` by this watch and consumed by the Glass session mid-work. **The published page is
+   still unphotographed — a Bell-launched watch has no Artifact tool.**
+6. **One sentence tidier than the record** — `T-078` called *"a row that had closed hours earlier"*
+   when it is closed and live at once. → corrected in the open.
+
+**RECURRENCE OF CEO 118 — THREE OF FOUR RECUR, AND IT SAID SO PLAINLY.** (1) the message tidier than
+what it cites — *"RECURS, different clothes"*; (2) ran the tool against the real Chart and did not
+report what it showed — *"RECURS in analogue"*; (3) the prediction never written back — *"RECURS —
+currently"*, fixed before close; (4) `scripts/qa/tmp_rowcount_measure.mjs` still in the gate
+directory — **unfixed, `git mv` refused by this machine's sandbox for the second watch running.**
+
+**AND CEO 117's PATTERN — "the summarising line always rounds toward finished" — PRESENT, for the
+sixth verdict in a row.** Its diagnosis is worth keeping: *"A build order with four numbered steps
+produced a message that discusses steps 1 and 2 at length, describes step 3's labelling as though it
+were step 3, and never mentions step 4 exists. The one paragraph that does defer something proves
+the watch knows how to disclose a deferral in his words. It did that for the arithmetic and not for
+his Your Call pile — which is the half of the row that was his actual idea."*
+
+**ONE THING IT CLEARED THAT MATTERED:** the identity-bug story was checked against the files rather
+than taken on the watch's word — *"the story holds"* — and the `unblocked` kind was checked for
+self-interest and cleared.
+
+---
+
 ## CEO Review 118 — 2026-09-02T20:0xZ, Wy-Blade — `T-088`, his five Glass asks, VERIFIED ON THE PAGE
 
 **Number checked at FILING time, not when the review was spawned** — CEO 117's own opening warning,
