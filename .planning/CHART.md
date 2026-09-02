@@ -842,6 +842,18 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **Wyatt, written on the Glass, 2026-09-02T03:58:29Z**: *""Shipped today" should only list tasks
+  that were actually completed -- not commits that were simply recording things that I said --
+  those are useless to me. I want to be able to read Shipped Today and see what was built; not a
+  record of my past writing to you"* → **SCHEDULED, next Glass-focused session, same batch as the
+  other Glass-layout/content asks in this inbox.** The "Shipped Today" card currently derives
+  straight from the git log, so a Glass-update session's own harvest commits (like this one, and
+  the ones right above it) show up there indistinguishably from real game-code fixes — noise, by
+  his own read. Likely fix: filter that card's commit list to exclude harvest/publish-only commits
+  (they all share a recognizable prefix — "harvest:" — that `glass.mjs` could match on and drop),
+  or split the feed into a real "Shipped" list and a separate, de-emphasized "heard from you"
+  trail. Not fixed here — this session's mandate is harvest-and-publish only.
+
 - **Wyatt, written on the Glass, 2026-09-02T03:56:34Z**: *"Remove the verbose paragraphs from the
   top of The Glass, eg \"From another session, folded in on this pulse: **Watch
   2026-09-02T03:48Z — taking up the last two parts of your release order: put it on staging, and
