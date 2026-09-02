@@ -1435,3 +1435,53 @@ status: OPEN — the ruling is recorded and pushed; whether the ALLOWLIST actual
   (the staging deploy he ruled YES on at 4:03 AM and which stayed blocked because the allowlist
   covered one command spelling and the docs taught another). **Do not report this ruling as
   unblocking the work until the allowlist has been read.**
+
+## INBOX-20260902T214507Z — his idea: Google Analytics on the live site, and a Firebase admin console to see how many people are playing
+
+**HIS WORDS, VERBATIM** (Glass idea `i1788385507236`, 2026-09-02T21:45:07.236Z = 5:45:07 PM ET):
+
+> Add google analytics to playpastrypirates.com and create a firebase admin console so I can see how many people are playing
+
+solution: none stated. Two deliverables in one sentence, and they are different jobs: analytics on the public site, and an admin view over the Firebase data the game already writes.
+
+status: OPEN — FOR A WATCH.
+
+  **SIZING, HONESTLY, BEFORE ANYONE STARTS.** These are **not** one item.
+  - **Google Analytics** touches `index.html` and every public page — it is game-tree code and a
+    third-party script on the site real players are using. **Never a drive-by add.** `about.html`,
+    `classic/` and the frozen v1 all need a decision, and consent/robots implications are his call.
+  - **A Firebase admin console** is a NEW SURFACE reading live multiplayer data. The room data is
+    already there; nothing today reads it for a human. **`lab.html` and `stats.html` already exist
+    and are `robots.txt`-blocked** — whether this is a third page or a section of one of those is a
+    design question and should be put to him before anything is built.
+
+  ⚠ **AND HE HAS ALREADY SAID WHAT HE WANTS FROM IT, IN THE SENTENCE: *"so I can see how many people
+  are playing."*** That is the acceptance test, and it is a number on a screen he can open — not an
+  integration that is technically present. **A watch that installs the tag and reports success
+  without him being able to see a player count has not done this item.**
+
+## INBOX-20260902T214523Z — HIS RULING: he ran the conflict test himself, on his own page
+
+**HIS WORDS, VERBATIM** (Glass ruling `t-105-a-one-minute-test-settles-whether`, 2026-09-02T21:45:23.720Z = 5:45:23 PM ET):
+
+> Done -- I wrote about adding google analytics and firebase
+
+**THE QUESTION HE WAS ANSWERING:** *"⟨T-105⟩ A one-minute test settles whether half of what I built
+today was even needed: type an idea into your page, then tell me, and I publish from a session that
+read the page before you typed. If it refuses, your page defends itself already. If it doesn't, the
+guard I built is the only thing stand[ing]…"*
+
+solution: his own — he typed a real idea specifically so the stale-publish test could run against the LIVE page. His half is done.
+
+status: OPEN — his half is done; the publishing half is being run now, and his words are committed FIRST so the test cannot cost him anything.
+
+  ⚠ **HIS IDEA IS ALREADY HARVESTED AND COMMITTED (the entry directly above) BEFORE THE TEST RUNS.**
+  That is the whole reason this is safe to do at all: the experiment deliberately has a session
+  publish from a stale read, and **if the refusal does not fire, that publish destroys what he
+  typed.** With the text in git first, the worst case is a re-publish, not a loss. **Nobody should
+  run this test in the other order.**
+
+  **AND THE ANSWER IS ALREADY KNOWN FROM A SAFE VERSION OF THE SAME TEST** —
+  `INBOX-20260902T2100Z`, run 4:55–4:58 PM on a disposable artifact: **REFUSED.** His run is the
+  live-page confirmation of a result that has already been measured once, which is why it is worth
+  doing and why it is not worth risking his words for.
