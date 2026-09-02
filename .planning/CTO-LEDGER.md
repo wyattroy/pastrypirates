@@ -2728,3 +2728,49 @@ reported "npm test green" while this was already failing. Somebody should claim 
 pictures are in `GLASS-NOTE.md` for the next session that can publish. CEO 83's criticism stands in
 full: **as filed, Wyatt cannot see the question.** No game code was touched apart from one JPEG, and
 no sea trial was run — a smaller About-page picture cannot change how the game plays.
+
+---
+
+## WATCH 2026-09-02T00:12Z (Wy-Blade) — claim: the release trial's ONE real player-facing finding
+
+**Situation, six lines.**
+- **Watch started** 2026-09-02T00:12Z on Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`;
+  `can_push.mjs` says publishable (upstream tracked, no rebase/merge in progress).
+- **Last progress:** `cd024e6d` (glass: untrack a probe script), previous watch closed 23:29Z.
+- **The previous watch closed** INBOX-20260901T1335Z's resize half as PARTIAL (CEO 83): −137 KB on
+  `about-recipes.jpg`, the pastries measured and proven un-shrinkable, WebP parked for his ruling.
+- **Blocked on Wyatt:** the recipe-art FORMAT question (WebP, 0.53 MB, touches `/classic`) — and
+  **it did reach him**: a relay session folded it into the Glass at `3c87c2bb` (2026-09-02T00:07Z)
+  and sent him the posed pair directly, so CEO 83's "Wyatt cannot see the question" is now closed.
+  This session has no Artifact tool, so it neither harvests nor republishes the Glass; anything it
+  wants shown goes to `GLASS-NOTE.md` for the next session that can.
+- **The detached trial is FINISHED.** `2026-09-01T1914Z-Wy-Blade`, pid 45256 gone, no `LONG-RUN`
+  marker, report written 20:42 local. **10 of 10 voyages sailed** — the scorecard fix (CEO 75)
+  held; this is the first release trial whose legs are counted honestly.
+- **This watch takes:** the ONE real player-facing finding in those ten legs —
+  `passplay-phone`, `no-cover-ask`: **"Call Flaky Jack" drawn on top of "Davy Scones — a battle's
+  brewi[ng]" — the button covers the question it answers.** Claimed; nobody else edit it.
+
+**WHAT THE RELEASE TRIAL ACTUALLY SAYS, read leg by leg rather than off the headline.** The report
+says FAILED, and nine of the ten legs fail on nothing but known instrument noise:
+- **10 of 10 legs: "screens never stopped moving"** — 2 to 16 screens each, *all geometry churn,
+  longest wait 2.7s against the 2.6s window.* This is the parked settle-timing decision in
+  `CHART.md`, measured on Safari on 2026-09-01. Instrument, not game.
+- **10 of 10 legs: "vision pass DEFERRED"** — the judge was blind again ("THE JUDGE CANNOT SEE"),
+  so `judge_mode.mjs` correctly deferred rather than forfeited. **343 screens are queued in
+  `sea-trial-shots/judge-queue.json` awaiting a session's eyes.** Nothing visual has been judged in
+  this run; that is a real gap in the merge evidence and it is NOT this watch's item.
+- **2 legs: "offered but never exercised: deny"** — coverage, not a defect.
+- **1 leg: the finding above.** That is the whole game-facing yield of 88 minutes.
+
+**AND THE RELEASE IS STILL GATE-BLOCKED, BY SOMETHING NO WATCH ON THIS MACHINE CAN FIX.**
+`npm test` is RED — `vendor_check.mjs` finds five files edited in place in the vendored
+`.claude/wyclau` area (`bell.ps1`, `publish_status.mjs`, `can_push.mjs`, `close_item.mjs`,
+`start_trial_detached.mjs`). Measured this watch rather than repeated: the manifest was written
+**2026-09-01T23:05:55Z** and the five files were last changed at **16:23Z** (`bdb33c94`), so the
+vendor run recorded claude-kit's hashes over files this repo had already fixed and did not overwrite
+them — this repo holds fixes claude-kit does not. Not line endings: all five are LF, checked with
+`file`. **The fix is in claude-kit, and claude-kit is outside this session's sandbox**
+(`C:\Users\wyatt\Projects` is refused), so this is genuinely blocked here, not deferred by choice.
+**Until it is green, nothing may be staged** (CLAUDE.md §6). Whoever has claude-kit on their
+machine should take it.
