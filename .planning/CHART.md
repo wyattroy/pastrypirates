@@ -870,6 +870,24 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+- **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:15:44Z**: *"The \"black spot of
+  bad tides\" prize should be handed out every game to the player who flipped the most tails -- it's
+  quite gratifying. however, it is not currently being calculated correctly. in my last playtest,
+  crustbeard had 67% heads luck yet flaky jack won the award, with 75% heads luck. This means that
+  the \"heads luck\" isn't being calculated correctly either -- it suggests that crustbeard only
+  flipped a coin 3 times, and flaky jack 4 times -- whereas in a game, the coin must be flipped at
+  least 5 times in order to get 5 crates; and often more. the heads luck data should count all coin
+  flips from every action that a player does, which includes battling and docking (and anything
+  else?)"* → **SCHEDULED, next game-code session — a real defect, with his own measurement
+  attached.** Two linked claims: (1) the End-of-Voyage "Black Spot of Bad Tides" award (most tails
+  flipped) went to Flaky Jack over Crustbeard despite Crustbeard's lower heads-luck percentage,
+  which is contradictory on its face; (2) the "heads luck" percentage itself looks undercounted —
+  his math implies only 3-4 flips were tallied per player when a full voyage flips far more than
+  that just from crate-gathering, before battling/docking flips are even added. His diagnosis: the
+  coin-flip tally is likely scoped to only one action type (crate flips) instead of every action
+  that flips a coin. Needs a real trace of what increments the tally before any fix — not
+  investigated here, this session's mandate is harvest-and-publish only.
+
 - **⚑ Wyatt, LIVE BUG REPORT, written on the Glass, 2026-09-02T04:12:13Z**: *"in the recipe popup
   modal (viewable at the end of the game and whenever you click your own recipe) the print and pdf
   buttons cover up the X to close the modal -- redesign the modal header to accommodate the X"* →
