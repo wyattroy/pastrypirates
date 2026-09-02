@@ -342,3 +342,47 @@ status: OPEN — FOR A WATCH, and the item is the INSTRUMENT, not the game.
   ⚠ THE FINDING IS THAT OUR RIG DISAGREES WITH A REAL DEVICE. Something in the automated pass showed a gap where his own Safari shows the coin. That is an instrument reporting a defect the game does not have — rule 6's own territory, and the most expensive error class this project has: four of five defects put to him on 2026-08-20 were not real, and the two days spent on them are why the rule exists.
   THE NARROW QUESTION: does the headless capture render `🌕` at all? Emoji depend on installed fonts, and a container lacking the emoji font draws nothing where a phone draws a coin. If that is the cause then **every emoji-based visual finding from the rig is suspect** — including any among tonight's 315 judged screens — and they should be re-read with that in mind before anything is acted on.
   DO NOT close this by declaring the coin fixed. Nothing about the game changed; he looked and it was already right.
+
+## INBOX-20260902T04xxZ — the Chart is stale and must reprioritise itself. Design it, don't build it.
+> "read .planning/HANDOFF-2026-09-02-ADVISOR-NIGHT.md.
+>
+> what i need you to do is audit the chart ("tasks") which has MANY completed tasks still stale on
+> it, and design -- BUT DONT BUILD -- a system that will dynamically reprioritize it, update it, and
+> move things around it that is built into this process somehow -- either with the Glass Update
+> Session, or in the watch. get the ceo to verify your plan. then give the full spec to the Watch to
+> build it, highest priority after what it is currently working on. Here is the current list for
+> your to audit -- tell me what you think. Also, reboot mentor."
+>
+> *(He pasted the live Tasks card with it — "Tasks (27 done · 29 open)" and all 29 open row heads.)*
+solution: `.planning/SPEC-CHARTKEEPER.md` — the audit and the full build spec, written by the
+Advisor, verified by a fresh CEO, and handed to the Watch as its next item. Design only; nothing
+built.
+status: OPEN — FOR A WATCH, and it is the Watch's NEXT item after the one in hand, at his instruction.
+
+  ⚠ **HE HAS NOW ASKED FOR THIS FOUR TIMES, AND THE FIRST THREE ARE STILL SITTING ON THE CHART
+  MARKED "SCHEDULED".** 2026-09-02T00:59:32Z (*"You need to update Tasks list dynamically — it is
+  stale"*), 03:45:45Z and 03:46:13Z (the Lesson reorder, the card rename), 03:49:02Z (expandable
+  rows, per-item comments, next-to-complete first, re-order dynamically, auto-remove completed).
+  **The fix for the Chart's inability to reprioritise was itself filed on the Chart and never rose.**
+  That is the finding above all the others, and it is the acceptance test for whatever gets built:
+  had the Chartkeeper been running, this request — written by him, twice, unblocked, small — would
+  have been at the top of the list.
+
+  WHAT THE AUDIT FOUND, measured against the file rather than remembered: **five of the 29 open rows
+  are dead or answered** — the staging deploy permission (he ruled YES 04:03:36Z and
+  `.claude/settings.json` still has no `Bash(bash …)` line), the re-sail "verdict pending" that
+  warns readers off a long-dead pid, the "staging needs another 90-minute trial" that the 0137Z trial
+  already satisfied on the stamp now in the tree, the 267 screenshots that were judged, and the
+  24-hour run that CHART.md:74 says in its own words is superseded. **Two more are partly stale.**
+  And three structural faults underneath: the order carries no information (it is file order), rows
+  are essays not tasks (one is 206 lines under a single checkbox, truncated to ~90 characters on his
+  phone), and done rows never leave, so "27 done" is not a fact about this week.
+
+  ⚠ **A SCOPE NOTE THE ADVISOR OWES HIM, RECORDED RATHER THAN BURIED.** Ruling INBOX-20260902T0400Z
+  makes the Advisor record-only — no code, scripts, hooks, settings, gates or kit. "Reboot mentor"
+  is a direct instruction to change config, and it was carried out: this machine had **no**
+  `C:\Users\wyatt\.claude\CLAUDE.md`, no user skills directory and no mentor plugin, so mentor had
+  never once fired on the Blade. Created the charter import and installed the skill from
+  `claude-kit/mentor/`. **A direct instruction outranks a standing scope rule, but he should know the
+  Advisor stepped outside the line he drew four hours earlier, and can rule that it should have gone
+  to a Watch instead.**

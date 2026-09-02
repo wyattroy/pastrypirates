@@ -671,6 +671,27 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **★ NEXT ITEM, AT HIS INSTRUCTION — BUILD THE CHARTKEEPER. Full spec:
+      [`.planning/SPEC-CHARTKEEPER.md`](SPEC-CHARTKEEPER.md).** His words, 2026-09-02
+      (INBOX-20260902T04xxZ): *"design -- BUT DONT BUILD -- a system that will dynamically
+      reprioritize it, update it, and move things around it that is built into this process
+      somehow -- either with the Glass Update Session, or in the watch … then give the full spec to
+      the Watch to build it, **highest priority after what it is currently working on**."*
+      **He has now asked for this four times and the first three are still sitting in the IDEA
+      INBOX marked "SCHEDULED"** (00:59:32Z, 03:45:45Z/03:46:13Z, 03:49:02Z) — the fix for the
+      Chart's inability to reprioritise was itself filed on the Chart and never rose. That is the
+      acceptance test.
+      **Shape:** `scripts/wyclau/chartkeeper.mjs`, three passes — REAP (flags stale rows from
+      derived facts, **never ticks a box**), RANK (orders by approved-and-unblocked, blocked,
+      player-facing, evidence-retired, how often HE has raised it, size), SWEEP (done rows older
+      than 7 days move to `.planning/CHART-LOG.md`). RANK+SWEEP run in the **Watch** and act;
+      REAP runs in the **Glass-update session** in report mode only. Sizing: **MEDIUM** for the
+      Chartkeeper, **smaller and separate** for the Glass-side rendering (expandable rows,
+      per-item comment, rename the card to "The Chart (Tasks To Do)", move The Lesson below it).
+      **Recommendation: ship the Glass-side half first or alongside** — a perfectly ranked list
+      still reads as gibberish if every row is 90 truncated characters of a 200-line essay.
+      The spec also names **five open rows measured dead** (701, 380, 420, 674, 647) with the
+      evidence for each; close them through the gate, each with its own CEO verdict.
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
       `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
