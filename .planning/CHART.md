@@ -389,7 +389,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-- [ ] **THE RELEASE TRIAL'S ONE PLAYER-FACING FINDING IN TEN LEGS: a call circle drawn on the question it answers.**
+- [x] **THE RELEASE TRIAL'S ONE PLAYER-FACING FINDING IN TEN LEGS: a call circle drawn on the question it answers.** (closed 2026-09-02 · CEO 84 · commit e191ad7 (1 game file))
   `2026-09-01T1914Z-Wy-Blade`, leg `passplay-phone`, `no-cover-ask` — *"Call Flaky Jack" over
   "Davy Scones — a battle's brewi[ng]"*. You are asked by name to pick a winner and the circle you
   must tap covers the sentence asking you. Posed, not sailed (rule 26):

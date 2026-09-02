@@ -177,18 +177,32 @@ status: DONE 2026-09-01 — CEO 77, no game diff — no game code: this is his o
 > "First job of the new engine — the rebuilt relay's shakedown cargo IS the release: run the
 > trial in a way that survives session death, stage it, hand you the link."
 solution: none stated
-status: IN FLIGHT — **the re-sail is SAILING as of 2026-09-01T19:14:17Z.** Both blockers below are
-now cleared; part 3 (staging + the link) waits on this run's verdict. Do not stage before reading
-its report.
+status: IN FLIGHT — **a THIRD trial is sailing, on build `2026.09.01.8`, since 2026-09-02T01:37Z.**
+Part 1 is done and proven twice. Parts 2 and 3 (stage it, hand him the link) wait on this run's
+verdict, and **the gate that was blocking them is now open** — `npm test` is GREEN again (another
+session cleared the vendored-file failure that had held it red). Staging is no longer
+gate-blocked; it is trial-blocked. Do not stage before reading the report.
 
-**THE RE-SAIL, IN FLIGHT.** `node scripts/wyclau/start_trial_detached.mjs` — run
-`2026-09-01T1914Z-Wy-Blade`, **pid 45256**, 10 legs at FULL gear, build **`2026.09.01.7`**.
-Report: `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`. Log:
-`.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. It is detached from the watch
-that started it, so it survives this session ending. Expect roughly 88 minutes, on the last run's
-timing. **A later watch reads the report; nobody re-starts it while pid 45256 is alive.**
+**THE CURRENT RUN.** `2026-09-02T0137Z-Wy-Blade`, **pid 24232**, 10 legs at FULL gear, build
+**`2026.09.01.8`**. Report: `.planning/SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md`. Log:
+`.planning/wyclau/detached/trial-2026-09-02T0137Z-Wy-Blade.out`. Detached, so it survives the
+watch that started it. ~90 minutes on the last run's timing. **A later watch reads the report and
+confirms liveness with the pid in `.planning/wyclau/LONG-RUN`; nobody re-starts it while 24232 is
+alive.**
 ⚠ **A BLACK NODE CONSOLE WILL BE ON WYATT'S SCREEN AGAIN — that window IS the trial. Closing it
 kills the run.** Known, open, and not this watch's item: INBOX-20260901T1440Z.
+
+**WHY A THIRD TRIAL, and it is a real cost worth naming (CEO 84).** The 1914Z run finished and was
+the first release trial in this project's history to count its own legs honestly: **10 of 10
+voyages sailed**, 88 minutes, three modes, three sizes, both engines. Read leg by leg, nine of the
+ten fail only on known instrument noise — settle timing (all geometry churn, longest 2.7s against a
+2.6s window) and a blind vision judge that correctly DEFERRED 343 screens rather than forfeiting
+them, which are still queued in `sea-trial-shots/judge-queue.json` and are a real gap in the merge
+evidence. It found exactly **one** thing a player would notice, and the watch of 2026-09-02T00:12Z
+fixed it (a call circle drawn on the question it answers — Chart row, CEO 84, commits `e191ad74`
+and `bfa515c2`). **Fixing it bumped the stamp to `.8`, which retired that trial's evidence**: the
+88 minutes tested `.7`. Hence this run. The lesson is already filed as its own Chart item — the
+trial decides "have I tested this build?" from a hand-typed number.
 
 PART 1, "run the trial in a way that survives session death" — **DONE.** The detached run
 `2026-09-01T1644Z-Wy-Blade` (pid 38460, started 16:44:08Z, FULL gear, 10 legs) outlived the watch

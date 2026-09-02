@@ -2774,3 +2774,73 @@ them — this repo holds fixes claude-kit does not. Not line endings: all five a
 (`C:\Users\wyatt\Projects` is refused), so this is genuinely blocked here, not deferred by choice.
 **Until it is green, nothing may be staged** (CLAUDE.md §6). Whoever has claude-kit on their
 machine should take it.
+
+- 2026-09-02T01:37:52Z · close_item: "a call circle drawn on the question it answers" · CEO 84 · commit e191ad7 (1 game file) · no stated solution · posed, not sailed: 11 of 21 fights covered the question before, 0 after, across 390x844, 390x664 and 768x1024
+
+### WATCH 2026-09-02T00:12Z — CLOSING ACCOUNT
+
+**THE CORRECTION FIRST, because I wrote the wrong thing in this file six hours ago.** My claim
+above — that `npm test` was red on a vendor drift *"no watch on this machine can fix"* — was true
+when measured and is **now stale**: another session cleared it while this watch worked, and the
+suite is green end to end, `vendor_check` included. **So the gate blocking the release is open.**
+Nothing above about the manifest timestamps needs retracting; the conclusion drawn from it does.
+
+**WHAT WAS FIXED, and what a player gets.** In a battle you are asked BY NAME to call the winner.
+On a phone the "Call <captain>" circle was drawn on top of the sentence asking you — the picture
+`mp-rig-shots/w54-before-phone-short-20-50.png` shows both circles blanking the middle of the
+second line, so you can read *"…ee, and ye get 2🪙 …r right"* and nothing else. It now reads
+cleanly. Two changes in `src/ui/stage.js`: the anchored ask pill takes the above-or-below rule the
+ordinary pill and the narration bubble already followed (one shared `pillSpotFor`, arithmetically
+identical for a one-ship prompt), and the anchored circles push off the pill the way the ordinary
+fan has always refused to sit on it.
+
+**THE PROOF, POSED, BOTH WAYS ON THE SAME 21 FIGHTS** (`scripts/qa/w54_call_clear_of_ask.mjs`,
+390x844 / 390x664 / 768x1024). The fix was reverted, run, and restored, with
+`git status --porcelain -- src/ui/stage.js` empty afterwards each time:
+
+| | circle on the ask | a circle nearest the WRONG captain |
+|---|---|---|
+| before | **11** (one earlier pass: 14) | **15** |
+| after | **0** | **16** |
+
+**THREE INSTRUMENT FAULTS OF MY OWN, all found by looking rather than reasoning, and all before
+anything was believed.** (1) The first version posed squares as `{x,y}` when a square is `[x,y]`:
+the ships never moved and 21 identical screens read as "0 covered" — a check that could not fail.
+The probe now refuses a pose that did not move the boats. (2) A flat 1600ms wait photographed the
+prompt MID-TYPING every time, with not one circle revealed — **two complete before/after passes
+were taken at that moment and reported numbers, and the only reason it was caught is that I opened
+the screenshots.** (3) Fixing (2), I re-derived a settle signature at 2px instead of copying
+`SETTLE_PROBE`'s 8px, and all 21 poses reported STILL MOVING — for the reason that file already
+writes down. **And (2) exposed a real gap in the FIX, not just the probe:** the clearance was
+measured against the circle's resting box while the gate reads the painted one, and the petal grows
+to `--pp4GrowPeak`. The swell is now reserved, from the same expression `HALF` and `SEP` use.
+
+**WHAT CEO 84 CAUGHT THAT I HAD MISSED, and it was the right catch.** The probe already held every
+boat rect and every circle rect on all 21 poses and never asked *is each circle beside the captain
+it names* — Wyatt's twice-asked question, free to measure, sitting unread. It is measured now, and
+the answer is that the wrong-boat problem is **pre-existing and untouched by this fix** (15 → 16).
+**It is deliberately NOT filed as a live 15-in-21 defect**, because the purpose-built probe
+disagrees: `w52_call_beside_boat.mjs` does not move anyone and reports 11 of 12 circles nearest
+their own boat at an 11px gap. Which instrument is right is its own Chart item.
+
+**ALSO FIXED, IN SERVICE OF CHECKING MY OWN WORK:** `w52_call_beside_boat.mjs` had **never once
+run on this machine** — its Chrome profile is a POSIX path, so it died as *"no chrome on 9392"*,
+which reads as a missing browser. W5-2's own source gate says outright that what a player SEES is
+measured by that file, so the seeing half was unavailable on the one machine the sea trial sails
+from.
+
+**LEFT UNDONE, NAMED RATHER THAN BURIED.** (a) **Staging and the link** — CEO 84 is right that
+this is the second verdict running to find an ask untouched. It is not undone by choice now: the
+fix bumped the stamp to `2026.09.01.8`, which **retired the 1914Z trial's evidence**, so a third
+trial `2026-09-02T0137Z-Wy-Blade` (pid 24232) is sailing and staging waits on its verdict. (b) **No
+permanent gate** was added to `npm test` for this bug — it is guarded only by an eight-minute
+browser probe somebody has to remember to run, where the previous version of this same bug earned
+a source check. (c) **343 screens are queued unjudged** in `sea-trial-shots/judge-queue.json` from
+the 1914Z run; nothing visual in that trial has been looked at.
+
+**HOUSEKEEPING.** `git add -A` briefly staged another live session's in-flight vendor work; I
+committed by explicit path instead, but **the index may still hold their files, including the
+scratch `scripts/qa/tmp_boot_diag.mjs`** — this sandbox refuses `git reset`, so whoever owns those
+should check `git status` before a bare `git commit`. Every Chrome and server this watch started
+was killed by the probes' own `killAll()`; the only browser still running is the detached trial's,
+which is meant to be.

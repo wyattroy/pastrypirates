@@ -5,15 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-01T23:51:08.529Z	Gate fired on my own prior housekeeping commit (the GLASS-NOTE.md reset) -- nothing new from Wyatt or the engine this tick
+2026-09-02T01:20:10.102Z	self-publish check
 ```
 
 ## Long run in flight (LONG-RUN)
-None recorded.
+```
+{
+  "what": "sea trial (detached)",
+  "progress": "starting",
+  "updatedAt": "2026-09-02T01:37:57.560Z",
+  "startedAt": "2026-09-02T01:37:57.560Z",
+  "runId": "2026-09-02T0137Z-Wy-Blade",
+  "pid": 24232,
+  "reportPath": ".planning\\SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md",
+  "logPath": ".planning\\wyclau\\detached\\trial-2026-09-02T0137Z-Wy-Blade.out"
+}
+```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T09:46:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T09:56:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:06:02Z	hold off: an engine is already running -- never stack a second on it
 2026-09-01T10:16:02Z	hold off: long run "sea trial, 10 legs" is progressing (0/10 legs), last moved 11 min ago -- hold off
@@ -53,4 +63,5 @@ None recorded.
 2026-09-01T22:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T220803Z.out/.err)
 2026-09-01T22:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260901T224803Z.out/.err)
 2026-09-01T23:28:03Z	ring: no watch on deck -- rang the next one (output: watch-20260901T232803Z.out/.err)
+2026-09-02T00:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T000803Z.out/.err)
 ```
