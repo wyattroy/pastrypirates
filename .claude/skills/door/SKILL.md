@@ -128,6 +128,22 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
    include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its
    transport. Commit (`git pull --rebase` first), push.
+6b. **THEN TELL THE GLASS TO PUBLISH — do not leave him looking at a page that predates your work.**
+   `ListAgents` to find the Glass-update session (it is the interactive peer, named for the Glass),
+   then `SendMessage` it one line: *"I just landed <what>, please publish."*
+   **YOU CANNOT PUBLISH AND IT CAN.** Measured 2026-09-02 by running a real `claude -p`: a watch has
+   **`SendMessage`, `Agent` and `ListAgents`, and NO `Artifact`.** So the page is not yours to
+   update — but asking is, and asking takes one call.
+   **WHY THIS LINE EXISTS.** Wyatt spent 2026-09-02 repeatedly looking at an unchanged page and
+   reasonably concluding nothing had happened, while watches were committing real work. Without this
+   message his page waits for the Glass session's own clock — **up to a quarter of an hour after the
+   work is already done.** His words: *"let the watch say 'I just landed something, publish'."*
+   ⚠ **AND THE CLAIM THIS REPLACES WAS WRONG, WHICH IS WHY IT SAT UNBUILT.** The runbook and two
+   sessions asserted that a `-p` watch *"has no SendMessage, no Task, no Artifact"* — inherited,
+   repeated, and never tested. Only the Artifact half was ever measured. **One `claude -p` run
+   settled it in under a minute, and the capability had been there the whole time.**
+   **If no Glass session is listed, say so in the ledger and end** — never block on it, and never
+   try to publish yourself.
 7. **END THE TURN.** One item per watch. Blocked mid-item? Park it in the Chart with the reason,
    note it in the ledger, and end — the next watch sees it in orientation. Nothing unblocked at
    all? Write that to the ledger, pulse the Glass, and end. Never wait, never spin, never take a
