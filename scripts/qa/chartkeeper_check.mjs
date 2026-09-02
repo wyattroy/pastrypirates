@@ -881,5 +881,152 @@ const GROUNDED = `# THE CHART — fixture
   else pass(`the acceptance test holds on the real Chart: "${top.title.slice(0, 50)}" ranks first`);
 }
 
+/* ────────────────────────────────────────────────────────────────────────────────────────────
+   12. NO KEY THIS TOOL USES IS GUARANTEED UNIQUE, AND `new Map(pairs)` KEEPS THE LAST ONE SILENTLY.
+
+   CEO 94 found the first instance: `INBOX.md` really does carry two different entries under the id
+   `INBOX-20260902T05xxZ`, and `chartkeeper.mjs` built `new Map(entries.map(e => [e.id, e]))`. So
+   whichever of his notes he happened to type SECOND decided, for both of them, whether a citation
+   of that stamp counts as an outstanding instruction worth +100.
+
+   ⚠ MEASURED BEFORE IT WAS FIXED, AND THE HONEST SIZE IS SMALL: on 2026-09-02 the two colliding
+   entries were BOTH open, and no row on the Chart cited that stamp at all. **Nothing on his page
+   was wrong.** These cases exist because the value was UNGROUNDED, not because it was wrong — the
+   answer depended on file order, which is the same defect as reading a row's own prose. The gate
+   has to construct the divergent case; the real records cannot show it today.
+
+   THE SAME FAULT LIVES ON TWO MORE KEYS, and there the consequences are worse: `reapById` and
+   `settleByTitle` are keyed by a row's TITLE, which nothing guarantees is unique — and a title
+   collision does not merely mis-score, it makes `score()` hand one row's −1000 or +40 to another,
+   and makes the write pass stamp REAP's "⚠ STALE-CANDIDATE" sentence onto a row it never judged.
+   ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* An Inbox where one id resolves to two entries that DISAGREE — one open, one discharged. */
+const AMBIGUOUS_INBOX = (order) => {
+  const open = `## INBOX-20260101T0303Z — the first note he wrote under this stamp
+> "paint the hull"
+solution: none stated
+status: OPEN
+`;
+  const done = `## INBOX-20260101T0303Z — a different note, same stamp, and it is finished
+> "coil the ropes"
+solution: none stated
+status: DONE 2026-01-04 — CEO 2, commit def5678
+`;
+  const p = join(tmp, `ambiguous-INBOX-${order}.md`);
+  writeFileSync(p, `# THE INBOX — fixture\n\n${order === "open-first" ? open + "\n" + done : done + "\n" + open}`);
+  return p;
+};
+
+const AMBIGUOUS_CHART = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] **A ROW CITING AN AMBIGUOUS STAMP** — he wrote it at INBOX-20260101T0303Z, and that stamp
+      names two different notes of his.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+
+/* 12a. THE ANSWER MUST NOT DEPEND ON WHICH NOTE HE HAPPENED TO TYPE SECOND. Same Chart, same two
+        entries, opposite file order — the score must be identical. This is the whole defect stated
+        as a check: not "the value is wrong" but "the value is ungrounded". */
+{
+  const p = chartFile("ambiguous", AMBIGUOUS_CHART);
+  const scoreWith = (order) => {
+    const r = runJson([`--chart=${p}`, `--inbox=${AMBIGUOUS_INBOX(order)}`, "--rank"]);
+    return (r.json?.rank || []).find((x) => /AMBIGUOUS STAMP/.test(x.title || "")) || null;
+  };
+  const a = scoreWith("open-first");
+  const b = scoreWith("done-first");
+  if (!a || !b) fail("the ambiguous-stamp fixture did not rank at all");
+  else if (a.score !== b.score)
+    fail(`the same row scored ${a.score} with his two same-stamped notes in one order and ${b.score} in the other (${JSON.stringify(a.whyNow)} vs ${JSON.stringify(b.whyNow)}) — the Map keeps whichever he typed last, so his task order turns on the order of his notes`);
+  else pass("two of his notes sharing one stamp give the same answer whichever was written first");
+  // …and it must fail toward UNDER-claiming, which is the direction this tool already argues for
+  // everywhere else: an ambiguous record cannot buy the approval bonus, because we cannot tell
+  // which of the two notes the row meant.
+  if (a && b && a.score >= 100)
+    fail(`a citation of an ambiguous stamp still bought the +100 approval bonus (score ${a.score}, ${JSON.stringify(a.whyNow)}) — when his record cannot say which note is meant, the safe answer is not to credit it`);
+  else if (a && b) pass("an ambiguous citation is not read as an outstanding instruction");
+}
+
+/* 12b. AND IT MUST SAY SO OUT LOUD. A duplicate id is a fault in HIS record, not in this tool, and
+        the only place it can be repaired is `INBOX.md`. A reader that silently copes with it means
+        the collision is permanent — REAP's own rule, applied to the tool's own inputs: flag, never
+        absorb in silence. */
+{
+  const p = chartFile("ambiguous-report", AMBIGUOUS_CHART);
+  const text = run([`--chart=${p}`, `--inbox=${AMBIGUOUS_INBOX("open-first")}`, "--rank"]).out;
+  if (!text.includes("INBOX-20260101T0303Z"))
+    fail("the report never names the stamp that two of his notes share — the collision can only be repaired in INBOX.md, and nothing tells anybody it is there");
+  else pass("the report names the stamp two of his notes share, so his record can be repaired at the source");
+  const j = runJson([`--chart=${p}`, `--inbox=${AMBIGUOUS_INBOX("open-first")}`, "--rank"]).json;
+  if (!Array.isArray(j?.ambiguousInboxIds) || !j.ambiguousInboxIds.includes("INBOX-20260101T0303Z"))
+    fail(`--json does not carry the ambiguous ids (got ${JSON.stringify(j?.ambiguousInboxIds)}) — the Glass-update session reads JSON, so a fault only the human report mentions is a fault it cannot see`);
+  else pass("the machine-readable report carries them too");
+}
+
+/* 12c. THE SWEEP — THE SAME FAULT, ON THE TITLE KEYS, WHERE IT IS WORSE. Two open rows with the
+        same first line: one whose pointer REAP has judged dead, one with no pointers in it at all.
+        Keyed by title, REAP's verdict about the first is handed to the second — a +40 and the
+        sentence "something it was waiting on has landed" about a row that was never waiting on
+        anything, and, under `--write`, REAP's stale flag stamped into a row it never judged. */
+const TWIN_TITLE = "**TWO ROWS THAT SHARE ONE FIRST LINE**";
+const TWINS = `# THE CHART — fixture
+
+## STEP 1 CHECKLIST — the reboot
+
+- [ ] ${TWIN_TITLE}
+      ⟨\`T-901\`⟩
+      This one points at BLOCKED ON WYATT, which is empty, so REAP judges its pointer dead.
+      Filed 2026-09-02T04:19Z.
+- [ ] ${TWIN_TITLE}
+      ⟨\`T-902\`⟩
+      This one has no pointer of any kind in it and is simply unstarted work. Filed 2026-09-02T04:19Z.
+
+## BLOCKED ON WYATT
+
+| Question | Recommendation | since |
+|---|---|---|
+
+## THE IDEA INBOX
+
+- **A fated idea** — handled → **SHIPPED** 2026-09-01.
+`;
+{
+  const p = chartFile("twins", TWINS);
+  const r = runJson([`--chart=${p}`, `--inbox=${inboxFile()}`, "--reap", "--rank"]);
+  const flagged = (r.json?.reap || []).length;
+  if (flagged !== 1)
+    fail(`REAP flagged ${flagged} of the two same-titled rows — this case only means something if exactly one of them has a dead pointer`);
+  else pass("exactly one of the two same-titled rows has a dead pointer, so the case can fail");
+  const innocent = (r.json?.rank || []).find((x) => x.id === "T-902");
+  if (!innocent) fail(`the innocent twin vanished from the ranking (ids: ${JSON.stringify((r.json?.rank || []).map((x) => x.id))})`);
+  else if (/waiting on has landed/i.test(innocent.whyNow || ""))
+    fail(`a row with no pointer in it was told "${innocent.whyNow}" and scored ${innocent.score} — it inherited REAP's verdict about a DIFFERENT row that happens to share its first line, because the verdict is keyed by title`);
+  else pass("REAP's verdict about one row does not leak onto another row with the same first line");
+}
+{
+  /* …and the same collision, in the file the Glass reads. A stale flag written under a row nobody
+     judged is a sentence on his phone that is simply not true. */
+  const p = chartFile("twins-write", TWINS);
+  run([`--chart=${p}`, `--log=${join(tmp, "twins-LOG.md")}`, `--inbox=${inboxFile()}`, "--reap", "--write"]);
+  const out = readFileSync(p, "utf8");
+  const blocks = out.split(/^- \[ \] /m).slice(1);
+  const innocentBlock = blocks.find((b) => b.includes("T-902"));
+  if (!innocentBlock) fail(`could not find the innocent twin in the written Chart:\n${out}`);
+  else if (/STALE-CANDIDATE|⚠ STALE/.test(innocentBlock))
+    fail(`the write stamped REAP's stale flag onto the row it never judged:\n${innocentBlock.trim().slice(0, 300)}`);
+  else pass("the write does not stamp one row's stale flag onto its same-titled twin");
+}
+
 console.log(failures === 0 ? "\nPASS" : `\nFAIL (${failures})`);
 process.exit(failures === 0 ? 0 : 1);
