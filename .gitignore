@@ -128,3 +128,11 @@ w1-crewphone-recheck/
 # leave every future watch with a permanently dirty `git status` it cannot clean (this sandbox
 # refuses `rm`). Underscore-prefixed inside .planning/posed/ so it cannot swallow a real pair.
 .planning/posed/_*/
+
+# Throwaway probes a watch writes while MEASURING something (rule 6) and then cannot delete —
+# this sandbox refuses `rm`, `git clean` and `Remove-Item` alike, so an unattended watch that
+# measures anything would otherwise leave the tree permanently dirty for the next one. Same
+# reason as .planning/posed/_*/ above, same underscore convention: every real gate in scripts/qa/
+# is named <thing>_check.mjs, so `_scratch*` cannot swallow one.
+_scratch*
+_scratch*/

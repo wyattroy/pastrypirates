@@ -28,6 +28,11 @@ import path from "node:path";
 import { execSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { judgeModeFor } from "./lib/judge_mode.mjs";
+/* WHY EVERY CHILD BELOW CARRIES THIS. When this trial is started by start_trial_detached.mjs it
+   has no console of its own, and on Windows a console-less parent makes Windows hand each console
+   child a BRAND-NEW console — a visible black window on Wyatt's screen, whose ✕ kills the run.
+   One flag at this boundary covers the whole subtree; see scripts/lib/child_window.mjs. */
+import { NO_CONSOLE_WINDOW } from "./lib/child_window.mjs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
@@ -82,7 +87,7 @@ const TRIAL_VERSION = "v2";
 let gear = arg("gear");
 let gearWhy = "**FORCED ON THE COMMAND LINE — this overrode the mechanical picker.** Treat this report as weaker evidence than one whose gear was derived.";
 if (!gear) {
-  const r = spawnSync("node", [path.join(REPO, "scripts/qa/gear.mjs")], { encoding: "utf8" });
+  const r = spawnSync("node", [path.join(REPO, "scripts/qa/gear.mjs")], { ...NO_CONSOLE_WINDOW, encoding: "utf8" });
   gear = ((r.stdout || "").match(/GEAR:\s*(\w+)/) || [])[1] || "FULL";
   gearWhy = ((r.stdout || "").match(/why:\s*(.+)/) || [])[1] || "could not be determined — defaulting to FULL";
 }
@@ -168,7 +173,7 @@ say(`   legs: ${legs.length ? legs.join(", ") : "none — this gear needs no voy
 say("── 1/2  the checks that need no browser (npm test) ──");
 let unitOk = false, unitTail = "";
 try {
-  const out = execSync("npm test", { cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
+  const out = execSync("npm test", { ...NO_CONSOLE_WINDOW, cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
   unitOk = true; unitTail = out.trim().split("\n").slice(-3).join("\n");
 } catch (e) {
   unitTail = ((e.stdout || "") + (e.stderr || "")).trim().split("\n").slice(-14).join("\n");
@@ -190,7 +195,7 @@ say(unitOk ? "   PASS — all of them\n" : "   FAIL\n" + unitTail + "\n");
 let eyesOk = null, eyesWhy = "not asked for (--judge=off)";
 if (arg("judge", "on") !== "off") {
   say("── 1b/2  can the judge open a screenshot? ──");
-  const r = spawnSync("node", ["scripts/qa/judge_can_see_check.mjs"], { cwd: REPO, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
+  const r = spawnSync("node", ["scripts/qa/judge_can_see_check.mjs"], { ...NO_CONSOLE_WINDOW, cwd: REPO, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
   const tail = ((r.stdout || "") + (r.stderr || "")).trim().split("\n").slice(-3).join(" · ");
   if (r.status === 0)      { eyesOk = true;  eyesWhy = "checked just before sailing — the judge opened a real screenshot and described it"; }
   else if (r.status === 2) { eyesOk = null;  eyesWhy = `**COULD NOT BE ASKED** — ${tail}`; }
@@ -215,7 +220,7 @@ const OUT = path.join(REPO, "sea-trial-shots");
 if (legs.length) {
   say(`── 2/2  playing ${legs.length} voyage(s) with a real mouse ──`);
   const a = ["scripts/playtest_gate.mjs", `--legs=${legs.join(",")}`, `--out=${OUT}`, `--judge=${judgeMode}`, `--parallel=${arg("parallel","2")}`];
-  const r = spawnSync("node", a, { cwd: REPO, encoding: "utf8", maxBuffer: 128 * 1024 * 1024 });
+  const r = spawnSync("node", a, { ...NO_CONSOLE_WINDOW, cwd: REPO, encoding: "utf8", maxBuffer: 128 * 1024 * 1024 });
   gateOut = ((r.stdout || "") + (r.stderr || ""));
   gateOk = r.status === 0;
   say(gateOut.trim().split("\n").slice(-25).join("\n"));
