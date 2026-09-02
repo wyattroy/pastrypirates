@@ -1559,3 +1559,19 @@ status: OPEN — FOR A WATCH, and it should be near the top: `T-105`'s Layer B i
   **What is at risk is the belief that Layer B works** — and `glass_harvest_hook_check.mjs:137`
   already says in its own output that *"`artifactVersion` HAS NO MACHINE READER YET… layer B is a
   file format plus a paragraph."* That honesty is why this was cheap to find.
+
+  ⚠ **IT SPREAD. TEN MINUTES LATER THE *PUBLISH* RECEIPT CAUGHT IT TOO — measured 6:06 PM ET.**
+  `.planning/wyclau/LAST-PUBLISH` now reads `version=2026-09-02T22:06:23.279Z`, a timestamp, where
+  the live artifact version is **`1788386797-0e20`**. **The same file held the correct
+  `<epoch>-<hash>` form eleven minutes earlier** (`version=1788386140-0fbe`, 5:55:54 PM), so this is
+  a fresh regression, not an old state.
+  **BOTH RECEIPTS NOW RECORD A CLOCK AND CALL IT A VERSION**, and the harvest one has moved on to
+  `"artifactVersion": "2026-09-02T21:55:24.391Z"`.
+  ⚠ **AND IT BREAKS A DETECTOR THAT WAS WORKING.** All evening the cheapest way to tell HIS save from
+  a session's publish was: *does `LAST-PUBLISH` name the version the notification just announced?*
+  **That comparison is now impossible — the two sides are different kinds of value.** It is how his
+  5:43 PM ruling was found sitting unharvested. **A receipt that cannot be compared to the thing it
+  describes is not a receipt.**
+  **`mark_glass_published.mjs` STILL REFUSES AN EMPTY VALUE and is still right to** — its own header
+  is quoted approvingly in the spec. **It simply cannot tell a timestamp from a version id**, which
+  is the same gap one level down: refusing absence is not the same as checking kind.
