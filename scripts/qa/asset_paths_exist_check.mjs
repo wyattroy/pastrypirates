@@ -23,6 +23,14 @@
  * board was yesterday.** That gap is real and this gate does not close it. A gate whose header
  * overstates its own reach is worse than a narrow gate, because the next reader stops looking.
  *
+ * ⚑ AND THE SECOND HALF, ADDED 2026-09-02T09:xxZ BECAUSE IT CAUGHT A LIVE ONE. The derivation
+ * below reads JavaScript constants, so it is blind to art named directly in HTML — and
+ * `about.html` names seven ingredient pictures in two `<img src>` runs. Converting the ingredient
+ * family (`T-058`) broke **eight** of them, and this gate said PASS with 368 paths checked. The
+ * About page is the one Wyatt speaks in his own voice on (`.claude/CLAUDE.md` §2), so a row of
+ * broken-image glyphs there is not a cosmetic loss. Every `*.html` in each tree is now scanned for
+ * `src=`/`href=`/`url(...)` values pointing into `assets/`, and those are checked the same way.
+ *
  * IT DOES NOT CARRY A LIST, AND IT DOES NOT RESTATE THE RULE. It imports each tree's real shared
  * module and applies `sharedAssetUrls()`'s own derivation (`src/ui/util.js`) — anything exported as
  * `*_IMG` whose value is an asset path, flattened across the scalar / array / lookup-object shapes
@@ -57,6 +65,27 @@ function assetUrls(mod) {
   return out;
 }
 
+/* THE HTML HALF. A page's asset URL is relative to the page, so each tree's own htmlRoot resolves
+   it — exactly as `ASSET_BASE` is above. Anything reaching outside `assets/` is somebody else's
+   business (stylesheets, scripts, the manifest) and is left alone on purpose: this gate is about
+   art, and widening it to every URL would make it fail on things that are not pictures. */
+const HTML_URL_RE = /(?:src|href)\s*=\s*["']([^"']+)["']|url\(\s*["']?([^"')]+)["']?\s*\)/g;
+function htmlAssetUrls(dir) {
+  const out = [];
+  if (!fs.existsSync(dir)) return out;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!e.isFile() || !e.name.endsWith(".html")) continue;
+    const text = fs.readFileSync(path.join(dir, e.name), "utf8");
+    for (const m of text.matchAll(HTML_URL_RE)) {
+      const u = m[1] || m[2];
+      if (!u) continue;
+      const clean = u.split("?")[0].split("#")[0];
+      if (/(^|\/)assets\//.test(clean) && !/^https?:/.test(clean)) out.push([e.name, clean]);
+    }
+  }
+  return out;
+}
+
 let failures = 0, checked = 0;
 for (const tree of TREES) {
   let mod;
@@ -86,6 +115,17 @@ for (const tree of TREES) {
     if (missing.length > 8) console.error(`         …and ${missing.length - 8} more`);
   } else {
     console.log(`  ${tree.name}: ${urls.length} asset paths named, every one on disk`);
+  }
+
+  const html = htmlAssetUrls(tree.htmlRoot);
+  const htmlMissing = html.filter(([, u]) => (checked++, !fs.existsSync(path.resolve(tree.htmlRoot, u))));
+  if (htmlMissing.length) {
+    failures += htmlMissing.length;
+    console.error(`FAIL — ${tree.name}: ${htmlMissing.length} of ${html.length} pictures named in HTML are not on disk:`);
+    for (const [f, u] of htmlMissing.slice(0, 8)) console.error(`         ${f} -> ${u}`);
+    if (htmlMissing.length > 8) console.error(`         …and ${htmlMissing.length - 8} more`);
+  } else {
+    console.log(`  ${tree.name}: ${html.length} asset paths named in its HTML pages, every one on disk`);
   }
 }
 
