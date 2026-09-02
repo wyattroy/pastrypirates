@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T02:34:17.892Z	Trial still sailing, 5/10 legs as of a few minutes ago -- don't close the console window, that IS the run. Nothing else waiting on you; the recipe-picture WebP conversion you approved is queued behind this trial landing
+2026-09-02T02:49:32.183Z	The automatic judging pass confirmed a real defect: on the End of Voyage screen (last screen of the game, phone size), the sticky Play Again button covers the bottom of both award cards -- one winner's name is sliced in half and unreadable. Not fixed yet, filed to the Chart; the 90-minute trial at sea takes priority
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,8 +13,8 @@
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-02T01:37:57.560Z",
-  "updatedAt": "2026-09-02T02:39:38.842Z",
-  "progress": "7/10 legs",
+  "updatedAt": "2026-09-02T02:42:38.383Z",
+  "progress": "8/10 legs",
   "staleAfterMinutes": 53
 }
 ```

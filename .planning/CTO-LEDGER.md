@@ -2992,3 +2992,60 @@ a day. Gated until pid 24232 lands. (1340Z Glass line breaks) his own routing is
 generator is vendored from claude-kit, not editable here. (1440Z black console) vendored, "fix in
 claude-kit" by its own filing. So 0050Z is the **oldest ACTIONABLE** open item — and it is also his
 explicit pre-ship ruling: *"Judge the screenshots first."*
+
+- 2026-09-02T02:52:52Z · close_item: INBOX-20260902T0050Z · CEO 86 · no game diff — the item is a judging pass, not a code change: 221 of 221 surviving screens judged (218 PASS, 3 FAIL), the 122 destroyed ones reported unjudged and NOT cleared, five findings filed as Chart rows · his solution first: commit 1e76d41
+
+**WHAT CLOSED, AND WHAT IT COST.** The pass ran ~35 minutes across 25 batches, resumable throughout,
+writing after every batch. **221 of 221 surviving screens judged; 218 PASS, 3 FAIL.** The 122
+destroyed by the overlapping trial are reported UNJUDGED and NOT cleared — and that is structural,
+not a promise: `judge_the_queue.mjs:79-81` drops a screen whose picture did not survive rather than
+judging whatever now sits at its old path. CEO 86 verified that itself.
+
+**THE HOLE HAS A SHAPE AND IT IS THE WORST POSSIBLE ONE.** Read off the surviving filenames: every
+Chromium leg's preserved screens start HIGH — `passplay-phone` at 039, `solo-phone` at 024,
+`solo-desktop` at 024, `solo-tablet` at 023, `passplay-desktop` at 021 — while the WebKit and crew
+legs survive from 001. A later trial overwrites in sailing order, so what it ate first were the LOW
+numbers. **The low numbers are the opening of the game** — ceremony, recipe draft, turn order, the
+first days — in solo and pass-and-play, the two modes a Reddit visitor opens first.
+
+**FIVE FINDINGS, FIVE CHART ROWS, ZERO FIXES — and the zero is deliberate.** One item per watch, and
+any `src/` change bumps the stamp and retires the trial sailing at pid 24232 for the fourth time in
+one day. Rows at `CHART.md:444, 462, 477, 490, 516`; account
+[`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+The biggest is not one of the three FAILs: **`playtest_gate.mjs:429` opens the crew-phone GUEST
+without `mobile`/`dsf`**, so the seat Wyatt actually playtests has been a small desktop with a fine
+pointer in every trial this project has ever run. It also ANSWERS `docs/INTENDED-BEHAVIOUR.md:272`,
+open and unmeasured since 2026-08-30, and neither of that row's two guesses was right.
+
+**WHAT CEO 86 CHANGED, because the point of the CEO is that it changes something.** Its finding 2
+said "218 PASS" had no measured trust level and that the Chart row's word *red-proofed* overclaimed.
+Correct. Four PASS screens were then opened BLIND, one per leg family, chosen by name before their
+verdicts were read — **all four held**. The honest sentence is now in both the row and the account:
+of five PASS screens a human has examined one was wrong, and that one was not found by sampling.
+The word is gone. **A dividend fell out of the same sample:** `crew-desktop-host-020-settled.png` is
+the SAME black-market card on Chromium with the coin rendering fine, which turned finding D from
+"blank on WebKit" into "renders on Chromium, blank on WebKit, real Safari unknown".
+
+**⚠ FOR THE NEXT WATCH — THE TRIAL AT SEA WILL LAND WITH ITS EYES SHUT TOO.** It started 01:37Z; the
+`vision.mjs` fix landed with the 01:52Z watch, and step 1b runs once, at the start. Its own log,
+`.planning/wyclau/detached/trial-2026-09-02T0137Z-Wy-Blade.out:10`, reads `FAIL — the eyes are SHUT`.
+So it will write a SECOND unjudged queue, for build `2026.09.01.8` — the build that would actually
+be staged. **The moment it lands, before anything else sails:**
+```
+node scripts/qa/judge_the_queue.mjs --snapshot=judge-0137Z-shots
+node scripts/qa/judge_the_queue.mjs --judge=judge-0137Z-shots
+```
+The first trial started AFTER the fix judges as it sails and leaves no queue at all.
+
+**HOUSEKEEPING AND WHAT IS LEFT UNDONE, NAMED RATHER THAN BURIED.**
+- **The previous watch's commit `33e94b89` was LOCAL ONLY** — its sandbox refused `git push`. Pushed
+  at 02:20Z. `can_push.mjs` checks four faults and "push is refused outright" is not one of them;
+  worth a row if it happens a third time.
+- **No tappable link from this watch either** — no Artifact tool here, so the Glass cannot be
+  published. The pulse is in `GLASS-NOTE.md`; the Glass-update session harvested the first one at
+  `dba0a1b6`, so the relay is working.
+- **`.planning/wyclau/_watch-entry.md` is a stray scratch file, untracked, NOT committed.** This
+  sandbox blocks `rm` and `Remove-Item` inside the repo, so it could not be deleted. Delete it.
+- No browser or server was started by this watch. The only Chrome running is the detached trial's,
+  which is meant to be; the judging pass is `claude -p` calls with no browser. The trial (pid 24232)
+  was not restarted and its files were read, never written.

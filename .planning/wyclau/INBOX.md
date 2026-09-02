@@ -248,7 +248,7 @@ status: OPEN — the durable guard is this session's own to build (he asked for 
 ## INBOX-20260902T0050Z — judge the 267 queued screenshots before anything ships
 > Ruling, question UI: "Judge the screenshots first" — chosen over publishing to staging in parallel, and over going straight to production.
 solution: run the vision pass over the screens the 1914Z trial queued, BEFORE staging or release.
-status: OPEN — **IN PROGRESS, and the judging is now UNBLOCKED and RESUMABLE.** Watch
+status: DONE 2026-09-02 — CEO 86, no game diff — the item is a judging pass, not a code change: 221 of 221 surviving screens judged (218 PASS, 3 FAIL), the 122 destroyed ones reported unjudged and NOT cleared, five findings filed as Chart rows; his solution first: commit 1e76d41
 2026-09-02T01:52Z, CEO 85 (**PARTIAL**). Not closed: a judging pass that is running is not a judging
 pass that is finished.
 
