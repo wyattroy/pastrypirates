@@ -1213,3 +1213,34 @@ status: DONE 2026-09-02 — designed at [`SPEC-GLASS-HARVEST-SAFETY.md`](../SPEC
   single place: the page persisting each idea the moment he submits it, before any session is
   involved. The other three narrow the window; that one removes it. **The spec says so in those
   terms rather than letting "permanent" be claimed by a narrower fix.**
+
+## INBOX-20260902T192000Z — BUILD the permanent fix so the Glass cannot lose his writing (`T-105`)
+
+> Not new words of his — this is the **BUILD half** of `INBOX-20260902T191500Z`, split out and left
+> OPEN because the design half is closed and the build is not. **His instruction is the origin and
+> is quoted below unchanged.**
+
+> design a permanent solution to this problem: "That's the exact hazard I filed twenty minutes ago
+> as a theory, arriving with your actual writing in it. The one-line version, and it's what the fix
+> has to be built on: the harvest stamp records when a session looked. It is not evidence the page
+> hasn't changed since. Your page carries its own version number — that's the fact that can answer
+> "is a republish safe?", and a clock never can." then add it to the chart at the top priority
+
+solution: build [`SPEC-GLASS-HARVEST-SAFETY.md`](../SPEC-GLASS-HARVEST-SAFETY.md) as amended by CEO 117 — measurement first (Layer A's refusal), then B, C, D. His invariant governs: a republish is safe only if the version harvested is the version live. Identity, not a clock.
+
+status: OPEN — FOR A WATCH. `T-105`, the top row of `### ⚑ FOR A WATCH`.
+
+  ⚠ **WHY THIS ENTRY EXISTS AT ALL, AND IT IS NOT BOOKKEEPING — CEO 117, FINDING 1.** He asked for
+  two things: design it, **and put it at the top priority.** The design row was written and placed
+  first in the section, and **the tool that actually decides priority scored it ZERO and ranked it
+  34th of 53** (`node scripts/wyclau/chartkeeper.mjs --rank`, reproduced independently before this
+  entry was written). `chartkeeper.mjs:637-640` gives the +100 "he asked for this himself" signal
+  **only for a citation of a LIVE `INBOX-` entry**, and `chartkeeper.mjs:155` treats a `DONE` entry
+  as not live.
+  **SO CLOSING THE DESIGN ASK HONESTLY IS THE THING THAT STRIPPED THE BUILD ROW OF ITS CLAIM ON HIS
+  PRIORITY.** That is a real and slightly perverse property of the ranker, and it is worth keeping
+  in view: **an item is only "his" while some part of it is unfinished.** The split is the honest
+  repair — the design is done and says so; the build is open and carries his words.
+  **AND HAND-PLACING THE ROW WOULD HAVE BEEN THE FAILURE, NOT THE FIX** — the Chart says exactly
+  that two rows below, about his own DO NOW asks. A row placed by hand sits where the next
+  `--rank --write` decides, and `928ae2d6` moved fifteen rows in one pass.

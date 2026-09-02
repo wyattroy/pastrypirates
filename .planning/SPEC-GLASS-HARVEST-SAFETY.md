@@ -1,7 +1,14 @@
 # SPEC — THE GLASS CANNOT LOSE HIS WRITING
 
 *Design only. Nothing here is built. Written by the Advisor 2026-09-02, 3:15 PM ET, at his direct
-instruction; verified by a fresh CEO before it reached him; filed as the top row of the Chart.*
+instruction. **Reviewed by a fresh CEO (117), which returned PARTIAL and found two real errors in the
+first draft; both are corrected below and the correction is marked at each site.***
+
+> ⚠ **THIS LINE USED TO SAY "verified by a fresh CEO before it reached him; filed as the top row of
+> the Chart", IN THE PAST TENSE, WRITTEN WHILE THE CEO WAS STILL RUNNING AND WHILE THE ROW WAS NOT
+> AT THE TOP.** CEO 117 caught it as the sixth consecutive instance of one fault: *"the summarising
+> line always rounds toward finished."* It is left visible here rather than quietly swapped, because
+> a document that silently repairs its own overclaim teaches nothing.
 
 > **HIS INSTRUCTION, VERBATIM:**
 >
@@ -78,13 +85,21 @@ publish.**
 - **Enforceable mechanically today:** a gate greps every Glass publish path and the runbook for
   `force`, and fails the build if one appears. `force` on the Glass is the single most dangerous
   token in this repo and nothing currently forbids it.
-- ⚠ **AND THE ONE THING THIS SPEC DOES NOT KNOW, STATED PLAINLY RATHER THAN ASSUMED:** whether a
-  save Wyatt makes between a session's read and its publish actually raises that conflict, or
-  whether his in-page save is treated as the same session's own write and passes silently. **That
-  is one experiment and it should be run before anything else here is built** — type an idea into
-  the page, then publish from a session that read it beforehand, and record what happens. **If it
-  conflicts, Layer A is the whole fix and B–D are hardening. If it does not, Layer A is worthless
-  and B becomes mandatory.** Do not build on this paragraph until it is measured.
+- ⚠ **WHAT IS GENUINELY UNKNOWN HERE IS NARROWER THAN THE FIRST DRAFT CLAIMED — CORRECTED BY CEO 117,
+  AND THE CORRECTION MATTERS BECAUSE IT UNBLOCKS THE WORK.** The draft said nobody knew *"whether his
+  in-page save is treated as the same session's own write and passes silently"*, and made that one
+  experiment a precondition for everything. **Half of it was answered on disk, in the file this spec
+  is about.** `glass.mjs:22-23`: his save **is a page self-publish that creates a new artifact
+  version**, and *"sessions watching the artifact are woken by that save"* — a new version written by
+  the page is not the publishing session's own write. **Rule 20 — read the subsystem's own doc first
+  — would have caught this, and the spec's own author did not.**
+- **WHAT REMAINS TO MEASURE, AND IT IS SMALL:** whether the tool's refusal actually fires for the
+  publishing session, i.e. does a session that read version *N*, and publishes after his save made
+  *N+1*, get the conflict rather than a silent overwrite. **One test: type an idea, then publish from
+  a session that read the page beforehand, and record what comes back.** If it conflicts, Layer A is
+  nearly the whole fix and B is hardening. If it does not, Layer A is worthless and B is mandatory.
+  **Start from `glass.mjs:22-23`, not from zero** — and still do not build on this paragraph until
+  the refusal itself has been seen.
 
 ### LAYER B — THE STAMP RECORDS AN IDENTITY, NOT A TIME
 
@@ -123,19 +138,37 @@ rest.
 - **It removes the incentive that causes the damage**: skipping a harvest is currently "efficient",
   and this makes it free instead.
 
-### LAYER D — HIS WORDS ARE NEVER IN ONLY ONE PLACE (the one that ends the class)
+### LAYER D — A SECOND COPY **OUTSIDE THE ARTIFACT** (the one that ends the class)
 
 Every layer above narrows the window. **This one removes it.** Today an idea lives in exactly one
 place — the published artifact — from the moment he presses the button until a session copies it out.
 **Any single-copy design keeps this failure class alive; only a second copy kills it.**
 
-The page should append each idea to durable storage **at the moment he submits it**, before and
-independently of any session. Then a lost republish costs a re-read instead of his writing, and the
-harvest becomes a convenience rather than the only thing standing between him and losing work.
+> ⚠ **THE FIRST DRAFT OF THIS LAYER SPECIFIED SOMETHING THAT ALREADY SHIPPED, AND A BUILDER FOLLOWING
+> IT WOULD HAVE REBUILT IT.** It read: *"The page should append each idea to durable storage at the
+> moment he submits it, before and independently of any session"*, and refused to name a capability.
+> **That is `glass.mjs:1218` — `cap.publish(buildDoc(state))` on submit — described in
+> `glass.mjs:21-23` in its own words (*"rebuilds its own full document with the idea appended and
+> SAVES ITSELF as the new artifact version"*), declared at `glass.mjs:63-65`, and gated by
+> `scripts/qa/glass_optimistic_save_check.mjs`.** Found by CEO 117; verified here by reading those
+> lines, not on the reviewer's word.
+>
+> **THE MISSING WORD WAS *OUTSIDE*.** A capability that saves his idea back into the same page keeps
+> his words in exactly one place — **and that place is the one a republish overwrites.** Self-saving
+> is what makes his writing visible to sessions; it is not a second copy, and the first draft
+> mistook one for the other.
 
-- The artifact runtime offers persistence to a published page for exactly this shape of problem;
-  **which capability, and whether it is enabled for this account, must be read from the
-  `artifact-capabilities` skill and not assumed** — this spec deliberately does not name one.
+**THE REQUIREMENT, STATED SO IT CANNOT BE SATISFIED BY WHAT ALREADY EXISTS:** at the moment he
+submits, his words must reach **a store that is not the artifact** — a file in this repo, committed,
+or an equivalent the page can write to that survives the page being regenerated. Then a lost
+republish costs a re-read instead of his writing.
+
+- **The mechanism is the open question and it is genuinely open**, because the page runs in a
+  sandbox and cannot write to the repo directly. Candidates to weigh, not to assume: a session that
+  is *woken by his save* (`glass.mjs:22-23` says sessions watching the artifact are) and whose FIRST
+  act is to append the raw idea to a file and commit it, before any other step; or a page-side store
+  distinct from the document. **Read the `artifact-capabilities` skill before choosing** — but the
+  requirement above is what the choice has to satisfy, and "the page saves itself" does not.
 - **This is the largest of the four and the only one that makes the acceptance test in §2 pass
   unconditionally.** A, B and C all still lose his words in some sufficiently unlucky ordering.
 

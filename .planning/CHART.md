@@ -112,9 +112,48 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Ideas box marked *"Add to top of list"*** puts his hand on the queue with no session in the
       loop. **Until that ships, "put it at the top" is something only a session can do for him.**
 
-- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF. THEY ARE THE TOP TWO ROWS FOR THAT REASON
+- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
+      BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
+      `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
+      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
+      **CEO 117 returned PARTIAL and its two corrections are already folded into the spec** — Layer
+      D was specifying something that already ships (`glass.mjs:1218`), and Layer A's "unknown" was
+      half answered in `glass.mjs:22-23`. **Read the spec, not this row's summary of it.**
+      ⟨`T-105`⟩
+      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
+      session looked. It is not evidence the page hasn't changed since. Your page carries its own
+      version number — that's the fact that can answer 'is a republish safe?', and a clock never
+      can."* **Identity, not a clock.**
+      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
+      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
+      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
+      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
+      republish, which regenerates the page from disk and drops `glassState`. **They survived by
+      luck of ordering, not by design.**
+      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
+      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
+      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
+      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
+      the **artifact version id**, not a time, and is compared immediately before publishing —
+      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
+      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
+      submits it**, so his words are never in only one place.
+      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
+      Do not let a smaller layer ship under that word.
+      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
+      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
+      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
+      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
+      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
+      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
+      a staleness judgement and a regeneration in between — **so even a perfect tick has a
+      multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
+- [ ] **⚑⚑ HE WROTE "DO NOW" ON BOTH OF THESE HIMSELF, AND THAT IS THE ONLY REASON THEY ARE THIS
       ⟨`T-103`⟩
-      AND NO OTHER.** Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
+      HIGH.** *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
+      it. **A row must not claim its own position: RANK decides that and moves rows under it.**
+      Measured 3:22 PM ET: score 108, rank 3 of 53.)* Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
       THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
       which is the exact sinking he has now complained about five times.
       ⟨`T-103`⟩ ⟨`T-104`⟩
@@ -136,6 +175,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
       no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
       harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -167,10 +211,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
-*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
-(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
-wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
-
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -192,6 +232,9 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       current candidate list are FLOORS, not values** — 2 of the 12.
       **Sizing: this is a measurement item, not a resize item. It decides whether `T-087`'s 2.3% is
       the real answer or an underestimate.** No game code.
+
+
+
 
 - [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
       ⟨`T-084`⟩
@@ -219,10 +262,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
       currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
       ⚠ STALE-CANDIDATE — your answer landed — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — and nothing moved this row
-
-
-
-
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -439,22 +478,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       The fault is that nothing retires the question in the same act.** Harvest-then-triage-later is
       the design, and the gap between the two steps is a page that lies to him — so the move must be
       atomic, which is what this row already says.
-- [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
-      ⟨`T-088`⟩
-      by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
-      hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
-      **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
-      *"the seat wyatt actually playtests"* (row 10), *"a character of wyatt's own text"* (row 20),
-      *"git stages whole files"* row (25), and the section name itself as *"blocked on wyatt"*
-      (row 2). **WHY:** `shortTask()` sentence-cases any run of two or more all-caps words, and
-      watches write row titles in capitals for emphasis — so `WYATT` inside a shouting run is
-      lowercased along with everything else. The rule has no notion of a proper noun.
-      **The existing carve-outs are the shape to follow and they are already derived rather than
-      listed** — a lone all-caps word is a name, a token carrying a digit is an identifier, a lone
-      `I` is a fact about English. His own name is the same kind of fact. ⚠ **Do not "fix" it with a
-      list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
-      holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
-      **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
 - [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
@@ -479,6 +502,22 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
       edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
+- [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
+      ⟨`T-088`⟩
+      by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
+      hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
+      **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
+      *"the seat wyatt actually playtests"* (row 10), *"a character of wyatt's own text"* (row 20),
+      *"git stages whole files"* row (25), and the section name itself as *"blocked on wyatt"*
+      (row 2). **WHY:** `shortTask()` sentence-cases any run of two or more all-caps words, and
+      watches write row titles in capitals for emphasis — so `WYATT` inside a shouting run is
+      lowercased along with everything else. The rule has no notion of a proper noun.
+      **The existing carve-outs are the shape to follow and they are already derived rather than
+      listed** — a lone all-caps word is a name, a token carrying a digit is an identifier, a lone
+      `I` is a fact about English. His own name is the same kind of fact. ⚠ **Do not "fix" it with a
+      list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
+      holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
+      **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
 - [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
       had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
       **Sizing: this is a rule and a hook, not a feature.**
@@ -499,6 +538,11 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
       line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
       thirty seconds and it would have caught this one.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
       ⟨`T-094`⟩
@@ -527,10 +571,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
       was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
       publish the moment it lands work.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
       ⟨`T-093`⟩
@@ -614,40 +654,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
-
-- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
-      BE ABLE TO LOSE HIS WRITING.** Designed 2026-09-02, 3:15 PM ET; **design only, the build is
-      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
-      ⟨`T-105`⟩
-      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
-      session looked. It is not evidence the page hasn't changed since. Your page carries its own
-      version number — that's the fact that can answer 'is a republish safe?', and a clock never
-      can."* **Identity, not a clock.**
-      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
-      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
-      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
-      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
-      republish, which regenerates the page from disk and drops `glassState`. **They survived by
-      luck of ordering, not by design.**
-      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
-      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
-      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
-      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
-      the **artifact version id**, not a time, and is compared immediately before publishing —
-      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
-      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
-      submits it**, so his words are never in only one place.
-      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
-      Do not let a smaller layer ship under that word.
-      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
-      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
-      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
-      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
-      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
-      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
-      a staleness judgement and a regeneration in between — **so even a perfect tick has a
-      multi-minute gap between the read and the destructive act.** Move the check to step 7.
-      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
 
 - [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
       ⟨`T-008`⟩

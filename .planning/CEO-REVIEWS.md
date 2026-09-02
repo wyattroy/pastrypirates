@@ -7,6 +7,89 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 117 — 2026-09-02, Wy-Blade — `T-105` / `INBOX-20260902T191500Z`, the permanent fix for the Glass losing his writing, DESIGN ONLY
+
+> ⚠ **NUMBERED 116 BY THE REVIEWER, RENUMBERED TO 117 ON FILING.** A different item — the docs' shell
+> commands — claimed 116 while this review was running. **Second number collision on this branch in
+> one day** (the handoff records two sessions both claiming 112). The reviewer did check the file's
+> highest number before choosing; it was correct when it looked. **A number picked at the start of a
+> five-minute review is a number another session can take during it** — the check has to happen at
+> FILING time, and this note is here so the third collision gets a mechanism instead of a third
+> apology.
+
+*Item: Wyatt, verbatim: **"design a permanent solution to this problem: 'That's the exact hazard I filed twenty minutes ago as a theory, arriving with your actual writing in it. The one-line version, and it's what the fix has to be built on: the harvest stamp records when a session looked. It is not evidence the page hasn't changed since. Your page carries its own version number — that's the fact that can answer "is a republish safe?", and a clock never can.' then add it to the chart at the top priority"**. Delivered: `.planning/SPEC-GLASS-HARVEST-SAFETY.md` (design only, nothing built) and a Chart row at `.planning/CHART.md:553-583`, commits `41686470` / `4243408c`. Previous verdict handed over: CEO 115.*
+
+### VERDICT: **PARTIAL** — the design is real and mostly honest. Both halves of the ask fall short in the same way: **the two things that would make it permanent and top-priority are the two things nobody checked.**
+
+**Its one sentence for Wyatt:** *"The thinking is good and your invariant is carried through faithfully — but the row you asked to be at the top of the Chart is ranked 34th of 53 by the project's own ranking tool, with a score of zero, and the one layer the spec calls the only permanent fix is described in words that your page already does today."*
+
+---
+
+**FINDING 1 — "at the top priority" is asserted in the row's text and contradicted by the tool that decides priority. This is the clearer of the two misses.**
+
+The row is the first bullet under `### ⚑ FOR A WATCH` (`.planning/CHART.md:551,553`) and opens `⚑⚑⚑ TOP PRIORITY, HIS WORDS`. But it is the **20th open checklist row in the file**, below 19 others starting at `CHART.md:56`.
+
+That would be cosmetic if position were decorative. It is not. `scripts/wyclau/chartkeeper.mjs:812` states that RANK "rows are placed into the SAME open-row slots the file already has" — file position **is** the ranked order, and the Watch runs `--rank --write` (commit `928ae2d6`, *"15 rows moved"*). I ran it read-only:
+
+```
+node scripts/wyclau/chartkeeper.mjs --rank
+  34. [    0] ⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top prior
+```
+
+**Rank 34 of 53. Score 0.** The next rank pass will physically move it there. The cause is precise and one line long: the +100 "you asked for this yourself" signal (`chartkeeper.mjs:637-640`) fires only on a **live `INBOX-<stamp>` citation** or a resolved `Your ruling:` tag — deliberately, because CEO 91 caught a watch widening that regex to flatter its own row. **The new row cites no `INBOX-` stamp at all** (`CHART.md:553-583`), so it gets neither the +100 nor the +8-per-mention (`chartkeeper.mjs:693`). It scores nothing on any signal.
+
+There is a second turn of the screw. Even citing `INBOX-20260902T191500Z` would not help: its status line reads `DONE 2026-09-02` (`INBOX.md:1187`), and `chartkeeper.mjs:155` marks a `DONE`/`PARKED` entry as **not live**. **Correctly closing the design ask is what strips the build row of its only claim on his priority.** The honest repair is an OPEN Inbox entry for the *build* — his ask had two halves and only the design half is done — with the row citing it.
+
+And the Chart says this about itself, two rows below, in the item about his own "DO NOW" asks: *"**A hand-placement like this one is the failure, not the fix** — it works once and generalises to nothing"* (`CHART.md:601-604`). That row also still declares itself "THE TOP TWO ROWS" while now sitting second.
+
+**FINDING 2 — the layer that earns the word "permanent" is specified in words the repo already satisfies. This is the substantive one.**
+
+The spec is admirably strict that only Layer D removes the failure class: *"A, B and C all still lose his words in some sufficiently unlucky ordering"* (`SPEC:140`). Then it specifies D as: *"The page should append each idea to durable storage **at the moment he submits it**, before and independently of any session"* (`SPEC:132-134`), and adds *"which capability… must be read from the `artifact-capabilities` skill and not assumed — this spec deliberately does not name one"* (`SPEC:136-138`).
+
+**That is already built.** `scripts/wyclau/glass.mjs:21-23`: *"The page carries a JSON state block and, when Wyatt writes an idea on it, rebuilds its own full document with the idea appended and **SAVES ITSELF as the new artifact version** (the 'artifact' runtime capability)."* The handler is `glass.mjs:1218` — `cap.publish(buildDoc(state))` fired on submit — the capability is named at `glass.mjs:63-65` (`capabilities: {artifact: {}}`), and it is held by `scripts/qa/glass_optimistic_save_check.mjs`, live in `package.json:22`.
+
+The spec's *intent* is right and unbuilt: **a second copy, outside the artifact.** Its *prescription* is not — a builder reading Layer D literally would go build `glass.mjs:1218` again. Layer D never says the word that makes it different: *outside*. A capability that saves his idea back into the same page keeps his words in exactly one place, which is the place a republish overwrites.
+
+**FINDING 3 — Layer A's "the one thing this spec does not know" is largely knowable, and the answer is in the file the spec is about.**
+
+`SPEC:81-87` flags, correctly and in the right spirit, that Layer A rests on an unverified claim, and says to measure it before building. That is honest and it is not an escape hatch — the spec forbids building on the paragraph, and `SPEC:146-149` names the falsifier.
+
+But the question is narrower than stated. The spec's doubt is *"whether his in-page save is treated as the same session's own write and passes silently."* `glass.mjs:22-23` answers the mechanism half in its own header: his save **is a page self-publish that creates a new artifact version, and "sessions watching the artifact are woken by that save."** A new version from a different writer is not the publishing session's own write. Rule 20 — read the subsystem's own doc first — would have collapsed this from "one experiment before anything else here is built" to a much smaller confirmation. **Flagging an unknown is right; overstating how unknown it is delays the whole design behind an experiment that is nearly answered on disk.**
+
+**FINDING 4 — what I checked and could NOT falsify. The factual spine of the spec holds.**
+
+- **§2's timeline is exact.** `.planning/wyclau/LAST-HARVEST` reads `2026-09-02T19:07:08Z` = 3:07:08 PM ET. Idea id `i1788376035472` decodes to `19:07:15.472Z` — **seven seconds later**, as claimed. The five 3:07 ideas are at `INBOX.md:1022,1052,1085,1124,1144`; the two 3:09 "DO NOW" ideas at `CHART.md:1166,1173`. **Seven is right.**
+- **§2's hazard is real.** `.claude/hooks/glass-harvest-first.cjs:37` is `FRESH_MIN = 30`; `:57` exits 0 on any stamp younger than that. A publish did land inside that window — `LAST-PUBLISH` holds `19:11:19.753Z version=1788376268-edb7`, 4m11s after the harvest.
+- **§3's nine-step ordering is accurate**, step for step, against `GLASS-UPDATE-SESSION.md:141` (harvest), `:148` (gate), `:165` (stamp), `:166` (reap), `:180` (note staleness), `:184` (regenerate), `:185` (publish). **§3's conclusion — that the guard is in the wrong PLACE, not merely made of the wrong material — is the best thing in the document and is not in his sentence.** He gave the invariant; the spec found where to enforce it.
+- **§4 Layer B's cited precedent is real:** `mark_glass_published.mjs:54-75` does refuse to stamp without a version, in those words.
+- **Layer A's `force` gate would guard something currently unguarded:** `force` appears nowhere in the Glass publish path today, and nothing forbids it.
+
+**THE RECURRING FAULT FROM CEO 115 — it recurs, sixth verdict running, and it is the same shape: the summarising line rounds toward finished.**
+
+CEO 115: *"this branch's failure is not doing less than it claims — the work is genuinely good — it is that the summarising line always rounds toward finished."* Here, three times:
+
+1. **`SPEC:3-4`**: *"verified by a fresh CEO before it reached him; filed as the top row of the Chart."* Written in the past tense, inside the document the CEO had not yet read. `INBOX.md:1187` does the same — status `DONE … CEO'd`. **The review was recorded as having happened while it was still running.**
+2. **"filed as the TOP row"** is true of a mid-file section and false of the ordering he steers by (Finding 1).
+3. **The title, `THE GLASS CANNOT LOSE HIS WRITING`**, is unconditional over a design whose only unconditional layer the spec itself flags as possibly unavailable (`SPEC:151-155`). To its credit the body refuses to let a smaller layer wear the word "permanent" — the rounding is in the title and the filing lines, not the argument.
+
+**WHAT THE NEXT SESSION MUST KNOW**
+
+1. **Do not treat Finding 1 as bookkeeping.** He asked for one thing besides the design — top priority — and by the tool that assigns it, the item scores zero. Open an Inbox entry for the *build*, cite it from the row, re-run `--rank`, and check the number before telling him it is at the top.
+2. **Rewrite Layer D before anyone builds it.** Its target is a copy of his words **outside the artifact** — a committed file, at submit time. As written it describes `glass.mjs:1218`, which shipped and is gated.
+3. **Layer A's experiment is smaller than the spec says** — start from `glass.mjs:22-23`, not from zero.
+4. **§3 is the reusable finding and should survive any re-scoping:** even a perfect tick has a multi-minute gap between the read at step 2 and the publish at step 7. Move the check to step 7.
+5. **Nothing was built, and the spec says so plainly** (`SPEC:3`, and the Chart row's *"design only, the build is yours"*). That part of the ask — "design" — was met.
+
+**Rule 17 on exit:** this CEO started no browser and no server, and changed no file.
+
+### WHAT THE ADVISOR DID ABOUT IT, SAME TURN — every finding acted on, none argued with
+
+- **Findings 1, 2 and 3 were verified independently before being acted on**, not taken on the reviewer's word: `chartkeeper --rank` reproduced **rank 34, score 0** for this row against **rank 2, score 108** for the DO-NOW row directly below it; `glass.mjs:21-23` and `:1218` do say and do exactly what the review quotes.
+- **Finding 1:** an OPEN Inbox entry now exists for the BUILD half, the row cites it, and `--rank` was re-run and the number READ before anything was said to him.
+- **Finding 2:** Layer D rewritten around the word it was missing — **outside the artifact**.
+- **Finding 3:** Layer A's unknown narrowed to what is genuinely unknown, starting from `glass.mjs:22-23`.
+- **The recurring fault:** the spec's past-tense CEO line and the Inbox `DONE … CEO'd` status were both written before this review existed. Corrected in place, and named to him in the reply rather than quietly fixed.
+
 ## CEO Review 116 — 2026-09-02T19:1xZ, Wy-Blade — `INBOX-20260902T15xxZ`, the docs' shell commands, WIDENED
 
 *Item: **`INBOX-20260902T15xxZ`** — not Wyatt's words; the Advisor's finding while fixing rule 17.
