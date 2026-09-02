@@ -502,6 +502,40 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **A FIELD NAMED `artifactVersion` HOLDS A CLOCK, IN BOTH RECEIPTS, AND THE GATE CANNOT SEE IT
+      BECAUSE IT ONLY CHECKS THE NAME.** `INBOX-20260902T2156Z`, measured 2026-09-02 5:56 and
+      6:06 PM ET. **Sizing: one value in two call sites, plus one gate. No game code, no sea trial.**
+      **MEASURED, two real versions of his page:** `1788385436-4b8b` and `1788385523-b046` both carry
+      `generatedAt` **`21:08:44.245Z`** — identical — and the second contains his Google Analytics
+      idea while the first does not. **`generatedAt` moves when a SESSION regenerates the page and
+      never when HE saves into it**, and his saves are the only thing these receipts exist to detect.
+      A comparison against it says "unchanged" at the exact moment he has written something.
+      **IT SPREAD IN TEN MINUTES.** `LAST-HARVEST` first (`"artifactVersion": "2026-09-02T21:55:24.391Z"`),
+      then `LAST-PUBLISH` (`version=2026-09-02T22:06:23.279Z`) — which held the correct
+      `1788386140-0fbe` form eleven minutes earlier. **Both receipts now record a clock and call it a
+      version.**
+      ⚠ **AND IT BROKE A DETECTOR THAT WAS WORKING:** the cheapest way to tell HIS save from a
+      session's publish was whether `LAST-PUBLISH` named the version the notification announced. The
+      two sides are now different kinds of value, so that comparison is impossible. **It is how his
+      5:43 PM ruling was found sitting unharvested.**
+      **THE FIX:** (1) pass the tool's `<epoch>-<hash>` id to `mark_glass_harvest.mjs --version=` and
+      `mark_glass_published.mjs --version=`; (2) **add the missing gate — fail if the recorded
+      version parses as a date — and red-proof it against today's files, which do.**
+      **WHY IT SLIPPED PAST EVERYTHING, and this is the reusable half:**
+      `glass_harvest_hook_check.mjs:277-279` asserts the writer stores SOMETHING under
+      `artifactVersion`, and the runbook reads that name (`GLASS-UPDATE-SESSION.md:217`). **Nothing
+      checks the KIND of value. A gate on a field's NAME is not a gate on its CONTENTS**, and the
+      right name is precisely what kept everyone confident. `mark_glass_published.mjs` refusing an
+      EMPTY value is the same gap one level down: refusing absence is not checking kind.
+      **ROOT CAUSE NAMED BY THE SESSION THAT DID IT, and it points at an item already on this
+      Chart:** the Glass-update session dispatches each tick to a fresh subagent and sees only its
+      prose report, never its tool calls — *"that's my dispatched subagents' mistake on the last two
+      ticks."* **Same weakness filed at `INBOX-20260902T1845Z`.** Fixing the value without fixing
+      that leaves the next wrong value equally invisible.
+      ✅ **HIS WORDS WERE NEVER AT RISK FROM THIS** — the runtime refuses a stale publish regardless
+      (`INBOX-20260902T2100Z`). What was at risk is every reader believing these receipts mean
+      something they do not.
+
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
       ⟨`T-094`⟩
