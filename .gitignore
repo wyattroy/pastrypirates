@@ -87,6 +87,14 @@ w1-crewphone-recheck/
 .planning/wyclau/LAST-ACTIVITY
 .planning/wyclau/LAST-PUBLISH
 .planning/wyclau/STOP-HOOK-STATE.json
+# One line per Glass tick: what the change-gate said, and whether the harvest overrode the action
+# (scripts/wyclau/glass_gate_log.mjs — INBOX-20260902T0120Z). Machine-local, and NOT tracked FOR A
+# MEASURED REASON rather than by convention: glass_needs_publish.mjs skips a commit only when its
+# entire diff is GLASS-NOTE.md, so a tracked log line committed beside the note reset would make
+# that commit look like work landing and republish an unchanged page — the echo tick removed on
+# 2026-09-02. Extending that filter means editing a vendored file. The cross-machine view would be
+# publish_status.mjs's job; it is vendored too, and this is filed as a kit patch.
+.planning/wyclau/GATE-LOG
 # Written by a long job (a sea trial) as it progresses; read by the Glass for the status dot.
 # Per-machine by nature and actively misleading if shared: committed, it would describe a job
 # running on somebody else's computer.

@@ -125,10 +125,23 @@ publish. This session IS the terminal.
 >    BEFORE the change-gate below — never after it, and never skipped because nothing "moved". Only
 >    this read can see what he typed; no script can.** A republish without this deletes
 >    what he wrote, silently and completely.**
-> 3. **NOW ASK WHETHER THIS TICK HAS ANYTHING TO SAY:** `node scripts/wyclau/glass_needs_publish.mjs`
->    — exit **10 / `NOTHING-MOVED`** means **END THE TICK HERE, silently.** No publish, no stamp, no
->    commit, no report. Exit **0 / `PUBLISH`** means carry on. (If step 2 found ideas or rulings, you
->    are publishing regardless of what this says — his words landing on the Chart is itself a change.)
+> 3. **NOW ASK WHETHER THIS TICK HAS ANYTHING TO SAY. THIS COMMAND RUNS ON EVERY TICK, WITHOUT
+>    EXCEPTION:** `node scripts/wyclau/glass_gate_log.mjs`
+>    — and **if step 2 found ideas or rulings, run it as
+>    `node scripts/wyclau/glass_gate_log.mjs --harvested`** instead.
+>    Exit **10 / `NOTHING-MOVED`** means **END THE TICK HERE, silently** — no publish, no stamp, no
+>    commit, no report. Exit **0 / `PUBLISH`** means carry on. Under `--harvested` the exit is always
+>    0, because his words landing on the Chart is itself a change.
+>
+>    ⚠ **THE HARVEST OVERRIDES THE ACTION, NEVER THE CHECK — `INBOX-20260902T0120Z`.** The old
+>    wording here let a tick decide the answer was moot and not ask at all, and on 2026-09-02T01:02Z
+>    one did. The publish was right; the missing verdict was not. **From outside, a tick that skipped
+>    the gate and a tick where the gate is not wired in at all look identical** — `npm test` is green
+>    either way. `glass_gate_log.mjs` wraps `glass_needs_publish.mjs`, appends one line to
+>    `.planning/wyclau/GATE-LOG` every single run, and hands back the gate's own exit code, so what
+>    the check said is on the record whether or not it decided anything. It is machine-local by
+>    design — a tracked log line committed beside the note reset would revive the echo tick.
+>    Gate: `scripts/qa/glass_gate_verdict_logged_check.mjs`.
 > 4. `date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST`
 > 4b. **REAP THE CHART, IN REPORT MODE ONLY:** `node scripts/wyclau/chartkeeper.mjs --reap`
 >    — it lists rows whose POINTER is dead: a question he has already answered, a trial report that
