@@ -5782,4 +5782,21 @@ about preserving other tags, the "never committed" refusal reported behind the "
 `robots.txt` imprecision, and this ledger entry itself — which at review time recorded the claim and
 none of the work.
 
+⚠ **TWO STEPS OF THE DOOR THIS WATCH DID NOT RUN, AND THE REASON IS THE SAME ONE BOTH TIMES.**
+`.planning/CHART.md` has **another session's uncommitted edits sitting in it right now** — a
+`T-111` row for the `artifactVersion` fault, plus ~97 reordered lines. So:
+- **`chartkeeper.mjs --rank --write` was NOT run.** Writing it would have rewritten a file another
+  session is mid-edit in, and committing the result would have staged their unfinished work — the
+  fault this ledger has now recorded three times (`T-093`). `--rank` read-only still ranks his DRAG
+  TO REPRIORITISE row first, unchanged from watch start.
+- **`CHART.md` is not in either of this watch's commits**, deliberately, and it is named in the
+  second commit's message so nobody reads its absence as an oversight.
+**The next watch that finds `CHART.md` clean should run the rank pass** — it is a step this one
+owes and could not safely take, not one it decided against.
+
+**AND THE GLASS WAS NOT PUBLISHED BY THIS WATCH, because it cannot be:** a Bell-launched watch on
+this machine has `SendMessage`, `Agent` and `ListAgents` and **no `Artifact` tool**. What he should
+see is written to `.planning/wyclau/GLASS-NOTE.md` and committed, and the Glass session was asked
+to publish (Door step 6b).
+
 - 2026-09-02T22:16:58Z · close_item: INBOX-20260902T190715Z · CEO 122 · no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- src/ and index.html untouched · his solution first: commit a13c365 · his three parts shipped in a13c3655; both lastmod dates derived from git log -1 --format=%cs, red-proofed against a hand-typed date

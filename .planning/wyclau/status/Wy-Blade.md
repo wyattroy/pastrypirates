@@ -9,15 +9,7 @@
 ```
 
 ## In hand (IN-HAND)
-```
-{
-  "item": "his sitemap.xml fix -- drop the two tags Google ignores, add a lastmod derived from git",
-  "handle": "T-098",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-02T22:01:32.351Z",
-  "staleAfterMinutes": 90
-}
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
 None recorded.
