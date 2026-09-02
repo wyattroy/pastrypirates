@@ -5633,3 +5633,78 @@ to read first — orders the work and puts the "add to top" slot at step 4; the 
 of it that needs every task on his page to carry a handle it does not carry today. **A watch that
 half-built both would leave neither provable, and this row has already been caught once claiming a
 position it did not hold.**
+
+Prediction, written before any edit:
+[`PREDICTION-20260902T2120Z-T104.md`](wyclau/PREDICTION-20260902T2120Z-T104.md).
+
+**WHAT SHIPPED. His button exists, and he can press it: a tap saves the idea carrying its flag,
+clears the box, paints a DO NOW tag on it at once and tells him one slot displaced the other; a
+session carries it over with one command; RANK puts that row first with YOU SAID DO NOW beside it.**
+Commit `c8a475a6`, **CEO 121 (PARTIAL)**, and every one of its five findings acted on.
+**NOT ticked, and the reason is one sentence: the joint between his tap and RANK is still a session
+reading his page by hand.** A gate now fails the build if the harvest runbook stops naming the
+command — which proves the sentence is there, never that a session typed it.
+
+**WHAT THE PREDICTION GOT RIGHT AND WHAT IT MISSED.** Right: no pin signal existed (seven derived
+signals, none of them his); `headField`'s `field: value` grammar needed no new parser; the harvest
+was named in advance as *"the weakest joint in the whole chain and I expect it to be the thing a CEO
+attacks"* — and it was, as finding 3. **Missed: that a watch can PRESS the button.** The prediction's
+own falsifier said *"if I cannot demonstrate the button in a rendered page, I have shipped a
+mechanism and called it a feature"*, and the first attempt settled for a photograph of a control
+nobody had touched. CEO 121 refused it and named the reachable fix; it took a few lines.
+
+**TWO RANK SIGNALS THAT HAVE NEVER ONCE FIRED, found by trying to write the first head field
+anything writes.** `headField()` read `row.lines[0]` — and on this Chart the head NEVER lives on
+line one, because CEO 91 moved it to its own line underneath so that line one stays the sentence
+Wyatt reads on his phone. So `needs:` (sink a row waiting on him) and `size:` (small first, so the
+queue drains) returned null on every row of every run since they were written. **Not wrong answers.
+No answers, silently.** ⚠ **And CEO 121's correction to that, kept because the commit did not say
+it: the Chart carries no `needs:` or `size:` field at all, so the dead signal also had nothing to
+read. The fix is right; the drama is slightly larger than the loss.**
+Underneath it, `idOfRow`'s pattern demanded the handle be ALONE inside the brackets while
+`headField` split those same brackets on `·` — **two readers of one line disagreeing about its
+grammar**, where the first second field ever written would have cost a row its identity and orphaned
+every ruling pointing at it.
+
+**THE HANDLE DUPLICATION WENT 5 → 3, and that came out of finding 5 rather than out of the item.**
+Each of his two DO NOW harvest entries carried the same handle as the task row written from it, so
+`T-103` and `T-104` each answered to two open rows — the exact fault that once made a live row
+answer to `T-078`, a handle closed hours earlier. An idea and the task written from it are one job.
+`T-088`, `T-008` and `T-079` remain, and are somebody's row, not this watch's.
+
+**RED FIRST: six failures on this morning's code**, and one of the new gate's own assertions could
+not fail — it keyed on `i.now`, a string that also appears in the code that RELEASES pins, so
+deleting the whole pinned-idea rendering left it green. Caught by red-proofing it, not by reading
+it. The wire assertion added for finding 1 was red-proofed by cutting the exact line CEO 121 named.
+
+**SWEEP:** `npm test` **109/109** (ceiling 108 → 109, justification in `package.json`;
+`quiet_gate_report.mjs` offers zero retirement candidates for the sixth raise running).
+`stray_probe_check` PASS. **No game code: `src/` and `index.html` untouched** — the gear reads FULL
+only because `package.json` is not on its exclusion list, and an 85-minute sea trial for a
+Chart-tooling change would be theatre. Said out loud rather than quietly skipped.
+
+⚠ **THREE FILES THIS WATCH COULD NOT DELETE, AND IT IS THE SAME SANDBOX REFUSAL TWO WATCHES AGO.**
+`rm`, `Remove-Item` and `git checkout HEAD~1 -- <file>` are all refused to an unattended watch here
+— the third instance of CEO 118's fourth finding, now unfixed across three watches. Left untracked,
+not committed, named so a session with permission can sweep them:
+`.planning/wyclau/peek-tmp.html` and `scripts/qa/_tmp_donow_real.mjs`.
+**And it cost one piece of evidence:** the matched "before" photograph could not be taken, because
+taking it meant checking out the previous generator. The before is the RED gate run, which failed on
+exactly *"no DO NOW button on the page"* — weaker than a picture, and said so rather than dressed up.
+
+⚠ **HIS 5:43:55 PM RULING WAS TESTED RATHER THAN REPEATED, AND IT DID NOT UNBLOCK THE EDIT.**
+`0472a129` records his *"Let the watch write them -- I allow edits to hooks and skills"*, and
+measured that this project's `.claude/settings.json` denies nothing under `.claude/`. So the Door's
+one-line harvest edit was attempted, not assumed impossible. It came back, verbatim: *"Claude
+requested permissions to write to `C:\Users\wyatt\Projects\pastrypirates\.claude\skills\door\SKILL.md`,
+but you haven't granted it yet."* **The blocker is the harness's rule for unattended sessions, which
+no project setting can grant** — exactly what `0472a129` predicted as the likeliest remaining
+explanation, now with an observation behind it instead of an inference. **Nobody should tell him
+that ruling unblocked this until an edit actually lands.**
+
+⚠ **AND ANOTHER SESSION COMMITTED THIS WATCH'S UNCOMMITTED WORK, at 17:51:18Z, as `3cb9e3b5`.**
+Nothing was lost and the message it wrote is accurate — but the work is this watch's and the commit
+is not, and it carries `Co-Authored-By: Claude Sonnet 5` for a build made by a different model in a
+different session. **This is `T-093`'s own second bullet happening again: `CHART.md` and the working
+tree are shared, git stages whole files, and `git add <path>` is no safer than `git add -A`.** Third
+recorded instance. It is the argument for that row, not an anecdote beside it.

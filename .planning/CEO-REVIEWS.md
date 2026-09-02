@@ -7,6 +7,80 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 121 — 2026-09-02T21:5xZ, Wy-Blade — `T-104`, his "DO NOW" button
+
+**Number checked at FILING time.** Highest on file was 120; this is 121. Commit `c8a475a6`.
+
+**HIS ASK, VERBATIM** (written on the Glass, 2026-09-02 3:09 PM ET): *"Do Now: in the Glass, Add a
+\"DO now\" button next to \"Send to the Chart\" button that tells RANK to put this task at the
+top"*
+
+**VERDICT: PARTIAL.** In its own words, and the summary line is worth quoting whole because it is
+the fairest sentence in the review:
+
+> He asked for a DO NOW button next to Send that tells RANK to put a task at the top. **RANK obeys
+> the pin, and the Chart command that sets it is properly built and properly tested; the button
+> itself is drawn but unpressed, unwired-proof, and the step that would carry his tap to the Chart
+> is a session remembering a command no document contains.**
+
+**AND IT NAMED ITS OWN BLIND SPOT FIRST, which is the right way round:** *"this environment refused
+to execute `do_now_check.mjs` (permission denied, three attempts). So my reading of the gate is by
+source, not by running it."*
+
+**⚠ THE RECURRING FAULT DOES RECUR, AND IT WAS RIGHT TO SAY SO.** CEO 120 was the first clean pass
+in eight verdicts on "summarising lines that round toward finished". Finding 4: the commit message
+says `T-103` *"is split to its own row"* in the **past tense**, and `git show --stat` does not list
+`CHART.md`. That is exactly the fault, one sentence of it, in a message otherwise unusually candid.
+**Ninth verdict, and it recurred inside the very commit that admitted two other limitations.**
+
+### The five findings, and what happened to each — all five acted on
+
+1. **THE BUTTON HAD NEVER BEEN PRESSED, BY ANYONE OR ANYTHING, AND CUTTING ITS WIRE LEFT THE BUILD
+   GREEN.** `glass.mjs:1379` is the one line joining his tap to the send path; delete it and every
+   assertion still passed, because they all read the page's SOURCE — the id, the label, the flag,
+   the tag all survive a severed listener. *"The failure this item exists to prevent — the gate's
+   own words, 'the button would look like it worked and reach nothing' — is the one failure the
+   gate cannot see."*
+   **ACTED ON, BOTH WAYS.** (a) A new gate case asserts the listener exists **and delegates to the
+   same function the ordinary Send button does** — red-proofed by cutting exactly the line the CEO
+   named, and it goes red. (b) **The button was then actually pressed**, which is the part that
+   matters: `glass_peek.mjs --press-do-now` installs a stub artifact grant *before* the document
+   runs, so the page takes its ordinary path. Measured, not inferred — `published: 1`,
+   `pinTag: "DO NOW"`, the saved document carries `"now":true`, the box cleared, and the status line
+   reads *"Saved, and it goes to the TOP of the list. Only one thing can be there…"*.
+2. **THE SCREENSHOT SHOWED A ROW THE POSE HAD DRAWN ITSELF, NOT THE PAGE'S OUTPUT.** *"A picture of
+   a control nobody has touched is a picture of CSS."* Correct, and the earlier shot's own tooling
+   said so in its comment. **ACTED ON:** [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png)
+   is the page's own `renderIdeas()` output after a real click. The CEO's suggested fix — stub the
+   grant, click, read the DOM — is precisely what was built, and it was a few lines as it said.
+3. **THE HARVEST JOINT WAS NEITHER COVERED NOR DOCUMENTED.** A grep for `do-now` found it in no
+   runbook at all: *"a session harvests his pinned idea, sees the DO NOW tag, writes a row — and
+   unless it happens to have read this commit, never runs `--do-now=`, and RANK never learns."*
+   **ACTED ON:** the instruction is now inside the Glass runbook's own HARVEST FIRST step
+   (`GLASS-UPDATE-SESSION.md`), naming the flag to look for and the command that carries it — and
+   `do_now_check.mjs` case 9 **fails the build if that step stops naming it.** ⚠ Its ceiling is
+   stated in the gate itself: this proves the sentence is there, never that a session typed it.
+4. **THE SPLIT WAS CLAIMED IN THE PAST TENSE AND `CHART.md` HAD NOT BEEN TOUCHED.** **ACTED ON:** the
+   split is now real. `T-103` is the drag ask alone, retitled so it no longer describes a pair;
+   `T-104` is its own row, open, with the remaining gap written into it.
+5. **`--do-now=T-104` WOULD HAVE BEEN REFUSED — the pin could not be pointed at the request that
+   created it.** `CHART.md:64` held `⟨T-103⟩ ⟨T-104⟩` on one line, which the pin's head pattern
+   cannot match. **ACTED ON, and it went further than the finding:** the split removed that line,
+   and the same pass found the two harvest entries in THE IDEA INBOX carrying the same handles as
+   their task rows — so **`T-103` and `T-104` were each answering to two open rows**, the fault that
+   once made a live row answer to a handle closed hours earlier. Duplicate handles: **5 → 3.**
+   Proven on a copy of the real Chart: `--do-now=T-104` now scores **10000, rank 1, "YOU SAID DO NOW"**.
+
+**What it verified as TRUE, independently:** no game code touched (11 files, no `src/`, no
+`index.html`); cases 1–6 are behavioural, not source greps, and case 6 guards itself against a
+vacuous green; the Tasks-card half is genuinely proven; one slot is enforced by the write on both
+sides; and **"two RANK signals never fired" is true** — it grepped the Chart for a row whose first
+line carries a head and found zero. ⚠ **Its own correction to that finding is kept, because the
+commit did not say it:** the Chart contains no `needs:` or `size:` field at all, *"so the dead
+signal also had nothing to read. The fix is right; the drama is slightly larger than the loss."*
+
+---
+
 ## CEO Review 119 — 2026-09-02T21:xxZ, Wy-Blade — `T-090`, one label doing duty for three faults
 
 **Number checked at FILING time.** Highest on file was 118; this is 119.

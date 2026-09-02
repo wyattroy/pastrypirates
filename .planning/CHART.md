@@ -613,6 +613,35 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
       taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
       exactly what happened all night.
+      ✅ **STEP 4 IS BUILT — 2026-09-02T21:4xZ, `T-104`, commit `c8a475a6`, CEO 121.** It arrived as
+      his own later refinement (a BUTTON beside Send, not a checkbox under the box), and all three
+      constraints above hold: one slot enforced by the write on both sides, two pins fail the build
+      naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
+      a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
+      the Door still reads oldest-first, so there are still two orderings.**
+
+- [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
+      note to him, an hour after the same hazard was filed about a session doing it by hand.**
+      Found 2026-09-02T22:0xZ by watching the file reset under a green suite.
+      *(It reset a second time minutes later; that one is NOT attributed here — a live Glass session
+      consuming the note is the mechanism working, and the note did reach `glass.html`. Only the
+      first is measured, and the code path below is what makes it certain rather than the timing.)*
+      **THE MECHANISM, READ NOT GUESSED:** `scripts/qa/glass_roundtrip_check.mjs:29` runs the real
+      generator as `glass.mjs --note "gate: glass_roundtrip_check"`, and `glass.mjs` folds
+      `GLASS-NOTE.md` into the page and **resets the file unconditionally** on every run. So the
+      note a watch wrote for Wyatt is consumed by a page nobody will publish, and the only copy of
+      it is a throwaway `glass.html` the next generation overwrites.
+      ⚠ **THIS IS `INBOX-20260902T0350Z` IN A NEW COSTUME.** That entry is about the Advisor running
+      `--note` merely to inspect the page and destroying a watch's finished screenshot results. The
+      lesson written there — *"a command that LOOKS like a read had a destructive side effect nobody
+      warned about at the call site"* — now applies to **the test suite**, which every session runs
+      several times an item and nobody thinks of as a write.
+      **THE FIX IS ALREADY HALF-BUILT AND WAS BUILT FOR THIS:** `glass.mjs --chart=<path>` is a
+      REHEARSAL render that touches nothing outside the file you name (`T-104`, same commit).
+      Point the round-trip gate at a fixture Chart and a fixture out-path and the hazard is gone
+      for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
+      destroy-then-repair is still a window, and this project has already lost a note inside one.
+      **Sizing: SMALL. No game code.**
 
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
