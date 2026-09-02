@@ -7,6 +7,90 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 107 — 2026-09-02, Wy-Blade — the durable fix for the 183 stray browsers, and the CEO he had to ask for
+
+*His words: **"nice work! I was wondering why the machine was running so hard. did you make the durable
+solution and pass it by CEO?"*** — the honest answer to both halves was NO until he asked. The
+session killed the browsers, filed a note, and stopped.
+
+### VERDICT: **DONE.** *"The durable fix is real, it works, and I broke it four different ways to prove it can fail."*
+
+**Its one sentence for Wyatt:** *"The reason 183 browsers cooked your laptop unnoticed is that the
+kill command in our own rulebook has never existed on your Windows machine — every tidy-up printed
+'all clear' without ever looking — and that is now fixed with a check that asks Windows directly,
+fails loudly when it finds something, and refuses to say 'clear' when it cannot see; the one snag
+left is that it will also cry wolf if you run the tests while a screenshot probe is open, which is a
+one-line fix."*
+
+### WHAT IT TESTED RATHER THAN READ
+
+**The root cause, confirmed by running it:** `pgrep` does not exist here (`which` → not found, exit
+127); `pkill` is a wrapper that ends by calling a real `pkill` which is **also absent**. *"CLAUDE.md
+rule 17's two printed commands have never been runnable on the Windows machine that runs the relay…
+**this was not one bad night, it was a rule that has been decorative on this machine for as long as
+the machine has been used.**"*
+
+**It drove all four branches itself and added two the session never claimed** — a `LONG-RUN` marker
+that exists but is EMPTY (correctly fails: an empty marker is not a trial) and an empty fixture
+(passes). It ran the LONG-RUN cases against a copy in a scratch folder so it never wrote into the
+repo.
+
+**It checked the risk the seam creates**, which was the right thing to attack: *"the `--fixture=`
+back door means every test could pass while the Windows code was broken."* It ran the gate's own
+PowerShell query shape against live processes and got real rows back. **The seam is legitimate — the
+branch behind it is not hollow.**
+
+**Wiring, which was CEO 105's exact finding:** it split the chain itself, counted 103 with
+`stray_probe_check` among them, and confirmed the gate *printed its PASS inside a real `npm test`
+run*. **Not a gate nothing runs.**
+
+### ON THE 11e REWRITE — THE THING IT WAS TOLD TO ATTACK HARDEST
+
+**LEGITIMATE. Not moving the goalposts**, and it checked three ways: the old assertion really is red
+on the live Chart; the Chartkeeper really is built and invoked from the Door; and **it proved the
+replacement can fail itself rather than taking the claim** — building the fixture and a stripped
+twin, watching 108 → second place. It also noticed the fixture is honestly built: the "nobody asked"
+row is listed FIRST, so a tie loses and only a real scoring boost passes.
+
+### ⚠ ITS ONE UNSUPPORTED CLAIM, AND IT IS MINE
+
+The commit said the old assertion expired because *"a player-facing bug then legitimately outranked
+it."* **The top row is actually `BUILD THE KIT-BEHIND DETECTOR` — a tooling item he asked for, not a
+player-facing bug.** The substance holds; the sentence is tidier than the record. *"In a session
+with seven caught unverified claims behind it, I am naming it rather than waving it through."*
+**Correct to name it. That is the eighth.**
+
+### ⚠ AND THE RECURRENCE IT FOUND — FIXED IN THIS PASS
+
+*"The new gate exempts exactly one tool, and there are fourteen."* Verified independently
+afterwards: **15 scripts in this repo launch a debug-port browser and exactly one writes the
+`LONG-RUN` marker.** So a session doing what rules 19 and 26 ORDER it to do — a posed board, two
+tabs — and then running `npm test` got **a red build for correct behaviour**. Its diagnosis of the
+class: *"the fault is not 'a check that cannot fail' — that one is genuinely fixed. It is **an
+exemption pinned to one name**."* The same fault as the 11e case, one commit earlier in the same
+diff.
+
+**FIXED BY A DEFINITION RATHER THAN A LONGER LIST: abandoned means ORPHANED.** A browser whose
+launcher is still alive is a probe somebody is using; one whose parent has exited is abandoned. The
+Windows query now reports each process's parent liveness and the verdict uses it. **A sixteenth
+probe added tomorrow is covered without anyone registering it.** Red-proofed three ways: orphans
+only → FAIL/1; live parents only → PASS/0 (this is the CEO's case); mixed → FAIL naming the orphan
+and saying the supervised one is not the problem. `npm test` exit 0, 103 gates.
+
+### THE DOOR CORRECTION — TRUE
+
+`close_item.mjs:177-184` really does run `chartkeeper.mjs --sweep --write` on close, and
+`glass.mjs:433-438` really does derive the done count from `CHART-LOG.md`. *"The old sentence was
+teaching the opposite of what the code does."*
+
+### CONTEXT DISCIPLINE
+
+*"I found no evidence either way — I cannot see its transcript and I will not invent an answer."*
+It noted the one clearly delegable job was red-proofing against fixtures, *"which is what turned
+'four branches, all red-proofed' from a claim into a fact."*
+
+---
+
 ## CEO Review 107 — 2026-09-02T14:2xZ, Wy-Blade — `T-001` banner items 2 and 3: the SWEEP, which works, and its safety net, which does not
 
 *Item: `T-001` banner items 2 and 3 — **SWEEP takes every completed row, immediately, with no stub**,
