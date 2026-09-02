@@ -56,6 +56,36 @@ console.log("game_url_check — one spelling of where the game is served, and it
    tree's guard was first written as a copy of the first tree's, and two checks kept in step by
    discipline are two checks that drift. This is also the seam the red-proof drives, so the thing
    proved able to fail is the thing that runs. */
+/* PROSE ABOUT A PATH IS NOT A USE OF IT, and this repo writes a great deal of prose about paths —
+   this file most of all. So a check that reads source lines has to know which of them are comments.
+   A per-line shape test ("does it start with // or *") was tried first and was not enough: the house
+   style writes a block comment's continuation lines with plain indentation, and one of those was
+   flagged within a minute of the check existing.
+
+   `//` is only honoured at the START of a line, deliberately. Honouring it mid-line would blank
+   everything after the `//` in `http://127.0.0.1:9434/classic/index.html` — turning a URL, the exact
+   thing this check hunts, into an invisible one. A trailing `// comment` after code is therefore
+   still scanned; that can only ever produce a LOUD false positive, never a silent miss, and this
+   check must fail toward noticing. */
+const codeOnly = (src) => {
+  let inBlock = false;
+  return src.split("\n").map((line) => {
+    let out = "", i = 0;
+    while (i < line.length) {
+      if (inBlock) {
+        const end = line.indexOf("*/", i);
+        if (end === -1) break;
+        inBlock = false; i = end + 2;
+      } else {
+        const open = line.indexOf("/*", i);
+        if (open === -1) { out += line.slice(i); break; }
+        out += line.slice(i, open); inBlock = true; i = open + 2;
+      }
+    }
+    return /^\s*\/\//.test(line) ? "" : out;
+  });
+};
+
 const whyNotAGame = (p) => {
   const idx = path.join(REPO, p, "index.html");
   if (!fs.existsSync(idx)) return `${path.relative(REPO, idx)} does not exist`;
@@ -83,10 +113,52 @@ treeCase("GAME_PATH", "the game the drivers drive");
 
    So CLASSIC_PATH joined GAME_PATH in chrome.mjs on 2026-09-02, and this case is the price of it:
    the second tree gets a single spelling AND a guard, exactly as the first one does. Without this,
-   moving or renaming `classic/` would leave every classic-facing probe navigating to a directory
+   moving or renaming `classic/` would leave a classic-facing probe navigating to a directory
    listing and reporting the frozen game as broken — the 2026-08-26 failure, replayed on the tree
    nobody watches. */
-treeCase("CLASSIC_PATH", "the frozen v1");
+const classicPath = treeCase("CLASSIC_PATH", "the frozen v1");
+
+/* 2b. AND NOBODY MAY HAND-TYPE THE FROZEN v1's ADDRESS EITHER — which case 3 cannot see.
+   CEO 99 caught this the same hour case 1b was written: the fix routed ONE probe through
+   CLASSIC_PATH and left `art_decodes_probe.mjs` and `board_decodes_probe.mjs` still typing
+   `/classic/index.html` by hand, invisible to every case here, while the new comment claimed the
+   guard covered "every classic-facing probe". **A promise in a comment is not a guard**, and this
+   project has now been caught writing one three verdicts running. This case is the guard.
+
+   DERIVED FROM THE CONSTANT, never from a typed list — if `/classic` ever moves, this moves with
+   it, which is the whole reason the constant exists.
+
+   WHAT IT DELIBERATELY DOES NOT COVER, stated so nobody reads more into it than is there: an
+   ABSOLUTE url path (`/classic/index.html`, `/classic/src/…`). Repo-relative FILE reads
+   (`classic/src/shared/index.js`) and a Node import of the frozen tree (`../classic/src/ui/flow.js`
+   in hail_ranking_test.js) are a different question — they resolve on disk, not over HTTP, and
+   folding them in here would condemn code that is correct.
+
+   ⚠ AND THE FIRST VERSION OF THIS CASE FAILED ITS OWN RED-PROOF, BOTH WAYS, WHICH IS WHY THE
+   MATCHING BELOW IS SHAPED THE WAY IT IS. It anchored on the opening quote, so it MISSED the real
+   offender — `` `${origin}/classic/index.html` `` begins with an interpolation, not with the path —
+   and it FLAGGED a comment that merely mentioned the path in markdown backticks. Caught only by
+   reverting a fixed line and watching what the gate said. A check that has not been seen to fail on
+   the actual thing it exists to catch is a theory. */
+{
+  const bad = [];
+  if (classicPath) {
+    const esc = classicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    /* `(?<![\w.])` is what keeps this to ABSOLUTE url paths: it refuses to match when the path is
+       preceded by a word character or a dot, so `../classic/src/ui/flow.js` — a Node import that
+       resolves on disk and is correct — is spared, while `/classic/src/…` in a page or an in-page
+       import is not. */
+    const re = new RegExp(`(?<![\\w.])${esc}(?:index\\.html|src/)`);
+    for (const f of FILES) {
+      if (PROSE_OK.has(f)) continue;
+      codeOnly(fs.readFileSync(f, "utf8")).forEach((line, i) => {
+        if (re.test(line)) bad.push(`${path.relative(REPO, f)}:${i + 1}`);
+      });
+    }
+  }
+  if (bad.length) fail(`${bad.length} script line(s) hand-type the frozen v1's address — use CLASSIC_PATH from lib/chrome.mjs: ${bad.slice(0, 5).join(", ")}`);
+  else pass("no script hand-types the frozen v1's address; it comes from CLASSIC_PATH");
+}
 
 // 2. Nobody else may hardcode a local game URL.
 {
@@ -171,9 +243,20 @@ treeCase("CLASSIC_PATH", "the frozen v1");
      whether the string is non-empty. */
   const catchesBogusTree = whyNotAGame("/no-such-tree/") !== null && whyNotAGame("scripts") !== null;
   const sparesRealTree   = whyNotAGame("/") === null;
-  if (catchesURL && catchesImport && sparesCDP && catchesRead && sparesProse && catchesBogusTree && sparesRealTree)
-    pass("red-proof: catches the URL, the import, the dead file read and a tree constant that holds no game; spares the CDP fetch, plain prose and the real tree");
-  else fail(`red-proof FAILED (url:${catchesURL} import:${catchesImport} sparesCDP:${sparesCDP} read:${catchesRead} sparesProse:${sparesProse} bogusTree:${catchesBogusTree} realTree:${sparesRealTree})`);
+  /* …and case 2b, through its own two moving parts. Both of these were WRONG in the first version
+     of that case and were found by reverting a fixed line and watching what the gate said, so they
+     are pinned here rather than trusted. */
+  const classicRe = classicPath && new RegExp(`(?<![\\w.])${classicPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:index\\.html|src/)`);
+  const navLine   = "    { name: \"/classic\", url: `${origin}/classic/index.html` },";
+  const relImport = 'import { rankHailTargets } from "../classic/src/ui/flow.js";';
+  const blockProse = codeOnly("/* the probe hand-typed\n   `/classic/src/ui/recipe.js`, which is forbidden\n   here */\n");
+  const catchesNav   = !!classicRe && classicRe.test(navLine);
+  const sparesRelImp = !!classicRe && !classicRe.test(relImport);
+  const sparesBlockProse = blockProse.every((l) => !classicRe || !classicRe.test(l));
+  if (catchesURL && catchesImport && sparesCDP && catchesRead && sparesProse && catchesBogusTree && sparesRealTree
+      && catchesNav && sparesRelImp && sparesBlockProse)
+    pass("red-proof: catches the URL, the import, the dead file read, a tree constant that holds no game and a hand-typed /classic navigation; spares the CDP fetch, plain prose, the real tree, a relative Node import and a block comment's continuation line");
+  else fail(`red-proof FAILED (url:${catchesURL} import:${catchesImport} sparesCDP:${sparesCDP} read:${catchesRead} sparesProse:${sparesProse} bogusTree:${catchesBogusTree} realTree:${sparesRealTree} nav:${catchesNav} relImport:${sparesRelImp} blockProse:${sparesBlockProse})`);
 }
 
 console.log(`\n${failures ? "FAIL" : "PASS"} — ${failures} failure(s)`);

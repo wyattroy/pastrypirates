@@ -40,6 +40,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openChrome } from "../lib/cdp.mjs";
 import { openWebKit } from "../lib/wk.mjs";
+import { GAME_PATH, CLASSIC_PATH } from "../lib/chrome.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const OUT = path.join(ROOT, ".planning", "posed");
@@ -50,8 +51,9 @@ let bad = 0;
 
 async function boardDrawsIn(t, origin, engine) {
   for (const game of [
-    { name: "the game", url: `${origin}/index.html` },
-    { name: "/classic", url: `${origin}/classic/index.html` },
+    /* Both addresses come from chrome.mjs — see `game_url_check.js` case 1b's header. */
+    { name: "the game", url: `${origin}${GAME_PATH}index.html` },
+    { name: "/classic", url: `${origin}${CLASSIC_PATH}index.html` },
   ]) {
     await t.nav(game.url);
     await sleep(1800);

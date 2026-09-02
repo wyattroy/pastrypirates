@@ -7,6 +7,130 @@
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
 
+## CEO Review 99 — 2026-09-02, Wy-Blade — the Watch that got `npm test` back to green
+
+*Item: **`T-059`** (`.planning/CHART.md:296-304`) — *"`npm test` IS RED AND HAS BEEN SINCE ~08:00Z…
+the fix is to build that URL the way the gate expects rather than to weaken the gate."* Commits
+`7e030cf1` (claim), `d9c2cad8` (close). Previous verdict handed over: CEO 98 (PARTIAL, T-058).*
+
+### VERDICT: **PARTIAL** — in my own words
+
+> **The engineering is the best I have reviewed on this project, and the item he asked for genuinely
+> happened.** `npm test` is green — I ran it myself, all 96 gates. The fix is a real fix and not an
+> evasion: I tried to break the new guard and could not. What keeps it off a YES is two things, and
+> the second is the bad one. It fixed ONE of three places the same fault lives and called running
+> the test suite a "sweep". And the commit titled *"closes T-059"* **deleted the note written for
+> Wyatt instead of publishing it** — the fourth item running where the work is right and nothing
+> reaches him, and the first where the message to him existed and was then thrown away.
+
+### What I verified for myself rather than taking from the report
+
+- **`npm test` really is 96 of 96.** I ran the whole chain. It reached `doc_command_check.js` —
+  the last `&&` segment in `package.json:16` — and printed `PASS — 0 failure(s)`. An `&&` chain
+  that reaches its final command has had every earlier command exit 0, so the Chart's warning about
+  a hidden second failure is answered by construction. `gate_count_check.js` → 96 declared, matches.
+  `game_url_check.js` alone → 6 PASS, 0 failures.
+- **Case 1b is a real guard, not decoration.** `game_url_check.js:64-69` (`whyNotAGame`) asks two
+  questions of a tree — does `index.html` exist, and does it contain `#choiceSolo` — and `:71-80`
+  (`treeCase`) reads the constant out of `chrome.mjs` by regex, so deleting `CLASSIC_PATH` also
+  fails the case. I confirmed `classic/index.html` exists and contains `choiceSolo` exactly once.
+  The red-proof at `:167-175` drives **the real function**, not a copy of it, on `/no-such-tree/`
+  and on `scripts` — a real directory with no `index.html` — and spares `/`. That is the honest
+  version of a red-proof.
+- **Rule 23 convergence is genuine.** Cases 1 and 1b are one call each into one `treeCase`, which is
+  one call into one `whyNotAGame`. There is no second copy to drift.
+- **The probe still works, and I settled it without running a browser.**
+  `pastry-webp-shipped-phone.png` changed in `d9c2cad8`; the probe writes it at
+  `pastry_shipped_art_probe.mjs:150`, which is downstream of the unconditional classic screenshot at
+  `:116`. So the probe ran through step 2 after the change. `pastry-webp-shipped-classic.png` did
+  **not** change and is byte-identical to its introduction in `bc97d40d`. Had the interpolated
+  `import('/classic/src/ui/recipe.js')` at `:103` arrived mangled, no modal would be open and that
+  picture would have changed completely. It didn't. **The classic modal opened after the fix.** The
+  escape hazard the watch named as its own falsifier cannot fire here anyway: `CLASSIC_PATH` is
+  `"/classic/"`, containing no backslash, quote or `$`.
+- **I opened the picture.** Chocolate Fudge Torte on the cream card, the cake's transparent cutout
+  clean against the paper, title, italic description, YIELD line, five ingredient rows, Download PDF
+  and Email to myself. It matches the commit's description of it exactly.
+- **No game code.** `git show --stat d9c2cad8` — three files under `scripts/`, three under
+  `.planning/`. Nothing a player runs.
+- **The `gear.mjs` FULL explanation is true.** I ran it: *"nothing uncommitted, so this reads what is
+  AHEAD OF origin/main"*, followed by the whole 465-commit asset list. It is reading the branch, not
+  this change. Correctly explained rather than quietly ignored.
+- **The prediction is real and falsifiable.** `.planning/wyclau/PREDICTION-20260902T0938Z-T059.md`
+  names three ways it could be wrong, including the one that mattered, and the commit reports back
+  against them.
+
+### The findings
+
+1. **HALF A FIX — two other probes hand-type the same path, and the gate cannot see either.**
+   `scripts/qa/art_decodes_probe.mjs:51` — `{ name: "/classic", page: "/classic/index.html", … }`,
+   navigated at `:55`. `scripts/qa/board_decodes_probe.mjs:54` — ``url: `${origin}/classic/index.html` ``,
+   navigated at `:56`. Neither reads `CLASSIC_PATH`. Case 2's regex (`game_url_check.js:96`) only
+   matches a literal `http://127.0.0.1:${…}/`, and case 3's (`:110`) only matches
+   `import("/tree/src/…")` — **both of these lines are invisible to both cases.** So the exact
+   failure the commit says the fix prevents is still live in two files, and they are not obscure:
+   they are the sibling probes from the same WebP item. One `grep` for `/classic` across `scripts/`
+   finds them in a second; I ran it. The commit's step 4 reads *"SWEEP: `npm test` runs to its final
+   gate and prints PASS"* — **that is a re-run of the gate, not a sweep.** The sweep asks *where
+   else does this fault live*, and it was not asked.
+2. **A COMMENT THAT IS FALSE TODAY, NOT MERELY ROT-PRONE — and it is finding 1 wearing a costume.**
+   `game_url_check.js:85-86` says: *"Without this, moving or renaming `classic/` would leave **every
+   classic-facing probe** navigating to a directory listing and reporting the frozen game as
+   broken."* Two classic-facing probes still would. `chrome.mjs:87-88` makes the same overclaim.
+   **CEO 94, 95 and 98 each caught a comment asserting more than the code delivers, and it
+   recurs** — in a new shape (a scope overclaim rather than a runtime claim) but the same fault: the
+   comment describes the world the author intended, not the one on disk. The honest sentence —
+   *"this guards the one probe that uses the constant; two others still hand-type it"* — costs
+   nothing and would have handed the next reader the missing sweep.
+3. **THE NOTE FOR WYATT WAS WRITTEN AND THEN DELETED. This is the serious one.** `7e030cf1` added a
+   15-line note to `.planning/wyclau/GLASS-NOTE.md`. `d9c2cad8` — *the commit titled "closes
+   T-059"* — removed all 15 lines and reset the file to its bare template. There is no commit
+   between the two, and no Glass pulse: the previous reset (`6d90cc7c`) says in its own subject that
+   it reset the file *after folding the note into a pulse*. This one folded it into nothing. I ran
+   `scripts/qa/glass_note_relay_check.mjs`; its own case reads *"bare template -> no message
+   rendered, file left as-is."* **The next pulse will render nothing.**
+   The deleted note was good — it opened *"The whole test suite has been failing since about 08:00
+   this morning"*, which is precisely what he would want to know, in words he can read. **That makes
+   the deletion worse, not better: the hard part was done and then destroyed.**
+   **CEO 96, 97 and 98 all named this same fault. It recurs a FOURTH time.** Unless the final close
+   commit restores that note verbatim, nothing from this item reaches him.
+4. **Minor — half of "the second tree gets what the first already had" is unused.** `classicURL()`
+   (`chrome.mjs:90`) is exported and called by nothing: eight hits across every `.js/.mjs/.cjs` in
+   the repo, not one of them a call site. Harmless; but it is a claim in a commit message the repo
+   does not fully support.
+5. **Flagged, NOT charged to this watch — a latent one found while reading.** `chrome.mjs:39-40`
+   writes the two Windows Chrome fallbacks as `"C:\Program Files\Google\Chrome\Application\chrome.exe"`
+   in a *double-quoted* JS string, so `\P \G \C \A` collapse and the literal evaluates to
+   `C:Program FilesGoogleChromeApplicationchrome.exe`. **Both fallbacks can never match.** The
+   registry branch above them is what actually finds Chrome here, so it is latent, not live.
+   Introduced by `730a3b7e`, not by this item.
+
+### Not faults, said out loud so nobody re-raises them
+
+- **The Chart row `T-059` is still `- [ ]` and the ledger has no close entry.** That is correct in
+  sequence, not an omission: `scripts/qa/close_item_check.mjs` proves the close tool *requires a CEO
+  review to exist first*, then ticks the row with a pointer and writes the ledger in one run. That
+  step comes after this verdict.
+- **No sea trial.** Right call, and stated rather than hidden. Three files under `scripts/`, nothing
+  a player runs; the probe and the gate are what verify this, and both were run.
+- **Refactoring case 1 was not asked for.** It is a two-line rule-23 convergence that made the
+  red-proof honest, and it displaced nothing.
+
+### Did it spend its own head on reading it could have delegated?
+
+**I found none.** Everything it read in the main thread was a file it was actively editing
+(`game_url_check.js`, `chrome.mjs`, `pastry_shipped_art_probe.mjs`), short gate output, or the
+rendered screenshot — and that last one is rule 19, which belongs in the main thread by design.
+Delegating it would have been the worse fault.
+
+### The sentence Wyatt should read first
+
+**Your test suite is honest again — all 96 checks pass, and I re-ran them myself — but the message
+this watch wrote to tell you so was deleted in the same commit that fixed it, and the same
+hand-typed address it fixed in one file is still sitting in two others.**
+
+---
+
 ## CEO Review 98 — 2026-09-02, Wy-Blade — the Watch that converted THE REST OF THE ART to WebP
 
 *Item: **`T-058`**, the remaining-PNG lever of `INBOX-20260901T1335Z` — his *"compressing the images

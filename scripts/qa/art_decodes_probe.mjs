@@ -26,6 +26,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { openChrome } from "../lib/cdp.mjs";
 import { openWebKit } from "../lib/wk.mjs";
+import { GAME_PATH, CLASSIC_PATH } from "../lib/chrome.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -46,9 +47,12 @@ async function urlsFor(sharedRel) {
   return [...out];
 }
 
+/* The PAGE each tree is served at comes from chrome.mjs, never from this file — see the header of
+   `game_url_check.js` case 1b. The `shared:` paths beside them are repo-relative FILE reads, a
+   different question, and deliberately not laundered through the same constants. */
 const TREES = [
-  { name: "the game", page: "/index.html", shared: "src/shared/index.js" },
-  { name: "/classic", page: "/classic/index.html", shared: "classic/src/shared/index.js" },
+  { name: "the game", page: `${GAME_PATH}index.html`, shared: "src/shared/index.js" },
+  { name: "/classic", page: `${CLASSIC_PATH}index.html`, shared: "classic/src/shared/index.js" },
 ];
 
 async function decodesIn(t, origin, engine) {
