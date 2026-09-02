@@ -560,3 +560,34 @@ status: OPEN — his call, deliberately untouched.
   reconstructible: **on a shared checkout, write and commit in the SAME step, never leave an edit
   uncommitted across a tool call.** A hook that blocks a commit leaves the edit exposed, so a
   blocked commit must be re-attempted or reverted at once, not left sitting.
+
+## INBOX-20260902T13xxZ — number the Chart, and show what is being worked on NOW
+> "1. make the chart numbered instead of bulleted so I can see what's going to be worked on next
+>  2. Show on the page what is being worked on NOW right at the top next to the status emoji"
+solution: not stated by him — both are pure `glass.mjs` rendering. **(1)** the Tasks card renders
+`<ul>`; make it `<ol>` so the RANK order he can now see is legible as an order. **(2)** the top of
+the page shows a dot and "last progress N min ago"; add the claimed item beside it, read from the
+newest `claims` line in `.planning/CTO-LEDGER.md` — derived, not typed.
+status: OPEN — FOR A WATCH. **Sizing: both are small and both are `glass.mjs` only.** No game code,
+no sea trial; COSMETIC gear plus a rendered screenshot.
+
+  **WHY THESE TWO ARE NOW ORDINARY WORK, WHERE THIS MORNING THEY WOULD NOT HAVE BEEN.** `glass.mjs`
+  was vendored and a local edit failed the build, so every Glass ask of his queued behind a kit
+  round-trip — that is why the Lesson took five asks and the Chartkeeper four. His ruling inverted
+  `vendor_check` (2026-09-02), so a watch may now edit `glass.mjs` in this repo. **These are the
+  first two Glass asks that can go through the normal path from the start.**
+
+  ⚠ **AND (2) HAS A REAL DEPENDENCY WORTH NAMING BEFORE ANYONE STARTS.** "What is being worked on
+  NOW" only exists if a watch has claimed something. The Door already requires a claim in
+  `CTO-LEDGER.md` before touching anything, so the fact is on disk — but between watches there is
+  no live claim, and the honest render then is *"nothing in hand"* rather than a stale last-known
+  item. **A status line that keeps showing the last thing after it finished is worse than one that
+  says nothing**, and it is exactly the class of fault that made the Glass lie all night.
+
+  **HIS PROCESS QUESTION, asked in the same breath and answered separately:** *"what is the right
+  place within our process to have that work be done? I want to use our process, not supercede it."*
+  The measured answer is in the Advisor's reply and in `SPEC-VISIBILITY-AND-INJECTION.md` §3: this
+  file IS the right place and the Door already gives it absolute priority over the Chart — but it
+  picks the **oldest** OPEN item, and there are **8**, the oldest from the previous day. So his
+  newest ask is his lowest-priority ask, which is the exact inversion that made him supersede the
+  process tonight rather than a failure of it.
