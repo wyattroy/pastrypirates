@@ -293,7 +293,7 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       `board_reexport_fidelity.mjs`-style measurement per family, not a bulk rewrite.
       ⚠ **AND ISLANDS/ICONS ARE ALPHA CUTOUTS**, unlike the board — check transparency survives
       before believing a byte count (W5-1 paid for exactly that: numbers right, picture wrong).
-- [ ] **`npm test` IS RED AND HAS BEEN SINCE ~08:00Z — one line, not this watch's, on a
+- [x] **`npm test` IS RED AND HAS BEEN SINCE ~08:00Z — one line, not this watch's, on a (closed 2026-09-02 · CEO 99 · no game diff — measured, no game-code change is right: the fault was a QA probe hand-typing where the frozen v1 is served, so the fix is CLASSIC_PATH in lib/chrome.mjs plus gate cases 1b and 2b -- npm test back to 96/96, commit cb86ff45)
       ⟨`T-059`⟩
       launch-critical path.** `game_url_check.js` rejects `scripts/qa/pastry_shipped_art_probe.mjs:98`,
       whose in-page `import('/classic/src/ui/recipe.js')` names a non-root tree. Committed in

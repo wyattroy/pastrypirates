@@ -4170,3 +4170,5 @@ watch; `0058Z` is the Advisor's own to build by his instruction; `0405Z`, `05xxZ
 `05xxZ-c` are his call or a design question he has not ruled on. **And a red suite makes every close
 behind it evidence gathered from a broken instrument** — `T-059` is one gate, on the launch-critical
 path, and it unblocks every watch behind it.
+
+- 2026-09-02T10:06:58Z · close_item: "IS RED AND HAS BEEN SINCE ~08:00Z" · CEO 99 · no game diff — measured, no game-code change is right: the fault was a QA probe hand-typing where the frozen v1 is served, so the fix is CLASSIC_PATH in lib/chrome.mjs plus gate cases 1b and 2b -- npm test back to 96/96, commit cb86ff45 · no stated solution

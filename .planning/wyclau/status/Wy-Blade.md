@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-02T09:29:46.470Z	self-publish check
+2026-09-02T10:05:07.433Z	self-publish check
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -13,7 +13,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-01T11:46:01Z	hold off: a commit landed 1 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T11:56:01Z	hold off: a commit landed 11 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T12:06:01Z	hold off: a commit landed 21 min ago (within 45) -- the Chart is moving, hold off
 2026-09-01T12:16:01Z	hold off: a commit landed 31 min ago (within 45) -- the Chart is moving, hold off
@@ -53,4 +52,5 @@ None recorded.
 2026-09-02T07:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T072802Z.out/.err)
 2026-09-02T08:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T080802Z.out/.err)
 2026-09-02T08:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T084802Z.out/.err)
+2026-09-02T09:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T093802Z.out/.err)
 ```
