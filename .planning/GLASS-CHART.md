@@ -28,6 +28,8 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 - [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
       ⟨`T-112`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"I'm not sure if this is closed or not -- investigate."*
+      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
       note to him, an hour after the same hazard was filed about a session doing it by hand.**
       Found 2026-09-02T22:0xZ by watching the file reset under a green suite.
       *(It reset a second time minutes later; that one is NOT attributed here — a live Glass session
@@ -49,75 +51,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
       destroy-then-repair is still a window, and this project has already lost a note inside one.
       **Sizing: SMALL. No game code.**
-- [ ] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
-      ⟨`T-093`⟩
-      **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
-      chart is actually functioning -- this is nonsense, what's happening right now."*
-      **THIS OVERRIDES HIS EARLIER PRIORITY RULING** (*"the game wins any contested hour until it
-      launches"*, same day). He has looked at the result and reversed it: **the Chart is the
-      instrument he steers by, and a broken instrument makes every other priority unreliable.**
-
-      **WHAT IS ACTUALLY WRONG, measured today rather than asserted:**
-      - **Three sessions write `CHART.md`** — the Advisor, the Glass-update session, every watch —
-        and **git's smallest unit is the FILE.** So `close_item.mjs` staging the Chart for its own
-        sweep carries another session's uncommitted lines into its commit. **Five times in one
-        session.** `git add <path>` is no safer than `git add -A`; path precision cannot help.
-      - **The cost is a corrupted record, not lost work.** Commit `59f8b7a7` — *"watch closes his
-        black window"* — carries `T-090`, `T-091` and a card repair written by a different session.
-        `git log -S` for *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and 105
-        both flagged one-commit-two-jobs; this is the third instance.**
-      - **And rows go stale faster than anyone closes them** — the reaper has flagged **10** all
-        afternoon, unchanged, because one watch closes one item every 30–60 minutes.
-
-      **THE FIX HE CHOSE, and it is rule 23's own answer:** *what makes these two agree?* — **nothing
-      does, so make there be one.** Every writer goes through `chartkeeper.mjs`: it reads, edits and
-      commits the Chart, and no session hand-edits `CHART.md` again.
-
-      **WHAT THAT MEANS CONCRETELY, in the order it should be built:**
-      1. **A write API on `chartkeeper.mjs`** — add a row, close a row, mark GATED, retire a blocked
-         question — each one *read → modify → commit* in a single act, so no window exists for
-         another session to carry the edit. `close_item.mjs` already does exactly this for closing;
-         **it is the worked example and the pattern to copy, not to reinvent.**
-      2. **The Advisor, the Glass session and the Door all call it** instead of editing the file.
-      3. **A gate that fails when `CHART.md` changes in a commit that did not go through it** —
-         derivable from the commit's own touched-files, and the only thing that stops hand-editing
-         creeping back. Without it this is a convention, and Principle 2 says conventions fail here.
-
-      ⚠ **THE ONE THING TO GET RIGHT, because it is where this design can go wrong:** a single writer
-      must not become a single point of failure. **If `chartkeeper.mjs` refuses or crashes, a session
-      must still be able to record his words** — the Inbox is not the Chart and must stay
-      hand-writable, so a harvest is never blocked by a tool being broken. **Losing his words is
-      worse than a messy Chart.**
-
-      **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
-      API is small; the migration is every caller; the gate is the part that makes it stick.
-      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"Done -- I wrote about adding google analytics and firebase"** — ruled on the Glass 2026-09-02 5:45:23 PM ET — freed this row, and the work is still to do
-- [ ] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
-      ⟨`T-084`⟩
-      built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
-      **His condition, in his own words:** *"DO NOT ALSO DELETE THE CHECK. Red-proof both ways: a
-      local edit must NOT fail; **a kit that has fallen behind must be reported**."* The first half
-      shipped and is gated (`vendor_lock_inverted_check.mjs`). **The second half does not exist** —
-      `vendor_check.mjs` currently prints, honestly, that it did NOT check whether claude-kit has
-      moved forward, on every path. That admission is a placeholder, not the answer.
-      **WHY IT WAS "IMPOSSIBLE" AND WHY IT IS NOT — read this before starting, it is the whole
-      story.** Three watches recorded a read of `C:\Users\wyatt\Projects\claude-kit` as REFUSED and
-      each concluded the kit was unreachable. **Wyatt was asked and ruled "yes" at
-      2026-09-02T12:39:56.363Z** (his RULED table, below) — and thirty-one minutes later a watch
-      still wrote *"THE HALF OF HIS SENTENCE THAT CANNOT BE BUILT HERE"* into a gate, because the
-      ruling had not been harvested. CEO 106 caught it. **A REFUSAL IS A PERMISSION SETTING, NOT A
-      FACT ABOUT THE WORLD.** The fence was `bell.ps1`'s launch line carrying no `--add-dir`; it now
-      carries one (commit `9c4edb48`, gated both ways in `bell_check.mjs`).
-      **SO THE FIRST WATCH THE BELL RINGS AFTER `9c4edb48` CAN READ THE KIT. Check that first** —
-      if the read is still refused, the ring predates the change or the kit is not beside the repo,
-      and the launcher's own log line now says `kit: readable` or `kit: not present`.
-      **Sizing: small-to-medium.** `install.sh check <repo> wyclau` already answers the question
-      from a tree holding both; the work is calling it (or hashing the kit's copies directly) and
-      reporting BEHIND as news, in the same four-kind vocabulary `vendor_check.mjs` now uses.
-      **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
-      not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
-      currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
-      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
 - [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
@@ -135,6 +68,8 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
 - [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
       ⟨`T-027`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"verify this to make sure it functions as needed."*
+      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
       WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
       tried it. Sizing: one line of config, or one command from an attended session.**
       Everything ahead of the deploy passed on this watch: `npm test` green through its last
@@ -185,71 +120,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       whose prose contains a dollar sign.** ⚠ The file is VENDORED from claude-kit and its header says
       edit there; his 2026-09-02 ruling inverted that for `glass.mjs` but has not been extended here,
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
-- [ ] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
-      ⟨`T-083`⟩
-      2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
-      **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
-      ordering, and the door should read what's at the top. the rank algorithm should prioritize my
-      requests over bugs that the Watch generated; and i need a way to say DO THIS NOW such that
-      RANK puts it at the top -- eg a checkbox underneath the ideas list that says 'Add to top of
-      list'"*
-      **WHY IT MATTERS MORE THAN IT LOOKS: there are TWO orderings today and rule 23 says that is the
-      defect.** The Door has its own rule (`SKILL.md:81` — INBOX oldest-first, then the Chart) and
-      RANK has another. *What makes these two agree?* **Nothing.** His design deletes one of them.
-      **AND THE MEASURED COST OF OLDEST-FIRST:** 8 open Inbox items, the oldest from the previous
-      day, so **anything he writes now is automatically his lowest-priority item.** That inversion —
-      not anyone's discipline — is what forced him to interrupt and repeat himself five times on
-      2026-09-02.
-      **1 · CONVERGE THE TWO DERIVATIONS FIRST — nothing else works until this lands.** Patch 4's own
-      caveat: RANK reorders *within the open-row slots the file already has* and **cannot reorder
-      across the two sections the Glass concatenates** (checklist rows, then unfated inbox entries).
-      *"The Door reads what is at the top"* is meaningless until there is ONE list to be at the top
-      of. This is `PENDING-KIT-PATCHES.md` patch 5 — `glass.mjs` imports
-      `scripts/wyclau/lib/chart_model.mjs` and the duplicated fate/concat block is deleted.
-      **Unblocked as of the `vendor_check` inversion.** Its gate
-      (`chart_model_agrees_with_glass_check.mjs`) becomes a tautology once one function cannot
-      disagree with itself and should be **RETIRED, not kept** — patch 5 says so itself.
-      **2 · RANK GAINS A SOURCE SIGNAL.** *"prioritize my requests over bugs that the Watch
-      generated."* **Derive it, never add a field:** his items carry his words (an Inbox entry with a
-      `>` quote block, or a Chart row quoting him); watch-filed rows carry a watch stamp. Rule 9.
-      **3 · THE DOOR DROPS ITS OWN RULE.** `SKILL.md:81`'s *"INBOX first — the oldest OPEN item"*
-      becomes *"work whatever RANK put first."* **Delete the old rule rather than adding beside it**
-      — leaving both is the two-orderings fault re-created.
-      **4 · THE "ADD TO TOP" CHECKBOX**, under the Ideas box on the Glass, and the harvest carries
-      the flag through so RANK sees it. **This is the half that removes HIM from the mechanism:**
-      every interrupt on 2026-09-02 required him to notice, interrupt and repeat himself.
-      ⚠ **ONE SLOT, NOT A QUEUE.** Ticking it on a second item must displace the first, deliberately.
-      **A gate fails the build on two.** An interrupt with a queue is just another backlog, which is
-      the fault this whole design removes.
-      ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
-      taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
-      exactly what happened all night.
-      ✅ **STEP 4 IS BUILT — 2026-09-02T21:4xZ, `T-104`, commit `c8a475a6`, CEO 121.** It arrived as
-      his own later refinement (a BUTTON beside Send, not a checkbox under the box), and all three
-      constraints above hold: one slot enforced by the write on both sides, two pins fail the build
-      naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
-      a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
-      the Door still reads oldest-first, so there are still two orderings.**
-- [ ] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
-      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
-      **Sizing: this is a rule and a hook, not a feature.**
-      ⟨`T-091`⟩
-      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
-      the same question to him through the question UI at roughly **12:22**, and closed the item on
-      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
-      He had to decide the same thing twice and then work out why.
-      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
-      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
-      the failure this system exists to stop."* **The Advisor read neither the page nor
-      `BLOCKED ON WYATT` before asking.**
-      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
-      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
-      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
-      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
-      a hook that silently swallows a real question is worse than the double-ask it prevents.
-      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
-      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
-      thirty seconds and it would have caught this one.
 - [ ] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed
       ⟨`T-123` · size: S⟩
       2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its
@@ -294,36 +164,10 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       offered. **Latent, not live**, which is why it is a row and not a stop-everything.
       **The fix is one definition** imported by both, in `scripts/wyclau/lib/chart_model.mjs`, where
       `idOfRow` already lives. **Sizing: SMALL. No game code.**
-- [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
-      His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
-      ⟨`T-094`⟩
-      **HIS WORDS:** *"what is being worked on RIGHT NOW? that needs to be visible just underneath
-      the emoji status."* Then: *"design a fix, get CEO's approval, then add it to the top of the
-      chart."* **Verdict: APPROVED WITH CHANGES — and the changes were not cosmetic.**
-      **BUILD IT THIS WAY — write the claim the way the CLOSE is already written.** `close_item.mjs`
-      appends a fixed machine-written line on close; the claim half is human prose. Make them
-      symmetrical: `publish_status.mjs` gains an **`## In hand`** block in
-      `.planning/wyclau/status/<machine>.md`, the same shape as the `## Long run in flight` block it
-      already writes — and `glass.mjs` already reads that file (`:614`). One more `split`.
-      **WHY NOT THE OBVIOUS VERSION (parse the ledger):** `.planning/CTO-LEDGER.md` has **15**
-      `### WATCH` headings and **exactly 4** match a parseable shape — the tidy ones are all from the
-      last two hours, and nothing prescribes the format. **A regex over that finds nothing this
-      morning and goes silent the first time a watch words its heading its own way.**
-      **FOUR STATES, and the fourth is the point:** in hand · nothing in hand · **⚠ claimed but
-      COLD** · unreadable. **A watch can claim and end without closing — that happened twice today,
-      deliberately** — so an open claim outliving its watch is normal, and must never read as
-      "being worked on right now". COLD is derived from a `staleAfterMinutes` the block declares
-      itself, exactly as the long-run block already does. **No new constant.**
-      **THE BOUND, HONESTLY:** a stale claim is NOT self-clearing within a Bell interval. Rings were
-      **40, 60, 50 and 30 minutes** apart today, and a watch can end having pushed nothing. **Up to
-      about an hour, unbounded when the Bell is not ringing** — which is why COLD is required.
-      ✅ **AND HIS ASK 2 IS ALREADY FIXED, BY ANOTHER ROUTE — do not build it here.** The browser
-      clock the first draft proposed **already exists** (`glass.mjs:900-930`, two clocks, since
-      2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
-      was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
-      publish the moment it lands work.
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch."*
+      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
       Deliberately NOT ticked: one joint is still a session remembering something.**
       Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
       button next to "Send to the Chart" button that tells RANK to put this task at the top"*
@@ -351,24 +195,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       setting can grant — the fourth time on this branch that a permission he gave and the mechanism
       meant to carry it turned out to be different things.** One paste at the laptop finishes it; the
       text is in `GLASS-UPDATE-SESSION.md`'s harvest step, ready to copy. **Sizing: SMALL.**
-- [ ] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
-      ⟨`T-008`⟩
-      by an independent read-only verification of the sweep, which was looking for lost rows and
-      found this instead. In the sweep commit `a70451f2`, the row two lines above this one had its
-      curly apostrophe **U+2019 turned into ASCII `'`** — *"the Glass’s Ideas box"* became *"the
-      Glass's Ideas box"* — while the row was being re-emitted with its `T-008` handle.
-      **WHY THIS IS NOT PEDANTRY.** CEO 91's rule is that a row's FIRST LINE IS HIS and the tool
-      never touches a character of it; there is a gate case asserting exactly that ("every row's
-      first line survived the write byte for byte") and it is GREEN, so it is not asserting what it
-      claims — the likeliest reading is that the fixtures contain no non-ASCII punctuation, which is
-      the `\Z`-in-the-fixture lesson from this same file family, again. This project has already
-      paid for one character of punctuation once: *"Attack's − is U+2212, not ASCII."*
-      **AND THE SHAPE IS WORSE THAN THE INSTANCE.** A write pass that normalises a character today
-      normalises a word tomorrow, in the one document that carries his words verbatim, with a green
-      gate over it. Nothing here is urgent — the row is open, the meaning is unchanged — but the
-      SILENCE is the defect.
-      Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
-      and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
 - [ ] **A GLASS TICK CAN STILL WALK PAST STEP 3, AND ONE DID — TWO MINUTES AFTER THE FIX SHIPPED.**
       ⟨`T-074`⟩
       CEO 100 dated it to the minute and this watch confirmed it: `.planning/wyclau/LAST-HARVEST`

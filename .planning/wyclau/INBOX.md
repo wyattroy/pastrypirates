@@ -1942,3 +1942,34 @@ status: OPEN — the standing instruction for this session and any that follows 
   that list in one sitting**, so the mandate is served by: work the top row, ship it, keep the
   handoff current so the next session resumes without re-deriving — and never stop *because the list
   is long*.
+
+## INBOX-20260902T2230Z — HIS TRIAGE OF THE 44, OFF THE BACKLOG PAGE: 8 DISMISSED, 3 NOTES
+
+**HIS WORDS, VERBATIM — the three notes he wrote, and they are one instruction three times:**
+
+> **`T-112`** — *"I'm not sure if this is closed or not -- investigate."*
+> **`T-027`** — *"verify this to make sure it functions as needed."*
+> **`T-104`** — *"i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch."*
+
+solution: his own. **DO NOT TRUST THE ROW — CHECK IT.** All three say the same thing about a row that claims to be built.
+
+status: OPEN — the three verifications are the first work on `GLASS-CHART.md`; the 8 dismissals are applied.
+
+  **DISMISSED BY HIM AND REMOVED FROM `GLASS-CHART.md`:** `T-090`, `T-106`, `T-093`, `T-084`,
+  `T-083`, `T-091`, `T-094`, `T-008`. **44 → 34 open** (T-107 having ticked itself earlier).
+  ⚠ **`T-083` IS AMONG THEM AND IT IS THE ONE WORTH NAMING** — *"ONE QUEUE, RANKED"*, his own design
+  for the Door's ordering. **It was implemented tonight before he dismissed it**, which is why the
+  dismissal is right; but if he meant *drop the idea* rather than *it is done*, the Door's new
+  ordering is the thing he would be dropping. **Left as dismissed, flagged here rather than
+  second-guessed.**
+
+  ⚑ **`T-104`'S NOTE IS A DEFINITION, NOT A QUESTION, AND IT IS THE MOST USEFUL LINE ON THAT PAGE.**
+  *"Work = puts the task at the TOP of the list and gives it to the very next watch."* **That is a
+  `done-when:` a gate can prove** — press the button, assert the row is rank 1, assert the next
+  watch's pick is that row — instead of a judgement somebody makes. **Every row he doubts should end
+  up with a sentence like it.**
+
+  **HOW HIS TRIAGE REACHED THE RECORD, because the mechanism is new:** he dismissed and commented on
+  a published page; the page rewrote its own document with his input embedded and republished
+  itself; this session read that document and applied it. **No relaying, no harvest step, no waiting
+  for a tick** — the same shape the Glass rebuild is aiming at, working today on a smaller surface.
