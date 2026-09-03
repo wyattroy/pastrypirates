@@ -6,8 +6,181 @@
 > three-verdict-old picture believing it is current — which is exactly what happened to me on this
 > review until a `grep` for `CEO 8[5-9]` found them. Rule 25's whole mechanism is "hand the next
 > reviewer the previous verdict"; an out-of-order file hands it the wrong one silently.
+>
+> ### ⚠ AND DUPLICATE NUMBERS DO THE SAME THING. THREE COLLISIONS IN ONE DAY.
+> **112 twice, 116 twice, 126 twice — all on 2026-09-02.** Every one happened the same way: a reviewer read the highest number at the START of a five-minute review and another session took it DURING. Each was correct when it looked. **A CEO told "read the previous verdict" then reads one of two and cannot tell which.** An out-of-order file hands over the wrong verdict; a duplicated number hands over a coin flip.
+> **CLAIM THE NUMBER IN THE SAME ACT AS THE WRITE, or re-check it immediately before filing — not when the review begins.** If you find a duplicate, renumber the LATER one and say so inside its own entry, as was done for 127.
 
-## CEO Review 126 — 2026-09-03T00:0xZ (8:0x PM ET), Wy-Blade — `T-105`'s blocked half: the two `.claude/` repairs. **PARTIAL**
+## CEO Review 128 — 2026-09-03T0x:xxZ, Wy-Blade — `SPEC-GLASS-REQUIREMENTS.md` → `DESIGN-GLASS-V2.md`, the scoping document and the bluesky redesign
+
+> ⚠ **THE REVIEWER WROTE THIS AS 127 AND IT IS FILED AS 128, BECAUSE THE COLLISION IT DIAGNOSED WAS
+> WORSE THAN IT COULD SEE.** It found two entries numbered **126** and prescribed the repair. Filing
+> it as 127 would have made a *third* duplicate — the later 126 was renumbered to 127 in the same
+> commit, per its own finding 8. **Third numbering collision on this branch today.** The reviewer
+> checked the highest number at filing time and was still wrong, which is the point: **the check has
+> to be atomic with the write, not adjacent to it — the same fault this whole document is about.**
+
+**VERDICT: DONE on all four halves of the ask. The design is sound enough to build from — and it is NOT the bluesky design he thinks he commissioned, because the answer had already been given to it, twice, before it started.**
+
+**The sentence Wyatt should read first:**
+
+> *You got the scoping document, you got a fresh session's design, and you got this audit — all three happened. But the "blank sheet" session arrived at Firebase-plus-a-GitHub-page because your own instruction an hour earlier said Firebase-plus-a-GitHub-page, and the brief quietly carried that through; and the one promise the whole design rests on — "the database itself refuses to let us overwrite your words" — is switched off by the very key file the design puts on each of your machines to let the fleet write at all.*
+
+---
+
+### 1. FOR EACH THING HE ASKED FOR
+
+| his words | verdict | evidence |
+|---|---|---|
+| **"write a scoping document for everything that the Glass needs to do"** | **DONE** | `.planning/SPEC-GLASS-REQUIREMENTS.md`, 212 lines. Three jobs, 28 numbered requirements across five groups, in his own nouns. |
+| **"add to the end all of your learnings about the limitations and failings"** | **DONE, and it is the best part of the document** | Part 3, `:113-182`. Ten failings, each grouped by cause, ending in one sentence that is the actual brief: *"Two things that must agree, kept in step by discipline rather than by construction, always drift."* |
+| **"feed that scoping document to a new session to have it bluesky design a new version"** | **DONE mechanically, FAILED in spirit** | `.planning/DESIGN-GLASS-V2.md`, 472 lines, by a fresh session. See finding 2 — it was not designing freely. |
+| **"get the CEO to audit it"** | **DONE** | This review. |
+| **"if you can use internal claude piping and artifacts, great. if not, suggest an alternative"** | **NOT VISIBLY ANSWERED** | Neither document addresses this clause. The subagent-to-file-to-subagent chain used here *is* the alternative, and it worked — but nobody said so to him. A clause of his ask went unanswered rather than answered-and-rejected. |
+
+---
+
+### 2. ⚑ THE FINDING THAT MATTERS MOST: THE BLANK SHEET WAS NOT BLANK
+
+He asked for a **bluesky** design. He got a design that reproduces, point for point, a decision he himself had already made and a CEO had already reviewed.
+
+- **His own instruction, 100 minutes earlier**, quoted at `.planning/SPEC-GLASS-ON-FIREBASE.md:9-11`: *"i want you to redesign the Glass to run off firebase instead — there is too much bullshit involved with all these limitations. We can host it on github pages in the staging repo."*
+- **CEO 126** then added the improvement: *"A separate obscure repo would dodge the `--delete` collision entirely. Worth putting in front of him as a fourth option."*
+- **`DESIGN-GLASS-V2.md` proposes:** Firebase Realtime Database (`:79`), a **separate** GitHub Pages repository (`:102`), Google sign-in keyed to his uid, marked recommended (`:316`).
+
+That is his instruction plus CEO 126's amendment, arrived at "freely."
+
+**The design never cites either.** `grep -n "GLASS-ON-FIREBASE\|CEO 126"` over the design returns nothing. It cites `CHART.md`'s *FATES DECIDED* line as the prior consideration of GitHub Pages — so it read the record, and read past the ten-minute-old document on exactly this subject.
+
+**How the steer got in, and Parts 1–2 are exonerated.** The Advisor's claim that the brief named no mechanism **holds for Parts 1 and 2** — verified, zero occurrences of *firebase, github, database, store, http, json, artifact* across `:25-110`. **It fails in Parts 3 and 4:**
+
+- `:117` — the heading of the diagnosis is **"THE ROOT: IT IS A DOCUMENT, NOT A STORE."** The design's one-sentence summary at `:6-9` is *"Stop publishing a page and start sharing a notebook… the same live store."* **The brief's section heading is the design's thesis.**
+- `:194` — *"The game's live Firebase database exists and is already used."*
+- `:196` — *"Anything hosted in the staging repo is wiped by the next game deploy."* A constraint about a hosting option nobody had proposed tells the reader which hosting option is in play.
+
+**This does not make the design wrong.** It makes the *audit he commissioned* weaker than he thinks: he asked for a second opinion and got a second rendering. **If he wants the blank-sheet answer he paid for, the brief has to lose Part 3's heading and Part 4's third and fifth bullets, and the session has to be told the prior spec exists so it can argue with it.**
+
+---
+
+### 3. THE CENTRAL CLAIM — "THE DATABASE ITSELF REFUSES TO LET US OVERWRITE HIS WORDS"
+
+`DESIGN-GLASS-V2.md:173-180`. **Half real, and the half that is missing is the half about us.**
+
+**REAL:** `".write": "!data.exists()"` is genuine Firebase Realtime Database rule syntax and does exactly what the design says — the server refuses a second write to an occupied address. Not hand-waving. And because `/entries` itself carries no `.write`, a wholesale delete of the parent is denied by default. That part is correctly built.
+
+**⛔ BUT A SERVICE-ACCOUNT KEY BYPASSES SECURITY RULES ENTIRELY — AND THE DESIGN PUTS ONE ON EVERY MACHINE.**
+
+`:326` — *"put a key file on each machine (outside the repo, gitignored)"*, and `:385` names service-account keys as falsifier 2. **Firebase's Admin credentials are privileged: a token minted from a service-account key reads and writes past every rule in the file, with no flag to trip.** So the promise at `:178-180` — *"There is no `force` flag, no override, no path where a bad script or a confused session destroys what he typed"* — is **false for the fleet**, which is the only actor the promise was ever about. He is not the one who might overwrite his words.
+
+The fix is one line of design, not a redesign: the fleet must authenticate as a **scoped, non-admin identity** (a custom token carrying a `fleet` uid, or `databaseAuthVariableOverride`), never as raw admin. **The design does not distinguish these, and the distinction is the entire safety claim.**
+
+**A second, smaller mechanical gap at the same lines:** in RTDB, **a `.write` granted higher up cannot be revoked lower down.** The write-once rule at `entries/$id` holds only while no ancestor (`/`, `/glass`) grants write. The snippet shows two lines and no ancestors. Worth one sentence in the rules file so nobody widens the root in six months and silently removes the guarantee.
+
+---
+
+### 4. ITS OWN FALSIFIER — RIGHT QUESTION, HONESTLY MARKED UNMEASURED, AND THEN QUIETLY ANSWERED ANYWAY
+
+**It is the right falsifier and it is genuinely unmeasured.** `:380-383` says so in the strongest available terms: *"I measured this from an interactive session on the Blade — 221 ms, fine — which is **not** the same thing as measuring it from a `-p` watch. Measure the one that matters."* **That is exactly the discipline this project has been failing at, and it is done properly.**
+
+**⚠ Except forty lines earlier the document takes it back.** `:89-90`: *"The project already depends on Firebase and already permits `*.firebaseio.com` in its network policy (`docs/GIT-AND-DEPLOY.md:348`). This adds no new vendor and no new hole to punch."*
+
+**I opened the citation. It says the opposite.** `docs/GIT-AND-DEPLOY.md:345-349`: *"**Under the default allow-list all of that fails quietly** … Either set the session's network to **Full**, or allow at least: `*.firebaseio.com` …"* — that is an **instruction to widen a policy that blocks it by default**, not evidence that it is already permitted. The design turned a warning into a reassurance and used it to say there is "no new hole to punch," on the one question its own Part 7 calls fatal.
+
+**So the honest gap and the sentence that fills it sit in the same document.** Strike `:89-90`. Run falsifier 1 before anything else, exactly as `:378` says.
+
+---
+
+### 5. THE PART 5 QUESTIONS — EIGHT ASKED, EIGHT ADDRESSED, ONE HALF-DODGED
+
+`:216-264` answers all eight directly rather than by implication. Judging them:
+
+| Q | verdict |
+|---|---|
+| 1 · one event | **Answered.** Live subscription; no page-copy exists. |
+| 2 · answer = retirement | **Answered, and it is the best answer in the document.** Open-ness is *defined* as the absence of `/answers/<id>`. Not "no window" — **one fact**. This alone retires Part 3's failing #4, six instances in twelve hours. |
+| 3 · his words safe | **Answered, then undermined by finding 3.** |
+| 4 · unattended session | **Answered, contingent on falsifier 1** — correctly flagged. |
+| 5 · question identity | **⚠ HALF-DODGED.** `:244-246` says a minted id *"needs neither the discipline nor the migration"* — but `:246` itself admits **every past ruling is keyed by the old 40-character slug**, and Part 5's import at `:348` carries *"titles and all"*, not rulings. **His answered questions are keyed by a scheme the new store does not mint. The design says the migration disappears; it does not, it moves.** Name what happens to the existing rulings. |
+| 6 · what decides next | **Answered, and it is the design's sharpest fix.** `/pin` then `/order`; the page renders that list and `next.mjs` returns its first row — *"the same list, read twice."* Verified the fault is real: `chartkeeper.mjs:806` computes a rank, and `.claude/skills/door/SKILL.md:80-81` — *"the top unblocked Chart item"* — is prose telling an agent to decide for itself. Nothing joins them. That is why ranks 1, 2, 3 and 5 sat unclaimed. |
+| 7 · saying it does not know | **Answered.** Three signals for three different unknowns, and `:260` — *"No field on this page is ever computed by a human and typed in"* — is the right law. |
+| 8 · what he gives up | **Answered, and asked rather than told.** Part 6 is seven items, unflinching. |
+
+---
+
+### 6. IS "HE STILL HAS TO REMEMBER TO LOOK AT IT" THE RIGHT THING TO LEAVE OUT?
+
+**It is the right thing to defer and the wrong place to file it.**
+
+The design's own words, `:364-369`: *"This is the biggest gap in the requirements and in my design… the surface being perfect does not make him look at it."* Its reason for not fixing it — a chat bot would immediately be a second thing to keep in step — **is correct and is the charter's own principle**, so this is judgement, not avoidance.
+
+**Its claim that the requirements never ask for a nudge is true** — I checked Part 2 end to end; there is no notification requirement in `:45-109`. **So this is a gap in the brief first, and the design is the thing that found it.** Credit where due.
+
+**But it is filed as give-up number six, on a page of things he loses.** `:378` says Part 7 is ordered *"cheapest and most fatal first"* — **and the most fatal item is not in Part 7 at all.** If he does not open the page, every other sentence in this document is decoration: the answer he never sees is the answer that did not reach him, which is Part 3's failing #10 (*"He became the transport"*) in one line.
+
+**My call: it belongs as falsifier 0, above the Firebase test.** Not because a bot should be built — because *"how does this reach him without him going to it"* is a design question that changes the data model if it is asked late and does not if it is asked first.
+
+---
+
+### 7. WHAT ELSE IT GETS WRONG OR LEAVES DANGEROUSLY VAGUE
+
+**(a) ⚑ THE ROLLOUT PLAN COMMITS THE EXACT FAULT THE DOCUMENT EXISTS TO REMOVE, AND THE DOCUMENT SAYS SO IN THE NEXT SENTENCE.**
+`:443` — *"Two records running side by side for a week would be this document's own fault, committed at the moment of avoiding it."* Correct. **And `:432-433` schedules it:** *"he still reads the task list on the old Glass, which keeps running beside it, unchanged."* Builds one, two and three run his words in the Store while the old Glass is still generated from `CHART.md`; only build four (`:441-442`) repoints `glass.mjs` to render from the Store. **That is three half-days of two records.** The constraint at `SPEC-GLASS-REQUIREMENTS.md:189` genuinely does require running the new one beside the old — so the tension is real, not sloppy — but the design declares itself innocent of a thing its own schedule does. **Resolve it by making build four's repoint part of build one:** if the old page renders *from* the Store from day one, there is one record throughout and the constraint is still met.
+
+**(b) THE HEADLINE NUMBER IS NOT A COUNT.** `:418` — *"Counted with `wc -l`, not estimated: 3,745 lines out."* I ran `wc -l` on every file the table at `:401-410` names. **The sum is 3,951.** It under-claims by 206, so the direction is in his favour — but the sentence asserts a measurement that does not reproduce, on the branch whose standing fault is documents reading tidier than the record. And the inventory is incomplete in the other direction too: it names **5 of the 17** `glass_*` gates in `scripts/qa/`. **Either count it or say "roughly four thousand."**
+
+**(c) THE PAGE IS PRICED AT A THIRD OF WHAT IT WILL BE.** `:418` budgets *"one page (~250)"* for a page that does Google sign-in, a live subscription, five blocks, drag-reorder, and a cached last-view shown marked-stale. **The current `glass.html` is 549 lines and does none of the networking.** The 7× deletion ratio is really nearer 3–4×. **Still overwhelmingly worth doing** — this is a sizing correction, not an objection.
+
+**(d) ⚠ IT DROPS CEO 126'S LOAD-BEARING RISK.** CEO 126 verified there is **no `database.rules.json`, no `firebase.json`, no `.firebaserc` anywhere in this repo — the game's Firebase rules exist only in the console**, and called bringing them into the repo *"part of this job, not a follow-up."* `DESIGN-GLASS-V2.md` mentions *"one rules file (~20)"* at `:418` and *"paste one config block into the page"* at `:325` — **and never says where the rules file lives, that it must be committed, or that a gate must test it.** Since the page is public and hands every stranger the database URL in its own source, **the rules file is the only thing standing between his working record and the world.** An uncommitted, ungated rules file is precisely the "two things kept in step by discipline" this design was written to abolish.
+
+**(e) IT SOFTENS A FINDING THE PREVIOUS REVIEW MADE SHARPLY.** `:96-98` — *"Measured while writing: an unauthenticated read of an arbitrary path on the game's database is refused — `401 Permission denied` — so the world-readable finding is path-specific, not project-wide."* **`/rooms.json?shallow=true` IS an arbitrary path and it is not refused** — CEO 126 got the full live room list with no credentials, and the Advisor reproduced it. The conclusion ("path-specific") is right; the sentence that carries it is not, and it reads as reassurance about a live security hole.
+
+**(f) IT DELETES THE ONLY GATE ENFORCING HIS OWN RULED WORDING, WHILE PROPOSING TO CHANGE THAT WORDING.** `:410` retires `glass_calm_check.mjs`. That gate's header holds his verbatim *"the glass looks chaotic again"* and the three fixes, of which **item 2 — `"🟢 Progress: 6 min ago. 🟢 Updated: 4 min ago."` — was APPROVED by CEO 112 as written.** `DESIGN-GLASS-V2.md:286-291` proposes replacing that second line with `Live` / `Not connected`. **The argument is good** — with a live subscription "Updated" is always "now" — **and the design correctly flags it as his to reject** (`:291`). But retiring the gate and revising the ruling in one document means **nothing will notice if the new page quietly loses A1 and A3 as well.** Keep a gate on the status line, whatever the page is made of.
+
+**(g) SMALL: A MIS-PATHED CITATION.** `:245` cites `chart_model.mjs:173-185`. The file is `scripts/wyclau/lib/chart_model.mjs`; the lines are correct and the claim about the 40-character slug fallback is exactly right (`:182`).
+
+**AND WHAT IT GETS RIGHT, VERIFIED RATHER THAN TAKEN ON TRUST — because this is the load-bearing diagnosis and it holds completely:**
+
+Every citation behind *"the scaffolding exists because a `claude -p` watch has no Artifact tool"* checks out. `glass.mjs:84` is the hardcoded artifact URL. `:1180-1194` is `buildDoc()` re-inserting an escaped copy of the whole document into itself; `:1367` is `cap.publish(buildDoc(state))` — **the page really does store his words by republishing its own source.** `:1196-1209` is the still-un-root-caused corruption that killed reload-after-save. `:1420-1439` is not code at all — it is **twenty `console.log` lines printing a runbook telling a human to call the Artifact tool by hand.** And `grep` for any HTTP client across `scripts/wyclau/` returns **nothing**. **There is no machine path out of that walled garden, and the design's core claim — that nine failings are one mechanical fact in nine costumes — is the correct reading of this code.**
+
+---
+
+### 8. DOES THE PREVIOUS FAULT RECUR? — YES. SEVENTH IN A ROW, AND NOW IT HAS A SECOND FORM.
+
+CEO 125 named it *"tidier than the record — fifth in a row."* CEO 126 found it once more, mildly.
+
+**It recurs three times here, in the same clothes:**
+1. `:89-90` — a doc saying *"the default allow-list blocks this"* cited as *"already permits… no new hole to punch."* **The worst of the three, because it sits on the fatal question.**
+2. `:418` — *"Counted with `wc -l`, not estimated"* for a number that does not reproduce.
+3. `:96-98` — *"an arbitrary path is refused"* when the arbitrary path in the record is wide open.
+
+**And a NEW form of the same reflex: a document that is CLEANER than its own history.** The design presents Firebase and a separate Pages repo as conclusions it reached, in a document that never mentions that Wyatt instructed Firebase, that a spec already scoped it, or that a CEO already recommended the separate repo. **Nothing in it is false. What is missing is the provenance** — and provenance is the thing that would have told him his second opinion was a first opinion in a fresh context.
+
+**⚠ AND THE RECURRENCE CHECK ITSELF IS NOW BROKEN, WHICH IS RULE 25'S OWN MECHANISM.** Two entries both numbered **126**. The file's banner warns that out-of-order entries hand the next reviewer the wrong verdict silently; **duplicate numbers do the same thing and the banner does not mention them.** A CEO told "read 126" reads one of two. **Renumber and extend the banner — before the next review, not eventually.**
+
+---
+
+### 9. REQUIRED BEFORE A WATCH BUILDS ANYTHING
+
+1. **Run falsifier 1** (`:380`) — a Bell-started `claude -p` watch making an outbound HTTPS call to `*.firebaseio.com`, on the Blade and the Mac. **Strike `:89-90` first**, so nobody reads it as already answered.
+2. **Split the fleet's identity from admin.** State in the design that the fleet authenticates as a scoped non-admin uid, never a raw service-account key — or the write-once promise at `:178-180` does not hold against us.
+3. **Give the rules file a home in this repo and a gate in `npm test`** — CEO 126's finding, dropped.
+4. **Say what happens to rulings keyed by the old 40-character slug** (`:246` vs `:348`).
+5. **Move the repoint of `glass.mjs` from build four to build one**, so there is never more than one record (`:432-433` vs `:443`).
+6. **Promote "he still has to remember to look at it" to falsifier 0**, and answer it before the data model is fixed.
+7. **Re-count or re-word the 3,745** (`:418`), and price the page nearer 600 than 250.
+8. **Renumber the duplicate CEO 126** and extend the file's banner to cover collisions as well as ordering.
+
+**None of these is a reason to stop.** The diagnosis is correct, the answer to *"what makes his answer and the question's disappearance one act"* is genuinely right, the ordering fix closes a fault measured over ninety minutes, and the thing deletes several thousand lines of scaffolding that exists only to work around one missing tool. **Build it. But run the fifteen-minute test first, and stop telling him the network hole is already punched.**
+
+### WHAT THE ADVISOR DID ABOUT IT, SAME TURN
+
+- **Findings 2, 4 and 8 reproduced independently before being relayed.** Parts 1–2 of the brief are clean (0 hits for *firebase / github / database / store / http / json / artifact*) — **and Part 3's heading really is `THE ROOT: IT IS A DOCUMENT, NOT A STORE`, which is the design's own thesis. The steer is mine and the exoneration of Parts 1–2 does not cover it.** `docs/GIT-AND-DEPLOY.md:345-349` says *"Under the default allow-list all of that fails quietly… Either set the session's network to Full, or allow at least `*.firebaseio.com`"* — **an instruction to widen, cited by the design as a permission already held.** Two `## CEO Review 126` headings confirmed at `:10` and `:66`.
+- **Finding 8 acted on:** the later 126 (8:0x PM, `T-105`'s blocked half) renumbered to **127**; this audit filed as **128**; the file's banner extended to warn about collisions, not only ordering.
+- **The unanswered clause, corrected honestly:** the review is right that *neither document* answers *"if you can use internal claude piping and artifacts."* **It was answered to him directly and in `INBOX-20260902T2005Z`** — yes, internally, no alternative needed — **but not in the artefacts a future reader will open, which is the half that counts.**
+
+## CEO Review 127 — 2026-09-03T00:0xZ (8:0x PM ET), Wy-Blade — `T-105`'s blocked half
+
+> ⚠ **RENUMBERED 126 → 127 BY THE ADVISOR, 2026-09-03. IT WAS FILED AS 126 AND SO WAS THE GLASS-ON-FIREBASE SCOPE BELOW** — both reviewers checked the highest number before choosing and both were correct when they looked, ten minutes apart. **This one is the later of the two, so it moved.** Third numbering collision on this branch in one day. **The check has to be atomic with the write, not adjacent to it.** Found by CEO 128.: the two `.claude/` repairs. **PARTIAL**
 
 **Number checked at FILING time.** Highest on file was 125; this is 126.
 
