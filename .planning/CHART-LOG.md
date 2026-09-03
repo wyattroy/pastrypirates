@@ -2315,3 +2315,74 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
      last checkbox matches that row. `T-137` has been the last open row each time. Full account and
      the sized fix are on the restored row in `CHART.md`. -->
 
+
+## T-021 — 2026-09-03 — The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both (closed 2026-09-03 · CEO 153 · no game diff — his 99% was right: Bell registered and firing (69 launches, not the 139 I miscounted), both ring directions proven by the task's own Last Run inside a gap, and O2 answered in full — interactive yes, headless watch no) ⚑ HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM: "I"m 99% sure the Blade Hour is complete!" HE SAID 99%, NOT 100% — SO IT IS CHECKED, NOT CLOSED. His recollection is evidence; it is not a measurement, and he was careful to say so himself. directions, the O2 publish test — runbook scripts/wyclau/RAZER-SETUP.md The ring-test and O2-publish thirds are not checkable this way; still needs Wyatt or a session that can run them. SUPERSEDED 2026-09-03T07:4xZ — struck, not appended to. Five verdicts running have found this fault: "correcting a row by appending to it does not correct it." ✅ ALL THREE MEASURED 2026-09-03T07:2xZ. HE SAID 99%; THE EVIDENCE SAYS COMPLETE. The two thirds called "not checkable this way" were checkable — by a different instrument, not by a different person. "Not checkable this way" is a statement about the instrument that was reached for. 1. THE BELL IS REGISTERED AND FIRING — 69 LAUNCHES, NOT 139. ⚠ I doubled my own headline number and CEO 153 caught it. ls watch- = 139 = 70 .out + 69 .err — bell.ps1 writes BOTH from one Start-Process, so the glob counts every launch twice, and the 70th .out is watch-commitmsg.out, which the Bell never wrote. Real launches: 69, every .err empty, so 69 launches and zero launch failures. THE RECONCILIATION IS THE TELL I DIDN'T LOOK FOR: 72 rings − 3 pre-naming entries = 69. The two numbers agree exactly, and a number that agrees with nothing should have been the first thing I checked about it. Registration re-measured: Enabled, Ready, Repeat: Every 10 Minutes, Last Result 0, and the Task To Run path is fully populated — so it is NOT in the silent-failure mode RAZER-SETUP.md documents (an unset $repo reporting Ready and dying every tick). ⚠ AND MY PROOF WAS THE WEAKER ONE EVEN AFTER CORRECTING IT. A log is written BY the script, so a log proves only that the script ran. What proves a launch is the .out/.err pair with a transcript in it — that is the OS's evidence, not the script's own account of itself. 2. THE RING TEST, BOTH DIRECTIONS, FROM THE BELL'S OWN LOG. Rings when nothing is running: 72 entries, "ring: no watch on deck — rang the next one". Stays silent while a watch is alive: ⚠ I argued this from the GAPS, and that is an inference wearing a measurement's clothes — CEO 153's phrase, and it is right. Silence has TWO causes and the log cannot separate them: the Bell writes nothing when a watch is on deck (bell.ps1:63-66, deliberately unlogged) and it writes nothing if the task never ran. RAZER-SETUP.md's own warning box describes exactly that second world — a task reporting Ready, firing hourly, every run dying before reaching the script, the log staying empty and looking identical to a Bell that never ticked. My evidence read the same in both worlds. ✅ PROVEN PROPERLY INSTEAD, by three instruments that are not the log: bell.ps1:63-66 is if ($watchProcs.Count -gt 0) { exit 0 } and none of its five Add-Content lines is reachable on that path · the real script run against a scratch repo wrote a line with no process matching and nothing at all with one · and the decisive one — schtasks Last Run Time 07:38:01Z, Last Result 0, INSIDE the gap after the 07:08 ring, with a claude.exe -p "/door" watch alive in the process table at 07:40Z. Task fired. Watch alive. Log did not grow. (The 55 hold off: lines are all dated 2026-09-01 and bell.ps1 cannot emit that string — naming the count matters, because 55 lines is a lot of log to misread as today's behaviour.) (The hold off: a commit landed N min ago lines in the log are from 2026-09-01 and are NOT this: that 45-minute commit rule belonged to the pre-relay design and is gone from bell.ps1. Reading them as today's second direction would be reading a retired mechanism as live.) 3. THE O2 QUESTION — ANSWERED, AND IT HAS BEEN OPEN SINCE 2026-09-01. RAZER-SETUP.md:85 asks: "can a Blade session publish the Glass at all? In an interactive claude session on the Blade, ask it to republish the Glass and to state plainly whether the Artifact tool exists in its tool list." This is that session, and the answer is YES: the Artifact tool is in its tool list, demonstrated by repeated successful action: "read" calls against the live artifact tonight, not by reading a config. The Glass architecture hedges on this question; the hedge can come down for the interactive case. ⚠ THE BOUNDARY I NAMED — "the write path unexercised by choice" — WAS TRUE WHEN WRITTEN AND WAS FALSE TWENTY MINUTES LATER. Commit 05990884, 07:38:04Z: "glass: republish — rulings-box removal now live." A Blade session published, and CEO 153 refused to take the commit message for it (a message is a comment, not a measurement) — it read the live page and found embedded stamps to 07:37:34Z, thirty seconds before the commit. ✅ SO O2 IS ANSWERED IN FULL, AND THE ANSWER IS TWO ANSWERS — which is the operationally useful part and is recorded verbatim as RAZER-SETUP.md:85-89 demands: INTERACTIVE SESSION: YES. Tool present, reads succeed, and a publish reached the live page. HEADLESS -p WATCH — the kind the Bell rings: NO. ~17 watch transcripts say so independently, including one that checked twice "after another watch claimed we'd all been wrong about that", and one flatly contradicting the record: commit 59ad8b69 claims "MEASURED on both machines: -p HAS the Artifact tool" — not true of those sessions. THE HEDGE STAYS FOR WATCHES AND COMES DOWN FOR INTERACTIVE SESSIONS. My answer covered only the interactive half, and O2 exists for the watch half — so answering it left the question where it was.
+
+- [x] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both (closed 2026-09-03 · CEO 153 · no game diff — his 99% was right: Bell registered and firing (69 launches, not the 139 I miscounted), both ring directions proven by the task's own Last Run inside a gap, and O2 answered in full — interactive yes, headless watch no)
+      ⟨`T-021`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM:** *"I"m 99% sure the Blade Hour is complete!"*
+      **HE SAID 99%, NOT 100% — SO IT IS CHECKED, NOT CLOSED.** His recollection is evidence; it is not a measurement, and he was careful to say so himself.
+  directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
+  ~~**The ring-test and O2-publish thirds are not checkable this way; still needs Wyatt or a session
+  that can run them.**~~ **SUPERSEDED 2026-09-03T07:4xZ — struck, not appended to.** Five verdicts
+  running have found this fault: *"correcting a row by appending to it does not correct it."*
+      ✅ **ALL THREE MEASURED 2026-09-03T07:2xZ. HE SAID 99%; THE EVIDENCE SAYS COMPLETE.** The two
+      thirds called "not checkable this way" were checkable — by a different instrument, not by a
+      different person. *"Not checkable this way"* is a statement about the instrument that was
+      reached for.
+      **1. THE BELL IS REGISTERED AND FIRING — 69 LAUNCHES, NOT 139.** ⚠ **I doubled my own
+      headline number and CEO 153 caught it.** `ls watch-*` = 139 = **70 `.out` + 69 `.err`** —
+      `bell.ps1` writes BOTH from one `Start-Process`, so the glob counts every launch twice, and
+      the 70th `.out` is `watch-commitmsg.out`, which the Bell never wrote. **Real launches: 69**,
+      every `.err` empty, so 69 launches and zero launch failures.
+      **THE RECONCILIATION IS THE TELL I DIDN'T LOOK FOR: 72 rings − 3 pre-naming entries = 69.**
+      The two numbers agree exactly, and a number that agrees with nothing should have been the
+      first thing I checked about it.
+      Registration re-measured: **Enabled, Ready, `Repeat: Every 10 Minutes`, Last Result 0**, and
+      the `Task To Run` path is fully populated — so it is NOT in the silent-failure mode
+      `RAZER-SETUP.md` documents (an unset `$repo` reporting Ready and dying every tick).
+      ⚠ **AND MY PROOF WAS THE WEAKER ONE EVEN AFTER CORRECTING IT.** A log is written BY the script,
+      so a log proves only that the script ran. **What proves a launch is the `.out`/`.err` pair with
+      a transcript in it — that is the OS's evidence, not the script's own account of itself.**
+      **2. THE RING TEST, BOTH DIRECTIONS, FROM THE BELL'S OWN LOG.**
+      *Rings when nothing is running:* 72 entries, *"ring: no watch on deck — rang the next one"*.
+      *Stays silent while a watch is alive:* ⚠ **I argued this from the GAPS, and that is an
+      inference wearing a measurement's clothes — CEO 153's phrase, and it is right.** Silence has
+      TWO causes and the log cannot separate them: the Bell writes nothing when a watch is on deck
+      (`bell.ps1:63-66`, deliberately unlogged) **and it writes nothing if the task never ran.**
+      `RAZER-SETUP.md`'s own warning box describes exactly that second world — a task reporting
+      Ready, firing hourly, every run dying before reaching the script, the log staying empty and
+      **looking identical to a Bell that never ticked.** My evidence read the same in both worlds.
+      ✅ **PROVEN PROPERLY INSTEAD, by three instruments that are not the log:** `bell.ps1:63-66` is
+      `if ($watchProcs.Count -gt 0) { exit 0 }` and none of its five `Add-Content` lines is reachable
+      on that path · the real script run against a scratch repo wrote a line with no process
+      matching and **nothing at all** with one · and the decisive one — **`schtasks` Last Run Time
+      07:38:01Z, Last Result 0, INSIDE the gap after the 07:08 ring, with a `claude.exe -p "/door"`
+      watch alive in the process table at 07:40Z. Task fired. Watch alive. Log did not grow.**
+      *(The 55 `hold off:` lines are all dated 2026-09-01 and `bell.ps1` cannot emit that string —
+      naming the count matters, because 55 lines is a lot of log to misread as today's behaviour.)*
+      *(The `hold off: a commit landed N min ago` lines in the log are from 2026-09-01 and are NOT
+      this: that 45-minute commit rule belonged to the pre-relay design and is gone from `bell.ps1`.
+      Reading them as today's second direction would be reading a retired mechanism as live.)*
+      **3. THE O2 QUESTION — ANSWERED, AND IT HAS BEEN OPEN SINCE 2026-09-01.** `RAZER-SETUP.md:85`
+      asks: *"can a Blade session publish the Glass at all? In an interactive `claude` session on the
+      Blade, ask it to republish the Glass and to state plainly whether the Artifact tool exists in
+      its tool list."* **This is that session, and the answer is YES: the Artifact tool is in its
+      tool list, demonstrated by repeated successful `action: "read"` calls against the live artifact
+      tonight, not by reading a config.** The Glass architecture hedges on this question; the hedge
+      can come down for the interactive case.
+      ⚠ **THE BOUNDARY I NAMED — *"the write path unexercised by choice"* — WAS TRUE WHEN WRITTEN
+      AND WAS FALSE TWENTY MINUTES LATER.** Commit `05990884`, 07:38:04Z: *"glass: republish —
+      rulings-box removal now live."* A Blade session published, and CEO 153 refused to take the
+      commit message for it (a message is a comment, not a measurement) — it read the live page and
+      found embedded stamps to **07:37:34Z**, thirty seconds before the commit.
+      ✅ **SO O2 IS ANSWERED IN FULL, AND THE ANSWER IS TWO ANSWERS — which is the operationally
+      useful part and is recorded verbatim as `RAZER-SETUP.md:85-89` demands:**
+      **INTERACTIVE SESSION: YES.** Tool present, reads succeed, and a publish reached the live page.
+      **HEADLESS `-p` WATCH — the kind the Bell rings: NO.** ~17 watch transcripts say so
+      independently, including one that checked twice *"after another watch claimed we'd all been
+      wrong about that"*, and one flatly contradicting the record: commit `59ad8b69` claims
+      *"MEASURED on both machines: `-p` HAS the Artifact tool"* — **not true of those sessions.**
+      **THE HEDGE STAYS FOR WATCHES AND COMES DOWN FOR INTERACTIVE SESSIONS.** My answer covered
+      only the interactive half, and **O2 exists for the watch half** — so answering it left the
+      question where it was.

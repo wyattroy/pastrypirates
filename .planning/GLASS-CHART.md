@@ -28,44 +28,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
-      ⟨`T-021`⟩
-      ⚑ **HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM:** *"I"m 99% sure the Blade Hour is complete!"*
-      **HE SAID 99%, NOT 100% — SO IT IS CHECKED, NOT CLOSED.** His recollection is evidence; it is not a measurement, and he was careful to say so himself.
-  directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
-  **PARTIALLY DERIVABLE, measured 2026-09-02T03:5xZ: `schtasks /Query /TN "wyclau-bell" /V` on
-  this machine shows the task registered and Enabled (Status: Ready, last ran 23:48, next 23:58)
-  — the Bell-registration third is done. The ring-test and O2-publish thirds are not checkable
-  this way; still needs Wyatt or a session that can run them.**
-      ✅ **ALL THREE MEASURED 2026-09-03T07:2xZ. HE SAID 99%; THE EVIDENCE SAYS COMPLETE.** The two
-      thirds called "not checkable this way" were checkable — by a different instrument, not by a
-      different person. *"Not checkable this way"* is a statement about the instrument that was
-      reached for.
-      **1. THE BELL IS REGISTERED AND FIRING** — not inferred from the task entry: `restarts.log`
-      holds **72 rings**, and `.planning/wyclau/` holds **139 `watch-*.out` files**. The Bell has
-      launched 139 watches on this machine. A registration that never fires looks identical to this
-      in `schtasks`; the log is what tells them apart.
-      **2. THE RING TEST, BOTH DIRECTIONS, FROM THE BELL'S OWN LOG.**
-      *Rings when nothing is running:* 72 entries, *"ring: no watch on deck — rang the next one"*.
-      *Stays silent while a watch is alive:* the Bell runs every 10 minutes and rang tonight at
-      05:18, 05:58, 06:48, 07:08 — **gaps of 40, 50 and 20 minutes.** Those gaps are four, five and
-      two checks that asked its one question (*"is a door-launched engine alive?"*) and declined.
-      The second direction leaves no log line, so it is measured by ABSENCE against a known cadence.
-      *(The `hold off: a commit landed N min ago` lines in the log are from 2026-09-01 and are NOT
-      this: that 45-minute commit rule belonged to the pre-relay design and is gone from `bell.ps1`.
-      Reading them as today's second direction would be reading a retired mechanism as live.)*
-      **3. THE O2 QUESTION — ANSWERED, AND IT HAS BEEN OPEN SINCE 2026-09-01.** `RAZER-SETUP.md:85`
-      asks: *"can a Blade session publish the Glass at all? In an interactive `claude` session on the
-      Blade, ask it to republish the Glass and to state plainly whether the Artifact tool exists in
-      its tool list."* **This is that session, and the answer is YES: the Artifact tool is in its
-      tool list, demonstrated by repeated successful `action: "read"` calls against the live artifact
-      tonight, not by reading a config.** The Glass architecture hedges on this question; the hedge
-      can come down for the interactive case.
-      ⚠ **THE HONEST BOUNDARY: `read` proves the tool EXISTS; it does not prove a `publish` from
-      here succeeds.** This session deliberately never published — the Glass-update session owns that
-      surface and two writers is the fault, not the test. **So: capability confirmed, the write path
-      unexercised by choice.** Said that way rather than rounded up, because the question this
-      answers has been "unexplained" for two days precisely by being answered loosely.
 - [ ] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed
       ⟨`T-123` · size: S⟩
       2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its

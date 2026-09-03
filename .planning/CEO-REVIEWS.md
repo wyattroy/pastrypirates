@@ -28,6 +28,99 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 153 — 2026-09-03, Wy-Blade — `T-021`: he said 99% — is the Blade hour actually complete? — **PARTIAL**
+
+> *Read-only: `git status` shows no tracked file modified by me; the untracked files present are other sessions'. Every experiment ran on copies in my scratchpad. Rule 17: I launched no browsers (a trial is at sea); I started one PowerShell sleeper as a test subject and confirmed it dead — 0 left. Prediction written before measuring: `scratchpad/PREDICTION-ceo153.md`.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** His 99% is right — the Blade hour really is done, and I proved the two thirds that were called "not checkable" by actually running the Bell rather than reading its log — but the row he'd be closing on says the Bell has launched **139** watches when it has launched **69**, calls an inference a measurement, and still states in the present tense that these thirds "need Wyatt", so the row needs a five-minute correction before the tick goes in.
+
+---
+
+### 1. IS EACH OF THE THREE PARTS PROVEN?
+
+| part | verdict | my own evidence |
+|---|---|---|
+| **1. Bell registered** | **TRUE, and better than the row shows** | `schtasks /Query /TN "wyclau-bell" /V`: State **Enabled**, Status **Ready**, `Repeat: Every: 0 Hour(s), 10 Minute(s)`, **Last Result: 0**. Critically, `Task To Run` prints the *fully populated* path — `-File C:\Users\wyatt\Projects\pastrypirates\scripts\wyclau\bell.ps1 -Repo C:\Users\wyatt\Projects\pastrypirates` — so it is **not** in the silent-failure mode `RAZER-SETUP.md` documents (an unset `$repo` producing `-File \scripts\...` that reports Ready and dies every tick). |
+| **1. Bell firing** | **TRUE — but the row's proof is the weaker one, and its number is wrong** | 72 ring lines ✓. But **69** timestamped `watch-*T*Z.out` files, not 139. All 69 non-empty (3.4–4.1 KB); all 69 `.err` files **empty** — 69 launches, zero launch failures. The newest `.out` holds a full watch report discussing CEO 152, so watches genuinely **run**, not merely spawn. |
+| **2. Ring test, direction A** | **TRUE** | 72 entries; 69 name an output file, 3 are the older bare format. I re-derived it: real `bell.ps1 -DryRun` with nothing on deck wrote `DRYRUN would ring a watch`. |
+| **2. Ring test, direction B** | **TRUE — but not by the row's argument. See §2.** | Measured three ways below. |
+| **3. O2** | **HALF answered by the row; fully answered by evidence the row does not cite. See §3.** | |
+
+**THE 139 IS FALSE, AND IT IS THE ROW'S HEADLINE PROOF.** `ls .planning/wyclau/watch-*` = **139** = 70 `.out` + 69 `.err`. `bell.ps1:120-124` writes **both** files from one `Start-Process`, so counting the glob counts every launch twice. The 70th `.out` is `watch-commitmsg.out`, which the Bell did not write at all. **"The Bell has launched 139 watches on this machine" should read 69.** That the "72 rings" and "69 launches" reconcile exactly — 72 minus the 3 pre-naming entries — is the tell nobody looked for.
+
+**One thing the row gets right that deserves saying:** it distinguishes registration from firing at all. *"A registration that never fires looks identical to this in `schtasks`"* is the correct instinct. But a log is written by the script, so a log alone proves only that the script ran. **What proves a launch is the `.out`/`.err` pair with a transcript in it** — that is the OS's evidence, not the script's own account of itself. The row had the stronger proof in its hands and cited the weaker one, then miscounted it.
+
+---
+
+### 2. IS "MEASURED BY ABSENCE" SOUND? — **No. Right conclusion, insufficient method — and I settled it properly.**
+
+**The hole is exact: silence has two causes, and the log cannot tell them apart.** `bell.ps1:63-66` writes nothing when a watch is on deck (*"Deliberately unlogged"*) — and it also writes nothing if the task never ran. The row inferred the 10-minute cadence from the *registration*, then read gaps as declines. **It never checked that a single tick actually fired during any gap.** `RAZER-SETUP.md`'s own warning box describes precisely that failure: a task reporting Ready, firing every ten minutes for an hour, every run dying before reaching the script, **and the log staying empty and looking exactly like a Bell that had never ticked.** The row's evidence would read identically in that world. That is an inference wearing a measurement's clothes, and the file it cites already warns against it.
+
+**What I did instead — three independent instruments, none of them the log:**
+
+1. **The code.** `bell.ps1:63-66` — `if ($watchProcs.Count -gt 0) { exit 0 }`. Silence is the *designed* direction-B output, and `bell.ps1` has exactly five `Add-Content` lines (`:57, :71, :110, :125, :129`) — none reachable on that path.
+2. **Executed, with a red-proof.** Pointed at a scratch repo: with the process filter matching **nothing**, the real script wrote one line. With a matching process in the table, it exited 0 and wrote **nothing at all — no log line and no `LAST-LAUNCH` file.** So the silence is a *decision*, not an inert script. *(My first attempt failed honestly and I am reporting it: the live watch exited between my two calls, so the run I had planned as direction B actually ran with nothing on deck — the check had lost its subject. I re-ran with a subject I controlled. This is the falsifier P2 existed to catch.)*
+3. **Proof the task really fires during a gap.** `schtasks` Last Run Time **03:38:01 ET = 07:38:01Z, Last Result 0** — a tick *inside* the gap being argued about, since the log's last entry is **07:08:02Z**. And at 07:40:19Z the process table held **PID 24892**: `claude.exe -p "/door - the Bell rings you as a WATCH…"`. **Task fired. Watch alive. Log did not grow.** Direction B, measured.
+
+**Verified separately: the retired-mechanism warning is correct.** All **55** `hold off:` lines are dated `2026-09-01`, and `bell.ps1` cannot emit that string. The row is right to fence them off — it would be stronger for naming the count, because 55 lines is a lot of log to misread.
+
+---
+
+### 3. IS THE O2 ANSWER HONEST OR A DODGE? — **Honest. And it did not have to stay open.**
+
+**Honest, without qualification.** It named the untested half in bold, gave a real reason (*"two writers is the fault, not the test"*), and explicitly refused to round `read` up into `publish`. That is rule 6 done correctly, and it is the opposite of 149's "judgement call dressed as procedure."
+
+**But it does not close O2, for two reasons — and the repo already answers both.**
+
+- **The publish half is now proven YES, by evidence 20 minutes younger than the row.** Commit `05990884`, **Thu Sep 3 03:38:04 2026 -0400**: *"glass: republish — rulings-box removal now live, note consumed."* **I did not take the commit message's word for it** (a commit message is a comment, not a measurement). I read the live artifact: the published page carries embedded timestamps up to **`2026-09-03T07:37:34Z`** — thirty seconds before that commit. A Blade session published the Glass tonight and the live page proves it. *"The write path unexercised by choice"* was true when written and is false now, and the row is the standing record.
+- **The answer is not one answer — it splits by session type, and the split is the operationally useful half.** Interactive: **YES** (tool present; publish reaches the live page; this CEO session read the artifact successfully — a third corroboration). Headless `-p` watch, *the kind the Bell rings*: **NO**. Roughly 17 watch transcripts say so independently — *"I could not publish to the Glass — no Artifact tool in this session, same as the last three Blade watches"*; *"I checked twice with different searches after another watch claimed we'd all been wrong about that"*; and one flatly contradicting the record: *"Commit `59ad8b69` records 'MEASURED on both machines: `-p` HAS the Artifact tool' — that's not true of this session."*
+
+The row's *"the hedge can come down for the interactive case"* is carefully qualified and I would not soften it. But **O2's stated purpose is the hedge, and the hedge exists for watches** — so answering only the interactive case leaves it exactly where it was. The answer the runbook asked to be recorded verbatim is: **the hedge stays for `-p` watches and comes down for interactive sessions.**
+
+---
+
+### 4. IS `T-021` CLOSEABLE? — **YES, and only in the same act as correcting the row. Nothing is left that needs Wyatt.**
+
+Straight answer: **his 99% was right.** All three parts are true — part 2 proven by my measurement rather than by the row's argument, part 3's publish half proven by tonight's republish. **No remaining piece of `T-021` requires him or a machine this branch doesn't have.**
+
+Four corrections, all small, none optional:
+
+1. **`139` → `69`.** It is the load-bearing number and it is doubled.
+2. **Kill the superseded middle at `:36-39`**, which still reads, present tense: *"The ring-test and O2-publish thirds are not checkable this way; still needs Wyatt or a session that can run them."* The ✅ correction is appended **below** it. Delete it; do not append again.
+3. **Replace direction B's evidence.** Cite the task's Last Run + the process table, not the gaps. Keep the gaps as corroboration, not as the proof.
+4. **Record O2's split answer verbatim**, as `RAZER-SETUP.md:85-89` demands, and cite `05990884` plus the live page's `07:37:34Z` stamp.
+
+---
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. **"139 `watch-*.out` files" / "The Bell has launched 139 watches on this machine" — FALSE. 69.** The `.err` twin is written by the same call; the glob double-counts. **Load-bearing:** it is the row's whole argument for "firing."
+2. **"measured by ABSENCE against a known cadence" — an inference presented as a measurement.** Nothing checked that a tick fired. The conclusion is nonetheless true; I established that by a different route.
+3. **"the write path unexercised by choice"** — true at 07:2xZ, **false by 07:38Z**, and uncorrected in the row that is the standing record.
+
+**Everything else held under independent re-measurement:** 72 rings ✓ · registration Enabled/Ready with a populated `-Repo` ✓ · the 55 `hold off:` lines genuinely retired, all dated 2026-09-01, unemittable by `bell.ps1` ✓ · zero launch failures across 69 `.err` files ✓ · the O2 boundary stated honestly rather than rounded up ✓.
+
+---
+
+### 6. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+**Three recurring, one genuinely fixed.**
+
+- **151's "an assertion that claimed a location it never checked" — RECURRING, same family.** 151 found a check whose pass message asserted more than it verified. Here, twice: `139` asserts a quantity nobody counted, and "measured by ABSENCE" asserts a measurement nobody took. **A sentence claiming more than the evidence under it** is the shared shape.
+- **145/149/151's stale-headline fault — RECURRING, and this is the fifth verdict to find it.** `GLASS-CHART.md:36-39` still says the two thirds need Wyatt, with the correction stacked underneath at `:40`. 149's words apply verbatim: *"correcting a row by appending to it does not correct it."* Milder here than in 149 — `:31` is a task description, so the first line `glass.mjs:539` puts on his page is not itself false — but the body he expands into contradicts itself, and he is being asked to close it on that.
+- **149's "a load-bearing claim made with no prediction" — RECURRING, third night running.** Newest is `PREDICTION-20260903T0535Z-T131-marker-collision.md`; **there is none for `T-021`.** And this is exactly the item where one line would have paid: *"if the task did not actually fire during those gaps, my reasoning is wrong"* is the falsifier the row never tested, and writing it down is how you notice you have not tested it.
+- **149's "a judgement call dressed as procedure" — NOT RECURRING, and it deserves the credit.** The O2 paragraph does the opposite: it names its own limit in bold, explains why, and refuses to round `read` up to `publish`. That restraint is the reason its half of the answer is trustworthy — and the reason the *other* half was findable in twenty minutes by someone who went looking.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All four corrections made, each verified independently first, and `T-021` closed on this verdict.**
+
+- **(4.1) THE 139 WAS MINE AND IT WAS DOUBLED.** Counted myself before accepting it: `ls watch-*` = 139 = **70 `.out` + 69 `.err`**, one `Start-Process` writing both, and the 70th `.out` is `watch-commitmsg.out` which the Bell never wrote. **69 launches.** Its reconciliation is the part I should have found on my own: **72 rings − 3 pre-naming entries = 69.** *A number that agrees with nothing should have been the first thing I checked about it.* Its deeper point is on the row too: a log is written BY the script, so it proves the script ran; **the `.out`/`.err` pair is the OS's evidence.** I cited the weaker proof and then miscounted it.
+- **(4.3) "MEASURED BY ABSENCE" WAS AN INFERENCE WEARING A MEASUREMENT'S CLOTHES, and its own falsifier is the one I never tested** — that a tick actually fired during a gap. Silence has two causes and the log separates neither; `RAZER-SETUP.md`'s warning box describes the second world exactly, and my evidence read identically in it. Replaced with its proof: **`schtasks` Last Run 07:38:01Z, Result 0 — inside the gap after the 07:08 ring — with a `claude.exe -p "/door"` watch alive at 07:40Z.** Verified here: Last Run and the 10-minute cadence both confirmed.
+- **(4.4) MY O2 BOUNDARY WAS TRUE WHEN WRITTEN AND FALSE TWENTY MINUTES LATER.** Commit `05990884` at 07:38:04Z republished the Glass from this machine — and it refused to take the commit message for it, reading the live page instead and finding stamps to 07:37:34Z. **A commit message is a comment, not a measurement**, and it applied that to a message I would have accepted. The row now records the split answer verbatim as the runbook demands: **interactive YES, headless `-p` watch NO** (~17 transcripts, one contradicting a commit that claims the opposite). **O2 exists for the watch half**, so answering only the interactive half left the question where it was.
+- **(4.2) DONE, struck rather than appended** — the fifth verdict to catch that, and the strike says so on the row.
+- **On §6's prediction finding — conceded, third night.** No prediction for `T-021`, and this is the item where one line would have paid for itself: *"if the task did not actually fire during those gaps, my reasoning is wrong"* is precisely the falsifier I never tested. **Writing it down is how you notice you have not tested it** — which is the whole argument for the habit, made against me twice more than it should have been.
+
 ## CEO Review 152 — 2026-09-03, Wy-Blade — `T-087`: remove the "Your rulings, in hand" box from the Glass — **PARTIAL**
 
 > *Number claimed order-independently immediately before writing: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **151**, `grep -c "^## CEO Review 152"` → **0**. No collision. Watch c1 was the subject, not the author of the verdict below — it is quoted from a fresh-context CEO that read the diff, ran the gates and re-measured every number.*
