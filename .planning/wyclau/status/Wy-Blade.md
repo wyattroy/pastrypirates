@@ -5,26 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T02:54:59.058Z	self-publish check
+2026-09-03T03:41:55.763Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
+None recorded.
+
+## Long run in flight (LONG-RUN)
 ```
 {
-  "item": "can_push.mjs told a watch 'can publish' and its git push was then refused — three watches lost. Making the check stop claiming what it has not tested.",
-  "handle": "T-011",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-03T02:59:41.089Z",
-  "staleAfterMinutes": 90
+  "what": "sea trial, 10 legs",
+  "startedAt": "2026-09-03T03:41:16.680Z",
+  "updatedAt": "2026-09-03T03:42:32.731Z",
+  "progress": "0/10 legs",
+  "staleAfterMinutes": 53
 }
 ```
 
-## Long run in flight (LONG-RUN)
-None recorded.
-
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T00:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T000803Z.out/.err)
 2026-09-02T01:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T014802Z.out/.err)
 2026-09-02T02:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T021802Z.out/.err)
 2026-09-02T02:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T025802Z.out/.err)
@@ -64,4 +63,5 @@ None recorded.
 2026-09-03T02:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T020802Z.out/.err, kit: readable)
 2026-09-03T02:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T022801Z.out/.err, kit: readable)
 2026-09-03T02:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T023801Z.out/.err, kit: readable)
+2026-09-03T03:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T030801Z.out/.err, kit: readable)
 ```
