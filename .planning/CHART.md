@@ -91,6 +91,71 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
+      ⟨`T-206`⟩
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
+
+  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
+  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
+  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
+  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
+  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
+  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
+  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
+  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
+  account — **only he can confirm that, and this row must not claim it as verified.**
+  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
+  "unstarted, needs an account from him" skipped it for a reason that was never true.
+  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
+  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
+  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
+  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
+  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
+  the tag being deleted later.
+  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
+  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
+  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
+  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
+  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
+  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
+  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
+  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
+  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
+  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
+  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
+  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
+  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
+  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
+  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
+  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
+  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
+  switch Google on. Corrected.
+  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
+  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
+  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
+  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
+  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
+  page only, no other surface), the caveat above stated in his words, and the third option.
+  **Consent is left to him, explicitly, and not defaulted.**
+- [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-017`⟩
+- [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-017`⟩
+- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-206`⟩
+- [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-121`⟩
+- [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-207`⟩
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -130,6 +195,36 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
+      ⟨`T-017`⟩
+  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
+  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
+  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
+  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
+  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
+  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
+  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
+  `judge-1914Z-shots/` and are the "before" of the posed pair.
+  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
+  compact label as `short:` — the captain's name as line one of a two-line label inside a
+  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
+  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
+  shorten (his standing instruction on the call circles: *"Fix this universally, not through
+  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
+  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+
+  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
+  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
+  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
+  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
+  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
+  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
+  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
+  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
+  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
+  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
+  name to the disc, written once.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
   THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
@@ -166,6 +261,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   complete run recorded **89 minutes before the fix existed**. Caught by CEO 169, not by any gate.
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -184,6 +284,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
       scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
       posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
+
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -258,6 +359,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   the trial is owed. It was not started because the second mechanism will change this same function
   again within a watch or two, and a 90-minute trial of code about to move tests the wrong build —
   **but that is a reason, not an excuse, and the trial is owed before this ships.**
+
+- [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
+      ⟨`T-207`⟩
+  2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
+  2026-09-03 by watch e1, CEO 160 (YES); the finding is the ✅ block on `T-012`, now archived.
+  **THE FAULT.** `#apGrid`'s row animates from a one-line height to a two-line height over 180ms
+  (`index.html:467`) under `#apGridInner`'s `overflow:hidden` (`:473`). Narration is protected —
+  `src/ui/panel.js:662-667` holds the typewriter until the resize finishes and says why in his own
+  words, *"the 2nd line is cut off during writing, but only sometimes"*, closing *"with the clipping
+  fault still impossible."* **A battle card has no `.apMsg` to type** (`panel.js:374-375`), so
+  nothing waits for the box: the card is painted whole while the row eases up underneath it.
+  **THE SIZE, both engines at the trial's `solo-tablet` seat: Chrome hides 18px of an 18px line for
+  ~40–160ms; WEBKIT holds it FLAT for ~140–180ms with no easing, then snaps.** Photographed:
+  [`posed/t012-seq-webkit-2-cut.png`](posed/t012-seq-webkit-2-cut.png) beside
+  [`-3-settled.png`](posed/t012-seq-webkit-3-settled.png). Probe:
+  `scripts/qa/t012_downwind_sequence_pose.mjs` (its scene gate refuses to answer off `centered`).
+  **THE SHAPE OF THE FIX, already in the file:** for content with nothing to reveal, reach the target
+  height before painting — or skip the transition. **DO NOT START WITHOUT HIS ANSWER**
+  (`qid:t012-battle-card-clip`): `panel.js` carries measure-once rules earned from a Safari
+  near-crash, so this is a real regression risk against a fifth of a second.
+  ⚠ **UNMEASURED, AND NAME IT RATHER THAN ASSUME: PHONE AND DESKTOP.** Everything above is tablet
+  width. CEO 160's own caveat.
+  ⚠ **AND IT AFFECTS THE INSTRUMENT, NOT ONLY THE PLAYER:** the sea trial's judge photographs
+  whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
+  are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
+
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -270,6 +397,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
       Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
       **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
+
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
@@ -297,6 +425,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -310,6 +439,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -318,6 +448,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
+
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -373,10 +504,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.2, so its evidence no longer describes this game
 
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -412,7 +539,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
-
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -425,7 +551,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
-
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
@@ -439,11 +564,9 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
-
 - [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
       ⟨`T-019`⟩
   2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
@@ -475,7 +598,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
-
 - [ ] **THE DIRECTOR RE-AIMS FOR NOTHING AT ALL FOR THE FIRST SECONDS OF A VOYAGE.** Measured
       ⟨`T-213`⟩
   2026-09-03 by watch d4 while fixing `T-211`, and handed over rather than fixed. With the frame key
@@ -486,7 +608,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
-
 - [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
       ⟨`T-212`⟩
   KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
@@ -496,37 +617,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
   it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
   to bump. **Sizing: small, instrument only, no game code.**
-
-- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
-      ⟨`T-017`⟩
-  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
-  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
-  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
-  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
-  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
-  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
-  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
-  `judge-1914Z-shots/` and are the "before" of the posed pair.
-  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
-  compact label as `short:` — the captain's name as line one of a two-line label inside a
-  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
-  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
-  shorten (his standing instruction on the call circles: *"Fix this universally, not through
-  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
-  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
-
-  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
-  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
-  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
-  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
-  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
-  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
-  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
-  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
-  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
-  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
-  name to the disc, written once.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
 
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
@@ -552,88 +642,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.2, so its evidence no longer describes this game
-- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
-      ⟨`T-206`⟩
-  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
-  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
-  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
-  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
-  third-party script on the site real players are using — `about.html`, `classic/`, and the new
-  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
-  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
-  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
-  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
-  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
 
-  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
-  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
-  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
-  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
-  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
-  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
-  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
-  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
-  account — **only he can confirm that, and this row must not claim it as verified.**
-  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
-  "unstarted, needs an account from him" skipped it for a reason that was never true.
-  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
-  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
-  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
-  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
-  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
-  the tag being deleted later.
-  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
-  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
-  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
-  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
-  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
-  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
-  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
-  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
-  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
-  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
-  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
-  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
-  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
-  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
-  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
-  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
-  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
-  switch Google on. Corrected.
-  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
-  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
-  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
-  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
-  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
-  page only, no other surface), the caveat above stated in his words, and the third option.
-  **Consent is left to him, explicitly, and not defaulted.**
-- [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
-      ⟨`T-207`⟩
-  2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
-  2026-09-03 by watch e1, CEO 160 (YES); the finding is the ✅ block on `T-012`, now archived.
-  **THE FAULT.** `#apGrid`'s row animates from a one-line height to a two-line height over 180ms
-  (`index.html:467`) under `#apGridInner`'s `overflow:hidden` (`:473`). Narration is protected —
-  `src/ui/panel.js:662-667` holds the typewriter until the resize finishes and says why in his own
-  words, *"the 2nd line is cut off during writing, but only sometimes"*, closing *"with the clipping
-  fault still impossible."* **A battle card has no `.apMsg` to type** (`panel.js:374-375`), so
-  nothing waits for the box: the card is painted whole while the row eases up underneath it.
-  **THE SIZE, both engines at the trial's `solo-tablet` seat: Chrome hides 18px of an 18px line for
-  ~40–160ms; WEBKIT holds it FLAT for ~140–180ms with no easing, then snaps.** Photographed:
-  [`posed/t012-seq-webkit-2-cut.png`](posed/t012-seq-webkit-2-cut.png) beside
-  [`-3-settled.png`](posed/t012-seq-webkit-3-settled.png). Probe:
-  `scripts/qa/t012_downwind_sequence_pose.mjs` (its scene gate refuses to answer off `centered`).
-  **THE SHAPE OF THE FIX, already in the file:** for content with nothing to reveal, reach the target
-  height before painting — or skip the transition. **DO NOT START WITHOUT HIS ANSWER**
-  (`qid:t012-battle-card-clip`): `panel.js` carries measure-once rules earned from a Safari
-  near-crash, so this is a real regression risk against a fifth of a second.
-  ⚠ **UNMEASURED, AND NAME IT RATHER THAN ASSUME: PHONE AND DESKTOP.** Everything above is tablet
-  width. CEO 160's own caveat.
-  ⚠ **AND IT AFFECTS THE INSTRUMENT, NOT ONLY THE PLAYER:** the sea trial's judge photographs
-  whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
-  are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.2, so its evidence no longer describes this game
+
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
   WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
@@ -643,8 +656,13 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+
+- [ ] Your ruling: ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-102`⟩
+
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
+
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
       ⟨`T-137`⟩
       ⛔ **RESTORED A THIRD TIME, 2026-09-03T07:4xZ — AND THIS TIME THE CAUSE IS MEASURED, SO THE
@@ -679,6 +697,9 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
+
+- [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-102`⟩
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -733,14 +754,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
-| <!--qid:t121-drag-scope--> ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. | **My recommendation: give you a way out first — a “use the ranked order” button on the page — because that is one button and it un-sticks you today.** Then, if you want it, the deeper change: a drag saves only the rows you actually moved, so everything you did not touch keeps ranking itself and new work can still rise. The trade is that your arrangement would then be a set of anchors rather than a fixed list, which is a different feel and is why I have not chosen it. **A third answer, if the current behaviour is exactly right:** say so and I will delete this row — “the order I left it in” is a coherent design and I may be solving a problem you do not have. | 2026-09-03 |
-| <!--qid:t017-name-type-too-small--> ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. | **Take a look at the third picture and tell me if it is readable.** If it is not, the honest fix is a bigger circle rather than smaller words — the disc is 66px and it is being asked to hold a name, a crate and a price. A third option: move the name out to the sentence above and leave only the price in the circle. | 2026-09-03 |
-| <!--qid:t017-fan-mixed-sizes--> ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. | **Match them — shrink every circle in a fan to whatever its longest label needs.** One gesture, one look. The cost is that a fan containing one long name makes *every* label in it small, including short ones that had room. Say the word and it is a few lines. | 2026-09-03 |
 | <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
-| <!--qid:t102-working-files-indexable--> ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. | **Let me add four lines to `robots.txt` — `Disallow` for `/art-review/`, `/notes/`, `/scripts/`, `/.planning/`.** Same shape the file already uses for `lab.html` and `stats.html`. It is minutes, not a watch, and it is worth doing whatever you decide about the question below. Say yes and the next watch does it. | 2026-09-03 |
-| <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | **My recommendation: fix it, but not this week.** It is real and it is on the engine you play on, and it is your own bug coming back — but it is a fifth of a second on a card that then reads correctly, and the file it lives in carries rules earned from a Safari near-crash, so it is not a change to make casually. The clean fix is: when a card has nothing to reveal, let the box reach its full height before painting it. Sizing: one watch, and it wants its own posed pair on all three sizes. **Third option, cheapest and honest: leave it and I will stop the trial's judge reporting it as a bug**, since it is now a known 180ms artifact rather than a mystery. | 2026-09-03 |
-| <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | **Don't generate it — make it go RED instead, once the fence above is closed.** Every page can say whether it is public, in its own tag and in `robots.txt`, so a check derives the answer with no list in it. The day a page lands unlisted, the tests fail and name it. **Generating the file instead needs a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess.** Third option: leave it and remember, which is what just failed. Sizing: the fence is minutes, the check is one watch. | 2026-09-03 |
-| <!--qid:t206-ga-turn-on--> ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. | **My recommendation: switch it on, on the game page only, before the Reddit launch — and take the third option below as well.** The thing your own counter does not record is **where those 123 people came from**. It could (see below); today it simply does not, and Google would give it to you with no work at all. That is exactly the number a Reddit launch turns on: did the post send anyone, and did they play. Leave `about.html`, `stats.html` and `classic/` alone — one page is enough and it is the page everyone lands on. **On a cookie notice I am not the right one to decide** and I will not quietly decide it for you: it is a third-party script on a game children play, so if you want a notice, say so and I will build one. **Third option, cheap and worth doing whichever way you go: I record the referrer in your own counter instead — one line in the game's own code, no third party, and your stats page gains a "where they came from" row.** That answers the launch question with nobody else watching your players. It does not replace Google (no live dashboard, no sessions, no geography), so my honest answer is *do both*. ⚠ **Sizing, corrected — I first wrote "no sea trial" and that was wrong.** Both options edit game-tree files (`index.html` for the tag, `src/ui/usage.js` for the referrer), so the tool that picks the testing depth returns **FULL** for either: a full sea trial, three modes, three screen sizes, both engines. **One watch to write, a second watch to sail it.** | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -792,6 +806,13 @@ stranded.*
 
 | item | HIS RULING | now |
 |---|---|---|
+| <!--qid:t206-ga-turn-on--> ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. | Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial | |
+| <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | yes | |
+| <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | Leave it. | |
+| <!--qid:t102-working-files-indexable--> ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. | yes | |
+| <!--qid:t017-fan-mixed-sizes--> ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. | Only shrink the long words/phrases/names | |
+| <!--qid:t017-name-type-too-small--> ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. | Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass | |
+| <!--qid:t121-drag-scope--> ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. | note recorded on the Glass | |
 
 
 ## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
