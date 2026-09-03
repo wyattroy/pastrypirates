@@ -2129,3 +2129,17 @@ status: DONE 2026-09-03 — every card is 1 2 3 Other; a question that declares 
   Caught by CEO 174. A SECOND gate (glass_ruling_button_words_check) was found doing the same thing
   from his earlier 10:22 instruction; both corrected. THE RULE EARNED: gate the PROPERTY he wanted,
   never the literal string — the string is the part he keeps changing, and he is entitled to.
+
+## INBOX-20260903T1720Z — "summary" is a COMMAND: 50 words on what changed since his last prompt
+> "When I say “summary” what I mean is: “Give me a 50 word summary of what I need to know since my
+> last prompt”.
+>
+> Remember this across all sessions."
+solution: HIS WORDS DEFINE THE TERM. When he types "summary", answer in ~50 words covering only the
+  window SINCE HIS LAST PROMPT — the delta he missed while away, not a recap of the session or of
+  things he has already read. Plain English, outcomes first, and name anything that needs his call.
+  Detail only if he asks for it.
+  ⚑ ACROSS ALL SESSIONS, so it is not an INBOX item a watch closes — it is a standing rule. Saved to
+  the cross-session memory as `summary-means-50-words`. He set the budget himself; the number is the
+  instruction, and a long answer to "summary" is not obeying it.
+status: STANDING — never closed, applied every time he uses the word.
