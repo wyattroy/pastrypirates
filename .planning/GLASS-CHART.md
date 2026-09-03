@@ -611,3 +611,37 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⟨`T-030`⟩
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
       ⟨`T-031`⟩
+- [ ] **`npm test` HAS BEEN RED ALL NIGHT, AND IT STOPS ~12 GATES SHORT — INCLUDING RULE 17'S.**
+      ⟨`T-130`⟩
+      **The failing gate is `chartkeeper_check` case 10f** — *"running the full pass twice produced
+      two different files"*. Pre-existing, verified NOT caused by tonight's work three separate ways
+      (the two chartkeeper files are byte-unchanged; the case builds its own throwaway fixture;
+      CEO 135 re-checked it independently).
+      **WHY IT MATTERS MORE THAN ITS OWN SUBJECT:** the suite stops at the first failure, so
+      `stray_probe_check` — the one that catches abandoned Chrome on this laptop, the day after 183
+      of them were found holding 15GB — plus `doc_command_check`, `chart_sweep_conserves_check` and
+      about nine others **have not run all night.** Run by hand 2026-09-03T03:1xZ: clean. But a suite
+      that stops before its safety gates is quietly not checking them.
+      **ROOT CAUSE, MEASURED 2026-09-03T04:0xZ — do not re-derive this, it cost an hour:**
+      rows are RANKED before their handles are minted, and part of the score is looked up BY handle
+      against `CHART-LOG.md` — **a file this same tool writes.** So run 1 ranks handle-less rows
+      (all tie at 0, file order wins), writes the log and the handles; run 2 ranks the same rows
+      with handles against a log that now mentions them, and orders them differently; run 3 matches
+      run 2. Proven by stripping the two handles and re-ranking: both scores drop 8 → 0, which is
+      what rules out an unstable sort or a tie-break.
+      ⚠ **A PARTIAL FIX WAS BUILT AND REVERTED, DELIBERATELY** — minting the handle inside
+      `applySettle` so a split row is born with one. It is probably right and it is **not
+      sufficient**: the gate's fixture starts with NO handles on ANY row, so every row is ranked
+      without identity on run 1, not merely the split ones. Shipping it would have changed handle
+      allocation order on his real Chart — and handles are load-bearing in `CHART-LOG.md`, the
+      ledger and git — while still leaving the gate red. Reverted; baseline restored.
+      **THE REAL FIX IS A DECISION, NOT A PATCH:** either mint every open row's handle BEFORE the
+      rank (a pre-pass; a no-op on the real Chart, where every row already has one), or stop the
+      ranker scoring on a file the tool itself writes. **The second is the rule-23 answer** — a
+      ranking that reads its own output is two things kept in step by nothing.
+      ⚠ **HIS CALL, BECAUSE IT CAN REORDER HIS LIST:** he steers this order directly (drag, and the
+      DO NOW pin), so a change to what the score reads is not purely mechanism. **Question for him:
+      is it acceptable for the fix to change the current order of the Chart once, if it never
+      changes on its own again?** Recommended: yes — an order that shifts under him without anyone
+      touching it is worse than one honest reshuffle.
+      **Sizing: MEDIUM. No game code. Blocks nothing except the twelve gates behind it.**

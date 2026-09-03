@@ -20,18 +20,79 @@
 > and therefore cannot be fooled by either half of this banner.** The two warnings above are about the file
 > being wrong; this one is about the READER being wrong about a file that was perfectly fine.
 >
-> ### ⚑ THE NEWEST VERDICT IS **137**, AND IT IS AT THE BOTTOM OF THIS FILE, NOT HERE.
-> **`CEO Review 137` (`T-017`, PARTIAL) is the last entry in the file, below the oldest reviews.**
-> A watch on 2026-09-03 found its anchor with `tail -25` — the precise trap the warning directly
-> above names — and so appended to the OLDEST end, under a header reading `## CEO 136 —`, which
-> both collided with the real 136 (`T-011`) and did not match `^## CEO Review [0-9]+`, so every
-> order-independent grep in this banner reported it missing. A peer session measured it as absent
-> and reported it as lost; it was neither lost nor swept — it was misfiled twice over in one act.
-> **Renumbered to 137 and given the conforming header by the watch that wrote it.** It was NOT
-> moved up here, deliberately: a peer was editing this same file in this same working tree at the
-> time, and a 65-line cut-and-reinsert is how one session silently eats another's verdict. **A
-> pointer costs nothing and cannot clobber anybody. The next session to hold this file alone should
-> move 137 to the top and delete this box.**
+
+<!-- ⚠ A T-017 VERDICT WAS FILED BELOW THIS LINE ON 2026-09-03 AND HAS BEEN MOVED TO THE TOP AS
+     CEO Review 137. It was written here by a watch that found its anchor with `tail -25` — the
+     exact trap this file's own banner names in its third warning — so it landed at the OLDEST end
+     of a newest-at-top file, under a header reading "## CEO 136 —" instead of "## CEO Review 136 —".
+     Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
+     that matches the file's header convention, which is how a peer came to report it missing. -->
+
+## CEO Review 137 — 2026-09-03, Wy-Blade — `T-017`: the trade-offer circle that cannot hold its captain's name — **PARTIAL**
+
+**Watch:** `pastrypirates-a3` (Wy-Blade), 2026-09-03T03:10Z. **Asked, verbatim:** *"A TRADE-OFFER
+CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME (T-017). Fix this universally, not through patches."*
+**Reviewed at the point the fix was measured green against the button's square box.** Its words:
+
+> ## PARTIAL
+>
+> **The mechanism is right. The screen is not fixed, and the work is not on the branch.**
+>
+> **What holds.** The fix is genuinely universal, not a patch. `fitLabelToDisc` is called from the
+> one `menu.forEach` that swaps every radial petal's label (`src/ui/stage.js:2837-2839`) and
+> unwound on radial exit (`:3656`) — so sail choices, dock and battle petals inherit it for free.
+> `src/ui/flow.js` is **unmodified** (`git status`), so no name-specific casing was added. It reads
+> the stylesheet's own size rather than a copied number, and floors at a fraction (rule 9,
+> honoured). `mp_rig.mjs`'s `/tmp` mapping is a real Windows fix and is derived, not enumerated.
+> Chartkeeper's last touch is `8327a1b9`, 2026-09-02, and this watch changed no chart file — claim
+> 7 stands.
+>
+> **Where it fails the ask.** I looked at both PNGs. In `t017-before.png` the names wrap
+> ("Davy"/"Scones") and float clear above their discs on open water. In `t017-after.png` they are
+> one line — a real improvement — **and they still paint outside the painted circle.** "Davy
+> Scones" spans ~97px of ink at a height where the disc is only ~85px wide; its D and final s sit
+> on the sea, red on blue. Same for "Flaky Jack", "Dough Hook", "Crustbeard". **That is the picture
+> Wyatt sent** — *"Crustbeard crossing both rims"*.
+>
+> The geometry says why the check missed it. `index.html:1847` is `width:66px; height:66px;
+> border-radius:50%` — a true circle inscribed in a square. `trade_circle_name_fits_check.mjs:
+> 129-130` judges against `br.left/right/top/bottom`, the **square**. A label parked at the top
+> chord can be 12px outside the painted rim and score "fits". The watch flagged this itself,
+> honestly — but underweighted it: this is not a corner case, it is *the* case, because that is
+> exactly where these labels sit. **The check passes while the screen he photographed is still
+> wrong.** The `Walk away` control does not red-proof this: it is one short line at the disc's
+> centre, the widest part, so it can never exercise the failing geometry.
+>
+> **CEO 135's fault RECURS, thirteenth running.** `git status`: `M src/ui/stage.js`, `M
+> scripts/mp_rig.mjs`, `?? scripts/qa/trade_circle_name_fits_check.mjs`, `?? .planning/posed/
+> t017-*.png`. **Nothing is committed.** The ledger's `WATCH 03:10Z` entry says the watch *"will
+> never run `git add -A`"* and names `src/ui/flow.js` and `index.html` as its files — future tense
+> in an append-only record, and both wrong: the fix landed in `stage.js`. There is no completion
+> entry at all. The account is again tidier than the record.
+>
+> **Recommend:** commit and push first, then re-cut the check against the inscribed circle
+> (`dx²+dy² ≤ r²` per rect corner) before calling T-017 closed. 8px type is legible in the after
+> shot; that is Wyatt's call, not the blocker.
+
+### WHAT THE WATCH DID WITH IT — both findings acted on, in its order, not the watch's
+
+1. **Committed and pushed FIRST** (`2b023b9e`), before touching the geometry — because the
+   recurring fault is uncommitted work, and fixing the interesting problem first is exactly how it
+   recurs a fourteenth time.
+2. **Re-cut against the inscribed circle** (`f06a0a80`), in the check AND the fix, so the two share
+   one definition of "fits" — the divergence between them is what earned this PARTIAL.
+   Re-measured: every name inside the 33.09px rim at tablet and desktop, 35.35px at phone, control
+   still inside. `.planning/posed/t017-after-circle.png` is the third picture, and there is no ink
+   on the sea in it.
+3. **The future tense and the wrong filenames in the ledger's claim are real and are corrected in
+   this watch's closing entry, in the open** — the fix landed in `src/ui/stage.js`, not
+   `flow.js`/`index.html` as the claim predicted. *A prediction written into an append-only record
+   rots into a lie with nobody editing it* is a house rule, and the claim broke it.
+
+**THE ITEM IS NOT CLOSED, AND THIS VERDICT IS NOT THE REASON.** Fitting the name inside the circle
+drives the type to its 5.5px floor, which (a) may be too small to read and (b) leaves a fan mixing
+sizes, because "Walk away" fits at full size and never shrinks — a rule 8 consistency break. Both
+are Wyatt's call. Parked for him rather than decided. The GEAR: FULL sea trial had also not sailed.
 
 ## CEO Review 136 — 2026-09-03, Wy-Blade — `T-011`: the false green and the false STOP it left behind — **PARTIAL**
 
@@ -9689,76 +9750,3 @@ rather than cosmetic.** 134's headline was *an account tidier than the record*. 
 says a commit needs carrying when there is no commit, and describes an item run "through the full
 Proof" when the Proof's close step cannot accept it. The work is real; the report rounds its
 disposition up.
-
-<!-- ⚠ A T-017 VERDICT WAS FILED BELOW THIS LINE ON 2026-09-03 AND HAS BEEN MOVED TO THE TOP AS
-     CEO Review 137. It was written here by a watch that found its anchor with `tail -25` — the
-     exact trap this file's own banner names in its third warning — so it landed at the OLDEST end
-     of a newest-at-top file, under a header reading "## CEO 136 —" instead of "## CEO Review 136 —".
-     Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
-     that matches the file's header convention, which is how a peer came to report it missing. -->
-
-## CEO Review 137 — 2026-09-03, Wy-Blade — `T-017`: the trade-offer circle that cannot hold its captain's name — **PARTIAL**
-
-**Watch:** `pastrypirates-a3` (Wy-Blade), 2026-09-03T03:10Z. **Asked, verbatim:** *"A TRADE-OFFER
-CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME (T-017). Fix this universally, not through patches."*
-**Reviewed at the point the fix was measured green against the button's square box.** Its words:
-
-> ## PARTIAL
->
-> **The mechanism is right. The screen is not fixed, and the work is not on the branch.**
->
-> **What holds.** The fix is genuinely universal, not a patch. `fitLabelToDisc` is called from the
-> one `menu.forEach` that swaps every radial petal's label (`src/ui/stage.js:2837-2839`) and
-> unwound on radial exit (`:3656`) — so sail choices, dock and battle petals inherit it for free.
-> `src/ui/flow.js` is **unmodified** (`git status`), so no name-specific casing was added. It reads
-> the stylesheet's own size rather than a copied number, and floors at a fraction (rule 9,
-> honoured). `mp_rig.mjs`'s `/tmp` mapping is a real Windows fix and is derived, not enumerated.
-> Chartkeeper's last touch is `8327a1b9`, 2026-09-02, and this watch changed no chart file — claim
-> 7 stands.
->
-> **Where it fails the ask.** I looked at both PNGs. In `t017-before.png` the names wrap
-> ("Davy"/"Scones") and float clear above their discs on open water. In `t017-after.png` they are
-> one line — a real improvement — **and they still paint outside the painted circle.** "Davy
-> Scones" spans ~97px of ink at a height where the disc is only ~85px wide; its D and final s sit
-> on the sea, red on blue. Same for "Flaky Jack", "Dough Hook", "Crustbeard". **That is the picture
-> Wyatt sent** — *"Crustbeard crossing both rims"*.
->
-> The geometry says why the check missed it. `index.html:1847` is `width:66px; height:66px;
-> border-radius:50%` — a true circle inscribed in a square. `trade_circle_name_fits_check.mjs:
-> 129-130` judges against `br.left/right/top/bottom`, the **square**. A label parked at the top
-> chord can be 12px outside the painted rim and score "fits". The watch flagged this itself,
-> honestly — but underweighted it: this is not a corner case, it is *the* case, because that is
-> exactly where these labels sit. **The check passes while the screen he photographed is still
-> wrong.** The `Walk away` control does not red-proof this: it is one short line at the disc's
-> centre, the widest part, so it can never exercise the failing geometry.
->
-> **CEO 135's fault RECURS, thirteenth running.** `git status`: `M src/ui/stage.js`, `M
-> scripts/mp_rig.mjs`, `?? scripts/qa/trade_circle_name_fits_check.mjs`, `?? .planning/posed/
-> t017-*.png`. **Nothing is committed.** The ledger's `WATCH 03:10Z` entry says the watch *"will
-> never run `git add -A`"* and names `src/ui/flow.js` and `index.html` as its files — future tense
-> in an append-only record, and both wrong: the fix landed in `stage.js`. There is no completion
-> entry at all. The account is again tidier than the record.
->
-> **Recommend:** commit and push first, then re-cut the check against the inscribed circle
-> (`dx²+dy² ≤ r²` per rect corner) before calling T-017 closed. 8px type is legible in the after
-> shot; that is Wyatt's call, not the blocker.
-
-### WHAT THE WATCH DID WITH IT — both findings acted on, in its order, not the watch's
-
-1. **Committed and pushed FIRST** (`2b023b9e`), before touching the geometry — because the
-   recurring fault is uncommitted work, and fixing the interesting problem first is exactly how it
-   recurs a fourteenth time.
-2. **Re-cut against the inscribed circle** (`f06a0a80`), in the check AND the fix, so the two share
-   one definition of "fits" — the divergence between them is what earned this PARTIAL.
-   Re-measured: every name inside the 33.09px rim at tablet and desktop, 35.35px at phone, control
-   still inside. `.planning/posed/t017-after-circle.png` is the third picture, and there is no ink
-   on the sea in it.
-3. **The future tense and the wrong filenames in the ledger's claim are real and are corrected in
-   this watch's closing entry, in the open** — the fix landed in `src/ui/stage.js`, not
-   `flow.js`/`index.html` as the claim predicted. *A prediction written into an append-only record
-   rots into a lie with nobody editing it* is a house rule, and the claim broke it.
-
-**THE ITEM IS NOT CLOSED, AND THIS VERDICT IS NOT THE REASON.** Fitting the name inside the circle
-drives the type to its 5.5px floor, which (a) may be too small to read and (b) leaves a fan mixing
-sizes, because "Walk away" fits at full size and never shrinks — a rule 8 consistency break. Both
-are Wyatt's call. Parked for him rather than decided. The GEAR: FULL sea trial had also not sailed.
