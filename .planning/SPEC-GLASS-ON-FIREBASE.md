@@ -30,8 +30,10 @@ not update his page.**
 | **200 publishes/day, hard stop** | the page is a *document that must be re-uploaded* to change |
 | **The record can be fixed while his page still shows the old state** — four times today | two artefacts, updated by two different acts |
 | **A republish can destroy what he typed** — the whole harvest apparatus | his writing and the page's content live in ONE document that gets regenerated |
-| **A Bell-started watch cannot publish at all** — it has no Artifact tool | publishing needs a tool only interactive sessions have |
+| **A Bell-started watch cannot publish** — no Artifact tool **on some machines** (the Door's own hedge, `SKILL.md:76`) | publishing needs a tool only interactive sessions have |
 | **Answered questions kept re-appearing, six times** | his answer and the question live in different places, joined by a session remembering |
+
+> ⚠ **THE FOURTH ROW BORROWED ITS CERTAINTY, AND THE HEADING ABOVE CLAIMS EVERYTHING HERE WAS MEASURED TODAY.** The first draft wrote it as a flat universal. **The Door hedges that exact claim** — *"on some machines"* (`SKILL.md:76`) — and warns at `:142-143` that this very assertion was once *"inherited, repeated, and never tested. Only the Artifact half was ever measured."* Corrected in place by CEO 126's finding rather than quietly softened. **Four of the five are cleanly measured; this one was not, and the heading is what made it a finding.**
 
 **FIVE SEPARATE FAULTS, ONE ROOT: the page is a document, so every change is a re-upload, and his
 words and ours share the same file.** Firebase replaces the document with a *store*, and four of the
@@ -176,7 +178,10 @@ day of blindness, not an inconvenience.**
 1. **If the DB rules cannot be exported into the repo** (console-only, no CLI available here), then
    the central safety claim of §3 is unbuildable and the honest answer is B plus a curtain. **Check
    before designing the schema.**
-2. **If GitHub Pages cannot serve the staging repo at a path that does not collide with the game**,
-   the hosting half needs rethinking — the repo currently serves the whole game at the domain root.
+2. ✅ **STRUCK — THIS WAS NEVER OPEN, AND LISTING IT WOULD HAVE SPENT A BUILDER'S FIRST HOUR.** It asked
+   whether Pages can serve a sub-path in the staging repo. `deploy-staging.sh:322` curls
+   `https://staging.playpastrypirates.com/src/ui/stage.js` **on every deploy** — sub-paths plainly
+   serve. Found by CEO 126. **Replaced by the real one: can anything survive `rsync --delete`?**
+   — see the blocker in §3, which is the question that actually decides the host.
 3. **If his private working record being world-readable is unacceptable to him**, (c) becomes
    mandatory and the sizing above roughly doubles. **That is his call and it gates everything.**
