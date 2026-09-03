@@ -9822,3 +9822,33 @@ scratch, untracked and inert) could not be deleted — `rm` is fenced — and
 `_t206_gate_redproof.mjs` could not be renamed to drop its `_` throwaway prefix, because `git mv`
 is fenced too. **The file now says so in its own header.** A session with those permissions should
 do both.
+
+---
+
+## WATCH 2026-09-03T23:00Z (Blade) — CLAIM: `T-216`, Chart rank 1 — audit the rest of `/rules.html` against the engine
+
+**Situation, six lines.**
+- **Watch started** 2026-09-03T23:00Z, on `claude/cloud-handoff-planning-a9ay1u`, Blade. `can_push`
+  reports healthy; `git push origin <branch>` was exercised for real and returned *Everything
+  up-to-date*; 0 ahead / 0 behind.
+- **Last progress** — commit `4af2a837`, the previous watch's addendum on CEO 190 (PARTIAL, the
+  ninth recurrence of the blind-anchor shape).
+- **The previous watch closed NOTHING.** `T-206` was worked and deliberately left open: a FULL trial
+  on `09f8658c` is owed, and his answer on `qid:t206-privacy-line` is owed.
+- **Blocked on Wyatt** — `INBOX-20260903T2340Z`, which model the Watch should run on. That half is
+  his; the measured answer (Opus 5, because `bell.ps1:122` carries no `--model` and inherits the CLI
+  default) is already on the record, and the change stays unmade until he picks.
+- **Detached trial in flight** — none. The 20:31Z FULL trial finished (10 of 10 legs, 99 min, verdict
+  FAILED on judge findings and settle timing). Its report is still **untracked** at
+  `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md` and two sessions have now declined to commit it.
+  This watch commits it — an uncommitted trial report is a verdict no other machine can read.
+- **THIS WATCH TAKES `T-216`** — Chart rank 1, score 162, unheld (`IN-HAND` empty, no ledger claim
+  under 90 minutes old). His instruction `INBOX-20260902T225008Z`: *"Do a new /rules.html that
+  explains the rules -- using the latest version of the game."* Half two is unfinished — 5 of ~20
+  claims on that public page have been checked against the code, one was found FALSE and fixed, and
+  the rest are unaudited.
+
+**Rows skipped:** none. Rank 1 was free.
+
+**No Artifact tool in this session.** Stated as a fact about this session, not as a guess about the
+Glass. The pulse goes to `.planning/wyclau/GLASS-NOTE.md` and to the Glass session by message.
