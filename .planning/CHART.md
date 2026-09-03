@@ -91,18 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
-      ⟨`T-206`⟩
-  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
-  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
-  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
-  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
-  third-party script on the site real players are using — `about.html`, `classic/`, and the new
-  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
-  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
-  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
-  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
-  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
 - [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
@@ -190,11 +178,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
       Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
       **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
@@ -222,6 +205,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
@@ -420,6 +407,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
+
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -444,6 +432,46 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.1, so its evidence no longer describes this game
+- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
+      ⟨`T-206`⟩
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
+
+  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
+  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
+  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
+  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
+  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
+  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
+  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
+  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
+  account — **only he can confirm that, and this row must not claim it as verified.**
+  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
+  "unstarted, needs an account from him" skipped it for a reason that was never true.
+  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
+  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
+  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
+  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
+  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
+  the tag being deleted later.
+  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
+  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
+  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6). **Five in six people who open
+  the game never start a voyage; four in five started voyages are abandoned.** That is a launch
+  number, and it came out of a probe written for something else.
+  **THE ONE THING GA BUYS THAT `usage.js` CANNOT: the referrer** — where the 123 came from. That is
+  the number a Reddit launch turns on. **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT
+  with a marked recommendation (game page only, no other surface) and a cheap third option (add
+  `document.referrer` to his own counter — one line, no third party). **Consent is left to him,
+  explicitly, and not defaulted.**
 - [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
       ⟨`T-207`⟩
   2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
@@ -576,6 +604,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 | <!--qid:t102-working-files-indexable--> ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. | **Let me add four lines to `robots.txt` — `Disallow` for `/art-review/`, `/notes/`, `/scripts/`, `/.planning/`.** Same shape the file already uses for `lab.html` and `stats.html`. It is minutes, not a watch, and it is worth doing whatever you decide about the question below. Say yes and the next watch does it. | 2026-09-03 |
 | <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | **My recommendation: fix it, but not this week.** It is real and it is on the engine you play on, and it is your own bug coming back — but it is a fifth of a second on a card that then reads correctly, and the file it lives in carries rules earned from a Safari near-crash, so it is not a change to make casually. The clean fix is: when a card has nothing to reveal, let the box reach its full height before painting it. Sizing: one watch, and it wants its own posed pair on all three sizes. **Third option, cheapest and honest: leave it and I will stop the trial's judge reporting it as a bug**, since it is now a known 180ms artifact rather than a mystery. | 2026-09-03 |
 | <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | **Don't generate it — make it go RED instead, once the fence above is closed.** Every page can say whether it is public, in its own tag and in `robots.txt`, so a check derives the answer with no list in it. The day a page lands unlisted, the tests fail and name it. **Generating the file instead needs a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess.** Third option: leave it and remember, which is what just failed. Sizing: the fence is minutes, the check is one watch. | 2026-09-03 |
+| <!--qid:t206-ga-turn-on--> ⟨`T-206`⟩ **You already have a Google Analytics account for this game. It has never been switched on, and switching it on is one line — so the only real question is which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's own Firebase settings already carry a Google Analytics ID, `G-2KK6EZDZSP` — Google only writes that line into the settings when Analytics is switched on for the project, so the account is almost certainly sitting in your Google login already. **Nothing on the site loads it.** No page anywhere asks Google for anything, so that account has been collecting nothing since the day it was made. This is not a setup job; it is one script tag. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by only 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. **So five out of six people who open your game never start a voyage, and four out of five voyages that start are abandoned.** | **My recommendation: switch it on, on the game page only, before the Reddit launch — and take the free third option below as well.** The one thing your own counter physically cannot see is **where those 123 people came from**, and that is exactly the number a Reddit launch turns on: did the post send anyone, and did they play. Google sees it; a page cannot see its own referrer once it is stored the way yours is. Leave `about.html`, `stats.html` and `classic/` alone — one page is enough and it is the page everyone lands on. **On a cookie notice I am not the right one to decide** and I will not quietly decide it for you: it is a third-party script on a game children play, so if you want a notice, say so and I will build one. **Third option, cheap and worth doing whichever way you go: I add the referrer to your own counter instead — one line, no third party, and your stats page gains a "where they came from" row.** That answers the launch question with nobody else watching your players. It does not replace Google (no live dashboard, no sessions, no geography), so my honest answer is *do both*. Sizing either way: one watch, no sea trial, no game logic touched. | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
