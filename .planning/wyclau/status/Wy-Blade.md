@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T06:36:59.010Z	1 task points at a file or a process that is gone — a watch corrects the wording. 6 tasks were measured on an older build, so nobody knows yet whether they are still broken — a watch re-measures them; not yours to answer.
+2026-09-03T06:57:52.928Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -16,15 +16,14 @@ None recorded.
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-03T06:24:45.060Z",
-  "updatedAt": "2026-09-03T06:25:55.973Z",
-  "progress": "0/10 legs",
+  "updatedAt": "2026-09-03T07:04:39.378Z",
+  "progress": "4/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
 2026-09-02T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T064802Z.out/.err)
 2026-09-02T07:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T072802Z.out/.err)
 2026-09-02T08:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T080802Z.out/.err)
@@ -64,4 +63,5 @@ None recorded.
 2026-09-03T04:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T045802Z.out/.err, kit: readable)
 2026-09-03T05:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T051802Z.out/.err, kit: readable)
 2026-09-03T05:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T055802Z.out/.err, kit: readable)
+2026-09-03T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T064802Z.out/.err, kit: readable)
 ```

@@ -2207,3 +2207,25 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **SO THIS ROW IS NOW BLOCKED ON A DIFFERENT THING THAN IT SAYS AT THE TOP:** not his
       permission — he gave it — but a green suite. **Whoever gets `chart_sweep_conserves_check`
       green can take this row straight through.**
+
+## T-135 — 2026-09-03 — Your ruling: the Glass's Ideas box corrupting the page after a save — GATED: awaiting his own look at the live page, which only he can do. (closed 2026-09-03 · CEO 150 · no game diff — recommend-only by his own instruction: measured, recommended, three question rows filed -- no code, because his words are 'Recommend, don't just build') ⚠ RENUMBERED T-203 → T-135 (CEO 148). I minted 203 out of thin air when restoring this row, and that ONE NUMBER INVENTED 68 PHANTOM ORPHANS — chart_sweep_conserves_check takes its ceiling from the highest OWNED handle, so jumping from 134 to 203 made every number between them look like a row that had vanished. 84 orphans, 68 of them mine, from one careless id. Take the next handle at the frontier; never a round number that looks free. ⚠ RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM. It was archived as T-124 (CHART-LOG.md:1257) with a - [x] and no close pointer — compare the entry directly beneath it, which carries (closed · CEO 143 · …). So it did not go through close_item.mjs; a sweep took it because the box was ticked, and the box was ticked on a row whose own text says it is gated on an action only Wyatt can perform. Caught by rulings_triage_check, which failed npm test for exactly the right reason: "still owes work but has no - [ ] Your ruling: … row — it has left the rulings card without reaching the Tasks card, so it is on no surface he can see." That gate is doing its job and this row is the repair, not a duplicate: if he has since looked and is satisfied, closing it through the gate takes one command and leaves a pointer this time. The reusable fault: a tick is not a close. Sweep archives what is ticked; only close_item.mjs records WHY, and a row ticked by hand loses that forever.
+
+- [x] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. (closed 2026-09-03 · CEO 150 · no game diff — recommend-only by his own instruction: measured, recommended, three question rows filed -- no code, because his words are 'Recommend, don't just build')
+      ⟨`T-135`⟩
+      ⚠ **RENUMBERED `T-203` → `T-135` (CEO 148). I minted 203 out of thin air when restoring this
+      row, and that ONE NUMBER INVENTED 68 PHANTOM ORPHANS** — `chart_sweep_conserves_check` takes
+      its ceiling from the highest OWNED handle, so jumping from 134 to 203 made every number
+      between them look like a row that had vanished. 84 orphans, 68 of them mine, from one
+      careless id. **Take the next handle at the frontier; never a round number that looks free.**
+      ⚠ **RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM.**
+      It was archived as `T-124` (`CHART-LOG.md:1257`) with a `- [x]` and **no close pointer** — compare
+      the entry directly beneath it, which carries `(closed · CEO 143 · …)`. So it did not go through
+      `close_item.mjs`; a sweep took it because the box was ticked, and the box was ticked on a row
+      whose own text says it is **gated on an action only Wyatt can perform.**
+      **Caught by `rulings_triage_check`, which failed `npm test` for exactly the right reason:**
+      *"still owes work but has no `- [ ] Your ruling: …` row — it has left the rulings card without
+      reaching the Tasks card, so it is on no surface he can see."* That gate is doing its job and
+      this row is the repair, not a duplicate: if he has since looked and is satisfied, closing it
+      through the gate takes one command and leaves a pointer this time.
+      **The reusable fault: a tick is not a close.** Sweep archives what is ticked; only
+      `close_item.mjs` records WHY, and a row ticked by hand loses that forever.

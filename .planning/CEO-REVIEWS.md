@@ -28,6 +28,34 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 150 — 2026-09-03, Wy-Blade — `T-102`: "recommend, don't just build" on the sitemap — **PARTIAL**
+
+*Watch b2. Item `T-102`, his 3:07 PM ET sitemap note, the clause a previous close left open. No commit at review time — the deliverable was a measurement, a recommendation and a question, and the CEO reviewed the working tree.*
+
+**ONE SENTENCE HE SHOULD READ FIRST (the CEO's own words):** *"The watch did the honest thing — it built nothing, it wrote its prediction first, and it correctly untangled a mix-up a previous watch left behind — but the rule it is recommending you approve does not survive contact with your own repo (it would demand a sitemap entry for **32** files, including the `art-review/` pages you explicitly said to keep out), and as of this moment the question has not been published to the Glass, so it has not actually reached you."*
+
+**WHAT IT PASSED.** *"Did it build something after you said not to? **No. This part it got right, and it deserves saying plainly.**"* — only planning notes and the Chart were touched. The prediction note's falsifiers were checked and all three clauses held. The watch's correction of a previous watch's line (*"whether to KEEP the generator"*) was independently verified and upheld: `sitemap_write.mjs:12-16` says in its own words that it reads the page list out of the existing file, so there was never a page-list generator to keep or discard. The central measurement was re-derived and confirmed: `sitemap_lastmod_check.mjs:99` loops only over `<url>` blocks already in the file, so **a page that exists with no entry is invisible to it by construction.**
+
+**FINDING 1 — A COUNT REPORTED AS A FACT ABOUT THE REPO WAS A SHELL-FILTERED SUBSET.** *"13 tracked `.html` files"* — the real number is **37**, or **18** outside `.planning/`. *"The 13 is what you get after silently dropping `art-review/`'s five pages and `.planning/`'s nineteen. Your own note names `art-review/` as a thing to exclude — so the five pages most relevant to 'what has to be kept out' are the ones the count omitted."* **ACCEPTED AND CORRECTED**, in the spec and on the Chart row.
+
+**FINDING 2 — AND THE UNDERCOUNT HID A HOLE IN THE RECOMMENDED OPTION.** The rule as first written would have demanded a `<loc>` for **32** files and failed on 13 real live pages. *"Making it work needs a hand-kept list of exceptions — which is the exact objection the spec uses at `:83-84` to reject Option B. The recommendation, as written, does not clear its own bar."* **ACCEPTED.** The option is now two halves — close the fence first, then derive from it — and the sizing moved from "one watch" to "minutes for the fence, one watch for the check."
+
+**FINDING 3 — THE FREE FINDING, AND IT IS WORTH MORE THAN THE TICKET.** *"`art-review/gallery.html`, its four siblings, the seven `notes/sketches/` mockups and `scripts/battle_sim.html` are served live at `playpastrypirates.com`, carry no `noindex` tag and are not blocked in `robots.txt`. **Google can index your working files today.** Keeping them out of the sitemap does not keep them out of the index."* **VERIFIED INDEPENDENTLY BY THE WATCH BEFORE ACTING** — only 4 pages in the repo declare a `robots` tag at all. Filed as its own question row with a four-line `robots.txt` fix; **not built**, because his sentence is *"recommend, don't just build."*
+
+**FINDING 4 — RULE 27: THE ROW HANDED HIM A FILE PATH.** *"`glass.html:553` renders it as literal markdown text, not a link — and even as a link it is a repo file path, not a page."* **ACCEPTED.** Both question cells rewritten to be decidable from the card alone, with the spec as secondary reading.
+
+**FINDING 5 — THE TIMESTAMPS WERE TYPED, NOT READ.** IN-HAND said 06:55Z; written 06:51:46Z. The spec said 07:0xZ; written 06:53:33Z. *"The ordering still holds — prediction, then spec, then chart — so the 'prediction came first' claim is sound. But a prediction note's whole value is that it cannot be back-dated."* **ACCEPTED**; the spec's stamp is corrected to the honest form.
+
+**FINDING 6 — A PROCESS NOTE, AND THE WATCH DID NOT KNOW IT AT THE TIME.** *"The entire T-102 chart entry… was committed inside `2a4a0842`, a commit whose subject and body are about **T-027** and never mention the sitemap. Nobody searching `git log --grep=sitemap` will ever find this decision."* **TRUE, AND THE CAUSE IS WORTH RECORDING: a peer session on this machine committed the whole working tree, this watch's uncommitted Chart edits included, while this watch was mid-item.** That is the two-sessions-one-branch hazard (`CLAUDE.md` §3) in a form the rules do not yet name — not a conflicting edit, but an unrelated session's `git add -A` silently absorbing another's work under its own message. Filed rather than fixed.
+
+**RECURRENCE CHECK vs 149.** *"Fixed where it was watched; recurred where it wasn't."* The prediction with named falsifiers is genuinely repaired. But the same shape returned in clothes the prediction did not cover — the 13-file count, and *"the question is live on his Your Call card"*, which one look at `LAST-PUBLISH` would have refuted. **The lesson, in the CEO's words: *"the claims inside the prediction's fence were checked; the claims outside it were not checked at all."*** **The generalisation this watch takes from it: a prediction protects the claim you write it for and nothing else, so the incidental numbers in a report need the same treatment as the headline one.**
+
+**BULK READING:** *"No waste worth naming"* — four files read, all needed. Its one criticism is the reverse: one delegated sweep (*"list every tracked `.html` and say for each whether it declares `noindex` or is `Disallow`ed"*) would have caught both findings 1 and 2 in a single pass. **Taken.**
+
+**VERDICT: PARTIAL.**
+
+---
+
 ## CEO Review 149 — 2026-09-03, Wy-Blade — `T-027`: he asked "verify this", so what is actually true? — **PARTIAL**
 
 > ⚠ **RENUMBERED 148 → 149. THE SIXTH COLLISION, AND THE SECOND CAUGHT BY THE ASSERTION RATHER THAN BY A PERSON.** This review claimed 148 order-independently immediately before finalising and was correct at that moment; a peer session filed its own 148 (`T-012`, commit `39575082`) in the interval before it was written to disk. Refused at insert time and renumbered to the later value, per the banner's rule. **Where the text below says "CEO 148", it means THIS review.**

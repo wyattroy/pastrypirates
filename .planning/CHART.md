@@ -440,25 +440,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
-- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
-      ⟨`T-135`⟩
-      ⚠ **RENUMBERED `T-203` → `T-135` (CEO 148). I minted 203 out of thin air when restoring this
-      row, and that ONE NUMBER INVENTED 68 PHANTOM ORPHANS** — `chart_sweep_conserves_check` takes
-      its ceiling from the highest OWNED handle, so jumping from 134 to 203 made every number
-      between them look like a row that had vanished. 84 orphans, 68 of them mine, from one
-      careless id. **Take the next handle at the frontier; never a round number that looks free.**
-      ⚠ **RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM.**
-      It was archived as `T-124` (`CHART-LOG.md:1257`) with a `- [x]` and **no close pointer** — compare
-      the entry directly beneath it, which carries `(closed · CEO 143 · …)`. So it did not go through
-      `close_item.mjs`; a sweep took it because the box was ticked, and the box was ticked on a row
-      whose own text says it is **gated on an action only Wyatt can perform.**
-      **Caught by `rulings_triage_check`, which failed `npm test` for exactly the right reason:**
-      *"still owes work but has no `- [ ] Your ruling: …` row — it has left the rulings card without
-      reaching the Tasks card, so it is on no surface he can see."* That gate is doing its job and
-      this row is the repair, not a duplicate: if he has since looked and is satisfied, closing it
-      through the gate takes one command and leaves a pointer this time.
-      **The reusable fault: a tick is not a close.** Sweep archives what is ticked; only
-      `close_item.mjs` records WHY, and a row ticked by hand loses that forever.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -516,7 +497,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 | <!--qid:t017-name-type-too-small--> ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. | **Take a look at the third picture and tell me if it is readable.** If it is not, the honest fix is a bigger circle rather than smaller words — the disc is 66px and it is being asked to hold a name, a crate and a price. A third option: move the name out to the sentence above and leave only the price in the circle. | 2026-09-03 |
 | <!--qid:t017-fan-mixed-sizes--> ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. | **Match them — shrink every circle in a fan to whatever its longest label needs.** One gesture, one look. The cost is that a fan containing one long name makes *every* label in it small, including short ones that had room. Say the word and it is a few lines. | 2026-09-03 |
 | <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
-| <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build on the sitemap: should the page list be generated?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and the next page we ship (`/rules.html`) would vanish from Google without a sound. The list is correct today: two pages, and they are exactly the two that declare themselves public. | **Don't generate it — make it go RED instead.** Every page already says whether it is public, in its own `robots` tag and in `robots.txt`, so a check can derive the answer without anyone keeping a list. The day a page lands unlisted, the tests fail and name it. Generating the file instead would need a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess. **One watch.** Reasoning and the third option: [`SPEC-SITEMAP-COVERAGE.md`](SPEC-SITEMAP-COVERAGE.md). | 2026-09-03 |
+| <!--qid:t102-working-files-indexable--> ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. | **Let me add four lines to `robots.txt` — `Disallow` for `/art-review/`, `/notes/`, `/scripts/`, `/.planning/`.** Same shape the file already uses for `lab.html` and `stats.html`. It is minutes, not a watch, and it is worth doing whatever you decide about the question below. Say yes and the next watch does it. | 2026-09-03 |
+| <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | **Don't generate it — make it go RED instead, once the fence above is closed.** Every page can say whether it is public, in its own tag and in `robots.txt`, so a check derives the answer with no list in it. The day a page lands unlisted, the tests fail and name it. **Generating the file instead needs a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess.** Third option: leave it and remember, which is what just failed. Sizing: the fence is minutes, the check is one watch. | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -707,18 +689,32 @@ session's mandate is harvest-and-publish only.**
      has a reason to look. **Whoever fates this row: the decision is still his to make, after the
      fact, and the honest question is whether to KEEP the generator, not whether to write one.**
 
-  ✅ **FATED AND ANSWERED 2026-09-03T07:0xZ by watch b2. Point 2 is delivered as the recommendation
-  he asked for; point 1 is now a ranked row (below) instead of a note that gets consumed once.**
-  [`SPEC-SITEMAP-COVERAGE.md`](SPEC-SITEMAP-COVERAGE.md), and the question is live on his Your Call
-  card (`qid:t102-sitemap-coverage`). **Recommendation: do NOT generate the list — teach the gate
-  that already exists to look in the other direction**, because a directory walk needs a hand-kept
-  exclusion list and that is the same rot moved somewhere he cannot see it. Measured, not assumed:
-  the list is correct today (2 entries; `index.html:16` and `about.html:14` are the only two pages
-  that declare `index, follow`, out of 13 tracked `.html` files), and the risk is real and
-  unguarded — `sitemap_lastmod_check.mjs` iterates `<url>` blocks, so **a page that exists with no
-  entry is invisible to it by construction**, and `/rules.html` (`T-100`) is the next page we ship.
-  Prediction written before the measurement: `PREDICTION-20260903T0655Z-T102.md`, all three clauses
-  held. **Nothing was built** — his sentence is *"Recommend, don't just build."*
+  ✅ **FATED AND ANSWERED 2026-09-03, 06:5xZ, by watch b2, CEO 150 (PARTIAL). Point 2 is delivered
+  as the recommendation he asked for; point 1 is now a standing question row instead of a note that
+  gets consumed once.** Reasoning: [`SPEC-SITEMAP-COVERAGE.md`](SPEC-SITEMAP-COVERAGE.md); three
+  rows now on his Your Call card (`qid:t102-search-console`, `qid:t102-working-files-indexable`,
+  `qid:t102-sitemap-coverage`). Prediction written before the measurement:
+  `PREDICTION-20260903T0655Z-T102.md`, all three clauses held. **Nothing was built** — his sentence
+  is *"Recommend, don't just build."*
+  **THE RISK HE NAMED IS REAL AND UNGUARDED, and that measurement stands:**
+  `sitemap_lastmod_check.mjs:99-127` builds its list from the sitemap's own `<url>` blocks and loops
+  only over those, so **a page that exists with no entry is invisible to it by construction**; the
+  gate's own header states the assumption at `:22-24`. `/rules.html` (`T-100`) is the next page we
+  ship.
+  ⚑ **AND THE BIGGEST THING HERE IS CEO 150's, NOT THE WATCH'S: THIRTEEN WORKING-FILE PAGES ARE
+  CRAWLABLE ON THE LIVE DOMAIN TODAY.** Five `art-review/`, seven `notes/sketches/`,
+  `scripts/battle_sim.html` — none carries `noindex`, none is `Disallow`ed. Only **4** pages in this
+  repo declare a `robots` tag at all (`index.html:16`, `about.html:14`, `classic/index.html:15`,
+  `classic/stats.html:8`). **His note calls `art-review/`, `scripts/` and `.planning/` "correctly
+  EXCLUDED" — they are excluded from the SITEMAP, which is an invitation and not a fence.** Filed as
+  the first question row, four `robots.txt` lines, not built.
+  ⚠ **A CORRECTION THE WATCH OWES: it wrote "13 tracked `.html` files in the repo" and that is
+  false — 37, or 18 outside `.planning/`.** The 13 was a shell-filtered count reported as a fact
+  about the repo, and the five `art-review/` pages it dropped were the ones the question was about.
+  **The undercount hid a hole in the recommendation itself:** the coverage rule as first written
+  would have demanded entries for 32 files and failed, so it did not clear the bar it uses to reject
+  the generator. Both fixed in the spec; the sizing moved from "one watch" to "minutes for the fence,
+  one watch for the check."
 
   ⚠ **AND A CORRECTION TO THE LINE DIRECTLY ABOVE, which I owe in the open.** *"The honest question
   is whether to KEEP the generator"* reads `sitemap_write.mjs` as the thing this sentence of his is
