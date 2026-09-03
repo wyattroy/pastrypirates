@@ -927,8 +927,24 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02T13:18:28.755Z**: *"Remove the \"Your rulings in hand\"
       ⟨`T-087`⟩
-  box from the Glass"* → **NOT YET FATED — harvested verbatim, not investigated. This session's
-  mandate is harvest-and-publish only.**
+  box from the Glass"* → **SHIPPED 2026-09-03T07:2xZ by watch c1, CEO 152 (PARTIAL), commit
+  `2a7fc059`.** The card is gone from `scripts/wyclau/glass.mjs` and from the rendered page, and the
+  `.twoCol` grid went with it. **Still owed: a republish** — c1 had no Artifact tool; the ask is in
+  `.planning/wyclau/GLASS-NOTE.md` for the next session that can, so until then the box is off the
+  code and still on his screen.
+  **THE FINDING, not the removal, was the valuable half:** that card was the ONLY surface rendering
+  the `## RULED` waiting room, and four of his rulings were parked in it. Two were already finished
+  and went to SETTLED; two got task rows. `rulings_triage_check.mjs` (8 cases) now fails the build
+  on any ruling stranded there, and `retireQuestion()` writes the task row in the same act that
+  records his answer — so the harvest can no longer leave one behind.
+  ⚠ **THIS FATE IS HAND-WRITTEN, WHICH THE PROCESS FORBIDS, AND HERE IS EXACTLY WHY.** The close
+  gate was run — `close_item.mjs --item="T-087"` — and it **ticked and archived `T-137` instead**, a
+  live GATED-on-Wyatt row three hundred lines away. Reverted before it was committed. The gate has
+  no `- [ ]` row to find for an idea-inbox entry, and its fallback matcher hands every unmatched
+  needle to the last open row in the file. Running it a second time would corrupt the same row a
+  fourth time, so it was not run again. **The mechanism, the three-times-over evidence and the sized
+  one-line fix are on `T-137`.** Whoever fixes that should re-close this item through the gate and
+  delete this paragraph.
 
 - **Wyatt, written on the Glass, 2026-09-02T12:29:35.591Z**: *"The trade winds squares should also
       ⟨`T-082`⟩
