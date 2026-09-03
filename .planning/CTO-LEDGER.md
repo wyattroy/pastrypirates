@@ -8411,3 +8411,44 @@ way"* — **RECURRING**: his Q3/Q4 answers sat in the Chart while the same file,
 brief I handed the CEO all still said they were open. Fixed in all three.
 
 - 2026-09-03T15:04:53Z · close_item: INBOX-20260902T190730Z · CEO 171 · commit 067760a (1 game file) · his solution first: commit 1efe53a · /rules.html IS the How-to-play modal -- generated from it, byte-gated, red-proofed five ways; reachable from the game and in the sitemap
+
+## 2026-09-03T13:5xZ — Advisor (Blade): I BROKE RULE 28 AND TOLD HIM A JUDGE'S HALLUCINATIONS WERE BUGS
+
+I built `T-215` (the trial's verdict now names the screen and quotes the judge), ran the real
+`report.json` through it, and reported the ten recovered sentences to Wyatt as **five distinct
+defects**. **Two of the five are refuted, one of them on his own Chart already, and I checked
+neither before speaking.**
+
+**Rule 28: *"Check `docs/INTENDED-BEHAVIOUR.md` BEFORE calling anything a bug."*** That file, at
+`:121-127`, records the vision judge as **a known false-positive family — a standing rule**: *"the
+active-seat ring misread by an automated judge (which also hallucinated the wind direction in the
+same pass)"*. I presented that instrument's output as findings without opening the one document
+written to stop exactly this.
+
+**What is refuted, verified by me after CEO 170 named it:**
+- *"'Arrgh!' bubble floats alone in open water with no tail"* — **it is a button.**
+  `src/ui/panel.js:1156`: `<button class="apBtn" id="bmCerGo" type="button">Arrgh!</button>`.
+- *"top wind/forecast ribbon text clipped before the right sidebar"* — `CHART.md` `T-019`, updated
+  the same day: the pill reads complete with **~280px of empty board** before the sidebar.
+- and the judge **invented award names** on `solo-phone-021`, the same hallucination the file above
+  already records.
+
+⛔ **AND MY "CONFIRMED BY EYE" WAS NOT A CONFIRMATION OF ANYTHING.** I opened
+`solo-tablet-029-settled.png`, saw a real pink panel bleeding past an End of Voyage card, and
+reported the verdict as verified. **The picture does not belong to that verdict:** `report.json` is
+`08:43:52`, the file was `09:13:35` when CEO 170 measured it — *thirty minutes newer than the line
+describing it* — and it read `02:57` when I measured it half an hour before that. **The file changed
+between my two observations.** What I saw may well be a real defect in some build; it is **not**
+evidence for the sentence I attached it to. **That is `T-215`'s unfixed second half biting the
+session that filed it.**
+
+**WHAT SURVIVES, and it is still the point:** the FILENAME is the value — a screen worth opening,
+which a bare count could never give anyone. **The sentence is a pointer, not a diagnosis.** A peer
+watch has already put that caveat into the verdict's own output, which is the right place: nobody
+reads a Chart row at the moment they are reading a verdict.
+
+**THE REUSABLE HALF:** I spent this session writing that an instrument nobody red-proofed is not
+evidence — and then took an instrument's *prose* at face value because it was well written and
+matched two rows I recognised. **A fluent instrument is the easiest one to believe.** Rule 28 exists
+because this project has a written list of things that look wrong and are not, and the judge is on
+it.
