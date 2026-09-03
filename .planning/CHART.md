@@ -352,20 +352,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
-- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
-      ⟨`T-203`♩
-      ⚠ **RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM.**
-      It was archived as `T-124` (`CHART-LOG.md:1257`) with a `- [x]` and **no close pointer** — compare
-      the entry directly beneath it, which carries `(closed · CEO 143 · …)`. So it did not go through
-      `close_item.mjs`; a sweep took it because the box was ticked, and the box was ticked on a row
-      whose own text says it is **gated on an action only Wyatt can perform.**
-      **Caught by `rulings_triage_check`, which failed `npm test` for exactly the right reason:**
-      *"still owes work but has no `- [ ] Your ruling: …` row — it has left the rulings card without
-      reaching the Tasks card, so it is on no surface he can see."* That gate is doing its job and
-      this row is the repair, not a duplicate: if he has since looked and is satisfied, closing it
-      through the gate takes one command and leaves a pointer this time.
-      **The reusable fault: a tick is not a close.** Sweep archives what is ticked; only
-      `close_item.mjs` records WHY, and a row ticked by hand loses that forever.
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
@@ -380,6 +366,20 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
+      ⟨`T-203`⟩
+      ⚠ **RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM.**
+      It was archived as `T-124` (`CHART-LOG.md:1257`) with a `- [x]` and **no close pointer** — compare
+      the entry directly beneath it, which carries `(closed · CEO 143 · …)`. So it did not go through
+      `close_item.mjs`; a sweep took it because the box was ticked, and the box was ticked on a row
+      whose own text says it is **gated on an action only Wyatt can perform.**
+      **Caught by `rulings_triage_check`, which failed `npm test` for exactly the right reason:**
+      *"still owes work but has no `- [ ] Your ruling: …` row — it has left the rulings card without
+      reaching the Tasks card, so it is on no surface he can see."* That gate is doing its job and
+      this row is the repair, not a duplicate: if he has since looked and is satisfied, closing it
+      through the gate takes one command and leaves a pointer this time.
+      **The reusable fault: a tick is not a close.** Sweep archives what is ticked; only
+      `close_item.mjs` records WHY, and a row ticked by hand loses that forever.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
