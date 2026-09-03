@@ -14530,3 +14530,112 @@ way it will actually be broken.
 4. Narrow `:129`'s summary to what was actually measured and name what it did not look at. That is
    the correction 186 asked for and it is back.
 5. Hold the footer line and the FULL trial as hard preconditions on the merge to `main`.
+
+## CEO 190 — `T-206`, CEO 189's findings closed (commit `c72d6d44`) — **PARTIAL**
+
+**ONE SENTENCE FOR HIM:** *Every hole the last reviewer found in the Google Analytics safety check is genuinely plugged — I broke the check five ways myself and it caught all five — but I then found a sixth in about a minute: someone can still switch on Google tracking from inside the game's own code instead of the page, and the check will say "all clear".*
+
+**Verdict: PARTIAL.** No browser and no server started — a 10-leg trial was at sea and I added nothing to it. Every mutation ran in an isolated copy under `%TEMP%`, verified applied before its result was read; the live tree's tracked files were never edited.
+
+⚠ **TWO SCRATCH FILES I COULD NOT DELETE.** `node` here is only permitted on `scripts/…` paths, so my mutation harness had to live at `scripts/qa/_ceo190_mutate.mjs` and `scripts/qa/_ceo190_crashproof.mjs`. Deletion was then denied by the permission layer (three attempts: `rm`, `Remove-Item`, `git clean`). Both are untracked, `_`-prefixed, and touch nothing. **The next watch should delete them.** I am naming this rather than leaving it for someone to find.
+
+### What held up — verified, not taken on trust
+
+- **The gate really does catch CEO 189's five mutations, by the right case.** I ran `_t206_gate_redproof.mjs` myself: control green, 5/5 caught, each matching the message it is supposed to print. I then re-ran three of them independently through my own harness (raw snippet in a new tracked page, `analytics_storage` flipped to `"granted"`, denial moved after the tag load) and got the same reds with the same case names.
+- **⛔ THE VACUITY FIX IS REAL, AND I PROVED IT RATHER THAN READING IT.** This was the claim most worth doubting. I built a whole fake ROOT in `%TEMP%` containing both scripts, appended `this is not javascript {{{` to the *gate* copy, and ran the *harness* copy inside it. Result: **6 of 6 FAIL**, control first — *"the gate FAILS on an unmutated copy"* — and every mutant printed *"exits non-zero … but NOT for the stated reason … A gate that crashes exits non-zero too, and would read here as a catch."* `_t206_gate_redproof.mjs:191` is doing exactly what the commit says it does. **A session caught its own instance of the 186/188 vacuity shape, disclosed it in the open, and fixed it in a way that holds under an adversarial re-test.** First time in this run that the recurring fault was found before the CEO rather than by it.
+- **`npm test` is exit 0 and the count is honest.** Ran it: exit 0. `gate_count_check` → *"gates in `npm test`: 130 … PASS"*, and `analytics_consent_check` is genuinely 129th of 130, printing 9 cases (was 7).
+- **The derivation numbers are explicable now.** `_t206_walk_audit.mjs` reproduces the 1753 on demand — 37 `.tmp-*` Chrome profile dirs at 47 pages each — and `git ls-files` gives 22 servable pages / 50 shipped scripts, both of which I recounted.
+- **The "no game code" claim holds.** `git show --stat c72d6d44` is four files, all `scripts/qa/*.mjs`. Nothing loads them. `gear.mjs` confirms the commit's account word for word — *"nothing uncommitted, so this reads what is AHEAD OF origin/main"*, then lists the whole branch. The FULL it prints is not this change's.
+- **The flake is characterised, not wished away.** `_t206_flake_audit.mjs 3` → exit 0, exit 0, exit 0.
+- **The record is honest and CEO 189's item 5 is held.** `.planning/CTO-LEDGER.md:9772-9784` states plainly that the 20:31Z trial sailed build `2026.09.03.4`, **started before analytics existed, so it does not cover `09f8658c`**, that its report is still **untracked**, and that the footer privacy line is now a real question on his page (`qid:t206-privacy-line`, `.planning/CHART.md:1116`) rather than prose in a row. The prediction file exists, is pre-registered, names its own falsifiers, and **its second claim was wrong and the falsifier is what caught it** — recorded as such.
+
+### ⛔ Finding 1 — THE NINTH RECURRENCE. The gate reads the PAGES and never the SCRIPTS, and its PASS line asserts the opposite
+
+`analytics_consent_check.mjs:211` — `for (const p of PAGES ?? [])`. Case 6, the case written specifically to close CEO 189's Finding 1, iterates **pages only**. `SHIPPED_JS` is already computed at `:71` (50 files) and is used at `:138` by the consent-grant scan and nowhere else.
+
+Mutation, isolated copy, verified applied — three lines appended to `src/orchestrator.js`, the file this project edits most, creating a script element whose src is `googletagmanager.com/gtag/js`:
+
+```
+9/9 PASS   exit 0
+PASS — … none of the 22 tracked pages loads a tag of its own …
+```
+
+On a build where the game page now fetches Google's tag with **no consent denial at all**, on staging, on localhost, and on every sea-trial page load.
+
+**The tell is inside the case itself.** `:209` declares `const ALLOWED = "src/analytics.js"; // the one file whose whole job is this` — and `ALLOWED` never filters anything. It appears only inside two message strings (`:217`, `:218`). **A one-file exemption is only meaningful for a scan over files that includes it; the case is written as though it scans scripts, and it does not.** And `:218` then says out loud: *"the only route to Google is src/analytics.js"* — which my mutation makes false while the line still prints.
+
+CEO 189's sentence was *"the realistic mistake is not editing this project's analytics module, it is pasting the snippet."* The HTML paste is now caught in all 22 tracked pages including `classic/index.html`. **The same paste one file sideways, as three lines of JavaScript, is not.**
+
+### ⛔ Finding 2 — `google-analytics.com` is not in the marker list, and it is a real Google endpoint
+
+`:208` — the marker list holds `googletagmanager\.com`, `gtag\/js`, `firebase-analytics` and `getAnalytics\(`. A `<script async src="https://www.google-analytics.com/analytics.js">` pasted into `index.html`'s head, verified applied: **9/9 PASS, exit 0.**
+
+That is the host for legacy Universal Analytics *and* for GA4's own `/g/collect`. It is the second-most-likely thing to be pasted after `gtag.js`, and the marker list stops one hostname short. **One regex closes it.**
+
+*(Related, lower: a first-party tagging proxy — `https://metrics.playpastrypirates.com/mp/js?id=…` — also passed. Not closable by a host list; the honest response is a line in `NOT_LOOKED_AT`, not a regex.)*
+
+### ⚠ Finding 3 — the red proof is NOT in `npm test`, and its own header says it is
+
+`_t206_gate_redproof.mjs:11-13`: *"**A finding proved by hand once is a finding that comes back.** This turns each of those mutations into something `npm test` re-runs, so the gate can never again go blind to them silently."*
+
+- `grep -c "_t206_gate_redproof" package.json` → **0**.
+- Nothing anywhere references it — four hits repo-wide, all prose or its own two files.
+- `gate_count_check` says 130 and **cannot see an orphan by construction** — which this repo already learned and wrote down at `scripts/deploy-staging.sh:74-82`: *"CEO 92 split the test script programmatically and found 93 gates with that check among NONE of them: it existed, it passed when run by hand, and NOTHING RAN IT."*
+- And the `_` prefix is this repo's own throwaway marker — the sibling `_t206_flake_audit.mjs:2` opens with the word *"Throwaway"*.
+
+**So the harness that is this commit's headline defence is a file named as disposable, wired into nothing, whose header claims `npm test` runs it.** A comment making a behavioural claim that is false today, in the commit whose whole subject is instruments that lie about their own reach.
+
+### ⚠ Finding 4 — the grant scan fails on ordinary prose, and says the wrong thing when it does
+
+`:139` — `/["']granted["']/` applied to all 72 tracked pages and shipped scripts. Mutation: a page containing `Permission "granted" by the artists.`
+
+```
+FAIL  something grants consent in credits2.html — he ruled "cookieless, no banner", so nothing should ever be able to change its mind
+```
+
+It fails safe, which is why this is not a ⛔. But it is CEO 182's *"PASS produced by prose"* turned inside out into **FAIL produced by prose**, with a message that misdescribes what it found. One quoted word in future copy would redden the build and send the next session hunting a consent grant that does not exist.
+
+### Finding 5 — two disclosed blind spots whose consequence is not disclosed
+
+- **Untracked pages reach a public address.** A `promo.html` with the raw snippet, never `git add`ed → **9/9 PASS**. `scripts/deploy-staging.sh:195` rsyncs **the working tree** minus a fixed exclude list; an untracked root page is not excluded. "git does not track it" does not mean "nobody can load it" — it means "production cannot serve it, staging can."
+- **`servable()` at `:65` rests on Jekyll staying on.** A raw snippet in `_next/page.html` → **9/9 PASS**. There is no `.nojekyll` in `git ls-files` today, so the filter is correct today. The day one appears — a single empty file — the filter becomes silently wrong and nothing will say so.
+
+### Finding 6 — minor: a second property can be configured on the game page
+
+A stray inline `gtag('config','G-EVILEVIL1')` in `index.html` → **9/9 PASS**. `index.html` already loads `gtag.js` through `src/analytics.js`, so that line ships this game's traffic to a second Google property. Cookieless, so no cookie reaches a child — which is why it is minor. It is still data leaving to a property nobody named.
+
+### Recurrence vs 189 / 186 / 182
+
+- **The vacuity shape (186, 188) did NOT recur** — caught by the author, disclosed, and the fix survives an adversarial re-test I ran myself.
+- **The blind-anchor shape (182 → 186 → 189) DID recur, ninth time, one layer out again.** 182: blind to its subject. 186: anchored to the statement, blind to the definition. 189: anchored to the function, blind to the page. **190: anchored to the page, blind to the script** — with the script list already computed three lines away and the exemption constant sitting dead inside a message string.
+
+### NET: **PARTIAL**
+
+All five of CEO 189's ordered items are closed and I proved four by re-running its mutations rather than reading a report. `npm test` is green at 130 and the record is honest about the trial it owes and the copy line it breaks.
+
+What did not happen is the thing the commit leads with. It says the gate now guards *"the realistic mistake."* It guards the realistic mistake **in HTML**. Three lines of JavaScript in the file this project edits most walk past all nine cases, and the line the gate prints while they do is a false statement about the build.
+
+**What I would do first, in order:**
+
+1. **Make case 6 scan `[...PAGES, ...SHIPPED_JS]`, exempting `ALLOWED`** — turn the dead constant at `:209` into the filter it is written as.
+2. **Add `/google-analytics\.com/` to `MARKERS` at `:208`.**
+3. **Decide what `_t206_gate_redproof.mjs` is, and make the file say it.** Wiring it in is the better answer — but the sentence must not outlive the choice either way.
+4. **Narrow `:218`** and add *"shipped scripts are not scanned for a tag"* to `NOT_LOOKED_AT`.
+5. **Unchanged from 189, and still the merge gate:** his answer on `qid:t206-privacy-line`, and a FULL trial that actually covers `09f8658c`. **Its report is still untracked at `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md` and somebody must commit it.**
+6. Delete `scripts/qa/_ceo190_mutate.mjs` and `scripts/qa/_ceo190_crashproof.mjs` — mine, and I was not permitted to remove them.
+
+---
+
+### ⚑ WHAT THE WATCH DID WITH CEO 190, same watch, commit `<this one>`
+
+**All six items are closed except 5 (his call and the trial) and 6 (the permission fence).** Red first, again: the two ⛔ mutations were added to the harness and **both reproduced against the gate as CEO 190 found it** before anything was changed.
+
+- **1 + 2 (⛔).** Case 6 now scans `[...PAGES, ...SHIPPED_JS]` filtered by `ALLOWED`, so the dead constant is the filter it was written as, and `google-analytics.com` is in the markers. Both mutations now go red naming the file.
+- **3.** Wired into `package.json` `scripts.test` as **gate 131**, ceiling raised 130 → 131 with its reason recorded in `_ceiling_raise_131` (`quiet_gate_report`: 0 of 18 candidates, eighteenth raise running). **It is the first red proof in the chain.** ⚠ The `_` filename could not be changed — `git mv` and `rm` are both fenced for this session — so the file now says so in its own header rather than carrying a name that contradicts its job.
+- **4.** The grant scan matches the SHAPE of a grant (one of the four storage keys set to `"granted"`), so prose no longer reddens the build — and that is now a **negative case** in the harness, the only one: it asserts the gate stays GREEN. A gate that cries wolf gets disabled, which ends where a blind gate ends.
+- **5 (Finding 5).** Both consequences are now written into `NOT_LOOKED_AT` in the gate's own PASS line: that `deploy-staging.sh` rsyncs the working tree so an untracked page can still reach staging, and that the Jekyll filter dies silently the day a `.nojekyll` appears.
+- **6 (Finding 6).** Closed too, since it cost four lines: no measurement id other than the module's own may appear in any tracked page or shipped script, and the id set is **derived from `MEASUREMENT_ID`** so it cannot drift.
+
+**Harness: control green, 8 mutations caught each by the right case, 1 negative case green. `npm test` exit 0 at 131 gates.**
+
+⚠ **AND THE CEO'S OWN TWO SCRATCH FILES ARE STILL THERE.** `scripts/qa/_ceo190_mutate.mjs` and `_ceo190_crashproof.mjs` — this watch tried to delete them and hit the same permission fence the CEO hit. Untracked, inert, and still owed.

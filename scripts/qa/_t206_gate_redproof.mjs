@@ -12,6 +12,19 @@
  * mutations into something `npm test` re-runs, so the gate can never again go blind to them
  * silently. It is the "show it broken" half of the four steps, kept.
  *
+ * ⚠ THAT SENTENCE WAS FALSE WHEN IT WAS FIRST WRITTEN, AND CEO 190 CAUGHT IT — in the commit whose
+ * whole subject was instruments that lie about their own reach. `grep -c` for this filename in
+ * `package.json` returned **0**: a file named as disposable, wired into nothing, whose header
+ * claimed the build ran it. It is now genuinely in the chain (`package.json` `scripts.test`, gate
+ * 131, ceiling raised with its reason recorded beside it), so the sentence is true. **It is the
+ * first red proof in this suite** — the other eighteen in `scripts/qa/` are run by hand, which is
+ * exactly why nobody knows whether they still work.
+ *
+ * ⚠ AND THE FILENAME STILL SAYS OTHERWISE. The `_` prefix is this repo's throwaway marker and this
+ * file is no longer throwaway; it should be `analytics_gate_redproof_check.mjs`. The watch that
+ * wired it in was fenced out of both `git mv` and `rm` by this machine's permission layer. Naming
+ * the mismatch is the honest half a session can actually do; renaming is owed.
+ *
  * HOW IT WORKS, and the part that matters: every mutation is applied to an ISOLATED COPY of the
  * tree, **verified applied before the result is read**, and the gate is then run inside that copy.
  * The live tree is never touched. A CONTROL run with no mutation must PASS — a harness whose
@@ -101,7 +114,7 @@ const MUTATIONS = [
   {
     name: "a raw Google tag pasted into index.html, with no consent default",
     why: "CEO 189 Finding 1 — the page a child loads now writes a cookie, and the gate only ever looked inside src/analytics.js",
-    expect: /loads a Google analytics tag directly/,
+    expect: /reaches a Google analytics endpoint directly/,
     apply(dir) {
       const f = join(dir, "index.html");
       const t = readFileSync(f, "utf8");
@@ -114,7 +127,7 @@ const MUTATIONS = [
   {
     name: "the same raw tag pasted into classic/index.html",
     why: 'CEO 189 Finding 4 — /classic is the option he explicitly DECLINED, and the gate\'s notWant list stops one file short of his words',
-    expect: /loads a Google analytics tag directly/,
+    expect: /reaches a Google analytics endpoint directly/,
     apply(dir) {
       const f = join(dir, "classic", "index.html");
       if (!existsSync(f)) return null;
@@ -123,6 +136,34 @@ const MUTATIONS = [
       if (at < 0) return null;
       writeFileSync(f, t.slice(0, at) + RAW_GA_SNIPPET + "\n" + t.slice(at));
       return () => readFileSync(f, "utf8").includes("googletagmanager.com/gtag/js?id=");
+    },
+  },
+  {
+    name: "the SAME raw tag, three lines of JavaScript in src/orchestrator.js instead of HTML",
+    why: "CEO 190 Finding 1 — the ninth recurrence. Case 6 scanned PAGES and never SHIPPED_JS, which was already computed three lines away, so the identical paste one file sideways walked past all nine cases while the gate printed 'the only route to Google is src/analytics.js'",
+    expect: /reaches a Google analytics endpoint directly/,
+    apply(dir) {
+      const f = join(dir, "src", "orchestrator.js");
+      if (!existsSync(f)) return null;
+      writeFileSync(f, readFileSync(f, "utf8") + `
+const _s = document.createElement("script");
+_s.src = "https://www.googletagmanager.com/gtag/js?id=G-2KK6EZDZSP";
+document.head.appendChild(_s);
+`);
+      return () => /googletagmanager\.com\/gtag\/js/.test(readFileSync(f, "utf8"));
+    },
+  },
+  {
+    name: "google-analytics.com/analytics.js pasted into index.html — a real Google endpoint the marker list missed",
+    why: "CEO 190 Finding 2 — that host serves legacy Universal Analytics AND GA4's own /g/collect, and it is the second-most-likely thing to be pasted after gtag.js",
+    expect: /reaches a Google analytics endpoint directly/,
+    apply(dir) {
+      const f = join(dir, "index.html");
+      const t = readFileSync(f, "utf8");
+      const at = t.indexOf("</head>");
+      if (at < 0) return null;
+      writeFileSync(f, t.slice(0, at) + `<script async src="https://www.google-analytics.com/analytics.js"></script>\n` + t.slice(at));
+      return () => readFileSync(f, "utf8").includes("google-analytics.com/analytics.js");
     },
   },
   {
@@ -135,6 +176,34 @@ const MUTATIONS = [
       writeFileSync(f, readFileSync(f, "utf8") +
         '\nif (typeof window !== "undefined" && window.gtag) window.gtag("consent","update",{ analytics_storage: "granted" });\n');
       return () => /analytics_storage:\s*"granted"/.test(readFileSync(f, "utf8"));
+    },
+  },
+  {
+    name: "a stray gtag('config') naming a SECOND Google property on the game page",
+    why: "CEO 190 Finding 6 — index.html already loads the tag through the module, so one extra line ships his players' traffic to a property nobody chose",
+    expect: /a second Google property is named outside/,
+    apply(dir) {
+      const f = join(dir, "index.html");
+      const t = readFileSync(f, "utf8");
+      const at = t.indexOf("</head>");
+      if (at < 0) return null;
+      writeFileSync(f, t.slice(0, at) + `<script>gtag('config','G-EVILEVIL1');</script>\n` + t.slice(at));
+      return () => readFileSync(f, "utf8").includes("G-EVILEVIL1");
+    },
+  },
+  {
+    /* ⚠ A NEGATIVE CASE, and the only one here. Every other mutation asserts the gate goes RED;
+       this one asserts it stays GREEN. CEO 190 Finding 4: the grant scan matched a quoted
+       `granted` ANYWHERE, so ordinary English on a credits page reddened the build and would have
+       sent the next session hunting a consent grant that does not exist. A gate that cries wolf on
+       prose gets disabled, which is the same end state as a gate that is blind. */
+    name: "ordinary English — a page saying Permission \"granted\" by the artists — must NOT redden the build",
+    why: "CEO 190 Finding 4 — CEO 182's 'a PASS produced by prose', inside out into a FAIL produced by prose",
+    mustStayGreen: true,
+    apply(dir) {
+      const f = join(dir, "credits2.html");
+      writeFileSync(f, `<!doctype html><html><body><p>Permission "granted" by the artists.</p></body></html>\n`);
+      return () => existsSync(f) && readFileSync(f, "utf8").includes('"granted"');
     },
   },
   {
@@ -187,13 +256,18 @@ for (const m of MUTATIONS) {
     if (!verify()) { fail(`the mutation "${m.name}" did not take effect in the copy — a no-op mutation always "passes" and proves nothing`); continue; }
     restage(dir);
     const { code, out } = runGate(dir);
-    if (code === 0) fail(`⛔ THE GATE SAYS PASS with ${m.name}.\n        ${m.why}`);
-    else if (!m.expect.test(out)) fail(`the gate exits non-zero with ${m.name}, but NOT for the stated reason — nothing matching /${m.expect.source}/ was printed. A gate that crashes exits non-zero too, and would read here as a catch:\n${out.trim().split("\n").slice(-6).join("\n")}`);
+    if (m.mustStayGreen) {
+      if (code === 0) pass(`the gate correctly stays GREEN: ${m.name}`);
+      else fail(`⛔ THE GATE GOES RED on ${m.name}.\n        ${m.why}\n${out.trim().split("\n").filter((l) => l.includes("FAIL")).join("\n")}`);
+    }
+    else if (code === 0) fail(`⛔ THE GATE SAYS PASS with ${m.name}.\n        ${m.why}`);
+    else if (!m.expect.test(out)) fail(`the gate exits non-zero with ${m.name}, but NOT for the stated reason — nothing matching /${m.expect.source}/ was printed. A gate that crashes exits non-zero too, and would read here as a catch:\n${out.trim().split("\n").filter((l) => l.includes("FAIL")).join("\n")}`);
     else pass(`the gate catches it, and by the right case: ${m.name}`);
   } finally { cleanup(dir); }
 }
 
+const reds = MUTATIONS.filter((m) => !m.mustStayGreen).length;
 console.log(failed
-  ? `\nFAIL — ${failed} of ${MUTATIONS.length + 1} case(s). Each one is a way the analytics safety property can be broken while the gate says PASS.`
-  : `\nPASS — the control is green and all ${MUTATIONS.length} of CEO 189's mutations are caught.`);
+  ? `\nFAIL — ${failed} of ${MUTATIONS.length + 1} case(s). Each one is either a way the analytics safety property can be broken while the gate says PASS, or a way the gate cries wolf on prose — and a gate that cries wolf gets disabled, which ends in the same place as a gate that is blind.`
+  : `\nPASS — the control is green, all ${reds} mutation(s) from CEO 189 and CEO 190 are caught by the case that should catch them, and ordinary English does not redden the build.`);
 process.exit(failed ? 1 : 0);

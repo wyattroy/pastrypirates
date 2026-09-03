@@ -73,8 +73,11 @@ const SHIPPED_JS = [...(tracked("src/*") ?? []), ...(tracked("classic/src/*") ??
 
 /* Said out loud in every PASS line. A gate that quietly does not look somewhere is worse than no
    gate, because npm test stays green and everybody believes the property is defended. */
-const NOT_LOOKED_AT = "anything git does not track, any path Jekyll refuses to serve (a segment "
-  + "starting with . or _), and — for the consent-grant scan only — scripts/, whose code reaches no player";
+const NOT_LOOKED_AT = "anything git does not track (deploy-staging.sh rsyncs the WORKING TREE, so "
+  + "an untracked page can still reach staging); any path Jekyll refuses to serve — a segment "
+  + "starting with . or _, which stops being true the day a .nojekyll file appears, and nothing "
+  + "will say so; a first-party tagging proxy on our own subdomain, which no host list can catch; "
+  + "and — for the consent-grant scan only — scripts/, whose code reaches no player";
 
 console.log("analytics_consent_check — his three pages, no cookie, and never our own testing\n");
 
@@ -134,10 +137,18 @@ if (mod) {
      `src/orchestrator.js` — `window.gtag("consent","update",{ analytics_storage: "granted" })` —
      and this case printed PASS. `src/orchestrator.js` runs for every player on the game page. **The
      back door was in the file this project edits more than any other, and the scan had never heard
-     of it.** The list is now derived from the tree. */
+     of it.** The list is now derived from the tree.
+     ⚠ AND THE THIRD VERSION WENT RED ON ORDINARY ENGLISH. It matched a quoted `granted` anywhere,
+     so CEO 190 put `<p>Permission "granted" by the artists.</p>` on a page and the build failed
+     with *"something grants consent in credits2.html"*. It fails SAFE, which is why that was a ⚠
+     and not a ⛔ — but it is CEO 182's "a PASS produced by prose" turned inside out, and one quoted
+     word in a future credits line would send the next session hunting a consent grant that does
+     not exist. It now matches the SHAPE of a real grant — one of the four storage keys, set to
+     "granted" — which is exactly CEO 189's own mutation and needs no proximity fuzz. */
+  const GRANT = /["']?(ad_storage|ad_user_data|ad_personalization|analytics_storage)["']?\s*:\s*["']granted["']/;
   const scanned = PAGES === null ? null : [...PAGES, ...SHIPPED_JS];
   const grants = (scanned ?? []).filter((f) => {
-    try { return /["']granted["']/.test(readFileSync(join(ROOT, f), "utf8")); } catch { return false; }
+    try { return GRANT.test(readFileSync(join(ROOT, f), "utf8")); } catch { return false; }
   });
   if (!scanned || !scanned.length) fail("git could not list this repo's tracked pages and scripts, so there is nothing to scan for a consent grant — this case cannot see its subject and must not report PASS");
   else if (grants.length) fail(`something grants consent in ${grants.join(", ")} — he ruled "cookieless, no banner", so nothing should ever be able to change its mind`);
@@ -203,19 +214,59 @@ if (mod) {
  * hundreds of page loads an evening.
  *
  * The same paste into `classic/index.html` also passed — and `/classic` is the option he explicitly
- * DECLINED. One derived rule closes both, which is exactly what CEO 189 asked for first. */
+ * DECLINED. One derived rule closes both, which is exactly what CEO 189 asked for first.
+ *
+ * ⛔ AND THE FIRST VERSION OF THIS CASE SCANNED THE PAGES AND NEVER THE SCRIPTS — the NINTH
+ * recurrence of 182 → 186 → 189, one layer out again, found by CEO 190 in about a minute. Three
+ * lines of ordinary JavaScript appended to `src/orchestrator.js`, the file this project edits most:
+ *
+ *     const s = document.createElement("script");
+ *     s.src = "https://www.googletagmanager.com/gtag/js?id=…";
+ *     document.head.appendChild(s);
+ *
+ * …fetched Google's tag with no consent denial at all, and all nine cases printed PASS. **The tell
+ * was inside the case itself**: `ALLOWED` was declared with the comment *"the one file whose whole
+ * job is this"* and then never filtered anything — it existed only inside two message strings. **A
+ * one-file exemption is only meaningful over a scan that includes that file**, so the case was
+ * written as though it read scripts and did not. Worse, its PASS line asserted *"the only route to
+ * Google is src/analytics.js"* — a statement the mutation made false while the line still printed.
+ * That is CEO 186's "a gate that certifies its own sight", literally.
+ *
+ * ⚠ `google-analytics.com` was also missing from the markers (CEO 190 Finding 2). It serves legacy
+ * Universal Analytics *and* GA4's own `/g/collect`, so it is the second-likeliest paste after
+ * `gtag.js`. **A host list cannot be complete** — a first-party tagging proxy on our own subdomain
+ * would pass — which is why that limit is named in `NOT_LOOKED_AT` rather than papered over. */
 {
-  const MARKERS = [/googletagmanager\.com/, /gtag\/js/, /firebase-analytics/, /\bgetAnalytics\s*\(/];
-  const ALLOWED = "src/analytics.js";                    // the one file whose whole job is this
+  const MARKERS = [/googletagmanager\.com/, /google-analytics\.com/, /gtag\/js/,
+    /firebase-analytics/, /\bgetAnalytics\s*\(/];
+  const ALLOWED = "src/analytics.js";   // the one file whose whole job is this — and it FILTERS now
+  /* Pages AND shipped scripts. The paste is just as harmful three lines into a module as it is in
+     a <script> tag, and `SHIPPED_JS` was already sitting three lines up, used by one case only. */
+  const subjects = PAGES === null ? null : [...PAGES, ...SHIPPED_JS].filter((f) => f !== ALLOWED);
   const offenders = [];
-  for (const p of PAGES ?? []) {
+  for (const p of subjects ?? []) {
     let t = ""; try { t = readFileSync(join(ROOT, p), "utf8"); } catch { continue; }
     const hit = MARKERS.find((m) => m.test(t));
     if (hit) offenders.push(`${p} (${hit.source})`);
   }
-  if (!PAGES || !PAGES.length) fail("git listed NO tracked pages, so this case cannot see its subject and must not report PASS");
-  else if (offenders.length) fail(`⛔ ${offenders.join(", ")} loads a Google analytics tag directly. Only ${ALLOWED} may do that, because only it pushes the consent denial FIRST — a pasted snippet writes a cookie onto a child's device, and fires on staging and on every sea-trial page load`);
-  else pass(`none of the ${PAGES.length} tracked page(s) in this repo loads a Google tag of its own — the only route to Google is ${ALLOWED}, which denies storage first`);
+  if (!subjects || !subjects.length) fail("git listed NO tracked pages or shipped scripts, so this case cannot see its subject and must not report PASS");
+  else if (offenders.length) fail(`⛔ ${offenders.join(", ")} reaches a Google analytics endpoint directly. Only ${ALLOWED} may do that, because only it pushes the consent denial FIRST — a pasted snippet writes a cookie onto a child's device, and fires on staging and on every sea-trial page load`);
+  else pass(`none of the ${subjects.length} tracked page(s) and shipped script(s) reaches Google except ${ALLOWED}, which denies storage first`);
+
+  /* CEO 190 Finding 6, closed in the same pass because it costs four lines. `index.html` already
+     loads Google's tag through the module, so one stray `gtag("config","G-SOMETHINGELSE")` ships
+     this game's traffic to a property nobody named. Cookieless — the denial has already been
+     pushed — so no cookie reaches a child, which is why it is minor rather than a ⛔. The id set is
+     DERIVED from the module's own MEASUREMENT_ID, so it cannot drift from it. */
+  const mine = readFileSync(join(ROOT, ALLOWED), "utf8").match(/MEASUREMENT_ID\s*=\s*"([^"]+)"/)?.[1];
+  const strays = new Set();
+  for (const p of subjects ?? []) {
+    let t = ""; try { t = readFileSync(join(ROOT, p), "utf8"); } catch { continue; }
+    for (const m of t.matchAll(/["'](G-[A-Z0-9]{6,})["']/g)) if (m[1] !== mine) strays.add(`${m[1]} in ${p}`);
+  }
+  if (!mine) fail(`could not read ${ALLOWED}'s own measurement id, so "is any OTHER property configured" cannot be asked — this case must not report PASS`);
+  else if (strays.size) fail(`⛔ a second Google property is named outside ${ALLOWED}: ${[...strays].join(", ")} — the game page already loads the tag, so this ships his players' traffic to a property nobody chose`);
+  else pass(`no measurement id other than ${mine} appears anywhere in those ${subjects.length} file(s) — his traffic goes to one property, the one he owns`);
 }
 
 /* 7 — IMPORTING THE MODULE IS WHAT INSTALLS IT. Cases 1 and 3 call `installAnalytics()` by hand,
@@ -248,5 +299,5 @@ if (mod) {
 
 console.log(failed
   ? `\nFAIL — ${failed} failure(s).`
-  : `\nPASS — the denial lands before the tag; his three pages load the module and none of the ${PAGES.length} tracked pages loads a tag of its own; nothing in ${SHIPPED_JS.length} shipped script(s) grants storage; and it fires on the live domain alone. NOT measured here: what Google actually does with a real ping, and ${NOT_LOOKED_AT}.`);
+  : `\nPASS — the denial lands before the tag; his three pages load the module; and across ${PAGES.length} tracked page(s) plus ${SHIPPED_JS.length} shipped script(s), nothing else reaches Google, nothing grants storage, and no second property is named. It fires on the live domain alone. NOT measured here: what Google actually does with a real ping, and ${NOT_LOOKED_AT}.`);
 process.exit(failed ? 1 : 0);
