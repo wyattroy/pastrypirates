@@ -341,56 +341,37 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
 
-- [ ] **TEN SCREENS THE EYES REJECTED IN THE 0624Z TRIAL — FIVE REAL LAYOUT BUGS, AND NOBODY HAD
+- [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
-      OPENED THEM.** Extracted 2026-09-03T08:5xZ from `sea-trial-shots/legs/*2026.09.03.1.json`;
-      **two verified by eye against the screenshots, not taken from the judge's word.**
-      **THESE ARE THE ONLY GAME-FACING FINDINGS OF THE NIGHT.** CEO 156: *"the half most likely to be
-      a real bug a player would see, and they are the half nobody has opened — rule 19's live
-      detector doing its job and being filed as a footnote under a settle-timing story."*
-      **1. THE "PLAY AGAIN!" BUTTON SITS ON TOP OF THE AWARD CARDS AND CUTS THEIR LABELS.**
-      `crew-phone-host-027`, `solo-phone-021`. **Verified by eye:** the button overlaps both cards
-      and the right-hand label is cut off mid-word. **This is the LAST SCREEN A PLAYER SEES.**
-      Phone and crew-phone — two independent legs, same fault.
-      **2. THE RECIPE MODAL CLIPS THE FIRST TWO CAPTAINS OFF THE CAPTAINS PANEL.** FOUR screens,
-      two legs, tablet only: `solo-tablet-002/003`, `solo-tablet-wk-002/003`. **Verified by eye:**
-      *"Davy Scones"* renders as **"Davy"** and *"Dough Hook"* as **"Dou"**, and both lose their
-      dubloon counts, while Flaky Jack and Crustbeard below are complete. **The most repeated fault
-      in the run.**
-      ⚠ *(I also noted the top bar reading `WIND NOW: ? · FORECAST: ?` on Day 1 as an unflagged
-      observation. See bug 5 below — `INTENDED-BEHAVIOUR.md` disposes of it, and of the bubble, in
-      the same paragraph.)*
-      **3. THE CAPTAINS PANEL BLEEDS THROUGH THE END-OF-VOYAGE MODAL WITH NO DIMMING.**
-      `solo-tablet-029` — *"pink captains panel from the screen behind bleeds through, clipped at the
-      left and right edges, with no dimming overlay to hide it."*
-      **4. THE FORECAST RIBBON IS CUT OFF BY THE SIDEBAR.** `solo-desktop-wk-016` —
-      *"`FORECAST: S...` truncated."* Desktop-wide only.
-      ⛔ **5. THE "ARRGH!" BUBBLE — WITHDRAWN AS A BUG. IT IS A DOCUMENTED JUDGE FALSE POSITIVE, AND
-      I FILED IT WITHOUT CHECKING THE DOC THAT EXISTS TO STOP EXACTLY THIS.**
-      `solo-desktop-020`, `solo-tablet-wk-017`, confidence 0.6 and 0.55 — the two I had not verified
-      by eye. `docs/INTENDED-BEHAVIOUR.md:120-127`, headed *"An 'empty speech bubble'…"*:
-      *"the **active-seat ring** misread by an automated judge… **Standing rule, a known
-      false-positive family.**"* Settled once already *"by opening it and looking, after two
-      instruments lied"*.
-      ⚠ **AND THE SAME ENTRY DISPOSES OF MY UNFLAGGED OBSERVATION TOO** — it notes the judge *"also
-      hallucinated the wind direction in the same pass"*, and `:130-142` records his own correction
-      when a session called the forecast missing: **"what do you mean? I see the forecast chip."**
-      So `WIND NOW: ? · FORECAST: ?` on Day 1 is very likely the pill correctly showing no wind yet.
-      **BOTH WITHDRAWN. Rule 28 exists because three sessions have made him explain the same thing,
-      and I was about to be the fourth** — having spent the night writing about instruments that
-      report confidently about things they cannot see, I took an automated judge's word for two
-      screens I never opened. **THE JUDGE IS AN INSTRUMENT TOO.**
-      **What survives is bugs 1–4, and 1 and 2 are the ones I opened and confirmed by eye.**
-      **THE SHAPE ACROSS THE FOUR THAT SURVIVE: something on top of something else, cutting its
-      text.** All four are one element overlapping another's words — a button over award cards, a
-      modal over the captains panel, a panel bleeding through a modal, a ribbon under a sidebar.
-      **That may be one class of bug rather than four, and rule 23's question is the one to ask of
-      it: what makes these agree?** ⚠ Stated as worth asking, not as established — I have not
-      checked whether they share a stacking context, a layer, or nothing at all.
-      ⛔ **THESE BLOCK THE STAGING DEPLOY** — six of ten legs stay red on them and on four untried
-      buttons even if `T-141`'s settle bug is fixed. See `GLASS-CHART.md` `T-136`.
-      **Sizing: the bugs are SMALL and each is a screenshot away from being confirmed. There are five
-      of them and they are GAME CODE, so: FULL gear, and posed pairs (rule 26) rather than a rate.**
+      thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
+      **THE MECHANISM, and it is one bug not two:** `#pp4Cap` is `position:fixed; left:0; right:0;
+      bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` **with
+      no scrim over the fixed bar**. So the bar shows wherever the card does not reach it — down the
+      LEFT under the recipe modal, and out BOTH SIDES under the End of Voyage modal.
+      **VERIFIED BY EYE:** `solo-tablet-002` — the recipe card's edge cuts the top two captain rows
+      to pink **"Davy"** and green **"Dou"**, both losing their dubloon counts, while Flaky Jack and
+      Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
+      Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
+      **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
+
+- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
+      ⟨`T-143`⟩
+      award until you scroll. The tablet shows all four awards AND the whole stats table.**
+      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
+      **through the height of the letters** — content clipped at a scroller's edge.
+      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
+      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
+      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
+      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
+      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
+      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
+      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
+      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
+      covering."* That comment records this same judge flagging this same screen as its **eighth**
+      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
+      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
+      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
+      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
 
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
