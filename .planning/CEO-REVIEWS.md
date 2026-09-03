@@ -28,6 +28,78 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 154 — 2026-09-03, Wy-Blade — `T-114` / `INBOX-20260902T225032Z`: delete about.html's "How it plays" — **PARTIAL**
+
+*(Both handles named because they are one item: `INBOX-20260902T225032Z` is his ruling, `T-114` is
+the Chart row that had been skipped by three watches citing a blocker that ruling had lifted. The
+brief this CEO was given quoted the INBOX entry verbatim; the id was added to this header at the
+close, when `close_item.mjs` correctly refused a verdict it could not trace to the item.)*
+
+> *Read-only. No browser, no server started by me beyond re-running the watch's own posed-pair
+> script to reproduce its numbers. Verdict recorded VERBATIM, including the two findings against
+> the watch and the recurrence check, per rule 25 — a kind paraphrase makes the mechanism theatre.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *"your instruction was carried out exactly — "How it plays"
+is gone, both kept cards are untouched, and the new gate is real, not decorative — but the About
+page still tells Google it explains "how a round plays", and the next commit will turn `npm test`
+red on a stale sitemap date."*
+
+**1. DID HIS INSTRUCTION HAPPEN, EXACTLY? — YES.** One hunk (`@@ -164,43 +164,29 @@`), nothing else
+in the file moved. `about.html:191-192` and `:201-202` — the two cards his ruling KEEPS — are
+byte-unchanged, outside the only hunk. Nothing links into the deleted section: no `about.html#`
+anchor, no nav entry, no JS selector, checked across `*.html,*.js,*.mjs,*.xml,*.json`.
+
+**2. IS THE GATE REAL, OR DECORATIVE? — REAL.** All five anchors resolve to live code, verified
+individually: `src/shared/index.js:466` `BAKEOFF_ENABLED=true`; `index.html:2833`
+`Sailing is <b>free</b>`; and all four `fishCast|startFishing` hits in `src/` (`flow.js:41,301`,
+`panel.js:27`, `util.js:1801`) are COMMENTS that `sharedStrip` removes before the test — so there
+is genuinely no live fishing path.
+**On the comment-stripper the watch's argument is sound, but not for the reason it gave.** The
+canary works because of SCAN ORDERING: a non-greedy left-to-right strip always consumes the
+tombstone (`about.html:167-189`) before reaching the canary strings at `:192` and `:202`, so any
+over-strip that ate the live cards has necessarily eaten the tombstone first. **Fragile, and the
+dependency was undocumented** — move the tombstone below the Credits card and the canary becomes
+self-satisfying. *(Fixed in the same push: the dependency and its remedy are now written into the
+gate.)*
+
+**3. INCIDENTAL CLAIMS — ALL TRUE, INDEPENDENTLY REPRODUCED.** Re-ran the posed pair and got the
+watch's numbers exactly (before 2933px / 33 images / 0 broken; after 1589px / 10 / 0). Re-ran
+`npm test`: exit 0. **The fifth-drift claim checked by opening the picture, not the alt text** —
+`assets/about-flippenator.jpg` literally reads *"PLAY IN 13 seconds or pay 1 🪙"*, the shot clock
+removed 2026-08-28. All four prose falsehoods verified against the live game.
+
+**4. LEFT DANGLING — TWO THINGS THE WATCH DID NOT REPORT.**
+**(a)** `about.html:9`, `:17`, `:24` — meta, `og:` and `twitter:` descriptions all still read
+*"…how a round plays…"*. **That is the one line a stranger reads in a search result before
+clicking, and the page no longer delivers it.**
+**(b)** `sitemap.xml:9` says `lastmod 2026-09-02`; `sitemap_lastmod_check` recomputes from git, so
+**the next commit turns `npm test` red**. *"The watch's 'npm test: 0 failures' is true today and
+false the moment it commits."*
+*Minor:* `about.html:71-74`, `:77-81`, `:137-138` — the `.abtRules`/`.abtRuleRow` CSS is now dead;
+the watch filed the three orphaned images but not the nine orphaned CSS lines. No gate goes red
+from the images.
+
+**5. THE JUDGEMENT CALL — DEFENSIBLE.** Doing 2-of-4 before 1-of-4 is defensible: everything
+deleted was verifiably false, the in-game modal still teaches the rules and derives its numbers
+from `rulesFacts(cfg)`, and **the watch named the gap in advance rather than discovering it
+afterwards** (`PREDICTION-…T114.md` P5 and F4). *"But finding 4(a) means the honest answer to 'is
+it better than this morning?' is **less false, and now slightly mis-advertised**… a small real
+regression, and it closes with a three-line meta edit. It should not wait for `/rules.html`."*
+
+**RECURRENCE CHECK vs CEO 153 — one of three RECURS.** Unchecked headline number: **no**, every
+number reproduced. Inference dressed as a measurement: **no**, the riskiest claim was settled by
+opening the JPEG. **Claims outside the prediction's fence go unchecked: YES, RECURS** — *"the
+fence covered anchors, nav entries, script selectors, a sitemap ENTRY and image orphaning, and
+every one checked out. What sat just outside it went unexamined: the page's own meta description
+and the sitemap's lastmod staleness. F2 considered the sitemap for LINKS INTO the section but not
+for DATES ABOUT the file. Both misses are one line each, both are real, and both were reachable by
+the same reasoning that produced the fence."*
+
+**BOTH 4(a) AND 4(b) WERE FIXED BEFORE THE CLOSE** — `c5ca91b8` (the three description lines and
+the canary's ordering note) and `bb583f7f` (the sitemap regenerated with `sitemap_write.mjs`,
+never hand-typed). The dead CSS and the three orphaned images are filed, not swept up: nobody
+removes art in this repo without measuring first.
+
 ## CEO Review 153 — 2026-09-03, Wy-Blade — `T-021`: he said 99% — is the Blade hour actually complete? — **PARTIAL**
 
 > *Read-only: `git status` shows no tracked file modified by me; the untracked files present are other sessions'. Every experiment ran on copies in my scratchpad. Rule 17: I launched no browsers (a trial is at sea); I started one PowerShell sleeper as a test subject and confirmed it dead — 0 left. Prediction written before measuring: `scratchpad/PREDICTION-ceo153.md`.*

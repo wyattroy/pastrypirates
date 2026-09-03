@@ -1736,7 +1736,7 @@ status: OPEN — FOR A WATCH. This is the answer that unblocks `INBOX-20260902T1
 
 solution: he agrees with the recommendation that was standing on that question, and names deleting About's "How it plays" section. **Read the recommendation as it stood — his "agree with your rec" points at it, and it is the operative half.**
 
-status: OPEN — FOR A WATCH. **THE WORDING IS CONFIRMED BY HIM, 6:52 PM ET, question UI: "That's the whole instruction."**
+status: DONE 2026-09-03 — CEO 154, no game diff — no game diff: he asked for a section deleted from the public About page, not from the game -- about.html only, index.html and src/ untouched; his solution first: commit c5ca91b
 
   ✅ **HE WAS ASKED AND HE ANSWERED: THE NOTE IS COMPLETE AND THE PAGE DID NOT TRUNCATE HIM.** He
   simply did not close the quotation mark. **So the operative instruction is exactly: delete the

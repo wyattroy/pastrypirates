@@ -2386,3 +2386,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE HEDGE STAYS FOR WATCHES AND COMES DOWN FOR INTERACTIVE SESSIONS.** My answer covered
       only the interactive half, and **O2 exists for the watch half** — so answering it left the
       question where it was.
+
+## T-114 — 2026-09-03 — THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT (closed 2026-09-03 · CEO 154 · no game diff — the whole section is deleted, which is the honest scope this row itself asked for -- all four sentences it names plus a fifth drift inside about-flippenator.jpg, and the meta description that promised them) ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split; NOT fixed, deliberately — which of these sentences survives depends on the split he approves (BLOCKED ON WYATT, rules page 1-4). Sizing: SMALL, about.html only, no src/. WHAT A STRANGER ARRIVING FROM GOOGLE READS. about.html:187 offers fish as one of the four turn actions. There is no fish — the four are Dock, Attack, Trade, Muse (src/ui/flow.js:2310, 2318, 2322, 2416), and fishing was deleted outright rather than disabled (src/ui/flow.js:301, "v2 rule 3: fishing is gone entirely"). about.html:184 says the dock flip wins you a crate; the flip pays coins, and buying a crate is a separate step at a price that rises as the island empties. about.html:176 and :198 say "first baker home wins" with the bake-off as a tiebreak; the bake-off is live (BAKEOFF_ENABLED = true, src/shared/index.js:466) and it is how every captain wins — two on the same day bake together. AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW. about.html:181-182 says the wind "sets your sailing budget for the turn — cheap with it, dear against it", which tells a stranger that sailing costs something. index.html:2833: "Sailing is free." The wind caps the RANGE, it never charges. ⚠ Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way round. The full comparison and the reasoning are in [SPEC-RULES-PAGE-SPLIT.md](SPEC-RULES-PAGE-SPLIT.md). ⚠ And do not trust the count. It was three, then four the moment somebody else looked. Nobody has ever checked this page against the game it describes, so the honest scope is "re-read the whole section", not "fix four sentences".
+
+- [x] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT (closed 2026-09-03 · CEO 154 · no game diff — the whole section is deleted, which is the honest scope this row itself asked for -- all four sentences it names plus a fifth drift inside about-flippenator.jpg, and the meta description that promised them)
+      ⟨`T-114`⟩
+      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
+      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
+      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
+      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
+      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
+      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
+      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
+      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
+      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
+      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
+      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
+      two on the same day bake **together**.
+      **AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW.**
+      `about.html:181-182` says the wind *"sets your sailing budget for the turn — cheap with it,
+      dear against it"*, which tells a stranger that sailing costs something. `index.html:2833`:
+      **"Sailing is free."** The wind caps the RANGE, it never charges.
+      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
+      round.** The full comparison and the reasoning are in
+      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
+      ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
+      **Nobody has ever checked this page against the game it describes**, so the honest scope is
+      "re-read the whole section", not "fix four sentences".

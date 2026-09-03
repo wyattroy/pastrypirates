@@ -246,30 +246,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-- [ ] **THE PUBLIC ABOUT PAGE TEACHES AN ACTION THE GAME DOES NOT HAVE, AND TWO OTHER THINGS THAT
-      ⟨`T-114`⟩
-      ARE WRONG. Found 2026-09-02 6:30 PM ET while doing the homework for his rules-page split;
-      NOT fixed, deliberately — which of these sentences survives depends on the split he approves
-      (`BLOCKED ON WYATT`, rules page 1-4). Sizing: SMALL, `about.html` only, no `src/`.**
-      **WHAT A STRANGER ARRIVING FROM GOOGLE READS.** `about.html:187` offers **fish** as one of
-      the four turn actions. **There is no fish** — the four are Dock, Attack, Trade, Muse
-      (`src/ui/flow.js:2310, 2318, 2322, 2416`), and fishing was deleted outright rather than
-      disabled (`src/ui/flow.js:301`, *"v2 rule 3: fishing is gone entirely"*). `about.html:184`
-      says the dock flip wins you a **crate**; the flip pays **coins**, and buying a crate is a
-      separate step at a price that rises as the island empties. `about.html:176` and `:198` say
-      **"first baker home wins"** with the bake-off as a **tiebreak**; the bake-off is live
-      (`BAKEOFF_ENABLED = true`, `src/shared/index.js:466`) and it is how **every** captain wins —
-      two on the same day bake **together**.
-      **AND A FOURTH, FOUND BY CEO 124 AND NOT BY THE WATCH THAT FILED THIS ROW.**
-      `about.html:181-182` says the wind *"sets your sailing budget for the turn — cheap with it,
-      dear against it"*, which tells a stranger that sailing costs something. `index.html:2833`:
-      **"Sailing is free."** The wind caps the RANGE, it never charges.
-      ⚠ **Whoever takes this: the in-game modal is RIGHT and About is wrong, not the other way
-      round.** The full comparison and the reasoning are in
-      [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
-      ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
-      **Nobody has ever checked this page against the game it describes**, so the honest scope is
-      "re-read the whole section", not "fix four sentences".
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -874,6 +850,28 @@ session's mandate is harvest-and-publish only.**
   [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md). **`T-100` (build the page) and `T-101`
   (the credits page) are blocked on question 1 by his own sentence.** This row closes when he
   answers, not before.
+
+  ### ⚑ HE ANSWERED 1 AND 2 ON 2026-09-02 AT 6:50 PM ET, AND FOR TWELVE HOURS NOBODY TOLD THIS ROW
+  **Q1 → `INBOX-20260902T225008Z`:** *"Do a new /rules.html that explains the rules -- using the
+  latest version of the game."* **So `T-100` and `T-101` ARE NO LONGER BLOCKED.**
+  **Q2 → `INBOX-20260902T225032Z`:** *"Agree with your rec -- delete "how it plays"*, confirmed by
+  him in the question UI two minutes later — *"That's the whole instruction."* **Done and closed
+  2026-09-03 as `T-114`**, commit `c5ca91b8`, CEO 154.
+  **Q3 and Q4 are still his** (`rules-page-3-of-4…`, `rules-page-4-of-4…` on his Your Call card),
+  so this row stays open — but it is open on TWO questions now, not four, and it blocks nothing.
+  ⚠ **WHY THIS NOTE EXISTS, and it is the reusable part.** His answers were harvested into the
+  INBOX correctly and **no Chart row was ever updated to say so.** The ranker gives +100 to a row
+  citing a live `INBOX-` entry of his; these entries were cited by nothing, so his freshest
+  rulings scored zero for being his. Three watches in a row then skipped `T-114`, `T-100` and
+  `T-101` in their ledger entries, each naming "blocked on his rules-page answer" — **a blocker he
+  had already lifted.** *Harvesting his words is only half the job; the other half is telling the
+  rows that were waiting on them.*
+  **⛔ WHOEVER TAKES `T-100`: THE ONE-SOURCE ANSWER ALREADY EXISTS AND IS NOT OBVIOUS.** The
+  in-game modal (`index.html:2816-2825`) does NOT hand-type its numbers — every tuned amount is an
+  empty `<b data-rule="…">` span filled at runtime from `rulesFacts(cfg)`, the same cfg the engine
+  plays by, and `scripts/qa/rules_page_check.mjs` fences its prose to live code symbols. **That is
+  rule 23 already solved for the modal.** `/rules.html` should be fed the same way. It is also
+  exactly why About's copy had drifted five ways while the modal had not — About had neither half.
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Fix sitemap.xml at the repo root of
       ⟨`T-098`⟩

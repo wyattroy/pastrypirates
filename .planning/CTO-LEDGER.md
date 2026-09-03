@@ -7230,3 +7230,97 @@ do but read a report. **Rank 13, `T-087`, is the first row nothing holds back.**
 - 2026-09-03T07:34:09Z · close_item: "T-087" · CEO 152 · no game diff — no game code is right: he asked for a box removed from his own dashboard, not from the game -- the change is the Glass generator, its gate and the harvest tool that feeds it; src/ and index.html untouched · no stated solution · his instruction, done first and proven both ways: the card is gone from the rendered Glass and a generator that builds one again is caught -- and the four rulings whose only surface it was are on the Tasks card instead
 
 - 2026-09-03T07:48:16Z · close_item: "T-021" · CEO 153 · no game diff — his 99% was right: Bell registered and firing (69 launches, not the 139 I miscounted), both ring directions proven by the task's own Last Run inside a gap, and O2 answered in full — interactive yes, headless watch no · no stated solution
+
+- 2026-09-03T08:10:31Z · close_item: INBOX-20260902T225032Z · CEO 154 · no game diff — no game diff: he asked for a section deleted from the public About page, not from the game -- about.html only, index.html and src/ untouched · his solution first: commit c5ca91b · his ruling done as written: About's How it plays card is gone, both cards he keeps are byte-unchanged, and a gate now fails the build if a second rules surface reappears -- five drifts died with it, the fifth inside a JPEG
+
+- 2026-09-03T08:10:46Z · close_item: "T-114" · CEO 154 · no game diff — the whole section is deleted, which is the honest scope this row itself asked for -- all four sentences it names plus a fifth drift inside about-flippenator.jpg, and the meta description that promised them · no stated solution · T-114 closes with its own row's warning honoured: the count was three, then four, then five, so the section went rather than the sentences
+
+---
+
+## watch c2 — 2026-09-03T07:47Z, Wy-Blade — `T-114` / `INBOX-20260902T225032Z`: delete About's "How it plays"
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T07:47Z. **The sync could not run for the first three minutes: watch c1
+  was still finishing in this same checkout.** `git pull --rebase` refused on its unstaged work,
+  and I nearly committed that work under my own message before spotting the tree changing under
+  me — `git add` succeeded, the CEO-cadence hook refused the commit, and by the retry the file was
+  unstaged and three more had appeared. **That is b2's filed hazard from this morning arriving
+  from the other side: not one session absorbing another's work, but nearly doing so.** I waited,
+  c1 landed `657c2237` at 07:49, and the sync then ran clean.
+- **`can_push` healthy**, and the real `git push origin claude/cloud-handoff-planning-a9ay1u` run
+  as a shell command — *Everything up-to-date*. (The rule-17 doc hook stopped it once; read.)
+- **Last progress** — watch c1 closed `T-021` at 07:48Z.
+- **A SEA TRIAL WAS AT SEA AND FINISHED DURING THIS WATCH.** `2026-09-03T0624Z-Wy-Blade`, 10 of 10
+  legs, **none not-run**. Its verdict reads FAILED, and the failure is `npm test`, not the sailing
+  — the chartkeeper/do-now gates a peer had in flight. **They are green now: my own `npm test` ran
+  0 failures.** I started no browser until the trial's own were down (`stray_probe_check`: none).
+- **THIS WATCH** — his ruling of 2026-09-02T22:50:32Z.
+
+**⛔ THE ROWS I SKIPPED, AND RANKS 1 AND 2 WERE SKIPPED ON HIS OWN RULING, NOT ON JUDGEMENT.**
+`T-139` (rank 1) and `T-138` (rank 2) are **Glass machinery sitting on the GAME chart**. His
+ruling `INBOX-20260902T2225Z`: *"YOU will work on the chart -- the Watch will work on the game."*
+`.planning/CHART.md` is the game and is a watch's; the machinery is the Advisor's. Watch c1 lifted
+both out of `## RULED` yesterday evening for a good reason (the card carrying them was being
+deleted) and they landed in the wrong file. **One line each to move back — filed, not done,
+because moving them is not this watch's item.** Ranks 4-6 (`T-012`, `T-013`, `T-020`) all need a
+posed browser pair or a trial leg and the trial was still sailing when I picked. Rank 8 `T-009`
+edits `scripts/playtest_gate.mjs`, which the trial re-reads for every remaining leg.
+
+**⚑ AND THE FINDING THAT MADE THIS ITEM AVAILABLE AT ALL — IT IS WORTH MORE THAN THE ITEM.**
+`T-114`, `T-100` and `T-101` have been skipped by three watches running, each ledger entry naming
+*"blocked on his rules-page answer"*. **He answered on 2026-09-02 at 6:50 PM ET — twice, thirty
+seconds apart — and confirmed one of them directly in the question UI two minutes later.** Both
+answers were harvested into the INBOX correctly and marked `status: OPEN — FOR A WATCH`, and
+**not one Chart row was ever told.** So the rows kept reading "blocked", and the ranker — which
+pays +100 for citing a live `INBOX-` entry of his — scored his freshest rulings at zero because
+nothing cited them. **Harvesting his words is only half the job; the other half is telling the
+rows that were waiting on them.** Recorded on `T-099`, which now says which two of its four
+questions are answered and that it blocks nothing.
+
+**THE ITEM.** CLAIMED 07:56Z. **CLOSED 08:10Z, CEO 154 (PARTIAL).** Gear: the picker said FULL and
+its stated reason was the 465-commit branch diff, not my change; the honest subject is
+`about.html`, which **no sea-trial leg loads** — the ten voyages play the game. So the trial could
+not have verified this change, and the verification that counts is the posed pair and the gate.
+Said plainly rather than rounded up: **a full sea trial was NOT run for this, and would not have
+seen it.** `npm test` (0 failures) is the browser-free half and it is real.
+
+**PREDICTION BEFORE MEASURING**, `.planning/PREDICTION-20260903T0757Z-T114.md`, five claims and
+four named falsifiers. **None fired.** F4 was the one I expected to — *"is About the only public
+rules surface?"* — and the reason it did not is the useful part: the in-game modal
+(`index.html:2816-2825`) fills every tuned number from `rulesFacts(cfg)` at runtime and has its
+prose fenced by `rules_page_check.mjs`. **That is rule 23 already solved, and it is the shape
+`/rules.html` should be built in.**
+
+**FIVE DRIFTS DIED WITH THE SECTION, NOT FOUR — AND THE FIFTH WAS INSIDE A JPEG.**
+`assets/about-flippenator.jpg` still depicts the shot clock (*"PLAY IN 13 seconds or pay 1 coin"*),
+removed from the game 2026-08-28. **I found it by looking at the before screenshot.** No text gate
+could have caught it. `T-114`'s own row warned *"do not trust the count — it was three, then four
+the moment somebody else looked."* It was five.
+
+**⛔ CEO 154 FOUND TWO THINGS I MISSED AND ITS RECURRENCE CHECK CAME BACK POSITIVE.** About's
+meta/`og:`/`twitter:` descriptions still promised *"how a round plays"* — three identical lines,
+the one sentence a stranger reads in a search result before clicking. And `sitemap.xml`'s
+`lastmod` would go stale **on the next commit**, turning `npm test` red; it called that before it
+happened and it happened exactly. Both fixed before the close (`c5ca91b8`, `bb583f7f`). Its
+recurrence verdict against CEO 153 — *"claims outside the prediction's fence go unchecked"* —
+**RECURS.** Everything inside my fence held; both misses sat one step outside it and both were
+reachable by the same reasoning that built the fence. **A fence is not a boundary on what needs
+checking.**
+
+**A GENERALISATION WORTH MORE THAN THE ROW.** A gate that derives a fact from git goes red on the
+NEXT commit, not on the one that broke it — so *"npm test: 0 failures"* measured before committing
+is a true statement about a tree that is about to stop existing. Any change to a page named in
+`sitemap.xml` owes a `sitemap_write.mjs` run in the same push.
+
+**LEFT UNDONE, DELIBERATELY, EACH WITH ITS REASON.** Three images are now drawn by nothing
+(`about-recipes.jpg`, `about-flippenator.jpg`, `about-home-island.jpg`) and
+`scripts/qa/about_art_resize.mjs` still points at them — **nobody removes art in this repo without
+measuring first.** Nine lines of `.abtRules`/`.abtRuleRow` CSS are dead (CEO 154's minor finding).
+And **two untracked PNGs the CEO left behind** —
+`.planning/posed/about-about-{before,after}-430w.png` — which this session's sandbox refused to
+delete; they are not committed here, and the next session with permission should remove them.
+
+**SWEEP.** `npm test` 0 failures · `rules_page_check` RED 5/5 before, GREEN 6/6 after ·
+`sitemap_lastmod_check` red then green after regeneration · posed pair, both sides read by eye.
+**I killed every browser I started** — the posed-pair script calls `killAll()`, and
+`stray_probe_check` is the check I trust over a shell builtin (rule 17's Windows lesson).
