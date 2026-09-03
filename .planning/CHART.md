@@ -463,6 +463,40 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
+      ⟨`T-137`⟩
+      ⛔ **RESTORED A THIRD TIME, 2026-09-03T07:4xZ — AND THIS TIME THE CAUSE IS MEASURED, SO THE
+      NEXT WATCH FIXES IT INSTEAD OF RESTORING IT A FOURTH.**
+      First as `T-124`, then as `T-135`, then again here. Every archive entry reads `- [x]` and, for
+      the first two, carries **no close pointer** — compare any real close, which reads
+      `(closed · CEO nnn · …)`.
+      **THE CAUSE IS NOT THE SWEEP. IT IS `close_item.mjs`'s ROW MATCHER, AND IT CLOSES THE WRONG
+      ROW.** `close_item.mjs:114-137` splits the Chart into blocks running from one `- [ ]` to the
+      NEXT one — and for the LAST open row in the file, `blockOf` runs to `lines.length`
+      (`:118`), so **that row's "block" is the entire rest of the Chart**: BLOCKED ON WYATT, RULED,
+      THE IDEA INBOX, everything. Any `--item=` string appearing anywhere below the last checkbox
+      therefore matches that row and only that row. **This row has been the last `- [ ]` in the file
+      each time.**
+      **MEASURED, NOT INFERRED.** Watch c1 ran `close_item.mjs --item="T-087"` — an IDEA INBOX
+      entry with no `- [ ]` row of its own, living ~300 lines below this one. The gate reported
+      `CLOSED "T-087"` and wrote **CEO 152 and c1's own close reason onto THIS row**, ticked it, and
+      swept it to `CHART-LOG.md`. The archive entry is still legible in `git diff` from that moment:
+      a T-137 heading carrying a T-087 verdict. Reverted by hand before it was committed.
+      ⚠ **SO THE TICK IS NOT EVIDENCE OF A JUDGEMENT, AND NEITHER IS THE CLOSE POINTER.** The third
+      archive entry HAD a pointer, which is exactly what the first two were missing — and it was
+      still the wrong row. **A close pointer proves a gate ran, not that it ran on this item.**
+      ⚠ **WHAT MAKES THIS WORSE THAN A LOST ROW: the row's own text says it is gated on an action
+      only Wyatt can perform.** The last open row in the Chart is, structurally, the one most likely
+      to be a long-waiting GATED row — so this fault preferentially eats the things waiting on him,
+      the one category a session can never finish.
+      **THE FIX, SIZED: bound the last block at the next `## ` heading instead of at end-of-file
+      (`close_item.mjs:118`), and make `--item` refuse rather than fall back when no row OWNS the
+      handle** — c1's call named an item that has no Chart row at all, and the honest answer was
+      "there is no such row", not a silent match on a neighbour. Red-proof: close a handle that
+      exists only in the IDEA INBOX and assert the gate REFUSES.
+      **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
+      watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
+      one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
