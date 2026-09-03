@@ -2202,3 +2202,20 @@ solution: HIS CHOICE, VERBATIM ABOVE. Assign a handle to every open row that lac
   so a reference to it elsewhere in the record can go stale. Handles are allocated once and never
   reused (chart_sweep_conserves_check), so the split must take a FRESH number, never recycle one.
 status: OPEN — taken now.
+
+## INBOX-20260903T2015Z — ⚑ REMOVE DRAGGING FROM THE CHART ENTIRELY; the arrows replace it
+> "you can remove the dragging feature from the Chart -- it was really buggy and didn't work as
+> intended. we'll just use the arrows"
+solution: HIS WORDS. Drag goes: the pointer handlers, the grab cursor, the "Drag a task to move it"
+  line, and the whole notion of a row being "draggable". EVERY row gets the ▲ top button instead.
+  ⚑ THIS SIMPLIFIES THE ROW-IDENTITY WORK ABOVE RATHER THAN CANCELLING IT. The reason a row could
+  not be dragged was never the gesture -- it was that a saved order must NAME the row that moved,
+  and 40 of 67 rows could not be named. The button has exactly the same requirement, so his tag
+  assignment (INBOX-20260903T2010Z) is still the fix; there is simply one gesture to build it for
+  instead of two.
+  ⚠ AND IT REMOVES A RULE-23 HAZARD RATHER THAN CREATING ONE: drag and button were two ways to
+  produce the same fact, kept in step by discipline. Now there is one.
+  NOTE FOR WHOEVER TOUCHES THE GATES: chartkeeper_check counts "draggable rows" and its message says
+  so. That wording describes a gesture that no longer exists -- it must become "moveable rows", and
+  the count must be EVERY open row, not the subset that could be named.
+status: OPEN — taken now, with the tag assignment.
