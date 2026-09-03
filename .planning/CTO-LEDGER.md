@@ -9920,6 +9920,15 @@ trial debt on `09f8658c` (analytics) still stands** and is not mine.
 
 **Browsers:** this watch started none. `stray_probe_check` PASSES.
 
+**⚠ HIS PAGE IS NOT REPUBLISHED, AND NOTHING HERE SHOULD BE READ AS THOUGH IT IS.** Door step 6b was
+followed — `SendMessage` to `Glass update [fda089]` — and it answered that **it only dispatches a
+tick on Wyatt's explicit instruction**, so it will hold the note rather than publish on my message.
+Its reply confirms it will harvest anything new of his before folding mine in, which is the right
+order. **So `GLASS-NOTE.md` is committed and NOT delivered**, and the distinction matters: committed
+is not delivered. It reaches him at his next tick. *(The 2026-09-04T00:1xZ watch recorded the same
+refusal and was then overtaken by a publish it did not expect — so this may resolve itself the same
+way. Written as what was actually observed, not as a prediction either direction.)*
+
 **Two files this machine's permission layer would not let me delete**, named rather than left to be
 found: `scratchpad/_t216_audit.mjs` and `scripts/qa/_t216_audit.mjs` — the throwaway probe, now
 superseded by the gate. Both are **overwritten with a stub that exits 1** so nobody runs a stale
