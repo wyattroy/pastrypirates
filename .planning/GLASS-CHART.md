@@ -443,7 +443,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
       ⟨`T-031`⟩
 - [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
-      ⟨`T-121` · size: S · needs: wyatt⟩
+      ⟨`T-121` · size: S⟩
       "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
       **MEASURED, NOT REASONED:** his page saves the WHOLE sequence, so `--order=` stamps all 50
       draggable rows, and a dragged row scores 4950–4999 against a **measured top derived score of
