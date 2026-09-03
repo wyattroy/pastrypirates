@@ -226,9 +226,34 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       quietly retired his actual need.** So it lives here.
       **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
       `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
-      ⏳ **WAITING ON ONE THING ONLY: the sea trial in flight** (pid 29700, stamp `2026.09.03.1`,
-      started 06:24Z). The release contract is `npm test` → gear → sea trial → deploy, and the trial
-      is the last unmet step. **Nothing here is blocked on Wyatt.**
+      ⛔ **THE TRIAL LANDED AND IT FAILED — ALL TEN VOYAGES. THE DEPLOY WAITS, AND THE FAILURE IS
+      THE WORK.** `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`, 89 min, gear FULL, stamp
+      `2026.09.03.1`, `voyages that did NOT run: none`.
+      **WHAT FAILED, AND IT IS NOT THE STALE SUITE:**
+      · **the vision judge failed screens it looked at** — 1 of 30 on solo-desktop, 1 of 21 on
+        solo-phone, 3 of 29 on solo-tablet;
+      · **every single voyage reports screens that never stopped moving before being checked** —
+        8, 9, 10, 22 of them, `longest wait 2.7s` and `2.8s` against a **2.6s budget**. A peer
+        session measured the same margin independently and declined to run its own browser probes
+        because of it;
+      · solo-desktop: *"offered but never exercised: deny"*.
+      ⚠ **I PREDICTED THE OPPOSITE AND THE PREDICTION IS WHY THIS ROW SAYS WAIT.**
+      `PREDICTION-20260903T0805Z-T136-trial-verdict.md`, written before reading the voyage section:
+      *"I expect the FAILED verdict to be entirely the browser-free half, and the ten voyages to be
+      clean."* Grounds were decent — the failure section is headed *"the browser-free checks failed"*
+      and its contents are `chartkeeper` fixture output (`T-802`, `no-such-row.md`, a temp dir), and
+      the suite genuinely WAS red at 06:24 and is green now.
+      **Its named falsifier — *"any structural failure reported inside the voyages themselves"* —
+      fired on the first line I read.** Ten for ten.
+      ⚠ **AND THE PREDICTION NAMED THE TRAP BEFORE I WALKED INTO IT:** *"Wanting the answer. He plays
+      staging, staging is two builds behind, and the only thing between him and the current build is
+      this verdict. That is exactly the pressure under which a session decides a failure was 'just
+      the instrument'."* **That is what I was doing.** The stale-suite reasoning was true and it was
+      not the whole verdict, and I would have shipped on it.
+      **SO: NOTHING IS BLOCKED ON WYATT, AND NOTHING SHIPS.** The settle margin is the next question
+      — 2.7–2.8s against a 2.6s budget on every leg is either a real regression in how long the board
+      takes to stop, or a threshold too tight for this build, and **which one it is decides whether
+      this is a game bug or a trial bug.** That is a POSED question (rule 26), not a rate.
       **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
       stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
       ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
