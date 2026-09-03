@@ -2706,3 +2706,31 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ranker, the sweep gate, and now `livePointer`). One instruction of his split one list in two,
       and every tool with a path written into it went quietly wrong in a different way.
       **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
+
+## T-210 — 2026-09-03 — ONE SESSION'S HARVEST LICENSES ANOTHER SESSION'S PUBLISH — so the session that (closed 2026-09-03 · CEO 168 · no game diff — no game code — the Glass receipt chain) REPUBLISHES HIS PAGE MAY NEVER HAVE LOOKED AT IT. Filed 2026-09-03T11:2xZ by the Advisor, off the live receipts, not from reasoning. WHAT THE RECEIPTS ACTUALLY SAY, minutes ago: · LAST-HARVEST — 11:22:00.631Z, version 1788433599-0141, stamped by THIS session. · LAST-PUBLISH — 11:22:29.562Z, version 1788434543-bb7a, by a PEER session. Twenty-nine seconds apart, two different sessions, and the peer never stamped a harvest of its own. glass-harvest-first.cjs allowed the publish because the stamp's MTIME was fresh — and the stamp is machine-local, so every session on this machine shares one. ⚠ THIS IS THE KNOWN RACE WITH A NEW AMPLIFIER, and the amplifier is the part worth having. mark_glass_harvest.mjs's own header records the race: harvest at T, he writes at T+7s, publish at T+30s, words gone, every receipt healthy. What is new is that the publisher and the harvester can be DIFFERENT SESSIONS — so the session doing the destroying has no idea when the page was last read, what was on it, or whether the reader is still alive. A single-session race is at least one session's own window; this one nobody owns. Nothing was lost today — this session harvested 0141 and it held nothing, seven checks in a row have all been clean. Filed because the receipt looked perfect throughout, which is the whole failure shape: the machine says done and the words are gone. SHAPE OF A FIX, and it is his call which: the publish hook could require a harvest receipt naming the version being REPLACED (T-140 built exactly that join for the carry — the same --harvested= move, one layer up), or the receipt could record WHICH session stamped it so a publisher can refuse one it did not write. The first is stricter and closes it; the second is cheaper and only makes the gap visible. Sizing: SMALL. No game code. Nothing blocked on Wyatt.
+
+- [x] **ONE SESSION'S HARVEST LICENSES ANOTHER SESSION'S PUBLISH — so the session that (closed 2026-09-03 · CEO 168 · no game diff — no game code — the Glass receipt chain)
+      ⟨`T-210` · size: S⟩
+      REPUBLISHES HIS PAGE MAY NEVER HAVE LOOKED AT IT.** Filed 2026-09-03T11:2xZ by the Advisor,
+      off the live receipts, not from reasoning.
+      **WHAT THE RECEIPTS ACTUALLY SAY, minutes ago:**
+      · `LAST-HARVEST` — `11:22:00.631Z`, version `1788433599-0141`, stamped by THIS session.
+      · `LAST-PUBLISH` — `11:22:29.562Z`, version `1788434543-bb7a`, by a PEER session.
+      **Twenty-nine seconds apart, two different sessions, and the peer never stamped a harvest of
+      its own.** `glass-harvest-first.cjs` allowed the publish because the stamp's MTIME was fresh
+      — and the stamp is machine-local, so every session on this machine shares one.
+      ⚠ **THIS IS THE KNOWN RACE WITH A NEW AMPLIFIER, and the amplifier is the part worth having.**
+      `mark_glass_harvest.mjs`'s own header records the race: harvest at T, he writes at T+7s,
+      publish at T+30s, words gone, every receipt healthy. What is new is that **the publisher and
+      the harvester can be DIFFERENT SESSIONS** — so the session doing the destroying has no idea
+      when the page was last read, what was on it, or whether the reader is still alive. A
+      single-session race is at least one session's own window; this one nobody owns.
+      **Nothing was lost today** — this session harvested `0141` and it held nothing, seven checks
+      in a row have all been clean. **Filed because the receipt looked perfect throughout**, which
+      is the whole failure shape: the machine says done and the words are gone.
+      **SHAPE OF A FIX, and it is his call which:** the publish hook could require a harvest receipt
+      naming the version being REPLACED (`T-140` built exactly that join for the carry — the same
+      `--harvested=` move, one layer up), or the receipt could record WHICH session stamped it so a
+      publisher can refuse one it did not write. The first is stricter and closes it; the second is
+      cheaper and only makes the gap visible.
+      **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**

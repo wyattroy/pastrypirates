@@ -28,31 +28,64 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **ONE SESSION'S HARVEST LICENSES ANOTHER SESSION'S PUBLISH — so the session that
-      ⟨`T-210` · size: S⟩
-      REPUBLISHES HIS PAGE MAY NEVER HAVE LOOKED AT IT.** Filed 2026-09-03T11:2xZ by the Advisor,
-      off the live receipts, not from reasoning.
-      **WHAT THE RECEIPTS ACTUALLY SAY, minutes ago:**
-      · `LAST-HARVEST` — `11:22:00.631Z`, version `1788433599-0141`, stamped by THIS session.
-      · `LAST-PUBLISH` — `11:22:29.562Z`, version `1788434543-bb7a`, by a PEER session.
-      **Twenty-nine seconds apart, two different sessions, and the peer never stamped a harvest of
-      its own.** `glass-harvest-first.cjs` allowed the publish because the stamp's MTIME was fresh
-      — and the stamp is machine-local, so every session on this machine shares one.
-      ⚠ **THIS IS THE KNOWN RACE WITH A NEW AMPLIFIER, and the amplifier is the part worth having.**
-      `mark_glass_harvest.mjs`'s own header records the race: harvest at T, he writes at T+7s,
-      publish at T+30s, words gone, every receipt healthy. What is new is that **the publisher and
-      the harvester can be DIFFERENT SESSIONS** — so the session doing the destroying has no idea
-      when the page was last read, what was on it, or whether the reader is still alive. A
-      single-session race is at least one session's own window; this one nobody owns.
-      **Nothing was lost today** — this session harvested `0141` and it held nothing, seven checks
-      in a row have all been clean. **Filed because the receipt looked perfect throughout**, which
-      is the whole failure shape: the machine says done and the words are gone.
-      **SHAPE OF A FIX, and it is his call which:** the publish hook could require a harvest receipt
-      naming the version being REPLACED (`T-140` built exactly that join for the carry — the same
-      `--harvested=` move, one layer up), or the receipt could record WHICH session stamped it so a
-      publisher can refuse one it did not write. The first is stricter and closes it; the second is
-      cheaper and only makes the gap visible.
-      **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
+- [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
+      ⟨`T-136`⟩
+      `T-027` so his actual need is not lost when that row closes.**
+      `T-027` asked *"verify this to make sure it functions as needed"* and the verification is
+      done: the permission he was asked for **already exists** (`settings.json:11-12`, both forms),
+      and the suite that blocked the deploy is **green, exit 0**. But verifying a blocker is gone is
+      not the same as doing the thing, and **closing `T-027` on a completed verification would have
+      quietly retired his actual need.** So it lives here.
+      **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
+      `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
+      ⛔ **THE TRIAL LANDED AND IT FAILED — ALL TEN VOYAGES. THE DEPLOY WAITS, AND THE FAILURE IS
+      THE WORK.** `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`, 89 min, gear FULL, stamp
+      `2026.09.03.1`, `voyages that did NOT run: none`.
+      ⛔ **AND FIXING THE SETTLE BUG DOES NOT UNBLOCK THIS ROW — the sentence neither row contained
+      until CEO 156 wrote it. FOUR legs of ten would clear. SIX WOULD STAY RED.**
+      *clears:* passplay-phone, passplay-desktop, crew-desktop, solo-phone-wk.
+      *stays red:* solo-desktop, solo-phone, solo-tablet, crew-phone, solo-desktop-wk, solo-tablet-wk
+      — every one of them for something the settle fix cannot touch. **He was being told he is one
+      fix from a deploy. He is not.**
+      **WHAT FAILED, AND IT IS NOT THE STALE SUITE — with the counts corrected; my first version
+      under-reported the damage by half:**
+      · **the vision judge REJECTED screens it looked at — TEN screens across SIX legs**, not the
+        five across three I first wrote: 1 of 30 solo-desktop · 1 of 21 solo-phone · 3 of 29
+        solo-tablet · **1 of 51 crew-phone · 1 of 27 solo-desktop-wk · 3 of 22 solo-tablet-wk**.
+        ⚠ **THESE ARE THE HALF MOST LIKELY TO BE A REAL BUG A PLAYER WOULD SEE, and nobody has
+        opened them.** Rule 19's live detector, filed as a footnote under a timing story.
+      · **FOUR buttons offered and never pressed**, not one: `deny`, `vanilla beans`, and
+        `walk away` twice;
+      · **every single voyage reports screens that never stopped moving before being checked** —
+        8, 9, 10, 22 of them, `longest wait 2.7s` and `2.8s` against a **2.6s budget**. A peer
+        session measured the same margin independently and declined to run its own browser probes
+        because of it;
+
+      ⚠ **I PREDICTED THE OPPOSITE AND THE PREDICTION IS WHY THIS ROW SAYS WAIT.**
+      `PREDICTION-20260903T0805Z-T136-trial-verdict.md`, written before reading the voyage section:
+      *"I expect the FAILED verdict to be entirely the browser-free half, and the ten voyages to be
+      clean."* Grounds were decent — the failure section is headed *"the browser-free checks failed"*
+      and its contents are `chartkeeper` fixture output (`T-802`, `no-such-row.md`, a temp dir), and
+      the suite genuinely WAS red at 06:24 and is green now.
+      **Its named falsifier — *"any structural failure reported inside the voyages themselves"* —
+      fired on the first line I read.** Ten for ten.
+      ⚠ **AND THE PREDICTION NAMED THE TRAP BEFORE I WALKED INTO IT:** *"Wanting the answer. He plays
+      staging, staging is two builds behind, and the only thing between him and the current build is
+      this verdict. That is exactly the pressure under which a session decides a failure was 'just
+      the instrument'."* **That is what I was doing.** The stale-suite reasoning was true and it was
+      not the whole verdict, and I would have shipped on it.
+      **SO: NOTHING IS BLOCKED ON WYATT, AND NOTHING SHIPS.** The settle margin is the next question
+      — 2.7–2.8s against a 2.6s budget on every leg is either a real regression in how long the board
+      takes to stop, or a threshold too tight for this build, and **which one it is decides whether
+      this is a game bug or a trial bug.** That is a POSED question (rule 26), not a rate.
+      **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
+      stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
+      ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
+      was true when measured and stale when read — the third time tonight that shape cost a session
+      (see also `T-011`'s false STOP and `T-085`'s claude-kit fence). **Re-measure before believing
+      any row that says a thing cannot be done.**
+      **Sizing: SMALL — one command, once the trial is in.**
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.2, so its evidence no longer describes this game
 - [ ] **THE PUBLISH RECEIPT CANNOT TELL A REAL ARTIFACT VERSION FROM ONE A SESSION TYPED — AND I
       ⟨`T-208` · size: S⟩
       PROVED IT BY DOING IT, ACCIDENTALLY, TODAY.** Filed 2026-09-03T10:1xZ by the Advisor, against
@@ -268,63 +301,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       once during the night that earned it. **Both are unregistered from settings.json as of
       2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
       works and stays armed.
-- [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
-      ⟨`T-136`⟩
-      `T-027` so his actual need is not lost when that row closes.**
-      `T-027` asked *"verify this to make sure it functions as needed"* and the verification is
-      done: the permission he was asked for **already exists** (`settings.json:11-12`, both forms),
-      and the suite that blocked the deploy is **green, exit 0**. But verifying a blocker is gone is
-      not the same as doing the thing, and **closing `T-027` on a completed verification would have
-      quietly retired his actual need.** So it lives here.
-      **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
-      `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
-      ⛔ **THE TRIAL LANDED AND IT FAILED — ALL TEN VOYAGES. THE DEPLOY WAITS, AND THE FAILURE IS
-      THE WORK.** `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`, 89 min, gear FULL, stamp
-      `2026.09.03.1`, `voyages that did NOT run: none`.
-      ⛔ **AND FIXING THE SETTLE BUG DOES NOT UNBLOCK THIS ROW — the sentence neither row contained
-      until CEO 156 wrote it. FOUR legs of ten would clear. SIX WOULD STAY RED.**
-      *clears:* passplay-phone, passplay-desktop, crew-desktop, solo-phone-wk.
-      *stays red:* solo-desktop, solo-phone, solo-tablet, crew-phone, solo-desktop-wk, solo-tablet-wk
-      — every one of them for something the settle fix cannot touch. **He was being told he is one
-      fix from a deploy. He is not.**
-      **WHAT FAILED, AND IT IS NOT THE STALE SUITE — with the counts corrected; my first version
-      under-reported the damage by half:**
-      · **the vision judge REJECTED screens it looked at — TEN screens across SIX legs**, not the
-        five across three I first wrote: 1 of 30 solo-desktop · 1 of 21 solo-phone · 3 of 29
-        solo-tablet · **1 of 51 crew-phone · 1 of 27 solo-desktop-wk · 3 of 22 solo-tablet-wk**.
-        ⚠ **THESE ARE THE HALF MOST LIKELY TO BE A REAL BUG A PLAYER WOULD SEE, and nobody has
-        opened them.** Rule 19's live detector, filed as a footnote under a timing story.
-      · **FOUR buttons offered and never pressed**, not one: `deny`, `vanilla beans`, and
-        `walk away` twice;
-      · **every single voyage reports screens that never stopped moving before being checked** —
-        8, 9, 10, 22 of them, `longest wait 2.7s` and `2.8s` against a **2.6s budget**. A peer
-        session measured the same margin independently and declined to run its own browser probes
-        because of it;
-
-      ⚠ **I PREDICTED THE OPPOSITE AND THE PREDICTION IS WHY THIS ROW SAYS WAIT.**
-      `PREDICTION-20260903T0805Z-T136-trial-verdict.md`, written before reading the voyage section:
-      *"I expect the FAILED verdict to be entirely the browser-free half, and the ten voyages to be
-      clean."* Grounds were decent — the failure section is headed *"the browser-free checks failed"*
-      and its contents are `chartkeeper` fixture output (`T-802`, `no-such-row.md`, a temp dir), and
-      the suite genuinely WAS red at 06:24 and is green now.
-      **Its named falsifier — *"any structural failure reported inside the voyages themselves"* —
-      fired on the first line I read.** Ten for ten.
-      ⚠ **AND THE PREDICTION NAMED THE TRAP BEFORE I WALKED INTO IT:** *"Wanting the answer. He plays
-      staging, staging is two builds behind, and the only thing between him and the current build is
-      this verdict. That is exactly the pressure under which a session decides a failure was 'just
-      the instrument'."* **That is what I was doing.** The stale-suite reasoning was true and it was
-      not the whole verdict, and I would have shipped on it.
-      **SO: NOTHING IS BLOCKED ON WYATT, AND NOTHING SHIPS.** The settle margin is the next question
-      — 2.7–2.8s against a 2.6s budget on every leg is either a real regression in how long the board
-      takes to stop, or a threshold too tight for this build, and **which one it is decides whether
-      this is a game bug or a trial bug.** That is a POSED question (rule 26), not a rate.
-      **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
-      stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
-      ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
-      was true when measured and stale when read — the third time tonight that shape cost a session
-      (see also `T-011`'s false STOP and `T-085`'s claude-kit fence). **Re-measure before believing
-      any row that says a thing cannot be done.**
-      **Sizing: SMALL — one command, once the trial is in.**
 - [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
       ⟨`T-075`⟩
       untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,

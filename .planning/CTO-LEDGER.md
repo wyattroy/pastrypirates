@@ -8065,3 +8065,5 @@ prevent the deletion. The destructive act is the Artifact republish, gated by
 looked can still publish and still delete his words; what it can no longer do is file a clean
 receipt afterwards.** Closing the rest needs that hook, which lives under `.claude/` and needs
 Wyatt's own hands (`CLAUDE-DIR-REPAIRS-PENDING.md`).
+
+- 2026-09-03T12:48:51Z · close_item: "T-210" · CEO 168 · no game diff — no game code — the Glass receipt chain · no stated solution
