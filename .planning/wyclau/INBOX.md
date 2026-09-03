@@ -2175,3 +2175,8 @@ solution: HIS WORDS DEFINE THE TERM. When he types "summary", answer in ~50 word
   the cross-session memory as `summary-means-50-words`. He set the budget himself; the number is the
   instruction, and a long answer to "summary" is not obeying it.
 status: STANDING — never closed, applied every time he uses the word.
+
+## INBOX-20260903T182856Z — ⚑ HE PRESSED DO NOW — Def to move doesn’t work on mobile. New idea: add a “move to top” button to the right of e
+> Def to move doesn’t work on mobile. New idea: add a “move to top” button to the right of each item in the list. I click it once, it puts it at the top of the list.
+solution: none stated
+status: OPEN — PINNED by him on the Glass; take this before anything ranked
