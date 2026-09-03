@@ -1907,3 +1907,38 @@ status: DONE 2026-09-02 — 44 rows moved, 16 left. **And it changes this sessio
   Chartkeeper, the Glass generator and the close gate all read `CHART.md` by path. **They will now
   rank, sweep, render and close the GAME chart only, and the Glass chart is invisible to every one
   of them.** That is the next job on this file, and it is mine.
+
+## INBOX-20260902T2220Z — FIX EVERY GLASS TASK. PARK ONLY WHAT UNDENIABLY NEEDS HIS JUDGEMENT. DO NOT STOP.
+
+**HIS WORDS, VERBATIM:**
+
+> once the CEO comes back, fix every single one of the glass tasks. anything that undeniably
+> requires my judgement, park with a clear question in Your Tasks and move on to another task. Do
+> not stop until all of the glass tasks are completed, verified by CEO, and shipped.
+
+solution: his own, and it is a standing mandate rather than one item — **work `GLASS-CHART.md` to zero.** Park only what genuinely needs him, as a QUESTION HE CAN ANSWER, and keep going.
+
+status: OPEN — the standing instruction for this session and any that follows it.
+
+  **THE BAR HE SET, IN HIS OWN WORDS: "completed, verified by CEO, and shipped."** Three conditions,
+  not one. A row is not done because a file changed — it is done when a fresh CEO has judged it and
+  the change is on `main`-bound history and visible on his page.
+
+  ⚠ **"UNDENIABLY REQUIRES MY JUDGEMENT" IS A HIGH BAR AND IT IS DELIBERATE.** It is not *"I would
+  like his opinion"* or *"there are two reasonable options"* — **mechanism is ours, and a session
+  that parks a mechanism question is stalling.** What is genuinely his: taste, wording, scope, how
+  much is enough, and anything that changes what he sees or what the world can see. `T-006` (merge
+  the branch) and the public/private question on the Firebase move are his. **Nearly nothing else
+  is.**
+
+  **PARK IT AS A QUESTION, NOT A NOTE.** `## BLOCKED ON WYATT` renders table rows only; a parked
+  item written as prose is invisible and the card truthfully reports zero. **A question is not asked
+  until it is a row in that table, with a measurement in it and a marked recommendation.**
+
+  ⚠ **AND THE HONEST SIZING HE IS OWED, BECAUSE "DO NOT STOP" MEETS A REAL LIMIT.** `GLASS-CHART.md`
+  holds **44 rows** and they are not one size. Several are minutes. **`T-105`'s remaining layers and
+  the Firebase rebuild are days** — the design's own estimate is *"several sessions, not one
+  watch"*, and it is blocked on a question only he can answer. **A session cannot run to the end of
+  that list in one sitting**, so the mandate is served by: work the top row, ship it, keep the
+  handoff current so the next session resumes without re-deriving — and never stop *because the list
+  is long*.
