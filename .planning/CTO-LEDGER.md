@@ -7020,3 +7020,5 @@ false positive, and the gate's own suggestion ("turn this into a fail()") would 
 
 **THE ITEM: `T-013`, rank ONE of the ranked Chart (score 38), taken because it is row one and nothing holds it.** Two instruments disagree about how often a trade-call circle lands nearest the WRONG captain: `w54` says 15–16 of 21, `w52` says 1 of 12. **Wyatt has asked for this twice** (W5-2, and `INBOX-20260901T1332Z`: *"not on top of, or next to, someone else"*). It is a posed question, not a rate — rule 26.
 
+
+- 2026-09-03T05:37:03Z · close_item: "T-076" · CEO 145 · no game diff — expandable rows and a per-item comment box both shipped and verified in a real browser; the box shipped broken for ~15 min, is fixed, and the probe now fails on that bug · no stated solution

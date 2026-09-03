@@ -28,6 +28,79 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 145 — 2026-09-03, Wy-Blade — `T-076` follow-up: did the comment-box fix hold? — **PARTIAL**
+
+> *Number checked order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **144**, and `grep -c "^## CEO Review 145"` → **0**) twice: at the start of the pass and again at 05:33:52Z immediately before finalising. I am read-only and did not file this myself.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The comment box is genuinely fixed — I typed a comment into a real browser myself and it saved, published and came back on the row exactly as typed — but **the pinned row's own headline still tells him the two things are "left to build"**, and that stale sentence is now the FIRST line he sees when he expands it.
+
+---
+
+### 1. EACH OF 144'S FINDINGS: FIXED OR NOT
+
+| # | 144's finding | verdict | evidence |
+|---|---|---|---|
+| 1 | comment box destroyed his words | **FIXED** | `glass.mjs:1619` now reads `cmt.parentNode.insertBefore(p, cmt)`. I rendered the page and drove it with a fake capability: `{"boxAfter":"","told":"Saved.","mine":1,"mineText":"his test comment $5 and $\`whoami\`  (2026-09-03 05:25Z)","pubs":1,"errs":[]}`. **One publish, comment verbatim, box cleared, "Saved." shown, nothing thrown.** |
+| 2 | probe could not reach the save path | **FIXED** | `_t076_row_ui_probe.mjs:92-98` installs `window.claude.use → {publish}` via `Page.addScriptToEvaluateOnNewDocument` **before** `Page.navigate` (`:99`), counts real publishes in `window.__pubs`, and asserts `pubs === 1`, `mine === 1`, box empty, `told === "Saved."`. See §2 for my own red-proof. |
+| 3 | harvest banner said "DELETES both", named two fields | **FIXED** | `glass.mjs:1820-1824`: *"move any glassState.ideas, glassState.rulings AND glassState.comments … DELETES ALL THREE"*, plus the `{"T-nnn":[{text,at}]}` shape and the rule to file each onto its own row. I saw it printed when I rendered. |
+| 4 | full headline lost — `grep "FIVE HOURS OLD WHEN FILED"` → 0 | **FIXED, and it has surfaced a new problem** | `glass.mjs:539` now builds `[titleOf(c.lines), ...c.lines.slice(1)]`. **144's own test: 0 → 3** on a page I rendered myself. See §4 — carrying the headline forward has made a stale sentence more prominent, not less. |
+| 5 | update the row; wire the probe or accept in writing | **HALF** | The row body is rewritten honestly — it names the ~15 minutes shipped broken, the grandchild-of-`.rowx` mechanism, the unreachable failure handler, and the probe's own blind spot. It is **still `- [ ]`** (`.planning/GLASS-CHART.md:451`). Not wiring the probe is **accepted in writing on the row itself**, with the reason (`T-131`, `npm test` colliding with a sailing trial) and the instruction to run it by hand. **But 144 asked for two sentences to be updated and only one was** — see §4. |
+
+**Is the fix LIVE on his page?** — **Strong circumstantial yes; I could not read the artifact.** `.planning/wyclau/LAST-PUBLISH` records `2026-09-03T05:22:50Z … version=1788412964-f5aa commit=e254f5b9`, and `git merge-base --is-ancestor 7776db2e e254f5b9` **succeeds** — the fix commit is an ancestor of the commit that was published. What I *cannot* establish without the Artifact tool: that the bytes at that URL were built from that tree. The stamp is a session's own claim, and `mark_glass_published.mjs` records the local HEAD, not the page. **Reported as evidence, not proof.**
+
+---
+
+### 2. DOES THE PROBE NOW CATCH THE BUG? — **YES. I red-proofed it myself and it went red on the real defect.**
+
+I copied `scripts/wyclau/glass.mjs` and its `lib/` into a scratch tree, reverted **exactly one line** back to `box.insertBefore(p, cmt)`, rendered from the copy, and ran the probe against that page. **The repo copy was never touched** (`git status --porcelain` clean for both files throughout).
+
+| | shipped page | mutant with the bug back |
+|---|---|---|
+| `pubs` | **1** | **0** |
+| `mine` (comment rendered back) | **1** | **0** |
+| `told` | `"Saved."` | `""` |
+| page errors | none | `Uncaught NotFoundError: … insertBefore … not a child of this node` |
+| probe verdict | **All checks passed** (exit 0) | **FAIL — 4 check(s)** (exit 1) |
+
+**This is the check the last two verdicts kept failing to find, and it is now properly armed.** It fails on the thing it is named for, with the real error message in its output. That is the single most important line in this review.
+
+*Rule 17: my probe ran on port 9601 on its own profile and is gone — `curl 127.0.0.1:9601` refuses, and `stray_probe_check` reports every live browser has a live launcher.*
+
+*Two nits, neither load-bearing: `_t076_row_ui_probe.mjs:30-33` (`cdp`) is dead code, and `:102` reads `window.__probeErrors`, which nothing ever sets — the injected script writes `__pageErrors`. The result is discarded, so nothing depends on it, but it is a variable that can only ever read empty.*
+
+---
+
+### 3. IS `T-076` DONE? — **The BUILD is done. The RECORD is not, and the record is what he reads.**
+
+**Both asks work, verified in a browser, not asserted:** 29 rows, 29 expanders, 26 comment boxes, **0 open panels and 0 visible boxes at rest**, a click reveals 2,076 chars and flips to "less", and Save publishes once and renders his words back. I would close the build half without hesitation.
+
+**What stops me saying YES is one sentence he is looking at right now.** `.planning/GLASS-CHART.md:451` — the pinned rank-1 row's headline — still reads:
+
+> *"HIS FOUR GLASS-PAGE ASKS — **THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box.**"*
+
+Both of those shipped six hours ago. On his Glass the visible line renders as *"⚡ DO NOW — His four glass-page asks — three of the four now shipped. What is left is the…"* — and **because finding 4's fix now leads the expanded body with the full headline, that false clause is the first complete sentence he reads when he opens the row.** The correction is twenty lines further down. **144's own item 4 asked for exactly this sentence; the body under it was rewritten and the headline above it was not.**
+
+And 144's second target is untouched: `.planning/GLASS-CHART.md:644`, inside `T-001`, still shouts **"2. HIS 03:49Z GLASS ASKS ARE STILL NOT BUILT — expandable rows, and a comment box under each item."** On the page I rendered, `"STILL NOT BUILT"` appears **3 times** and `"What is left is the two that need new UI"` **twice**.
+
+**So: `T-076`'s code is finished and correct. `T-076` is not closeable until those two sentences say what is true** — that is a five-minute edit to two lines, not new work. If this session is closing `T-076` through a gate, fix the headline in the same act; otherwise the row closes carrying a claim its own body disproves, which is CEO 136's fault a fourth time.
+
+---
+
+### 4. ANYTHING NEW OR STILL WRONG
+
+- **`npm test`: FAIL, exit 1, ONE gate — `chart_sweep_conserves_check`.** *"112 allocated handle(s) are owned by NOTHING in either file"*, plus two advisory `REPORT` lines (3 handles owned in both files; `T-057`/`T-058`/`T-088` allocated twice). **It is the last gate in the chain, so nothing runs after it.** `no_ambiguous_handle_check` — named to me as a known second failure — **now passes**; I checked and it does not appear in the failing set. **The orphan count has moved 38 → 112** since that claim was made, which is worth someone's attention but is chartkeeper territory (`e254f5b9`, another session) and I did not re-litigate it. **Nothing in this failure touches `glass.mjs`, the probe, or `T-076`.**
+- **The stale-headline pattern is now structurally worse than before, and it is worth naming as a lesson rather than a nag.** Carrying the full title into the expanded body was the right fix, but it **promoted every row's headline from a truncated glance to a fully-read sentence**. Headlines in this Chart are written once and corrected in the body underneath. That convention was survivable while the headline was cut off at 16 words; it is not survivable now. **Every row whose body says "✅ SHIPPED" under a headline that says "still open" is a row that now lies to him twice as loudly.** `T-076` is the first case; it will not be the last.
+- **Still unguarded, and correctly said out loud rather than hidden:** nothing re-runs `_t076_row_ui_probe.mjs`, and **no gate anywhere reads `glassState.comments`** — the harvest is version-identity enforced and field-blind. Both are recorded on the row, which is the right place for them.
+- **Credit where it is due, plainly:** every one of 144's six prescriptions was acted on, four of them completely, within hours; the one-line fix was correct; and the probe went from a check that could not fail to one that **does** fail on the real bug. That is the first time in this streak a "check that cannot fail" finding has been closed with a demonstrated red.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+- **(3) DONE, and it was the right thing to hold the close on.** Both sentences now say what is true. The pinned headline reads *"ALL FOUR NOW SHIPPED: expandable rows and a per-item comment box landed 2026-09-03T04:5xZ, verified in a browser (CEO 145)"*, and `T-001`'s clause is corrected with the old wording struck through rather than deleted. Re-measured on a freshly rendered page using its own counts: **"What is left is the two" 2 → 0**, and **"STILL NOT BUILT" 3 → 2**, the two survivors being a quotation of a past state at `:496` and the strikethrough itself.
+- **ITS §4 LESSON IS THE MOST VALUABLE THING IN THIS REVIEW AND IT IS NOT ABOUT THIS ROW.** Carrying the full headline into the expanded body — a fix *it* prescribed — **promoted every headline in the Chart from a truncated glance to a fully-read sentence.** The house convention is: write the headline once, correct it in the body underneath. That was survivable while the title was cut at 16 words. It is not survivable now. *"Every row whose body says ✅ SHIPPED under a headline that says still open is a row that now lies to him twice as loudly."* `T-076` was the first case and will not be the last — filed so the next session meets it before he does.
+- **On the live-page question it refused to overclaim:** correct, and the gap is real — `mark_glass_published.mjs` records the local HEAD, not the bytes at the URL, so the stamp is a session's own claim. This Advisor *did* read the live artifact independently and separated real code from prose: both live code sites carry `cmt.parentNode.insertBefore`, every remaining `box.insertBefore(p, cmt)` in the page is row text describing the bug. **Its caution was right on the evidence available to it.**
+- **Both nits acknowledged and left:** the dead `cdp` helper and the `__probeErrors` read that can only ever come back empty (the injected script writes `__pageErrors`). Neither is load-bearing — the result is discarded — but a variable that can only read empty is the same family as a check that cannot fail, and it is recorded rather than quietly kept.
+- **On `chart_sweep_conserves_check` moving 38 → 112 orphaned handles:** not this item's, not re-litigated here, and flagged to the session that owns `CHART.md`.
+
 ## CEO Review 144 — 2026-09-03, Wy-Blade — `T-076`: his expandable rows and per-item comment box — **PARTIAL**
 > ⚠ **RENUMBERED 143 → 144, AND THE COLLISION IS THE BANNER'S OWN LESSON HAPPENING LIVE.** This
 > review checked the highest number order-independently at both the start and the end of its

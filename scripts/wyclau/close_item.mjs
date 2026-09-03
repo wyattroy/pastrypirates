@@ -115,10 +115,26 @@ if (isInbox) {
   const heads = [];
   lines.forEach((l, i) => { if (l.startsWith("- [ ]")) heads.push(i); });
   const needle = item.toLowerCase();
-  const hits = heads.filter((h, n) => {
-    const end = n + 1 < heads.length ? heads[n + 1] : lines.length;
-    return lines.slice(h, end).join("\n").toLowerCase().includes(needle);
-  });
+  const blockOf = (h, n) => lines.slice(h, n + 1 < heads.length ? heads[n + 1] : lines.length);
+  /* ⛔ A HANDLE THIS ROW *IS*, BEFORE A HANDLE THIS ROW *MENTIONS*. Added 2026-09-03, immediately
+   * after the block-matching fix above created this exact problem and then refused a close because
+   * of it: `--item="T-076"` matched TWO rows — the row whose handle is `T-076`, and a different row
+   * whose body says "see `T-076`". Both are real matches for a substring search, and only one is
+   * the item.
+   *
+   * So: look first for rows carrying the id on their HANDLE LINE — `⟨`T-nnn`⟩`, the line the
+   * Chartkeeper writes and nothing else uses. If exactly one row owns it, that is the item, however
+   * many others talk about it. Only when no row OWNS the string does this fall back to searching
+   * the whole block, which is what makes a prose fragment like "DESTROYS WHATEVER IS WAITING" work.
+   *
+   * **The general shape, and it is worth carrying: cross-references make text matching ambiguous
+   * exactly as a record gets better cross-referenced.** The more the Chart points at itself — which
+   * is the thing that makes it useful — the more a substring match degrades. An identity line is the
+   * fix, because it is the one place a row asserts what it IS rather than what it is about. */
+  const ownedBy = heads.filter((h, n) =>
+    blockOf(h, n).some((l) => /^\s*⟨[^⟩]*⟩\s*$/.test(l) && l.toLowerCase().includes(needle)));
+  const hits = ownedBy.length === 1 ? ownedBy
+    : heads.filter((h, n) => blockOf(h, n).join("\n").toLowerCase().includes(needle));
   if (hits.length === 0) refuse(`no open Chart row ("- [ ]") contains "${item}"`, `check the wording against ${CHART}`);
   if (hits.length > 1) refuse(`"${item}" matches ${hits.length} open Chart rows`, "use a longer, unique substring");
   chartRow = lines[hits[0]];
