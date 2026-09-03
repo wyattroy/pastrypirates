@@ -9572,3 +9572,34 @@ launcher. Nothing of mine to kill.
 
 **No lesson written today** — `LESSONS.md` already carries one for 2026-09-03 and `add_lesson.mjs`
 refuses a second by design.
+
+### ⛔ CORRECTION TO THIS ENTRY, AND A GAP IN THE DOOR'S STEP 6b THAT THE NEXT WATCH WILL HIT TOO
+
+**I told him "your page should update shortly." That was wrong, and the Glass session said so.**
+
+Door step 6b says: `ListAgents` to find the Glass session, `SendMessage` it *"I just landed <what>,
+please publish"* — **"YOU CANNOT PUBLISH AND IT CAN."** I did exactly that, to `Glass update`. Its
+reply, verbatim: *"This session only dispatches a tick on Wyatt's explicit instruction."*
+
+**So the step's premise is half false. The Glass session CAN publish and WILL NOT — it gates on
+Wyatt, not on a watch's ask.** Step 6b's only escape hatch is *"if no Glass session is listed, say
+so in the ledger and end"* — and a session that is listed, answers, and declines is neither of the
+two cases it plans for. **The watch reads it as discharged; his page does not move.**
+
+**WHY THIS MATTERS MORE THAN IT LOOKS, and it is the failure step 6b was written to END.** Its own
+text: *"Wyatt spent 2026-09-02 repeatedly looking at an unchanged page and reasonably concluding
+nothing had happened, while watches were committing real work."* **That is the exact state this
+watch has just re-created** — work landed, committed, pushed, closed through the gate, and his page
+unchanged. Sending the message satisfies the instruction and does not achieve the thing the
+instruction exists for.
+
+**NOT FIXED HERE, and deliberately: which side moves is HIS call, not a watch's.** Either the Glass
+session publishes on a watch's ask (which is what step 6b already assumes and would make the step
+true as written), or step 6b stops promising a publish and tells the watch to say plainly in its
+close report that his page is stale until he asks for a tick. **The first is a change to how his own
+page behaves without him asking for it; the second is honest and slower.** Filed for him rather than
+chosen — and said out loud in this watch's close report, so he is not left with my wrong sentence.
+
+**What is true right now:** everything is committed and pushed (`e64d49b4`), and the note for his
+page is in `GLASS-NOTE.md` waiting. The Glass session confirmed it will commit the note-clear
+immediately when it does fold it in, which closes the vanishing-window fault this watch hit twice.
