@@ -515,6 +515,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 |---|---|---|
 | <!--qid:t017-name-type-too-small--> ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. | **Take a look at the third picture and tell me if it is readable.** If it is not, the honest fix is a bigger circle rather than smaller words — the disc is 66px and it is being asked to hold a name, a crate and a price. A third option: move the name out to the sentence above and leave only the price in the circle. | 2026-09-03 |
 | <!--qid:t017-fan-mixed-sizes--> ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. | **Match them — shrink every circle in a fan to whatever its longest label needs.** One gesture, one look. The cost is that a fan containing one long name makes *every* label in it small, including short ones that had room. Say the word and it is a few lines. | 2026-09-03 |
+| <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
+| <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build on the sitemap: should the page list be generated?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and the next page we ship (`/rules.html`) would vanish from Google without a sound. The list is correct today: two pages, and they are exactly the two that declare themselves public. | **Don't generate it — make it go RED instead.** Every page already says whether it is public, in its own `robots` tag and in `robots.txt`, so a check can derive the answer without anyone keeping a list. The day a page lands unlisted, the tests fail and name it. Generating the file instead would need a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess. **One watch.** Reasoning and the third option: [`SPEC-SITEMAP-COVERAGE.md`](SPEC-SITEMAP-COVERAGE.md). | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -704,6 +706,29 @@ session's mandate is harvest-and-publish only.**
      note was fated. Not `T-098`'s fault — but nobody has put the choice to him, and now nobody
      has a reason to look. **Whoever fates this row: the decision is still his to make, after the
      fact, and the honest question is whether to KEEP the generator, not whether to write one.**
+
+  ✅ **FATED AND ANSWERED 2026-09-03T07:0xZ by watch b2. Point 2 is delivered as the recommendation
+  he asked for; point 1 is now a ranked row (below) instead of a note that gets consumed once.**
+  [`SPEC-SITEMAP-COVERAGE.md`](SPEC-SITEMAP-COVERAGE.md), and the question is live on his Your Call
+  card (`qid:t102-sitemap-coverage`). **Recommendation: do NOT generate the list — teach the gate
+  that already exists to look in the other direction**, because a directory walk needs a hand-kept
+  exclusion list and that is the same rot moved somewhere he cannot see it. Measured, not assumed:
+  the list is correct today (2 entries; `index.html:16` and `about.html:14` are the only two pages
+  that declare `index, follow`, out of 13 tracked `.html` files), and the risk is real and
+  unguarded — `sitemap_lastmod_check.mjs` iterates `<url>` blocks, so **a page that exists with no
+  entry is invisible to it by construction**, and `/rules.html` (`T-100`) is the next page we ship.
+  Prediction written before the measurement: `PREDICTION-20260903T0655Z-T102.md`, all three clauses
+  held. **Nothing was built** — his sentence is *"Recommend, don't just build."*
+
+  ⚠ **AND A CORRECTION TO THE LINE DIRECTLY ABOVE, which I owe in the open.** *"The honest question
+  is whether to KEEP the generator"* reads `sitemap_write.mjs` as the thing this sentence of his is
+  about. **It is not.** That script derives the DATES from git, which is his *first* instruction on
+  this subject and is not in question — *"DERIVE the dates, do not hand-type them."* It reads the
+  page list out of the existing file and says so in its own comment (`:12-16`). **So there is no
+  built generator to keep or discard here; the half he flagged — the page LIST going stale — was
+  never built at all.** CEO 142's finding 3 stands (the choice was never put to him); the framing
+  the fating watch wrote from it was one file off.
+
   ⚠ Also from CEO 142, finding 4, and it is his to know rather than ours to fix quietly: his note
   says *"Don't touch `scripts/deploy-preview.sh`"* — **that file does not exist in this repo.** The
   real one is `scripts/deploy-staging.sh` (which does carry the `sitemap.xml` exclude, verified).

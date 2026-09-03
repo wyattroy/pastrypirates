@@ -28,55 +28,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
-      ⟨`T-027`⟩
-      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"verify this to make sure it functions as needed."*
-      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
-      WHY PARTS 2 AND 3 OF RULING 12 ARE STILL OPEN. Measured 2026-09-02T04:0xZ by the watch that
-      tried it. Sizing: one line of config, or one command from an attended session.**
-      Everything ahead of the deploy passed on this watch: `npm test` green through its last
-      `&&`-chained gate, `gear.mjs` FULL and already paid for by the 0137Z trial (ten legs on
-      `2026.09.01.8`, empty NOT-RUN column, empty unjudged column since the 03:00Z watch).
-      Then `./scripts/deploy-staging.sh "…"`, `bash scripts/deploy-staging.sh "…"` and
-      `bash scripts/deploy-staging.sh` each returned **"This command requires approval."** Three
-      forms, one answer; stopped there rather than hunting a fourth wording.
-      **Cause, read rather than guessed:** `.claude/settings.json`'s allow list has
-      `"Bash(node scripts/*)"` and nothing covering a `bash …/*.sh`, which is exactly why every
-      `node scripts/…` command that watch ran went through. `scripts/deploy-staging.sh` is the only
-      deploy entrypoint in the repo (`scripts/**/deploy*` → one file), and hand-rolling the rsync is
-      rule 14 — the one that takes the live game down.
-      **Why it matters beyond this item:** the relay's own liveness guards all test GIT.
-      `can_push.mjs` checks four git faults and says "can publish"; the thing that actually stopped
-      this watch was the permission layer. Same shape as the push refusal solved four hours ago —
-      and every successful staging deploy this project has had was run by an ATTENDED session.
-      **Staging is measurably stale as a result:** the wire says `2026.09.01.6-staging@60f969c4`,
-      two builds behind the tree, so the preload pass, the about-recipes resize, the call circle
-      moved off the question it asks, the storm glide and the guest's camera are all missing from
-      the address he plays.
-      **The fix is his, and the watch deliberately did not take it** — adding
-      `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
-      unattended watch the ability to publish to a public address, which is not a repair a watch
-      gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-      ✅ **HE ALREADY MADE IT — MEASURED 2026-09-03T06:0xZ, at his note "verify this to make sure it
-      functions as needed."** `.claude/settings.json:11-12` now carries **both**
-      `"Bash(npm run deploy:staging*)"` and `"Bash(bash scripts/deploy-staging.sh*)"`. **The blocker
-      this row is built on is gone**, and the row had no way to know: it was written from a refusal
-      that was true when it was measured and stale when it was read — the same shape as `T-011`'s
-      false STOP and `T-085`'s claude-kit fence, both of which cost a session each tonight.
-      ⚠ **AND THE STALENESS NUMBER WAS WRONG TOO, IN HIS FAVOUR.** The row says the wire reads
-      `2026.09.01.6-staging@60f969c4`. Measured against the live address just now:
-      **`2026.09.01.8-staging@1ce21a00`** — so a deploy DID land after this row was filed. Staging is
-      still behind the tree (`2026.09.02.1`), but by one build, not two.
-      ⛔ **STILL NOT DEPLOYED, AND THE PROCESS — NOT A JUDGEMENT CALL — IS WHY.** The release contract
-      is `npm test` exit 0 → gear → sea trial → deploy. **`npm test` is RED**, on
-      `chart_sweep_conserves_check` (106 handles owned by nothing), which is another session's
-      bookkeeping fault and touches no game code. The rule does not carve out "unrelated" failures,
-      and inventing that exception at 6am to publish to an address he plays is exactly the kind of
-      judgement a watch does not get to make alone.
-      **SO THIS ROW IS NOW BLOCKED ON A DIFFERENT THING THAN IT SAYS AT THE TOP:** not his
-      permission — he gave it — but a green suite. **Whoever gets `chart_sweep_conserves_check`
-      green can take this row straight through.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch."*
@@ -457,3 +408,23 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       direction. It should say, in the rank output, which rows it judged blocked and on what.
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment
       ⟨`T-030`⟩
+- [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
+      ⟨`T-136`⟩
+      `T-027` so his actual need is not lost when that row closes.**
+      `T-027` asked *"verify this to make sure it functions as needed"* and the verification is
+      done: the permission he was asked for **already exists** (`settings.json:11-12`, both forms),
+      and the suite that blocked the deploy is **green, exit 0**. But verifying a blocker is gone is
+      not the same as doing the thing, and **closing `T-027` on a completed verification would have
+      quietly retired his actual need.** So it lives here.
+      **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
+      `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
+      ⏳ **WAITING ON ONE THING ONLY: the sea trial in flight** (pid 29700, stamp `2026.09.03.1`,
+      started 06:24Z). The release contract is `npm test` → gear → sea trial → deploy, and the trial
+      is the last unmet step. **Nothing here is blocked on Wyatt.**
+      **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
+      stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
+      ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
+      was true when measured and stale when read — the third time tonight that shape cost a session
+      (see also `T-011`'s false STOP and `T-085`'s claude-kit fence). **Re-measure before believing
+      any row that says a thing cannot be done.**
+      **Sizing: SMALL — one command, once the trial is in.**

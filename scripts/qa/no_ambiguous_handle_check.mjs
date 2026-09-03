@@ -34,7 +34,17 @@ function openRows(src) {
   starts.push(src.length);
   const out = [];
   for (let i = 0; i < starts.length - 1; i++) {
-    const seg = src.slice(starts[i], starts[i + 1]);
+    /* ⛔ A ROW ENDS AT THE NEXT SECTION HEADING TOO, NOT ONLY AT THE NEXT ROW.
+     * Slicing straight to the next "- [ ]" makes the LAST row before a heading swallow everything
+     * under it -- and CHART.md's BLOCKED ON WYATT table carries handles, one per question
+     * (`| <!--qid:t017-name-type-too-small--> ⟨`T-017`⟩ ...`). So whichever row happened to sit last
+     * before that table was reported as carrying T-017 and colliding with the row that really owns
+     * it. The accused row CHANGED as rows moved -- first "Your ruling: the cutover moment", then a
+     * restored ruling row -- which is the tell that the finding was about POSITION, not ownership.
+     * A handle in his question table is a REFERENCE. Only a row's own handle line is a claim. */
+    let seg = src.slice(starts[i], starts[i + 1]);
+    const head = seg.search(/^## /m);
+    if (head > 0) seg = seg.slice(0, head);
     out.push({ seg, title: seg.split("\n")[0].replace(/^- \[ \]\s*/, "").slice(0, 70) });
   }
   return out;

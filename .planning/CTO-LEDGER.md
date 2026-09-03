@@ -7159,3 +7159,5 @@ recorded here so the next watch does not re-derive it. `stray_probe_check` **PAS
 the trial; every browser I opened is dead.
 
 - 2026-09-03T06:06:33Z · close_item: "T-131" · CEO 147 · no game diff — npm test no longer writes the live LONG-RUN marker: 9 write events to 0, measured by CEO 147 with fs.watch; the gate is still armed, re-proved with an anchor-preserving mutant · no stated solution
+
+- 2026-09-03T06:50:38Z · close_item: "T-027" · CEO 149 · no game diff — verified as he asked: the permission he was asked for already exists, staging is behind not blocked, and the suite that blocked it is now green; the deploy itself waits on the trial in flight · no stated solution
