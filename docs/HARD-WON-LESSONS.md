@@ -1764,3 +1764,68 @@ resolves to the HOST's asset — the Helm rebuilt itself around the reset once a
 stylesheet vanished on the first Record tap**, which Wyatt found. Every element a self-saving
 page rebuilds from carries an id: `#helm-style`, `#helm-state`, `#glass-style`, `#glassState`,
 `#asks`. The comment at `helm-main`'s `fullDoc()` records it at the scene.
+
+## 13. 2026-09-03 — ONE INSTRUCTION SPLIT ONE LIST IN TWO, AND SEVEN INSTRUMENTS WENT QUIETLY WRONG
+
+**Wyatt, 2026-09-02:** *"take every Glass-focused task on the Chart, and compile it into a new list…
+YOU will work on the chart -- the Watch will work on the game."* A reasonable instruction, correctly
+carried out: 44 rows moved from `CHART.md` to `GLASS-CHART.md`.
+
+**Every tool with the old path written into it then broke — in a DIFFERENT way each time, and not
+one of them errored.** They all reported confidently about a file they could no longer fully see.
+
+| tool | what it did instead of failing |
+|---|---|
+| `close_item.mjs` | refused to close **any** of the moved rows — "no open Chart row contains…" |
+| `chartkeeper.mjs --rank` | printed a clean report reading **"0 open rows"** on a 27-row file |
+| `tick_rows.mjs` | same blindness, silently |
+| the Door's step 2 | sent every watch to the top of an empty list |
+| `chart_sweep_conserves_check` | called all 27 rows **lost** |
+| `no_ambiguous_handle_check` | accused whichever row sat above his questions table |
+| `glass_his_five_asks_check` | (later) failed on markup a new feature put on his page |
+
+**THE TELL, AND IT IS THE MOST USEFUL SENTENCE HERE: the sweep gate's error count GREW AS WORK WENT
+WELL** — 38 → 112 → 106 across one night — because every row that got CLOSED moved its handle into
+the half the gate could not see. **An instrument that gets louder the more you fix is measuring
+itself.** If a number moves the wrong way when you succeed, stop and audit the instrument.
+
+### THE OTHER HALF: an instrument that asks for an IDENTITY and accepts one spelling of it
+
+Three separate tools demanded a row's handle and then could not match it:
+
+- `close_item.mjs` matched only a row's **first line** — and every handle is written on line two. **The
+  one identifier the gate asked for was the one it could never match.**
+- `chart_sweep_conserves_check` required the handle to be the **entire** bracket contents, so every
+  row carrying `· size: M` or his `· now: yes` pin was invisible **as an owner** and reported LOST. A
+  gate whose whole job is *"the sweep may never lose a row"* was manufacturing losses out of its own
+  strictness.
+- `no_ambiguous_handle_check` read a row's block to the next row, so the last row before a heading
+  swallowed his BLOCKED-ON-WYATT table — which carries a handle per question. **The accused row
+  CHANGED as rows moved**, which is the tell that a finding is about POSITION, not ownership.
+
+**Match the identity; allow what follows it.** And note the third one's shape: *a handle a row
+MENTIONS is a reference; only a row's own handle line is a claim.* Cross-references make text
+matching worse exactly as a record gets better cross-referenced.
+
+### AND THE SAME DAY'S THIRD FACE: a measured refusal is evidence about a moment
+
+Three rows were built on *"a watch cannot do this"*, each measured honestly and each **stale when
+read**:
+
+- `can_push.mjs` prescribed a `git push --dry-run` form the permission list can never match (it is a
+  PREFIX match), then said *"if it is REFUSED, end the turn"* — **a permanent false STOP at the Door,
+  on a healthy tree.**
+- A row said reading `claude-kit` was forbidden. **He had removed that fence 31 minutes earlier**, and
+  nobody had harvested the ruling.
+- `T-027` said the staging deploy is *"the one step a watch cannot take"* and that granting it was
+  his call. **He had already granted it.**
+
+**Re-measure before believing any row that says a thing cannot be done.** A refusal is a fact about
+one moment, not a standing property of the world.
+
+### THE CHEAPEST MISTAKE OF THE NIGHT, AND IT COST 68 GHOSTS
+
+Restoring a swept row, a session minted the handle `T-203` because it looked free. The sweep gate
+takes its ceiling from the highest **owned** handle, so jumping 134 → 203 invented **68 vanished
+rows** in one keystroke, and two sessions then reasoned about them. **Take the next handle at the
+FRONTIER; never a round number that looks unused.**
