@@ -20,11 +20,30 @@
  * WHAT IT DELIBERATELY DOES NOT DO: kill anything. A gate that kills is a gate that can destroy a
  * live sea trial, and a trial dying silently is a worse failure than a leaked browser. It reports,
  * names the platform's own kill command, and leaves the decision with a person or a watch.
+ *
+ * ⚑ AND SINCE 2026-09-03, SOMETHING ELSE DOES THE KILLING — read this before concluding, as the
+ * paragraph above alone would let you, that nothing on this machine ever cleans up.
+ * Wyatt: *"did you fix this problem so that there are never any abandoned browsers hitting my
+ * laptop anymore?"* He was right to ask: this file had been made REACHABLE again that afternoon and
+ * that is not the same as fixed. Three separate gaps, all now closed:
+ *   - `scripts/qa/kill_stray_probes.mjs` KILLS orphans (never a probe with a live launcher), and it
+ *     is wired to the **Stop and SubagentStop hooks**, so it runs at the end of every turn whether
+ *     or not anybody runs the suite. The 183-browser night contained no suite run at all.
+ *   - This gate now runs **FIRST** in `npm test`. It ran 117th of 127, and on 2026-09-03 a FALSE
+ *     failure ~90th switched it off for a whole day. 116 gates could silence it; now none can.
+ *   - `stray_probe_reaper_check.mjs` fails the build if any of that is undone.
+ * The division stands: this one REPORTS, the reaper ACTS, and neither guesses what "abandoned"
+ * means — both import it from `scripts/lib/stray_probes.mjs`.
  */
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+/* ⛔ ONE DEFINITION OF "A DEBUG BROWSER, AND WHETHER IT IS ABANDONED" (rule 23). This file used to
+   carry the query itself, and on 2026-09-03 a REAPER was written beside it — `kill_stray_probes.mjs`
+   — which needed the same definition. Two copies of the orphan test is exactly how a detector and
+   the thing acting on it come to disagree about what counts, and only one of them would be right.
+   The query moved to the shared lib; nothing about what this gate asserts changed. */
+import { askTheOS as askTheOSShared } from "../lib/stray_probes.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const isWin = process.platform === "win32";
@@ -43,22 +62,7 @@ console.log("stray_probe_check — abandoned headless browsers left running on t
 const fixtureArg = process.argv.find((a) => a.startsWith("--fixture="));
 
 /** One line per matching process. Never returns a bare `[]` on error — see `probe()`. */
-function askTheOS() {
-  if (isWin) {
-    // PowerShell, because Get-CimInstance is the only thing here that can see a command line.
-    /* ORPHANED, NOT MERELY RUNNING — and this is the whole definition. A browser whose launcher is
-       still alive is a probe someone is USING; a browser whose parent has exited is abandoned. So
-       the query reports the parent's liveness alongside each process and the verdict below uses it.
-       Emitted as `pid|created|parentAlive`. */
-    const ps = `$live = @{}; Get-CimInstance Win32_Process | ForEach-Object { $live[[int]$_.ProcessId] = $true }; ` +
-               `Get-CimInstance Win32_Process -Filter "Name='chrome.exe' OR Name='msedge.exe'" | ` +
-               `Where-Object { $_.CommandLine -match 'remote-debugging-port' } | ` +
-               `ForEach-Object { "$($_.ProcessId)|$($_.CreationDate)|$(if ($live[[int]$_.ParentProcessId]) { 'parent-alive' } else { 'orphan' })" }`;
-    return execFileSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8" });
-  }
-  // Mac and Linux. `ps` is present on both; pgrep is not guaranteed and is what failed on Windows.
-  return execFileSync("/bin/sh", ["-c", "ps -eo pid,lstart,command | grep -- '--remote-debugging-port' | grep -v grep || true"], { encoding: "utf8" });
-}
+const askTheOS = askTheOSShared;   // the shared definition; see the import note above
 
 function probe() {
   try {
