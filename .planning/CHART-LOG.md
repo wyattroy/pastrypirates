@@ -2814,3 +2814,35 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 - [x] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row. (closed 2026-09-03 · CEO 185 · no game diff — no game code by design: his ruling is about how sitemap.xml is GENERATED, so the change is the writer, a shared predicate and a gate — sitemap.xml itself is byte-identical (commits 25dbac76, e6331c15))
       ⟨`T-102`⟩
+
+## T-247 — 2026-09-03 — PUBLISHED — staging serves 2026.09.03.4-staging@401674f8, and 566 files were checked (closed 2026-09-03 · CEO 188 · no game diff — a deploy, not a code change: staging serves 401674f8, 566 files byte-identical, CEO 188 re-ran the gate itself) BYTE FOR BYTE rather than taken on the stamp's word. His instruction, INBOX-20260903T213129Z, 2026-09-03T21:31:29Z: "we need to push all these changes to staging!!" → https://staging.playpastrypirates.com/ THE GATE: scripts/qa/_t247_staging_parity.mjs. It fetches the real site and compares bytes, because the build stamp is a claim the publisher wrote about ITSELF (deploy-staging.sh:270 rewrites it; docs/GIT-AND-DEPLOY.md §5 is the day that lied). Its candidate list is git ls-files plus untracked-not-ignored — exactly what rsync sends — and its exclude list is parsed out of deploy-staging.sh, so nobody retypes it. Photographed too (rule 19), AFTER the new analytics <script> landed in index.html: lobby draws at 1280×900 and 390×844, window.firebase LOADED, rules.html renders — .planning/posed/t247-staging-.png. It includes T-206's analytics work (09f8658c), which the Blade session committed on this watch's ask; publishing before that would have put uncommitted code on his page under a stamp naming a commit without it. ⚠ TWO THINGS THAT ARE NOT DONE AND MUST NOT BE READ AS DONE: (a) THE FULL SEA TRIAL IS OWED ON 09f8658c. gear.mjs says FULL. The trial that was at sea during this watch started at 20:31Z against 2026.09.03.4 before analytics existed, so it does not cover this commit. Neither session started a second — that is the T-026 fault. A later watch sails it. (b) THE FRONT-CARD PRIVACY LINE IS NOW INCOMPLETE FOR PRODUCTION. index.html's footer still reads "Anonymised move data is recorded… nothing beyond the name ye confirm… is collected." With Google Analytics on that page in production that sentence no longer covers what happens. It does not affect staging — analytics refuses any hostname that is not exactly playpastrypirates.com, so nothing fires there — but it must not reach production unamended. Raised by the Blade session, which is putting the copy question to Wyatt directly. ⚠ CEO 187 SAID NO to the state of this item before the publish, and its charge is kept rather than softened: "He wrote an imperative… The watch answered a question he did not ask." The publish above is the answer to it.
+
+- [x] **PUBLISHED — staging serves `2026.09.03.4-staging@401674f8`, and 566 files were checked (closed 2026-09-03 · CEO 188 · no game diff — a deploy, not a code change: staging serves 401674f8, 566 files byte-identical, CEO 188 re-ran the gate itself)
+      ⟨`T-247`⟩
+  BYTE FOR BYTE rather than taken on the stamp's word.** His instruction,
+  `INBOX-20260903T213129Z`, 2026-09-03T21:31:29Z: *"we need to push all these changes to
+  staging!!"* → **https://staging.playpastrypirates.com/**
+  **THE GATE: `scripts/qa/_t247_staging_parity.mjs`.** It fetches the real site and compares bytes,
+  because the build stamp is a claim the publisher wrote about ITSELF (`deploy-staging.sh:270`
+  rewrites it; `docs/GIT-AND-DEPLOY.md` §5 is the day that lied). Its candidate list is
+  `git ls-files` **plus untracked-not-ignored** — exactly what rsync sends — and its exclude list is
+  **parsed out of `deploy-staging.sh`**, so nobody retypes it. Photographed too (rule 19), AFTER the
+  new analytics `<script>` landed in `index.html`: lobby draws at 1280×900 and 390×844,
+  `window.firebase` LOADED, `rules.html` renders — `.planning/posed/t247-staging-*.png`.
+  **It includes `T-206`'s analytics work** (`09f8658c`), which the `Blade` session committed on this
+  watch's ask; publishing before that would have put uncommitted code on his page under a stamp
+  naming a commit without it.
+  ⚠ **TWO THINGS THAT ARE NOT DONE AND MUST NOT BE READ AS DONE:**
+  **(a) THE FULL SEA TRIAL IS OWED ON `09f8658c`.** `gear.mjs` says FULL. The trial that was at sea
+  during this watch started at 20:31Z against `2026.09.03.4` **before** analytics existed, so it
+  does not cover this commit. Neither session started a second — that is the `T-026` fault. **A
+  later watch sails it.**
+  **(b) THE FRONT-CARD PRIVACY LINE IS NOW INCOMPLETE FOR PRODUCTION.** `index.html`'s footer still
+  reads *"Anonymised move data is recorded… nothing beyond the name ye confirm… is collected."*
+  With Google Analytics on that page in production that sentence no longer covers what happens.
+  **It does not affect staging — analytics refuses any hostname that is not exactly
+  `playpastrypirates.com`, so nothing fires there** — but it must not reach production unamended.
+  Raised by the `Blade` session, which is putting the copy question to Wyatt directly.
+  ⚠ **CEO 187 SAID NO to the state of this item before the publish, and its charge is kept rather
+  than softened:** *"He wrote an imperative… The watch answered a question he did not ask."* The
+  publish above is the answer to it.

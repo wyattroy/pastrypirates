@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T21:14:10.269Z	self-publish check
+2026-09-03T22:03:40.601Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -16,15 +16,14 @@ None recorded.
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-03T20:31:50.685Z",
-  "updatedAt": "2026-09-03T21:06:27.209Z",
-  "progress": "4/10 legs",
+  "updatedAt": "2026-09-03T22:00:56.059Z",
+  "progress": "9/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T00:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T003801Z.out/.err, kit: readable)
 2026-09-03T01:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T010801Z.out/.err, kit: readable)
 2026-09-03T02:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T020802Z.out/.err, kit: readable)
 2026-09-03T02:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T022801Z.out/.err, kit: readable)
@@ -64,4 +63,5 @@ None recorded.
 2026-09-03T19:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T191801Z.out/.err, kit: readable)
 2026-09-03T19:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T195802Z.out/.err, kit: readable)
 2026-09-03T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T204802Z.out/.err, kit: readable)
+2026-09-03T21:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T213802Z.out/.err, kit: readable)
 ```

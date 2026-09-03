@@ -9697,3 +9697,7 @@ script **exits 2 rather than concluding** if it ever sees zero failures. Re-run:
 scoped so the sea trial's four were never touched. `stray_probe_check` reports the same 4 as when I
 arrived. **Rows skipped:** none held; I took his newest instruction over Chart rank 1 (`T-206`)
 because it is his own words eight minutes old, and reported the scoring bug that let it rank zero.
+
+- 2026-09-03T22:06:14Z · close_item: INBOX-20260903T213129Z · CEO 188 · no game diff — no game code is right: his ask was a DEPLOY, not a change — staging now serves 2026.09.03.4-staging@401674f8, verified byte-for-byte across 566 files (0 DIFFERS) by a gate CEO 188 re-ran itself; the game code published is 09f8658c, another session's · no stated solution
+
+- 2026-09-03T22:06:37Z · close_item: "T-247" · CEO 188 · no game diff — a deploy, not a code change: staging serves 401674f8, 566 files byte-identical, CEO 188 re-ran the gate itself · no stated solution

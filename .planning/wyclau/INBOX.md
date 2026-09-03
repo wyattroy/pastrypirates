@@ -2223,4 +2223,4 @@ status: OPEN — taken now, with the tag assignment.
 ## INBOX-20260903T213129Z — we need to push all these changes to staging!!
 > we need to push all these changes to staging!!
 solution: none stated
-status: OPEN
+status: DONE 2026-09-03 — CEO 188, no game diff — no game code is right: his ask was a DEPLOY, not a change — staging now serves 2026.09.03.4-staging@401674f8, verified byte-for-byte across 566 files (0 DIFFERS) by a gate CEO 188 re-ran itself; the game code published is 09f8658c, another session's
