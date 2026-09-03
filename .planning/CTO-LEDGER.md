@@ -7920,3 +7920,18 @@ committed here — every path in this watch's commit is named explicitly.
   the Chart was already ordered. Neither file will appear in my commit.
 
 - 2026-09-03T11:16:31Z · close_item: "T-122" · CEO 165 · no game diff — no game code — the Chart tooling · no stated solution
+
+## 2026-09-03T11:2xZ — Advisor (Blade): a number in my own commit message, hand-typed and wrong
+
+Commit `T-122 CLOSED (CEO 165)` says *"22 rows left on the Glass chart"*. **It is 25.** I typed the
+figure from memory instead of counting it, in the same breath as closing a row.
+
+`grep -c '^- \[ \]' .planning/GLASS-CHART.md` → **25**. Nothing was lost and no peer added rows
+(the frontier is still `T-209`, both mine): I had 23 open, filed `T-209` making 24, and my "23"
+was itself stale — it predated `T-208`.
+
+**This is `CLAUDE.md` §5's second convention, broken by the session that has spent the night on
+instruments that lie: _"never hand-type a number that can be counted."_** A commit message is
+append-only, so the wrong figure cannot be edited out — which is exactly why the rule says count
+it. This entry is the correction, and the count command is written above so the next reader does
+not have to trust either number.
