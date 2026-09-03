@@ -28,6 +28,304 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 156 — 2026-09-03, Wy-Blade — the deploy held, the settle diagnosed, and a probe that could not see the board — **PARTIAL**
+
+> *Number: `grep … | sort -n | tail -1` → **154**; `grep -c "^## CEO Review 155"` → **0**, but two scratch files named `_ceo155_*` were written at 04:29 and 04:31 by a live peer session. **I moved to 156 rather than race it** — the file's own banner says three collisions happened exactly this way. Re-checked immediately before writing: 155 and 156 both still 0.*
+>
+> *Read-only: `git status` shows no tracked file modified by me (`CTO-LEDGER.md` and `package.json` are other sessions'). I launched ONE bounded headless Chrome on port **9733** / server 8794, killed in a `finally`; `stray_probe_check` PASS afterwards — no debug-port browsers running at all.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** Holding the deploy was right and I verified it independently — all ten voyages really did fail — but the row on your Chart tells you the settle bug is why, and it is only *part* of why: **six of the ten legs also failed on things the settle fix will not touch**, including ten screens the vision judge looked at and rejected, which are the ones most likely to be real bugs a player would see.
+
+---
+
+### 1. WAS HOLDING THE DEPLOY RIGHT? — **YES, unambiguously. `T-136` should stay held.**
+
+The prediction's falsifier — *"any structural failure reported inside the voyages themselves"* — fired ten times out of ten, and I read the report myself rather than taking the row's word for it:
+
+| leg | failed on |
+|---|---|
+| solo-desktop | deny never exercised · **judge failed 1 of 30** · 8 screens still moving |
+| solo-phone | **judge 1 of 21** · 10 still moving |
+| solo-tablet | **judge 3 of 29** · 9 still moving |
+| passplay-phone | 22 still moving |
+| passplay-desktop | 1 still moving |
+| crew-desktop | 14 still moving |
+| crew-phone | walk away never exercised · **judge 1 of 51** · 15 still moving |
+| solo-desktop-wk | vanilla beans never exercised · **judge 1 of 27** · 5 still moving |
+| solo-phone-wk | 6 still moving |
+| solo-tablet-wk | walk away never exercised · **judge 3 of 22** · 2 still moving |
+
+**Not over-cautious. The opposite — the row under-reports the damage.** The failures are not confined to the settle: **6 of 10 legs carry a fault the settle fix cannot reach.** Ten screens were judged FAILED by the eyes across six legs, and four legs offered a button and never pressed it. I ran `npm test` myself: **PASS, 0 failures** — so the row is right that the suite is no longer the blocker and the trial is the only gate left.
+
+**The consequence nobody wrote down: fixing `T-141` does not unblock `T-136`.** Four legs would go green; six would still be red. That is the single most useful sentence missing from both rows.
+
+---
+
+### 2. DOES THE SETTLE DIAGNOSIS HOLD? — **The mechanism: YES, verified from the code. The supporting argument: NO, and it is unsound in a way that matters.**
+
+**Read from the code, not inferred — confirmed line by line.** `scripts/lib/checks.mjs:255-256`: `const n = (now.split("§")[1] || "").length; if (n > grewTo) { … deadline = … Date.now() + capMs }`. `SETTLE_PROBE` (`:174-186`) returns `geometry § words`, so `[1]` is the **words** half. **Only growing painted text extends the deadline. Geometry gets nothing.** The 2600's text provenance is stated in the file itself (`:230-234`, *"~25ms/char … 75-character line settles at 2202ms"*). All true.
+
+**The report side is exact too.** `scripts/lib/leg_verdict.mjs:150-152` tallies the per-screen `churn` label. All **92** unsettled screens across ten legs are labelled `geometry`. **Zero** say `text`, `geometry+text` or `unknown`; **zero** hit the 12s guard. The discriminator is as clean as claimed.
+
+**⛔ BUT ITS STRONGEST STATED EVIDENCE IS CIRCULAR, AND I CHECKED THIS BECAUSE IT LOOKED TOO CONVENIENT.** The `T-141` prediction calls this *"the strongest single hint and it is already in the report"*:
+
+> *"A board that never settles would not cluster — it would report the 12000ms hard guard, which `checks.mjs` says is reported when it bites. No leg reported it."*
+
+**That reasoning cannot work.** `checks.mjs:250` — `while (Date.now() < deadline && Date.now() - t0 < HARD_MS)`. On a geometry-only screen the deadline stays at roughly `t0 + 2600` (one free push, since `grewTo` starts at `-1`), so the loop **always exits at the 2.6s deadline and never reaches 12s**. The 12s guard is *structurally unreachable* when only geometry is moving. So "no leg hit the hard guard" is not evidence that the board settles soon — **it is a second symptom of the very bug being diagnosed.** By the same arithmetic, the "2.6–3.0s cluster" is not a measurement of the board either; it is what cap-exhaustion always prints. A board that animates for four seconds and one that animates forever both report `2.7s`.
+
+**This is CEO 153's fault recurring: an inference presented as a measurement.** It does not overturn the mechanism — that came from the code — but it removes the one argument the session used to lean toward "instrument fault", and it makes the open question *more* open than either row admits.
+
+**Does the diagnosis survive the probe's failure? — YES, and the session is right about why.** Nothing in the mechanism claim depends on the probe: it is `checks.mjs:255-256` plus the report's own churn tally. A broken probe would only have contaminated it had a number from the probe been carried into the conclusion, and none was. **The session declined to report "nothing moved at all" as a finding when its own reaches-its-subject check showed zero elements. That is rule 6 executed correctly, and it is the best thing in the whole ninety minutes** — the falsifier it would have satisfied (`#2: it settles well INSIDE 2.6s`) is the one that would have unblocked the deploy.
+
+**I VERIFIED THE ZERO-SELECTOR CLAIM MYSELF, and found more than the session reported.** Own port, own profile, the probe's exact click and count:
+
+```
+click: clicked: Play Solovs. bot captains  [id=choiceSolo display=flex vis=visible box=184x114]
+counts IMMEDIATELY after click: {".apBtn":0,".btlBtn":0,".sailCell":0,".recipeCard":0,
+  ".bkoCard":0,".apSlider":0,".apMsg":0,".apSub":0,"__anyDiv":115,"__lobbyDisplay":"flex"}
+counts 4s later:                 … identical, all zero, "__lobbyDisplay":"flex"
+```
+
+The claim is **TRUE**. But the probe's own comment blames the wrong thing: it says the first version *"slept 2500ms after the click and then sampled — so it began measuring after the thing it was measuring had finished."* **My 4-seconds-later count proves waiting was never the issue.** The click lands on a real, visible `#choiceSolo`, and `#lobby` is *still* `display:flex` four seconds on — **the game never starts at all.** The remedy the session names (read `docs/DRIVING-THE-GAME.md` §5b first) is correct; its account of what went wrong is not, and a next session reading that comment would go looking for a timing fix.
+
+**No contradiction found in the trial report on the text-vs-geometry axis.** I searched specifically: no leg reports `text`, `words`, `geometry+text`, the 12s guard, or `hardCap`. The commit title, though, says *"every failure is GEOMETRY"* — **false as written**, given the ten judge failures and four unexercised buttons. The commit *body* is precisely scoped (*"every 'still moving' report says geometry"*). The title is the overreach, and the title is what a later reader greps.
+
+---
+
+### 3. IS THE PREDICTION STEP A REAL FIX OR THEATRE? — **A real fix, with one placement caveat. Not theatre — and I can show it firing.**
+
+**It is where it should be.** `.claude/skills/door/SKILL.md:182-193`, inside step 3 (*"Work it through the Proof, with the teeth"*, `:176`), immediately above the line that lists the loop itself (*gear → red check first → fix → …*). That is the exact moment a session decides how to measure.
+
+**The argument that this differs from CLAUDE.md is sound, and the evidence is in the timestamps, not the reasoning.** The step landed at **07:53Z** (`133b9a30`). The `T-136` prediction was written at **08:05Z**, twelve minutes later, and its own header says *"Written because the Door's Proof step now demands it."* Two more predictions followed within the hour. **Three predictions in ninety minutes from a session that had skipped it three verdicts running is a behaviour change, not a document change.** CLAUDE.md had said the same thing for a week and produced none.
+
+**And the `T-136` prediction is genuine by the only test that survives.** Git cannot prove precedence — the prediction and the conclusion landed in one commit (`a6e3cae`, 08:11Z), six minutes after its stated writing time, all self-attested. But CLAUDE.md's own test settles it: *"a prediction composed after the measurement always turns out to have been right."* **This one was wrong, and wrong in the direction that would have shipped the deploy.** Nobody retrofits a prediction that convicts them. Its falsifier (*"any structural failure reported inside the voyages themselves"*) was real, testable, and did the work: it is what turned "the FAILED is stale" into "the deploy waits". **Not a normal reading of a report dressed up** — the prediction also named the exact pressure (*"wanting the answer… he plays staging, staging is two builds behind"*) before meeting it, and that named trap is what the reversal cites.
+
+**The caveat, and it is CEO 151's finding pointed the other way.** 151 praised the DO NOW line for sitting in `## First, both modes` (`:18`), before the fork. **This one does not.** Step 3 is inside `## THE WATCH` (`:98`–`:267`). The Advisor (`:268`) reaches it only by pointer — `:286`, *"it goes through the same Proof as a watch's."* Every Bell-rung watch meets it head-on; a session Wyatt opens meets a cross-reference. Nothing is broken today, but the stronger placement was available and was used one commit earlier for a smaller rule.
+
+**Nothing enforces it, and the session says so.** That is honest, and it is also the ceiling: this is a better-placed reminder, not a gate. `.claude/hooks/qa-gear-first.cjs` already prints rules 26 and "widen the time horizon" at the moment of a game-code edit — **a prediction-file check belongs there, and that is where this becomes mechanical rather than remembered.**
+
+---
+
+### 4. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. **`T-136`'s judge tally undercounts by half.** The row names three legs (*"1 of 30 on solo-desktop, 1 of 21 on solo-phone, 3 of 29 on solo-tablet"*). **There are six** — crew-phone (1 of 51), solo-desktop-wk (1 of 27) and solo-tablet-wk (3 of 22) are missing. **Five screens reported against ten actual.** Likewise it names one *"offered but never exercised"* (`deny`) when the report holds **four**. This is CEO 153's *"a load-bearing number nobody reconciled"*, on a number that decides whether he is one fix away from a deploy or six legs away.
+2. **`T-141`'s prediction: *"a board that never settles would report the 12000ms hard guard."*** Refuted by `checks.mjs:250` — unreachable on a geometry-only screen. §2 above.
+3. **Commit `c9d633a4`'s title: *"every failure is GEOMETRY."*** False; the body is correct.
+4. **`T-141`'s row: *"handed over with the measurement so nobody re-derives it."*** The row contains no measurement of when the board stops — that probe failed — and does not say a probe was attempted, that it reported "nothing moved" twice, or that its selectors matched zero elements. **The next session will build the same probe and hit the same wall**, which is precisely what the sentence promises it will not do.
+5. **The probe's own comment blames a sampling wait.** My run shows the game never starts; waiting does not help. §2.
+
+---
+
+### 5. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+| verdict | fault | now |
+|---|---|---|
+| **153** | a load-bearing number nobody reconciled (139 vs 69) | **RECURRING** — 5 judge-failed screens reported against 10; 1 unexercised button against 4. Same shape, same file, one night later. |
+| **153** | an inference presented as a measurement | **RECURRING** — *"no leg reported the 12000ms hard guard"* is a structural impossibility read as a fact about the board. |
+| **151** | an assertion claiming a location it never checked | **NOT recurring.** The mechanism claim cites `checks.mjs:230-241` and the code at those lines says what is claimed; I read it independently. The Door edit's placement claim also holds. |
+| **149/151/153** | a load-bearing claim with no prediction | **FIXED, and visibly.** Three predictions in ninety minutes, all with named falsifiers, two wrong and both retracted by the session rather than by me. That is the single strongest thing in this work. |
+| **145/147/149/151** | stale headline row | **`T-136` is CURRENT and good** — it describes tonight's world in the present tense. **`T-141` is already behind its own session** (finding 4). |
+
+**Rows updated or stale — the answer he needs:** `T-136` is current and honest about the hold; its numbers are incomplete. `T-141` is current on the mechanism and stale on the probe.
+
+---
+
+### 6. WHAT I WOULD DO FIRST
+
+1. **Correct `T-136`'s two numbers in one edit — ten judge-failed screens across six legs, four unexercised buttons — and add the sentence neither row contains: *fixing `T-141` clears four legs of ten; six stay red.*** He is being told he is one fix from a deploy. He is not.
+2. **Look at the ten screens the eyes rejected.** They are the half most likely to be a real bug a player would see, and they are the half nobody has opened. That is rule 19's live detector doing its job and being filed as a footnote under a settle-timing story.
+3. **Strike the hard-guard argument from `T-141` and replace it with what the arithmetic actually says:** the 2.6–3.0s cluster and the absent 12s guard carry **no information** about the board — a 4-second animation and an infinite one print the same line. The instrument-vs-game question is fully open.
+4. **Then the posed pair, and drive it with §5b, not by hand.** The board at 2.6s and at 4s, same seed, two pictures — the answer `T-141` needs, and rule 26's shape. Add to the probe first the check that saved this one: count the elements before believing any silence.
+5. **Small and cheap: put the prediction-file check into `.claude/hooks/qa-gear-first.cjs`**, beside rules 26 and 0. The Door step is a real improvement; the hook is what makes it stop depending on a session having read the Door this morning.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All five done. Its §1 finding is the one that changes what he thinks, and it was mine to get wrong.**
+
+- **(6.1) DONE, and I verified the count before accepting it.** Six legs with rejected screens, **ten screens**, not the three legs and five I wrote; **four** unexercised buttons, not one. And I derived its consequence independently by splitting the report per leg: **four legs clear if the settle bug is fixed — passplay-phone, passplay-desktop, crew-desktop, solo-phone-wk — and SIX STAY RED.** Both rows now say so. *"He is being told he is one fix from a deploy. He is not."* That sentence existed nowhere and is the most important thing in this verdict.
+- **(6.3) DONE, and this one is a straight kill of my own reasoning.** I called the absent 12s guard *"the strongest single hint"*. `checks.mjs:250` makes it **structurally unreachable** on a geometry-only screen — the deadline never moves past ~2600, so the loop always exits there. **The silence I read as evidence is a second symptom of the bug.** And by the same arithmetic the 2.6–3.0s cluster carries no information either: **a four-second animation and an infinite one print the same `2.7s`.** Struck; the question is recorded as fully open.
+- **(6.4) DONE** — the row promised *"handed over with the measurement so nobody re-derives it"* and contained no measurement and no mention of the failed probe. Its line lands: *"the next session will build the same probe and hit the same wall, which is precisely what the row promises it will not."* Now carries the failure, the zero-element count, and "start at §5b".
+- **AND IT CORRECTED THE PROBE'S OWN POST-MORTEM, which I had wrong.** I blamed a 2500ms sleep — CLAUDE.md's "settle trace begun after the reveal had finished". It counted at the click AND four seconds later: still zero, `#lobby` still `display:flex`. **Waiting was never the issue; the game never starts.** A wrong diagnosis in a comment aims the next reader at the wrong thing, so the comment now says so.
+- **(6.5) DONE** — `STEP 0c` is in `qa-gear-first.cjs` beside rules 26 and 0, with the pattern as its argument and both times it paid this hour. Its judgement that the Door step is *"a better-placed reminder, not a gate"* is correct, and the hook is where it stops depending on somebody having read the Door this morning.
+- **(6.2) NOT DONE, and it is the biggest open thing on the board.** Ten screens the eyes rejected, unopened. It is right that this is rule 19's live detector filed as a footnote under a timing story — but it is game work on the watch's side, and opening ten judged screens properly is a session's job, not a paragraph at the end of this one. **Recorded on `T-136` in his words rather than buried here.**
+- **On the placement caveat:** correct — step 3 sits inside `## THE WATCH`, and the Advisor reaches it by pointer. Left as-is deliberately: the hook now covers both modes at the moment of the edit, which is the stronger of the two positions, and moving the Proof step above the fork is a restructure of the Door that deserves its own item rather than a drive-by.
+
+## CEO Review 155 — 2026-09-03, Wy-Blade — `T-139`: stop `SCHEDULED` hiding his ideas — **PARTIAL**
+
+> *Read-only on the product. I started no browser and no server (`stray_probe_check` inside my own
+> `npm test` run: "no debug-port browsers are running at all"). I ran the watch's new gate both
+> ways and rendered the LIVE Chart through a COPY of the real `glass.mjs` in a temp tree — the live
+> tree was never written. **I could not delete my three throwaways** (`scripts/qa/_ceo155_count.mjs`,
+> `scripts/qa/_ceo155_render.mjs`, `scratchpad/_ceo155_count.mjs`): the sandbox refuses `rm` and
+> `Remove-Item` here, which independently corroborates the watch's report of the same refusal. **The
+> next session with permission should delete all four `_ceo155_*` / `_t139_measure` files.** I did
+> NOT re-run the watch's own throwaway; every number below is from my own script or my own eyes.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *"Your SCHEDULED ideas really are back on your page — I
+counted thirteen of them myself, including two you marked DO NOW and three live bug reports — but
+you ruled THREE things that day and only two were ever built: a parked idea still shows without the
+reason you park it for and without the dimming you asked for, and the new gate this watch wrote
+quietly certifies that two-thirds version as finished."*
+
+---
+
+### 1. HIS ASK, CLAUSE BY CLAUSE
+
+His ruling (`.claude/memory/DECISIONS.md:695-696`, and the same sentence in commit `f33ce939`'s
+message): *"OPEN shows, SCHEDULED shows and says so, **PARKED shows dimmed with its reason**, and
+only genuinely-finished words hide."*
+
+| clause | verdict | what I checked |
+|---|---|---|
+| **OPEN shows** | **DONE** | 14 unfated ideas render. |
+| **SCHEDULED shows AND SAYS SO** | **DONE** | 12 render, each prefixed `SCHEDULED · …`. |
+| **only genuinely-finished words hide** | **DONE** | 7 hide; the pre-ruling rule would hide 20. |
+| **PARKED shows…** | **DONE** | the one parked idea is on the page, prefixed `PARKED · …`. |
+| **…dimmed** | **NOT DONE** | it renders as a plain `<li><span class="rowtitle">…` with no styling. `dim`/`opacity` appear three times in `glass.mjs` — `:1030` (drag), `:1098`, `:1106` (disabled buttons) — and none touches a task row. |
+| **…with its reason** | **NOT DONE** | the reason never reaches his page. |
+
+**HOW I MEASURED THE LAST TWO, because this is the finding.** I copied the real `glass.mjs` and
+`chart_model.mjs` into a temp tree, fed them the **live** `CHART.md`, and read the rendered HTML.
+The one genuinely parked idea (`T-068`) comes out as, in full:
+
+> `PARKED · CEO Review 51's small finding: quiet_gate_report.mjs's naming convention (^[wq]\d+_)`
+
+Its actual reason — *"→ **PARKED, low priority**: widen the regex to…"* — is on a continuation line,
+and `page.includes("low priority")` is **false**, `page.includes("widen the regex")` is **false**.
+The cause is two lines: `glass.mjs:643-644` prefixes only `b.head`, which is line one of the block,
+and `glass.mjs:649` hands every inbox idea to the page as `detail: ""` — so there is nothing to open
+either. **A parked idea on his page is a title with a label on it and no reason attached, which is
+the exact thing "parked-with-a-reason" in his own Charter was written to prevent.**
+
+**AND THE GATE THIS WATCH BUILT CANNOT SEE IT.** Its fixture
+(`scripts/qa/glass_shows_scheduled_ideas_check.mjs:110`) writes the parked idea's reason **on the
+head line** — *"— not now → **PARKED**, he routed it to the backlog himself."* — which no real
+parked idea in this repo does. Its assertion at `:141` then checks only `/PARKED\s*·\s*Zulufixture
+parkedidea/`. **So the gate would stay green in a world where every parked reason is lost, which is
+the world we are in.** A fixture kinder than reality is a fixture that certifies the gap.
+
+**AND HIS RULING WAS QUIETLY REWORDED IN THIS WATCH'S OWN ARTIFACTS.** The gate's header
+(`scripts/qa/glass_shows_scheduled_ideas_check.mjs:5-6`) and the ceiling justification
+(`package.json`, `_ceiling_raise_2026_09_03b`) both restate it as *"PARKED shows **with its
+reason**"* — the word **dimmed** dropped. That word appears exactly once in the entire repo, at
+`DECISIONS.md:696`. **Losing a word out of a ruling while writing the guard for that ruling is how a
+ruling stops being checkable.**
+
+**THIS IS NOT THIS WATCH'S ORIGINAL SIN AND IT SHOULD NOT CARRY IT ALONE.** Commit `f33ce939`
+(2026-09-02 08:54 ET) is titled *"THREE FATE STATES -- his ruling shipped"* and quotes the ruling in
+full, **dimmed included**, in its own message. It shipped two of the three. That has stood unnoticed
+for a day, and this watch is the first to look — it simply stopped one clause short of noticing.
+
+---
+
+### 2. THE CLAIMS I WAS ASKED TO PRESS — ALL FOUR HOLD
+
+**(a) "The ruling was already built" — TRUE, verified independently.** I did not run the watch's
+script. Mine reproduces its numbers exactly: **34 ideas — 14 open, 12 SCHEDULED, 1 parked, 7
+finished.** The live rule hides **7**; the pre-ruling one-list rule hides **20**. **Thirteen of his
+ideas are on his page only because of this ruling**, and I confirmed by grep that they include **two
+he marked DO NOW** and **three LIVE BUG REPORTS** (04:04Z, 04:12Z, 04:15Z).
+
+**(b) ONE definition of the fate rule — TRUE. Rule 23 is clean here.**
+`scripts/wyclau/lib/chart_model.mjs:58-79` holds `DECLARED`, the three word lists and `stateOf`;
+`scripts/wyclau/glass.mjs:75` imports `stateOf` from it. A repo-wide grep for a second fate lexicon
+returns only that file and the gate's own `--before` patch string.
+
+**(c) The gate is a REAL measurement, and I tried to break it.**
+- It reads the **rendered page**, not the rule — the real `glass.mjs` is executed against a fixture.
+- **It cannot pass vacuously, and the proof is inside it.** My first worry was that `glass.mjs`
+  might embed the raw Chart in a JSON state block, making every `page.includes(...)` true whatever
+  the filter did. Assertion 5 (`!shows("Zulufixture shippedidea")`) rules that out and passes — the
+  raw Chart is not on the page. That assertion is doing double duty and nobody said so.
+- **`--before` is a real reconstruction, not a rigged failure.** It moves `SCHEDULED` and `PARKED`
+  back into `FINISHED_WORDS`, and `stateOf` tests FINISHED first (`chart_model.mjs:75`), so the
+  pre-ruling behaviour is genuinely restored. I ran it: **3 of 5 break** — and they are the right
+  three (the two SCHEDULED assertions and the PARKED one); open and finished correctly survive.
+- It **refuses to run rather than pass** if the patch is a no-op (`:78-82`) — a red-proof that knows
+  when it has lost its subject, which is rare here and worth copying.
+- **Its two honest limits, neither stated in the file:** it is **fixture-only** and never reads the
+  live `CHART.md`, so a Chart whose ideas stop matching the `→ **FATE**` shape goes uncaught; and it
+  proves the **generator**, not the **published artifact** Wyatt taps.
+
+**(d) The ceiling raise is honest.** I re-ran `quiet_gate_report.mjs`: **0 of 18 quiet-candidates**,
+every one touched within six days. `gate_count_check` PASS at **115**. I re-ran the whole suite
+myself: **exit 0**, last gate `PASS — 0 failure(s)`. Raising rather than trading away a live
+per-bug gate is the right call on this evidence.
+
+**(e) The row's "not yet built" — the watch's account is right and its own guess was WRONG, which is
+the good part.** `git log -S` puts the phrase at `1d952c90`, **2026-09-03 03:16 ET**, written as a
+fresh `+` line by watch c1's triage. The ruling shipped at `f33ce939`, **2026-09-02 08:54 ET** — 26
+minutes after he answered at 12:28:02Z, and **19 hours before** the row claimed it did not exist.
+The watch predicted (P2) the text had been carried across unchanged from `## RULED`; **it had not**,
+and falsifier F2 is exactly what catches that. Predicting wrong and saying so is the mechanism
+working.
+
+---
+
+### 3. THE SEA TRIAL — A DECLARED DEVIATION, NOT A SATISFIED STEP
+
+`gear.mjs` says **FULL**, reason `package.json`. `git status` shows no `src/` and no `index.html`
+change, so a voyage would sail past everything this touched. The watch's reasoning is sound and it
+declared it rather than hiding it. **But rule 24's own sentence is "chosen by the files you touched,
+never by how the change feels" — so the close must say NOT RUN, and why, in those words.** A gear
+that says FULL and a trial that did not sail is a NOT-RUN column, and that column is the one thing
+the report may never lose.
+
+---
+
+### 4. TWO SMALL THINGS THE WATCH DID NOT REPORT
+
+**(a) The claim never reached his page.** `.planning/wyclau/status/Wy-Blade.md:11-12` reads *"## In
+hand (IN-HAND) — None recorded"*, and `.planning/wyclau/IN-HAND` is absent. `claim_item.mjs` was
+never run, so while this watch holds `T-139` the Glass's *"what is being worked on RIGHT NOW"* card —
+his own ask 1 — says nothing is. The prose claim in `CTO-LEDGER.md` is also still **uncommitted**,
+which is not a claim another machine can see (rule 16).
+
+**(b) Nothing is committed yet.** `package.json` and `CTO-LEDGER.md` are modified in the working
+tree and `glass_shows_scheduled_ideas_check.mjs` is untracked. The watch's own throwaway
+`scripts/qa/_t139_measure.mjs` is untracked and referenced nowhere — I verified both with
+`git ls-files` and a repo-wide grep, as asked.
+
+---
+
+### 5. RECURRENCE CHECK vs CEO 154 — **IT RECURS, AND IN A SHARPER FORM**
+
+CEO 154 found: *"claims outside the prediction's fence go unchecked."* Here the miss is not outside
+the fence — **it is inside the prediction's own first paragraph.**
+`PREDICTION-20260903T0825Z-T139.md:4-6` quotes his ruling in full, *"PARKED shows dimmed with its
+reason"* included. P1 through P4 then test only the SCHEDULED half; no prediction, no falsifier and
+no measurement ever touches the parked clause, and the gate written afterwards encodes a weakened
+version of it. **Last time the unchecked claim was adjacent to the fence. This time it was typed
+into the note six lines above the fence and still went unmeasured.** The remedy is one line in the
+prediction template: *enumerate the clauses of his ruling, and give each one its own falsifier.*
+
+---
+
+### 6. CONTEXT SPEND — NO FAULT FOUND
+
+`glass.mjs` is 1,888 lines and `CHART.md` is 1,244, but the prediction cites tight ranges
+(`glass.mjs:606-645`, `:622-637`, `:640-645`), which is targeted reading, not a bulk pull. The files
+it read are the ones it was writing a gate against, plus Wyatt's own recorded ruling — both belong in
+the main thread by design. Nothing here should have been delegated.
+
+### 7. THE BOUNDARY, STATED RATHER THAN CLOSED OVER
+
+Neither the watch nor I could read the **published** Glass artifact (no Artifact tool in either
+session). Everything above judges the generator. **It matters and it is small:** if the live page was
+published before `f33ce939` landed, he still cannot see his SCHEDULED ideas even though the code is
+right. The watch named that boundary itself at `PREDICTION:53-56` before measuring, which is the
+correct handling and the reason it is a footnote instead of a finding.
+
+### 8. WHAT SHOULD HAPPEN TO THE ROW
+
+**Do not tick `T-139` as done.** Either (i) close it and open a small new row for the parked clause,
+naming it as a two-of-three, or (ii) spend twenty minutes finishing it — the reason is one line
+(carry the fate's own sentence, not just `b.head`, or stop setting `detail: ""` at `glass.mjs:649`)
+and the dimming is one CSS class. **My recommendation is (ii): the gate is already written and adding
+two assertions to it while the tree is warm costs less than the row will cost to re-open.** Whichever
+he picks, the gate's fixture at `:110` must move the parked reason OFF the head line, or it will keep
+certifying the gap.
+
 ## CEO Review 154 — 2026-09-03, Wy-Blade — `T-114` / `INBOX-20260902T225032Z`: delete about.html's "How it plays" — **PARTIAL**
 
 *(Both handles named because they are one item: `INBOX-20260902T225032Z` is his ruling, `T-114` is

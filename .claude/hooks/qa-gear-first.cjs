@@ -132,6 +132,28 @@ function main() {
                       Earned the hard way: three changes shipped on run-to-run counts on the
                       night of 2026-08-29, and all three reverted.
 
+STEP 0c. WRITE THE PREDICTION DOWN — one file, BEFORE you measure anything.
+
+     .planning/wyclau/PREDICTION-<UTC>-<handle>.md : what you expect, WHY, and
+     WHAT WOULD PROVE YOU WRONG. Then measure, then say plainly which parts were wrong.
+
+     This is here because it kept being skipped while sitting in CLAUDE.md. Three CEO
+     verdicts in a row (149, 151, 153) found the same session conceding it and then
+     skipping it on the next item. THE PATTERN IS THE ARGUMENT: on 2026-09-03 the
+     claims that got predictions were the ones that turned out fine, and the claims
+     with no prediction were false -- every time. Not because writing one makes you
+     right, but because it makes you state the falsifier while you can still test it.
+
+     It has already paid twice. A session one step from deploying to the address he
+     plays predicted a failed sea trial was "just the stale suite" and named the
+     falsifier "any structural failure inside the voyages themselves". It fired on the
+     first line: ten voyages, ten failures. The deploy was held. And an hour later a
+     probe reported "nothing moved at all" -- exactly the wanted answer -- and the
+     named check found every selector matching ZERO elements.
+
+     NAME THE TRAP TOO. If you want one answer more than the other, write THAT down:
+     "I want this to be an instrument fault, because that unblocks his deploy."
+
 THE FOUR STEPS. They never change and are never skipped:
 
   1. SHOW IT BROKEN   ${g.step1}

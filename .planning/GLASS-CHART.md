@@ -229,14 +229,26 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⛔ **THE TRIAL LANDED AND IT FAILED — ALL TEN VOYAGES. THE DEPLOY WAITS, AND THE FAILURE IS
       THE WORK.** `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`, 89 min, gear FULL, stamp
       `2026.09.03.1`, `voyages that did NOT run: none`.
-      **WHAT FAILED, AND IT IS NOT THE STALE SUITE:**
-      · **the vision judge failed screens it looked at** — 1 of 30 on solo-desktop, 1 of 21 on
-        solo-phone, 3 of 29 on solo-tablet;
+      ⛔ **AND FIXING THE SETTLE BUG DOES NOT UNBLOCK THIS ROW — the sentence neither row contained
+      until CEO 156 wrote it. FOUR legs of ten would clear. SIX WOULD STAY RED.**
+      *clears:* passplay-phone, passplay-desktop, crew-desktop, solo-phone-wk.
+      *stays red:* solo-desktop, solo-phone, solo-tablet, crew-phone, solo-desktop-wk, solo-tablet-wk
+      — every one of them for something the settle fix cannot touch. **He was being told he is one
+      fix from a deploy. He is not.**
+      **WHAT FAILED, AND IT IS NOT THE STALE SUITE — with the counts corrected; my first version
+      under-reported the damage by half:**
+      · **the vision judge REJECTED screens it looked at — TEN screens across SIX legs**, not the
+        five across three I first wrote: 1 of 30 solo-desktop · 1 of 21 solo-phone · 3 of 29
+        solo-tablet · **1 of 51 crew-phone · 1 of 27 solo-desktop-wk · 3 of 22 solo-tablet-wk**.
+        ⚠ **THESE ARE THE HALF MOST LIKELY TO BE A REAL BUG A PLAYER WOULD SEE, and nobody has
+        opened them.** Rule 19's live detector, filed as a footnote under a timing story.
+      · **FOUR buttons offered and never pressed**, not one: `deny`, `vanilla beans`, and
+        `walk away` twice;
       · **every single voyage reports screens that never stopped moving before being checked** —
         8, 9, 10, 22 of them, `longest wait 2.7s` and `2.8s` against a **2.6s budget**. A peer
         session measured the same margin independently and declined to run its own browser probes
         because of it;
-      · solo-desktop: *"offered but never exercised: deny"*.
+
       ⚠ **I PREDICTED THE OPPOSITE AND THE PREDICTION IS WHY THIS ROW SAYS WAIT.**
       `PREDICTION-20260903T0805Z-T136-trial-verdict.md`, written before reading the voyage section:
       *"I expect the FAILED verdict to be entirely the browser-free half, and the ten voyages to be
@@ -438,8 +450,24 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 - [ ] **EVERY VOYAGE FAILS ON "NEVER STOPPED MOVING", AND THE WAIT THAT DECIDES IT IS EXTENDED BY
       ⟨`T-141`⟩
       TEXT WHILE EVERY FAILURE IS GEOMETRY.** Diagnosed 2026-09-03T08:1xZ from the 0624Z trial;
-      **blocks `T-136`, the staging deploy he is waiting on.** Not fixed — handed over with the
-      measurement so nobody re-derives it.
+      **blocks `T-136` in part** (four of ten legs — see that row; six fail on other things). Not
+      fixed, and **handed over with the MECHANISM, not a measurement — the difference matters and my
+      first wording claimed the wrong one.**
+      ⛔ **THE SETTLE CURVE IS UNMEASURED. A PROBE WAS ATTEMPTED AND FAILED. READ THIS BEFORE
+      BUILDING ANOTHER ONE** — the sentence I owed the next session and did not write, caught by
+      CEO 156: *"the next session will build the same probe and hit the same wall, which is
+      precisely what the row promises it will not."*
+      `scripts/qa/_t141_settle_curve.mjs` samples the same signature past the cap. It reported
+      **"nothing moved at all — the board was already still", twice** — the answer that would have
+      unblocked his deploy. It was not an answer: every selector matched **zero** elements against
+      115 divs and the right page title. **The page loads; the game never starts.** Verified twice
+      over by CEO 156, which counted immediately after the click AND four seconds later: still zero,
+      `#lobby` still `display:flex`. **So it is not a timing problem, and the probe's own comment
+      said it was until that was corrected.**
+      **START AT `docs/DRIVING-THE-GAME.md` §5b — "the autoplay driver, the loop that actually
+      plays" — NOT AT A FRESH PROBE.** And add first the check that saved this one: **count the
+      elements before believing any silence.** A probe that cannot see its subject reports the world
+      as still.
       **THE NUMBERS, from `SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`:** ten voyages, ten FAILs, and
       **every single "still moving" report says `geometry`. Ten out of ten. NOT ONE says words.**
       Longest waits cluster at **2.6s, 2.7s, 2.8s, 3.0s** — i.e. at the cap and just past it.
@@ -456,6 +484,18 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       *"exactly the constant rule 9 forbids: right for today's longest message, wrong for the next"* —
       and the warning is right; **the fix is that geometry needs its own progress-tracked deadline,
       not a bigger flat number.**
+      ⛔ **MY STRONGEST ARGUMENT FOR "INSTRUMENT FAULT" WAS CIRCULAR, AND CEO 156 KILLED IT WITH THE
+      ARITHMETIC.** I wrote that a board which never settles *"would report the 12000ms hard guard,
+      and no leg reported it"* — treating that silence as evidence the board stops soon.
+      **The guard is STRUCTURALLY UNREACHABLE here.** `checks.mjs:250` loops
+      `while (Date.now() < deadline && Date.now() - t0 < HARD_MS)`, and on a geometry-only screen the
+      deadline never moves past ~`t0 + 2600` — so the loop always exits at 2.6s and **never gets
+      near 12s.** "No leg hit the guard" is not evidence about the board; **it is a second symptom of
+      the same bug.**
+      **AND BY THE SAME ARITHMETIC THE 2.6–3.0s CLUSTER CARRIES NO INFORMATION EITHER.** That is
+      simply what cap-exhaustion prints. **A board that animates for four seconds and one that
+      animates forever both report `2.7s`.** So the instrument-vs-game question is not leaning one
+      way — **it is fully open**, and I had talked myself into a side of it.
       ⛔ **WHAT THIS DOES *NOT* PROVE, and the distinction is the whole value:** it does not prove
       the game is fine. The board may genuinely be animating longer than it should. **What it proves
       is that the instrument cannot currently tell those apart** — a screen that animates 2.7s and a
