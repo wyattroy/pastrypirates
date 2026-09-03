@@ -4,7 +4,3 @@
      this file back to this template. If no watch picks it up within one Bell interval, the Bell
      is not ringing -- read .planning/wyclau/status/ for that machine's own account. -->
 ---
-
-Watch 8:10 PM ET: taking up your "DO NOW" — drag to reprioritise the Tasks list, on this page.
-Your top two tasks are still stuck behind a permission only you can give (a session with you
-present has to write two files under `.claude/`); everything else on them is written out and ready.
