@@ -4,8 +4,24 @@
  *
  * WHY THIS IS A POSE AND NOT A RATE (rule 26). The claim is "five of the ten screens the trial's
  * eyes rejected are this one bug on tablet". A rate over a driven voyage cannot settle where a box
- * is drawn; two painted rectangles can, and the same seeded pose before and after a change is the
- * only thing that can say whether a fix worked.
+ * is drawn; two painted rectangles can.
+ *
+ * ⚠ TWO HONEST LIMITS ON WHAT THESE PICTURES ARE, both found by CEO 175, both stated here rather
+ * than left for the next reader to discover:
+ *
+ *   THIS IS NOT A SEEDED PAIR, AND AN EARLIER VERSION OF THIS PARAGRAPH SAID IT WAS. Line ~190
+ *   mints a random `pp_id` per run, so the before and after shots are DIFFERENT voyages — different
+ *   islands, different wind. That is survivable for THIS question only because the question is
+ *   about one fixed-position box: `#pp4Cap`'s rect and the card's rect came back byte-identical
+ *   across both runs, which is what makes the comparison sound. **It would NOT be sound for
+ *   anything that depends on the board.** Rule 26 asks for the same seed; this delivers the same
+ *   BOXES and says so.
+ *
+ *   THE FILENAMES SAY `under-recipe` AND THE MODAL IS USUALLY `howToPlayModal`. The recipe row is
+ *   only clickable once `mayRevealRecipe()` has filled it (`src/ui/board.js:1721`), which it has
+ *   not this early, so the pose falls through to How-to-play. The names are left alone because the
+ *   commit and the CEO review already cite them; `posedVia` in the JSON is the field that tells the
+ *   truth, and it is the one to read.
  *
  * ⚠ THE CHART ROW'S STATED MECHANISM IS WRONG, AND THIS PROBE EXISTS PARTLY TO SAY SO.
  * `CHART.md` ⟨T-142⟩ says modals are "centred cards at z-index:1000 WITH NO SCRIM OVER THE FIXED

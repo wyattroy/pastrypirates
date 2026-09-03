@@ -1774,11 +1774,25 @@
      540px side column. The row called it tablet-only — it is not, the tablet is merely where the
      card's edge lands ON the rows instead of beside them.
 
-     ⚠ `visibility`, NOT `display`. This bar's rect is READ in at least three places —
-     `src/ui/stage.js:1037` parks the End of Voyage card on its `getBoundingClientRect().top`,
-     `:2296` and `:2267` measure it for the column layout. `display:none` collapses that box to
-     zero and every one of those measurements would quietly change while a modal happens to be
-     open. `visibility:hidden` paints nothing and leaves the box exactly where it was. */
+     ⛔ AND THIS RULE DOES NOT FIX THE SCREENS THE CHART ROW WAS WRITTEN FROM. CEO 175 opened them;
+     so did the session that wrote this. `sea-trial-shots/solo-tablet-002-settled.png` (the row's own
+     "VERIFIED BY EYE" screen), `-003`, and `solo-tablet-wk-002/003` are the recipe-CHOICE prompt —
+     the "Davy Scones, choose yer recipe:" card built through the ACTION PANEL
+     (`src/orchestrator.js:951`). It is not a `.modalOverlay`, has no `.modalCard`, and the board
+     behind it is at FULL UNTINTED BRIGHTNESS — there is no wash over that screen at all. It still
+     cuts the top captain row to "Davy". `solo-tablet-029` has no modal open whatever.
+     **So the bar-through-a-modal fault is real and is fixed here; the fault in the row's evidence
+     is a DIFFERENT surface and is still open.** Two bugs wearing one row's title, which is why the
+     row's own count of "five screens" never belonged to this rule.
+
+     ⚠ `visibility`, NOT `display`. This bar's rect is READ at `src/ui/stage.js:1065`
+     (`capTop = cap.getBoundingClientRect().top` — where the End of Voyage card parks) and at
+     `:2296`. `display:none` collapses that box to zero and both reads would quietly change while a
+     modal happens to be open. `visibility:hidden` paints nothing and leaves the box exactly where
+     it was — verified: the bar's box is byte-identical across a whole open/close cycle.
+     *(Corrected by CEO 175: this comment first cited `:1037` and `:2267`, and BOTH ARE COMMENTS
+     rather than code — the very rot rule 6 warns about, committed inside a comment written to
+     prevent it. The reason was sound and two of its three citations were decoration.)* */
   body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden; }
   body.pp4Stage #captainsPanel { display:block; margin:0; }
   /* THE RESTING PROMPT IS OPAQUE. `.96` was never a look anybody chose — it arrived as a side

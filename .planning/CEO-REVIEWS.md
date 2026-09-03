@@ -1,5 +1,254 @@
 # CEO reviews — the standing record
 
+## CEO Review 175 — 2026-09-03, Wy-Blade — watch `pastrypirates-07`, `T-142`: the CAPTAINS bar under a modal — **PARTIAL**
+
+> *Numbered 175, not 174: a CEO 174 has already run and is cited in five files in this tree
+> (`package.json` `_ceiling_raise_2026_09_03j`, `scripts/qa/lesson_process_check.mjs`,
+> `scripts/wyclau/glass.mjs`, `scripts/wyclau/add_lesson.mjs`, `.planning/wyclau/INBOX.md`) but its
+> verdict was never appended here. **A verdict nobody recorded is a recurrence check nobody can
+> run** — that is the rule this file exists for, and 174's owner still owes it.*
+
+**Verdict: PARTIAL.**
+
+**Read this first:** *"You now have a real fix for a real bug — open How to play, the ship's log or
+a captain's recipe and the CAPTAINS bar no longer reads through it, on all three screen sizes, and
+the two pictures prove it. But it is not the bug your Chart row was written from. All five screens
+that row names are the **recipe-CHOICE card** — the 'Davy Scones, choose yer recipe:' prompt — and
+that card is not a modal, has no wash over the board at all, and is untouched by this change. The
+watch never opened those five pictures; it reasoned about them, posed a different modal, and filed
+the result under a filename that says 'recipe'. So the row's own headline — 'five of those ten
+screens are this' — is still true and still open."*
+
+### Item by item
+
+| # | What the row asked | Verdict | Evidence |
+|---|---|---|---|
+| 1 | The bar stops showing through **modals** | **DONE** | `index.html:1756` `body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden; }` + `src/orchestrator.js:2559-2568` derive-from-DOM observer. Posed pair: tablet before **340px** exposed / 3 rows cut → after **0 / 0** (`.planning/posed/t142-measurements-{before,after}.json`) |
+| 2 | The five screens the row cites | **NOT DONE** | See finding 1. `sea-trial-shots/solo-tablet-002-settled.png`, `-003-settled.png`, `solo-tablet-wk-002-settled.png` are the recipe-choice prompt, **not** a `.modalOverlay`; `solo-tablet-029-settled.png` has **no modal on it at all** |
+| 3 | The row's stated MECHANISM is wrong | **TRUE, and well argued** | `.modalOverlay` **is** `position:fixed; inset:0; z-index:1000` at `index.html:1232`, above the bar's `22` |
+| 4 | The row's citation `index.html:1748` is off by four | **TRUE** | `#pp4Cap { position:fixed; … z-index:22 }` is at **`index.html:1752`**; 1748 is `border-radius:14px; box-shadow…` inside the bleed rule |
+| 5 | `visibility` over `display`, because the rect is read | **REASON SOUND, CITATIONS LOOSE** | See finding 3 |
+| 6 | FULL gear → a sea trial | **NOT DONE, AND WORSE THAN NOT DONE** | See finding 2 |
+| 7 | Widening past "tablet only" | **JUSTIFIED** | See finding 4 |
+| 8 | `npm test` red is pre-existing and peer-owned | **TRUE** | See finding 5 |
+
+### Findings
+
+1. **⛔ THE FIX DOES NOT TOUCH ONE OF THE FIVE SCREENS THE ROW WAS WRITTEN FROM. I opened them.**
+   `.planning/CHART.md:430-433` names `solo-tablet-002/003`, `solo-tablet-wk-002/003`,
+   `solo-tablet-029` and calls 002 *"VERIFIED BY EYE"*. What is actually in
+   `sea-trial-shots/solo-tablet-002-settled.png`, `-003-settled.png` and
+   `solo-tablet-wk-002-settled.png` is the **recipe-CHOICE prompt** — the white card headed *"Davy
+   Scones, choose yer recipe:"*, built by `src/orchestrator.js:951`'s `msgFor` through the action
+   panel. **It is not a `.modalOverlay`, there is no `.modalCard`, and the board behind it is at
+   full untinted brightness — no wash whatsoever.** The card's left edge cuts the pink `Davy` row
+   exactly as the row describes. The new rule keys on `body.pp4Stage.pp4ModalOpen`, and
+   `src/orchestrator.js:2566` only ever observes `.modalOverlay` elements, so **nothing about those
+   three screens changes.** `sea-trial-shots/solo-tablet-029-settled.png` is a mid-voyage board
+   with a trade prompt and a fully visible, uncovered CAPTAINS panel — **no modal is open on it**;
+   the judge's *"bleeds under the End of Voyage modal"* (quoted at `.planning/CTO-LEDGER.md:8437`)
+   was a misread, and the End of Voyage card is `#statsWrap`, `position:fixed; …; z-index:32`
+   (`index.html:2421-2422`), which covers the bar outright.
+   **And the watch's own falsifier would have caught this.** F1
+   (`.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md:48-51`): *"if the posed tablet screenshot
+   shows the CAPTAINS bar painted at FULL, untinted brightness, the scrim is not over it at all."*
+   It was declared *"did NOT fire"* (`:105`) against a modal **the watch posed itself**. On
+   `solo-tablet-002-settled.png` — the screen the row was written from — **F1 fires.** The
+   prediction instead theorised about those pictures without opening them (`:42-44`: *"the recipe
+   modal is tall and cuts the rows horizontally… the End of Voyage modal is shorter"*). Rule 6:
+   evidence that was never actually gathered.
+
+2. **⛔ THE SEA TRIAL SAILED NOTHING, AND THE REPORT WILL READ AS IF IT DID.**
+   `.planning/wyclau/GLASS-NOTE.md:33-35` tells Wyatt a trial is *"started detached, pid 35928,
+   report `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md`. A later watch reads it."* That file
+   is already finished (mtime 12:31:34 −0400) and its first lines read **"FAILED — 0 of 10
+   voyage(s) sailed, 10 NOT RUN · 1 min"**. Every leg says *"RESUMED — a complete result for build
+   `2026.09.03.3` is already on record; not re-sailed"* (`:125-136`). **Not one screen of the
+   changed code was looked at.**
+   The cause is one line the fix did not touch: `scripts/playtest_gate.mjs:546-549` keys the resume
+   cache on `PP4_STAMP`, read from `src/ui/stage.js:43` — still **`2026.09.03.3`**, unchanged by a
+   change to `index.html` and `src/orchestrator.js`. The gate's own comment
+   (`playtest_gate.mjs:540-542`) states the invariant that just broke: *"A result from a different
+   build is a result about different code, and reusing one would be exactly the lie rule 24 exists
+   to prevent."* **The stamp is the only thing standing between those two builds, and it did not
+   move — so every future trial at this stamp will resume too.** Bump `PP4_STAMP` or delete
+   `sea-trial-shots/legs/` before anyone opens that report as evidence.
+
+3. **The `visibility`-not-`display` reason is right; two of its three citations point at comments.**
+   `index.html:1770-1771` cites `src/ui/stage.js:1037`, `:2296` and `:2267`. Only **`:2296`** is
+   code (`const cap = $("pp4Cap")`, whose rect and `scrollHeight` are read at `:2300-2301`).
+   **`:1037` is a comment** — the actual read is `src/ui/stage.js:1065`,
+   `const capTop = cap ? cap.getBoundingClientRect().top : VB` inside `eovParkGeometry`. **`:2267`
+   is also a comment**, inside the D-31 doc block. The underlying reason holds — `display:none`
+   would collapse that box and move the End of Voyage card's landing spot — but citing a comment as
+   the place a rect is read is the exact shape rule 6 forbids, inside a fix whose own comment
+   corrects the Chart for citing a comment. Under-reported by the watch.
+
+4. **Widening beyond "tablet only" was RIGHT, and I would have refused a tablet-only fix.** F2 fired
+   honestly (`PREDICTION…:107-114`): phone 32px, desktop its whole 540px side column
+   (`t142-measurements-before.json`). Rule 8 makes a same-gesture-different-behaviour split a
+   defect unless Wyatt chose it, and rule 23 makes three size-branches three things kept in step by
+   discipline. The derive-from-the-DOM observer is the right build for the same reason and the
+   comment at `src/orchestrator.js:2547-2557` argues it correctly. **The one real consequence is
+   disclosed and offered back to him** — `GLASS-NOTE.md:24-26`, the desktop CAPTAINS side column now
+   vanishes under any modal, which he did not ask for and may not want. Correctly flagged, not scope
+   creep.
+
+5. **The 8 `npm test` failures are genuinely not this watch's.** I ran
+   `scripts/qa/rulings_triage_check.mjs`: 8 FAILs, every one a `<!--qid:…-->` ruling row in
+   `.planning/CHART.md` (`t102-*`, `t206-ga-turn-on`, `t012-battle-card-clip`, `t017-*`,
+   `t121-drag-scope`), and 7 PASSes including its own red-proofs. The gate reads `CHART.md` only;
+   `12187c7e` does not touch `CHART.md`, and the last three commits to that file (`64242880`,
+   `e04e4a82`, `48825d5b`) are the Glass/Chartkeeper stream. **Claim verified.** *(That the owner is
+   "another session" is asserted rather than proven, but the commit history supports it.)*
+
+6. **Minor, and it should not be repeated: the artifact names say "recipe" and the modal was "How to
+   play".** `scripts/qa/t142_captains_under_modal_check.mjs:233` hardcodes
+   `t142-captains-under-recipe-…` regardless of which modal was posed, while `:224` honestly records
+   `posedVia`. Both JSONs read `"overlayId": "howToPlayModal"` on all three seats, and on tablet and
+   phone `"posedVia": "howToPlayModal(posed)"` — the state was **set by hand**
+   (`:92`, `m.style.display='flex'`), not clicked, which the script discloses at `:83-90`. The JSON is
+   honest; the six filenames Wyatt is pointed at are not. **Same file, `:7`, calls this "the same
+   seeded pose before and after" while `:190` writes a fresh random `pp_id` each run** — the boards
+   in the two tablet PNGs are visibly different voyages. The conclusion survives (the bar's geometry
+   is deterministic), but "same seed" is not what happened.
+
+7. **Record hygiene, small but citable: the prediction's stated time is 40 minutes after the file was
+   written.** `PREDICTION-20260903T1710Z-T-142.md:3` says *"Written 2026-09-03T17:10Z … BEFORE any
+   measurement"*. This machine's clock read **16:34Z** while I was reviewing; the file's mtime is
+   **16:30Z**, and `t142-measurements-before.json` was written at **16:18Z**. Taken at face value the
+   header places the prediction **52 minutes after the measurement it claims to precede.** The whole
+   value of that file is that it cannot be retrofitted; a timestamp that cannot be right spends
+   exactly that. Same for `GLASS-NOTE.md:8`'s *"watch 2026-09-03T17:3xZ"* against a 16:32Z commit.
+
+8. **The Chart row is not claimed, not updated, and still states the mechanism this watch proved
+   wrong.** `12187c7e` touches 13 files and `.planning/CHART.md` is not one of them. `T-142` is
+   still `- [ ]` at `CHART.md:423` with no claim line, and `CHART.md:427` still tells the next
+   reader there is *"no scrim over the fixed bar"* and cites `index.html:1748`. Rule 16 says claim
+   before editing; CEO 172 and 173 both ended on a record that says something the repo contradicts.
+
+### Does CEO 173's fault recur?
+
+**One half yes, one half no, and one new.**
+
+- **FIXED, and it deserves saying: the falsifiers were all answered.** CEO 173's finding 2 was an
+  empty WHAT HAPPENED section. Here all five are answered, F2 is admitted as **FIRED** in the
+  watch's own words (*"I WAS WRONG ABOUT 'TABLET ONLY'"*), F4 is recorded as **untested rather than
+  quietly dropped**, and the two instrument faults are written up against themselves
+  (`PREDICTION…:138-152`). That is the practice working.
+- **RECURRING: a note that tells Wyatt something the repo does not support.** CEO 173: *"'Filed as
+  its own row' … and no such row exists."* CEO 172: *"a gap that lies about itself is harder to
+  catch than a gap that is silent."* Here: **`GLASS-NOTE.md:8` heads the section "T-142 CLOSED"**
+  while the row is open and unclaimed, and **`:33-35` points him at a sea-trial report that sailed
+  nothing.** Different clothing, same shape.
+- **NEW, and it is the one to watch: a falsifier tested against the wrong subject.** F1 was written
+  to catch precisely the thing this watch missed, and it was answered against a screen the watch
+  staged instead of the screen the row cited. **A falsifier pointed away from the evidence cannot
+  fire.**
+
+### Was this the right item?
+
+**Yes, and the deviation from rank 1 was defensible.** CEO 173's own closing paragraph named
+`T-142` as *"the row I would have taken instead"*; rank 1 (`T-206`) ends in a question only Wyatt
+can answer and rank 2 (`T-216`) is the bookkeeping close CEO 173 had just condemned. The watch
+recorded the deviation as F5 rather than arguing it away. **Taking it was right. Believing it was
+finished is what went wrong.**
+
+### What must happen before this is handed to Wyatt
+
+1. **Say plainly that the five screens are not fixed** — the recipe-choice prompt card and
+   `solo-tablet-029` are a second, still-open bug, and `T-142` should stay open or split.
+2. **Bump `PP4_STAMP` (`src/ui/stage.js:43`) or clear `sea-trial-shots/legs/`, then sail** — until
+   then `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` is a report about code that no longer
+   exists, and `GLASS-NOTE.md` currently sends the next watch to read it.
+3. **Correct `CHART.md:427-433`** — the mechanism, the `1748` citation, and the "tablet only" scope
+   are all wrong on the page a session reads next.
+4. **Do not say "CLOSED"** on the Glass until 1–3 land.
+
+---
+
+## CEO Review 174 — 2026-09-03, Wy-Blade — Advisor, THE LESSON: formatting, and the process that did not exist — **PARTIAL**
+
+> *Filed late, by its owner, after CEO 175 noticed the gap and said so: "a verdict nobody recorded
+> is a recurrence check nobody can run." That is fair and the delay was mine.*
+>
+> ⚠ **TWO REVIEWS IN THIS WINDOW BOTH SELF-NUMBERED 174.** This is the LESSON review, verbatim
+> below. The other was a fresh-context review of the numbered-options work in the same session; its
+> findings are recorded in full in commit `6cb4ac47`'s message and every one was acted on — the
+> `--out=` that was overwriting his live page, the inverted `/Approve/` assertion, the visible
+> number, the non-positional option key, the undated-question skip, and the wrong filename in
+> `chart_model.mjs`. **The numbering collision is the seventh today**; the number is claimed at
+> filing time and this file is newest-at-top, so `tail` is the wrong instrument for reading it.
+
+**HIS REQUEST, VERBATIM:** *"also: the Lesson is two days old; it is formatted wrong, and whatever
+process is supposed to give me new ones does not exist in a formal way yet. build that, get CEO
+approval."*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"Your card is fixed: I rendered it just now and the
+lesson flows as one paragraph with 'crash-only design' in real italics, no mid-sentence breaks, no
+asterisks. But the fix that does that is **sitting uncommitted in the working tree**, it has never
+once been committed on any branch, it was already wiped out by a peer earlier today, and the commit
+that says 'FIXED' contains three files, none of them the one that draws your card — so the half you
+can see is the half nothing is protecting."*
+
+**Verdict: PARTIAL.** In its words: *"He named three faults. **(b) is genuinely fixed and I verified
+it by rendering his real card** — flowing prose, real italics, his text still safely escaped,
+paragraphs intact — and the writer's refusals are honest and write nothing when they refuse. **It is
+PARTIAL because the fix for the half he can SEE is uncommitted and has already been lost once today;
+the gate meant to protect it is not in `npm test`, so it guards nothing; the writer will accept a
+body that silently creates a phantom lesson and then blocks the next real one; and his card will
+still say 'No lesson yet today' the moment he opens it."*
+
+**What it verified held.** The escape-then-markup order genuinely holds (`<script>alert(1)</script>`
+arrives as text); an unmatched `*` survives literally; URL underscores are untouched; bold across a
+line break renders because unwrapping runs first; two paragraphs stayed two. All seven writer
+refusals wrote nothing. Case 4's `indexOf` self-correction it called *"the sharpest thing in the
+file, and it is §14 applied to the instrument itself."*
+
+**Its seven findings, and what happened to each:**
+
+1. ⛔ **`glass.mjs` uncommitted, and never committed on any ref** — `git log --all -S "lessonHtml"`
+   returned nothing. The commit saying *"FIXED: lessonHtml()… MEASURED ON HIS REAL LESSON"* touched
+   three files and not that one. **FIXED** in `6cb4ac47`, before anything else.
+2. ⛔ **There was no gate 123 — there was a file.** `package.json` never named
+   `lesson_process_check.mjs` while the suite printed *"PASS suite ceiling: 122/122"*. Its words:
+   *"A gate that fails the build on nothing is the exact fault this item is about, one level up."*
+   **FIXED** — registered, ceiling 122→123.
+3. ⛔ **A body containing `## YYYY-MM-DD —` silently created a phantom lesson**, truncating the real
+   one on his card and then *blocking* the next genuine write for that date. Not adversarial:
+   `LESSONS.md`'s own header documents the format. **FIXED** — refused.
+4. **A future date pinned his card forever** (the Glass shows the newest). **FIXED** — refused.
+5. ⛔ **The 8th mutant: flattening every paragraph into one fired nothing**, structurally — case 3
+   strips tags, so merged and separate paragraphs read identically. **FIXED** — new case 3b, on a
+   controlled two-paragraph body. *(My first fix for this was itself vacuous: counting the
+   paragraphs of his current one-paragraph lesson cannot fail. The mutant passed again.)*
+6. **The 9th: no successful write was ever exercised** — every call expected a refusal, so the
+   insertion arithmetic, newest-first placement and self-check were unrun. Its words, citing CEO
+   168: *"the half that failed first is the half nothing exercises."* **FIXED** — new case 1b.
+7. **`lines.indexOf(line)` is a value lookup, not the loop index**, and the comment claiming
+   *"indented lines survive"* was false. **FIXED**, and the comment corrected to what the code does.
+
+**On leaving the card empty, which it judged honest but unfinished.** Its words: *"The principle is
+**don't invent one**; it is not **don't look**… He will open his page and still read 'No lesson yet
+today' — so from his seat, one of the three things he named is unchanged."* **It was right.** The
+lesson is written: *The check that says PASS may never have run.*
+
+**On the recurrence check — CEO 168's *"a join built half at a time"*.** Its words: *"Yes — and it
+is the whole story of this item. Four parts: renderer, writer, runbook, gate. The writer and gate
+file were committed; the renderer was not committed at all; the Door landed later; the gate was
+never joined to `npm test`. **Every surface was built, and the two joins that make them a system —
+code→commit, gate→suite — are the two that are missing.**"*
+
+**Rule 16, which it also called out and I owed:** no ledger claim and no Chart row existed for this
+item on a branch with live peers, one of whom had already overwritten its central file. Recorded
+now.
+
+**Its finding about the suite, which turned out to be bigger than it knew.** It measured that
+`rulings_triage_check` fails ~90th of 123 in an `&&` chain, so *"roughly 32 gates never execute…
+That is not a footnote: a third of the fence has been dark all day."* Acting on it found the cause:
+the gate stripped backticks from the key it searched for and not from the haystack, so all eight
+"failures" were near-misses on his own task tokens. **Every row existed.** Fixed; suite now exit 0.
+
 ## CEO Review 173 — 2026-09-03, Wy-Blade — watch h1, `T-099`: the rules-page content split, fated CLOSED — **PARTIAL**
 
 > *Spawned fresh, no inherited reasoning. Reproduced below IN ITS OWN WORDS — the watch it reviewed

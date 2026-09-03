@@ -433,6 +433,64 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
       **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
 
+  ### ⛔ WORKED 2026-09-03T16:1x–17:0xZ BY WATCH `pastrypirates-07`. HALF OF IT IS FIXED AND SHIPPED. THIS ROW STAYS OPEN FOR THE OTHER HALF — WHICH IS THE HALF THE FIVE SCREENS ABOVE ACTUALLY SHOW.
+  **EVERYTHING FROM "THE MECHANISM" TO "Tablet only" IS WRONG, AND IT IS WRONG IN A WAY THAT AIMS
+  THE NEXT READER AT THE GRAVE.** Do not work from it; work from this block.
+
+  **1. "No scrim over the fixed bar" is false.** `.modalOverlay` IS a full-viewport scrim —
+  `position:fixed; inset:0; z-index:1000` (`index.html:1232`), stacked well above `#pp4Cap`'s 22.
+  It is merely **22–40% translucent** (`rgba(69,223,166,.22)` → `rgba(41,163,178,.40)`), and the bar
+  is `rgba(255,253,242,.97)` cream, which reads clean through it. **Not missing, not mis-stacked.**
+  The line citation is also off by four: the rule is `index.html:1752`, and 1748 is a comment.
+
+  **2. "One bug not two" is false — it is two bugs wearing one title, and only one is fixed.**
+  ⟨FIXED, `12187c7e`⟩ **The `.modalOverlay` half**: How-to-play, the ship's log, credits, feedback,
+  the recipe modal. `body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden }` plus a
+  MutationObserver that DERIVES the class from the DOM (`src/orchestrator.js`, after the modal
+  wiring) rather than a toggle in each of the eight-plus openers. Red→green, posed, three seats:
+  tablet 340px exposed and 3 rows cut → 0/0; phone 32px → 0; desktop 540px → 0; and the bar comes
+  back on close with its box unmoved. Instrument `scripts/qa/t142_captains_under_modal_check.mjs`.
+
+  **⛔ 3. STILL OPEN, AND IT IS WHAT `solo-tablet-002` ACTUALLY SHOWS.** Open that file. The board
+  behind the card is at **FULL, UNTINTED BRIGHTNESS — there is no wash on that screen at all**,
+  because the white card is **not a modal**: it is the recipe-CHOICE prompt *"Davy Scones, choose
+  yer recipe:"* built through the ACTION PANEL (`src/orchestrator.js:951`). No `.modalOverlay`, no
+  `.modalCard`. It overlaps `#pp4Cap` and cuts the top row to **"Davy"**, exactly as the row says —
+  and **the shipped fix above cannot touch it**, because it keys on `.modalOverlay`.
+  `solo-tablet-029` has no modal open at all, so the "End of Voyage modal" reading was a misread
+  too — the EOV card is `#statsWrap` at `z-index:32` (`index.html:2421`), which covers the bar
+  outright. **So: 5 of 5 cited screens are still unfixed.**
+  **WHAT THE NEXT WATCH SHOULD DO:** pose the recipe-choice prompt on a tablet (it is up at the
+  very start of a solo voyage — no seeding needed) and decide with Wyatt whether the prompt should
+  be kept clear of the bar or the bar should hide under a centre-stage prompt the way it now hides
+  under a modal. **That second option is the consistent one (rule 8) and is a taste call, not a
+  mechanism call — it is his.**
+  ⚑ **HOW THIS WAS MISSED, because the lesson is reusable:** the watch wrote a falsifier for exactly
+  this (*"if the bar is painted at FULL, untinted brightness, the scrim is not over it at all"*) and
+  then **tested it against a modal it posed itself instead of against the five files the row names**.
+  A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
+  opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
+
+- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
+      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
+      `pastrypirates-07` when its own trial finished in **one minute**:
+      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
+      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
+      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
+      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
+      change that does not happen to touch that one string is invisible to the cache and every leg
+      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
+      invariant it is breaking** — *"a result from a different build is a result about different
+      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
+      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
+      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
+      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
+      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
+      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
+      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
+      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
+      exact evasion Wyatt chose the words "sea trial" to make impossible.
+
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
