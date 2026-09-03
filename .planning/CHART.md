@@ -987,6 +987,44 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
+- [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
+      GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
+      ⟨`T-245`⟩
+      **His words, 2026-09-03:** *"it looks like not all the Glass Chart rows have buttons next to
+      them that allow them to be moved up; but they all need to be moveable. can you explain why,
+      and design an elegant solution?"* — and from the numbered options he picked **"Give every row
+      a real tag."**
+      **WHAT SHIPPED WAS THE SWEEP, NOT THE PROPERTY.** `assign_handles.mjs` tagged the untagged
+      rows once, and today the count is honest: 68 rows, 68 arrows, verified by the CEO rendering
+      the page and counting both. **But `glass.mjs:1395` still draws the button only when a row
+      already has a handle**, nothing writes a handle onto a newly harvested idea, and
+      `assign_handles.mjs` is invoked by NOTHING — no npm script, no hook, no gate, no doc. So the
+      arrows are a photograph of one afternoon.
+      **THE SENTENCE THIS PROJECT HAS NOW WRITTEN FOUR TIMES: a capability nothing invokes is a
+      capability that never runs.** The elegant form is that a row cannot EXIST without a tag —
+      assign at the moment a row enters the Chart (harvest, and `chartkeeper --rank --write`, which
+      the Door already makes every watch run) rather than in a sweep somebody remembers.
+      **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
+      row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
+      new ideas can be moved to the top, which today they cannot.**
+- [ ] **THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER.**
+      ⟨`T-246`⟩
+      CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real
+      run, so this is a live mechanism and not damage.
+      **(4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST.** Where a row that merely MENTIONS
+      ⟨`T-017`⟩ sits above the row whose owner line DECLARES it, the mentioner keeps the id and the
+      real owner is renamed. `assign_handles.mjs:23-25` promises the opposite in its own header.
+      T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`, so a wrong rename
+      there is a citation trail pointing at the wrong task — and nothing outside one commit message
+      records the T-017 → T-235/T-237 mapping that was made.
+      **(5) A PARTIAL WRITE ACROSS TWO CHARTS.** `:161-172` writes inside the per-file loop and the
+      refusal exits per file, so `CHART.md` can be written, `GLASS-CHART.md` refused, and the
+      message then says nothing was written. There is no backup.
+      **AND IT CANNOT BE TESTED AT ALL: no `--chart=` flag, so it only ever runs against the live
+      record.** That is the first fix, because it is what makes the other two provable.
+      **Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player
+      sees: nothing. This is record safety, and the record is what every watch steers by.**
+
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
