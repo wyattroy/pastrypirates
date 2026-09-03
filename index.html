@@ -1753,6 +1753,33 @@
     border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);
     padding:10px 12px calc(10px + env(safe-area-inset-bottom)); overflow:auto; display:none; }
   body.pp4Stage #pp4Cap { display:block; }
+  /* ⛔ T-142 — THE CAPTAINS BAR READ STRAIGHT THROUGH EVERY OPEN MODAL, AND THE FAULT IS NOT THE ONE
+     THE CHART ROW NAMED. That row said modals are "centred cards at z-index:1000 with no scrim over
+     the fixed bar". There IS a scrim: `.modalOverlay` is `position:fixed; inset:0; z-index:1000`
+     (line 1232), stacked well above this bar's 22. NOTHING IS MISSING AND NOTHING IS MIS-STACKED.
+     The overlay's paint is `radial-gradient(…, rgba(69,223,166,.22), rgba(41,163,178,.40) 68%)` —
+     22% to 40% alpha — and this bar is `rgba(255,253,242,.97)`, a near-opaque cream. A cream bar
+     reads clean through a 30% teal wash.
+
+     THE SCRIM WAS NEVER MEANT TO HIDE ANYTHING: until the stage gained a fixed CAPTAINS bar there
+     was nothing behind it but the board, which is exactly what a translucent wash is FOR. So the
+     bar is hidden while a modal is up rather than the wash being darkened — darkening it would also
+     bury `#welcomeBackdrop` (line 1229) behind the pre-game modals, where showing through is the
+     whole point.
+
+     MEASURED, posed, 2026-09-03 (`scripts/qa/t142_captains_under_modal_check.mjs`), all three seats
+     failing before this rule and passing after: tablet 820×1180 left 340px of the bar exposed with
+     THREE captain rows cut mid-row by the card's edge ("Davy Scones –", "Crustbeard –", "Dough Hook
+     –", each showing 145px of 770px); phone 390×664 left 32px; the 1440 desktop left its whole
+     540px side column. The row called it tablet-only — it is not, the tablet is merely where the
+     card's edge lands ON the rows instead of beside them.
+
+     ⚠ `visibility`, NOT `display`. This bar's rect is READ in at least three places —
+     `src/ui/stage.js:1037` parks the End of Voyage card on its `getBoundingClientRect().top`,
+     `:2296` and `:2267` measure it for the column layout. `display:none` collapses that box to
+     zero and every one of those measurements would quietly change while a modal happens to be
+     open. `visibility:hidden` paints nothing and leaves the box exactly where it was. */
+  body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden; }
   body.pp4Stage #captainsPanel { display:block; margin:0; }
   /* THE RESTING PROMPT IS OPAQUE. `.96` was never a look anybody chose — it arrived as a side
      effect of building hold-to-peek (78778e1, 2026-08-11: "Base card opacity drops to .96",

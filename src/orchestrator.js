@@ -2540,6 +2540,32 @@ export function wireLobby(){
     }
     ov.addEventListener("click",e=>{if(e.target===ov)ov.style.display="none";});
   });
+  /* ⛔ T-142 — ONE PLACE DECIDES WHETHER A MODAL IS OPEN, AND IT DERIVES THE ANSWER FROM THE DOM
+     INSTEAD OF BEING TOLD. `index.html`'s `body.pp4Stage.pp4ModalOpen #pp4Cap` needs to know when
+     any modal is up, so the CAPTAINS bar stops reading through it (the whole story is in the comment
+     beside that rule).
+
+     THE OBVIOUS BUILD IS THE WRONG ONE, and it is rule 23 exactly. Toggling a class inside each
+     opener means EIGHT-PLUS places setting `display="flex"` and as many setting `"none"` all have to
+     remember — two things kept in step by discipline, which is the definition of the fault — and the
+     ninth modal somebody adds next month is missed silently, because a bar that fails to hide looks
+     like nothing at all. Asking the DOM "is any `.modalOverlay` displayed?" has no list to keep
+     current: a modal added tomorrow is covered by this the moment it exists, and one deleted stops
+     counting on its own. The design-time question — WHAT MAKES THESE TWO AGREE? — is answered by
+     there being only one of them.
+
+     It watches `style` because that is the attribute every opener and closer here writes, and
+     `class` so a future modal toggled by class is covered too; the check itself reads COMPUTED
+     display, so it is right either way. */
+  const syncModalOpenClass=()=>{
+    const open=[...document.querySelectorAll(".modalOverlay")]
+      .some(ov=>getComputedStyle(ov).display!=="none");
+    document.body.classList.toggle("pp4ModalOpen",open);
+  };
+  const modalOpenObserver=new MutationObserver(syncModalOpenClass);
+  document.querySelectorAll(".modalOverlay").forEach(ov=>
+    modalOpenObserver.observe(ov,{attributes:true,attributeFilter:["style","class"]}));
+  syncModalOpenClass();
   $("btnSendFeedback").onclick=()=>{
     const text=($("feedbackText").value||"").trim();
     if(!text)return;
