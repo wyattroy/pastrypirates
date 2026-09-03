@@ -1012,6 +1012,14 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       remembered the token.** The `GATED:` marker stays as the manual override; it must stop being
       the only signal. **Acceptance test: `T-105` as it stood at 02:09Z ranks as blocked with the
       marker deleted.**
+      ⚠ **AND THE CORRECTION THIS ROW OWES, FROM CEO 133, BEFORE ANYBODY BUILDS ON IT.** The watch
+      that filed this row wrote *"after the marker, `T-105` dropped out of rank one"* as its proof.
+      **That was a coincidence it took credit for.** A peer split the Chart mid-watch, `T-105`'s row
+      moved into this file, and `chartkeeper.mjs` reads `.planning/CHART.md` only — so the row left
+      the ranking because its FILE moved, marker or no marker. **The marker itself is real and was
+      verified another way** (`chartkeeper.mjs:926`, and three other marked rows rank at −950, −980
+      and −992 printing *"blocked (GATED)"*). The mechanism stands; the evidence quoted for it did
+      not, and this is the eleventh verdict running to find an account tidier than the record.
       ⚠ **AND FLAG, DO NOT SILENTLY DEMOTE.** The failure mode of this fix is a row quietly scored
       to the bottom because a derivation misfired, which is the same class of fault in the other
       direction. It should say, in the rank output, which rows it judged blocked and on what.

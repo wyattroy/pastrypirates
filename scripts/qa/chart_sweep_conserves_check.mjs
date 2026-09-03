@@ -23,7 +23,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { idOfRow } from "../wyclau/lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CHART = join(ROOT, ".planning", "CHART.md");
@@ -55,24 +54,17 @@ const log = existsSync(LOG) ? readFileSync(LOG, "utf8") : null;
    `- **`. Measured before it was fixed: **16 handles reported as owned by nothing**, one of them
    `T-084`, a row filed an hour earlier. A conservation check that invents 16 lost rows is worse
    than no conservation check, because the first person to read it learns to ignore it. */
-/* ⚠ AND THE MARKER LINE MAY CARRY FIELDS BESIDE THE HANDLE. THIS GATE SAID IT MAY NOT, AND THAT
-   COST A FALSE `npm test` FAILURE FOR EVERY SESSION ON THE BRANCH — found 2026-09-03T02:2xZ.
-   It read `⟨`(T-\d{3})`⟩` — handle alone, nothing else inside the brackets — while
-   `chartkeeper.mjs` writes `⟨`T-121` · size: S⟩` and `headField()` splits that same bracket on `·`
-   to read `needs:` and `size:`. So the four rows the 01:0xZ watch filed WITH a size field were
-   invisible to `ownedIn`, and this gate reported them as **"4 allocated handle(s) are owned by
-   NOTHING in either file"** — four rows announced as fallen between the two records when all four
-   were sitting on the Chart, in order, with their bodies intact.
-
-   ⚑ THE POINT, AND IT IS RULE 23's: `chart_model.mjs:205-213` DOCUMENTS THIS EXACT FAULT AND FIXED
-   IT THERE, on 2026-09-02, in a comment headed "the head line may carry fields beside the handle,
-   and until 2026-09-02 this pattern said it may not". **This file kept a private copy of the old
-   pattern**, so the repair reached one of the two readers. Two readers of one line, disagreeing
-   about its grammar — which is the thing that comment was written to stop. The copy is gone: the
-   handle is now read by the one shared definition, so a third field tomorrow cannot split them
-   again. */
-const ownedIn = (md) =>
-  md.split("\n").map((l) => (/^\s*⟨/.test(l) ? idOfRow([l]) : null)).filter(Boolean);
+/* ⚠ A THEORY DIED HERE ON 2026-09-03T02:2xZ AND THE NOTE IS KEPT SO NOBODY RE-RUNS IT. A watch read
+   this pattern — `⟨`(T-\d{3})`⟩`, handle alone — against `chart_model.mjs:205-213`, which documents
+   fixing exactly that shape to allow `⟨`T-121` · size: S⟩`, and concluded this file was a stale
+   private copy causing a false FAIL. **It replaced the line with the shared `idOfRow` reader and
+   then measured both, on HEAD and on the live tree: 50 owned, max T-128, IDENTICAL, zero handles
+   seen by one and not the other.** The change was a no-op and was reverted. What actually happened
+   is that a peer session rewrote CHART.md between two gate runs, so the run that named T-120..T-123
+   and the file inspected afterwards were different files. **The FAIL was true: those four rows had
+   genuinely left both records.** If you are about to make this edit, measure the two readers against
+   the same bytes first — the difference is zero. */
+const ownedIn = (md) => (md.match(/^\s*⟨`(T-\d{3})`⟩\s*$/gm) || []).map((l) => /T-\d{3}/.exec(l)[0]);
 const archivedIn = (md) => (md.match(/^## (T-\d{3}) — /gm) || []).map((h) => /T-\d{3}/.exec(h)[0]);
 const chartOwned = new Set(ownedIn(chart));
 const logOwned = new Set(archivedIn(log ?? ""));
