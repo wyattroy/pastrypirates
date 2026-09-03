@@ -9701,3 +9701,28 @@ because it is his own words eight minutes old, and reported the scoring bug that
 - 2026-09-03T22:06:14Z · close_item: INBOX-20260903T213129Z · CEO 188 · no game diff — no game code is right: his ask was a DEPLOY, not a change — staging now serves 2026.09.03.4-staging@401674f8, verified byte-for-byte across 566 files (0 DIFFERS) by a gate CEO 188 re-ran itself; the game code published is 09f8658c, another session's · no stated solution
 
 - 2026-09-03T22:06:37Z · close_item: "T-247" · CEO 188 · no game diff — a deploy, not a code change: staging serves 401674f8, 566 files byte-identical, CEO 188 re-ran the gate itself · no stated solution
+
+## Bell watch — 2026-09-03T22:45Z, the Blade (`pastrypirates-e4` [1429ca]) — `T-206`, CEO 189's findings
+
+**Watch started** 2026-09-03T22:45Z. **Last progress:** the 22:0xZ watch closed `T-247` (the staging
+publish; CEO 187 NO, then 188 PARTIAL). **Blocked on Wyatt:** `## BLOCKED ON WYATT` is an EMPTY
+table — zero questions are reaching his page. **Detached trial in flight:** YES —
+`.planning/wyclau/LONG-RUN` says a 10-leg sea trial started 20:31:50Z, **9/10 legs**, last updated
+22:00:56Z; `stray_probe_check` SKIPs with 4 debug-port browsers up, and three `ppjudge-*` sessions
+spawned within the last minute, so it is alive on its final leg.
+
+**WHAT THIS WATCH TAKES:** `T-206` — Chart rank **1** at score 202, and **unheld** (`IN-HAND` was
+empty; no claim under 90 minutes anywhere in this ledger). Skipped nothing.
+
+**AND WHAT IS LEFT OF IT, because the row's own headline is now stale.** The row still says *"Google
+Analytics is not started."* It is started: `09f8658c` installed it on the three pages he named,
+cookieless — and **CEO 189 has already reviewed that install: PARTIAL**, with an ordered five-item
+fix list nobody has acted on. Items 1–4 all live inside `scripts/qa/analytics_consent_check.mjs`.
+**That is QA-gate code, not game code** — which is the only reason this watch can work at all while a
+trial is at sea: no file the running trial loads gets touched.
+
+**WHAT THIS WATCH WILL NOT DO, decided before starting and written into the prediction file:** no
+edit to `index.html`, `src/`, or anything a browser loads; and no second sea trial. Either would
+fight the run in flight, whose report is the merge evidence CEO 188 called a hard precondition.
+
+Prediction: `.planning/wyclau/PREDICTION-20260903T2245Z-T-206.md`.
