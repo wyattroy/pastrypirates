@@ -718,7 +718,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       so **the first decision is which tree it lands in, and `vendor_check.mjs` will have an opinion.**
 
 - [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
-      ⟨`T-088`⟩
+      ⟨`T-127`⟩
+      ⚠ **RENUMBERED `T-088` → `T-127`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-088`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-088` still resolves in `CHART-LOG.md` and in git history.
       by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
       hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
       **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
@@ -1223,7 +1224,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       red-proof by planting `SCHEDULED` in the finished list.
 
 - [ ] **TWO DIFFERENT ROWS ON THIS CHART BOTH CARRY `T-079`, AND THE HANDLE IS NOW LOAD-BEARING.**
-      ⟨`T-079`⟩
+      ⟨`T-125`⟩
+      ⚠ **RENUMBERED `T-079` → `T-125`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-079`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-079` still resolves in `CHART-LOG.md` and in git history.
       Found 2026-09-02T12:5xZ by the watch that closed `T-079`, while trying to close it: the close
       gate could not find the row by handle because there are two. `CHART.md:990` (the npm-test row,
       just closed) and `CHART.md:1166` (**THE PROJECT OWNS ITS DOOR**) share it.
@@ -1290,7 +1292,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **build the plumbing, defer the framework.**
 
 - [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
-      ⟨`T-079`⟩
+      ⟨`T-126`⟩
+      ⚠ **RENUMBERED `T-079` → `T-126`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-079`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-079` still resolves in `CHART-LOG.md` and in git history.
       do, and until somebody does, NOTHING is ever marked "waiting on Wyatt".** CEO 104's one
       sentence for him says exactly this.
       **WHAT THE TOOL ALREADY TELLS YOU** — run `node scripts/wyclau/chartkeeper.mjs --rank` and
@@ -1355,7 +1358,8 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so.
-      ⟨`T-008`⟩
+      ⟨`T-124`⟩
+      ⚠ **RENUMBERED `T-008` → `T-124`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-008`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-008` still resolves in `CHART-LOG.md` and in git history.
 
 ## BLOCKED ON WYATT
 
@@ -1978,7 +1982,8 @@ session's mandate is harvest-and-publish only.**
   `INBOX-20260902T214507Z`. **SCHEDULED — no further action from this session.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 5:43:55 PM ET, RULING on `T-105`**: *"Let the watch
-      ⟨`T-105`⟩
+      ⟨`T-128`⟩
+      ⚠ **RENUMBERED `T-105` → `T-128`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-105`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-105` still resolves in `CHART-LOG.md` and in git history.
   write them -- I allow edits to hooks and skills"* → **ALREADY HARVESTED**, `.claude/memory/DECISIONS.md`
   (commit `0472a129`), which also records that the question he answered carried an unverified
   premise (`.claude/` is not, in fact, entirely denied to a watch — `settings.json` allows bare
