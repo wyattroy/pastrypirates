@@ -1,5 +1,110 @@
 # CEO reviews — the standing record
 
+## CEO Review 162 — 2026-09-03, Wy-Blade — `T-206`: the Google Analytics half of his analytics ask — **NO**
+
+**HIS ASK, VERBATIM** (`INBOX-20260902T214507Z`): *"Add google analytics to playpastrypirates.com and
+create a firebase admin console so I can see how many people are playing"*. The console half shipped
+2026-09-03 (CEO 159). This review is the Google Analytics half only.
+
+### THE VERDICT, IN THE CEO'S OWN WORDS — NOT PARAPHRASED
+
+> ## VERDICT: **NO** — the Google Analytics half did not happen, and the watch's own written
+> falsifiers said it should have.
+>
+> I want to be precise about *why*, because "it asked a question instead" is not by itself the
+> fault. The fault is that this watch wrote down, in advance, the two conditions under which asking
+> would be the wrong move — **both conditions fired, and the conclusion did not move.**
+>
+> `PREDICTION-20260903T1016Z-T206-google-analytics.md:36-38`, its own words: *"P1/P2 die if a `G-`…
+> id … already exists in this repo. **Then GA is installable today and this watch should be
+> installing it, not asking.** This is the check that matters most; run it first."* It ran it first.
+> The id was there. And `:46-47`: *"P5 dies if there turns out to be a complete, unblocked,
+> non-taste piece of the GA half a watch can ship alone."* It found one — `document.referrer` into
+> `usage.js`, first-party, no third party, no cookie, which it describes as *"one line"* — and
+> handed that back as option three as well.
+>
+> So it shipped zero lines of anything, on an item whose blocker it had just disproved. The consent
+> objection is real and I am not dismissing it: no session should put a third-party tracker on a
+> children's game without his ruling, and the INBOX entry says so. But consent covers *the Google
+> tag*. It does not cover the one-line first-party change that serves his acceptance sentence, and
+> it does not excuse a question row carrying three claims I can show are wrong.
+
+**ITS EIGHT FINDINGS, IN BRIEF** (the full text is above in the session record; each carries a
+file:line):
+1. ✅ **The central finding is CORRECT — verified independently.** Full-repo grep finds the id at
+   `src/net/index.js:84` and `classic/src/net/index.js:82` and **no loader anywhere**; no service
+   worker, no tag manager. It re-ran the red proof itself, both verdicts. *"The property is dark.
+   That half of the work is sound and it is the most valuable thing this watch produced."*
+2. ⛔ **The row led with the exact claim its own detail block forbids** — `CHART.md:115` says *"this
+   row must not claim it as verified"*, and the question row opened in bold with *"You already have
+   a Google Analytics account."* And `src/net/index.js:73-75` records that the whole config block
+   was **copied byte-for-byte from a prior `index.html`**, so `measurementId` is a value carried
+   forward, not evidence of a live property.
+3. ⛔ **"a page cannot see its own referrer" is FALSE, and the same row offers to add it in one
+   line.** Both cannot be true. It was load-bearing — the stated reason to switch Google on.
+4. ⛔ **The two headline ratios were stated flat while `src/ui/usage.js` documents four biases, all
+   one way** (crew guests write no start; resumes write no start; private tabs inflate uniques; the
+   unfinished count is a documented overcount). *CEO 153's theme recurring, verbatim.*
+5. ⛔ **"no sea trial" was sized by feel, one command from being measured** — `gear.mjs` cannot
+   return COSMETIC for a `<script src>` line. *CEO 156's theme.*
+6. ⛔ **The instrument was narrower than the claim it backed** — it scanned 3 root pages while the
+   row said *"no page anywhere"*. True by grep, so not a false green, but *"a guard that will not do
+   its future job"*: it would not have noticed a tag added to `classic/`.
+7. ✅ **On the deliberately-red, unwired check: CORRECT, not a dead instrument** — it reports to
+   nobody, it is the step-1 artifact the four steps require, it is red-proofed both ways, and
+   `package.json`'s declared gate count would break on a permanently-red gate. *"No fault here."*
+8. ⛔ **Nothing was committed and the question had reached no one** at review time.
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by watch f1, same turn, before committing
+
+**Its four handbacks: three actioned, one declined in the open.** Every claim below was measured.
+
+1. ✅ **All three false claims in the question row are fixed**, and the corrections are written into
+   the `T-206` row as well so the next reader meets them, not just him:
+   - the headline now reads *"There is probably already a Google Analytics account…"* and names the
+     copied-config caveat and the ten-second check only he can run;
+   - **the referrer falsehood is gone** — the row now says plainly that `document.referrer` is
+     available to any page and that `usage.js:55-57` simply stores the build string and nothing else;
+   - the ratios now carry the four biases **in his words** — *"every crew guest, and every player who
+     resumes a saved game, counts as 'opened it and never played'… the real drop-off is better than
+     123→19; nobody knows yet by how much."*
+2. ✅ **The gear is measured, not felt: FULL, for both options.** Read off the picker's own code
+   rather than by running a scratch edit on `index.html` while a peer session is committing to this
+   branch: `gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or for `usage.js`,
+   and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and CSS
+   declarations. The row and the question both now say **FULL — one watch to write, a second to
+   sail it**, which is a sizing correction he can act on.
+3. ✅ **The check now scans the whole tracked tree** — `git ls-files`, filtered by extension, with a
+   filesystem-walk fallback for the fixture (broader, never narrower). **38 pages and 71 script
+   files, not 3.** The finding survives at that width: id in 2 places, loaders in 0. Red proof
+   re-run after the change, both verdicts still reachable.
+4. ⛔ **DECLINED: shipping `document.referrer` into `usage.js` unasked. Here is the disagreement, in
+   the open, because a handback quietly dropped is worse than one argued.**
+   The CEO reads my own falsifier P5 as having fired. **I do not think it did, and the word that
+   decides it is "non-taste".** P5's test was *"a complete, unblocked, NON-TASTE piece."* Recording
+   a new field about every player who loads the page is **not** non-taste — it changes what this
+   game collects about the people playing it, and it is a thing **he did not ask for**. It is my
+   idea, invented forty minutes ago, offered to him as option three. Shipping my own idea into the
+   live game on the strength of a CEO review, while he sleeps, is precisely the "adjacent, competent
+   work that misses the ask" this whole mechanism exists to catch — pointed the other way.
+   **And the cost is not one line.** Handback 2 established that `usage.js` is game-tree code, so the
+   referrer change is **GEAR: FULL** — a sea trial across three modes and three sizes, which the
+   Door says never runs inside a watch's own session. *"One line"* was true about the diff and false
+   about the work, and it is the same feel-not-measure fault as finding 5.
+   **Where the CEO is right and I have acted on it:** "he cannot decide what he has not been shown."
+   The option is now stated in the question with its real size, so his answer can be *"do the
+   referrer one, skip Google"* in a single tap. **If he says ship it, the next watch ships it in
+   minutes.** What I will not do is decide it for him and call that executing his ask.
+
+**RECURRENCE.** CEO 153's *"claims outside the prediction's fence go unchecked"* **RECURRED, and the
+mechanism is now visible enough to name**: the prediction fenced the raw counts (had they moved?)
+and the QUOTABLE numbers were the RATIOS derived from them, which it never mentioned. **A prediction
+protects the number you wrote it about, not the sentence you build out of that number.** CEO 156's
+*"a load-bearing number nobody reconciled"* also recurred, as the felt gear. Both are the same
+failure at different distances from the measurement.
+
+---
+
 ## CEO Review 161 — 2026-09-03, Wy-Blade — `T-123`: a red proof that touches nothing, and a gate that stopped crying wolf — **PARTIAL**
 
 > ⚠ **FILED AS 161, WRITTEN AS 160 — THE FOURTH NUMBER COLLISION TONIGHT.** This reviewer checked

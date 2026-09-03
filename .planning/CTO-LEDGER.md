@@ -7695,3 +7695,71 @@ harvests.
 google analytics to playpastrypirates.com and create a firebase admin console so I can see how many
 people are playing"*. The console half shipped 2026-09-03 (CEO 159). Google Analytics has not been
 started. Chart rank 2, score 138. **Claimed by watch f1 at 10:15Z.**
+
+### WATCH f1 — ENDING 2026-09-03T11:0xZ. `T-206` IS **PARKED, NOT CLOSED** — CEO 162 said NO and it was right.
+
+**THE FINDING, AND IT IS THE ONLY THING HERE THAT MATTERS TO HIM.** `src/net/index.js:84` and
+`classic/src/net/index.js:82` both carry `measurementId: "G-2KK6EZDZSP"` — a Google Analytics 4
+property id — and **nothing in this repo has ever loaded it.** Measured across the whole tracked
+tree: **38 pages and 71 script files, id in 2 places, loaders in 0.** `index.html:40-41` pulls only
+`firebase-app-compat` and `firebase-database-compat`; there is no `gtag.js`, no `firebase-analytics`,
+no service worker, no tag manager, and `analytics()` is called nowhere. **So "add Google Analytics"
+is one script tag here, not a setup job**, and every watch that skipped this row believing it needed
+an account from him skipped it for a reason that was never true. ⚠ **The property's existence in his
+Google account is LIKELY, NOT VERIFIED** — `src/net/index.js:73-75` records that the config block was
+copied byte-for-byte from an older `index.html`, so the id is a carried-forward value. Only he can
+confirm it, and the question says so.
+
+**INSTRUMENTS, red-proofed:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree and
+PASSES against a fixture that loads `gtag.js` (`_t206_redproof.mjs`, both verdicts reachable, re-run
+after the scan was widened). **Deliberately NOT in `npm test`** — it is red today, and a gate added
+red is a gate somebody disables; its header names who wires it in and under what name.
+`scripts/qa/_t206_usage_count.mjs` re-read the live counters: 237 boots / 123 browsers **unchanged**,
+plus 44 voyages started by 19 of them and 8 finished (solo 35 / pass 3 / crew 6).
+
+**WHY IT IS PARKED AND NOT TICKED.** CEO 162's verdict is **NO** — verbatim in `CEO-REVIEWS.md`,
+including the parts against this watch. The tag is not installed, because which pages and whether he
+wants a cookie notice are his calls on a third-party script on a game children play. **So the row
+stays open, blocked on `qid:t206-ga-turn-on` in BLOCKED ON WYATT**, with the measurement, a marked
+recommendation (game page only) and a third option (record the referrer in his own counter). **A
+watch that ticked this would be recording an install that did not happen.**
+
+**THE VERDICT'S FOUR HANDBACKS: THREE DONE, ONE DECLINED IN THE OPEN.** Full text in
+`CEO-REVIEWS.md` under CEO 162. Three claims in the question row were **wrong and are fixed** — the
+worst being *"a page cannot see its own referrer"*, which is false and sat two sentences from an
+offer to add it in one line. The gear was **felt, not measured**: read off `gear.mjs:78-85` and
+`:114-121`, both options are **FULL**, not "no sea trial". The check scanned 3 pages while the row
+claimed "no page anywhere"; it now derives its list from `git ls-files` — 38 and 71. **Declined:
+shipping `document.referrer` into `usage.js` unasked.** It is my idea, not his ask; it changes what
+this game records about players, which is taste; and handback 2 established it is GEAR: FULL, so
+*"one line"* was true of the diff and false of the work. It is offered to him in the question with
+its real size instead.
+
+**⛔ THE SWEEP IS NOT GREEN, AND IT IS NOT THIS WATCH'S DOING — PROVEN, NOT ASSERTED.** `npm test`
+was **PASS, 0 failures** at 10:4xZ and has **4 failures** now, all in
+`answered_question_retired_check.mjs`'s harvest-stamp cases, all reading
+`REFUSING TO STAMP — this harvest did not say WHICH PAGE it carried.` **That string is a `+` line in
+the peer session's UNCOMMITTED diff to `scripts/wyclau/mark_glass_harvest.mjs` and does not exist at
+HEAD** (`git show HEAD:… | grep -c` → 0). This watch never touched that file, `harvest_glass.mjs`,
+`package.json` or `.gitignore` — all of which are modified in the tree by the peer right now. **Every
+commit this watch made names its paths explicitly**, so none of the peer's in-flight work was swept
+in. Recorded rather than repaired: repairing a live session's half-written file is the collision, not
+the fix.
+
+**⚠ AND THE PEER'S GLASS TICK RESET `GLASS-NOTE.md` OUT FROM UNDER THIS WATCH, around 10:3xZ.**
+Nothing of his was lost — the note cleared was this watch's own, and it is re-written. **But the same
+reset would have destroyed a note carrying HIS words**, which is the hazard `INBOX-20260902T0350Z`
+already names, and it is now not hypothetical. Flagged in `GLASS-NOTE.md` for a row: the reset should
+refuse when the file holds content the resetting session did not write.
+
+**⛔ NO SEA TRIAL, AND THE REASON IS NOT "IT FELT SMALL".** This watch changed **no game code at
+all** — `index.html` and `src/` are untouched; everything written is `.planning/` plus three
+`scripts/qa/_t206_*` probes. `gear.mjs` reports FULL only because it falls back to the branch's whole
+accumulated diff when nothing game-side is uncommitted, which is its documented strict behaviour and
+says nothing about this change. **The FULL gear that IS owed belongs to whoever installs the tag**,
+and it is written into the question so he can size it.
+
+**⛔ NO GLASS PUBLISH AND NO HARVEST — no Artifact tool in this session.** Stated as observed. The
+note for his page is in `GLASS-NOTE.md`; no `mark_glass_published` stamp was written, because no
+publish happened. **The next Artifact-capable session must harvest before republishing or his words
+are deleted.**
