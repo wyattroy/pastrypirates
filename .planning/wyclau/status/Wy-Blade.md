@@ -5,18 +5,19 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T05:07:56.504Z	watch a7 05:1xZ: T-088 CLOSED -- it was your own ruling. You said 'It's finished' twice about the image work, and that job was still sitting at the TOP of this page. Your list is now 16 open / 44 tasks, and rank one is a real job again.
+2026-09-03T05:52:45.699Z	watch a9 settled T-013: the trade-call circle really is misplaced -- your report was right, and the probe that said otherwise was measuring a board where it cannot happen. Photograph: both Call circles floating in open water, ~400px below the only boats on screen, one on a sugar-cube island. 28 circles that landed beside their captain were NEVER wrong; the ones thrown half a screen away name a stranger about two thirds of the time. Not fixed yet -- the fix is in stage.js and needs a sea trial. Row stays open with the evidence and a red check ready.
 ```
 
 ## In hand (IN-HAND)
 None recorded.
 
 ## Long run in flight (LONG-RUN)
-None recorded.
+```
+{"what":"SENTINEL-T131-ROUND-2","startedAt":"2026-09-03T05:45:00.000Z","updatedAt":"2026-09-03T05:45:00.000Z","progress":"9/10 legs","staleAfterMinutes":53}
+```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T041802Z.out/.err)
 2026-09-02T05:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T050803Z.out/.err)
 2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
 2026-09-02T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T064802Z.out/.err)
@@ -56,4 +57,5 @@ None recorded.
 2026-09-03T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T041802Z.out/.err, kit: readable)
 2026-09-03T04:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T043802Z.out/.err, kit: readable)
 2026-09-03T04:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T045802Z.out/.err, kit: readable)
+2026-09-03T05:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T051802Z.out/.err, kit: readable)
 ```
