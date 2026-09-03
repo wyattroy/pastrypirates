@@ -219,7 +219,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
   and no pid. So from a minute in, the only mechanical protection against two 88-minute trials
   fighting over `sea-trial-shots/` is gone, and a later watch also cannot learn from the marker
   which report the live run is writing. Both files are VENDORED — fix in claude-kit, then re-vendor.
-- [ ] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on
+- [x] **`can_push.mjs` SAYS "CAN PUBLISH" TO A WATCH WHOSE `git push` IS THEN REFUSED — twice now on (closed 2026-09-03 · CEO 136 · no game diff — can_push now prescribes the form the allowlist actually matches; the stale STOP block that told the next watch to discard the working fix is corrected in place)
       ⟨`T-011`⟩
   this branch, and it is the one fault the relay cannot survive. Measured 2026-09-02T03:xxZ, not
   fixed (one item). Sizing: small.** The Door's own words are *"a watch that pushes nothing is
@@ -262,6 +262,40 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
   > | `git push --dry-run origin HEAD` — **as a shell command** | REFUSED, *"This command requires approval"* |
   > | `git push --dry-run origin <branch-name>` — **as a shell command** | **REFUSED, identically** |
   > | both of those forms — **from a node child process** | **exit 0**, `Everything up-to-date` |
+  >
+  > ### ⛔⛔ EVERYTHING FROM HERE TO THE END OF THIS BLOCK WAS OVERTURNED ON 2026-09-03. READ THIS FIRST.
+  >
+  > **THE TABLE ABOVE IS REAL AND IT CANNOT ANSWER THE QUESTION IT WAS BUILT FOR: every shell row in
+  > it is a `--dry-run` form.** With no non-dry-run shell row, it cannot tell "Bash versus node"
+  > apart from "the flag position" — and the answer is the flag position.
+  >
+  > `.claude/settings.json:22` reads `Bash(git push origin claude/*)`, and that is a **PREFIX**
+  > match. `git push --dry-run origin …` does not begin with `git push origin`, so it can never
+  > match, on any tree however healthy. Re-measured, same branch, minutes apart:
+  >
+  > | run as a **shell command**, 2026-09-03 | result |
+  > |---|---|
+  > | `git push --dry-run origin <branch>` | REFUSED — and it always will be |
+  > | `git push origin <branch>` | **exit 0, `Everything up-to-date`** |
+  >
+  > **SO (b) WAS RIGHT AND THIS ROW TALKED THE NEXT WATCH OUT OF IT.** Corrected in
+  > `can_push.mjs:106-127`, which now prescribes `git push origin <branch>` — a real no-op on a
+  > synced tree that exercises the exact string the allowlist matches. Found by watch
+  > `pastrypirates-a3`, verified independently, CEO 136 red-proofed the gate against the old file.
+  >
+  > **AND THE OLD PRESCRIPTION WAS WORSE THAN WRONG — IT WAS A FALSE STOP AT THE DOOR.** `can_push.mjs`
+  > told every watch to run the `--dry-run` form and to **end its turn if refused**. On this machine
+  > that fires 100% of the time on a perfectly healthy tree. *The same false-instrument disease this
+  > row is about, inverted: not a green that hides a fault, a STOP that invents one.*
+  >
+  > **THE THREE "STILL OPEN" CLAIMS BELOW ARE ALL SPENT** (CEO 136, `T-011`): the allowlist is **not**
+  > the only real repair — the command form was, and it landed; the `SKILL.md` line is **not** blocked
+  > and needs no separate entry, because `SKILL.md:27` already runs `can_push.mjs` at orientation and
+  > the script prints the correct command; and `close_item.mjs` **does** take `--chart=` since
+  > `11d44777`, so this row can be closed through the gate — which is how it was closed.
+  >
+  > *(Everything below is kept, unedited, as the graveyard — what was believed on 2026-09-02 and why.
+  > It is wrong. Do not act on it.)*
   >
   > **(b) — "push with the explicit branch name" — DOES NOT REPRODUCE.** It rested on a single
   > observation in a single session. Both forms are refused here. It is not a one-line fix; it is
