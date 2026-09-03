@@ -46,7 +46,24 @@ const args = Object.fromEntries(process.argv.slice(2).map((a) => {
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = args.repo ? path.resolve(String(args.repo)) : path.resolve(here, "..", "..");
-const CHART = path.join(repo, ".planning", "CHART.md");
+/* ⛔ `--chart=<path>` — WHICH CHART THIS ROW LIVES ON. Added 2026-09-02 because the split made the
+ * default a lie for three quarters of the work.
+ *
+ * WHAT HAPPENED. He said: *"take every Glass-focused task on the Chart... YOU will work on the
+ * chart -- the Watch will work on the game."* 44 rows moved to `.planning/GLASS-CHART.md`. **This
+ * file read `.planning/CHART.md` by path with no way to point it elsewhere, so from that moment NOT
+ * ONE of those 44 rows could be closed at all** — and the Door says closing happens only here.
+ *
+ * **His standing mandate the same night was "completed, verified by CEO, and shipped."** So the
+ * split he ordered and the standard he set were, for about an hour, mutually blocking: the work
+ * could be done and could never be marked done. Found by CEO 134 and reproduced before this fix —
+ * `--item="unattachedMentions"` against a real Glass row returned
+ * *"no open Chart row contains…"*.
+ *
+ * The default is unchanged, so every existing invocation behaves exactly as before. */
+const CHART = args.chart
+  ? path.resolve(String(args.chart))
+  : path.join(repo, ".planning", "CHART.md");
 const INBOX = path.join(repo, ".planning", "wyclau", "INBOX.md");
 const REVIEWS = path.join(repo, ".planning", "CEO-REVIEWS.md");
 const LEDGER = path.join(repo, ".planning", "CTO-LEDGER.md");
