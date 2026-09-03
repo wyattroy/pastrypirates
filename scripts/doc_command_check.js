@@ -25,6 +25,7 @@
 // House convention: no test runner, one PASS/FAIL line per case, every case runs before exit.
 import fs from "node:fs";
 import path from "node:path";
+import cp from "node:child_process";
 import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -149,10 +150,59 @@ const PATH_DIRS = (process.env.PATH || "").split(path.delimiter).filter(Boolean)
 const PATH_EXTS = process.platform === "win32"
   ? (process.env.PATHEXT || ".COM;.EXE;.BAT;.CMD").split(";").filter(Boolean)
   : [""];
-const onPath = (name) => PATH_DIRS.some((dir) =>
+const onOwnPath = (name) => PATH_DIRS.some((dir) =>
   [""].concat(process.platform === "win32" ? PATH_EXTS : []).some((ext) => {
     try { return fs.statSync(path.join(dir, name + ext)).isFile(); } catch { return false; }
   }));
+
+/* ⛔ THESE ARE `bash`-TAGGED FENCES, SO ASK BASH — NOT WHATEVER SHELL HAPPENS TO RUN THE GATE.
+ * `process.env.PATH` is the INVOKING shell's. From Git Bash it holds /usr/bin and `grep`, `chmod`,
+ * `nohup`, `xargs`, `mkdir` all resolve. From PowerShell it does not, so the same docs, unchanged,
+ * produced TEN failures reading:
+ *
+ *   FAIL  a doc teaches a shell command that does not exist on this machine … `grep`
+ *
+ * **Those commands exist and the docs are correct.** `npm test` was therefore exit 0 in one shell
+ * and exit 1 in the other, on the same tree — and a commit of mine closed with "EXIT 0 from Git
+ * Bash AND from PowerShell", which CEO 177 measured as false.
+ *
+ * ⚑ IT IS THE SAME FAULT THE COMMIT BESIDE IT HAD JUST FIXED in `deploy_rsync_paths_check`, one
+ * file over: **an instrument reporting a property of ITSELF as a finding about its subject.** The
+ * question a bash fence asks is "can BASH run this", so bash is the thing to ask; and where bash
+ * cannot be reached, the honest answer is "I cannot judge these", never "they do not exist".
+ * Resolved in ONE bash call for all names, then cached. */
+let bashReachable = null;               // null = not yet probed, false = no bash here
+const bashCache = new Map();            // name -> boolean
+
+/* ⚠ `exit 0` IS LOad-BEARING. Without it bash exits with the status of the last `command -v`, so a
+   name it CANNOT resolve makes `execFileSync` throw — which the catch below reads as "bash is
+   unreachable", which makes every name runnable, which silently switched the whole section off.
+   Caught by this gate's own red-proof fixtures going from 5 findings to 0: **the fixtures are the
+   only reason this did not ship as a green gate that checked nothing.** */
+const bashHas = (name) => {
+  if (bashCache.has(name)) return bashCache.get(name);
+  if (bashReachable === false) return null;
+  let ok = null;
+  try {
+    const out = cp.execFileSync("bash", ["-c", 'command -v "$1" >/dev/null 2>&1 && echo yes || echo no; exit 0', "_", name],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    bashReachable = true;
+    ok = out.trim() === "yes";
+  } catch { bashReachable = false; return null; }
+  bashCache.set(name, ok);
+  return ok;
+};
+
+/* A name is runnable if THIS shell can run it, or if BASH can — because the fence says bash.
+   When bash is unreachable we cannot judge a bash command at all, so we do not accuse: the section
+   reports that it could not judge, rather than inventing ten failures. */
+let unjudgeable = 0;
+const onPath = (name) => {
+  if (onOwnPath(name)) return true;
+  const viaBash = bashHas(name);
+  if (viaBash === null) { unjudgeable++; return true; }
+  return viaBash;
+};
 
 /* A line that NAMES the platform it belongs to has told its reader the truth. CLAUDE.md rule 17's
    corrected form — `# Mac / Linux ONLY — absent in Git Bash` — is exactly this shape. */
@@ -226,12 +276,30 @@ function scanShellCommands(text, doc, judge = onPath) {
   return { counted, found };
 }
 
+/* ⛔ CAN THIS SHELL JUDGE A BASH FENCE AT ALL? Probe once, up front, with a name every POSIX shell
+   has. If bash is unreachable — PowerShell on this machine, measured — then NOTHING below can be
+   judged: not the docs, and not the fixtures either, because a fixture's fake command is
+   "unrunnable" for the same reason every real one is. Section 4 then SKIPS LOUDLY.
+
+   **This is the shape `deploy_rsync_paths_check` was given one commit earlier, applied to the gate
+   beside it.** Before it, the same docs produced 0 failures in Git Bash and TEN in PowerShell —
+   `grep`, `chmod`, `nohup`, `xargs`, `mkdir` — every one of them real, correct, and present. A
+   commit of mine closed with "npm test: EXIT 0 from Git Bash AND from PowerShell"; CEO 177
+   measured that as false and this is why. A gate that cannot reach its subject must say so. */
+const CAN_JUDGE_BASH = onOwnPath("grep") || bashHas("grep") === true;
+
 let shellCmds = 0, unrunnable = [];
-for (const doc of DOCS) {
-  if (!exists(doc)) continue;
-  const r = scanShellCommands(fs.readFileSync(path.join(REPO, doc), "utf8"), doc);
-  shellCmds += r.counted;
-  unrunnable.push(...r.found);
+if (!CAN_JUDGE_BASH) {
+  console.log("  SKIP  bash is not reachable from this shell, so the `bash`-tagged fences cannot be judged here.");
+  console.log("        NOT a pass: 0 shell commands were checked. The docs are correct; this shell simply");
+  console.log("        cannot resolve a POSIX command. Run from Git Bash to exercise this section.");
+} else {
+  for (const doc of DOCS) {
+    if (!exists(doc)) continue;
+    const r = scanShellCommands(fs.readFileSync(path.join(REPO, doc), "utf8"), doc);
+    shellCmds += r.counted;
+    unrunnable.push(...r.found);
+  }
 }
 for (const u of unrunnable)
   fail(`a doc teaches a shell command that does not exist on this machine and is not labelled with the machine it belongs to: ${u}`
@@ -243,7 +311,12 @@ for (const u of unrunnable)
    above it. That is the exact fault this whole section was written to fix — an instrument whose
    subject is narrower than the thing it is believed to guard — reproduced inside the fix for it.
    A gate's silence about what it does NOT cover is what makes it reassuring. So it says so. */
-if (!unrunnable.length) pass(`all ${shellCmds} shell command(s) in the docs' \`bash\`/\`sh\`-tagged blocks run on this machine (${process.platform}) or are labelled with the machine they belong to — an UNTAGGED fence is not read (they hold pseudocode here), so a command in one is still invisible`);
+/* ⚠ AND NO GREEN LINE AFTER A SKIP. The first version of the skip above still printed
+   "PASS — all 0 shell command(s) … run on this machine", which is true and useless and reads as
+   protection: it is the "a gate's silence about what it does NOT cover is what makes it
+   reassuring" fault, in the very paragraph that names it. A section that judged nothing says
+   nothing green. */
+if (CAN_JUDGE_BASH && !unrunnable.length) pass(`all ${shellCmds} shell command(s) in the docs' \`bash\`/\`sh\`-tagged blocks run on this machine (${process.platform}) or are labelled with the machine they belong to — an UNTAGGED fence is not read (they hold pseudocode here), so a command in one is still invisible`);
 
 /* ---- 4b. THE SCANNER MUST BE ABLE TO FAIL --------------------------------------------------- */
 /* Every fixture is written against a command name that CANNOT be on any PATH, so these cases mean
@@ -275,11 +348,18 @@ const FIXTURES = [
    "```bash\ngit status || echo \"OPEN; zzznotacommand is only prose here\"\n```", 0],
 ];
 let fixturesBad = 0;
-for (const [what, text, want] of FIXTURES) {
-  const got = scanShellCommands(text, "fixture").found.length;
-  if (got !== want) { fixturesBad++; fail(`the shell scanner ${what} — expected ${want} finding(s), got ${got}`); }
+if (!CAN_JUDGE_BASH) {
+  /* The fixtures rely on a fake command being UNRUNNABLE. Where bash is unreachable every name is
+     unjudgeable, so a fixture proves nothing — it would report the scanner broken when the scanner
+     was never consulted. Skipped with the section it belongs to, for the same reason. */
+  console.log("  SKIP  the scanner's red-proof fixtures need a shell that can resolve a command; see the SKIP above.");
+} else {
+  for (const [what, text, want] of FIXTURES) {
+    const got = scanShellCommands(text, "fixture").found.length;
+    if (got !== want) { fixturesBad++; fail(`the shell scanner ${what} — expected ${want} finding(s), got ${got}`); }
+  }
+  if (!fixturesBad) pass(`the shell scanner survives all ${FIXTURES.length} fixtures — it can still FAIL, and it does not fire on prose`);
 }
-if (!fixturesBad) pass(`the shell scanner survives all ${FIXTURES.length} fixtures — it can still FAIL, and it does not fire on prose`);
 
 console.log(`\n${failures === 0 ? "PASS" : "FAIL"} — ${failures} failure(s)`);
 process.exit(failures === 0 ? 0 : 1);

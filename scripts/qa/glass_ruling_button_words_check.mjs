@@ -49,7 +49,8 @@ const CHART = `# THE CHART — fixture
 
 | Question | Recommendation | since |
 |---|---|---|
-| Ship the coin? | Yes — it is one line | 16:00Z |
+| <!--qid:q-prose--> Ship the coin? | Yes — it is one line | 2026-08-01 |
+| <!--qid:q-declared--> Which wind should the gauge show? | 1. Current push only (recommended) · 2. Show both · 3. Let me toggle it | 2026-09-03 |
 
 ## THE IDEA INBOX
 
@@ -74,13 +75,36 @@ function render() {
 }
 
 const html = render();
-const ruleRow = (/<div class="ruleRow">([\s\S]*?)<\/div>/.exec(html) || [null, null])[1];
 
-// The buttons, read out of the rendered row as (value, label) pairs. Located by the attribute the
-// page's own click handler reads, so a label change can never make this gate stop looking.
-const buttons = ruleRow === null ? [] :
-  [...ruleRow.matchAll(/<button[^>]*data-choice="([^"]*)"[^>]*>([\s\S]*?)<\/button>/g)]
-    .map((m) => ({ value: m[1], label: m[2].replace(/<[^>]+>/g, "").trim() }));
+/* ⛔ READ BOTH SHAPES OF QUESTION, BECAUSE THIS GATE HAD ONLY EVER SEEN ONE. Until CEO 177 the
+   fixture held a single question whose recommendation cell was PROSE, so the page always fell
+   through to the three numbered defaults — and the gate that certifies his numbered-button ruling
+   had never once rendered a question that DECLARES numbered options, which is the shape his ruling
+   is about and which `numbered_options_check` case 5 now requires of every new question.
+
+   Pointed at one, four of its cases went red with wrong messages, including *"the third button is
+   gone"* about a button on screen reading **"3 Let us talk about it first"**. It was not gone; the
+   gate was looking for a KEY (`talk`) and a declared option keys off its own words (`opt-<hash>`,
+   `glass.mjs`'s `optionKey`). **The cheapest way to make that red go away would have been to put
+   the fixture back to the shape he replaced** — which is exactly how a gate pins a reversed
+   decision, the fault this file's own header was written about. So the cases below now assert the
+   PROPERTY and the fixture carries both shapes. */
+const rowOf = (qid) => {
+  const at = html.indexOf(qid);
+  if (at < 0) return null;
+  const rowAt = html.indexOf('<div class="ruleRow">', at);
+  if (rowAt < 0) return null;
+  const end = html.indexOf("</div>", rowAt);
+  return html.slice(rowAt, end < 0 ? rowAt + 4000 : end);
+};
+const buttonsIn = (row) => row === null ? [] :
+  [...row.matchAll(/<button[^>]*data-choice="([^"]*)"[^>]*>([\s\S]*?)<\/button>/g)]
+    .map((m) => ({ value: m[1], label: m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() }));
+
+const proseRow = rowOf("q-prose");
+const declaredRow = rowOf("q-declared");
+const buttons = buttonsIn(proseRow);          // the DEFAULT shape — keys must stay yes/no/talk
+const declared = buttonsIn(declaredRow);      // the DECLARED shape — keys derive from the words
 const labelFor = (v) => (buttons.find((b) => b.value === v) || {}).label;
 
 /* ⛔ SUPERSEDED BY HIS OWN LATER RULING, THREE AND A HALF HOURS AFTER THE ONE ABOVE.
@@ -107,40 +131,66 @@ const labelFor = (v) => (buttons.find((b) => b.value === v) || {}).label;
    stored value must still never move, or every ruling on his live page comes un-pressed. */
 const NUMBERED = /^\s*\d+\s/;
 
-// 1/5 — THE FIRST BUTTON IS NUMBERED, and carries words that say what it does.
+/* 1/5 — EVERY BUTTON HE CAN PRESS OPENS WITH ITS NUMBER — both shapes of question. This is the
+ *       PROPERTY his ruling asked for ("so I can reply with 1, 2, 3, 4, or other"), stated once
+ *       and applied to every row, instead of three assertions each naming a literal key. */
 {
-  if (ruleRow === null) fail("there is no ruling row on the page at all — the Your call card renders no buttons, so he cannot rule on anything");
-  else if (labelFor("yes") === undefined) fail(`no button carries data-choice="yes" — the buttons found were ${JSON.stringify(buttons)}`);
-  else if (/^(do it|approve)$/i.test(labelFor("yes"))) fail(`the first button reads "${labelFor("yes")}" — a bare verb with no number. His 15:56Z ruling: "Replace Approve and Deny with 1 2 3 Other."`);
-  else if (!NUMBERED.test(labelFor("yes"))) fail(`the first button reads "${labelFor("yes")}" — it must open with its number so he can reply "1"`);
-  else pass(`the first button is numbered ("${labelFor("yes")}")`);
+  if (proseRow === null) fail("there is no ruling row on the page at all — the Your call card renders no buttons, so he cannot rule on anything");
+  else if (declaredRow === null) fail("the question that DECLARES numbered options rendered no ruling row — the shape his 15:56Z ruling is about is the one missing");
+  else {
+    const unnumbered = [...buttons, ...declared].filter((b) => !NUMBERED.test(b.label));
+    const bareVerb = [...buttons, ...declared].filter((b) => /^(do it|don.?t|approve|deny)$/i.test(b.label));
+    if (bareVerb.length) fail(`${bareVerb.length} button(s) read as a bare verb with no number — ${JSON.stringify(bareVerb.map((b) => b.label))}. His 15:56Z ruling: "Replace Approve and Deny with 1 2 3 Other."`);
+    else if (unnumbered.length) fail(`${unnumbered.length} button(s) do not open with a number — ${JSON.stringify(unnumbered.map((b) => b.label))}. He asked to reply "1, 2, 3, 4, or other"`);
+    else pass(`every button on both shapes of question opens with its number (${buttons.length} default + ${declared.length} declared)`);
+  }
 }
 
-// 2/5 — THE SECOND BUTTON IS NUMBERED TOO. Same ruling; see the note above case 1.
+/* 2/5 — A DECLARED OPTION CARRIES ITS OWN WORDS, and the recommended one is marked. A number he
+ *       cannot read the meaning of is the fault he reported in the first place: "There is no 'yes'
+ *       button -- only one that says 'do it' -- but what the 'it' is, is unclear." */
 {
-  if (labelFor("no") === undefined) fail(`no button carries data-choice="no" — the buttons found were ${JSON.stringify(buttons)}`);
-  else if (/^(don.?t|deny)$/i.test(labelFor("no"))) fail(`the second button reads "${labelFor("no")}" — a bare verb with no number. His 15:56Z ruling replaced Approve/Deny with 1 2 3 Other.`);
-  else if (!NUMBERED.test(labelFor("no"))) fail(`the second button reads "${labelFor("no")}" — it must open with its number so he can reply "2"`);
-  else pass(`the second button is numbered ("${labelFor("no")}")`);
+  if (!declared.length) fail("the declared-options question drew no buttons at all");
+  else if (!declared.some((b) => /Current push only/.test(b.label))) {
+    fail(`the buttons do not carry the option's WORDS — ${JSON.stringify(declared.map((b) => b.label))}`);
+  } else if (!/recTag|recommended/i.test(declaredRow ?? "")) {
+    fail("no (recommended) marker reached the page — he asked for numbers AND a (recommended)");
+  } else pass(`a declared option carries its own words and its (recommended) marker ("${declared[0].label}")`);
 }
 
-// 3/5 — AND THE THIRD BUTTON IS NOT HIS TO LOSE. He named two buttons. A rename that tidied the
-//       third one as well would be a session substituting its taste for his ask — the exact move
-//       rule 1 draws the line at ("taste, placement and wording are his").
+/* 3/5 — HE DOES NOT LOSE A BUTTON. He named two labels to change; a rename that quietly dropped the
+ *       third would be a session substituting its taste for his ask (rule 1: wording is his).
+ *       Counted, not named by key — a declared question's third button is keyed off its own words. */
 {
-  if (labelFor("talk") === undefined) fail("the third button is gone — he asked for two labels to change, not for a button to be removed");
-  else if (!/talk/i.test(labelFor("talk"))) fail(`the third button now reads "${labelFor("talk")}" — he did not ask for that one to change`);
-  else pass(`the third button is untouched ("${labelFor("talk")}")`);
+  if (buttons.length !== 3) fail(`a question that declares no options drew ${buttons.length} button(s), not 3 — he asked for two labels to change, not for a button to be removed`);
+  else if (!buttons.some((b) => /talk/i.test(b.label))) fail(`the third default button no longer offers to talk — ${JSON.stringify(buttons.map((b) => b.label))}. He did not ask for that one to change`);
+  else if (declared.length !== 3) fail(`the three-option question drew ${declared.length} button(s) — a declared option that does not reach his page is a choice he cannot make`);
+  else pass(`three buttons on each shape, and the default third still offers to talk ("${buttons[2].label}")`);
 }
 
-// 4/5 — ⛔ THE VALUE UNDER THE LABEL MUST NOT MOVE. `glass.mjs`'s redraw compares a saved ruling's
-//       `choice` against this attribute to decide which button shows as pressed. Every ruling
-//       already saved on his live page carries yes/no/talk. Renaming the value un-presses his own
-//       answers, on a page he cannot re-rule from memory.
+/* 4/5 — ⛔ THE VALUE UNDER THE LABEL MUST NOT MOVE, AND THAT MEANS TWO DIFFERENT THINGS.
+ *       `glass.mjs`'s redraw compares a saved ruling's `choice` against this attribute to decide
+ *       which button shows as pressed, so a key that moves un-presses his own answers on a page he
+ *       cannot re-rule from memory.
+ *
+ *       ⚠ THIS CASE USED TO SAY THE KEYS MUST BE EXACTLY `yes,no,talk` FULL STOP — which made a
+ *       declared-option question a build failure, reporting `opt-1d2e9l,…` as if the page were
+ *       broken. It is not: a declared option keys off its own WORDS by design, so that inserting
+ *       an option cannot slide his saved tick onto a choice he never made. **The property is not
+ *       "the keys are these three strings", it is "a key is stable for a given label".** Defaults
+ *       keep yes/no/talk because rulings already on his live page carry those; declared options
+ *       must key identically across two renders of the same words. Both halves below. */
 {
   const values = buttons.map((b) => b.value).sort().join(",");
-  if (values !== "no,talk,yes") fail(`the stored choice values are now ${JSON.stringify(values)} — they must stay yes,no,talk or every ruling already saved on his live page stops showing as answered`);
-  else pass("the stored values are still yes/no/talk, so rulings saved before the relabel still redraw as pressed");
+  const declaredKeys = declared.map((b) => b.value);
+  const again = buttonsIn((() => { const h = render(); const at = h.indexOf("q-declared"); const r = h.indexOf('<div class="ruleRow">', at); return r < 0 ? null : h.slice(r, h.indexOf("</div>", r)); })());
+  if (values !== "no,talk,yes") {
+    fail(`the DEFAULT stored values are now ${JSON.stringify(values)} — they must stay yes,no,talk or every ruling already saved on his live page stops showing as answered`);
+  } else if (!declaredKeys.every((k) => /^opt-/.test(k))) {
+    fail(`a declared option's key is not content-derived — ${JSON.stringify(declaredKeys)}. A positional key moves his saved tick when an option is inserted`);
+  } else if (again.map((b) => b.value).join(",") !== declaredKeys.join(",")) {
+    fail(`the same option keyed differently on two renders — ${JSON.stringify(declaredKeys)} then ${JSON.stringify(again.map((b) => b.value))}. His saved ruling would come un-pressed on the next publish`);
+  } else pass("the default keys are still yes/no/talk, and a declared option's key is content-derived and stable across renders");
 }
 
 // 5/5 — THE SWEEP: his own decision record must say the same word his page said. `harvest_glass.mjs`
@@ -194,9 +244,32 @@ const NUMBERED = /^\s*\d+\s/;
     fail('his record says "Approve"/"Deny" — words he replaced on 2026-09-03T15:56:28Z. The record must carry what the BUTTON said, never a hard-coded word');
   } else if (!ruled.includes("1 Yes — go ahead") || !ruled.includes("Current push only")) {
     fail(`the record does not carry the button's own words: ${JSON.stringify(ruled)}`);
-  } else if (!/Current push only.*his pick|his pick[\s\S]{0,80}Current push only/.test(out) && !/- Show both/.test(out)) {
-    fail("the alternatives he did NOT pick are not recorded, though the page carried them — the charter asks every ruling to record them");
-  } else pass("a harvested ruling reaches DECISIONS.md in the same words the button showed him, numbered questions included, with the alternatives beside it");
+  } else {
+    /* ⛔ THIS CLAUSE COULD NOT FAIL, AND IT GUARDED THE ONE THING THAT WRITES A FALSEHOOD INTO HIS
+       RECORD. It read:
+
+         !/Current push only.*his pick|…/.test(out) && !/- Show both/.test(out)
+
+       `- Show both` is ALWAYS in the output, so the right-hand side is always false and the whole
+       condition never fires. CEO 177 measured it: deleting the "his pick" marker entirely → 6× ok,
+       PASS; **flipping the marker onto the option he did NOT press → 6× ok, PASS.** That second one
+       is not a missing check, it is a check standing next to a sentence in his permanent record
+       saying he chose something he did not.
+
+       **Third review running in which this file passed a case that could not fail.** So the marker
+       is now located and compared to `chose` — the same value the record says he ruled. */
+    const lines = out.split(String.fromCharCode(10));
+    const marked = lines.filter((l) => /←\s*\*\*his pick\*\*/.test(l))
+      .map((l) => l.replace(/^-\s*/, "").replace(/\s*←[\s\S]*$/, "").trim());
+    const listed = lines.filter((l) => /^- /.test(l)).length;
+    if (!listed) {
+      fail("the alternatives he did NOT pick are not recorded, though the page carried them — the charter asks every ruling to record them");
+    } else if (marked.length !== 3) {
+      fail(`${marked.length} option(s) are marked as his pick across the 3 fixture rulings — every ruling that carried its options must mark exactly the one he pressed, once`);
+    } else if (!["1 Yes — go ahead", "2 No — do not", "Current push only"].every((w) => marked.includes(w))) {
+      fail(`the "his pick" marker sits on the wrong option — marked ${JSON.stringify(marked)}, but he pressed "1 Yes — go ahead", "2 No — do not" and "Current push only". A misplaced marker states in his permanent record that he chose something he did not.`);
+    } else pass("a harvested ruling reaches DECISIONS.md in the same words the button showed him, numbered questions included, with the alternatives beside it and the marker on the one he actually pressed");
+  }
 }
 
 // 6/6 — THE OTHER HALF OF HIS SENTENCE, AND IT IS NOT A BUTTON. "and always when giving me options

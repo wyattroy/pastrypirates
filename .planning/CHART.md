@@ -169,6 +169,28 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **AND HIS THIRD SENTENCE IS ⟨`T-220`⟩**, not this row: a sea trial whose depth a person can
   lower on the record. Deliberately split — this item is a plan, that one changes the testing
   machinery.
+
+  ### ⚑ 2026-09-03T17:3xZ — HIS TWO CALLS NOW REACH HIM. THE INSTALL IS BLOCKED ON HIM, NOT ON US.
+  CEO 177's top finding was rule 27: both decisions were written onto `.planning/ANALYTICS-PLAN.html`
+  — a repo path he cannot tap — so **his Your Call card showed zero questions while two of his
+  decisions waited.** Both are now rows in `## BLOCKED ON WYATT`: `qid:t206-which-pages` and
+  `qid:t206-cookie-choice`, each numbered 1/2/3 with one marked `(recommended)` and the write-in box
+  as "other", which is the shape he asked for in `INBOX-20260903T1600Z` and `INBOX-20260903T1556Z`.
+  **Verified on the rendered page, not asserted:** `glass.mjs --out` draws both as `class="ask"
+  data-id="t206-which-pages"` / `"t206-cookie-choice"` with numbered buttons and the `recTag`.
+  **Red-first, and it earned its keep** — `scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this
+  tree, and then caught the fix landing in the WRONG TABLE (`## RULED`, not `## BLOCKED ON WYATT`)
+  while three real gates stayed green on it. Seven cases red-proofed
+  (`_t206_calls_redproof.mjs`) — ⚠ **and this sentence said "four branches red-proofed" while one of
+  them was RED**, because adding the `since` date two hours later turned that mutation into a no-op
+  against a hard-coded row shape. CEO 178 caught it. The mutation is now built from the row's own
+  cells, and three new cases assert every mutation actually changes the Chart, so a no-op one can
+  never again read as a proof. ⛔ **Still deliberately out of `npm test`** until the tag is
+  installed, for the reason stated above: a gate added red is a gate somebody disables.
+  ⚠ **AND A GATE WAS FOUND LYING ABOUT ITSELF IN PASSING:** `numbered_options_check.mjs` shadowed
+  its own `judged5` counter, so the line CEO 176 added to stop anyone reading its silence as
+  protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
+  the analytics tag is installed and nothing will be until he picks.
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
 - [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** `.planning/ANALYTICS-PLAN.html`: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
       ⟨`T-206`⟩
@@ -909,6 +931,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
+| <!--qid:t206-which-pages--> ⟨`T-206`⟩ **Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch?** You asked for the plan and you have it — the property `G-2KK6EZDZSP` almost certainly already exists in your Google account and has never been told anything. **Nothing is installed and nothing will be until you pick.** The size: one `<script>` tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: **where your 123 browsers came from** — and remember that About and the new Rules page are measured by *nothing at all* today, which is the real gap. | 1. The public pages only — the game, About and Rules (recommended) · 2. Every page including /classic, one consistent picture, at the cost of mixing a frozen v1's traffic into your launch numbers · 3. The game page only — most cautious, and it leaves About and Rules exactly as blind as they are today | 2026-09-03 |
+| <!--qid:t206-cookie-choice--> ⟨`T-206`⟩ **The second analytics call, and it is a real judgement one: a cookie notice, or not?** Google Analytics sets a cookie and sends data to Google; your own counter does neither. **Children play this game**, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose *"how many unique people"* from Google, **but you already have that number from your own counter**, which is why it fits your situation unusually well. ⚠ **The one thing on this page I could not check:** the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. **It gets verified before anything is installed** — and if it has changed, this becomes a straight choice between a banner and no banner. | 1. Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent (recommended) · 2. Standard Google Analytics plus a small consent banner — more complete data, and a box over your front door on every first visit · 3. Standard Google Analytics, no banner — what most small sites do, simplest, and the one with the most to argue about | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -1003,7 +1027,8 @@ convergences. Every row below was checked against the tree, not against the docu
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
 **Harvested rulings, 2026-09-03, verbatim from the Glass (`glassState`, generatedAt
-2026-09-03T15:51:42.786Z). NOT YET TRIAGED — this session's mandate is harvest-and-publish only.**
+2026-09-03T15:51:42.786Z).** The session that harvested these could only harvest and publish, so each
+carries its fate below, added when it got one.
 
 - `donow-buttons-numbered` — **Your two buttons now say Approve and Deny. Does "always number or
       ⟨`donow-buttons-numbered`⟩
@@ -1012,6 +1037,16 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   sense here -- what would \"approve\" even mean in response to your above question? Replace
   Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI, and
   leave the box as a space to write \"other\" content in"*
+
+  **FATE: SHIPPED 2026-09-03, and closed as `T-218`** — full record in
+  [`CHART-LOG.md`](CHART-LOG.md) (`## T-218`), with the two alternatives he rejected.
+  Every card is now **1 · 2 · 3 · Other**; a question that declares its own options gets those,
+  one that declares none gets numbered defaults. The stored keys stay `yes`/`no`/`talk` so
+  nothing he had already ruled came un-pressed.
+  ⚠ **This copy sat here reading "NOT YET TRIAGED" for hours after it shipped** — CEO 177 found it
+  after CEO 176 had already found the same ruling live in the checklist. **One sweep, two live
+  copies, and the second was in a different section of the same file.** When a ruling closes, look
+  for every place his page repeats it, not just the row you came from.
 
 - `t102-search-console` — **⟨`T-102`⟩ Your own reminder, and it is the one step nobody here can
       ⟨`t102-search-console`⟩
