@@ -281,7 +281,13 @@ publish. This session IS the terminal.
 >    The relay carries words forward faithfully and cannot know they have expired — on 2026-09-01 a
 >    queued note still said a sea trial was sailing and warned him not to close a console window
 >    that had closed an hour earlier. If a note has gone stale, rewrite it to what is true now.
-> 6. `node scripts/wyclau/glass.mjs --note "<one plain sentence about what actually moved>"`
+> 6. `node scripts/wyclau/glass.mjs --consume-note --note "<one plain sentence about what actually moved>"
+>    ⛔ **`--consume-note` IS REQUIRED HERE AND NOWHERE ELSE, 2026-09-02.** Without it the note is
+>    folded into the page and LEFT IN THE FILE. His instruction: *"make sure nothing can destroy my
+>    writing."* Clearing his queued note used to happen on EVERY run of `glass.mjs`, so a gate, a probe
+>    or a session regenerating the page to look at it consumed it — measured with a sentinel through
+>    `npm test`, which ate it, and five gates were named. **This step is the only place that may clear
+>    it, and only because it has just published it.**`
 > 6b. **RE-READ THE LIVE PAGE AND COMPARE ITS VERSION TO YOUR RECEIPT — IN THE SAME BREATH AS THE
 >    PUBLISH, NOT BACK AT STEP 2.** `Artifact action:"read"` the same url, and compare the version
 >    it returns with `artifactVersion` in `.planning/wyclau/LAST-HARVEST`.

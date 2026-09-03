@@ -217,6 +217,32 @@ const tryRead = (p) => { try { return readFileSync(p, "utf8"); } catch (e) { ret
 // --- pick up whatever another session left in GLASS-NOTE.md, then reset it. Absent, unreadable,
 // or holding only the template's own marker line all mean "nothing pending" -- never an error;
 // a session that has never written here is the common case, not a fault.
+/* ⛔ CONSUMING HIS NOTE IS NOW OPT-IN — `--consume-note`. HIS INSTRUCTION, 2026-09-02 10:45 PM ET:
+ *    "okay make sure nothing can destroy my writing -- that is an important task."
+ *
+ * WHAT THIS FILE USED TO DO: read GLASS-NOTE.md and OVERWRITE IT WITH THE TEMPLATE, on every run,
+ * unconditionally. Generating the page and destroying a queued note were one act, so ANY run
+ * consumed it — a gate, a probe, a session regenerating the page to look at it.
+ *
+ * MEASURED THE NIGHT THIS CHANGED, not inferred: a sentinel line was appended to the real
+ * GLASS-NOTE.md, `npm test` was run, and the sentinel was GONE. Bisecting the suite named five
+ * gates that do it — glass_longrun_status, glass_optimistic_save, glass_roundtrip,
+ * glass_script_tag_purity, glass_self_publish. They are not careless: `glass.mjs` resolves its own
+ * paths from ITS OWN location regardless of cwd, so a gate CANNOT sandbox it by changing directory,
+ * and `glass_script_tag_purity_check.mjs:35-36` says exactly that in its own header. And the
+ * Advisor destroyed a note the same way at 8:18 PM by running `--note "probe"` merely to read a
+ * number — walking into a hazard already filed at `INBOX-20260902T0350Z`.
+ *
+ * SO THE FIX IS NOT "MAKE FIVE GATES BEHAVE". It is that the destructive half must be ASKED FOR.
+ * Now: the note is folded into the page on every run, and the file is cleared ONLY with
+ * `--consume-note`, which the tick's publish step passes and nothing else does.
+ *
+ * ⚠ THE TRADE, STATED SO NOBODY IS SURPRISED BY IT: if the tick ever forgets the flag, his note is
+ * relayed TWICE instead of lost once. That is the right way round — a repeated note is an
+ * annoyance he can see and say so about; a destroyed note is words of his that nobody ever reads.
+ * FAIL TOWARD KEEPING HIS WRITING.
+ */
+const CONSUME_NOTE = process.argv.includes("--consume-note");
 let relayedNote = null;
 {
   const raw = REHEARSAL ? null : tryRead(GLASS_NOTE);
@@ -224,7 +250,7 @@ let relayedNote = null;
   const trimmed = body.trim();
   if (trimmed) {
     relayedNote = trimmed;
-    writeFileSync(GLASS_NOTE, GLASS_NOTE_TEMPLATE);
+    if (CONSUME_NOTE) writeFileSync(GLASS_NOTE, GLASS_NOTE_TEMPLATE);
   }
 }
 
@@ -1612,7 +1638,9 @@ console.log(REHEARSAL
   : `GLASS ok — heartbeat stamped ${nowIso}; page written to ${OUT}${DEMO ? "  [DEMO MODE — do not publish this render]" : ""}`);
 console.log(`note: ${note}`);
 if (relayedNote) {
-  console.log(`relayed note picked up from GLASS-NOTE.md and folded in; the file has been reset — commit that reset with your next commit.`);
+  console.log(CONSUME_NOTE
+    ? `relayed note picked up from GLASS-NOTE.md and folded in; the file has been reset — commit that reset with your next commit.`
+    : `relayed note picked up from GLASS-NOTE.md and folded in. THE FILE WAS NOT CLEARED — pass --consume-note to clear it, which only the tick's publish step should do. His writing survives a run that merely renders the page.`);
 }
 
 console.log(`

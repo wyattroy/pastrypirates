@@ -2038,3 +2038,43 @@ status: DONE 2026-09-02 — cancelled, and the consequence below is the part tha
   but-page-stale gap, and an unattended watch being unable to publish are **all still live and now
   have no plan.** They were the whole case for the move. **Cancelling it is his call and it is
   recorded without argument — but the problems it was answering did not go away with it.**
+
+## INBOX-20260902T2245Z — MAKE SURE NOTHING CAN DESTROY HIS WRITING
+
+**HIS WORDS, VERBATIM:**
+
+> okay make sure nothing can destroy my writing -- that is an important task.
+
+solution: destroying his queued note is now **opt-in** — `glass.mjs --consume-note`, which only the tick's publish step passes. Every other run renders his note onto the page and leaves the file byte-for-byte.
+
+status: DONE 2026-09-02 — measured red, fixed, measured green, and the guarantee is now a permanent gate case.
+
+  **THE FAULT, MEASURED NOT INFERRED.** Generating the page and destroying his queued note were
+  **one act** — `glass.mjs` cleared `GLASS-NOTE.md` on every run. A sentinel line was appended to the
+  real file, `npm test` was run, and **the sentinel was gone.** Bisecting the suite named five gates:
+  `glass_longrun_status`, `glass_optimistic_save`, `glass_roundtrip`, `glass_script_tag_purity`,
+  `glass_self_publish`.
+
+  ⚠ **AND THEY WERE NOT CARELESS, WHICH IS WHY FIXING FIVE CALLERS WOULD HAVE BEEN THE WRONG FIX.**
+  `glass.mjs` resolves its paths from **its own file location**, regardless of cwd — so a gate
+  **cannot** sandbox it by changing directory. `glass_script_tag_purity_check.mjs:35-36` says exactly
+  that in its own header. **A sixth caller would have arrived and eaten his note too.**
+
+  **SO THE DESTRUCTIVE HALF NOW HAS TO BE ASKED FOR.** `--consume-note` or the file is left alone.
+  ✅ **GREEN, MEASURED THE SAME WAY IT WAS PROVED RED:** sentinel planted, full suite run, sentinel
+  **survived**; then every `glass_*` gate re-bisected individually — **no culprits left.**
+
+  ⚠ **AND ONE RUN LOOKED LIKE A FAILURE AND WAS NOT — CHECKED BEFORE REPORTING.** A later sentinel
+  did vanish; `LAST-PUBLISH` shows the Glass tick published at **10:52:22 PM, mid-run**, which is
+  precisely when it is supposed to consume a queued note. **That is the mechanism working.** Re-bisecting
+  found no gate at fault. A false failure very nearly went into a reply.
+
+  **THE TRADE, STATED SO NOBODY IS SURPRISED:** if the tick ever forgets the flag, his note is
+  relayed **twice** rather than lost once. **That is the right way round** — a repeated note is an
+  annoyance he can see and object to; a destroyed note is words of his nobody ever reads. **Fail
+  toward keeping his writing.**
+
+  **AND IT CLOSES A HAZARD THE ADVISOR ITSELF WALKED INTO AT 8:18 PM** — running `--note "probe"`
+  merely to read a number off the page, which is the fault already filed at `INBOX-20260902T0350Z`.
+  **Nobody can do that again.** `glass_note_relay_check.mjs` case 5 is the permanent proof:
+  *"without `--consume-note` his words are rendered AND left in the file, byte for byte."*
