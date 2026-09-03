@@ -24,7 +24,35 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const read = (p) => readFileSync(resolve(ROOT, p), "utf8");
+
+// --red=<mode> patches ONE input in memory so each clause can be shown to fail on demand, with no
+// file edited. CEO 183 could not red-proof this gate because it was read-only and the only way to
+// break it was to edit a page; that is a gate nobody can audit without write access.
+const RED = (process.argv.find((a) => a.startsWith("--red=")) || "").slice(6);
+const RED_MODES = ["nometa", "bodymeta", "publicnoindex", "unfenced", "newfolder"];
+if (RED && !RED_MODES.includes(RED)) {
+  console.error(`unknown --red mode "${RED}". Legal: ${RED_MODES.join(", ")}`);
+  process.exit(2);
+}
+
+const read = (p) => {
+  let src = readFileSync(resolve(ROOT, p), "utf8");
+  if (RED === "nometa" && p === "art-review/gallery.html") {
+    src = src.replace(/<meta[^>]+name=["']robots["'][^>]*>\s*/i, "");
+  }
+  if (RED === "bodymeta" && p === "art-review/gallery.html") {
+    // Move the declaration out of <head> and into the body: still in the file, ignored by Google.
+    const m = /<meta[^>]+name=["']robots["'][^>]*>/i.exec(src);
+    if (m) src = src.replace(m[0], "").replace(/<body[^>]*>/i, (b) => `${b}\n${m[0]}`);
+  }
+  if (RED === "publicnoindex" && p === "rules.html") {
+    src = src.replace(/(<meta[^>]+name=["']robots["'][^>]*content=["'])[^"']*/i, '$1noindex, nofollow');
+  }
+  if (RED === "unfenced" && p === "robots.txt") {
+    src = src.replace(/^Disallow: \/scripts\/\s*$/im, "");
+  }
+  return src;
+};
 
 // --- the served set: every tracked .html Jekyll will publish -------------------------------
 const tracked = execFileSync("git", ["ls-files", "*.html"], { cwd: ROOT, encoding: "utf8" })
@@ -47,13 +75,37 @@ const publicPaths = new Set(
 // --- what robots.txt fences off ------------------------------------------------------------
 const robots = read("robots.txt");
 const disallowed = [...robots.matchAll(/^\s*Disallow:\s*(\S+)\s*$/gim)].map(([, v]) => v);
-const isDisallowed = (p) =>
-  disallowed.some((rule) => (rule.endsWith("/") ? `/${p}`.startsWith(rule) : `/${p}` === rule));
+const allowed = [...robots.matchAll(/^\s*Allow:\s*(\S+)\s*$/gim)].map(([, v]) => v);
+
+// LONGEST MATCH WINS (RFC 9309) — and this gate got it wrong first time in a way that quietly
+// disarmed it. Fencing /art-review/ with a per-page `Allow:` override made a naive
+// Disallow-only reader treat all thirteen already-live pages as fenced, so it stopped requiring
+// the noindex that is the entire point of them. Caught by --red=nometa reporting "changed
+// nothing", which is exactly what that mode exists to say.
+const matchLen = (rules, p) => {
+  let best = -1;
+  for (const rule of rules) {
+    const hit = rule.endsWith("/") ? `/${p}`.startsWith(rule) : `/${p}` === rule;
+    if (hit && rule.length > best) best = rule.length;
+  }
+  return best;
+};
+const isDisallowed = (p) => matchLen(disallowed, p) > matchLen(allowed, p);
 
 // --- what each page declares about itself --------------------------------------------------
+// SCOPED TO <head> DELIBERATELY. Google ignores a robots meta that lands in the body, so
+// "the string is somewhere in the file" is a weaker claim than it looks — and the first version
+// of this gate made exactly that weaker claim (CEO 183, finding 6). A page with no <head> of its
+// own is a fragment the host wraps (rule 27's Glass shape); it can carry no meta and is judged
+// on robots.txt alone.
 const META = /<meta[^>]+name=["']robots["'][^>]*content=["']([^"']*)["']/i;
 const declaredIntent = (p) => {
-  const m = META.exec(read(p));
+  const src = read(p);
+  const open = src.search(/<head\b/i);
+  if (open < 0) return null;
+  const close = src.search(/<\/head>/i);
+  const head = src.slice(open, close < 0 ? undefined : close);
+  const m = META.exec(head);
   return m ? m[1].toLowerCase() : null;
 };
 
@@ -80,8 +132,46 @@ for (const p of served) {
   }
 }
 
+// --- CLAUSE 2: the files that can carry no meta tag at all ---------------------------------
+// A .js, .png or .md has no <head>, and GitHub Pages cannot send an X-Robots-Tag, so robots.txt
+// is the ONLY tool for them. The first version of this gate globbed "*.html" and could therefore
+// never see 376 served files under scripts/ alone — the folder Wyatt named by name (CEO 183,
+// finding 1). Classification is by TOP-LEVEL FOLDER and it is STRICT BY DEFAULT: a folder nobody
+// has classified FAILS, so a directory added tomorrow cannot quietly publish itself. That is the
+// same shape gear.mjs uses, and for the same reason — a hand-kept list of what to guard rots,
+// but a hand-kept list of what is ALLOWED fails safe.
+const SHIPPED = new Set(["assets", "src", "sfx", "classic", "(root)"]); // the game itself: a crawler
+// blocked from these cannot render the page it is ranking, so they must stay open.
+const WORKING = new Set(["scripts", "art-review", "docs", "notes", "scratchpad"]); // must be fenced.
+
+const allTracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" })
+  .split("\n").map((s) => s.trim()).filter(Boolean)
+  .filter((p) => !jekyllHides(p));
+
+const seenFolders = new Map();
+for (const p of allTracked) {
+  const top = p.includes("/") ? p.split("/")[0] : "(root)";
+  if (!seenFolders.has(top)) seenFolders.set(top, []);
+  seenFolders.get(top).push(p);
+}
+
+if (RED === "newfolder") seenFolders.set("brochure", ["brochure/leaflet.pdf"]);
+
+for (const [folder, files] of seenFolders) {
+  if (SHIPPED.has(folder)) continue;
+  if (!WORKING.has(folder)) {
+    failures.push(`${folder}/ — ${files.length} served file(s) in a folder this gate has never been told about; classify it SHIPPED (the game) or WORKING (fenced) in ${"crawl_intent_check.mjs"}`);
+    continue;
+  }
+  // A WORKING folder must be fenced wholesale, or every non-HTML file in it is crawlable.
+  const nonHtml = files.filter((p) => !p.toLowerCase().endsWith(".html"));
+  if (nonHtml.length && !disallowed.includes(`/${folder}/`)) {
+    failures.push(`${folder}/ — ${nonHtml.length} file(s) that can carry no meta tag (e.g. ${nonHtml[0]}) and robots.txt has no "Disallow: /${folder}/"`);
+  }
+}
+
 if (failures.length) {
-  console.error(`FAIL  ${failures.length} of ${served.length} served page(s) disagree with sitemap.xml about whether Google may index them:`);
+  console.error(`FAIL  ${failures.length} problem(s) with what this site tells a crawler (${served.length} served page(s), ${seenFolders.size} folder(s) checked):`);
   for (const f of failures) console.error(`        • ${f}`);
 
   // The hint has to match the fault. Red-proofing this gate produced a public page wrongly
@@ -102,7 +192,15 @@ if (failures.length) {
       or drop its <loc> from sitemap.xml — inviting a crawler to a page that turns it away is
       the one combination that is always a mistake.`);
   }
+  if (RED) console.error(`\n      (this was --red=${RED}: the patch did its job and the gate refused)`);
   process.exit(1);
 }
 
-console.log(`PASS  ${served.length} served page(s) each state whether Google may index them (${publicPaths.size} public, ${served.length - publicPaths.size} withheld).`);
+if (RED) {
+  console.error(`FAIL  --red=${RED} changed nothing — this gate CANNOT fail that way, so it is not guarding what it claims.`);
+  process.exit(2);
+}
+
+const fenced = [...seenFolders.keys()].filter((f) => WORKING.has(f));
+console.log(`PASS  ${served.length} served page(s) each state whether Google may index them (${publicPaths.size} public, ${served.length - publicPaths.size} withheld);`);
+console.log(`      ${fenced.length} working folder(s) fenced in robots.txt for the files that can carry no meta tag (${fenced.join(", ")}).`);

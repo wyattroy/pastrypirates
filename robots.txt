@@ -17,6 +17,28 @@
 #     that case: it exists only on a working branch and answers 404 on the domain today.
 # `scripts/qa/crawl_intent_check.mjs` derives both sets and fails the build on a served page
 # that states neither, so a page added tomorrow cannot slip through the way these thirteen did.
+#
+# TWO PAGES ARE DELIBERATELY BOTH, AND THAT IS NOT THE MISTAKE ABOVE. /stats.html and
+# /classic/stats.html carry a noindex AND sit in the Disallow list, because the Disallow is HIS
+# OWN RULING, quoted in stats.html's own header: "put it at /stats.html behind a simple curtain
+# and block it from robots.txt" -- and stats_console_check.mjs fails the build if it is removed.
+# Belt-and-braces is only a fault on a page that has ALREADY BEEN INDEXED, where the Disallow
+# would trap it there; neither of these ever was. Flagged by CEO 183 as a contradiction and kept,
+# with the reason written down, rather than silently left as two violations of the rule above.
+#
+# AND THE HALF THE FIRST PASS MISSED, WHICH IS MOST OF HIS ASK BY COUNT. He named three folders --
+# art-review/, scripts/ and .planning/ -- and the first pass fixed only the .html in them. A .js,
+# .png or .md HAS NO <head>, so it can carry no meta tag, and GitHub Pages cannot send an
+# X-Robots-Tag header: a Disallow is the ONLY tool that exists for them. Measured, not estimated:
+# scripts/ serves 376 non-HTML files, art-review/ 117, docs/ 25, notes/ 2.
+#
+# THE ALLOW LINES BELOW ARE LOAD-BEARING, NOT DECORATION. The thirteen pages that have already been
+# live must stay FETCHABLE so a crawler can read the noindex now in each of them; fencing the folder
+# without them would freeze those URLs in the index forever, which is the exact mistake this file's
+# note above warns about. Longest-match wins (RFC 9309), so each Allow beats its folder's Disallow.
+#
+# assets/, src/, sfx/ and classic/ are NOT fenced and must never be: they are the game itself, and a
+# crawler blocked from them cannot render the page it is ranking.
 User-agent: *
 Allow: /
 Disallow: /lab.html
@@ -25,5 +47,22 @@ Disallow: /classic/lab.html
 Disallow: /classic/stats.html
 Disallow: /scratchpad/
 Disallow: /4/
+Disallow: /scripts/
+Disallow: /art-review/
+Disallow: /docs/
+Disallow: /notes/
+Allow: /scripts/battle_sim.html
+Allow: /art-review/gallery.html
+Allow: /art-review/gallery-batch2.html
+Allow: /art-review/gallery-icons.html
+Allow: /art-review/gallery-sound.html
+Allow: /art-review/narration-audit.html
+Allow: /notes/sketches/08-end-of-voyage-card/option-a-hold-the-sea.html
+Allow: /notes/sketches/08-end-of-voyage-card/option-b-tab-collapse.html
+Allow: /notes/sketches/08-end-of-voyage-card/option-c-swipe-badge.html
+Allow: /notes/sketches/09-recipe-card/option-a-top-toolbar.html
+Allow: /notes/sketches/09-recipe-card/option-b-floating-shelf.html
+Allow: /notes/sketches/09-recipe-card/option-c-real-art.html
+Allow: /notes/sketches/09-recipe-card/option-c-sticky-icon-header.html
 
 Sitemap: https://playpastrypirates.com/sitemap.xml

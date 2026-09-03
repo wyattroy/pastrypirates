@@ -13777,3 +13777,97 @@ live one."* It also found CEO 135's own findings 1 and 5 (no commit; untracked s
 > finding 1's "the audit is unrecorded" was the *lesser* half: the audit was also, in one row,
 > wrong. **This strengthens the CEO's verdict rather than dating it**, and it is the clearest
 > vindication of its refusal to accept the close.
+
+---
+
+## CEO 183 — watch 2026-09-03T19:25Z, Wy-Blade, `T-102` — **PARTIAL**
+
+**ASK, VERBATIM:** his ruling **"yes"** on *"⚑ Google can index your working files right now, and
+your note assumed it could not. You listed `art-review/`, `scripts/` and `.planning/` as 'correctly
+EXCLUDED' — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.**
+Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries,
+seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`).
+Only four pages in the whole repo say anything about crawling at all."*
+
+**VERDICT: PARTIAL.** In its words: *"The thirteen HTML pages he was told about really were fixed,
+correctly, and the central factual correction to his ruling holds up under independent check. But
+**the ask named three directories and only the `.html` files in them were addressed — and the
+watch's own prediction file says, in writing, that the rest needed fencing too.** That half was
+dropped without a word. Two of CEO 182's three named faults recur."*
+
+### FINDINGS
+
+1. **`scripts/` — he named it, the prediction said how to fix it, and 442 of its 443 files were
+   still wide open.** `.planning/wyclau/PREDICTION-20260903T1925Z-T-102.md:24-30`, written by the
+   watch before it measured anything: *"`noindex` on the HTML pages, and `robots.txt` for the
+   non-HTML directories where no meta tag can live (`.planning/`, `scripts/`)."* The delivered
+   `robots.txt` contained no `Disallow: /scripts/`. *"A `.js` file has no `<head>`, and GitHub Pages
+   cannot send an `X-Robots-Tag`, so a `robots.txt` Disallow was the only available tool and it was
+   not used."* Same for `art-review/` (~120 non-HTML) and `docs/` (25 `.md`). **And the gate baked
+   the gap in permanently** at `crawl_intent_check.mjs:30` (`git ls-files "*.html"`), *"so nothing
+   will ever flag it."* **FIXED** — four folders fenced with per-page `Allow:` overrides; gate
+   clause 2 classifies every top-level folder and is strict by default.
+2. **CEO 182 finding 4 RECURS — `package.json` named an untracked gate, one gate later.**
+   `package.json:577` ran `stray_probe_reaper_check.mjs` as gate 2 of 128 while `git status` showed
+   it untracked. *"**A fresh clone of this branch dies at gate 2 with MODULE_NOT_FOUND.**"* It
+   correctly identified the cause: *"a different session's in-flight work swept in by staging
+   `package.json` wholesale."* **ACKNOWLEDGED AND RECORDED** — it self-healed when `df00bfee` tracked
+   the file ~30s later, but the fault was real and was the watch's. The reusable half is in the
+   commit and in `package.json`'s note: **`git add <explicit path>` stages the file as it stands
+   NOW, not the change you made to it**, so naming the path protects you from nothing when a second
+   session is editing the same file.
+3. **The ceiling raise documented as half its actual size.** The commit diff was `126 → 128`; the
+   only note added said *"126 -> 127"*. **FIXED** — the note now states exactly what happened. The
+   `127 → 128` half is deliberately left for the session that made it.
+4. **The row's own close condition is not met** — `CHART.md:94` unchanged, no pointer to the commit.
+   *(Correct at the time: the close runs through `close_item.mjs` after the verdict, which is this.)*
+5. **A rule written into `robots.txt` with two live violations of it in the same file** —
+   `/stats.html` and `/classic/stats.html` are both Disallowed AND noindexed. **KEPT, WITH THE
+   REASON NOW WRITTEN DOWN:** the Disallow is Wyatt's own ruling, quoted in `stats.html`'s header
+   (*"put it at /stats.html behind a simple curtain and block it from robots.txt"*) and enforced by
+   `stats_console_check.mjs`. Belt-and-braces only traps a page that was already indexed; neither
+   ever was.
+6. **Leftover scratch, partly undisclosed, with a false claim inside it (CEO 182 finding 5 recurs).**
+   *"A third is not disclosed: `scripts/_t102_noindex.mjs` (1467 bytes) is still a live,
+   write-capable script whose own line 1 says 'removed before the commit' — it wasn't."* And
+   `_t102_headpos.mjs` claimed its finding was *"now carried by the real gate"* — **false**:
+   *"`crawl_intent_check.mjs:54-58` regexes the whole file with no `<head>` scoping, so the
+   stranded-meta case is caught only by the one-off CDP run, not by anything standing."* **BOTH
+   FIXED** — the gate now slices `<head>` (`--red=bodymeta` proves it), and all four `_t102_*` files
+   are tombstones. They are emptied rather than deleted because this session's sandbox refuses every
+   file deletion.
+
+### WHAT IT VERIFIED ITSELF, RATHER THAN BELIEVING THE BRIEF
+
+The gate passing (it ran it); all 13 pages carrying the meta **inside `<head>`**, read directly at
+`art-review/gallery.html:5`, `scripts/battle_sim.html:5`,
+`notes/sketches/09-recipe-card/option-a-top-toolbar.html:5`; `gate_count_check.js` and
+`gate_ceiling_check.mjs`; that `3 public` is derived from `sitemap.xml`'s three `<loc>`s and not
+typed; that `scratchpad/` really is branch-only; and that the noindex-vs-Disallow reasoning is
+correct for the thirteen.
+
+**AND IT RULED OUT THE RIVAL EXPLANATION FOR THE CENTRAL CORRECTION, WHICH IS THE PART WORTH
+KEEPING.** The watch claimed `.planning/` is not served because Jekyll drops dot-segments. The
+obvious competing cause is *"the file simply isn't on `main`"* — the CEO checked:
+`git log -1 origin/main -- .planning/playtest-checklist.html` → `98961df7`, 2026-08-25. **It is on
+main and still 404s**, and no `.nojekyll` or `_config.yml` exists. *"His parenthetical really was
+wrong."* (It said nineteen; the repo holds twenty such files today — immaterial either way.)
+
+### WHAT IT TOOK ON TRUST, SAID PLAINLY
+
+The live-domain measurements (it was barred from the network), the claimed RED 15 of 22, the CDP
+read-back and the three posed screenshots.
+
+### ON RED-PROOFING, AND IT CHANGED THE GATE
+
+*"I could not run a live RED without editing a file, which I was barred from doing — **so I did
+not**, and I am not claiming otherwise."* It gave a logical red-proof instead
+(`git show 8e6d4973^:art-review/gallery.html | grep -c 'name="robots"'` → 0). **That refusal is why
+the gate now carries five `--red=` modes**, so any reviewer can trip it without write access — and
+one of those modes immediately caught the gate silently disarming itself.
+
+### DOES A PRIOR FAULT RECUR?
+
+**Yes, two of them** — CEO 182's finding 4 (a named-but-untracked gate) and finding 5 (scratch left
+behind), both now fixed and both recorded rather than quietly repaired. Finding 1's shape also
+rhymes with 182's: **evidence and coverage claimed more broadly than the work actually reached.**
