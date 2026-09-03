@@ -5,22 +5,14 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T05:06:59.556Z	The bug that silently ate anything typed into the new comment box has been fixed -- your words are safe to type there again now. Housekeeping while I was in: 1 task points at a file or a process that is gone -- a watch corrects the wording. 6 tasks were measured on an older build, so nobody knows yet whether they are still broken -- a watch re-measures them; not yours to answer.
+2026-09-03T05:07:56.504Z	watch a7 05:1xZ: T-088 CLOSED -- it was your own ruling. You said 'It's finished' twice about the image work, and that job was still sitting at the TOP of this page. Your list is now 16 open / 44 tasks, and rank one is a real job again.
 ```
 
 ## In hand (IN-HAND)
 None recorded.
 
 ## Long run in flight (LONG-RUN)
-```
-{
-  "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-03T03:41:16.680Z",
-  "updatedAt": "2026-09-03T05:05:41.863Z",
-  "progress": "9/10 legs",
-  "staleAfterMinutes": 53
-}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
