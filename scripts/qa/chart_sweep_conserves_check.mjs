@@ -80,7 +80,20 @@ const log = existsSync(LOG) ? readFileSync(LOG, "utf8") : null;
    and the file inspected afterwards were different files. **The FAIL was true: those four rows had
    genuinely left both records.** If you are about to make this edit, measure the two readers against
    the same bytes first — the difference is zero. */
-const ownedIn = (md) => (md.match(/^\s*⟨`(T-\d{3})`⟩\s*$/gm) || []).map((l) => /T-\d{3}/.exec(l)[0]);
+/* ⛔ A HANDLE LINE MAY CARRY MODIFIERS, AND THIS REGEX USED TO REFUSE THEM.
+ * It required the handle to be the ENTIRE contents of the brackets — `⟨`T-nnn`⟩` and nothing else.
+ * But the Chart writes `⟨`T-120` · size: M⟩` and `⟨`T-076` · now: yes⟩`, so **every row carrying a
+ * size or his DO NOW pin was invisible as an owner** and reported as a row that had vanished.
+ *
+ * That is what the last four "losses" were: `T-120`…`T-123`, all four `· size:` rows, sitting in
+ * GLASS-CHART.md the whole time. Nothing had left any record. **A gate whose job is "the sweep may
+ * never lose a row" was manufacturing losses out of its own strictness** — and this file's header
+ * still says of those four "the FAIL was true: those four rows had genuinely left both records",
+ * which was believed and is wrong.
+ *
+ * ⚠ AND IT IS THE SAME FAULT AS `close_item.mjs`'s, hours earlier: a tool that asks for a row's
+ * IDENTITY and then only accepts one exact spelling of it. Match the handle; allow what follows. */
+const ownedIn = (md) => [...md.matchAll(/^\s*⟨`(T-\d{3})`[^⟩]*⟩\s*$/gm)].map((m) => m[1]);
 const archivedIn = (md) => (md.match(/^## (T-\d{3}) — /gm) || []).map((h) => /T-\d{3}/.exec(h)[0]);
 const chartOwned = new Set(ownedIn(chart));
 const logOwned = new Set(archivedIn(log ?? ""));

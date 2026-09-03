@@ -537,8 +537,23 @@ if (chart !== null) {
          * rendered HTML for that phrase returned nothing. **The one piece of context already cut
          * off on screen was the one the expansion could not give back** — which is the ask, not a
          * nicety. Expanding now opens with the whole headline, then the body. */
+        /* ⚠ UNMARKED AND DE-SHOUTED, LIKE THE TITLE BESIDE IT — AND THE FIRST VERSION WAS NEITHER.
+         * Carrying the body onto the page raw put literal asterisks, backticks and FULL SENTENCES IN
+         * CAPITALS in front of him, and glass_his_five_asks_check failed on all three: "the Tasks
+         * card still shouts FIX THE GLASS at him -- his ask 5" and "raw markdown reaches his page --
+         * emphasis and code ticks are for the file, not for him."
+         *
+         * HE ASKED, IN HIS OWN FIVE ASKS, NOT TO BE SHOUTED AT. The visible title has run through
+         * deShout(unmark(...)) for weeks; the body I added went round it, so opening a row undid a
+         * thing he had asked for. The gate caught it, which is the gate doing its job.
+         *
+         * THIS IS NOT SUMMARISING AND RULE 10 IS INTACT: every word survives. What is stripped is the
+         * MARKUP -- asterisks and backticks are instructions to a file reader, not text -- and
+         * shouting is flattened to sentence case. The graveyard stays in the file, in full; what
+         * reaches his screen is the same words, legible. */
         const body = [titleOf(c.lines), ...c.lines.slice(1)]
           .filter((l) => !/^\s*⟨[^⟩]*⟩\s*$/.test(l))
+          .map((l) => deShout(unmark(l)))
           .join("\n").replace(/\s+$/, "");
         return body.length > 2000
           ? `${body.slice(0, 2000)}\n\n… truncated here — the rest of this row is in .planning/GLASS-CHART.md`
@@ -803,6 +818,15 @@ const rows = (list, empty, ordered = false) => list === null
    longRunStatus() resolves every doubt to STALLED (missing, malformed, future-dated, or past its
    own staleness), so a broken marker can never hold the light green -- that would be the timer
    heartbeat of 2026-08-31 rebuilt on the page instead of in a Monitor. */
+/* Hoisted out of the try below on 2026-09-03, because there are TWO sources of `longRun` and the
+   first fix only covered one. See the block at "if (!longRun)" — a fallback that scans EVERY
+   machine's status file. With the override applied to the direct read alone, a fixture that made
+   the direct read null let the fallback reach straight past it to the live trial, and the gate
+   failed exactly as before. **Two things producing one value, and an override that reached one of
+   them, is rule 23 in miniature.** */
+const lrRootArg = argv.find((a) => a.startsWith("--longrun-root="));
+const LR_ROOT = lrRootArg ? resolve(lrRootArg.slice(15)) : ROOT;
+const LR_WY = join(LR_ROOT, ".planning", "wyclau");
 let longRun = null;
 try {
   /* ⛔ `--longrun-root=<dir>` — SO A GATE NEED NOT BORROW THE LIVE MARKER. Added 2026-09-03 (`T-131`).
@@ -825,8 +849,6 @@ try {
    * override has to exist here or the destructive coupling cannot be broken at all. And it is a
    * ROOT, not a file path, because `longRunStatus(dir)` derives the marker from a repo root — one
    * definition of where that file lives, not two (rule 23). */
-  const lrRootArg = argv.find((a) => a.startsWith("--longrun-root="));
-  const LR_ROOT = lrRootArg ? resolve(lrRootArg.slice(15)) : ROOT;
   const lr = await import("./longrun_status.mjs");
   const st = lr.longRunStatus(LR_ROOT);
   if (st.code === lr.PROGRESSING) {
@@ -851,7 +873,7 @@ try {
    green, which would be the timer heartbeat of 2026-08-31 rebuilt one directory over. */
 if (!longRun) {
   try {
-    const statusDir = join(WY, "status");
+    const statusDir = join(LR_WY, "status");   // honours --longrun-root, same as the direct read
     for (const f of readdirSync(statusDir)) {
       if (!f.endsWith(".md")) continue;
       const body = readFileSync(join(statusDir, f), "utf8");

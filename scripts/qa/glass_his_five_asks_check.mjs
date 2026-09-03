@@ -307,7 +307,15 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
     render({ chart: CHART(ONE_ROW, wrapped), status: HELD })) || [""])[0];
   // Attributes allowed on the row: a draggable task carries its handle (`T-103`). What is being
   // read here is the row's TEXT, and that is unchanged by anything the tag carries.
-  const first = (/<li\b[^>]*>([\s\S]*?)<\/li>/.exec(card) || [null, ""])[1];
+  /* ⚠ READ THE TITLE, NOT THE WHOLE ROW. Corrected 2026-09-03 when the row grew a second child.
+   * This took the entire li and asserted it ENDS with the clip marker. That held while a row was one
+   * line of text; T-076 added an expander and a comment box after the title, so the ellipsis stopped
+   * being last and this failed on a page whose title was clipped perfectly correctly.
+   * THE ASSERTION IS ABOUT THE TITLE AND ALWAYS WAS -- the marker must sit at the end of the words he
+   * reads, not at the end of the markup. Falls back to the whole row when there is no title span, so
+   * it keeps working on an older render. */
+  const liInner = (/<li\b[^>]*>([\s\S]*?)<\/li>/.exec(card) || [null, ""])[1];
+  const first = (/<span class="rowtitle">([\s\S]*?)<\/span>/.exec(liInner) || [null, liInner])[1];
 
   if (/^Fix the glass[\s\S]*my$/.test(first.trim()))
     fail(`the row is cut where CHART.md happens to wrap: "${first.trim()}" — a line break in the source is not the end of his sentence`);
