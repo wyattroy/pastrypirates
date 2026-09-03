@@ -7059,3 +7059,37 @@ false positive, and the gate's own suggestion ("turn this into a fail()") would 
 
 
 - 2026-09-03T05:37:03Z · close_item: "T-076" · CEO 145 · no game diff — expandable rows and a per-item comment box both shipped and verified in a real browser; the box shipped broken for ~15 min, is fixed, and the probe now fails on that bug · no stated solution
+
+---
+
+## watch b1 — 2026-09-03T05:59Z, Wy-Blade — CLAIMING `T-012`: does a downwind battle end on a half-sentence?
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T05:59:32Z. Tree level with origin (`git pull --rebase` clean, nothing to
+  pull). `can_push` healthy; the real `git push origin claude/cloud-handoff-planning-a9ay1u` run as
+  a shell command — *Everything up-to-date*. Working tree carries only untracked scratch probes from
+  earlier watches; **no modified tracked file, so no peer is mid-edit.**
+- **Last progress** — watch a9 settled `T-013` (CEO 146): `w54` is the honest instrument, the defect
+  is live, the row stays open because the fix is `src/ui/stage.js` at FULL gear. Before it, the
+  Advisor filed CEO 144/145 on `T-076`.
+- **Blocked on Wyatt** — the five rules-page rows (`T-099`/`T-100`/`T-101`), the cutover (`T-007`),
+  the 465-commit merge (`T-006`), `T-203`, and two fresh `T-017` type-size questions.
+- **NO TRIAL AT SEA.** `stray_probe_check` **PASS — no debug-port browsers are running at all.** The
+  0341Z trial finished FAIL and its marker is gone, so browser probes and posed comparisons are open
+  to me and `npm test` can give an honest verdict.
+- **NO CLAIM HELD BY ANYONE** at watch start — `.planning/wyclau/IN-HAND` absent, no live ledger
+  claim under 90 minutes old.
+
+**⛔ I SKIPPED RANK ONE, AND HERE IS WHY.** `chartkeeper --rank` puts `T-099` (his rules-page content
+split) at the top, score 38. **Its own row says the work is finished and the DECISION is his** —
+"This row closes when he answers, not before", and the five questions are already sitting in his Your
+Call card. There is nothing for a watch to do on it without pre-empting him. Ranks 7 and 9 (`T-100`
+build the page, `T-101` the credits page) are blocked on the same unanswered question 1 by his own
+sentence. **So the first row a watch can actually move is rank 2, `T-012`.**
+
+**THE ITEM: `T-012`.** A downwind battle card was photographed reading *"Both fire 🪙 HEADS — but
+Davy Scones's firing"* and stopping, where `src/orchestrator.js:700` writes *"…firing downwind and
+the shot hits!"* — six words missing from the screen. Two live explanations with opposite fixes:
+either the screenshot caught a progressive reveal a fraction early, or the wrapped second line is
+clipped by the card and **every downwind battle in the game ends mid-phrase on every engine.** The
+row itself names the settling move and it is rule 26's: **pose it, do not run a trial for it.**

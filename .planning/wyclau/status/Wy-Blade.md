@@ -5,18 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T05:52:45.699Z	watch a9 settled T-013: the trade-call circle really is misplaced -- your report was right, and the probe that said otherwise was measuring a board where it cannot happen. Photograph: both Call circles floating in open water, ~400px below the only boats on screen, one on a sugar-cube island. 28 circles that landed beside their captain were NEVER wrong; the ones thrown half a screen away name a stranger about two thirds of the time. Not fixed yet -- the fix is in stage.js and needs a sea trial. Row stays open with the evidence and a red check ready.
+2026-09-03T05:58:08.586Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "Pose the downwind battle card in Chrome and WebKit — is the sentence clipped, or was the screenshot early?",
+  "handle": "T-012",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-03T05:59:43.843Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T05:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T050803Z.out/.err)
 2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
 2026-09-02T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T064802Z.out/.err)
 2026-09-02T07:28:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T072802Z.out/.err)
@@ -56,4 +63,5 @@ None recorded.
 2026-09-03T04:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T043802Z.out/.err, kit: readable)
 2026-09-03T04:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T045802Z.out/.err, kit: readable)
 2026-09-03T05:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T051802Z.out/.err, kit: readable)
+2026-09-03T05:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T055802Z.out/.err, kit: readable)
 ```
