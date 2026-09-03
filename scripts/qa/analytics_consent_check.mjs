@@ -19,11 +19,62 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 let failed = 0;
 const pass = (m) => console.log(`  PASS  ${m}`);
 const fail = (m) => { console.log(`  FAIL  ${m}`); failed++; };
+
+/* ==========================================================================================
+ *  WHAT THIS GATE LOOKS AT, DERIVED — because a hand-kept list of what to guard rots exactly
+ *  like the thing it guards.
+ * ==========================================================================================
+ * CEO 189 broke the first version of this gate four different ways and every one of them was the
+ * same shape: **the gate was anchored to a file somebody typed into it, and the mistake happened in
+ * a file nobody had.** It pasted Google's own console snippet into `index.html` (7/7 PASS), into
+ * `classic/index.html` (7/7 PASS), and added a consent GRANT to `src/orchestrator.js` — the file
+ * this project edits more than any other — and the gate printed *"nothing anywhere grants a storage
+ * consent"*. So the lists below are DERIVED, not written — and what they do NOT look at is named
+ * out loud in the PASS lines, because a gate that quietly does not look somewhere is the fault this
+ * whole file exists to stop.
+ *
+ * ⚠ AND IT ASKS GIT, NOT THE FILESYSTEM — a correction made in the same hour this rule was
+ * written, because the first version walked the directory and reported **1753 pages**. A game with
+ * four pages does not have 1753, and a count you cannot explain is a measurement you have not made.
+ * Thirty-seven stray `.tmp-*` headless-Chrome profile directories were sitting in the repo root,
+ * 47 pages each. None of them ships; all of them would have been scanned, and any one of them
+ * containing the word `googletagmanager` would have failed the build for nothing. **`git ls-files`
+ * answers the question actually being asked — what does this repo SERVE — and cannot see untracked
+ * scratch by construction.** There is no filesystem fallback on purpose: a fallback that silently
+ * scans a different set is how a gate starts reporting about a world nobody meant.
+ */
+function tracked(pattern) {
+  const r = spawnSync("git", ["-C", ROOT, "ls-files", pattern], { encoding: "utf8" });
+  if (r.status !== 0) return null;
+  return r.stdout.split("\n").map((s) => s.trim()).filter(Boolean).sort();
+}
+
+/* Every page this repo actually SERVES. GitHub Pages serves it from the root, so a tracked `.html`
+   is a real, reachable address — `classic/lab.html` and `scripts/battle_sim.html` included.
+   ⚠ EXCEPT the ones Jekyll refuses: it serves no path whose segment starts with `.` or `_`. That is
+   not a guess — it was measured on this repo during `T-247`, where it explained 84 of 84 staging
+   404s with 0 unexplained. Without this line the gate fails on `.planning/ANALYTICS-PLAN.html`,
+   which is the plan document written FOR Wyatt and which quotes Google's snippet on purpose. A
+   file no browser can reach cannot put a cookie on a child's device. */
+const servable = (p) => !p.split("/").some((seg) => seg.startsWith(".") || seg.startsWith("_"));
+const PAGES = tracked("*.html")?.filter(servable) ?? null;
+
+/* Everywhere a line of SHIPPED script can live. `scripts/` is deliberately not here: a grant in a
+   QA script reaches no player, and this gate's own red proof contains the mutation text verbatim,
+   so including it would make the gate flag its own evidence. */
+const SHIPPED_JS = [...(tracked("src/*") ?? []), ...(tracked("classic/src/*") ?? [])]
+  .filter((f) => f.endsWith(".js") || f.endsWith(".mjs")).sort();
+
+/* Said out loud in every PASS line. A gate that quietly does not look somewhere is worse than no
+   gate, because npm test stays green and everybody believes the property is defended. */
+const NOT_LOOKED_AT = "anything git does not track, any path Jekyll refuses to serve (a segment "
+  + "starting with . or _), and — for the consent-grant scan only — scripts/, whose code reaches no player";
 
 console.log("analytics_consent_check — his three pages, no cookie, and never our own testing\n");
 
@@ -77,14 +128,20 @@ if (mod) {
      left this case printing PASS while the grant sat four lines below the word "consent". The
      case above caught the mutant; this one would not have caught a grant added anywhere else.
      **A red proof is not only for the case you are proving. Read what the OTHER lines said while
-     the mutant was in.** It is now the quoted value itself, which needs no proximity at all. */
-  const grants = [];
-  for (const f of ["src/analytics.js", "index.html", "about.html", "rules.html"]) {
-    let t = ""; try { t = readFileSync(join(ROOT, f), "utf8"); } catch { continue; }
-    if (/["']granted["']/.test(t)) grants.push(f);
-  }
-  if (grants.length) fail(`something grants consent in ${grants.join(", ")} — he ruled "cookieless, no banner", so nothing should ever be able to change its mind`);
-  else pass('nothing anywhere grants a storage consent — his "no banner" ruling has no back door');
+     the mutant was in.** It is now the quoted value itself, which needs no proximity at all.
+     ⛔ AND THE SECOND VERSION COULD NOT SEE ITS SUBJECT EITHER, in a way the first red proof was
+     never pointed at: it read FOUR TYPED FILENAMES. CEO 189 appended one line to
+     `src/orchestrator.js` — `window.gtag("consent","update",{ analytics_storage: "granted" })` —
+     and this case printed PASS. `src/orchestrator.js` runs for every player on the game page. **The
+     back door was in the file this project edits more than any other, and the scan had never heard
+     of it.** The list is now derived from the tree. */
+  const scanned = PAGES === null ? null : [...PAGES, ...SHIPPED_JS];
+  const grants = (scanned ?? []).filter((f) => {
+    try { return /["']granted["']/.test(readFileSync(join(ROOT, f), "utf8")); } catch { return false; }
+  });
+  if (!scanned || !scanned.length) fail("git could not list this repo's tracked pages and scripts, so there is nothing to scan for a consent grant — this case cannot see its subject and must not report PASS");
+  else if (grants.length) fail(`something grants consent in ${grants.join(", ")} — he ruled "cookieless, no banner", so nothing should ever be able to change its mind`);
+  else pass(`nothing grants a storage consent in any of the ${scanned.length} tracked page(s) and shipped script(s) — his "no banner" ruling has no back door. NOT looked at: ${NOT_LOOKED_AT}`);
 }
 
 /* 3 — ⛔ IT NEVER COUNTS OUR OWN TESTING. A sea trial loads these pages hundreds of times an
@@ -101,11 +158,18 @@ if (mod) {
   else pass("driven against staging, the installer refuses and installs nothing (behaviour, not a declaration)");
 }
 
-/* 4 — THE THREE PAGES HE CHOSE, AND ONLY THOSE. */
+/* 4 — THE THREE PAGES HE CHOSE, AND ONLY THOSE.
+ *
+ * ⚠ THIS CASE WAS SATISFIED BY PROSE. It was a bare substring test for `src/analytics.js` over the
+ * whole file, so CEO 189 replaced About's script tag with `<!-- analytics removed while debugging;
+ * see src/analytics.js -->` and this case printed *"all three pages he chose load the one analytics
+ * module."* Zero script tags left, one mention left, PASS. **A page that MENTIONS a module is not a
+ * page that LOADS it** — the same through-line CEO 182 named. It is now a script-tag match. */
 {
   const want = ["index.html", "about.html", "rules.html"];
   const notWant = ["stats.html"];
-  const has = (f) => { try { return /src\/analytics\.js/.test(readFileSync(join(ROOT, f), "utf8")); } catch { return null; } };
+  const TAG = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*\banalytics\.js["'][^>]*>/;
+  const has = (f) => { try { return TAG.test(readFileSync(join(ROOT, f), "utf8")); } catch { return null; } };
   const missing = want.filter((f) => has(f) === false);
   const unreadable = want.filter((f) => has(f) === null);
   const extra = notWant.filter((f) => has(f) === true);
@@ -126,5 +190,63 @@ if (mod) {
   else pass(`the measurement id is the same fact in both files — ${a}`);
 }
 
-console.log(failed ? `\nFAIL — ${failed} failure(s).` : "\nPASS — his three pages measured, no cookie set, and our own testing never counted.");
+/* 6 — ⛔ NO PAGE MAY LOAD A GOOGLE TAG OF ITS OWN. THE ONE CASE THAT GUARDS THE REALISTIC MISTAKE.
+ *
+ * Every case above this one watches `src/analytics.js` do the right thing. **None of them ever
+ * asked what ELSE a page loads** — so CEO 189 pasted the snippet Google's own console hands you
+ * into `index.html`'s head, with no consent call at all, and every check still said *"no cookie
+ * set"*. It A/B'd all 25 gates in the 130-chain that read `index.html`: not one changed its verdict.
+ *
+ * **The realistic mistake is not editing this project's analytics module. It is pasting the
+ * snippet.** And it is worse than the fault the module was written to prevent: a raw tag writes
+ * `_ga` onto a child's device, fires on staging, on localhost, and on every one of the sea trial's
+ * hundreds of page loads an evening.
+ *
+ * The same paste into `classic/index.html` also passed — and `/classic` is the option he explicitly
+ * DECLINED. One derived rule closes both, which is exactly what CEO 189 asked for first. */
+{
+  const MARKERS = [/googletagmanager\.com/, /gtag\/js/, /firebase-analytics/, /\bgetAnalytics\s*\(/];
+  const ALLOWED = "src/analytics.js";                    // the one file whose whole job is this
+  const offenders = [];
+  for (const p of PAGES ?? []) {
+    let t = ""; try { t = readFileSync(join(ROOT, p), "utf8"); } catch { continue; }
+    const hit = MARKERS.find((m) => m.test(t));
+    if (hit) offenders.push(`${p} (${hit.source})`);
+  }
+  if (!PAGES || !PAGES.length) fail("git listed NO tracked pages, so this case cannot see its subject and must not report PASS");
+  else if (offenders.length) fail(`⛔ ${offenders.join(", ")} loads a Google analytics tag directly. Only ${ALLOWED} may do that, because only it pushes the consent denial FIRST — a pasted snippet writes a cookie onto a child's device, and fires on staging and on every sea-trial page load`);
+  else pass(`none of the ${PAGES.length} tracked page(s) in this repo loads a Google tag of its own — the only route to Google is ${ALLOWED}, which denies storage first`);
+}
+
+/* 7 — IMPORTING THE MODULE IS WHAT INSTALLS IT. Cases 1 and 3 call `installAnalytics()` by hand,
+ *     so they cannot tell a live install from a dead one: CEO 189 commented out the module's own
+ *     bottom-line call — the only thing that makes a page importing it do anything — and got 7/7
+ *     PASS, including *"his three pages measured."* Safe direction, but it would leave him reading
+ *     a property that had quietly stopped collecting. This drives the IMPORT, not the export. */
+{
+  const seq = [];
+  const win = {
+    location: { hostname: "playpastrypirates.com" },
+    dataLayer: { push(a) { seq.push(String(a[0])); } },
+    document: { createElement: () => ({}), head: { appendChild() { seq.push("load"); } } },
+  };
+  const had = Object.prototype.hasOwnProperty.call(globalThis, "window");
+  const prev = globalThis.window;
+  globalThis.window = win;
+  try {
+    /* A cache-buster, because the top of this file already imported the module once. */
+    await import(new URL(`../../src/analytics.js?fresh=${Date.now()}`, import.meta.url).href);
+  } catch (e) {
+    fail(`re-importing src/analytics.js threw: ${String(e.message).split("\n")[0]} — this case cannot see its subject`);
+  } finally {
+    if (had) globalThis.window = prev; else delete globalThis.window;
+  }
+  if (!win.__ppAnalyticsInstalled) fail("importing src/analytics.js installs NOTHING — the three pages load a module that does nothing, and every other case here still passes because they call installAnalytics() by hand");
+  else if (!seq.includes("consent") || !seq.includes("load")) fail(`importing the module installed something incomplete — it did ${JSON.stringify(seq)}`);
+  else pass("importing the module is what installs it — driven through the import, so a deleted bottom-line call goes red");
+}
+
+console.log(failed
+  ? `\nFAIL — ${failed} failure(s).`
+  : `\nPASS — the denial lands before the tag; his three pages load the module and none of the ${PAGES.length} tracked pages loads a tag of its own; nothing in ${SHIPPED_JS.length} shipped script(s) grants storage; and it fires on the live domain alone. NOT measured here: what Google actually does with a real ping, and ${NOT_LOOKED_AT}.`);
 process.exit(failed ? 1 : 0);
