@@ -112,5 +112,87 @@ const modalNoComments = modal.replace(/<!--[\s\S]*?-->/g, "");
   else fail("no filler found in src/orchestrator.js — the data-rule spans would render empty");
 }
 
+/* 5. ONE RULES SURFACE. Wyatt's ruling, 2026-09-02T22:50:32Z, Glass question "rules page 2 of 4",
+      confirmed by him in the question UI two minutes later ("That's the whole instruction"):
+        "Agree with your rec -- delete "how it plays"
+      About keeps "What the captains are saying" and "Credits"; the rules live on ONE page.
+
+      WHY THIS GATE AND NOT A NEW ONE: sections 1-4 above exist because a rules page written from
+      memory drifts from the game. about.html carried a SECOND rules section, hand-typed, that
+      those sections never looked at — and it drifted FOUR ways while the modal above stayed
+      correct, which is the cleanest evidence this project has that the derivation is what did the
+      work. Rule 23: two things that must agree are one thing, or they will drift.
+
+      Each assertion below is ANCHORED TO A LIVE CODE SYMBOL, like the ones above, so it retires
+      with the feature instead of rotting into a false alarm: put fishing back in src/ and the
+      fish assertion stops firing on its own. */
+{
+  /* HTML COMMENTS STRIPPED FIRST, and this gate caught itself on it: the tombstone left where the
+     section used to be NAMES the four false sentences so the next reader knows what went and why —
+     and the first run of these assertions read that tombstone as live copy and failed on it. Same
+     trap as the shot-clock check above, which read util.js's graveyard comment as a live clock.
+     A gate must judge what a READER SEES. sharedStrip is for JavaScript; this is HTML. */
+  const aboutPath = path.join(REPO, "about.html");
+  const about = fs.readFileSync(aboutPath, "utf8").replace(/<!--[\s\S]*?-->/g, "");
+
+  /* THE STRIP'S OWN RED-PROOF, and it is permanent rather than a one-off run. A stripper is a
+     silencer: if it ever ate live markup — one unterminated `<!--` is enough — every assertion
+     below would pass on an empty string and this gate would report all-clear on a page it had
+     never actually read. So: the two cards Wyatt's ruling KEEPS must still be visible after the
+     strip. They are the canary, and they are chosen because his ruling names them by name.
+
+     ⚠ THE CANARY HAS AN ORDERING DEPENDENCY, NAMED HERE BECAUSE CEO 154 FOUND IT AND NOTHING ELSE
+     WOULD. It works because the tombstone above (about.html, where the section used to be) sits
+     ABOVE the two live cards, and a non-greedy left-to-right strip therefore consumes the
+     tombstone BEFORE it could reach them — so any over-strip that ate the cards has already eaten
+     the tombstone, and the canary fires. The tombstone happens to quote both card titles
+     verbatim. MOVE THE TOMBSTONE BELOW THE CREDITS CARD, or add any comment below them quoting
+     those two phrases, and this canary becomes self-satisfying: it would pass on a page whose
+     live cards had been eaten. If you ever move it, change the canary to assert on markup a
+     comment cannot contain — an element, not a phrase. */
+  if (/What the captains are saying/.test(about) && /Credits/.test(about))
+    pass("the comment strip left about.html's live cards intact — the assertions below are reading a real page");
+  else
+    fail("the comment strip ate live markup in about.html — every assertion below is now reading a page that is not there, and would pass on nothing");
+
+  // The structural one — his instruction, and the only one that cannot be satisfied by a rewrite.
+  // Two independent teeth: the heading a reader sees, and the class that IS the rules block. A
+  // section re-added under a different <h2> still trips the second.
+  if (/<h2>\s*How it plays\s*<\/h2>/i.test(about))
+    fail('about.html still carries its own "How it plays" rules section — his ruling of 2026-09-02 deletes it, and it is the second rules surface rule 23 forbids');
+  else pass('about.html carries no "How it plays" section — one rules surface, not two');
+
+  if (/class="abtRules"/.test(about))
+    fail("about.html still carries an .abtRules block — the hand-typed rules body, under whatever heading");
+  else pass("about.html carries no .abtRules block");
+
+  // Fishing: live iff a fishing path exists in src/ at all. flow.js's tombstone NAMES the deleted
+  // function, so comments are stripped first — the same trap the shot-clock check above hit on its
+  // first green run.
+  const js = [];
+  (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (p.endsWith(".js")) js.push(p); } })(path.join(REPO, "src"));
+  const fishLive = js.some(p => /fishCast|startFishing/.test(sharedStrip(fs.readFileSync(p, "utf8"))));
+  if (!fishLive) {
+    if (/<b>fish<\/b>/i.test(about))
+      fail("about.html offers fish as a turn action and there is no fishing path in src/ — a stranger arriving from Google is taught an action the game does not have");
+    else pass("fishing is gone from src/ and about.html no longer offers it");
+  } else pass("a fishing path is live in src/ — about.html may teach it");
+
+  // The bake-off decides winning, so "first baker home wins" is false while it ships.
+  if (/BAKEOFF_ENABLED\s*=\s*true/.test(fs.readFileSync(path.join(REPO, "src/shared/index.js"), "utf8"))) {
+    if (/first baker\s*\n?\s*home wins/i.test(about))
+      fail('about.html says "first baker home wins" while the bake-off ships — every captain wins by baking, and two home on the same day bake together');
+    else pass('the bake-off ships and about.html no longer says "first baker home wins"');
+  }
+
+  // Sailing is free — the modal says so in the prose this gate already reads. The wind caps RANGE;
+  // it never charges. "Sailing budget ... cheap with it, dear against it" tells a stranger it costs.
+  if (/Sailing is\s*<b>\s*free\s*<\/b>/i.test(fs.readFileSync(path.join(REPO, "index.html"), "utf8"))) {
+    if (/sailing budget/i.test(about))
+      fail('about.html says the wind sets a "sailing budget" while the game says sailing is free — the wind caps the range, it never charges');
+    else pass("sailing is free in the game and about.html no longer prices it");
+  }
+}
+
 console.log(fails ? `\nFAILED — ${fails} assertion(s)` : "\nPASSED — the rules page derives its numbers and its prose is fenced to the code");
 process.exit(fails ? 1 : 0);
