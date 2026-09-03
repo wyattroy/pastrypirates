@@ -6473,3 +6473,14 @@ run. **No second item taken.** No game code touched — `src/`, `index.html`, `a
 `classic/` are untouched. The Glass was published at 02:22:33Z by the Glass session (version
 `1788402147-cca8`); this session has no `Artifact` tool, so its findings go out via `GLASS-NOTE.md`
 plus a message to that session, per Door step 6b.
+
+⚠ **AND THE ONE THING THIS WATCH COULD NOT DO: IT COULD NOT PUSH.** `git push` — in three forms
+(`git push`, `git push origin HEAD`, and chained after a rebase) — returned *"This command requires
+approval"*. **`can_push.mjs` passed at orientation and was right to**: the branch tracks, there is no
+rebase or merge in progress, and the four faults it looks for are all absent. **The fault is one
+level up from the repo — the session's own command allowlist — and no repo-state check can see it.**
+So commit `57363268` sits **local, ahead 1**, and until somebody approves a push this watch is
+invisible to every other machine, which is the exact blindness `can_push.mjs` was written to remove.
+**Worth a Chart row: `can_push.mjs` answers "is this checkout able to publish?" and the honest
+question is "is this SESSION able to publish?"** — a dry-run push would answer both, and would have
+turned this into a STOP at orientation instead of a discovery at the end.
