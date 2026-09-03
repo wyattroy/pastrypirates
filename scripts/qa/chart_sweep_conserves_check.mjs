@@ -26,6 +26,21 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CHART = join(ROOT, ".planning", "CHART.md");
+/* ⛔ THE OTHER CHART. Added 2026-09-03 — this gate read `CHART.md` alone and therefore reported
+ * every row of the Glass chart as a handle "owned by nothing".
+ *
+ * He split the list on 2026-09-02: *"take every Glass-focused task on the Chart... YOU will work on
+ * the chart -- the Watch will work on the game."* From that moment this gate was measuring a third
+ * of the rows and judging the other two thirds missing. **The orphan count GREW as work went well**
+ * — 38 → 112 → 106 across one night — because closing a row moves its handle into the half the
+ * gate could not see. An instrument that gets louder the more you fix is measuring itself.
+ *
+ * ⚠ THIS IS THE FIFTH TOOL TONIGHT WITH THIS EXACT FAULT, and that is the finding worth carrying:
+ * `close_item.mjs` (no `--chart=`), `chartkeeper.mjs` (parsed sections the new file lacked),
+ * `tick_rows.mjs` (same), the ranker, and now this. **One instruction of his split one list in two,
+ * and every tool that had the path written into it went quietly wrong in a different way.** Not one
+ * of them errored; they all reported confidently about a file they could no longer fully see. */
+const GLASS_CHART = join(ROOT, ".planning", "GLASS-CHART.md");
 const LOG = join(ROOT, ".planning", "CHART-LOG.md");
 
 let failed = false;
@@ -43,7 +58,8 @@ if (!existsSync(CHART)) {
   console.log("\nFAIL");
   process.exit(1);
 }
-const chart = readFileSync(CHART, "utf8");
+const chart = readFileSync(CHART, "utf8")
+  + (existsSync(GLASS_CHART) ? String.fromCharCode(10) + readFileSync(GLASS_CHART, "utf8") : "");
 const log = existsSync(LOG) ? readFileSync(LOG, "utf8") : null;
 
 /* A row's handle, read from the row it belongs to — never from a whole-file grep. His tables and

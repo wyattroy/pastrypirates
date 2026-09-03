@@ -57,6 +57,25 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
+      ✅ **HE ALREADY MADE IT — MEASURED 2026-09-03T06:0xZ, at his note "verify this to make sure it
+      functions as needed."** `.claude/settings.json:11-12` now carries **both**
+      `"Bash(npm run deploy:staging*)"` and `"Bash(bash scripts/deploy-staging.sh*)"`. **The blocker
+      this row is built on is gone**, and the row had no way to know: it was written from a refusal
+      that was true when it was measured and stale when it was read — the same shape as `T-011`'s
+      false STOP and `T-085`'s claude-kit fence, both of which cost a session each tonight.
+      ⚠ **AND THE STALENESS NUMBER WAS WRONG TOO, IN HIS FAVOUR.** The row says the wire reads
+      `2026.09.01.6-staging@60f969c4`. Measured against the live address just now:
+      **`2026.09.01.8-staging@1ce21a00`** — so a deploy DID land after this row was filed. Staging is
+      still behind the tree (`2026.09.02.1`), but by one build, not two.
+      ⛔ **STILL NOT DEPLOYED, AND THE PROCESS — NOT A JUDGEMENT CALL — IS WHY.** The release contract
+      is `npm test` exit 0 → gear → sea trial → deploy. **`npm test` is RED**, on
+      `chart_sweep_conserves_check` (106 handles owned by nothing), which is another session's
+      bookkeeping fault and touches no game code. The rule does not carve out "unrelated" failures,
+      and inventing that exception at 6am to publish to an address he plays is exactly the kind of
+      judgement a watch does not get to make alone.
+      **SO THIS ROW IS NOW BLOCKED ON A DIFFERENT THING THAN IT SAYS AT THE TOP:** not his
+      permission — he gave it — but a green suite. **Whoever gets `chart_sweep_conserves_check`
+      green can take this row straight through.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
       ⟨`T-104`⟩
