@@ -522,12 +522,25 @@ const orderedRows = (p) =>
       fail("the order confirmation is below the list — on a phone showing eight of fifty-seven rows, a drag near the top puts its own confirmation fifty rows out of sight");
     else pass("the confirmation sits above the list, where a drag at the top can still be seen to have landed");
   }
-  /* ⚠ NAMED HONESTLY AFTER CEO 132: this is a SOURCE SEARCH, and it says "as he keeps moving",
-     not "held". The scroll fires inside pointermove with no timer, so a finger parked at the edge
-     does nothing. Three documents said "held" and the code has never done "held". */
-  if (page && !/window\.scrollBy/.test(page))
-    fail("the drag blocks the page's own scroll and never scrolls it — so on a phone he cannot move row 30 to row 1 at all, which is the list he actually has");
-  else if (page) pass("the page scrolls while a drag keeps moving near either edge (source search; not a dwell, and not executed here)");
+  /* ⛔ THIS CASE ENFORCED A FEATURE HE REMOVED, and it went red the moment his instruction landed.
+   *
+   * It required `window.scrollBy` — the drag's edge-scrolling — because *"on a phone he cannot move
+   * row 30 to row 1 at all"*. That problem is real and it is exactly why he killed the gesture:
+   * Wyatt, 2026-09-03, *"you can remove the dragging feature from the Chart -- it was really buggy
+   * and didn't work as intended. we'll just use the arrows."*
+   *
+   * ⚑ SO THE ASSERTION MOVES TO THE PROPERTY, NOT THE MECHANISM — the third time today a gate has
+   * had to be re-pointed this way. **The property he wanted was never "the list edge-scrolls"; it
+   * was "I can move row 30 to row 1 on my phone."** One tap on ▲ top does that in one action with
+   * no scrolling at all, which is a better answer to the same requirement. What must hold now is
+   * that the arrow exists on EVERY row and commits through the one save path. */
+  if (page && /addEventListener\("pointermove"/.test(page))
+    fail("the drag is back — he removed it on 2026-09-03 as 'really buggy and didn't work as intended', and two gestures writing one order is the drift rule 23 is about");
+  else if (page && !/function moveToTop/.test(page))
+    fail("there is no move-to-top handler on his page, so no row can be moved at all — the arrows are the ONLY way to reorder since the drag was removed");
+  else if (page && !/class="totop"/.test(page))
+    fail("no row carries a ▲ top button — his list cannot be reordered by any means");
+  else if (page) pass("the drag is gone and every move goes through the arrow, which reaches row 30 in ONE tap rather than a scroll he could not perform");
 }
 
 /* ── 17. THE JOINT AGAIN. Same reasoning as case 9, for the same reason: between his drag and RANK

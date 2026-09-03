@@ -94,7 +94,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-017`⟩
+      ⟨`T-235`⟩
 - [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-121`⟩
 - [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -102,7 +102,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-207`⟩
 - [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-102`⟩
+      ⟨`T-236`⟩
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -180,7 +180,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
-      ⟨`T-017`⟩
+      ⟨`T-237`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
   the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
   accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
@@ -330,7 +330,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **but that is a reason, not an excuse, and the trial is owed before this ships.**
 
 - [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
-      ⟨`T-207`⟩
+      ⟨`T-238`⟩
   2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
   2026-09-03 by watch e1, CEO 160 (YES); the finding is the ✅ block on `T-012`, now archived.
   **THE FAULT.** `#apGrid`'s row animates from a one-line height to a two-line height over 180ms
@@ -855,7 +855,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.3, so its evidence no longer describes this game
 
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
-      ⟨`T-216`⟩
+      ⟨`T-239`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
       me options to choose number or letter them"*. It is written at
       `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
@@ -921,7 +921,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
 
 - [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** `.planning/ANALYTICS-PLAN.html`: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
-      ⟨`T-206`⟩
+      ⟨`T-240`⟩
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -1094,6 +1094,7 @@ carries its fate below, added when it got one.
   after CEO 176 had already found the same ruling live in the checklist. **One sweep, two live
   copies, and the second was in a different section of the same file.** When a ruling closes, look
   for every place his page repeats it, not just the row you came from.
+      ⟨`T-241`⟩
 
 - `t102-search-console` — **⟨`T-102`⟩ Your own reminder, and it is the one step nobody here can
       ⟨`t102-search-console`⟩
@@ -1104,6 +1105,7 @@ carries its fate below, added when it got one.
 2026-09-02T22:37:19.175Z, second read at the same generatedAt after he kept answering mid-tick — all
 five rules-page questions in the Your Call table above are now answered). NOT YET TRIAGED — this
 session's mandate is harvest-and-publish only.**
+      ⟨`T-244`⟩
 
 - `rules-page-1-of-4-which-page-becomes-th` — **RULES PAGE 1 of 4 — which page becomes THE rules
       ⟨`T-115`⟩
@@ -1172,7 +1174,7 @@ session's mandate is harvest-and-publish only.**
   pairs remain (`T-088`, `T-008`, `T-079`) and they are somebody's row, not this watch's item.
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Regenerate sitemap.xml at the repo
-      ⟨`T-102`⟩
+      ⟨`T-243`⟩
       ⚠ **THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW. The WORK IS DONE; only the tick went astray.** `close_item.mjs` ran its block from the last `- [ ]` to END OF FILE, so any `--item=` string below that row matched it and nothing else — the verdict and reason were stamped onto `T-137` instead. Found by watch c1 causing it a fourth time on purpose; fixed 2026-09-03T07:4xZ (block bounded at the next `## `, and a handle no row owns now REFUSES instead of guessing). **Re-close through the gate; do not redo the work.**
   root of playpastrypirates.com now that the new pages exist.
 

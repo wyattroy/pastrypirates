@@ -663,6 +663,10 @@ if (chart !== null) {
           : b.head,
       why: b.state === "parked" ? parkedReason(b.all) : "",
       dim: b.state === "parked",
+      /* ⚑ AN INBOX IDEA CARRIES ITS OWN HANDLE NOW, so it can be moved like anything else. The
+         owner line is the handle ALONE on a line; an inline mention earlier in the block is a
+         reference to some other task and must not be mistaken for this row's identity. */
+      handle: (b.all.match(/^\s*⟨`(T-\d{3})`[^⟩]*⟩\s*$/m) || [])[1] ?? null,
     }));
   /* An idea in the inbox has no Chart row yet, so it has no handle and nothing could carry an
      `order:` for it. It is still shown — he steers by this list — but it is not draggable, and the
@@ -670,7 +674,7 @@ if (chart !== null) {
   /* `why` and `dim` ride on the task, NOT on `detail` — `detail` renders inside the collapsed
      "more" panel, and a reason he has to tap to see is a reason he cannot see. His word was
      "shows". */
-  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t.text), handle: null, detail: "", why: t.why, dim: t.dim }))];
+  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t.text), handle: t.handle, detail: "", why: t.why, dim: t.dim }))];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
@@ -1122,7 +1126,7 @@ const PAGE = `<meta charset="utf-8">
      passed over painted in browser-blue selection highlight, because a mouse drag across text is a
      text selection unless something says otherwise. It reads as the page breaking. Caught in the
      screenshot, not in the source; a gate could not have seen it. */
-  li.drag{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+  li.drag{user-select:none;-webkit-user-select:none;
     padding:.15rem .35rem;margin-left:-.35rem;border-radius:5px;
     /* Room at the right for the move-to-top button, which is absolutely positioned so a long row
        title wraps UNDER it instead of shoving it off the line. */
@@ -1143,9 +1147,6 @@ const PAGE = `<meta charset="utf-8">
   .totop:hover{color:var(--accent);border-color:var(--accent);}
   .totop:active{background:var(--paleblue);}
   .totop:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
-  li.drag:hover{background:var(--paleblue);}
-  li.dragging{cursor:grabbing;background:var(--paleblue);opacity:.85;
-    box-shadow:0 2px 6px rgba(31,66,73,.18);}
   /* HIS EXPANDABLE ROWS AND PER-ITEM COMMENT BOX (T-076).
      ⚠ user-select is put BACK to auto inside .rowx. li.drag above turns selection OFF for the
      whole row — correct for a drag handle, and it would have made his own comment text impossible
@@ -1338,7 +1339,7 @@ const PAGE = `<meta charset="utf-8">
          handle, and it is rendered plainly and left alone. -->
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
       : tasks.length === 0 ? `<p class="muted">Nothing open — full detail in .planning/CHART.md.</p>`
-      : `<p class="muted" id="orderNote">Drag a task to move it. Where you put it is where a watch starts.</p>
+      : `<p class="muted" id="orderNote">Tap ▲ top on any task to move it up. Where you put it is where a watch starts.</p>
       <ol id="taskList">${tasks.map((t) => {
           /* HIS TWO REMAINING GLASS-PAGE ASKS (T-076, pinned "PRIORITIZE this at the top"):
              EXPANDABLE ROWS and A COMMENT BOX UNDER EACH ITEM. Both are built here, on the row he
@@ -1977,8 +1978,7 @@ const PAGE = `<meta charset="utf-8">
           var row = btn.parentNode;
           moveToTop(row && row.getAttribute ? row.getAttribute("data-handle") : null);
         });
-        /* pointerdown too, or the drag handler starts holding the row the moment he touches the
-           button — the same event path that makes the drag itself unreliable for him. */
+        /* Still stopped: the ROW expands on click, and a tap on the arrow must not open it. */
         btn.addEventListener("pointerdown", function(ev){ ev.stopPropagation(); });
       });
 
@@ -1997,68 +1997,18 @@ const PAGE = `<meta charset="utf-8">
         });
       }
 
-      taskList.addEventListener("pointerdown", function(ev){
-        /* ⚠ A TAP INSIDE THE ROW'S OWN CONTROLS IS NOT A DRAG. Without this line his comment box
-           and his "more" button are unusable: pointerdown anywhere in the row captures the pointer
-           and starts dragging, so tapping the textarea moves the row instead of placing the caret.
-           His drag feature would have eaten his comment box — both of them his asks, on the same
-           row, one breaking the other. */
-        if (ev.target && ev.target.closest && ev.target.closest(".rowx")) return;
-        var li = ev.target && ev.target.closest ? ev.target.closest("li.drag") : null;
-        if (!li || !taskList.contains(li)) return;
-        held = li; startY = ev.clientY; moved = false;
-        li.setPointerCapture(ev.pointerId);
-        li.classList.add("dragging");
-      });
+      /* ⚑ THE DRAG IS GONE — his instruction, 2026-09-03: *"you can remove the dragging feature
+         from the Chart -- it was really buggy and didn't work as intended. we'll just use the
+         arrows."*
 
-      taskList.addEventListener("pointermove", function(ev){
-        if (!held) return;
-        if (!moved && Math.abs(ev.clientY - startY) < 6) return; // a tap is not a drag
-        moved = true;
-        ev.preventDefault(); // stop the page scrolling under his finger mid-drag
-        /* ⚑ …AND THEREFORE SCROLL IT OURSELVES AT THE EDGES — CEO 131's finding 4, and without this
-           the feature does not work for the list he actually has. Blocking the scroll is what makes
-           the drag possible; it also means that on a phone showing eight of fifty-seven rows he
-           could never move row 30 to row 1 without dropping, scrolling and dragging again — and
-           each drop publishes. Near either edge the page now moves under the drag.
-           ⚠ IT SCROLLS ON MOVEMENT, NOT ON DWELL, AND THE FIRST WRITE-UP OF IT SAID OTHERWISE.
-           CEO 132: "no movement, no events, no scroll" — a finger PARKED at the edge does nothing,
-           because this fires inside pointermove and there is no timer. He has to keep the finger
-           moving, 18px a step. That is a real limit and it is filed rather than described away;
-           three documents said "held" and the code has never done "held". */
-        var edge = 70;
-        if (ev.clientY < edge) window.scrollBy(0, -Math.min(18, edge - ev.clientY));
-        else if (ev.clientY > window.innerHeight - edge) window.scrollBy(0, Math.min(18, ev.clientY - (window.innerHeight - edge)));
-        var others = draggables().filter(function(li){ return li !== held; });
-        var before = null;
-        for (var i = 0; i < others.length; i++) {
-          var r = others[i].getBoundingClientRect();
-          if (ev.clientY < r.top + r.height / 2) { before = others[i]; break; }
-        }
-        if (before) { if (before !== held.nextSibling) taskList.insertBefore(held, before); }
-        else {
-          var last = others[others.length - 1];
-          if (last && last !== held.previousSibling) taskList.insertBefore(held, last.nextSibling);
-        }
-      });
+         It was built on pointer events precisely SO it would work on his phone, and the long note
+         where it lived said so. It still did not work for him. Roughly 90 lines of pointerdown /
+         pointermove / drop, a grab cursor, a held-row state and a capture dance are all deleted
+         here rather than kept 'in case' — a gesture nobody can use is not a fallback, it is a
+         second way to produce the same fact, kept in step by discipline (rule 23). One gesture.
 
-      function drop(ev){
-        if (!held) return;
-        var li = held;
-        held = null;
-        li.classList.remove("dragging");
-        try { li.releasePointerCapture(ev.pointerId); } catch (e) {}
-        if (moved) saveOrder();
-      }
-      /* ⚠ ON THE DOCUMENT, NOT ON THE LIST, AND THIS WAS MEASURED RATHER THAN REASONED. With the
-         listeners on the list, the posed desktop drag reordered the rows perfectly and NEVER SAVED:
-         moving the held row with insertBefore drops its pointer capture, and the release then
-         landed somewhere the list never saw. The phone leg saved and the laptop leg did not — a
-         difference invisible in the source and visible in two screenshots.
-         A release ends a drag wherever it happens. That is also true of the ordinary case: he lifts
-         his finger past the edge of the list, and the order he just made must still be his. */
-      document.addEventListener("pointerup", drop);
-      document.addEventListener("pointercancel", drop);
+         WHAT DID NOT CHANGE, AND IS WHY THE ARROWS WORK: a saved order still NAMES the rows, and
+         saveOrder() below is still the single place an order is committed. The arrows call it. */
 
       // If a previous order is still on the page, say so — an instruction he cannot see landed is
       // indistinguishable from one that was ignored, which is his own lesson from the pin.
