@@ -165,6 +165,24 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
   has none. So "a progressive reveal caught early" cannot mean the typewriter.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 29700, which is not running
+- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
+      ⟨`T-143`⟩
+      award until you scroll. The tablet shows all four awards AND the whole stats table.**
+      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
+      **through the height of the letters** — content clipped at a scroller's edge.
+      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
+      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
+      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
+      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
+      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
+      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
+      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
+      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
+      covering."* That comment records this same judge flagging this same screen as its **eighth**
+      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
+      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
+      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
+      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -209,6 +227,23 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **And CEO 146's caution, which the fix must not flatten:** a circle *stranded away from every
   boat* and a circle *sitting on the wrong boat* are both inside what Wyatt reported, and they may
   not be the same bug. Do not assume one change cures both — measure both columns.
+- [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
+      ⟨`T-142`⟩
+      thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
+      **THE MECHANISM, and it is one bug not two:** `#pp4Cap` is `position:fixed; left:0; right:0;
+      bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` **with
+      no scrim over the fixed bar**. So the bar shows wherever the card does not reach it — down the
+      LEFT under the recipe modal, and out BOTH SIDES under the End of Voyage modal.
+      **VERIFIED BY EYE:** `solo-tablet-002` — the recipe card's edge cuts the top two captain rows
+      to pink **"Davy"** and green **"Dou"**, both losing their dubloon counts, while Flaky Jack and
+      Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
+      Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
+      **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
@@ -236,6 +271,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -249,10 +285,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
@@ -340,38 +372,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-
-- [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
-      ⟨`T-142`⟩
-      thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
-      **THE MECHANISM, and it is one bug not two:** `#pp4Cap` is `position:fixed; left:0; right:0;
-      bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` **with
-      no scrim over the fixed bar**. So the bar shows wherever the card does not reach it — down the
-      LEFT under the recipe modal, and out BOTH SIDES under the End of Voyage modal.
-      **VERIFIED BY EYE:** `solo-tablet-002` — the recipe card's edge cuts the top two captain rows
-      to pink **"Davy"** and green **"Dou"**, both losing their dubloon counts, while Flaky Jack and
-      Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
-      Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
-      **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
-
-- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
-      ⟨`T-143`⟩
-      award until you scroll. The tablet shows all four awards AND the whole stats table.**
-      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
-      **through the height of the letters** — content clipped at a scroller's edge.
-      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
-      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
-      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
-      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
-      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
-      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
-      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
-      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
-      covering."* That comment records this same judge flagging this same screen as its **eighth**
-      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
-      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
-      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
-      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
 
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
