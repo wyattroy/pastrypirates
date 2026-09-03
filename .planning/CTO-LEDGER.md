@@ -6269,3 +6269,29 @@ above was written.
 - 2026-09-03T01:01:19Z · close_item: INBOX-20260902T2156Z · CEO 130 · no game diff — no game diff -- the ask is the Glass receipts' own format, not the game: both writers now refuse a clock, gate 112 red-proofed on the two real strings from his 2026-09-02 receipts; src/ and index.html untouched · his solution first: commit 60b8f02
 
 - 2026-09-03T01:04:14Z · close_item: "A FIELD NAMED `artifactVersion` HOLDS A CLOCK" · CEO 130 · no game diff — no game diff -- the ask is the Glass receipts' own format, not the game: both writers refuse a clock from one shared definition, gate 112 red-proofed on the two real strings from his 2026-09-02 receipts; src/ and index.html untouched · no stated solution
+
+---
+
+## WATCH 2026-09-03T01:10Z — Wy-Blade — claims `T-103` (drag to reprioritise the Chart, in the Glass)
+
+**SITUATION, six lines.**
+- **Watch started** 2026-09-03T01:10Z on `claude/cloud-handoff-planning-a9ay1u`; `can_push.mjs` clean
+  (tracking upstream, no rebase or merge in progress).
+- **Last progress:** `573f5e59` / `60b8f023` — the 00:40Z watch closed `T-111` (neither Glass receipt
+  writer will accept a clock under `artifactVersion`), CEO 130, and re-ranked the Chart.
+- **Blocked on Wyatt:** ranks 1 and 2 — `T-105` and `T-090` gap (b) — both need an edit under
+  `.claude/`. **This watch attempted `.claude/skills/door/SKILL.md` and was refused: "Claude
+  requested permissions to write ... but you haven't granted it yet."** That is the FIFTH watch to
+  measure the same wall, and the second since his 5:43 PM ruling. Both edits stay written out
+  verbatim in `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`.
+- **Detached trial in flight:** none. No `.planning/wyclau/LONG-RUN` marker and no watch started one.
+- **No Artifact tool in this session**, so the Glass was not read and not published; the pulse goes
+  into `GLASS-NOTE.md` and the Glass-update session is asked to publish at the end.
+- **THIS WATCH TAKES `T-103`** — rank 3, and the highest-ranked row a watch can actually work.
+  His own words on it: *"DO NOW: build a way for me to drag to reprioritize the chart, in The
+  Glass."* No game code, no sea trial.
+
+**THE CLAIM.** `T-103`: his Tasks card renders plain strings, so no task on his page carries the
+handle a drag would have to move; and nothing on the page can persist an order. The work is the
+three joints — the row carries its handle, the page records the order he drags into, and the
+Chartkeeper obeys that order on the next rank.
