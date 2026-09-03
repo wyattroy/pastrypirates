@@ -397,7 +397,12 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
-      ⟨`T-203`⟩
+      ⟨`T-135`⟩
+      ⚠ **RENUMBERED `T-203` → `T-135` (CEO 148). I minted 203 out of thin air when restoring this
+      row, and that ONE NUMBER INVENTED 68 PHANTOM ORPHANS** — `chart_sweep_conserves_check` takes
+      its ceiling from the highest OWNED handle, so jumping from 134 to 203 made every number
+      between them look like a row that had vanished. 84 orphans, 68 of them mine, from one
+      careless id. **Take the next handle at the frontier; never a round number that looks free.**
       ⚠ **RESTORED 2026-09-03T05:1xZ. THIS ROW WAS SWEPT OFF THE CHART WHILE STILL WAITING ON HIM.**
       It was archived as `T-124` (`CHART-LOG.md:1257`) with a `- [x]` and **no close pointer** — compare
       the entry directly beneath it, which carries `(closed · CEO 143 · …)`. So it did not go through

@@ -28,6 +28,179 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 148 — watch 2026-09-03T05:59Z, `T-012`, commit `39575082` — **PARTIAL**
+
+> *Number checked order-independently in the same act as the write: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **147**, and `grep -c "^## CEO Review 148"` → **0**. No collision, no renumber.*
+> *⚠ **PLACED AT THE TOP, NOT THE END, DELIBERATELY.** My commission said "write to the END of the file". This file's own banner (lines 3–22) says the convention is newest-at-top and records **four** separate incidents caused by writing to the bottom or reading with `tail`. I followed the file, not the instruction, and I am saying so rather than doing it silently.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The watch found and fixed a real, always-on bug nobody had
+noticed — every downwind battle in the game was being announced as a crosswind, and I verified that
+myself in his own screenshots — but the question the row actually leads with, *does a downwind card
+end on a half-sentence*, was posed on the **wrong screen**: the card was photographed in the one
+display mode in the whole game where the clipping it was testing for is switched off by CSS, so
+"explanation B is dead" is not established and `T-012`'s headline is still open.
+
+**VERDICT: PARTIAL.** Half the ask happened, and happened well. The other half — the half the row is
+named after — did not.
+
+---
+
+### 1. THE CROSSWIND LEAD: **YES.** Real bug, right cause, right fix, and I checked all of it.
+
+- **The bug is real and I saw it myself, in his pictures.** I opened
+  `judge-1914Z-shots/solo-tablet-wk-018.png`: a dimmed board, the flippenator coin, and under it in
+  italics *"Crosswind — two heads and the cannonballs collide."* Then `-018-settled.png`, the same
+  leg seconds later: a cream battle card with an orange pill reading *"↓ DAVY SCONES FIRES DOWNWIND
+  — WINS TIES"*. Same fight, two opposite rules, on the shipped tree.
+- **The cause holds as stated, by reading rather than by trust.** Pre-fix `src/ui/stage.js:1911`
+  read `dwTag.parentElement.querySelector(".who")`; `dwTag` is the badge built at
+  `src/orchestrator.js:300` and dropped into `<div class="btl-wind">${windTag}</div>`
+  (`src/orchestrator.js:332`) — a div whose only child is that badge. There is no `.who` beneath it,
+  ever, so the lookup returned null on **every** downwind battle and fell to the `else`. No run was
+  needed; the DOM makes it certain.
+- **The fix is the right shape and nothing else reads it.** `.btl-col.dw` appears in no CSS rule —
+  the only `.dw` selector in `index.html` is `.btl-wind .windTag.dw` (:674), and the only other
+  `.btl-col` state is `.live` (:660). Purely structural, as the comment claims.
+- **Rule 23 holds — host and guest cannot diverge here.** A guest renders through
+  `renderBattleFromSnap` → `netHandlers().onRenderBattle` (`src/ui/flow.js:3073`), which is
+  `orchestrator.renderBattle` (`src/main.js:94`). One function, one marker, written from the same
+  `dw` that writes the badge. `battleSnapshot` (`src/ui/flow.js:3065`) does not carry `dw`, so a
+  guest derives it locally — and derives **both** the badge and the marker from that one value, so
+  they still cannot disagree. I looked for a second path and there is none.
+- **The gate is a real behavioural gate and its instrument checks that it reached its subject
+  first** — `scripts/qa/flip_ceremony_names_the_wind_check.mjs:123-125` fails loudly if the ceremony
+  was never armed or the card carries no downwind badge, before any verdict is read. That is the
+  discipline the last two reviews asked for.
+- **The matched pair is genuine and I opened both.**
+  `.planning/posed/flip-ceremony-wind-chrome-before.png` reads *"Crosswind — two heads and the
+  cannonballs collide."* — pixel-for-pixel the sentence in his own screenshot — and `-after.png`
+  reads *"**Crustbeard** is firin' downwind — two heads and the tie is theirs."* with the captain in
+  his boat colour. That is the fix, photographed.
+
+**This is a good catch and it is worth saying plainly: a quarter of all fights are settled by the
+downwind rule, and the game had been announcing the wrong rule for every one of them.**
+
+---
+
+### 2. ⚠ THE HALF-SENTENCE QUESTION: **NO. The pose was taken on the wrong screen.**
+
+This is the finding that decides the verdict, and it is not a quibble about polish.
+
+**A battle card is drawn in the `.centered` mode. The pose captured it in `pp4Center`.** Those are
+different regimes, and the difference is exactly the thing under test:
+
+| | evidence |
+|---|---|
+| Every battle card takes `.centered` | `src/ui/stage.js:3722` — `const isBattle = !!box.querySelector(".btl"); if (big \|\| isBattle \|\| !u){ box.classList.add("centered"); … }` |
+| `pp4Center` strips the panel's box | `index.html:2214` — `#pp4Prompt.pp4Center #actionPanel { background:none; border:none; box-shadow:none; … }` |
+| **His card HAS that box** | `judge-1914Z-shots/solo-tablet-wk-018-settled.png` — a cream panel with rounded corners and a drop shadow. **So his card was not in `pp4Center`.** |
+| **The posed card has NO box** | `.planning/posed/t012-downwind-{chrome,webkit}-settled.png` — the names, coins and sentence float loose over the board with no panel at all, the title half-hidden behind a ship. That is `pp4Center`, and the commit says so itself: *"The card renders under `#pp4Prompt.pp4Center` (measured…)"* |
+| `pp4Center` is the **only** place the clip box is switched off | `index.html:2277-2278` — `#apGrid { grid-template-rows:max-content !important; transition:none !important }` and `#apGridInner { overflow:visible }` |
+| `.centered` keeps the clip box | `index.html:467` (`grid-template-rows:0px; transition: grid-template-rows .18s ease`) and `:473` (`#apGridInner { overflow:hidden }`) — **the exact mechanism explanation B names** |
+
+**So every number in the "settled" section is an artefact of the wrong regime.** `hiddenPx 0` is
+guaranteed where the row is `max-content`. `scrollHeight == clientHeight` likewise. *"the +120ms
+frame was already whole"* is guaranteed where the transition is `none !important` — there was no
+180ms animation to land inside. And *"it could not have been clipped there anyway"* is circular: it
+could not be clipped **there**, and **there** is not where the game draws it.
+
+**Why the pose landed in the wrong mode, mechanically.** `promptTick` calls `enterCenterStage()` and
+returns early whenever `ap.dataset.pp4Stage` is set (`src/ui/stage.js:2754-2757`). The probe starts a
+solo game, sleeps 3500ms for the opening ceremony
+(`scripts/qa/t012_downwind_card_pose.mjs:137`) and then poses the card without ever clearing that
+flag — so the real battle card was rendered inside the leftover **ceremony** regime.
+
+**And the probe warned about this in its own words.** `t012_downwind_card_pose.mjs:99-103`:
+*"WHICH DISPLAY REGIME IS THIS? … a pose that answers in the wrong regime has answered a different
+question, and there is no way to tell from the numbers alone."* The field was printed, read, and
+then reasoned **from** instead of **against**. The instrument was better than the conclusion drawn
+from it.
+
+**CONSEQUENCE FOR HIM, IN PLAIN WORDS:** `T-012`'s first question is exactly as open as it was
+yesterday, and the Chart currently has nothing recording that a pose was attempted or why it does
+not count.
+
+---
+
+### 3. ⚠ THE RED-PROOF PROVED THE RULER, NOT THE PICTURE — and the summary drops the caveat.
+
+`t012_downwind_card_pose.mjs:214` sets `detectorWorks = forced.hiddenPx > 0`, and the commit reports
+*"the reader red-proofed by forcing the row one line short (hiddenPx 20)"*. **I opened
+`.planning/posed/t012-downwind-chrome-forced-clip.png`.** The sentence is not cut. It is pushed
+about 20px down the screen and both lines are entirely legible — because in that regime overflow
+spills instead of clipping. The probe says this honestly at its own `:222-225`. **The commit's
+summary keeps the number and loses the sentence that makes it mean something.** Nothing in this run
+ever demonstrated that a *visible* clip could be produced or detected.
+
+---
+
+### 4. ⚠ THE WATCH'S OWN PREDICTION NAMED THE LIVE MECHANISM, AND THE POSE NEVER REACHED IT.
+
+`.planning/PREDICTION-20260903T0610Z-T012-downwind-half-sentence.md:47-49` cites
+`src/ui/panel.js:395-406` and calls it *"B, with a receipt"*. That receipt is worth quoting, because
+it describes this photograph almost exactly: an inline `<img>` with no intrinsic size *"contributes
+ZERO height and ZERO width until it decodes — so a message measured before its icons load comes out
+one line short, and #apGridInner's overflow:hidden then CLIPS the line that appears when they
+arrive… which is exactly why it reproduces 'only sometimes'."*
+
+**The battle result sentence contains such an image.** `emojify()` (`src/shared/index.js:184`) swaps
+the coin for an `<img>`, and the coin is plainly drawn in his screenshot. **A one-frame, intermittent
+clip of the second line, caused by a late-decoding coin, is a live and receipted explanation for
+precisely what he photographed — and it only exists in `.centered`, the regime the pose skipped.**
+That is where the next attempt should start, and it is a pose, not a trial.
+
+---
+
+### 5. TWO SENTENCES TIDIER THAN THE RECORD.
+
+- **"the approved copy … has never once been shown to a player" — false, and the truth is more
+  useful.** The ceremony was added `b07a7d2b` (2026-08-13) while the wind pill still lived *inside*
+  the column (`b07a7d2b:4/src/orchestrator.js:349-353`), so `dwTag.parentElement.querySelector(".who")`
+  resolved and the line drew correctly. `a1913666` (2026-08-15, *"one wind pill for both captains"*)
+  moved the pill out to `.btl-wind` and broke it — with the same wording already on screen, approved
+  the day before. **This is a dated regression with a named commit**, which is what rule 10 wants the
+  next reader to have; the rhetorical version gives them less.
+- **"same posed board" — not true of the pair.** `flip-ceremony-wind-chrome-before.png` and
+  `-after.png` are visibly different boards (different islands, different positions); each run seeds
+  a fresh solo game. It does not damage this particular finding, because the subject is a sentence
+  and not geometry, but rule 26 asks for the same seed and the commit claims it got one.
+  Related: there is no `flip-ceremony-wind-webkit-before.png` on disk — the WebKit pair is half a
+  pair.
+
+---
+
+### 6. THE RECORD IS UNFINISHED, AND THE NEXT WATCH WILL BE MISLED BY IT.
+
+- `.planning/CHART.md:94-109` is untouched. It still tells the next reader that `T-012` has two live
+  explanations, still names the pose as the settling move, and **says nothing about the crosswind
+  half being found and fixed** — which is the one part that IS finished. A watch that opens the Chart
+  tomorrow will re-derive the fix that already shipped and re-run the pose that already missed.
+- `.planning/CTO-LEDGER.md:7065-7100` carries the claim and no closing entry.
+- The FULL trial has **not** landed — `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md:3` reads
+  *"IN PROGRESS — no verdict yet."* The commit states this plainly and that is correct; it is
+  recorded here so nobody later reads the stamp bump as a passed trial.
+
+---
+
+**DOES CEO 146's FAULT RECUR? YES — both of them, and the first one in a nastier form.**
+
+146 named *(a) an instrument whose judgement could not fail* and *(b) a sentence tidier than the
+record.* Finding 5 is (b), twice over, in miniature. Finding 2 is (a) with a twist worth naming: the
+**reader** here genuinely can fail — the watch built the negative case, found its first attempt at it
+silently inert, and fixed it, which is real discipline. What could not fail was the **scene**. The
+card was posed somewhere the defect is switched off by stylesheet. *A red-proofed detector pointed at
+a stage where the fault cannot occur reads exactly like a clean bill of health, and it is the same
+family of error as a check that cannot go red.*
+
+**THE SMALL FIX FOR ALL OF IT:** keep the crosswind fix and its gate — they are sound and I would
+ship them. Re-pose the card with `#pp4Prompt` actually in `.centered` (clear `ap.dataset.pp4Stage`,
+or drive to a real battle rather than posing over a ceremony), assert `promptClass` **contains
+`centered` and not `pp4Center`** before reading anything, and aim the run at the late-icon
+mechanism in finding 4. Then correct the Chart row in the open — both halves, the fixed one and the
+still-open one — before the next watch reads it.
+
+---
+
 ## CEO Review 147 — 2026-09-03, Wy-Blade — `T-131`: the suite that wrote the sea trial's own marker — **PARTIAL**
 
 > *Number checked twice, order-independently: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **146**, and `grep -c "^## CEO Review 147"` → **0**, at the start of the pass and again immediately before finalising. No collision; I did not have to move. I am read-only and did not file this myself.*

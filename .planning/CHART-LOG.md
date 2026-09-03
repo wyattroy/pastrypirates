@@ -1687,3 +1687,472 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       `had` could never be true once the marker moved into a fresh temp dir), and the temp root is
       now deleted — it was leaking one directory per run, 12 counted in `%TEMP%`.
       **Sizing: SMALL. No game code.**
+
+
+## TWELVE ROWS WYATT DISMISSED, RECOVERED AND FILED (CEO 148)
+
+> **They were dismissed by HIM and then DELETED rather than archived, so their text survived only
+> in git.** `.planning/wyclau/INBOX.md` (the "HE DISMISSED 15 OF 44" entry) records the act — *"HE DISMISSED 15 OF 44"* — but a
+> prose paragraph naming handles is not a record of what he threw away. `chart_sweep_conserves_check`
+> reported them as rows that had left both records, which is exactly what they were, and it was told
+> it was crying wolf. **Dismissed is not the same as never existed.** Recovered from `95eee372`.
+
+## T-008 — 2026-09-03 — ⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT. Found 2026-09-02T15:xxZ (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **⚠ THE WRITE PASS SILENTLY REWROTE A CHARACTER OF WYATT'S OWN TEXT.** Found 2026-09-02T15:xxZ
+      ⟨`T-008`⟩
+      by an independent read-only verification of the sweep, which was looking for lost rows and
+      found this instead. In the sweep commit `a70451f2`, the row two lines above this one had its
+      curly apostrophe **U+2019 turned into ASCII `'`** — *"the Glass’s Ideas box"* became *"the
+      Glass's Ideas box"* — while the row was being re-emitted with its `T-008` handle.
+      **WHY THIS IS NOT PEDANTRY.** CEO 91's rule is that a row's FIRST LINE IS HIS and the tool
+      never touches a character of it; there is a gate case asserting exactly that ("every row's
+      first line survived the write byte for byte") and it is GREEN, so it is not asserting what it
+      claims — the likeliest reading is that the fixtures contain no non-ASCII punctuation, which is
+      the `\Z`-in-the-fixture lesson from this same file family, again. This project has already
+      paid for one character of punctuation once: *"Attack's − is U+2212, not ASCII."*
+      **AND THE SHAPE IS WORSE THAN THE INSTANCE.** A write pass that normalises a character today
+      normalises a word tomorrow, in the one document that carries his words verbatim, with a green
+      gate over it. Nothing here is urgent — the row is open, the meaning is unchanged — but the
+      SILENCE is the defect.
+      Start by making that gate's fixture carry curly quotes, an em dash and an accented character,
+      and watch it fail. Do not "fix" the apostrophe by hand first: the failing gate is the evidence.
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-025 — 2026-09-03 — Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson, (DISMISSED BY WYATT, second pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
+      ⟨`T-025`⟩
+  Captain's log) on the thin-surface architecture (design, section IV)
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-028 — 2026-09-03 — 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the  (DISMISSED BY WYATT, second pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
+      ⟨`T-028`⟩
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-081 — 2026-09-03 — WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor, (DISMISSED BY WYATT, second pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
+      ⟨`T-081`⟩
+      his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
+      `T-078`, and do not bundle the generalisation with it.**
+      **His words:** *"the kit is 'production' and the local version of it is 'staging'… i don't want
+      to be the human cherrypicking; i want the design of the kit itself to be architecturally
+      extensible."* And his amendment to the adoption ruling: a project must also have **a way to
+      update to the latest kit as it becomes available.**
+      **`git subtree` answers both halves with machinery this project already trusts:** the kit's
+      files live in the repo and are edited in place; `subtree pull` is "update to the latest";
+      `subtree push` is "staging promotes to production". **Promotion is a merge, never a copy —
+      rule 2 of his own release process** — so there is real ancestry, real conflicts when two things
+      genuinely disagree, and it is reversible. A copy has no ancestry and therefore cannot tell an
+      improvement from a divergence.
+      ⚠ **THE HALF NO MECHANISM PERFORMS, AND IT MUST NOT BE PROMISED:** a subtree push sends
+      pastrypirates' code upstream **verbatim**, and his ruling 4 is that the kit holds GENERALISED
+      versions. `close_item.mjs:49-52` hardcodes four `.planning/` paths; `start_trial_detached.mjs`
+      **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
+      Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
+      **build the plumbing, defer the framework.**
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-083 — 2026-09-03 — ★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE. (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **★★★ ONE QUEUE, RANKED — HIS DESIGN, AND IT REPLACES THE DOOR'S OWN ORDERING RULE.**
+      ⟨`T-083`⟩
+      2026-09-02, question UI. **Do these four in order; the first is a hard dependency.**
+      **His words:** *"the door should not read oldest-first; the RANK algorithm should do the
+      ordering, and the door should read what's at the top. the rank algorithm should prioritize my
+      requests over bugs that the Watch generated; and i need a way to say DO THIS NOW such that
+      RANK puts it at the top -- eg a checkbox underneath the ideas list that says 'Add to top of
+      list'"*
+      **WHY IT MATTERS MORE THAN IT LOOKS: there are TWO orderings today and rule 23 says that is the
+      defect.** The Door has its own rule (`SKILL.md:81` — INBOX oldest-first, then the Chart) and
+      RANK has another. *What makes these two agree?* **Nothing.** His design deletes one of them.
+      **AND THE MEASURED COST OF OLDEST-FIRST:** 8 open Inbox items, the oldest from the previous
+      day, so **anything he writes now is automatically his lowest-priority item.** That inversion —
+      not anyone's discipline — is what forced him to interrupt and repeat himself five times on
+      2026-09-02.
+      **1 · CONVERGE THE TWO DERIVATIONS FIRST — nothing else works until this lands.** Patch 4's own
+      caveat: RANK reorders *within the open-row slots the file already has* and **cannot reorder
+      across the two sections the Glass concatenates** (checklist rows, then unfated inbox entries).
+      *"The Door reads what is at the top"* is meaningless until there is ONE list to be at the top
+      of. This is `PENDING-KIT-PATCHES.md` patch 5 — `glass.mjs` imports
+      `scripts/wyclau/lib/chart_model.mjs` and the duplicated fate/concat block is deleted.
+      **Unblocked as of the `vendor_check` inversion.** Its gate
+      (`chart_model_agrees_with_glass_check.mjs`) becomes a tautology once one function cannot
+      disagree with itself and should be **RETIRED, not kept** — patch 5 says so itself.
+      **2 · RANK GAINS A SOURCE SIGNAL.** *"prioritize my requests over bugs that the Watch
+      generated."* **Derive it, never add a field:** his items carry his words (an Inbox entry with a
+      `>` quote block, or a Chart row quoting him); watch-filed rows carry a watch stamp. Rule 9.
+      **3 · THE DOOR DROPS ITS OWN RULE.** `SKILL.md:81`'s *"INBOX first — the oldest OPEN item"*
+      becomes *"work whatever RANK put first."* **Delete the old rule rather than adding beside it**
+      — leaving both is the two-orderings fault re-created.
+      **4 · THE "ADD TO TOP" CHECKBOX**, under the Ideas box on the Glass, and the harvest carries
+      the flag through so RANK sees it. **This is the half that removes HIM from the mechanism:**
+      every interrupt on 2026-09-02 required him to notice, interrupt and repeat himself.
+      ⚠ **ONE SLOT, NOT A QUEUE.** Ticking it on a second item must displace the first, deliberately.
+      **A gate fails the build on two.** An interrupt with a queue is just another backlog, which is
+      the fault this whole design removes.
+      ⚠ **AND IT MUST BE VISIBLE ON THE PAGE** — he must see what he pinned and whether it has been
+      taken. *An interrupt he cannot see is indistinguishable from one that was ignored*, which is
+      exactly what happened all night.
+      ✅ **STEP 4 IS BUILT — 2026-09-02T21:4xZ, `T-104`, commit `c8a475a6`, CEO 121.** It arrived as
+      his own later refinement (a BUTTON beside Send, not a checkbox under the box), and all three
+      constraints above hold: one slot enforced by the write on both sides, two pins fail the build
+      naming both, and the pin shows on the Ideas list the moment he taps and on the Tasks card once
+      a session carries it over. **Steps 1–3 are untouched, and step 3 is the one that matters next:
+      the Door still reads oldest-first, so there are still two orderings.**
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-084 — 2026-09-03 — BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **BUILD THE KIT-BEHIND DETECTOR — the half of `T-078` he asked for and nobody has
+      ⟨`T-084`⟩
+      built. It is UNBLOCKED as of 2026-09-02T13:5xZ and it was blocked by one missing flag.**
+      **His condition, in his own words:** *"DO NOT ALSO DELETE THE CHECK. Red-proof both ways: a
+      local edit must NOT fail; **a kit that has fallen behind must be reported**."* The first half
+      shipped and is gated (`vendor_lock_inverted_check.mjs`). **The second half does not exist** —
+      `vendor_check.mjs` currently prints, honestly, that it did NOT check whether claude-kit has
+      moved forward, on every path. That admission is a placeholder, not the answer.
+      **WHY IT WAS "IMPOSSIBLE" AND WHY IT IS NOT — read this before starting, it is the whole
+      story.** Three watches recorded a read of `C:\Users\wyatt\Projects\claude-kit` as REFUSED and
+      each concluded the kit was unreachable. **Wyatt was asked and ruled "yes" at
+      2026-09-02T12:39:56.363Z** (his RULED table, below) — and thirty-one minutes later a watch
+      still wrote *"THE HALF OF HIS SENTENCE THAT CANNOT BE BUILT HERE"* into a gate, because the
+      ruling had not been harvested. CEO 106 caught it. **A REFUSAL IS A PERMISSION SETTING, NOT A
+      FACT ABOUT THE WORLD.** The fence was `bell.ps1`'s launch line carrying no `--add-dir`; it now
+      carries one (commit `9c4edb48`, gated both ways in `bell_check.mjs`).
+      **SO THE FIRST WATCH THE BELL RINGS AFTER `9c4edb48` CAN READ THE KIT. Check that first** —
+      if the read is still refused, the ring predates the change or the kit is not beside the repo,
+      and the launcher's own log line now says `kit: readable` or `kit: not present`.
+      **Sizing: small-to-medium.** `install.sh check <repo> wyclau` already answers the question
+      from a tree holding both; the work is calling it (or hashing the kit's copies directly) and
+      reporting BEHIND as news, in the same four-kind vocabulary `vendor_check.mjs` now uses.
+      **Red-proof: a kit deliberately set one commit back must be REPORTED; a kit in step must
+      not be.** And case 6 of `vendor_lock_inverted_check.mjs` gets STRONGER when this lands — it
+      currently asserts only that the file admits it has not checked. Do not delete it; tighten it.
+      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-091 — 2026-09-03 — A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **A SESSION MUST READ THE RECORD BEFORE PUTTING A QUESTION TO HIM — I asked him something he
+      had already answered, twenty minutes after he answered it.** Filed 2026-09-02T16:3xZ.
+      **Sizing: this is a rule and a hook, not a feature.**
+      ⟨`T-091`⟩
+      **WHAT HAPPENED, with timestamps:** his answer was harvested at **12:21:40**. The Advisor put
+      the same question to him through the question UI at roughly **12:22**, and closed the item on
+      the second answer at **12:24:03**. **The answer was on disk before the question was asked.**
+      He had to decide the same thing twice and then work out why.
+      **THIS IS THE FAULT `DECISIONS.md` EXISTS TO PREVENT**, and the rulebook states it directly:
+      *"answer from them, never re-ask a settled question. A ruling he made that nobody harvested is
+      the failure this system exists to stop."* **The Advisor read neither the page nor
+      `BLOCKED ON WYATT` before asking.**
+      **THE MECHANICAL FIX, because a prose rule is what already failed here (Principle 2):** a
+      `PreToolUse` hook on `AskUserQuestion` that greps the question's own subject against
+      `.claude/memory/DECISIONS.md`, `## BLOCKED ON WYATT` and the live `glassState`, and **blocks
+      with the existing answer** when it finds one. **It must fail OPEN on an unreadable source** —
+      a hook that silently swallows a real question is worse than the double-ask it prevents.
+      **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
+      line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
+      thirty seconds and it would have caught this one.
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-093 — 2026-09-03 — ★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH. 2026-09-02. (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **★★★ ONE PROCESS EDITS THE CHART — HIS RULING, AND HE PUT IT ABOVE THE LAUNCH.** 2026-09-02.
+      ⟨`T-093`⟩
+      **HIS WORDS:** *"I want you to prioritize chartkeeper.mjs, we can't launch ANYTHING until the
+      chart is actually functioning -- this is nonsense, what's happening right now."*
+      **THIS OVERRIDES HIS EARLIER PRIORITY RULING** (*"the game wins any contested hour until it
+      launches"*, same day). He has looked at the result and reversed it: **the Chart is the
+      instrument he steers by, and a broken instrument makes every other priority unreliable.**
+
+      **WHAT IS ACTUALLY WRONG, measured today rather than asserted:**
+      - **Three sessions write `CHART.md`** — the Advisor, the Glass-update session, every watch —
+        and **git's smallest unit is the FILE.** So `close_item.mjs` staging the Chart for its own
+        sweep carries another session's uncommitted lines into its commit. **Five times in one
+        session.** `git add <path>` is no safer than `git add -A`; path precision cannot help.
+      - **The cost is a corrupted record, not lost work.** Commit `59f8b7a7` — *"watch closes his
+        black window"* — carries `T-090`, `T-091` and a card repair written by a different session.
+        `git log -S` for *"why does T-091 exist?"* answers with the wrong subject. **CEO 104 and 105
+        both flagged one-commit-two-jobs; this is the third instance.**
+      - **And rows go stale faster than anyone closes them** — the reaper has flagged **10** all
+        afternoon, unchanged, because one watch closes one item every 30–60 minutes.
+
+      **THE FIX HE CHOSE, and it is rule 23's own answer:** *what makes these two agree?* — **nothing
+      does, so make there be one.** Every writer goes through `chartkeeper.mjs`: it reads, edits and
+      commits the Chart, and no session hand-edits `CHART.md` again.
+
+      **WHAT THAT MEANS CONCRETELY, in the order it should be built:**
+      1. **A write API on `chartkeeper.mjs`** — add a row, close a row, mark GATED, retire a blocked
+         question — each one *read → modify → commit* in a single act, so no window exists for
+         another session to carry the edit. `close_item.mjs` already does exactly this for closing;
+         **it is the worked example and the pattern to copy, not to reinvent.**
+      2. **The Advisor, the Glass session and the Door all call it** instead of editing the file.
+      3. **A gate that fails when `CHART.md` changes in a commit that did not go through it** —
+         derivable from the commit's own touched-files, and the only thing that stops hand-editing
+         creeping back. Without it this is a convention, and Principle 2 says conventions fail here.
+
+      ⚠ **THE ONE THING TO GET RIGHT, because it is where this design can go wrong:** a single writer
+      must not become a single point of failure. **If `chartkeeper.mjs` refuses or crashes, a session
+      must still be able to record his words** — the Inbox is not the Chart and must stay
+      hand-writable, so a harvest is never blocked by a tool being broken. **Losing his words is
+      worse than a messy Chart.**
+
+      **SIZING, HONESTLY: MEDIUM, and larger than anything else currently open on this list.** The
+      API is small; the migration is every caller; the gate is the part that makes it stick.
+      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"Done -- I wrote about adding google analytics and firebase"** — ruled on the Glass 2026-09-02 5:45:23 PM ET — freed this row, and the work is still to do
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-094 — 2026-09-03 — ★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied. (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
+      His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
+      ⟨`T-094`⟩
+      **HIS WORDS:** *"what is being worked on RIGHT NOW? that needs to be visible just underneath
+      the emoji status."* Then: *"design a fix, get CEO's approval, then add it to the top of the
+      chart."* **Verdict: APPROVED WITH CHANGES — and the changes were not cosmetic.**
+      **BUILD IT THIS WAY — write the claim the way the CLOSE is already written.** `close_item.mjs`
+      appends a fixed machine-written line on close; the claim half is human prose. Make them
+      symmetrical: `publish_status.mjs` gains an **`## In hand`** block in
+      `.planning/wyclau/status/<machine>.md`, the same shape as the `## Long run in flight` block it
+      already writes — and `glass.mjs` already reads that file (`:614`). One more `split`.
+      **WHY NOT THE OBVIOUS VERSION (parse the ledger):** `.planning/CTO-LEDGER.md` has **15**
+      `### WATCH` headings and **exactly 4** match a parseable shape — the tidy ones are all from the
+      last two hours, and nothing prescribes the format. **A regex over that finds nothing this
+      morning and goes silent the first time a watch words its heading its own way.**
+      **FOUR STATES, and the fourth is the point:** in hand · nothing in hand · **⚠ claimed but
+      COLD** · unreadable. **A watch can claim and end without closing — that happened twice today,
+      deliberately** — so an open claim outliving its watch is normal, and must never read as
+      "being worked on right now". COLD is derived from a `staleAfterMinutes` the block declares
+      itself, exactly as the long-run block already does. **No new constant.**
+      **THE BOUND, HONESTLY:** a stale claim is NOT self-clearing within a Bell interval. Rings were
+      **40, 60, 50 and 30 minutes** apart today, and a watch can end having pushed nothing. **Up to
+      about an hour, unbounded when the Bell is not ringing** — which is why COLD is required.
+      ✅ **AND HIS ASK 2 IS ALREADY FIXED, BY ANOTHER ROUTE — do not build it here.** The browser
+      clock the first draft proposed **already exists** (`glass.mjs:900-930`, two clocks, since
+      2026-08-31). The clock was never the fault; a published page cannot see a commit made after it
+      was generated. **The Door's new step 6b closes it** — the watch now messages the Glass to
+      publish the moment it lands work.
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-105 — 2026-09-03 — ⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT (DISMISSED BY WYATT, second pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
+      BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
+      `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
+      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
+      **CEO 117 returned PARTIAL and its two corrections are already folded into the spec** — Layer
+      D was specifying something that already ships (`glass.mjs:1218`), and Layer A's "unknown" was
+      half answered in `glass.mjs:22-23`. **Read the spec, not this row's summary of it.**
+      ⟨`T-105`⟩
+      ⛔ **GATED: everything left is two writes inside `.claude/`, and FOUR sessions have now been
+      refused them — the fourth in a session Wyatt opened himself, which the record named as the
+      route that works.** Not actionable by a watch. **Delete this marker the moment either edit in
+      [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) has landed.**
+      ⚠ **THE MARKER IS THE FINDING OF THE 2026-09-03T02:09Z WATCH, so read this before deleting it.**
+      This row scored **196 — rank ONE — with the Chartkeeper printing *"nothing is blocking it"***,
+      because `chartkeeper.mjs:926` looks for a literal `GATED:` and this row never carried one.
+      **So the blocker was real, stated in three documents, and invisible to the one tool that
+      decides what a watch works on** — and under the new "take row one" ordering it sat at the top
+      handing every fresh watch the same wall. **A row blocked in prose is not blocked.** That is a
+      general fault, not a fact about this row: any row whose blocker is described rather than
+      marked will do the same thing. Filed as its own row below.
+      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
+      session looked. It is not evidence the page hasn't changed since. Your page carries its own
+      version number — that's the fact that can answer 'is a republish safe?', and a clock never
+      can."* **Identity, not a clock.**
+      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
+      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
+      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
+      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
+      republish, which regenerates the page from disk and drops `glassState`. **They survived by
+      luck of ordering, not by design.**
+      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
+      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
+      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
+      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
+      the **artifact version id**, not a time, and is compared immediately before publishing —
+      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
+      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
+      submits it**, so his words are never in only one place.
+      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
+      Do not let a smaller layer ship under that word.
+      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
+      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
+      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
+      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
+      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
+      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
+      a staleness judgement and a regeneration in between — **so even a perfect tick has a
+      multi-minute gap between the read and the destructive act.** Move the check to step 7.
+      ✅ **MEASURED 2026-09-02 4:58 PM ET, AND IT MAKES THIS ROW SMALLER — READ THIS BEFORE THE
+      SPEC.** The Layer A question this row called "the first move, a measurement not code" was run
+      on a DISPOSABLE artifact, never on the Glass, and **a stale republish was REFUSED**: *"a newer
+      version ... is live and this publish was not built on it."* A second gate surfaced unlooked-for
+      — the peer's own publish was refused for never having viewed the live version. **Two
+      enforcement points; his invariant is already in the runtime.**
+      ⚠ **SO THE ROW'S OWN ACCEPTANCE-TEST STORY OVERSTATED THE DANGER, AND THAT IS CORRECTED
+      RATHER THAN QUIETLY DROPPED:** the 3:07 PM sequence could not have destroyed his ideas
+      silently — that publish would have been refused. **A hazard was reported as a near-miss
+      without anyone measuring the protection.** What still stands is that the harvest stamp is a
+      clock and cannot answer the question; it was simply never the last line of defence.
+      **WHAT IS ACTUALLY LEFT, in order:** (1) **Layer A = ONE GATE** that fails the build on `force`
+      near a Glass publish — the runbook already says "NEVER PASS `force`"
+      (`GLASS-UPDATE-SESSION.md:222-230`) and nothing enforces it, and a sentence is what failed
+      here; (2) Layer B drops to a convenience, still delete `FRESH_MIN`; (3) **the residual exposure
+      MOVED to the MERGE** — the tool hands back the live source to merge, and a careless merge can
+      still drop his words, visibly rather than silently. Aim C and D there.
+      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
+
+      ---
+      **⚑ WORKED 2026-09-02T21:0xZ, CEO 120 (PARTIAL), commit `cd3bd96b`. NOT CLOSED, AND THE
+      REASON IS NOT THE EVIDENCE — HALF THE FIX IS BEHIND A PERMISSION A WATCH MAY NOT GRANT
+      ITSELF.**
+      **WHAT SHIPPED:** the harvest stamp stops being a clock. `scripts/wyclau/mark_glass_harvest.mjs`
+      writes a receipt naming the artifact VERSION that was read and refuses a versionless stamp;
+      `GLASS-UPDATE-SESSION.md` gains **step 6b — re-read the live page and compare the version in
+      the same breath as the publish** (the spec's §3 says moving the guard there matters more than
+      fixing the stamp), and step 7 forbids `force`. A derived gate over **11 instruction files**
+      fails the build if any of them ever teaches a forced publish or a hand-written stamp.
+      **WHAT IS BLOCKED, AND IT IS THE HALF THAT MAKES IT MECHANICAL:** the hook still decides on
+      `FRESH_MIN = 30`, and its own deny text still prints the retired `date -u … > ${STAMP}` at the
+      one moment that fires immediately before the destructive act. Three invariants were written
+      FIRST and went **RED** against it — a bare timestamp accepted, a receipt denied for being old,
+      a forced publish allowed. **The fix is two files in `.claude/`, and every write there is
+      refused for an unattended watch** ("sensitive file" / "requested permissions to write").
+      Measured, not assumed: `.claude/hooks/glass-harvest-first.cjs` AND
+      `.claude/skills/door/SKILL.md` were both attempted and both refused. **So the wall is
+      `.claude/` entirely — hooks, skills and `settings.json` — which is a standing fact about every
+      future item whose fix lands there.**
+      **THE THREE RED CASES ARE NOT DELETED AND NOT LEFT RED.** They sit in a PENDING block in
+      `scripts/qa/glass_harvest_hook_check.mjs` that reports the live state on every `npm test` and
+      **FAILS THE MOMENT THE HOOK IS REPAIRED**, so the exemption cannot outlive its reason.
+      ⚠ **AND THE HONEST HEADLINE: HIS WORDS CAN STILL BE LOST.** `artifactVersion` has no machine
+      reader yet — the only thing that compares it is a session obeying the runbook. Layers C and D
+      are not built, and **the acceptance test in the spec's §2 is not passed.**
+      ⚠ **CEO 120's sharpest finding, recorded because it is the cheapest thing left:** the row's own
+      first line says *measure before building*, and no live measurement was made. **If the platform
+      really does conflict, most of layer B is hardening rather than the fix; if it does not, layer A
+      is worthless and B is mandatory.** One test settles it — type an idea into the page, then
+      publish from a session that read it beforehand, and record what comes back.
+      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
+      [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
+
+      ---
+      ⚑⚑ **2026-09-02T23:4xZ — YOUR PERMISSION DOES NOT REACH THIS WALL, AND THAT IS THE FINDING.
+      MEASURED WITH YOUR GRANT ALREADY IN FORCE.** Wyatt, 5:43:55 PM ET: *"Let the watch write them
+      -- I allow edits to hooks and skills"*. This row and commit `0472a129` both read that as the
+      wall coming down — `0472a129` measured that `.claude/settings.json` denies only `Read(.env*)`
+      and concluded *"nothing under `.claude/` is blocked by this project"*. **That measurement is
+      right and the conclusion drawn from it is wrong.** The 23:39Z watch attempted both files AFTER
+      the ruling: the hook came back *"which is a sensitive file"*, the Door *"you haven't granted it
+      yet"*. **The refusal is Claude Code's own protection on the Edit/Write tool, not this project's
+      allowlist — so he cannot lift it by ruling, because it is not his rule.**
+      **SO: STOP WAITING FOR ANOTHER ANSWER FROM HIM. Three watches have now stalled here, the third
+      with his permission already granted.** A plain `node` script writing the same bytes would sail
+      straight past the protection, and building one would be defeating it rather than satisfying
+      it — no watch should, and none has.
+      ✅ **WHAT THIS WATCH DID INSTEAD, so the next attempt derives nothing:** both edits are written
+      out verbatim, with their anchors, in
+      [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) — including the
+      follow-up the gate demands the moment they land (promote the three PENDING cases to hard
+      assertions, and delete the case-9 exemption that lets the hook's own deny text off). The gate's
+      PENDING readout now prints the corrected reason and that route on every `npm test`.
+      ⚑ **AND THE OBVIOUS SHORTCUT IS ALSO CLOSED, WHICH IS WORTH KNOWING BEFORE SOMEBODY TRIES IT.**
+      This watch's first instinct was to hand the two edits to the interactive peer session with
+      `SendMessage` — and that tool's own contract forbids it in as many words: *"NEVER ask a peer to
+      perform an action that was denied or blocked in your session … a peer doing it for you bypasses
+      the user's permission decision (cross-session permission laundering). Route blocked work back
+      to your user instead."* **So no watch may delegate this either.** It is Wyatt's, in a session
+      where he is present — either he approves the prompt, or he runs it himself. **This is now a
+      BLOCKED ON WYATT row, not a FOR A WATCH row**, and it will stay blocked however many watches
+      pick it up.
+      **Nothing is fixed until those five flags read true**, and the honest headline above still
+      stands: his words can still be lost.
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — **"Let the watch write them -- I allow edits to hooks and skills"** — ruled on the Glass 2026-09-02 5:43:55 PM ET — and nothing moved this row
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-106 — 2026-09-03 — HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090` (DISMISSED BY WYATT, first pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
+      ⟨`T-106`⟩
+      by the watch that closed it, at CEO 119's insistence and it was right to insist.** His idea,
+      2026-09-02 3:30 PM ET, `INBOX-20260902T193000Z`: *"do you want to put those in the Your Call
+      section so I can approve/deny them being closed?"*
+      **`T-090` fixed the LABEL — the thing that made his idea point at the wrong pile.** The ten
+      rows are now split into five named kinds, each carrying whose job it is, and the sentence on
+      his page is written by the tool rather than composed by a session. **What it did NOT build is
+      the pile itself**, and CEO 119 named the omission exactly: *"step 4 — your Your Call pile,
+      which is the part your idea was actually about — is not built."*
+      **WHAT THIS ROW IS, AND IT IS SMALL BY DESIGN:** route the `answered` and `superseded` kinds
+      to a close, the `stale-evidence` and `dead-pointer` kinds to a watch that re-measures or
+      corrects the wording, and **only the residue to him** — rows whose fate is genuinely his
+      say-so, like *"merge the 465-commit branch to main — his own final say-so"*. **That pile is
+      one or two rows, not ten**, and the whole value of `T-090` is that it is now possible to tell
+      which two.
+      ⚠ **DO NOT SEND HIM THE STALE-EVIDENCE ROWS.** Handing him *"is this still broken?"* is
+      handing him our homework — he cannot know from a phone whether a trade circle still clips a
+      captain's name, and that is seven of the nine. **And never the `answered` ones**: he already
+      answered those, and re-asking is the exact fault he was furious about at 1:38 PM.
+      ⚑ **HE RULED ON THE TAP ITSELF AT 3:33 PM ET, QUESTION UI, AND CHOSE AGAINST THE MARKED
+      RECOMMENDATION — WHICH IS EXACTLY WHY THIS PARAGRAPH EXISTS.** *"Your tap queues it, a watch
+      closes it."* **His approval MARKS the row; it does not close it.** The next watch takes the
+      marked row through the normal gate — a fresh reviewer's verdict plus evidence — before it
+      leaves his list. The recommendation he rejected was that his tap close the row outright, on
+      the reasoning that nobody outranks him on *"is this finished from my side"*. **He chose the
+      stronger record over the faster page.** (`DECISIONS.md`, 2026-09-02 3:33 PM; commit `3602c85a`.)
+      ⚠ **THE COST IS REAL, HE TOOK IT KNOWINGLY, AND IT MUST NOT BE "IMPROVED" AWAY:** a row he has
+      approved **stays on his page until a watch runs** — the very delay he was frustrated by all
+      day. He was shown that trade in the question and passed over the fast option. **Do not upgrade
+      his tap to an immediate close because a session judges the wait too long.** If it bites him,
+      the option he declined (close now, a watch audits after) is on the record and he can call for
+      it. **This is his decision to revisit, not ours.**
+      ⚠ **AND THE WATCH THAT BUILT `T-090` COULD NOT HAVE SEEN EITHER RULING — they were made at
+      3:33 PM and sat uncommitted in the Advisor's tree until 4:52 PM, while `7c5cf6a2` landed at
+      4:31 PM.** Nothing was lost, but it is the third instance today of the same shape: **a decision
+      that exists only in a session's working tree is a decision no other session can obey.** Commit
+      his words the moment he says them.
+      **Sizing: `chartkeeper.mjs`'s routing plus `glass.mjs`'s Your Call card. No game code, no sea
+      trial.** Also folds in `T-090`'s step 3, which shipped as a printed OWNER and not as anything
+      that routes — CEO 119: *"nothing re-measures, nothing closes, nothing asks him."*
+
+*Rows tagged **Your ruling:** are his own decisions, triaged out of the RULED waiting room below
+(2026-09-01, INBOX-20260901T1310Z). The tag is how he tells his own call from a row somebody else
+wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
+
+## T-127 — 2026-09-03 — THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ (DISMISSED BY WYATT, second pass, on the backlog page 2026-09-02 — not completed, not abandoned by a session)
+
+- [x] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
+      ⟨`T-127`⟩
+      ⚠ **RENUMBERED `T-088` → `T-127`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-088`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-088` still resolves in `CHART-LOG.md` and in git history.
+      by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
+      hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
+      **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
+      *"the seat wyatt actually playtests"* (row 10), *"a character of wyatt's own text"* (row 20),
+      *"git stages whole files"* row (25), and the section name itself as *"blocked on wyatt"*
+      (row 2). **WHY:** `shortTask()` sentence-cases any run of two or more all-caps words, and
+      watches write row titles in capitals for emphasis — so `WYATT` inside a shouting run is
+      lowercased along with everything else. The rule has no notion of a proper noun.
+      **The existing carve-outs are the shape to follow and they are already derived rather than
+      listed** — a lone all-caps word is a name, a token carrying a digit is an identifier, a lone
+      `I` is a fact about English. His own name is the same kind of fact. ⚠ **Do not "fix" it with a
+      list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
+      holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
+      **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
+      ⚠ **DISMISSED BY HIM, NOT DONE.** Recovered from 95eee372 and filed 2026-09-03T06:2xZ at CEO 148, which
+      found it among 16 handles owned by no row anywhere. His act is recorded in `.planning/wyclau/INBOX.md` — "HE DISMISSED 15 OF 44".
