@@ -1,8 +1,32 @@
 # PENDING CLAUDE-KIT PATCHES — changes this repo needs that only the Mac can make
 
 *The wyclau tooling in `scripts/wyclau/` and `.claude/skills/door/SKILL.md` is VENDORED from
-claude-kit (see `.claude/wyclau/VENDORED-FROM`). `scripts/qa/vendor_check.mjs` fails the build on
-any edit to those files here, correctly — the kit is the source and it lives on Wyatt's MacBook.*
+claude-kit (see `.claude/wyclau/VENDORED-FROM`).*
+
+> ### ⛔ THE SENTENCE THAT USED TO BE HERE IS FALSE, AND IT WAS PARKING FIXES NOBODY NEEDED TO PARK.
+>
+> It read: *"`scripts/qa/vendor_check.mjs` **fails the build** on any edit to those files here,
+> correctly — the kit is the source and it lives on Wyatt's MacBook."*
+>
+> **It does not fail. It passes, by design, and says so in its own verdict.** Run today:
+> `PASSED (with drift) — 8 ahead, 0 deleted, 0 stray`, listing `scripts/wyclau/close_item.mjs`
+> among the files ahead of the kit, with the words *"That is the system working: the project owns
+> its copy… Do NOT revert them."* **Wyatt's ruling inverted the lock** — the project copy is the
+> truth and the check WARNS rather than blocking.
+>
+> **What that false sentence cost:** every row touching a vendored tool carried a paragraph saying
+> the fix could not land here, so watches parked repairs they were allowed to make. `T-097` — a
+> gate that shredded his INBOX — carried exactly that caveat while `vendor_check` was quietly
+> green on the same file.
+>
+> ⚠ **AND IT IS CEO 138'S FINDING IN A SECOND PLACE:** filing the right answer while a
+> contradicting record stays findable is not a fix. The ruling was recorded; *this* file went on
+> asserting the opposite, and this file is the one a watch reads when it is deciding whether to
+> park. **Corrected 2026-09-03, found by CEO 140.**
+>
+> **What is still true:** the kit is the upstream, edits here are DRIFT that a back-port pass
+> should carry home, and the file headers still say *"edit THERE, not here"* — which is guidance
+> about where a change belongs, not a gate that stops you.
 
 > ### ⚠ THE STRUCTURAL PROBLEM THIS FILE EXISTS TO MAKE VISIBLE
 >

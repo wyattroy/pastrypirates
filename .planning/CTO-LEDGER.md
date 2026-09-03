@@ -6889,3 +6889,5 @@ not rank. **Not mine to fix tonight — one item per watch — but it should be 
 says NOT `--sweep`". Read on disk, the Door **does** carry the corrected sweep instruction — the
 gate is matching the phrase inside the very paragraph that corrects it, so the REPORT is now a
 false positive, and the gate's own suggestion ("turn this into a fail()") would fail a healthy tree.
+
+- 2026-09-03T04:19:27Z · close_item: "T-097" · CEO 140 · no game diff — all three replacement sites now pass a function, so no word of his can be read as an instruction; the row's own s-flag fix was measured destructive and deliberately not taken · no stated solution

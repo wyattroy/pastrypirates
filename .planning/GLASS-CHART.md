@@ -105,7 +105,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-- [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
+- [x] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL (closed 2026-09-03 · CEO 140 · no game diff — all three replacement sites now pass a function, so no word of his can be read as an instruction; the row's own s-flag fix was measured destructive and deliberately not taken)
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:
       `close_item.mjs:152` and `:158` call `String.replace` with the rewritten section as the
@@ -119,6 +119,26 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       payload yields `"HEAD\nX HEAD\n Y\nTAIL"`; the same call with `() => payload` yields the literal.
       **THE FIX IS ONE CHARACTER CLASS: pass a replacer FUNCTION at both call sites.** After that no
       INBOX text can ever be read as an instruction.
+      ⚠ **THREE CORRECTIONS TO THIS ROW, MADE WHILE FIXING IT 2026-09-03T04:2xZ. Read them before
+      the prose above.**
+      1. **THERE WERE THREE CALL SITES, NOT TWO.** The row missed the CHART branch, which built its
+         replacement out of the row's own text — so a dollar sequence in a *Chart* row spliced the
+         Chart's header into itself exactly as the INBOX bug did. CEO 140 confirmed it live, and
+         then found the worse half: **fixing that site is not the same as guarding it.** It
+         reintroduced the string form there alone and *every one of the new cases stayed green.*
+         There is now a Chart-branch case, red-proofed against exactly that mutant.
+      2. **THE LINE NUMBERS MOVED:** the sites are `close_item.mjs:214-221`, not `:152-158`.
+      3. ⛔ **THE `s`-FLAG FIX THIS ROW PRESCRIBES IS DESTRUCTIVE — MEASURED, NOT ARGUED.** With `s`,
+         `.` eats newlines and greedy `.*` runs to the end of the entry, so `/^status:.*$/ms`
+         replaces the status line **and every line below it**. Against a block with a two-line
+         `status:` and prose beneath, it yields `"## INBOX-1\nstatus: DONE"` — the prose **deleted**.
+         `INBOX.md:74` records a real four-line `status:` repaired by hand, so **applied to that
+         entry this row's own fix would have destroyed his words.** Shipped instead: a BOUNDED match
+         that stops at the first blank line or heading, with a permanent case that goes red against
+         the `s`-flag version so nobody can "fix" it that way later.
+         *(Known limit, latent not live: the bounded form would swallow prose that follows the
+         status block with NO blank line between. Every `status:` in the real INBOX is
+         blank-line-terminated, so it cannot bite today.)*
       ⚠ **WHY THIS IS NOT A CURIOSITY: THE INBOX IS THE ONE FILE THAT HOLDS HIS WORDS VERBATIM.**
       A "$5 bug bounty", a price, a shell snippet, `$foo` in a bug report — any of those in an item of
       his corrupts the record at the exact moment that item is closed. **And the same line has a

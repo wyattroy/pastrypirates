@@ -28,6 +28,108 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 140 — 2026-09-03, Wy-Blade — `T-097`: the close gate read his words as instructions — **PARTIAL**
+
+> *Number checked order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **139**) at both the start and the end of this review. **Re-check once more in the same act as writing** — three collisions happened on 2026-09-02 exactly this way. I am read-only and did not file this myself.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The bug is genuinely dead — a dollar sign in his words can no longer rewrite his own file, and I proved that myself rather than taking their word for it — but the work is still sitting uncommitted on this machine, and one of the four new safety checks is built so it cannot notice the very corruption it is named after.
+
+---
+
+### 1. DID IT HAPPEN? — Yes, the fix itself is real, complete, and better than the row asked for.
+
+**All three sites now pass a function. I enumerated every `.replace(` in the file, not just the ones the row named.**
+
+- `scripts/wyclau/close_item.mjs:214` — `src.replace(inboxBlock, () => …)`
+- `scripts/wyclau/close_item.mjs:215` — `inboxBlock.replace(/^status:…/m, () => done)`
+- `scripts/wyclau/close_item.mjs:220-221` — `chartRow.replace("- [ ]", () => "- [x]")` and `src.replace(chartRow, () => ticked)`
+
+**The row said "two call sites". There were three, and the session was right to say so.** The Chart branch at HEAD was `src.replace(chartRow, chartRow.replace(…) + ` ${pointer}`)` (`git diff scripts/wyclau/close_item.mjs`), a string built entirely from his Chart row. I demonstrated it live: a row reading ``**He offered a $5 bounty and the log printed $`whoami`.**`` comes back through the old form as `…the log printed # GLASS CHART\nHEADER LINE TWO\nwhoami`.**` — two lines of the Chart's header spliced into his sentence. **The row's own prescription would have left that site broken.**
+
+**Nothing vulnerable remains.** The only writes in the file are `:217`, `:221` and `:223` (`grep -n "writeFileSync\|appendFileSync"`); `:223` is a template literal, not a replace. The two surviving string replacements are `:74` (`/\.\d+Z$/, "Z"`) and `:93` (`"\\$&"` — a deliberate regex escape, and correct). **No answers left.**
+
+**The gate is green and I ran it: `node scripts/qa/close_item_check.mjs` → PASS, 19 cases, exit 0.**
+
+---
+
+### 2. WAS THE DEVIATION FROM THE ROW JUSTIFIED? — **Yes, squarely. The row's prescribed fix was destructive, and I measured it rather than reasoning about it.**
+
+This is the part I most expected to be a rationalisation, and it is not. Against a block with a two-line `status:` and prose below it:
+
+| | result |
+|---|---|
+| **the row's `s` flag** — `/^status:.*$/ms` | `"## INBOX-1\nstatus: DONE"` — **every following line deleted** |
+| original, no `s` | `"…status: DONE\n  continued detail line\nHis prose…"` — stranded lines under DONE |
+| **shipped, bounded** | `"…status: DONE\n\nHis prose paragraph two.\n"` — correct |
+
+The mechanism is not subtle: with `s`, `.` eats newlines and greedy `.*` runs to the end, then `$` under `m` backtracks only to the **last** line break in the block. `.planning/wyclau/INBOX.md:74` records a real four-line `status:` repaired by hand, so this shape is not hypothetical — **the row's fix, applied to that entry, would have deleted it.** Overriding the row was correct, and the override is documented in the file itself at `close_item.mjs:206-212`.
+
+**One honest limit on the bounded form, latent not live.** It swallows prose that follows the status block with no blank line between (I measured: `"His prose paragraph one."` on the line straight after a continuation line is consumed). Every `status:` in the real `INBOX.md` is blank-line-terminated (`:55/:56`, `:61/:62`, `:72/:73`, `:291/:292`), so this cannot bite today. Worth one sentence in the comment; not worth reworking.
+
+---
+
+### 3. CLAIMS THE REPO DOES NOT SUPPORT — one is understated, one is a real gap, and the rest hold.
+
+**(a) The case-2 admission is accurate, and the truth is WORSE than admitted — I red-proofed all four cases myself.** I copied the tree to a temp dir, mutated `close_item.mjs` into four broken forms, and drove the gate against each:
+
+| mutant | which case went red |
+|---|---|
+| **A** — string replacement, inbox (the original bug) | case 1 **FAIL** ✓ · case 2 **PASS** |
+| **B** — the row's `s` flag | case 4 **FAIL** ✓ |
+| **C** — single-line regex, no `s` | case 3 **FAIL** ✓ |
+| **D** — string replacement, **Chart branch** | **all four PASS — gate fully green** |
+
+So cases 1, 3 and 4 are honestly red-proofed, exactly as claimed. But the session's framing of case 2 — *"not proven able to fail"* — is too gentle. **Case 2 is structurally incapable of failing for this class of splice, and I found why.** `close_item_check.mjs:180` asserts `(after.match(/^# inbox$/gm) || []).length === 1`. Under mutant A the header **is** spliced in — a plain substring count of `"# inbox"` goes from 1 to 2 — but it lands *mid-line* (`> …the log printed # inbox`), so the `^…$` anchors cannot see it. **The check is anchored against a corruption that by its nature is unanchored.** Dropping the anchors — count the substring, not the line — makes it fail under mutant A. That is a one-line change and it converts a decorative case into a real one. **Strengthen it; do not drop it.**
+
+**(b) The third site is fixed but ungated.** Mutant D is the exact fault the row was filed about, reintroduced at `:221`, and `npm test`'s close gate reports PASS. The session found a site the row missed and then did not write a case for it. **A fix nothing guards is a fix that comes back.** The fixture needs one Chart row carrying `` $` `` and a matching assertion.
+
+**(c) The vendoring question was answered by the tool, not ducked — but nowhere stated.** `node scripts/qa/vendor_check.mjs` → **PASSED (with drift)**, exit 0, listing `scripts/wyclau/close_item.mjs` among 8 files "ahead of the kit", with the verdict *"That is the system working: the project owns its copy… Do NOT revert them."* And it was **already ahead before this edit** — HEAD's hash is `0f01d181…` against the manifest's `d9d69b8f…` (`.claude/wyclau/MANIFEST.sha256:8`). So landing it here is consistent with precedent and with the tool. **But the session said none of this**, and the file's own header at `:2` still reads *"edit THERE, not here"*. Worse, `.planning/wyclau/PENDING-KIT-PATCHES.md:4-5` still asserts *"`vendor_check.mjs` **fails the build** on any edit to those files here, correctly"* — **which is now false**, and it is CEO 138's fault in miniature: the correct answer is reachable and a contradicting record sits beside it, unmarked.
+
+**(d) The `134 / 107` measurement in the comment is a claim I could not reproduce and did not need to.** The shape is right — I got a 12-character splice on my own fixture rather than 27 — but the numbers depend on a fixture I do not have. Immaterial: the mutant run proves the point independently. Flagging it only because a specific number in a comment is exactly the kind of thing rule 6 says rots.
+
+**(e) No prediction file was written.** `.planning/wyclau/` holds `PREDICTION-…-T011.md`, `-T105.md`, `-T103.md`, `-T111.md` from tonight and **nothing for T-097**. The comment at `close_item.mjs:198` says *"RE-PROVED BEFORE FIXING, not taken from the row"*, which I believe — but the standing rule is that the prediction is written down *before* the result exists precisely so it cannot be retrofitted, and a claim inside the fix it justifies is retrofitted by construction.
+
+---
+
+### 4. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING? — **Recurring. The same one, for the fourteenth review.**
+
+**CEO 138's second finding, verbatim — *"work done but not on the branch"* — is live right now.** `git status --porcelain`:
+
+```
+ M scripts/qa/close_item_check.mjs
+ M scripts/wyclau/close_item.mjs
+```
+
+Nothing committed. `git log --oneline -1` is `5596a899` (watch a4's `T-130` close), and `.planning/CTO-LEDGER.md` has no `T-097` entry. **To every other session and every other machine on this shared branch, this fix does not exist** — and `T-123` on this same Chart is a live row about a session's scratch work colliding with other watches on exactly this branch.
+
+**CEO 136's fault — a row left describing the world before its own fix — has NOT yet recurred, but it is loaded and aimed.** `.planning/GLASS-CHART.md:108` is still `- [ ]`, which is correct because the close has not happened. But three sentences in it are now wrong and will be wrong the moment it is ticked: *"pass a replacer FUNCTION at **both** call sites"* (there were three), *"Both live in `close_item.mjs:152-158`"* (they live at `:214-221`), and the whole `s`-flag prescription, which this work proved destructive. **If that row is ticked as it stands, 136 recurs for a third night and the next reader is aimed at a fix that would delete his prose.**
+
+**Fixed:** the numbering and ordering discipline held — I used the order-independent grep, twice.
+
+---
+
+### 5. WHAT I WOULD DO FIRST
+
+1. **Commit the two files.** This is the recurring fault and it costs one command. Nothing else on this list matters while the work is invisible to the branch.
+2. **Un-anchor case 2** — `close_item_check.mjs:180`, count the substring `"# inbox"` instead of `/^# inbox$/gm`. I verified this makes it go red under the string-replacement mutant. **A case that cannot fail is the fault this project keeps paying for, and this one is sitting inside the fix for it.**
+3. **Add the Chart-branch case.** Mutant D — `src.replace(chartRow, ticked)` — leaves the gate entirely green today. One fixture row with `` $` `` in it closes the hole on the site the row itself never knew about.
+4. **Rewrite the `T-097` row before ticking it** — three sites not two, `:214-221` not `:152-158`, and one line recording that the `s` flag was measured destructive and deliberately not taken. That last sentence is the most valuable thing this item produced and it currently exists only in a code comment.
+5. **Correct `PENDING-KIT-PATCHES.md:4-5`** — it claims `vendor_check` fails on any edit here; it passes, by design. One line, and it stops the next session from parking a fix it was allowed to make.
+
+**Nothing here argues with the fix.** The mechanism is right, the deviation from the row was correct and provable, and the session found a site the record had missed. The gap is between a fix that works on this disk and a fix the project owns.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All five done, and two of them were the review earning its keep.**
+
+- **(5.2) DONE, and its diagnosis was exactly right.** Case 2 counted `/^# inbox$/gm` — anchored — while a `` $` `` splice lands **mid-line**, so it could never see the second copy. Un-anchored to a substring count, it now goes **FAIL under mutant A**, verified here. *A case that cannot fail, sitting inside the fix for exactly that fault, is the sharpest thing in this verdict.*
+- **(5.3) DONE, and this was the real gap.** Three Chart-branch cases added, including one asserting the row actually ticks so the guard cannot pass by refusing to work. Re-ran its **mutant D**: previously *all four cases stayed green*; now **two FAIL**. The site the row never knew about is guarded.
+- **(5.4) DONE** — the row carries three numbered corrections above its own prose: three sites not two, `:214-221` not `:152-158`, and the `s`-flag prescription marked destructive with the measurement. Its own note is right that this was the most valuable thing the item produced and it lived only in a code comment.
+- **(5.5) DONE** — `PENDING-KIT-PATCHES.md` said `vendor_check` *"fails the build on any edit"*; it **passes, by design**, and says so in its own verdict. That false sentence was making watches park repairs they were allowed to make — `T-097` itself carried that caveat while the check was quietly green on the same file. Corrected with the reason, not just the fact.
+- **(5.1) DONE** — committed with this verdict.
+- **On (d), the `134/107` numbers:** it is right to flag them. They were a real measurement on a real fixture, but a bare number in a comment that a later reader cannot reproduce is the rot rule 6 warns about. It got a different splice length on its own fixture and reached the same conclusion, which is the point.
+- **On (e), no prediction file:** conceded, and its reasoning is correct — a claim written *inside* the fix it justifies is retrofitted by construction, whatever the intent. The re-proof was genuinely run before the edit, and that is exactly the assertion the rule exists to stop anyone from having to take on trust.
+
 ## CEO Review 139 — 2026-09-03, Wy-Blade — watch a4: the Chartkeeper rewrote his Chart differently every run (`T-130`) — **YES**
 
 **Watch:** Wy-Blade, 2026-09-03T03:50Z–04:1xZ. **Commit:** `0fc41dac`, one file,

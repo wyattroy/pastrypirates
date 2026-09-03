@@ -184,15 +184,41 @@ if (solutionLine) {
 /* All evidence present — write the tick, the fate, and the ledger entry TOGETHER. */
 const stampShort = nowIso.slice(0, 10);
 const pointer = `(closed ${stampShort} · CEO ${ceoN} · ${closeEvidence}${solutionLine ? ` · ${solutionEvidence}` : ""})`;
+/* ⛔ EVERY `replace` BELOW PASSES A FUNCTION, AND THAT IS NOT A STYLE CHOICE — IT IS THE WHOLE FIX
+ * FOR `T-097`. A replacement STRING is not inert: JavaScript reads `$&`, `` $` ``, `$'` and `$1` in
+ * it as commands. Every replacement here is built out of the INBOX or the Chart — **the two files
+ * that hold Wyatt's words verbatim** — so a dollar sequence anywhere in his text was executed
+ * against his own file at the moment the item closed.
+ *
+ * IT HAPPENED. 2026-09-02T18:3xZ: an entry quoted this gate's own regex, so it contained a dollar
+ * followed by a backtick — *"insert everything before the match"* — and the gate spliced the file's
+ * first 34 lines into the middle of the entry, **exited 0, and printed `CLOSED`**. Repaired by hand
+ * the same minute, and only survivable because a `` $` `` duplicates rather than deletes.
+ *
+ * RE-PROVED BEFORE FIXING, not taken from the row: the same shapes with a `$5` and a `` $` `` in
+ * his text give 134 characters through a string replacement and 107 through a function — 27
+ * characters of the file's header spliced into his sentence.
+ *
+ * A `$5 bug bounty`, a price, a shell snippet, `$foo` in a bug report: any of them, in any item of
+ * his, at the moment it is closed. **A function replacement cannot be interpreted, ever.** */
 if (isInbox) {
   const src = read(INBOX);
-  const updated = src.replace(inboxBlock,
-    inboxBlock.replace(/^status:.*$/m, `status: DONE ${stampShort} — CEO ${ceoN}, ${closeEvidence}${solutionLine ? `; ${solutionEvidence}` : ""}`));
+  const done = `status: DONE ${stampShort} — CEO ${ceoN}, ${closeEvidence}${solutionLine ? `; ${solutionEvidence}` : ""}`;
+  /* ⚠ AND THE STATUS BLOCK CAN RUN ACROSS SEVERAL LINES — the second fault on this row, and the
+   * naive repair for it is worse than the bug. `/^status:.*$/m` replaces only the first line and
+   * leaves the remainder stranded under a line reading DONE: WRONG, but visible and additive.
+   * Adding the `s` flag — which is what the row proposed — makes `.*` run to the END OF THE ENTRY
+   * and DELETE his prose. So the match is BOUNDED instead: the status line plus any following
+   * lines, stopping at the first blank line or heading. One real entry has already had a
+   * four-line `status:` repaired by hand, so this shape is not hypothetical. */
+  const updated = src.replace(inboxBlock, () =>
+    inboxBlock.replace(/^status:[^\n]*(?:\n(?!\s*$|#)[^\n]*)*/m, () => done));
   if (updated === src) refuse(`could not update the status line of ${item}`, "the entry has no 'status:' line — fix the entry format first");
   fs.writeFileSync(INBOX, updated);
 } else {
   const src = read(CHART);
-  fs.writeFileSync(CHART, src.replace(chartRow, chartRow.replace("- [ ]", "- [x]") + ` ${pointer}`));
+  const ticked = chartRow.replace("- [ ]", () => "- [x]") + ` ${pointer}`;
+  fs.writeFileSync(CHART, src.replace(chartRow, () => ticked));
 }
 fs.appendFileSync(LEDGER,
   `\n- ${nowIso} · close_item: ${isInbox ? item : `"${item.slice(0, 60)}"`} · CEO ${ceoN} · ${closeEvidence} · ${solutionEvidence}${args.summary ? ` · ${String(args.summary)}` : ""}\n`);
