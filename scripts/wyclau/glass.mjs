@@ -515,6 +515,28 @@ if (chart !== null) {
         ? `⚡ DO NOW — ${shortTask(titleOf(c.lines))}`
         : shortTask(titleOf(c.lines)),
       handle: idOfRow(c.lines),
+      /* ⚑ THE ROW'S OWN BODY — his ask, 2026-09-02: "expandable rows" for fuller context.
+       *
+       * Until now the page showed ONE truncated line per row and the reasoning lived only in the
+       * repo. That is the gap he was describing: he steers by this list, and a list that cannot
+       * say WHY a row exists makes him open a file to find out — which on a phone he cannot do.
+       *
+       * The handle line is dropped (it is already rendered as the drag identity) and the rest is
+       * kept verbatim, because the body IS the graveyard — what was tried, what was measured, what
+       * a number cost somebody (rule 10). Summarising it here would burn exactly what it is for.
+       *
+       * CAPPED, and the cap is honest rather than silent: a few of these rows run past a hundred
+       * lines, and the whole page is embedded in one artifact. It is truncated at 2000 characters
+       * with a line saying so and naming the file, so he is never shown a fragment that reads
+       * complete. */
+      detail: (() => {
+        const body = c.lines.slice(1)
+          .filter((l) => !/^\s*⟨[^⟩]*⟩\s*$/.test(l))
+          .join("\n").replace(/\s+$/, "");
+        return body.length > 2000
+          ? `${body.slice(0, 2000)}\n\n… truncated here — the rest of this row is in .planning/GLASS-CHART.md`
+          : body;
+      })(),
     }));
   /* ⚠ A HANDLE CARRIED BY TWO OPEN ROWS CANNOT BE DRAGGED, AND THIS IS NOT A DETAIL — IT IS WHAT
      MADE THE FIRST VERSION OF THE DRAG INERT ON HIS REAL CHART. CEO 131 measured it: the page saved
@@ -531,6 +553,7 @@ if (chart !== null) {
   const openChecklist = checklistRows.map((r) => ({
     text: r.text,
     handle: r.handle && handleCount.get(r.handle) === 1 ? r.handle : null,
+    detail: r.detail,
   }));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
      SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
@@ -602,7 +625,7 @@ if (chart !== null) {
   /* An idea in the inbox has no Chart row yet, so it has no handle and nothing could carry an
      `order:` for it. It is still shown — he steers by this list — but it is not draggable, and the
      page says so rather than letting him move something that would silently snap back. */
-  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t), handle: null }))];
+  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t), handle: null, detail: "" }))];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
@@ -861,8 +884,14 @@ const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, long
      `ideas` starts empty and `rulings` starts `{}`: this script cannot read the artifact, so a
      republish without a harvest would carry a stale order forward as though he had just made it.
      The harvest contract covers all three — read the live page, take `ideas`, `rulings` AND
-     `order`, act on them, then regenerate. */
-  ideas: [], rulings: {}, order: null };
+     `order`, act on them, then regenerate.
+     ⚑ AND NOW `comments` TOO — `{handle: [{text, at}]}`, his per-item comment box (`T-076`).
+     It starts EMPTY for the same reason and it is covered by the SAME contract: a republish that
+     has not harvested his comments deletes them, exactly as it would his ideas. **There are now
+     FOUR things on this page that are his and are lost by an unharvested republish, not three.**
+     Keyed by handle so a comment survives the row moving, being re-ranked, or being re-worded —
+     the handle is the one identity on a row that is promised never to be reused. */
+  ideas: [], rulings: {}, order: null, comments: {} };
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
@@ -950,6 +979,32 @@ const PAGE = `<meta charset="utf-8">
   li.drag:hover{background:var(--paleblue);}
   li.dragging{cursor:grabbing;background:var(--paleblue);opacity:.85;
     box-shadow:0 2px 6px rgba(31,66,73,.18);}
+  /* HIS EXPANDABLE ROWS AND PER-ITEM COMMENT BOX (T-076).
+     ⚠ user-select is put BACK to auto inside .rowx. li.drag above turns selection OFF for the
+     whole row — correct for a drag handle, and it would have made his own comment text impossible
+     to select or correct inside the box he is typing in. The comment on that rule says the symptom
+     "reads as the page breaking", and it would have done so again one element deeper.
+     touch-action:auto for the same reason: the row disables it so a drag does not scroll the
+     page, but a textarea the finger cannot scroll or place a caret in is not a comment box. */
+  .rowx{user-select:auto;-webkit-user-select:auto;touch-action:auto;cursor:auto;}
+  .rowmore{background:none;border:0;padding:.1rem .3rem;margin:.1rem 0 0 -.3rem;
+    font:inherit;font-size:.8em;color:var(--accent);cursor:pointer;text-decoration:underline;}
+  .rowmore[aria-expanded="true"]::after{content:" ▴";} .rowmore[aria-expanded="false"]::after{content:" ▾";}
+  /* MAX-HEIGHT IS NOT DECORATION: an expanded row can be 2000 characters, and without a cap one
+     open row pushes the other twenty-eight off the screen -- seen in the screenshot, not the DOM. */
+  .rowdetail{white-space:pre-wrap;font-size:.85em;color:var(--muted);margin:.25rem 0 .4rem;
+    padding:.4rem .6rem;border-left:3px solid var(--line);background:var(--paleblue);
+    border-radius:0 5px 5px 0;overflow:auto;max-height:22rem;}
+  .rowpanel{margin:.1rem 0 .3rem;}
+  .rowcmt{display:flex;gap:.35rem;align-items:flex-start;margin:.25rem 0 .1rem;}
+  .rowcmt textarea{flex:1 1 auto;min-width:0;font:inherit;font-size:.85em;line-height:1.4;
+    padding:.3rem .45rem;border:1px solid var(--line);border-radius:5px;resize:vertical;
+    background:var(--surface);color:var(--ink);}
+  .rowcmt button{font:inherit;font-size:.8em;padding:.3rem .6rem;border:1px solid var(--accent);
+    background:var(--accent);color:var(--parch);border-radius:5px;cursor:pointer;}
+  .rowsaid{font-size:.8em;color:var(--ok);align-self:center;}
+  .rowmine{font-size:.85em;margin:.15rem 0 .3rem;padding:.3rem .5rem;border-radius:5px;
+    background:var(--warn-bg);color:var(--ink);}
   .muted{color:var(--muted);} .bad{color:var(--stale);}
   code{font-family:ui-monospace,monospace;font-size:.85em;background:var(--paleblue);
     padding:.05em .3em;border-radius:4px;}
@@ -1095,9 +1150,38 @@ const PAGE = `<meta charset="utf-8">
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
       : tasks.length === 0 ? `<p class="muted">Nothing open — full detail in .planning/CHART.md.</p>`
       : `<p class="muted" id="orderNote">Drag a task to move it. Where you put it is where a watch starts.</p>
-      <ol id="taskList">${tasks.map((t) => (t.handle
-          ? `<li class="drag" data-handle="${esc(t.handle)}">${esc(t.text)}</li>`
-          : `<li>${esc(t.text)}</li>`)).join("")}</ol>`}
+      <ol id="taskList">${tasks.map((t) => {
+          /* HIS TWO REMAINING GLASS-PAGE ASKS (T-076, pinned "PRIORITIZE this at the top"):
+             EXPANDABLE ROWS and A COMMENT BOX UNDER EACH ITEM. Both are built here, on the row he
+             already reads, for the same reason the drag was (rule 23): a second screen showing the
+             same rows is two things kept in step by nobody.
+
+             ⚠ EVERYTHING INTERACTIVE SITS INSIDE .rowx, AND THAT IS LOAD-BEARING, NOT TIDINESS.
+             The drag binds pointerdown on li.drag and captures the pointer, so without this
+             wrapper a tap on the comment box would start dragging the row instead of placing the
+             caret — his own drag feature would eat his own comment box. The handler skips any event
+             that starts inside .rowx. */
+          /* ⚠ ONE TOGGLE, AND THE COMMENT BOX LIVES INSIDE IT — CHANGED AFTER LOOKING AT THE PICTURE.
+             The first build put an always-open comment box under every row. Every assertion passed
+             (29 rows, 26 boxes, nothing thrown) and the SCREENSHOT killed it: twenty-six permanently
+             open text fields turn the one list he steers by into a wall of form. The page at rest
+             must be the short scannable list; the box appears when he opens a row to read it, which
+             is also when he has something to say about it. Rule 19 — the checks were honest and were
+             measuring something other than the thing that was wrong. */
+          const panel = (t.detail ? `<div class="rowdetail">${esc(t.detail)}</div>` : ``)
+            + (t.handle
+                ? `<div class="rowcmt"><textarea rows="1" placeholder="Comment on this item…"></textarea>`
+                  + `<button type="button" class="rowsend">Save</button>`
+                  + `<span class="rowsaid" hidden></span></div>`
+                : ``);
+          const extras = panel
+            ? `<div class="rowx"><button type="button" class="rowmore" aria-expanded="false">more</button>`
+              + `<div class="rowpanel" hidden>${panel}</div></div>`
+            : ``;
+          return t.handle
+            ? `<li class="drag" data-handle="${esc(t.handle)}"><span class="rowtitle">${esc(t.text)}</span>${extras}</li>`
+            : `<li><span class="rowtitle">${esc(t.text)}</span>${extras}</li>`;
+        }).join("")}</ol>`}
       <!-- ⚠ THE NOTE SITS ABOVE THE LIST, NOT UNDER IT — CEO 131's finding 4. Underneath, the
            confirmation of a drag near the top of a 57-row list was fifty rows below his finger, on
            a phone showing eight of them. A confirmation he cannot see is the fault this whole
@@ -1487,6 +1571,72 @@ const PAGE = `<meta charset="utf-8">
        honest joint as the pin, and the page says so rather than implying otherwise. */
     var taskList = document.getElementById("taskList");
     var orderNote = document.getElementById("orderNote");
+
+    /* ─── HIS EXPANDABLE ROWS AND PER-ITEM COMMENTS (T-076, the row he pinned) ───────────────
+       Wired OUTSIDE the taskList && orderNote block below on purpose: orderNote only exists
+       when there are draggable rows, and these two must still work on a list of un-draggable ones
+       (an inbox idea, or a row whose handle two rows share). Tying them to the drag's guard would
+       have made them vanish exactly on the rows that are hardest to understand from one line. */
+    if (taskList) {
+      Array.prototype.forEach.call(taskList.querySelectorAll(".rowmore"), function(btn){
+        btn.addEventListener("click", function(){
+          var d = btn.parentNode.querySelector(".rowpanel");
+          if (!d) return;
+          var open = btn.getAttribute("aria-expanded") === "true";
+          btn.setAttribute("aria-expanded", open ? "false" : "true");
+          btn.textContent = open ? "more" : "less";
+          d.hidden = open;   // hidden, never style.display — the host's reset defines it
+        });
+      });
+
+      // What he has already written, drawn from state so it survives a repaint.
+      function paintComments(li){
+        var h = li.getAttribute("data-handle");
+        var box = li.querySelector(".rowx");
+        if (!h || !box) return;
+        Array.prototype.forEach.call(box.querySelectorAll(".rowmine"), function(n){ n.remove(); });
+        var mine = (state.comments && state.comments[h]) || [];
+        var cmt = box.querySelector(".rowcmt");
+        mine.forEach(function(c){
+          var p = document.createElement("div");
+          p.className = "rowmine";
+          p.textContent = c.text + "  (" + String(c.at).slice(0, 16).replace("T", " ") + "Z)";
+          box.insertBefore(p, cmt);
+        });
+      }
+
+      Array.prototype.forEach.call(taskList.querySelectorAll("li[data-handle]"), function(li){
+        paintComments(li);
+        var send = li.querySelector(".rowsend");
+        var ta = li.querySelector(".rowcmt textarea");
+        var said = li.querySelector(".rowsaid");
+        if (!send || !ta) return;
+        send.addEventListener("click", function(){
+          var v = ta.value.trim();
+          if (!v) return;
+          if (!cap) { if (said) { said.hidden = false; said.textContent = "Can't save from this view."; } return; }
+          var h = li.getAttribute("data-handle");
+          if (!state.comments) state.comments = {};
+          if (!state.comments[h]) state.comments[h] = [];
+          state.comments[h].push({ text: v, at: new Date().toISOString() });
+          /* Optimistic, exactly as a ruling is: the tab NEVER reloads (see the long note above on
+             three attempts at that), so this repaint IS the confirmation he sees. */
+          ta.value = "";
+          paintComments(li);
+          if (said) { said.hidden = false; said.textContent = "Saved."; }
+          cap.publish(buildDoc(state)).then(null, function(){
+            /* His words go BACK IN THE BOX on failure — the same treatment the idea box gives them.
+               Dropping them silently is the one outcome that must never happen here. */
+            ta.value = v;
+            var arr = state.comments[h] || [];
+            for (var i = arr.length - 1; i >= 0; i--) { if (arr[i].text === v) { arr.splice(i, 1); break; } }
+            paintComments(li);
+            if (said) { said.hidden = false; said.textContent = "Didn't save — your words are back in the box."; }
+          });
+        });
+      });
+    }
+
     if (taskList && orderNote) {
       var draggables = function(){
         return Array.prototype.slice.call(taskList.querySelectorAll("li.drag"));
@@ -1546,6 +1696,12 @@ const PAGE = `<meta charset="utf-8">
       }
 
       taskList.addEventListener("pointerdown", function(ev){
+        /* ⚠ A TAP INSIDE THE ROW'S OWN CONTROLS IS NOT A DRAG. Without this line his comment box
+           and his "more" button are unusable: pointerdown anywhere in the row captures the pointer
+           and starts dragging, so tapping the textarea moves the row instead of placing the caret.
+           His drag feature would have eaten his comment box — both of them his asks, on the same
+           row, one breaking the other. */
+        if (ev.target && ev.target.closest && ev.target.closest(".rowx")) return;
         var li = ev.target && ev.target.closest ? ev.target.closest("li.drag") : null;
         if (!li || !taskList.contains(li)) return;
         held = li; startY = ev.clientY; moved = false;

@@ -140,11 +140,17 @@ publish. This session IS the terminal.
 > 1. `cd C:\Users\wyatt\Projects\pastrypirates` and `git pull --rebase origin claude/cloud-handoff-planning-a9ay1u`
 > 2. **HARVEST FIRST.** Read the live page with the Artifact tool, `action: "read"`, url
 >    `https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2`. Find its
->    `id="glassState"` block. If `ideas` or `rulings` is non-empty, copy every entry verbatim into
->    `.planning/CHART.md` under "## THE IDEA INBOX" and commit. **THE HARVEST HAPPENS ON EVERY TICK,
+>    `id="glassState"` block. If `ideas`, `rulings` **or `comments`** is non-empty, copy every entry
+>    verbatim into `.planning/CHART.md` under "## THE IDEA INBOX" and commit. **THE HARVEST HAPPENS ON EVERY TICK,
 >    BEFORE the change-gate below — never after it, and never skipped because nothing "moved". Only
 >    this read can see what he typed; no script can.** A republish without this deletes
 >    what he wrote, silently and completely.**
+>    ⚑ **`comments` IS NEW (2026-09-03, `T-076` — his per-item comment box) AND IT IS THE FOURTH
+>    THING ON THIS PAGE THAT IS HIS AND IS LOST BY AN UNHARVESTED REPUBLISH, NOT THE THIRD.**
+>    Shape: `{"T-nnn": [{"text": "…", "at": "…"}]}` — keyed by the row's handle, so a comment
+>    survives the row being re-ranked, dragged or re-worded. **Copy each comment onto its own row in
+>    the Chart** (the handle tells you which row), quoted verbatim like any of his words. A comment
+>    is him talking about a SPECIFIC item, so filing it as a loose idea loses the half that matters.
 >    ⚑ **AND IF AN IDEA CARRIES `"now": true`, HE PRESSED DO NOW ON IT. Carry the row over as
 >    normal, then run ONE MORE COMMAND — the flag does not travel by itself:**
 >    `node scripts/wyclau/chartkeeper.mjs --do-now=<the T-nnn of the row you just wrote>`
