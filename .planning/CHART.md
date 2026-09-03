@@ -91,20 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
-      ⟨`T-013`⟩
-  circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
-  Found by CEO 84, which pointed out the answer was already sitting unread in the probe's own data.
-  Measured both ways on the same 21 poses: **15 wrong-boat before this watch's fix, 16 after** — so
-  it is pre-existing and this change neither caused nor cured it. **DO NOT read that as a live
-  15-in-21 defect.** `scripts/qa/w52_call_beside_boat.mjs`, which was built for exactly this
-  question and does NOT move anyone, reports 11 of 12 circles nearest their own boat at an 11px
-  gap. The difference is that `w54` teleports two captains to fixed squares and leaves the other
-  two where they were, which can strand a third hull nearer than the named one. **Which instrument
-  is telling the truth is the first thing to settle**, and it is a posed question, not a rate.
-  Wyatt has asked for this twice (W5-2, and INBOX-20260901T1332Z: *"not on top of, or next to,
-  someone else"*), so it is worth a watch. Second, smaller: `src/ui/stage.js`'s last-resort branch
-  lets a circle land on a hull when that is the only way off the question, and never checks WHOSE.
 - [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
       ⟨`T-012`⟩
   IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
@@ -121,6 +107,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
   reminder; that is a source question, not a screenshot one.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+- [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
+      ⟨`T-013`⟩
+  circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
+  Found by CEO 84, which pointed out the answer was already sitting unread in the probe's own data.
+
+  ✅ **SETTLED 2026-09-03 by watch a9 — `w54` IS TELLING THE TRUTH. THE DEFECT IS LIVE.** Evidence:
+  `.planning/T013-RUNS-20260903.md` (four runs, transcribed in full),
+  `.planning/PREDICTION-20260903T0525Z-T013-which-instrument.md`, CEO 146, and the photograph
+  `mp-rig-shots/w54-t013-phone-20-50.png` — **both call circles floating in open water in the middle
+  of the board, one parked on a sugar-cube island, roughly 400px below the only boats on screen.**
+
+  > ### ⚠ THE FOUR LINES THAT WERE HERE TOLD THE NEXT READER THE OPPOSITE, AND THEY WERE WRONG
+  >
+  > They said `w52` *"reports 11 of 12 circles nearest their own boat at an 11px gap"* and **"DO NOT
+  > read that as a live 15-in-21 defect"**, and explained the gap away as `w54` stranding a third
+  > hull. **`w52`'s number is true and it is true about the wrong board.** It never moves a boat, so
+  > all four hulls stay bunched within ~140px, the anchored placement always succeeds, and it
+  > measures a board on which this fault cannot occur. Re-run this watch it scored **0 of 12**.
+  > *(CEO 146 required this correction be written in the open rather than reworded: a row that
+  > waves the next watch off a real defect costs more than one that merely omits it.)*
+
+  **AND THE FAULT IS NOT "THE WRONG BOAT" — THAT IS THE SYMPTOM.** Split by how far each circle sits
+  from the captain it names, across two independent 42-circle runs: **28 circles landed within 16px
+  of their own hull and NOT ONE of them named the wrong captain.** The other 56 landed 49–274px away
+  — half a phone screen — and 37 of those named somebody else, which is about what chance gives you
+  among four hulls. **No circle in either run ever landed between 13px and 49px.** The placement is
+  not drifting; it is switching. It either anchors to the boat it names or throws the circle
+  somewhere else entirely, and then "wrong boat" is luck.
+
+  **TWO MECHANISMS, ONE MEASURED DEAD.** *Mid-glide is dead* — the ships had stopped in all 21 poses
+  and the count is identical measured early and late (22→22, then 15→15). *Nothing to be beside* is
+  real: 9–17 of 42 circles name a captain whose hull is off the screen entirely, and
+  `src/ui/stage.js:2864-2869` builds that anchor as `boatUXY(seat)` → `toScreen(…)` with
+  `anchors.every(Boolean)` **true for a point nobody can see**. But ~8 of 33 answerable rows have
+  the named hull plainly on screen and are still wrong, so that is not the whole of it.
+
+  **WHAT IS STILL OPEN IS THE FIX, and it is FULL gear** (`src/ui/stage.js`, the radial placement) so
+  it needs a sea trial. `src/ui/stage.js`'s last-resort branch lets a circle land on a hull when that
+  is the only way off the question and never checks WHOSE. **The next watch has a RED check waiting
+  and does not need to re-argue any of this:** `node scripts/qa/t013_which_instrument.mjs` prints
+  ANCHORED vs STRANDED, and the job is to move circles out of the stranded column.
+  ⚠ **And CEO 146's caution, which the fix must not flatten:** a circle *stranded away from every
+  boat* and a circle *sitting on the wrong boat* are both inside what Wyatt reported, and they may
+  not be the same bug. Do not assume one change cures both — measure both columns.
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
