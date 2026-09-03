@@ -8981,3 +8981,27 @@ day's lesson and this item are the same fault at two altitudes.
 
 **No browsers or servers left running** — the screenshot script calls `killAll()`, and
 `stray_probe_check` reports 4 debug-port browsers, every one with a live launcher, none of them mine.
+
+### ⛔ AND A COLLISION THIS WATCH CAUSED, REPORTED BECAUSE THE GIT LOG NOW LIES ABOUT IT
+
+**Every file of this item's work is committed and pushed — inside `395d518c`, a commit whose message
+is about something else entirely** (*"CEO 178 gaps closed: the silent key fallback, and a label lost
+when a question is reworded"*, written by the interactive session at 2026-09-03 14:31:37 -0400).
+`index.html`, `rules.html`, `package.json`, `rules_sanctuary_matches_engine_check.mjs`, both
+screenshots, the prediction file, and the CEO-181 / CHART / INBOX / ledger edits are all in its
+62-file diff. **Nothing was lost. What was lost is the commit message** — which on this project is
+not decoration but the graveyard rule 10 sends the next session to read.
+
+**THE CAUSE IS MINE AND IT IS ONE COMMAND.** I ran `git add -A` to inspect what had changed, in a
+shared tree, with another session live. That staged my work *and* thirty-odd untracked scratch files
+belonging to earlier watches; the other session then committed the index it found. **`git add -A` is
+not a read.** In a tree where CLAUDE.md §3 says to assume a second session, it is a lock nobody else
+can see, held on files that are not yours.
+
+**WHAT TO DO INSTEAD, and it is what I should have done:** stage by explicit path only —
+`git add <the files I touched>` — or inspect with `git status --short` and `git diff --stat`, which
+change nothing. **The `-A` was pure convenience and it cost the record of an item's reasoning.**
+
+**Nothing needs repairing in the code.** This ledger entry, `.planning/CEO-REVIEWS.md`'s CEO 181
+block and the prediction file carry the full account, so the reasoning survives where a session will
+actually look for it. **The lie is only in `git log`, and this paragraph is the correction.**
