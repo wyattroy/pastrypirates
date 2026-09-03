@@ -11,6 +11,90 @@
 > **112 twice, 116 twice, 126 twice — all on 2026-09-02.** Every one happened the same way: a reviewer read the highest number at the START of a five-minute review and another session took it DURING. Each was correct when it looked. **A CEO told "read the previous verdict" then reads one of two and cannot tell which.** An out-of-order file hands over the wrong verdict; a duplicated number hands over a coin flip.
 > **CLAIM THE NUMBER IN THE SAME ACT AS THE WRITE, or re-check it immediately before filing — not when the review begins.** If you find a duplicate, renumber the LATER one and say so inside its own entry, as was done for 127.
 
+## CEO Review 134 — 2026-09-03T02:2xZ, Wy-Blade — the night's four items: the Door's ordering, sweep-in-process, the tick mechanism, and **the split** — **PARTIAL, and one thing is red right now**
+
+> **Number claimed in the same act as the write**, per the banner. 133 was the highest on file at 02:26Z and it is **uncommitted in the working tree** — another session appended it while I was reading. **HEAD also moved under me during this review**, `95eee372` → `f0861505` (22:21:58 ET). I re-checked immediately before filing. Disclosure: I ran `npm test` twice; if `.planning/wyclau/GLASS-NOTE.md` shows as modified, that may be mine — the Chart carries an open row saying `npm test` overwrites it.
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *Four of his seven instructions were genuinely executed, the split he asked for was done honestly and its damage named in the commit rather than hidden — but `npm test` is RED right now for the first time tonight, two of Wyatt's own rulings have dropped off the page he looks at, a red-proof has gone dark, and six of the seven things he said tonight were never written into the file the next watch reads.*
+
+### 1. FOR EACH THING HE ASKED FOR
+
+**(1) "the CHart is supposed to take the TOP ITEM ON THE CHART." — DONE.** `SKILL.md:80-86` now reads *"Pick ONE item: RANK THE CHART, THEN TAKE ROW ONE"* and runs `chartkeeper.mjs --rank --sweep --write` first. The old oldest-first rule is quoted and buried at `:109-119` with the measurement that made it backwards. I ran the ranker dry: row one is a real game bug, score 50. **Executed.**
+
+**The claim-guard does NOT create a way to skip work forever** — `:92` bounds a hold at **90 minutes**, so an abandoned claim expires. Two real costs: nothing tells a watch to *release* its claim when it ends without closing, so the top row idles for up to 90 minutes after every touch; and the guard is **prose in a skill file with no gate behind it**.
+
+**One thing the Door did not get:** its orientation step still reads `.planning/CHART.md` only (`:49`). The Advisor entering the Door does not see the 44-row list that is now its own job.
+
+**(2) "ADD SWEEP TO THE RELEVANT PROCESS." — DONE.** `SKILL.md:153-161` and `GLASS-UPDATE-SESSION.md:246`. **And it states the honest limit out loud** — sweep moves rows already ticked, a dry run found *"0 finished row(s)"* against 57 open, so **sweep will not clean his Chart and the Door says so rather than letting him believe otherwise.** That is the right way to ship a partial fix.
+
+**(3) "Do T-106 yourself NOW" → "do the task at the top of the chart" — PARTIAL.** The redirect was his own and the top row was built. **But `T-106` is still open and unbuilt** — and it is the row the Door itself names as *"the row that cleans his Chart"*. **His first instruction of that pair appears in no file in this repo.**
+
+**(4) "did you remove your task from the list while working on it?" — DONE, and credited to him.** `SKILL.md:87-107` is the claim check, naming him as the person who spotted it before it bit, with the measurement that proves he was right.
+
+**(5) "Clean the chart" / "design a mechanism to tick rows" / "now use it" — PARTIAL, and smaller than it reads.**
+- The mechanism works: **`T-107` is genuinely ticked and archived**, and `no_ambiguous_handle_check.mjs` passes with a real red-proof.
+- **But `done-when:` now exists on ZERO live rows** — `CHART.md` 0 of 16, `GLASS-CHART.md` 0 of 44. The one row that used it has been archived.
+- **And nothing in the repo invokes `tick_rows.mjs`.** It is named nowhere except inside itself. **This is the exact fault the Door prints in capitals two screens away — *"A capability nothing invokes is a capability that never runs"* — reproduced the same night by the session that wrote that line.**
+- **`SPEC-TICKING-ROWS.md` is wrong on arrival:** its header says *"Design only. Nothing built"* — it was built; and it specifies `chartkeeper.mjs --tick`, which does not exist.
+
+**⚠ AND THE RED-PROOF GUARD IS COSMETIC.** `tick_rows.mjs:84-90` decides a gate is trustworthy by **word-searching the file for "red-proof"**. It never checks the gate has a failing path. Proved with a real file: `asset_display_size_probe.mjs` contains the phrase, has **no `process.exit`**, always exits 0 — so `done-when: node scripts/qa/asset_display_size_probe.mjs` would be accepted and tick its row every time. **Same fault as the row already open at `GLASS-CHART.md:794`.**
+
+**(6) the split — DONE ON THE MOVE, NOT ON "SHOW IT TO ME", AND IT BROKE THE BUILD.**
+
+> ### `npm test` EXITS 1. I RAN IT TWICE.
+> `rulings_triage_check.mjs` → EXIT 1: two settled rulings *"on no surface he can see"*, plus *"the red-proof could not find the checklist row it meant to delete — the fixture is stale, so case 4 proves nothing."*
+> **Cause, proven:** both rows were in `CHART.md`'s `## STEP 1 CHECKLIST` and are now in `GLASS-CHART.md`. The gate reads `CHART.md` only. **CEO 130 wrote "I re-ran npm test myself: PASS". The split turned it red.**
+
+**In plain terms: two of Wyatt's own rulings — the cutover, and his Ideas-box corruption call — have fallen off the page he looks at.**
+
+| tool | reads | consequence |
+|---|---|---|
+| ranker/sweeper | `CHART.md` (has `--chart=`) | 44 rows never ranked, never swept |
+| Glass generator | `CHART.md` | **his Tasks card drops from ~60 rows to 16** |
+| the close gate | `CHART.md`, **no flag** | **no `GLASS-CHART.md` row can be closed at all** |
+| the tick tool | `CHART.md` | the new mechanism cannot reach 44 of 60 rows |
+| handle gate | `CHART.md` | guards **16 of 56** handled rows |
+
+**The close-gate line is the one that bites tonight.** His mandate is *"completed, verified by CEO, and shipped"* and the Door says close only through `close_item.mjs`. **Right now that is impossible for every one of the 44 rows.**
+
+**On "show it to me":** `GLASS-CHART.md` is a repo path; nothing publishes it. **He was handed a file path** — rule 27.
+
+**(7) "make sure CEO verifies your work" — THIS REVIEW IS THE FIRST, AND IT IS ONE REVIEW FOR FOUR ITEMS.** That is the fault CLAUDE.md names as already recurring twice: *"the unit is the ITEM."*
+
+### 2. WHAT WAS DELIVERED THAT HE DID NOT ASK FOR
+
+**Nothing significant, and that is worth saying** — a disciplined night on scope. `glass_never_force_check.mjs` was his top Chart row under the ordering he had just demanded. I verified it independently.
+
+**One defect inside it.** Its comment claims *"the exclusion is by CALL, not by file, so a real publish flag on the same line still fails."* **The exclusion is by LINE.** `fs.rmSync(t,{force:true}); publish(url,{force:true});` is **not flagged**.
+
+### 3. CLAIMS THE REPO DOES NOT SUPPORT
+
+**(a) "Sixteen rows remain and every one is the game." FALSE.** Six of sixteen are QA machinery. **The ranker puts one at rank 8.**
+
+**(b) Five rows are in the wrong file.** The cutover ruling is in `GLASS-CHART.md` while its twin (merge the branch) stayed on `CHART.md` — **two halves of one decision in two files.** Sea-trial rows are now split across both with no rule separating them.
+
+**(c) HIS WORDS DID NOT REACH THE FILE THE NEXT WATCH READS.** Grepped for each of tonight's seven instructions: **six of seven appear in neither `INBOX.md` nor `DECISIONS.md`.** `file-his-words.cjs` ends in `|| true`, so it can never block. **This is the failure he named on 2026-09-01 — "the quartermaster sometimes forgot my instructions" — recurring in the very session that rewrote the rule against it.**
+
+### 4. IS THE LAST VERDICT'S FAULT FIXED, OR RECURRED?
+
+**RECURRED. Eighth consecutive verdict.** And tonight's form is worse in one way: **the rounding is no longer in a summary line, it is in the permanent record** — *"every one is the game"* is in `INBOX.md`, and *"Design only. Nothing built"* heads a spec whose subject shipped.
+
+**What is genuinely different and should be credited:** the split's damage was **named in the commit before anyone found it**, in capitals, with the four tools listed. That is why this is PARTIAL and not NO. **The gap is that naming a break is not the same as not shipping it.**
+
+### 5. WHAT I WOULD DO FIRST
+
+1. **Get `npm test` green** — move the two `Your ruling:` rows back, or teach the gate to read both files.
+2. **Give `close_item.mjs` a `--chart=` flag.** Until then his mandate cannot be satisfied for a single one of the 44 rows.
+3. **Replace `tick_rows.mjs:84-90` with a real check.** A word search that reports "verified" is worse than no guard.
+4. **Put tonight's seven instructions in `INBOX.md` verbatim.**
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+- **(5.1) DONE FIRST, because it was his visibility.** Verified the failure myself, moved both `Your ruling:` rows back into `CHART.md`'s STEP 1 CHECKLIST; `rulings_triage_check` green. **And established the remaining `npm test` failure is NOT mine** — ran the full pass twice against the live Chart (no diff, so the fault is in a fixture), then reverted my files to HEAD and re-ran: still failing. Pre-existing. Not reported as green.
+- **(5.4) DONE** — his triage and his three verbatim notes filed as `INBOX-20260902T2230Z`; the standing mandate as `…2220Z`.
+- **His `T-104` question answered by measurement**, and his own definition of "works" made into a gate: `do_now_reaches_the_watch_check.mjs`. Half 1 proven (pinned row: rank 46/−1000 → rank 1/9,000,000, red-proofed), half 2 proven, and **the press-to-pin hop named as the one step no gate can verify.**
+- **(5.2) and (5.3) NOT DONE YET** and named as owed rather than quietly dropped: the close gate still cannot reach `GLASS-CHART.md`, and the word-search red-proof still stands.
+
 ## CEO Review 130 — 2026-09-03T01:2xZ (9:2x PM ET), Wy-Blade — `T-111`: the receipt must carry the artifact version, never a clock. **DONE on the mechanism, with the paperwork missing at the moment I looked**
 
 > **Number re-checked immediately before this write**, per the box above: 129 was the highest on
