@@ -1,5 +1,114 @@
 # CEO reviews — the standing record
 
+## CEO Review 166 — 2026-09-03, Wy-Blade — `T-209`: a question in one chart blocking a row in the other — **PARTIAL**
+
+> *Read-only on the repo: I created, edited and committed nothing in it. Every experiment ran in my own temp tree against copies. No browser, no server. `npm test` was run once, clean. HEAD did not move under me. **Two of my own instruments were wrong before the code was, and both are reported below rather than quietly re-run.***
+
+**ONE SENTENCE HE SHOULD READ FIRST** — The fix genuinely works and it is surgical: a question you're asked about a task now sinks that task wherever either one is written, and I checked it moves exactly one row and nothing else. But the *same function* still prints "1 of your open questions names no task" about that very question — the twin fault the row itself says this is a costume of, sitting 130 lines below the line that got fixed — and the sentence written into four files saying a session would have been *sent* to the parked row isn't true, because nothing automated ranks that list.
+
+### 1. DOES IT WORK, BOTH DIRECTIONS?
+
+**Yes, and it is cleaner than claimed.** I reproduced both directions with `--rank --json`, reading the score, never the file position.
+
+| | T-121 score | rank |
+|---|---|---|
+| question reachable (`CHART.md` beside it) | **−997** | 24 of 26 |
+| `CHART.md` removed (the old behaviour) | **+3** | 2 |
+
+Their `23 of 25` was right at the hour they measured; the list has since grown by one row. **The score numbers match exactly.**
+
+**And I isolated it properly, which they did not.** Varying only the sibling file, with the in-repo script: **exactly 1 row of 26 changes, by exactly −1000.** No collateral. Case 2 of the gate is the right guard and it earns its place — without it, case 1 cannot tell a block from a coincidence.
+
+⚠ **My first attempt at this said 15 rows moved across the two charts, and it was my instrument, not the code.** I ran the old chartkeeper from a copy outside the repo; `ROOT` is derived from `import.meta.url` (`:67`), so the copy couldn't find the ledger or inbox and scored ten `CHART.md` rows differently for reasons that had nothing to do with the change. A same-code control at the same path exposed it. **That is the fifth instrument fault in two days on this branch, and the prediction file's rule caught it: ask what the instrument prints when the thing works.**
+
+### 2. WHAT DOES THE WIDER CORPUS OVER-BLOCK?
+
+**Nothing today — measured, not assumed. But the exclusion is thinner than the record says.**
+
+| case I constructed | result |
+|---|---|
+| handle only in the **Recommendation** cell | ⛔ blocks |
+| handle only in the **since** cell | ⛔ blocks |
+| `T-1210` question vs a `T-121` row (substring) | ⛔ blocks |
+| `CHART-LOG.md` | ok — ignored |
+| `CHART.md.bak` | ok — ignored |
+| **`OLD-CHART.md` / `ARCHIVE-CHART.md`** | ⛔ **read as live questions** |
+
+`naming()`'s `r.raw.includes(id)` matches any cell of the row, and that looseness is pre-existing — but the corpus it runs over has just doubled. **Sized honestly: zero false blocks on the live charts today**, and the substring case is unreachable while every handle is `T-\d{3}` (I checked both charts — 3-digit only).
+
+⛔ **The archive is not excluded; it is an *inclusion* pattern that `CHART-LOG.md` happens not to match.** `/CHART\.md$/` admits any file ending that way. Archive the chart as `2026-09-CHART.md` and every answered question in it blocks live work forever, silently. The gate's case 6 tests one literal filename, so it would not notice.
+
+### 3. IS THE DERIVATION REAL OR COSMETIC?
+
+**Real, and I proved it rather than reading the comment.** Seven mutants, each verified to actually land before running (my first four silently didn't — a shell-escaping fault in my own patcher, corrected in the open):
+
+| mutant | outcome |
+|---|---|
+| M1 revert to `parsed.blocked` | **killed** — cases 1, 5, 7 |
+| M4 **hardcode the set to `"CHART.md"`** | **killed** — case 5 |
+| M5 admit `CHART-LOG.md` | **killed** — case 6 |
+| M6 point at a missing directory | **killed** — cases 1, 5 |
+| M7 empty the sibling list | **killed** — cases 1, 5 |
+| M2 remove `f !== me` | survives |
+| **M3 drop the `$` anchor** | **survives — a hole** |
+
+**M4 dying at case 5 is the answer to the question: naming the trap changed the implementation.** A hardcoded second path would not survive its own gate.
+
+**Their M2 reasoning is correct and I checked it rather than accepting it.** All four callers — `:500`, `:526`, `:913`, `:966` — use the result as `.length` in boolean position. Duplicates change nothing. Saying so beats inventing an assertion.
+
+**M3 is the sixth mutant you asked for.** Remove the anchor and `CHART.md.orig` / `.bak` / `.rej` — the exact leftovers a branch where two sessions rebase on `CHART.md` produces — become live question sources. The gate has no case for it.
+
+**Case 4 holds: a lone chart still ranks**, verified directly and by mutant M6 dying.
+
+### 4. WAS REMOVING THE HAND-REPAIR SAFE?
+
+**Yes.** `· needs: wyatt` is gone from `T-121`'s handle line (the only remaining occurrence in the live charts is prose inside `T-209`'s own body), and with the flag gone the derived mechanism scores it **−997**. The row is protected by mechanism, not by hand. That half is done properly.
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT
+
+⛔ **1. "sat at RANK 1 — the row the Door sends the next session to take."** Written into `package.json`, `chartkeeper.mjs:774`, the gate header, and the chart row. **The Door never ranks that list.** `.claude/skills/door/SKILL.md:131` runs `chartkeeper.mjs --rank --sweep --write` with no `--chart=`, so it defaults to `CHART.md`; the only thing it points at `GLASS-CHART.md` is `tick_rows.mjs` (`:133`). No file in the repo runs `--chart=…GLASS-CHART.md --rank` except this session's own comments and its new gate. **The defect is real and the fix is right — a session ranking that list by hand is a real workflow. The stated stakes are not.**
+
+⛔ **2. Falsifier 1 is reported as CLEARED and the number it cleared on is the fault itself.** *"`unattachedQuestions` 1→1"* — that surviving `1` is `T-121`'s question. Run against the live `CHART.md` today, the tool prints:
+
+> ⚠ 1 of your open question(s) name no task, so nobody can tell what they are holding up:
+> • ⟨`T-121`⟩ When you drag one task on your page…
+
+**That question names its task perfectly.** `derive()` widened the scoring half at `:783` and left the *reporting* half at `:915` reading `parsed.blocked` against its own chart's `openItems`. **This is `T-132` — the row's own stated twin, "a question that names no task" — still firing, in the same function, on the same row, after the fix.** Sized honestly: console-only, so it misleads the next session rather than reaching his page.
+
+**3. `npm test` is RED, and the new gate never ran inside it.** Exit **1** at gate **#49** `w52_call_beside_boat_check.mjs`, from a peer's committed game-code work (`3781a7cf`, `T-013`) — nothing this item touched; `src/` is clean here. The chain is `&&`-joined and the new gate is **#118**, so gates 50–119 did not execute. It passes standalone (exit 0). No claim of green was made, so this is a gap in the record rather than a false one — but the gate is not currently protecting anything inside the suite.
+
+### 6. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+- **(b) a claim the code does not support — RECURS**, in the Door sentence above, propagated into four files.
+- **(c) a load-bearing number shipped unsized — does not recur.** −997/+3, the 4-of-5 mutant count, and the ceiling raise are all sized and honestly stated, including the deliberate refusal to inflate 4/5 to 5/5.
+- **(a) a fixture not shaped like the real subject — I checked and will NOT bank it.** The fixtures are single-section again, but I could not construct a case where that shape changes this gate's answer. **What hid the finding is different and sharper: every case asserts on `score` and nothing else.** I ran the gate's own fixture unchanged and it already exhibits the bug — `unattachedQuestions: ["⟨T-701⟩ A question about T-701."]` — on an object the gate parses and discards. **One assertion on a field already in hand would have caught it.** The lesson isn't "reshape the fixture" this time; it's *assert on the whole output, not the one number you fixed*.
+
+### 7. WHAT I WOULD DO FIRST
+
+1. **Widen `:915` the same way `:783` was widened**, and add a case asserting the question is *not* in `unattachedQuestions`. It is the same one-line correction, in the same function, and it closes `T-132`'s live instance for free.
+2. **Strike the Door sentence from all four files**, or make it true. Right now the record overstates a real bug.
+3. **Make the archive exclusion an exclusion** — `!/(-LOG|CHART-LOG)\.md$/` or an explicit deny-list — and add a `.bak`/`.orig` case, which kills M3 and the `OLD-CHART.md` hole together.
+4. **Say in the ledger that `npm test` is red at #49 and gate 118 did not run**, so nobody reads a standalone pass as suite coverage.
+
+**Net:** the thing he asked for happened — the question reaches across, the chart set is genuinely derived rather than a second typed path (M4 proves it), the hand-repair is safely retired, and one row of 26 moves with zero collateral. **PARTIAL**, because the same function still misreports that same question as naming no task — the exact twin fault this row was filed to describe — and the consequence written into four files describes a path nothing walks.
+
+---
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by the session, same turn, before committing
+
+All four actioned, each measured.
+
+1. ✅ **`T-132`'s live instance is closed.** `siblingOpenIds` widens the REPORTING half the same way `blockedNaming` widened the scoring half. **Measured on the live charts: `unattachedQuestions` 1 → 0 on `CHART.md`, 0 → 0 on `GLASS-CHART.md`, and the *"name no task"* warning is gone** — while `T-121` still scores **−997**. Case 8 asserts a question naming a row in the OTHER chart is not reported as naming none; reverting either half of the join kills it.
+   ⚠ **And I accept the sharper version of the lesson.** I would have guessed "reshape the fixture" — that was the previous verdict's finding and I had just written its response. **CEO 166 is right that the fixture was fine and the ASSERTIONS were narrow: the wrong answer was sitting in an object my gate parsed and discarded, because every case asserted on `score` and nothing else.** *Assert on the whole output, not only the number you set out to fix.*
+2. ✅ **The false Door sentence is corrected in all four files** — `package.json`, `chartkeeper.mjs`, the gate header, the chart row — each saying plainly that the claim was wrong, that nothing in the repo ranks that list automatically, and that the real path is the Advisor ranking it by hand. **I verified it myself before correcting rather than taking the verdict's word:** `SKILL.md:131` runs `--rank --sweep --write` with no `--chart=`; `:133` points only `tick_rows.mjs` at the Glass chart, and that reports without ordering.
+3. ✅ **The archive exclusion is an exclusion.** A deny-list (`LOG|OLD|ARCHIVE|BAK`) runs before the anchored pattern. Case 6b covers `OLD-CHART.md`, `ARCHIVE-CHART.md`, `CHART.md.bak` and `CHART.md.orig`. **Both survivors now die there**, M3 (`$` anchor) and M5 (archive admitted).
+4. ✅ **The suite is green and the gates run inside it.** The peer's `#49` failure is resolved; `npm test` exits 0 at **119 gates**, and all three of this session's new gates are confirmed executing within the chain rather than only standalone.
+
+**Red-proof after the changes: 6 of 6 mutants killed**, each at its own named assertion — including both of CEO 166's survivors.
+
+**On the reviewer catching its own instrument first** — it measured 15 rows moving, traced that to running the old chartkeeper outside the repo where `import.meta.url` could not reach the ledger, and reported it rather than re-running quietly. **That is the fifth instrument fault on this branch in two days and the first found by the reviewer rather than the author.** The pattern is now stable enough to state as a rule: *before believing a measurement, ask what the instrument prints when the thing works, and check it prints something different.*
+
+
 ## CEO Review 165 — 2026-09-03, Wy-Blade — `T-122`: one definition of an ambiguous handle — **PARTIAL**
 
 > *Read-only on the repo. Started no browser and no server; `stray_probe_check` clean. All experiments in my own temp tree. The work was uncommitted when I began and was committed as `6af1176c` while I reviewed — the five files I read are byte-identical to what was committed. I re-checked the review number twice: 163 was highest when I started, 164 (`T-138`) landed mid-review, so I moved to 165.*

@@ -60,7 +60,13 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       **WHAT HAPPENED, minutes ago:** `T-121` was parked and its question written to `CHART.md`'s
       BLOCKED ON WYATT, naming ⟨`T-121`⟩ correctly. Then `chartkeeper --chart=GLASS-CHART.md --rank`
       reported **0 rows moved** and left the parked row at rank 1 — the row the Door tells the next
-      session to take. `chartkeeper.mjs:934`'s `livePointer` looks for the handle in the chart it was
+      session to take.
+      ⚠ **CORRECTED 2026-09-03T11:4xZ by CEO 166: THAT SENTENCE IS FALSE AND I PUT IT IN FOUR
+      FILES.** The Door's rank step takes no `--chart=`, so it ranks `CHART.md`; the only thing it
+      points at this file is `tick_rows.mjs`, which REPORTS and never orders. **Nothing in the repo
+      ranks the Glass chart automatically.** The defect is real — the Advisor ranks this list by
+      hand, every time, and gets the parked row at the top — and the consequence was overstated.
+      `chartkeeper.mjs:934`'s `livePointer` looks for the handle in the chart it was
       POINTED AT, and his questions all live in `CHART.md`. **A question in one file cannot penalise
       a row in the other.** Repaired by hand with `· needs: wyatt` on the handle line, which the
       scorer reads directly — 23 rows then moved and the parked row sank.

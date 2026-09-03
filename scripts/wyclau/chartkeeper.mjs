@@ -56,7 +56,7 @@
  *   --chart=<path> --log=<path> --inbox=<path> --now=<iso>          # for gates and fixtures
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -709,6 +709,36 @@ function claimsOf(row) {
    ──────────────────────────────────────────────────────────────────────────────────────────── */
 function derive(src) {
   const parsed = parseChart(src);
+  /* ⚑ THE OTHER CHARTS' BLOCKED ON WYATT — see `blockedNaming` below for why (`T-209`).
+     DERIVED from the directory this run's chart sits in, never a second literal path: every
+     `*CHART.md` beside it, excluding the one already parsed. Missing siblings, an unreadable file
+     or a temp-dir fixture with one chart all mean "no others", which is the common case and not a
+     fault — a hardcoded sibling that must exist would crash every gate that builds a fixture. */
+  /* ⛔ THE ARCHIVE EXCLUSION IS AN EXCLUSION NOW, AND IT USED TO BE AN INCLUSION THAT `CHART-LOG.md`
+     HAPPENED NOT TO MATCH — CEO 166. `/CHART\.md$/` admits ANY file ending that way, so
+     `OLD-CHART.md` or `2026-09-CHART.md` would be read as live questions and every answered
+     question in an archived chart would block live work forever, silently. The `$` anchor is also
+     load-bearing: without it `CHART.md.bak` / `.orig` / `.rej` — the exact leftovers a branch two
+     sessions rebase on produces — become question sources. Deny the archive by NAME, then require
+     the exact ending. */
+  const siblingCharts = (() => {
+    try {
+      const dir = dirname(CHART), me = CHART.split(/[\/]/).pop();
+      return readdirSync(dir)
+        .filter((f) => /CHART\.md$/.test(f) && !/(?:^|[-_])(?:LOG|OLD|ARCHIVE|BAK)[-_]?[^/]*CHART\.md$/i.test(f) && f !== me)
+        .map((f) => { try { return parseChart(readFileSync(join(dir, f), "utf8")); } catch { return null; } })
+        .filter(Boolean);
+    } catch { return []; }
+  })();
+  const siblingBlocked = siblingCharts.flatMap((c) => c.blocked ?? []);
+  /* ⛔ AND THE REPORTING HALF HAD TO MOVE WITH THE SCORING HALF — CEO 166, and this is `T-132`'s
+     LIVE INSTANCE surviving inside `T-209`'s own fix. The first version widened `blockedNaming`
+     (the score) and left this reading `openItems`, which is only the chart being ranked. So on the
+     live `CHART.md` the tool printed *"1 of your open questions name no task"* — about `T-121`'s
+     question, **which names its task perfectly** — in the same function, on the same row, after the
+     fix. Widening one half of a join and not the other is how the fault survives its own repair. */
+  const siblingOpenIds = new Set(siblingCharts.flatMap((c) =>
+    (c.tasks ?? []).map((t) => t.id).filter(Boolean)));
   /* ⚑ HIS SETTLED RULINGS MOVED HOUSE, AND TWO RANKING SIGNALS HAD TO MOVE WITH THEM.
      Caught by the ID-STABILITY case, of all things, which is the useful part: after SWEEP started
      taking `## SETTLED RULINGS` out of CHART.md, the same fixture ranked two different ways on two
@@ -751,7 +781,30 @@ function derive(src) {
   const duplicateHandles = new Set([...seen].filter(([, n]) => n > 1).map(([id]) => id));
   const ctx = {
     parsed, openItems,
-    blockedNaming: (id) => naming(parsed.blocked, id),
+    /* ⛔ HIS QUESTIONS ARE A PROPERTY OF THE PROJECT, NOT OF THE CHART BEING RANKED — `T-209`.
+     *
+     * This read `parsed.blocked` alone, which is the BLOCKED ON WYATT table of the ONE file this
+     * run was pointed at. **His questions all live in `.planning/CHART.md`** — that is the section
+     * the Glass renders as *Your Call* — so a `GLASS-CHART.md` row parked with a question in
+     * `CHART.md` was not blocked by it. Measured the hour this was filed: `T-121` was parked, its
+     * question written naming ⟨`T-121`⟩ correctly, and `--chart=GLASS-CHART.md --rank` reported
+     * **0 rows moved**, leaving the parked row at rank 1. Repaired by hand with `· needs: wyatt`,
+     * which does not generalise.
+     *
+     * ⚠ AND THE STAKES AS FIRST WRITTEN WERE FALSE, IN FOUR FILES — CEO 166 checked the Door and I
+     * had not. It said *"the row the Door sends the next session to take"*. **The Door's rank step
+     * takes no `--chart=`, so it ranks `CHART.md`**; the only thing it points at `GLASS-CHART.md` is
+     * `tick_rows.mjs`, which REPORTS and never orders. Nothing in this repo ranks the Glass chart
+     * automatically. **The defect is real and the fix is right — the Advisor ranks that list by
+     * hand, every time, and gets the parked row at the top. The consequence was overstated.**
+     *
+     * ⚑ AND THE CHART SET IS DERIVED, NOT A SECOND LITERAL PATH, because this file's own header
+     * records FIVE tools that broke when his one instruction split the list in two — and I filed
+     * `T-209` calling this the sixth. **Writing `CHART.md` into a second place here would be the
+     * same mistake with one more entry.** The set is every `*CHART.md` beside the chart this run
+     * was given, so a third list tomorrow is covered by nobody doing anything, and a fixture in a
+     * temp dir with one file finds exactly itself. */
+    blockedNaming: (id) => naming([...parsed.blocked, ...siblingBlocked], id),
     settledNaming: (id) => inQuestionCell(parsed.settled, id),
     settledFreeing: (id) => inCommentary(parsed.settled, id),
     handleIsAmbiguous: (id) => {
@@ -883,8 +936,12 @@ function derive(src) {
     .filter((row) => /BLOCKED ON WYATT/i.test(row.raw)
       && !ctx.blockedNaming(row.id).length && !ctx.settledNaming(row.id).length)
     .map((row) => row.title);
+  /* A question names a task if ANY open row in ANY chart carries that handle — see the note beside
+     `siblingOpenIds`. Scoped to this chart alone, every cross-list question he writes is reported
+     to the next session as naming nothing. */
   const unattachedQuestions = parsed.blocked
-    .filter((q) => !openItems.some((row) => row.id && q.raw.includes(row.id)))
+    .filter((q) => !openItems.some((row) => row.id && q.raw.includes(row.id))
+                && ![...siblingOpenIds].some((id) => q.raw.includes(id)))
     .map((q) => q.cells[0]);
 
   return { parsed, openItems, duplicateHandles: [...duplicateHandles], reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions };
