@@ -899,6 +899,22 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+**Harvested rulings, 2026-09-03, verbatim from the Glass (`glassState`, generatedAt
+2026-09-03T15:51:42.786Z). NOT YET TRIAGED — this session's mandate is harvest-and-publish only.**
+
+- `donow-buttons-numbered` — **Your two buttons now say Approve and Deny. Does "always number or
+      ⟨`donow-buttons-numbered`⟩
+  letter the options" cover the buttons themselves?** His answer (choice: note, at
+  2026-09-03T15:56:28.568Z): *"this is a perfect example of why \"approve\" and \"deny\" make no
+  sense here -- what would \"approve\" even mean in response to your above question? Replace
+  Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI, and
+  leave the box as a space to write \"other\" content in"*
+
+- `t102-search-console` — **⟨`T-102`⟩ Your own reminder, and it is the one step nobody here can
+      ⟨`t102-search-console`⟩
+  take for you: resubmit `sitemap.xml` in Google Search Console.** His answer (choice: note, at
+  2026-09-03T15:58:17.602Z): *"Submitted successfully."*
+
 **Harvested rulings, 2026-09-02, verbatim from the Glass (`glassState`, generatedAt
 2026-09-02T22:37:19.175Z, second read at the same generatedAt after he kept answering mid-tick — all
 five rules-page questions in the Your Call table above are now answered). NOT YET TRIAGED — this
