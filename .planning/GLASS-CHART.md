@@ -28,25 +28,30 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
-      ⟨`T-121` · size: S⟩
-      "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
-      **MEASURED, NOT REASONED:** his page saves the WHOLE sequence, so `--order=` stamps all 50
-      draggable rows, and a dragged row scores 4950–4999 against a **measured top derived score of
-      196** on the live Chart (`chartkeeper.mjs`'s `score()`). So from his first drag onward every
-      undraggable row and every task filed afterwards sits below all fifty, permanently, until
-      somebody runs `--order-clear` — **and he has no way to run that from the page.**
-      ⚠ **THIS MAY BE CORRECT BEHAVIOUR FOR A DRAG-TO-REORDER LIST AND IT IS STILL A DEFECT**, for
-      two reasons that do not depend on that judgement: (a) `chartkeeper.mjs:255` prints *"Anything
-      you did not drag keeps its derived rank, underneath yours"*, which is true of the command and
-      false of how his page uses it — there is no such thing as "did not drag"; (b) his note told him
-      the seven twinned rows *"will not move"*, and on the next load `applySaved` lifts every named
-      row above them, so all seven relocate to the bottom. **He was told the opposite of what
-      happens.** The note is corrected; the behaviour is not.
-      **TWO SHAPES, and the second is probably his call:** save only the rows AHEAD of the last one
-      he actually moved, so the tail keeps its derived rank — or give him a way back on the page
-      ("use the ranked order"), which is one button and one `--order-clear` in the harvest.
-      **Sizing: SMALL. No game code.**
+- [ ] **A QUESTION PUT TO HIM CANNOT BLOCK A ROW ON THIS CHART, BECAUSE THE QUESTION LIVES IN THE
+      ⟨`T-209` · size: S⟩
+      OTHER FILE — so the Advisor's list has no automatic blocked-detection at all.** Filed
+      2026-09-03T10:5xZ by the Advisor, immediately after hand-repairing an instance of it.
+      **WHAT HAPPENED, minutes ago:** `T-121` was parked and its question written to `CHART.md`'s
+      BLOCKED ON WYATT, naming ⟨`T-121`⟩ correctly. Then `chartkeeper --chart=GLASS-CHART.md --rank`
+      reported **0 rows moved** and left the parked row at rank 1 — the row the Door tells the next
+      session to take. `chartkeeper.mjs:934`'s `livePointer` looks for the handle in the chart it was
+      POINTED AT, and his questions all live in `CHART.md`. **A question in one file cannot penalise
+      a row in the other.** Repaired by hand with `· needs: wyatt` on the handle line, which the
+      scorer reads directly — 23 rows then moved and the parked row sank.
+      ⚠ **THIS IS `T-132` IN A SECOND COSTUME, AND THAT MATTERS MORE THAN THE BUG.** `T-132` is *"a
+      question that names no task leaves the row it is holding up at the top"*. This is *a question
+      that names its task perfectly and still cannot reach it.* Same consequence — a watch sent to a
+      row waiting on Wyatt — and it is now the **fourth** hand-repair of a Chart bookkeeping fault in
+      three days. **The hand-repair does not generalise: the next parked Glass row needs the same
+      manual flag, and nothing reminds anyone.**
+      **SHAPE OF THE FIX:** `livePointer` should read BOTH charts' BLOCKED ON WYATT sections, not
+      just the one it was pointed at — the same one-line correction already made to
+      `chart_sweep_conserves_check` and `close_item.mjs` when his split broke them. **This is the
+      SIXTH tool with that exact fault** (`close_item`, `chartkeeper`'s sections, `tick_rows`, the
+      ranker, the sweep gate, and now `livePointer`). One instruction of his split one list in two,
+      and every tool with a path written into it went quietly wrong in a different way.
+      **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
 - [ ] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23,
       ⟨`T-122` · size: S⟩
       in the fix written to close rule 23's last instance.** Filed 2026-09-03T02:xxZ by CEO 132.
@@ -448,6 +453,38 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⟨`T-029`⟩
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
       ⟨`T-031`⟩
+- [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
+      ⟨`T-121` · size: S · needs: wyatt⟩
+      "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
+      **MEASURED, NOT REASONED:** his page saves the WHOLE sequence, so `--order=` stamps all 50
+      draggable rows, and a dragged row scores 4950–4999 against a **measured top derived score of
+      196** on the live Chart (`chartkeeper.mjs`'s `score()`). So from his first drag onward every
+      undraggable row and every task filed afterwards sits below all fifty, permanently, until
+      somebody runs `--order-clear` — **and he has no way to run that from the page.**
+      ⚠ **THIS MAY BE CORRECT BEHAVIOUR FOR A DRAG-TO-REORDER LIST AND IT IS STILL A DEFECT**, for
+      two reasons that do not depend on that judgement: (a) `chartkeeper.mjs:255` prints *"Anything
+      you did not drag keeps its derived rank, underneath yours"*, which is true of the command and
+      false of how his page uses it — there is no such thing as "did not drag"; (b) his note told him
+      the seven twinned rows *"will not move"*, and on the next load `applySaved` lifts every named
+      row above them, so all seven relocate to the bottom. **He was told the opposite of what
+      happens.** The note is corrected; the behaviour is not.
+      **TWO SHAPES, and the second is probably his call:** save only the rows AHEAD of the last one
+      he actually moved, so the tail keeps its derived rank — or give him a way back on the page
+      ("use the ranked order"), which is one button and one `--order-clear` in the harvest.
+      ⛔ **PARKED 2026-09-03T10:4xZ — PUT TO HIM, because both shapes are defensible and the answer
+      changes how HIS OWN page behaves under his hands.** Question `qid:t121-drag-scope` is in
+      `CHART.md`'s BLOCKED ON WYATT, so it renders on his Your Call card.
+      **WHAT WAS MEASURED FIRST, so the question is not an abstraction:** `glass.mjs:1770` —
+      `saveOrder()` calls `sequence()`, which returns the WHOLE list, so one drag stamps `order:` on
+      all 50 draggable rows. `chartkeeper.mjs:922` scores a dragged row `5000 - position`, i.e.
+      **4,950–4,999, against a derived ceiling of 196**. So the sinking is total and permanent, and
+      the only escape the page offers is dragging a row back to its exact original slot
+      (`glass.mjs:1771` clears the order when the sequence matches the one it was born with).
+      **THREE ANSWERS OFFERED, and the third is that nothing is wrong** — *"the order I left it in"*
+      is a coherent design, and this may be a problem he does not have. Recommendation is the escape
+      hatch first (one button), the drag-scope change second, because one un-sticks him today and
+      the other changes what a drag MEANS.
+      **Sizing: SMALL. No game code.**
 - [ ] **A ROW BLOCKED IN PROSE IS NOT BLOCKED — THE RANKER CANNOT READ ENGLISH, AND UNDER "TAKE ROW
       ⟨`T-129`⟩
       ONE" THAT NOW HANDS EVERY FRESH WATCH THE SAME WALL.** Filed 2026-09-03T02:1xZ by the watch it
