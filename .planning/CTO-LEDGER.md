@@ -7795,3 +7795,5 @@ applies to a screenshot or a comment.
 setup job. `T-206` is parked on `qid:t206-ga-turn-on`. Not re-verified here; recorded as theirs.)*
 
 *Its session ended before I could reply, so this entry is the reply.*
+
+- 2026-09-03T10:34:55Z · close_item: "T-140" · CEO 163 · no game diff — no game code — the Glass harvest machinery · no stated solution

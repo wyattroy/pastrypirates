@@ -2561,6 +2561,45 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       was reported as having done so. Whatever replaces it must restore the whole tree at that ref
       or say which files it did not. **Sizing: SMALL. No game code.**
 
+> ### ⚠ HOW THIS ROW WAS RESOLVED — recovered 2026-09-03T11:0xZ, because the text below was
+> ### ATTACHED TO THE WRONG ROW AND THIS ARCHIVE ENTRY WAS WRITTEN WITHOUT IT.
+>
+> The resolution was appended to `T-121`'s row instead of `T-123`'s. `close_item.mjs` then swept
+> `T-123` correctly and archived the row as it actually stood — **the problem statement with no
+> answer** — while `T-121` was left carrying twenty-five lines about a red-proof tool it has
+> nothing to do with. **Nothing was lost and the sweep did nothing wrong**; a hand edit put good
+> text on the wrong row, and every instrument downstream faithfully preserved the mistake.
+>
+> **The reusable half: `chart_sweep_conserves_check` counts HANDLES, not BODIES.** It can prove no
+> row vanished. It cannot see a row wearing another row's answer — both rows exist, both are
+> owned, and the check is green. Found by eye while closing `T-140`, not by any gate.
+
+      ✅ **REPLACED 2026-09-03T09:4xZ by `scripts/qa/red_proof_at_ref.mjs`, and the old file is
+      DELETED rather than left as scratch nobody re-runs.**
+      `git worktree add --detach` materialises the WHOLE tree at the ref in a temp dir. **The shared
+      checkout is never written** — the window does not get shorter, it stops existing — and the
+      two-file limit goes with it, because every file is at the ref, which was the row's *"sibling
+      limit"*.
+      ⚑ **AND THE PART A WORKTREE ALONE GETS BACKWARDS, which I only found while building it:
+      A RED PROOF IS TODAY'S CHECK AGAINST YESTERDAY'S CODE.** A bare worktree hands you yesterday's
+      CHECK as well, which proves nothing — it would faithfully report the old gate passing on the
+      old code. **The current gate file is copied INTO the worktree before it runs.** My prediction
+      did not name this; implementing it did.
+      ✅ **`--ref` IS REQUIRED, no default** — CEO 131's fault on the old tool was that `HEAD` is
+      correct exactly once, before the work is committed, and afterwards checks the change against
+      itself and prints a pass that looks like a failed red proof.
+      **MEASURED:** `--ref=8327a1b9^` → *"RED PROOF HELD — do_now_check.mjs FAILS against
+      8327a1b9^"*, with `git status` on both hazard files clean afterwards.
+      ⚠ **AND IT LEFT A WORKTREE BEHIND ON ITS FIRST RUN, WHICH IS THE FUNNIEST FAULT OF THE NIGHT
+      AND WORTH THE LINE:** I called `process.exit()` inside the `try`, **which terminates before a
+      `finally` runs**, so the cleanup was written, correct and unreachable. **A tool built to stop
+      touching shared state left state behind on its first outing.** Fixed by setting the code and
+      exiting after the block; re-run clean — 1 worktree registered (just the repo), 0 temp dirs,
+      0 files touched.
+      ⚠ **One honest caveat rather than "touches nothing": `git worktree add` writes metadata under
+      `.git/worktrees/` in the shared repo.** Not tracked content, no other session reads it, removed
+      on the way out — but it is not nothing.
+
 ## T-133 — 2026-09-03 — chart_sweep_conserves_check IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT (closed 2026-09-03 · CEO 161 · no game diff — no game code — the QA gate itself) NOBODY MENTIONS IT. Filed 2026-09-03T04:4xZ by watch a5, which did not cause it. node scripts/qa/chart_sweep_conserves_check.mjs fails: "38 allocated handle(s) are owned by NOTHING in either file — T-002, T-008, T-011, T-014, …". It is in npm test (package.json:26). Thirty-eight handles have been minted and their rows are gone from both the Chart and the Glass Chart — so every one of them is a pointer in the ledger, in CHART-LOG.md and in git that now resolves to nothing. Why this is more than tidiness: close_item.mjs and chartkeeper.mjs both key on handles, and handleIsAmbiguous (chartkeeper.mjs:754) exists precisely because a handle naming two jobs names neither. A handle naming NO job is the same family. Likely the same root as the split Wyatt ordered (44 rows moved between two files) — check that first. ⚠ AND THE SECOND-ORDER COST IS THE REAL ONE: a permanently-red gate in npm test teaches every watch that a red suite is normal. Two separate watches tonight reported npm test failures as "known and not mine" — accurately, both times. That is how a real regression gets waved through.
 
 - [x] **`chart_sweep_conserves_check` IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT (closed 2026-09-03 · CEO 161 · no game diff — no game code — the QA gate itself)
@@ -2579,3 +2618,44 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       every watch that a red suite is normal.** Two separate watches tonight reported `npm test`
       failures as "known and not mine" — accurately, both times. That is how a real regression gets
       waved through.
+
+## T-140 — 2026-09-03 — THE HARVEST IS A PERSON READING A PAGE BY HAND — and that is the last joint in everything (closed 2026-09-03 · CEO 163 · no game diff — no game code — the Glass harvest machinery) his page can carry: his ideas, his rulings, his comments, and his DO NOW press. Split out of T-104 at CEO 151's instruction: "A ticket that cannot close until an unrelated ticket closes is a ticket that has stopped measuring its own subject." T-104's own halves are mechanical and gated; this is the shared step underneath all four kinds of his input, and holding the button open on it was holding it open on somebody else's work. WHAT A GATE CAN AND CANNOT DO HERE, stated so nobody re-derives it: a gate can prove the INSTRUCTION exists — do_now_reaches_the_watch_check cases 4 and 5 fail if either the Glass runbook or the Door stops naming the pin command. No gate can prove a session typed it. Between his press and his Chart sits one human-shaped step, four times over. THE FOUR THINGS THAT RIDE ON IT — and every one is his, not ours: glassState.ideas, glassState.rulings, glassState.comments (new 2026-09-03, T-076), and the now: true flag on a pressed idea. An unharvested republish deletes the first three and drops the fourth. The hook enforces that a session READ the page; nothing enforces that it MOVED anything across. ⚠ IT HAS ALREADY COST HIM ONCE TONIGHT, which is why this is a row and not a note: a comment box that renders and does not save is invisible in exactly the same way — the machine says done, the words are gone, and every gate is green. That was T-076, found by CEO 144. THE SHAPE OF A REAL FIX: the harvest carries the state mechanically rather than by instruction — same family as T-105's remaining layers, and probably one job with them. Sizing: MEDIUM. No game code. Nothing here is blocked on Wyatt. ✅ BUILT 2026-09-03T10:5xZ — scripts/wyclau/harvest_glass.mjs, gated by scripts/qa/harvest_carries_his_words_check.mjs (gate 117), named in the Door. It takes the HTML the Artifact read saves, and writes ideas + comments → INBOX.md, rulings → DECISIONS.md, and his DO NOW press into both the entry's title and its status: line. Idempotent on his own at stamp, so a second run is a no-op — and it will be run twice, because a session unsure whether it harvested runs it again, which is the right instinct. THE HAND STEP THAT REMAINS, stated rather than hidden: READING the page. Only the Artifact tool can fetch a published artifact and a Bell-launched watch has none. What is gone is the TRANSCRIBING, which is where a missed comment looked exactly like a clean harvest. ⚠ AND THE RED PROOF FOUND THE SAFEGUARD UNGUARDED, which is this row's own fault one layer up. Six mutants against a COPY (--tool=, never the shared tree — T-112); two survived. One was the read-back-from-disk that the whole design rests on: swapping it for a count of the loop passed every case, because the case meant to catch it makes the destination unreadable and the tool exits at the guard before counting anything. I wrote the safety net and a test that could not see it. Case 5b reaches it now. The other: an OR across the title and the status line tested neither, so the pin could vanish from the heading unnoticed.
+
+- [x] **THE HARVEST IS A PERSON READING A PAGE BY HAND — and that is the last joint in everything (closed 2026-09-03 · CEO 163 · no game diff — no game code — the Glass harvest machinery)
+      ⟨`T-140`⟩
+      his page can carry: his ideas, his rulings, his comments, and his DO NOW press.**
+      Split out of `T-104` at CEO 151's instruction: *"A ticket that cannot close until an unrelated
+      ticket closes is a ticket that has stopped measuring its own subject."* `T-104`'s own halves
+      are mechanical and gated; **this is the shared step underneath all four kinds of his input**,
+      and holding the button open on it was holding it open on somebody else's work.
+      **WHAT A GATE CAN AND CANNOT DO HERE, stated so nobody re-derives it:** a gate can prove the
+      INSTRUCTION exists — `do_now_reaches_the_watch_check` cases 4 and 5 fail if either the Glass
+      runbook or the Door stops naming the pin command. **No gate can prove a session typed it.**
+      Between his press and his Chart sits one human-shaped step, four times over.
+      **THE FOUR THINGS THAT RIDE ON IT** — and every one is his, not ours: `glassState.ideas`,
+      `glassState.rulings`, `glassState.comments` (new 2026-09-03, `T-076`), and the `now: true`
+      flag on a pressed idea. **An unharvested republish deletes the first three and drops the
+      fourth.** The hook enforces that a session READ the page; nothing enforces that it MOVED
+      anything across.
+      ⚠ **IT HAS ALREADY COST HIM ONCE TONIGHT, which is why this is a row and not a note:** a
+      comment box that renders and does not save is invisible in exactly the same way — the machine
+      says done, the words are gone, and every gate is green. That was `T-076`, found by CEO 144.
+      **THE SHAPE OF A REAL FIX:** the harvest carries the state mechanically rather than by
+      instruction — same family as `T-105`'s remaining layers, and probably one job with them.
+      **Sizing: MEDIUM. No game code. Nothing here is blocked on Wyatt.**
+      ✅ **BUILT 2026-09-03T10:5xZ — `scripts/wyclau/harvest_glass.mjs`, gated by
+      `scripts/qa/harvest_carries_his_words_check.mjs` (gate 117), named in the Door.** It takes the
+      HTML the Artifact read saves, and writes ideas + comments → `INBOX.md`, rulings →
+      `DECISIONS.md`, and his DO NOW press into both the entry's title and its `status:` line.
+      Idempotent on his own `at` stamp, so a second run is a no-op — and it will be run twice,
+      because a session unsure whether it harvested runs it again, which is the right instinct.
+      **THE HAND STEP THAT REMAINS, stated rather than hidden: READING the page.** Only the Artifact
+      tool can fetch a published artifact and a Bell-launched watch has none. **What is gone is the
+      TRANSCRIBING**, which is where a missed comment looked exactly like a clean harvest.
+      ⚠ **AND THE RED PROOF FOUND THE SAFEGUARD UNGUARDED, which is this row's own fault one layer
+      up.** Six mutants against a COPY (`--tool=`, never the shared tree — `T-112`); two survived.
+      One was the read-back-from-disk that the whole design rests on: swapping it for a count of the
+      loop passed every case, because the case meant to catch it makes the destination unreadable
+      and the tool exits at the guard before counting anything. **I wrote the safety net and a test
+      that could not see it.** Case 5b reaches it now. The other: an `OR` across the title and the
+      status line tested neither, so the pin could vanish from the heading unnoticed.
