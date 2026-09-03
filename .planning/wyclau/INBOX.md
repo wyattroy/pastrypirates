@@ -1714,7 +1714,39 @@ status: OPEN — FOR A WATCH. **This entry stays OPEN deliberately: it is the BU
 
 solution: his own — **a NEW page at `/rules.html`**, not the About page and not the in-game modal promoted. And **written from the CURRENT game**, which is a second instruction inside the same sentence.
 
-status: OPEN — FOR A WATCH. This is the answer that unblocks `INBOX-20260902T190730Z` (build the rules page).
+status: OPEN — and it is open for a BETTER reason than it was this morning. **Half one is finished: the new page exists at `/rules.html`** (`INBOX-20260902T190730Z`, CEO 171, commits `1efe53ab` + `067760a`). **Half two — "using the latest version of the game" — is measurably NOT finished, and one contradiction is now fixed out of a page nobody has fully audited.** Watch 2026-09-03T18:09Z, **CEO 181 (PARTIAL)**, Chart row `T-216`.
+
+  ⚑ **THE WARNING TWO PARAGRAPHS BELOW WAS RIGHT, AND IT WAS RIGHT ABOUT A RULE YOU MADE YOURSELF.**
+  The page was generated from the in-game How-to-play modal — correct engineering, and exactly what
+  rule 23 asks for — and commit `1efe53ab` says in its own body *"Not one sentence was rewritten; the
+  extraction is verbatim."* **So the modal's stale prose went onto a public page**, and it said:
+
+  > *"**Every dock is raidable** — a berth protects nobody, **not even a captain who's already fired
+  > up the ovens.**"*
+
+  **Your SANCTUARY ruling of 2026-08-06 made that false.** `src/engine/index.js:1761` —
+  `if(this.cfg.bakeoff&&def.baking)return false;`. **Measured by running the engine, not reading it:**
+  at the shipped default, defender not baking → `canAttack = true`; defender baking → `canAttack =
+  false`. A reader of your public rules page was being told to make a play the game refuses.
+  **FIXED** — the modal now reads *"But once a captain's ovens are lit they're beyond yer reach — rob
+  'em on the way home, or not at all"*, and `rules.html` regenerated from it. Pictures of both
+  surfaces at phone width: `.planning/posed/t216-modal-sanctuary-phone.png` and
+  `t216-rules-sanctuary-phone.png`.
+  **FENCED** — `scripts/qa/rules_sanctuary_matches_engine_check.mjs` (npm test, 125 gates) takes the
+  truth by CALLING `canAttack()` and fails if the words and the game disagree, in either direction.
+  It is behavioural on purpose: **the comment sitting four lines above that code still states the OLD
+  rule in full**, so anything that read the comment would have confirmed the error.
+
+  ⛔ **WHY THIS IS NOT TICKED, WHICH IS THE HONEST PART. FIVE of roughly TWENTY claims on that page
+  have been checked against the code. FOUR were right and ONE was wrong.** Checked and correct: Best
+  Baker's tiebreak order (crates → coins → home first), the call bounty and its no-winner rule, the
+  black market's any-two-crates barter, the empty-hold rule. CEO 181 independently checked two more
+  (the bake-off day resolution, two captains baking together) and found both correct. **At that
+  measured rate roughly three more wrong statements are still live on the page.** Ticking now would
+  mark your instruction DONE with three quarters of it unexamined — in the entry that warned, in
+  capitals, that this is the half that gets skipped. **The remaining audit is what this item is now
+  waiting on**, and it is a Chart row rather than a fresh INBOX entry so that it cannot drift away
+  from your sentence again.
 
   ⚠ **"USING THE LATEST VERSION OF THE GAME" IS NOT DECORATION — IT IS THE HALF THAT WILL GET
   SKIPPED.** The in-game "How to play" modal holds 765 words written at some earlier point;

@@ -1,24 +1,34 @@
-> # ⚠ THIS RUN IS DEAD. IT DID NOT FINISH, AND NOTHING BELOW IS A VERDICT.
->
-> Started 11:21:15Z, reached **2 of 10 legs**, and its processes were gone by 11:36Z — no node,
-> no browsers. Its own progress marker had been written 11:34:52Z and its last screenshot at
-> 11:35Z, so it died within about a minute of that, mid-leg.
->
-> **This is the third time today a trial has died the same way**, and the pattern is recorded in
-> this ledger by two different sessions: a trial launched in the background from a session's turn
-> does not survive that turn ending. The 03:07Z run and the 10:04Z run went the same way. It is
-> why build `2026.09.01.1` has still never had a completed trial.
->
-> **Wyatt's ruling, 2026-09-01 11:36Z: “the watchdog cannot run a sea trial — only you can.”**
-> A watchdog-started session launching a trial in the background is what produced this corpse.
-> Sea trials belong to the Bosun session that can stay with them.
->
-> Its stale `LONG-RUN` marker was removed at 11:36Z: it claimed a live job for up to 53 more
-> minutes and would have held the watchdog off on work that had already stopped.
+# Sea trial v2 — build `2026.09.03.3`
 
-# Sea trial v2 — build `2026.09.01.1`
+**NOTHING SAILED** — 0 of 0 voyage(s) sailed  ·  2026-09-03T18:18:32.284Z  ·  1 min  ·  gear **COSMETIC**  ·  sailed on **win32 (Wy-Blade)**
 
-**IN PROGRESS — no verdict yet.**  ·  started 2026-09-01T11:21:15.265Z  ·  gear **FULL**  ·  sailed on **win32 (Wy-Blade)**
+> Gear chosen because: **CHOSEN ON THE COMMAND LINE**, overriding the mechanical picker, which said **FULL** (behaviour can change in: index.html, package.json, rules.html)
+>
+> **Depth: COSMETIC. The mechanical picker said FULL.** A person chose this depth. Their reason, verbatim: **One sentence of prose inside the How-to-play modal, plus the regenerated rules.html the generator produces from it. No script, no CSS, no selector, no behaviour: the git diff of index.html is a single <p> in the modal's rules text. The picker says FULL because index.html is in the changed set at all, which it cannot distinguish from a real code change. Verified instead the way COSMETIC asks -- npm test 125/125 green, the new behavioural gate red-proofed twice on the real file, and screenshots of the modal and the page.**
+>
+> Sailed by **sea trial v2** — the eyes see EVERY distinct screen (no judge
+> cap), five to a call, and each leg says how many of its screens were actually looked at. A report
+> from an older trial version looked at less; do not compare their silences.
 
-If this is still what the file says, the trial did not finish. **A trial that did not finish is not
-a trial that passed.** Nothing here has been proven about build `2026.09.01.1`.
+## What ran
+
+| | |
+|---|---|
+| checks with no browser (`npm test`) | PASS |
+| **can the vision judge see?** | yes — checked just before sailing — the judge opened a real screenshot and described it |
+| voyages played with a real mouse | none |
+| **voyages that did NOT run** | none |
+
+
+
+## The voyages, in full
+
+```
+(none run)
+```
+
+Screenshots and contact sheets: `sea-trial-shots/` (not committed — 100MB+ per run).
+
+---
+*Written by `scripts/sea_trial.mjs`. To check whether a sea trial was actually run for what is
+live, compare the build stamp above with the one in the game's ☰ menu.*

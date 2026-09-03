@@ -91,49 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
-      ⟨`T-220`⟩
-      `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
-      sea trial for this -- it clearly doesn't need a full one given that you're just adding a
-      tag to index; so we need a way to tell sea trial that and manually choose the depth of the
-      trial"*. **Split off T-206 deliberately** — that item is the analytics plan, this one
-      changes the testing machinery, and folding them together finishes neither.
-      **THE SIZE:** today `scripts/qa/gear.mjs` decides the gear from the files touched and
-      nothing can overrule it, so a one-line script tag in `index.html` buys the same ~75-minute
-      FULL trial as a rewrite of the board. That rule exists for a reason — `.claude/CLAUDE.md`
-      §5: *"chosen by the files you touched, never by how the change feels"* — and it was earned
-      the day a session picked its own depth by mood and shipped 22 unverified fixes.
-      ⚠ **SO THE JOB IS NOT "ADD A BYPASS FLAG", AND WHOEVER TAKES IT SHOULD SAY SO TO HIM.** An
-      unconditional `--gear=cosmetic` re-creates exactly the failure the rule was written
-      against. What is defensible is a depth a person can lower *on the record*: the reason
-      typed in, the chosen gear and the picker's own verdict both printed in the trial report,
-      so a shallow trial can never read as a full one. **Recommend that shape to him before
-      building either.**
-      **Read first:** `docs/QA-PROCESS.md` ("THE WHOLE LOOP, END TO END"),
-      `docs/HARD-WON-LESSONS.md` §10, `scripts/qa/gear.mjs:78-121`.
-      ⚑ **WORKED 2026-09-03T17:3xZ by the Blade watch. HALF OF HIS ASK WAS ALREADY BUILT AND NOBODY
-      HAD TOLD HIM** — `--gear=` has been read by `sea_trial.mjs` since it was written, and
-      `gear.mjs:181` prints `node scripts/sea_trial.mjs --gear=PLUMBING` in its own sweep line.
-      **Same shape as `T-216`: an instruction of his queued behind work already finished.**
-      **AND THE HALF THAT WAS MISSING WAS THE HALF THAT MADE IT SAFE, MEASURED ON THE RECOVERED
-      PRE-CHANGE FILE RATHER THAN REASONED ABOUT:** `--gear=cosmetic` — the exact lower-case
-      spelling the warning three lines above uses — **queued all TEN legs and really began sailing**,
-      while the report header read `gear: cosmetic`. The 75 minutes he was trying to skip, under a
-      header naming the depth he thought he had chosen. `--gear=SHALLOW` did the same.
-      **NOW:** an unknown gear is REFUSED and the four depths named; the name is normalised; the
-      picker runs on EVERY run so the report always carries **both** depths; a `--reason=` is
-      printed verbatim; and a depth lowered below the picker's with nothing typed is **said out
-      loud** rather than refused — refusing is his call, `qid:t220-shallow-green`.
-      **THE BUG THAT ONLY RUNNING IT COULD FIND, and it is the one that made the bypass unusable:**
-      a COSMETIC trial came back **`INCOMPLETE — 10 leg(s) did NOT run`** having correctly sailed the
-      zero voyages that gear asks for. `sea-trial-shots/report.json` is whatever the last FULL run
-      left behind, and nothing compared it against the fleet THIS run promised — so **every gear
-      below FULL inherited the missing legs as failures**, PLUMBING included. Fixed; the same run now
-      reads `0 of 0 · voyages that did NOT run: none`.
-      **Gate `scripts/qa/sea_trial_chosen_depth_check.mjs`, RED 0/8 on the real unmodified file →
-      GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
-      deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
-      npm test 124/124. No game code — `src/` and `index.html` untouched.
 - [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
       ⟨`T-216`⟩
       FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
@@ -142,11 +99,37 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
       morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
       is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
-      **WHAT IT NEEDS:** a close through `scripts/wyclau/close_item.mjs`
-      (`--item="INBOX-20260902T225008Z" --ceo=<n> --commit=4dbc7842`), which writes the fate, and
-      check whether `INBOX-20260902T190730Z` and `INBOX-20260902T225032Z`'s siblings are in the same
-      state while you are in there. **NOT hand-patched** — the gate writes the INBOX fate, the tick
-      and the ledger entry together so the three cannot disagree.
+      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
+      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
+      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
+      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
+      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
+      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
+      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
+      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
+      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
+      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
+      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
+      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
+      that code still states the OLD rule in full**, so reading the code's own commentary would have
+      confirmed the error.
+      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
+      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
+      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
+      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
+      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
+      found the first version would have passed green.
+      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
+      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
+      found them right. At that rate roughly three more wrong statements are still live. Closing now
+      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
+      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
+      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
+      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
+      don't end on one", crate prices as an island empties — each against the code that implements it,
+      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
+      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
+      cannot disagree.
       ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
       as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
       block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
@@ -208,11 +191,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
   THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
@@ -250,6 +228,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
@@ -615,6 +597,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
+
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -700,7 +683,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
-
 - [ ] **THE KIT'S COPY OF THE GLASS STILL SAYS "Do it" AND "Don't".**
       ⟨`T-217`⟩
       `claude-kit/plugins/wyclau/bin/glass.mjs:661-662`, found by CEO 172. The project copy is
@@ -843,6 +825,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
+- [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
+      ⟨`T-220`⟩
+      `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
+      sea trial for this -- it clearly doesn't need a full one given that you're just adding a
+      tag to index; so we need a way to tell sea trial that and manually choose the depth of the
+      trial"*. **Split off T-206 deliberately** — that item is the analytics plan, this one
+      changes the testing machinery, and folding them together finishes neither.
+      **THE SIZE:** today `scripts/qa/gear.mjs` decides the gear from the files touched and
+      nothing can overrule it, so a one-line script tag in `index.html` buys the same ~75-minute
+      FULL trial as a rewrite of the board. That rule exists for a reason — `.claude/CLAUDE.md`
+      §5: *"chosen by the files you touched, never by how the change feels"* — and it was earned
+      the day a session picked its own depth by mood and shipped 22 unverified fixes.
+      ⚠ **SO THE JOB IS NOT "ADD A BYPASS FLAG", AND WHOEVER TAKES IT SHOULD SAY SO TO HIM.** An
+      unconditional `--gear=cosmetic` re-creates exactly the failure the rule was written
+      against. What is defensible is a depth a person can lower *on the record*: the reason
+      typed in, the chosen gear and the picker's own verdict both printed in the trial report,
+      so a shallow trial can never read as a full one. **Recommend that shape to him before
+      building either.**
+      **Read first:** `docs/QA-PROCESS.md` ("THE WHOLE LOOP, END TO END"),
+      `docs/HARD-WON-LESSONS.md` §10, `scripts/qa/gear.mjs:78-121`.
+      ⚑ **WORKED 2026-09-03T17:3xZ by the Blade watch. HALF OF HIS ASK WAS ALREADY BUILT AND NOBODY
+      HAD TOLD HIM** — `--gear=` has been read by `sea_trial.mjs` since it was written, and
+      `gear.mjs:181` prints `node scripts/sea_trial.mjs --gear=PLUMBING` in its own sweep line.
+      **Same shape as `T-216`: an instruction of his queued behind work already finished.**
+      **AND THE HALF THAT WAS MISSING WAS THE HALF THAT MADE IT SAFE, MEASURED ON THE RECOVERED
+      PRE-CHANGE FILE RATHER THAN REASONED ABOUT:** `--gear=cosmetic` — the exact lower-case
+      spelling the warning three lines above uses — **queued all TEN legs and really began sailing**,
+      while the report header read `gear: cosmetic`. The 75 minutes he was trying to skip, under a
+      header naming the depth he thought he had chosen. `--gear=SHALLOW` did the same.
+      **NOW:** an unknown gear is REFUSED and the four depths named; the name is normalised; the
+      picker runs on EVERY run so the report always carries **both** depths; a `--reason=` is
+      printed verbatim; and a depth lowered below the picker's with nothing typed is **said out
+      loud** rather than refused — refusing is his call, `qid:t220-shallow-green`.
+      **THE BUG THAT ONLY RUNNING IT COULD FIND, and it is the one that made the bypass unusable:**
+      a COSMETIC trial came back **`INCOMPLETE — 10 leg(s) did NOT run`** having correctly sailed the
+      zero voyages that gear asks for. `sea-trial-shots/report.json` is whatever the last FULL run
+      left behind, and nothing compared it against the fleet THIS run promised — so **every gear
+      below FULL inherited the missing legs as failures**, PLUMBING included. Fixed; the same run now
+      reads `0 of 0 · voyages that did NOT run: none`.
+      **Gate `scripts/qa/sea_trial_chosen_depth_check.mjs`, RED 0/8 on the real unmodified file →
+      GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
+      deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
+      npm test 124/124. No game code — `src/` and `index.html` untouched.
 
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩

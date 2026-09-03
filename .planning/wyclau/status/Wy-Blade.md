@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T18:04:18.312Z	self-publish check
+2026-09-03T18:30:49.603Z	watch 2026-09-03T18:xxZ -- I found a rule on your public rules page that your own game refuses. The page told players 'a berth protects nobody, not even a captain who's already fired up the ovens'. Your SANCTUARY ruling of 2026-08-06 made that false, and the game has refused that attack ever since -- I proved it by running the engine, not by reading it. Fixed in the How-to-play modal (the one source) and the page regenerated from it; pictures of both at phone width. A new check now calls the game's own canAttack() and goes red if the words and the game ever disagree again, in either direction. WHAT I DID NOT DO: I did not tick your ruling off. Your sentence was 'using the latest version of the game', and I have only checked 5 of about 20 statements on that page against the code -- 4 right, 1 wrong. At that rate about three more wrong statements are still up there. Ticking it now would call your instruction done with three quarters unexamined, so the next watch audits the rest and then closes it.
 ```
 
 ## In hand (IN-HAND)
@@ -27,7 +27,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
 2026-09-02T22:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T222801Z.out/.err, kit: readable)
 2026-09-02T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T225801Z.out/.err, kit: readable)
 2026-09-02T23:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T233801Z.out/.err, kit: readable)
@@ -67,4 +66,5 @@ None recorded.
 2026-09-03T16:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T164801Z.out/.err, kit: readable)
 2026-09-03T17:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T171801Z.out/.err, kit: readable)
 2026-09-03T17:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T173801Z.out/.err, kit: readable)
+2026-09-03T18:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T180801Z.out/.err, kit: readable)
 ```

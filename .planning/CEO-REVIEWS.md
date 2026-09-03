@@ -1,5 +1,27 @@
 # CEO reviews — the standing record
 
+## CEO Review 181 — 2026-09-03, Wy-Blade — Bell watch, `T-216` / `INBOX-20260902T225008Z`: the rules page, "using the latest version of the game" — **PARTIAL**
+
+**HIS REQUEST, VERBATIM** (`INBOX-20260902T225008Z`, Glass ruling `rules-page-1-of-4`, 2026-09-02T22:50:08Z): *"Do a new /rules.html that explains the rules -- using the latest version of the game."*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"The watch found a genuine lie on your public rules page — it told players they could raid a captain whose ovens were lit, which your own game has refused since August 6th — and fixed it properly; but it is about to mark your 'using the latest version of the game' instruction DONE having checked five of roughly twenty statements on that page, and its own written note says that is exactly the moment it should have stayed open."*
+
+**Verdict: PARTIAL.**
+
+**WHAT IT VERIFIED RATHER THAN TOOK ON TRUST.** The false rule is real (`src/engine/index.js:1761`). **The comment trap is real and WORSE than this watch reported** — it read `src/engine/index.js:1752-1754` itself and found the stale comment does not merely omit the rule, it states the opposite in full (*"a captain who has already fired up the ovens is still a legal target"*), four lines above the line refusing that attack. It ran the new gate, and both `--red=1` and `--red=2`. It confirmed the RED-first claim independently: `git show HEAD:index.html | grep -c "data-engine-rule"` returns **0**. It confirmed `gate_count_check` derives 125 and agrees with `package.json`. **It read the phone screenshot pixel by pixel** and confirmed the shipped text matches the claim. And it **spot-checked two claims this watch had NOT audited** — the bake-off day resolution and the two-captains-bake-together rule, against `src/engine/index.js:3010-3046` and `2939-2950` — finding both correct.
+
+**ON THE GEAR, and it did not have to say this:** *"COSMETIC is honest, not mood… This is not the depth-by-mood failure the gear rule exists to stop."*
+
+**⛔ ITS FINDING THAT DECIDED THE OUTCOME OF THIS ITEM — and it is this watch's own falsifier, answered and then about to be overridden.** The prediction file says, before any measuring: *"the right act is to leave the item OPEN with that stated — not to close it."* It fired. The watch recorded that it fired, in detail, **and still intended to close.** The CEO's words: *"A falsifier you answer and then ignore is one step better than one you skip and one step worse than one you obey."* And its arithmetic: five claims checked at a measured 20% error rate over roughly twenty claims **predicts about three more wrong statements still live on the public page** — so closing would leave his instruction *"75% skipped and marked DONE"*, in the entry that warned in capitals this is the half that gets skipped.
+**ACTED ON: `INBOX-20260902T225008Z` IS NOT CLOSED.** The fix and the fence landed; the item stays OPEN against the remaining audit, exactly as the falsifier said. Its own recommendation was taken over this watch's intent.
+
+**⛔ AND THE FINDING IT GOT BY READING WHAT IT COULD NOT RUN.** The gate's first classifier opened with `/once .*ovens/`, which classified a sentence as PROTECTIVE on the words *"once … ovens"* alone — so a reword such as *"Once ye spot their ovens lit, that's yer moment to strike"* would have passed **GREEN while telling a player the exact thing the gate exists to stop.** Its summary is the reusable half: *"the gate is strong in the direction of engine changes and weak in the direction of words changing, which is the direction the fault actually came from."* It flagged honestly that a permission fence stopped it running the adversarial string, so this was reasoned and not measured.
+**ACTED ON, and the finding was correct.** Every branch now turns on a **verb about reach** rather than the noun *ovens* being nearby; the classifier is split out and exercised against **seven fixtures inside the gate**, including that exact sentence; and `--red=3` restores the old hole so anyone can re-run the proof without editing the file — it trips **3 of 7 fixtures**. The `package.json` paragraph claiming *"both directions"* was corrected in the same edit: it was overclaiming, and the CEO caught the overclaim rather than the code.
+
+**WHAT IT COULD NOT VERIFY, said plainly by it:** the real-file red proof of clause 2 leaves no artifact, so it took that half on this watch's word (the `--red=2` switch is reproducible and does work); and it did not run the full 125-gate suite, being a bounded review.
+
+**RECURRENCE vs CEO 180.** *A falsifier written and left unanswered* — **improved, then re-broken one level up**, which is the finding above. *A claim shipped with a false reason for being static* — **not recurring**; the gate is genuinely behavioural and carries the instrument-reaches-its-subject guard. *A hand-typed number stale in the ceiling paragraph* — **not recurring**; `gates.total: 125` is derived-and-agreed. Its through-line, worth quoting because it names a moving target: *"The through-line across 149, 151, 153, 171, 180 and now this one is the prediction rule. It has stopped being skipped. It has now started being answered and then not obeyed — which is a smaller fault, and it is still the same fault wearing better clothes."*
+
 ## CEO Review 180 — 2026-09-03, Wy-Blade — Bell watch, `T-220`: a sea trial at a depth somebody chooses — **PARTIAL**
 
 **HIS REQUEST, VERBATIM** (`INBOX-20260902T214507Z`, ruling on `qid:t206-ga-turn-on`): *"we need a

@@ -1654,6 +1654,16 @@ const PAGE = `<meta charset="utf-8">
         if (d) allOpts.push(b.getAttribute("data-choice") + ": " + d);
         if (b.getAttribute("data-choice") === choice && d) lbl = d;
       });
+      /* NEVER LOSE A LABEL HE ALREADY HAS. A declared option is keyed off its own WORDS, so
+         REWORDING a question changes its key -- and then no button on the page matches the choice
+         saved under the old one, lbl comes back null, and his readable answer is replaced by a hash
+         in DECISIONS.md. That is the live route back to "Wyatt ruled opt-15wnciu" (CEO 178), and it
+         fires on the most ordinary edit there is: tightening the wording of a question.
+         The blur handler re-saves with the EXISTING choice whenever he adds a note, so this runs on
+         his own note-typing, not only on a press. Keep what was stored before. */
+      var prev = state.rulings[id];
+      if (!lbl && prev && prev.chose && prev.choice === choice) lbl = prev.chose;
+      if (!allOpts.length && prev && prev.options && prev.options.length) allOpts = prev.options;
       state.rulings[id] = {
         choice: choice,
         chose: lbl,

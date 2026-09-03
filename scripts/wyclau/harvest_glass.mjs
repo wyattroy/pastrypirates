@@ -192,10 +192,20 @@ for (const [handle, arr] of Object.entries(comments)) {
  * no button pressed still saves as a ruling (`glass.mjs`'s blur handler), and it is his answer
  * even though he pressed nothing. */
 const NO_BUTTON = { note: "a note, no button pressed" };
-const hisWord = (r) => {
+/* ⛔ THE FALLBACK MUST ANNOUNCE ITSELF. CEO 178: the fallback to a bare key is defensible — a ruling
+   recorded awkwardly beats one recorded wrongly — *"the silence is not"*. Without this, an
+   unreadable value (`opt-1a2b3c`, or a bare `yes`) reaches his permanent decision record with
+   nothing telling the session it happened, and `glass_ruling_button_words_check` case 5 calls
+   exactly that output a build failure. So it is counted here and printed at the end of the run. */
+const keyFallbacks = [];
+const hisWord = (r, qid) => {
   const chose = String(r?.chose ?? "").trim();
   if (chose) return chose;
-  return NO_BUTTON[String(r?.choice)] ?? String(r?.choice ?? "");
+  const named = NO_BUTTON[String(r?.choice)];
+  if (named) return named;
+  const raw = String(r?.choice ?? "");
+  keyFallbacks.push(`${qid} -> ${JSON.stringify(raw)}`);
+  return raw;
 };
 
 for (const [qid, r] of Object.entries(rulings)) {
@@ -212,7 +222,7 @@ for (const [qid, r] of Object.entries(rulings)) {
        the alternative he did not pick; now it can, so it does — and it still says so honestly when
        the page did not carry them, rather than inventing one. */
     block: `## ${q.replace(/\s+/g, " ").slice(0, 110)} — ${r.at}\n\n`
-      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${hisWord(r)}"**, ${r.at}.\n\n`
+      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${hisWord(r, qid)}"**, ${r.at}.\n\n`
       + (r.note ? `**His note, verbatim:** *"${String(r.note).trim().replace(/\s+/g, " ")}"*\n\n` : "")
       + (Array.isArray(r.options) && r.options.length
         ? `**The alternatives he did not pick**, as his card showed them:\n`
@@ -297,6 +307,17 @@ if (landedInbox !== newInbox.length || landedRulings !== newRulings.length) {
   process.exit(1);
 }
 console.log("");
+/* ⛔ SAY WHEN A RULING WENT IN AS A KEY. See `hisWord` above: the fallback is deliberate, the
+   silence was the fault (CEO 178). This is the one output the button-words gate treats as a build
+   failure, so a session must not be able to produce it and not know. */
+if (keyFallbacks.length) {
+  console.log(`!! ${keyFallbacks.length} ruling(s) went into DECISIONS.md as a STORAGE KEY, not as words he can read:`);
+  for (const f of keyFallbacks) console.log(`     ${f}`);
+  console.log("   The page stores the label he pressed as `chose`; these carried none, so the record now");
+  console.log("   holds a value that means nothing once the question card is gone. Open those entries and");
+  console.log("   write in what he actually chose, from the question's own card, before this is relied on.");
+  console.log("");
+}
 writeCarry(landedInbox + landedRulings);
 console.log("Now commit these files, THEN republish the Glass. Republishing first deletes his words.");
 process.exit(0);
