@@ -2006,3 +2006,35 @@ status: DONE 2026-09-02 for the triage; the 29 rows are the standing work.
   document with his input embedded; this session read it and applied it to the record. **No relay,
   no harvest step, no waiting.** Fifteen dismissals and five notes moved from his screen to the
   record in one read.
+
+## INBOX-20260902T2242Z — THE FIREBASE REBUILD IS CANCELLED
+
+**HIS WORDS, VERBATIM:**
+
+> We're NOT doing the firebase rebuild. remove that from your list
+
+solution: his own. **Cancelled.** No row for it exists on `GLASS-CHART.md` (checked — zero mentions), so nothing needed removing from the list itself. The two documents stay on disk as a record of a decision made and unmade, marked cancelled at the top.
+
+status: DONE 2026-09-02 — cancelled, and the consequence below is the part that matters.
+
+  ⚠ **THIS LEAVES NOTHING PROTECTING HIS WRITING, AND HE SHOULD SEE THAT PLAINLY.** Three things
+  covered that ground and all three are now gone in the space of fifteen minutes:
+  - **`T-105`** — *"THE GLASS MUST NOT BE ABLE TO LOSE HIS WRITING"*, the item he called top
+    priority at 3:15 PM — **dismissed by him in the audit**;
+  - **`T-025`** — the Glass v3 rebuild — **dismissed in the same pass**;
+  - **the Firebase rebuild** — **cancelled here.**
+
+  **When he dismissed the first two, the coherent reading was that Firebase replaced them. That
+  reading is now dead, and nothing took their place.** What remains is the current Glass: an HTML
+  document regenerated and re-uploaded to change, with his words living inside the same file.
+
+  ✅ **WHAT IS ACTUALLY STILL TRUE AND SHOULD STOP ANYONE PANICKING:** the platform refuses a stale
+  publish — **measured 4:58 PM on a disposable artifact, and the refusal quoted** — and the one flag
+  that switches that refusal off is now gated (`glass_never_force_check.mjs`, 113th in `npm test`).
+  **So his writing is protected by the runtime, not by anything this project built, and that
+  protection is real but borrowed.**
+
+  **THE HONEST STATEMENT OF WHERE THAT LEAVES HIM:** the daily publish ceiling, the record-fixed-
+  but-page-stale gap, and an unattended watch being unable to publish are **all still live and now
+  have no plan.** They were the whole case for the move. **Cancelling it is his call and it is
+  recorded without argument — but the problems it was answering did not go away with it.**

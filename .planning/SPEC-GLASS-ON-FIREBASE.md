@@ -1,3 +1,17 @@
+> # ⛔ CANCELLED BY HIM, 2026-09-02 10:42 PM ET
+>
+> **His words, verbatim:** *"We're NOT doing the firebase rebuild. remove that from your list."*
+>
+> **This scope is kept as the record of a decision made and unmade, not as work.** Nothing in it is
+> scheduled. Do not build from it, and do not re-propose it without him raising it first.
+>
+> ⚠ **THE PROBLEMS IT WAS ANSWERING DID NOT GO AWAY WITH IT** — the 200/day publish ceiling, the
+> record-fixed-but-page-stale gap (four times in one day), and an unattended watch being unable to
+> publish at all. **They are live and now have no plan.** He also dismissed `T-105` and `T-025` in the
+> same quarter hour, which were the other two answers to the same ground.
+
+---
+
 # SPEC — THE GLASS ON FIREBASE, SERVED FROM THE STAGING REPO
 
 *Scope only. Nothing is built. Written by the Advisor 2026-09-02, 7:55 PM ET, at his direct
