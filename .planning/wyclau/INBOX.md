@@ -2078,3 +2078,8 @@ status: DONE 2026-09-02 — measured red, fixed, measured green, and the guarant
   merely to read a number off the page, which is the fault already filed at `INBOX-20260902T0350Z`.
   **Nobody can do that again.** `glass_note_relay_check.mjs` case 5 is the permanent proof:
   *"without `--consume-note` his words are rendered AND left in the file, byte for byte."*
+
+## INBOX-20260903T142249Z — ⚑ HE PRESSED DO NOW — Change the buttons that say Do It and Don’t to Approve and Deny— and always when giving me
+> Change the buttons that say Do It and Don’t to Approve and Deny— and always when giving me options to choose number or letter them
+solution: none stated
+status: OPEN — PINNED by him on the Glass; take this before anything ranked
