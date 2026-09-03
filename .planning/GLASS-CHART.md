@@ -459,7 +459,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ✅ **BOTH BUILT 2026-09-03T04:5xZ** — expandable rows and a per-item comment box, in
       `glass.mjs`, live on his page.
       ⛔ **AND THE COMMENT BOX SHIPPED BROKEN FOR ~15 MINUTES, EATING EVERY WORD TYPED INTO IT.**
-      CEO 143 injected a fake artifact host and drove the real click: `.rowcmt` is a GRANDCHILD of
+      CEO 144 injected a fake artifact host and drove the real click: `.rowcmt` is a GRANDCHILD of
       `.rowx`, so `box.insertBefore(p, cmt)` threw `NotFoundError` — **between "clear the textarea"
       and "publish"**. Pressing Save wiped what he typed, showed nothing, saved nothing, and the
       carefully written put-his-words-back handler was UNREACHABLE because the failure was on the

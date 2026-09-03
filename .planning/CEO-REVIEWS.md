@@ -28,6 +28,170 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 144 — 2026-09-03, Wy-Blade — `T-076`: his expandable rows and per-item comment box — **PARTIAL**
+> ⚠ **RENUMBERED 143 → 144, AND THE COLLISION IS THE BANNER'S OWN LESSON HAPPENING LIVE.** This
+> review checked the highest number order-independently at both the start and the end of its
+> pass and correctly saw 142 free. **Another session filed its own 143 (`T-088`) while this one
+> was being written** — the exact race the banner describes: *"a reviewer read the highest number
+> at the START of a five-minute review and another session took it DURING."* Caught at insert time
+> by an assertion that refuses to write a number already on file, and renumbered to the LATER
+> value per the banner's rule. **Where the text below says "CEO 143", it means THIS review.**
+> The fifth collision on record; the first one a machine refused rather than a person noticed.
+
+> *Number checked order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **142**, and `grep -c "^## CEO Review 143"` → **0**) in the same act as writing. I am read-only and did not file this myself.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The expandable rows are real and good — I opened the page myself and they work exactly as described — but **the comment box is a facade: on the live Glass, typing a comment and pressing Save wipes his words from the box, shows him nothing, and saves nothing at all**, and the probe that "proved" it safe is built so it can never touch that path.
+
+---
+
+### 1. DID HE GET WHAT HE ASKED FOR?
+
+**HALF ONE — EXPANDABLE ROWS: YES. Verified in a real browser, not asserted.**
+
+I rendered the page myself (`glass.mjs --chart=.planning/GLASS-CHART.md`, rehearsal mode) and drove it in headless Chrome on my own port 9532. Measured, on his actual 29-row chart:
+
+| | |
+|---|---|
+| rows rendered | 29 |
+| rows offering "more" | 29 |
+| panels open at rest | **0** |
+| comment boxes visible at rest | **0** of 26 |
+| body revealed on click | 2,076 chars, button flips to "less" |
+
+The body is **genuinely verbatim** — `glass.mjs:530-537` takes `c.lines.slice(1)`, drops only the `⟨handle⟩` line by regex, and joins the rest untouched. No summarising. **The cap is honest**: `glass.mjs:534-536` appends `… truncated here — the rest of this row is in .planning/GLASS-CHART.md`, and that line appears **8 times** in the rendered page, so the 8 rows that overflow all say so. He is never shown a fragment that reads complete. That is the claim, and it holds.
+
+**Two limits worth naming, neither fatal:**
+
+- **A long headline's tail is lost even when expanded.** `shortTask` (`glass.mjs:400`) truncates the title at 16 words with `…`, and `detail` is `lines.slice(1)` — **line 0 is dropped entirely**. So the remainder of the headline exists nowhere on the page. His own pinned row proves it: `.planning/GLASS-CHART.md:451` ends *"…FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A"*, and `grep "FIVE HOURS OLD WHEN FILED"` against the rendered HTML returns **nothing**. He asked for expandable rows *for fuller context*; the one piece of context that is already truncated on screen is the one the expansion cannot give back. One character fixes it: `slice(0)` and drop the title from the visible span, or prepend the full title to the body.
+- **3 of 29 rows have no comment box** — inbox ideas with no handle (`glass.mjs:1172`). Principled (nothing to key a comment to) and the commit doesn't hide it, but he said *"under each item"*.
+
+---
+
+**HALF TWO — A COMMENT BOX PER ITEM: NO. It renders. It does not work, and it destroys his words.**
+
+I wrote the prediction down before measuring (scratchpad `PREDICTION.md`), named what would prove me wrong, and then measured. **I was right, and the mechanism is three lines apart in the same function.**
+
+The markup at `glass.mjs:1178-1179` nests three deep:
+
+```
+.rowx  >  .rowmore ,  .rowpanel
+.rowpanel  >  .rowdetail , .rowcmt
+```
+
+So `.rowcmt` is a **grandchild** of `.rowx`. But `paintComments` reaches past one level and then inserts against the wrong parent:
+
+- `glass.mjs:1595` — `var box = li.querySelector(".rowx");`
+- `glass.mjs:1599` — `var cmt = box.querySelector(".rowcmt");` ← grandchild
+- `glass.mjs:1604` — `box.insertBefore(p, cmt);` ← **reference node is not a child of `box`**
+
+**Measured, in Chrome 152, with a working `artifact` capability injected before the page script ran:**
+
+```
+{"handle":"T-027","rowcmtParentClass":"rowpanel","rowxIsDirectParent":false,
+ "textareaAfter":"","wordsKept":false,
+ "saidText":"","saidHidden":true,
+ "rowmineRendered":0,
+ "publishes":0,
+ "pageErrors":["Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node':
+                The node before which the new node is to be inserted is not a child of this node."]}
+```
+
+Read that as what happens to him. He opens a row, types a comment, presses **Save**:
+
+1. `glass.mjs:1624` — `ta.value = ""` — **his words are cleared from the box.**
+2. `glass.mjs:1625` — `paintComments(li)` — **throws.**
+3. `glass.mjs:1626` — "Saved." never appears (`saidHidden: true`, `saidText: ""`).
+4. `glass.mjs:1627` — **`cap.publish()` is never called** (`publishes: 0`). Nothing reaches the artifact.
+5. The comment never renders (`rowmineRendered: 0`).
+
+**The commit message's headline promise is exactly inverted.** It says *"ON FAILURE HIS WORDS GO BACK IN THE BOX rather than vanishing."* The failure handler at `glass.mjs:1628-1634` is well written and I have no complaint with it — **but it is unreachable**, because the throw happens two lines before `cap.publish` is ever called. The path that eats his words is the *success* path.
+
+**Why every check passed anyway, and this is the reusable part.** `_t076_row_ui_probe.mjs:123-135` types a comment and clicks Save with no artifact host. `glass.mjs:1617` — `if (!cap) { … return; }` — returns **before** the push, the paint and the publish. **The probe's save check is structurally incapable of reaching the code it is named after.** It reports *"with no host to save to, HIS WORDS STAY IN THE BOX"*, which is true and is not the question. This is CEO 140's finding (a) again — *"a check anchored against a corruption that by its nature is unanchored"* — one night later, in a different file.
+
+**The fix is one line:** `cmt.parentNode.insertBefore(p, cmt)` at `glass.mjs:1604`. **The test that must come with it is the harder half**: the probe has to inject a `window.claude.use` stub returning a `publish` that resolves, and then assert `publishes === 1` and `rowmine === 1`. Without a fake capability, no probe can ever see this class of bug.
+
+---
+
+### 2. IS THE SHIPPED DESIGN ACTUALLY BETTER THAN V1? — **Yes, and it is not a story told after the fact. I reproduced both states.**
+
+I copied `glass.mjs` to a temp dir, removed the `hidden` attribute from `.rowpanel` — which recreates v1's always-open condition — rendered, and ran the shipped probe against both:
+
+| | shipped | v1 condition (my mutant) |
+|---|---|---|
+| `visibleBoxes` | **0** | **26** |
+| `openPanels` | **0** | **29** |
+| probe verdict | all 13 PASS | **FAIL — 1 check** |
+
+So **the "26 → 0 at rest" number is real, I got it independently, and the collapse check is genuinely red-proofable** — it fails when the thing it guards is broken. That is the one assertion in this item that is properly armed.
+
+I also read the picture. At rest the list is a clean numbered scan-line per row with a small underlined "more ▾" beneath — it is still the list he steers by. Expanded, the 22rem cap works: the body scrolls inside its own box and the rows below stay on screen. **The design judgement is sound and the screenshot genuinely drove it.**
+
+Two honest cosmetic notes from the picture, neither raised in the commit: the detail renders **raw markdown** — literal `**`, backticks, `⚑` — and preserves the file's leading indentation, so the left edge is ragged and the text is asterisk-littered. It is verbatim as promised, and rule 10 justifies verbatim; but "fuller context" on a phone would read better with the markers stripped the way `shortTask` already strips them via `unmark`.
+
+---
+
+### 3. CLAIMS THE REPO DOES NOT SUPPORT
+
+- **"ON FAILURE HIS WORDS GO BACK IN THE BOX rather than vanishing"** — false as shipped. On the real path they vanish on *success*. Measured above.
+- **"13 checks including … with no artifact host the Save button KEEPS HIS WORDS"** — the check is accurate about what it does and is quoted in the commit as evidence the save path is safe. It never enters the save path.
+- **"Everything interactive sits inside `.rowx` and the drag handler skips events starting there"** — **this one holds.** `glass.mjs:1178-1181` emits only `<span class="rowtitle">` plus the `.rowx` div inside each `li`; there is no other interactive element. `glass.mjs:1704` — `if (ev.target.closest(".rowx")) return;` — is correct and complete. `glass.mjs:989` restores `user-select`, `-webkit-user-select`, `touch-action` and `cursor` inside `.rowx`. **The collision analysis was right and the exclusion is sound.** Residual, not a defect: the draggable area of a row is now the title line only.
+- **The `.rowmore` toggle** is correct — `glass.mjs:1583` uses `btn.parentNode.querySelector(".rowpanel")`, and `.rowpanel` *is* a direct sibling, which is why the expander works while the comment paint does not.
+- **`_t076_row_ui_probe.mjs` is bounded and self-killing.** Every wait is a `for` loop with a ceiling (`:42`, `:50`), the browser is `SIGKILL`ed in `finally` (`:144`) and the profile removed (`:147`). `stray_probe_check` reports **0 debug-port browsers up**. Rule 17 is honoured. *(Nit: `cdp` at `:30-33` is dead code that fetches and discards.)*
+- **The probe is committed but not wired.** `grep "t076" package.json` → nothing. Nothing re-runs it. Combined with §4, **no automated check will ever see this row UI again.**
+
+---
+
+### 4. WHAT PROTECTS HIS COMMENTS? — **Enforcement exists, but it is blind to the field, and one of the two surfaces still names only three things.**
+
+**The good news, and it is better than "a runbook step nothing enforces".** `.claude/hooks/glass-harvest-first.cjs` **denies** a Glass publish that has no receipt naming the artifact version read, and `scripts/qa/glass_harvest_hook_check.mjs` gates both the behaviour *and* the hook's registration in `settings.json`. So "read the live page before you republish" is machine-enforced, and `comments` is protected by that gate exactly as well as `ideas` and `rulings` are.
+
+**The gap, and it is real.** Nothing checks that a session which *read* the page actually *moved the comments across*. No gate anywhere reads `glassState.comments` — I grepped `scripts/qa/`, `scripts/wyclau/` and `.claude/hooks/`; the only hits are the word "comments" meaning source comments. The harvest is version-identity enforced and field-blind.
+
+**And the fix updated the less-read of the two surfaces.** `.planning/wyclau/GLASS-UPDATE-SESSION.md` step 2 does now name `comments`, with its shape and the instruction to file each onto its own row — that is correct and well written. But **`glass.mjs:1805-1807` prints, at the end of every single render, the banner a session actually reads at the moment it is about to publish:**
+
+> `⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas AND`
+> `glassState.rulings entries into .planning/CHART.md before republishing — a`
+> `republish without the harvest DELETES both`
+
+**"Both."** Three things are lost, and the surface printed at the point of action says two. That is CEO 138's fault precisely — a correct record filed while a contradicting one stays findable, and here the contradicting one is the *more* read of the pair. I saw it myself: it is what `glass.mjs` printed to me when I rendered the page.
+
+*(One grim consolation: the harvest cannot lose a comment today, because the comment box cannot save one.)*
+
+---
+
+### 5. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+- **CEO 140 — "work done but not on the branch": FIXED. Credit where it is due.** My first check said `ahead 1`; I fetched (rule 15) and re-ran: `ahead 0`, `behind 0`, and `git branch -r --contains e072b232` returns `origin/claude/cloud-handoff-planning-a9ay1u`. **The work is committed and pushed.** Fifteen reviews of that fault, and this one broke the streak.
+- **CEO 136 — "a Chart row left describing the world before its own fix": RECURRING, and twice over.** `git show --stat e072b232` touches three files; **`.planning/GLASS-CHART.md` is not one of them**, and `git log -- .planning/GLASS-CHART.md` confirms it was last written by the *previous* commit. So his pinned row still reads, at `.planning/GLASS-CHART.md:459-461`: *"⏳ **STILL OPEN, and they are the two that need new interface rather than new ordering:** expandable rows … and a comment box under each item."* And a second row at `:621` still shouts *"**2. HIS 03:49Z GLASS ASKS ARE STILL NOT BUILT** — expandable rows, and a comment box under each item."* **One of those sentences is now half-false and half-true, which is worse than either.**
+- **CEO 138 — "a correct record filed while a contradicting one stays findable": RECURRING**, at `glass.mjs:1805-1807`, detailed in §4.
+- **CEO 140's other finding — "a check that cannot fail": RECURRING, and it is the headline of this review.** The save check at `_t076_row_ui_probe.mjs:123-135` cannot reach the code it is named for. Last night's verdict said *"A case that cannot fail, sitting inside the fix for exactly that fault, is the sharpest thing in this verdict."* Same shape, one night later.
+
+---
+
+### 6. WHAT I WOULD DO FIRST
+
+1. **`glass.mjs:1604` — `cmt.parentNode.insertBefore(p, cmt)`.** One line. Until it lands, **the comment box on his live Glass eats every word he types into it**, and he has no way to know: no error, no message, an empty box that looks like it worked. This is the only item on this list that costs him something tonight.
+2. **Give the probe a fake capability, then re-run it.** Inject `window.claude = { use: () => Promise.resolve({ publish: () => Promise.resolve() }) }` via `Page.addScriptToEvaluateOnNewDocument` *before* navigating, then assert `publishes === 1`, `rowmine === 1`, and box empty. I did exactly this in ~90 lines and it found the bug on the first run. **Without a fake `cap`, no check can ever see the save path — the gap is architectural, not an oversight.**
+3. **Fix the banner: `glass.mjs:1805-1807`.** Name `comments`, and change "DELETES both" to "DELETES all three". It is the sentence a session reads at the moment it is about to destroy his words, and it currently undercounts them.
+4. **Update the `T-076` row** — `.planning/GLASS-CHART.md:459-461` and `:621`. Expandable rows shipped and work; the comment box renders and does not save. Leave it `- [ ]`, because it genuinely is not done.
+5. **Wire the probe into `npm test`** (rename off the `_` prefix), or accept in writing that this UI is unguarded. Right now nothing re-runs it and no gate reads `glassState.comments`.
+6. **`glass.mjs:530` — carry the full headline into `detail`.** His own pinned row's last clause exists nowhere on the page he steers by, and that is the ask, not a nicety.
+
+**What this item got right is worth saying plainly:** the expandable rows work, the collapse check is properly red-proofed, the drag/comment collision was foreseen and correctly solved, the cap is honest, the screenshot genuinely overturned v1, and the work is committed and pushed. **The failure is narrower than it is severe** — one wrong parent node, and a probe built so it could never look there.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**Its first finding was live on his page and eating his words. That was fixed and deployed before anything else was written down.**
+
+- **(6.1) DONE, and it is the most useful thing any review has produced tonight.** `cmt.parentNode.insertBefore(p, cmt)`. Its reading of the mechanism is exactly right and I had it backwards in the commit message: the put-his-words-back handler I advertised was **unreachable**, because the throw sits between clearing the textarea and calling publish — **the path that ate his words was the SUCCESS path.**
+- **DEPLOYED, not just committed.** The Glass-update session was messaged directly rather than left to its own ~15-minute clock, pulled `7776db2e`, and republished. Verified independently afterwards by reading the live artifact and separating real code from prose: **every `box.insertBefore(p, cmt)` remaining in the page is my own row text describing the bug; both live code sites carry the fixed form.** His page also now carries a note telling him plainly that a bug ate anything typed there and that it is fixed.
+- **(6.2) DONE, and this is the finding that outlives the bug.** The probe now installs a fake capability via `Page.addScriptToEvaluateOnNewDocument` before navigating, counts real `publish` calls, and asserts SUCCESS: a publish fires, the comment renders back verbatim, the DOM throws nothing, the box clears and says "Saved." **Red-proofed against the real bug** — one line reverted, re-rendered, re-run: **4 FAILURES** including `pubs: 0`, `mine: 0`, `boxAfter: ""` and the `NotFoundError` itself. Its judgement that the gap was *architectural, not an oversight*, is correct: with no fake `cap`, no probe of this page can ever reach the save path.
+- **(6.3) DONE** — the banner names `comments`, says **ALL THREE**, and carries the shape plus the rule to file each onto its own row.
+- **(6.6) DONE** — the full headline now leads the body. Verified with its own test: `grep "FIVE HOURS OLD WHEN FILED"` against the rendered page went **0 → 2**.
+- **(6.4) DONE** — the row is rewritten with what actually happened, including the fifteen minutes it shipped broken, and is **left open** pending a verdict on the fix.
+- **(6.5) ACCEPTED IN WRITING, which is the option it offered.** The probe is deliberately NOT wired into `npm test`: it launches a browser, and `T-131` is the open row about `npm test` colliding with a sailing sea trial. That trade is recorded **on the row**, not only here, together with "run it by hand after any row-UI change" and the fact that **no gate reads `glassState.comments`**.
+- **On its §2 cosmetic note (raw markdown in the expanded body):** correct and deliberately not acted on tonight — stripping the markers is a taste call about how his own words are shown back to him, and it is his. Left for him rather than decided at 5am.
+
 ## CEO Review 143 — 2026-09-03, Wy-Blade — `T-088`: rank 1 of his Chart was work he had already ruled finished — **PARTIAL**
 
 > *Number claimed in the same act as the write, order-independently (`grep -oE "^## CEO Review [0-9]+" | sort -n | tail -1` → **142**), per this file's banner. A sea trial was at sea throughout; the CEO was told not to start a browser and did not.*
