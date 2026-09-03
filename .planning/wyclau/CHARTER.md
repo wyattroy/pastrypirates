@@ -92,6 +92,41 @@ Without per-ask approval: ship to staging · merge to the shared working branch 
 token spends · reorganize .planning/ and docs/. **Production always requires Wyatt.** Taste is
 never defaulted — parked to the morning batch with a recommendation.
 
+## Putting a choice in front of him — NUMBER OR LETTER THE OPTIONS
+
+**His words, 2026-09-03 10:22 AM ET, pinned DO NOW on the Glass (`INBOX-20260903T142249Z`):**
+*"Change the buttons that say Do It and Don't to Approve and Deny— and always when giving me
+options to choose number or letter them"*
+
+**"always" is his word, and it is the whole rule.** It governs **anywhere he is choosing** — the
+labels in a question-UI card, a `BLOCKED ON WYATT` row that offers alternatives, a reply that lays
+out three ways to go, a recommendation with a fallback beside it.
+
+**Why, in terms of how he actually answers:** he replies in a few words, often from a phone.
+*"B, but keep the coin"* is a sentence he can send in one breath. *"The second one — the one about
+the coin"* is one he has to compose, against a list he has to re-read to index. **An unlabelled
+list makes him do counting we could have done for him.**
+
+**What he did NOT ask for:** the options re-ordered, shortened, or fewer of them. Numbering is
+additive; nothing else about how options reach him changes. The recommendation still goes first
+and still says so (rule 1).
+
+⚠ **AND THIS IS THE WRONG HOME. IT BELONGS IN `.claude/CLAUDE.md` §1 AND `.claude/memory/DECISIONS.md`,
+AND UNTIL IT GETS THERE THIS RULE IS ONE HOP OFF EVERY SESSION'S PATH.** Those two files are loaded
+before a session ever opens this one; the Door does not name this file at all. Chart row `T-224`
+carries the move.
+
+⚠ **AND THE REASON IT LANDED HERE WAS STATED TOO WIDELY THE FIRST TIME — CORRECTED BY CEO 172,
+BECAUSE AN OVER-STATED CONSTRAINT IS HOW A TEMPORARY FENCE BECOMES A PERMANENT EXCUSE.** What was
+measured on 2026-09-03 is that **this watch's Edit tool was refused on both files.** What was
+WRITTEN was that this answers `INBOX-20260902T2143Z` with a *"no for `.claude/` generally"* — and
+that is false. `.claude/CLAUDE.md` was edited by a session on 2026-09-02 (`eee58a5d`) and
+`.claude/memory/DECISIONS.md` the same day (`04d73d21`) — **and `04d73d21` is the very precedent
+this section cites**, his *"always write to me in my local time"* rule, hand-written into
+`DECISIONS.md` by a session one day earlier. So the class of rule this one is cannot reach the
+canonical home is a class that reached it yesterday. The fence is on one agent's tool, not on the
+file.
+
 ## Risks, named
 
 1. The watchdog needs one ~30–60 min Razer session with Wyatt; "never stalls" is not claimable

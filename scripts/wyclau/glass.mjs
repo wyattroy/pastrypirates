@@ -1179,9 +1179,19 @@ const PAGE = `<meta charset="utf-8">
       : `${blockedUnreadable ? `<p class="bad">…and there is more in that section this page could not read — content that is not a table row. Open .planning/CHART.md.</p>` : ""}<div id="asks">${askList.map((b) => `<div class="ask" data-id="${esc(b.id)}">
       <p class="q">${esc(b.q)}${b.id.startsWith("demo-") ? `<span class="demoTag">example — not real</span>` : ""}</p>
       <p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>
+      <!-- HIS WORDS, DO NOW pin, 2026-09-03 10:22 AM ET: "Change the buttons that say Do It and
+           Don't to Approve and Deny". Two labels, and only two — "Let's talk" is not in his
+           sentence and is left exactly as it was.
+           NOTE FOR WHOEVER EDITS THIS COMMENT NEXT: it lives inside a JS template literal, so a
+           backtick here ends the string and the whole generator stops parsing. That is not a
+           guess — the first version of this comment did exactly that. No backticks below.
+           THE data-choice VALUES DO NOT MOVE WITH THE LABELS. They are the KEY stored in
+           glassState.rulings, and the redraw below compares a saved ruling against them to decide
+           which button shows as pressed. Renaming a value would un-press every answer already
+           saved on his live page. Gated: glass_ruling_button_words_check.mjs case 4. -->
       <div class="ruleRow">
-        <button type="button" class="rb" data-choice="yes">Do it</button>
-        <button type="button" class="rb" data-choice="no">Don't</button>
+        <button type="button" class="rb" data-choice="yes">Approve</button>
+        <button type="button" class="rb" data-choice="no">Deny</button>
         <button type="button" class="rb" data-choice="talk">Let's talk</button>
       </div>
       <textarea class="rnote" rows="2" placeholder="A note, if you want one — your words outrank the button."></textarea>

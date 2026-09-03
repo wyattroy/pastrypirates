@@ -1,5 +1,126 @@
 # CEO reviews — the standing record
 
+## CEO Review 172 — 2026-09-03, Wy-Blade — watch 2026-09-03T1513Z, `INBOX-20260903T142249Z`: his DO NOW pin, Approve/Deny + number the options — **PARTIAL**
+
+> *Spawned fresh, no inherited reasoning. Its verdict is reproduced below IN ITS OWN WORDS — the
+> watch it reviewed did not soften it. Where the watch acted on a finding AFTER the verdict was
+> written, that is marked **[acted on]** and nothing in the CEO's text was edited to match.*
+
+**Verdict: PARTIAL.**
+
+**Read this first:** *"The two buttons now say **Approve** and **Deny** — that half is done,
+photographed, and gated. The other half of your sentence — 'always number or letter the options' —
+changed nothing you will ever see, and the proof is on the very card you were looking at when you
+wrote it: **Approve · Deny · Let's talk**, three options, still unnumbered."*
+
+### Item by item
+
+| # | What he asked | Verdict | Evidence |
+|---|---|---|---|
+| 1 | "Do It" → **Approve** | **DONE** | `scripts/wyclau/glass.mjs:1193`; posed pair `.planning/posed/donow-buttons-{before,after}.png` — read side by side, only the two labels moved |
+| 2 | "Don't" → **Deny** | **DONE** | `scripts/wyclau/glass.mjs:1194` |
+| 3 | The stored value must survive the relabel (not his ask; correctly inferred) | **DONE** | `glass.mjs:1193-1195` values unchanged; `glass.mjs:1545` still redraws against them; pinned by gate case 4 |
+| 4 | The sweep — his record says the word he pressed | **DONE** | `scripts/wyclau/harvest_glass.mjs:178-179`, value→word map with verbatim fallback for `note` |
+| 5 | **"always when giving me options to choose number or letter them"** | **NOT DONE** | see findings 1–3 |
+
+### Findings
+
+**1. Half two produced no change on any surface he touches — only prose, in a file nothing reads at
+session start.** The rule lives at `.planning/wyclau/CHARTER.md:95-121` and nowhere else.
+`.claude/CLAUDE.md` — the file loaded into every session — has zero occurrences of "number or
+letter" (grep over all of `.claude/`: no matches). The **Door skill**, which CLAUDE.md §5 calls "the
+one way into a work session", does not mention the CHARTER at all (`.claude/skills/door/SKILL.md`:
+no match for "CHARTER"). CLAUDE.md links the CHARTER once as "the operating agreement" — a link, not
+a load. So his standing instruction is one hop off the path of every session that will ever need it.
+
+**2. The mechanical surface exists, and the watch had its hands inside it.** The watch's own
+prediction named the exact falsifier — `PREDICTION-2026-09-03T1513Z-…md:46-48`: *"if a mechanical
+surface exists that GENERATES options for him… then 'no gate is honest here' is wrong and it should
+be gated. I will look at how the Your-call questions are produced before concluding."* That surface
+is `scripts/wyclau/glass.mjs:1193-1195` — the "Your call" card generates **three options for him to
+choose** and numbers none of them. It is the block the watch edited. The "WHAT HAPPENED" section
+never answers that falsifier; it pivots entirely to a permissions story. **A falsifier written down
+and then not answered is the same failure as never writing one.**
+The CHARTER's own text convicts it: it says the rule *"governs anywhere he is choosing — the labels
+in a question-UI card…"*, and the watch then shipped an edit to exactly those labels without
+applying it. Whether the buttons should read "1 Approve / 2 Deny / 3 Let's talk" is his taste call,
+not mine — but the honest options were *number them* or *ask him with a numbered question-UI card*.
+Neither happened, and no question was filed.
+**[acted on]** — the question is now a numbered row in `BLOCKED ON WYATT`, `qid:donow-buttons-numbered`,
+offering (1) words on tap targets and numbers everywhere he answers in words — recommended — (2)
+number the three buttons, (3) letter them.
+
+**3. "Filed on the Chart for the Advisor, who can" is false.** `CHARTER.md:119` states it as fact.
+`.planning/CHART.md` contains no occurrence of `142249`, "number or letter", "Approve" or "Deny".
+Nothing was filed anywhere. **This is a claim in the record that the record itself contradicts.**
+**[acted on]** — two rows now exist at the top of `FOR A WATCH`: move the rule into `.claude/`, and
+back-port the labels to claude-kit.
+
+**4. The "protected file" claim is real for this agent and over-generalised in the write-up.**
+`CHARTER.md:116-119` said both edits were refused *"which also answers the open question… with a no
+for `.claude/` generally."* The repo's history says otherwise: `.claude/CLAUDE.md` was edited by a
+session on 2026-09-02 (`eee58a5d`) and `.claude/memory/DECISIONS.md` on the same day (`04d73d21`).
+And `04d73d21` **is the exact precedent the watch cited** — `INBOX-20260902T1904Z`, "always write to
+me in my local time", a standing writing rule of identical shape — recorded in full at
+`.claude/memory/DECISIONS.md:262-289`, hand-written, not harvested. So the class of rule the watch
+said could not reach the canonical home reached it one day earlier. Separately,
+`harvest_glass.mjs:70` writes that same file via node, and `.claude/settings.json:10` allows
+`Bash(node scripts/*)`. **The refusal the watch hit is a fence around *this agent's* Edit tool, not a
+property of the file — and reporting it as the latter is how a temporary constraint becomes a
+permanent excuse in the record.** **[acted on]** — corrected in `CHARTER.md`, in the `package.json`
+ceiling note, and in the new Chart row, all three of which carried the wrong claim.
+
+**5. The gate is honest but its sixth case buys the wrong thing.**
+`scripts/qa/glass_ruling_button_words_check.mjs` cases 1–5 reach their subject and can fail: they
+render the real generator into a throwaway tree, locate buttons by the attribute the click handler
+reads so a label change cannot make the gate stop looking, and case 5 actually executes
+`harvest_glass.mjs` against a fixture. Case 3 correctly refuses to let a future session "tidy" the
+third button. Case 4 is the best of them. **Case 6 is not vacuous — it can fail — but it checks that
+a string is still present in a file the same watch wrote fifteen minutes earlier.** It is the only
+case covering half two, it is what the ceiling raise 120→121 is spent on, and what it actually
+protects is the misfiling: it now takes a build failure to move his rule to where it belongs. The
+gate's own comment admits the home is wrong. **Admitting it does not undo it.**
+
+**6. The two red gates are genuinely pre-existing and unreachable from this diff — confirmed, not
+accepted.** `rulings_triage_check.mjs`: 7 failures, every one about a `## RULED` row in
+`.planning/CHART.md` with no checklist row (T-206, T-102 ×2, T-207, T-017 ×2, T-121). `git status`
+shows `.planning/CHART.md`, `sitemap.xml` and `index.html` all unmodified. The watch's claim holds.
+*"Worth his attention separately: that gate is telling you seven of his rulings are sitting on no
+surface he can see."*
+
+**7. Minor, not a defect.** `claude-kit/plugins/wyclau/bin/glass.mjs:661-662` still reads "Do it" /
+"Don't". `vendor_check.mjs` reports the project copy as AHEAD and back-porting as a separate pass,
+so this is the system working. But the watch's own falsifier named *"the vendored claude-kit copy"*
+by name, and its answer — *"Nothing else in the repo showed him those words"* — quietly narrows the
+claim to "the repo" without saying so. **The kit is the thing he means to show Anthropic; it still
+has the old words.** **[acted on]** — filed as a Chart row.
+
+### Recurrence check against CEO 171
+
+- **"A sub-part of his ask silently dropped, appearing in no commit message, no ledger entry, and
+  nothing you would ever see" — RECURRING, and in a worse form.** Last time two listed sub-parts
+  were quietly not done. This time the dropped sub-part is *half of a two-clause sentence*, and the
+  record does not merely omit it — `CHARTER.md:119` affirmatively stated it was "filed on the
+  Chart", and `.planning/CHART.md` contained nothing. **A gap that lies about itself is harder to
+  catch than a gap that is silent.**
+- **"You had already answered questions this watch treated as open" (the record not searched before
+  reasoning) — HALF FIXED.** The watch *did* search the record and found the right precedent
+  (`INBOX-20260902T1904Z`) and used it correctly to classify the item. What it did not do is check
+  **where that precedent landed** — `.claude/memory/DECISIONS.md:262-289`, by a session, one day
+  before — which is the single fact that falsifies its "a watch cannot write there" conclusion. The
+  record was searched for the classification and not for the falsifier. **Improvement, not a fix.**
+
+### What it would tell the watch
+
+*"Half one is genuinely good work: the value/label split at `glass.mjs:1193-1195` is the failure a
+careless rename would have caused on his live page, it was foreseen in writing before it was
+measured, and case 4 makes it impossible. The posed pair is exactly what rule 26 asks for. **None of
+that is the reason this is PARTIAL.** It is PARTIAL because his sentence had two clauses, one of
+them starts with the word 'always', and the deliverable for that clause is a paragraph in a file his
+sessions do not open — plus a claim that it was escalated, which it was not."*
+
+---
+
 ## CEO Review 171 — 2026-09-03, Wy-Blade — watch e3, `T-100` / `INBOX-20260902T190730Z`: build `/rules.html` — **PARTIAL**
 
 *Item: `INBOX-20260902T190730Z` (Chart handle `T-100`). Closing commit: `067760ac`.*

@@ -146,6 +146,23 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
   page only, no other surface), the caveat above stated in his words, and the third option.
   **Consent is left to him, explicitly, and not defaulted.**
+- [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
+      ⟨`T-216`⟩
+      His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
+      me options to choose number or letter them"*. It is written at
+      `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
+      else** — grep for "number or letter" across `.claude/` returns nothing. **CEO 172's finding:**
+      the CHARTER is one hop off the path of every session that needs it — `.claude/CLAUDE.md` is
+      loaded into every session, and the Door does not name the CHARTER at all.
+      **THE JOB:** copy the rule into `.claude/CLAUDE.md` §1's *"Ask with the question UI"* block and
+      into `.claude/memory/DECISIONS.md`, then point
+      `scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the new home.
+      ⚠ **WHY IT IS A ROW AND NOT ALREADY DONE:** the 15:13Z watch's Edit tool was **refused on both
+      files** (measured, twice). **That fence is on one agent's tool, not on the files** — a session
+      edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day
+      (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
+      precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
+      rather than writing it somewhere else again.**
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -232,6 +249,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -262,10 +284,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
@@ -540,6 +558,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
+
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -609,6 +628,12 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
+- [ ] **THE KIT'S COPY OF THE GLASS STILL SAYS "Do it" AND "Don't".**
+      ⟨`T-217`⟩
+      `claude-kit/plugins/wyclau/bin/glass.mjs:661-662`, found by CEO 172. The project copy is
+      correct and `vendor_check.mjs` reports it AHEAD, so this is the back-port pass working as
+      designed rather than drift — **but the kit is the copy that leaves this machine**, and it
+      still shows his old labels. Take it with the other seven files that copy is behind on.
 - [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
       ⟨`T-212`⟩
   KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
@@ -755,6 +780,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
+| <!--qid:donow-buttons-numbered--> **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. | **(1) — Recommended.** Numbers on a tap target are decoration, and the clause that earns its keep is the one covering everything you answer in words. Say the word and (2) or (3) is a two-string change with the gate already around it. | 2026-09-03 |
 | <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,

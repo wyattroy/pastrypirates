@@ -167,6 +167,17 @@ for (const [handle, arr] of Object.entries(comments)) {
   }
 }
 
+/* ⚑ THE RECORD SAYS THE WORD HE PRESSED, NOT THE KEY UNDER IT. `data-choice` is `yes`/`no`/`talk`
+ * — a storage key that must never move, because the page redraws his saved answers by comparing
+ * against it. The LABEL on those buttons is his: "Approve" and "Deny" since 2026-09-03
+ * (INBOX-20260903T142249Z). Printing the key into DECISIONS.md would have his page and his own
+ * decision record saying the same thing two different ways, which is rule 8.
+ * ⚠ THE FALLBACK IS THE POINT: an unrecognised value prints VERBATIM rather than being dropped or
+ * renamed. `note` is a real one — a note typed with no button pressed still saves as a ruling
+ * (`glass.mjs`'s blur handler), and it is his answer even though he pressed nothing. */
+const HIS_WORD = { yes: "Approve", no: "Deny", talk: "Let's talk", note: "a note, no button pressed" };
+const hisWord = (choice) => HIS_WORD[String(choice)] ?? String(choice);
+
 for (const [qid, r] of Object.entries(rulings)) {
   const id = `RULING-${requireStamp(r.at, `a ruling on ${qid}`)}-${qid}`;
   const q = String(r.q ?? qid).trim();
@@ -175,7 +186,7 @@ for (const [qid, r] of Object.entries(rulings)) {
     /* DECISIONS.md is newest-at-TOP, under the H1. The charter asks every ruling to record the
      * alternative he did NOT pick; a script cannot know it, so it says so rather than invent one. */
     block: `## ${q.replace(/\s+/g, " ").slice(0, 110)} — ${r.at}\n\n`
-      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${r.choice}"**, ${r.at}.\n\n`
+      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${hisWord(r.choice)}"**, ${r.at}.\n\n`
       + (r.note ? `**His note, verbatim:** *"${String(r.note).trim().replace(/\s+/g, " ")}"*\n\n` : "")
       + `**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass\n`
       + `by \`harvest_glass.mjs\`, which sees his answer and not the options it was put beside. The\n`
