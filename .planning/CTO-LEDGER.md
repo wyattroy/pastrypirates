@@ -8644,3 +8644,92 @@ numbered-options review of the same window, recorded in `6cb4ac47`.
 - `sitemap.xml` regenerated from git after a peer landed `index.html` seven minutes earlier.
 
 **npm test: EXIT 0, all 123 gates** — the first green run of the day.
+
+### 2026-09-03 16:48Z–17:3xZ — Bell watch (pastrypirates-54, Wy-Blade) — `T-206`, his analytics ruling
+
+**Claimed:** `T-206` — row 1 of the ranked Chart, and he had already RULED on it. Skipped nothing:
+`IN-HAND` read (a released `T-142`), ledger tail read, no other session held this row.
+
+**His words, and they were the first thing acted on:** *"Give me instructions to switch it on, and
+give me the full plan for analytics as an artifact that I can understand more easily than this
+text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full
+one given that you're just adding a tag to index; so we need a way to tell sea trial that and
+manually choose the depth of the trial"*
+
+**Files owned by this session:** `.planning/ANALYTICS-PLAN.html`,
+`.planning/wyclau/PREDICTION-20260903T1655Z-T-206.md`, `.planning/wyclau/GLASS-NOTE.md`,
+`.planning/posed/t206-analytics-plan-{phone,desktop}.png`, `.planning/CEO-REVIEWS.md` (177),
+`scripts/qa/_t206_plan_shot.mjs`. Chart edits (the ruling triaged `## RULED` → `## SETTLED
+RULINGS`, its checklist row rewritten, the parent row corrected, new row ⟨`T-220`⟩) were carried
+by the PEER's commit `1664e62e` — see the collision note below. **NOT touched:** `index.html`,
+`src/**` — no game code changed, by design.
+
+**WHAT HE GETS:** `.planning/ANALYTICS-PLAN.html`, six sections, photographed at 390×844 and
+1280×900 with no horizontal overflow. Both numbers on it were re-measured this hour rather than
+carried over: `_t206_dark_property_check.mjs` (id declared in **2** files, loaded in **0**) and
+`_t206_usage_count.mjs` (237 boots / 123 browsers / 44 starts / 8 finishes; 35 solo, 3 pass, 6
+crew). **Nothing was installed** — he asked for instructions, and consent is explicitly his.
+**It ends on two decisions only he can make**, numbered with a recommendation marked.
+
+**THE ONE FIND NO PREVIOUS NOTE HAD, and CEO 177 called it the strongest argument on the page:**
+`pingVisit()` is called from `src/orchestrator.js:2674` and `classic/src/orchestrator.js:1534` and
+**nowhere else** — so `about.html` and the `rules.html` shipped that morning are measured by
+**nothing at all**. Every earlier note treated "which pages" as a consent question and none had
+noticed there was a measurement hole.
+
+**HIS THIRD SENTENCE IS ⟨`T-220`⟩, NOT THIS ITEM.** One item per watch. The row carries the warning
+that matters: an unconditional `--gear=cosmetic` re-creates the exact failure CLAUDE.md §5's
+files-not-feelings rule was written against, so the shape to recommend to him first is a depth a
+person can lower *on the record*, with the reason and the picker's own verdict both printed in the
+report.
+
+**NOTHING WAS CLOSED THROUGH THE GATE, AND THAT IS THE HONEST STATE, NOT AN OMISSION.** The
+install is still outstanding pending his two answers, so the `T-206` checklist row must stay open —
+there is nothing legitimately tickable, and `close_item.mjs` exists to stop exactly the tick that
+would have looked tidier here. The ruling itself IS settled, in `CHART-LOG.md`, which is move 3 of
+the `## RULED` lifecycle that CHART-LOG's own first settled row records being skipped two nights
+running.
+
+**⛔ WHAT IS STILL OPEN AND IS THE TOP FINDING AGAINST THIS WATCH — RULE 27.** CEO 177: *"I searched
+the whole repo: the string `ANALYTICS-PLAN` appears in five places and not one of them is a URL…
+the intention to ask exists only in the watch's head."* A Bell watch has no Artifact tool, so it
+cannot publish and must not stamp `mark_glass_published.mjs`. `GLASS-NOTE.md` is written and the
+Glass session was asked by cross-session message — **it declined**, correctly: its mandate is the
+nine-step Glass tick, and publishing a separate artifact sits outside it. It is surfacing the ask
+to Wyatt. **So the page he needs is written, correct, and still not tappable.** Whoever publishes
+it must also swap the path for the URL in the `T-206` checklist row and in `CHART-LOG.md`'s settled
+verdict cell.
+
+**CEO 177 — PARTIAL.** Four findings, all four acted on in the same turn before this entry: the
+missing link (above), a prediction file with no results section (CEO 175's finding recurring, now
+written including that its whole-watch falsifier FIRED), two numbers typed rather than counted
+("eight tracked pages" against a `git ls-files` that returns 20 outside `.planning/` — his own
+`qid:t102-working-files-indexable` ruling names the 12 the filter dropped, and the artifact now
+says they get no tag under any option), and the shared-tree plan.
+
+**⚠ THE SHARED-TREE COLLISION, AND IT RESOLVED THE OPPOSITE WAY ROUND FROM THE ONE I EXPECTED.**
+Mid-item, `npm test` went red on `chartkeeper_check` — *"1 allocated handle(s) are owned by NOTHING
+— T-218"* — from a peer's uncommitted work in the same two Chart files. I did not touch it,
+messaged `Blade` with the diagnosis, and planned to commit its hunks with a disclosure. **CEO 177
+rejected that plan and was right**: *"your own record calls that fault `T-093` and counts it at
+nine sightings… disclosure does not fix it; adding only its own files does."* In the event the peer
+committed first (`1664e62e`) and carried MY hunks. **The reusable half is the peer's correction to
+my diagnosis, which was right about the mechanism and wrong about the repair:** ownership in
+`CHART-LOG.md` is scanned by `archivedIn()`, which matches `^## (T-\d{3}) — ` headings only, so a
+`###` entry owns nothing *whatever token is put in it* — `ownedIn()`'s bare `⟨T-nnn⟩` line is only
+applied to `CHART.md` and `GLASS-CHART.md` (`chart_sweep_conserves_check.mjs:96-99`).
+
+**AND A CORRECTION CEO 177 MADE TO MY OWN REPORT, which is the shared-tree lesson again:** I told it
+`chartkeeper_check` was red and triage read 8 waiting / 21 settled. By the time it ran them,
+chartkeeper **passed** and triage read **7 / 22**. *"Not a lie — a shared tree moving underneath a
+report, which is its own argument for committing narrowly."* **Never quote a gate's verdict from
+earlier in the turn on a tree three sessions share; re-run it.**
+
+**ALSO FIXED IN PASSING, because it was switching off the fence this work was judged against:** the
+first draft of `_t206_plan_shot.mjs` hand-typed a `127.0.0.1:${PORT}` game URL and
+`game_url_check` failed the build on it. It was right to — that page is not the game, but a gate
+cannot tell those apart from a literal. The probe now listens on port 0 and asks the server where
+it landed, which also cannot collide with a sea trial's ports or a peer's probe in this shared
+checkout.
+
+**npm test: EXIT 0.** `stray_probe_check`: no debug-port browsers running at all.

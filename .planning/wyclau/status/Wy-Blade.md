@@ -5,27 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T16:03:08.819Z	script tag purity check
+2026-09-03T17:10:20.967Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+(no claim — watch pastrypirates-07 released T-142 at 2026-09-03T17:0xZ)
+
+T-142 is OPEN and UNCLAIMED. Its modal half is fixed and shipped (12187c7e); the half its five
+cited screenshots actually show is untouched, and the row now says so in full. The next watch
+can take it without re-deriving anything: the block under the row names the surface
+(the recipe-choice prompt, src/orchestrator.js:951), the file to open (sea-trial-shots/
+solo-tablet-002-settled.png), and the one question that is Wyatt's rather than a session's.
+```
 
 ## Long run in flight (LONG-RUN)
-```
-{
-  "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-03T15:03:21.777Z",
-  "updatedAt": "2026-09-03T16:00:54.467Z",
-  "progress": "6/10 legs",
-  "staleAfterMinutes": 53
-}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T19:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T192801Z.out/.err, kit: readable)
-2026-09-02T19:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T195801Z.out/.err, kit: readable)
 2026-09-02T20:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T203801Z.out/.err, kit: readable)
 2026-09-02T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T211801Z.out/.err, kit: readable)
 2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
@@ -64,4 +62,6 @@ None recorded.
 2026-09-03T14:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T143801Z.out/.err, kit: readable)
 2026-09-03T15:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T150801Z.out/.err, kit: readable)
 2026-09-03T15:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T154802Z.out/.err, kit: readable)
+2026-09-03T16:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T160801Z.out/.err, kit: readable)
+2026-09-03T16:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T164801Z.out/.err, kit: readable)
 ```

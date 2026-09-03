@@ -1,5 +1,42 @@
 # CEO reviews — the standing record
 
+## CEO Review 177 — 2026-09-03, Wy-Blade — Bell watch, `T-206`: the analytics plan he asked for as an artifact — **PARTIAL**
+
+**HIS REQUEST, VERBATIM** (his ruling on `qid:t206-ga-turn-on`): *"Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial"*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"The plan is real, its numbers are right, and I checked every one of them — but it has been handed to you as a file path in a folder, which on your phone opens the stylesheet, so ask for the link before you read a word of it."*
+
+**Verdict: PARTIAL.**
+
+| # | Thing he asked for | Its verdict |
+|---|---|---|
+| a | instructions to switch it on | **DONE** — `ANALYTICS-PLAN.html:249-293`, five numbered steps, honest about which one is his. Shows the snippet for size, then says use Google's own. |
+| b | the full plan as an artifact he can read more easily | **DONE, "and it is genuinely good."** It re-ran both probes itself: 237/123/44/8, 35 solo / 3 pass / 6 crew, busiest 24 Aug at 45, yesterday 10 — all correct; id in 2 files, loaded in 0. *"Could you act on it without a follow-up question? Yes"* — with the link exception below. |
+| c | a way to choose the sea trial's depth | **NOT DONE, filed as ⟨`T-220`⟩** — and it judged the split **defensible, not evasive**: *"the row is real and is not a stub… you have said before that folding items together finishes neither."* |
+
+**ITS FINDINGS, AND WHAT THIS WATCH DID WITH EACH — all four in the same turn, before the close:**
+
+1. ⛔ **RULE 27, UNDISCHARGED — the top finding, and it is his.** *"I searched the whole repo: the string `ANALYTICS-PLAN` appears in five places and not one of them is a URL, and there is no `GLASS-NOTE.md` asking the Glass session to publish it. **The intention to ask exists only in the watch's head.**"* It also named the recurrence exactly: *"same directory, same shape, four days later"* than the 2026-08-30 sheet that earned rule 27. **ACTED ON:** `GLASS-NOTE.md` written, and the Glass session asked by cross-session message to publish and to swap the path for the URL in both records. **STILL OPEN** until a session with an Artifact tool publishes — this watch has none and must not stamp `mark_glass_published.mjs`.
+2. **The prediction file had no results section.** *"A falsifier nobody wrote the answer to is a check nobody can re-run."* CEO 175 made the same finding six hours earlier. **ACTED ON:** results written into `PREDICTION-20260903T1655Z-T-206.md`, including that the whole-watch falsifier — *"if he cannot open and act on it, this watch failed"* — **fired**, and that the section exists because a review asked for it and not because the watch remembered.
+3. **Two numbers typed rather than counted.** *"eight tracked pages (`git ls-files`)"* claims more rigour than the command supports — there are **20** pages outside `.planning/`, and his own settled ruling `qid:t102-working-files-indexable` already names the 12 working files the filter dropped. And *"roughly 75 minutes"* against CLAUDE.md's 85. **ACTED ON:** the artifact now states the filter, names the twelve, and says they must get **no tag under any option** — *"if a future watch reads option 2 as 'all twenty', it has misread it"*; the 75 is now cited as this morning's measured trial with the 85 budget beside it.
+4. **The shared-tree plan was wrong.** It agreed the peer's `T-218` hunks were genuinely not this watch's (*"the watch is telling the truth"*) but rejected the disclosure plan: *"your own record calls that fault `T-093` and counts it at nine sightings… **disclosure does not fix it; adding only its own files does.**"* **RESOLVED before the commit:** the peer (`Blade`) finished and committed first (`1664e62e`), carrying this watch's Chart hunks — the swap happened the other way round. Nothing of the peer's is in this watch's commit.
+
+**WHAT IT PASSED THAT THIS WATCH ASKED IT TO ATTACK:**
+- **The GA4 cookieless caveat — honest and prominent enough.** *"That is the caveat doing real work: it names the consequence if it is wrong. I pass it."* It found one smaller unflagged claim of the same kind (Realtime within thirty seconds, `:290`) — since flagged.
+- **Unasked-for work: *"Almost nothing, and it did not displace anything."*** It singled out the real find — that `pingVisit()` runs on the two game pages only, so About and the rules page shipped that morning are measured by nothing — as *"the strongest argument on the whole page for turning Google on, and no previous note had it. Earned, not padding."*
+- **Context discipline: *"I found none."***
+
+**RECURRENCE CHECK — the whole point of keeping this file:**
+
+| old fault | here |
+|---|---|
+| quoting drop-off ratios no prediction fenced (CEO 153, 162) | **FIXED, well** — *"the 123→19 ratio is refused on the page with four named reasons."* |
+| claiming something was filed when it was not (CEO 172, 173) | **NOT recurring** — *"`T-220` exists and is substantive."* |
+| prediction skipped, or its falsifiers left unanswered (CEO 173, 175) | **RECURRING in new clothing** — file existed and was good; no results. Fixed above. |
+| a timestamp that cannot be right (CEO 175 finding 7) | **RECURRING, mildly** — the prediction is stamped 16:55Z and the measurements it precedes read 16:50Z. Recorded, not argued away. |
+
+**ONE CORRECTION IT MADE TO THIS WATCH'S OWN ACCOUNT, and it is the shared-tree lesson again:** the watch reported `chartkeeper_check` red and triage at 8/21; by the time the CEO ran them, chartkeeper **passed** and triage read **7/22**. *"Not a lie — a shared tree moving underneath a report, which is its own argument for committing narrowly."*
+
 ## CEO Review 176 — 2026-09-03, Wy-Blade — Advisor, the numbered ruling buttons, and the record they land in — **PARTIAL**
 
 **HIS REQUESTS, VERBATIM:** *"please change the response buttons -- they are unclear… label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended)"* · *"the Lesson is two days old; it is formatted wrong, and whatever process is supposed to give me new ones does not exist in a formal way yet"* · and his ruling of 15:56:28Z, *"Replace Approve and Deny with 1 2 3 Other."*
