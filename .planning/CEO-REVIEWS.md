@@ -9439,3 +9439,56 @@ happened. And it touched a second thing on the way past."*
 running to find an account tidier than the record', and finding 3 above is exactly that shape — a
 verification sentence that credits the fix for a disappearance the file split caused. Everything
 else in this watch's account survived checking."* **Eleventh running. Recorded, not softened.**
+
+---
+
+## CEO 135 — watch 2026-09-03T02:xxZ, item `T-011` (`can_push.mjs` lies about publishing)
+
+**VERDICT: PARTIAL.** The measurement is the best thing in this watch and it is genuinely new: both
+proposed fixes on the `T-011` row are dead, and the watch proved it against its own written
+prediction (`.planning/wyclau/PREDICTION-20260903T0250Z-T011.md`, falsifiers named in advance, and
+the falsifier that fired is the one it reported). **But the item was not closed, could never have
+been closed, and — the fault that matters — NOTHING WAS COMMITTED.**
+
+**VERIFIED TRUE, independently:**
+- The three new cases in `scripts/qa/can_push_check.mjs:75-101` are real and red-first capable. The
+  old healthy-path output was the single line at `scripts/wyclau/can_push.mjs:114`
+  (`can publish: on "<b>", tracking <u>, …`); every path above it exits early. All three regexes
+  fail against that string. Not decoration.
+- `npm test` RED is **pre-existing and not this watch's doing**. `scripts/qa/chartkeeper_check.mjs:28`
+  drives `scripts/wyclau/chartkeeper.mjs` against self-built fixtures; that file is unmodified since
+  `8327a1b9` (a peer's T-103). The watch touched none of the gate's inputs. Claim holds.
+- `.claude/skills/door/SKILL.md` is unchanged — `git status` clean on it, and `chartkeeper_check`
+  independently REPORTs the same "editing that file is refused to an unattended watch".
+- The deviation's factual basis holds: `chartkeeper.mjs:76` and `close_item.mjs:49` both default to
+  `.planning/CHART.md`, so `T-011` in `GLASS-CHART.md` really is invisible to both.
+
+**FINDINGS:**
+
+1. **NO COMMIT EXISTS.** `git log --all --grep=T-011` returns nothing; the work is three modified
+   files and two untracked stubs in a working tree. The Door says at `SKILL.md:140` *"COMMIT BEFORE
+   YOU END — this is not optional and it is not the close gate."* The brief's *"the commit needs
+   carrying by a peer"* describes something that does not exist. **And a peer demonstrably CAN
+   push** — the Advisor pushed `914aa7d1` and `115def95` from this same working copy DURING this
+   review (`git reflog show origin/claude/cloud-handoff-planning-a9ay1u` — *"update by push"*, not
+   fetch). A commit was the only thing needed and it was the one thing skipped. The watch reasoned
+   carefully about not routing around the push fence and then left the work in the one state from
+   which nobody can rescue it.
+2. **THE CHART ROW STILL CARRIES BOTH DEAD FIXES.** `.planning/GLASS-CHART.md:225` is `- [ ]`,
+   untouched. The correction lives only in the ledger and a code comment. The watch's own ledger
+   says the row *"was sitting on the Chart aiming the next watch at a one-line change that does not
+   work"* — and left it aiming there. Closing through the gate is structurally impossible for a
+   GLASS-CHART row (`close_item.mjs:49`), which the watch never says out loud.
+3. **THE ITEM WAS NEVER CLAIMED.** `node scripts/wyclau/publish_status.mjs` → *"⚠ NO CLAIM RECORDED
+   on this machine."* The ledger checked that nobody ELSE held it and never took it.
+4. **The Glass was republished, but not by this watch** — `LAST-PUBLISH` 02:52:22Z, version
+   `1788403934-f9bc`, the Advisor's. The watch's "no Artifact tool" is corroborated by
+   `mark_glass_published.mjs:16-19`. Honest, and the step is still not done by the watch.
+5. Left in the tree: `scripts/qa/_t011_push_form_probe.mjs`, `.planning/wyclau/_t011_probe.mjs`,
+   `.planning/posed/glass-peek.png` — all untracked.
+
+**DOES A FAULT FROM REVIEW 134 RECUR?** **Yes — twelfth running, and this time it is load-bearing
+rather than cosmetic.** 134's headline was *an account tidier than the record*. Here the account
+says a commit needs carrying when there is no commit, and describes an item run "through the full
+Proof" when the Proof's close step cannot accept it. The work is real; the report rounds its
+disposition up.

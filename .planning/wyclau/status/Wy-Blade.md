@@ -5,11 +5,19 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T02:51:31.381Z	self-publish check
+2026-09-03T02:54:59.058Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "can_push.mjs told a watch 'can publish' and its git push was then refused — three watches lost. Making the check stop claiming what it has not tested.",
+  "handle": "T-011",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-03T02:59:41.089Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.

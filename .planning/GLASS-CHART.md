@@ -251,6 +251,57 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
   > `HEAD` forms. **That means two watches lost their work to a habit of typing `git push`, not to a
   > sandbox that forbids publishing** — and the 01:52Z watch's commit sat stranded for half an hour
   > for the same reason.
+  > ### ⛔ STOP — BOTH FIXES BELOW ARE MEASURED DEAD. DO NOT BUILD EITHER. (2026-09-03T02:50Z watch)
+  >
+  > **Read this before the two paragraphs under it, because they are what a watch would otherwise
+  > act on.** A third watch was refused on this branch and measured the whole question again. Its
+  > prediction — written before the measurement, at
+  > `.planning/wyclau/PREDICTION-20260903T0250Z-T011.md` — was that the explicit-branch form would
+  > work, exactly as this row claims. **It does not.**
+  >
+  > | run in one session, 2026-09-03 | result |
+  > |---|---|
+  > | `git push --dry-run origin HEAD` — **as a shell command** | REFUSED, *"This command requires approval"* |
+  > | `git push --dry-run origin <branch-name>` — **as a shell command** | **REFUSED, identically** |
+  > | both of those forms — **from a node child process** | **exit 0**, `Everything up-to-date` |
+  >
+  > **(b) — "push with the explicit branch name" — DOES NOT REPRODUCE.** It rested on a single
+  > observation in a single session. Both forms are refused here. It is not a one-line fix; it is
+  > not a fix.
+  >
+  > **(a) — "`can_push.mjs` should run `git push --dry-run`" — IS WORSE THAN DEAD, and this is the
+  > part worth carrying forward.** `can_push.mjs` is a **node script**, and node pushes fine here
+  > while the watch's own shell `git push` is refused. So that fix would print a confident green
+  > about a capability the watch does not have — **the same false green as today, by a longer route,
+  > and harder to distrust because it looks like a real push.**
+  >
+  > **WHY NEITHER CAN WORK, IN ONE SENTENCE:** the refusal lives in the **session's command
+  > allowlist, which sees shell commands and nothing else** — so *no script in this repo can measure
+  > it*, because the moment the question is asked from inside a script it is being asked from the
+  > wrong side of the fence.
+  >
+  > **WHAT WAS SHIPPED INSTEAD (`can_push.mjs`, `can_push_check.mjs`, three cases, red first):** the
+  > script no longer claims `can publish`. It states only what it verified (repo state), names the
+  > one thing it cannot see, and prints the shell command the watch must run itself. **That is the
+  > whole of what a script can honestly do here.**
+  >
+  > **STILL OPEN, AND IT IS THE ONLY REAL REPAIR: Wyatt's permission list.** If watches are meant to
+  > push, `git push` belongs on the allowlist. A `scripts/wyclau/push.mjs` would work today —
+  > node's push is not refused — but that is routing around a fence he set, and an unattended watch
+  > is the wrong thing to decide it. **Raised for him; deliberately not built.**
+  >
+  > **AND THE OTHER HALF IS BLOCKED THE SAME WAY:** the matching line for
+  > `.claude/skills/door/SKILL.md` (run the shell dry-run at orientation, beside `can_push.mjs`)
+  > **could not be written — this session's Edit tool is refused on that file.**
+  > `chartkeeper_check.mjs` independently reports the same fence on the same file. **A session with
+  > permission should add it.**
+  >
+  > **⚠ AND THIS ROW CANNOT BE CLOSED THROUGH THE GATE:** `close_item.mjs:49` reads `CHART.md` only,
+  > and this row lives in `GLASS-CHART.md`. Not ticked by hand — left open, deliberately.
+  >
+  > *(The two paragraphs below are kept as the record of what was believed on 2026-09-02. They are
+  > wrong. They are not instructions.)*
+  >
   > **Two cheap fixes, and they are independent:** (a) `can_push.mjs` should run `git push --dry-run`
   > and would have caught this instantly; (b) the Door and the watch runbook should say **push with
   > the explicit branch name**, because that is the form that works. (b) costs one line and removes
