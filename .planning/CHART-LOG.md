@@ -2543,3 +2543,39 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   ⚠ **AND EXPLANATION A AS WRITTEN IS SEPARATELY UNSUPPORTED:** the typewriter never touches this
   card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
   has none. So "a progressive reveal caught early" cannot mean the typewriter.
+
+## T-123 — 2026-09-03 — _t103_redproof.mjs REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE. Filed (closed 2026-09-03 · CEO 161 · no game diff — no game code — planning and QA machinery) 2026-09-03T02:xxZ by CEO 132, which declined to run it for this reason and established its finding by reading instead. It writes old code over glass.mjs and chartkeeper.mjs and restores in a finally; two commits landed from other sessions inside its review window, and any git commit -a from another watch in that gap commits reverted code. The general form is worth more than the file: showing a check RED against an earlier commit is a thing every item here needs, and doing it by rewriting the working tree is the wrong mechanism. A scratch checkout (git worktree at the ref, or extracting to a temp dir and pointing the gate at it) does the same job and touches nothing shared. ⚠ AND ITS SIBLING LIMIT, WHICH CEO 132 ALSO CAUGHT: it restores only those two files, so a case reading anything else — the runbook, a hook, a doc — cannot go red under it, and one was reported as having done so. Whatever replaces it must restore the whole tree at that ref or say which files it did not. Sizing: SMALL. No game code.
+
+- [x] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed (closed 2026-09-03 · CEO 161 · no game diff — no game code — planning and QA machinery)
+      ⟨`T-123` · size: S⟩
+      2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its
+      finding by reading instead. It writes old code over `glass.mjs` and `chartkeeper.mjs` and
+      restores in a `finally`; **two commits landed from other sessions inside its review window**,
+      and any `git commit -a` from another watch in that gap commits reverted code.
+      **The general form is worth more than the file:** showing a check RED against an earlier commit
+      is a thing every item here needs, and doing it by rewriting the working tree is the wrong
+      mechanism. **A scratch checkout (`git worktree` at the ref, or extracting to a temp dir and
+      pointing the gate at it) does the same job and touches nothing shared.**
+      ⚠ **AND ITS SIBLING LIMIT, WHICH CEO 132 ALSO CAUGHT:** it restores only those two files, so a
+      case reading anything else — the runbook, a hook, a doc — **cannot go red under it**, and one
+      was reported as having done so. Whatever replaces it must restore the whole tree at that ref
+      or say which files it did not. **Sizing: SMALL. No game code.**
+
+## T-133 — 2026-09-03 — chart_sweep_conserves_check IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT (closed 2026-09-03 · CEO 161 · no game diff — no game code — the QA gate itself) NOBODY MENTIONS IT. Filed 2026-09-03T04:4xZ by watch a5, which did not cause it. node scripts/qa/chart_sweep_conserves_check.mjs fails: "38 allocated handle(s) are owned by NOTHING in either file — T-002, T-008, T-011, T-014, …". It is in npm test (package.json:26). Thirty-eight handles have been minted and their rows are gone from both the Chart and the Glass Chart — so every one of them is a pointer in the ledger, in CHART-LOG.md and in git that now resolves to nothing. Why this is more than tidiness: close_item.mjs and chartkeeper.mjs both key on handles, and handleIsAmbiguous (chartkeeper.mjs:754) exists precisely because a handle naming two jobs names neither. A handle naming NO job is the same family. Likely the same root as the split Wyatt ordered (44 rows moved between two files) — check that first. ⚠ AND THE SECOND-ORDER COST IS THE REAL ONE: a permanently-red gate in npm test teaches every watch that a red suite is normal. Two separate watches tonight reported npm test failures as "known and not mine" — accurately, both times. That is how a real regression gets waved through.
+
+- [x] **`chart_sweep_conserves_check` IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT (closed 2026-09-03 · CEO 161 · no game diff — no game code — the QA gate itself)
+      ⟨`T-133`⟩
+      NOBODY MENTIONS IT. Filed 2026-09-03T04:4xZ by watch a5, which did not cause it.**
+      `node scripts/qa/chart_sweep_conserves_check.mjs` fails: *"38 allocated handle(s) are owned by
+      NOTHING in either file — T-002, T-008, T-011, T-014, …"*. It is in `npm test`
+      (`package.json:26`). **Thirty-eight handles have been minted and their rows are gone from both
+      the Chart and the Glass Chart** — so every one of them is a pointer in the ledger, in
+      `CHART-LOG.md` and in git that now resolves to nothing.
+      **Why this is more than tidiness:** `close_item.mjs` and `chartkeeper.mjs` both key on handles,
+      and `handleIsAmbiguous` (`chartkeeper.mjs:754`) exists precisely because a handle naming two
+      jobs names neither. A handle naming NO job is the same family. Likely the same root as the
+      split Wyatt ordered (44 rows moved between two files) — check that first.
+      ⚠ **AND THE SECOND-ORDER COST IS THE REAL ONE: a permanently-red gate in `npm test` teaches
+      every watch that a red suite is normal.** Two separate watches tonight reported `npm test`
+      failures as "known and not mine" — accurately, both times. That is how a real regression gets
+      waved through.

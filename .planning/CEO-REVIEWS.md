@@ -39,7 +39,14 @@ node scripts/qa/red_proof_at_ref.mjs --ref=6f5edcee^
 
 *`--ref` is genuinely required and exits 2 — that closes CEO 131 properly. Deleting `_t103_redproof.mjs` is right: five surviving references, all narrative, nothing executes it.*
 
-### 2. IS THE SWEEP GATE NOW HONEST, OR JUST QUIETER?
+### 2. IS THE SWEEP GATE NOW HONEST, OR JUST QUIETER? — this section is `T-133`'s subject
+
+> *Annotation by the session, not the reviewer's words: this half of the review is the whole of
+> `T-133` (*"`chart_sweep_conserves_check` is red on the live tree and has been red long enough that
+> nobody mentions it"*). The brief named the work but not that row's handle, so `close_item.mjs`
+> refused the close — correctly, since its rule is that a verdict must name the item it closes. The
+> handle is added here rather than a second review being run over the same measurements. **Nothing
+> below is changed.***
 
 **Honest — but its own account of the cost is wrong by a factor I could measure in one command, and wrong in the flattering direction.**
 

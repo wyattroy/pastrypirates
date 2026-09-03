@@ -28,20 +28,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed
-      ⟨`T-123` · size: S⟩
-      2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its
-      finding by reading instead. It writes old code over `glass.mjs` and `chartkeeper.mjs` and
-      restores in a `finally`; **two commits landed from other sessions inside its review window**,
-      and any `git commit -a` from another watch in that gap commits reverted code.
-      **The general form is worth more than the file:** showing a check RED against an earlier commit
-      is a thing every item here needs, and doing it by rewriting the working tree is the wrong
-      mechanism. **A scratch checkout (`git worktree` at the ref, or extracting to a temp dir and
-      pointing the gate at it) does the same job and touches nothing shared.**
-      ⚠ **AND ITS SIBLING LIMIT, WHICH CEO 132 ALSO CAUGHT:** it restores only those two files, so a
-      case reading anything else — the runbook, a hook, a doc — **cannot go red under it**, and one
-      was reported as having done so. Whatever replaces it must restore the whole tree at that ref
-      or say which files it did not. **Sizing: SMALL. No game code.**
 - [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
       ⟨`T-121` · size: S⟩
       "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
@@ -157,22 +143,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       that a row's handle exists before `ranked` is computed. The fix is durable; the proof that it
       stays fixed rests on fixture content nobody has pinned. Worth a row on the Chart, not a
       rework."* **Sizing: SMALL — one gate case. No game code.**
-- [ ] **`chart_sweep_conserves_check` IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT
-      ⟨`T-133`⟩
-      NOBODY MENTIONS IT. Filed 2026-09-03T04:4xZ by watch a5, which did not cause it.**
-      `node scripts/qa/chart_sweep_conserves_check.mjs` fails: *"38 allocated handle(s) are owned by
-      NOTHING in either file — T-002, T-008, T-011, T-014, …"*. It is in `npm test`
-      (`package.json:26`). **Thirty-eight handles have been minted and their rows are gone from both
-      the Chart and the Glass Chart** — so every one of them is a pointer in the ledger, in
-      `CHART-LOG.md` and in git that now resolves to nothing.
-      **Why this is more than tidiness:** `close_item.mjs` and `chartkeeper.mjs` both key on handles,
-      and `handleIsAmbiguous` (`chartkeeper.mjs:754`) exists precisely because a handle naming two
-      jobs names neither. A handle naming NO job is the same family. Likely the same root as the
-      split Wyatt ordered (44 rows moved between two files) — check that first.
-      ⚠ **AND THE SECOND-ORDER COST IS THE REAL ONE: a permanently-red gate in `npm test` teaches
-      every watch that a red suite is normal.** Two separate watches tonight reported `npm test`
-      failures as "known and not mine" — accurately, both times. That is how a real regression gets
-      waved through.
 - [ ] **`CHART.md` IS A HOT FILE THREE SESSIONS WRITE, AND GIT STAGES WHOLE FILES — so an
       uncommitted edit is always carried by whoever commits next, into THEIR commit message.**
       Filed 2026-09-02T16:4xZ after it happened five times in one session. **Sizing: the mitigation
@@ -212,6 +182,67 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       session that commits a note and the session that next publishes are not the same one. Same
       class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
       propose a mechanism itself.
+- [ ] **EVERY VOYAGE FAILS ON "NEVER STOPPED MOVING", AND THE WAIT THAT DECIDES IT IS EXTENDED BY
+      ⟨`T-141`⟩
+      TEXT WHILE EVERY FAILURE IS GEOMETRY.** Diagnosed 2026-09-03T08:1xZ from the 0624Z trial;
+      **blocks `T-136` in part** (four of ten legs — see that row; six fail on other things). Not
+      fixed, and **handed over with the MECHANISM, not a measurement — the difference matters and my
+      first wording claimed the wrong one.**
+      ⛔ **THE SETTLE CURVE IS UNMEASURED. A PROBE WAS ATTEMPTED AND FAILED. READ THIS BEFORE
+      BUILDING ANOTHER ONE** — the sentence I owed the next session and did not write, caught by
+      CEO 156: *"the next session will build the same probe and hit the same wall, which is
+      precisely what the row promises it will not."*
+      `scripts/qa/_t141_settle_curve.mjs` samples the same signature past the cap. It reported
+      **"nothing moved at all — the board was already still", twice** — the answer that would have
+      unblocked his deploy. It was not an answer: every selector matched **zero** elements against
+      115 divs and the right page title. **The page loads; the game never starts.** Verified twice
+      over by CEO 156, which counted immediately after the click AND four seconds later: still zero,
+      `#lobby` still `display:flex`. **So it is not a timing problem, and the probe's own comment
+      said it was until that was corrected.**
+      **START AT `docs/DRIVING-THE-GAME.md` §5b — "the autoplay driver, the loop that actually
+      plays" — NOT AT A FRESH PROBE.** And add first the check that saved this one: **count the
+      elements before believing any silence.** A probe that cannot see its subject reports the world
+      as still.
+      **THE NUMBERS, from `SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`:** ten voyages, ten FAILs, and
+      **every single "still moving" report says `geometry`. Ten out of ten. NOT ONE says words.**
+      Longest waits cluster at **2.6s, 2.7s, 2.8s, 3.0s** — i.e. at the cap and just past it.
+      **THE MECHANISM, read in `scripts/lib/checks.mjs:230-241` rather than guessed:**
+      `waitSettled(..., capMs = 2600)` and, in its own words, *"while the PAINTED text is still
+      growing, the deadline is pushed out — the wait tracks the reveal's own progress."*
+      **So the deadline extends on TEXT. The screens are failing on GEOMETRY. Geometry gets no
+      extension at all**, so a board still animating at 2.6s is graded "never stopped moving", every
+      time, on every leg.
+      ⚠ **AND THE 2600 WAS DERIVED FROM TEXT, WHICH THE FILE SAYS OUT LOUD:** *"the opening
+      narration paints at ~25ms/char and finishes at ~1890ms, so a 75-character line settles at
+      2202ms — inside the old flat 2600ms cap by a whisker."* **A text-derived number is being
+      applied to ships gliding and ripples pulsing.** That same comment warns against raising it —
+      *"exactly the constant rule 9 forbids: right for today's longest message, wrong for the next"* —
+      and the warning is right; **the fix is that geometry needs its own progress-tracked deadline,
+      not a bigger flat number.**
+      ⛔ **MY STRONGEST ARGUMENT FOR "INSTRUMENT FAULT" WAS CIRCULAR, AND CEO 156 KILLED IT WITH THE
+      ARITHMETIC.** I wrote that a board which never settles *"would report the 12000ms hard guard,
+      and no leg reported it"* — treating that silence as evidence the board stops soon.
+      **The guard is STRUCTURALLY UNREACHABLE here.** `checks.mjs:250` loops
+      `while (Date.now() < deadline && Date.now() - t0 < HARD_MS)`, and on a geometry-only screen the
+      deadline never moves past ~`t0 + 2600` — so the loop always exits at 2.6s and **never gets
+      near 12s.** "No leg hit the guard" is not evidence about the board; **it is a second symptom of
+      the same bug.**
+      **AND BY THE SAME ARITHMETIC THE 2.6–3.0s CLUSTER CARRIES NO INFORMATION EITHER.** That is
+      simply what cap-exhaustion prints. **A board that animates for four seconds and one that
+      animates forever both report `2.7s`.** So the instrument-vs-game question is not leaning one
+      way — **it is fully open**, and I had talked myself into a side of it.
+      ⛔ **WHAT THIS DOES *NOT* PROVE, and the distinction is the whole value:** it does not prove
+      the game is fine. The board may genuinely be animating longer than it should. **What it proves
+      is that the instrument cannot currently tell those apart** — a screen that animates 2.7s and a
+      screen that animates forever produce the same verdict. **Rule 26: this is a POSED question, not
+      a rate.** Same seed, same prompt, before and after — photograph a board at 2.6s and at 4s and
+      look at whether it has stopped.
+      ⚠ **MY OWN PREDICTION WAS WRONG AND ITS FALSIFIER FIRED — second time in an hour.** I predicted
+      the budget had been tightened (trial bug) or settle times had grown (game bug), and named
+      *"wrong if neither moved"*. **Neither moved.** `git log -S 2600` on those files shows one
+      commit, a tree-wide refactor. The answer was in neither half of my dichotomy.
+      **Sizing: MEDIUM, and it is the trial's lane, not the Glass's. No game code to fix here — the
+      first job is deciding which of the two things is broken.**
 - [ ] **NOTHING IN THIS PROJECT EVER RUNS THE GLASS PAGE'S OWN JAVASCRIPT — so every behaviour on
       ⟨`T-120` · size: M⟩
       the one surface Wyatt touches is guarded by a SOURCE SEARCH.** Filed 2026-09-03T02:xxZ by
@@ -488,64 +519,3 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       direction. It should say, in the rank output, which rows it judged blocked and on what.
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment
       ⟨`T-030`⟩
-- [ ] **EVERY VOYAGE FAILS ON "NEVER STOPPED MOVING", AND THE WAIT THAT DECIDES IT IS EXTENDED BY
-      ⟨`T-141`⟩
-      TEXT WHILE EVERY FAILURE IS GEOMETRY.** Diagnosed 2026-09-03T08:1xZ from the 0624Z trial;
-      **blocks `T-136` in part** (four of ten legs — see that row; six fail on other things). Not
-      fixed, and **handed over with the MECHANISM, not a measurement — the difference matters and my
-      first wording claimed the wrong one.**
-      ⛔ **THE SETTLE CURVE IS UNMEASURED. A PROBE WAS ATTEMPTED AND FAILED. READ THIS BEFORE
-      BUILDING ANOTHER ONE** — the sentence I owed the next session and did not write, caught by
-      CEO 156: *"the next session will build the same probe and hit the same wall, which is
-      precisely what the row promises it will not."*
-      `scripts/qa/_t141_settle_curve.mjs` samples the same signature past the cap. It reported
-      **"nothing moved at all — the board was already still", twice** — the answer that would have
-      unblocked his deploy. It was not an answer: every selector matched **zero** elements against
-      115 divs and the right page title. **The page loads; the game never starts.** Verified twice
-      over by CEO 156, which counted immediately after the click AND four seconds later: still zero,
-      `#lobby` still `display:flex`. **So it is not a timing problem, and the probe's own comment
-      said it was until that was corrected.**
-      **START AT `docs/DRIVING-THE-GAME.md` §5b — "the autoplay driver, the loop that actually
-      plays" — NOT AT A FRESH PROBE.** And add first the check that saved this one: **count the
-      elements before believing any silence.** A probe that cannot see its subject reports the world
-      as still.
-      **THE NUMBERS, from `SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`:** ten voyages, ten FAILs, and
-      **every single "still moving" report says `geometry`. Ten out of ten. NOT ONE says words.**
-      Longest waits cluster at **2.6s, 2.7s, 2.8s, 3.0s** — i.e. at the cap and just past it.
-      **THE MECHANISM, read in `scripts/lib/checks.mjs:230-241` rather than guessed:**
-      `waitSettled(..., capMs = 2600)` and, in its own words, *"while the PAINTED text is still
-      growing, the deadline is pushed out — the wait tracks the reveal's own progress."*
-      **So the deadline extends on TEXT. The screens are failing on GEOMETRY. Geometry gets no
-      extension at all**, so a board still animating at 2.6s is graded "never stopped moving", every
-      time, on every leg.
-      ⚠ **AND THE 2600 WAS DERIVED FROM TEXT, WHICH THE FILE SAYS OUT LOUD:** *"the opening
-      narration paints at ~25ms/char and finishes at ~1890ms, so a 75-character line settles at
-      2202ms — inside the old flat 2600ms cap by a whisker."* **A text-derived number is being
-      applied to ships gliding and ripples pulsing.** That same comment warns against raising it —
-      *"exactly the constant rule 9 forbids: right for today's longest message, wrong for the next"* —
-      and the warning is right; **the fix is that geometry needs its own progress-tracked deadline,
-      not a bigger flat number.**
-      ⛔ **MY STRONGEST ARGUMENT FOR "INSTRUMENT FAULT" WAS CIRCULAR, AND CEO 156 KILLED IT WITH THE
-      ARITHMETIC.** I wrote that a board which never settles *"would report the 12000ms hard guard,
-      and no leg reported it"* — treating that silence as evidence the board stops soon.
-      **The guard is STRUCTURALLY UNREACHABLE here.** `checks.mjs:250` loops
-      `while (Date.now() < deadline && Date.now() - t0 < HARD_MS)`, and on a geometry-only screen the
-      deadline never moves past ~`t0 + 2600` — so the loop always exits at 2.6s and **never gets
-      near 12s.** "No leg hit the guard" is not evidence about the board; **it is a second symptom of
-      the same bug.**
-      **AND BY THE SAME ARITHMETIC THE 2.6–3.0s CLUSTER CARRIES NO INFORMATION EITHER.** That is
-      simply what cap-exhaustion prints. **A board that animates for four seconds and one that
-      animates forever both report `2.7s`.** So the instrument-vs-game question is not leaning one
-      way — **it is fully open**, and I had talked myself into a side of it.
-      ⛔ **WHAT THIS DOES *NOT* PROVE, and the distinction is the whole value:** it does not prove
-      the game is fine. The board may genuinely be animating longer than it should. **What it proves
-      is that the instrument cannot currently tell those apart** — a screen that animates 2.7s and a
-      screen that animates forever produce the same verdict. **Rule 26: this is a POSED question, not
-      a rate.** Same seed, same prompt, before and after — photograph a board at 2.6s and at 4s and
-      look at whether it has stopped.
-      ⚠ **MY OWN PREDICTION WAS WRONG AND ITS FALSIFIER FIRED — second time in an hour.** I predicted
-      the budget had been tightened (trial bug) or settle times had grown (game bug), and named
-      *"wrong if neither moved"*. **Neither moved.** `git log -S 2600` on those files shows one
-      commit, a tree-wide refactor. The answer was in neither half of my dichotomy.
-      **Sizing: MEDIUM, and it is the trial's lane, not the Glass's. No game code to fix here — the
-      first job is deciding which of the two things is broken.**

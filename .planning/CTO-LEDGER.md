@@ -7646,3 +7646,52 @@ warning cleared.
 game code at all.** The verification that bears on this item is the posed pair on both engines and
 the two probes' red-proofs. A trial cannot answer a question about one 180ms window it does not
 choose, which is the row's own instruction: *"Do not run a trial for this."*
+
+- 2026-09-03T10:09:42Z · close_item: "T-123" · CEO 161 · no game diff — no game code — planning and QA machinery · no stated solution
+
+- 2026-09-03T10:10:44Z · close_item: "T-133" · CEO 161 · no game diff — no game code — the QA gate itself · no stated solution
+
+---
+
+## WATCH f1 — Wy-Blade, 2026-09-03T10:08Z — situation, claim, and A LIVE PEER ON THIS BRANCH
+
+**SITUATION AT ORIENTATION.**
+- **Watch started** 2026-09-03T10:08:08Z on `Wy-Blade`, branch `claude/cloud-handoff-planning-a9ay1u`,
+  synced (0 ahead / 0 behind after fetch). `can_push.mjs` reports healthy, and the real
+  `git push origin claude/cloud-handoff-planning-a9ay1u` was run **as a shell command** and answered
+  **"Everything up-to-date"** — this watch can publish.
+- **Last progress:** watch e1 closed `T-012` (`083cc7d3`), then a Glass publish tick (`141e477a`).
+- **No detached trial in flight** — no pid file, no trial marker, `GLASS-NOTE.md` at its template.
+- **Blocked on Wyatt:** Chart **rank 1 (`T-099`, the rules-page split) is open on his Q3 and Q4
+  ONLY** — its own text says *"This row closes when he answers, not before."* **Skipped for that
+  reason and named here**, per the Door's instruction to say which row was skipped and why. It is
+  not held by anyone; there is simply nothing in it for a watch.
+
+**⚠ A SECOND SESSION IS LIVE ON THIS BRANCH RIGHT NOW, AND NEITHER OF THE DOOR'S TWO CHECKS COULD
+SEE IT.** At orientation `IN-HAND` was absent and the ledger's last line was a CLOSE — both checks
+said "nothing held". **But `git status` showed 13 files STAGED and uncommitted**, all carrying the
+same mtime (10:06:01Z, two minutes before this watch woke): `harvest_glass.mjs`,
+`harvest_carries_his_words_check.mjs`, `red_proof_at_ref.mjs`, `chartkeeper.mjs`,
+`chart_sweep_conserves_check.mjs`, `package.json`, the Door's own `SKILL.md`, three PREDICTION
+notes and 114 new lines of `CEO-REVIEWS.md`. Four minutes later that peer committed it all as
+`3c4cc234` (`T-123` + `T-133` + `T-140`) and appended two `close_item` lines above.
+
+**THE REUSABLE PART: AN INDEX FULL OF SOMEBODY'S IN-FLIGHT WORK IS A CLAIM NOTHING WE HAVE READS.**
+`IN-HAND` is machine-local and the ledger claim is written by hand, so a session that stages work
+and has not yet reached its ledger entry is **invisible to both**, on the same machine, in the same
+tree. This watch therefore touched none of it: **no `git add`, no bare `git commit`** — every commit
+here names its paths, so the peer's index survives whatever this watch does. `git pull --rebase`
+also refused at orientation ("index contains uncommitted changes"); the fetch showed 0/0, so the
+sync was already true and nothing was forced.
+
+**⛔ NO ARTIFACT TOOL IN THIS SESSION** — stated as observed, not guessed: the tool is not present,
+so this watch can neither read nor republish the Glass. Anything for his page goes to
+`.planning/wyclau/GLASS-NOTE.md`; **no `mark_glass_published` stamp is written, because no publish
+happened.** The harvest the Door now points at (`harvest_glass.mjs`, landed in `3c4cc234` above)
+needs a saved copy of the live page, which needs that tool — so the next Artifact-capable session
+harvests.
+
+**CLAIMED: `T-206`** — the unstarted half of his analytics ask, `INBOX-20260902T214507Z`: *"Add
+google analytics to playpastrypirates.com and create a firebase admin console so I can see how many
+people are playing"*. The console half shipped 2026-09-03 (CEO 159). Google Analytics has not been
+started. Chart rank 2, score 138. **Claimed by watch f1 at 10:15Z.**
