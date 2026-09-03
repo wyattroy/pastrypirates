@@ -6664,3 +6664,70 @@ item.** Two scratch probes could not be deleted (`rm` and PowerShell `Remove-Ite
 paths plainly inside the allowed directory — **the fourth recording of that fence**); they are
 emptied to self-explaining pointers and left untracked. The Glass was not republished by this
 session — no `Artifact` tool — so the Glass session is asked to publish, per Door step 6b.
+
+---
+
+### WATCH 2026-09-03T03:10Z (`pastrypirates-a3`, Wy-Blade) — situation, claim, and a peer collision
+
+**WATCH STARTED** 2026-09-03T03:10Z. **LAST PROGRESS** `11d44777`, 23:08 ET — four minutes before
+this watch read it. **WHAT THE PREVIOUS WATCH CLOSED:** nothing; it deliberately left `T-011` OPEN
+because `close_item.mjs:49` reads `CHART.md` and `T-011` lives in `GLASS-CHART.md`. **BLOCKED ON
+WYATT:** unchanged. **DETACHED TRIAL IN FLIGHT:** none found.
+
+**⚠ A PEER IS LIVE IN THIS SAME CHECKOUT, NOT MERELY ON THIS BRANCH — AND IT HOLDS `T-011`.**
+`ListAgents` shows `Blade [53b082]` busy; `11d44777` landed one minute before this watch's second
+git call, in this working tree. `.planning/wyclau/IN-HAND` reads `T-011`, claimed 02:59:41Z — **ten
+minutes old, far inside the 90-minute window.** Per the Door's claim guard: **row skipped, not
+taken.** Taking it was tempting precisely because the finding below is about it; that is the
+collision the guard exists to stop.
+
+**⚠ AND `IN-HAND` CANNOT EXPRESS THIS SITUATION — SO THIS WATCH DID NOT RUN `claim_item.mjs`.**
+`claim_item.mjs` writes ONE file per machine (`.planning/wyclau/IN-HAND`), by design — *"machine-local,
+exactly like LONG-RUN"*. That design assumes **one watch per machine**. There are two live here, so
+claiming `T-017` would have **overwritten the peer's `T-011` claim**: Wyatt's page would name the
+wrong item, and a third watch reading `IN-HAND` would find `T-011` unheld and take it. **This claim
+is therefore made in the ledger only** — which the Door already calls "the claim that travels" — and
+`IN-HAND` is left holding the peer's row. **Filed as a finding, not fixed here: `IN-HAND` should be
+keyed by session, not by machine.**
+
+### ⛔ THE `T-011` REPAIR NOW ON THE BRANCH INSTALLS A PERMANENT FALSE STOP. MEASURED, TWICE.
+
+Not this watch's row, so it is **relayed to the peer holding it** (`SendMessage` → `Blade`, sent
+before this entry) rather than edited. But it must be on the record, because it would have ended
+this watch ten minutes ago and will end every watch on this Blade until it is repaired.
+
+`can_push.mjs` now prints *"RUN THIS YOURSELF, AS A SHELL COMMAND, BEFORE YOU WORK"* followed by
+`git push --dry-run origin <branch>`, and *"If it is REFUSED, stop there: end the turn."*
+
+**Both forms were run here, minutes apart, same branch, both as Bash tool calls:**
+
+| command | result |
+|---|---|
+| `git push --dry-run origin claude/cloud-handoff-planning-a9ay1u` | **REFUSED** — "This command requires approval" |
+| `git push origin claude/cloud-handoff-planning-a9ay1u` | **ALLOWED** — "Everything up-to-date", exit 0 |
+
+**The cause is one line and it is not a permission boundary at all.** `.claude/settings.json:22`
+reads `Bash(git push origin claude/*)` — a **prefix** match. `git push --dry-run origin …` does not
+begin with `git push origin`, so it can never match, whatever the session is allowed to do. The
+fence the previous watch recorded — *"the allowlist sees Bash tool calls only"*
+(`scripts/qa/_t011_push_form_probe.mjs:5`) — is a true observation about node child processes and
+is **not the fence that bit**. It is the flag position.
+
+**So the check that was built to stop a false GREEN now manufactures a false RED**, on the entry
+path, before any work can start — the same disease inverted, and strictly worse than the original,
+because the original cost a watch its push while this costs a watch its whole turn. **The repair is
+one word: print the form the allowlist can match.** `git push origin <branch>` is a genuine no-op on
+a synced tree ("Everything up-to-date"), so it tests the exact command in the exact form the watch
+will use it. **A dry run of a command you will never type is not a test of that command.**
+
+### CLAIMED, AND WHAT THIS WATCH WILL DO
+
+**`T-017` — the trade-offer circle that cannot hold its own captain's name.** Rank 1 of 18 open
+rows, unheld, a bug a player can see. Not `T-011`, which is held; not ranks 16-20, which are his own
+`⚑ DO NOW` items — **and those scoring `0` while a session-filed row scores `50` is itself a scoring
+bug to report, per the Door's own instruction.** Filed here; not acted on, because it is a second
+item.
+
+**FILE DISCIPLINE IN A SHARED TREE:** this watch touches `src/ui/flow.js`, `index.html` and its own
+appended lines only, and **will never run `git add -A`** — every commit names its paths, so the
+peer's in-flight edits cannot be swept into them.
