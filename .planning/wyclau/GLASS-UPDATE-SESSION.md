@@ -153,11 +153,21 @@ publish. This session IS the terminal.
 >    that reaches nothing** — RANK reads the `now: yes` field the command writes, and nothing else.
 >    (`T-104`, his words: *"Add a 'DO now' button next to 'Send to the Chart' button that tells RANK
 >    to put this task at the top"*. The button is the easy half; this line is the joint.)
-> 2b. ⚑ **AND FOR EVERY KEY IN `rulings`, RETIRE THE QUESTION IN THE SAME COMMIT. ONE COMMAND, ONCE
->    PER RULING, AND IT IS NOT OPTIONAL:**
+> 2b. ⚑ **AND FOR EVERY KEY IN `rulings`, RETIRE THE QUESTION. YOU DO NOT HAVE TO REMEMBER THIS ANY
+>    MORE — STEP 4's STAMP DOES IT, AND REFUSES TO STAMP IF YOU SKIP IT.** Carry each ruling's key
+>    and his words into step 4 as a `--retire=` pair and the retirement happens in the same act as
+>    the receipt. **This step is now a description of what step 4 does, not a command you must
+>    remember to type.**
+>    A ruling that arrives OUTSIDE a harvest — he says it to a session directly — still has its own
+>    way in, and it is the same act underneath (`scripts/wyclau/lib/retire.mjs`):
 >    `node scripts/wyclau/retire_answered.mjs --qid=<the ruling's key> --verdict="<his words, verbatim>"`
->    It writes the ruling into `## RULED` **and deletes the question from `## BLOCKED ON WYATT`**, in
->    one write, so the two can never disagree. Then commit both halves together with step 2's copy.
+>    Either way it writes the ruling into `## RULED` **and deletes the question from
+>    `## BLOCKED ON WYATT`**, in one write, so the two can never disagree. Then commit both halves
+>    together with step 2's copy.
+>    ⚑ **WHY THIS MOVED, 2026-09-03 (`T-090` gap (a), CEO 125's residual): NOTHING CALLED IT.** The
+>    spec asks for retirement *"run by the harvest… not a session following a runbook step"*, and
+>    what shipped was a command a session types from a runbook step — this one. **A step you can walk
+>    past is what walked past six times.** The stamp cannot be walked past.
 >    ⚠ **WHY THIS LINE EXISTS, AND IT IS THE ONE FAULT HE HAS REPORTED SIX TIMES IN TWELVE HOURS.**
 >    Harvesting his answer WRITES the ruling and DELETES NOTHING, so his page goes on asking a
 >    question he has already answered. His words, 2026-09-02 6:57 PM ET: *"the page continues to
@@ -187,10 +197,22 @@ publish. This session IS the terminal.
 >    the check said is on the record whether or not it decided anything. It is machine-local by
 >    design — a tracked log line committed beside the note reset would revive the echo tick.
 >    Gate: `scripts/qa/glass_gate_verdict_logged_check.mjs`.
-> 4. **STAMP WHAT YOU READ, NOT WHEN YOU LOOKED:**
+> 4. **STAMP WHAT YOU READ, NOT WHEN YOU LOOKED — AND RETIRE HIS ANSWERED QUESTIONS IN THE SAME
+>    BREATH:**
 >    `node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the step-2 read returned>`
 >    — add `--ideas=<ids>` / `--rulings=<keys>` if step 2 carried anything across. **A bare call is
 >    refused**, the same way `mark_glass_published.mjs` refuses one.
+>
+>    ⚑ **AND FOR EVERY RULING HE MADE, ADD A `--retire=` PAIR. IT IS REPEATABLE:**
+>    `--retire=<the ruling's key>::<his words, verbatim>`
+>    The stamp retires each question — his answer into `## RULED`, the row out of
+>    `## BLOCKED ON WYATT` — and writes the receipt, **as one act**. If any pair is wrong it writes
+>    NOTHING: not the Chart, not the receipt.
+>    ⚠ **AND IF YOU PASS `--rulings=<key>` FOR A QUESTION THAT IS STILL ASKING HIM AND GIVE NO
+>    VERDICT, THE STAMP REFUSES** and prints the exact `--retire=` line to add. That refusal is the
+>    fix for the fault he reported six times in twelve hours: *"the page continues to re-show me thw
+>    e questions AFTER they're harvested."* **You cannot record a harvest that leaves his page asking
+>    a question he has answered.**
 >
 >    ⚠ **THIS USED TO BE `date -u … > LAST-HARVEST`, AND WYATT RETIRED IT IN ONE SENTENCE**
 >    (2026-09-02, `T-105`): *"the harvest stamp records when a session looked. It is not evidence

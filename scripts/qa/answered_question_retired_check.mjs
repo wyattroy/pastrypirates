@@ -43,7 +43,7 @@
 //   · SOURCE 1 ONLY EXISTS WHEN THE BUG DID NOT HAPPEN. A `qid` reaches `## RULED` only because
 //     `retire_answered.mjs` put it there — and a hand-harvest, which IS the failure, writes a RULED
 //     row with no qid. So the durable source cannot see the fault it guards.
-//   · SOURCE 2 IS ONE TICK WIDE. `mark_glass_harvest.mjs:86` rewrites the receipt whole on every
+//   · SOURCE 2 IS ONE TICK WIDE. `mark_glass_harvest.mjs` rewrites the receipt whole on every
 //     harvest, so the previous tick's keys are gone — one did exactly that tonight, erasing his five
 //     — and it only carries keys at all if the harvesting session remembered `--rulings=`.
 // WHAT THIS GATE THEREFORE IS: a catch for the fault WITHIN the tick that caused it, plus a
@@ -167,7 +167,7 @@ const chartWith = (questions) =>
   questions.map((q) => `| ${q} | rec | 2026-09-02 |`).join("\n") +
   `\n\n## RULED\n\n| item | HIS RULING | now |\n|---|---|---|\n`;
 
-// 1/7 -- THE REAL TREE: no question he has answered is still asking him.
+// 1/17 -- THE REAL TREE: no question he has answered is still asking him.
 {
   const rows = askingRows(chart);
   const answered = answeredIds(chart, log, harvestKeys());
@@ -179,7 +179,7 @@ const chartWith = (questions) =>
   else pass(`no answered question is still asking him — ${rows.length} question(s) live, ${answered.size} answered id(s) on record${rows.length === 0 ? " (nothing waiting, so this case had nothing to catch)" : ""}.`);
 }
 
-// 2/7 -- THE REAL TREE: no two live questions share an id.
+// 2/17 -- THE REAL TREE: no two live questions share an id.
 {
   const rows = askingRows(chart);
   const dupes = rows.filter((r, i) => rows.findIndex((x) => x.id === r.id) !== i);
@@ -187,14 +187,14 @@ const chartWith = (questions) =>
   else pass(`all ${rows.length} live question id(s) are distinct.`);
 }
 
-// 3/7 -- THE REAL TREE: every live question carries a written-down id.
+// 3/17 -- THE REAL TREE: every live question carries a written-down id.
 {
   const derived = askingRows(chart).filter((r) => !r.explicit);
   if (derived.length) fail(`${derived.length} live question(s) have no <!--qid:…--> marker, so their identity is their own prose. First: "${derived[0].cell.slice(0, 60)}…"`);
   else pass(`every live question carries an explicit <!--qid:…--> marker.`);
 }
 
-// 4/7 -- RED-PROOF, AND IT IS THE REAL EVENT, NOT AN INVENTED ONE: his five rules-page questions,
+// 4/17 -- RED-PROOF, AND IT IS THE REAL EVENT, NOT AN INVENTED ONE: his five rules-page questions,
 //        exactly as they sat in BLOCKED ON WYATT at 6:58 PM, against the five keys his five answers
 //        were really stored under. This gate must report all five.
 {
@@ -205,7 +205,7 @@ const chartWith = (questions) =>
   else pass("red-proof: all 5 of his 6:50 PM rules-page questions are caught still asking him, against the 5 keys his answers were really stored under.");
 }
 
-// 5/7 -- RED-PROOF: two different questions that collide on the derived slug.
+// 5/17 -- RED-PROOF: two different questions that collide on the derived slug.
 {
   const v = violations(chartWith([
     "⟨`T-105`⟩ Should the harvest retire the row immediately, or flag it for a watch?",
@@ -216,7 +216,7 @@ const chartWith = (questions) =>
   else pass("red-proof: two questions colliding on one id are caught.");
 }
 
-// 6/7 -- RED-PROOF: a question with no written-down id.
+// 6/17 -- RED-PROOF: a question with no written-down id.
 {
   const v = violations(chartWith(["Should the credits page carry the full list, or a short one?"]));
   if (!v.some((m) => m.startsWith("NO WRITTEN-DOWN ID")))
@@ -224,7 +224,7 @@ const chartWith = (questions) =>
   else pass("red-proof: a question with no written-down id is caught.");
 }
 
-// 7/7 -- THE FALLBACK STILL REPRODUCES HIS REAL KEYS, CHARACTER FOR CHARACTER.
+// 7/17 -- THE FALLBACK STILL REPRODUCES HIS REAL KEYS, CHARACTER FOR CHARACTER.
 //        Every ruling he has ever made is stored under the derived slug. If a future tidy-up of that
 //        one line changes what it produces, every one of those rulings is orphaned at once and
 //        nothing else in the suite would notice. This is the line that would go red.
@@ -235,7 +235,7 @@ const chartWith = (questions) =>
   else pass("the derived-slug fallback still reproduces all 5 of his real stored ruling keys, character for character.");
 }
 
-// 8/8 -- THE FIXTURE IS REALLY HIS, AND NOT SOMETHING I TYPED. Case 4 computes its ids from the five
+// 8/17 -- THE FIXTURE IS REALLY HIS, AND NOT SOMETHING I TYPED. Case 4 computes its ids from the five
 //        strings copied into this file, so a single mistyped character would make it a red-proof
 //        against my own typo rather than against his question — and it would still pass. This asks
 //        git whether those five strings are verbatim in the commit they claim to come from.
@@ -265,9 +265,14 @@ const chartWith = (questions) =>
 function stage(chartMd) {
   const dir = mkdtempSync(join(tmpdir(), "retire-answered-"));
   mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
-  mkdirSync(join(dir, ".planning"), { recursive: true });
-  for (const f of [["retire_answered.mjs"], ["lib", "chart_model.mjs"]])
-    writeFileSync(join(dir, "scripts", "wyclau", ...f), readFileSync(join(ROOT, "scripts", "wyclau", ...f)));
+  mkdirSync(join(dir, ".planning", "wyclau"), { recursive: true });
+  /* `mark_glass_harvest.mjs` and `lib/retire.mjs` join the staged tree for cases 13-17: the stamp is
+     the caller, so the fault cannot be reproduced without it. Each file is copied IF IT EXISTS —
+     a case whose subject is missing must FAIL with that sentence, not crash the whole gate here and
+     take the eleven cases below it down with an ENOENT nobody can read. */
+  for (const f of [["retire_answered.mjs"], ["mark_glass_harvest.mjs"], ["lib", "chart_model.mjs"], ["lib", "retire.mjs"]]) {
+    try { writeFileSync(join(dir, "scripts", "wyclau", ...f), readFileSync(join(ROOT, "scripts", "wyclau", ...f))); } catch { /* reported by the case that needs it */ }
+  }
   writeFileSync(join(dir, ".planning", "CHART.md"), chartMd);
   return dir;
 }
@@ -277,7 +282,7 @@ const runRetire = (dir, args) => {
   } catch (e) { return { code: e.status ?? 1, out: `${e.stdout ?? ""}${e.stderr ?? ""}` }; }
 };
 
-// 9/11 -- HIS REAL QUESTION, RETIRED BY THE REAL SCRIPT, IN ONE ACT.
+// 9/17 -- HIS REAL QUESTION, RETIRED BY THE REAL SCRIPT, IN ONE ACT.
 {
   const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));
   const r = runRetire(dir, [`--qid=${REAL_HARVESTED_KEYS[0]}`, `--verdict=**"Do a new /rules.html that explains the rules -- using the latest version of the game."** — ruled on the Glass 2026-09-02 6:50:08 PM ET`]);
@@ -294,7 +299,7 @@ const runRetire = (dir, args) => {
   rmSync(dir, { recursive: true, force: true });
 }
 
-// 10/11 -- THE SCRIPT IS WHAT CLOSES IT. Same fixture, script NOT run: the gate must still object.
+// 10/17 -- THE SCRIPT IS WHAT CLOSES IT. Same fixture, script NOT run: the gate must still object.
 {
   const before = chartWith([REAL_PREREPAIR_QUESTIONS[0]]);
   if (!violations(before, null, [REAL_HARVESTED_KEYS[0]]).some((m) => m.startsWith("ANSWERED AND STILL ASKING")))
@@ -302,7 +307,7 @@ const runRetire = (dir, args) => {
   else pass("red-proof for case 9: the identical fixture is a violation until the script runs.");
 }
 
-// 11/12 -- HIS WORDS SURVIVE A PIPE AND A NEWLINE. Found by CEO 125: the RULED row was a bare
+// 11/17 -- HIS WORDS SURVIVE A PIPE AND A NEWLINE. Found by CEO 125: the RULED row was a bare
 //          template literal, so a "|" in a ruling he typed would split the row into extra cells and
 //          corrupt the table, and a newline would drop the rest of his sentence into the document as
 //          prose. The one script promising "his words, verbatim" could be broken by his words.
@@ -321,7 +326,7 @@ const runRetire = (dir, args) => {
   rmSync(dir, { recursive: true, force: true });
 }
 
-// 12/12 -- IT REFUSES RATHER THAN SHRUGS. A no-op exiting 0 is this whole bug in a different hat:
+// 12/17 -- IT REFUSES RATHER THAN SHRUGS. A no-op exiting 0 is this whole bug in a different hat:
 //          the caller is told the retirement happened and his page goes on asking.
 {
   const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));
@@ -332,6 +337,119 @@ const runRetire = (dir, args) => {
   else if (!untouched) fail("retire_answered.mjs edited CHART.md while refusing — a refusal that writes is worse than either outcome.");
   else if (noVerdict.code === 0) fail("retire_answered.mjs retired a question with no verdict — that deletes his question and records no answer, which is his words lost.");
   else pass("red-proof: an unknown id and a missing verdict are both refused, and neither writes to the Chart.");
+}
+
+/* ═══ THE HARVEST IS THE CALLER — cases 13-17.
+   Cases 9-12 prove `retire_answered.mjs` works. They say nothing about whether anything RUNS it,
+   and that is exactly what CEO 125 found still missing:
+
+     "(a) NOTHING CALLS THE SCRIPT. The spec asks for retirement run BY THE HARVEST — not by a
+      session following a runbook step — and what shipped is a command a session types."
+
+   Six times in twelve hours a session did every step except the one that deletes the question, and
+   the 22:5xZ harvest wrote the condition into its own commit before leaving all five asking. So the
+   guard belongs where it cannot be forgotten: `mark_glass_harvest.mjs` is the ONE command a harvest
+   cannot skip — the runbook requires it, a hook requires it, and it already receives the exact ids
+   he ruled on in `--rulings=`. A caller that already runs and already holds the keys is the caller.
+
+   TWO PROPERTIES, and the second is the one that matters:
+     · it can RETIRE (`--retire=<qid>::<verdict>`) in the same act that writes the receipt, and
+     · it REFUSES to stamp at all while a ruling it is carrying still has a live question row.
+   The refusal is what makes it mechanical rather than another sentence in a runbook. */
+const runHarvest = (dir, args) => {
+  try {
+    return { code: 0, out: execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "mark_glass_harvest.mjs"), ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }) };
+  } catch (e) { return { code: e.status ?? 1, out: `${e.stdout ?? ""}${e.stderr ?? ""}` }; }
+};
+const receiptOf = (dir) => { try { return JSON.parse(readFileSync(join(dir, ".planning", "wyclau", "LAST-HARVEST"), "utf8")); } catch { return null; } };
+const REAL_VERSION = "1788386140-0fbe";   // the shape the Artifact tool really returns: <epoch>-<hash>
+const HIS_VERDICT = `**"Do a new /rules.html that explains the rules -- using the latest version of the game."** — ruled on the Glass 2026-09-02 6:50:08 PM ET`;
+
+// 13/17 -- THE STAMP REFUSES WHILE A QUESTION HE HAS ANSWERED IS STILL ASKING.
+//          This is the bug reproduced in one command, with no page and no Artifact tool needed:
+//          the harvest is handed the key he ruled under, and today it files the receipt and walks
+//          past the live row.
+{
+  const before = chartWith([REAL_PREREPAIR_QUESTIONS[0]]);
+  const dir = stage(before);
+  const r = runHarvest(dir, [`--version=${REAL_VERSION}`, `--rulings=${REAL_HARVESTED_KEYS[0]}`]);
+  const receipt = receiptOf(dir);
+  const untouched = readFileSync(join(dir, ".planning", "CHART.md"), "utf8") === before;
+  if (r.code === 0)
+    fail(`mark_glass_harvest.mjs stamped a harvest carrying "${REAL_HARVESTED_KEYS[0]}" while that question is STILL a live row in ## BLOCKED ON WYATT. That is the six-times bug: his answer is on record and his page goes on asking. The stamp must refuse.`);
+  else if (receipt !== null)
+    fail("mark_glass_harvest.mjs refused AND wrote the receipt — a refusal that writes leaves the next reader believing the harvest was recorded.");
+  else if (!untouched)
+    fail("mark_glass_harvest.mjs refused AND edited CHART.md — a refusal must leave the tree exactly as it found it.");
+  else if (!r.out.includes(REAL_HARVESTED_KEYS[0]) || !r.out.includes("--retire="))
+    fail(`the refusal does not say WHICH question or HOW to fix it. It must name the qid and print the --retire= form, or the session that hits it is back to remembering. Got: ${r.out.slice(0, 200)}`);
+  else pass("the harvest stamp REFUSES while a question he has answered is still asking, names the qid, prints the fix, and writes nothing.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 14/17 -- ONE ACT: the receipt and the retirement land together, from the harvest itself.
+{
+  const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));
+  const r = runHarvest(dir, [`--version=${REAL_VERSION}`, `--retire=${REAL_HARVESTED_KEYS[0]}::${HIS_VERDICT}`]);
+  const after = readFileSync(join(dir, ".planning", "CHART.md"), "utf8");
+  const receipt = receiptOf(dir);
+  const ruled = tableRows(section(after, "RULED") ?? "");
+  if (r.code !== 0) fail(`mark_glass_harvest.mjs refused a legitimate --retire= (exit ${r.code}): ${r.out.slice(0, 250)}`);
+  else if (askingRows(after).length !== 0) fail("the harvest stamped the receipt and LEFT THE QUESTION ASKING — the two acts are still two acts.");
+  else if (ruled.length !== 1 || !ruled[0].raw.includes(`<!--qid:${REAL_HARVESTED_KEYS[0]}-->`)) fail(`the harvest retired the question but his answer did not land as one ## RULED row carrying its qid (${ruled.length} row(s)).`);
+  else if (!ruled[0].raw.includes("latest version of the game")) fail("his verbatim words did not reach the RULED row through the harvest path.");
+  else if (receipt === null) fail("the question was retired and NO receipt was written — the harvest is now unrecorded, which is a different fault of the same shape.");
+  else if (!(receipt.rulingKeys ?? []).includes(REAL_HARVESTED_KEYS[0])) fail("the receipt does not carry the id it just retired, so `rulingKeys` no longer describes what the harvest read.");
+  else if (receipt.artifactVersion !== REAL_VERSION) fail(`the receipt records "${receipt.artifactVersion}" instead of the version it was given.`);
+  else pass("one act: the harvest retires his answered question AND writes the receipt naming it, in a single run.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 15/17 -- ATOMIC. A --retire= that cannot be honoured writes NEITHER half. Half a harvest is worse
+//          than none: a Chart edited with no receipt, or a receipt claiming a retirement that did
+//          not happen, are both records that lie.
+{
+  const before = chartWith([REAL_PREREPAIR_QUESTIONS[0]]);
+  const dir = stage(before);
+  const r = runHarvest(dir, [`--version=${REAL_VERSION}`, `--retire=${REAL_HARVESTED_KEYS[0]}::${HIS_VERDICT}`, "--retire=a-question-nobody-asked::x"]);
+  const untouched = readFileSync(join(dir, ".planning", "CHART.md"), "utf8") === before;
+  if (r.code === 0) fail("mark_glass_harvest.mjs accepted a --retire= for an id no live question carries — a silent no-op reporting success is this bug wearing a different hat.");
+  else if (!untouched) fail("a refused harvest still edited CHART.md — the FIRST retirement was applied and the second was not, so the file holds half an act.");
+  else if (receiptOf(dir) !== null) fail("a refused harvest still wrote the receipt.");
+  else pass("atomic: one bad --retire= in a batch writes neither the Chart nor the receipt.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 16/17 -- HIS WORDS SURVIVE THE NEW PATH TOO. Case 11 proved this for retire_answered.mjs; a second
+//          caller is a second chance to corrupt `## RULED` with a pipe he typed on his phone, and the
+//          only reason it cannot is that both callers go through ONE definition (case 17).
+{
+  const dir = stage(chartWith([REAL_PREREPAIR_QUESTIONS[0]]));
+  const hostile = `**"do it | but keep the modal"**\nsecond line — ruled on the Glass`;
+  const r = runHarvest(dir, [`--version=${REAL_VERSION}`, `--retire=${REAL_HARVESTED_KEYS[0]}::${hostile}`]);
+  const ruled = tableRows(section(readFileSync(join(dir, ".planning", "CHART.md"), "utf8"), "RULED") ?? "");
+  if (r.code !== 0) fail(`the harvest refused a ruling containing a pipe (exit ${r.code}) — his words must go in, not be rejected.`);
+  else if (ruled.length !== 1 || ruled[0].cells.length !== 3) fail(`a ruling containing "|" produced ${ruled.length} row(s) / ${ruled[0]?.cells.length} cells through the harvest path — his answer split the table apart.`);
+  else if (!ruled[0].raw.includes("keep the modal") || !ruled[0].raw.includes("second line")) fail("part of his verdict did not survive the harvest path.");
+  else pass("a ruling containing a pipe and a newline survives the harvest path in one well-formed row.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 17/17 -- ONE DEFINITION OF THE RETIREMENT, NOT TWO. Rule 23: two things that must agree are one
+//          thing or they will drift. The moment the stamp became a second caller, the RULED-row
+//          construction and the deletion had to move to one module both import — otherwise the pipe
+//          escaping, the qid stamp and the single-write atomicity exist twice and one copy rots.
+{
+  const lib = read("scripts", "wyclau", "lib", "retire.mjs");
+  const retirer = read("scripts", "wyclau", "retire_answered.mjs") ?? "";
+  const stamp = read("scripts", "wyclau", "mark_glass_harvest.mjs") ?? "";
+  const buildsRow = (src) => /<!--qid:\$\{/.test(src);   // the RULED row assembled in place
+  if (lib === null) fail("there is no scripts/wyclau/lib/retire.mjs — the retirement has no single definition, so the harvest and retire_answered.mjs each carry their own copy of it.");
+  else if (!/from "\.\/lib\/retire\.mjs"/.test(retirer) || !/from "\.\/lib\/retire\.mjs"/.test(stamp))
+    fail("retire_answered.mjs and mark_glass_harvest.mjs do not BOTH import ./lib/retire.mjs — a module only converges the two callers that use it.");
+  else if (buildsRow(retirer) || buildsRow(stamp))
+    fail("a caller still assembles the ## RULED row itself, so the escaping and the qid stamp live in two places and one of them will rot.");
+  else pass("one definition: both callers import lib/retire.mjs and neither builds a ## RULED row of its own.");
 }
 
 /* The machine-local receipt, read defensively: gitignored, absent on a fresh clone, and written by a

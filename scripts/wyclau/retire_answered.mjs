@@ -36,11 +36,20 @@
 // AND IT DOES NOT COMMIT. Three sessions have shared this checkout today and one lost another's work
 // to a `git add -A`; a script that commits on its own behalf inside somebody else's staging area is
 // how that happens again. It prints the commit line and lets the caller run it.
+//
+// ⚑ THE ACT ITSELF NOW LIVES IN `lib/retire.mjs`, AND THIS SCRIPT IS ONE OF ITS TWO CALLERS.
+// 2026-09-03. CEO 125's residual (a) was that NOTHING CALLED THIS SCRIPT — it is a command a session
+// types from a runbook step, and six times in twelve hours a session did every other step. The
+// second caller is `mark_glass_harvest.mjs`, the one command a harvest cannot skip, which now
+// retires in the same act that stamps its receipt. The moment there were two callers, the escaping,
+// the qid stamp and the single-write atomicity had to stop being written out here.
+// **This script is still the right way in by hand** — for a ruling that arrives outside a harvest.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { section, tableRows, questionId, stripQid, QID_RE } from "./lib/chart_model.mjs";
+import { stripQid } from "./lib/chart_model.mjs";
+import { liveQuestions, retireQuestion } from "./lib/retire.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CHART = join(ROOT, ".planning", "CHART.md");
@@ -52,12 +61,7 @@ const argOf = (name) => {
 const has = (name) => process.argv.slice(2).includes(`--${name}`);
 
 const chart = readFileSync(CHART, "utf8");
-const blockedText = section(chart, "BLOCKED ON WYATT") ?? "";
-const rows = tableRows(blockedText).map((r) => ({
-  raw: r.raw,
-  cell: r.cells[0],
-  ...questionId(r.cells[0]),
-}));
+const rows = liveQuestions(chart);
 
 if (has("list") || (!argOf("qid") && !argOf("verdict"))) {
   if (!rows.length) {
@@ -90,45 +94,20 @@ const verdict = argOf("verdict").trim();
 if (!qid) { console.error("REFUSING — --qid=<id> is required. Run with --list to see what is asking him."); process.exit(1); }
 if (!verdict) { console.error("REFUSING — --verdict=\"<his words>\" is required. A question retired with no answer on record is his words deleted, which is strictly worse than the bug."); process.exit(1); }
 
-const target = rows.find((r) => r.id === qid);
-if (!target) {
-  console.error(`REFUSING — no live question in \`## BLOCKED ON WYATT\` has the id "${qid}".`);
+/* THE ACT — ONE DEFINITION, IN `lib/retire.mjs`. What used to be forty lines here (the qid stamp,
+   the pipe-and-newline escaping, the two edits computed against one string) moved there the day the
+   harvest became a second caller. Everything below is this script's own job: saying what happened,
+   in a sentence a person can act on. */
+const result = retireQuestion(chart, qid, verdict);
+if (!result.ok) {
+  console.error(`REFUSING — ${result.error}`);
   console.error(rows.length
     ? `\nWhat IS asking him:\n${rows.map((r) => `  ${r.id}`).join("\n")}\n\nRun with --list for the full text of each.`
     : "\nThat section is empty — nothing is asking him at all.");
-  /* ⚠ THIS REFUSES RATHER THAN SHRUGS ON PURPOSE. A no-op that exits 0 tells the caller the
-     retirement happened. The whole class of fault being fixed here is "the record says it was done
-     and his page still asks", so a silent success is this bug wearing a different hat. */
   process.exit(1);
 }
 
-/* ⚠ THE ID GOES INTO THE RULED ROW, AND THAT IS WHAT MAKES THE GATE WORK ON EVERY MACHINE.
-   `.planning/wyclau/LAST-HARVEST` is the exact receipt of what the harvest read, and it is
-   gitignored — machine-local by nature, absent on a fresh clone. Stamping the qid onto the row we
-   write puts the answered-set in git, so `answered_question_retired_check.mjs` can tell a question
-   he has answered from one he has not on any machine, forever. */
-/* ⚠ HIS WORDS GO INTO A TABLE CELL, AND A TABLE CELL ENDS AT A PIPE. Found by CEO 125: this row was
-   built as a bare template literal, so a `|` anywhere in a ruling he typed on his phone — a price, a
-   choice written "a|b", a stray keystroke — splits the row into extra cells and corrupts `## RULED`,
-   and a newline ends the row entirely and drops the rest of his sentence into the document as prose.
-   **The one script whose entire promise is "his words, verbatim" could be broken by his words.**
-   Escaped rather than stripped: he must be able to read back exactly what he typed. */
-const cell = (s) => String(s).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
-const ruledRow = `| <!--qid:${qid}--> ${cell(stripQid(target.cell))} | ${cell(verdict)} | |`;
-
-const ruledText = section(chart, "RULED") ?? "";
-const headerRule = ruledText.split("\n").findIndex((l) => /^\|[\s:|-]+$/.test(l.trim()));
-if (headerRule < 0) { console.error("REFUSING — could not find the `|---|` header rule under `## RULED` in CHART.md, so there is no safe place to add the row. Fix the table by hand and run again."); process.exit(1); }
-
-/* ONE `writeFileSync`, TWO EDITS. The deletion and the addition are computed against the same
-   in-memory string and land together or not at all — a crash between them is not reachable. */
-let next = chart.replace(ruledText, ruledText.split("\n")
-  .flatMap((l, i) => (i === headerRule ? [l, ruledRow] : [l])).join("\n"));
-const before = next;
-next = next.split("\n").filter((l) => l !== target.raw).join("\n");
-if (next === before) { console.error(`REFUSING — the question row was found by the parser but its exact line could not be removed. Nothing was written. The row: ${target.raw.slice(0, 90)}…`); process.exit(1); }
-
-writeFileSync(CHART, next);
+writeFileSync(CHART, result.next);
 
 console.log(`RETIRED "${qid}" — one act, both halves:
   · added to \`## RULED\` with the "now" cell empty (untriaged, per that table's three-move process)
