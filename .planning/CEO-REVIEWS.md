@@ -63,6 +63,101 @@ person, twice."*
 
 ---
 
+## CEO Review 126 — 2026-09-02T23:5xZ (7:5x PM ET), Wy-Blade — `INBOX-20260902T1955Z`, the Glass on Firebase, SCOPE ONLY
+
+**Number checked at FILING time.** Highest on file was 125; this is 126.
+
+**VERDICT: YES on both asks — and the scope has one wrong risk and one missing one that would have bitten a builder in the first hour.**
+
+**The sentence Wyatt should read first:** *You asked for it scoped and CEO'd, and that is exactly what you got — nothing was built, and every number in the scope held up when I checked it myself — but the document names the wrong hosting danger: the real one is that the script that publishes staging would **delete** your Glass off the server every time the game deploys, and nobody has said so anywhere.*
+
+### 1. FOR EACH THING HE ASKED FOR
+
+**(a) "scope this" — DONE.** `.planning/SPEC-GLASS-ON-FIREBASE.md`, 142 lines, committed as `a2534814`. It states the fault being cured, what he would notice, what it costs, two build shapes with a marked recommendation, sizing, and — properly — a section naming what would prove it wrong. That last section is the part most scopes skip.
+
+**(b) "get ceo's eyes on it" — DONE.** This review.
+
+**(c) He did NOT ask for it built, and it was NOT built.** Verified: `git diff --name-only HEAD~3` returns only the spec, the INBOX entry and an unrelated harvest-hook check. No Firebase client, no schema, no rules file, no page. `git log` since the ask shows one commit and it is the scope. **This is the discipline that has been failing lately, and it held here.**
+
+### 2. THE LOAD-BEARING CLAIMS — I CHECKED ALL FIVE MYSELF, NOT ON THE AUTHOR'S WORD
+
+| claim | verdict |
+|---|---|
+| staging repo is `wyattroy/pastrypirates-staging`, public, GH Pages | **TRUE, and stronger than stated.** `scripts/deploy-staging.sh:35` is the right line. I did not stop at the script: `gh repo view` returns `"visibility":"PUBLIC"`, and `gh api .../pages` returns `"public":true`, `"cname":"staging.playpastrypirates.com"`, certificate approved. **His biggest stated cost is real, not theoretical.** |
+| no `database.rules.json` / `firebase.json` / `.firebaserc` | **TRUE.** Zero hits across tracked files, and the three are absent from disk as untracked files too. |
+| the Glass would share the game's Firebase project | **TRUE.** `src/net/index.js:79-80` — `databaseURL: "https://pastry-pirates-default-rtdb.firebaseio.com"`, `projectId: "pastry-pirates"`. The spec understates it: `src/ui/usage.js:34` is a **second** consumer of the same database. Two things already write there, not one. |
+| the 429 publish ceiling | **TRUE, and it bit twice.** Commit `b7ee8c54` at 23:47Z and `e1070731` at 23:52Z, both refused with `daily publish limit for your plan reached (200)`. `.planning/wyclau/GLASS-NOTE.md` carries the second, eight minutes before the reset. |
+| "answered questions re-appeared six times" | **TRUE.** Commit `17f99bd4` is logged as *"fifth instance"*; `6e54ff54` is logged as *"sixth instance"*. The count is honest, not rounded up. |
+| "several sessions, not one watch" | **HONEST, if anything conservative.** `glass.mjs` is 1,439 lines, `chartkeeper.mjs` 1,381, plus twelve satellite scripts and a hook — 4,224 lines of tooling in `scripts/wyclau/` that all assume "the Glass is a document we regenerate." Calling that several sessions is not sandbagging. |
+
+### 3. THE RISK IT NAMED WRONG — AND THE ONE IT MISSED
+
+**§6.2 asks whether "GitHub Pages can serve the staging repo at a path that does not collide with the game," and calls it an open unknown. It is not open — the repo's own deploy script already answers it.** `scripts/deploy-staging.sh:322` curls `https://staging.playpastrypirates.com/src/ui/stage.js` on every deploy, so sub-paths plainly serve. **A scope that lists an already-answered question as a blocker spends a builder's first hour re-answering it.**
+
+**The real collision is deletion, and it is nowhere in the document.** `scripts/deploy-staging.sh:195`:
+
+```
+MSYS_NO_PATHCONV=1 rsync -a --delete "${EXCLUDES[@]}" ".../$SRC/" ".../staging/"
+```
+
+**`--delete`.** Every `npm run deploy:staging` wipes anything in the staging repo that is not in the source tree and not in `EXCLUDES`. Two consequences the spec never states:
+
+1. **A Glass written directly into the staging repo would be destroyed by the next game deploy** — silently, and the person who notices is Wyatt, when his page 404s.
+2. **The Glass's current home cannot be deployed at all.** `glass.html` lives at `.planning/wyclau/glass.html`, and `--exclude=.planning/` is `deploy-staging.sh:157`. So the file must either move into the game's source tree or be added to `EXCLUDES` — and touching `EXCLUDES` is the exact machinery §3's rule-14 paragraph says must not be disturbed.
+
+The spec gestured at the right neighbourhood — *"Adding the Glass must not touch that machinery"* — and then did not open the file to find out what the machinery actually does. **This is the one finding that changes the build, and it is a `grep` for `--delete` away.**
+
+### 4. THE RULES ARE MORE VISIBLE THAN THE SPEC CLAIMS — WHICH HELPS HIM, NOT HURTS
+
+§3 says the rules *"cannot be reviewed in a diff, cannot be gated by `npm test`, and no session can tell whether a rule change broke them."* **The first two are true. The third is false, and cheaply so.** Two unauthenticated `curl` calls from this machine, no browser:
+
+- `https://pastry-pirates-default-rtdb.firebaseio.com/.json?shallow=true` → `{"error":"Permission denied"}`
+- `https://pastry-pirates-default-rtdb.firebaseio.com/rooms.json?shallow=true` → **the full live room list, no credentials.**
+
+So the rules today are: root closed, `/rooms` world-readable to anyone. **A session absolutely can tell whether a rule change broke something — by asking the database what it will hand a stranger.** That is a gate that could sit in `npm test` this week, without exporting anything from the console.
+
+This matters two ways. It makes the rules work **more tractable** than the spec says, which is good news he should have. And it sharpens the privacy question: whatever node the Glass lives on will be probeable by exactly this method, by anyone who reads the page's source.
+
+### 5. THE PUBLIC/PRIVATE SPLIT — RIGHT QUESTION, HALF-STAFFED
+
+**Asking him is correct, not ducking.** Whether his own working record — his rulings, his instructions, unreleased plans — may be world-readable is risk appetite about his own material. That is his, the way taste and scope are his, and a session that quietly picked one would be substituting its judgement for his on the one thing he actually owns.
+
+**But he is owed more homework than he got.** The standing rule is *arrive with the homework done* and *mark a recommendation*. §4 marks one for the A/B build shape. **§3 — the question the spec itself says "gates everything" — marks none**, prices option (c) only as *"roughly doubles"*, and offers no measurement. The question that blocks the schema is the one asked most loosely.
+
+Two things should be settled before it reaches him:
+
+- **(c) "real auth" is not one thing.** Firebase Anonymous sign-in and Google sign-in keyed to his uid are very different amounts of work, and only the second actually keeps strangers out. Naming them as one option hides the real trade.
+- **The "staging repo" is his suggestion, not a constraint he defended.** A separate obscure repo would dodge the `--delete` collision in §3 entirely. Worth putting in front of him as a fourth option rather than treating his aside as settled architecture.
+
+### 6. DOES THE PREVIOUS FAULT RECUR? — YES, MILDLY, IN THE SAME CLOTHES
+
+CEO 125 named *"tidier than the record — fifth in a row"*: a document stating something more cleanly than the evidence supports. **It recurs here, once.**
+
+The §1 table is headed **"ALL OF THEM MEASURED TODAY, NOT LISTED FOR EFFECT,"** and contains: *"A Bell-started watch cannot publish at all — it has no Artifact tool."* The repo's own Door hedges that exact claim. `.claude/skills/door/SKILL.md:76` says a Bell-launched watch has no Artifact tool **"on some machines"** — and `SKILL.md:142-143` warns that this precise assertion was once *"inherited, repeated, and never tested. Only the Artifact half was ever measured."*
+
+**So a machine-scoped, partly-tested fact was hardened into an unqualified universal and filed under a heading that says everything below it was measured today.** It is the mildest form of the fault — the claim is probably true on this machine, and it does not change the recommendation — but it is the same reflex, and the heading is what makes it a finding rather than a nitpick. Four of the five faults are cleanly measured; the fifth borrowed its certainty.
+
+CEO 124's fault (*"a fix he cannot see"*) does **not** recur — nothing was claimed as fixed here, correctly, because nothing was built.
+
+### 7. REQUIRED BEFORE A WATCH BUILDS ANYTHING
+
+1. **Add the `--delete` collision to §3** — `deploy-staging.sh:195` and `:157` — and decide where the page file lives before the schema is drawn.
+2. **Strike §6.2's serving question**, answered by `deploy-staging.sh:322`; replace it with the deletion question.
+3. **Correct §1's fourth row** to the Door's own wording — *"on some machines"* — or measure it here and say which.
+4. **Put the privacy question to him with a recommendation and a fourth option** (separate repo), and split "real auth" into anonymous vs. Google.
+5. **Soften §3's "no session can tell"** — two `curl` calls read the rules' effect today, and that is the cheap gate the move needs anyway.
+
+**None of these is a reason to stop. The move is well-argued, the recommendation of Option A is right for the sentence he actually wrote — his complaint was about *limitations*, and Option B leaves the staleness one standing — and the refusal to build before ruling is the correct call.**
+
+### WHAT THE ADVISOR DID ABOUT IT, SAME TURN — both hard findings reproduced first, then all five repairs applied
+
+- **THE `--delete` COLLISION: REPRODUCED, AND IT IS WORSE THAN A RISK — IT IS A BLOCKER.** `deploy-staging.sh:195` is `rsync -a --delete`; `:157` is `--exclude=.planning/`; `glass.html` is at `.planning/wyclau/glass.html`. **So the current file cannot be deployed at all, and any Glass placed in the staging repo is wiped by the next game deploy.** Added to §3 as a blocker, not a caveat.
+- **THE RULES PROBE: REPRODUCED FROM THIS MACHINE.** Root → `{"error":"Permission denied"}`; `/rooms.json?shallow=true` → **the live room list, unauthenticated.** §3's *"no session can tell"* is struck.
+  ⚠ **AND IT SURFACED SOMETHING OUTSIDE THIS ASK THAT HE SHOULD KNOW: every room code in the live game is world-readable right now**, to anyone, with one `curl` and no credentials. Not part of the Firebase move; raised to him separately rather than buried in a scope about something else.
+- **§6.2 struck** and replaced by the deletion question (`deploy-staging.sh:322` already answers serving).
+- **§1's fourth row corrected to the Door's own hedge** — *"on some machines"* (`SKILL.md:76`), with the Door's own warning that this exact claim was once inherited and never tested (`SKILL.md:142-143`). **The heading claimed everything under it was measured today; that row had borrowed its certainty, and the correction is left visible.**
+- **The privacy question re-staffed:** a marked recommendation, "real auth" split into anonymous vs. Google-keyed-to-his-uid, and **a fourth option added — a separate obscure repo, which dodges the `--delete` collision entirely.**
+
 ## CEO Review 125 — 2026-09-02T23:4xZ (7:4x PM ET), Wy-Blade — `T-090` / `INBOX-20260902T1830Z`+`1857Z`, BUILDING the answered-question retirement
 
 **Number checked at FILING time.** Highest on file was 124; this is 125.

@@ -82,6 +82,22 @@ broke them.
 public config is safe *only* because of rules nobody here can see. **Bringing the rules into the repo
 is part of this job, not a follow-up.**
 
+> ✅ **CORRECTION, AND IT IS GOOD NEWS THE FIRST DRAFT GOT WRONG.** It also claimed *"no session can
+> tell whether a rule change broke them."* **False, and cheaply so** — CEO 126 found it and this
+> machine reproduced it with two unauthenticated `curl` calls, no browser, no console:
+>
+> - `…/.json?shallow=true` → `{"error":"Permission denied"}` — **root is closed.**
+> - `…/rooms.json?shallow=true` → **the live room list, in full, with no credentials.**
+>
+> **So the EFFECT of the rules is observable from here today**, which makes the rules work far more
+> tractable than the draft said: **a gate asking the database what it hands a stranger can ship this
+> week, without exporting anything from the console.** Reviewing rules in a diff still needs them in
+> the repo; *testing* them does not.
+>
+> ⚠ **AND THE SAME PROBE FOUND SOMETHING OUTSIDE THIS ASK: every room code in the live game is
+> world-readable right now.** Not a consequence of this move and not for this spec to fix —
+> **raised to him separately rather than buried in a document about something else.**
+
 ### THE GAME AND THE GLASS WOULD SHARE ONE FIREBASE PROJECT
 
 `pastry-pirates`, the same RTDB the live multiplayer game uses (`databaseURL:
@@ -94,6 +110,31 @@ its own top-level key and write rules that name it explicitly; never widen a rul
 Firebase's free tier has its own limits (simultaneous connections, GB/month egress). They are far
 away for a one-reader status page and **they are not zero.** *"No limits"* is the wrong claim;
 *"limits that a page for one person will not reach"* is the right one.
+
+### ⛔ BLOCKER — THE STAGING DEPLOY WOULD **DELETE** THE GLASS, AND THE CURRENT FILE CANNOT BE DEPLOYED AT ALL
+
+> **THE FIRST DRAFT MISSED THIS ENTIRELY. Found by CEO 126, reproduced here before being written
+> down.** It said only *"adding the Glass must not touch that machinery"* — gesturing at the right
+> file without opening it. **It is a `grep` for `--delete` away, and it changes the build.**
+
+`scripts/deploy-staging.sh:195`:
+
+```
+MSYS_NO_PATHCONV=1 rsync -a --delete "${EXCLUDES[@]}" ".../$SRC/" ".../staging/"
+```
+
+**`--delete`.** Every `npm run deploy:staging` **wipes anything in the staging repo that is not in
+the source tree and not in `EXCLUDES`.** Two consequences:
+
+1. **A Glass placed in the staging repo is destroyed by the next game deploy** — silently, and the
+   person who finds out is Wyatt, when his page 404s.
+2. **The current file cannot be deployed at all.** `glass.html` lives at
+   `.planning/wyclau/glass.html` and `--exclude=.planning/` is `deploy-staging.sh:157`. So it must
+   move into the game's source tree, **or** `EXCLUDES` must gain an entry — and `EXCLUDES` is the
+   exact machinery the rule-14 paragraph below says must not be disturbed.
+
+**DECIDE WHERE THE PAGE FILE LIVES BEFORE DRAWING THE SCHEMA.** This is not a caveat to handle
+later; it determines whether the staging repo is the right host at all (see §3's fourth option).
 
 ### RULE 14 — SITE-IDENTITY FILES
 
