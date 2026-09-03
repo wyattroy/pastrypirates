@@ -53,36 +53,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       publisher can refuse one it did not write. The first is stricter and closes it; the second is
       cheaper and only makes the gap visible.
       **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
-- [ ] **A QUESTION PUT TO HIM CANNOT BLOCK A ROW ON THIS CHART, BECAUSE THE QUESTION LIVES IN THE
-      ⟨`T-209` · size: S⟩
-      OTHER FILE — so the Advisor's list has no automatic blocked-detection at all.** Filed
-      2026-09-03T10:5xZ by the Advisor, immediately after hand-repairing an instance of it.
-      **WHAT HAPPENED, minutes ago:** `T-121` was parked and its question written to `CHART.md`'s
-      BLOCKED ON WYATT, naming ⟨`T-121`⟩ correctly. Then `chartkeeper --chart=GLASS-CHART.md --rank`
-      reported **0 rows moved** and left the parked row at rank 1 — the row the Door tells the next
-      session to take.
-      ⚠ **CORRECTED 2026-09-03T11:4xZ by CEO 166: THAT SENTENCE IS FALSE AND I PUT IT IN FOUR
-      FILES.** The Door's rank step takes no `--chart=`, so it ranks `CHART.md`; the only thing it
-      points at this file is `tick_rows.mjs`, which REPORTS and never orders. **Nothing in the repo
-      ranks the Glass chart automatically.** The defect is real — the Advisor ranks this list by
-      hand, every time, and gets the parked row at the top — and the consequence was overstated.
-      `chartkeeper.mjs:934`'s `livePointer` looks for the handle in the chart it was
-      POINTED AT, and his questions all live in `CHART.md`. **A question in one file cannot penalise
-      a row in the other.** Repaired by hand with `· needs: wyatt` on the handle line, which the
-      scorer reads directly — 23 rows then moved and the parked row sank.
-      ⚠ **THIS IS `T-132` IN A SECOND COSTUME, AND THAT MATTERS MORE THAN THE BUG.** `T-132` is *"a
-      question that names no task leaves the row it is holding up at the top"*. This is *a question
-      that names its task perfectly and still cannot reach it.* Same consequence — a watch sent to a
-      row waiting on Wyatt — and it is now the **fourth** hand-repair of a Chart bookkeeping fault in
-      three days. **The hand-repair does not generalise: the next parked Glass row needs the same
-      manual flag, and nothing reminds anyone.**
-      **SHAPE OF THE FIX:** `livePointer` should read BOTH charts' BLOCKED ON WYATT sections, not
-      just the one it was pointed at — the same one-line correction already made to
-      `chart_sweep_conserves_check` and `close_item.mjs` when his split broke them. **This is the
-      SIXTH tool with that exact fault** (`close_item`, `chartkeeper`'s sections, `tick_rows`, the
-      ranker, the sweep gate, and now `livePointer`). One instruction of his split one list in two,
-      and every tool with a path written into it went quietly wrong in a different way.
-      **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
 - [ ] **THE PUBLISH RECEIPT CANNOT TELL A REAL ARTIFACT VERSION FROM ONE A SESSION TYPED — AND I
       ⟨`T-208` · size: S⟩
       PROVED IT BY DOING IT, ACCIDENTALLY, TODAY.** Filed 2026-09-03T10:1xZ by the Advisor, against

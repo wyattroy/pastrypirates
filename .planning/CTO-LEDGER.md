@@ -7935,3 +7935,5 @@ instruments that lie: _"never hand-type a number that can be counted."_** A comm
 append-only, so the wrong figure cannot be edited out — which is exactly why the rule says count
 it. This entry is the correction, and the count command is written above so the next reader does
 not have to trust either number.
+
+- 2026-09-03T11:47:14Z · close_item: "T-209" · CEO 166 · no game diff — no game code — the Chart ranker · no stated solution
