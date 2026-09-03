@@ -28,38 +28,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **THE SEA TRIAL'S BEST FINDING REACHES THE READER AS A NUMBER. The vision judge names the
-      ⟨`T-215` · size: M⟩
-      bug, in a sentence, and the report prints only how many.** Filed 2026-09-03T13:0xZ by the
-      Advisor, while trying to act on `T-136`'s own instruction that nobody had opened these.
-      **WHAT THE REPORT SAYS**, six times over: *✗ vision judge FAILED 1 of 30 screen(s) it looked
-      at*. **A count. No filename, no description, nothing to open.** The whole 89-minute report
-      names exactly ONE `.png`.
-      **WHAT THE JUDGE ACTUALLY SAID**, recovered from `sea-trial-shots/log.txt`:
-      *"'Play again!' button overlaps and clips the award card text below it (e.g. 'Rum Baron' name
-      cut off behind the button)"* · *"captain list rows 'Davy Scones' and 'Dough Hook' are clipped
-      by the recipe-selection modal, showing only truncated 'Dav' and 'Dou'"* · *"orange
-      dock-highlight circle near bottom of board is clipped by the recipe-selection card"* ·
-      *"'Arrgh!' bubble floats alone in open water with no tail"* · *"Pastry Pirates logo clipped
-      at the left edge, showing 'ASTRY' and 'IRATES'"*.
-      **These are player-visible bugs, described in plain English, and they have been going into a
-      log nobody reads for 261 runs.**
-      ⛔ **AND THE EVIDENCE IS NOT PRESERVED AGAINST ITS OWN VERDICT — which is why "nobody opened
-      them" is structural rather than lazy.** `sea-trial-shots/` is ONE directory reused by every
-      run: `log.txt` is APPENDED (261 runs in it), while the screenshots are OVERWRITTEN. Measured:
-      `log.txt` is dated 09-03 08:54 and `solo-phone-026-settled.png`, whose verdict sits in that
-      log, is dated **09-01 13:04 — two days earlier**. I opened it: it shows a mid-game board, not
-      the End-of-Voyage screen its verdict describes. **A verdict whose picture has been overwritten
-      is a verdict nobody can act on.**
-      **THE FIX, and it is small next to the value:** the report should list every rejected screen
-      by NAME with the judge's own sentence, and the run should keep its shots under its own run id
-      (`runid.json` already exists and already records one). **Rule 19's live detector currently
-      reports a number where it could hand him a sentence and a picture.**
-      ⚠ **NOT VERIFIED BY EYE, AND SAID SO:** the descriptions above are the judge's words recovered
-      from the shared log. The one screenshot I opened did NOT match its verdict, so these are
-      **reported as the judge's claims, not as confirmed defects** — which is exactly the gap this
-      row exists to close.
-      **Sizing: MEDIUM. Touches the trial's reporting, not the game. Nothing blocked on Wyatt.**
 - [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
       ⟨`T-136`⟩
       `T-027` so his actual need is not lost when that row closes.**

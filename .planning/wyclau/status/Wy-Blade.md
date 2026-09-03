@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T12:49:33.829Z	self-publish check
+2026-09-03T14:09:12.208Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -16,18 +16,14 @@ None recorded.
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-03T12:48:20.486Z",
-  "updatedAt": "2026-09-03T12:49:50.581Z",
-  "progress": "0/10 legs",
+  "updatedAt": "2026-09-03T14:06:29.465Z",
+  "progress": "9/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T13:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T130803Z.out/.err)
-2026-09-02T13:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T134803Z.out/.err, kit: readable)
-2026-09-02T14:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T144802Z.out/.err, kit: readable)
-2026-09-02T15:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T153802Z.out/.err, kit: readable)
 2026-09-02T16:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T160802Z.out/.err, kit: readable)
 2026-09-02T16:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T164802Z.out/.err, kit: readable)
 2026-09-02T17:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T173802Z.out/.err, kit: readable)
@@ -64,4 +60,8 @@ None recorded.
 2026-09-03T10:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T103802Z.out/.err, kit: readable)
 2026-09-03T11:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T110802Z.out/.err, kit: readable)
 2026-09-03T12:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T120802Z.out/.err, kit: readable)
+2026-09-03T12:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T125802Z.out/.err, kit: readable)
+2026-09-03T13:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T132801Z.out/.err, kit: readable)
+2026-09-03T13:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T133801Z.out/.err, kit: readable)
+2026-09-03T13:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T134801Z.out/.err, kit: readable)
 ```

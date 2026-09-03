@@ -8302,3 +8302,5 @@ Wyatt split the two files to prevent, and it is the honest headline of my turn.*
 move 6/10 → 8/10 on build `2026.09.03.2`; the fence is real. *"Findings that live only in the commit
 message"* — **RECURRING, WORSE**: last time findings existed and were not filed; this time a finding
 was reported as new when the Chart had already refuted it.
+
+- 2026-09-03T14:12:10Z · close_item: "T-215" · CEO 170 · no game diff — no game-code diff by nature: the fault was the trial's own reporting, fixed in scripts/lib/leg_verdict.mjs at commit 2182d2a4 — one number becomes ten named screens, labelled a POINTER not a diagnosis per T-019 · no stated solution · the trial names the screen it failed, and says its own words are not quotable
