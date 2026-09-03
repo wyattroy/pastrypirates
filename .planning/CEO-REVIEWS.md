@@ -20,6 +20,73 @@
 > and therefore cannot be fooled by either half of this banner.** The two warnings above are about the file
 > being wrong; this one is about the READER being wrong about a file that was perfectly fine.
 
+## CEO Review 136 — 2026-09-03, Wy-Blade — `T-011`: the false green and the false STOP it left behind — **PARTIAL**
+
+> **Number re-checked in the same act as writing** (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **135**). No 136 on file. *(Aside: 31, 38, 73 and 107 are each duplicated on this file — old collisions, not tonight's.)*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *The code fix is real and I broke it on purpose to prove the gate catches it — a watch arriving at the Door tonight is now told the command that actually works instead of one that always fails — but the Chart row itself was never updated, so it still shouts in bold that the working fix "does not reproduce" and points the next reader at the wrong repair.*
+
+---
+
+### 1. IS THE ROW FINISHED?
+
+**PART 1 — the original false green. DONE, verified.** `can_push.mjs` no longer claims capability: the healthy path prints `repo state is healthy: on "<branch>"…` (`scripts/wyclau/can_push.mjs:130`) and names its blind spot at `:133-136` (*"NOT ANSWERED HERE — whether THIS SESSION is allowed to run `git push` at all"*). Held by `scripts/qa/can_push_check.mjs:97-100` (no bare `can publish`; the limit named).
+
+**PART 2 — the false STOP. DONE, and I red-proofed it myself.** The prefix reasoning is sound: I read `.claude/settings.json:22` — `"Bash(git push origin claude/*)"` — verbatim. `git push --dry-run origin …` cannot begin with `git push origin`, so it can never match, on any tree however healthy. Paired with the old file's *"If it is REFUSED, stop there: end the turn"*, that was a 100% false STOP at the Door's entry.
+
+I ran the pre-fix file (`git show 4258b035:scripts/wyclau/can_push.mjs`) into the scratchpad without touching the tree. It prints, exactly:
+
+```
+    git push --dry-run origin claude/cloud-handoff-planning-a9ay1u
+If it is REFUSED, stop there: end the turn and say so in the ledger.
+```
+
+Applying the two new assertions from `can_push_check.mjs:107-112` to that output and to the current output:
+
+| assertion | old file | new file |
+|---|---|---|
+| right form present (`git push origin \S`) | **false** | true |
+| `--dry-run` form absent | **false** | true |
+
+So both cases genuinely fail on the broken version and pass on the fixed one. `can_push_check.mjs` runs directly: **exit 0, 16/16 PASS**, and it is wired into `npm test` (`package.json:26`, between `bell_check` and `close_item_check`).
+
+**PART 3 — attribution and honesty. CLEAN.** The peer is credited by name at `can_push.mjs:121` (*"Found by watch `pastrypirates-a3`"*) and the session says at `:122-123` that it confirmed independently — *"`settings.json:22` read directly, plus two real pushes from this session that were never prompted."* I re-read that line myself; it is right. The old diagnosis was **corrected in place, not overwritten**: `:106-112` keeps the "Bash call vs node child process" paragraph standing and then says plainly it *"DREW THE WRONG LINE"* and that the fence is the flag position, which the two `--dry-run`-only measurements could not distinguish. That is the honest form.
+
+**PART 4 — WHAT IS LEFT UNDONE, and it is the reason this is PARTIAL.** The row on `.planning/GLASS-CHART.md:222-304` was **not touched**. Three of its statements are now false, and they sit inside a `⛔ STOP — DO NOT BUILD EITHER` block, which is the loudest text on the row:
+
+1. **`:264-266` — *"(b) — 'push with the explicit branch name' — DOES NOT REPRODUCE… It is not a fix."*** The shipped code says the opposite at `can_push.mjs:126-127`: *"(The row's other proposed fix — 'push with the explicit branch name' — was dismissed on the same bad measurement, and it turns out to have been right.)"* **The row now tells the next watch to discard the thing that fixed it.**
+2. **`:286-289` — *"STILL OPEN, AND IT IS THE ONLY REAL REPAIR: Wyatt's permission list."*** Not true. `settings.json:22` already permits pushing this branch; the repair was the command form, and it landed.
+3. **`:291-293` — *"the matching line for `.claude/skills/door/SKILL.md`… could not be written — this session's Edit tool is refused on that file."*** Commit `63c0ac3c` edited that exact file (+13 lines). The stated blocker is gone. *(The substance is nonetheless covered: `.claude/skills/door/SKILL.md:27` runs `can_push.mjs` at orientation, and the script prints the correct command — so the watch does get told. The Door needs no line; the row's claim about it is just stale.)*
+4. **`:296` — *"THIS ROW CANNOT BE CLOSED THROUGH THE GATE: `close_item.mjs:49` reads `CHART.md` only."*** Stale since `11d44777`: `close_item.mjs:49-66` now takes `--chart=<path>`.
+
+This is the trap CLAUDE.md names in the *WIDEN THE TIME HORIZON* box — *"a rule that names a dead cause does not merely fail to help; it aims the next reader at the grave."* The row is doing exactly that, about its own fix.
+
+**The probe file — low harm, worth one minute.** `scripts/qa/_t011_push_form_probe.mjs` is untracked, self-labelled *"SCRATCH — DEAD FILE"*, and its stated conclusion (*"the allowlist sees Bash tool calls only"*) is the **superseded** diagnosis. But it names `can_push.mjs` and `can_push_check.mjs` as where the finding lives permanently, so a reader who follows it lands on the corrected text. It would confuse, not mislead. It explains honestly why it could not be deleted. Not this session's to remove; leave it.
+
+### 2. CLAIMS THE REPO DOES NOT SUPPORT
+
+None in the code or the commit message. Every claim in `63c0ac3c` that I checked — the prefix match, the peer credit, the red-proof, the gate wiring, the `tick_rows` Door wire-in at `SKILL.md:80-93` — holds. **The unsupported claims are all in the Chart row, and they are unsupported because nobody went back to it.**
+
+### 3. IS CEO 135'S FAULT FIXED OR RECURRING?
+
+**ITEM D's findings hold — I re-derived every one independently** (settings line, prefix logic, both assertions red against the old file, the peer credit). Its four other findings are genuinely closed: the duplicate 134 is gone (one `## CEO Review 134` on file), `tick_rows.mjs` is wired into the Door as report-only, the "reachable" overclaim is fixed, and C and D are committed.
+
+**But 135's own recurring shape recurs here, one layer out.** It wrote: *"the engineering is honest and well measured, and the account of the record rounds itself up… The work is trustworthy. The bookkeeping about the work is not yet."* That is this item exactly. The fix is excellent; the record of the fix — the Chart row a watch will read at 4am — still describes the world before it.
+
+`can_push_check.mjs` passes standalone (exit 0). `npm test` is red on the pre-existing `chartkeeper_check` fixture, upstream of ~12 gates; not this item's doing, and I did not re-litigate it.
+
+### 4. WHAT I WOULD DO FIRST
+
+1. **Rewrite the `⛔ STOP` block on `GLASS-CHART.md:257-296`** — five minutes, and it is the only thing here that actively misdirects. It must say: the fence was the **flag position**, not Bash-vs-node; `git push origin <branch>` is the working form and (b) was right; the Door needs no extra line because `can_push.mjs` prints it at `SKILL.md:27`; and the allowlist is not the open repair.
+2. **Then tick the row.** With that block corrected, `T-011` is a finished item with a red-proofed gate — and `close_item.mjs --chart=.planning/GLASS-CHART.md` can now carry it, so the "cannot be closed" excuse is spent. Per 135's closing line, **this could be the first `GLASS-CHART.md` row to actually go through the gate.**
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+- **(4.1) DONE, and it was the whole finding.** The `⛔ STOP` block now opens with a correction naming all four stale claims: the table cannot answer its own question because **every shell row in it is a `--dry-run` form**; the fence is the flag position (`settings.json:22` is a PREFIX match); **(b) was right** and the row had talked the next watch out of it; and the three "still open" claims are spent. **The old text is kept unedited beneath it as the graveyard** — rule 10 — marked *"It is wrong. Do not act on it."*
+- **(4.2) DONE** — `T-011` closed through the gate on this verdict.
+- **One correction to this review, in its favour and against mine:** its closing line offers `T-011` as *"the first `GLASS-CHART.md` row to actually go through the gate."* It was the **second** — `T-112` went through about twenty minutes earlier on CEO 135. The review could not have known; it was reading a tree that had already moved.
+- **Its aside is a real finding nobody asked for and it is now on the Chart:** **CEO 31, 38, 73 and 107 are each duplicated in this file** — older collisions than tonight's, still handing a coin flip to any reviewer told to "read the previous verdict".
+
 ## CEO Review 135 — 2026-09-03, Wy-Blade — protecting his writing, the close gate, the tick guard, the false STOP, and the record — **PARTIAL**
 
 > **Number re-checked immediately before writing**, per the file's own banner: 134 is the highest on file. **But 134 appears TWICE** — see item E, which is this review's worst finding.
@@ -9609,3 +9676,71 @@ rather than cosmetic.** 134's headline was *an account tidier than the record*. 
 says a commit needs carrying when there is no commit, and describes an item run "through the full
 Proof" when the Proof's close step cannot accept it. The work is real; the report rounds its
 disposition up.
+
+---
+
+## CEO 136 — T-017, the trade-offer circle that cannot hold its captain's name
+
+**Watch:** `pastrypirates-a3` (Wy-Blade), 2026-09-03T03:10Z. **Asked, verbatim:** *"A TRADE-OFFER
+CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME (T-017). Fix this universally, not through patches."*
+**Reviewed at the point the fix was measured green against the button's square box.** Its words:
+
+> ## PARTIAL
+>
+> **The mechanism is right. The screen is not fixed, and the work is not on the branch.**
+>
+> **What holds.** The fix is genuinely universal, not a patch. `fitLabelToDisc` is called from the
+> one `menu.forEach` that swaps every radial petal's label (`src/ui/stage.js:2837-2839`) and
+> unwound on radial exit (`:3656`) — so sail choices, dock and battle petals inherit it for free.
+> `src/ui/flow.js` is **unmodified** (`git status`), so no name-specific casing was added. It reads
+> the stylesheet's own size rather than a copied number, and floors at a fraction (rule 9,
+> honoured). `mp_rig.mjs`'s `/tmp` mapping is a real Windows fix and is derived, not enumerated.
+> Chartkeeper's last touch is `8327a1b9`, 2026-09-02, and this watch changed no chart file — claim
+> 7 stands.
+>
+> **Where it fails the ask.** I looked at both PNGs. In `t017-before.png` the names wrap
+> ("Davy"/"Scones") and float clear above their discs on open water. In `t017-after.png` they are
+> one line — a real improvement — **and they still paint outside the painted circle.** "Davy
+> Scones" spans ~97px of ink at a height where the disc is only ~85px wide; its D and final s sit
+> on the sea, red on blue. Same for "Flaky Jack", "Dough Hook", "Crustbeard". **That is the picture
+> Wyatt sent** — *"Crustbeard crossing both rims"*.
+>
+> The geometry says why the check missed it. `index.html:1847` is `width:66px; height:66px;
+> border-radius:50%` — a true circle inscribed in a square. `trade_circle_name_fits_check.mjs:
+> 129-130` judges against `br.left/right/top/bottom`, the **square**. A label parked at the top
+> chord can be 12px outside the painted rim and score "fits". The watch flagged this itself,
+> honestly — but underweighted it: this is not a corner case, it is *the* case, because that is
+> exactly where these labels sit. **The check passes while the screen he photographed is still
+> wrong.** The `Walk away` control does not red-proof this: it is one short line at the disc's
+> centre, the widest part, so it can never exercise the failing geometry.
+>
+> **CEO 135's fault RECURS, thirteenth running.** `git status`: `M src/ui/stage.js`, `M
+> scripts/mp_rig.mjs`, `?? scripts/qa/trade_circle_name_fits_check.mjs`, `?? .planning/posed/
+> t017-*.png`. **Nothing is committed.** The ledger's `WATCH 03:10Z` entry says the watch *"will
+> never run `git add -A`"* and names `src/ui/flow.js` and `index.html` as its files — future tense
+> in an append-only record, and both wrong: the fix landed in `stage.js`. There is no completion
+> entry at all. The account is again tidier than the record.
+>
+> **Recommend:** commit and push first, then re-cut the check against the inscribed circle
+> (`dx²+dy² ≤ r²` per rect corner) before calling T-017 closed. 8px type is legible in the after
+> shot; that is Wyatt's call, not the blocker.
+
+### WHAT THE WATCH DID WITH IT — both findings acted on, in its order, not the watch's
+
+1. **Committed and pushed FIRST** (`2b023b9e`), before touching the geometry — because the
+   recurring fault is uncommitted work, and fixing the interesting problem first is exactly how it
+   recurs a fourteenth time.
+2. **Re-cut against the inscribed circle** (`f06a0a80`), in the check AND the fix, so the two share
+   one definition of "fits" — the divergence between them is what earned this PARTIAL.
+   Re-measured: every name inside the 33.09px rim at tablet and desktop, 35.35px at phone, control
+   still inside. `.planning/posed/t017-after-circle.png` is the third picture, and there is no ink
+   on the sea in it.
+3. **The future tense and the wrong filenames in the ledger's claim are real and are corrected in
+   this watch's closing entry, in the open** — the fix landed in `src/ui/stage.js`, not
+   `flow.js`/`index.html` as the claim predicted. *A prediction written into an append-only record
+   rots into a lie with nobody editing it* is a house rule, and the claim broke it.
+
+**THE ITEM IS NOT CLOSED, AND THIS VERDICT IS NOT THE REASON.** Fitting the name inside the circle
+drives the type to its 5.5px floor, which (a) may be too small to read and (b) leaves a fan mixing
+sizes, because "Walk away" fits at full size and never shrinks — a rule 8 consistency break. Both
+are Wyatt's call. Parked for him rather than decided. The GEAR: FULL sea trial had also not sailed.

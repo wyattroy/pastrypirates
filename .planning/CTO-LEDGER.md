@@ -6732,4 +6732,73 @@ item.
 appended lines only, and **will never run `git add -A`** — every commit names its paths, so the
 peer's in-flight edits cannot be swept into them.
 
+### WATCH 2026-09-03T03:10Z — CLOSING. `T-017` WORKED, NOT CLOSED, AND THE CLAIM ABOVE WAS WRONG.
+
+**⚠ CORRECTING THE PARAGRAPH DIRECTLY ABOVE, IN THE OPEN, BECAUSE CEO 136 CAUGHT IT.** It names
+`src/ui/flow.js` and `index.html` as this watch's files. **The fix landed in `src/ui/stage.js`, and
+`flow.js` and `index.html` were never modified at all.** It is also written in the future tense in
+an append-only record, which this project's own convention forbids for exactly this reason: *a
+prediction in a log rots into a lie with nobody editing it.* It rotted inside one hour. The file
+discipline itself held — every commit used `git commit -o` with explicit paths, and nothing of the
+peer's was ever swept in.
+
+**WHAT SHIPPED, THREE COMMITS.** `2b023b9e` (the fit + the Windows rig repair + the check),
+`f06a0a80` (the circle geometry), both pushed. `4258b035` was the claim.
+
+**THE PROOF, IN ORDER.** GEAR: **FULL** (`gear.mjs`). **RED FIRST:** `scripts/qa/
+trade_circle_name_fits_check.mjs` failed before the fix existed — "Davy Scones" and "Dough Hook"
+putting 5.28–5.61px of ink above the rim at phone, tablet and desktop, with the "Walk away" control
+inside at all three. **GREEN AFTER:** the same check passes. **POSED PAIR (rule 26):** three
+pictures, same board, same seed — `.planning/posed/t017-before.png`, `t017-after.png`,
+`t017-after-circle.png`. **CEO:** 136, PARTIAL, appended to `.planning/CEO-REVIEWS.md` with both of
+its findings acted on in its order rather than the watch's. **SWEEP:** `npm test`, 114 gates, one
+failure — `chartkeeper_check.mjs`, pre-existing (last touched by `8327a1b9`, a peer's `T-103`), and
+confirmed not this watch's by CEO 136 independently rather than asserted here. **SEA TRIAL: SAILING
+NOW, DETACHED** — pid 35064, run `2026-09-03T0341Z-Wy-Blade`, report
+`.planning/SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md`. It belongs to the machine, not to this watch; a
+later watch reads it.
+
+**THE INSTRUMENT WAS WRONG TWICE BEFORE IT WAS RIGHT, AND THAT IS THE REUSABLE PART.** First it
+posed `pp4Center` and `radial` together — a state the game never emits — and measured a 110px disc
+at 15px type instead of the 66px at 9.5px the stylesheet specifies. The tell was that it reported
+*"Crustbeard fits"*, flatly contradicting Wyatt's own screenshot of it clipped at both ends; **a
+check that disagrees with a picture he took is wrong until proven otherwise.** Second, it judged
+containment against the button's SQUARE box when the petal is `border-radius:50%` — so every name
+scored "fits" while the ink was still crossing the painted rim. **Neither was caught by reasoning.
+The first was caught by his screenshot and the second by CEO 136 looking at the posed pair.** The
+check now carries a `DISC_MAX` guard that reports NOT RUN rather than a number when the pose lands
+on the wrong prompt style, so the first mistake cannot be reported as a result again.
+
+**A SECOND, LARGER FINDING, MEASURED: EVERY `scripts/qa/*` BROWSER PROBE WAS DEAD ON THIS MACHINE
+AND NOTHING SAID SO.** ~20 of them pass a literal `--user-data-dir=/tmp/chrome-*`, a Mac path. On
+this Blade Chrome exits with **no stderr at all** and never binds the debug port, so the only
+symptom is `attach()` timing out with `no chrome on <port>` — which reads as *"Chrome is broken
+here"*, not *"that path does not exist here"*. Measured both forms with the same argv otherwise:
+`/tmp/...` never comes up; `C:\Users\...\AppData\Local\Temp\...` is up in 500ms. The rest of the
+repo already used `os.tmpdir()` (`bakeoff_shots`, `crew_bake_probe`, `crew_trade_probe`,
+`local_trade_probe`, `lib/wk.mjs` — all of which run here), so `mp_rig.launch()` now maps the POSIX
+spelling onto that same convention in ONE place; non-Windows behaviour is byte-identical because
+`os.tmpdir()` IS `/tmp` there. **This is why T-017 could be measured at all**, and it unblocks
+every other probe on this machine.
+
+**NOT CLOSED, AND SAYING WHY RATHER THAN TICKING IT.** Fitting the name inside the circle alongside
+the crate and the coins drives the type to **5.5px**, its floor. Two things follow and **both are
+Wyatt's, not this watch's**: whether 5.5px is readable at all on a real phone, and that a fan now
+**mixes type sizes** — "Walk away" fits at full size and never shrinks — which is a rule 8
+consistency break, and rule 8 says an interaction that differs in two places is a bug *unless he
+chose the exception*. Making the whole fan shrink to its smallest member would restore consistency
+by making everything tiny; that is taste, and it was left to him. Parked in the Chart's BLOCKED ON
+WYATT with the three pictures.
+
+**THE FENCE, FIFTH RECORDING.** `rm` refused on `scripts/qa/_t017_*.mjs` — three scratch probes on
+paths plainly inside the allowed working directory. They are left untracked and uncommitted rather
+than deleted. `_t017_pose_shot.mjs` is the one worth promoting: it is the posed-pair instrument
+this item was settled with.
+
+**NO SECOND ITEM.** `T-011` was skipped as held and the peer holding it was sent the push-form
+measurement instead; it confirmed, fixed it, and found that `can_push_check.mjs:101` was *asserting*
+the broken `--dry-run` form — the gate was pinning the bug in place.
+
 - 2026-09-03T03:33:11Z · close_item: "T-112" · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently · no stated solution
+
+- 2026-09-03T03:42:00Z · close_item: "T-011" · CEO 136 · no game diff — can_push now prescribes the form the allowlist actually matches; the stale STOP block that told the next watch to discard the working fix is corrected in place · no stated solution
