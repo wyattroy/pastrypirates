@@ -1,5 +1,28 @@
 # Wyatt's standing decisions
 
+## ⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call onl — 2026-09-03T21:29:37.111Z
+
+Asked on the Glass: *"⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch? You asked for the plan and you have it — the property G-2KK6EZDZSP almost certainly already exists in your Google account and has never been told anything. Nothing is installed and nothing will be until you pick. The size: one <script> tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: where your 123 browsers came from — and remember that About and the new Rules page are measured by nothing at all today, which is the real gap."* — **Wyatt ruled "The public pages only — the game, About and Rules"**, 2026-09-03T21:29:37.111Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- The public pages only — the game, About and Rules  ← **his pick**
+- Every page including /classic, one consistent picture, at the cost of mixing a frozen v1's traffic into your launch numbers
+- The game page only — most cautious, and it leaves About and Rules exactly as blind as they are today
+
+<!-- harvest-id: RULING-20260903T212937Z-t206-which-pages -->
+
+## ⟨T-220⟩ You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is rig — 2026-09-03T21:30:14.426Z
+
+Asked on the Glass: *"⟨T-220⟩ You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine. You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: --gear=COSMETIC runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. The one thing I did not change on my own: the trial's final word for a no-voyage run is NOTHING SAILED, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week."* — **Wyatt ruled "Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once"**, 2026-09-03T21:30:14.426Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Leave it exactly as it is — the red word stays, nothing in the project reads it as a blocker, and the report already spells out the depth you chose and why (recommended, and it is a real
+- Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once  ← **his pick**
+- Green only when you typed a reason — the reason becomes the price of a clean report, so the record can never go quiet
+
+<!-- harvest-id: RULING-20260903T213014Z-t220-shallow-green -->
+
+
 ## Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themse — 2026-09-03T15:56:28.568Z
 
 Asked on the Glass: *"Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves? You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: Approve · Deny · Let's talk. I did not number them on my own, because the reason numbering helps is that you can reply "B" in a few words — and a button you TAP does not need a name to say back. Three ways to go: (1) leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; (2) number these three too — 1 Approve · 2 Deny · 3 Let's talk — so "always" really does mean always and there is nothing to remember; (3) letter them instead — A · B · C."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-03T15:56:28.568Z.
