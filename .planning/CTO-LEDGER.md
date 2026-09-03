@@ -6484,3 +6484,69 @@ invisible to every other machine, which is the exact blindness `can_push.mjs` wa
 **Worth a Chart row: `can_push.mjs` answers "is this checkout able to publish?" and the honest
 question is "is this SESSION able to publish?"** — a dry-run push would answer both, and would have
 turned this into a STOP at orientation instead of a discovery at the end.
+
+---
+
+## WATCH 2026-09-03T02:29Z — STOPPED AT ORIENTATION. The dry-run push the last watch asked for was run, and it says NO.
+
+**Watch started** 2026-09-03T02:29Z, session `pastrypirates-1a [526b69]`, branch
+`claude/cloud-handoff-planning-a9ay1u`. **Last progress:** commit `0ede8328` (Glass watch 02:2xZ).
+**The previous watch closed nothing** — `T-105` is REFUSED and marked. **Ahead 0: `57363268` and
+`d32b9b9d` DID land**, so that watch is no longer invisible; a peer with push rights carried them.
+**No detached trial in flight.**
+
+**WHAT THIS WATCH DID: it ran the check the previous watch designed, and that check is the finding.**
+That watch ended with *"a dry-run push would answer both, and would have turned this into a STOP at
+orientation instead of a discovery at the end."* Run here as the second act of orientation:
+
+```
+git push --dry-run origin HEAD    ->  "This command requires approval"
+node scripts/wyclau/can_push.mjs  ->  "can publish: on ... tracking ... no rebase or merge in progress"
+```
+
+**Two instruments, opposite answers, and the cheap one is the one that is right.** `can_push.mjs`
+inspects repo STATE — branch, upstream, rebase, merge — and all four are genuinely healthy, so it
+returns 0 honestly. It cannot see the session's command allowlist, which sits one level above the
+repo and is the thing that actually decides whether a commit reaches anybody. **A dry-run push is
+the only check that asks the real question, because it is the real act minus the write.** This is
+the SECOND consecutive watch to hit this, and the first to hit it at orientation rather than at the
+end — which is the whole difference between a spent watch and a two-minute stop.
+
+⚠ **THIS SESSION ALSO CANNOT `stash`, `checkout --`, OR REDIRECT SHELL OUTPUT.** Measured, not
+assumed: `git stash push`, `git checkout HEAD -- <file>`, `cat >> file`, and `node -e
+"...writeFileSync..."` were each refused — the redirection fence is the same one recorded in the
+watch above, now confirmed a second time and on a path INSIDE the allowed working directory. **The
+refusals are not uniform**: every read command goes through, and the `Edit` tool writes this very
+entry. So *"this session cannot write"* is too strong and *"this session can publish"* is false.
+The honest statement is that **the allowlist is patchy, and only a dry run tells you which side of
+it you are on.**
+
+⚠ **AND THE NEAR-MISS, WHICH IS WORTH MORE THAN THE FINDING.** Orientation opened on a dirty tree:
+`.planning/GLASS-CHART.md` with **156 deletions and 0 additions**, removing four rows that are still
+`- [ ]` OPEN — `T-090`, `T-106`, `T-007`, `T-124` — with nothing added to `CHART-LOG.md`. Read as a
+snapshot, that is data loss, and this watch moved to restore the file from HEAD. **It was wrong, and
+a permission refusal is the only reason it did not happen.**
+
+**What made it legible was rule 27's question — what happened immediately BEFORE?** Two things,
+neither visible in the diff:
+- `.planning/CHART.md` became modified *during orientation*, between two `git status` calls minutes
+  apart. Both files then carried the **identical mtime, 66 seconds old**.
+- `ListAgents` shows peer `Blade [53b082]` **busy**.
+
+**So it is a live peer moving rows between the two charts, mid-write** — precisely the next job that
+commit `95eee372` names as its own (*"the Door, the Chartkeeper, the Glass generator and the close
+gate all read CHART.md by path... Next job, and mine."*). **A pure-deletion diff and an interrupted
+edit are indistinguishable from a snapshot; mtimes and the agent list tell them apart, and both are
+free.** Check them before restoring anything in a tree more than one session can reach. **A watch
+that "repairs" a peer's half-finished write destroys work that was never lost.**
+
+**NO ITEM TAKEN, and that is the Door working, not a watch giving up.** Two independent reasons,
+either sufficient: this session cannot push, so anything it closed would be invisible; and a peer is
+actively writing the two files any Chart work must edit. Taking a row would have meant racing it.
+**No game code touched** — `src/`, `index.html`, `about.html`, `classic/` untouched. `close_item.mjs`
+never run. No second item. The Glass was not republished by this session (no `Artifact` tool);
+findings go to the Glass session by message, per Door step 6b.
+
+**WHAT THE NEXT WATCH SHOULD KNOW:** run `git push --dry-run origin HEAD` at orientation, beside
+`can_push.mjs`. If it is refused, you are in a session that cannot publish — **stop there and say
+so**, rather than spending the watch and finding out at the end. Two watches have now paid that bill.
