@@ -9852,3 +9852,77 @@ do both.
 
 **No Artifact tool in this session.** Stated as a fact about this session, not as a guess about the
 Glass. The pulse goes to `.planning/wyclau/GLASS-NOTE.md` and to the Glass session by message.
+
+### CLOSE-OUT — `T-216` WORKED, **NOT CLOSED**, for the third time. Commit `34fecc40`, CEO 191 PARTIAL.
+
+**WHAT LANDED.** `scripts/qa/rules_claims_match_engine_check.mjs`, npm test gate **132**. It takes
+the engine's answer to every remaining behavioural claim on `/rules.html` by **playing a real
+`Game`** — `sailStates`, `doDock`, `cratePrice`, `barterCrate`, `canAttack`, `downwindSide`,
+`awardSpoil`, `tradeOpp`, `tradewind`, `rimEntriesTo`, `runStorm`, `stormPush`, `bakeRewatch`,
+`canBake`, `endBakeDay`. **This is the 18:41Z watch's own named remainder**, mechanised: *"re-check
+the RIGHT rows above against their state's write-sites rather than their comparators."* Every claim
+came back green, so that watch's read-verdicts are now confirmed by measurement rather than by eye.
+
+**MY PREDICTION WAS WRONG AND THE FALSIFIER I WROTE FIRED.**
+`.planning/wyclau/PREDICTION-20260903T2310Z-T-216.md` said 2 to 4 claims would be false and named
+three suspects — *"across the wind doesn't count"*, *"land and other ships stop ye short"*,
+*"nobody's paid on a battle that ends with no winner"*. **Every one is correct as written.** So is
+the Chart row's estimate that *"roughly three more wrong statements are still live"* — wrong. The
+trap I named for myself fired too, and naming it is the only reason I can see that it did: I wanted
+to find wrong claims, because a watch that audits two dozen sentences and reports *all fine* looks
+from outside exactly like a watch that did nothing.
+
+**THE RED PROOF EARNED ITS KEEP ON ITS FIRST RUN — 7 of 21 mutations failed.** Three claims were
+being watched by a gate that could not see them (a mutation that was a STUB setting an unread flag;
+one that blanked `isIsland` while the storm also stops at `isHome`, so Tortuga kept the claim green;
+one listed as breaking a sentence it does not falsify). Four were blunt: a shared `blindTo()` helper
+snapshotted and restored **every** ship's square, so `stormStep`'s own `p.pos = nx` was undone on the
+way out and the mutation cancelled the thing it wrapped. **All seven were invisible to the
+measurements, which were green throughout.**
+
+**AND THEN CEO 191 FOUND THE SAME SPECIES ONE RADIUS OUT — the tenth turn of the screw, in the prose
+of the file written to answer the ninth.** Its four findings and the fixes are in
+`.planning/CEO-REVIEWS.md` in its own words. The one worth carrying here: **three claims QUOTED a
+page sentence wider than they measured**, and the storm was the sharp case — it quoted *"it blows
+every ship at once"* while pushing ONE captain with the other three parked `done`, so **deleting
+`runStorm`'s own loop at `src/engine/index.js:3003` would have left this gate GREEN**. Widening that
+measurement then produced a second instrument fault worth recording: the sail claim's new L-shaped
+route reported **THE RULES PAGE CONTRADICTS THE GAME** when the probe had simply walked into an
+island, because `openWater()` only guaranteed clear water along the four straight lines. Rule 6:
+when a check condemns something known to work, suspect the check.
+
+**WHY THE ITEM IS NOT CLOSED, AND CEO 191's HEADLINE IS THE HONEST ANSWER.** Its words: *"you ruled
+two hours before this watch started that the 'got home first' tiebreak should be fixed in the game,
+and that fix still has not been started, so the false sentence is still on your public rules page
+tonight."* **It is right, and the cost of this watch is that a player sees nothing different today.**
+His ruling (2026-09-03T21:30:35Z, `.claude/memory/DECISIONS.md`) was sitting at `CHART.md:186` marked
+**Untriaged** with no work row. **Triaged now**, with the job written out so nobody re-derives it:
+`endBakeDay` fills `finishOrder` from `players.filter(q => q.bakedToday)` — seat order — and nothing
+anywhere records the DAY a captain lit their ovens, so `lightOvens` has to stamp it before `bakeRank`
+can read it. **Deliberately not folded into this item**: that is game code touching the end-of-voyage
+ranking at gear FULL, and the Door allows one item per watch. **`INBOX-20260902T225008Z` cannot close
+until it lands**, and that is now stated on the row itself rather than only in a ledger entry.
+
+**TWO ROWS FILED RATHER THAN CLAIMED, both out of the audit:**
+1. **`T-249`** — `src/orchestrator.js:817` is `if(fled)return;`, which leaves the battle before
+   `settleSideBets` on a both-tails escape. The page's rule survives (nobody is wrongly paid) but a
+   captain who was asked to call the winner is **never told anything at all**. ⚠ **OBSERVED IN THE
+   CODE, NOT MEASURED** — filed saying so, with the posed three-captain setup that would prove it.
+2. **`T-250`** — the ~6 claims that live in the live UI path (the human refire prompt, the winner's
+   crate choice, `settleSideBets`) or in `bakeoff.js` are **read-verified only**, by the same read
+   that was demonstrated fallible. Named as a gap in the fence, not as a defect.
+
+**Gear:** no game code. `git diff --name-only` before the commit was `package.json` alone; the new
+file is in `scripts/qa/`, which `gear.mjs` excludes. This change owes no trial of its own. **The FULL
+trial debt on `09f8658c` (analytics) still stands** and is not mine.
+
+**`npm test`:** exit 0, 132/132, run three times across the watch.
+
+**Browsers:** this watch started none. `stray_probe_check` PASSES.
+
+**Two files this machine's permission layer would not let me delete**, named rather than left to be
+found: `scratchpad/_t216_audit.mjs` and `scripts/qa/_t216_audit.mjs` — the throwaway probe, now
+superseded by the gate. Both are **overwritten with a stub that exits 1** so nobody runs a stale
+second copy of the same measurements, and both are untracked. `rm` is fenced here. A session with
+those permissions should delete them, along with the four `_ceo190_*` / `_t102_*` scratch files the
+previous watches left for the same reason.
