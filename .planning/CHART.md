@@ -357,22 +357,36 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       *"Davy Scones"* renders as **"Davy"** and *"Dough Hook"* as **"Dou"**, and both lose their
       dubloon counts, while Flaky Jack and Crustbeard below are complete. **The most repeated fault
       in the run.**
-      ⚠ **AND SOMETHING THE JUDGE DID NOT FLAG, which is rule 22's point — his annotations are a
-      floor, not a ceiling:** the same screen's top bar reads **`WIND NOW: ? · FORECAST: ?`** on
-      Day 1. That may be correct before any wind exists; **it is unverified either way and nobody
-      asked.**
+      ⚠ *(I also noted the top bar reading `WIND NOW: ? · FORECAST: ?` on Day 1 as an unflagged
+      observation. See bug 5 below — `INTENDED-BEHAVIOUR.md` disposes of it, and of the bubble, in
+      the same paragraph.)*
       **3. THE CAPTAINS PANEL BLEEDS THROUGH THE END-OF-VOYAGE MODAL WITH NO DIMMING.**
       `solo-tablet-029` — *"pink captains panel from the screen behind bleeds through, clipped at the
       left and right edges, with no dimming overlay to hide it."*
       **4. THE FORECAST RIBBON IS CUT OFF BY THE SIDEBAR.** `solo-desktop-wk-016` —
       *"`FORECAST: S...` truncated."* Desktop-wide only.
-      **5. THE "ARRGH!" BUBBLE FLOATS WITH NO TAIL**, unconnected to any ship. `solo-desktop-020`,
-      `solo-tablet-wk-017`. **Lowest confidence of the five (0.6 and 0.55) and the only one I did
-      NOT verify by eye — treat it as observed-once, not measured** (rule 6).
-      **THE SHAPE ACROSS ALL FIVE: something on top of something else, cutting its text.** Four of
-      the five are one element overlapping another's words. That is one class of bug, not five, and
-      it is worth asking whether one layering rule fixes most of it (rule 23's question: what makes
-      these agree?).
+      ⛔ **5. THE "ARRGH!" BUBBLE — WITHDRAWN AS A BUG. IT IS A DOCUMENTED JUDGE FALSE POSITIVE, AND
+      I FILED IT WITHOUT CHECKING THE DOC THAT EXISTS TO STOP EXACTLY THIS.**
+      `solo-desktop-020`, `solo-tablet-wk-017`, confidence 0.6 and 0.55 — the two I had not verified
+      by eye. `docs/INTENDED-BEHAVIOUR.md:120-127`, headed *"An 'empty speech bubble'…"*:
+      *"the **active-seat ring** misread by an automated judge… **Standing rule, a known
+      false-positive family.**"* Settled once already *"by opening it and looking, after two
+      instruments lied"*.
+      ⚠ **AND THE SAME ENTRY DISPOSES OF MY UNFLAGGED OBSERVATION TOO** — it notes the judge *"also
+      hallucinated the wind direction in the same pass"*, and `:130-142` records his own correction
+      when a session called the forecast missing: **"what do you mean? I see the forecast chip."**
+      So `WIND NOW: ? · FORECAST: ?` on Day 1 is very likely the pill correctly showing no wind yet.
+      **BOTH WITHDRAWN. Rule 28 exists because three sessions have made him explain the same thing,
+      and I was about to be the fourth** — having spent the night writing about instruments that
+      report confidently about things they cannot see, I took an automated judge's word for two
+      screens I never opened. **THE JUDGE IS AN INSTRUMENT TOO.**
+      **What survives is bugs 1–4, and 1 and 2 are the ones I opened and confirmed by eye.**
+      **THE SHAPE ACROSS THE FOUR THAT SURVIVE: something on top of something else, cutting its
+      text.** All four are one element overlapping another's words — a button over award cards, a
+      modal over the captains panel, a panel bleeding through a modal, a ribbon under a sidebar.
+      **That may be one class of bug rather than four, and rule 23's question is the one to ask of
+      it: what makes these agree?** ⚠ Stated as worth asking, not as established — I have not
+      checked whether they share a stacking context, a layer, or nothing at all.
       ⛔ **THESE BLOCK THE STAGING DEPLOY** — six of ten legs stay red on them and on four untried
       buttons even if `T-141`'s settle bug is fixed. See `GLASS-CHART.md` `T-136`.
       **Sizing: the bugs are SMALL and each is a screenshot away from being confirmed. There are five
