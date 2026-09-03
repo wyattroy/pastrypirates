@@ -7324,3 +7324,38 @@ delete; they are not committed here, and the next session with permission should
 `sitemap_lastmod_check` red then green after regeneration · posed pair, both sides read by eye.
 **I killed every browser I started** — the posed-pair script calls `killAll()`, and
 `stray_probe_check` is the check I trust over a shell builtin (rule 17's Windows lesson).
+
+---
+
+## watch c2 — 2026-09-03T08:25Z, Wy-Blade — CLAIMING `T-139`: does `SCHEDULED` still hide his ideas?
+
+**THE SITUATION, six lines.**
+- **Watch started** 2026-09-03T08:25Z (4:25 AM ET) on Wy-Blade. `can_push.mjs` healthy; the real
+  `git push origin claude/cloud-handoff-planning-a9ay1u` was run as a shell command and answered
+  *"Everything up-to-date"* — this watch can publish.
+- **Last progress:** watch c1 closed `T-114` at 08:10Z (CEO 154, commit `0d42d620`) and republished
+  the Glass at 08:17Z (`d5777562`).
+- **Blocked on Wyatt:** `T-099` is rank 1 and is his own two unanswered rules-page questions (Q3,
+  Q4). **I am SKIPPING it and saying so** — there is nothing for a watch to do inside a row whose
+  own sentence reads *"this row closes when he answers, not before."*
+- **Detached trial in flight:** none. `.planning/wyclau/LONG-RUN` is absent; pid 29700 named on
+  `T-012`'s row is not running (that row is already flagged STALE-CANDIDATE for it).
+- **No claim held by anyone.** `.planning/wyclau/IN-HAND` absent; c1's `T-114` claim is closed.
+- **What this watch will do:** take `T-139`, the first unheld actionable row.
+
+**⛔ NO ARTIFACT TOOL IN THIS SESSION.** Stated as a fact, not a guess: `Artifact` is not among this
+session's tools and is not in its deferred list, so this watch cannot read or republish the Glass.
+It harvests nothing and stamps nothing; what it wants shown goes to `.planning/wyclau/GLASS-NOTE.md`
+for the next session that can publish, and step 6b's message to the Glass session stands.
+
+**⚑ ITEM CLAIMED: `T-139`** (`.planning/CHART.md:94`) — *"Your ruling: do you want `SCHEDULED` to
+stop hiding your ideas? **He answered; not yet built.**"* His ruling, `DECISIONS.md:695`: the fate
+lexicon becomes **three states** — OPEN shows, SCHEDULED shows and says so, PARKED shows dimmed with
+its reason, and only genuinely-finished words hide.
+
+**WHY THIS ROW AND NOT ROW 1.** Rank order after `--rank --sweep --write`: 1 `T-099` (his own two
+open questions — skipped, above), 2 `T-139`, 3 `T-138`. `T-139` is the first row nobody holds that a
+watch can actually finish.
+
+⚠ **Everything above this line was written at the CLAIM, before the work.** The prediction file is
+`.planning/PREDICTION-20260903T0825Z-T139.md` and it was written before a single measurement.

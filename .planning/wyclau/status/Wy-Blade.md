@@ -5,18 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T08:09:37.859Z	self-publish check
+2026-09-03T08:47:14.224Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+{
+  "item": "his SCHEDULED ruling: three fate states on the Glass, and the parked clause nobody built",
+  "handle": "T-139",
+  "watch": "Wy-Blade",
+  "claimedAt": "2026-09-03T08:50:14.763Z",
+  "staleAfterMinutes": 90
+}
+```
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T08:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T080802Z.out/.err)
 2026-09-02T08:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T084802Z.out/.err)
 2026-09-02T09:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T093802Z.out/.err)
 2026-09-02T10:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T101802Z.out/.err)
@@ -56,4 +63,5 @@ None recorded.
 2026-09-03T06:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T064802Z.out/.err, kit: readable)
 2026-09-03T07:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T070802Z.out/.err, kit: readable)
 2026-09-03T07:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T074802Z.out/.err, kit: readable)
+2026-09-03T08:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T081802Z.out/.err, kit: readable)
 ```

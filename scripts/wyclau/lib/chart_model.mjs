@@ -78,6 +78,30 @@ export function stateOf(block) {
   return "open";
 }
 
+/* ⚑ THE THIRD CLAUSE OF HIS RULING, AND IT WENT UNBUILT FOR A DAY — "PARKED shows DIMMED WITH ITS
+ * REASON." Two of his three states shipped on 2026-09-02 and this one did not; CEO 155 found it,
+ * and found that the gate written that morning was certifying the two-thirds version as finished.
+ *
+ * THE REASON IS DERIVED, NEVER A NEW FIELD SOMEBODY HAS TO REMEMBER TO TYPE. The Chart already
+ * writes it inside the declared verdict — "→ **PARKED, low priority**", "→ **PARKED, with the
+ * measurement, because the obvious fix has a real cost.**" — which is the convention CHART.md
+ * states about itself: *"a fate — SHIPPED / SCHEDULED (where) / PARKED (why)"*. A separate field
+ * would be a second copy of something already written, and it would be blank on every idea parked
+ * before it existed.
+ *
+ * AN EMPTY ANSWER IS AN HONEST ANSWER. If the Chart parked something and said nothing about why,
+ * this returns "" and the page shows the fate with no reason — which is visibly a gap in the
+ * record. Inventing a reason there would be the page telling him something nobody wrote. */
+export function parkedReason(block) {
+  if (stateOf(block) !== "parked") return "";
+  const m = DECLARED.exec(block);
+  if (!m) return "";
+  return m[1]
+    .replace(/^[\s\S]*?\bPARKED\b/, "")   // the word itself is the tag; what follows is the reason
+    .replace(/^[\s,;:—–-]+/, "")
+    .trim();
+}
+
 /** True when an IDEA INBOX block has announced a fate. Wyatt steers by the open count, so
  *  over-hiding costs him more than over-showing — hence "declared", never "mentioned". */
 /* `hasFate` now means ONLY "is it finished?" — it is the thing that decides whether a row leaves

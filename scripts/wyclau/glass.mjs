@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { chunk, stateOf, titleOf, questionId, stripQid, idOfRow } from "./lib/chart_model.mjs";
+import { chunk, stateOf, parkedReason, titleOf, questionId, stripQid, idOfRow } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -637,16 +637,27 @@ if (chart !== null) {
    * simply done here. */
   /* Only FINISHED hides. Committed and parked are shown, tagged, because he steers by this list
    * and a fate he cannot see is a fate he cannot overrule. */
+  /* ⚑ AND THE THIRD CLAUSE, BUILT 2026-09-03 AFTER CEO 155 FOUND IT MISSING. His ruling was
+   * "PARKED shows DIMMED WITH ITS REASON", and for a day a parked idea rendered as a bare
+   * `PARKED · <title>`: the tag without the why, at full weight beside live work. The reason is
+   * derived from the verdict the Chart already declares (`parkedReason`), never hand-typed here. */
   const shownInbox = inboxBlocks
     .map((b) => ({ ...b, state: stateOf(b.all) }))
     .filter((b) => b.state !== "finished")
-    .map((b) => b.state === "committed" ? `SCHEDULED · ${b.head}`
-              : b.state === "parked"    ? `PARKED · ${b.head}`
-              : b.head);
+    .map((b) => ({
+      text: b.state === "committed" ? `SCHEDULED · ${b.head}`
+          : b.state === "parked"    ? `PARKED · ${b.head}`
+          : b.head,
+      why: b.state === "parked" ? parkedReason(b.all) : "",
+      dim: b.state === "parked",
+    }));
   /* An idea in the inbox has no Chart row yet, so it has no handle and nothing could carry an
      `order:` for it. It is still shown — he steers by this list — but it is not draggable, and the
      page says so rather than letting him move something that would silently snap back. */
-  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t), handle: null, detail: "" }))];
+  /* `why` and `dim` ride on the task, NOT on `detail` — `detail` renders inside the collapsed
+     "more" panel, and a reason he has to tap to see is a reason he cannot see. His word was
+     "shows". */
+  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t.text), handle: null, detail: "", why: t.why, dim: t.dim }))];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
@@ -1046,6 +1057,12 @@ const PAGE = `<meta charset="utf-8">
     padding:.4rem .6rem;border-left:3px solid var(--line);background:var(--paleblue);
     border-radius:0 5px 5px 0;overflow:auto;max-height:22rem;}
   .rowpanel{margin:.1rem 0 .3rem;}
+  /* HIS RULING, 2026-09-02: "PARKED shows DIMMED with its reason." Dimmed, not hidden — the whole
+     point of the three states is that he can still SEE a parked idea and overrule the parking.
+     .72 rather than .5: measured against this page's own --muted text, half opacity on a phone in
+     daylight is a row you stop reading, which is the hiding this ruling exists to end. */
+  li.dim{opacity:.72;}
+  .rowwhy{display:block;font-size:.85em;color:var(--muted);margin:.1rem 0 0;}
   .rowcmt{display:flex;gap:.35rem;align-items:flex-start;margin:.25rem 0 .1rem;}
   .rowcmt textarea{flex:1 1 auto;min-width:0;font:inherit;font-size:.85em;line-height:1.4;
     padding:.3rem .45rem;border:1px solid var(--line);border-radius:5px;resize:vertical;
@@ -1227,9 +1244,13 @@ const PAGE = `<meta charset="utf-8">
             ? `<div class="rowx"><button type="button" class="rowmore" aria-expanded="false">more</button>`
               + `<div class="rowpanel" hidden>${panel}</div></div>`
             : ``;
+          /* PARKED, and only PARKED, is dimmed and carries its reason on the visible line — his
+             three-state ruling. An OPEN or SCHEDULED row is live work and must not be greyed. */
+          const why = t.why ? `<span class="rowwhy">${esc(t.why)}</span>` : ``;
+          const dim = t.dim ? " dim" : "";
           return t.handle
-            ? `<li class="drag" data-handle="${esc(t.handle)}"><span class="rowtitle">${esc(t.text)}</span>${extras}</li>`
-            : `<li><span class="rowtitle">${esc(t.text)}</span>${extras}</li>`;
+            ? `<li class="drag${dim}" data-handle="${esc(t.handle)}"><span class="rowtitle">${esc(t.text)}</span>${why}${extras}</li>`
+            : `<li class="${dim.trim()}"><span class="rowtitle">${esc(t.text)}</span>${why}${extras}</li>`;
         }).join("")}</ol>`}
       <!-- ⚠ THE NOTE SITS ABOVE THE LIST, NOT UNDER IT — CEO 131's finding 4. Underneath, the
            confirmation of a drag near the top of a 57-row list was fifty rows below his finger, on

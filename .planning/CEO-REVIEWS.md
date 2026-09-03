@@ -28,6 +28,188 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 157 — 2026-09-03, Wy-Blade — `T-139`: the third clause, built after CEO 155 found it missing — **DONE, with two loose ends**
+
+> *Number claimed order-independently (`grep -oE "^## CEO Review [0-9]+" | sort -n | tail -1` → **156**,
+> taken minutes earlier by a peer on `T-141`) and re-checked immediately before writing. Read-only on
+> the product: I started no browser (`stray_probe_check`: "no debug-port browsers are running at
+> all"). I ran the watch's gate all three ways and rendered the **live** `CHART.md` through a COPY of
+> the real `glass.mjs` in a temp tree with my own script — the live tree was never written. **I could
+> not delete my two throwaways** (`scripts/qa/_ceo156_probe.mjs`, `scripts/qa/_ceo156_render.mjs`,
+> plus `scratchpad/_ceo156_probe.mjs`): the sandbox refuses `rm` here, which independently
+> corroborates the same refusal reported by CEO 154 and 155. **The next session with permission should
+> delete every `_ceo155_*` and `_ceo156_*` file, plus `scripts/qa/_t139_measure.mjs`.***
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *"The missing third of your ruling is now genuinely built — I
+rendered your real Chart myself and the parked idea comes out greyed, with 'low priority' printed
+under it, exactly as you asked — but none of it is committed yet, nobody has claimed the item where
+another machine could see it, and the two places that quote your ruling back at you STILL drop the
+word 'dimmed', which is the same slip CEO 155 named."*
+
+---
+
+### 1. HIS RULING, CLAUSE BY CLAUSE — read literally from `DECISIONS.md:695`
+
+His sentence has **four** clauses, not three, and I checked each on its own.
+
+| clause | verdict | what I checked, myself |
+|---|---|---|
+| **OPEN shows** | **DONE** | unfated ideas render on the page. |
+| **SCHEDULED shows and says so** | **DONE** | 12 scheduled ideas render, each prefixed `SCHEDULED · `. |
+| **PARKED shows dimmed with its reason** | **DONE** | see below — verified on the LIVE Chart, not the fixture. |
+| **only genuinely-finished words hide** | **DONE** | `FINISHED_WORDS` (`chart_model.mjs:59`) is the five finished words only; `SCHEDULED` and `PARKED` sit in their own lists at `:60-61`. |
+
+**HOW I VERIFIED THE THIRD CLAUSE WITHOUT USING ANY OF THE WATCH'S SCRIPTS.** I copied the real
+`glass.mjs` and `chart_model.mjs` into a throwaway tree, fed them the **live** `.planning/CHART.md`,
+ran the generator and read the HTML. The one genuinely parked idea in his inbox (`T-068`) comes out
+as:
+
+> `<li class="dim"><span class="rowtitle">PARKED · CEO Review 51's small finding: …</span>`
+> `<span class="rowwhy">low priority</span>`
+
+and the page carries `li.dim{opacity:.72;}`. **This is the exact thing CEO 155 measured as absent,
+and it is now present, on his real Chart rather than in a fixture.** Counts from that render: 12
+SCHEDULED rows, 1 parked row, 1 dimmed `<li>`, 1 `.rowwhy` span. (Each appears twice in the raw HTML
+because the page also embeds its own state as JSON; that is the page's normal shape, not a duplicate
+row.)
+
+**AND I LOOKED AT THE TWO PICTURES, because ".72" is a number and "dimmed" is a word about a
+screen.** In `t139-parked-before.png`, row 43 reads `PARKED · CEO Review 51's small finding…` at
+exactly the same weight as rows 42 and 44 — a tag, nothing else. In `t139-parked-after.png` the same
+row is visibly greyer than both its neighbours and carries `low priority` in small muted type
+beneath it. **The dimming is legible as dimming at a glance and the row is still readable — which is
+the balance his ruling asks for ("dimmed", not "hidden"). His word is delivered.**
+
+---
+
+### 2. THE THINGS I WAS TOLD TO PRESS ON
+
+**(a) `parkedReason` on BOTH real shapes — CORRECT, and it does not over-capture.** I ran it against
+nine shapes, including the two live ones:
+
+- `→ **PARKED, low priority**: widen the regex…` (`CHART.md:1126`, the inbox one) → `"low priority"`.
+- `→ **PARKED, with the measurement, because the obvious fix has a real cost.**` (`CHART.md:609`) →
+  `"with the measurement, because the obvious fix has a real cost."` **Note: that one is NOT in the
+  idea inbox** — it sits above the `## THE IDEA INBOX` heading at `:619`, so it never reaches his
+  Tasks card at all. `parkedReason` handles it correctly regardless.
+- A bare `→ **PARKED**` returns `""` — the honest empty answer the code's own comment promises.
+- A reason written *after* the closing `**` is deliberately not swept up (returns `""`), which is
+  what the gate's sixth assertion guards.
+
+**Two edge cases exist and neither is a live defect.** A verdict with no closing `**` over-captures
+up to 160 characters, and `→ **NOT PARKED, still open**` is read as parked with the reason "still
+open" — both inherited from the pre-existing `DECLARED` / `stateOf` pair (`chart_model.mjs:58,66`),
+not introduced here, and neither shape occurs in the Chart. Worth knowing, not worth a row.
+
+**(b) The two red-proofs are FAITHFUL, not rigged.** I ran all three modes myself:
+- normal → **9 of 9 green**;
+- `--before` (SCHEDULED and PARKED moved back into the finished list, in the copied model) → **5 of 9
+  break**;
+- `--before-parked` (the `why`/`dim` fields emptied in the copied `glass.mjs`) → **2 of 9 break** —
+  the reason assertion and the dimming assertion, precisely the two clauses CEO 155 found missing.
+
+Both patch a **copy** and both **refuse to run rather than pass** if the patch turns out to be a
+no-op (`:80-84`, `:101-106`). That refusal is the rarest and best thing in this file: a red-proof
+that knows when it has lost its subject.
+
+**(c) The fixture was genuinely moved to where reality writes.** `:133-137` now puts the parked
+reason on a **continuation line inside the declared verdict**, with a trailing sentence after it that
+must not be swept up — the shape `CHART.md:1126` actually uses. The old fixture put it on the head
+line, which is what let the gate certify the gap. **That fault is fixed at the root.**
+
+**(d) The reason reaches every surface that renders it — there is only one.** A repo-wide grep for
+`PARKED ·` / `SCHEDULED ·` finds exactly one renderer (`glass.mjs:648-649`), and the only files that
+import `stateOf`/`hasFate` are `glass.mjs`, the two gates, and throwaways. **Rule 23 is intact: no
+second place still draws a bare `PARKED · title`.**
+
+**(e) No FOURTH clause is unbuilt.** Read literally, `DECISIONS.md:695` has four clauses and all four
+are now on the page.
+
+---
+
+### 3. WHAT IS UNSUPPORTED, OR STILL OPEN — three findings, all citable
+
+**FINDING 1 — CEO 155's *"dimmed" was dropped from the ruling* fault HAS RECURRED, unfixed, in both
+places it named.**
+- `scripts/qa/glass_shows_scheduled_ideas_check.mjs:5-6` still restates his ruling as *"OPEN shows,
+  SCHEDULED shows AND SAYS SO, **PARKED shows with its reason**, and only genuinely-finished words
+  hide."* The word **dimmed** is still absent from the file's own statement of what it guards. It now
+  appears in the console banner (`:60`) and in two assertion labels (`:179`, `:181`) — so the gate
+  *tests* the right thing while its header still *quotes* the weakened version.
+- `package.json`, `_ceiling_raise_2026_09_03b`, carries the same weakened quote — *"PARKED shows with
+  its reason"* — **unchanged since CEO 155 cited it.**
+
+**FINDING 2 — the same `package.json` justification now states a number that is no longer true.** It
+ends *"measured 3 of 5 assertions break under the old rule."* The gate has **9** assertions and
+`--before` breaks **5**. I measured both. This is the house rule *"never hand-type a number that can
+be counted"* failing inside the very paragraph that exists to justify a permanent ceiling raise.
+
+**FINDING 3 — nothing is committed, and the claim still cannot be seen by another machine.** Both are
+CEO 155's finding 4, recurring verbatim:
+- `git status`: `glass.mjs`, `chart_model.mjs`, `package.json`, `CTO-LEDGER.md` all **modified, not
+  committed**; the gate and both posed PNGs **untracked**. Nothing about `T-139` is in the git log.
+- `.planning/wyclau/IN-HAND` is **still absent** and `.planning/wyclau/status/Wy-Blade.md:11-12` still
+  reads *"In hand (IN-HAND) — None recorded"*. `claim_item.mjs` has still not been run. **A peer watch
+  is live in this same tree on `T-141` right now**, which is exactly the condition rule 16 was written
+  for.
+- The ledger holds the **claim** (`CTO-LEDGER.md`, appended at 08:25Z) and **no close entry** — so the
+  work done after CEO 155 exists nowhere in the record.
+
+**AND THE PREDICTION WAS NOT RE-OPENED.** CEO 155's remedy was *"enumerate the clauses of a ruling
+and give each one its own falsifier."* `.planning/PREDICTION-20260903T0825Z-T139.md` is unchanged —
+P1–P4 still test only the SCHEDULED half, and no second prediction was written before the second
+build. **The substance was fixed for this clause; the habit that lost it was not.** In fairness, the
+per-clause falsifiers do now exist — as the gate's four new assertions plus a second red-proof, which
+is a stronger artifact than a note. But the next ruling with three clauses in it is protected by
+nothing.
+
+**PEER SAFETY — CLEAN.** `scripts/qa/_t141_settle_curve.mjs` and
+`.planning/wyclau/PREDICTION-20260903T0815Z-T141-settle-curve.md` are both present and untracked; the
+peer's own commit `c9d633a4` touched only `.planning/GLASS-CHART.md` and is intact. The watch
+committed nothing and deleted nothing of the peer's.
+
+---
+
+### 4. THE SEA TRIAL — HONEST, NOT A DODGE, BUT IT MUST BE WRITTEN DOWN
+
+I ran `gear.mjs` myself: **FULL**, and its stated reason is `package.json` — the ceiling numbers.
+`git status` shows **no `src/` and no `index.html` change at all**, so a voyage would sail straight
+past every line of this work. The watch's position is correct on the facts. **But rule 24's NOT-RUN
+column is the one thing the record may never lose, and there is currently no close entry to put it
+in.** When `T-139` closes, the ledger must say *sea trial NOT RUN, gear FULL on `package.json` alone,
+no game code touched* — in those words.
+
+**I re-ran the sweep myself rather than take it:** `npm test` → **exit 0**, last line `PASS — 0
+failure(s)`, 115 gates. `stray_probe_check` → no debug-port browsers running.
+
+---
+
+### 5. CONTEXT SPEND — NO FAULT FOUND
+
+The reads this pass required were the two files being changed, the gate being repaired, and the two
+PNGs. `chart_model.mjs` is small and `glass.mjs` was read in the ranges being edited. Nothing here
+was bulk reading that a subagent should have carried.
+
+---
+
+### 6. SHOULD THE ROW BE TICKED?
+
+**Not yet — but it is one commit away, not one build away.** The thing he asked for is built and I
+verified it on his real Chart. What is missing is entirely record-keeping, and all of it is cheap:
+
+1. **Commit it.** Right now this exists only in one machine's working tree while a peer watch shares
+   that tree.
+2. **Put the word *dimmed* back** into `glass_shows_scheduled_ideas_check.mjs:5-6` and
+   `package.json`'s `_ceiling_raise_2026_09_03b`, and fix that paragraph's stale *"3 of 5"* to the
+   measured **5 of 9**.
+3. **Run `claim_item.mjs`** (or close it out properly), so the Glass stops saying nothing is in hand.
+4. **Write the close entry**, including the sea trial as **NOT RUN** with its reason.
+5. **Update the row's own text** at `CHART.md:94` — it still reads *"He answered; not yet built"*,
+   which is now false in all four clauses.
+
+Do those five and `T-139` ticks honestly. **The clause CEO 155 caught is genuinely, verifiably
+built — I would not have believed that without rendering his live Chart myself, and I did.**
+
 ## CEO Review 156 — 2026-09-03, Wy-Blade — the deploy held, the settle diagnosed, and a probe that could not see the board — **PARTIAL**
 
 > *Number: `grep … | sort -n | tail -1` → **154**; `grep -c "^## CEO Review 155"` → **0**, but two scratch files named `_ceo155_*` were written at 04:29 and 04:31 by a live peer session. **I moved to 156 rather than race it** — the file's own banner says three collisions happened exactly this way. Re-checked immediately before writing: 155 and 156 both still 0.*
