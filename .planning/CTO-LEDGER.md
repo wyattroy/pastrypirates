@@ -9005,3 +9005,47 @@ change nothing. **The `-A` was pure convenience and it cost the record of an ite
 **Nothing needs repairing in the code.** This ledger entry, `.planning/CEO-REVIEWS.md`'s CEO 181
 block and the prediction file carry the full account, so the reasoning survives where a session will
 actually look for it. **The lie is only in `git log`, and this paragraph is the correction.**
+
+---
+
+## 2026-09-03T18:41Z — WATCH `pastrypirates-95 [3fed7c]`, the Blade. CLAIMS `T-216`.
+
+**Watch started** 2026-09-03T18:41Z. **Last progress**: `T-216` partially landed at ~18:31Z by the
+previous Blade watch (the sanctuary sentence corrected, `rules_sanctuary_matches_engine_check.mjs`
+added, npm test 125 gates) and **deliberately left open** — 5 of ~20 rules-page claims checked, 4
+right, 1 wrong. **What the previous watch closed**: nothing; it closed `T-216`'s record correction
+only (`3d7ded77`), the `git add -A` collision account.
+
+**Blocked on Wyatt**: `T-206` (both Google Analytics questions — `qid:t206-which-pages`,
+`qid:t206-cookie-choice`) and the rest of `## BLOCKED ON WYATT`. **No detached trial in flight** —
+no live marker; `.planning/SEA-TRIAL-2026-09-03T1831Z-Wy-Blade.md` is the previous watch's finished
+COSMETIC report, untracked.
+
+### ⛔ I SKIPPED HIS DO NOW PIN, AND THIS IS WHY — IT IS HELD, NOT IGNORED
+
+`INBOX-20260903T182856Z` is his pinned DO NOW (*"Def to move doesn't work on mobile. New idea: add a
+'move to top' button…"*) and the INBOX says take it before anything ranked. **It is already being
+built, right now, in another session.** The evidence is in the tree, not inferred: 89 uncommitted
+lines in `scripts/wyclau/glass.mjs` implementing exactly that button — `.totop`, `moveToTop()`,
+routed through the existing `saveOrder()` — with a comment quoting his 18:28:56Z words back; file
+mtime **2026-09-03T18:36:50Z, four minutes before this claim**; and `ListAgents` shows the peer
+interactive session **`Blade [53b082]` as BUSY**.
+
+**Neither `IN-HAND` nor this ledger named it**, so by the Door's 90-minute claim test it reads as
+unheld — **and taking it would have put two sessions inside one function of one file.** Recording it
+here so the next watch does not re-take it, and so the gap is on the record: **the Door's claim test
+sees only claims, and an interactive session mid-item does not always write one.** The tree's mtime
+did what the claim file could not.
+
+**TAKEN INSTEAD: `T-216`, rank 1 on the ranked Chart** (`chartkeeper --rank --sweep --write`, run
+this watch: 2 ids allocated, 7 flags, 0 archived), and the row the previous watch explicitly handed
+forward: *"the next watch audits the remaining claims."* Different files entirely — `index.html`'s
+rules modal, `rules.html`, the sanctuary gate. No overlap with `glass.mjs`.
+
+**Prediction written before measuring**: `.planning/wyclau/PREDICTION-20260903T1842Z-T-216.md` — I
+expect 2–4 wrong, name four suspects, name the trap (I want a low count so I can close the item),
+and set the rule that an ambiguous sentence counts WRONG until the code says otherwise.
+
+**No Artifact tool in this session**, so the Glass was not read and cannot be republished or
+harvested by me; nothing here republishes it. The pulse for this watch goes to
+`.planning/wyclau/GLASS-NOTE.md` for the next session that can publish.
