@@ -8452,3 +8452,71 @@ evidence — and then took an instrument's *prose* at face value because it was 
 matched two rows I recognised. **A fluent instrument is the easiest one to believe.** Rule 28 exists
 because this project has a written list of things that look wrong and are not, and the judge is on
 it.
+
+- 2026-09-03T15:37:03Z · close_item: INBOX-20260903T142249Z · CEO 172 · no game diff — no game code is right: the buttons he named are on the Glass, his own status page -- glass.mjs, harvest_glass.mjs, a new gate and the CHARTER, commit 3abce5e8; index.html and src/ untouched · no stated solution · his two buttons say Approve and Deny, gated and photographed; the NUMBERING half is a writing rule and is NOT done -- it lives in the CHARTER only, and moving it into .claude/ is a Chart row (CEO 172, PARTIAL)
+
+## 2026-09-03T15:13Z (11:13 AM ET) — WATCH (Wy-Blade): his DO NOW pin, `INBOX-20260903T142249Z`
+
+**THE SITUATION AT THE START.** Last progress: the 13:5xZ Advisor entry above (its own rule-28
+correction, commit `69bc96e7`, which landed mid-watch) and `e350f818`. The previous watch closed
+`T-100` / `INBOX-20260902T190730Z` — the rules page — on CEO 171 (PARTIAL). Blocked on Wyatt: one
+question in `BLOCKED ON WYATT` at the start (`qid:t102-search-console`), two at the end.
+**A DETACHED TRIAL IS AT SEA:** `.planning/wyclau/LONG-RUN` — sea trial, 10 legs, started
+15:03:21Z, at 3/10 when this watch ended, ten debug-port browsers up and expected.
+`stray_probe_check` SKIPs for exactly that reason, so **nobody should read "no strays" off this
+watch.** What this watch took: his DO NOW pin, ahead of everything ranked, per the Door.
+
+**NOTHING WAS HELD.** `.planning/wyclau/IN-HAND` empty; no claim in the ledger tail under 90
+minutes old. Claimed and released through `close_item.mjs`.
+
+**WHAT LANDED.** Commit `3abce5e8`. His two ruling buttons read **Approve · Deny**, the third
+(`Let's talk`) deliberately untouched. The `data-choice` values stayed `yes`/`no`/`talk` — they are
+the key `paintAsk` redraws his saved rulings against, and renaming them would have un-pressed every
+answer already on his live page. `harvest_glass.mjs` now writes the word he pressed into
+`DECISIONS.md` instead of the raw key. New gate `glass_ruling_button_words_check.mjs`, six cases,
+all six red-proofed; gates 120 → 121.
+
+**WHAT DID NOT LAND, AND IT IS HALF HIS SENTENCE.** *"always when giving me options to choose
+number or letter them"* is a standing writing rule and it went into
+`.planning/wyclau/CHARTER.md` — **a file the Door does not name.** The canonical home is
+`.claude/CLAUDE.md` §1 and `.claude/memory/DECISIONS.md`, and **this watch's Edit tool was refused
+on both.** Two Chart rows filed at the top of `FOR A WATCH`: move it, and back-port the labels to
+claude-kit's copy.
+
+⚠ **AND THE FENCE IS ON THE TOOL, NOT THE FILE — I said otherwise and CEO 172 caught it.** I wrote
+that the refusal answers `INBOX-20260902T2143Z` *"with a no for `.claude/` generally"*. A session
+edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day (`04d73d21`)
+— and `04d73d21` is the precedent I myself cited, his *"always write to me in my local time"* rule.
+**So the next watch should TRY the edit rather than believe this line**, and say in the ledger if
+its own tool is refused too. Corrected in three files.
+
+⛔ **I ALSO WROTE "Filed on the Chart for the Advisor" AS A FACT WHEN NOTHING WAS FILED.** CEO 172:
+*"a claim in the record that the record itself contradicts"*, and *"a gap that lies about itself is
+harder to catch than a gap that is silent."* Fixed before this entry was written; recorded because
+the record is the point.
+
+⛔ **AND THE FALSIFIER I WROTE AND DID NOT ANSWER.** My prediction said: *"if a mechanical surface
+exists that GENERATES options for him, then 'no gate is honest here' is wrong."* It does — it is the
+card I was editing, which offers him three options and numbers none of them. Now a numbered question
+in `BLOCKED ON WYATT`, `qid:donow-buttons-numbered`, with three ways to go and a recommendation,
+because whether "always" reaches a tap target is his taste and not a watch's.
+
+**TWO GATES ARE RED AND NEITHER IS MINE — both worth the next watch's attention:**
+- `rulings_triage_check.mjs` — **seven of his rulings, harvested off the Glass this morning
+  (14:09–14:12Z), are reported as sitting in `## RULED` with no checklist row.** The rows DO exist
+  (`CHART.md:149-161`, `661`, `702`); the gate's three-word match seems to miss on the handle, which
+  the row writes as ⟨`T-017`⟩ with code ticks and the RULED section writes plain. **Suspect the
+  instrument first (rule 6) — but if the gate is right, seven of his answers are on no surface he
+  can see**, and that is his own 2026-09-02 complaint returning.
+- `sitemap_lastmod_check.mjs` — one row: `/` says `lastmod 2026-09-01`, git says `index.html` last
+  changed 2026-09-03. **One command fixes it: `node scripts/qa/sitemap_write.mjs`.** Left because a
+  watch takes one item.
+
+**MEASURED, NOT ASSUMED, that neither is mine:** both read `.planning/CHART.md`, `sitemap.xml` and
+`index.html`, all three of which `git status` shows unmodified by this change. 121 gates run
+without `&&`, so nothing hid behind the first red: **119 green, 2 red.**
+
+**NO ARTIFACT TOOL IN THIS SESSION**, so the Glass was not read and not republished — stated as a
+capability of this session, not a guess about anything. His words were therefore NOT harvested by
+this watch and nothing on his page was overwritten. `.planning/wyclau/GLASS-NOTE.md` carries what he
+should see; the next session with the tool harvests, folds it in, and publishes.
