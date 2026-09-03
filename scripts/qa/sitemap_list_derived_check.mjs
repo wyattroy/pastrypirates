@@ -39,14 +39,22 @@ import { readOrigin } from "./sitemap_lastmod_check.mjs";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WRITER = join(ROOT, "scripts", "qa", "sitemap_write.mjs");
 
-/* THREE MODES, ONE PER CLAUSE, and the middle one exists because the first attempt at it was a dud
-   that this gate's own "changed nothing" rule caught. `--red=extrapage` fed the SAME fixture to
-   both runs, which makes clause 1 trivially TRUE rather than breaking it; the mode exited 2 saying
-   so. Replaced by `echoinput`, which swaps in a stub writer that echoes whatever prior sitemap it
-   is handed — the behaviour the real writer had until his ruling landed — so clause 1 is shown to
-   fail against a writer that is genuinely wrong, not against a rigged comparison. */
+/* ⛔ CLAUSE 1 WAS REWRITTEN AFTER CEO 185 SHOWED THE FIRST VERSION COULD NOT FAIL, AND THE REASONING
+   IS THE MOST USEFUL THING IN THIS FILE.
+   It used to run the writer against two prior sitemaps and require the emitted list to be identical
+   — and it was the line printed on success. But a writer only notices those fixtures if it READS
+   the `--sitemap=` flag, and no real writer does: the flag is this gate's own seam. Revert
+   `sitemap_write.mjs` to the list-from-file version it had before his ruling and that version has
+   no flag parser either, so it would read the real sitemap.xml twice, emit the same correct list
+   twice, and sail through — **the gate would bless the exact regression it exists to forbid.**
+   CLAUDE.md §1: a measurement that cannot fail is not a measurement.
+   So clause 1 is now a claim about the WRITER'S SOURCE — it must never read `sitemap.xml` as an
+   INPUT — which is the invariant his ruling actually bought and the one thing a revert cannot hide.
+   The two-fixture comparison is kept below as clause 1b, honestly demoted: it is real evidence only
+   against a writer that grows a reader for that flag again, and it is no longer the PASS headline.
+   A STATIC CLAUSE IS NOT THE FAULT; A FALSE REASON FOR ONE IS (CEO 180). The reason is above. */
 const RED = (process.argv.find((a) => a.startsWith("--red=")) || "").slice(6);
-const RED_MODES = ["fromfile", "echoinput", "diskdrift"];
+const RED_MODES = ["readsback", "fromfile", "echoinput", "diskdrift"];
 if (RED && !RED_MODES.includes(RED)) {
   console.error(`unknown --red mode "${RED}". Legal: ${RED_MODES.join(", ")}`);
   process.exit(2);
@@ -119,7 +127,23 @@ const failures = [];
 const gotA = locsOf(outA);
 const gotB = locsOf(outB);
 
-// CLAUSE 1 — the emitted list does not depend on the file being replaced.
+/* CLAUSE 1 — the writer never READS sitemap.xml. This is the one a revert cannot slip past: the
+   pre-ruling writer's defining line was `readFileSync(SITEMAP)`, and any return to a hand-kept list
+   has to read the file back from somewhere. Writing it is fine and required — only reading it as an
+   input is forbidden — so the two are told apart rather than the filename simply being banned. */
+let writerSrc = readFileSync(WRITER, "utf8");
+if (RED === "readsback") writerSrc = writerSrc.replace(/^const origin = /m, "const prior = fs.readFileSync(SITEMAP, \"utf8\");\nconst origin = ");
+const readsBack = [...writerSrc.matchAll(/readFileSync\s*\(\s*([A-Za-z_$][\w$]*)/g)].map(([, v]) => v);
+if (readsBack.includes("SITEMAP")) {
+  failures.push(
+    `sitemap_write.mjs READS sitemap.xml back (readFileSync(SITEMAP)) — the page list is coming ` +
+    `out of the file it replaces again, which is the hand-kept list his ruling removed`,
+  );
+}
+
+// CLAUSE 1b — supporting only: a writer that DOES read a prior list must at least ignore it.
+// Weak by construction (the real writer has no parser for --sitemap=), and said so rather than
+// printed as protection. See the note at the top of this file.
 if (gotA.join("\n") !== gotB.join("\n")) {
   failures.push(
     `the writer emitted DIFFERENT lists for two different prior sitemaps, so the list is still ` +
@@ -172,5 +196,5 @@ if (RED) {
   process.exit(2);
 }
 
-console.log(`PASS  sitemap.xml's page list is derived: ${want.length} public page(s), identical from two different prior sitemaps.`);
+console.log(`PASS  sitemap.xml's page list is derived: the writer never reads the file back, and the ${want.length} url(s) it emits are exactly the pages that declare themselves public.`);
 console.log(`      ${want.map((l) => l.replace(origin, "")).join("  ")}`);

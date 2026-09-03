@@ -60,3 +60,43 @@ rather than an error.
 `sitemap.xml` is a **site-identity file** (rule 14). Both scripts here say so in bold, and the
 failure mode is not a red gate — it is the live domain. **The generator must write exactly one file
 at the repo root and nothing else**, and I must not "helpfully" teach it to emit a staging copy.
+
+---
+
+# THE RESULT — written after measuring, and this section is the half that keeps going missing
+
+*Added at the close. CEO 185 found it absent, which is **CEO 180's finding 2 recurring verbatim**:
+the prediction gets written properly and then never gets its verdict. The rule is not "write a
+prediction", it is **"then say plainly which parts were wrong"**, and the second half has now been
+skipped twice.*
+
+| # | prediction | outcome |
+|---|---|---|
+| 1 | "public" = served ∧ declares a non-`noindex` robots intent ∧ not fenced, and that predicate is only definable because of work that landed 83 minutes ago | **RIGHT**, and `robots.txt` was read rather than taken from the previous watch's ledger, as falsifier 3 required |
+| 2 | the derived set is exactly `/`, `/about.html`, `/rules.html` | **RIGHT** — 22 served pages, 3 public, 19 withheld, and the emitted file is byte-identical to the one on disk |
+| 3 | `/classic/index.html` is excluded, and I check it rather than trust the comment | **RIGHT** — `classic/index.html:15` carries `noindex, follow`. The frozen v1 was never at risk |
+
+**THE FALSIFIER I NAMED FOR PREDICTION 2 WAS THE IMPORTANT ONE AND IT DID NOT FIRE** — the derived
+set matched the hand-kept list, so I was never tempted to tune the predicate until it reproduced the
+answer I already had. Worth recording that it did not fire, rather than quietly dropping it.
+
+## ⛔ WHAT I DID NOT PREDICT, AND IT IS WHERE BOTH REAL FAULTS WERE
+
+**The pattern this project keeps finding held again: everything I wrote a prediction for was fine,
+and both defects were in things I never predicted.**
+
+1. **I did not predict that the DETECTION half was already built.** `crawl_intent_check.mjs` — from
+   a different watch, for a different job under the same handle — already fails the build on a
+   served page that declares itself indexable and is missing from the sitemap. So his ruling was
+   half-satisfied before I started, and only GENERATION was outstanding. I found that by reading,
+   not by predicting, and it materially changed what the item was.
+2. **I did not predict that my own red-proof would be weaker than it looked** — and this is the one
+   that mattered. I added the `--sitemap=` seam to the writer *before* going red, then described the
+   result as red "on the real unmodified writer". It was not: the pre-ruling writer had no parser
+   for that flag and would have passed. **CEO 185 caught both that false sentence and its sharper
+   consequence — clause 1 could not fail against any real writer, so a full REVERT of the fix would
+   have been blessed by the gate built to forbid it.** Clause 1 is now a claim about the writer's
+   source, proved against the real pre-change file. **A seam added to make a red possible is a
+   modification, and calling it "unmodified" is how a weak proof passes for a strong one.**
+3. **My first fixture asserted something false about the world** — it invited `/lab.html` because
+   `robots.txt` fences it, and `/lab.html` is not in this repo at all. A fixture is a claim too.
