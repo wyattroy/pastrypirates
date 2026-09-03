@@ -81,8 +81,30 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    ```bash
    node scripts/wyclau/chartkeeper.mjs --rank --sweep --write    # order it, archive finished rows
    ```
-   **Then work the FIRST open row. Not the oldest anything.** Commit the re-ordered Chart with your
-   claim, and **claim it in the ledger before touching anything.**
+   **Then work the FIRST open row THAT NOBODY HOLDS.** Not the oldest anything. Commit the
+   re-ordered Chart with your claim, and **claim it in the ledger before touching anything.**
+
+   ⛔ **SKIP A ROW SOMEBODY ELSE HOLDS — CHECK BEFORE YOU TAKE, EVERY TIME:**
+   ```bash
+   cat .planning/wyclau/IN-HAND 2>/dev/null      # this machine's live claim, if any
+   tail -40 .planning/CTO-LEDGER.md              # claims from every machine
+   ```
+   **A row is HELD if either names its handle and the claim is under 90 minutes old.** Held → go to
+   the next open row and say in your ledger entry which row you skipped and why. **Never take a held
+   row because it is at the top; the top is exactly where two sessions now collide.**
+
+   ⚠ **THIS GUARD WAS MISSING AND TAKING ROW ONE IS WHAT MADE IT DANGEROUS.** Added 2026-09-02
+   9:55 PM ET, minutes after the ordering change above, **because Wyatt spotted it before it bit**:
+   *"i think the new watch just started — did you remove your task from the list while working on
+   it? … if not, the new watch may be starting to work on it too."* **He was right.** The Door told
+   a watch to READ the ledger (step 4) and to WRITE a claim (here) and **never once told it to
+   honour somebody else's** — grep for *"already claimed"* returned **0**. Under the old
+   oldest-first rule two sessions rarely converged; **under "take row one" they converge every
+   time.** The ordering fix created the collision and the claim check is its other half.
+
+   ⚠ **AND `IN-HAND` IS MACHINE-LOCAL — IT IS GITIGNORED.** Another machine cannot see it, which is
+   why **the ledger entry is the claim that travels** and why the two commands above are both
+   required. A claim that only exists in `IN-HAND` is invisible to every other machine.
 
    ⚠ **THIS LINE USED TO READ "INBOX first — the OLDEST OPEN item… otherwise the top unblocked Chart
    item", AND THAT IS THE FAULT HE HAS NOW REPORTED FOR THE LAST TIME.** His words, 2026-09-02
