@@ -40,7 +40,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 //   YYYY.MM.DD.N  —  N is the Nth build published that day, bumped by hand exactly as the letter was.
 //
 // Staging appends its own suffix at publish time and never here — see scripts/deploy-staging.sh.
-const PP4_STAMP = "2026.09.02.1";
+const PP4_STAMP = "2026.09.03.1";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -1908,7 +1908,18 @@ function flipArmed(el, onClick){
     const btl = document.querySelector("#actionPanel .btl");
     if (!fm && btl){
       const dwTag = btl.querySelector(".windTag.dw");
-      const who = dwTag && dwTag.parentElement ? dwTag.parentElement.querySelector(".who") : null;
+      /* READ THE MARKED COLUMN, NOT THE BADGE'S NEIGHBOURHOOD. This was
+         `dwTag.parentElement.querySelector(".who")`, and `dwTag.parentElement` is `.btl-wind` —
+         a div that holds the badge and nothing else (src/orchestrator.js). `.who` lives two
+         branches away inside `.btl-col`, so this returned null on EVERY downwind battle and the
+         `else` below told the player "Crosswind" over a downwind fight. Measured and photographed:
+         judge-1914Z-shots/solo-tablet-wk-018.png says CROSSWIND, and -018-settled.png, the same
+         leg seconds later, says DAVY SCONES FIRES DOWNWIND.
+         renderBattle now stamps that column `.btl-col.dw` from the same `dw` that writes the
+         badge, so the card and the ceremony read ONE value and cannot disagree — which is what
+         the comment above always claimed and did not have.
+         Gate: scripts/qa/flip_ceremony_names_the_wind_check.mjs (RED before this line changed). */
+      const who = dwTag ? btl.querySelector(".btl-col.dw .who") : null;
       t.textContent = "⚔️ Broadside!";
       st.textContent = "";
       if (who){

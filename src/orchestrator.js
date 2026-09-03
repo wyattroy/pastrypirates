@@ -298,6 +298,18 @@ export function renderBattle(o){
   const windTag=dw==null
     ? `<div class="windTag cross">CROSSWIND · ties collide</div>`
     : `<div class="windTag dw">⬇ ${nm(dw==="a"?A.idx:D.idx).toUpperCase()} FIRES DOWNWIND — WINS TIES</div>`;
+  /* …AND THE SAME `dw` MARKS THE COLUMN IT NAMES (`.btl-col.dw`, just below). Purely structural —
+     no CSS reads it — and it exists so the FLIP CEREMONY can find the downwind captain without
+     re-deriving the wind or parsing this badge's prose.
+     Earned 2026-09-03. The ceremony looked for the captain in `dwTag.parentElement`, which is
+     `.btl-wind` — a div holding the badge and nothing else — so the lookup returned null on EVERY
+     downwind battle and fell through to the crosswind sentence. A player was told "Crosswind — two
+     heads and the cannonballs collide" over the coin, then shown a card saying the opposite two
+     seconds later. Both halves are photographed in judge-1914Z-shots/solo-tablet-wk-018*.png.
+     Rule 23's question, asked before the fix: what makes the badge and the ceremony agree? Nothing
+     did. A cleverer selector, or matching on the badge's words, would have worked today and broken
+     at the next rewording — so the answer is one value written in one place and read in both.
+     Gate: scripts/qa/flip_ceremony_names_the_wind_check.mjs. */
   // `Round N · first to K` is gone with it, and it was never load-bearing: asyncBattleRun fixes
   // need=1 and the a/d counters only ever read 0 or 1 (see the note above asyncBattle), so the
   // line counted a race that stopped existing when the battle became a single broadside.
@@ -305,13 +317,13 @@ export function renderBattle(o){
   panel(`<div class="btl">
     <div class="btl-hd"><span>${title}</span></div>
     <div class="btl-body">
-      <div class="btl-col${o.live==="a"?" live":""}">
+      <div class="btl-col${o.live==="a"?" live":""}${dw==="a"?" dw":""}">
         <div class="who" style="color:${col(A.idx)}">${nm(A.idx)}</div>
         <div class="role">${o.roleA||"Attacker"}</div>
         ${coinHTML(o.atState,o.atBs,o.winCoin==="a")}
       </div>
       <div class="btl-mid">VS</div>
-      <div class="btl-col${o.live==="d"?" live":""}">
+      <div class="btl-col${o.live==="d"?" live":""}${dw==="d"?" dw":""}">
         <div class="who" style="color:${col(D.idx)}">${nm(D.idx)}</div>
         <div class="role">${o.roleD||"Defender"}</div>
         ${coinHTML(o.dfState,o.dfBs,o.winCoin==="d")}
