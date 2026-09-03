@@ -119,9 +119,23 @@ try {
    for exactly that omission. A one-line instruction that lives in only one of two files a session
    might enter through is an instruction that runs some of the time. */
 {
+  /* ⚠ SCOPED TO THE HARVEST BLOCK, BECAUSE THE FIRST VERSION CLAIMED A PLACE IT DID NOT CHECK.
+     It read the WHOLE FILE for `--do-now=`. CEO 151 broke it in the way that mattered: it moved the
+     line out of the harvest step into an "Appendix nobody reads" at the very end of SKILL.md, past
+     both mode headings, and this case still reported *"the DOOR's harvest step also tells a
+     watch..."* — **the assertion named a location it never looked at.** Its own message was the
+     overclaim. Today the line is in the right place; the guard against it LEAVING that place was
+     what was missing.
+     The window is from the harvest heading to the mode fork, which is the text every session reads
+     in both modes before it becomes a watch or the Advisor. */
   const src = existsSync(DOOR) ? readFileSync(DOOR, "utf8") : "";
-  if (/--do-now=/.test(src) && /now"?\s*:\s*true/i.test(src))
-    ok("the DOOR's harvest step also tells a watch to carry the pin — not just the Glass runbook");
+  const from = src.indexOf("**Harvest the Glass");
+  const to = src.indexOf("## THE WATCH");
+  const harvest = from >= 0 && to > from ? src.slice(from, to) : "";
+  if (!harvest)
+    bad("could not find the Door's harvest block at all — it was renamed or removed, and this case cannot see its subject, which is not a pass");
+  else if (/--do-now=/.test(harvest) && /now"?\s*:\s*true/i.test(harvest))
+    ok("the DOOR's harvest step — the text every session reads before it forks — carries the pin, not just the Glass runbook");
   else
     bad("the Door's harvest step does not name `--do-now=` — a watch that enters here carries his idea across and drops his press");
 }

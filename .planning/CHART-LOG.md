@@ -2244,3 +2244,50 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       through the gate takes one command and leaves a pointer this time.
       **The reusable fault: a tick is not a close.** Sweep archives what is ticked; only
       `close_item.mjs` records WHY, and a row ticked by hand loses that forever.
+
+## T-104 — 2026-09-03 — ⚑⚑ HIS "DO NOW" BUTTON — WORKS, AND CEO 151 BROKE THE GATE FOUR WAYS TO PROVE IT. Door carries the pin since 99327348. (closed 2026-09-03 · CEO 151 · no game diff — both halves of his own definition are mechanical, gated and red-proofed four ways by CEO 151; the Door now carries the pin and the re-rank, and the residual hand-harvest is its own row T-140) ⚑ HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM: "i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch." His words outrank this row. Whatever the row claims, his instruction is to CHECK it. Deliberately NOT ticked: one joint is still a session remembering something. Glass, 2026-09-02, 3:09 PM ET. His words, verbatim: "Do Now: in the Glass, Add a "DO now" button next to "Send to the Chart" button that tells RANK to put this task at the top" WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code: the button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box, paints a DO NOW tag on it at once, and tells him one slot displaced the other. A session carries it over with chartkeeper.mjs --do-now=<handle>, and RANK puts that row first with YOU SAID DO NOW beside it. Two pins cannot exist: pinning releases the previous one in the same act, and two arriving by hand fail the build naming both. The press, photographed: [.planning/posed/glass-donow-pressed.png](posed/glass-donow-pressed.png). ⚠ THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a SESSION reading the page by hand. do_now_check.mjs case 9 fails the build if the harvest runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a session typed it. Closing it for real means the harvest carrying the flag mechanically, which is the same shape as T-105's remaining layers and is probably one job with them. ✅ THE DOOR SAYS IT NOW — shipped 2026-09-03T06:5xZ, commit 99327348. Its harvest step carries the pin command, and it sits in ## First, both modes — before the fork into THE WATCH and THE ADVISOR — so every session meets it in either mode (verified by CEO 151, which checked the placement rather than the presence). ✅ GATED: do_now_reaches_the_watch_check case 5. CEO 151 red-proofed the whole gate with four mutants and each turned exactly one assertion red — including one that broke the score in chartkeeper.mjs while leaving every string intact, which is the test 147 asked for: the case executes the real ranker, so it cannot be a text detection wearing a behaviour's clothes. ⚠ AND IT FOUND A HOLE IN MY OWN CASE 5, WHICH IS THE PART WORTH KEEPING. It read the WHOLE FILE for --do-now=, so 151 moved the line into an "Appendix nobody reads" at the end of SKILL.md and the case still reported "the DOOR's harvest step also tells a watch…". The assertion named a location it never looked at — its own message was the overclaim. Now scoped to the text between the harvest heading and the mode fork, and re-run against 151's exact mutant: it FAILS. A check that claims a place must look at that place. ✅ AND THE DOOR NOW CARRIES THE HALF THE RUNBOOK CALLS LOAD-BEARING — "two commands, one act; never the first without the second." --do-now writes now: yes and stops; the Glass draws his Tasks card in the order rows physically sit in the file, so a pin with no re-rank leaves his page unchanged — flagged and unmoved, which from where he sits is half 1 failing. A watch was covered by accident (step 2 ranks before it picks); the Advisor was not, and the Advisor is the mode a session is in when he presses the button. ⛔ WHAT IS STILL A SESSION REMEMBERING SOMETHING, and it is NOT this row's to fix: the harvest is a person reading a page by hand — true of ideas, rulings and comments alike, not just the pin. A gate can prove the SENTENCE is in both files; it cannot prove a session typed the command. CEO 151: "A ticket that cannot close until an unrelated ticket closes is a ticket that has stopped measuring its own subject." Carried to its own row (T-140).
+
+- [x] **⚑⚑ HIS "DO NOW" BUTTON — WORKS, AND CEO 151 BROKE THE GATE FOUR WAYS TO PROVE IT. Door carries the pin since `99327348`. (closed 2026-09-03 · CEO 151 · no game diff — both halves of his own definition are mechanical, gated and red-proofed four ways by CEO 151; the Door now carries the pin and the re-rank, and the residual hand-harvest is its own row T-140)
+      ⟨`T-104`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch."*
+      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
+      Deliberately NOT ticked: one joint is still a session remembering something.**
+      Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
+      button next to "Send to the Chart" button that tells RANK to put this task at the top"*
+      **WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code:** the
+      button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box,
+      paints a `DO NOW` tag on it at once, and tells him one slot displaced the other. A session
+      carries it over with `chartkeeper.mjs --do-now=<handle>`, and RANK puts that row first with
+      **YOU SAID DO NOW** beside it. Two pins cannot exist: pinning releases the previous one in the
+      same act, and two arriving by hand fail the build naming both. The press, photographed:
+      [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png).
+      ⚠ **THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a
+      SESSION reading the page by hand.** `do_now_check.mjs` case 9 fails the build if the harvest
+      runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a
+      session typed it. **Closing it for real means the harvest carrying the flag mechanically**,
+      which is the same shape as `T-105`'s remaining layers and is probably one job with them.
+      ✅ **THE DOOR SAYS IT NOW — shipped 2026-09-03T06:5xZ, commit `99327348`.** Its harvest step
+      carries the pin command, and it sits in `## First, both modes` — **before** the fork into THE
+      WATCH and THE ADVISOR — so every session meets it in either mode (verified by CEO 151, which
+      checked the placement rather than the presence).
+      ✅ **GATED:** `do_now_reaches_the_watch_check` case 5. CEO 151 red-proofed the whole gate with
+      four mutants and each turned exactly one assertion red — **including one that broke the score
+      in `chartkeeper.mjs` while leaving every string intact**, which is the test 147 asked for: the
+      case executes the real ranker, so it cannot be a text detection wearing a behaviour's clothes.
+      ⚠ **AND IT FOUND A HOLE IN MY OWN CASE 5, WHICH IS THE PART WORTH KEEPING.** It read the WHOLE
+      FILE for `--do-now=`, so 151 moved the line into an *"Appendix nobody reads"* at the end of
+      `SKILL.md` and the case still reported *"the DOOR's harvest step also tells a watch…"*. **The
+      assertion named a location it never looked at — its own message was the overclaim.** Now scoped
+      to the text between the harvest heading and the mode fork, and re-run against 151's exact
+      mutant: it FAILS. *A check that claims a place must look at that place.*
+      ✅ **AND THE DOOR NOW CARRIES THE HALF THE RUNBOOK CALLS LOAD-BEARING** — *"two commands, one
+      act; never the first without the second."* `--do-now` writes `now: yes` and stops; the Glass
+      draws his Tasks card in the order rows physically sit in the file, so **a pin with no re-rank
+      leaves his page unchanged** — flagged and unmoved, which from where he sits is half 1 failing.
+      A watch was covered by accident (step 2 ranks before it picks); **the Advisor was not, and the
+      Advisor is the mode a session is in when he presses the button.**
+      ⛔ **WHAT IS STILL A SESSION REMEMBERING SOMETHING, and it is NOT this row's to fix:** the
+      harvest is a person reading a page by hand — true of ideas, rulings and comments alike, not
+      just the pin. A gate can prove the SENTENCE is in both files; it cannot prove a session typed
+      the command. **CEO 151: *"A ticket that cannot close until an unrelated ticket closes is a
+      ticket that has stopped measuring its own subject."*** Carried to its own row (`T-140`).

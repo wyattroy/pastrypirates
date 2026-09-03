@@ -28,6 +28,107 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 151 — 2026-09-03, Wy-Blade — `T-104`: does his DO NOW button reach the watch? — **PARTIAL**
+
+> *Number claimed order-independently immediately before writing: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **150**, `grep -c "^## CEO Review 151"` → **0**. No collision; I did not have to move. I am read-only — `git status` shows no tracked file modified by me. All four mutants ran on a full isolated copy of the repo's `scripts/` + `.claude/skills/door/` + `.planning/wyclau/` in my scratchpad. Rule 17: I launched no browsers; `stray_probe_check` reports SKIP — a trial is at sea with 20 expected browsers.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** Your DO NOW button works, and I proved it four different ways rather than taking the session's word for it — but the row on your Chart still says, in the present tense, that the last piece was **refused and never built**, when it was built four hours ago, so the first thing you read when you open that row is the one sentence this work made false.
+
+---
+
+### 1. DID IT HAPPEN? — **YES, on all three claims, verified independently.**
+
+| claim | verdict | my own evidence |
+|---|---|---|
+| the Door's harvest step now names the pin | **TRUE** | `.claude/skills/door/SKILL.md:67-73` — the ⛔ block, ending in `node scripts/wyclau/chartkeeper.mjs --do-now=<T-nnn>`. |
+| **it is in the right place** | **TRUE, and this is the part that mattered** | It sits inside `## First, both modes: sync and orient` (`:18`), which runs **before** the fork into `## THE WATCH` (`:88`) and `## THE ADVISOR` (`:245`). Every session that enters through the Door meets it, in both modes. Had it landed inside THE WATCH it would have missed the Advisor; it didn't. |
+| the instruction is **correct**, not merely present | **TRUE** | `glass.mjs:1576` — `if (pin) idea.now = true;` — so a pressed idea really does carry `"now": true`, exactly the shape the Door names. `chartkeeper.mjs:124` writes `· now: yes` onto the row; `:1051` reads that field and returns `9000000`. The chain the Door describes is the chain that exists. |
+| **claim 2 — the second gap, "two when there were three"** | **TRUE, same commit, verified from the diff not the message** | `git show 99327348` changes *"copy every idea and every ruling"* → *"copy **every idea, every ruling AND every comment**"* (`SKILL.md:53-56`), and adds *"file each comment onto the row its handle names"*. Not a separate claim bolted onto the commit — it is in the hunk. |
+
+**The gate is wired in.** `package.json:26` runs `do_now_reaches_the_watch_check.mjs` inside `npm test`. This is not the "a better lock on a door nobody opens" fault CEO 134/135 found on `tick_rows` — it is invoked on every suite run.
+
+---
+
+### 2. IS THE GATE REAL? — **YES. I red-proofed it myself, four mutants, and each one turned exactly one assertion red.**
+
+Baseline on my isolated copy: **5/5 PASS, exit 0** — so the copy is a faithful subject, not a broken one that fails for free.
+
+| mutant | what it breaks | result |
+|---|---|---|
+| **M1** — delete only the `chartkeeper.mjs --do-now=<T-nnn>` line from the Door | the session claims this is its red-proof | **FAIL ×1, exit 1 — case 5 only.** Message: *"the Door's harvest step does not name `--do-now=`"*. Cases 1–4 stayed green. |
+| **M2** — move that same line **out of the harvest block, into an "Appendix nobody reads" at the end of the file** | placement | **5/5 PASS, exit 0.** See finding below. |
+| **M3** — revert `SKILL.md:106` from *"RANK THE CHART, THEN TAKE ROW ONE"* to oldest-first | half 2 | **FAIL ×1 — case 3 only.** |
+| **M4** — `chartkeeper.mjs:1051`, `s: 9000000` → `s: 0`, **anchor text left untouched** | half 1, behaviourally | **FAIL ×1 — case 1 only.** *"his pinned row did NOT rank first — rank 1 is 'A middling row'."* |
+
+**147's lesson is applied here, and it is the reason I ran M4 the way I did.** 147 found a gate whose red came from a regex losing its match rather than from behaviour. This gate has no such coupling: cases 1 and 2 **execute the real ranker** (`execFileSync` on `chartkeeper.mjs`, `:72-73`) against a fixture, so M4 could break the score while leaving every string in the file intact and the gate still caught it. That is a behavioural check, not a text detection.
+
+**And the session's own red-proof survives the 147 test.** Its commit message quotes the failure it saw — *"a watch that enters here carries his idea across and drops his press"* — which is verbatim `:126`, case 5's message. It named **which** assertion went red. One night after 147 made that the finding, it was done correctly without being asked.
+
+**THE ONE HOLE, AND IT IS M2.** `:122-126` is a **whole-file grep**, not a placement test. Its pass message says *"the **DOOR's harvest step** also tells a watch to carry the pin"* — but all it verifies is that `--do-now=` appears **somewhere in `SKILL.md`**. I moved the line into an appendix at the bottom of the file, outside the harvest block, past both mode headers, and the gate reported that sentence unchanged. **The assertion claims a location it does not check.** Today the line is in the right place, so nothing is broken — but the guard against it *leaving* that place is not there. Anchoring the match to the text between `**Harvest the Glass**` and `## THE WATCH` is a two-line change.
+
+---
+
+### 3. IS `T-104` CLOSEABLE? — **YES. Close it, in the same act as fixing the row's text.**
+
+Straight answer, because the brief asks for one. **The residual is not a reason to keep `T-104` open.**
+
+- His definition has two halves and **both are mechanical, gated, and red-proofed** — by the session, and again by me, independently, with mutants it did not run.
+- The row was left open for **one** stated reason: *"THE DOOR STILL DOES NOT SAY IT."* The Door now says it. That reason is spent.
+- The residual — a session must actually type the command — is **not a `T-104` defect. It is the harvest itself**, which is a hand step for ideas, rulings and comments alike. Holding `T-104` open until the harvest is mechanical means holding it open on `T-105`'s work, and the row already says as much (*"probably one job with them"*). **Keep the residual; give it its own row.** A ticket that cannot close until an unrelated ticket closes is a ticket that has stopped measuring its own subject.
+
+**The condition, and it is not optional:** do not close it while `.planning/GLASS-CHART.md:50-61` still says the opposite (§5).
+
+---
+
+### 4. CLAIMS THE REPO DOES NOT SUPPORT
+
+**None that are false.** Every load-bearing claim in `99327348` held when I checked it myself. Two gaps rather than errors:
+
+- **The Door's version of the instruction is missing the half the runbook calls load-bearing.** `.planning/wyclau/GLASS-UPDATE-SESSION.md:171-172`: *"The same is true of `--do-now`. **Two commands, one act; never the first without the second.**"* — because `--do-now` writes `now: yes` and stops, while the Glass draws his Tasks card in the order rows physically sit in `CHART.md`. **Pin without a following `--rank --write` and his row does not move on his page.** The Door omits that sentence. A watch is covered by accident (`:106-108` runs `--rank --sweep --write` at step 2); **the Advisor is not — `## THE ADVISOR` contains no `rank` command at all.** One line, worth adding where the pin is named.
+- **No prediction note was written for this item.** The nearest are `PREDICTION-…T0110Z-T103` and `…T0535Z-T131`; nothing for the 02:58 Door edit. 149's finding was *"a load-bearing claim made without a prediction, and false."* Here the habit lapsed the same way — **but the claim it protected turned out true**, which I established by re-running it rather than by trusting it. Reported as a lapse, not as damage.
+
+---
+
+### 5. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+**Two fixed, one recurring — and the recurring one is on this very row, for the third night running.**
+
+**149's "a judgement call dressed as procedure" — NOT RECURRING, and it deserves saying plainly.** The commit's closing paragraph is the opposite behaviour: *"STILL OPEN AND SAID PLAINLY: the harvest itself is a session reading a page by hand. A gate can prove the SENTENCE is in both files; it cannot prove a session typed the command… This commit makes the instruction unmissable, not automatic."* It names its own limit instead of hiding behind the gate it just built, and the gate's header (`:26-31`) says the same thing and adds *"that gap belongs in the reply to him, not buried here."*
+
+**147's "'it went red' is only evidence if you check WHICH assertion went red" — FIXED.** The commit quotes case 5's exact failure text. Verified by M1.
+
+**145's stale-headline fault — RECURRING, and this is now the fourth verdict to find it.** `.planning/GLASS-CHART.md`, right now:
+
+| line | what it says | true? |
+|---|---|---|
+| `:50-52` | *"⚠ **AND THE DOOR STILL DOES NOT SAY IT — the one-line edit is written and was REFUSED**… `.claude/skills/door/SKILL.md`'s own harvest step still names the ideas and the rulings and not the pin."* | **No.** `SKILL.md:53-56` names all three; `:67-73` names the pin. Shipped in `99327348`. |
+| `:60-61` | *"**One paste at the laptop finishes it**; the text is in `GLASS-UPDATE-SESSION.md`'s harvest step, ready to copy."* | **No.** It is done. This is an active instruction to him to do a thing already done. |
+| `:31` | headline — *"BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`"* | Stale — two commits and two verdicts out of date. |
+| `:46-47` | points at `do_now_check.mjs` case 9 as the guard | Incomplete — the guard that matters now is `do_now_reaches_the_watch_check` cases 4 **and 5**. |
+
+**And 145's own accepted fix is what makes this bite.** `glass.mjs:539` carries the row's headline into the expanded body, so `:31`'s stale sentence is the first complete thing he reads — and three lines below it sits a paragraph telling him the work was refused. **He asked "does it work?" The row's answer is still "no, and it was blocked."** That is the exact shape 147 named on `T-131` and 149 named on `T-027`, on three consecutive nights, on three different rows.
+
+---
+
+### 6. WHAT I WOULD DO FIRST
+
+1. **Rewrite `.planning/GLASS-CHART.md:31` and `:50-61`, and tick `T-104` in the same act.** Five minutes, no code. Strike the "REFUSED" paragraph and the "one paste at the laptop" instruction — quote them as withdrawn if the record needs them — and point the headline at `99327348` and this verdict. **Closing the row without this leaves a closed row whose body says it is blocked.**
+2. **Anchor case 5 to the harvest block** (`do_now_reaches_the_watch_check.mjs:122-126`). Two lines: scope the `--do-now=` match to the text between the harvest heading and `## THE WATCH`. Its message already claims that scope; M2 shows it does not check it.
+3. **Add the runbook's re-rank sentence to the Door's ⛔ block** — *"never the first without the second"* — because the Advisor has no `--rank` step and a pin that does not re-rank leaves his page in the old order, which is his half-1 failing from where he sits.
+4. **File the residual as its own row** — "the harvest carries the flag mechanically" — alongside `T-105`'s remaining layers, so `T-104` stops being held open by work that is not its own.
+
+**Verdict: PARTIAL** — the build is real, the gate is genuinely armed and I broke it four ways to prove it, and `T-104` is closeable on his own definition; the row he reads still says it isn't.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All four done, in its order, and `T-104` closed on its verdict.**
+
+- **(6.2) DONE, and M2 is the best catch in this review.** My case 5 grepped the WHOLE FILE for `--do-now=` while its own pass message said *"the DOOR's **harvest step**…"* — **an assertion claiming a location it never looked at, and the overclaim was in the message itself.** Now scoped to the text between the harvest heading and the mode fork, plus a refusal if that block cannot be found at all (a case that cannot see its subject is not a pass). **Re-ran 151's exact M2 mutant — line moved to an "Appendix nobody reads" — and it now FAILS.** *A check that claims a place must look at that place.*
+- **(6.3) DONE** — *"two commands, one act; never the first without the second"* is in the Door's ⛔ block with the reason: `--do-now` writes the flag and stops, the Glass draws his Tasks card in file order, so a pin with no re-rank leaves his page unchanged. Its observation that **the Advisor has no rank step and the Advisor is the mode a session is in when he presses the button** is the part that makes this more than tidiness.
+- **(6.1) DONE** — the headline and both false paragraphs are gone, replaced by what is true. The *"one paste at the laptop finishes it"* line mattered most: **an instruction to HIM to do a thing already done.**
+- **(6.4) DONE** — the residual is `T-140`, covering the harvest as a hand step for all four kinds of his input, not just the pin. Its sentence is the reason and is quoted on the row: *"a ticket that cannot close until an unrelated ticket closes is a ticket that has stopped measuring its own subject."*
+- **On §4's prediction lapse:** conceded. No prediction note for the Door edit, and 149 had made exactly that finding the review before. The claim happened to be true and this review established that by re-running it rather than trusting it — which is the right way for that to be discovered, and not a defence.
+
 ## CEO Review 150 — 2026-09-03, Wy-Blade — `T-102`: "recommend, don't just build" on the sitemap — **PARTIAL**
 
 *Watch b2. Item `T-102`, his 3:07 PM ET sitemap note, the clause a previous close left open. No commit at review time — the deliverable was a measurement, a recommendation and a question, and the CEO reviewed the working tree.*

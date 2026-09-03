@@ -7195,4 +7195,34 @@ the trial; every browser I opened is dead.
 
 **⚠ A HAZARD THE RULES DO NOT YET NAME, AND IT HAPPENED TO ME MID-ITEM.** CEO 150 found my Chart edits already committed inside `2a4a0842` — **a commit whose subject and body are about `T-027` and never mention the sitemap.** The peer session on this machine committed the whole working tree while I was working in it. Nothing was lost and nothing conflicted, but *"nobody searching `git log --grep=sitemap` will ever find this decision"*, and rule 10 says the git log is where settled arguments live. **`CLAUDE.md` §3 covers two sessions making conflicting edits; it does not cover one session's `git add -A` silently absorbing another's work under its own message.** Filed here, not fixed — it is a row.
 
+---
+
+## watch c1 — 2026-09-03T07:12Z, Wy-Blade — `T-087`: remove the "Your rulings, in hand" box from the Glass
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T07:12Z. `git fetch` + `git pull --rebase` clean; `can_push` healthy; the
+  real `git push origin claude/cloud-handoff-planning-a9ay1u` run as a shell command —
+  *Everything up-to-date* (the rule-17 doc hook stopped it once and was satisfied).
+- **Last progress** — watch b2 closed `T-102` at 07:03Z, commit `78b0a2fa`.
+- **Blocked on Wyatt** — the rules-page split (`T-099` question 1 gates `T-100`, `T-101`, `T-114`),
+  the cutover, the 465-commit merge to `main`.
+- **⚠ A SEA TRIAL IS AT SEA.** `2026-09-03T0624Z-Wy-Blade`, pid 29700, **5/10 legs, marker moved
+  0 min ago** (`longrun_status.mjs`: *"progressing — hold off"*). I launch no browser and start no
+  server, and I touch no file the trial reads.
+- **NO ARTIFACT TOOL IN THIS SESSION** — recorded as a fact, not a guess about why. I cannot read
+  or republish the Glass; my pulse goes into `.planning/wyclau/GLASS-NOTE.md` for the next session
+  that can, and the harvest is owed by that session.
+- **THIS WATCH** — `T-087`, his own words on the Glass 2026-09-02T13:18:28Z.
+
+**THE ROWS I SKIPPED, IN RANK ORDER, EACH WITH ITS REASON.** rank 1 `T-099` — its own last line
+says it closes when he answers; ranks 2 and 3 (`T-012`, `T-013`) — both say in their own text to
+wait for the trial to be down, and it is at sea; rank 4 `T-020` and rank 6 `T-009` — both edit
+`scripts/playtest_gate.mjs`, which the trial re-reads for every remaining leg; rank 5 `T-114` and
+ranks 7 and 9 (`T-100`, `T-101`) — blocked on his rules-page answer; rank 8 `T-098` — closed by
+watch a6; rank 10 `T-003` — its evidence is two builds stale and its screens are a preserved
+older queue; rank 11 `T-023` — `src/` change, would retire the trial at sea; rank 12 — nothing to
+do but read a report. **Rank 13, `T-087`, is the first row nothing holds back.**
+
 **SWEEP.** No game code, so no gear and no trial. `glass_calm_check` PASS (14 cases, including "the real BLOCKED ON WYATT section is table rows, blanks and comments only" — my three new rows are well-formed). `answered_question_retired_check` PASS, 5 live questions, all ids distinct, all carrying explicit markers. `doc_command_check` PASS — my new doc's links resolve. `chartkeeper_check` PASS. `sitemap_lastmod_check` PASS. **Full `npm test` was NOT run and here is the honest reason:** a trial is at sea, `glass_longrun_status_check` borrows the live `LONG-RUN` marker, and two gates were red on this tree before I started and are a peer's live work in progress. **I started no browser and no server; there is nothing of mine to kill.**
+
+- 2026-09-03T07:25:36Z · close_item: "T-104" · CEO 151 · no game diff — both halves of his own definition are mechanical, gated and red-proofed four ways by CEO 151; the Door now carries the pin and the re-rank, and the residual hand-harvest is its own row T-140 · no stated solution

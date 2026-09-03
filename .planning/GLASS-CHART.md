@@ -28,37 +28,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
-- [ ] **⚑⚑ HIS "DO NOW" BUTTON — BUILT 2026-09-02T21:4xZ, CEO 121 (PARTIAL), commit `c8a475a6`.
-      ⟨`T-104`⟩
-      ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"i see the DO NOW button -- does it work? Work = puts the task at the TOP of the list and gives it to the very next watch."*
-      **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
-      Deliberately NOT ticked: one joint is still a session remembering something.**
-      Glass, 2026-09-02, 3:09 PM ET. **His words, verbatim:** *"Do Now: in the Glass, Add a "DO now"
-      button next to "Send to the Chart" button that tells RANK to put this task at the top"*
-      **WHAT HE CAN DO NOW — measured by PRESSING it in a browser, not by reading the code:** the
-      button sits beside Send to the Chart; a tap saves the idea carrying its flag, clears the box,
-      paints a `DO NOW` tag on it at once, and tells him one slot displaced the other. A session
-      carries it over with `chartkeeper.mjs --do-now=<handle>`, and RANK puts that row first with
-      **YOU SAID DO NOW** beside it. Two pins cannot exist: pinning releases the previous one in the
-      same act, and two arriving by hand fail the build naming both. The press, photographed:
-      [`.planning/posed/glass-donow-pressed.png`](posed/glass-donow-pressed.png).
-      ⚠ **THE ONE GAP, AND IT IS WHY THIS IS NOT TICKED: the joint between his tap and RANK is a
-      SESSION reading the page by hand.** `do_now_check.mjs` case 9 fails the build if the harvest
-      runbook stops naming the command — but a gate can prove the SENTENCE is there, never that a
-      session typed it. **Closing it for real means the harvest carrying the flag mechanically**,
-      which is the same shape as `T-105`'s remaining layers and is probably one job with them.
-      ⚠ **AND THE DOOR STILL DOES NOT SAY IT — the one-line edit is written and was REFUSED, and
-      the refusal's exact words are recorded rather than its cause inferred.** The Glass runbook now
-      carries the instruction; `.claude/skills/door/SKILL.md`'s own harvest step still names the
-      ideas and the rulings and not the pin. **His ruling 5:43:55 PM ET — *"Let the watch write them
-      -- I allow edits to hooks and skills"* — is in force, and commit `0472a129` measured that this
-      project denies NOTHING under `.claude/`.** The edit was attempted anyway at 2026-09-02T22:0xZ
-      and came back: *"Claude requested permissions to write to
-      C:\Users\wyatt\Projects\pastrypirates\.claude\skills\door\SKILL.md, but you haven't granted it
-      yet."* **So the blocker is the harness's own rule for unattended sessions, which no project
-      setting can grant — the fourth time on this branch that a permission he gave and the mechanism
-      meant to carry it turned out to be different things.** One paste at the laptop finishes it; the
-      text is in `GLASS-UPDATE-SESSION.md`'s harvest step, ready to copy. **Sizing: SMALL.**
 - [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
       ⟨`T-021`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM:** *"I"m 99% sure the Blade Hour is complete!"*
@@ -256,6 +225,26 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       once during the night that earned it. **Both are unregistered from settings.json as of
       2026-09-02 on his ruling** — they give no false assurance while they wait. `file-his-words.cjs`
       works and stays armed.
+- [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
+      ⟨`T-136`⟩
+      `T-027` so his actual need is not lost when that row closes.**
+      `T-027` asked *"verify this to make sure it functions as needed"* and the verification is
+      done: the permission he was asked for **already exists** (`settings.json:11-12`, both forms),
+      and the suite that blocked the deploy is **green, exit 0**. But verifying a blocker is gone is
+      not the same as doing the thing, and **closing `T-027` on a completed verification would have
+      quietly retired his actual need.** So it lives here.
+      **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
+      `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
+      ⏳ **WAITING ON ONE THING ONLY: the sea trial in flight** (pid 29700, stamp `2026.09.03.1`,
+      started 06:24Z). The release contract is `npm test` → gear → sea trial → deploy, and the trial
+      is the last unmet step. **Nothing here is blocked on Wyatt.**
+      **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
+      stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
+      ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
+      was true when measured and stale when read — the third time tonight that shape cost a session
+      (see also `T-011`'s false STOP and `T-085`'s claude-kit fence). **Re-measure before believing
+      any row that says a thing cannot be done.**
+      **Sizing: SMALL — one command, once the trial is in.**
 - [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
       ⟨`T-075`⟩
       untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,
@@ -277,6 +266,28 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       **THE FIX IS THE NOTE'S WORDING, NOT YOUR CALL'S LOGIC** — the reaper's line must say it is
       talking about **stale rows to clean up**, never about a question waiting on him. Rule 8: a
       word that means "waiting on Wyatt" must mean that everywhere on this page.
+- [ ] **THE HARVEST IS A PERSON READING A PAGE BY HAND — and that is the last joint in everything
+      ⟨`T-140`⟩
+      his page can carry: his ideas, his rulings, his comments, and his DO NOW press.**
+      Split out of `T-104` at CEO 151's instruction: *"A ticket that cannot close until an unrelated
+      ticket closes is a ticket that has stopped measuring its own subject."* `T-104`'s own halves
+      are mechanical and gated; **this is the shared step underneath all four kinds of his input**,
+      and holding the button open on it was holding it open on somebody else's work.
+      **WHAT A GATE CAN AND CANNOT DO HERE, stated so nobody re-derives it:** a gate can prove the
+      INSTRUCTION exists — `do_now_reaches_the_watch_check` cases 4 and 5 fail if either the Glass
+      runbook or the Door stops naming the pin command. **No gate can prove a session typed it.**
+      Between his press and his Chart sits one human-shaped step, four times over.
+      **THE FOUR THINGS THAT RIDE ON IT** — and every one is his, not ours: `glassState.ideas`,
+      `glassState.rulings`, `glassState.comments` (new 2026-09-03, `T-076`), and the `now: true`
+      flag on a pressed idea. **An unharvested republish deletes the first three and drops the
+      fourth.** The hook enforces that a session READ the page; nothing enforces that it MOVED
+      anything across.
+      ⚠ **IT HAS ALREADY COST HIM ONCE TONIGHT, which is why this is a row and not a note:** a
+      comment box that renders and does not save is invisible in exactly the same way — the machine
+      says done, the words are gone, and every gate is green. That was `T-076`, found by CEO 144.
+      **THE SHAPE OF A REAL FIX:** the harvest carries the state mechanically rather than by
+      instruction — same family as `T-105`'s remaining layers, and probably one job with them.
+      **Sizing: MEDIUM. No game code. Nothing here is blocked on Wyatt.**
 - [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
       ⟨`T-079`⟩
       RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a
@@ -408,23 +419,3 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       direction. It should say, in the rank output, which rows it judged blocked and on what.
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment
       ⟨`T-030`⟩
-- [ ] **STAGING IS TWO BUILDS BEHIND AND HE PLAYS STAGING — the deploy itself, carried over from
-      ⟨`T-136`⟩
-      `T-027` so his actual need is not lost when that row closes.**
-      `T-027` asked *"verify this to make sure it functions as needed"* and the verification is
-      done: the permission he was asked for **already exists** (`settings.json:11-12`, both forms),
-      and the suite that blocked the deploy is **green, exit 0**. But verifying a blocker is gone is
-      not the same as doing the thing, and **closing `T-027` on a completed verification would have
-      quietly retired his actual need.** So it lives here.
-      **MEASURED 2026-09-03T06:3xZ:** staging serves `2026.09.01.8-staging@1ce21a00`; the tree is at
-      `2026.09.03.1`. **Two builds, and the address he plays is the older one.**
-      ⏳ **WAITING ON ONE THING ONLY: the sea trial in flight** (pid 29700, stamp `2026.09.03.1`,
-      started 06:24Z). The release contract is `npm test` → gear → sea trial → deploy, and the trial
-      is the last unmet step. **Nothing here is blocked on Wyatt.**
-      **WHEN THE TRIAL LANDS GREEN:** `npm run deploy:staging -- "<what changed>"`, then check the
-      stamp reads `<stamp>-STAGING/<branch>`. If the trial fails, that failure is the work, not this.
-      ⚠ **DO NOT re-derive the permission question.** `T-027`'s row was written from a refusal that
-      was true when measured and stale when read — the third time tonight that shape cost a session
-      (see also `T-011`'s false STOP and `T-085`'s claude-kit fence). **Re-measure before believing
-      any row that says a thing cannot be done.**
-      **Sizing: SMALL — one command, once the trial is in.**

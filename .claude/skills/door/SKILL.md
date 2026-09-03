@@ -70,7 +70,17 @@ names, commit. A republish without the harvest deletes his words.
 >
 > ```bash
 > node scripts/wyclau/chartkeeper.mjs --do-now=<T-nnn>
+> node scripts/wyclau/chartkeeper.mjs --rank --write
 > ```
+>
+> ⛔ **TWO COMMANDS, ONE ACT; NEVER THE FIRST WITHOUT THE SECOND.** `--do-now` writes `now: yes`
+> onto the row and stops. **The Glass draws his Tasks card in the order the rows physically sit in
+> the file**, so a pin with no re-rank leaves his page in the old order — the row is flagged and it
+> has not moved, which from where he sits is his half-1 failing. The Glass runbook has always said
+> this; the Door did not. **A watch is covered by accident** (step 2 runs `--rank --sweep --write`
+> before it picks anything) — **the Advisor is not: `## THE ADVISOR` contains no rank step at all**,
+> and the Advisor is the mode a session is in when he is talking to it, which is exactly when he
+> presses the button. Found by CEO 151.
 >
 > **This is the one joint in his DO NOW button that is a session remembering something** (`T-104`).
 > Everything either side of it is mechanical and gated: the press pins the idea and tells him so,
