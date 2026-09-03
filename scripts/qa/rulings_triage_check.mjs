@@ -140,7 +140,18 @@ function violations(md, settledMd) {
      "moment" still there in "GATED: same quiet moment". The gate looked green while the thing it
      guards was gone. Scoped to rows that declare themselves, so an accidental word match in
      somebody else's task can never stand in for a ruling's own row. */
-  const checklist = checklistRows(md).filter((l) => /Your ruling:/i.test(l)).join("\n").toLowerCase();
+  /* ⛔ NORMALISE BOTH SIDES THE SAME WAY, OR THE MATCH IS A COIN FLIP. The key below strips
+     backticks and asterisks (`⟨`T-102`⟩` → `⟨t-102⟩`) and this haystack did not — so every ruling
+     whose first long word is its own task token could NEVER match, however perfect its row.
+     That is what all EIGHT failures were on 2026-09-03: each row existed, each reported "2 of 3
+     words matched", and the missing word was the token every time.
+
+     WHAT IT COST, and it is why this is a ⛔ and not a tidy-up: the suite is an `&&` chain and this
+     gate sits ~90th of 123, so a third of the fence — stray_probe_check, numbered_options_check,
+     doc_command_check among them — DID NOT RUN ALL DAY. A false failure here is not a nuisance;
+     it silently switches off everything downstream of it. Caught while acting on CEO 174. */
+  const norm = (s) => s.replace(/[`*]/g, "").toLowerCase();
+  const checklist = norm(checklistRows(md).filter((l) => /Your ruling:/i.test(l)).join("\n"));
   /* ⚑ NEW 2026-09-03 WITH T-087, AND IT IS THE PROPERTY THE DELETED CARD USED TO PROVIDE.
      While "Your rulings, in hand" existed, a row sitting here with an empty `now` cell was still
      ON HIS PAGE, so waiting was harmless. He asked for that card to go. Nothing renders ## RULED
@@ -160,7 +171,7 @@ function violations(md, settledMd) {
          message now shows the words it looked for and the closest row it found, so the reader can
          see a near-miss for what it is. */
       const near = checklistRows(md).filter((l) => /Your ruling:/i.test(l))
-        .map((l) => ({ l, hits: key.filter((w) => l.toLowerCase().includes(w)).length }))
+        .map((l) => ({ l, hits: key.filter((w) => norm(l).includes(w)).length }))
         .sort((a, b) => b.hits - a.hits)[0];
       const nearNote = near && near.hits
         ? ` CLOSEST ROW FOUND (${near.hits} of ${key.length} words matched, so this may be a near-miss rather than a missing row): ${near.l.replace(/^- \[ \] /, "").slice(0, 110)}…`

@@ -63,8 +63,37 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
   console.error(`REFUSING — --date must be YYYY-MM-DD, got "${date}".`);
   process.exit(1);
 }
+/* ⛔ A FUTURE DATE PINS HIS CARD FOREVER. `glass.mjs` sorts entries descending and shows the
+   newest, so one typo'd year ("2099") becomes "the newest lesson" permanently — and his card then
+   reads *"No lesson yet today… The newest, from 2099-12-31"* every day after, with no error
+   anywhere. The shape check above cannot see this: 2099-12-31 is a perfectly well-formed date.
+   Caught by CEO 174. */
+if (date > new Date().toISOString().slice(0, 10)) {
+  console.error(`REFUSING — ${date} is in the future.
+
+The Glass shows the NEWEST lesson, so a future date pins his card to this entry forever and every
+real lesson after it becomes invisible. Nothing was written.`);
+  process.exit(1);
+}
 if (/[\r\n]/.test(title)) {
   console.error("REFUSING — the title is one line; the Glass reads it off the heading.");
+  process.exit(1);
+}
+/* ⛔ A HEADING INSIDE THE TITLE OR BODY CREATES A PHANTOM LESSON. `glass.mjs:931` splits the file
+   on /^(?=## )/m, so a line looking like an entry heading anywhere in the text becomes its own
+   lesson: it TRUNCATES the real one's body on his card, appears in the Captain's log as a concept
+   he owns, and poisons the duplicate guard below — after a body injected "## 2026-09-09 — squatter",
+   the genuine write for that date was REFUSED.
+
+   THIS IS NOT AN ADVERSARIAL CASE. `LESSONS.md`'s own header documents the format, so a lesson
+   ABOUT THE LESSON PROCESS that quotes it does exactly this. Caught by CEO 174. */
+const HEADING = /^## \d{4}-\d{2}-\d{2} /m;
+if (HEADING.test(title) || HEADING.test(body)) {
+  console.error(`REFUSING — the text contains a line shaped like a lesson heading ("## YYYY-MM-DD — …").
+
+The Glass splits the file on those, so this would create a PHANTOM lesson: it truncates the real
+one on his card and then blocks the next genuine write for that date. Indent the quoted line, or
+write the date without the leading "## ". Nothing was written.`);
   process.exit(1);
 }
 

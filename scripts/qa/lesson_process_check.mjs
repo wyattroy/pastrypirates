@@ -20,7 +20,7 @@
  */
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,6 +47,49 @@ try {
       .match(/^## (\d{4}-\d{2}-\d{2}) /m) || [])[1];
     if (firstDate && run(["--title=x", "--body=y", `--date=${firstDate}`]) === 0) {
       fails.push(`1: add_lesson wrote a SECOND lesson for ${firstDate} — the page shows one, so the other is invisible`);
+    }
+    /* A future date pins his card forever (the Glass shows the newest), and a heading inside the
+       text creates a phantom lesson that truncates the real one AND blocks the next real write.
+       Both found by CEO 174; both are well-formed input the shape checks cannot see. */
+    if (run(["--title=x", "--body=y", "--date=2099-12-31"]) === 0) {
+      fails.push("1: add_lesson accepted a FUTURE date — the Glass shows the newest, so his card would be pinned to it forever");
+    }
+    if (run(["--title=x", `--body=one${NL}${NL}## 2026-01-01 — phantom${NL}${NL}two`]) === 0) {
+      fails.push("1: add_lesson accepted a body containing a lesson heading — that phantom truncates the real lesson on his card and blocks the next real write for its date");
+    }
+  }
+
+  /* 1b — ⛔ EXERCISE A REAL WRITE. CEO 174 found the 9th mutant: every invocation above expects a
+   *      REFUSAL, so the insertion arithmetic, the newest-first placement, the em dash and the
+   *      self-check were entirely unrun — *"the half that failed first is the half nothing
+   *      exercises."* Run it against a COPY of the tree; his real LESSONS.md is never touched. */
+  {
+    const W = join(ROOT, "scripts", "wyclau", "add_lesson.mjs");
+    const fakeRoot = join(dir, "tree");
+    const lessonsDir = join(fakeRoot, ".planning", "wyclau");
+    const scriptsDir = join(fakeRoot, "scripts", "wyclau");
+    mkdirSync(lessonsDir, { recursive: true });
+    mkdirSync(scriptsDir, { recursive: true });
+    copyFileSync(W, join(scriptsDir, "add_lesson.mjs"));
+    writeFileSync(join(lessonsDir, "LESSONS.md"), `# LESSONS${NL}${NL}## 2020-01-01 — An older one${NL}${NL}older body${NL}`);
+    let code = 0;
+    try {
+      execFileSync(process.execPath, [join(scriptsDir, "add_lesson.mjs"),
+        "--title=A real one", `--body=first para${NL}${NL}second para`, "--date=2026-06-15"],
+        { cwd: fakeRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    } catch (e) { code = e.status ?? 1; fails.push(`1b: a VALID lesson was refused (exit ${code}) — the write path nothing had ever run does not work`); }
+    if (!code) {
+      const after = readFileSync(join(lessonsDir, "LESSONS.md"), "utf8");
+      /* The exact regex glass.mjs parses — if the writer's output does not match it, the entry is
+         silently invisible on his card, which is this whole item's failure shape. */
+      if (!/^## 2026-06-15 [—-]+ A real one$/m.test(after)) {
+        fails.push("1b: the entry it wrote does not match the heading his page parses — it would be silently invisible on his card");
+      }
+      const heads = [...after.matchAll(/^## (\d{4}-\d{2}-\d{2}) /gm)].map((m) => m[1]);
+      if (heads.length !== 2) fails.push(`1b: expected 2 entries after one write, found ${heads.length}`);
+      if (heads[0] !== "2026-06-15") fails.push(`1b: the new lesson was not placed newest-first (top entry is ${heads[0]}) — a person opening the file reads a stale one`);
+      if (!/first para\n\nsecond para/.test(after)) fails.push("1b: the writer altered his paragraphs — it must store the body as written, unwrapped");
+      if (!/older body/.test(after)) fails.push("1b: writing a lesson DESTROYED the existing one");
     }
   }
 
@@ -93,6 +136,60 @@ try {
       }
       if (/(^|[^*])\*[^*]/.test(inner)) {
         fails.push("3: a literal asterisk reached his page — the lesson's markdown is being escaped instead of rendered");
+      }
+      /* Whatever his current lesson is, the page must draw the same number of paragraphs it has. */
+      const srcParas = readFileSync(join(ROOT, ".planning", "wyclau", "LESSONS.md"), "utf8")
+        .split(/^(?=## )/m).filter((s) => s.startsWith("## "))
+        .map((s) => s.split(NL).slice(1).join(NL).trim())
+        .filter(Boolean)[0] ?? "";
+      const want = srcParas.split(/\n\s*\n/).filter((p) => p.trim()).length;
+      const got = (bodyHtml.match(/<p[\s>]/g) || []).length;
+      if (want && got !== want) {
+        fails.push(`3: his lesson has ${want} paragraph(s) and his page drew ${got} — re-flowing the editor's wrapping must not merge or split what HE wrote`);
+      }
+    }
+  }
+
+  /* 3b — ⛔ HIS PARAGRAPHS MUST SURVIVE THE RE-FLOW, ON INPUT THAT CAN PROVE IT. CEO 174 found the
+   *      8th mutant: a version that joins every paragraph into ONE fired nothing, because case 3's
+   *      assertions read `bodyHtml.replace(/<[^>]+>/g,"")`, which strips the `</p><p>` boundary —
+   *      merged and separate paragraphs produce identical text.
+   *
+   *      ⚠ AND THE FIRST FIX FOR IT WAS ITSELF VACUOUS. Counting the paragraphs of HIS CURRENT
+   *      lesson cannot fail while that lesson is a single paragraph: flattening one paragraph
+   *      still yields one, and the mutant passed again. **A count taken from live data is only as
+   *      strong as the data happens to be.** So this case feeds the real `lessonHtml` a controlled
+   *      TWO-paragraph body, where merging is visible by construction.
+   *
+   *      Unwrapping his lesson and FLATTENING it are one keystroke apart, and only one is the fix. */
+  {
+    const src = readFileSync(join(ROOT, "scripts", "wyclau", "glass.mjs"), "utf8");
+    const grab = (re) => {
+      const at = src.search(re);
+      if (at === -1) return "";
+      const open = src.indexOf("{", at);
+      let depth = 0;
+      for (let i = open; i < src.length; i++) {
+        if (src[i] === "{") depth++;
+        else if (src[i] === "}" && --depth === 0) return src.slice(at, i + 1);
+      }
+      return "";
+    };
+    const escLine = (src.match(/^const esc = [^\n]+$/m) || [""])[0];
+    const fn = grab(/(?:function\s+lessonHtml\s*\(|const\s+lessonHtml\s*=)/);
+    if (!escLine || !fn) {
+      fails.push("3b: could not lift esc/lessonHtml out of glass.mjs — the paragraph behaviour is UNKNOWN, not proven");
+    } else {
+      let out = "";
+      try {
+        // eslint-disable-next-line no-new-func
+        out = new Function(`${escLine}; ${fn}; return lessonHtml(arguments[0]);`)(
+          `one line${NL}wrapped by an editor${NL}${NL}a second paragraph he wrote`);
+      } catch (e) { fails.push(`3b: lessonHtml threw on a two-paragraph body: ${e.message}`); }
+      const paras = (out.match(/<p[\s>]/g) || []).length;
+      if (paras !== 2) fails.push(`3b: a two-paragraph lesson rendered as ${paras} paragraph(s) — his blank lines are his, and re-flowing must not merge them`);
+      if (/wrapped by an editor/.test(out) && !/one line wrapped by an editor/.test(out)) {
+        fails.push("3b: the editor's line wrapping was NOT re-flowed — his page breaks mid-sentence, which is the fault he screenshotted");
       }
     }
   }

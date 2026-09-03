@@ -8610,3 +8610,37 @@ that reason, and one is named here only after `git show --stat 84e2afeb` was rea
 **What the next watch should NOT conclude:** that `84e2afeb`'s subject describes its contents. A
 `git log --oneline` on this branch will not show `T-099` closing at all. **Search the files, not
 the subjects.**
+
+### 2026-09-03 ~13:2xZ — Advisor (session 01WbnnS…, Wy-Blade) — his two asks: the ruling buttons, and THE LESSON
+
+**Claimed late and recorded as such** — CEO 174 called this out under rule 16: no ledger claim and
+no Chart row existed while three peers worked the same checkout, and one of them had already
+overwritten this item's central file (`lessonHtml` in `glass.mjs`, never committed on any ref).
+
+**Files owned by this session:** `scripts/wyclau/glass.mjs`, `scripts/wyclau/add_lesson.mjs`,
+`scripts/wyclau/lib/chart_model.mjs`, `scripts/qa/numbered_options_check.mjs`,
+`scripts/qa/lesson_process_check.mjs`, `scripts/qa/glass_ruling_button_words_check.mjs`,
+`scripts/qa/rulings_triage_check.mjs`, `.claude/skills/door/SKILL.md`, `.planning/wyclau/LESSONS.md`.
+**NOT touched:** `index.html`, `src/orchestrator.js` (a peer's in-flight T-142), the sea-trial report.
+
+**His asks, both closed:**
+1. *"please change the response buttons — they are unclear… label your suggestions in the same way
+   as the claude question UI does — with numbers, and a (recommended)"*, then his ruling at
+   15:56:28Z: *"Replace Approve and Deny with 1 2 3 Other."* Done; both gates that were enforcing
+   the old words are corrected.
+2. *"the Lesson is two days old; it is formatted wrong, and whatever process is supposed to give me
+   new ones does not exist in a formal way yet. build that, get CEO approval."* All three faults
+   closed; today's lesson written with the new command.
+
+**Verdicts:** CEO 174 (this file's own entry) — PARTIAL, all seven findings acted on. Plus the
+numbered-options review of the same window, recorded in `6cb4ac47`.
+
+**Found while doing it, and NOT this item's work — flagged for whoever owns them:**
+- `rulings_triage_check` was failing FALSELY on all eight of his rulings (backticks stripped from
+  the search key, not from the haystack). The chain is `&&`-joined and it sits ~90th of 123, so
+  **about a third of the suite had not run all day** — `stray_probe_check` among them. Fixed here
+  because it was switching off the fence this work was being judged against; its own three
+  red-proofs still fire.
+- `sitemap.xml` regenerated from git after a peer landed `index.html` seven minutes earlier.
+
+**npm test: EXIT 0, all 123 gates** — the first green run of the day.

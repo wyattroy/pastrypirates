@@ -949,9 +949,16 @@ const newestLesson = lessons && lessons.length ? lessons[0] : null;
    quoting a tag must arrive as TEXT, not as markup. Reversing these two lines is a live XSS-shaped
    bug on a page only he reads, so `lesson_process_check` case 4 fails the build on the order.
 
-   ⚑ LINES THAT WANT THEIR OWN LINE ARE KEPT. Today's lesson is one continuous paragraph, but a
-   future one may hold a list or a command — so list markers, quotes and indented lines survive
-   unwrapping. Flattening everything would trade his fault for a worse one. */
+   ⚑ LINES THAT WANT THEIR OWN LINE KEEP THEIR BREAK. Today's lesson is one continuous paragraph,
+   but a future one may hold a list or a command — so list markers, quotes and indented lines each
+   stay on a line of their own. Flattening everything would trade his fault for a worse one.
+
+   ⚠ AN INDENTED LINE KEEPS ITS BREAK, NOT ITS INDENTATION — it is not a code block, and this
+   comment used to claim otherwise. CEO 174 measured it: a four-space-indented command came out
+   flush left with no `<code>` around it, while the comment said "indented lines survive". **A
+   behavioural claim in a comment, written the same hour, already wrong** — the thing rule 6's
+   second half forbids. If a lesson ever needs a real code block, that is a change to make here
+   deliberately, not something to assume is already true. */
 function lessonHtml(body) {
   return String(body ?? "").split(/\n\s*\n/).map((para) => {
     const lines = para.split("\n");
@@ -959,9 +966,14 @@ function lessonHtml(body) {
        and gets re-flowed to HIS screen width. */
     const structural = (l) => /^\s*(?:[-*+•⚑⛔⚠]|\d+[.)]|>)\s/.test(l) || /^\s{2,}\S/.test(l);
     const out = [];
-    for (const line of lines) {
+    /* ⛔ INDEX THE LOOP, DO NOT SEARCH FOR THE LINE. This read `lines.indexOf(line)` — a VALUE
+       lookup — so a paragraph containing the same line twice asked about the FIRST copy's
+       predecessor both times. Measured by CEO 174: ["- a bullet","foo","bar","foo"] stranded the
+       second "foo" on its own line instead of joining "bar". */
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       if (structural(line) || out.length === 0) out.push(line.trim());
-      else if (structural(lines[lines.indexOf(line) - 1] ?? "")) out.push(line.trim());
+      else if (structural(lines[i - 1] ?? "")) out.push(line.trim());
       else out[out.length - 1] += ` ${line.trim()}`;
     }
     const joined = out.join("\n").replace(/[ \t]+/g, " ").trim();

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// GATE: the two buttons Wyatt rules with say HIS words — Approve and Deny.
+// GATE: the buttons Wyatt rules with are NUMBERED in his words, and the value under them never moves.
 //
 // HIS WORDS, Glass DO NOW pin, 2026-09-03 10:22 AM ET (INBOX-20260903T142249Z):
 //   "Change the buttons that say Do It and Don't to Approve and Deny— and always when giving me
@@ -37,7 +37,7 @@ let failed = false;
 const fail = (m) => { console.log(`  FAIL  ${m}`); failed = true; };
 const pass = (m) => console.log(`  ok    ${m}`);
 
-console.log("his ruling buttons say Approve and Deny, and the value under them never moves\n");
+console.log("his ruling buttons are NUMBERED (his 15:56Z ruling), and the value under them never moves\n");
 
 const CHART = `# THE CHART — fixture
 
@@ -83,21 +83,45 @@ const buttons = ruleRow === null ? [] :
     .map((m) => ({ value: m[1], label: m[2].replace(/<[^>]+>/g, "").trim() }));
 const labelFor = (v) => (buttons.find((b) => b.value === v) || {}).label;
 
-// 1/5 — THE APPROVE BUTTON. His word, not ours.
+/* ⛔ SUPERSEDED BY HIS OWN LATER RULING, THREE AND A HALF HOURS AFTER THE ONE ABOVE.
+   Glass, 2026-09-03T15:56:28Z (11:56 AM ET): *"this is a perfect example of why 'approve' and
+   'deny' make no sense here — what would 'approve' even mean in response to your above question?
+   Replace Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI,
+   and leave the box as a space to write 'other' content in."*
+
+   **THIS GATE WAS ENFORCING THE WORDS HE HAD ALREADY ASKED US TO REMOVE.** It is the second gate
+   in one day to do that — CEO 174 caught the first, in `numbered_options_check`, asserting that
+   the word "Approve" must never disappear. Both were written in good faith from his 10:22 AM
+   instruction and both outlived it.
+
+   ⚑ **THE LESSON, AND IT IS WHY THIS COMMENT IS LONG: A GATE PINS A DECISION HARDER THAN CODE
+   DOES.** Wrong code gets changed by the next person who reads it; a wrong gate makes doing what
+   he asked look like breaking the build, so the next session "fixes" his instruction back out
+   again. When you gate a piece of his wording, gate the PROPERTY he wanted (every call is
+   numbered; the stored key never moves) rather than the literal string — the string is the part
+   he keeps changing, and he is entitled to.
+
+   AND HIS 10:22 INSTRUCTION IS NOT DISCARDED, because it had two halves: *"Change the buttons…
+   AND ALWAYS WHEN GIVING ME OPTIONS TO CHOOSE NUMBER OR LETTER THEM."* The second half is the one
+   that survived and it is now the rule for every card. Cases 4, 5 and 6 below are untouched: the
+   stored value must still never move, or every ruling on his live page comes un-pressed. */
+const NUMBERED = /^\s*\d+\s/;
+
+// 1/5 — THE FIRST BUTTON IS NUMBERED, and carries words that say what it does.
 {
   if (ruleRow === null) fail("there is no ruling row on the page at all — the Your call card renders no buttons, so he cannot rule on anything");
   else if (labelFor("yes") === undefined) fail(`no button carries data-choice="yes" — the buttons found were ${JSON.stringify(buttons)}`);
-  else if (/^do it$/i.test(labelFor("yes"))) fail(`the approve button still reads "${labelFor("yes")}" — he asked for "Approve" (INBOX-20260903T142249Z, and he pressed DO NOW on it)`);
-  else if (labelFor("yes") !== "Approve") fail(`the approve button reads "${labelFor("yes")}" — his word is "Approve", exactly`);
-  else pass('the approve button reads "Approve"');
+  else if (/^(do it|approve)$/i.test(labelFor("yes"))) fail(`the first button reads "${labelFor("yes")}" — a bare verb with no number. His 15:56Z ruling: "Replace Approve and Deny with 1 2 3 Other."`);
+  else if (!NUMBERED.test(labelFor("yes"))) fail(`the first button reads "${labelFor("yes")}" — it must open with its number so he can reply "1"`);
+  else pass(`the first button is numbered ("${labelFor("yes")}")`);
 }
 
-// 2/5 — THE DENY BUTTON.
+// 2/5 — THE SECOND BUTTON IS NUMBERED TOO. Same ruling; see the note above case 1.
 {
   if (labelFor("no") === undefined) fail(`no button carries data-choice="no" — the buttons found were ${JSON.stringify(buttons)}`);
-  else if (/^don.?t$/i.test(labelFor("no"))) fail(`the deny button still reads "${labelFor("no")}" — he asked for "Deny"`);
-  else if (labelFor("no") !== "Deny") fail(`the deny button reads "${labelFor("no")}" — his word is "Deny", exactly`);
-  else pass('the deny button reads "Deny"');
+  else if (/^(don.?t|deny)$/i.test(labelFor("no"))) fail(`the second button reads "${labelFor("no")}" — a bare verb with no number. His 15:56Z ruling replaced Approve/Deny with 1 2 3 Other.`);
+  else if (!NUMBERED.test(labelFor("no"))) fail(`the second button reads "${labelFor("no")}" — it must open with its number so he can reply "2"`);
+  else pass(`the second button is numbered ("${labelFor("no")}")`);
 }
 
 // 3/5 — AND THE THIRD BUTTON IS NOT HIS TO LOSE. He named two buttons. A rename that tidied the
