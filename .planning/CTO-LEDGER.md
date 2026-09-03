@@ -7537,3 +7537,24 @@ The verification that bears on this item is the gate, the posed pair, and the li
 one measurement he should see first: the game already collects this, with no third party and no
 consent banner. **And the page is BUILT, NOT SHIPPED** — it is on this branch, not on `main`, so
 `playpastrypirates.com/stats.html` is still a 404 until it merges.
+
+**⛔ AND THE CLOSE GATE COULD NOT CLOSE THIS ITEM — THERE IS A HOLE IN THE ENFORCEMENT, MEASURED
+NOT SUSPECTED.** Run at 09:5xZ against the real tree:
+
+```
+node scripts/wyclau/close_item.mjs --item="admin-console-where" --ceo=159 --commit=b13a68c0
+REFUSED: no open Chart row ("- [ ]") contains "admin-console-where"
+```
+
+**A RULING OF HIS IS NOT A `- [ ]` ROW, so `close_item.mjs` refuses to engage with it at all** —
+and refusing is not the same as gating. The Door says *"close ONLY through the gate"* and the gate
+exists to make a CEO verdict non-optional (`close_item.mjs:5-10`: *"'CEO after every item' was
+ruled twice and lost twice"*). **For work that comes from a ruling rather than a task row, that
+requirement is simply absent**: the only thing standing between a ruling and a `SETTLED` verdict
+is a session hand-editing two markdown tables, which is exactly the shape the gate was built to
+replace. `rulings_triage_check.mjs` catches a ruling left in the WRONG PLACE; **nothing checks
+that a ruling moved to SETTLED had a CEO look at it.** This close therefore went: CEO 159 run and
+filed, verdict acted on, ledger entry written, ruling triaged to SETTLED, `rulings_triage_check`
+green — every step the gate would have demanded, **done by hand because the gate would not take
+it.** That is a good outcome produced by discipline, which this project's own record says is the
+thing that does not survive. **Filed as its own Chart row.**

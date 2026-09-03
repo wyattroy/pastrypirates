@@ -91,6 +91,18 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
+      ⟨`T-206`⟩
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
 - [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
@@ -227,6 +239,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **And CEO 146's caution, which the fix must not flatten:** a circle *stranded away from every
   boat* and a circle *sitting on the wrong boat* are both inside what Wyatt reported, and they may
   not be the same bug. Do not assume one change cures both — measure both columns.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -239,34 +256,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
       Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
       **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
-  TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
-  is the falsifier F5 of that watch's own prediction firing — it predicted a new root page would
-  be called game code, `gear.mjs` said **FULL**, and the reason it gave was **`package.json`
-  alone**. `scripts/qa/gear.mjs:36-37` reads TRACKED changes, so it never saw the new page at all.
-  Only the unrelated ceiling raise in the same pass made the verdict come out right. **A gate that
-  is right for the wrong reason is not protection, it is luck**, and this one decides how deeply
-  every change to this game gets tested (`.claude/hooks/qa-gear-first.cjs` reads it too).
-  **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
-  clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
-  as game code is not a drive-by.
-
-- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
-  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
-  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
-  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
-  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
-  third-party script on the site real players are using — `about.html`, `classic/`, and the new
-  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
-  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
-  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
-  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
-  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
 
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
@@ -382,6 +371,36 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
+
+- [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
+      ⟨`T-204`⟩
+  AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
+  suspected: `node scripts/wyclau/close_item.mjs --item="admin-console-where" --ceo=159
+  --commit=b13a68c0` answers **`REFUSED: no open Chart row ("- [ ]") contains ...`**. A ruling of
+  yours lives in a TABLE, not a `- [ ]` row, so the gate refuses to engage — **and refusing is not
+  gating.** `close_item.mjs:5-10` says in its own header why it exists: *"'CEO after every item'
+  was ruled twice and lost twice."* For work that starts from one of your rulings, the only thing
+  between it and a `SETTLED` verdict is a session hand-editing two markdown tables — the exact
+  shape the gate replaced. `rulings_triage_check.mjs` catches a ruling in the WRONG PLACE;
+  **nothing checks a ruling was CEO'd before it moved.** *(The close that found this did every step
+  the gate would have demanded — CEO 159 run, filed, acted on, ledger written — by hand, because
+  the gate would not take it. Good outcome, produced by discipline, which is the thing this
+  project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
+  `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
+  applies to a task row.**
+
+- [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
+      ⟨`T-205`⟩
+  TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
+  is the falsifier F5 of that watch's own prediction firing — it predicted a new root page would
+  be called game code, `gear.mjs` said **FULL**, and the reason it gave was **`package.json`
+  alone**. `scripts/qa/gear.mjs:36-37` reads TRACKED changes, so it never saw the new page at all.
+  Only the unrelated ceiling raise in the same pass made the verdict come out right. **A gate that
+  is right for the wrong reason is not protection, it is luck**, and this one decides how deeply
+  every change to this game gets tested (`.claude/hooks/qa-gear-first.cjs` reads it too).
+  **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
+  clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
+  as game code is not a drive-by.
 
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
