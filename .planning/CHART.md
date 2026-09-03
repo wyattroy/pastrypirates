@@ -91,6 +91,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] Your ruling: do you want `SCHEDULED` to stop hiding your ideas? **He answered; not yet built.**
+      ⟨`T-139`⟩
+      Measured with the page's own logic when it was put to him: **13 of his 15 ideas were hidden
+      from the Glass, 9 of them by the word `SCHEDULED`**, which the code treated as identical to
+      SHIPPED and CLOSED — against the Charter's own words, *"Every idea gets a visible fate
+      (shipped / scheduled / parked-with-a-reason)"*. A fate is supposed to be VISIBLE; `SCHEDULED`
+      was being used to make one disappear.
+      ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
+      that was its only surface is deleted.
+      **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
+- [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
+      ⟨`T-138`⟩
+      His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
+      before it was put to him, and still true: this game has NO stats or admin page at all** —
+      `stats.html` and `lab.html` do not exist at the repo root.
+      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
+      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
+      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
+      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
+      only surface.** Removing it would have dropped all four off the page he reads, silently, with
+      every gate still green. Its own finding, handed over rather than shipped past.
+      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
+      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
 - [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
       ⟨`T-012`⟩
   IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
@@ -259,6 +282,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -267,6 +295,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
+
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -321,10 +350,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
@@ -400,7 +425,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
-
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -425,7 +449,20 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.1, so its evidence no longer describes this game
-
+- [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
+      ⟨`T-006`⟩
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
+- [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
+      ⟨`T-078`⟩
+  WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
+  carrying an open question. What is proven is what it is NOT: not a font (the same card's bare 🏴
+  was font-drawn in that frame), not a missing file (the same URL painted four times in the CAPTAINS
+  panel of that frame), not an engine difference (the next run's same leg was clean). **Seen once.
+  Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
+  never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
+  Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+- [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
+      ⟨`T-007`⟩
 - [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
       ⟨`T-137`⟩
       ⛔ **RESTORED A SECOND TIME, 2026-09-03T07:0xZ. A SWEEP HAS NOW EATEN THIS ROW TWICE WHILE IT
@@ -447,43 +484,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       file, and inventing a fix underneath it at 7am is how two sessions produce three bugs. Filed
       with the evidence so whoever holds that file can act on it.
       **Sizing: SMALL for the restore (done). The sweep fix is theirs.**
-- [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
-      ⟨`T-138`⟩
-      His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
-      before it was put to him, and still true: this game has NO stats or admin page at all** —
-      `stats.html` and `lab.html` do not exist at the repo root.
-      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
-      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
-      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
-      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
-      only surface.** Removing it would have dropped all four off the page he reads, silently, with
-      every gate still green. Its own finding, handed over rather than shipped past.
-      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
-      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-- [ ] Your ruling: stop `SCHEDULED` hiding your ideas. **His ruling, not yet built.**
-      ⟨`T-139`⟩
-      Measured with the page's own logic when it was put to him: **13 of his 15 ideas were hidden
-      from the Glass, 9 of them by the word `SCHEDULED`**, which the code treated as identical to
-      SHIPPED and CLOSED — against the Charter's own words, *"Every idea gets a visible fate
-      (shipped / scheduled / parked-with-a-reason)"*. A fate is supposed to be VISIBLE; `SCHEDULED`
-      was being used to make one disappear.
-      ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
-      that was its only surface is deleted.
-      **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
-- [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
-      ⟨`T-006`⟩
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
-- [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
-      ⟨`T-078`⟩
-  WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
-  carrying an open question. What is proven is what it is NOT: not a font (the same card's bare 🏴
-  was font-drawn in that frame), not a missing file (the same URL painted four times in the CAPTAINS
-  panel of that frame), not an engine difference (the next run's same leg was clean). **Seen once.
-  Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
-  never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
-  Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
-- [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
-      ⟨`T-007`⟩
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
