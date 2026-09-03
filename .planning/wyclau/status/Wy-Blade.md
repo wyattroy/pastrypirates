@@ -5,29 +5,42 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T18:30:49.603Z	watch 2026-09-03T18:xxZ -- I found a rule on your public rules page that your own game refuses. The page told players 'a berth protects nobody, not even a captain who's already fired up the ovens'. Your SANCTUARY ruling of 2026-08-06 made that false, and the game has refused that attack ever since -- I proved it by running the engine, not by reading it. Fixed in the How-to-play modal (the one source) and the page regenerated from it; pictures of both at phone width. A new check now calls the game's own canAttack() and goes red if the words and the game ever disagree again, in either direction. WHAT I DID NOT DO: I did not tick your ruling off. Your sentence was 'using the latest version of the game', and I have only checked 5 of about 20 statements on that page against the code -- 4 right, 1 wrong. At that rate about three more wrong statements are still up there. Ticking it now would call your instruction done with three quarters unexamined, so the next watch audits the rest and then closes it.
+2026-09-03T19:07:04.377Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
 ```
-(no claim — the Blade watch released T-206 at 2026-09-03T17:5xZ)
+(no claim — the 18:41Z Blade watch released T-216 at 2026-09-03T19:0xZ)
 
-T-206 is OPEN and UNCLAIMED, and it is now blocked on WYATT, not on a session. His two calls are
-live rows on his Your Call card — `qid:t206-which-pages` and `qid:t206-cookie-choice` in
-CHART.md's `## BLOCKED ON WYATT`. Nothing about the Google Analytics tag is installed and nothing
-should be until he answers both.
+T-216 is OPEN and UNCLAIMED, deliberately, for the SECOND time. It is not blocked and it is not a
+stall: the forecast sentence is fixed and gated, and the remainder is named precisely.
 
-⚑ THE ONE OUTSTANDING ACT NEEDS AN ARTIFACT TOOL, WHICH A BELL WATCH DOES NOT HAVE: republish the
-Glass, so those two questions actually appear on his phone. The Glass session was asked by
-cross-session message at 17:5xZ. See .planning/wyclau/GLASS-NOTE.md §1b.
+WHAT THE NEXT WATCH TAKES, and it is narrow:
+  1. Re-check the RIGHT rows in the audit table (.planning/CTO-LEDGER.md, this watch's entry)
+     against the WRITE-SITES of the state each claim reads — never against the comparator or the
+     comment alone. That method rule was earned this watch by getting one wrong exactly that way.
+  2. His ruling on `qid:t216-baker-tiebreak` (CHART.md → BLOCKED ON WYATT) decides whether the page
+     or the engine moves on Best Baker's third tiebreak. Do not pick it yourself.
+
+Then close INBOX-20260902T225008Z through scripts/wyclau/close_item.mjs. Do not tick by hand.
+
+⛔ NOT MINE: the Blade interactive session shipped his DO NOW move-to-top button in 6f526772 and had
+a ten-leg sea trial at sea at 18:45Z. Its browsers are not yours to kill.
 ```
 
 ## Long run in flight (LONG-RUN)
-None recorded.
+```
+{
+  "what": "sea trial, 10 legs",
+  "startedAt": "2026-09-03T18:45:50.754Z",
+  "updatedAt": "2026-09-03T19:04:21.063Z",
+  "progress": "2/10 legs",
+  "staleAfterMinutes": 53
+}
+```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T22:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T222801Z.out/.err, kit: readable)
 2026-09-02T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T225801Z.out/.err, kit: readable)
 2026-09-02T23:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T233801Z.out/.err, kit: readable)
 2026-09-03T00:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T000801Z.out/.err, kit: readable)
@@ -67,4 +80,5 @@ None recorded.
 2026-09-03T17:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T171801Z.out/.err, kit: readable)
 2026-09-03T17:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T173801Z.out/.err, kit: readable)
 2026-09-03T18:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T180801Z.out/.err, kit: readable)
+2026-09-03T18:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T183801Z.out/.err, kit: readable)
 ```

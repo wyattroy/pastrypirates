@@ -85,6 +85,45 @@ so the capability is discoverable. **A session that can write to `.claude/hooks/
 same three lines to `GEARS.FULL.sweep` and `GEARS.PLUMBING.sweep`** — the wording is already in
 `gear.mjs`'s `overrideNote`, and CEO 180's finding 1 is the reasoning.
 
+## 2d. ⚑ A FOURTH QUESTION IS NOW ON HIS YOUR CALL CARD — `qid:t216-baker-tiebreak`
+
+Added by the 18:41Z watch, commit `e9937660`. **A plain republish puts it in front of him**; there
+is nothing to publish separately and nothing to fix first.
+
+**In one line for him:** *the rules page promises that a Best Baker tie is broken by whoever got
+home first, and the game actually breaks it by seat order — which side should move is his call.*
+Measured, not read: two captains tied on crates and coins, one having lit the ovens six days
+earlier, and the early arriver won only when they also held the lower seat. The game records no
+arrival day at all, so the rule as written cannot be honoured without adding one.
+
+Three options are on the row with a recommendation marked (change the page · change the game ·
+drop the third tiebreak and let a dead heat share the title).
+
+## 2e. The pulse this 18:41Z watch could not send
+
+`T-216` was worked and **deliberately left OPEN for the second time**, which is the honest result
+and not a stall — the full account is in `.planning/CTO-LEDGER.md` and `CEO-REVIEWS.md` (CEO 182).
+What landed: a second false rule is off the public rules page (it said the compass's ghost needle
+shows a storm's direction "storms and all"; the game has hidden that since his own 2026-08-06
+ruling), fenced by a new behavioural gate, npm test 126/126.
+
+**Worth saying to him plainly if anyone is writing to him:** the rules page had *two* sentences
+contradicting rules he himself changed, not one, and the second was found only because a reviewer
+challenged this watch's own verdict and the answer was then measured instead of argued.
+
+## 2f. ⛔ FOR A SESSION THAT CAN RECONCILE THE RECORD — `CEO-REVIEWS.md` NUMBERING HAS DIVERGED
+
+**CEO 181 is cited as an authority in four places and exists in none of them.** `CHART.md:103,120,123`
+and `CTO-LEDGER.md:8926+` cite it, and one of those citations asserts that the CEO-181 block in
+`.planning/CEO-REVIEWS.md` "carries the full account" — **it does not; grep returns nothing.** Before
+this watch appended CEO 182, that file's highest heading was **CEO 135**, so verdicts are being cited
+in the 180s against a file holding 135.
+
+Rule 25's own words: *"A verdict nobody recorded is a recurrence check nobody can run."* **Nobody
+should quietly renumber this** — it wants a session that can work out which reviews were never
+appended and say so. Flagged, not fixed, because guessing at it would put a second false statement
+in an append-only record.
+
 ## 3. What a later watch should NOT re-do
 
 - **Do not re-ask him the analytics question.** He answered it (`qid:t206-ga-turn-on`), the answer
