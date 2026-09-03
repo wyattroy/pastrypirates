@@ -184,21 +184,44 @@ export const ID_RE = /`(T-\d{3})`/;
 
    Returns Map<handle, number[]> — every OPEN row's marker line index, in file order. Callers get
    ambiguity (`length > 1`), the slot (`[0]`), and the count from one place. */
+/* Does the row owning line `i` have an UNTICKED checkbox? Walks up to the nearest head.
+ *
+ * ⛔ THIS IS THE ONE OWNERSHIP WALK AND EVERY CALLER USES IT. `chartkeeper.mjs` kept its own
+ * (`headIsOpen`, an eleven-line window) and CEO 165 caught the consequence: `T-122`'s first fix
+ * routed `--order=` through the shared rule and left `--do-now` on the window, **so two
+ * subcommands disagreed about the same row** — measured on a marker 14 lines below its checkbox,
+ * `--order=T-608` exited 0 and `--do-now=T-608` exited 2 *"no OPEN row carries the handle"*.
+ * **The losing one was his DO NOW pin**, the interrupt whose whole point is that he can see it was
+ * taken. Both files also SAID "the eleven-line window is gone" while it was still there.
+ *
+ * ⚠ THE HEADING GUARD STOPS AT ANY LEVEL, INDENTED OR NOT — also CEO 165. The first version tested
+ * `/^## /`, which does not stop at `### ` (`CHART.md` has two) or at an indented `  ## `, so the
+ * walk could cross a heading and adopt a marker from a different block. */
+export function rowIsOpenAt(lines, i) {
+  for (let j = i - 1; j >= 0; j--) {
+    if (/^\s*#{1,6}\s/.test(lines[j])) return false;   // a marker never crosses a heading
+    const h = /^[-*] \[([ xX])\]/.exec(lines[j]);      // column 0 only: a nested list never owns
+    if (h) return h[1] === " ";
+  }
+  return false;
+}
+
 export function openHandleCarriers(chartText) {
   const lines = String(chartText ?? "").split("\n");
   const out = new Map();
+  const add = (h, i) => { if (!out.has(h)) out.set(h, []); out.get(h).push(i); };
   for (let i = 0; i < lines.length; i++) {
+    /* TWO GRAMMARS, BECAUSE `idOfRow` HAS TWO AND THE PAGE USES `idOfRow` — CEO 165's third
+     * unsupported claim. The gate's own PASS line said *"the page and the chartkeeper cannot
+     * disagree"*, and they still could: a row carrying its handle on the CHECKBOX LINE
+     * (`LEAD_ID_RE`) is draggable on his page and `--order=` answered *"no OPEN row carries the
+     * handle"*. **That is `T-122`'s own fault shape, alive inside `T-122`'s fix.** Latent — zero
+     * such rows on either chart today and none in `CHART.md`'s history — and closed anyway,
+     * because "latent" is what the original was, right up until it wasn't. */
+    const lead = /^(?:- \[( )\]\s+|[-*]\s+)`(T-\d{3})`/.exec(lines[i]);
+    if (lead && lead[1] === " ") { add(lead[2], i); continue; }
     const m = /^\s*⟨`(T-\d{3})`[^⟩]*⟩\s*$/.exec(lines[i]);
-    if (!m) continue;
-    let open = null;
-    for (let j = i - 1; j >= 0; j--) {
-      if (/^## /.test(lines[j])) break;              // a marker never crosses a section boundary
-      const h = /^[-*] \[([ xX])\]/.exec(lines[j]);
-      if (h) { open = h[1] === " "; break; }
-    }
-    if (open !== true) continue;
-    if (!out.has(m[1])) out.set(m[1], []);
-    out.get(m[1]).push(i);
+    if (m && rowIsOpenAt(lines, i)) add(m[1], i);
   }
   return out;
 }

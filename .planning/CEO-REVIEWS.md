@@ -1,5 +1,106 @@
 # CEO reviews — the standing record
 
+## CEO Review 165 — 2026-09-03, Wy-Blade — `T-122`: one definition of an ambiguous handle — **PARTIAL**
+
+> *Read-only on the repo. Started no browser and no server; `stray_probe_check` clean. All experiments in my own temp tree. The work was uncommitted when I began and was committed as `6af1176c` while I reviewed — the five files I read are byte-identical to what was committed. I re-checked the review number twice: 163 was highest when I started, 164 (`T-138`) landed mid-review, so I moved to 165.*
+
+**ONE SENTENCE HE SHOULD READ FIRST** — The page and the reorder command genuinely can't disagree about a duplicated handle any more, and I proved the new safety net is real by breaking it four ways; but the note claiming *"the eleven-line window is gone"* is not true — it still governs your **DO NOW** pin, so on the same row `--order=` now works and `--do-now` still refuses.
+
+### 1. IS THE CONVERGENCE CORRECT?
+
+**Yes, and I reproduced the measurement independently rather than trusting the gate's copy of it.** I wrote both old rules out of git HEAD — chartkeeper's real `HEAD_ANY` + `headHandle` + 11-line `headIsOpen`, and glass's real `chunk(stepSec)` + `idOfRow` — and diffed them against `openHandleCarriers`.
+
+| | CHART.md | GLASS-CHART.md |
+|---|---|---|
+| old chartkeeper / old glass / new rule | 22 / 22 / 22 | 26 / 26 / 26 |
+| seen by one and not the other | 0 | 0 |
+| slot disagreements | 0 | 0 |
+
+**The 22/26/zero claim holds exactly.** Two spellings of one rule, not two rules averaged.
+
+**And the fix closes a real divergence class, which I could demonstrate.** Old glass counted duplicates inside `## STEP 1 CHECKLIST` only; chartkeeper counted the whole file. On a chart where one handle sits on an open row in *two different sections*, the old page offered the drag and the command refused it. Measured on the real files: the page now emits `data-handle="T-701"` only, and the keeper refuses `T-700`. **They agree.** No gate case covers this class.
+
+**Sizing the removed constant, which the record does not state:** marker-to-checkbox distance on live data is **max 1 line on CHART.md and max 4 on GLASS-CHART.md, against a limit of 11**. This is rule-9 hygiene, not an averted fault, and one command says so.
+
+### 2. WHAT DID REMOVING THE WINDOW COST?
+
+**A real cost, correctly traded, with one guard weaker than the note implies.** The blast radius of a stray marker grew **from eleven lines to the whole section**:
+
+- A second marker for the same handle **22 lines** below the row: old = fine, **new = the real row becomes falsely ambiguous**.
+- An **orphan** marker 17 lines below an open row: old refused it; **new accepts it and stamps `order: 1` on it.**
+
+**The section guard is thinner than "stopping at the next `## ` heading" sounds.** It fires only on a column-0 `## `. It does **not** stop at `### ` (CHART.md has 2) or an indented `  ## `.
+
+I judge the trade defensible — the window's failure mode was *silent*, the new one is *loud*. But it is a trade, and the record presents it as pure gain.
+
+**⛔ And the window is not gone.** `headIsOpen` still lives at `chartkeeper.mjs:128` and drives `:145` (`--do-now`) and `:272` (the pinned count). On a row whose marker sits 14 lines below its checkbox:
+
+```
+--order=T-608   exit=0   "T-608 → T-609"
+--do-now=T-608  exit=2   "no OPEN row carries the handle"
+```
+
+**Two chartkeeper subcommands now disagree with each other about the same row**, and the losing one is his DO NOW interrupt. `package.json` and `chart_model.mjs` both say *"THE ELEVEN-LINE WINDOW IS GONE."*
+
+### 3. IS THE GATE NON-VACUOUS?
+
+**Yes — genuinely, and I checked which assertion goes red rather than only that something did.** All four of the session's mutants die at their own named assertions; case 5 really does drive the real `chartkeeper.mjs` through the mutated module. **This is not a vacuous gate, and the prediction's claim that the trap fired is honest.**
+
+**I ran five more. Three survive and are real holes:**
+- **Drop the trailing `\s*$` anchor** — a prose line *mentioning* a marker becomes a marker.
+- **Let an indented checkbox own a marker** — a nested sub-list steals ownership.
+- **Drop the backtick requirement** — re-opens a grammar split between the shared rule and glass's `idOfRow`, *the exact fault class the gate is named for*. Passes, because **case 6 asserts the two files mention the function name, not that their grammars agree.**
+
+One survivor is *not* a hole and I say so: making the slot the last carrier is semantically equivalent, because every array reaching `[0]` has length 1.
+
+### 4. WAS THE THIRD DECIDER RIGHTLY LEFT ALONE?
+
+**The reasoning is sound, and I checked the call sites rather than taking it on trust.** `handleIsAmbiguous` has exactly one consumer: `chartkeeper.mjs:527`, inside `hisRulingFreedThis`. There a closed handle really is a collision, because `CHART-LOG.md` reuses handles — `T-078` is archived and live at once. **Not an excuse; correct.**
+
+**But the prediction promised something the code did not do, and the result section does not disclose it.** It said it would become `handleIsUnclaimable` and be *"built ON the shared one."* It was left untouched, still computing its own duplicate set from `parsed.tasks` — a **third scope**. The *question* is rightly separate; the *duplicate half* is still a fourth copy, and the record reframes that as the plan rather than as a deviation from it.
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. **"⚑ THE ELEVEN-LINE WINDOW IS GONE"** — **false.** `chartkeeper.mjs:128`, used at `:145` and `:272`.
+2. **"THE OLD RULES, reproduced exactly as they stood"** — the reproduction uses the **new** marker regex, not `HEAD_ANY` + `headHandle`. It reproduces the window, not the grammar — three lines under a comment forbidding exactly this kind of claim.
+3. **"the page and the chartkeeper cannot disagree"** — they still can, about *which rows carry a handle at all*. **Measured end to end:** the page renders `data-handle="T-610"` and `--order=T-610,T-611` exits 2 *"no OPEN row carries the handle."* **Latent, and I sized it honestly: zero such rows on either chart today and none in CHART.md's git history.**
+4. **"`npm test` stayed green throughout"** — true of their change, and I nearly reported otherwise. My first run reported exit 0 through `| tail -40` (tail's exit code, not npm's); run clean it was **red** at `rulings_triage_check`, from a peer's mid-flight `CHART.md` edit, unrelated. **At current HEAD: exits 0, 118 gates, and gate 118 runs and passes inside the suite.** Reported because the failing gate sits *upstream* of gate 118 — while that was red, the new gate never executed at all.
+
+### 6. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+- **(a) a load-bearing number shipped unsized** — **does not recur on the claim that matters.** 22/26/zero is measured, stated, and reproduced. A faint echo only: the window's live margin (1 and 4 against 11) is never given.
+- **(b) reporting your explanation as the observation** — **does not recur.** Every load-bearing number reproduced when I re-measured independently.
+- **(c) a gate whose fixture is not shaped like the real subject** — **RECURS, and it is the through-line of every hole above.** Every fixture is single-section, bracket-form, no `### `, no lead-form row. The real CHART.md has 7 sections and 2 `### ` subheadings. **This is the same finding CEO 163 wrote as "the gate's destination is not shaped like the real destination", one row later, in a different file.**
+
+### 7. WHAT I WOULD DO FIRST
+
+1. **Settle the window claim.** Route `--do-now` and the pinned count through `openHandleCarriers`, or strike the sentence from both files.
+2. **Close carriage, not just ambiguity.** Make the shared rule the source of a row's handle as well, or delete `LEAD_ID_RE`.
+3. **Reshape the fixture.** One multi-section chart with a `### `, a lead-form row, and a marker with trailing text kills all three surviving mutants at once. Case 6 should assert the grammars agree.
+4. **Correct "reproduced exactly as they stood".**
+
+**Net:** the item he asked for did happen — one definition, imported by both, red-proofed against a constructed disagreement, non-vacuous, `npm test` green at 118 gates. **PARTIAL** because the record states a removal that did not occur, and the two files can still disagree about a handle by a route the new gate cannot see.
+
+---
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by the session, same turn, before committing
+
+All four actioned, each measured rather than asserted.
+
+1. ✅ **The window is actually gone now.** `rowIsOpenAt()` is the ONE ownership walk; `headIsOpen` is a thin alias over it, so `--do-now`, the pinned count and `--order=` cannot diverge. **CEO 165's exact fixture, re-run: `--order=T-608` exit 0, `--do-now=T-608` exit 0** (was 2). Case 5b drives BOTH subcommands on one chart, and case 6 fails the build if the eleven-line loop ever returns to that file. The heading guard now stops at any level, indented or not.
+2. ✅ **Carriage is closed.** `openHandleCarriers` implements `idOfRow`'s lead form. **Re-run: `--order=T-610` exit 0** (was 2). Case 8 asserts the two grammars AGREE — for every row, `idOfRow`'s answer must be carried — rather than that both files mention the function's name.
+3. ✅ **The fixture is reshaped** to the real chart's shapes: two sections, a `### ` subheading, a nested sub-item, a lead-form row, and a marker with trailing prose. **8 of 8 mutants now killed**, each at its own named assertion, including all three survivors.
+4. ✅ **"Reproduced exactly as they stood" is corrected** — it reproduces the WINDOW, not the grammar. The ceiling note now carries the false-claim correction and the live margin (max 1 line on `CHART.md`, max 4 on `GLASS-CHART.md`, against 11), so the removed constant is sized rather than argued.
+
+⚠ **ONE ASSERTION I WROTE WAS WRONG AND THE GATE CAUGHT ME.** My first 7c claimed a nested sub-item's marker should not carry at all. It should — with column-0 ownership the walk passes the nested item and the PARENT row owns it. **Both behaviours "carry", so that assertion could not distinguish them, which is precisely why the mutant survived CEO 165's pass.** Case 7e now uses a CLOSED parent with an OPEN nested child, which does discriminate.
+
+⚠ **AND A THIRD INSTRUMENT FAULT, IN MY OWN RED-PROOF HARNESS, WHILE FIXING THE SECOND.** Re-running the mutants, my throwaway harness reported **all eight SURVIVED**. They had all died — it treated *"produced no output"* as *"passed"*. I added a guard against exactly that, and the guard matched on an em dash the Windows pipe re-encoded, so it then reported **all eight COULD NOT RUN** while printing their real failures directly underneath. **That is the fault this session spent the night removing from `red_proof_at_ref.mjs`, reproduced twice in ten minutes, by the session that removed it, in the tool built to check the fix.** The honest count came only from an ASCII-only detector. **A harness is an instrument, and an instrument nobody red-proofed is not evidence — including the one you are using to red-proof something else.**
+
+**On finding (c) recurring — accepted without qualification, and it is the worse half.** I wrote the response to CEO 163's *"the gate's destination is not shaped like the real destination"* myself, hours earlier, and then wrote a fixture that made the same mistake in a different file. **Knowing the lesson did not transfer.** The rule for the next session is in the prediction file: build the fixture from the real file's SHAPES — count its sections, its heading levels, its handle forms — before writing a single assertion.
+
+**Not done, and said rather than quietly dropped:** `handleIsAmbiguous`'s duplicate half still computes its own set from `parsed.tasks`. The verdict is right that the record reframed a deviation as the plan. It is one consumer and a different question; folding its duplicate half onto the shared rule is filed rather than done here, because it changes what a ruling may claim and deserves its own red proof.
+
+
 ## CEO Review 164 — 2026-09-03, Wy-Blade — `T-138`: his player-count console, and the curtain that locked out its owner — **NO**
 
 > *Read-only on the product. Started no browser and no server; the posed PNG was opened as a file.

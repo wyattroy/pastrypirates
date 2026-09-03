@@ -61,7 +61,7 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ID_RE, bodyOf, chunk, dropSection, idOfRow, openHandleCarriers, overlap, parseChart,
-  replaceSection, rowKey, section, tableRows, titleOf, tokens,
+  replaceSection, rowIsOpenAt, rowKey, section, tableRows, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -125,13 +125,14 @@ const headPin = (inner) => `${headUnpin(inner)} · now: yes`;
 const headHandle = (inner) => (/T-\d{3}/.exec(inner) || [])[0] ?? null;
 /* A pin belongs on an OPEN row. Scanning back to the nearest checkbox is how this file already
    decides what a head line belongs to, and it means a pin can never be parked on finished work. */
-const headIsOpen = (lines, i) => {
-  for (let j = i - 1; j >= 0 && j > i - 12; j--) {
-    const m = /^[-*] \[([ xX])\]/.exec(lines[j]);
-    if (m) return m[1] === " ";
-  }
-  return false;
-};
+/* ⛔ THE ELEVEN-LINE WINDOW IS ACTUALLY GONE NOW, AND THE FIRST FIX ONLY CLAIMED IT WAS.
+   `T-122` routed `--order=` through the shared rule and left THIS on its own window, so
+   `--do-now` and the pinned count went on using it while two files said it had been removed.
+   CEO 165 measured the consequence on a marker 14 lines below its checkbox: `--order=T-608`
+   exit 0, `--do-now=T-608` exit 2 "no OPEN row carries the handle". **Two subcommands
+   disagreeing about the same row, and the losing one is his DO NOW pin.**
+   Now a thin alias over the shared walk, kept only so the three call sites below read the same. */
+const headIsOpen = (lines, i) => rowIsOpenAt(lines, i);
 
 {
   const wanted = opt("do-now", null);

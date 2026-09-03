@@ -28,16 +28,20 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ambiguousHandles, openHandleCarriers } from "../wyclau/lib/chart_model.mjs";
+import { ambiguousHandles, idOfRow, openHandleCarriers } from "../wyclau/lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const KEEPER = join(ROOT, "scripts", "wyclau", "chartkeeper.mjs");
 const fails = [];
 const dir = mkdtempSync(join(tmpdir(), "one-ambig-"));
 
-/* THE OLD RULES, reproduced exactly as they stood, so a case can show them disagreeing. Kept here
-   rather than described, because a comment claiming what code used to do is the thing rule 6's
-   other half forbids — this one can be RUN. */
+/* THE OLD WINDOW, reproduced so a case can show it disagreeing. Kept here rather than described,
+   because a comment claiming what code used to do is the thing rule 6's other half forbids — this
+   one can be RUN.
+   ⚠ AND THE FIRST VERSION OF THIS COMMENT OVERCLAIMED, THREE LINES UNDER A COMMENT FORBIDDING
+   EXACTLY THAT (CEO 165): it said *"the old RULES, reproduced exactly as they stood"*. It
+   reproduces the eleven-line WINDOW, not chartkeeper's `HEAD_ANY` + `headHandle` GRAMMAR. No
+   assertion below is weakened by the difference, and the sentence was still wrong. */
 const oldKeeperRule = (text) => {                       // chartkeeper's 11-line window
   const lines = text.split("\n"), carriers = new Map();
   const headIsOpen = (i) => {
@@ -114,6 +118,19 @@ try {
     if (code !== 0 || /no OPEN row/.test(out)) {
       fails.push(`5: --order= still refuses a handle the page offers as draggable (exit ${code}): ${out.trim().slice(0, 200)}`);
     }
+    /* ⛔ 5b — AND EVERY SUBCOMMAND MUST AGREE, NOT JUST `--order=`. CEO 165: the first fix routed
+       `--order=` through the shared rule and left `--do-now` on its own eleven-line window, so on
+       THIS VERY FIXTURE `--order=T-301` exited 0 while `--do-now=T-301` exited 2. **Two
+       subcommands disagreeing about the same row, and the losing one is his DO NOW pin** — the
+       interrupt whose entire purpose is that he can see it was taken. */
+    let dnCode = 0, dnOut = "";
+    try {
+      dnOut = execFileSync(process.execPath, [KEEPER, `--chart=${chartPath}`, "--do-now=T-301"],
+        { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    } catch (e) { dnCode = e.status ?? 1; dnOut = `${e.stdout ?? ""}${e.stderr ?? ""}`; }
+    if (dnCode !== 0) {
+      fails.push(`5b: --do-now refuses a row --order= accepts (exit ${dnCode}) — his DO NOW pin and his drag disagree about the same row: ${dnOut.trim().slice(0, 160)}`);
+    }
   }
 
   // 6 — BOTH CALLERS IMPORT IT. A shared definition nobody imports is a copy with extra steps,
@@ -124,6 +141,83 @@ try {
     const glass = readFileSync(join(ROOT, "scripts", "wyclau", "glass.mjs"), "utf8");
     if (!keeper.includes("openHandleCarriers")) fails.push("6: chartkeeper.mjs no longer imports the shared rule — it has its own again");
     if (!glass.includes("ambiguousHandles")) fails.push("6: glass.mjs no longer imports the shared rule — the page decides on its own again");
+    /* ⛔ AND THE WINDOW MUST BE GONE FROM THE FILE, not merely from the one subcommand this gate
+       first looked at. Both `package.json` and `chart_model.mjs` claimed it was removed while
+       `chartkeeper.mjs:128` still carried it (CEO 165). */
+    if (/j >= 0 && j > i - 12/.test(keeper)) {
+      fails.push("6: chartkeeper.mjs still carries its own eleven-line window — --do-now and --order can disagree about the same row again");
+    }
+  }
+
+  /* 7 — THE SHAPES THE FIRST FIXTURE DID NOT HAVE, AND EVERY ONE OF THEM HID A LIVE MUTANT.
+   *
+   * ⛔ CEO 165's through-line, and it is CEO 163's finding one file later: **a gate whose fixture
+   * is not shaped like the real subject.** Every case above was a single-section chart with
+   * bracket-form handles, no `### `, no nested list, no trailing text. The real `CHART.md` has
+   * seven sections and two `### ` subheadings, and `idOfRow` carries a SECOND grammar. Three
+   * mutants survived the first red proof, and all three lived in a shape the fixture lacked. */
+  {
+    const md = [
+      "# CHART", "", "## STEP 1 CHECKLIST", "",
+      "- [ ] `T-620` **Handle on the checkbox line — idOfRow's LEAD form.**",
+      "      body.",
+      "- [ ] **A marker with trailing prose after it.**",
+      "      ⟨`T-621`⟩ and then some words on the same line.",
+      "      ⟨`T-622`⟩",
+      "  - [ ] **A NESTED sub-item, indented.**",
+      "      ⟨`T-623`⟩",
+      "",
+      "### A SUBHEADING — not a section break to a naive /^## / test",
+      "",
+      "      ⟨`T-624`⟩",
+      "",
+      "## ANOTHER SECTION", "",
+      "- [ ] **A row in a different section.**",
+      "      ⟨`T-625`⟩", "",
+    ].join("\n");
+    const c = openHandleCarriers(md);
+    if (!c.has("T-620")) fails.push("7a: a row carrying its handle on the CHECKBOX line does not carry — the page offers that drag through idOfRow and the command would refuse it");
+    if (c.has("T-621")) fails.push("7b: a marker line with trailing prose was read as an owner — any sentence mentioning a handle could claim a row");
+    if (!c.has("T-622")) fails.push("7b: the real marker on the next line was lost");
+    if (!c.has("T-623")) fails.push("7c: a marker under a nested sub-item lost its PARENT row's ownership — the walk stopped at something that is not a row head");
+    if (c.has("T-624")) fails.push("7d: a marker below a '### ' subheading was adopted by the row above it — the guard only stopped at '## '");
+    if (!c.has("T-625")) fails.push("7d: a row in a second section lost its own marker");
+  }
+
+  /* 7e — AN INDENTED CHECKBOX IS NOT A ROW HEAD, and this is the case that actually discriminates.
+   * My first attempt asserted a nested sub-item's marker should not carry AT ALL — wrong, and the
+   * gate caught me: with column-0-only ownership the walk passes the nested item and the PARENT row
+   * owns the marker, which is right. Both behaviours "carry", so that assertion could not tell them
+   * apart, which is exactly why the mutant survived CEO 165's pass.
+   * The discriminator is a CLOSED parent with an OPEN nested child: correct code walks past the
+   * child to the closed parent and refuses; code that let an indented box own would find the open
+   * child and carry. **"It went red" is only evidence when the case can distinguish the two.** */
+  {
+    const md = [
+      "# CHART", "", "## STEP 1 CHECKLIST", "",
+      "- [x] **A CLOSED parent row.**",
+      "  - [ ] **an open nested sub-item**",
+      "      ⟨`T-626`⟩", "",
+    ].join("\n");
+    if (openHandleCarriers(md).has("T-626")) {
+      fails.push("7e: an INDENTED checkbox owned a marker — a nested sub-item inside a CLOSED row made its handle live");
+    }
+  }
+
+  /* 8 — THE TWO GRAMMARS MUST AGREE, which is what case 6 only LOOKED like it checked.
+   * `glass.mjs` takes a row's handle from `idOfRow`; the shared rule must carry every handle
+   * `idOfRow` would name, or the page renders a drag the command cannot resolve — `T-122`'s own
+   * fault shape, alive inside `T-122`'s fix. CEO 165 measured it end to end before it was closed:
+   * the page emitted `data-handle="T-610"` and `--order=T-610` exited 2. */
+  {
+    const rows = [["- [ ] `T-630` **lead form**", "      body."],
+                  ["- [ ] **bracket form**", "      ⟨`T-631`⟩"]];
+    const md = `# CHART\n\n## STEP 1 CHECKLIST\n\n${rows.map((r) => r.join("\n")).join("\n")}\n`;
+    const carried = openHandleCarriers(md);
+    for (const r of rows) {
+      const id = idOfRow(r);
+      if (id && !carried.has(id)) fails.push(`8: idOfRow names ${id} but the shared rule does not carry it — the page would offer a drag the command refuses`);
+    }
   }
 } finally {
   rmSync(dir, { recursive: true, force: true });
