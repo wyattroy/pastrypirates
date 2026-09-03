@@ -1,5 +1,75 @@
 # CEO reviews — the standing record
 
+## CEO Review 182 — 2026-09-03, Wy-Blade — Advisor, three asks: the browser reaper · "every row moveable" · removing the drag — **PARTIAL**
+
+**HIS REQUESTS, VERBATIM.** (1) *"did you fix this problem so that there are never any abandoned browsers hitting my laptop anymore?"* (2) *"it looks like not all the Glass Chart rows have buttons next to them that allow them to be moved up; but they all need to be moveable. can you explain why, and design an elegant solution?"* → his pick from the numbered options: **"Give every row a real tag."** (3) *"you can remove the dragging feature from the Chart -- it was really buggy and didn't work as intended. we'll just use the arrows"*
+
+**Its verdict is reproduced below IN ITS OWN WORDS, unedited** (rule 25: a kind paraphrase makes the mechanism theatre, and the paraphraser is the one with the motive). It ran no browsers and no servers; every mutation was made in an isolated copy under the scratchpad.
+
+---
+
+**The one sentence:** *The arrows work and I counted them myself — 68 rows, 68 buttons, and the drag is genuinely gone — but the browser-killer that now runs unattended on your laptop at the end of every turn has exactly one safety check standing between it and killing browsers somebody is using, and I broke that safety on purpose in a copy and the check still said PASS.*
+
+### What held up — verified, not taken on trust
+
+- **The reaper is real and restrained.** Ran it live: `stray probes: 19 debug-port browser(s) up, every one with a live launcher — in use, not abandoned. Nothing killed.` It discriminates.
+- **Wiring is real.** `.claude/settings.json` — Stop and SubagentStop both carry it.
+- **Better than claimed:** `stray_probe_reaper_check` runs at position **2** of 129, not "gate 128". I predicted it would be silenced by the failing chart gate at position 110. **I was wrong** — it cannot be. Correcting the record in your favour.
+- **The drag is genuinely deleted.** I rendered your Glass and counted: **0** occurrences of `addEventListener("pointermove")`. **68 `▲ top` buttons across 68 rows, 0 rows without.** Your headline claim is true.
+- **The handle-assigner's write guard is real.** I built an isolated copy with your adversarial cases — two rows word-for-word identical, a row with no owner line — ran `--write`, and diffed. Clean: 4 handles added, no weld, no row lost.
+
+### ⛔ Finding 1 — the sixth, and it is the safety gate itself
+
+`scripts/qa/stray_probe_reaper_check.mjs:57` is the case your own commit calls *"⛔ THE RESTRAINT IS PART OF THE CONTRACT, NOT A DETAIL."* In an isolated copy I replaced the selection at `kill_stray_probes.mjs:44` with `probes.slice()` — a reaper that kills **every debug browser on the machine, including your sea trial and any posed board**.
+
+The gate printed: `PASS  it kills orphans only — a probe with a live launcher is in use and is left alone.`
+
+Why: the regex is also satisfied by `kill_stray_probes.mjs:67`, the after-the-fact recount. Delete the real filter, keep the counter, gate stays green. The other two cases are sound — I mutated them too (unwired SubagentStop → FAIL; moved off position 1 → FAIL). **Only the one that matters is vacuous, and it guards a process that runs unattended on his laptop every turn.**
+
+### ⛔ Finding 2 — a gate still enforcing the drag, and its PASS is manufactured by prose
+
+`do_now_check.mjs:435` requires `pointermove` in the page and prints `PASS  the drag is wired with pointer events: one path for mouse and touch`. I grepped the rendered page: **all 5 hits are prose** — three code comments, and **two from the Chart note that announces the drag's deletion** ("DRAG REMOVED: 62 lines of pointerdown/pointermove/drop…"). So a gate's verdict is now controlled by the text of Wyatt's Chart; edit that note and the suite goes red claiming the drag is broken on iOS.
+
+It also directly contradicts the case you repointed: `:435` fails if `pointermove` is absent, `:537` fails if it is present. And `:438` still demands `touch-action:none` "on a draggable row". You repointed one case and left two, 100 lines above it.
+
+### Finding 3 — "every row is moveable" is a snapshot, not a property
+
+`glass.mjs:1395-1400` still emits the button only `t.handle ? … : ""`. `assign_handles.mjs` is referenced by **nothing** — no npm script, no hook, no gate, no doc — has **no `--chart=` flag** so it can only ever run against the live Chart and can never be tested, and nothing writes a ⟨T-nnn⟩ onto a newly harvested inbox idea. **The next idea Wyatt types into the Glass has no ▲ button.** He asked for an elegant solution; what shipped is a one-shot sweep somebody has to remember.
+
+### Finding 4 — the splitter can rename the wrong row
+
+Demonstrated in the copy: where a row that merely *mentions* ⟨T-017⟩ sits above the row whose owner line *declares* it, the mentioner keeps the identity and **the real owner is renamed**. The file header promises the opposite (`assign_handles.mjs:23-25`). T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`. The real splits renamed owner lines correctly, so this did not fire — but the mechanism is live, and nothing records the T-017 → T-235/T-237 mapping outside one commit message.
+
+### Finding 5 — partial write across two charts, no backup
+
+`assign_handles.mjs:161-172`: `writeFileSync` sits inside the per-file loop and the refusal exits per file. `.planning/GLASS-CHART.md` **exists**. CHART.md writes, GLASS-CHART.md refuses, exit 1 — first file already changed, message says nothing was written.
+
+### Finding 6 — the reaper reports kills it did not make
+
+`scripts/lib/stray_probes.mjs:58-60`: `process.kill(pid,0)` inside a bare `try` returns `true` on **any** throw, EPERM included. Another user's browser it cannot kill is counted as killed.
+
+### Finding 7 — `npm test` is RED right now, and it is NOT this work
+
+Exit 1 in PowerShell, same in Git Bash, at `chart_sweep_conserves_check`: *"2 allocated handle(s) are owned by NOTHING — T-233, T-234 … the one failure a sweep cannot undo."* I traced it: T-233/T-234 are **absent** from `CHART.md` at `091120be` and present at HEAD — added by a later peer commit as prose describing a reverted incident. **Not caused by asks 1–3.** Saying so explicitly so it is not misattributed to you — but the shared branch is red.
+
+### Finding 8 — the Door still teaches the drag
+
+`.claude/skills/door/SKILL.md:194`: *"a row he has dragged to the top on the Glass is pinned there; his drag beats the score."* The `order:` mechanism survives; the gesture does not. This is the one file every session enters through. Also cosmetic leftovers: `glass.mjs:1400` still stamps `class="drag"` on every row, `:1982` binds a pointerdown guard against a gesture that is gone, `chartkeeper.mjs:258` still tells him *"Anything you did not drag keeps its derived rank."*
+
+### Recurrence vs 178 / 176 / 174
+
+**The recurring fault recurs, at its sixth level and in its worst location yet.** 174–178 each found a gate or file enforcing something he had reversed, or an instrument reporting what it could not observe. Here it is both at once: Finding 2 is a gate enforcing the reversed drag *whose green is produced by the obituary of the thing it checks for* — rule 6's "a comment is not a measurement," now load-bearing in a build gate. And Finding 1 is worse in consequence: an instrument certifying a safety property it structurally cannot see, protecting something that runs on his laptop unattended.
+
+### NET: **PARTIAL**
+
+Asks 2 and 3 are substantially delivered and honestly measured. Ask 1's headline is true — abandoned browsers now die without anyone remembering — but the single guard that makes it safe to run unattended cannot fail.
+
+**What I would do first, in order:** (1) fix `stray_probe_reaper_check.mjs:57` so the mutation I made goes red — anchor it to the assignment, not any `.filter`; (2) delete or repoint `do_now_check.mjs:435-441`; (3) tell him plainly that the next idea he files will arrive with no ▲, and decide with him whether the button should fall back to a row-index handle rather than vanishing.
+
+---
+
+**ACTED ON — what happened after the verdict** *(filled in by the Advisor as each was addressed; see the ledger for the diffs)*:
+
 ## CEO Review 181 — 2026-09-03, Wy-Blade — Bell watch, `T-216` / `INBOX-20260902T225008Z`: the rules page, "using the latest version of the game" — **PARTIAL**
 
 **HIS REQUEST, VERBATIM** (`INBOX-20260902T225008Z`, Glass ruling `rules-page-1-of-4`, 2026-09-02T22:50:08Z): *"Do a new /rules.html that explains the rules -- using the latest version of the game."*
