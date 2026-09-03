@@ -263,6 +263,308 @@ item."* Filed here 2026-09-03T04:1xZ by the Advisor, which is a session that can
 not a standing fact about the world — and a permission that only blocks the sessions who need to
 record something guarantees it never gets recorded. **When a watch cannot write a ruling down, the
 ruling does not wait politely; it gets re-derived wrongly by the next session that needs it.**
+## CRATE LANGUAGE — HIS 31 RULINGS AND THE FLAVOUR WORDS, 2026-09-03
+
+Rulings page (db-backed, tap to rule): https://claude.ai/code/artifact/15a5f335-6746-4fda-a80f-63fee9511fb0
+Read them back with the Artifact tool: `action:"read_db"`, `db_op:"list"`, `collection:"decisions"`.
+
+**ALL 31 RULED, 19:39–19:43 on 2026-09-03: r01–r18 CHANGE, r19–r29 KEEP, r30 and r31 CHANGE.**
+That is: every player-facing "crate" becomes "ingredient" EXCEPT the bake-off (his cup-and-ball
+reason), "each island holds only a few crates" (a unit of supply), the artwork alt text and the
+asset filename.
+
+### ⚠ r30 IS SUPERSEDED BY HIS OWN LATER IDEA — and the later one is better
+
+r30 said the container words survive only in the dock's arrival line. **He then reversed it:** keep
+them everywhere AND reshape them so they teach the crate early — *"they should ALSO introduce the
+idea that you buy a crate of an ingredient, so that this doesn't come completely out of the blue at
+the end of the game during the bakeoff."*
+
+**Why the reversal is right, and it is a fact rather than a preference:** `dockFlavor` is used in
+exactly THREE places — the dock narration (`src/ui/util.js:458`), the **buy prompt**
+(`src/ui/flow.js:1721`), and the black-market prompts (`src/ui/flow.js:1601-1602`). Restricting it to
+the arrival line would have removed it from the buy prompt, which is the one moment a player actually
+acquires a crate. **The teaching moment was the thing r30 would have deleted.**
+
+### HIS WORDING (supersedes my longer draft)
+
+```
+a crate of Crystal Sugar        a crate of Milk Jugs         a crate of Cinnamon Sticks
+a crate of Wheat Sheaves        a crate of Cacao Pods        a crate of Sand-Speckled Eggs
+a crate of Vanilla Beans
+```
+
+Measured: **24.0 chars average**, against 25.9 today and 30.3 for my draft — his "shorter, easier to
+read" is correct and his is the shortest of the three. Structure is unchanged: `DOCK_FLAVOR` stays
+`{prefix, name}` because the ingredient icon is inserted BETWEEN them (F5, 2026-07-29), so "a crate
+of" is simply the prefix for all seven — which also removes the `eggs` asymmetry (its old prefix "a
+dozen" carried no "of").
+
+**IT FIXES TWO EXISTING MISMATCHES:** `cocoa` was "Luscious Cacao **Beans**" while `ING_NAME` says
+"Cacao Pods" and the art draws a pod; `vanilla` was "Velvety Vanilla Beans" against a card reading
+"Vanilla Beans". Both now match exactly. **It breaks two** by dropping an adjective the card keeps
+(Fresh Milk → Milk Jugs, Toasty Wheat → Wheat Sheaves) — net 3/7 exact before and after, but trading
+*wrong noun* mismatches for *dropped adjective* ones, which a player reconciles instantly.
+
+**EGGS SETTLED 2026-09-03: `a crate of Speckled Eggs`** — he dropped "Sand-". 24 chars instead of
+29, consistent with the other six, and a fourth exact match with the recipe card. Final set:
+
+```
+a crate of Milk Jugs      a crate of Cinnamon Sticks    a crate of Wheat Sheaves
+a crate of Cacao Pods     a crate of Speckled Eggs      a crate of Vanilla Beans     [sugar OPEN]
+```
+
+**SUGAR SETTLED 2026-09-03: `a crate of Sugar Cane`.** Art studies:
+https://claude.ai/code/artifact/375cc93e-d955-483f-9af5-2107123340c0
+
+**THE FULL SET IS CLOSED:**
+
+```
+a crate of Sugar Cane     a crate of Milk Jugs       a crate of Cinnamon Sticks
+a crate of Wheat Sheaves  a crate of Cacao Pods      a crate of Speckled Eggs
+a crate of Vanilla Beans
+```
+
+### HOW HE GOT THERE — the reasoning outlives the answer, and it is a STRUCTURAL find
+
+Five rounds went into hunting a prettier word — cubes, loaves, lumps, bricks, gems, pearls — and every
+one felt slightly wrong. **He found the actual cause himself:**
+
+> *"we already are going off the raw ingredients for milk (which turns into butter) and cacao pods
+> (which turns into chocolate) and wheat (which turns into flour) -- what if we did sugar cane too?"*
+
+**Verified against the data: six of the seven ingredients name the RAW thing the baker transforms.
+Sugar was the only one naming the FINISHED product.**
+
+| game name | becomes | |
+|---|---|---|
+| Toasty Wheat | flour | raw — the baker mills it |
+| Fresh Milk | butter & milk | raw — the baker churns it |
+| Cacao Pods | chocolate | raw — the baker makes chocolate from it |
+| Vanilla Beans | vanilla | raw — off the vine |
+| Hot Cinnamon | cinnamon | raw — bark, dried |
+| Speckled Eggs | eggs | already the ingredient |
+| **Crystal Sugar** | sugar | **REFINED — the odd one out** |
+
+`Cacao Pods → chocolate` asks a player to imagine a transformation. `Crystal Sugar → sugar` asks
+nothing, because it has already arrived. **"Crystal Sugar" was a lovely name for the wrong thing.**
+Cane also earns the setting — the Sugar Seas are the Caribbean and cane is what grew there — and it
+sidesteps the delicious-vs-accessible tension entirely: nobody needs to find *cane* delicious, any
+more than *cacao pods*. `ING_NAME.sugar` moves to "Sugar Cane" so the card and the dock agree, and the
+gloss reads cane → sugar like pods → chocolate.
+
+**GRAVEYARD — five words he rejected and exactly why, so nobody re-proposes them:**
+*Sugar Cubes* — **"no one would ever bake with sugar cubes"** · *Sugar Loaves* — **"sounds like a
+finished bakery product... poorly designed for this game's user"** (loaf primes BREAD, in a baking
+game — the historically perfect answer was the worst-designed one) · *Sugar Lumps* — not delicious ·
+*Sugar Casks* — hard to picture · *Sugar Jars* — weird · *Sugar Bricks* — closest of that batch, but
+"brick isn't delicious" · *Sugar Gems* — he approved it, then withdrew it the same minute:
+**"as a human, it just doesn't quite make intuitive sense"** (gems read coloured; sugar is white).
+
+**MY OWN WRONG CONSTRAINT, recorded because it cost rounds:** I insisted every crate hold *countable
+plural things*, which is why I kept pushing Cubes/Lumps/Pearls. It was tidiness, not a rule, and the
+answer he chose is a mass noun. **Do not let that pattern outvote his ear again.**
+
+### THE ART IS OPEN — ten studies published, none chosen
+
+`assets/ingredients/sugar.png` must be redrawn: he volunteered it (*"the art is a sugar cube because
+i couldn't think of anything else"*). **The one real risk is that cane and wheat are the two closest
+silhouettes in the set** — both bundled plant stalks at 26px. Ten vector studies are published at the
+link above, each shown at 26px, 44px and beside the real wheat icon, spanning standing sheaf (the risk
+drawn on purpose), stacked billets, single diagonal, crossed pair, tied bundle, leaf spray, fanned
+billets, cane-with-a-spill, end-on stub and purple-node pair.
+
+**They are VECTOR studies, not finished art** — this session cannot paint raster icons. They settle
+silhouette, composition and colour; the winner still needs painting. Palette sampled from the shipped
+assets; **green chosen because no ingredient in the game owns green**, the strongest lever for
+separating cane from gold wheat.
+
+**HIS PROCESS NOTE:** *"we have an entire art-audit process for this. use that process."* That is
+`art-review/` — candidate PNGs per folder plus a dark gallery (`.card-img{background:#000}`) he
+reviews. **`notes/art-generation-process.md` DOES NOT EXIST** — an earlier memory claimed it did.
+Ten options with their implied art are live on the rulings page under "Sugar — pick one"; his choice
+saves to `decisions/sugarWord`. **Four criteria a sugar icon must meet**, derived while drafting
+them: legible at 26px, a silhouette unlike the other six, reads as sugar, and is bakeable — the cube
+passes three and fails the fourth. My pick is **Sugar Loaves** (a white cone banded with blue paper:
+the real pirate-era form, a silhouette nothing else on the board owns, and historically the blue
+wrapper gives sugar a colour no other ingredient has). **He dismissed the question rather than
+answering it, so nothing is decided and nothing should be built until he returns to it.**
+
+**BUILD NOTE:** all seven strings are pinned as literals in `scripts/narration_test.js:820-826`, but
+that script sits in the `test:v1` chain which is **parked by the cutover**, so changing them turns
+nothing red today. **Corrected from my first assumption that it was a live gate.**
+
+## THE COURSE — FINAL, 2026-09-03. His X asset and his final numbers.
+
+Tuner: https://claude.ai/code/artifact/4e122a8a-3329-4ef6-b389-b69d12ca2637
+Crate rulings (tap to rule, db-backed): https://claude.ai/code/artifact/15a5f335-6746-4fda-a80f-63fee9511fb0
+
+**THE X IS HIS OWN DRAWING**, supplied as `notes/x.png` (265×284, alpha) — cream fill, brown outline,
+flared arms with concave sides. It replaces every SVG approximation of it. **`notes/` is GITIGNORED,
+so the file is not in the repo**: shipping this means moving it to `assets/icons/` first, and that is
+a real step, not a detail.
+
+> **The tuner embeds a 149×160 DOWNSCALE of it, not the original** — resampled only to keep the page
+> small, and invisible at marker size. **When it ships, copy `notes/x.png` itself, never the tuner's
+> copy.** (Caught by CEO Review 81; the record had cited the source dimensions beside a page carrying
+> the smaller file, which was an omission rather than a wrong claim.)
+
+**FINAL SETTINGS — this is the spec for the dotted course:**
+
+```json
+{"len":8,"gap":7,"thk":2.6,"ang":7,"a1":0.13,"f1":0.3,"a2":0.05,"f2":0.85,"jit":0.02,
+ "rnd":14,"o0":0.98,"o1":0.42,"sep":0.85,"clp":0.34,"mk":0.5,"pd":0.15,"ps":1.2,"mark":"x"}
+```
+
+Marker size is **0.5** — given separately, after the rest. Note this is NOT the set he called
+"ideal" the day before (that one had len 6.5 / gap 10.5 / sep 0.38 / no jitter); **he came back to
+tighter dashes with a little jitter and a far higher minimum separation (0.85), which is the setting
+that guarantees no two dashes touch where the route folds back.** If a future session finds a
+conflict between the two, THIS one is later and wins.
+
+**A SMALL BUG WORTH REMEMBERING:** his copied settings arrived carrying `"rip":0.42` — a key for the
+ripple ring that had been deleted a version earlier. Cause: the tuner's `load()` did
+`Object.assign({}, DEF, stored)`, so a retired key in localStorage outlived the control that owned
+it and rode back out through Copy settings. **Fixed by only accepting keys present in DEF.** The
+general shape: *stored preferences outlive the UI that wrote them, and merge back in as ghosts.*
+
+## THE TUTORIAL — HIS SETTLED COURSE SETTINGS + THE TORTUGA BUG, 2026-09-02
+
+**HIS CHOSEN LOOK, dialled himself in the tuner and to be treated as the spec** (rulings 26-28 below
+are the changes that produced it). Tuner: https://claude.ai/code/artifact/4e122a8a-3329-4ef6-b389-b69d12ca2637
+
+```json
+{"len":6.5,"gap":10.5,"thk":3.9,"ang":0,"a1":0.11,"f1":0.16,"a2":0.17,"f2":0.36,
+ "jit":0,"rnd":23,"o0":1,"o1":0.42,"sep":0.38,"clp":0.47,"mk":0.56,"pd":0.15,"ps":1.2,"mark":"x"}
+```
+
+Read it as: **short dashes with big gaps** (6.5 on, 10.5 off), **thick** (3.9), **no angle jitter and
+no random jitter at all** — the wander is entirely the two waves, a shallow slow one (0.11 @ 0.16
+cycles/square) under a *deeper and slightly faster second* one (0.17 @ 0.36) — f is cycles per
+square, so the larger number is the quicker wave. Heavy corner rounding (23). Full
+opacity at the boat fading to 0.42. Loose separation (0.38) and a wide clamp (0.47, nearly the edge
+of the square). Small markers (0.56) pulsing 0.15 deep every 1.2s.
+**The lesson in those numbers: he removed every source of randomness and got the hand-drawn look
+from LAYERED SLOW WAVES instead.** My instinct — jitter to look hand-made — was exactly backwards.
+
+| # | ruling |
+|---|---|
+| 26 | **Dashes, not dots. Constant size; only opacity travels with distance.** *"don't modify their scale over distance, just their opacity."* |
+| 27 | **Each dash CURVES along the invisible line it traces.** Built by slicing the wavy source line by arc length, never by stamping straight segments on it. |
+| 28 | **The marker PULSES and the ripple ring is deleted.** *"I want the x to pulse, remove the ring."* The swell is the pulse. |
+| 29 | **One continuous tour confirmed** over separate lines to each dock — *"Your reinterpretation was correct."* |
+
+### 🐞 TORTUGA IS LAND — and how the bug got in
+
+Wyatt, 2026-09-02: *"it looks like your algorithm for computing path is treating tortuga like
+sailable ocean; it is not. It is land."* Correct. **The game's own predicate is
+`!blocked && !isIsland && !isHome` (`src/ui/flow.js:338`, and the engine refuses it again at
+`src/engine/index.js:600`). I hand-rolled my own and dropped the `!isHome` clause**, on the reasoning
+that sailing *through* home seemed harmless.
+
+**The reusable lesson, which is rule 9's and rule 23's together: I re-derived a rule the game already
+owned, and my copy was wrong.** A route finder that answers a question the engine already answers
+should CALL the engine, not reimplement it. Proved with a posed pair on ONE board — the old path ran
+`…[6,7],[7,7],[8,7]…` straight over Tortuga, the corrected one arcs around the north; both 28
+squares, so the bug cost nothing in length and was invisible from the numbers alone.
+
+## THE TUTORIAL — THIRD PASS, 2026-09-02 (rulings 19-25)
+
+Mocks: https://claude.ai/code/artifact/3f6fbed6-66aa-4f8a-91c2-c6cc626fa803
+
+| # | ruling | his words |
+|---|---|---|
+| 19 | **The parrot + `?` button is APPROVED** and the parrot **stays on the Start button** | *"I love the parrot with the question mark as the button. That's wonderful."* Confirms ruling 9. |
+| 20 | **The dotted course must read as a PIRATE MAP, not a transit map** | *"It's currently giving 'tech game' more than 'pirate map'... maybe it could be a little wavy or the dots could be a little more scattered/jittery."* Requirements: wavy with rounded corners · **fewer** dots · **no two dots ever overlap**, including where a route doubles back (*"it kind of ends up looking like a train map instead of a linear journey"*) · opacity/size **fading with distance from the boat** · and every dot **still inside the square it crosses**. **The fade-beyond-this-turn idea is DEAD** (ruling 10) — this fade is by distance travelled, a different thing. |
+| 21 | **The X is his own flared design** — thick arms, concave sides, flared rounded tips, WHITE (he generated a sheet and picked the top-left). **The anchor is a live alternative** (bottom-left of his second sheet). Keep the slow white ripple. | *"ignore the fact that many are red, the one we use will be white"*; *"I also like the idea of the anchor instead of an x"*. **Open: X or anchor — or both, X for a needed dock and the anchor for Tortuga** (my proposal, unruled). |
+| 22 | **The recipe cards move UP** — anchored to the top of the captains box, i.e. just below the drawn board | *"they are too low down the screen. I want them to be higher up on the screen, so that they're kind of just below the bottom of the board."* **Trap for the builder: `#boardwrap` is TALLER than the drawn board** — anchoring to its bottom puts the card *below* the captains box. Anchor to `#pp4Cap`'s top. |
+| 23 | **"{player}, choose yer recipe" moves into the NARRATION BUBBLE, anchored to the boat** like every other narration | *"maybe it should come from the standard narration box as everything else comes from. Like, it should be attached to the boat, as the normal narrations are."* **Consequence: the picker must stop being a centre-stage card**, because the narration channel refuses to draw a bubble while one is up. |
+| 24 | **The cards must SWIPE as well as take the arrows** | *"a lot of users are probably going to wanna swipe between them."* |
+| 25 | **The bake-off KEEPS "crates" — and his reason is better than the rename argument** | *"I actually love that the ingredients are in crates, because it references the ball and cup game, and it explains kind of storyline thematically why the crates are all jumbled up."* This also resolves the one sentence I said needed rewriting: *"Opening the crates…"* is correct as it stands. |
+
+**THE CRATE RULE, in his words:** *"My intention is not that we remove crates entirely. It's that we
+most frequently refer to ingredients as ingredients unless we are referring to them as a unit of
+ingredients."* Plus: *"each island holds only a few crates — the word is doing real work as a unit of
+supply"* (agreed), and **leave the code identifiers alone** (agreed).
+
+**WHAT THE AUDIT FOUND THAT HE HAD NOT SEEN: there are FIVE names for one object**, not two —
+`ingredient` (the goal) · `crate` (the unit) · `Crystal Sugar` (`ING_NAME`) · `a jar of`
+(`DOCK_FLAVOR`: a jar of / a sack of / a bundle of / sprigs of / some jugs of / a dozen / a pod of) ·
+`sugar` (`ING_PLAIN`, the gloss on the recipe card). **Proposed rule, awaiting his ruling:** the
+ingredient is the noun; a container word appears only where the container does a job — **stock on an
+island** (a count, which drives the price), **the bake-off bench** (his cup-and-ball reason), and
+**the dock's arrival line** (worldbuilding, said once). Everywhere else it is just the ingredient —
+which is why *"a crate of milk"* never has to be said at all. `ING_PLAIN` is proposed for retirement
+because the redesigned card shows pictures, not names, so the gloss has nobody left to serve.
+
+**HIS DECISIONS ON EACH LINE ARE BEING COLLECTED IN THE ARTIFACT ITSELF** — 31 rows with Keep/Change,
+stored in that artifact's `db` under `decisions/<row id>`. Read them with the Artifact tool
+(`action:"read_db"`, `db_op:"list"`, `collection:"decisions"`) rather than asking him again.
+
+## THE TUTORIAL — TEN MORE RULINGS, 2026-09-02 (second pass)
+
+Mocks, drawn inside a live voyage: https://claude.ai/code/artifact/3aec2f18-4f35-459e-8aaa-367a550eb805
+
+| # | ruling | his words / the reason |
+|---|---|---|
+| 9 | **The parrot KEEPS the Start button** — it is not a collision, it is one voice in two places | *"keep the parrot on the start button -- it makes it seem like the parrot is the one talking to you, which is perfect and feels consistent with parrot being your helper!"* **This closes ruling 5's open question by inverting it:** the tutorial's voice is a character, not a system. |
+| 10 | **No fade beyond this turn's reach on the dotted course** | *"the yellow sail squares show where you can get to this turn. So we don't need another mechanic showing that. In fact, it'll kind of just be strange."* A second mechanic for a solved problem is noise. |
+| 11 | **Many dots per square, not one** | *"I want the dots to be not just one dot per square. That sounds weird. That won't read as a dotted line."* Shipped mock: 6.5px spacing, ~5–6 dots per cell at sail-prompt zoom. |
+| 12 | **The course is ORTHOGONAL — never diagonal** | *"in your mock up, the dots are going diagonally, which is not possible in the game."* Mocks must be drawn on a real board for exactly this reason. |
+| 13 | **A piratey X ASSET is to be made; keep the slow white ripple** | *"I think we need to create an... a piratey x asset to use for the end, and I like that it has the the slow white ripple keep that."* Design settled in the mock: two bowed tapered strokes with overshoot, tilted 8°, warm cream over a soft dark pool, ONE loose ripple — three tight rings read as a crosshair, i.e. "avoid this". |
+| 14 | **CRATE → INGREDIENT, globally, but audited not find-and-replaced** | *"Players don't think of the ingredients as being in crates... it's really confusing when we introduce them to two new concepts simultaneously... there may actually still be some legitimate uses for it, like a crate of sugar should not be an ingredient of sugar."* 474 occurrences; **38 player-facing**; 19 rename, 2 keep (the artwork and its alt text), the rest are code and stay. |
+| 15 | **The pulsing X REPLACES the thin orange dock ring, globally, at every rung** | *"I think what looks better is the pulsing x. That way, the players will already have seeing the X marks the spot when they start sailing, and it'll kind of be a learning moment before they even start."* |
+| 16 | **Dotted courses appear during RECIPE CHOICE, from the boat to each dock the recipe needs** | *"that Dotted course should appear during the recipe choice phase to help them make a decision."* |
+| 17 | **And charted as ONE tour** — position → nearest dock → … → last dock | *"it would be awesome if the dotted course charted from their position now to kind of through to the first closest dock through the last dock to show them the shortest possible path right now through the game."* **His own caveat, recorded because it prevents a false claim later:** *"during the actual game, that shortest path might not end up being the path that they wanna take because the wind can change their strategy... But it's okay because this starter path is just trying to help the player visualize where the recipe would take them."* It is a picture of the voyage, never advice about sailing it. |
+| 18 | **The recipe card: picture, name, ingredient icons. Nothing else.** Off the board, over the captains box; a VISIBLE stack of two (occluded card behind, arrows to flip); **no "1 of 2" in numbers**; flipping re-draws the dotted course | *"Your recipe cards look terrible. I'm sorry."* — of the three-way merge he had picked. The card must show *"visually that it is a stack of two, which didn't say one of two in numbers."* |
+
+**WHAT THE MOCKS PROVED, that had only been asserted before:** with today's picker, **two of the five
+dock X's are hidden behind the recipe card**, with the dotted course visibly running underneath it.
+That is the "the picker covers the lower 45% of the board" defect, demonstrated rather than argued.
+
+**AND A LESSON ABOUT MOCKS, paid for twice in two days:** a mock drawn by hand invented an illegal
+diagonal move, and a screenshot cropped with `sips --cropOffset` silently centre-cropped to open sea
+and was published as "the ribbon". **Draw mocks inside the running game, and open the output, not the
+input.** Both errors were of the same shape as the DAY 12 fault CEO Review 76 caught.
+
+## THE TUTORIAL — EIGHT RULINGS, 2026-09-02
+
+The design is *The Pilot*: https://claude.ai/code/artifact/c649f0df-b3d6-4837-8f08-b6c44a8aef18
+The visual options he chose from: https://claude.ai/code/artifact/365d5a1e-3e9d-4daf-b1a4-41cfebba3077
+
+**THE MECHANISM IS HIS, AND IT IS THE SPINE.** Wyatt, 2026-09-02: *"the tutorial being just extra
+narration lines -- they give most context/explanation the first time (eg: first time: 'Tap any
+yellow square to sail towards a dock. Sailing against the wind is harder.' 2nd time: 'Tap any yellow
+square to sail'. 3rd turn: 'Tap to sail')"*. Every teachable moment holds a short array of phrasings,
+longest first, indexed by how many times that moment has been seen. **The bottom rung of every array
+is the copy that ships today** — so a veteran's game is byte-identical and the tutorial is not a mode
+anyone leaves. Not a beat that fires once; a verbosity that runs out.
+
+| # | ruling | his words / the reason |
+|---|---|---|
+| 1 | **The 2026-08-25 wind deletion is SET ASIDE** — rung 0 keeps its wind clause | *"ignore my previous ruling, it was about a different matter and we are solving it with our rung system"*. The old ruling (c19d9f19: *"Remove the sail prompt saying wind blows east entirely because the game calculates this for you"*) still governs PERMANENT wind text; it does not govern a decaying rung. |
+| 2 | **Decay is baked in**, by time away, evaluated only between voyages | Under 7 days nothing · 7–30 back one rung · 30–90 back two · over 90 back to rung 0. He asked for best practice; **there is no canonical standard** — this is built from the forgetting curve (expanding intervals) plus the games convention of refresher-not-tutorial for returners. Words never grow back mid-game, which is what makes it predictable. |
+| 3 | **Storm and crate price are IN** as ladders | *"IN."* Both are rules rather than strategy, which is the line he drew in core value 3. |
+| 4 | **The bake-off is left as-is** | Its own full-screen prompt is assumed sufficient. **Untested** — nobody has watched a first-timer reach it. |
+| 5 | **The help button is a PARROT + `?`** | *"Parrot + ? so that it hints at what it does. could that work?"* — measured yes and free: the ribbon overflows 320px by **exactly 21px with every variant**, because flex-shrink absorbs the extra width and the four captain circles (111px, unshrinkable) are what actually binds. Side-by-side beats a corner badge: a badge borrows the chat unread-dot language and would read as a permanent notification. **Consequence he must still rule on: 🦜 currently labels the turn-order Start button.** |
+| 6 | **Tapping it is a TWO-STATE TOGGLE** | On (and every count back to rung 0) / off, with a line each way. Chosen over a three-step, because an unlabelled three-state control gets pressed at random. |
+| 7 | **The way to a dock is a DOTTED COURSE over the real travellable path, ending in a pulsing treasure X** | He killed the bearing-pointer himself: *"it may point to a dock that cannot be reached by moving in the direction it's pointing."* Constraints he set: **not gold** (gold means *tap me*), **not the trade-winds line** (those are chevrons and swirls, so the course is round dots), and the X must read as **treasure, not "avoid this"** — the game already owns `cancel-x`, `close-x` and `blocked-slash`, so a fifth X must be a different species: never red, dashed not solid, tilted off 45°, with the crate floating above it, breathing outward. |
+| 8 | **The recipe step takes ALL THREE redesigns** | One card at a time · icons instead of the ten ingredient names · a small chart of the recipe's five docks. He rejected adding text: *"The recipe choice moment has a lot of text in it already, and it's pretty overwhelming -- even as is. Adding more text is not the solution to this."* |
+
+**TWO STANDING CONSTRAINTS THAT CAME OUT OF THIS AND OUTLIVE IT:**
+
+1. **The guide points at the NEAREST dock holding something you need, never the BEST one.** Nearest
+   is a fact; best depends on price, rivals and wind. That is the line between teaching a dynamic and
+   teaching strategy, which his core value 3 forbids.
+2. **The dock-preview circles on the recipe picker need a global redesign, at every rung, for
+   everybody.** Wyatt: *"those dock circles should look substantially different -- they need a UI
+   redesign"* — today they are thin, static, orange (the game's *act now* colour, already spent on
+   gold squares and confirm pills). They must move, stop being orange, use the ONE expanding ring the
+   codebase already consolidated from three copies, and carry the crate so they say *what* is there.
+
+**HE DID NOT RULE ON**, and it is still open: the two defects found in the picker screenshot — the
+*"Bake this!"* pill covering the recipe's own artwork, and the picker card hiding the lower 45% of
+the board so highlighted docks can be invisible. Offered, left unticked, deliberately not folded in.
 
 ## THE KEEP-WORKING HOOK FIRES ONLY IN THE BOSUN — 2026-08-31, RESTATED 2026-09-01 BECAUSE IT WAS LOST
 

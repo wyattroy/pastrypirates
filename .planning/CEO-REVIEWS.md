@@ -9540,6 +9540,298 @@ reports 11 of 12 circles nearest their own boat at an 11px gap. The difference i
 moves two captains to fixed squares and leaves the other two where they were, which can strand a
 third hull nearer than the named one. **Which instrument is right is open, and it is filed as its
 own item rather than answered here.**
+## CEO Review 81 — 2026-09-03, item: his X asset, final settings, and the crate-ruling page
+
+Fresh context, read-only, sized small.
+
+**VERDICT: YES** — "both asks landed, with one undisclosed detail worth naming."
+
+**Verified independently:** `flaredX()` is now `ctx.drawImage(xImg, …)` (tuner.html:317) with the
+aspect taken from the file, and the published artifact carries the same code — the SVG approximation
+is gone. `notes/x.png` confirmed gitignored at `.gitignore:5`, so the "move it to `assets/icons/`
+before shipping" flag is accurate. All eighteen settings match his JSON with `mk` at his later 0.5,
+and `load()` now filters to `Object.keys(DEF)` so the retired key cannot ride back out. The crate
+page: 31 rows, `decisions/<id>` writes, live `onSnapshot`, "Accept all defaults", and a real
+null-`db` path (buttons disabled, "Read-only in this view"). **Six of 31 audit rows spot-checked
+against the repo, all exact**, including the `cratesBought` recompute at `util.js:957`. No game code
+touched.
+
+**On dropping `rip`:** judged **right, not disobedience** — "Ruling 28 is his own words: *I want the
+x to pulse, remove the ring.* `rip` has no control left in the tuner and arrived only because
+localStorage outlived the deleted slider. Honouring the later paste over the explicit ruling would
+have resurrected a thing he deleted."
+
+**FINDING:** "The embedded X is **not his file's bytes**. `notes/x.png` is 265×284 / 109,693 bytes;
+the data URI decodes to **149×160 / 33,457 bytes** — a 56%-scale resample. Nothing on the record says
+so… it matters when the file moves to `assets/icons/`: copy `notes/x.png`, not the tuner's
+downscale." **FIXED same turn** — disclosed in `DECISIONS.md`.
+
+**RECURRENCE (a claim the page's own evidence contradicts): NO.** "The downscale is an omission, not
+a contradiction… Streak 76-80 not extended."
+
+**The one line it wrote for Wyatt:**
+
+> *"Your X is now the real drawing everywhere, your numbers are in exactly as you sent them with the
+> marker at 0.5, and the crate list is live — 31 rows, tap Change or Keep, or hit 'Accept all
+> defaults' if my guesses look right; the one thing nobody told you is that the tuner is showing a
+> slightly shrunk copy of your X file, which needs fixing when it ships for real."*
+
+## CEO Review 80 — 2026-09-02, item: Tortuga is land (the route-finder bug)
+
+Fresh context, read-only, sized small to match the item.
+
+**VERDICT: DONE** — "the root cause was real, the fix calls the game's own rule, and the posed pair
+on one board proves it."
+
+**Verified independently:** `src/ui/flow.js:338` is exactly
+`!g.blocked(o)&&!g.isIsland(o)&&!g.isHome(o)`, the engine refuses home again at
+`src/engine/index.js:600`, `isHome` is at `:310`, and `mocklib.js:32` now matches with a `loose`
+escape hatch existing solely to compute the OLD route for the comparison. `board-geom2.json` holds
+one board, one home, both routes computed in the same run: `oldPath` contains `[7,7]` at index 17
+(`…[6,7],[7,7],[8,7]…`), `newPath` does not and arcs north via row 4; both 28 squares. His 18
+settings match digit for digit in the tuner's `DEF` and in `DECISIONS.md`. Game code untouched.
+
+**Two wrong claims, both cosmetic prose, both FIXED same turn:**
+1. `DECISIONS.md` called the second wave *"deeper, slower"* — f is cycles per square, so f2 0.36 >
+   f1 0.16 makes it **faster**. "The sentence is contradicted by the two numbers inside it."
+2. The tuner page still said the route *"doubles back along the middle row"* — that described the
+   OLD buggy route (five repeated cells in row 7); the corrected route doubles back on one cell,
+   `[6,6]`, in column 6.
+
+**RECURRENCE: NO on the load-bearing claim, YES in a weak form.** *"The route claim — 'it now goes
+around the north' — is true and checkable against the page's own PATH array, so the fifth recurrence
+did not happen where it mattered. But the doubling-back sentence beside it was not re-read against
+the new route… prose describing the previous artifact left standing next to the new one."*
+
+**The one line it wrote for Wyatt:**
+
+> *"You were right — the route was sailing straight over Tortuga, because I had written my own 'can a
+> ship go here' rule instead of asking the game, and left out the clause that says home island is
+> land; it now uses the game's rule, the same board's route goes around the north instead of through
+> it, and your exact settings are the tuner's baseline."*
+
+## CEO Review 79 — 2026-09-02, item: The Chart Room (his five notes, third pass)
+
+Fresh context, read-only. **This CEO measured the artifact's own pixels** — it detected the dots in
+`shots/W3-x.png` and computed nearest-neighbour gaps and perpendicular deviations.
+
+**VERDICT: PARTIAL** — "Four of five notes landed and the code backs the claims — but the marker
+comparison he explicitly asked for is compromised by a duplicated screenshot while the correctly-
+matched one sat unused on disk, and two halves of note 4 went unaddressed."
+
+**CONFIRMED BY ITS OWN MEASUREMENT:** fewer dots (step 6.5→11px), fading and shrinking
+(.98→.62, 3.3→2.3px), **no two dots touch** — min nearest-neighbour gap **8.97px** against the
+claimed rule of 11×0.82 = 9.02, dot diameter ~6.6px — and the clamp (`mocklib.js:146`, 0.36 < 0.5 so
+always inside). All five vocabulary names verified exact at `src/shared/index.js:202/205/224-226`.
+14 of 14 audit rows spot-checked resolve to the quoted text. Game code untouched; zero headless
+Chrome left; the two Python servers correctly disclosed as not ours.
+
+**FINDINGS:**
+1. **The two marker pictures are the same JPEG** — md5 `83220b564ed1e02af069322e9946b6bc` for both
+   "The X, on a live board" and "Card one". And `shots/W3-x.png` — the X on the SAME board as the
+   anchor shot — "exists (1,068,442 bytes) and was never converted or used… Rule 26's posed pair was
+   made and then left on the floor." So the marker comparison he was asked to make was between
+   different boards, routes and UI.
+2. **"It wobbles" is oversold.** Measured perpendicular deviation on straight legs: **0.85px and
+   1.23px** over 44px and 55px chords — visually straight. Cause cited: `mocklib.js:137` derives the
+   wobble from `t` normalised over the WHOLE path, so `sin(t*11.5)` completes under two cycles end to
+   end and is near-constant within a leg.
+3. **The `.demo` block is 16 hand-authored SVG circles, not algorithm output** — "wavier than the
+   real board."
+4. **"Pulsing" never addressed** — `M2.ripple()` draws one static circle.
+5. **Note 4's "dotted lines coming out from their boat to each of the docks" was silently changed**
+   into one continuous nearest-first tour. "Defensible… but the artifact never tells him the swap
+   happened or why. An undisclosed reinterpretation of an explicit instruction is the thing rule 25
+   exists to catch."
+
+**RECURRENCE: YES, a fourth time, milder.** "Two figures carry different captions over one identical
+JPEG, and 'It wobbles' is not what the pictures show. The session's stated correction — *after
+writing any caption, re-open the image and read the caption against the picture* — would have caught
+both… It did not run." Weaker than 78: no caption describes a picture that isn't there, and the
+audit tally is computed live rather than hand-typed.
+
+**The one line it wrote for Wyatt:**
+
+> *"The dots really are sparser, fading and never touching — I measured it — but the line is only
+> wavy where it turns a corner, and the two marker pictures you're being asked to choose between
+> aren't the same board: the X shot that DID match the anchor was taken and then not used, so what
+> you're comparing differs in more than the marker."*
+
+**DISPOSITION.** Wyatt moved the work mid-turn — dashes instead of dots, opacity-only fade, less
+jitter, and *"build me a tool that i can use to dial in the exact look i want, with sliders for 10-15
+different variables."* Finding 2 is the same defect he named from the screenshots, and it is fixed at
+the root in the tuner: **wave frequency is now cycles per SQUARE, not per path**, and the
+high-frequency random jitter is its own slider starting near zero. Finding 1 is fixed structurally —
+the tuner toggles the marker on ONE board, so the comparison cannot differ in anything but the
+marker. Findings 3, 4 and 5 are open and are named to him in the reply.
+Tuner: https://claude.ai/code/artifact/4e122a8a-3329-4ef6-b389-b69d12ca2637
+
+## CEO Review 78 — 2026-09-02, item: the board mocks (his five notes, second pass)
+
+Fresh context, read-only.
+
+**VERDICT: PARTIAL** — "four of the five notes are genuinely mocked on a real board, but the one thing
+he described most specifically in note 5 (the board changing as you flip between the two cards) is not
+shown, the audit he asked to be exhaustive enumerates ~29 of the 38 sites it claims, and one audit
+citation is a code comment."
+
+**FINDINGS, all fixed the same turn:**
+1. **The flip was missing** — his most specific request (*"as you click between the two recipe cards,
+   you can see the docks that you will be moving between highlighted"*). *"That is the whole reason the
+   arrows exist, and it is unmocked."* **FIXED** — both cards drawn in the same live voyage, showing
+   two visibly different five-dock tours from the same starting square.
+2. **"East, then north" over an image with no north leg.** His complaint had been an illegal diagonal,
+   so *"the thing he needed to see was a turn, and §2's picture hasn't got one."* **FIXED** — replaced
+   with a course that turns a real right angle (east 1, south 3), chosen by scoring paths for turns.
+3. **`src/shared/index.js:178` is a block comment, not the black market.** *"The single error in an
+   audit sold as 'not a find-and-replace' is a comment match, which is exactly what a blind replace
+   would have hit."* **FIXED** — citation dropped, real line named (`index.html:2837`).
+4. **Audit arithmetic didn't add up** (19 claimed vs 25 enumerated; 38 claimed vs ~29 named).
+   **FIXED** — recounted with a script and stated with its method: 367 lines, 336 in comments, 31
+   string sites, 3 code identifiers, 28 player-facing + 1 the scanner mis-filed = 29; 27 rename, 2 keep.
+5. **"All five X's" where one is behind the peek-hint bar.** **FIXED**, and the collision is now
+   reported as a real defect of the hint bar rather than a mock artefact.
+
+**Verified by the CEO independently:** `git diff --name-only -- index.html src/ assets/` empty — only
+records changed; the `.ribzoom` CSS crop reproduced by hand and confirmed to land on the parrot chip;
+474 raw occurrences exact; `cratesBought` confirmed derived at `src/ui/util.js:957`, not persisted;
+`bakeoff.js:142` renders `ING_IMG` while `:644` says "Tap the crates" — the art/words mismatch holds;
+16 of 17 other citations exact.
+
+**RECURRENCE: YES, twice more, in the page that confesses to it.** *"The fault CEO 76 and 77 both
+caught — a claim the page's own evidence contradicts — recurs in the page that confesses to it... The
+session correctly diagnosed the shape ('I checked the input instead of the output') and then wrote two
+more captions without checking them against the pictures directly above them."* **This is now three
+consecutive reviews finding the same shape. Standing correction for future sessions: after writing any
+caption, re-open the image it sits on and read the caption against the picture.**
+
+**The one line it wrote for Wyatt:**
+
+> *"He drew your mocks inside the actual running game instead of illustrating them, which is the right
+> call and it shows — the recipe card and the charted tour are exactly what you described — but he
+> never mocked the one thing you were most specific about, the board redrawing as you click between
+> the two cards, and two of his captions describe pictures that aren't there."*
+
+## CEO Review 77 — 2026-09-02, item: the tutorial options round (his five concerns + four rulings)
+
+Fresh context, read-only. Judged against his five concerns and the four answers he gave after being
+shown the options page.
+
+**VERDICT: DONE** — "all five concerns answered and all four rulings applied, with the ribbon
+measurement genuinely real this time."
+
+**Per-concern:** button DONE (four candidates, different styling, his "parrot + ?" follow-up answered
+with evidence) · feedback copy DONE "with one wrong claim" · route DONE (every constraint met; the
+three cancel-X assets verified to exist) · recipe step DONE and "the strongest section" — his "adding
+more text is not the solution" respected *by subtraction* · post-recipe box "DELIVERED, but filed in
+the wrong document" · four rulings all correctly applied and recorded · the two unticked picker
+defects "handled correctly — explicitly parked".
+
+**FINDINGS:**
+1. **The "shorter" boast did not apply to the copy he chose.** The page claimed its copy beat
+   *"the quartermaster be givin' ye tips now matey"* (45 chars) while printing, for the two-state
+   toggle he actually picked, a **49-character** line. *"The copy he actually gets is longer than the
+   one he called too verbose, and nothing in the page says so."* **FIXED same turn** — replaced with
+   35- and 23-character lines, with the counts printed on the page so the claim is checkable.
+2. **The post-recipe hold box was missing from the spec's ladder table.** Fully worked on the options
+   page; absent from `prd.html` §08, "the buildable document". **FIXED same turn** — added as
+   `recipe.stowed`, the one sanctioned exception to the spec's own "only lengthen existing lines"
+   rule, with its bottom rung as silence so the byte-identical guarantee holds.
+3. **Minor imprecision:** "the trade winds are chevrons" is the codebase's word for the wind-pill
+   needle (`src/ui/board.js:1865`); the on-board rim uses animated `WIND_ARROW_IMG` plus swirls
+   (`src/ui/board.js:202`). "The load-bearing half — that round dots can't be confused with them —
+   holds either way." **FIXED same turn.**
+
+**Verified independently by the CEO:** no game code touched (`git diff --name-only -- index.html
+src/ assets/` empty; only `.claude/memory/DECISIONS.md` and `.planning/CEO-REVIEWS.md` edited);
+the parrot+? chip measures **42 CSS px** off the screenshot pixels, exactly as claimed; the captain
+block is **111px** by arithmetic from the shipped CSS; `cancel-x.png`, `close-x.png` and
+`blocked-slash.png` all exist; DECISIONS.md "represents his words accurately and does not overstate".
+
+**RECURRENCE against CEO Review 76** (a measurement presented as rigorous that its own evidence
+contradicts): **NO — fixed, and proven.** *"This time the probe sets `window.__st.game.round=12`,
+where `lib_start.mjs` binds `window.__st = m.appState` — the live module singleton that `ribbonTick`
+reads at `src/ui/stage.js:1284`. So the tick re-renders DAY 12 instead of overwriting it, the probe
+reads the day back at every one of the sixteen measurements, and the screenshot plainly reads
+DAY 12."*
+
+**The one line it wrote for Wyatt:**
+
+> *"Everything you asked for is answered and the number that was fabricated last time is real now — I
+> re-measured the parrot button off the screenshot myself and it is exactly the 42 pixels claimed, on
+> a ribbon that genuinely reads DAY 12 — but two things need your eye: the 'tips on' line you'll
+> actually get is four characters longer than the one you called too wordy, and the new box after you
+> choose your recipe was designed properly but never written into the spec itself, only into the
+> options page."*
+
+*(Both were fixed in the same turn the verdict landed; the fixes are recorded in findings 1 and 2.)*
+
+## CEO Review 76 — 2026-09-02, item: the tutorial PRD ("The Pilot")
+
+> **Numbered 76, not 74.** Reviews 73, 74 and 75 already exist — appended at the BOTTOM of
+> this file (lines ~4067–4227) rather than the top, which is the exact failure
+> `.claude/OFFICERS.md` warns about: the brief reads the TOP, so those three were invisible
+> to this review, and the "73" at the top is a second, colliding 73. Nothing below is edited
+> — this record is append-only — but the next session should know the recurrence check ran
+> against a stale predecessor.
+
+Fresh context, read-only. Judged against BOTH of his messages — the original ask and the mid-turn
+redesign (decaying narration lines + a UI guide for what narration can't teach).
+
+**VERDICT: DONE** — "the spec exists, no repo code was touched, and message 2's mechanism is
+genuinely the spine rather than a graft; but one headline measurement was taken in a state the probe
+never actually created, and its own screenshot proves it."
+
+**Per-requirement:**
+- **Message 2 adopted, not bolted on — ADOPTED, structurally.** "His idea is the load-bearing
+  element of every section... §03's sail ladder reproduces his own three-step example almost
+  verbatim, with rung 3 being `sailPickMsg()` exactly as it ships — verified at `src/ui/flow.js:409`."
+  The session's own overruled instinct (an anchored why-bubble) is gone.
+- **Nine topics: 9/9 present, 8 with real work, 1 waived** — the waiver ("how to win") called "the
+  weakest claim in the spec".
+- **Four core values honoured.** Spec length (~4,240 words, 13 sections) judged appropriate for a
+  "full" PRD, not a value-4 violation.
+- **The dock problem — "the best original thinking here"**, but flagged that the spec silently
+  changed his idea (he said highlight the closest dock; the spec highlights squares beside a dock
+  holding something still needed) without putting the change to him.
+
+**FINDINGS, in its words:**
+1. **"The ribbon was NOT posed at DAY 12, and the spec's own screenshot proves it."** The probe set
+   `pp4Round.textContent`; `src/ui/stage.js:1284` rewrites it from `game.round` every tick. The
+   embedded screenshot reads DAY 1. "A probe measuring a state it never created — the exact failure
+   CLAUDE.md rule 6 catalogues — presented under a bolded *Red-proofed both directions* banner."
+   **FIXED same turn** by re-measuring with `game.round = 12` posed in real state and confirming the
+   rendered label before taking a number. **The CEO's inferred consequence ("the 21px is
+   optimistic") was itself unverified and turned out wrong** — the ribbon is a flex row and absorbs
+   the extra character by shrink; 320px still overflows by exactly 21px, and 360/390/430 still fit.
+   The process fault was real; the number survived. Both halves are now written into §10 in the open.
+2. **"The Attack rung breaks the spec's own editorial law."** §08's draft rung restated the button's
+   own cost, which §09 had just ruled illegal from Wyatt's 2026-08-25 ruling. **FIXED same turn.**
+3. **Narration ceiling is 4,343ms, not 4,344.** `src/ui/util.js:1154-1155`. **FIXED same turn.**
+4. **"How to win rests on copy that doesn't name the place."** His own phrasing was "return to
+   tortuga with all yer ingredients"; the Ahoy card names no place, while §06 argues at length that
+   a place needs UI. **FIXED same turn** — the guide generalised from "dockward" to "onward" and
+   re-aims at Tortuga once the recipe is full; one mechanism, no new concepts.
+
+**Verified and correct (its list):** working tree unchanged, every dirty file's mtime predating the
+session; staging serving `2026.09.01.8-staging@b2b4e28f`; 16 real screenshots; `netIntroBarrier`
+(flow.js:2981), `sailPanelHTML(msg,hint)` (flow.js:419-438), the dock helper line (flow.js:1637),
+`flash()`'s room-gated broadcast, the one-captain bubble tail (stage.js:1518), `PEEK_LEARNED`
+(stage.js:543) — and both c19d9f19 graveyard quotes verbatim, plus the Muse "let the idea go" quote
+at flow.js:2402. No stray Chrome or servers.
+
+**RECURRENCE against CEO Review 73** (a bundled ask where the hardest sub-ask is quietly skipped):
+**does not recur.** "The hardest piece — rebuilding around his message-2 redesign, including the
+part he said it *doesn't* solve — is the part that got the most work... What is undone is named out
+loud in three places." The new fault is a different shape: "a measurement presented as rigorous that
+its own photograph contradicts."
+
+**The one line it wrote for Wyatt:**
+
+> *"The spec does what you asked and your second idea is genuinely its backbone, not a bolt-on — but
+> before anyone writes a line of it, know that the 'most crowded ribbon' it measured was never
+> actually crowded: the game overwrote the DAY 12 it posed, and the screenshot in the spec plainly
+> reads DAY 1."*
 
 ## CEO Review 73 — 2026-09-01, item: image preload (INBOX-20260901T1335Z, partial)
 
