@@ -50,7 +50,7 @@ try {
   for (let i = 0; i < 20; i++) {
     await new Promise((r) => setTimeout(r, 400));
     const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
-    target = list.find((t) => t.type === "page" && /glass/i.test(t.url));
+    target = list.find((t) => t.type === "page");
     if (target) break;
   }
   if (!target) { bad("the page never appeared as a target"); throw new Error("no target"); }
@@ -79,7 +79,25 @@ try {
   };
 
   await send("Page.enable", {});
-  await new Promise((r) => setTimeout(r, 1200));
+
+  /* ⛔ A FAKE ARTIFACT HOST, INSTALLED BEFORE THE PAGE SCRIPT RUNS. This is the whole reason this
+     probe missed a bug that ate his words on the live page.
+     Without a capability, glass.mjs returns at `if (!cap) { ...; return; }` -- BEFORE the push, the
+     repaint and the publish. So the old save check exercised a guard clause and reported "his words
+     stay in the box", which was true and was not the question: it could never reach the code it was
+     named after. CEO 143 called it "structurally incapable", and it is CEO 140's finding one night
+     later in a different file.
+     window.__pubs counts real publish calls, so the probe can assert the save actually happened
+     rather than that it did not crash. */
+  await send("Page.addScriptToEvaluateOnNewDocument", { source: `
+    window.__pubs = 0; window.__pageErrors = [];
+    window.addEventListener("error", function(e){ window.__pageErrors.push(String(e.message)); });
+    window.claude = { use: function(){ return Promise.resolve({
+      publish: function(){ window.__pubs++; return Promise.resolve({ ok: true }); }
+    }); } };
+  ` });
+  await send("Page.navigate", { url: "file:///" + PAGE.split("\\").join("/") });
+  await new Promise((r) => setTimeout(r, 2500));
 
   const errs = await evalJs("(window.__probeErrors||[]).length");
   const counts = await evalJs(`JSON.stringify({
@@ -119,20 +137,39 @@ try {
 
   await shot("t076-expanded.png") ? ok("screenshot: expanded") : bad("could not screenshot expanded");
 
-  // The comment box, with no artifact host: it must fail VISIBLY and keep his words.
+  /* THE SAVE PATH, WITH A REAL HOST — the check that was missing, and the one that matters.
+     It asserts what SUCCESS looks like: the words leave the box, a publish actually fires, his
+     comment renders back on the row, and the DOM threw nothing. The old version asserted only that
+     nothing crashed when there was nothing to save to. */
   const saved = await evalJs(`(function(){
-    var ta = document.querySelector(".rowcmt textarea"); if (!ta) return "no box";
-    ta.value = "his test comment $5 and $\\u0060whoami\\u0060";
-    var btn = ta.parentNode.querySelector(".rowsend");
-    btn.click();
-    var said = ta.closest("li").querySelector(".rowsaid");
-    return JSON.stringify({ kept: ta.value, told: said ? said.textContent : null, hidden: said ? said.hidden : null });
+    var li = document.querySelector("#taskList li[data-handle] .rowcmt");
+    if (!li) return JSON.stringify({ err: "no comment box" });
+    li = li.closest("li");
+    var ta = li.querySelector(".rowcmt textarea");
+    var bt = String.fromCharCode(96);
+    ta.value = "his test comment $5 and $" + bt + "whoami" + bt;
+    li.querySelector(".rowsend").click();
+    var said = li.querySelector(".rowsaid");
+    return JSON.stringify({
+      boxAfter: ta.value,
+      told: said ? said.textContent : null,
+      hidden: said ? said.hidden : null,
+      mine: li.querySelectorAll(".rowmine").length,
+      mineText: li.querySelector(".rowmine") ? li.querySelector(".rowmine").textContent : null,
+      pubs: window.__pubs,
+      errs: (window.__pageErrors || []).slice(0, 2)
+    });
   })()`);
   console.log("  after save:", saved);
   const sv = JSON.parse(saved || "{}");
-  if (sv.kept && sv.kept.indexOf("his test comment") === 0) ok("with no host to save to, HIS WORDS STAY IN THE BOX");
-  else bad(`his words were cleared even though nothing saved: ${saved}`);
-  if (sv.told && !sv.hidden) ok(`and he is TOLD: "${sv.told}"`); else bad("it failed silently — no message shown");
+  if (sv.pubs === 1) ok("pressing Save actually PUBLISHES — the comment reaches the artifact");
+  else bad(`Save fired ${sv.pubs} publish(es) — his comment never leaves the page: ${saved}`);
+  if (sv.mine === 1 && /his test comment/.test(String(sv.mineText))) ok("…and his comment renders back on the row, verbatim");
+  else bad(`his comment did not render back (${sv.mine} shown) — he gets no confirmation: ${saved}`);
+  if (!sv.errs || sv.errs.length === 0) ok("…and the DOM threw nothing while doing it");
+  else bad(`the page threw while saving: ${JSON.stringify(sv.errs)}`);
+  if (sv.boxAfter === "" && sv.told === "Saved.") ok('the box clears and he is told "Saved."');
+  else bad(`after a successful save the box/message are wrong: box=${JSON.stringify(sv.boxAfter)} told=${JSON.stringify(sv.told)}`);
 
   const jsErrors = await evalJs(`(function(){ try { document.querySelector(".rowmore").click(); return "no-throw"; } catch(e){ return "THREW: " + e.message; } })()`);
   if (jsErrors === "no-throw") ok("toggling again does not throw"); else bad(String(jsErrors));

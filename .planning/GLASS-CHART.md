@@ -456,9 +456,32 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       watch via the Door, and the two derivations were converged so it ranks the list he actually
       sees) · The Lesson moved BELOW the Chart · the card renamed to *The Chart (Tasks To Do)* ·
       next-to-be-completed first, re-ordered on every tick.
-      ⏳ **STILL OPEN, and they are the two that need new interface rather than new ordering:**
-      **expandable rows** for fuller context, and **a comment box under each item**. Both are
-      `glass.mjs`, both are now editable in-repo, and neither is blocked.
+      ✅ **BOTH BUILT 2026-09-03T04:5xZ** — expandable rows and a per-item comment box, in
+      `glass.mjs`, live on his page.
+      ⛔ **AND THE COMMENT BOX SHIPPED BROKEN FOR ~15 MINUTES, EATING EVERY WORD TYPED INTO IT.**
+      CEO 143 injected a fake artifact host and drove the real click: `.rowcmt` is a GRANDCHILD of
+      `.rowx`, so `box.insertBefore(p, cmt)` threw `NotFoundError` — **between "clear the textarea"
+      and "publish"**. Pressing Save wiped what he typed, showed nothing, saved nothing, and the
+      carefully written put-his-words-back handler was UNREACHABLE because the failure was on the
+      SUCCESS path. Fixed: `cmt.parentNode.insertBefore(p, cmt)`.
+      ⚠ **AND THE PROBE THAT "PROVED IT SAFE" COULD NEVER HAVE SEEN IT** — with no artifact host,
+      `glass.mjs` returns at `if (!cap) return;` *before* the push, the repaint and the publish. Its
+      save check exercised a guard clause and reported *"his words stay in the box"*, which was true
+      and was not the question. **CEO 140's "a check that cannot fail" — one night later, in a
+      different file.** The probe now installs a fake capability before the page script runs and
+      asserts SUCCESS: a publish actually fires, the comment renders back verbatim, nothing throws.
+      Red-proofed against the real bug: 4 failures including `pubs: 0` and the NotFoundError.
+      ✅ Also fixed from 143: the harvest banner `glass.mjs` prints at every render said a republish
+      "DELETES both" — it is THREE now, and it named only ideas and rulings. And the full headline
+      now leads the expanded body: `shortTask` truncates the visible title at 16 words and the body
+      used to start at line 2, so **the tail of his own pinned headline existed nowhere on the
+      page** (`grep "FIVE HOURS OLD WHEN FILED"` → 0; now 2).
+      ⚠ **STILL UNGUARDED, SAID IN WRITING RATHER THAN QUIETLY:** `scripts/qa/_t076_row_ui_probe.mjs`
+      is NOT in `npm test` and nothing re-runs it, and **no gate anywhere reads
+      `glassState.comments`** — the harvest is version-identity enforced and field-blind. Wiring the
+      probe into the suite is deliberately NOT done: it launches a browser, and `T-131` is the open
+      row about `npm test` colliding with a sailing sea trial. **Run it by hand after any change to
+      the row UI.**
       ⛔ **NOT part of this row:** *remove items once complete* — SWEEP exists but is still the
       seven-day-with-a-stub form he OVERRULED, and it cannot ship until the done count is
       re-sourced from `CHART-LOG.md`. That is kit patch 6, filed separately.

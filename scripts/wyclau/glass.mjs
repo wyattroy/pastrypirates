@@ -530,7 +530,14 @@ if (chart !== null) {
        * with a line saying so and naming the file, so he is never shown a fragment that reads
        * complete. */
       detail: (() => {
-        const body = c.lines.slice(1)
+        /* ⚑ THE FULL HEADLINE LEADS THE BODY, and leaving it out was a real hole — CEO 143.
+         * The visible line is `shortTask`-truncated at 16 words with an ellipsis, and the body used
+         * to be `lines.slice(1)`. So the TAIL OF THE TITLE existed nowhere on the page: his own
+         * pinned row ends "…FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A" and grepping the
+         * rendered HTML for that phrase returned nothing. **The one piece of context already cut
+         * off on screen was the one the expansion could not give back** — which is the ask, not a
+         * nicety. Expanding now opens with the whole headline, then the body. */
+        const body = [titleOf(c.lines), ...c.lines.slice(1)]
           .filter((l) => !/^\s*⟨[^⟩]*⟩\s*$/.test(l))
           .join("\n").replace(/\s+$/, "");
         return body.length > 2000
@@ -1597,11 +1604,19 @@ const PAGE = `<meta charset="utf-8">
         Array.prototype.forEach.call(box.querySelectorAll(".rowmine"), function(n){ n.remove(); });
         var mine = (state.comments && state.comments[h]) || [];
         var cmt = box.querySelector(".rowcmt");
+        if (!cmt) return;
         mine.forEach(function(c){
           var p = document.createElement("div");
           p.className = "rowmine";
           p.textContent = c.text + "  (" + String(c.at).slice(0, 16).replace("T", " ") + "Z)";
-          box.insertBefore(p, cmt);
+          /* ⛔ cmt.parentNode, NOT box. THIS LINE ATE HIS WORDS ON THE LIVE PAGE.
+             It read box.insertBefore(p, cmt) -- and .rowcmt is a GRANDCHILD of .rowx (rowx > rowpanel
+             > rowcmt), so the reference node was not a child of box and the DOM threw
+             NotFoundError. The throw landed between "clear the textarea" and "publish", so pressing
+             Save wiped what he typed, showed him nothing, and saved nothing. The carefully written
+             put-his-words-back handler below was UNREACHABLE: the failure was on the SUCCESS path.
+             Found by CEO 143, which injected a fake artifact capability and drove the real click. */
+          cmt.parentNode.insertBefore(p, cmt);
         });
       }
 
@@ -1802,9 +1817,11 @@ if (relayedNote) {
 console.log(`
 REPUBLISH THE GLASS -- writing the file is only half of it:`);
 console.log(`  ${GLASS_URL}`);
-console.log(`  ⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas AND`);
-console.log(`  glassState.rulings entries into .planning/CHART.md before republishing — a`);
-console.log(`  republish without the harvest DELETES both (this page always regenerates empty).`);
+console.log(`  ⚠ HARVEST FIRST: read the live artifact and move any glassState.ideas,`);
+console.log(`  glassState.rulings AND glassState.comments into .planning/CHART.md before`);
+console.log(`  republishing — a republish without the harvest DELETES ALL THREE (this page`);
+console.log(`  always regenerates empty). comments are {"T-nnn":[{text,at}]} — his words about a`);
+console.log(`  SPECIFIC row, so file each onto that row, not into the idea inbox.`);
 console.log(`  Publish ${OUT} to that URL (Artifact tool, pass it as \`url\`). Do it at every item`);
 console.log(`  boundary and before you go quiet, or he is reading a page that has stopped moving.`);
 console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
