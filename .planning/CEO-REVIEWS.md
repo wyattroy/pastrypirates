@@ -28,6 +28,81 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 143 — 2026-09-03, Wy-Blade — `T-088`: rank 1 of his Chart was work he had already ruled finished — **PARTIAL**
+
+> *Number claimed in the same act as the write, order-independently (`grep -oE "^## CEO Review [0-9]+" | sort -n | tail -1` → **142**), per this file's banner. A sea trial was at sea throughout; the CEO was told not to start a browser and did not.*
+
+**THE ITEM, BY ITS ROW'S OWN WORDS:** *"A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM"*
+— `T-088`, `.planning/CHART.md:57`. *(Written out verbatim because `close_item.mjs` greps this file
+for the row's prose, not for the handle, and `T-088` alone matched two open rows.)*
+
+**In one sentence for Wyatt, in the CEO's own words:** *"You said the image work was finished and it
+is — the '2%' you were shown was measured over three-quarters of the art, and the quarter nobody
+measured is worth at most a few hundred kilobytes out of the 3.9 MB left, so it is not worth a watch
+before launch; I have closed that job and left a note so nobody shrinks an unmeasured picture and
+breaks it."*
+
+---
+
+### THE VERDICT: **PARTIAL** — *"Close it. Your reading of his ruling is right on the outcome and wrong on the warrant."*
+
+**What it verified independently, against the watch's four written falsifiers:**
+
+- **F2 fails — the watch was right.** `T-088` (`.planning/CHART.md:57-77`) carries no `INBOX-` stamp;
+  the only ones in the file are at lines 89, 419, 518, 522, 671, 996, 1011. **Rank 1 was a ranker
+  artefact, not his priority.**
+- **F3 fails — the watch was right.** `.planning/wyclau/INBOX.md:72` — `status: DONE 2026-09-02 —
+  CEO 115, commit 05f63b1`.
+- **F1 HOLDS, as the watch predicted it would.** *"His question said 'about 2%'. That number is
+  `~0.09 MB across 12 files` (`ASSET-DISPLAY-SIZES.md:14`) computed over a library that excludes
+  **1.05 MB / 74 files** (`:45`) and **0.20 MB / 13 files** (`:29`). He was not told that. **The
+  ruling is real; the number under it is narrower than the sentence he read.**"*
+- **F4 half-holds, and the half that fails is decisive.** *"Ceiling case: even halving everything
+  unmeasured is ~0.6 MB against 3.89 MB remaining, from 17.79 MB started
+  (`.claude/memory/DECISIONS.md:933-935`). His ask was 'load MUCH faster'. 78% is delivered. The
+  residue is not launch-critical by any reading."*
+
+**FINDING 1 — A RECURRENCE, AND THE CEO FOUND IT, NOT THE WATCH.** `.planning/CHART.md:719-721`
+glossed his ruling as *"stop spending watches on the image-resize tail **(the unmeasured third of the
+library included)**."* — **"He never said that. His words are eleven: *'It's finished -- push it to
+sea trial.'* The parenthesis is a session's inference, written unlabelled into the record beside his
+verbatim quote."** And it names the precedent: `.claude/memory/DECISIONS.md:943-948`, *"an exclusion
+written from a PARAPHRASE… He did not"* — **same file family, same subject, six days apart.**
+**ACTED ON:** the parenthesis is removed and the correction is written in the open at that line.
+
+**FINDING 2 — the row argued against the wrong handle.** `T-088` said it decides *"whether `T-087`'s
+2.3% is the real answer"*; `T-087` (`.planning/CHART.md:723-726`) is *"Remove the 'Your rulings in
+hand' box from the Glass"*. **ACTED ON:** the row now cites `.planning/ASSET-DISPLAY-SIZES.md`, which
+is where the number actually lives.
+
+**FINDING 3 — do not later cite CEO 141 as support for this row.** *"`.planning/CEO-REVIEWS.md:69`
+calls the art-library measurement 'the real next job' — written without checking `T-089`. Don't cite
+it later as a second opinion."*
+
+**ITS THIRD OPTION, BETTER THAN THE TWO THE WATCH OFFERED, AND TAKEN:** *"Close `T-088`. **Do not
+re-ask him — a third question on the same subject at launch is the failure.** Replace it with one
+un-ranked, post-launch row saying, honestly: 74 files (1.05 MB) were never measured; nobody may
+shrink them without measuring first — the standing warning at `ASSET-DISPLAY-SIZES.md:11-12`,
+preserved as a guard rather than as work."* **DONE**, as a blockquote where the row was, so it can
+never rank and can never be "done".
+
+**ON CEO 142's INSTRUCTION — DISCHARGED.** *"`.planning/CEO-REVIEWS.md:55`: 'put `T-089`'s ruling in
+front of a judge for `T-088` before another watch spends itself on rank 1.' You did exactly that,
+with falsifiers written first (`PREDICTION-20260903T0505Z-T088-settled.md`, and F1 fired as predicted
+rather than being reframed). **That is the twelfth-running 'account tidier than the record' fault NOT
+recurring.**"*
+
+### ⚠ WHAT THE WATCH COULD NOT DO, STATED PLAINLY RATHER THAN WORKED AROUND
+
+**The guard belongs in `.claude/memory/DECISIONS.md`, beside "THE IMAGE-WEIGHT ASK IS CLOSED", and it
+is on the Chart instead because this session is fenced out of that file.** The edit was attempted and
+**refused by the filesystem permission fence** — not skipped, not forgotten. It is recorded here and
+in the guard's own last line so a session that *can* write there moves it. This is the same class of
+constraint as watch a6's undeletable scratch files: **an unattended watch on the Blade has a narrower
+reach than the process assumes, and saying so is worth more than routing around it.**
+
+---
+
 ## CEO Review 142 — 2026-09-03, Wy-Blade — `T-098`: his sitemap ask was finished and the row never closed — **PARTIAL**
 
 > *Number re-checked immediately before filing, order-independently (`^## CEO Review 14[2-9]` → no matches; highest on file **141**), per this file's banner. A peer watch is live and editing `scripts/wyclau/glass.mjs` in the same tree.*

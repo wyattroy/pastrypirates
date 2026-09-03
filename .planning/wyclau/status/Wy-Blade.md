@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T04:47:18.964Z	self-publish check
+2026-09-03T05:06:59.556Z	The bug that silently ate anything typed into the new comment box has been fixed -- your words are safe to type there again now. Housekeeping while I was in: 1 task points at a file or a process that is gone -- a watch corrects the wording. 6 tasks were measured on an older build, so nobody knows yet whether they are still broken -- a watch re-measures them; not yours to answer.
 ```
 
 ## In hand (IN-HAND)
@@ -16,15 +16,14 @@ None recorded.
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-03T03:41:16.680Z",
-  "updatedAt": "2026-09-03T04:35:09.174Z",
-  "progress": "6/10 legs",
+  "updatedAt": "2026-09-03T05:05:41.863Z",
+  "progress": "9/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T03:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T034802Z.out/.err)
 2026-09-02T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T041802Z.out/.err)
 2026-09-02T05:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T050803Z.out/.err)
 2026-09-02T05:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T055802Z.out/.err)
@@ -64,4 +63,5 @@ None recorded.
 2026-09-03T03:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T034802Z.out/.err, kit: readable)
 2026-09-03T04:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T041802Z.out/.err, kit: readable)
 2026-09-03T04:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T043802Z.out/.err, kit: readable)
+2026-09-03T04:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T045802Z.out/.err, kit: readable)
 ```

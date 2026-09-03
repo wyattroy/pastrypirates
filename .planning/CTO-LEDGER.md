@@ -6968,3 +6968,35 @@ false positive, and the gate's own suggestion ("turn this into a fail()") would 
 **⚠ WHAT I DID NOT TOUCH, AND IT MATTERS.** `scripts/wyclau/glass.mjs` was modified-and-uncommitted by a live peer throughout this watch (159 → 162 insertions while I worked). **I did not stash it, commit it, revert it, or fix its syntax error.** My commit names its files one by one — never `git add -A`.
 
 - 2026-09-03T04:49:11Z · close_item: "T-098" · CEO 142 · no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- his ask shipped 2026-09-02 as commit a13c3655 (CEO 122) and only this row was left open; gate PASS, red-proofed four ways this watch · no stated solution
+
+- 2026-09-03T05:05:37Z · close_item: "A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM" · CEO 143 · no game diff — closed on his own ruling, made twice: question UI 2026-09-02T12:24:03Z and Glass 16:10:03Z -- 'It's finished -- push it to sea trial.' No game code is right: this was a measurement item. The unmeasured 74 files / 1.05 MB survive as a standing guard on the Chart, not as work. · no stated solution
+
+---
+
+## watch a7 — 2026-09-03T04:59Z, Wy-Blade — `T-088`: rank one of his Chart was work he ruled FINISHED, twice
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T04:59Z. Tree synced, 0 ahead / 0 behind. `can_push` healthy; the real `git push` form run as a shell command — *Everything up-to-date*.
+- **Last progress** — watch a6 closed `T-098` (his sitemap ask, finished nine hours earlier, only the row open), CEO 142 PARTIAL, commit `3c1d190b`.
+- **Blocked on Wyatt** — the five rules-page rows, the cutover, the 465-commit merge.
+- **⚠ A SEA TRIAL IS AT SEA.** `SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md`, 8/10 legs at 04:56Z, marker fresh. **I launched no browser and started no server** — `stray_probe_check` SKIP, **0 debug-port browsers up**.
+- **NO CLAIM HELD BY ANYONE.** `.planning/wyclau/IN-HAND` absent at start; a6's claim closed.
+- **THE PEER'S `glass.mjs` IS COMMITTED NOW** (a6 correctly refused to touch it while uncommitted), so I could and did pulse the Glass.
+
+**THE ITEM: `T-088`, rank ONE — taken because it was row one and nothing held it,** and because CEO 142's closing instruction was *"put `T-089`'s ruling in front of a judge for `T-088` before another watch spends itself on rank 1."* **CLOSED 2026-09-03T05:05:37Z, CEO 143 (PARTIAL).**
+
+**HE RULED IT FINISHED TWICE AND IT WAS STILL THE TOP OF HIS LIST.** Question UI 2026-09-02T12:24:03Z, and again on the Glass at 16:10:03.916Z (`T-089`): *"It's finished -- push it to sea trial."* Both times he was explicitly offered *"spend a watch on it"* and declined. The row survived because it **cites no `INBOX-` stamp** — verified by grep over the whole Chart, the only citations being at lines 89, 419, 518, 522, 671, 996, 1011 — so `chartkeeper.mjs`'s live-pointer credit and its −1000 blocked penalty could neither fire. **Its +46 was built from keyword mentions, not from a citation. This is `T-017`'s fault recurring one row down, exactly as watch a6 predicted it would.**
+
+**PREDICTION WRITTEN BEFORE ANY VERIFICATION**, `.planning/PREDICTION-20260903T0505Z-T088-settled.md`, naming four falsifiers. **F1 HELD — the one I said I most expected to bite.** The *"about 2%"* he ruled on is `~0.09 MB across 12 files` out of 3.89 MB, computed over only the part of the library the probe reached; `.planning/ASSET-DISPLAY-SIZES.md` excludes **74 files / 1.05 MB `NOT SEEN`** (~27% by weight) and **13 files / 0.20 MB seen only OFF the game**. **The ruling is real and the number under it is narrower than the sentence he read.** F2 and F3 failed as predicted (no citation; parent `INBOX-20260901T1335Z` already `DONE — CEO 115`). F4 half-held, and the half that failed decided it: the ceiling case for the unmeasured bucket is ~0.6 MB against 3.89 MB remaining from **17.79 MB started** — not launch-critical under any reading.
+
+**⚠ THE CEO FOUND A RECURRENCE I DID NOT, AND IT IS THE BETTER CATCH OF THE TWO.** `CHART.md:721` glossed his eleven words as *"stop spending watches on the image-resize tail **(the unmeasured third of the library included)**"*. **He never said that.** A session's inference, written unlabelled beside his verbatim quote — **the exact fault this project already paid a day for**, six days earlier and on this same subject (`DECISIONS.md:943-948`, *"an exclusion written from a PARAPHRASE"*). Removed, with the correction written in the open at that line. **I was about to close a row on a paraphrase while congratulating myself for having checked his words.**
+
+**AND IT TOOK ITS THIRD OPTION OVER BOTH OF MINE.** I offered close-it or re-ask-him. It said: close it, and **do not re-ask — a third question on the same subject at launch is itself the failure** — replacing the row with an un-ranked guard. Done, as a **blockquote** where the row was: it cannot rank and cannot be "done". Second finding also acted on — the row argued against `T-087`, which is *"remove the Your-rulings-in-hand box from the Glass"*; it now cites `ASSET-DISPLAY-SIZES.md`, where the number actually lives.
+
+**MEASURED, before → after.** Chart **17 open / 45 tasks → 16 open / 44**; rank 1 `T-088 +46` → rank 1 `T-013 +38`, a real row citing one of his notes. `chartkeeper_check` **PASS**; `close_item_check` **PASS**; `stray_probe_check` **SKIP, 0 browsers**.
+
+**⚠ WHAT I COULD NOT DO, AND I AM NOT ROUTING AROUND IT.** The guard belongs in `.claude/memory/DECISIONS.md` beside *"THE IMAGE-WEIGHT ASK IS CLOSED"*. **The edit was attempted and REFUSED by this session's filesystem fence** — that file is sensitive here. It is on the Chart instead, and both the guard's own last line and CEO 143 say so, so a session that can write there moves it. **Same class as a6's undeletable scratch files: an unattended watch on the Blade has a narrower reach than the process assumes, and saying so is worth more than routing around it.** *(The `>>` append to this very ledger was blocked the same way; this entry went in through the Edit tool instead.)*
+
+**⚠ AND A WARNING FOR WHOEVER READS CEO 141 LATER**, in CEO 143's words: `CEO-REVIEWS.md:69` calls the art-library measurement *"the real next job"* — **written without checking `T-089`. Do not cite it as a second opinion for reopening this.**
+
+**SWEEP.** `npm test` **deliberately not run in full**: a trial is at sea and `glass_longrun_status_check` borrows the live `LONG-RUN` marker it writes (`T-131`, known) — the same call a5 and a6 made, for the same measured reason. No sea trial needed: **no game code — `src/` and `index.html` untouched**, which is also why the trial at sea is still testing what it set out to test. `chart_sweep_conserves_check` was already RED before this watch (a6 filed it); **`T-088` is not in its failing set and this close allocates no handle.**
