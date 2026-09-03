@@ -293,91 +293,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settled ruling.*
 
 
-- [ ] **⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.**
-      ⟨`T-103`⟩
-      *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
-      it. **A row must not claim its own position: RANK decides that and moves rows under it.**)*
-      Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
-      THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
-      which is the exact sinking he has now complained about five times.
-      **HIS WORDS, VERBATIM:** *"DO NOW: build a way for me to drag to reprioritize the chart, in
-      The Glass."*
-      *(He wrote a second DO NOW note in the same breath — the button — and it was under this same
-      checkbox until 21:5xZ. It is now the row below, and its handle is `T-104`. The bracketed
-      handle tags that used to sit in this paragraph were removed with the split: they made `T-104`
-      a handle carried by two open rows, which is the fault that silently mis-attributed `T-078`.)*
-      **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
-      carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
-      the design and it is his — then build these two as its interface.** They are not a separate
-      idea and must not be designed twice.
-      ⚠ **AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose,
-      twice, because the button that would have let him say it does not exist yet — and the request
-      for that button then sank to the bottom of the list.** The feature is its own acceptance test:
-      **had `T-104` been shipped, `T-104` would not have needed rescuing by hand.** That is the same
-      sentence the Chartkeeper audit already earned once (`INBOX-20260902T04xxZ`), now true a second
-      time, of a different tool, in one day. **A hand-placement like this one is the failure, not the
-      fix** — it works once and generalises to nothing.
-      **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
-      no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
-      harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
-      ⚑ **SPLIT 2026-09-02T21:5xZ. THE SECOND OF HIS TWO NOTES — THE BUTTON — IS BUILT AND IS NOW
-      THE ROW DIRECTLY BELOW. WHAT IS LEFT ON THIS ROW IS THE DRAG, AND ONLY THE DRAG.**
-      Two notes under one checkbox meant RANK's number-one row could only ever be half-closed.
-      **CEO 121 caught the commit claiming this split in the past tense while `CHART.md` had not
-      been touched** — the eighth verdict to find a sentence tidier than the record, and this is the
-      correction. **The head line above still reads `T-103`, so this row is the drag.**
-      **WHAT THE DRAG STILL NEEDS, and it is genuinely more than the button was:** the Tasks card
-      renders plain strings (`glass.mjs`'s `openChecklist` → `shortTask`), so **no task on his page
-      carries its handle** — there is nothing for a drag to identify yet. Dragging also has to
-      persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
-      read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
-
-      ---
-      ⚑ **BUILT 2026-09-03T01:1xZ, commits `8327a1b9` and `2703d0b4`. CEO 131 (PARTIAL) FOUND THREE
-      FAULTS THAT MADE IT INERT ON THIS VERY CHART; all three were fixed in the same watch, and
-      CEO 132 reviewed the fixes and returned YES** — *"the drag now reaches his Chart, and I
-      measured it on his real data"* — **with four residuals filed as `T-115`–`T-118`.**
-      *(The paragraph above is the state before this watch and is kept as written — it is what was
-      true when the row was filed. "No task on his page carries its handle" is no longer true.)*
-      **YOU CAN DRAG THE LIST.** Every open Chart row on the Tasks card carries its handle
-      (`idOfRow`, the same reader the Chartkeeper identifies a row with, so the page and the tool
-      cannot disagree about which row is which). The drag is POINTER events, not HTML5
-      drag-and-drop — `dragstart`/`drop` never fire on iOS Safari, so the obvious build would have
-      been perfect on the laptop and INERT on the phone you read this on. Photographed both ways:
-      a real mouse at 900×1000 and a real touch drag at 390×844,
-      [`.planning/posed/t103-*.png`](posed/).
-      **THE ORDER IS SAVED AS HANDLES AND OBEYED BY RANK.** `chartkeeper.mjs --order=` writes
-      `order: N` onto those head lines and clears the previous order in the same act — one order,
-      replaced whole, never merged. `--order-clear` puts the list back on its derived ranking.
-      **Your DO NOW pin still sits above your dragged order** because a pin is the later, sharper
-      act; **that margin is a judgement and yours to overrule**, and `do_now_check.mjs` case 13 is
-      where reversing it is one deliberate edit.
-      ⚠ **AND HIS SAY-SO NOW REPLACES THE DERIVED NUMBER RATHER THAN BEING ADDED TO IT.** The first
-      version added a bonus and RANK handed back a DIFFERENT sequence from the one dragged — a row
-      carrying +30 for touching `src/` out-scored the row put one place above it. **A margin a
-      derived signal can close is not an ordering, it is a suggestion.**
-      ⚑ **WHAT CEO 131 CAUGHT, because it is the reusable half.** Every order case in the gate hands
-      the command FOUR hand-picked clean handles; his page hands it FIFTY-SEVEN real ones, and three
-      of those handles are carried by two rows each (`T-088`, `T-008`, `T-079` — the fault `T-107`
-      already names). The command refuses such a sequence WHOLE, so **every drag he made died at the
-      command while the page told him it was saved.** Its sentence: *"the check is honest and it is
-      measuring a different thing than the one that is broken."* Fixed by making an ambiguous row
-      **shown and undraggable** — derived from the rows, so it heals itself when `T-107` lands.
-      Two more of its findings, both fixed: his page did not move until a watch re-ranked (the
-      harvest step now runs `--order=` **and** `--rank --write`, gated), and a reload snapped the
-      list back to file order while the note still swore it was saved (the saved order is now
-      re-applied to the rows on every load). Plus its two smaller ones — the confirmation moved
-      ABOVE the list, and the page now scrolls while a drag **keeps moving** near either edge,
-      without which a fifty-seven-row list cannot be reordered on a phone at all.
-      ⚠ **"KEEPS MOVING", NOT "HELD", AND THREE DOCUMENTS INCLUDING THIS ROW SAID "HELD".** CEO 132:
-      *"no movement, no events, no scroll"* — the scroll fires inside `pointermove` with no timer, so
-      a finger parked at the edge does nothing. Corrected everywhere rather than described away.
-      ✅ **THE ACCEPTANCE TEST RUNS ON THIS CHART, NOT ON A FIXTURE:**
-      `node scripts/qa/_t103_roundtrip.mjs` — render the page → take the sequence a drag would save
-      → `--order=` → `--rank --write` → render again and read the order back. **50 draggable rows,
-      no repeated handle, and the page comes back in the sequence dragged.**
-      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 131 ·
-      [`PREDICTION-20260903T0110Z-T103.md`](wyclau/PREDICTION-20260903T0110Z-T103.md).
 - [ ] **HIS YOUR CALL PILE — THE HALF OF HIS OWN IDEA THAT IS STILL NOT BUILT, split out of `T-090`
       ⟨`T-106`⟩
       by the watch that closed it, at CEO 119's insistence and it was right to insist.** His idea,
@@ -704,73 +619,6 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
-- [ ] **NOTHING IN THIS PROJECT EVER RUNS THE GLASS PAGE'S OWN JAVASCRIPT — so every behaviour on
-      ⟨`T-115` · size: M⟩
-      the one surface Wyatt touches is guarded by a SOURCE SEARCH.** Filed 2026-09-03T02:xxZ by
-      CEO 132, against the `T-103` drag. **Its words:** *"Gut the body of `applySaved` and all three
-      still pass. And nothing in this project executes the Glass page's JavaScript — no browser
-      gate, no jsdom, no `vm`. I checked."*
-      **WHY IT IS NOT A STYLE POINT.** The fix CEO 131 called *the worst, because it made the page
-      lie to him* — putting his saved order back on the rows when the page loads — is today backed
-      by a grep for the string `applySaved();` and by one hand trace. The posed pair cannot reach it
-      either: with no saved order in the page's state the function returns on its first line, which
-      is exactly why both "after" screenshots read *"This view can't save an order."* **The sentence
-      on his page that this backs is the same sentence that was FALSE last time.**
-      **THE SHAPE OF THE FIX, and it is small because the page is already renderable to a file:** the
-      posed harness (`scripts/qa/_t103_pose.mjs`) already drives a real Chrome over a rendered Glass
-      with real pointer and touch events. What is missing is SEEDING STATE — publish a page whose
-      `glassState` already holds an order/ideas/rulings, load it, and assert what the page does with
-      it. That single capability covers `applySaved`, the ideas list, the rulings paint and the
-      DO NOW pin at once. **Do not build a jsdom shim** — `tiny_dom.mjs`'s own header says why.
-      **Sizing: MEDIUM. No game code, no sea trial.**
-
-- [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
-      ⟨`T-116` · size: S⟩
-      "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
-      **MEASURED, NOT REASONED:** his page saves the WHOLE sequence, so `--order=` stamps all 50
-      draggable rows, and a dragged row scores 4950–4999 against a **measured top derived score of
-      196** on the live Chart (`chartkeeper.mjs`'s `score()`). So from his first drag onward every
-      undraggable row and every task filed afterwards sits below all fifty, permanently, until
-      somebody runs `--order-clear` — **and he has no way to run that from the page.**
-      ⚠ **THIS MAY BE CORRECT BEHAVIOUR FOR A DRAG-TO-REORDER LIST AND IT IS STILL A DEFECT**, for
-      two reasons that do not depend on that judgement: (a) `chartkeeper.mjs:255` prints *"Anything
-      you did not drag keeps its derived rank, underneath yours"*, which is true of the command and
-      false of how his page uses it — there is no such thing as "did not drag"; (b) his note told him
-      the seven twinned rows *"will not move"*, and on the next load `applySaved` lifts every named
-      row above them, so all seven relocate to the bottom. **He was told the opposite of what
-      happens.** The note is corrected; the behaviour is not.
-      **TWO SHAPES, and the second is probably his call:** save only the rows AHEAD of the last one
-      he actually moved, so the tail keeps its derived rank — or give him a way back on the page
-      ("use the ranked order"), which is one button and one `--order-clear` in the harvest.
-      **Sizing: SMALL. No game code.**
-
-- [ ] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23,
-      ⟨`T-117` · size: S⟩
-      in the fix written to close rule 23's last instance.** Filed 2026-09-03T02:xxZ by CEO 132.
-      `glass.mjs` counts duplicates across **open checklist rows only**; `chartkeeper.mjs` counts any
-      head line with a checkbox within 11 lines above it, checklist **or inbox**. A handle those two
-      disagree about is `T-103`'s original fault returning: the page offers a drag the command then
-      refuses whole, and he is told it saved.
-      ✅ **MEASURED TODAY: ZERO DISAGREEMENTS** — `--order=` accepted all 50 handles the page
-      offered. **Latent, not live**, which is why it is a row and not a stop-everything.
-      **The fix is one definition** imported by both, in `scripts/wyclau/lib/chart_model.mjs`, where
-      `idOfRow` already lives. **Sizing: SMALL. No game code.**
-
-- [ ] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed
-      ⟨`T-118` · size: S⟩
-      2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its
-      finding by reading instead. It writes old code over `glass.mjs` and `chartkeeper.mjs` and
-      restores in a `finally`; **two commits landed from other sessions inside its review window**,
-      and any `git commit -a` from another watch in that gap commits reverted code.
-      **The general form is worth more than the file:** showing a check RED against an earlier commit
-      is a thing every item here needs, and doing it by rewriting the working tree is the wrong
-      mechanism. **A scratch checkout (`git worktree` at the ref, or extracting to a temp dir and
-      pointing the gate at it) does the same job and touches nothing shared.**
-      ⚠ **AND ITS SIBLING LIMIT, WHICH CEO 132 ALSO CAUGHT:** it restores only those two files, so a
-      case reading anything else — the runbook, a hook, a doc — **cannot go red under it**, and one
-      was reported as having done so. Whatever replaces it must restore the whole tree at that ref
-      or say which files it did not. **Sizing: SMALL. No game code.**
-
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -952,6 +800,53 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **THE CHEAPER HALF, worth doing even if the hook is not:** the Advisor's own routine gains one
       line — *before any question to him, read `BLOCKED ON WYATT` and the newest harvest.* It is
       thirty seconds and it would have caught this one.
+
+- [ ] **`_t103_redproof.mjs` REWRITES TRACKED FILES ON A BRANCH THREE SESSIONS SHARE.** Filed
+      ⟨`T-123` · size: S⟩
+      2026-09-03T02:xxZ by CEO 132, which **declined to run it for this reason** and established its
+      finding by reading instead. It writes old code over `glass.mjs` and `chartkeeper.mjs` and
+      restores in a `finally`; **two commits landed from other sessions inside its review window**,
+      and any `git commit -a` from another watch in that gap commits reverted code.
+      **The general form is worth more than the file:** showing a check RED against an earlier commit
+      is a thing every item here needs, and doing it by rewriting the working tree is the wrong
+      mechanism. **A scratch checkout (`git worktree` at the ref, or extracting to a temp dir and
+      pointing the gate at it) does the same job and touches nothing shared.**
+      ⚠ **AND ITS SIBLING LIMIT, WHICH CEO 132 ALSO CAUGHT:** it restores only those two files, so a
+      case reading anything else — the runbook, a hook, a doc — **cannot go red under it**, and one
+      was reported as having done so. Whatever replaces it must restore the whole tree at that ref
+      or say which files it did not. **Sizing: SMALL. No game code.**
+
+- [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
+      ⟨`T-121` · size: S⟩
+      "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
+      **MEASURED, NOT REASONED:** his page saves the WHOLE sequence, so `--order=` stamps all 50
+      draggable rows, and a dragged row scores 4950–4999 against a **measured top derived score of
+      196** on the live Chart (`chartkeeper.mjs`'s `score()`). So from his first drag onward every
+      undraggable row and every task filed afterwards sits below all fifty, permanently, until
+      somebody runs `--order-clear` — **and he has no way to run that from the page.**
+      ⚠ **THIS MAY BE CORRECT BEHAVIOUR FOR A DRAG-TO-REORDER LIST AND IT IS STILL A DEFECT**, for
+      two reasons that do not depend on that judgement: (a) `chartkeeper.mjs:255` prints *"Anything
+      you did not drag keeps its derived rank, underneath yours"*, which is true of the command and
+      false of how his page uses it — there is no such thing as "did not drag"; (b) his note told him
+      the seven twinned rows *"will not move"*, and on the next load `applySaved` lifts every named
+      row above them, so all seven relocate to the bottom. **He was told the opposite of what
+      happens.** The note is corrected; the behaviour is not.
+      **TWO SHAPES, and the second is probably his call:** save only the rows AHEAD of the last one
+      he actually moved, so the tail keeps its derived rank — or give him a way back on the page
+      ("use the ranked order"), which is one button and one `--order-clear` in the harvest.
+      **Sizing: SMALL. No game code.**
+
+- [ ] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23,
+      ⟨`T-122` · size: S⟩
+      in the fix written to close rule 23's last instance.** Filed 2026-09-03T02:xxZ by CEO 132.
+      `glass.mjs` counts duplicates across **open checklist rows only**; `chartkeeper.mjs` counts any
+      head line with a checkbox within 11 lines above it, checklist **or inbox**. A handle those two
+      disagree about is `T-103`'s original fault returning: the page offers a drag the command then
+      refuses whole, and he is told it saved.
+      ✅ **MEASURED TODAY: ZERO DISAGREEMENTS** — `--order=` accepted all 50 handles the page
+      offered. **Latent, not live**, which is why it is a row and not a stop-everything.
+      **The fix is one definition** imported by both, in `scripts/wyclau/lib/chart_model.mjs`, where
+      `idOfRow` already lives. **Sizing: SMALL. No game code.**
 
 - [ ] **★★ "WHAT IS BEING WORKED ON RIGHT NOW" — design approved by CEO with changes, all applied.
       His ask 1 of five. Spec: [`SPEC-WHAT-IS-IN-HAND.md`](SPEC-WHAT-IS-IN-HAND.md). Sizing: SMALL.**
@@ -1211,6 +1106,26 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       every row is 90 truncated characters."* **That recommendation was made and then not carried
       into a row anybody could take.** The backend half has had seven watches; the half he can see
       has had none.
+
+- [ ] **NOTHING IN THIS PROJECT EVER RUNS THE GLASS PAGE'S OWN JAVASCRIPT — so every behaviour on
+      ⟨`T-120` · size: M⟩
+      the one surface Wyatt touches is guarded by a SOURCE SEARCH.** Filed 2026-09-03T02:xxZ by
+      CEO 132, against the `T-103` drag. **Its words:** *"Gut the body of `applySaved` and all three
+      still pass. And nothing in this project executes the Glass page's JavaScript — no browser
+      gate, no jsdom, no `vm`. I checked."*
+      **WHY IT IS NOT A STYLE POINT.** The fix CEO 131 called *the worst, because it made the page
+      lie to him* — putting his saved order back on the rows when the page loads — is today backed
+      by a grep for the string `applySaved();` and by one hand trace. The posed pair cannot reach it
+      either: with no saved order in the page's state the function returns on its first line, which
+      is exactly why both "after" screenshots read *"This view can't save an order."* **The sentence
+      on his page that this backs is the same sentence that was FALSE last time.**
+      **THE SHAPE OF THE FIX, and it is small because the page is already renderable to a file:** the
+      posed harness (`scripts/qa/_t103_pose.mjs`) already drives a real Chrome over a rendered Glass
+      with real pointer and touch events. What is missing is SEEDING STATE — publish a page whose
+      `glassState` already holds an order/ideas/rulings, load it, and assert what the page does with
+      it. That single capability covers `applySaved`, the ideas list, the rulings paint and the
+      DO NOW pin at once. **Do not build a jsdom shim** — `tiny_dom.mjs`'s own header says why.
+      **Sizing: MEDIUM. No game code, no sea trial.**
 
 - [ ] **Repair the two disarmed Advisor gates** (CEO 83, all four findings verified in the code).
       ⟨`T-002`⟩

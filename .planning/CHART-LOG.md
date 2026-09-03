@@ -1142,3 +1142,91 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       ✅ **HIS WORDS WERE NEVER AT RISK FROM THIS** — the runtime refuses a stale publish regardless
       (`INBOX-20260902T2100Z`). What was at risk is every reader believing these receipts mean
       something they do not.
+
+## T-103 — 2026-09-03 — ⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself. (closed 2026-09-03 · CEO 132 · no game diff — no game code is right: the ask is his own page and the tool that ranks it -- he can drag the Tasks list, the order rides as handles, and chartkeeper --order= makes RANK obey it; commits 8327a1b9 and 2703d0b4, src/ and index.html untouched) (This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught it. A row must not claim its own position: RANK decides that and moves rows under it.) Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of THE IDEA INBOX, where the harvest correctly parked them below every open checklist row — which is the exact sinking he has now complained about five times. HIS WORDS, VERBATIM: "DO NOW: build a way for me to drag to reprioritize the chart, in The Glass." (He wrote a second DO NOW note in the same breath — the button — and it was under this same checkbox until 21:5xZ. It is now the row below, and its handle is T-104. The bracketed handle tags that used to sit in this paragraph were removed with the split: they made T-104 a handle carried by two open rows, which is the fault that silently mis-attributed T-078.) THESE ARE THE CONCRETE BUILD OF T-083's SECOND HALF, which is the row directly below and carries his earlier words: "i need a way to say DO THIS NOW." Read T-083 first — it is the design and it is his — then build these two as its interface. They are not a separate idea and must not be designed twice. ⚠ AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose, twice, because the button that would have let him say it does not exist yet — and the request for that button then sank to the bottom of the list. The feature is its own acceptance test: had T-104 been shipped, T-104 would not have needed rescuing by hand. That is the same sentence the Chartkeeper audit already earned once (INBOX-20260902T04xxZ), now true a second time, of a different tool, in one day. A hand-placement like this one is the failure, not the fix — it works once and generalises to nothing. Sizing: both are Glass UI (glass.mjs plus chartkeeper.mjs's rank input). No game code, no sea trial — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the harvest account: THE IDEA INBOX below, and the Glass commits 996ee621 / 7042c7e0. ⚑ SPLIT 2026-09-02T21:5xZ. THE SECOND OF HIS TWO NOTES — THE BUTTON — IS BUILT AND IS NOW THE ROW DIRECTLY BELOW. WHAT IS LEFT ON THIS ROW IS THE DRAG, AND ONLY THE DRAG. Two notes under one checkbox meant RANK's number-one row could only ever be half-closed. CEO 121 caught the commit claiming this split in the past tense while CHART.md had not been touched — the eighth verdict to find a sentence tidier than the record, and this is the correction. The head line above still reads T-103, so this row is the drag. WHAT THE DRAG STILL NEEDS, and it is genuinely more than the button was: the Tasks card renders plain strings (glass.mjs's openChecklist → shortTask), so no task on his page carries its handle — there is nothing for a drag to identify yet. Dragging also has to persist an ORDER where the pin persists a single slot; chartkeeper.mjs --do-now is the read-modify-write shape to copy, not to reinvent. Sizing: MEDIUM.
+
+- [x] **⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.** (closed 2026-09-03 · CEO 132 · no game diff — no game code is right: the ask is his own page and the tool that ranks it -- he can drag the Tasks list, the order rides as handles, and chartkeeper --order= makes RANK obey it; commits 8327a1b9 and 2703d0b4, src/ and index.html untouched)
+      ⟨`T-103`⟩
+      *(This row asserted "THEY ARE THE TOP TWO ROWS" while sitting third — CEO 117 caught
+      it. **A row must not claim its own position: RANK decides that and moves rows under it.**)*
+      Glass, 2026-09-02, 3:09 PM ET. Triaged here by the Advisor at 3:12 PM out of
+      THE IDEA INBOX, where the harvest correctly parked them **below every open checklist row** —
+      which is the exact sinking he has now complained about five times.
+      **HIS WORDS, VERBATIM:** *"DO NOW: build a way for me to drag to reprioritize the chart, in
+      The Glass."*
+      *(He wrote a second DO NOW note in the same breath — the button — and it was under this same
+      checkbox until 21:5xZ. It is now the row below, and its handle is `T-104`. The bracketed
+      handle tags that used to sit in this paragraph were removed with the split: they made `T-104`
+      a handle carried by two open rows, which is the fault that silently mis-attributed `T-078`.)*
+      **THESE ARE THE CONCRETE BUILD OF `T-083`'s SECOND HALF**, which is the row directly below and
+      carries his earlier words: *"i need a way to say DO THIS NOW."* **Read `T-083` first — it is
+      the design and it is his — then build these two as its interface.** They are not a separate
+      idea and must not be designed twice.
+      ⚠ **AND THE JOKE IS LOAD-BEARING, SO DO NOT LOSE IT: he had to type "DO NOW" in prose,
+      twice, because the button that would have let him say it does not exist yet — and the request
+      for that button then sank to the bottom of the list.** The feature is its own acceptance test:
+      **had `T-104` been shipped, `T-104` would not have needed rescuing by hand.** That is the same
+      sentence the Chartkeeper audit already earned once (`INBOX-20260902T04xxZ`), now true a second
+      time, of a different tool, in one day. **A hand-placement like this one is the failure, not the
+      fix** — it works once and generalises to nothing.
+      **Sizing: both are Glass UI (`glass.mjs` plus `chartkeeper.mjs`'s rank input). No game code,
+      no sea trial** — COSMETIC gear plus a rendered screenshot at 390×844. Verbatim text and the
+      harvest account: `THE IDEA INBOX` below, and the Glass commits `996ee621` / `7042c7e0`.
+      ⚑ **SPLIT 2026-09-02T21:5xZ. THE SECOND OF HIS TWO NOTES — THE BUTTON — IS BUILT AND IS NOW
+      THE ROW DIRECTLY BELOW. WHAT IS LEFT ON THIS ROW IS THE DRAG, AND ONLY THE DRAG.**
+      Two notes under one checkbox meant RANK's number-one row could only ever be half-closed.
+      **CEO 121 caught the commit claiming this split in the past tense while `CHART.md` had not
+      been touched** — the eighth verdict to find a sentence tidier than the record, and this is the
+      correction. **The head line above still reads `T-103`, so this row is the drag.**
+      **WHAT THE DRAG STILL NEEDS, and it is genuinely more than the button was:** the Tasks card
+      renders plain strings (`glass.mjs`'s `openChecklist` → `shortTask`), so **no task on his page
+      carries its handle** — there is nothing for a drag to identify yet. Dragging also has to
+      persist an ORDER where the pin persists a single slot; `chartkeeper.mjs --do-now` is the
+      read-modify-write shape to copy, not to reinvent. **Sizing: MEDIUM.**
+
+      ---
+      ⚑ **BUILT 2026-09-03T01:1xZ, commits `8327a1b9` and `2703d0b4`. CEO 131 (PARTIAL) FOUND THREE
+      FAULTS THAT MADE IT INERT ON THIS VERY CHART; all three were fixed in the same watch, and
+      CEO 132 reviewed the fixes and returned YES** — *"the drag now reaches his Chart, and I
+      measured it on his real data"* — **with four residuals filed as `T-115`–`T-118`.**
+      *(The paragraph above is the state before this watch and is kept as written — it is what was
+      true when the row was filed. "No task on his page carries its handle" is no longer true.)*
+      **YOU CAN DRAG THE LIST.** Every open Chart row on the Tasks card carries its handle
+      (`idOfRow`, the same reader the Chartkeeper identifies a row with, so the page and the tool
+      cannot disagree about which row is which). The drag is POINTER events, not HTML5
+      drag-and-drop — `dragstart`/`drop` never fire on iOS Safari, so the obvious build would have
+      been perfect on the laptop and INERT on the phone you read this on. Photographed both ways:
+      a real mouse at 900×1000 and a real touch drag at 390×844,
+      [`.planning/posed/t103-*.png`](posed/).
+      **THE ORDER IS SAVED AS HANDLES AND OBEYED BY RANK.** `chartkeeper.mjs --order=` writes
+      `order: N` onto those head lines and clears the previous order in the same act — one order,
+      replaced whole, never merged. `--order-clear` puts the list back on its derived ranking.
+      **Your DO NOW pin still sits above your dragged order** because a pin is the later, sharper
+      act; **that margin is a judgement and yours to overrule**, and `do_now_check.mjs` case 13 is
+      where reversing it is one deliberate edit.
+      ⚠ **AND HIS SAY-SO NOW REPLACES THE DERIVED NUMBER RATHER THAN BEING ADDED TO IT.** The first
+      version added a bonus and RANK handed back a DIFFERENT sequence from the one dragged — a row
+      carrying +30 for touching `src/` out-scored the row put one place above it. **A margin a
+      derived signal can close is not an ordering, it is a suggestion.**
+      ⚑ **WHAT CEO 131 CAUGHT, because it is the reusable half.** Every order case in the gate hands
+      the command FOUR hand-picked clean handles; his page hands it FIFTY-SEVEN real ones, and three
+      of those handles are carried by two rows each (`T-088`, `T-008`, `T-079` — the fault `T-107`
+      already names). The command refuses such a sequence WHOLE, so **every drag he made died at the
+      command while the page told him it was saved.** Its sentence: *"the check is honest and it is
+      measuring a different thing than the one that is broken."* Fixed by making an ambiguous row
+      **shown and undraggable** — derived from the rows, so it heals itself when `T-107` lands.
+      Two more of its findings, both fixed: his page did not move until a watch re-ranked (the
+      harvest step now runs `--order=` **and** `--rank --write`, gated), and a reload snapped the
+      list back to file order while the note still swore it was saved (the saved order is now
+      re-applied to the rows on every load). Plus its two smaller ones — the confirmation moved
+      ABOVE the list, and the page now scrolls while a drag **keeps moving** near either edge,
+      without which a fifty-seven-row list cannot be reordered on a phone at all.
+      ⚠ **"KEEPS MOVING", NOT "HELD", AND THREE DOCUMENTS INCLUDING THIS ROW SAID "HELD".** CEO 132:
+      *"no movement, no events, no scroll"* — the scroll fires inside `pointermove` with no timer, so
+      a finger parked at the edge does nothing. Corrected everywhere rather than described away.
+      ✅ **THE ACCEPTANCE TEST RUNS ON THIS CHART, NOT ON A FIXTURE:**
+      `node scripts/qa/_t103_roundtrip.mjs` — render the page → take the sequence a drag would save
+      → `--order=` → `--rank --write` → render again and read the order back. **50 draggable rows,
+      no repeated handle, and the page comes back in the sequence dragged.**
+      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 131 ·
+      [`PREDICTION-20260903T0110Z-T103.md`](wyclau/PREDICTION-20260903T0110Z-T103.md).

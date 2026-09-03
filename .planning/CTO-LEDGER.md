@@ -6343,12 +6343,20 @@ the case read the already-fixed runbook and passed. *"The number survived; the r
   found; it is still backed by a grep. Filed as `T-115`.
 - **"22 cases"** was a hand-typed number; the gate prints 39 assertions across 16 blocks.
 
-**FILED RATHER THAN FIXED, because the item is closed and these are not this item:** `T-115` (run
-the page's script), `T-116` (after his first drag RANK stops ranking the checklist, and the seven
+**FILED RATHER THAN FIXED, because the item is closed and these are not this item:** `T-120` (run
+the page's script), `T-121` (after his first drag RANK stops ranking the checklist, and the seven
 rows his note said "will not move" go to the bottom — he was told the opposite of what happens),
-`T-117` (the page and the Chartkeeper each decide "is this handle ambiguous?" alone — zero
-disagreements measured today, the rule-23 shape tomorrow), `T-118` (the red-proof harness rewrites
+`T-122` (the page and the Chartkeeper each decide "is this handle ambiguous?" alone — zero
+disagreements measured today, the rule-23 shape tomorrow), `T-123` (the red-proof harness rewrites
 tracked files on a branch three sessions share, and restores only two of them).
+
+⚠ **AND THOSE FOUR HANDLES WERE HAND-PICKED AND COLLIDED, WHICH IS WORTH ONE LINE BECAUSE THE
+CHARTKEEPER CAUGHT IT IMMEDIATELY.** They were first written as `T-115`–`T-118`, which the Glass
+harvest had already allocated to his four rules-page rulings in `## RULED`. The next `--rank` pass
+reported **"7 handle(s) are carried by MORE THAN ONE open row"** — up from 3 — and named all four.
+Renumbered to `T-120`–`T-123`, above the highest handle in `CHART.md` and `CHART-LOG.md`.
+**The general form: a handle typed by hand is `T-107` waiting to happen.** The write pass allocates
+handles for rows that lack one; a row filed WITH one is trusting the writer to have looked.
 
 **A NOTE HE ALREADY READ WAS WRONG AND A CORRECTION WENT OUT.** The 01:52Z publish carried *"seven
 rows will not move"* and *"it stays where you put it"*. The first is false in consequence — those
@@ -6386,3 +6394,5 @@ it — a sentence is exactly what failed here.**
 
 ⚠ **THE ADVISOR IS RECORD-ONLY AND THIS IS OUTSIDE THAT LINE.** He directed it in the moment and it
 is named as such in the reply, per the standing exception.
+
+- 2026-09-03T02:01:22Z · close_item: "DRAG TO REPRIORITISE THE CHART, IN THE GLASS" · CEO 132 · no game diff — no game code is right: the ask is his own page and the tool that ranks it -- he can drag the Tasks list, the order rides as handles, and chartkeeper --order= makes RANK obey it; commits 8327a1b9 and 2703d0b4, src/ and index.html untouched · no stated solution
