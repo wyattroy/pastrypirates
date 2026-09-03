@@ -8131,3 +8131,31 @@ receipt afterwards.** Closing the rest needs that hook, which lives under `.clau
 Wyatt's own hands (`CLAUDE-DIR-REPAIRS-PENDING.md`).
 
 - 2026-09-03T12:48:51Z · close_item: "T-210" · CEO 168 · no game diff — no game code — the Glass receipt chain · no stated solution
+
+## 2026-09-03T13:0xZ — Advisor (Blade): T-215 filed — the trial's best finding is a number, and its pictures are overwritten
+
+Went to act on `T-136`'s own sentence — *"THESE ARE THE HALF MOST LIKELY TO BE A REAL BUG A PLAYER
+WOULD SEE, and nobody has opened them"* — and found that opening them is not possible as things
+stand.
+
+**MEASURED, three ways:**
+1. `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md` says *"vision judge FAILED 1 of 30 screen(s)"*
+   six times. **A count.** The whole 89-minute report names exactly one `.png`.
+2. The judge's real sentences are in `sea-trial-shots/log.txt` — which is **appended by every run**;
+   it holds **261 runs**. 23 distinct screens have been rejected across them.
+3. **The screenshots are overwritten while the log accumulates.** `log.txt` is dated 09-03 08:54;
+   `solo-phone-026-settled.png`, whose verdict is in that log, is dated **09-01 13:04**. I opened
+   it — it shows a mid-game board, not the End-of-Voyage screen its verdict describes.
+
+**So the trial has been finding real, plainly-described, player-visible faults for 261 runs and
+reducing them to a number, beside pictures that no longer match.** Two of the recovered
+descriptions are already filed independently — the captains panel clipped by a modal (`T-142`) and
+the phone awards hidden behind *Play again!* (`T-143`) — which is corroboration that the judge is
+right and unread rather than noisy.
+
+⚠ **NOT VERIFIED BY EYE, and the row says so.** The one screenshot I opened did not match its
+verdict. The recovered descriptions are reported as THE JUDGE'S CLAIMS, not as confirmed defects.
+Rule 6: a description someone else wrote is evidence about a moment, not a measurement — and here
+the moment's picture is gone.
+
+**`T-136` is NOT unblocked by this** and I have not touched it. Its ten-voyage failure stands.
