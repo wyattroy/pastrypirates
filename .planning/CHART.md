@@ -91,16 +91,230 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
+      ⟨`T-206`⟩
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
+
+  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
+  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
+  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
+  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
+  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
+  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
+  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
+  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
+  account — **only he can confirm that, and this row must not claim it as verified.**
+  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
+  "unstarted, needs an account from him" skipped it for a reason that was never true.
+  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
+  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
+  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
+  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
+  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
+  the tag being deleted later.
+  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
+  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
+  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
+  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
+  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
+  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
+  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
+  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
+  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
+  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
+  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
+  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
+  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
+  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
+  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
+  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
+  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
+  switch Google on. Corrected.
+  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
+  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
+  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
+  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
+  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
+  page only, no other surface), the caveat above stated in his words, and the third option.
+  **Consent is left to him, explicitly, and not defaulted.**
+
+  ### ⛔ DONE — HE ANSWERED, AND THE ANSWER WAS ACTED ON 2026-09-03T17:0xZ. DO NOT RE-ASK HIM.
+  His ruling: *"Give me instructions to switch it on, and give me the full plan for analytics as
+  an artifact that I can understand more easily than this text."* **The artifact is published:
+  https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0** — his solution first, before any investigation of my own.
+  Photographed at 390px and 1280px (`.planning/posed/t206-analytics-plan-{phone,desktop}.png`);
+  the two measurements it quotes were re-read that hour, not carried over
+  (`_t206_dark_property_check.mjs`: id in 2 files, loaders in **0**; `_t206_usage_count.mjs`:
+  237/123/44/8, unchanged).
+  **WHAT IS STILL OPEN IS NOT A QUESTION FOR A SESSION TO SETTLE:** which pages get the tag, and
+  cookie or cookieless. Both are on the artifact with a numbered recommendation, in the shape he
+  asked for on 2026-09-03 (*"label your suggestions … with numbers, and a (recommended)"*).
+  **THREE THINGS THIS ROW'S OWN TEXT ABOVE GOT WRONG, corrected here rather than deleted:**
+  it said `about.html` and `stats.html` *"all need a decision"* and listed **three** surfaces —
+  there are **eight** tracked pages (`git ls-files`), and `classic/lab.html`,
+  `classic/stats.html` and `scripts/battle_sim.html` were missing from every previous count.
+  It also never noticed that **`pingVisit()` runs on the two GAME pages only**
+  (`src/orchestrator.js:2674`, `classic/src/orchestrator.js:1534`) — so About and the rules page
+  he shipped this morning are measured by **nothing at all**, which is the strongest argument for
+  the tag and no note had it.
+  **AND HIS THIRD SENTENCE IS ⟨`T-220`⟩**, not this row: a sea trial whose depth a person can
+  lower on the record. Deliberately split — this item is a plan, that one changes the testing
+  machinery.
+
+  ### ⚑ 2026-09-03T17:3xZ — HIS TWO CALLS NOW REACH HIM. THE INSTALL IS BLOCKED ON HIM, NOT ON US.
+  CEO 177's top finding was rule 27: both decisions were written onto `.planning/ANALYTICS-PLAN.html`
+  — a repo path he cannot tap — so **his Your Call card showed zero questions while two of his
+  decisions waited.** Both are now rows in `## BLOCKED ON WYATT`: `qid:t206-which-pages` and
+  `qid:t206-cookie-choice`, each numbered 1/2/3 with one marked `(recommended)` and the write-in box
+  as "other", which is the shape he asked for in `INBOX-20260903T1600Z` and `INBOX-20260903T1556Z`.
+  **Verified on the rendered page, not asserted:** `glass.mjs --out` draws both as `class="ask"
+  data-id="t206-which-pages"` / `"t206-cookie-choice"` with numbered buttons and the `recTag`.
+  **Red-first, and it earned its keep** — `scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this
+  tree, and then caught the fix landing in the WRONG TABLE (`## RULED`, not `## BLOCKED ON WYATT`)
+  while three real gates stayed green on it. Seven cases red-proofed
+  (`_t206_calls_redproof.mjs`) — ⚠ **and this sentence said "four branches red-proofed" while one of
+  them was RED**, because adding the `since` date two hours later turned that mutation into a no-op
+  against a hard-coded row shape. CEO 178 caught it. The mutation is now built from the row's own
+  cells, and three new cases assert every mutation actually changes the Chart, so a no-op one can
+  never again read as a proof. ⛔ **Still deliberately out of `npm test`** until the tag is
+  installed, for the reason stated above: a gate added red is a gate somebody disables.
+  ⚠ **AND A GATE WAS FOUND LYING ABOUT ITSELF IN PASSING:** `numbered_options_check.mjs` shadowed
+  its own `judged5` counter, so the line CEO 176 added to stop anyone reading its silence as
+  protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
+  the analytics tag is installed and nothing will be until he picks.
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
+- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
+      ⟨`T-216`⟩
+      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
+      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
+      its own status line says what it is waiting for: *"the answer that unblocks
+      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
+      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
+      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
+      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
+      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
+      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
+      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
+      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
+      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
+      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
+      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
+      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
+      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
+      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
+      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
+      that code still states the OLD rule in full**, so reading the code's own commentary would have
+      confirmed the error.
+      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
+      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
+      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
+      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
+      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
+      found the first version would have passed green.
+      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
+      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
+      found them right. At that rate roughly three more wrong statements are still live. Closing now
+      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
+      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
+      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
+      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
+      don't end on one", crate prices as an island empties — each against the code that implements it,
+      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
+      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
+      cannot disagree.
+      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
+      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
+      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
+      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
+      finding recurring one item later** (*"a claim in the record that the record itself
+      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
+      the reusable half is narrower than "don't lie": **a note about work still to do must never live
+      inside a row you are closing** — the close is exactly what makes it unreadable.
+- [ ] Your ruling: ⟨`T-206`⟩ **Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch?** You asked for the plan and you have it — the property `G-2KK6EZDZSP` almost certainly already exists in your Google account and has never been told anything. **Nothing is installed and nothing will be until you pick.** The size: one `<script>` tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: **where your 123 browsers came from** — and remember that About and the new Rules page are measured by *nothing at all* today, which is the real gap. — his answer: The public pages only — the game, About and Rules **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-206`⟩
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
+- [ ] Your ruling: ⟨`T-206`⟩ **The second analytics call, and it is a real judgement one: a cookie notice, or not?** Google Analytics sets a cookie and sends data to Google; your own counter does neither. **Children play this game**, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose *"how many unique people"* from Google, **but you already have that number from your own counter**, which is why it fits your situation unusually well. ⚠ **The one thing on this page I could not check:** the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. **It gets verified before anything is installed** — and if it has changed, this becomes a straight choice between a banner and no banner. — his answer: Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-206`⟩
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
+- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
+      ⟨`T-240`⟩
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
+- [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
+      ⟨`T-220`⟩
+      `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
+      sea trial for this -- it clearly doesn't need a full one given that you're just adding a
+      tag to index; so we need a way to tell sea trial that and manually choose the depth of the
+      trial"*. **Split off T-206 deliberately** — that item is the analytics plan, this one
+      changes the testing machinery, and folding them together finishes neither.
+      **THE SIZE:** today `scripts/qa/gear.mjs` decides the gear from the files touched and
+      nothing can overrule it, so a one-line script tag in `index.html` buys the same ~75-minute
+      FULL trial as a rewrite of the board. That rule exists for a reason — `.claude/CLAUDE.md`
+      §5: *"chosen by the files you touched, never by how the change feels"* — and it was earned
+      the day a session picked its own depth by mood and shipped 22 unverified fixes.
+      ⚠ **SO THE JOB IS NOT "ADD A BYPASS FLAG", AND WHOEVER TAKES IT SHOULD SAY SO TO HIM.** An
+      unconditional `--gear=cosmetic` re-creates exactly the failure the rule was written
+      against. What is defensible is a depth a person can lower *on the record*: the reason
+      typed in, the chosen gear and the picker's own verdict both printed in the trial report,
+      so a shallow trial can never read as a full one. **Recommend that shape to him before
+      building either.**
+      **Read first:** `docs/QA-PROCESS.md` ("THE WHOLE LOOP, END TO END"),
+      `docs/HARD-WON-LESSONS.md` §10, `scripts/qa/gear.mjs:78-121`.
+      ⚑ **WORKED 2026-09-03T17:3xZ by the Blade watch. HALF OF HIS ASK WAS ALREADY BUILT AND NOBODY
+      HAD TOLD HIM** — `--gear=` has been read by `sea_trial.mjs` since it was written, and
+      `gear.mjs:181` prints `node scripts/sea_trial.mjs --gear=PLUMBING` in its own sweep line.
+      **Same shape as `T-216`: an instruction of his queued behind work already finished.**
+      **AND THE HALF THAT WAS MISSING WAS THE HALF THAT MADE IT SAFE, MEASURED ON THE RECOVERED
+      PRE-CHANGE FILE RATHER THAN REASONED ABOUT:** `--gear=cosmetic` — the exact lower-case
+      spelling the warning three lines above uses — **queued all TEN legs and really began sailing**,
+      while the report header read `gear: cosmetic`. The 75 minutes he was trying to skip, under a
+      header naming the depth he thought he had chosen. `--gear=SHALLOW` did the same.
+      **NOW:** an unknown gear is REFUSED and the four depths named; the name is normalised; the
+      picker runs on EVERY run so the report always carries **both** depths; a `--reason=` is
+      printed verbatim; and a depth lowered below the picker's with nothing typed is **said out
+      loud** rather than refused — refusing is his call, `qid:t220-shallow-green`.
+      **THE BUG THAT ONLY RUNNING IT COULD FIND, and it is the one that made the bypass unusable:**
+      a COSMETIC trial came back **`INCOMPLETE — 10 leg(s) did NOT run`** having correctly sailed the
+      zero voyages that gear asks for. `sea-trial-shots/report.json` is whatever the last FULL run
+      left behind, and nothing compared it against the fleet THIS run promised — so **every gear
+      below FULL inherited the missing legs as failures**, PLUMBING included. Fixed; the same run now
+      reads `0 of 0 · voyages that did NOT run: none`.
+      **Gate `scripts/qa/sea_trial_chosen_depth_check.mjs`, RED 0/8 on the real unmodified file →
+      GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
+      deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
+      npm test 124/124. No game code — `src/` and `index.html` untouched.
+- [ ] Your ruling: ⟨`T-216`⟩ **Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix.** When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — **whoever got home first**. The first two are exactly right. The third is not: the game breaks that last tie by **seat order**, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. **Nothing in the game records when a captain got home**, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat. — his answer: Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-216`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-017`⟩
+
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-235`⟩
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-207`⟩
+
 - [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-236`⟩
+
 - [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-121`⟩
+
+- [ ] Your ruling: ⟨`T-220`⟩ **You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine.** You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: `--gear=COSMETIC` runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. **The one thing I did not change on my own:** the trial's final word for a no-voyage run is *NOTHING SAILED*, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week. — his answer: Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-220`⟩
+
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -140,6 +354,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
   THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
@@ -177,6 +392,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
       every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
@@ -217,10 +433,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
       scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
       posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -461,7 +673,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
-
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -525,7 +736,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
-
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
@@ -543,7 +753,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
-
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -553,7 +762,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
-
 - [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
       AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
       `npm test` fails, the report's "the browser-free checks failed" section prints **only the
@@ -573,7 +781,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       assert the report names THAT gate by filename.**
       Sizing: no game code. Not this watch's to take — filed where the next one will see it.
       ⟨`T-237`⟩
-
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
       watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
@@ -595,7 +802,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
-
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -625,6 +831,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
+
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
@@ -638,6 +845,27 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+
+- [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
+      GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
+      ⟨`T-245`⟩
+      **His words, 2026-09-03:** *"it looks like not all the Glass Chart rows have buttons next to
+      them that allow them to be moved up; but they all need to be moveable. can you explain why,
+      and design an elegant solution?"* — and from the numbered options he picked **"Give every row
+      a real tag."**
+      **WHAT SHIPPED WAS THE SWEEP, NOT THE PROPERTY.** `assign_handles.mjs` tagged the untagged
+      rows once, and today the count is honest: 68 rows, 68 arrows, verified by the CEO rendering
+      the page and counting both. **But `glass.mjs:1395` still draws the button only when a row
+      already has a handle**, nothing writes a handle onto a newly harvested idea, and
+      `assign_handles.mjs` is invoked by NOTHING — no npm script, no hook, no gate, no doc. So the
+      arrows are a photograph of one afternoon.
+      **THE SENTENCE THIS PROJECT HAS NOW WRITTEN FOUR TIMES: a capability nothing invokes is a
+      capability that never runs.** The elegant form is that a row cannot EXIST without a tag —
+      assign at the moment a row enters the Chart (harvest, and `chartkeeper --rank --write`, which
+      the Door already makes every watch run) rather than in a sweep somebody remembers.
+      **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
+      row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
+      new ideas can be moved to the top, which today they cannot.**
 
 - [ ] **NOTHING AUTOMATIC GUARDS THE TRADE-CIRCLE FIX, AND `npm test` IS THE WRONG HOME FOR IT —
       filed 2026-09-03T2035Z off CEO 184's finding 3, whose diagnosis is right and whose remedy is
@@ -655,9 +883,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **The question this row owes: where do the 40 browser checks belong?** The trial's own leg set
       is the obvious candidate. Sizing: no game code; a mechanism decision, so it may want Wyatt.
       ⟨`T-221`⟩
+
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
+
 - [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
       ⟨`T-019`⟩
   2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
@@ -689,6 +919,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
+
 - [ ] **THE DIRECTOR RE-AIMS FOR NOTHING AT ALL FOR THE FIRST SECONDS OF A VOYAGE.** Measured
       ⟨`T-213`⟩
   2026-09-03 by watch d4 while fixing `T-211`, and handed over rather than fixed. With the frame key
@@ -699,6 +930,25 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
+
+- [ ] **THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER.**
+      ⟨`T-246`⟩
+      CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real
+      run, so this is a live mechanism and not damage.
+      **(4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST.** Where a row that merely MENTIONS
+      ⟨`T-017`⟩ sits above the row whose owner line DECLARES it, the mentioner keeps the id and the
+      real owner is renamed. `assign_handles.mjs:23-25` promises the opposite in its own header.
+      T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`, so a wrong rename
+      there is a citation trail pointing at the wrong task — and nothing outside one commit message
+      records the T-017 → T-235/T-237 mapping that was made.
+      **(5) A PARTIAL WRITE ACROSS TWO CHARTS.** `:161-172` writes inside the per-file loop and the
+      refusal exits per file, so `CHART.md` can be written, `GLASS-CHART.md` refused, and the
+      message then says nothing was written. There is no backup.
+      **AND IT CANNOT BE TESTED AT ALL: no `--chart=` flag, so it only ever runs against the live
+      record.** That is the first fix, because it is what makes the other two provable.
+      **Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player
+      sees: nothing. This is record safety, and the record is what every watch steers by.**
+
 - [ ] **THE KIT'S COPY OF THE GLASS STILL SAYS "Do it" AND "Don't".**
       ⟨`T-217`⟩
       `claude-kit/plugins/wyclau/bin/glass.mjs:661-662`, found by CEO 172. The project copy is
@@ -714,156 +964,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
   it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
   to bump. **Sizing: small, instrument only, no game code.**
-
-- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
-      ⟨`T-216`⟩
-      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
-      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
-      its own status line says what it is waiting for: *"the answer that unblocks
-      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
-      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
-      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
-      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
-      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
-      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
-      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
-      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
-      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
-      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
-      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
-      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
-      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
-      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
-      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
-      that code still states the OLD rule in full**, so reading the code's own commentary would have
-      confirmed the error.
-      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
-      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
-      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
-      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
-      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
-      found the first version would have passed green.
-      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
-      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
-      found them right. At that rate roughly three more wrong statements are still live. Closing now
-      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
-      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
-      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
-      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
-      don't end on one", crate prices as an island empties — each against the code that implements it,
-      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
-      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
-      cannot disagree.
-      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
-      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
-      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
-      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
-      finding recurring one item later** (*"a claim in the record that the record itself
-      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
-      the reusable half is narrower than "don't lie": **a note about work still to do must never live
-      inside a row you are closing** — the close is exactly what makes it unreadable.
-
-- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
-      ⟨`T-206`⟩
-  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
-  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
-  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
-  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
-  third-party script on the site real players are using — `about.html`, `classic/`, and the new
-  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
-  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
-  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
-  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
-  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
-
-  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
-  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
-  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
-  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
-  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
-  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
-  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
-  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
-  account — **only he can confirm that, and this row must not claim it as verified.**
-  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
-  "unstarted, needs an account from him" skipped it for a reason that was never true.
-  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
-  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
-  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
-  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
-  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
-  the tag being deleted later.
-  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
-  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
-  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
-  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
-  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
-  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
-  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
-  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
-  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
-  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
-  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
-  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
-  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
-  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
-  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
-  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
-  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
-  switch Google on. Corrected.
-  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
-  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
-  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
-  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
-  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
-  page only, no other surface), the caveat above stated in his words, and the third option.
-  **Consent is left to him, explicitly, and not defaulted.**
-
-  ### ⛔ DONE — HE ANSWERED, AND THE ANSWER WAS ACTED ON 2026-09-03T17:0xZ. DO NOT RE-ASK HIM.
-  His ruling: *"Give me instructions to switch it on, and give me the full plan for analytics as
-  an artifact that I can understand more easily than this text."* **The artifact is published:
-  https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0** — his solution first, before any investigation of my own.
-  Photographed at 390px and 1280px (`.planning/posed/t206-analytics-plan-{phone,desktop}.png`);
-  the two measurements it quotes were re-read that hour, not carried over
-  (`_t206_dark_property_check.mjs`: id in 2 files, loaders in **0**; `_t206_usage_count.mjs`:
-  237/123/44/8, unchanged).
-  **WHAT IS STILL OPEN IS NOT A QUESTION FOR A SESSION TO SETTLE:** which pages get the tag, and
-  cookie or cookieless. Both are on the artifact with a numbered recommendation, in the shape he
-  asked for on 2026-09-03 (*"label your suggestions … with numbers, and a (recommended)"*).
-  **THREE THINGS THIS ROW'S OWN TEXT ABOVE GOT WRONG, corrected here rather than deleted:**
-  it said `about.html` and `stats.html` *"all need a decision"* and listed **three** surfaces —
-  there are **eight** tracked pages (`git ls-files`), and `classic/lab.html`,
-  `classic/stats.html` and `scripts/battle_sim.html` were missing from every previous count.
-  It also never noticed that **`pingVisit()` runs on the two GAME pages only**
-  (`src/orchestrator.js:2674`, `classic/src/orchestrator.js:1534`) — so About and the rules page
-  he shipped this morning are measured by **nothing at all**, which is the strongest argument for
-  the tag and no note had it.
-  **AND HIS THIRD SENTENCE IS ⟨`T-220`⟩**, not this row: a sea trial whose depth a person can
-  lower on the record. Deliberately split — this item is a plan, that one changes the testing
-  machinery.
-
-  ### ⚑ 2026-09-03T17:3xZ — HIS TWO CALLS NOW REACH HIM. THE INSTALL IS BLOCKED ON HIM, NOT ON US.
-  CEO 177's top finding was rule 27: both decisions were written onto `.planning/ANALYTICS-PLAN.html`
-  — a repo path he cannot tap — so **his Your Call card showed zero questions while two of his
-  decisions waited.** Both are now rows in `## BLOCKED ON WYATT`: `qid:t206-which-pages` and
-  `qid:t206-cookie-choice`, each numbered 1/2/3 with one marked `(recommended)` and the write-in box
-  as "other", which is the shape he asked for in `INBOX-20260903T1600Z` and `INBOX-20260903T1556Z`.
-  **Verified on the rendered page, not asserted:** `glass.mjs --out` draws both as `class="ask"
-  data-id="t206-which-pages"` / `"t206-cookie-choice"` with numbered buttons and the `recTag`.
-  **Red-first, and it earned its keep** — `scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this
-  tree, and then caught the fix landing in the WRONG TABLE (`## RULED`, not `## BLOCKED ON WYATT`)
-  while three real gates stayed green on it. Seven cases red-proofed
-  (`_t206_calls_redproof.mjs`) — ⚠ **and this sentence said "four branches red-proofed" while one of
-  them was RED**, because adding the `since` date two hours later turned that mutation into a no-op
-  against a hard-coded row shape. CEO 178 caught it. The mutation is now built from the row's own
-  cells, and three new cases assert every mutation actually changes the Chart, so a no-op one can
-  never again read as a proof. ⛔ **Still deliberately out of `npm test`** until the tag is
-  installed, for the reason stated above: a gate added red is a gate somebody disables.
-  ⚠ **AND A GATE WAS FOUND LYING ABOUT ITSELF IN PASSING:** `numbered_options_check.mjs` shadowed
-  its own `judged5` counter, so the line CEO 176 added to stop anyone reading its silence as
-  protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
-  the analytics tag is installed and nothing will be until he picks.
-
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -889,50 +989,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
-- [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
-      ⟨`T-220`⟩
-      `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
-      sea trial for this -- it clearly doesn't need a full one given that you're just adding a
-      tag to index; so we need a way to tell sea trial that and manually choose the depth of the
-      trial"*. **Split off T-206 deliberately** — that item is the analytics plan, this one
-      changes the testing machinery, and folding them together finishes neither.
-      **THE SIZE:** today `scripts/qa/gear.mjs` decides the gear from the files touched and
-      nothing can overrule it, so a one-line script tag in `index.html` buys the same ~75-minute
-      FULL trial as a rewrite of the board. That rule exists for a reason — `.claude/CLAUDE.md`
-      §5: *"chosen by the files you touched, never by how the change feels"* — and it was earned
-      the day a session picked its own depth by mood and shipped 22 unverified fixes.
-      ⚠ **SO THE JOB IS NOT "ADD A BYPASS FLAG", AND WHOEVER TAKES IT SHOULD SAY SO TO HIM.** An
-      unconditional `--gear=cosmetic` re-creates exactly the failure the rule was written
-      against. What is defensible is a depth a person can lower *on the record*: the reason
-      typed in, the chosen gear and the picker's own verdict both printed in the trial report,
-      so a shallow trial can never read as a full one. **Recommend that shape to him before
-      building either.**
-      **Read first:** `docs/QA-PROCESS.md` ("THE WHOLE LOOP, END TO END"),
-      `docs/HARD-WON-LESSONS.md` §10, `scripts/qa/gear.mjs:78-121`.
-      ⚑ **WORKED 2026-09-03T17:3xZ by the Blade watch. HALF OF HIS ASK WAS ALREADY BUILT AND NOBODY
-      HAD TOLD HIM** — `--gear=` has been read by `sea_trial.mjs` since it was written, and
-      `gear.mjs:181` prints `node scripts/sea_trial.mjs --gear=PLUMBING` in its own sweep line.
-      **Same shape as `T-216`: an instruction of his queued behind work already finished.**
-      **AND THE HALF THAT WAS MISSING WAS THE HALF THAT MADE IT SAFE, MEASURED ON THE RECOVERED
-      PRE-CHANGE FILE RATHER THAN REASONED ABOUT:** `--gear=cosmetic` — the exact lower-case
-      spelling the warning three lines above uses — **queued all TEN legs and really began sailing**,
-      while the report header read `gear: cosmetic`. The 75 minutes he was trying to skip, under a
-      header naming the depth he thought he had chosen. `--gear=SHALLOW` did the same.
-      **NOW:** an unknown gear is REFUSED and the four depths named; the name is normalised; the
-      picker runs on EVERY run so the report always carries **both** depths; a `--reason=` is
-      printed verbatim; and a depth lowered below the picker's with nothing typed is **said out
-      loud** rather than refused — refusing is his call, `qid:t220-shallow-green`.
-      **THE BUG THAT ONLY RUNNING IT COULD FIND, and it is the one that made the bypass unusable:**
-      a COSMETIC trial came back **`INCOMPLETE — 10 leg(s) did NOT run`** having correctly sailed the
-      zero voyages that gear asks for. `sea-trial-shots/report.json` is whatever the last FULL run
-      left behind, and nothing compared it against the fleet THIS run promised — so **every gear
-      below FULL inherited the missing legs as failures**, PLUMBING included. Fixed; the same run now
-      reads `0 of 0 · voyages that did NOT run: none`.
-      **Gate `scripts/qa/sea_trial_chosen_depth_check.mjs`, RED 0/8 on the real unmodified file →
-      GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
-      deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
-      npm test 124/124. No game code — `src/` and `index.html` untouched.
-
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.4, so its evidence no longer describes this game
@@ -946,9 +1002,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
-
-- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
-      ⟨`T-240`⟩
 
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
@@ -987,44 +1040,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
-- [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
-      GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
-      ⟨`T-245`⟩
-      **His words, 2026-09-03:** *"it looks like not all the Glass Chart rows have buttons next to
-      them that allow them to be moved up; but they all need to be moveable. can you explain why,
-      and design an elegant solution?"* — and from the numbered options he picked **"Give every row
-      a real tag."**
-      **WHAT SHIPPED WAS THE SWEEP, NOT THE PROPERTY.** `assign_handles.mjs` tagged the untagged
-      rows once, and today the count is honest: 68 rows, 68 arrows, verified by the CEO rendering
-      the page and counting both. **But `glass.mjs:1395` still draws the button only when a row
-      already has a handle**, nothing writes a handle onto a newly harvested idea, and
-      `assign_handles.mjs` is invoked by NOTHING — no npm script, no hook, no gate, no doc. So the
-      arrows are a photograph of one afternoon.
-      **THE SENTENCE THIS PROJECT HAS NOW WRITTEN FOUR TIMES: a capability nothing invokes is a
-      capability that never runs.** The elegant form is that a row cannot EXIST without a tag —
-      assign at the moment a row enters the Chart (harvest, and `chartkeeper --rank --write`, which
-      the Door already makes every watch run) rather than in a sweep somebody remembers.
-      **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
-      row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
-      new ideas can be moved to the top, which today they cannot.**
-- [ ] **THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER.**
-      ⟨`T-246`⟩
-      CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real
-      run, so this is a live mechanism and not damage.
-      **(4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST.** Where a row that merely MENTIONS
-      ⟨`T-017`⟩ sits above the row whose owner line DECLARES it, the mentioner keeps the id and the
-      real owner is renamed. `assign_handles.mjs:23-25` promises the opposite in its own header.
-      T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`, so a wrong rename
-      there is a citation trail pointing at the wrong task — and nothing outside one commit message
-      records the T-017 → T-235/T-237 mapping that was made.
-      **(5) A PARTIAL WRITE ACROSS TWO CHARTS.** `:161-172` writes inside the per-file loop and the
-      refusal exits per file, so `CHART.md` can be written, `GLASS-CHART.md` refused, and the
-      message then says nothing was written. There is no backup.
-      **AND IT CANNOT BE TESTED AT ALL: no `--chart=` flag, so it only ever runs against the live
-      record.** That is the first fix, because it is what makes the other two provable.
-      **Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player
-      sees: nothing. This is record safety, and the record is what every watch steers by.**
-
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -1079,10 +1094,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
-| <!--qid:t206-which-pages--> ⟨`T-206`⟩ **Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch?** You asked for the plan and you have it — the property `G-2KK6EZDZSP` almost certainly already exists in your Google account and has never been told anything. **Nothing is installed and nothing will be until you pick.** The size: one `<script>` tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: **where your 123 browsers came from** — and remember that About and the new Rules page are measured by *nothing at all* today, which is the real gap. | 1. The public pages only — the game, About and Rules (recommended) · 2. Every page including /classic, one consistent picture, at the cost of mixing a frozen v1's traffic into your launch numbers · 3. The game page only — most cautious, and it leaves About and Rules exactly as blind as they are today | 2026-09-03 |
-| <!--qid:t220-shallow-green--> ⟨`T-220`⟩ **You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine.** You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: `--gear=COSMETIC` runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. **The one thing I did not change on my own:** the trial's final word for a no-voyage run is *NOTHING SAILED*, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week. | 1. Leave it exactly as it is — the red word stays, nothing in the project reads it as a blocker, and the report already spells out the depth you chose and why (recommended, and it is a real "change nothing") · 2. Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once · 3. Green only when you typed a reason — the reason becomes the price of a clean report, so the record can never go quiet | 2026-09-03 |
-| <!--qid:t216-baker-tiebreak--> ⟨`T-216`⟩ **Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix.** When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — **whoever got home first**. The first two are exactly right. The third is not: the game breaks that last tie by **seat order**, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. **Nothing in the game records when a captain got home**, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat. | 1. Change the page to match the game — say the last tie goes to seat order, one sentence, no gameplay risk (recommended: it is honest today, and it costs a player nothing) · 2. Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking · 3. Change both — drop the third tiebreak entirely and let a true dead-heat share Best Baker, the way two captains baking the same day already bake together | 2026-09-03 |
-| <!--qid:t206-cookie-choice--> ⟨`T-206`⟩ **The second analytics call, and it is a real judgement one: a cookie notice, or not?** Google Analytics sets a cookie and sends data to Google; your own counter does neither. **Children play this game**, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose *"how many unique people"* from Google, **but you already have that number from your own counter**, which is why it fits your situation unusually well. ⚠ **The one thing on this page I could not check:** the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. **It gets verified before anything is installed** — and if it has changed, this becomes a straight choice between a banner and no banner. | 1. Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent (recommended) · 2. Standard Google Analytics plus a small consent banner — more complete data, and a box over your front door on every first visit · 3. Standard Google Analytics, no banner — what most small sites do, simplest, and the one with the most to argue about | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -1134,6 +1145,10 @@ stranded.*
 
 | item | HIS RULING | now |
 |---|---|---|
+| <!--qid:t206-cookie-choice--> ⟨`T-206`⟩ **The second analytics call, and it is a real judgement one: a cookie notice, or not?** Google Analytics sets a cookie and sends data to Google; your own counter does neither. **Children play this game**, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose *"how many unique people"* from Google, **but you already have that number from your own counter**, which is why it fits your situation unusually well. ⚠ **The one thing on this page I could not check:** the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. **It gets verified before anything is installed** — and if it has changed, this becomes a straight choice between a banner and no banner. | Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent | |
+| <!--qid:t216-baker-tiebreak--> ⟨`T-216`⟩ **Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix.** When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — **whoever got home first**. The first two are exactly right. The third is not: the game breaks that last tie by **seat order**, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. **Nothing in the game records when a captain got home**, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat. | Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking | |
+| <!--qid:t220-shallow-green--> ⟨`T-220`⟩ **You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine.** You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: `--gear=COSMETIC` runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. **The one thing I did not change on my own:** the trial's final word for a no-voyage run is *NOTHING SAILED*, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week. | Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once | |
+| <!--qid:t206-which-pages--> ⟨`T-206`⟩ **Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch?** You asked for the plan and you have it — the property `G-2KK6EZDZSP` almost certainly already exists in your Google account and has never been told anything. **Nothing is installed and nothing will be until you pick.** The size: one `<script>` tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: **where your 123 browsers came from** — and remember that About and the new Rules page are measured by *nothing at all* today, which is the real gap. | The public pages only — the game, About and Rules | |
 | <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | Submitted successfully. | |
 | <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | yes | |
 | <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | Leave it. | |
@@ -1180,24 +1195,29 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
 2026-09-03T21:22:07.082Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
 
 - **New idea, untriaged**: *"we need to push all these changes to staging!!"* (at
+      ⟨`T-247`⟩
   2026-09-03T21:31:29.394Z)
 
 - `t206-which-pages` — **⟨`T-206`⟩ Google Analytics is one line away from being switched on… which
+      ⟨`T-206`⟩
   pages should it watch?** His answer (choice: `opt-1c3dz25`, at 2026-09-03T21:29:37.111Z):
   *"The public pages only — the game, About and Rules"*
 
 - `t220-shallow-green` — **⟨`T-220`⟩ A shallow sea-trial depth still comes back RED — is that
+      ⟨`T-220`⟩
   right?** His answer (choice: `opt-59ub99`, at 2026-09-03T21:30:14.426Z): *"Let a depth you chose
   come back green when its own checks pass — much nicer to use, and it removes a guard that has
   caught a real failure once"*
 
 - `t216-baker-tiebreak` — **⟨`T-216`⟩ The rules page promises a "got home first" tiebreak the game
+      ⟨`T-216`⟩
   does not give — which side should move?** His answer (choice: `opt-ydq4re`, at
   2026-09-03T21:30:35.726Z): *"Change the game to match the page — record the day each captain
   lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches
   the end-of-voyage ranking"*
 
 - `t206-cookie-choice` — **⟨`T-206`⟩ Second analytics call: cookie notice, or not?** His answer
+      ⟨`T-206`⟩
   (choice: `opt-1cqjffl`, at 2026-09-03T21:30:55.944Z): *"Cookieless, no banner — you keep the
   referrer, the geography and the per-page numbers, set no cookie, and no child is asked to
   consent"*
