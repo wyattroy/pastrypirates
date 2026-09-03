@@ -7004,3 +7004,19 @@ false positive, and the gate's own suggestion ("turn this into a fail()") would 
 **⚠ THE SEA TRIAL CAME IN WHILE I WAS CLOSING, AND IT FAILED. NOT MY ITEM — RECORDED SO THE NEXT WATCH DOES NOT HAVE TO DISCOVER IT.** `SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md`, started 03:41Z, **finished at [5113s] with `RESULT: FAIL`**. Its own last lines: *"vision judge FAILED 1 of 25 screen(s) it looked at"* and *"3 screen(s) never stopped moving before being checked (still moving: 3 geometry; longest wait 2.7s)"* — the 2.7s worst case against the 2.6s settle window that watch a6 named as the reason not to run browser probes beside it. **Coverage has real holes worth a reader's eye:** `muse#: 4/11`, `trade: 5/9`, `crystal sugar: 1/5`, `speckled eggs: 1/5`, `fresh milk: 1/4`, `vanilla beans: 0/4`, `menu: 0/1`, `walk away: 0/1`, `call dough hook: 0/1`, `cacao pods: 0/1`.
 
 **AND THE CONSTRAINT ON THE WHOLE RELAY HAS LIFTED WITH IT.** `stray_probe_check` now reports **PASS — "no debug-port browsers are running at all"**, where twenty minutes earlier it reported SKIP-because-a-trial-sails. **So the next watch may run browser probes and posed comparisons again, and `npm test` can give an honest verdict** — the `glass_longrun_status_check` / `LONG-RUN` interference (`T-131`) that made a5, a6 and this watch all decline to run the full suite is gone with the marker. **That unblocks the rows all three of us skipped**: `T-013` (now rank 1), `T-012` and `T-088`'s posed-picture siblings, plus `T-020` and `T-009`, which edit `scripts/playtest_gate.mjs` — the file the trial had been reading. **I did not act on any of it; one item per watch.**
+
+---
+
+## watch a9 — 2026-09-03T05:20Z, Wy-Blade — CLAIMING `T-013`: which instrument is telling the truth about the trade-call circle
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T05:20Z. Tree level with origin, 0 ahead / 0 behind. `can_push` healthy; the real `git push origin claude/cloud-handoff-planning-a9ay1u` run as a shell command — *Everything up-to-date*.
+- ⚠ **`git pull --rebase` REFUSED — `.planning/CHART.md` is modified and uncommitted, and it is NOT mine.** Its mtime moved to 05:18:01Z, one minute into this watch. The diff restores a `T-203` row (the Glass Ideas-box ruling) swept off the Chart while still gated. **That is the ADVISOR's live work** — the last five commits are all `GLASS-CHART.md` / `CEO-REVIEWS.md` / Glass, and `ListAgents` shows an interactive peer *busy*. **I have not stashed, committed, reverted or edited it.** The refused pull cost nothing: the tree was already level, so there was nothing to pull.
+- **Last progress** — watch a7 closed `T-088` (CEO 143); the Advisor then filed CEO 144 on `T-076` at 05:12:55Z.
+- **Blocked on Wyatt** — the five rules-page rows, the cutover, the 465-commit merge, and now `T-203`.
+- **NO TRIAL AT SEA.** The 0341Z trial finished FAIL (a7 recorded it). `stray_probe_check` **PASS — 0 debug-port browsers**. So browser probes and posed comparisons are open to me for the first time in three watches.
+- **NO CLAIM HELD BY ANYONE.** `.planning/wyclau/IN-HAND` absent; no live ledger claim.
+- **HIS SPLIT RULING HONOURED** (`INBOX-20260902T2225Z`): *"YOU will work on the chart — the Watch will work on the game."* `T-013` is the game.
+
+**THE ITEM: `T-013`, rank ONE of the ranked Chart (score 38), taken because it is row one and nothing holds it.** Two instruments disagree about how often a trade-call circle lands nearest the WRONG captain: `w54` says 15–16 of 21, `w52` says 1 of 12. **Wyatt has asked for this twice** (W5-2, and `INBOX-20260901T1332Z`: *"not on top of, or next to, someone else"*). It is a posed question, not a rate — rule 26.
+
