@@ -9396,3 +9396,48 @@ watch's entry (CEO 183) ends on a staging fault too. That makes three in two wat
 **Browsers:** every run here launched one and killed it (`_t017_posed_pair.mjs` kills in a
 `finally`, printing *"browser killed, server closed"*). `stray_probe_check` PASS. The browsers alive
 as this watch ends belong to the detached trial and have a live launcher.
+
+---
+
+## WATCH 2026-09-03T2048Z — Wy-Blade (Bell) — CLAIMS `T-102` (derive the sitemap's page list — his ruling "yes")
+
+**Watch started** 2026-09-03T20:48Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs` reports
+healthy, and `git push origin claude/cloud-handoff-planning-a9ay1u` was run as a real shell command
+before any work — "Everything up-to-date". Tree is 0 ahead / 0 behind.
+
+⚠ **NO ARTIFACT TOOL IN THIS SESSION** — measured, not assumed: `ToolSearch` for `Artifact` returned
+`SendMessage` only. So the Glass cannot be read, harvested or republished by this watch, and
+`mark_glass_published.mjs` will correctly NOT be stamped. What this watch wants shown goes into
+`GLASS-NOTE.md` **as an append** — never a whole-file write, which is how the 19:59Z watch nearly
+destroyed seven of his sections.
+
+**Last progress.** The 19:59Z watch worked `T-017` (the trade-offer circles) and did NOT close it: it
+bumped `PP4_STAMP` to `2026.09.03.4` and started a detached FULL ten-leg trial, pid 53536, report
+`.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`. **That trial is in flight as this watch starts** —
+its report still reads `IN PROGRESS — no verdict yet`, 17 minutes into a run that takes ~85. Not
+mine, not touched, its browsers not killed.
+
+**Blocked on Wyatt:** the questions on his Your Call card, unchanged by this watch.
+
+**ROWS SKIPPED, AND WHY — the claim check ran before the pick, as the Door requires.**
+- **rank 1 and rank 2 (`T-017`) — HELD.** `.planning/wyclau/IN-HAND` read *"T-017 claimed
+  2026-09-03T1959Z by watch Wy-Blade"*: **49 minutes old, inside the 90-minute window.** Skipped, not
+  taken. They are also unclosable right now on their own terms — the previous watch's own entry says
+  *"the next watch reads that report before closing this item"*, and the report has no verdict yet.
+- **rank 3 taken.** Its handle is `T-102`, which the Chartkeeper flags as carried by more than one
+  open row — so I checked the ledger rather than the handle: the `T-102` closed at 19:25Z is the
+  **noindex / crawlable-working-files** job, a different piece of work under the same handle, and it
+  is CLOSED. The row I am taking is the sitemap **page-list** ruling at `CHART.md:98`. Nothing holds
+  it.
+
+**A SECOND REASON THIS ROW AND NOT A LOWER ONE, AND IT IS THE ONE THAT DECIDED IT.** Ranks 8 and 9
+edit game code, and **a FULL sea trial is sailing this tree right now**. Changing game files under a
+running trial would invalidate a report that is 17 minutes into an 85-minute run and belongs to
+another watch's item. This row touches no game code at all, so it can be worked without disturbing
+what that trial is measuring.
+
+**CLAIMED: `T-102`** — his ruling `yes` on *"should the sitemap's page list be generated from the
+actual pages?"*. Prediction written BEFORE any measurement, per the Door's step 3:
+`.planning/wyclau/PREDICTION-20260903T2048Z-T-102-sitemap-list.md` — including the falsifier that
+matters (if the derived set is not exactly the three URLs on file, I report the disagreement rather
+than tuning the predicate until it reproduces the list it is meant to replace).

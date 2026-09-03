@@ -19,9 +19,12 @@
 // `/art-review/gallery.html` answers 200.
 
 import { readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  jekyllHides, trackedFiles, servedPages, declaredIntent as declaredIntentOf,
+  robotsRules, isDisallowed as isDisallowedBy,
+} from "./crawl_sets.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -55,13 +58,12 @@ const read = (p) => {
 };
 
 // --- the served set: every tracked .html Jekyll will publish -------------------------------
-const tracked = execFileSync("git", ["ls-files", "*.html"], { cwd: ROOT, encoding: "utf8" })
-  .split("\n")
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-const jekyllHides = (p) => p.split("/").some((seg) => seg.startsWith(".") || seg.startsWith("_"));
-const served = tracked.filter((p) => !jekyllHides(p));
+// DERIVED IN `crawl_sets.mjs`, NOT HERE. His T-102 ruling made `sitemap.xml` a generated artifact,
+// so `sitemap_write.mjs` now needs the same notion of "served" and "public" that this gate uses.
+// Two copies of that predicate is the drift CLAUDE.md §2 exists to stop — the design-time question
+// is "what makes these two agree?", and the only durable answer is that there is one of them.
+// `read` is threaded through so every --red mode still reaches the code it patches.
+const served = servedPages(ROOT);
 
 // --- the public set: whatever sitemap.xml invites ------------------------------------------
 // A sitemap <loc> is a URL; turn it back into the repo path Pages serves it from.
@@ -73,41 +75,17 @@ const publicPaths = new Set(
 );
 
 // --- what robots.txt fences off ------------------------------------------------------------
-const robots = read("robots.txt");
-const disallowed = [...robots.matchAll(/^\s*Disallow:\s*(\S+)\s*$/gim)].map(([, v]) => v);
-const allowed = [...robots.matchAll(/^\s*Allow:\s*(\S+)\s*$/gim)].map(([, v]) => v);
-
-// LONGEST MATCH WINS (RFC 9309) — and this gate got it wrong first time in a way that quietly
-// disarmed it. Fencing /art-review/ with a per-page `Allow:` override made a naive
-// Disallow-only reader treat all thirteen already-live pages as fenced, so it stopped requiring
-// the noindex that is the entire point of them. Caught by --red=nometa reporting "changed
-// nothing", which is exactly what that mode exists to say.
-const matchLen = (rules, p) => {
-  let best = -1;
-  for (const rule of rules) {
-    const hit = rule.endsWith("/") ? `/${p}`.startsWith(rule) : `/${p}` === rule;
-    if (hit && rule.length > best) best = rule.length;
-  }
-  return best;
-};
-const isDisallowed = (p) => matchLen(disallowed, p) > matchLen(allowed, p);
+// Longest-match-wins (RFC 9309) lives in crawl_sets.mjs now. This gate got that wrong first time
+// in a way that quietly disarmed it: fencing /art-review/ with per-page `Allow:` overrides made a
+// naive Disallow-only reader treat all thirteen already-live pages as fenced, so it stopped
+// requiring the noindex that is the entire point of them. Caught by --red=nometa reporting
+// "changed nothing", which is exactly what that mode exists to say.
+const rules = robotsRules(ROOT, read);
+const { disallowed } = rules;
+const isDisallowed = (p) => isDisallowedBy(rules, p);
 
 // --- what each page declares about itself --------------------------------------------------
-// SCOPED TO <head> DELIBERATELY. Google ignores a robots meta that lands in the body, so
-// "the string is somewhere in the file" is a weaker claim than it looks — and the first version
-// of this gate made exactly that weaker claim (CEO 183, finding 6). A page with no <head> of its
-// own is a fragment the host wraps (rule 27's Glass shape); it can carry no meta and is judged
-// on robots.txt alone.
-const META = /<meta[^>]+name=["']robots["'][^>]*content=["']([^"']*)["']/i;
-const declaredIntent = (p) => {
-  const src = read(p);
-  const open = src.search(/<head\b/i);
-  if (open < 0) return null;
-  const close = src.search(/<\/head>/i);
-  const head = src.slice(open, close < 0 ? undefined : close);
-  const m = META.exec(head);
-  return m ? m[1].toLowerCase() : null;
-};
+const declaredIntent = (p) => declaredIntentOf(ROOT, p, read);
 
 const failures = [];
 for (const p of served) {
@@ -144,9 +122,7 @@ const SHIPPED = new Set(["assets", "src", "sfx", "classic", "(root)"]); // the g
 // blocked from these cannot render the page it is ranking, so they must stay open.
 const WORKING = new Set(["scripts", "art-review", "docs", "notes", "scratchpad"]); // must be fenced.
 
-const allTracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" })
-  .split("\n").map((s) => s.trim()).filter(Boolean)
-  .filter((p) => !jekyllHides(p));
+const allTracked = trackedFiles(ROOT).filter((p) => !jekyllHides(p));
 
 const seenFolders = new Map();
 for (const p of allTracked) {
