@@ -348,6 +348,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+- [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
+      ⟨`T-007`⟩
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so.
+      ⟨`T-124`⟩
+      ⚠ **RENUMBERED `T-008` → `T-124`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-008`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-008` still resolves in `CHART-LOG.md` and in git history.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
