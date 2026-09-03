@@ -56,7 +56,14 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const CHART = join(ROOT, ".planning", "CHART.md");
+/* `--chart=<path>` — the same fault `close_item.mjs` carried, fixed in the same pass. After the
+ * split he ordered, three quarters of the open rows live in `.planning/GLASS-CHART.md`, and a tool
+ * that names one chart by path silently guards only its own quarter. CEO 134 listed five tools with
+ * this fault; this is one of them. */
+const CHART = (() => {
+  const a = process.argv.find((x) => x.startsWith("--chart="));
+  return a ? join(ROOT, a.slice(8)) : join(ROOT, ".planning", "CHART.md");
+})();
 const WRITE = process.argv.includes("--write");
 
 const SAY_SO = /^HIS SAY-SO\b/i;
@@ -80,13 +87,47 @@ for (let i = 0; i < starts.length - 1; i++) {
   });
 }
 
-/* (a) — a condition is only trusted if the gate it names contains a red-proof. */
-function hasRedProof(cmd) {
+/* (a) — A CONDITION IS ONLY TRUSTED IF THE GATE IT NAMES CAN ACTUALLY FAIL.
+ *
+ * ⚠ THIS USED TO BE A WORD SEARCH FOR "red-proof", AND CEO 134 KILLED IT WITH A REAL FILE.
+ * `scripts/qa/asset_display_size_probe.mjs` contains the phrase, has no `process.exit` anywhere,
+ * and therefore exits 0 no matter what it finds. Under the old guard,
+ * `done-when: node scripts/qa/asset_display_size_probe.mjs` would have been accepted as trustworthy
+ * and ticked its row on EVERY run, forever. **A guard that reports "verified" on a gate that cannot
+ * fail is worse than no guard**, because it launders the thing it was built to catch — which is the
+ * project's oldest fault (rule 6: check that a check can FAIL before believing it passing) committed
+ * by the very tool written to enforce it.
+ *
+ * SO THE GUARD NOW LOOKS FOR THE MECHANISM INSTEAD OF THE VOCABULARY: **a non-zero exit path**.
+ * `process.exit(1)`, `process.exit(failed ? 1 : 0)`, `process.exitCode = 1` all qualify;
+ * `process.exit(0)`, a bare `process.exit()`, and a file with no exit at all do not.
+ *
+ * ⚠ IT USED TO SAY "a REACHABLE exit", AND CEO 135 CALLED THAT OUT IN THE SAME BREATH AS PRAISING
+ * THE PARAGRAPH BELOW: *"The honest sentence and the overclaiming sentence are in the same comment
+ * block."* Right, and worth fixing rather than arguing: this is a regex over the file's text, so it
+ * cannot see reachability at all — `if (false) process.exit(1)` sails straight through it. The word
+ * promised a stronger check two lines above the paragraph that correctly disclaims it.
+ *
+ * WHAT THIS PROVES, STATED HONESTLY SO NOBODY OVERSELLS IT AGAIN: that the gate has a way to say
+ * NO. It does NOT prove that path is reachable for the right reason — only a red-proof run against
+ * a broken subject shows that, and no generic tool can perform one. **This is a floor, not a
+ * ceiling.** It is placed here because the failure it removes is total (a gate that ticks rows
+ * unconditionally) while the one it leaves is partial (a gate whose NO is wrongly aimed).
+ *
+ * AND IT FAILS SAFE: a legitimate gate that reports failure only by throwing is REFUSED, not
+ * trusted. A refused row simply does not tick itself and waits for a person — the harmless
+ * direction. */
+function canActuallyFail(cmd) {
   const f = (cmd.match(/scripts\/[A-Za-z0-9_\-/.]+\.(?:mjs|js|cjs)/) || [])[0];
   if (!f) return false;
   const p = join(ROOT, f);
   if (!existsSync(p)) return false;
-  return /red-proof|red proof|RED-PROOF/i.test(readFileSync(p, "utf8"));
+  const body = readFileSync(p, "utf8");
+  for (const m of body.matchAll(/process\.exit(Code)?\s*(?:\(([^)]*)\)|=\s*([^;\n]+))/g)) {
+    const arg = (m[2] ?? m[3] ?? "").trim();
+    if (arg !== "" && arg !== "0") return true;   // something other than a guaranteed success
+  }
+  return false;
 }
 
 const ticked = [], held = [], refused = [], sayso = [], none = [];
@@ -94,7 +135,7 @@ for (const r of rows) {
   if (!r.cond) { none.push(r); continue; }
   if (SAY_SO.test(r.cond)) { sayso.push(r); continue; }
   if (!ALLOWED.test(r.cond)) { refused.push([r, "not a `node scripts/…` command — nothing else is ever run from the Chart"]); continue; }
-  if (!hasRedProof(r.cond)) { refused.push([r, "the gate it names contains no red-proof — a gate that has never failed proves nothing"]); continue; }
+  if (!canActuallyFail(r.cond)) { refused.push([r, "the gate it names has no non-zero exit — it cannot say NO, so its YES means nothing"]); continue; }
   let code = 1, out = "";
   try { out = execFileSync("node", r.cond.split(/\s+/).slice(1), { cwd: ROOT, encoding: "utf8", timeout: 120000, stdio: ["ignore", "pipe", "pipe"] }); code = 0; }
   catch (e) { code = e.status ?? 1; out = String(e.stdout || e.message || "").slice(-200); }

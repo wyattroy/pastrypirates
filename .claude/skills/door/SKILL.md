@@ -80,7 +80,20 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
 2. **Pick ONE item: RANK THE CHART, THEN TAKE ROW ONE.**
    ```bash
    node scripts/wyclau/chartkeeper.mjs --rank --sweep --write    # order it, archive finished rows
+   node scripts/wyclau/tick_rows.mjs                             # which rows can PROVE they are done?
+   node scripts/wyclau/tick_rows.mjs --chart=.planning/GLASS-CHART.md   # …and on the machinery list
    ```
+   **`tick_rows` REPORTS, IT NEVER TICKS — and that is deliberate, not an oversight.** A row may
+   carry `done-when: node scripts/qa/<gate>.mjs`; the tool runs those gates and tells you which rows
+   are provably finished. **It is run WITHOUT `--write` here on purpose:** auto-ticking would let a
+   row close itself on a green gate and walk straight past `close_item.mjs`'s CEO-evidence
+   requirement, and that requirement is Wyatt's. So the tool finds the finished rows and **a person
+   still closes them through the gate** (step 5).
+   ⚠ **THIS LINE EXISTS BECAUSE TWO CEO REVIEWS IN A ROW FOUND THE TOOL WAS INVOKED BY NOTHING** —
+   134 (*"it is named nowhere except inside itself"*) and 135 (*"a better guard on a tool nothing
+   runs is a better lock on a door nobody opens"*). It was built, gated, and unreachable. **Same
+   fault as the Chartkeeper's, in the same file, one screen down** — see 6a.
+
    **Then work the FIRST open row THAT NOBODY HOLDS.** Not the oldest anything. Commit the
    re-ordered Chart with your claim, and **claim it in the ledger before touching anything.**
 

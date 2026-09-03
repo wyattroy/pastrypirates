@@ -98,9 +98,18 @@ console.log("can_push_check — a watch that cannot publish must be told so, bef
   check("it names the one thing it cannot see — this session's own right to run git push",
     /NOT ANSWERED HERE/.test(r.out) && /allowlist/i.test(r.out),
     r.out.slice(0, 300));
+  /* ⚠ THIS CASE USED TO ASSERT `git push --dry-run origin`, AND SO IT HELD THE BUG IN PLACE.
+   * `.claude/settings.json:22` is `Bash(git push origin claude/*)` — a PREFIX match — so the
+   * dry-run form can never match it and is refused on a perfectly healthy tree. Paired with
+   * can_push.mjs's "if it is REFUSED, end the turn", that made the Door a permanent false STOP on
+   * this machine. A gate asserting the broken form is the strongest possible way to keep it broken.
+   * Both halves are checked now: the right form present, and the wrong one gone. */
   check("it hands the watch the command that asks from the right side of the fence",
-    /git push --dry-run origin/.test(r.out),
+    /git push origin \S/.test(r.out),
     r.out.slice(0, 300));
+  check("it does NOT prescribe the --dry-run form, which the allowlist's prefix can never match",
+    !/RUN THIS[\s\S]{0,400}?git push --dry-run origin/.test(r.out),
+    `prescribes a form that is refused on a healthy tree: ${r.out.slice(0, 300)}`);
 }
 
 /* 2. DETACHED HEAD — the exact tree that stranded watch 1. */

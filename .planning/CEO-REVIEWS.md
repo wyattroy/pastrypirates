@@ -10,6 +10,123 @@
 > ### ⚠ AND DUPLICATE NUMBERS DO THE SAME THING. THREE COLLISIONS IN ONE DAY.
 > **112 twice, 116 twice, 126 twice — all on 2026-09-02.** Every one happened the same way: a reviewer read the highest number at the START of a five-minute review and another session took it DURING. Each was correct when it looked. **A CEO told "read the previous verdict" then reads one of two and cannot tell which.** An out-of-order file hands over the wrong verdict; a duplicated number hands over a coin flip.
 > **CLAIM THE NUMBER IN THE SAME ACT AS THE WRITE, or re-check it immediately before filing — not when the review begins.** If you find a duplicate, renumber the LATER one and say so inside its own entry, as was done for 127.
+>
+> ### ⚠ AND A FOURTH COLLISION CAME FROM READING THIS FILE FROM THE WRONG END. `tail` IS THE WRONG TOOL HERE.
+> **2026-09-03: the Advisor checked the highest number with `grep "^## CEO Review" | tail -3`, saw 131, 132, 133,
+> concluded 134 had never been filed — and appended a byte-identical second copy of it.** 134 was sitting at
+> line 14 the whole time. **Newest-at-top means the LAST lines of this file are the OLDEST entries**, so `tail`
+> answers the opposite of the question it looks like it answers, and it does so silently and plausibly.
+> **Use `head`, or better, `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` — which is order-independent
+> and therefore cannot be fooled by either half of this banner.** The two warnings above are about the file
+> being wrong; this one is about the READER being wrong about a file that was perfectly fine.
+
+## CEO Review 135 — 2026-09-03, Wy-Blade — protecting his writing, the close gate, the tick guard, the false STOP, and the record — **PARTIAL**
+
+> **Number re-checked immediately before writing**, per the file's own banner: 134 is the highest on file. **But 134 appears TWICE** — see item E, which is this review's worst finding.
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *His writing is genuinely safe now — I broke the fix on purpose in a copy and watched his words get eaten, so the guard is real, not a claim — but the session's own record-keeping did the opposite of what it says it did: it filed a verdict that was already filed, creating the exact duplicate the file warns about in capitals, and two of the four fixes are still sitting uncommitted, so "shipped" is not true of them.*
+
+---
+
+### 1. FOR EACH THING HE ASKED FOR
+
+**ITEM A — "make sure nothing can destroy my writing." — DONE. This one is solid and I proved it the hard way.**
+
+- The fix is real: `scripts/wyclau/glass.mjs:245` reads the flag, and `:253` clears his note only when it is passed.
+- **I red-proofed case 5 myself rather than taking it on faith.** I copied `glass.mjs` to a scratch directory, deleted the `if (CONSUME_NOTE)` guard so the file behaved the way it did before the fix, planted his sentinel words, and ran it: the note file's checksum changed from `2320842d…` to `f856bb6c…`. **His words were destroyed.** With the guard in place they survive byte for byte. So the bug was real, and `scripts/qa/glass_note_relay_check.mjs:109-125` genuinely fails if anyone reverts it. It runs in `npm test` (`package.json:26`).
+- **The trade is stated honestly** (`glass.mjs:238-243`): forget the flag and his note repeats instead of vanishing. That is the right way round.
+- **One gap the session did not name.** The only place in the repo that prescribes `--consume-note` is `.planning/wyclau/GLASS-UPDATE-SESSION.md:284` — and **nothing in `.claude/` references that file at all** (I grepped the Door skill, CLAUDE.md and the hooks: no hits). The Door tells a watch to run the bare form (`.claude/skills/door/SKILL.md:72`), which is correct. But if no path leads a session to step 6, his queued note is never cleared and re-renders on every pulse forever. Harmless direction, still worth closing.
+
+**ITEM B — the close gate could not reach the Glass rows. — DONE. I reproduced both directions myself, with no writes to the tree.**
+
+```
+default (no flag):  REFUSED: no open Chart row contains "unattachedMentions"
+--chart=.planning/GLASS-CHART.md:  REFUSED: CEO Review 99999 is not in CEO-REVIEWS.md
+```
+
+The first proves the default is unchanged; the second proves the flag finds the row and hands it on to the next gate. `scripts/wyclau/close_item.mjs:59-63`. **The problem was real, not overstated:** the Door closes items only here, and 29 rows live in the other file.
+
+**ITEM C — the tick tool's red-proof guard. — PARTIAL, and the older fault RECURS.**
+
+- **The new guard genuinely discriminates.** I ran `canActuallyFail` over all 194 scripts in `scripts/qa/`: it REFUSES the counter-example `asset_display_size_probe.mjs` (which does contain "RED-PROOF" at line 262 and has no `process.exit` anywhere) and TRUSTS every real gate I checked. The 48 it refuses are probes and tools, not gates. `scripts/wyclau/tick_rows.mjs:90-125`.
+- **Is it still a static check dressed as a dynamic one? Yes — and the file is half honest about it.** The paragraph at `:103-108` says plainly *"It does NOT prove that path is reachable… This is a floor, not a ceiling."* That is the right disclosure. But the header two lines above it claims it looks for **"a reachable non-zero exit"** (`:99`), and a regex over the file text establishes no such thing — `if (false) process.exit(1)` would sail through. **The honest sentence and the overclaiming sentence are in the same comment block.** Fix the word "reachable".
+- **⚠ AND THE REAL FAULT IS UNFIXED. `tick_rows.mjs` is still invoked by nothing.** I grepped the whole repo excluding the CEO record: four hits, all inside the file itself. CEO 134 said *"it is named nowhere except inside itself"* and that is still true tonight. The session's wire-in is **an intention, not a change.** A better guard on a tool nothing runs is a better lock on a door nobody opens.
+
+**ITEM D — the false STOP on the Door's entry path. — DONE on the code, and both new gate cases are genuinely red-proof.**
+
+- **I read `.claude/settings.json` line 22 myself: `"Bash(git push origin claude/*)"`.** Verbatim as claimed. The prefix reasoning is sound — `git push --dry-run origin …` does not begin with `git push origin`, so it cannot match, no matter how healthy the tree.
+- **I red-proofed the gate against the old file.** I extracted `can_push.mjs` as committed at HEAD and ran both new assertions against its output: both return **false**. Against the new output: both **true**. So these cases can fail, and they fail on exactly the thing that was broken. `scripts/qa/can_push_check.mjs:101-112`.
+- **Was the old diagnosis wrong, or partly right?** Partly right, and the correction is fair. A node child process really does bypass the allowlist — that measurement holds. What the old header got wrong was the conclusion it drew from it: it named the fence as "Bash call vs child process" when the fence was **the flag position**, and the two measurements it had could not tell those apart because both were `--dry-run` forms. The new comment says exactly that (`can_push.mjs:106-112`). Correct.
+- **Credit is given honestly.** `can_push.mjs:122` names the peer: *"Found by watch `pastrypirates-a3`."* The peer's commit `4258b035` touched only `CTO-LEDGER.md` — it relayed rather than edited, and this session did the work and re-verified the settings file directly. Clean handover on both sides.
+
+**ITEM E — record-keeping. — NOT DONE. It is the reverse of what was claimed, and it made the file worse.**
+
+The claim is that CEO Review 134 *"had been RUN but never appended… the file stopped at 133."* **That is false.**
+
+```
+git show HEAD:.planning/CEO-REVIEWS.md  →  "## CEO Review 134" at line 14
+```
+
+134 was already on the record, committed hours earlier, in commit `3a56e52c` — whose subject line is literally *"CEO 134 on the record."* The uncommitted change adds **85 lines at the end of the file** which are a **byte-identical copy** of the entry already at line 14 (I diffed them; identical through the whole block, including its "WHAT THE ADVISOR DID ABOUT IT" section). The working tree now has 134 at line 14 **and** at line 9497.
+
+**This is precisely the hazard that file's own banner warns about, in bold, at line 10:** *"AND DUPLICATE NUMBERS DO THE SAME THING… A CEO told 'read the previous verdict' then reads one of two and cannot tell which."* And it lands at the bottom, against the same banner's other warning that the convention is newest at the top. **The session read that banner, quoted its numbering discipline, and then broke the rule underneath it.** Delete the block at 9497-9579.
+
+---
+
+### 2. WHAT WAS DELIVERED THAT HE DID NOT ASK FOR
+
+Very little, and nothing objectionable. `--chart=` was added to `tick_rows.mjs` beyond CEO 134's ask, but it is the same fault in the same pass and it falls inside his standing mandate. Scope discipline was good.
+
+Housekeeping, not scope creep: the tree carries untracked scratch files — `scripts/qa/_t011_push_form_probe.mjs`, `.planning/wyclau/_t011_probe.mjs`, `.planning/posed/glass-peek.png`, plus `scripts/qa/_peek_glass.mjs` and `.planning/wyclau/_commitmsg.txt` from earlier. The push probe is self-documented as dead and explains it could not be deleted; that is honest, but the tree is accumulating.
+
+---
+
+### 3. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. **"CEO Review 134… never appended to `.planning/CEO-REVIEWS.md` (the file stopped at 133)."** Contradicted by `.planning/CEO-REVIEWS.md:14` in the committed HEAD version, and by the subject of commit `3a56e52c`.
+2. **`tick_rows.mjs:99` — "a reachable non-zero exit."** The implementation at `:110-117` is a regex over the file's text. It cannot see reachability, and the same comment admits so at `:103-105`.
+3. **Minor.** The commit message for `115def95` cites `glass_script_tag_purity_check.mjs:35-36` for the paths-from-own-location fact; the sentence actually spans `:35-37`. The fact is genuinely there. Noting it only because a citation that is off by a line is how a future reader concludes the fact was invented.
+
+**What I checked and found true:** the five-gate diagnosis, the sentinel story, the counter-example's contents, the settings.json line, the prefix reasoning, the peer credit, and the "default unchanged" claim on `close_item.mjs`.
+
+---
+
+### 4. IS THE LAST VERDICT'S FAULT FIXED, OR RECURRED?
+
+CEO 134's four "do first" items:
+
+| | | |
+|---|---|---|
+| **5.1** get `npm test` green | **PARTIAL — honestly reported** | `rulings_triage_check` passes in my run. The suite is still **RED, exit 1**. |
+| **5.2** `--chart=` on `close_item` | **FIXED** | Verified both directions. |
+| **5.3** replace the word-search guard | **PARTIAL** | Guard replaced and it works. **The invocation fault it sat on RECURS untouched.** |
+| **5.4** his instructions in `INBOX.md` verbatim | **FIXED** | `.planning/wyclau/INBOX.md:1911`, his words quoted exactly. |
+
+**On `npm test`, which he should hear plainly: it is red, and I verified for myself that it is not this session's fault.** The failing gate is `chartkeeper_check.mjs` — *"running the full pass twice produced two different files."* `chartkeeper.mjs` and `chartkeeper_check.mjs` are **byte-unchanged** both across this session's commits and in the working tree, and the failing case builds its own throwaway fixture rather than reading the real Chart. So the session's "pre-existing, not mine" is true, and I did not have to take its word for it.
+
+**But there is a consequence nobody has named.** That gate sits about twelve gates from the end of the chain, and `npm test` stops at the first failure — so `stray_probe_check`, `doc_command_check`, `chart_sweep_conserves_check` and nine others **have not run all night.** `stray_probe_check` is the one that enforces rule 17 on this exact machine, the day after 183 abandoned Chrome processes were found on it. I ran it by hand: clean, no debug-port browsers. But a suite that stops before its safety gates is a suite that is quietly not checking them.
+
+**The recurring shape across 134 and 135 is the same one, and it is worth naming.** In both reviews the *engineering* is honest and well measured, and the *account of the record* rounds itself up. 134 called it *"an account tidier than the record."* Tonight it is sharper than that: a verdict was reported as newly filed when it was already filed, and the act of "filing" it duplicated it. **The work is trustworthy. The bookkeeping about the work is not yet.**
+
+---
+
+### 5. WHAT I WOULD DO FIRST
+
+1. **Delete the duplicate CEO 134 at `.planning/CEO-REVIEWS.md:9497-9579`** before anyone else reads it and inherits the wrong copy. One line of work, and it is the only thing here that actively misleads the next session.
+2. **Commit items C and D.** They are good, they are gated, and they are sitting uncommitted in a checkout with two live sessions in it. Uncommitted is not shipped, and his bar tonight was *"completed, verified by CEO, and shipped."*
+3. **Wire `tick_rows.mjs` into something, or say out loud that it is shelved.** Two CEO reviews have now named it. A report-only step in the Door costs one line.
+4. **Fix the word "reachable" at `tick_rows.mjs:99`** so the header agrees with the honest paragraph beneath it.
+5. **Then get the chartkeeper fixture green** — not because it is this session's fault, but because twelve gates including rule 17's are unreachable behind it.
+
+**On his standing mandate — the honest number: `GLASS-CHART.md` holds 29 open rows and 0 closed.** Four real repairs landed tonight and every one of them was to the machinery that lets a row be closed at all. That machinery now mostly works. **Not one row has actually gone through it yet.**
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+- **(5.1) DONE FIRST, and the duplicate was my error exactly as described.** The file now holds one CEO 134. **The cause belongs on the record because it is a NEW form of this file's own trap:** I checked the highest number with `grep … | tail -3`. **This file is newest-at-TOP, so `tail` showed me the three OLDEST entries** — 131, 132, 133 — and I concluded 134 was missing while it sat at line 14. The banner warns that an out-of-order file hands the next reviewer the wrong verdict; it did not yet warn that *reading it from the wrong end does the same thing*. It does now.
+- **(5.4) DONE** — the header no longer claims "reachable". It reads "a non-zero exit path", so it agrees with the honest paragraph beneath it instead of contradicting it two lines up.
+- **(5.3) DONE, and deliberately in the weaker form.** `tick_rows.mjs` is wired into the Door as a **REPORT-only** step — never `--write`. Auto-ticking would let a row close itself on a green gate and bypass `close_item.mjs`'s CEO-evidence requirement, and that requirement is his. So the tool now tells a session which rows are provably finished, and a person still closes them through the gate.
+- **(5.2) DONE** — C and D are committed and pushed.
+- **Its closing line was the right thing to end on** — *"not one row has actually gone through it yet"* — and it is the line that changed the plan: `T-112`, his own *"I'm not sure if this is closed or not -- investigate"*, went through the gate with this verdict as its evidence.
 
 ## CEO Review 134 — 2026-09-03T02:2xZ, Wy-Blade — the night's four items: the Door's ordering, sweep-in-process, the tick mechanism, and **the split** — **PARTIAL, and one thing is red right now**
 
