@@ -1,5 +1,28 @@
 # Wyatt's standing decisions
 
+## ⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design cal — 2026-09-03T21:30:35.726Z
+
+Asked on the Glass: *"⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix. When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — whoever got home first. The first two are exactly right. The third is not: the game breaks that last tie by seat order, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. Nothing in the game records when a captain got home, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat."* — **Wyatt ruled "Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking"**, 2026-09-03T21:30:35.726Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Change the page to match the game — say the last tie goes to seat order, one sentence, no gameplay risk (recommended: it is honest today, and it costs a player nothing)
+- Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking  ← **his pick**
+- Change both — drop the third tiebreak entirely and let a true dead-heat share Best Baker, the way two captains baking the same day already bake together
+
+<!-- harvest-id: RULING-20260903T213035Z-t216-baker-tiebreak -->
+
+## ⟨T-206⟩ The second analytics call, and it is a real judgement one: a cookie notice, or not? Google Analytics s — 2026-09-03T21:30:55.944Z
+
+Asked on the Glass: *"⟨T-206⟩ The second analytics call, and it is a real judgement one: a cookie notice, or not? Google Analytics sets a cookie and sends data to Google; your own counter does neither. Children play this game, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose "how many unique people" from Google, but you already have that number from your own counter, which is why it fits your situation unusually well. ⚠ The one thing on this page I could not check: the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. It gets verified before anything is installed — and if it has changed, this becomes a straight choice between a banner and no banner."* — **Wyatt ruled "Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent"**, 2026-09-03T21:30:55.944Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent  ← **his pick**
+- Standard Google Analytics plus a small consent banner — more complete data, and a box over your front door on every first visit
+- Standard Google Analytics, no banner — what most small sites do, simplest, and the one with the most to argue about
+
+<!-- harvest-id: RULING-20260903T213055Z-t206-cookie-choice -->
+
+
 ## ⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call onl — 2026-09-03T21:29:37.111Z
 
 Asked on the Glass: *"⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch? You asked for the plan and you have it — the property G-2KK6EZDZSP almost certainly already exists in your Google account and has never been told anything. Nothing is installed and nothing will be until you pick. The size: one <script> tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: where your 123 browsers came from — and remember that About and the new Rules page are measured by nothing at all today, which is the real gap."* — **Wyatt ruled "The public pages only — the game, About and Rules"**, 2026-09-03T21:29:37.111Z.
