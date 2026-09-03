@@ -6100,3 +6100,23 @@ by `git diff` and independently by CEO 126. `npm test` exits 0.
 
 - 2026-09-03T00:0xZ · `T-105` NOT closed, deliberately — nothing about the guard changed, five
   flags still read false, and his words can still be lost. CEO 126 (**PARTIAL**).
+
+---
+
+## WATCH 2026-09-03T00:10Z — `T-090` part (a): NOTHING CALLS THE RETIREMENT. The harvest will.
+
+- **Watch started** 2026-09-03T00:10Z, Wy-Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  `can_push.mjs` clean (tracking, no rebase or merge in progress).
+- **Last progress:** `2467960b` (8:03 PM ET) — the Glass published past the 429; `GLASS-NOTE.md` reset.
+- **The previous watch closed nothing.** It proved `T-105` UNDOABLE by a watch — both `.claude/`
+  edits refused under a blanket `Edit`/`Write` grant, which is Claude Code's own protection rather
+  than this project's allowlist — and moved it to BLOCKED ON WYATT. CEO 126, PARTIAL.
+- **Blocked on Wyatt:** `T-105`'s two `.claude/` edits (his approval or his hands only).
+  `## BLOCKED ON WYATT` in `CHART.md` is otherwise EMPTY right now — `retire_answered.mjs --list`
+  says so — so nothing is asking him.
+- **Detached trial in flight:** none.
+- **THIS WATCH TAKES:** `T-090` gap (a), his standing top priority (*"the page continues to re-show
+  me thw e questions AFTER they're harvested… a PRIORITY more than any of the SEO work"*).
+  CEO 125 and the row agree on what is left: the retirement is BUILT and **nothing calls it**.
+  The fix is to put it inside the one command every harvest must run —
+  `scripts/wyclau/mark_glass_harvest.mjs`. **No game code, no sea trial.**
