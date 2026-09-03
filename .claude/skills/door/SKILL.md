@@ -77,8 +77,31 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    at all. Write what you wanted shown into `.planning/wyclau/GLASS-NOTE.md` and commit it, for the
    next session that can. Earned 2026-09-01: the stamp used to take no arguments and record a
    publish unconditionally, so a watch that could not publish still marked the Glass as fresh.
-2. **Pick ONE item.** INBOX first — the oldest OPEN item; his words outrank the Chart. Otherwise
-   the top unblocked Chart item. **Claim it in the ledger before touching anything.**
+2. **Pick ONE item: RANK THE CHART, THEN TAKE ROW ONE.**
+   ```bash
+   node scripts/wyclau/chartkeeper.mjs --rank --sweep --write    # order it, archive finished rows
+   ```
+   **Then work the FIRST open row. Not the oldest anything.** Commit the re-ordered Chart with your
+   claim, and **claim it in the ledger before touching anything.**
+
+   ⚠ **THIS LINE USED TO READ "INBOX first — the OLDEST OPEN item… otherwise the top unblocked Chart
+   item", AND THAT IS THE FAULT HE HAS NOW REPORTED FOR THE LAST TIME.** His words, 2026-09-02
+   9:45 PM ET: *"i told you a THOUSAND TIMES that the CHart is supposed to take the TOP ITEM ON THE
+   CHART. FIX THIS."* And his design, `T-083`, which sat at rank 27 scoring zero while the rule it
+   replaces stayed in force: *"the door should not read oldest-first; the RANK algorithm should do
+   the ordering, and the door should read what's at the top."*
+
+   **WHY OLDEST-FIRST WAS ACTIVELY BACKWARDS, measured 2026-09-02:** his instruction queue held **25
+   open entries and his newest instruction was the LAST of them** — so *"the oldest open item"* made
+   **his most recent ask his lowest-priority ask**, every time. Over ninety minutes that evening,
+   Chart ranks 1, 2, 3 and 5 were never claimed while three older entries were worked.
+
+   **HIS WORDS STILL OUTRANK THE CHART — THE RANKER IS HOW THEY DO IT, NOT AN ALTERNATIVE TO IT.**
+   `chartkeeper.mjs` gives **+100** to any row citing a live `INBOX-` entry of his and **+8 per
+   mention**, so a fresh instruction of his arrives at the top on its own. **If something of his is
+   not ranking first, that is a bug in the scoring to report — not a reason to go back to reading
+   the queue by age.** And a row he has dragged to the top on the Glass is pinned there; his drag
+   beats the score.
 3. **Work it through the Proof, with the teeth** (his rulings, 2026-09-01, all three):
    - **His stated solution first.** If the item carries `solution:` in his words, your FIRST act
      is to implement and measure exactly that — before any investigation, before any tooling.
@@ -105,13 +128,22 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    item without a CEO verdict on file, a game-code diff or a stated one-line reason, and the
    solution-first evidence. Do not tick the Chart or the INBOX by hand — the gate writes the tick,
    the ledger entry, and the INBOX fate together, so they cannot disagree.
-6a. **RE-PRIORITISE THE CHART BEFORE YOU PUBLISH IT:**
-   `node scripts/wyclau/chartkeeper.mjs --rank --write`. It orders the open list so the
-   next-to-be-completed is at the top and gives every row a `why-now:` phrase Wyatt can overrule.
-   **It never ticks a box** — closing stays yours, behind `close_item.mjs`. Include `CHART.md` in
-   the commit you were already making.
-   **Sweeping is not yours to run here** — `close_item.mjs` sweeps a row off the Chart in the same
-   act that closes it, which is his design: *every completed row leaves immediately, with no stub.*
+6a. **RE-PRIORITISE AND SWEEP THE CHART BEFORE YOU PUBLISH IT:**
+   `node scripts/wyclau/chartkeeper.mjs --rank --sweep --write`. It orders the open list so the
+   next-to-be-completed is at the top, gives every row a `why-now:` phrase Wyatt can overrule, and
+   **archives any finished row to `CHART-LOG.md`.** **It never ticks a box** — closing stays yours,
+   behind `close_item.mjs`. Include `CHART.md` **and `CHART-LOG.md`** in the commit you were already
+   making; an archive that is not committed is a deleted row.
+   ⚑ **`--sweep` ADDED HERE 2026-09-02 AT HIS INSTRUCTION** — *"ADD SWEEP TO THE RELEVANT PROCESS.
+   NOW. THIS CHART IS A MESS."* It was previously run **only** by `close_item.mjs`, so a row finished
+   any other way never left. It is cheap and idempotent, so running it on every pass costs nothing.
+   ⚠ **AND THE HONEST LIMIT, MEASURED THE MINUTE IT WAS WIRED IN: SWEEP WILL NOT CLEAN HIS CHART, AND
+   NOBODY SHOULD TELL HIM IT WILL.** `--sweep` moves rows already ticked `- [x]`; a dry run against
+   the live Chart that same minute reported **"0 finished row(s) on the Chart, nothing to archive"**
+   against **57 open rows**, several of them visibly finished. **His stale rows are not
+   ticked-and-unswept — they were never TICKED**, because ticking happens only in `close_item.mjs`
+   and work finished any other way is never closed. **The row that cleans his Chart is `T-106`** —
+   route the reap's findings to a close, a re-measure, or to him, per his 3:33 PM ruling.
    ⚠ **THIS SENTENCE USED TO SAY "NOT `--sweep`" AND THE REASON EXPIRED THE SAME DAY IT WAS WRITTEN.**
    It said sweep was still the seven-day-with-a-stub form he overruled, and that sweeping would zero
    the done count on his page. Both were true when written and neither is now: another watch made

@@ -243,7 +243,16 @@ publish. This session IS the terminal.
 >    this tick harvested at 3:07:08 PM and found nothing, his first idea landed at 3:07:15 PM, six
 >    more followed, and the stamp then read "fresh" for thirty minutes.** Seven ideas survived by
 >    luck of ordering.
-> 4b. **REAP THE CHART, IN REPORT MODE ONLY:** `node scripts/wyclau/chartkeeper.mjs --reap`
+> 4b. **SWEEP, THEN REAP.** `node scripts/wyclau/chartkeeper.mjs --sweep --write` — archives any
+>    finished row to `CHART-LOG.md` so it leaves his page; commit `CHART.md` AND `CHART-LOG.md`.
+>    ⛑ **ADDED 2026-09-02 AT HIS INSTRUCTION** — *"ADD SWEEP TO THE RELEVANT PROCESS. NOW. THIS
+>    CHART IS A MESS."* Sweep ran **only** inside `close_item.mjs` before this, so a row finished
+>    any other way never left. It is idempotent and costs nothing on a tick with nothing to move.
+>    ⚠ **AND IT WILL NOT CLEAN HIS CHART BY ITSELF — measured the minute it was wired in:** a dry
+>    run reported **"0 finished row(s), nothing to archive"** against **57 open rows**, several
+>    visibly finished. Sweep moves rows already ticked `- [x]`; **his stale rows were never
+>    TICKED**, because only `close_item.mjs` ticks. **Do not report a swept Chart as a clean one.**
+> 4c. **THEN REAP, IN REPORT MODE ONLY:** `node scripts/wyclau/chartkeeper.mjs --reap`
 >    — it lists rows whose POINTER is dead: a question he has already answered, a trial report that
 >    was never written, a pid that is not running, a build stamp older than the tree. **It changes
 >    nothing** (no `--write` here, ever) and **it never ticks a box** — closing is a claim about
