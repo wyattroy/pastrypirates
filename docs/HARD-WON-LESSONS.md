@@ -1868,3 +1868,67 @@ verbatim from `HEAD`.
 
 **Anchor an edit to the thing you are changing, not to the thing after it.** If you must replace a
 range, print what is inside it first.
+
+---
+
+## 14. 2026-09-03 — FIVE HARNESSES LIED IN ONE NIGHT, AND EVERY ONE WAS BUILT TO CHECK SOMETHING ELSE
+
+**§10 is *"every instrument lied, and each one lied in a way that read as truth."* Those were the
+project's own gates. This is the layer under them: the throwaway scripts a session writes to check
+a gate.** Five of them were wrong in one session. Not one had itself been checked.
+
+**They are all the same fault in different costumes: the harness could not tell SUCCESS from
+NEVER-RAN, and it defaulted to success.**
+
+| the harness | what it reported | what was true |
+|---|---|---|
+| `harvest_glass.mjs`'s own counter | *"3 of 3 new (verified in the file)"* | the write had deleted **61 of 64** existing entries |
+| `red_proof_at_ref.mjs` | *"RED PROOF HELD — the check can see its subject"* | the gate had crashed and judged nothing |
+| a mutant runner | *"all 8 mutants SURVIVED"* | all 8 had died; it read **no output** as **passed** |
+| its own replacement guard | *"all 8 COULD NOT RUN"* | they ran; the guard matched an **em dash** the Windows pipe re-encoded |
+| an `awk` position check | *"the fix did not work"* | it matched the handle in the file's **header prose**, not the row |
+
+**A sixth was found by a REVIEWER rather than the author** — a CEO measured 15 rows moving, traced
+it to running the tool from a copy *outside* the repo where `import.meta.url` could not reach the
+ledger, and reported that instead of quietly re-running.
+
+### THE RULE, AND IT IS ONE SENTENCE
+
+**Before believing a measurement, ask what the instrument would print if the thing WORKED — and
+check that it prints something different.**
+
+Every failure above collapses two outcomes into one symbol. *"No output"* and *"passed"* both look
+like silence. *"Non-zero exit"* covers both *"the check failed"* and *"the check could not start"*.
+*"The id is in the file"* is true whether the file is complete or empty. **A symbol that two
+different worlds produce is not a measurement.**
+
+### THREE THINGS THAT DO NOT WORK, ALL TRIED THE SAME NIGHT
+
+1. **Writing the trap down first.** The prediction for the harvest tool said, in advance, *"the
+   tool must read back what it wrote and count it from the FILE, never from the array it
+   iterated."* That was built — and the gate could not tell whether it was there. **Naming a trap
+   does not test for it.**
+2. **Adding a guard.** The fix for *"no output means passed"* was a guard requiring a verdict line.
+   The guard matched on a character the pipe re-encoded, and reported eight successful runs as
+   *"COULD NOT RUN"* **while printing their real failures directly underneath.** A guard is an
+   instrument too.
+3. **Knowing the lesson.** The same session wrote the reply to a verdict about fixture shape, and
+   then wrote a fixture with the same fault in a different file, an hour later. **A lesson recorded
+   in the morning does not transfer to the afternoon by itself; it has to be a case in a gate.**
+
+### THE POSITIVE FORM — what a trustworthy harness does
+
+- **Require positive evidence that the subject RAN.** `red_proof_at_ref.mjs` now demands the gate's
+  own verdict text, and separately detects a loader error inside the failure lines — because a gate
+  whose *dependency* is missing is fluent, confident, and failing about the wrong thing, which is
+  far better hidden than a crash.
+- **Assert on the WHOLE output, not the one number you set out to fix.** A verdict found a bug
+  sitting in a field the gate already parsed and then discarded, because every case asserted on
+  `score`. One line on data already in hand would have caught it.
+- **Shape the fixture like the real subject.** A gate whose destination was an EMPTY inbox could
+  not see a write that emptied a real one. Count the real file's sections, heading levels and
+  formats before writing a single assertion.
+- **Prefer ASCII in a detector.** Two of the five failures were an em dash and a re-encoded pipe.
+  A detector that depends on typography is a detector with a locale bug waiting in it.
+- **When a check condemns something you have reason to believe works, suspect the check** — §10's
+  rule, and it held five times out of five here.
