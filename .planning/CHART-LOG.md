@@ -691,6 +691,14 @@ the three still carrying work also have a checklist row above, which is where he
 | Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z |  **SHIPPED** — CEO 96, commit `3a43235`. Triaged out of RULED 2026-09-03T07:1xZ. |
 | May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached |  **DONE** — the permission is at `.claude/settings.json:11-12` (both forms); `T-027` closed 06:50Z on CEO 149. Triaged out of RULED 2026-09-03T07:1xZ. |
 
+| Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached |  **SHIPPED** — all three fate states built; the third (PARKED dimmed, with its reason) landed in `417adefc`, CEO 155 then 157. `T-139` closed through the gate. Triaged out of RULED 2026-09-03T09:0xZ. |
+
+> **Settled 2026-09-03T09:0xZ, and the lifecycle is the point:** the work shipped, so the ruling
+> moves to SETTLED — it does NOT get another task row. `rulings_triage_check` failed here because
+> `T-139` was closed and swept while the ruling still sat in `## RULED` with an empty verdict, so
+> the gate correctly saw a ruling on no surface he reads. **Closing the work and settling the
+> ruling are two acts, and only the first is automatic.**
+
 > ⚠ **THE TWO ROWS ABOVE WERE TRIAGED OUT OF `## RULED` ON 2026-09-03T07:1xZ, AND THE REASON IS
 > WORTH KEEPING: THE CARD THAT WAS THEIR ONLY SURFACE IS BEING REMOVED.** Wyatt, on the Glass
 > 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the Glass."* Watch c1 is doing
