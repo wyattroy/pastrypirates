@@ -1973,3 +1973,36 @@ status: OPEN — the three verifications are the first work on `GLASS-CHART.md`;
   a published page; the page rewrote its own document with his input embedded and republished
   itself; this session read that document and applied it. **No relaying, no harvest step, no waiting
   for a tick** — the same shape the Glass rebuild is aiming at, working today on a smaller surface.
+
+## INBOX-20260902T2236Z — HIS FINISHED AUDIT OF THE GLASS BACKLOG: 15 DISMISSED, 29 LEFT, 5 NOTES
+
+**HIS WORDS:** *"i finished auditing the Glass backlog"* — and the two new instructions inside it:
+
+> **`T-076`** — *"PRIORITIZE this at the top."*
+> **`T-021`** — *"I\"m 99% sure the Blade Hour is complete!"*
+
+solution: his own. `T-076` is **pinned** (`· now: yes`), which measures at rank 1 and is what the Door hands the next watch. `T-021` is **checked, not closed** — he said 99%.
+
+status: DONE 2026-09-02 for the triage; the 29 rows are the standing work.
+
+  **HE DISMISSED 15 OF 44.** `T-090`, `T-106`, `T-093`, `T-084`, `T-083`, `T-091`, `T-094`, `T-008`
+  in the first pass, then `T-025`, `T-028`, `T-081`, `T-105`, `T-127`. **44 → 29, and the count on
+  his page matches this file exactly.**
+
+  ⚠ **`T-105` IS AMONG THE DISMISSED AND IT IS THE ONE WORTH RAISING.** That is *"THE GLASS MUST NOT
+  BE ABLE TO LOSE HIS WRITING"* — the item he called top priority at 3:15 PM and whose step 1
+  shipped tonight. **`T-025` (the Glass v3 rebuild) went with it.** The most likely reading is that
+  the Firebase rebuild replaces both, which is coherent: there is no point hardening a page you are
+  about to delete. **But it is not stated, and dismissing the row that protects his writing while
+  the replacement is still a scope document is worth him knowing.** Left dismissed; flagged, not
+  reversed.
+
+  ⚑ **`T-021` IS THE MODEL FOR HOW HE WANTS THINGS CHECKED, AND IT IS WORTH COPYING.** *"99% sure"*
+  — he gave his belief AND its confidence, and stopped short of asserting it. **So it gets measured
+  rather than closed on recollection**, and if the Blade Hour turns out incomplete, nobody has to
+  unpick a wrong close.
+
+  **THE MECHANISM, WORKING TWICE NOW:** he triaged on a published page; the page rewrote its own
+  document with his input embedded; this session read it and applied it to the record. **No relay,
+  no harvest step, no waiting.** Fifteen dismissals and five notes moved from his screen to the
+  record in one read.

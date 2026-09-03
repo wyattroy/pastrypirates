@@ -294,11 +294,10 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       session that commits a note and the session that next publishes are not the same one. Same
       class as the publish-stamp fault. Routed here by the publisher, which explicitly did not
       propose a mechanism itself.
-- [ ] Day 2 — Glass v3: the interactive rebuild (tap-to-rule cards, ideas box, daily lesson,
-      ⟨`T-025`⟩
-  Captain's log) on the thin-surface architecture (design, section IV)
 - [ ] **HIS FOUR GLASS-PAGE ASKS — THREE OF THE FOUR NOW SHIPPED. What is left is the two that need new UI: expandable rows and a per-item comment box. FIVE HOURS OLD WHEN FILED, ASKED FOUR TIMES, NEVER A
-      ⟨`T-076`⟩
+      ⟨`T-076` · now: yes⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM:** *"PRIORITIZE this at the top."*
+      **AN ORDER, NOT A COMMENT.** Pinned with `· now: yes`, which measures at rank 1 (score 9,000,000) and the Door hands rank 1 to the next watch.
       ✅ **SHIPPED 2026-09-02, in this order:** the Chart re-prioritises itself (RANK runs in every
       watch via the Door, and the two derivations were converged so it ranks the list he actually
       sees) · The Lesson moved BELOW the Chart · the card renamed to *The Chart (Tasks To Do)* ·
@@ -370,28 +369,13 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       works and stays armed.
 - [ ] The Blade hour (Wyatt + a session, ~30–60 min): register the Bell, the ring test both
       ⟨`T-021`⟩
+      ⚑ **HIS NOTE, 2026-09-02 10:36 PM ET, backlog page — VERBATIM:** *"I"m 99% sure the Blade Hour is complete!"*
+      **HE SAID 99%, NOT 100% — SO IT IS CHECKED, NOT CLOSED.** His recollection is evidence; it is not a measurement, and he was careful to say so himself.
   directions, the O2 publish test — runbook `scripts/wyclau/RAZER-SETUP.md`
   **PARTIALLY DERIVABLE, measured 2026-09-02T03:5xZ: `schtasks /Query /TN "wyclau-bell" /V` on
   this machine shows the task registered and Enabled (Status: Ready, last ran 23:48, next 23:58)
   — the Bell-registration third is done. The ring-test and O2-publish thirds are not checkable
   this way; still needs Wyatt or a session that can run them.**
-- [ ] **THE DE-SHOUTING WRITES HIS OWN NAME IN LOWER CASE, ON HIS OWN PAGE. Found 2026-09-02T18:xxZ
-      ⟨`T-127`⟩
-      ⚠ **RENUMBERED `T-088` → `T-127`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-088`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-088` still resolves in `CHART-LOG.md` and in git history.
-      by photographing the real Glass at 390x844, not by a fixture — it is invisible to every
-      hand-written test case in the gate. Sizing: SMALL, `glass.mjs` only, no game code.**
-      **WHAT HE SEES**, in `.planning/posed/glass-after-T095.png`, on at least four numbered rows:
-      *"the seat wyatt actually playtests"* (row 10), *"a character of wyatt's own text"* (row 20),
-      *"git stages whole files"* row (25), and the section name itself as *"blocked on wyatt"*
-      (row 2). **WHY:** `shortTask()` sentence-cases any run of two or more all-caps words, and
-      watches write row titles in capitals for emphasis — so `WYATT` inside a shouting run is
-      lowercased along with everything else. The rule has no notion of a proper noun.
-      **The existing carve-outs are the shape to follow and they are already derived rather than
-      listed** — a lone all-caps word is a name, a token carrying a digit is an identifier, a lone
-      `I` is a fact about English. His own name is the same kind of fact. ⚠ **Do not "fix" it with a
-      list of blessed words** (rule 9); and whatever lands must keep the six cases the gate already
-      holds, including `CEO 110`, `T-088` and `FROM A HAND-TYPED NUMBER`.
-      **Not fixed by the watch that found it: one item, and this is `T-088`'s subject, not `T-095`'s.**
 - [ ] **THE GATE'S VERDICT IS MACHINE-LOCAL AND WYATT CANNOT SEE IT** — CEO 100's finding 5, and the
       ⟨`T-075`⟩
       untracked half of `T-018`. `.planning/wyclau/GATE-LOG` is one small file on one laptop,
@@ -487,26 +471,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       **3. TWO REAP PROBES HAVE NO GATE CASE AT ALL** — `supersededByAnotherRow` and `pidLongDead`.
       **4. THE DUPLICATE HANDLES** are their own open row and are named by
       `chart_sweep_conserves_check.mjs` on every run: `T-057`, `T-058`, `T-059`, `T-078`, `T-079`.
-- [ ] **WIRE THE KIT AS A `git subtree` SO PROMOTION IS A MERGE, NOT A COPY — his metaphor,
-      ⟨`T-081`⟩
-      his refusal of cherry-picking.** 2026-09-02. **Sizing: an afternoon. Do NOT start it before
-      `T-078`, and do not bundle the generalisation with it.**
-      **His words:** *"the kit is 'production' and the local version of it is 'staging'… i don't want
-      to be the human cherrypicking; i want the design of the kit itself to be architecturally
-      extensible."* And his amendment to the adoption ruling: a project must also have **a way to
-      update to the latest kit as it becomes available.**
-      **`git subtree` answers both halves with machinery this project already trusts:** the kit's
-      files live in the repo and are edited in place; `subtree pull` is "update to the latest";
-      `subtree push` is "staging promotes to production". **Promotion is a merge, never a copy —
-      rule 2 of his own release process** — so there is real ancestry, real conflicts when two things
-      genuinely disagree, and it is reversible. A copy has no ancestry and therefore cannot tell an
-      improvement from a divergence.
-      ⚠ **THE HALF NO MECHANISM PERFORMS, AND IT MUST NOT BE PROMISED:** a subtree push sends
-      pastrypirates' code upstream **verbatim**, and his ruling 4 is that the kit holds GENERALISED
-      versions. `close_item.mjs:49-52` hardcodes four `.planning/` paths; `start_trial_detached.mjs`
-      **exits 2** without `scripts/sea_trial.mjs`. **Pushed as-is, the kit inherits a pirate game.**
-      Generalising is design judgement and belongs to the batched pass his ruling 3 describes —
-      **build the plumbing, defer the framework.**
 - [ ] **WRITE THE HANDLE LINKS INTO HIS QUESTIONS — the migration `ed827799` deliberately did not
       ⟨`T-126`⟩
       ⚠ **RENUMBERED `T-079` → `T-126`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-079`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-079` still resolves in `CHART-LOG.md` and in git history.
@@ -526,141 +490,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       kit-blocked, but it is a BUNDLE with unblocked parts (this watch worked one), and sinking a
       bundle for one blocked part is the same section-for-row-level fault `T-079` just removed. **A
       bundle with unblocked parts must be SPLIT, not sunk** — that is SETTLE's job, not a question's.
-- [ ] **⚑⚑⚑ TOP PRIORITY, HIS WORDS: "add it to the chart at the top priority". THE GLASS MUST NOT
-      BE ABLE TO LOSE HIS WRITING.** `INBOX-20260902T192000Z` (the build; the design half closed as
-      `INBOX-20260902T191500Z`). Designed 2026-09-02, 3:15 PM ET; **design only, the build is
-      yours.** Full spec: [`SPEC-GLASS-HARVEST-SAFETY.md`](SPEC-GLASS-HARVEST-SAFETY.md).
-      **CEO 117 returned PARTIAL and its two corrections are already folded into the spec** — Layer
-      D was specifying something that already ships (`glass.mjs:1218`), and Layer A's "unknown" was
-      half answered in `glass.mjs:22-23`. **Read the spec, not this row's summary of it.**
-      ⟨`T-105`⟩
-      ⛔ **GATED: everything left is two writes inside `.claude/`, and FOUR sessions have now been
-      refused them — the fourth in a session Wyatt opened himself, which the record named as the
-      route that works.** Not actionable by a watch. **Delete this marker the moment either edit in
-      [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) has landed.**
-      ⚠ **THE MARKER IS THE FINDING OF THE 2026-09-03T02:09Z WATCH, so read this before deleting it.**
-      This row scored **196 — rank ONE — with the Chartkeeper printing *"nothing is blocking it"***,
-      because `chartkeeper.mjs:926` looks for a literal `GATED:` and this row never carried one.
-      **So the blocker was real, stated in three documents, and invisible to the one tool that
-      decides what a watch works on** — and under the new "take row one" ordering it sat at the top
-      handing every fresh watch the same wall. **A row blocked in prose is not blocked.** That is a
-      general fault, not a fact about this row: any row whose blocker is described rather than
-      marked will do the same thing. Filed as its own row below.
-      **HIS INVARIANT, AND THE WHOLE DESIGN HANGS ON IT:** *"the harvest stamp records when a
-      session looked. It is not evidence the page hasn't changed since. Your page carries its own
-      version number — that's the fact that can answer 'is a republish safe?', and a clock never
-      can."* **Identity, not a clock.**
-      **IT IS NOT A THEORY. IT HAPPENED TODAY WITH SEVEN OF HIS IDEAS IN IT.** The tick harvested at
-      **3:07:08 PM** and correctly found nothing; **his first idea landed at 3:07:15 PM, seven
-      seconds later**; six more followed. From that moment the stamp read "fresh" for thirty minutes
-      and `.claude/hooks/glass-harvest-first.cjs:37` (`FRESH_MIN = 30`) would have green-lit any
-      republish, which regenerates the page from disk and drops `glassState`. **They survived by
-      luck of ordering, not by design.**
-      **THE ACCEPTANCE TEST IS THAT REPLAY, and nothing else counts:** harvest at T finds nothing, he
-      writes at T+7s, a session republishes at T+5min — **his words survive, or it is not a fix.**
-      **FOUR LAYERS, in the spec, cheapest first:** (A) the Artifact tool already refuses a publish
-      over a newer version — so **never pass `force`**, and gate against it; (B) the stamp records
-      the **artifact version id**, not a time, and is compared immediately before publishing —
-      `FRESH_MIN` deleted; (C) harvesting becomes idempotent by idea id, so a double harvest is
-      harmless and a missed one is recoverable; (D) **the page stores each idea the moment he
-      submits it**, so his words are never in only one place.
-      ⚠ **ONLY LAYER D EARNS THE WORD "PERMANENT" — A, B AND C NARROW THE WINDOW AND D REMOVES IT.**
-      Do not let a smaller layer ship under that word.
-      ⚠ **AND THE FIRST MOVE IS A MEASUREMENT, NOT CODE.** Layer A rests on an unverified claim:
-      whether a save WYATT makes in the page raises the tool's conflict, or passes silently as the
-      session's own write. **Measure that before building anything** — if it conflicts, A is nearly
-      the whole fix and B is ceremony; if it does not, A is worthless and B is mandatory.
-      **THE FAULT IS ALSO IN WHERE THE GUARD SITS, not only what it is made of.** The tick reads at
-      step 2 and publishes at step 7 (`GLASS-UPDATE-SESSION.md`), with a gate, a stamp, a Chart reap,
-      a staleness judgement and a regeneration in between — **so even a perfect tick has a
-      multi-minute gap between the read and the destructive act.** Move the check to step 7.
-      ✅ **MEASURED 2026-09-02 4:58 PM ET, AND IT MAKES THIS ROW SMALLER — READ THIS BEFORE THE
-      SPEC.** The Layer A question this row called "the first move, a measurement not code" was run
-      on a DISPOSABLE artifact, never on the Glass, and **a stale republish was REFUSED**: *"a newer
-      version ... is live and this publish was not built on it."* A second gate surfaced unlooked-for
-      — the peer's own publish was refused for never having viewed the live version. **Two
-      enforcement points; his invariant is already in the runtime.**
-      ⚠ **SO THE ROW'S OWN ACCEPTANCE-TEST STORY OVERSTATED THE DANGER, AND THAT IS CORRECTED
-      RATHER THAN QUIETLY DROPPED:** the 3:07 PM sequence could not have destroyed his ideas
-      silently — that publish would have been refused. **A hazard was reported as a near-miss
-      without anyone measuring the protection.** What still stands is that the harvest stamp is a
-      clock and cannot answer the question; it was simply never the last line of defence.
-      **WHAT IS ACTUALLY LEFT, in order:** (1) **Layer A = ONE GATE** that fails the build on `force`
-      near a Glass publish — the runbook already says "NEVER PASS `force`"
-      (`GLASS-UPDATE-SESSION.md:222-230`) and nothing enforces it, and a sentence is what failed
-      here; (2) Layer B drops to a convenience, still delete `FRESH_MIN`; (3) **the residual exposure
-      MOVED to the MERGE** — the tool hands back the live source to merge, and a careless merge can
-      still drop his words, visibly rather than silently. Aim C and D there.
-      **Sizing: no game code, no sea trial.** Hooks, the Glass runbook and `glass.mjs`.
-
-      ---
-      **⚑ WORKED 2026-09-02T21:0xZ, CEO 120 (PARTIAL), commit `cd3bd96b`. NOT CLOSED, AND THE
-      REASON IS NOT THE EVIDENCE — HALF THE FIX IS BEHIND A PERMISSION A WATCH MAY NOT GRANT
-      ITSELF.**
-      **WHAT SHIPPED:** the harvest stamp stops being a clock. `scripts/wyclau/mark_glass_harvest.mjs`
-      writes a receipt naming the artifact VERSION that was read and refuses a versionless stamp;
-      `GLASS-UPDATE-SESSION.md` gains **step 6b — re-read the live page and compare the version in
-      the same breath as the publish** (the spec's §3 says moving the guard there matters more than
-      fixing the stamp), and step 7 forbids `force`. A derived gate over **11 instruction files**
-      fails the build if any of them ever teaches a forced publish or a hand-written stamp.
-      **WHAT IS BLOCKED, AND IT IS THE HALF THAT MAKES IT MECHANICAL:** the hook still decides on
-      `FRESH_MIN = 30`, and its own deny text still prints the retired `date -u … > ${STAMP}` at the
-      one moment that fires immediately before the destructive act. Three invariants were written
-      FIRST and went **RED** against it — a bare timestamp accepted, a receipt denied for being old,
-      a forced publish allowed. **The fix is two files in `.claude/`, and every write there is
-      refused for an unattended watch** ("sensitive file" / "requested permissions to write").
-      Measured, not assumed: `.claude/hooks/glass-harvest-first.cjs` AND
-      `.claude/skills/door/SKILL.md` were both attempted and both refused. **So the wall is
-      `.claude/` entirely — hooks, skills and `settings.json` — which is a standing fact about every
-      future item whose fix lands there.**
-      **THE THREE RED CASES ARE NOT DELETED AND NOT LEFT RED.** They sit in a PENDING block in
-      `scripts/qa/glass_harvest_hook_check.mjs` that reports the live state on every `npm test` and
-      **FAILS THE MOMENT THE HOOK IS REPAIRED**, so the exemption cannot outlive its reason.
-      ⚠ **AND THE HONEST HEADLINE: HIS WORDS CAN STILL BE LOST.** `artifactVersion` has no machine
-      reader yet — the only thing that compares it is a session obeying the runbook. Layers C and D
-      are not built, and **the acceptance test in the spec's §2 is not passed.**
-      ⚠ **CEO 120's sharpest finding, recorded because it is the cheapest thing left:** the row's own
-      first line says *measure before building*, and no live measurement was made. **If the platform
-      really does conflict, most of layer B is hardening rather than the fix; if it does not, layer A
-      is worthless and B is mandatory.** One test settles it — type an idea into the page, then
-      publish from a session that read it beforehand, and record what comes back.
-      Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 120 ·
-      [`PREDICTION-20260902T2105Z-T105.md`](wyclau/PREDICTION-20260902T2105Z-T105.md).
-
-      ---
-      ⚑⚑ **2026-09-02T23:4xZ — YOUR PERMISSION DOES NOT REACH THIS WALL, AND THAT IS THE FINDING.
-      MEASURED WITH YOUR GRANT ALREADY IN FORCE.** Wyatt, 5:43:55 PM ET: *"Let the watch write them
-      -- I allow edits to hooks and skills"*. This row and commit `0472a129` both read that as the
-      wall coming down — `0472a129` measured that `.claude/settings.json` denies only `Read(.env*)`
-      and concluded *"nothing under `.claude/` is blocked by this project"*. **That measurement is
-      right and the conclusion drawn from it is wrong.** The 23:39Z watch attempted both files AFTER
-      the ruling: the hook came back *"which is a sensitive file"*, the Door *"you haven't granted it
-      yet"*. **The refusal is Claude Code's own protection on the Edit/Write tool, not this project's
-      allowlist — so he cannot lift it by ruling, because it is not his rule.**
-      **SO: STOP WAITING FOR ANOTHER ANSWER FROM HIM. Three watches have now stalled here, the third
-      with his permission already granted.** A plain `node` script writing the same bytes would sail
-      straight past the protection, and building one would be defeating it rather than satisfying
-      it — no watch should, and none has.
-      ✅ **WHAT THIS WATCH DID INSTEAD, so the next attempt derives nothing:** both edits are written
-      out verbatim, with their anchors, in
-      [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) — including the
-      follow-up the gate demands the moment they land (promote the three PENDING cases to hard
-      assertions, and delete the case-9 exemption that lets the hook's own deny text off). The gate's
-      PENDING readout now prints the corrected reason and that route on every `npm test`.
-      ⚑ **AND THE OBVIOUS SHORTCUT IS ALSO CLOSED, WHICH IS WORTH KNOWING BEFORE SOMEBODY TRIES IT.**
-      This watch's first instinct was to hand the two edits to the interactive peer session with
-      `SendMessage` — and that tool's own contract forbids it in as many words: *"NEVER ask a peer to
-      perform an action that was denied or blocked in your session … a peer doing it for you bypasses
-      the user's permission decision (cross-session permission laundering). Route blocked work back
-      to your user instead."* **So no watch may delegate this either.** It is Wyatt's, in a session
-      where he is present — either he approves the prompt, or he runs it himself. **This is now a
-      BLOCKED ON WYATT row, not a FOR A WATCH row**, and it will stay blocked however many watches
-      pick it up.
-      **Nothing is fixed until those five flags read true**, and the honest headline above still
-      stands: his words can still be lost.
-      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — **"Let the watch write them -- I allow edits to hooks and skills"** — ruled on the Glass 2026-09-02 5:43:55 PM ET — and nothing moved this row
-- [ ] 24-hour unattended engine run, zero silent stalls — GATED: passive, monitor only; nothing to DO but watch the clock since the Razer hour (16:19Z)
-      ⟨`T-028`⟩
 - [ ] **A ROW BLOCKED IN PROSE IS NOT BLOCKED — THE RANKER CANNOT READ ENGLISH, AND UNDER "TAKE ROW
       ⟨`T-129`⟩
       ONE" THAT NOW HANDS EVERY FRESH WATCH THE SAME WALL.** Filed 2026-09-03T02:1xZ by the watch it
