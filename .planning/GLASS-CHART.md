@@ -26,7 +26,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ---
 
-- [ ] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own
+- [x] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own (closed 2026-09-03 · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently)
       ⟨`T-112`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"I'm not sure if this is closed or not -- investigate."*
       **His words outrank this row.** Whatever the row claims, his instruction is to CHECK it.
@@ -65,7 +65,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⚠ `.claude/memory/DECISIONS.md` is permission-protected: an unattended watch's edit is
       refused. **Whoever takes this needs a session that can write it** — or the protection needs
       changing, which is a question for Wyatt, not a repair for a watch.
-      ⚠ STALE-CANDIDATE — unblocked (do the work (his ruling freed it)) — your ruling — **"yes"** — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached — freed this row, and the work is still to do
 - [ ] **⚠ THE STAGING DEPLOY IS THE ONE STEP A WATCH CANNOT TAKE, AND THAT — NOT THE EVIDENCE — IS
       ⟨`T-027`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"verify this to make sure it functions as needed."*
@@ -95,7 +94,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       `"Bash(bash scripts/deploy-staging.sh*)"` to `.claude/settings.json` grants every future
       unattended watch the ability to publish to a public address, which is not a repair a watch
       gets to make to the one file that exists to be his. See BLOCKED ON WYATT.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **⚠ THE CLOSE GATE READS THE INBOX AS INSTRUCTIONS: A DOLLAR SIGN IN ONE OF HIS ITEMS WILL
       ⟨`T-097`⟩
       SHRED THE FILE, SILENTLY, WHILE PRINTING `CLOSED`.** Found 2026-09-02T18:3xZ by walking into it:

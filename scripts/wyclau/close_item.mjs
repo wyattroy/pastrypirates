@@ -98,10 +98,30 @@ if (isInbox) {
 } else {
   const src = read(CHART);
   if (src === null) refuse(`no Chart at ${CHART}`, "run from the repo root or pass --repo");
-  const rows = src.split("\n").filter((l) => l.startsWith("- [ ]") && l.toLowerCase().includes(item.toLowerCase()));
-  if (rows.length === 0) refuse(`no open Chart row ("- [ ]") contains "${item}"`, "check the wording against .planning/CHART.md");
-  if (rows.length > 1) refuse(`"${item}" matches ${rows.length} open Chart rows`, "use a longer, unique substring");
-  chartRow = rows[0];
+  /* ⛔ MATCH THE WHOLE ROW, NOT ITS FIRST LINE. Fixed 2026-09-02, and the bug was self-inflicted
+   * in a precise way: this gate refuses an item whose verdict does not "name the item id", and a
+   * row's id — its ⟨`T-nnn`⟩ handle — is written on the row's SECOND line. The matcher below used
+   * to be `src.split("\n").filter(l => l.startsWith("- [ ]") && …)`, i.e. title-line only.
+   *
+   * **So the one identifier the gate asks for was the one identifier it could never match.**
+   * `--item="T-112"` returned "no open Chart row contains" while `T-112` sat on the next line of
+   * the row it was describing. Every close had to be driven by a fragment of prose from the title
+   * instead — which then had to appear verbatim in the CEO verdict, so the traceability check was
+   * effectively demanding that a reviewer quote a row's headline rather than cite its id.
+   *
+   * A row runs from one `- [ ]` to the next; the whole block is searched, and `chartRow` stays the
+   * TITLE LINE so the tick and pointer at the write step land exactly where they always did. */
+  const lines = src.split("\n");
+  const heads = [];
+  lines.forEach((l, i) => { if (l.startsWith("- [ ]")) heads.push(i); });
+  const needle = item.toLowerCase();
+  const hits = heads.filter((h, n) => {
+    const end = n + 1 < heads.length ? heads[n + 1] : lines.length;
+    return lines.slice(h, end).join("\n").toLowerCase().includes(needle);
+  });
+  if (hits.length === 0) refuse(`no open Chart row ("- [ ]") contains "${item}"`, `check the wording against ${CHART}`);
+  if (hits.length > 1) refuse(`"${item}" matches ${hits.length} open Chart rows`, "use a longer, unique substring");
+  chartRow = lines[hits[0]];
 }
 
 /* 1. The CEO verdict exists and is traceable to THIS item. */

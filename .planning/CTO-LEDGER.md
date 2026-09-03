@@ -6731,3 +6731,5 @@ item.
 **FILE DISCIPLINE IN A SHARED TREE:** this watch touches `src/ui/flow.js`, `index.html` and its own
 appended lines only, and **will never run `git add -A`** — every commit names its paths, so the
 peer's in-flight edits cannot be swept into them.
+
+- 2026-09-03T03:33:11Z · close_item: "T-112" · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently · no stated solution
