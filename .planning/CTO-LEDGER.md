@@ -7885,3 +7885,38 @@ or the branch merge, which is **GATED on his own ruling**. Parked on the Chart w
 **NOT MINE, LEFT ALONE:** `package.json`, `scripts/wyclau/{chartkeeper,glass}.mjs` and
 `scripts/wyclau/lib/chart_model.mjs` are modified in this tree by a peer session and were **not**
 committed here — every path in this watch's commit is named explicitly.
+
+---
+
+## watch g2 — Wy-Blade, 2026-09-03T11:10Z — CLAIMING `T-013`: get the trade-call circles out of the stranded column
+
+- **Watch started** 2026-09-03T11:10:09Z on `claude/cloud-handoff-planning-a9ay1u`, synced 0/0 with
+  origin. `can_push.mjs` reports healthy AND the real `git push origin <branch>` was run as a shell
+  command before any work — "Everything up-to-date" — so this watch is not working into a void.
+- **Last progress** — watch g1 closed nothing: it fixed the `stats.html` curtain-word delivery
+  (CEO 164) and **parked `T-138` open**, because `playpastrypirates.com/stats.html` is still 404.
+- **Blocked on Wyatt, and it is why I am not taking rank 1, 2 or 3.** `T-099` (rank 1, +154) — its
+  own last line reads *"This row closes when he answers, not before"*, and Q3/Q4 are still on his
+  Your Call card. `T-138` (rank 2, +100) — *"WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S"*.
+  `T-143` (rank 3, +30) — *"THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS"*. **Rank 4, `T-013`,
+  is the first row nothing holds back**, and its own text hands the next watch a RED check.
+- **Nobody holds it.** `.planning/wyclau/IN-HAND` read *"nothing in hand — watch g1 released
+  T-138"*; no claim on `T-013` anywhere in the last 40 ledger entries. The most recent mention is
+  watch a9's own, which CLOSED the measuring half at 05:20Z (CEO 146) and deliberately left the fix.
+- **No detached trial in flight** — no `LONG-RUN` marker on this machine.
+- **⛔ NO ARTIFACT TOOL IN THIS SESSION — MEASURED, NOT GUESSED.** `ToolSearch` for `Artifact`
+  returns only `SendMessage`. So this watch **cannot read the Glass and cannot harvest it**: his
+  words on that page stay un-carried until a session with the tool runs `harvest_glass.mjs`. The
+  pulse is written to `.planning/wyclau/GLASS-NOTE.md` instead of published, and
+  `mark_glass_published.mjs` is deliberately NOT run — a stamp with no publish is the exact fault
+  that flag was added to stop.
+- **THIS WATCH WILL:** work `T-013` — the trade-call circle that lands nowhere near the captain it
+  names. Prediction written before any measurement, then the red check
+  (`scripts/qa/t013_which_instrument.mjs`, ANCHORED vs STRANDED), then the fix in `src/ui/stage.js`,
+  then that same check green plus a posed pair. FULL gear: `src/ui/stage.js` is game code.
+- **NOT MINE, LEFT ALONE:** `scripts/wyclau/chartkeeper.mjs` and `scripts/wyclau/lib/chart_model.mjs`
+  are modified-and-uncommitted in this tree by a peer working `T-122`/CEO 165. `chartkeeper_check`
+  is PASS on that in-flight code, so I ran `--rank --sweep --write` over it — it changed nothing,
+  the Chart was already ordered. Neither file will appear in my commit.
+
+- 2026-09-03T11:16:31Z · close_item: "T-122" · CEO 165 · no game diff — no game code — the Chart tooling · no stated solution

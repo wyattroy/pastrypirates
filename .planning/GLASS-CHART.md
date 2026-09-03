@@ -52,17 +52,6 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ranker, the sweep gate, and now `livePointer`). One instruction of his split one list in two,
       and every tool with a path written into it went quietly wrong in a different way.
       **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
-- [ ] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23,
-      ⟨`T-122` · size: S⟩
-      in the fix written to close rule 23's last instance.** Filed 2026-09-03T02:xxZ by CEO 132.
-      `glass.mjs` counts duplicates across **open checklist rows only**; `chartkeeper.mjs` counts any
-      head line with a checkbox within 11 lines above it, checklist **or inbox**. A handle those two
-      disagree about is `T-103`'s original fault returning: the page offers a drag the command then
-      refuses whole, and he is told it saved.
-      ✅ **MEASURED TODAY: ZERO DISAGREEMENTS** — `--order=` accepted all 50 handles the page
-      offered. **Latent, not live**, which is why it is a row and not a stop-everything.
-      **The fix is one definition** imported by both, in `scripts/wyclau/lib/chart_model.mjs`, where
-      `idOfRow` already lives. **Sizing: SMALL. No game code.**
 - [ ] **THE PUBLISH RECEIPT CANNOT TELL A REAL ARTIFACT VERSION FROM ONE A SESSION TYPED — AND I
       ⟨`T-208` · size: S⟩
       PROVED IT BY DOING IT, ACCIDENTALLY, TODAY.** Filed 2026-09-03T10:1xZ by the Advisor, against

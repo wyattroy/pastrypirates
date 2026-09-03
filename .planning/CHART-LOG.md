@@ -2659,3 +2659,17 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       and the tool exits at the guard before counting anything. **I wrote the safety net and a test
       that could not see it.** Case 5b reaches it now. The other: an `OR` across the title and the
       status line tested neither, so the pin could vanish from the heading unnoticed.
+
+## T-122 — 2026-09-03 — THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23, (closed 2026-09-03 · CEO 165 · no game diff — no game code — the Chart tooling) in the fix written to close rule 23's last instance. Filed 2026-09-03T02:xxZ by CEO 132. glass.mjs counts duplicates across open checklist rows only; chartkeeper.mjs counts any head line with a checkbox within 11 lines above it, checklist or inbox. A handle those two disagree about is T-103's original fault returning: the page offers a drag the command then refuses whole, and he is told it saved. ✅ MEASURED TODAY: ZERO DISAGREEMENTS — --order= accepted all 50 handles the page offered. Latent, not live, which is why it is a row and not a stop-everything. The fix is one definition imported by both, in scripts/wyclau/lib/chart_model.mjs, where idOfRow already lives. Sizing: SMALL. No game code.
+
+- [x] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23, (closed 2026-09-03 · CEO 165 · no game diff — no game code — the Chart tooling)
+      ⟨`T-122` · size: S⟩
+      in the fix written to close rule 23's last instance.** Filed 2026-09-03T02:xxZ by CEO 132.
+      `glass.mjs` counts duplicates across **open checklist rows only**; `chartkeeper.mjs` counts any
+      head line with a checkbox within 11 lines above it, checklist **or inbox**. A handle those two
+      disagree about is `T-103`'s original fault returning: the page offers a drag the command then
+      refuses whole, and he is told it saved.
+      ✅ **MEASURED TODAY: ZERO DISAGREEMENTS** — `--order=` accepted all 50 handles the page
+      offered. **Latent, not live**, which is why it is a row and not a stop-everything.
+      **The fix is one definition** imported by both, in `scripts/wyclau/lib/chart_model.mjs`, where
+      `idOfRow` already lives. **Sizing: SMALL. No game code.**
