@@ -1,5 +1,80 @@
 # CEO reviews — the standing record
 
+## CEO Review 179 — 2026-09-03, Wy-Blade — Bell watch, `T-206`: his two analytics calls put where he can answer them — **PARTIAL**
+
+**HIS REQUEST, VERBATIM** (`INBOX-20260902T214507Z`): *"Add google analytics to
+playpastrypirates.com and create a firebase admin console so I can see how many people are
+playing"* — and his follow-up ruling on `qid:t206-ga-turn-on`: *"Give me instructions to switch it
+on, and give me the full plan for analytics as an artifact that I can understand more easily than
+this text."*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"Your two analytics questions are now written in the
+right place — the same list every other question of yours comes from — but they are still sitting
+unsaved on one laptop, and the little self-test that was supposed to prove the new safety check
+works is currently failing, so I can't yet tell you the questions will actually reach your phone."*
+
+**Verdict: PARTIAL.**
+
+**WHAT IT VERIFIED RATHER THAN TOOK ON TRUST:**
+- The two rows are in `## BLOCKED ON WYATT` (not `## RULED`), well-formed 3-cell rows, each with a
+  `qid:`, numbered `1. · 2. · 3.`, one `(recommended)`, `since = 2026-09-03`.
+- That section really is his Your Call source — `glass.mjs:435-468`, confirmed by reading it.
+- The `judged5` shadowing find is real, and the gate now prints a counted **2**.
+- *"The prediction file is the best one I have reviewed in this series"* — four falsifiers written
+  before the work, results including an explicit **"WRONG ABOUT WHICH TABLE I WAS LOOKING AT"**, and
+  a named gap it had no falsifier for.
+- His `INBOX-20260903T1600Z` shape is honoured: numbered, `(recommended)`, write-in as "other".
+
+**ITS FINDINGS, AND WHAT THIS WATCH DID WITH EACH:**
+
+1. ⛔ **THE RED-PROOF WAS RED WHILE `CHART.md` ASSERTED IT WAS GREEN — the top finding, and it is
+   this watch's own headline fault turned back on it.** `_t206_calls_redproof.mjs:49` matched
+   `/\| 1\. The public pages[\s\S]*?\| \|$/`, which assumed the row ended in an EMPTY `since` cell.
+   Two hours later `numbered_options_check` rightly demanded a date, the cell became
+   `| 2026-09-03 |`, **the mutation became a no-op, and the case fed the check a fixture identical
+   to the real Chart** — so the check passed and the case reported FAIL, and the `opts.length < 2`
+   branch had never once been exercised. **ACTED ON:** the mutation is now built from the row's own
+   cells rather than a hard-coded shape; the assertion accepts 0 or 1 options; and **three new cases
+   assert every mutation actually changes the Chart**, so a no-op mutation can never again read as a
+   proof. 7/7. The false sentence in `CHART.md` is corrected in place, not deleted.
+   ⚑ **THE REUSABLE HALF:** *a red-proof that hard-codes the shape of what it mutates goes stale the
+   moment that thing is edited* — the same fault as the shadowed counter it was written beside, and
+   the same fault CEO 176 found in the button gates. **An instrument reporting a property of itself
+   is the recurring shape of this whole day.**
+2. **Nothing was committed and there was no ledger entry** at the moment it looked, on a branch the
+   rules say to assume three sessions share. *"Any Glass session not on this Blade pulls from git
+   and sees the `## BLOCKED ON WYATT` table empty… the questions are one `git commit` away from
+   reaching him and zero commits into having done so."* **ACTED ON** — this entry, the ledger entry
+   and the commit follow it. Fair as stated; it reviewed mid-turn.
+3. **`GLASS-NOTE.md` did not mention the two new rows.** *"Otherwise the next Glass session
+   publishes the analytics plan and never learns why it mattered."* **ACTED ON:** §1b added, saying
+   plainly that a plain republish is now enough to put both calls in front of him.
+4. **Peer work not swept up, but the hazard is live.** `glass_ruling_button_words_check.mjs` and
+   `doc_command_check.js` were a peer's uncommitted work in the same tree; it named the four paths
+   this watch may commit. **HONOURED** — and in the event the peer committed first (`4fa5ecee`) and
+   carried this watch's `CHART.md` hunks, exactly as happened to the previous watch. **That is the
+   second time in one day `T-093` has resolved by a peer absorbing this session's hunks.**
+
+**ITS ANSWER TO THE QUESTION THIS WATCH ASKED IT TO ATTACK — is the Chart route just rule 27 in new
+clothes?** *"**No, materially different — but not yet discharged.** Different because
+`## BLOCKED ON WYATT` is not a new file nobody reads; it is *the* question surface, carrying seven
+other live `qid:` rows, with `glass.mjs`, `numbered_options_check` and `rulings_triage_check` all
+pointed at it. A watch with no Artifact tool putting a question there is the correct move, and the
+republish genuinely is another session's routine step. **Not discharged because finding 2 removes
+the routine step's input.**"*
+
+**ON NUMBERS:** *"No hand-typed count found."* The `2` is the gate's own printed output; the
+237/123/44/8 figures are attributed to the previous watch's re-read at `CHART.md:155-157`.
+
+**RECURRENCE CHECK against CEO 177:**
+
+| old fault | here |
+|---|---|
+| rule 27 undischarged — the plan handed as a path, never a URL | **YES, partially mitigated.** Still zero `https://` across 15 references. Mitigated because the two *calls* moved to the real question surface — but nothing has republished |
+| prediction file with no results (CEO 175, 177) | **NO — fixed properly**, and it is the strongest one in the series so far |
+| numbers typed rather than counted | **NO** |
+| wrong shared-tree commit plan | **NO** — nothing of the peer's is in this watch's commit |
+
 ## CEO Review 178 — 2026-09-03, Wy-Blade — Advisor, the numbered ruling buttons, the record they land in, and the fifth place — **PARTIAL**
 
 > *Filed as 178, not 177: it self-numbered 177 from the head of this file, and a peer session

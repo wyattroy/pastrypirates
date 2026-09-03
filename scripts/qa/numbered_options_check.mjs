@@ -165,7 +165,14 @@ try {
    *   itself. Case 1's parser cases are what prove the mechanism; this case proves it is APPLIED,
    *   and it will have something to apply to as soon as a question exists. Counted out loud below
    *   so the next reader sees how many rows it actually judged. */
-  let judged5 = 0;
+  /* ⛔ NO `let judged5` HERE. There was one, and it SHADOWED the outer counter declared at :45 —
+     so `judged5++` below fed a variable that died at this block's closing brace, and the report at
+     the bottom of the file read the outer one, which was permanently 0. **The line CEO 176 added
+     so nobody would read the gate's silence as protection could only ever print "BLOCKED ON WYATT
+     is empty"** — including on 2026-09-03, the moment two of his real analytics questions were
+     added to that table. Rule 6: a measurement that cannot fail is not a measurement, and this one
+     could only say one thing. Caught by watching it claim an empty section while `_t206_dbg`
+     printed two well-formed dated rows out of the same file. */
   {
     const sec = readFileSync(CHART, "utf8").split(/^## BLOCKED ON WYATT$/m)[1]?.split(/^## /m)[0] ?? "";
     const rows = sec.split(NL).filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|\s*-+/.test(l));

@@ -33,6 +33,21 @@ same way as the claude question UI does — with numbers, and a (recommended)"*)
 And **step 1 is ten seconds of his:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is
 there. Nothing was installed; nothing will be until he answers.
 
+## 1b. ⚑ AND HIS TWO CALLS ARE NOW ON THE CHART, SO A PLAIN REPUBLISH IS ENOUGH TO REACH HIM
+*(added by the next Bell watch, 2026-09-03T17:4xZ)*
+
+**The two decisions listed under §1 no longer live only in that unpublished file.** They are rows
+in `.planning/CHART.md`'s `## BLOCKED ON WYATT` table — `qid:t206-which-pages` and
+`qid:t206-cookie-choice` — which is the section `glass.mjs:435-468` renders onto his **Your Call**
+card, numbered 1/2/3 with one marked `(recommended)` and the write-in box as "other".
+
+**So the single highest-value thing a session with an Artifact tool can do is republish the Glass.**
+Before this, his Your Call card carried **zero** questions while two of his decisions waited; after
+a republish it carries both, and he can answer them with a tap from his phone.
+
+⚠ **Publishing `ANALYTICS-PLAN.html` is still worth doing** — it is the reasoning behind the two
+calls, and §1 stands. But it is no longer what blocks him from answering.
+
 ## 2. The pulse this watch could not send
 
 > watch 2026-09-03T16:48Z → 17:2xZ: took `T-206`, his ruling on Google Analytics. **The plan he

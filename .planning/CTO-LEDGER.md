@@ -8733,3 +8733,77 @@ it landed, which also cannot collide with a sea trial's ports or a peer's probe 
 checkout.
 
 **npm test: EXIT 0.** `stray_probe_check`: no debug-port browsers running at all.
+
+---
+
+## Bell watch — 2026-09-03T17:19Z → 17:55Z, the Blade (Windows) — `T-206`, HIS TWO ANALYTICS CALLS
+
+**THE SITUATION AT THE BELL.** Last progress: watch `pastrypirates-07` released `T-142` at ~17:0xZ;
+the previous watch closed the `T-206` analytics plan (`105c5a98`) with CEO 177 PARTIAL. Blocked on
+Wyatt: seven `qid:` rows in `## RULED` awaiting triage, and — as of this watch — two live questions
+in `## BLOCKED ON WYATT`. No detached trial in flight. `can_push.mjs` healthy; `git push origin
+claude/cloud-handoff-planning-a9ay1u` run as a shell command first, per its own instruction:
+"Everything up-to-date". **No Artifact tool in this session**, so nothing was published and
+`mark_glass_published.mjs` was not stamped.
+
+**WHAT THIS WATCH TOOK, AND WHY IT IS ROW ONE.** `chartkeeper --rank --sweep --write` put `T-206`
+at rank 1 (178). `IN-HAND` and the ledger tail showed no live claim on it. Its remaining half —
+install the tag — is blocked on two decisions of his, and **CEO 177's top finding was that both
+lived only in `.planning/ANALYTICS-PLAN.html`, a repo path he cannot tap.** So his **Your Call card
+showed ZERO questions while two of his own decisions waited.** That is the half this watch took.
+
+**WHAT LANDED.** Both calls are now rows in `.planning/CHART.md`'s `## BLOCKED ON WYATT` table —
+`qid:t206-which-pages` and `qid:t206-cookie-choice` — numbered 1/2/3 with one marked
+`(recommended)` and the write-in box as "other", which is the shape he asked for twice
+(`INBOX-20260903T1600Z`, `INBOX-20260903T1556Z`). Verified on the RENDERED page, not asserted:
+`glass.mjs --out` draws both as `class="ask" data-id="…"` with numbered buttons and the `recTag`.
+
+**RED FIRST, AND IT EARNED ITS KEEP TWICE IN ONE TURN.**
+`scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this tree — then **caught the fix landing in
+the WRONG TABLE.** The rows went into `## RULED — his answers, waiting to be triaged`, which I had
+read as the blocked table; `glass_calm_check`, `rulings_triage_check` and `numbered_options_check`
+were ALL GREEN on that state. **Three real gates green on two questions sitting on a surface he can
+never answer from.** The check written to fail first is the only reason that was caught before a
+commit.
+
+**⚠ TWO INSTRUMENTS FOUND LYING ABOUT THEMSELVES, AND THEY ARE THE SAME FAULT.**
+1. `numbered_options_check.mjs` declared `judged5` twice — `:45` and inside the case-5 block — so
+   `judged5++` fed a shadow that died at the brace, and the report line **CEO 176 added so nobody
+   would read the gate's silence as protection could only ever print "BLOCKED ON WYATT is empty"**.
+   It printed exactly that in the same run in which it had correctly failed both my undated rows.
+   Fixed; it now prints a counted **2**. Found by disbelieving the gate's own summary and parsing
+   the section independently.
+2. **CEO 179 then found the same shape in my own red-proof.** `_t206_calls_redproof.mjs` mutated
+   the row with a literal that assumed an EMPTY `since` cell; adding the date turned that mutation
+   into a **no-op**, so one case fed the check a fixture identical to the real Chart, and the
+   `opts.length < 2` branch had never been exercised — while `CHART.md` asserted "four branches
+   red-proofed". Now built from the row's own cells, plus **three cases that assert every mutation
+   actually changes the Chart.** 7/7.
+   ⚑ **THE RULE EARNED: a red-proof that hard-codes the shape of what it mutates goes stale the
+   moment that thing is edited.** Three variants of "an instrument reporting a property of itself"
+   in one day — CEO 176's button gates, the shadowed counter, this.
+
+**CEO 179 — PARTIAL.** Its sentence for him is in `.planning/CEO-REVIEWS.md`; all four findings
+acted on in the same turn, before this entry. Its answer to the question it was asked to attack —
+is putting the questions on the Chart just rule 27 in new clothes? — was **"materially different,
+but not discharged"**: the Chart IS the question surface, and the republish is another session's
+routine step, but an uncommitted row cannot be republished by anyone but this machine.
+
+**⛔ WHAT IS STILL OPEN, AND IT IS NOT MINE TO CLOSE.** Nothing about the Google Analytics tag is
+installed and nothing will be until he picks. **`T-206` is NOT ticked** — the install is
+outstanding, there is nothing legitimately tickable, and `close_item.mjs` exists to stop the tick
+that would have looked tidier here. **The one thing a session with an Artifact tool should do next
+is republish the Glass** — before this, his Your Call card carried zero questions; after a
+republish it carries both, and he can answer from his phone with a tap. `GLASS-NOTE.md` §1b says so
+in those words.
+
+**THE SHARED TREE, AGAIN, AND IT RESOLVED THE SAME WAY AS LAST TIME.** `git status` showed a peer's
+uncommitted `glass_ruling_button_words_check.mjs` and `doc_command_check.js`; CEO 179 named the
+paths this watch may commit and none of the peer's are in it. In the event the peer committed first
+(`4fa5ecee`, CEO 178) and **carried this watch's `CHART.md` hunks** — the second time in one day
+`T-093` has resolved by a peer absorbing this session's work. Worth noting that CEO 178 was working
+the very gate that would have failed on these rows: **its fix and these first-ever numbered
+questions landed within minutes of each other, by two sessions neither of which knew.**
+
+**npm test: EXIT 0**, twice — once before the CEO and once after its fixes. No browsers or servers
+were started by this watch; `stray_probe_check` green inside the run.
