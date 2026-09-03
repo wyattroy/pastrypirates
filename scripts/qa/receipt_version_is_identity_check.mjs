@@ -86,7 +86,13 @@ const REAL_VERSION_ID = "1788386140-0fbe";   // what LAST-PUBLISH held eleven mi
    its target from its own location, so the copies must sit at the same depth. The sandbox is a real
    git repo with the real sibling modules present — a sandbox where an import silently fails is a
    gate that is green on a broken path (the trap CEO 82 found in glass_publish_stamp_check.mjs). */
-function sandbox(scriptName, args, { chart = null } = {}) {
+/* ⚑ `carry` SEEDS THE CARRY RECEIPT `mark_glass_harvest.mjs` NOW REQUIRES (`T-140`, CEO 162).
+   That writer refuses to stamp unless `--harvested=<page file>` names a page whose words were
+   actually carried, which is the join that stops a session reading the page, stamping, and
+   republishing over his words. **This gate is about the VERSION FIELD'S KIND, not about the carry**,
+   so it satisfies the precondition and goes on testing its own subject. Seeding it here rather than
+   loosening the writer keeps the refusal real everywhere else. */
+function sandbox(scriptName, args, { chart = null, carry = null } = {}) {
   const box = mkdtempSync(join(tmpdir(), "receipt-kind-"));
   mkdirSync(join(box, "scripts", "wyclau", "lib"), { recursive: true });
   mkdirSync(join(box, ".planning", "wyclau"), { recursive: true });
@@ -99,6 +105,7 @@ function sandbox(scriptName, args, { chart = null } = {}) {
     if (existsSync(src)) writeFileSync(join(box, "scripts", "wyclau", "lib", f), readFileSync(src));
   }
   if (chart !== null) writeFileSync(join(box, ".planning", "CHART.md"), chart);
+  if (carry !== null) writeFileSync(join(box, ".planning", "wyclau", "LAST-CARRY"), carry);
 
   const git = (...a) => execFileSync("git", ["-C", box, ...a], { stdio: ["ignore", "pipe", "pipe"] });
   try {
@@ -138,7 +145,11 @@ function sandbox(scriptName, args, { chart = null } = {}) {
    has to exist and be empty of live questions. */
 const EMPTY_CHART = "# THE CHART\n\n## BLOCKED ON WYATT\n\n| question | why it is his |\n|---|---|\n\n## RULED\n\n| question | his verdict |\n|---|---|\n";
 
-const harvest = (v, extra = []) => sandbox("mark_glass_harvest.mjs", [`--version=${v}`, "--rulings=none", ...extra], { chart: EMPTY_CHART });
+const CARRIED_PAGE = "artifact-74034bde-1788386140-0fbe.html";
+const harvest = (v, extra = []) => sandbox("mark_glass_harvest.mjs",
+  [`--version=${v}`, "--rulings=none", `--harvested=${CARRIED_PAGE}`, ...extra],
+  { chart: EMPTY_CHART, carry: `2026-09-03T11:00:00.000Z	carried=0	from=${CARRIED_PAGE}
+` });
 const publish = (v) => sandbox("mark_glass_published.mjs", [`--version=${v}`]);
 
 console.log("the Glass receipts must record an IDENTITY, not a clock\n");

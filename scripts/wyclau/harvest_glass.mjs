@@ -34,9 +34,16 @@
  * about is "the machine says done and the words are gone", so a summary counted from the array it
  * iterated would reproduce that fault one layer up. Every number printed below is counted by
  * re-reading the destination file and finding the id in it.
+ *
+ * ⚠ AND EXACTLY WHAT THAT DOES NOT COVER, because the first version of this paragraph read wider
+ * than it was (CEO 162): **it verifies the new entry ARRIVED. It does not verify the destination's
+ * OTHER content survived.** A write that lands and wipes everything else counts as a success here —
+ * measured at 61 of his 64 entries, with `verified in the file` printed over the top. That is the
+ * gate's case 1's job now, not this counter's. A count is downstream of the selection and blind to
+ * collateral damage; both halves are needed and neither substitutes for the other.
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -53,6 +60,13 @@ const HTML = arg("html");
  * share, a check that writes his instruction queue is a check that can eat an instruction.
  * `glass.mjs` had to learn the same lesson as `--longrun-root=` (`T-112`); this one is born with it. */
 const INBOX = arg("inbox") ? resolve(arg("inbox")) : join(ROOT, ".planning", "wyclau", "INBOX.md");
+/* ⚑ THE CARRY RECEIPT — what makes this tool part of the chain instead of an optional extra.
+ * CEO 162: a session could read the page, stamp `LAST-HARVEST`, and publish, WITHOUT EVER RUNNING
+ * THIS — the Door listed them as two independent steps and nothing joined them. So this leaves a
+ * receipt naming the exact page file it carried, and `mark_glass_harvest.mjs` refuses to stamp
+ * unless `--harvested=` names that same file. Same move CEO 127 made with `--rulings=`: the
+ * declaration becomes mandatory, so "a session remembered" stops being the trigger. */
+const CARRY = join(ROOT, ".planning", "wyclau", "LAST-CARRY");
 const DECISIONS = arg("decisions") ? resolve(arg("decisions")) : join(ROOT, ".claude", "memory", "DECISIONS.md");
 
 if (!HTML) {
@@ -82,14 +96,48 @@ const comments = state.comments ?? {};
 
 /* His `at` is an ISO string. The INBOX heading format is `## INBOX-<compact UTC>` and the close
  * gate parses it, so the shape is not ours to invent — see INBOX.md's own "Entry format" block. */
+/* ⛔ AN ENTRY WITH NO USABLE `at` IS REFUSED, NOT SKIPPED — CEO 162, and this was a silent drop of
+ * his words dressed as a success. `stamp(undefined)` returned `""`, so the id became the bare
+ * string `INBOX-`, and the de-dupe below is a SUBSTRING test — true of any INBOX that has ever held
+ * an entry. Measured against a copy of his real file: **three of his items reported as
+ * `already on record, skipped: 3`, a DO NOW pin announced for an entry never written, exit 0, and
+ * an instruction to republish** — which then deletes them from the page. That is `T-076`'s fault,
+ * verbatim, inside the tool built to end it.
+ * **LATENT, NOT LIVE, and said plainly rather than hidden:** `glass.mjs` sets `at` on every idea,
+ * comment and ruling the current page creates, so nothing reaches this path today. What was LIVE is
+ * the shape — **the tool could not tell "already on record" from "I could not identify this", and
+ * spent one word on two opposite outcomes.** */
 const stamp = (iso) => String(iso ?? "").replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z").slice(0, 16);
+const requireStamp = (iso, what) => {
+  const s = stamp(iso);
+  if (!s) {
+    console.log(`REFUSING — ${what} has no usable timestamp, so it cannot be given an id.`);
+    console.log("  Without one it cannot be de-duplicated, and it would be dropped in silence.");
+    console.log("");
+    console.log("!! NOTHING WAS HARVESTED. His words are still on the page — do NOT republish the Glass.");
+    process.exit(1);
+  }
+  return s;
+};
 const firstLine = (t) => String(t ?? "").trim().split("\n")[0].slice(0, 90).trim() || "(no title)";
 const quote = (t) => String(t ?? "").trim().split("\n").map((l) => `> ${l}`).join("\n");
+
+/* Written at BOTH success exits — an empty page is a real harvest and must leave a receipt too,
+ * or the commonest case (nothing new) would be the one the chain cannot see. `--dry-run` writes
+ * nothing: it did not carry anything, so it must not licence a publish. Scratch destinations
+ * (`--inbox=`) also write nothing, so a gate's run can never licence a real publish either. */
+const writeCarry = (n) => {
+  if (DRY || arg("inbox") || arg("decisions")) return;
+  try {
+    writeFileSync(CARRY, `${new Date().toISOString()}	carried=${n}	from=${basename(htmlPath)}
+`);
+  } catch { /* best effort — the counts above are the real report */ }
+};
 
 const planned = { ideas: [], comments: [], rulings: [] };
 
 for (const i of ideas) {
-  const id = `INBOX-${stamp(i.at)}`;
+  const id = `INBOX-${requireStamp(i.at, "an idea")}`;
   planned.ideas.push({
     id, pinned: i.now === true,
     /* A pinned idea is his DO NOW press. It carries into the entry title so a watch reading the
@@ -104,7 +152,7 @@ for (const i of ideas) {
 
 for (const [handle, arr] of Object.entries(comments)) {
   for (const c of arr ?? []) {
-    const id = `INBOX-${stamp(c.at)}`;
+    const id = `INBOX-${requireStamp(c.at, `a comment on ${handle}`)}`;
     planned.comments.push({
       id, handle,
       /* ⚠ THE HANDLE MAY NO LONGER OWN A ROW — he comments, the row closes and sweeps to
@@ -120,7 +168,7 @@ for (const [handle, arr] of Object.entries(comments)) {
 }
 
 for (const [qid, r] of Object.entries(rulings)) {
-  const id = `RULING-${stamp(r.at)}-${qid}`;
+  const id = `RULING-${requireStamp(r.at, `a ruling on ${qid}`)}-${qid}`;
   const q = String(r.q ?? qid).trim();
   planned.rulings.push({
     id,
@@ -138,6 +186,7 @@ for (const [qid, r] of Object.entries(rulings)) {
 
 const total = planned.ideas.length + planned.comments.length + planned.rulings.length;
 if (total === 0) {
+  writeCarry(0);
   console.log("nothing on the Glass to harvest — 0 ideas, 0 comments, 0 rulings.");
   console.log("(That is a clean page, not a failure: whoever republished last carried his words across.)");
   process.exit(0);
@@ -192,7 +241,10 @@ const landedRulings = newRulings.filter((e) => decisionsAfter.includes(e.id)).le
 
 console.log(`ideas + comments -> INBOX.md:      ${landedInbox} of ${newInbox.length} new (verified in the file)`);
 console.log(`rulings -> DECISIONS.md:           ${landedRulings} of ${newRulings.length} new (verified in the file)`);
-if (skipped) console.log(`already on record, skipped:        ${skipped}`);
+/* ⚑ "SKIPPED" NOW MEANS ONE THING ONLY. It used to also cover an entry the tool could not
+ * identify — the opposite outcome, wearing the word reserved for success (CEO 162). Anything
+ * unidentifiable now REFUSES above, so everything counted here really is already on record. */
+if (skipped) console.log(`already on record (same timestamp), skipped: ${skipped}`);
 const pins = planned.ideas.filter((e) => e.pinned).length;
 if (pins) console.log(`⚑ HE PRESSED DO NOW on ${pins} — that entry says so, and it beats the ranking.`);
 
@@ -202,5 +254,6 @@ if (landedInbox !== newInbox.length || landedRulings !== newRulings.length) {
   process.exit(1);
 }
 console.log("");
+writeCarry(landedInbox + landedRulings);
 console.log("Now commit these files, THEN republish the Glass. Republishing first deletes his words.");
 process.exit(0);

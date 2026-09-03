@@ -262,6 +262,9 @@ const chartWith = (questions) =>
    page, let the harvest run, and assert the question is gone FROM HIS PAGE. A Bell-launched watch
    has no Artifact tool and cannot read or publish that page, so that half is NOT RUN. What is proven
    here is the file half: the question leaves the record in the same act that records his answer. */
+/* The page file the seeded carry receipt names — any name, so long as the receipt and the flag
+   agree, which is exactly what the writer checks. */
+const CARRIED_PAGE = "artifact-74034bde-1788386140-0fbe.html";
 function stage(chartMd) {
   const dir = mkdtempSync(join(tmpdir(), "retire-answered-"));
   mkdirSync(join(dir, "scripts", "wyclau", "lib"), { recursive: true });
@@ -273,6 +276,15 @@ function stage(chartMd) {
   for (const f of [["retire_answered.mjs"], ["mark_glass_harvest.mjs"]]) {
     try { writeFileSync(join(dir, "scripts", "wyclau", ...f), readFileSync(join(ROOT, "scripts", "wyclau", ...f))); } catch { /* reported by the case that needs it */ }
   }
+  /* ⚑ THE CARRY RECEIPT `mark_glass_harvest.mjs` NOW REQUIRES (`T-140`, CEO 162). That writer
+     refuses to stamp unless `--harvested=<page>` names a page whose words were actually carried —
+     the join that stops a session reading his page, stamping, and republishing over his words.
+     **This gate's subject is RETIREMENT, not the carry**, so it satisfies the precondition and goes
+     on testing its own thing. Seeding it here rather than loosening the writer keeps the refusal
+     real everywhere it matters. */
+  writeFileSync(join(dir, ".planning", "wyclau", "LAST-CARRY"),
+    `2026-09-03T11:00:00.000Z	carried=0	from=${CARRIED_PAGE}
+`);
   /* ⚠ THE WHOLE lib/ FOLDER, DERIVED RATHER THAN LISTED — earned 2026-09-03 (`T-111`). This used to
      name chart_model.mjs and retire.mjs by hand. `mark_glass_harvest.mjs` then gained one more
      import — lib/artifact_version.mjs — and FIVE cases here failed against a script that was
@@ -369,7 +381,7 @@ const runRetire = (dir, args) => {
    The refusal is what makes it mechanical rather than another sentence in a runbook. */
 const runHarvest = (dir, args) => {
   try {
-    return { code: 0, out: execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "mark_glass_harvest.mjs"), ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }) };
+    return { code: 0, out: execFileSync(process.execPath, [join(dir, "scripts", "wyclau", "mark_glass_harvest.mjs"), `--harvested=${CARRIED_PAGE}`, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }) };
   } catch (e) { return { code: e.status ?? 1, out: `${e.stdout ?? ""}${e.stderr ?? ""}` }; }
 };
 const receiptOf = (dir) => { try { return JSON.parse(readFileSync(join(dir, ".planning", "wyclau", "LAST-HARVEST"), "utf8")); } catch { return null; } };

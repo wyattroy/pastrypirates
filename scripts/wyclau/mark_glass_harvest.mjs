@@ -75,7 +75,7 @@
 // LAST-HARVEST is gitignored — machine-local by nature, like LAST-PUBLISH and HEARTBEAT.
 
 import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { liveQuestions, retireQuestion } from "./lib/retire.mjs";
 import { clockRefusal, unrecognisedNote } from "./lib/artifact_version.mjs";
@@ -156,6 +156,58 @@ If he DID answer something, retire it in the same act rather than only naming it
 Nothing was written.`);
   process.exit(1);
 }
+/* ⛔ `--harvested=` IS MANDATORY TOO, AND IT IS THE SAME MOVE `--rulings=` IS — CEO 162.
+   `T-140` built `harvest_glass.mjs` to CARRY his words mechanically, and then wired it into
+   nothing: the Door listed reading, carrying and stamping as three independent steps, so a session
+   could read the page, stamp this receipt, and publish **without the carry ever running** — and a
+   republish then deletes everything it did not carry. The row's own text said *"no gate can prove
+   a session typed it"*, which is true of a GATE and was used to close a question **a refusal
+   answers**, one file away, for the sibling flag.
+
+   So: name the page file you carried, and the carry must have left its own receipt for that same
+   file. **A number that cannot be typed cannot be invented** — the html file's own name carries
+   the artifact version, so `--harvested=` and `--version=` are checkable against each other.
+
+   ⚠ WHAT THIS DOES NOT CLOSE, said rather than overclaimed: a session that never runs this command
+   at all is still unreached, because `glass-harvest-first.cjs` does not name this script (its own
+   header records that, and the repair needs Wyatt's hands under `.claude/`). This closes the gap
+   for every session that uses the chain, not for one that routes around it. */
+const harvestedArg = argOf("harvested");
+if (!harvestedArg) {
+  console.error(`REFUSING TO STAMP — this harvest did not say WHICH PAGE it carried.
+
+Reading his page and CARRYING his words off it are two different acts, and only the second one
+saves anything. A receipt for the first, stamped alone, licences a republish that deletes the
+ideas, comments and rulings nobody moved.
+
+  --harvested=<the html file the Artifact read saved>
+
+Run the carry first — it writes its own receipt, which this checks against:
+
+  node scripts/wyclau/harvest_glass.mjs --html=<that same file>
+
+Nothing was written.`);
+  process.exit(1);
+}
+{
+  const want = basename(resolve(harvestedArg));
+  let receipt = "";
+  try { receipt = readFileSync(join(WY, "LAST-CARRY"), "utf8"); } catch { /* none yet */ }
+  if (!receipt.includes(`from=${want}`)) {
+    console.error(`REFUSING TO STAMP — no carry receipt for ${want}.
+
+.planning/wyclau/LAST-CARRY ${receipt ? `names a different page:\n  ${receipt.trim()}` : "does not exist"}.
+
+That means his words were not carried off THIS version of the page. Stamping now would tell the
+next session the page is safe to republish, and the republish would delete them.
+
+  node scripts/wyclau/harvest_glass.mjs --html=${harvestedArg}
+
+Nothing was written.`);
+    process.exit(1);
+  }
+}
+
 /* "none" is a DECLARATION, not an id, and it is filtered before anything treats it as one. */
 const declaredRulings = (!rulingsArg || rulingsArg.toLowerCase() === "none") ? [] : listOf("rulings").map((k) => k.toLowerCase());
 

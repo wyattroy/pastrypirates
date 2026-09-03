@@ -7,10 +7,18 @@
  * READ the page; this gate proves the CARRY works.
  *
  * ⚠ WHAT THIS GATE CANNOT DO, stated so nobody re-derives it or believes more than it says:
- * **it cannot prove a session ran the harvest.** No gate can. It proves that when the harvest runs,
- * his words arrive intact, nothing is duplicated on a second run, and a failed write is REPORTED
- * rather than confirmed. The human-shaped step that remains is reading the page — see the tool's
- * own header.
+ * **it cannot prove a session ran the harvest.** No gate can — though a REFUSAL can, and case 8
+ * now holds the one `mark_glass_harvest.mjs` gained (CEO 162: the row talked itself out of that,
+ * using "no gate can" to close a question a refusal answers one file away).
+ *
+ * ⛔ AND ONE SENTENCE THIS HEADER USED TO CARRY WAS TRUE AS WRITTEN AND MUCH NARROWER THAN IT READ:
+ * *"a failed write is REPORTED rather than confirmed."* **True only of a write that fails to
+ * ARRIVE.** CEO 162 changed one line so the INBOX write emitted only the new blocks, ran it against
+ * a copy of his real inbox, and measured **64 of his headings reduced to 3 — sixty-one of his
+ * entries deleted** — while the tool printed `verified in the file`, exited 0, and told the session
+ * to republish. **The read-back verifies ARRIVAL, never PRESERVATION**, because it asks "is this new
+ * id in the file?", which is true in an otherwise-empty file. Case 1 now asserts what was already
+ * there is still there. The human-shaped step that remains is reading the page.
  *
  * ⚑ EVERY CASE WRITES TO SCRATCH FILES via `--inbox=`/`--decisions=`. It must never touch the real
  * INBOX: on a branch three sessions share, a check that writes his instruction queue is a check
@@ -58,10 +66,18 @@ const run = (extra = []) => {
     return { out: execFileSync(process.execPath, [TOOL, `--html=${htmlPath}`, ...extra], { cwd: ROOT, encoding: "utf8" }), code: 0 };
   } catch (e) { return { out: `${e.stdout ?? ""}${e.stderr ?? ""}`, code: e.status ?? 1 }; }
 };
+/* ⛔ THE SEEDED INBOX MUST CONTAIN A REAL `## INBOX-…` ENTRY, AND THE FIRST VERSION DID NOT.
+ * CEO 162 found that single omission hiding an entire class of silent loss. His real INBOX holds
+ * 64 such headings; the fixture held none — so a de-dupe bug that eats his words in production had
+ * nothing to collide with here and passed. **A gate whose destination is not shaped like the real
+ * destination is testing a file nobody has.**
+ * `OLD_ENTRY` and `OLD_RULING` are what every case now proves SURVIVED. */
+const OLD_ENTRY = "## INBOX-20260901T1309Z — guest camera stuck FULLY zoomed out";
+const OLD_RULING = "## AN OLDER RULING — 2026-09-01";
 const fresh = (n) => {
   const ib = join(dir, `inbox${n}.md`), de = join(dir, `dec${n}.md`);
-  writeFileSync(ib, "# THE INBOX — Wyatt's words, verbatim\n");
-  writeFileSync(de, "# Wyatt's standing decisions\n\n## AN OLDER RULING — 2026-09-01\n\nbody\n");
+  writeFileSync(ib, `# THE INBOX — Wyatt's words, verbatim\n\n${OLD_ENTRY}\n> his words\nstatus: OPEN\n`);
+  writeFileSync(de, `# Wyatt's standing decisions\n\n${OLD_RULING}\n\nbody\n`);
   return { ib, de, args: [`--inbox=${ib}`, `--decisions=${de}`] };
 };
 
@@ -78,6 +94,26 @@ try {
     if (!inbox.includes("this one is not what I meant")) fails.push("1: his COMMENT did not reach the INBOX");
     if (!dec.includes("Should the awards move above the fold")) fails.push("1: his ruling did not reach DECISIONS.md");
     if (!dec.includes("but do the phone one first")) fails.push("1: his ruling's NOTE was lost — a note with no button press is still a ruling");
+    /* ⛔ AND WHAT WAS ALREADY THERE MUST STILL BE THERE. **THIS IS THE ASSERTION THE GATE SHIPPED
+     * WITHOUT, AND ITS ABSENCE WAS THE WORST HOLE IN IT.** CEO 162 changed one line so the INBOX
+     * write emitted only the new blocks, ran it against a copy of his REAL inbox, and measured:
+     * 2080 lines → 18, **64 of his headings → 3, sixty-one of his entries deleted** — while the
+     * tool printed "3 of 3 new (verified in the file)", exited 0, and told the session to
+     * republish. **This gate PASSED.**
+     * The read-back could not see it by construction: it asks *"is this new id in the file?"*,
+     * which is true in an otherwise-empty file. **IT VERIFIES ARRIVAL, NEVER PRESERVATION** — and
+     * a harvest that eats his queue is far worse than the hand step it replaces. */
+    if (!inbox.includes(OLD_ENTRY)) fails.push("1: AN ENTRY THAT WAS ALREADY IN THE INBOX IS GONE — the harvest overwrote his queue instead of appending to it");
+    if (!dec.includes(OLD_RULING)) fails.push("1: A RULING THAT WAS ALREADY ON RECORD IS GONE — the harvest overwrote DECISIONS.md");
+    /* Two of his items must never share a heading. **UNTIDY, NOT LOSSY — and the distinction is the
+     * point.** CEO 162 found that a broken `stamp()` could give every entry the same id; measured
+     * against a copy of his real 2080-line INBOX, both ideas still landed and all 64 existing
+     * entries survived. The LOSSY version of that path was the EMPTY id, which the tool now refuses
+     * outright. This case holds the remaining untidiness so the two cannot be confused again:
+     * `close_item.mjs` looks an entry up by exact heading, and two entries under one heading make
+     * that lookup ambiguous. */
+    const heads = (inbox.match(/^## INBOX-\S+/gm) || []);
+    if (heads.length !== new Set(heads).size) fails.push("1: two of his items share one INBOX heading — close_item.mjs looks entries up by heading, and cannot tell them apart");
   }
 
   // 2 — the DO NOW press survives the crossing. A pin that only exists on the page is an
@@ -165,6 +201,27 @@ try {
   {
     const door = readFileSync(join(ROOT, ".claude", "skills", "door", "SKILL.md"), "utf8");
     if (!door.includes("harvest_glass.mjs")) fails.push("7: the Door never names harvest_glass.mjs — a capability nothing invokes never runs");
+  }
+
+  /* 8 — THE CARRY MUST BE WIRED INTO THE RECEIPT CHAIN, NOT SIT BESIDE IT.
+   *
+   * CEO 162's structural finding, and it is the one the row's own text talked itself out of. The
+   * row said *"no gate can prove a session typed it"* — true of a GATE, and used to close a
+   * question **a REFUSAL answers**, one file away, for the sibling flag. Reading the page and
+   * CARRYING his words off it are two acts; only the second saves anything; and a session could do
+   * the first, stamp `LAST-HARVEST`, and publish — which then deletes everything nobody moved.
+   *
+   * `mark_glass_harvest.mjs` now requires `--harvested=<the page file>` and refuses unless the
+   * carry left its own receipt for THAT file — the same move CEO 127 made with `--rulings=`.
+   * ⚠ This case asserts the REFUSALS exist. It cannot make a session run the command at all;
+   * `glass-harvest-first.cjs` still does not name it (that repair is under `.claude/` and needs
+   * Wyatt's hands — `CLAUDE-DIR-REPAIRS-PENDING.md`). **Say what it covers, not what it feels like.** */
+  {
+    const stamp = readFileSync(join(ROOT, "scripts", "wyclau", "mark_glass_harvest.mjs"), "utf8");
+    if (!stamp.includes("--harvested=")) fails.push("8: the harvest stamp no longer requires --harvested= — a session can stamp a page whose words were never carried, then republish over them");
+    if (!stamp.includes("LAST-CARRY")) fails.push("8: the harvest stamp no longer checks the carry receipt — --harvested= would be a word anyone can type");
+    const tool = readFileSync(TOOL, "utf8");
+    if (!tool.includes("LAST-CARRY")) fails.push("8: harvest_glass.mjs no longer writes a carry receipt — the stamp's check has nothing to read and would refuse every real harvest");
   }
 } finally {
   rmSync(dir, { recursive: true, force: true });

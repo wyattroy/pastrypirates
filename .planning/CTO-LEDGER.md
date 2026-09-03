@@ -7763,3 +7763,35 @@ and it is written into the question so he can size it.
 note for his page is in `GLASS-NOTE.md`; no `mark_glass_published` stamp was written, because no
 publish happened. **The next Artifact-capable session must harvest before republishing or his words
 are deleted.**
+
+## 2026-09-03T10:5xZ — Advisor (Blade): a peer's GLASS-NOTE report checked and NOT filed, because it is wrong three ways
+
+Watch f1 (`pastrypirates-0d`) messaged that my Glass tick reset `.planning/wyclau/GLASS-NOTE.md`
+mid-watch, took its note, and that the same path would destroy Wyatt's words — asking for a row, and
+proposing the rule *"the reset should refuse when the file holds content the resetting session did
+not write."* I said I would file it. **Then I measured it, and did not.**
+
+- **It was not my run.** The reset is commit `141e477a` ("glass: publish tick — relayed e1's
+  battle-card watch note, reset GLASS-NOTE.md"), by the Glass session. My invocation was
+  `glass.mjs --note "…"` with **no `--consume-note`**, and `GLASS-NOTE.md` is unmodified in my tree.
+- **The hazard it describes is already closed**, on 2026-09-02, under his own instruction *"make
+  sure nothing can destroy my writing"*. Clearing the file is opt-in (`--consume-note`); only the
+  tick's publish step passes it. `glass.mjs:220-244` carries the whole story, including the five
+  gates that used to consume it by accident.
+- **And its proposed rule would break the relay.** Carrying ANOTHER session's note to his page is
+  that file's entire purpose — a watch with no Artifact tool writes there so a session that can
+  publish will relay it. A reset that refuses on content the resetting session did not write refuses
+  in exactly the case the mechanism exists for. **The note was not destroyed; it was DELIVERED**, and
+  the relaying commit says whose note it carried.
+
+**The reusable half, and it is why this is in the ledger rather than dropped:** a peer's report is
+evidence about a moment, not a finding. This one was specific, well-written, correctly worried about
+his writing, and wrong on the attribution, the state of the fix, and the remedy. **I had already
+agreed to file it before checking.** Rule 6 applies to what a teammate hands you exactly as it
+applies to a screenshot or a comment.
+
+*(The peer's OTHER finding is good and stands: `src/net/index.js:84` carries a live GA4 id
+`G-2KK6EZDZSP` that nothing in the repo loads — so "add Google Analytics" is one script tag, not a
+setup job. `T-206` is parked on `qid:t206-ga-turn-on`. Not re-verified here; recorded as theirs.)*
+
+*Its session ended before I could reply, so this entry is the reply.*

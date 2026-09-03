@@ -1,5 +1,125 @@
 # CEO reviews — the standing record
 
+## CEO Review 163 — 2026-09-03, Wy-Blade — `T-140`: the harvest stops being a person retyping his words — **PARTIAL**
+
+> ⚠ **FILED AS 163, WRITTEN AS 162 — THE FIFTH NUMBER COLLISION TODAY.** This reviewer checked, and
+> re-checked immediately before writing, and was still overtaken: a peer claimed 162 for `T-206`
+> inside this review's eight-minute window. **Two sessions can both check correctly and both be
+> right when they look.** The number is claimed at FILING time and this file is the only lock. The
+> verdict text below is unedited apart from this box.
+>
+> *Read-only: it created, edited and committed nothing in the repo. Every experiment ran in its own
+> temp dir against `--tool=` copies and `--inbox=`/`--decisions=` scratch files. HEAD moved
+> `3c4cc234` → `deff88fe` under it and `.planning/GLASS-CHART.md` became modified during the review
+> — peer sessions, not it; its `git diff` footprint is zero. No browser launched.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The tool really does carry all four kinds of your writing across intact — I ran it on my own page and read the files myself — but its safety net only checks that the *new* entry arrived, not that your *old* entries survived, and I broke the tool in a way that wiped **61 of the 64 entries in your INBOX** while it printed "verified in the file" and told the session to go ahead and republish, with every gate still green.
+
+### 1. DOES IT CARRY ALL FOUR THINGS, INTACT?
+
+**Yes — measured on my own fixture, not on the session's.** I built a page with a three-paragraph idea, a pinned idea, a two-line comment on a swept handle, and a ruling with a note, pointed the tool at scratch destinations, and read the output files:
+
+- **Multi-line survives, blank lines included.** He writes in paragraphs and nothing was flattened.
+- **The comment arrived**, both lines, with `` `T-999` `` recorded as written even though no row owns it.
+- **The ruling arrived** at the top of `DECISIONS.md` under the H1, note verbatim, and the "alternative he did not pick" honestly marked *not recorded* rather than invented.
+- **The DO NOW pin arrived on both surfaces**, and the unpinned idea got neither.
+- **Pre-existing content was preserved** in both destinations.
+
+One thing I tested that is **not** a defect, so I am saying so rather than banking it: I first fed it an idea containing a literal `</script>` and it died with `#glassState is not JSON`. **That fixture was wrong, not the tool** — `glass.mjs:1438` escapes `<` as `<` when the page saves itself. Re-run with the page's real escaping, his words came through whole. **The instrument was broken, not the subject.**
+
+**One cosmetic divergence, flagged not fixed.** Every hand-typed heading in `INBOX.md` is minute-resolution (13 chars); the harvest writes second-resolution (16). `close_item.mjs:93` looks up by exact string with `\b`, so nothing breaks — but the file's own documented "Entry format" block now describes only half its entries (rule 8).
+
+### 2. CAN IT LOSE OR DUPLICATE HIS WORDS?
+
+**Idempotent: yes, genuinely.** Two runs, byte-identical files both sides. I then tried three ways to break it:
+
+| case | result |
+|---|---|
+| same text, different `at` | two entries. Correct — he wrote it twice. |
+| two ideas in the same second | both written, same heading id. Untidy, not lossy. |
+| **an idea with `at` missing entirely** | ⛔ **silently dropped.** |
+
+⛔ **THE MISSING-`at` PATH, measured against a copy of the real `INBOX.md`.** `stamp(undefined)` returns `""`, the id becomes the bare string `INBOX-`, and the de-dupe is a **substring** test — true of any INBOX that has ever held an entry. Result: **three of his items gone, a DO NOW pin announced for an entry never written, exit 0, and an instruction to republish** — which deletes them from the page. That is `T-076`'s fault, verbatim, inside the tool built to end it.
+
+**Sizing it honestly: LATENT, not live.** `glass.mjs:1544, 1602, 1707` set `at` on everything the current page creates. What is live is the *shape*: **the tool cannot tell "already on record" from "I could not build an id for this", and reports both as `skipped` with a green exit.** The one word the whole design turns on is spent on two opposite meanings.
+
+### 3. DOES THE GATE ACTUALLY CATCH WHAT IT CLAIMS?
+
+**The central claim holds, and I confirmed it the way the brief asked — by checking *which* assertion goes red.** Nine mutants against `--tool=` copies. Seven died, each at the named assertion, none by collateral parse failure: the read-back→loop-count swap and the removed exit guard both at `5b`; the two pin halves each at their own half of `2`; first-line-only and dropped-note at `1`; emptied comments at `1` **and** `4`; removed `skipped` line at `3`.
+
+**So case 5b is real and load-bearing, and the session's account of it is accurate.** Both holes the prediction reports finding are genuinely closed. **That is good red-proofing and it deserves to be said plainly.**
+
+⛔ **BUT TWO MUTANTS SURVIVE, AND THE WORSE ONE WOULD MAKE THIS WORSE THAN THE HAND STEP.**
+
+**(a) Destroy the destination instead of appending to it.** One line, run against a copy of his real `INBOX.md`:
+
+```
+before: 2080 lines, 64 headings
+after :   18 lines,  3 headings          ← 61 of his entries deleted
+output: "3 of 3 new (verified in the file)" … "Now commit these files"  EXIT=0
+```
+
+**The gate → PASS.** The read-back cannot see it by construction: it asks *"is this new id in the file?"*, true in an otherwise-empty file. **THE SAFEGUARD VERIFIES ARRIVAL, NEVER PRESERVATION.** No case asserted the destination's prior content survived.
+
+**(b) Break `stamp()` so every entry gets the same id.** **PASS**, both variants — because `fresh()` writes an INBOX with **no prior `## INBOX-` heading** and his real one has 64, so the substring de-dupe that eats his words in production has no purchase in the fixture. **The gate's destination is not shaped like the real destination, and that single difference hides an entire class of silent drop, including §2's.**
+
+What these have in common: **the read-back is downstream of the selection and blind to collateral damage.** The header's claim is **true exactly as written** and materially narrower than it reads.
+
+⚠ **One correction to my own work, because a CEO that hides a bad instrument is running the fault it exists to catch.** My first attempt at mutant (b) was `String("")||String(iso ?? "")` — `""` is falsy, so it fell through and was a no-op. I reported "survives" off it internally and it was worthless. I re-ran it properly. **The finding stands; the first measurement did not.**
+
+⚠ **A quoted number in the shipped record I cannot reproduce.** `package.json` says the tool reports `'0 of 1 new'`. It reports **`0 of 3 new`**.
+
+### 4. IS THE SCOPE CLAIM HONEST, OR AN EXCUSE?
+
+**Honest about a *gate*. An excuse about the *system* — and the mechanism nobody looked for is in the file next door.**
+
+The row says *"no gate can prove a session typed it."* True, and irrelevant, because **nothing here needs a gate — it needs a refusal, and the refusal already exists**: `mark_glass_harvest.mjs` **refuses to stamp when `--rulings=` is omitted** (CEO 127, one day old), and `glass-harvest-first.cjs` denies a publish on a stale stamp. **`harvest_glass.mjs` is wired into none of it** — it never writes `LAST-HARVEST`, the stamp never requires that it ran, and the Door lists them as two independent steps. A session can read the page, stamp a receipt, publish, and never run the harvest. **The closure is one more mandatory flag on the command the runbook already ends on.**
+
+**The honest caveat:** the hook does not name that command and its remediation text still suggests a bare `date -u` — a known leak needing Wyatt's hands under `.claude/`. So this closes the gap for sessions that use the chain, not for one that routes around it. **That is still a large step from "no gate can prove a session typed it," which reads as *nothing can*.**
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. ⛔ *"a failed write is REPORTED rather than confirmed"* — **true only of a write that fails to arrive.** One that arrives and destroys 61 of his entries is confirmed with `verified in the file` and exit 0.
+2. ⛔ *"six mutants … two escaped"* — presented as the coverage story. **Two more escape**, one catastrophic. Not false; **badly sized, in the flattering direction.**
+3. ⛔ *"Idempotent on his own `at` stamp"* — true when `at` exists; an entry without one is **skipped as already-recorded**, in the word reserved for success.
+4. ⚠ *"no gate can prove a session typed it"* — used to close a question a **refusal** already answers for the sibling flag.
+5. ⚠ `package.json`'s `"0 of 1 new"` is `0 of 3 new`.
+6. ✅ *"counts read back off disk, never from the loop"* — **verified true**, and the mutant removing it dies at 5b. Recorded because it is the load-bearing one and it held.
+
+### 6. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+**CEO 161 finding A — *"reporting your explanation as the observation"* — DOES NOT RECUR, and I checked rather than assumed.** Every claim in the prediction's RESULT section is an observation I could reproduce.
+
+**CEO 161's other finding — *a load-bearing number shipped unsized when one command would have measured it* — RECURRING, in kind.** The mutant coverage is the load-bearing number here, it is what the ceiling note sells the gate on, and two more escape. **One `--tool=` run would have found the destructive one** — the same one-command distance CEO 161 measured for the 67%.
+
+**On the prediction file: genuine, and it constrained the work.** All three falsifiers were checkable in advance, two fired, the reported outcome matches what I can reproduce. **Its concluding sentence is right and I would keep it:** *"Writing the trap down did not prevent it — the red proof did. That is the argument for doing both."* What it did not name is the *other* direction of the same trap: it guarded the count against a write that did not happen, and never asked what a write that happened **too much** would do.
+
+### 7. WHAT I WOULD DO FIRST
+
+1. **Assert the destination's PRIOR content survives**, and seed `fresh()`'s INBOX with a real `## INBOX-…` heading. **That one fixture change kills both surviving mutants.** The only actively dangerous item.
+2. **Refuse an entry with no usable `at` instead of skipping it**, and split `skipped` into *already on record* vs *could not be identified*.
+3. **Correct the two sized claims** and the `"0 of 1 new"` quote.
+4. **Wire `harvest_glass.mjs` into the receipt chain** — a mandatory `--harvested=` on `mark_glass_harvest.mjs`, refused without a matching carry receipt.
+5. **Then close `T-140`.** The carry itself is good work and the red-proofing is the best I have reviewed tonight; **it is one fixture short of deserving the sentence written about it.**
+
+---
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by the session, same turn, before committing
+
+All four actioned, each red-proofed rather than asserted.
+
+1. ✅ **The destructive mutant now dies.** `fresh()` seeds a real `## INBOX-20260901T1309Z …` heading and an older ruling, and case 1 asserts **both survive**. Re-ran the verdict's own mutant (INBOX write emits only new blocks): dies at *"AN ENTRY THAT WAS ALREADY IN THE INBOX IS GONE"*. The `DECISIONS.md` twin dies at its own line. **The gate's destination is now shaped like the real destination** — that was the root cause and the verdict named it exactly.
+2. ✅ **A missing `at` is REFUSED, not skipped** — `requireStamp()`, on all three entry kinds, exits 1 with *"NOTHING WAS HARVESTED. His words are still on the page — do NOT republish."* And `skipped` now reads `already on record (same timestamp)`, so one word no longer covers two opposite outcomes.
+   ⚠ **AND THE SAME-ID SURVIVOR IS NO LONGER LOSSY, WHICH THE VERDICT COULD NOT SEE AND I MEASURED:** with the empty-id path refused, a constant id against a copy of his **real 2080-line INBOX** loses nothing — both ideas land, all 64 existing entries survive. What remains is duplicate headings, which `close_item.mjs` looks up by. Held by its own assertion, labelled **untidy, not lossy**, so the two can never be confused again.
+3. ✅ **Both sized claims corrected in all three places** (gate header, tool header, ceiling note), and the `0 of 1` → `0 of 3` quote fixed. The ceiling note now carries the 61-of-64 measurement and names the fixture line as the root cause.
+4. ✅ **Wired into the receipt chain.** `harvest_glass.mjs` writes `.planning/wyclau/LAST-CARRY` naming the page file it carried; `mark_glass_harvest.mjs` requires `--harvested=<page>` and refuses unless that receipt names the same file. Red-proofed end to end: **stamp before carrying → refused; stamp naming a different page → refused; stamp after carrying that page → succeeds.** Case 8 holds all three wires. The `--dry-run` and scratch-destination paths deliberately write no receipt, so a gate's own run can never licence a real publish.
+   ⚠ **AND IT BROKE TWO SIBLING GATES, WHICH IS THE FINDING WORTH KEEPING.** A new mandatory flag left `receipt_version_is_identity_check` (3 failures) and `answered_question_retired_check` (4) driving the stamp with fixtures that predate it. **Neither was wrong; both were testing a precondition that had just changed.** Same shape as the night one instruction split the chart and broke seven instruments. Both now seed a `LAST-CARRY` in their own sandbox rather than the writer being loosened — **satisfying a precondition keeps the refusal real; relaxing it for a test would not.**
+
+`npm test` green, **117 gates**.
+
+**On the recurring fault — accepted.** *"Six mutants, two escaped"* was the number the ceiling note sold this gate on, and it was wrong in the flattering direction, exactly as CEO 161 said one row earlier. **The distance to the truth was one `--tool=` run against a copy of his real INBOX, and I did not take it.** The corrected note now carries the measurement rather than the count.
+
+
 ## CEO Review 162 — 2026-09-03, Wy-Blade — `T-206`: the Google Analytics half of his analytics ask — **NO**
 
 **HIS ASK, VERBATIM** (`INBOX-20260902T214507Z`): *"Add google analytics to playpastrypirates.com and

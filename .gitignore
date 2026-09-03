@@ -112,6 +112,7 @@ w1-crewphone-recheck/
 # to every clone; the deliberate, reviewed allowlist lives in .claude/settings.json.
 .claude/settings.local.json
 .planning/wyclau/LAST-HARVEST
+.planning/wyclau/LAST-CARRY
 
 # A rung watch's stdout/stderr (bell.ps1). Machine-local and often large; the DURABLE record of
 # what a watch did is its own commits and .planning/wyclau/status/<hostname>.md.
