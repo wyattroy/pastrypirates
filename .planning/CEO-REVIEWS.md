@@ -1,5 +1,43 @@
 # CEO reviews — the standing record
 
+## CEO Review 176 — 2026-09-03, Wy-Blade — Advisor, the numbered ruling buttons, and the record they land in — **PARTIAL**
+
+**HIS REQUESTS, VERBATIM:** *"please change the response buttons -- they are unclear… label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended)"* · *"the Lesson is two days old; it is formatted wrong, and whatever process is supposed to give me new ones does not exist in a formal way yet"* · and his ruling of 15:56:28Z, *"Replace Approve and Deny with 1 2 3 Other."*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"The buttons on your Glass are fixed — I rendered your page and every question now draws 1, 2, 3 with the actual choice written on each one, and an Other box. But the moment you press one, your permanent decision record still writes down the old word 'Approve' — or, on a numbered question, a meaningless code like `opt-15wnciu` — and there is a check in the build that will now stop anyone who tries to fix it. That is the third time today the same fault has been found, and it is sitting inside the very commit that says both instances were caught."*
+
+**Verdict: PARTIAL.**
+
+| # | Claim | Its verdict |
+|---|---|---|
+| 1 | Approve/Deny gone; every question numbered | **TRUE — rendered, not read** |
+| 2 | Default keys stay `yes/no/talk`; declared keys derived from words | **TRUE in the page, INCOMPLETE downstream** |
+| 3 | Two gates enforcing his old words, both corrected | **HALF TRUE — a third is live, in one of those two files** |
+| 4 | Lesson renders as flowing prose; both gates use `--out=` | **TRUE** |
+| 5 | `add_lesson` refuses a future date and a phantom heading | **TRUE** (`add_lesson.mjs:63, 72, 92`) |
+| 6 | Gate 123 registered; cases 1b and 3b added | **TRUE** (`package.json:7`; `lesson_process_check.mjs:74-91, :166-190`) |
+| 7 | `lines.indexOf(line)` → loop index; false comment corrected | **TRUE** (`glass.mjs:969-976`) |
+| 8 | Today's lesson on his card | **TRUE — rendered** |
+| 9 | `rulings_triage_check` failing falsely; all eight rows exist | **TRUE, and honest — measured** |
+| 10 | `npm test` exit 0, 123 gates | **TRUE from Git Bash. RED from PowerShell** |
+
+**On claim 1, verified by rendering:** the buttons that came out were `1 Current push only [recommended] · 2 Show both · 3 Let me toggle it` and `1 Yes — go ahead · 2 No — do not · 3 Let us talk about it first`. Its words: *"The word 'Approve' appears 34 times in the rendered page and **not once on a button** — every occurrence is prose in a ledger pill, a Chart row, or the page's own embedded copy of itself. His ruling was executed."*
+
+### Its findings, and what happened to each
+
+1. ⛔ **His decision record still said "Approve", and a gate failed the build if you fixed it.** `harvest_glass.mjs:178` held `{ yes: "Approve", no: "Deny" }`, and `glass_ruling_button_words_check.mjs:166-167` *required* it — while printing *"ok — a harvested ruling reaches DECISIONS.md in the same words the button showed him."* Its words: *"The button showed him **'1 Yes — go ahead'**. The record says **'Approve'**… the case is now the thing holding it open."* **FIXED** — the record carries the button's own words; case 5 asserts the property, not the string.
+2. ⛔ **A numbered answer landed as a hash** — `**Wyatt ruled "opt-15wnciu"**`. Its words: *"the readable answer was right there and unused… This is CEO 174's own recurrence check firing again: a join built half at a time."* **FIXED**, and the charter's *"alternative he did not pick"* is now populated from the options the page already stores, instead of apologising for not having them.
+3. ⛔ **His Glass still told him the buttons say Approve and Deny** — `CHART.md:232`, live and untriaged. Its words: *"He does not read the commits; he reads that row."* **FIXED** — swept off the Chart, out of `## RULED`, archived with his words and the alternatives he rejected.
+4. **The anti-decay clause guards nothing today** — BLOCKED ON WYATT is empty, so case 5 judges zero rows. Its words: *"the commit message sells it as live protection… today it is an empty room."* **FIXED HONESTLY** — not by seeding a fake question, which would be a gate measuring itself, but by printing how many rows it judged.
+5. **Claim 9 is honest — it tried to break it and could not.** *"Exactly 8 of 9 RULED rows flip from fail to pass, and in every one the sole word responsible is the row's own backticked task token… That is symmetry, not weakening."* All three red-proofs still fire.
+6. **`npm test` green in one shell, red in the other.** **FIXED, and its diagnosis was wrong in a useful way:** it reported the gate as passing when run directly — it does not, it fails in PowerShell either way. The cause is that `bash` is not on PATH there, every `sh()` threw, and the gate reported *"non-Windows branch altered a path → null"* for a helper it never invoked. It now skips loudly and says *"0 checks ran"*.
+
+### Does CEO 174's fault recur?
+
+Its answer: *"**All seven of its findings are genuinely fixed** — that is a real answer to a hard review. **But its headline fault recurs, a third time and in the same file.** The lesson written into that commit — 'gate the PROPERTY he wanted, never the literal string' — is correct and was applied to two cases out of three in the file where it was written."*
+
+*(Its disclosure, kept: it regenerated `.planning/wyclau/glass.html` once by running `glass.mjs --help`, which is not a flag and so performed a real render. No tracked file changed. It also noted a peer session live on the tree during the review.)*
+
 ## CEO Review 175 — 2026-09-03, Wy-Blade — watch `pastrypirates-07`, `T-142`: the CAPTAINS bar under a modal — **PARTIAL**
 
 > *Numbered 175, not 174: a CEO 174 has already run and is cited in five files in this tree

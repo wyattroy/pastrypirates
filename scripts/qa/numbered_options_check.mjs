@@ -20,6 +20,12 @@
  * ran; the harvest nothing called). **Case 5 fails the build on any question dated today or later
  * that does not declare options**, and the date is read from the row's own `since` cell, so nobody
  * has to maintain a list of which questions are new.
+ *
+ * ⚠ AND CASE 5 IS GUARDING NOTHING TODAY — BLOCKED ON WYATT IS EMPTY, so it judges zero rows and
+ * cannot fail. CEO 176 measured that, against a commit message of mine that sold it as live
+ * protection. It now PRINTS how many rows it judged, so its green line can never again be read as
+ * "the rule held" when the honest reading is "there was nothing to hold it against".
+ * **A rule that has never had a subject is not yet evidence about anything.**
  */
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -34,6 +40,9 @@ const CHART = join(ROOT, ".planning", "CHART.md");
 const GLASS = join(ROOT, "scripts", "wyclau", "glass.mjs");
 const NL = String.fromCharCode(10);
 const fails = [];
+/* How many rows case 5 actually judged. Reported out loud so nobody reads its silence as protection
+   — CEO 176 found it guarding an empty table while the commit message called it live. */
+let judged5 = 0;
 const dir = mkdtempSync(join(tmpdir(), "numbered-opts-"));
 
 /* THE CUT-OFF IS THE DAY HE ASKED. Questions written before it keep their three words and are not
@@ -143,7 +152,20 @@ try {
   /* 5 — ⛔ THE ANTI-DECAY CLAUSE. Any question dated on or after the day he asked must declare
    *     options. Without this the parser is a capability nothing invokes, and the next question
    *     written is prose again. The date comes from the row's own `since` cell — DERIVED, so no
-   *     list of "new" questions has to be kept by hand. */
+   *     list of "new" questions has to be kept by hand.
+   *
+   * ⚠ AND KNOW WHAT IT IS GUARDING TODAY: NOTHING. BLOCKED ON WYATT is EMPTY, so this loop runs
+   *   zero times and cannot fail — CEO 176 measured it. The design is right and it bites the day a
+   *   question is added, but the commit that shipped it sold it as live protection ("FAILS THE
+   *   BUILD on any question…") when it was an empty room. **A rule that has never had a subject is
+   *   not yet evidence about anything** — the same shape as the paragraph count one file over that
+   *   could not fail while his lesson was a single paragraph.
+   *
+   *   NOT "fixed" by seeding a fake question: a gate that manufactures its own subject is measuring
+   *   itself. Case 1's parser cases are what prove the mechanism; this case proves it is APPLIED,
+   *   and it will have something to apply to as soon as a question exists. Counted out loud below
+   *   so the next reader sees how many rows it actually judged. */
+  let judged5 = 0;
   {
     const sec = readFileSync(CHART, "utf8").split(/^## BLOCKED ON WYATT$/m)[1]?.split(/^## /m)[0] ?? "";
     const rows = sec.split(NL).filter((l) => l.startsWith("|") && !/^\|\s*Question|^\|\s*-+/.test(l));
@@ -166,6 +188,7 @@ try {
         fails.push(`5: a question with no readable date — "${who}…" has since="${since}". Undated, it escapes the rule that every new question is numbered; give it a YYYY-MM-DD.`);
         continue;
       }
+      judged5++;
       if (since < ASKED_ON) continue;
       if (questionOptions(c[1]).length === 0) {
         fails.push(`5: a question dated ${since} offers him no numbered options — "${who}…". He asked for numbers and a (recommended) on EVERY call he has to make.`);
@@ -278,4 +301,7 @@ if (fails.length) {
   for (const f of fails) console.log(`  · ${f}`);
   process.exit(1);
 }
+console.log(judged5
+  ? `  (case 5 judged ${judged5} dated question(s) on his Chart)`
+  : "  (case 5 judged NO questions — BLOCKED ON WYATT is empty, so the anti-decay clause had nothing to apply to this run)");
 console.log("PASS — numbered_options_check: every call he has to make is numbered with a (recommended), older questions still answerable, and his choice is stored in words.");

@@ -151,9 +151,22 @@ const NUMBERED = /^\s*\d+\s/;
   const page = join(dir, "page.html");
   const decisions = join(dir, "DECISIONS.md");
   const inbox = join(dir, "INBOX.md");
+  /* ⚑ THE FIXTURE CARRIES `chose` AND `options` BECAUSE THE REAL PAGE DOES. `saveRuling` stores the
+     LABEL he pressed and every label he was shown, beside the storage key. A fixture holding only
+     `choice` is not his page — and case 5 below used to assert against exactly that, which is how
+     it ended up REQUIRING the word "Approve" long after he had replaced it.
+     The third ruling is a NUMBERED question: its key is a content hash, so it is the case where
+     printing the key instead of the label puts "opt-15wnciu" in his permanent record. */
   const state = { ideas: [], comments: {}, rulings: {
-    "t999-fixture": { q: "Ship the coin?", choice: "yes", at: "2026-09-03T14:30:00.000Z" },
-    "t998-fixture": { q: "Rebuild the Glass on Firebase?", choice: "no", at: "2026-09-03T14:31:00.000Z" },
+    "t999-fixture": { q: "Ship the coin?", choice: "yes", chose: "1 Yes — go ahead",
+      options: ["yes: 1 Yes — go ahead", "no: 2 No — do not", "talk: 3 Let us talk about it first"],
+      at: "2026-09-03T14:30:00.000Z" },
+    "t998-fixture": { q: "Rebuild the Glass on Firebase?", choice: "no", chose: "2 No — do not",
+      options: ["yes: 1 Yes — go ahead", "no: 2 No — do not", "talk: 3 Let us talk about it first"],
+      at: "2026-09-03T14:31:00.000Z" },
+    "t997-fixture": { q: "Should the wind gauge show forecast?", choice: "opt-15wnciu",
+      chose: "Current push only", options: ["opt-15wnciu: Current push only", "opt-1wszcjb: Show both"],
+      at: "2026-09-03T14:32:00.000Z" },
   } };
   writeFileSync(page, `<script type="application/json" id="glassState">${JSON.stringify(state)}</script>`);
   writeFileSync(decisions, "# DECISIONS — fixture\n\n");
@@ -162,10 +175,28 @@ const NUMBERED = /^\s*\d+\s/;
   const out = readFileSync(decisions, "utf8");
   rmSync(dir, { recursive: true, force: true });
 
-  if (/Wyatt ruled "yes"/.test(out)) fail('his decision record still says he ruled "yes" — his page says "Approve", and the record he reads should say the word he pressed');
-  else if (!/Wyatt ruled "Approve"/.test(out)) fail(`the harvested ruling does not name his word: ${JSON.stringify((/\*\*Wyatt ruled[^*]*\*\*/.exec(out) || ["not found"])[0])}`);
-  else if (!/Wyatt ruled "Deny"/.test(out)) fail('a "no" ruling does not land in the record as "Deny"');
-  else pass("a harvested ruling reaches DECISIONS.md in the same words the button showed him");
+  /* ⛔ THIS CASE WAS THE THIRD PLACE ENFORCING THE WORDS HE ASKED US TO REMOVE, and it was the one
+     nobody found: it required `Wyatt ruled "Approve"` and `"Deny"` LITERALLY, so his page said
+     "1 Yes — go ahead" while his permanent decision record said "Approve" — and the gate's own
+     green line claimed the record used "the same words the button showed him". **It printed a
+     true-sounding sentence about a state that was false.** Found by CEO 176, in the same file
+     whose cases 1 and 2 had just been corrected for exactly this fault. Two out of three.
+
+     THE ASSERTION NOW MATCHES THE PROPERTY, NOT THE STRING (the lesson from cases 1 and 2, applied
+     the whole way this time): whatever words were on the button he pressed are the words the record
+     gets — so relabelling the buttons again never needs this file edited. */
+  const ruled = [...out.matchAll(/\*\*Wyatt ruled "([^"]*)"\*\*/g)].map((m) => m[1]);
+  if (/Wyatt ruled "(yes|no|talk)"/.test(out)) {
+    fail('his decision record holds a storage KEY ("yes"/"no") instead of the words on the button he pressed');
+  } else if (/Wyatt ruled "opt-/.test(out)) {
+    fail('a NUMBERED ruling reached his record as a hash (opt-…) — the one durable trace of his answer is unreadable. glass.mjs saves `chose` for exactly this; harvest_glass.mjs must read it');
+  } else if (/Wyatt ruled "(Approve|Deny)"/.test(out)) {
+    fail('his record says "Approve"/"Deny" — words he replaced on 2026-09-03T15:56:28Z. The record must carry what the BUTTON said, never a hard-coded word');
+  } else if (!ruled.includes("1 Yes — go ahead") || !ruled.includes("Current push only")) {
+    fail(`the record does not carry the button's own words: ${JSON.stringify(ruled)}`);
+  } else if (!/Current push only.*his pick|his pick[\s\S]{0,80}Current push only/.test(out) && !/- Show both/.test(out)) {
+    fail("the alternatives he did NOT pick are not recorded, though the page carried them — the charter asks every ruling to record them");
+  } else pass("a harvested ruling reaches DECISIONS.md in the same words the button showed him, numbered questions included, with the alternatives beside it");
 }
 
 // 6/6 — THE OTHER HALF OF HIS SENTENCE, AND IT IS NOT A BUTTON. "and always when giving me options

@@ -167,16 +167,36 @@ for (const [handle, arr] of Object.entries(comments)) {
   }
 }
 
-/* ⚑ THE RECORD SAYS THE WORD HE PRESSED, NOT THE KEY UNDER IT. `data-choice` is `yes`/`no`/`talk`
- * — a storage key that must never move, because the page redraws his saved answers by comparing
- * against it. The LABEL on those buttons is his: "Approve" and "Deny" since 2026-09-03
- * (INBOX-20260903T142249Z). Printing the key into DECISIONS.md would have his page and his own
- * decision record saying the same thing two different ways, which is rule 8.
- * ⚠ THE FALLBACK IS THE POINT: an unrecognised value prints VERBATIM rather than being dropped or
- * renamed. `note` is a real one — a note typed with no button pressed still saves as a ruling
- * (`glass.mjs`'s blur handler), and it is his answer even though he pressed nothing. */
-const HIS_WORD = { yes: "Approve", no: "Deny", talk: "Let's talk", note: "a note, no button pressed" };
-const hisWord = (choice) => HIS_WORD[String(choice)] ?? String(choice);
+/* ⛔ THE RECORD SAYS THE WORDS THAT WERE ON THE BUTTON HE PRESSED. `data-choice` is a storage key
+ * — `yes`/`no`/`talk` for the defaults, a content-derived `opt-<hash>` for a declared option — and
+ * it must never move, because the page redraws his saved answers by comparing against it. **A key
+ * is not an answer.** `glass.mjs`'s `saveRuling` stores `chose` (the label he actually pressed)
+ * beside it for exactly this, so read that first.
+ *
+ * ⚠ THIS MAP USED TO BE THE ANSWER AND IT WAS THE THIRD PLACE ENFORCING WORDS HE HAD REVERSED.
+ * It read `{ yes: "Approve", no: "Deny", talk: "Let's talk" }`, hard-coded from his 10:22
+ * instruction of 2026-09-03 — and his 15:56:28Z ruling replaced those buttons with numbered
+ * options three and a half hours later. Two gates were found pinning the old words and corrected;
+ * CEO 176 found this one, plus `glass_ruling_button_words_check` case 5 REQUIRING it. So his page
+ * would show him *"1 Yes — go ahead"* and his permanent decision record would say *"Approve"* —
+ * rule 8's sweep failing in the opposite direction from the one the check was written to catch.
+ *
+ * AND ON A NUMBERED QUESTION IT WAS WORSE: an unrecognised key printed VERBATIM, so the one
+ * durable artifact of his answer was `opt-15wnciu`. The readable label was already in the file,
+ * unused. **This is CEO 174's own recurrence check firing: a join built half at a time** — the
+ * option-key design was right and was built on the page only.
+ *
+ * THE FALLBACK IS STILL THE POINT, and it is now a key of last resort rather than the norm: a
+ * value with no label prints verbatim rather than being dropped or renamed, because a ruling
+ * recorded wrongly is worse than one recorded awkwardly. `note` is a real case — a note typed with
+ * no button pressed still saves as a ruling (`glass.mjs`'s blur handler), and it is his answer
+ * even though he pressed nothing. */
+const NO_BUTTON = { note: "a note, no button pressed" };
+const hisWord = (r) => {
+  const chose = String(r?.chose ?? "").trim();
+  if (chose) return chose;
+  return NO_BUTTON[String(r?.choice)] ?? String(r?.choice ?? "");
+};
 
 for (const [qid, r] of Object.entries(rulings)) {
   const id = `RULING-${requireStamp(r.at, `a ruling on ${qid}`)}-${qid}`;
@@ -185,12 +205,24 @@ for (const [qid, r] of Object.entries(rulings)) {
     id,
     /* DECISIONS.md is newest-at-TOP, under the H1. The charter asks every ruling to record the
      * alternative he did NOT pick; a script cannot know it, so it says so rather than invent one. */
+    /* ⚑ THE ALTERNATIVES ARE NOW RECOVERABLE, AND THIS PARAGRAPH USED TO SAY THEY WERE NOT.
+       It read *"not recorded — this script sees his answer and not the options it was put beside"*,
+       and that was true when it was written. It stopped being true when `saveRuling` began storing
+       `options` (every button he was shown) beside `chose`. The charter asks every ruling to record
+       the alternative he did not pick; now it can, so it does — and it still says so honestly when
+       the page did not carry them, rather than inventing one. */
     block: `## ${q.replace(/\s+/g, " ").slice(0, 110)} — ${r.at}\n\n`
-      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${hisWord(r.choice)}"**, ${r.at}.\n\n`
+      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${hisWord(r)}"**, ${r.at}.\n\n`
       + (r.note ? `**His note, verbatim:** *"${String(r.note).trim().replace(/\s+/g, " ")}"*\n\n` : "")
-      + `**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass\n`
-      + `by \`harvest_glass.mjs\`, which sees his answer and not the options it was put beside. The\n`
-      + `session that acts on it should fill this in from the question's own card.\n\n`
+      + (Array.isArray(r.options) && r.options.length
+        ? `**The alternatives he did not pick**, as his card showed them:\n`
+          + r.options.map((o) => {
+            const label = String(o).replace(/^[^:]*:\s*/, "").trim();
+            return `- ${label}${label === String(r.chose ?? "").trim() ? "  ← **his pick**" : ""}`;
+          }).join("\n") + "\n\n"
+        : `**The alternative he did not pick:** not recorded — the page did not carry the options\n`
+          + `with this ruling. The session that acts on it should fill this in from the question's\n`
+          + `own card.\n\n`)
       + `<!-- harvest-id: ${id} -->\n`,
   });
 }
