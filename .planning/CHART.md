@@ -301,6 +301,27 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
 
+- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
+      ⟨`T-219`⟩
+      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
+      `pastrypirates-07` when its own trial finished in **one minute**:
+      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
+      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
+      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
+      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
+      change that does not happen to touch that one string is invisible to the cache and every leg
+      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
+      invariant it is breaking** — *"a result from a different build is a result about different
+      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
+      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
+      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
+      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
+      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
+      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
+      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
+      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
+      exact evasion Wyatt chose the words "sea trial" to make impossible.
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -470,26 +491,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   then **tested it against a modal it posed itself instead of against the five files the row names**.
   A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
   opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
-
-- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
-      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
-      `pastrypirates-07` when its own trial finished in **one minute**:
-      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
-      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
-      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
-      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
-      change that does not happen to touch that one string is invisible to the cache and every leg
-      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
-      invariant it is breaking** — *"a result from a different build is a result about different
-      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
-      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
-      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
-      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
-      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
-      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
-      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
-      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
-      exact evasion Wyatt chose the words "sea trial" to make impossible.
 
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
