@@ -194,5 +194,69 @@ const modalNoComments = modal.replace(/<!--[\s\S]*?-->/g, "");
   }
 }
 
+/* 6. /rules.html IS THE MODAL, NOT A COPY OF IT — T-100, his instruction of 2026-09-02 3:07 PM ET.
+      His words, and they name the failure before it happens: "the new rules page must NOT be two
+      copies of the same 765 words... Before writing anything, answer this out loud: what makes
+      these two agree? If the honest answer is 'we keep them in sync,' that's the defect."
+
+      THIS BLOCK IS THAT ANSWER'S TEETH. scripts/lib/rules_page.mjs reads the modal out of
+      index.html and fills it from the same rulesFacts() sections 1-4 above already fence. Here we
+      RE-RUN it and require the file on disk to be what it produces, byte for byte. So:
+        - a sentence changed in the modal and not regenerated       -> RED
+        - a word typed straight into rules.html by a person or a bot -> RED
+        - a retuned constant (crateBase, powder, ...)                -> RED until regenerated
+      There is no editable half of rules.html for the two to drift by. That is the whole design,
+      and this is the only thing standing behind it: if this assertion can ever pass on a corrupted
+      page, section 6 is decoration. It was red-proofed by corrupting one number and one word in
+      the generated file and requiring a FAIL on each. */
+{
+  const rulesPath = path.join(REPO, "rules.html");
+  if (!fs.existsSync(rulesPath)) {
+    fail("rules.html does not exist — his ruling of 2026-09-02T22:50:08Z (\"Do a new /rules.html that explains the rules\") is unbuilt, and the game's best writing still has no URL anyone can link to");
+  } else {
+    const { renderRulesPage } = await import(pathToFileURL(path.join(REPO, "scripts/lib/rules_page.mjs")).href);
+    let expected = null;
+    try { expected = await renderRulesPage(REPO); }
+    catch (err) { fail(`the rules-page generator refused to run: ${err.message}`); }
+    if (expected !== null) {
+      const onDisk = fs.readFileSync(rulesPath, "utf8");
+      if (onDisk === expected) pass("rules.html is byte-identical to what the generator produces from the modal — the page and the game cannot disagree");
+      else {
+        /* Name the first differing line. A gate that says only "they differ" on a 60-line page
+           sends the next reader diffing by eye, and this one can afford to be specific. */
+        const a = onDisk.split("\n"), b = expected.split("\n");
+        let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
+        fail(`rules.html has drifted from the modal it is generated from — first difference at line ${i + 1}.\n       on disk : ${JSON.stringify((a[i] || "<end of file>").trim().slice(0, 120))}\n       generated: ${JSON.stringify((b[i] || "<end of file>").trim().slice(0, 120))}\n       Run: node scripts/build_rules_page.mjs   (never hand-edit rules.html)`);
+      }
+    }
+    /* The page must be findable, which is the entire point of his ask — "Nobody can link to it,
+       search for it, or land on it from Google". A generated page that is correct and uncrawlable
+       has missed the ask, so the head tags are asserted rather than assumed. */
+    const rules = fs.readFileSync(rulesPath, "utf8");
+    const head = [
+      [/<title>[^<]+<\/title>/, "a <title>"],
+      [/<meta name="description" content="[^"]{40,}">/, "a meta description"],
+      [/<link rel="canonical" href="https:\/\/playpastrypirates\.com\/rules\.html">/, "a canonical URL"],
+      [/<meta property="og:title"/, "og: tags"],
+      [/<meta name="twitter:card"/, "twitter card tags"],
+    ];
+    const missing = head.filter(([re]) => !re.test(rules)).map(([, name]) => name);
+    if (missing.length) fail(`rules.html is missing ${missing.join(", ")} — he asked for a FINDABLE page, and the house pattern is index.html/about.html`);
+    else pass("rules.html carries the house head pattern — title, description, canonical, og:, twitter:");
+
+    /* sitemap.xml is how the page gets FOUND rather than merely existing. Derived date, never
+       hand-typed (T-098's standing instruction), so this asserts presence only. */
+    const sitemap = fs.readFileSync(path.join(REPO, "sitemap.xml"), "utf8");
+    if (/<loc>https:\/\/playpastrypirates\.com\/rules\.html<\/loc>/.test(sitemap)) pass("sitemap.xml invites a crawler to rules.html");
+    else fail("rules.html is live and sitemap.xml does not list it — the page exists and Google is never told");
+
+    /* And a page nothing links to is a page nobody reaches. about.html is the public page a
+       stranger lands on; it must offer the rules now that its own rules section is deleted. */
+    const aboutHtml = fs.readFileSync(path.join(REPO, "about.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+    if (/href="rules\.html"/.test(aboutHtml)) pass("about.html links to the rules page");
+    else fail('about.html links nowhere to rules.html — its own "How it plays" section was deleted on his ruling, so a stranger there now has no route to the rules at all');
+  }
+}
+
 console.log(fails ? `\nFAILED — ${fails} assertion(s)` : "\nPASSED — the rules page derives its numbers and its prose is fenced to the code");
 process.exit(fails ? 1 : 0);

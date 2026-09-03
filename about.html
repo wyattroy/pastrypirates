@@ -92,6 +92,12 @@
   .capDough     { --cap: #27c78d; --capBg: #e7f9f1; }
   .capFlaky     { --cap: #f5a623; --capBg: #fef4e4; }
 
+  /* The rules-page pointer that replaced the deleted "How it plays" section. Same prose size as
+     .abtCredits so the three cards down the page read as one family. */
+  .abtRulesLink { font-size: 13.5px; line-height: 1.55; margin: 0 0 10px; }
+  .abtRulesLink:last-child { margin-bottom: 0; }
+  .abtRulesLink a { color: var(--teal); font-weight: 700; }
+
   .abtCredits { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
   .abtCredits li { margin: 0 0 8px; }
   .abtCredits li:last-child { margin-bottom: 0; }
@@ -187,6 +193,21 @@
        about-flippenator.jpg, about-home-island.jpg — and are deliberately NOT removed: nobody
        shrinks or deletes art in this repo without measuring first, and scripts/qa/about_art_resize.mjs
        still points at them. Filed, not swept up. -->
+
+  <!-- The second half of the same ruling (SPEC-RULES-PAGE-SPLIT.md, Q2): "Delete 'How it plays' and
+       replace it with two or three sentences plus a link to the rules page." T-114 did the
+       deleting; this is the replacement, and until it landed a stranger on this page had no route
+       to the rules at all. rules_page_check.mjs §6 fails the build if this link goes away.
+
+       PLAIN VOICE, NOT PIRATE SPEAK — rule 12. This is Wyatt speaking to a real person about his
+       game, and the page it links to is where the pirate starts talking. -->
+  <div class="abtCard">
+    <h2>The rules</h2>
+    <p class="abtRulesLink">The full rules live on their own page — the wind and the ghost needle,
+    how crate prices climb as an island empties, how a broadside resolves, the storms, and the
+    bake-off that ends the voyage. It is the same text the game shows you at the table.</p>
+    <p class="abtRulesLink"><a href="rules.html">Read how to play Pastry Pirates →</a></p>
+  </div>
 
   <div class="abtCard">
     <h2>What the captains are saying</h2>
