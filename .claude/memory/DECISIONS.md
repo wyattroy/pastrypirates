@@ -1,5 +1,30 @@
 # Wyatt's standing decisions
 
+## Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themse — 2026-09-03T15:56:28.568Z
+
+Asked on the Glass: *"Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves? You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: Approve · Deny · Let's talk. I did not number them on my own, because the reason numbering helps is that you can reply "B" in a few words — and a button you TAP does not need a name to say back. Three ways to go: (1) leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; (2) number these three too — 1 Approve · 2 Deny · 3 Let's talk — so "always" really does mean always and there is nothing to remember; (3) letter them instead — A · B · C."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-03T15:56:28.568Z.
+
+**His note, verbatim:** *"this is a perfect example of why "approve" and "deny" make no sense here -- what would "approve" even mean in response to your above question? Replace Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI, and leave the box as a space to write "other" content in"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T155628Z-donow-buttons-numbered -->
+
+## ⟨T-102⟩ Your own reminder, and it is the one step nobody here can take for you: resubmit sitemap.xml in Google — 2026-09-03T15:58:17.602Z
+
+Asked on the Glass: *"⟨T-102⟩ Your own reminder, and it is the one step nobody here can take for you: resubmit sitemap.xml in Google Search Console. The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: "under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical).""* — **Wyatt ruled "a note, no button pressed"**, 2026-09-03T15:58:17.602Z.
+
+**His note, verbatim:** *"Submitted successfully."*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T155817Z-t102-search-console -->
+
+
 ## ⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed aft — 2026-09-03T14:09:49.395Z
 
 Asked on the Glass: *"⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean? Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an order: on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of 196 (chartkeeper.mjs's score()), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. There is no way back from the page. Dragging a row and putting it exactly back does clear it; nothing else does."* — **Wyatt ruled "yes"**, 2026-09-03T14:09:49.395Z.
