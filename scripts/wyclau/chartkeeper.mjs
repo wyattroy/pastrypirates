@@ -1088,6 +1088,10 @@ function applySettle(src, d) {
       if (!s) continue;
       const marker = kind === "checklist" ? "- [ ] " : "- ";
       for (const cl of s.open) {
+        // No handle is minted here. A split row is born without one and `applyHandles` — the ONE
+        // place that mints, below — gives it one before anything ranks it, exactly as it does for
+        // a row Wyatt typed by hand. Two minting sites was the first repair tried, and rule 23 says
+        // the durable answer is that there is one of them.
         rebuilt.push({ type: "row", lines: [
           `${marker}${cl.title}`,
           `      ↳ split out by the Chartkeeper from "${s.title.slice(0, 58)}", which keeps the full account of every part.`,
@@ -1117,6 +1121,64 @@ function applySettle(src, d) {
 
 let wrote = { ids: 0, flags: 0, reordered: 0, archived: 0, split: 0, asked: 0 };
 
+/* ⚑ ONE ID ALLOCATOR, AND IT IS HOISTED ABOVE THE RANK — there must never be two.
+ *
+ * It used to live inside the WRITE pass, below, which is also where handles were ASSIGNED. That
+ * placement is what made this tool rewrite the Chart differently on the second run of an unchanged
+ * file — see `applyHandles` for the measurement.
+ *
+ * Never reused: the next id is one past the highest that has ever appeared in either file, so a row
+ * archived last week can never have its handle handed to a new row. Read before anything mints,
+ * which is safe precisely because the rows SETTLE is about to create have no handles yet. */
+const seenIds = [
+  ...(text.match(/`T-(\d{3})`/g) || []),
+  ...(existsSync(LOG) ? (readFileSync(LOG, "utf8").match(/`T-(\d{3})`/g) || []) : []),
+].map((m) => Number(m.slice(3, 6)));
+let nextIdNum = (seenIds.length ? Math.max(...seenIds) : 0) + 1;
+const mintId = () => `T-${String(nextIdNum++).padStart(3, "0")}`;
+
+/* ⚑ EVERY OPEN ROW GETS ITS HANDLE BEFORE ANYTHING RANKS IT. THE ONE MINTING SITE.
+ *
+ * **A ROW'S SCORE DEPENDS ON ITS HANDLE, SO A ROW RANKED WITHOUT ONE IS RANKED WRONG.** `score()`
+ * adds +8 for each of Wyatt's Inbox entries that names the row (`links.raised`), and one of the two
+ * ways an entry can name a row is BY ITS HANDLE. Handles used to be assigned inside the write pass,
+ * *after* `ranked` was computed — so on the run that first gave a row its handle, that row was
+ * scored anonymous, and on every run afterwards it scored properly. The file therefore changed on
+ * the second run of a Chart nobody had edited, and settled on the third.
+ *
+ * MEASURED on the gate's own fixture, before the fix: `THE BLADE HOUR` scored **30** on run 1 and
+ * **38** on run 2 — the missing 8 being an Inbox entry that names it — so it was written 4th, then
+ * 2nd, then 2nd forever. The two rows SETTLE splits out showed the same thing one step earlier,
+ * being born with no handle at all.
+ *
+ * **WHY THIS MATTERS BEYOND A GREEN GATE:** two sessions share this branch, and a tool that
+ * rewrites his Chart differently every run conflicts on every push. Worse, the Door tells every
+ * watch to run this and then TAKE ROW ONE — so an unstable order is an unstable answer to "what
+ * should I work on next?".
+ *
+ * It runs after SETTLE so it covers the rows SETTLE just created as well as the ones Wyatt typed
+ * by hand — one rule, both cases. Done rows are left to the write pass: nothing ranks them, so
+ * their handles cannot perturb an order. */
+function applyHandles(src) {
+  let out = src;
+  for (const [kind, heading] of [["checklist", "STEP 1 CHECKLIST"], ["inbox", "THE IDEA INBOX"]]) {
+    const p = parseChart(out);
+    const chunks = kind === "checklist" ? p.stepChunks : p.inboxChunks;
+    if (!chunks.length) continue;
+    let changed = false;
+    const rebuilt = chunks.map((c) => {
+      if (c.type !== "row") return c;
+      if (kind === "checklist" && /^- \[[xX]\]/.test(c.lines[0])) return c;
+      if (idOf(c.lines)) return c;
+      changed = true;
+      wrote.ids++;
+      return { ...c, lines: withId(c.lines.slice(), mintId()) };
+    });
+    if (changed) out = replaceSection(out, heading, rebuilt.map((c) => c.lines.join("\n")).join("\n"));
+  }
+  return out;
+}
+
 let d = derive(text);
 if (WRITE && DO.settle) {
   const applied = applySettle(text, d);
@@ -1124,6 +1186,12 @@ if (WRITE && DO.settle) {
   // ranks and slots exactly like every other row, and there is only one piece of code that knows
   // how to give them those.
   if (applied !== text) { text = applied; d = derive(text); }
+}
+if (WRITE) {
+  const handed = applyHandles(text);
+  // Same reason as SETTLE's re-derive above: `ranked` was computed from rows some of which had no
+  // identity, and identity is one of the things it scores.
+  if (handed !== text) { text = handed; d = derive(text); }
 }
 const { parsed, openItems, duplicateHandles, reap, reapByKey, reapFaultByKey, settle, settleByKey, settleUnresolved, bundledTitles, ranked, unbackedApproval, unattachedMentions, unattachedQuestions } = d;
 
@@ -1186,7 +1254,12 @@ function stripStale(lines) {
 // ONE DEFINITION OF A ROW'S IDENTITY, shared with the parse (rule 23). This used to be a second
 // copy of the same first-handle-anywhere rule, so the write pass and the parse could disagree about
 // which row it was looking at — and on the live Chart they did.
-const idOf = (lines) => idOfRow(lines);
+/* A `function` and not a `const` ON PURPOSE, since 2026-09-03. `applyHandles` runs near the top of
+ * the file (it must, so every row has its identity before anything ranks it) and it needs `withId`,
+ * which needs this. A `const` here sits in the temporal dead zone until execution reaches this
+ * line, well BELOW that call, so `withId` would throw the moment `applyHandles` used it. A hoisted
+ * declaration is reachable from both. Do not convert it back to an arrow. */
+function idOf(lines) { return idOfRow(lines); }
 
 function withId(lines, id) {
   const existing = idOf(lines);
@@ -1222,14 +1295,13 @@ function withSettle(lines, s) {
 }
 
 if (WRITE) {
-  // 1. ALLOCATE IDS. Never reused: the next id is one past the highest that has ever appeared in
-  //    either file, so a row archived last week can never have its handle handed to a new row.
-  const seen = [
-    ...(text.match(/`T-(\d{3})`/g) || []),
-    ...(existsSync(LOG) ? (readFileSync(LOG, "utf8").match(/`T-(\d{3})`/g) || []) : []),
-  ].map((m) => Number(m.slice(3, 6)));
-  let next = (seen.length ? Math.max(...seen) : 0) + 1;
-  const nextId = () => `T-${String(next++).padStart(3, "0")}`;
+  // 1. ALLOCATE IDS — through the ONE allocator, `mintId`, defined above the rank.
+  //    This used to be a second copy of the same counter, declared here, and assigning handles at
+  //    THIS point is what made the tool non-idempotent: `ranked` had already been computed from
+  //    rows that had no handle yet, and a row's handle is one of the things its score reads.
+  //    Open rows now arrive here already handled (`applyHandles`); this still covers DONE rows,
+  //    which nothing ranks. Rule 23 — the durable answer is that there is one allocator.
+  const nextId = mintId;
 
   const rebuild = (chunks, marker, sectionRows) => {
     // Slots: which chunk positions currently hold an OPEN row. Ranked rows are placed back into
