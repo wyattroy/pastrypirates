@@ -1259,3 +1259,30 @@ so the wider camera is settled, not pending). The removed rows are in git histor
 - [x] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do. Root-caused and fixed 2026-09-01, and he has since written to that page repeatedly with no corruption reported — very likely closable the next time he says so. (closed 2026-09-03 · CEO 142 · no game diff — no game code is right: sitemap.xml is a site-identity file Google reads, not the game -- his ask shipped 2026-09-02 as commit a13c3655 (CEO 122) and only this row was left open; gate PASS, red-proofed four ways this watch)
       ⟨`T-124`⟩
       ⚠ **RENUMBERED `T-008` → `T-124`, 2026-09-02 10:10 PM ET, at his instruction to clean the Chart.** Two open rows carried `T-008`, so `chartkeeper.mjs:860` treated every mention of it as claiming NOTHING — a ruling naming it named two jobs and spoke for neither, and **his dragged order named it twice and could not say which row he had moved.** Handles are never reused; `T-008` still resolves in `CHART-LOG.md` and in git history.
+
+## T-088 — 2026-09-03 — A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question (closed 2026-09-03 · CEO 143 · no game diff — closed on his own ruling, made twice: question UI 2026-09-02T12:24:03Z and Glass 16:10:03Z -- 'It's finished -- push it to sea trial.' No game code is right: this was a measurement item. The unmeasured 74 files / 1.05 MB survive as a standing guard on the Chart, not as work.) cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding. Split into three, biggest first: (a) 74 files / 1.05 MB NOT SEEN — the probe reaches five surfaces and never draws the badge family, the battle icons or the ingredient holes/. Not measured, so not safe to shrink, and that is 27% of the library sitting outside the answer. (b) 13 files / 0.20 MB whose only sighting is OFF the game — and CEO 109 checked two of them by hand: icons/crown.png (320×315, 35 KB) is drawn at 15px in the captains panel (index.html:428), 18px in the End-of-Voyage banner (src/ui/board.js:2072) and ~34–38 CSS px in the victory confetti (src/ui/board.js:2024); icons/cupcake.png (253×320, 28 KB) the same via celebrateHomeDocks() (src/ui/board.js:2003,2016). At 38 CSS px on a 2× screen both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining candidate list, in a bucket labelled "do not shrink". They need their gameplay slots measured, not assuming. (c) the camera-layer caveat, open since CEO 83 and still unfixed — the probe applies the zoom ceiling to svg image only, so an HTML <img> inside CAM_HTML_LAYERS (src/ui/stage.js:476) is measured at whatever zoom happened to be on. trade-swirl and wind-arrow are both in rimHost (src/ui/board.js:243-250), so their two rows in the current candidate list are FLOORS, not values — 2 of the 12. Sizing: this is a measurement item, not a resize item. It decides whether the 2.3% recorded in .planning/ASSET-DISPLAY-SIZES.md is the real answer or an underestimate. No game code. (That sentence used to cite T-087, which is "remove the Your-rulings-in-hand box from the Glass" — the row argued against a handle that is not the number. Corrected by CEO 143.) ⛔ CLOSED 2026-09-03 ON HIS OWN RULING — see the standing note directly below this row.
+
+- [x] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question (closed 2026-09-03 · CEO 143 · no game diff — closed on his own ruling, made twice: question UI 2026-09-02T12:24:03Z and Glass 16:10:03Z -- 'It's finished -- push it to sea trial.' No game code is right: this was a measurement item. The unmeasured 74 files / 1.05 MB survive as a standing guard on the Chart, not as work.)
+      ⟨`T-088`⟩
+      cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
+      **(a) 74 files / 1.05 MB `NOT SEEN`** — the probe reaches five surfaces and never draws the
+      badge family, the battle icons or the ingredient `holes/`. Not measured, so not safe to
+      shrink, and that is 27% of the library sitting outside the answer.
+      **(b) 13 files / 0.20 MB whose only sighting is OFF the game** — and CEO 109 checked two of
+      them by hand: `icons/crown.png` (320×315, 35 KB) is drawn at 15px in the captains panel
+      (`index.html:428`), 18px in the End-of-Voyage banner (`src/ui/board.js:2072`) and ~34–38 CSS
+      px in the victory confetti (`src/ui/board.js:2024`); `icons/cupcake.png` (253×320, 28 KB) the
+      same via `celebrateHomeDocks()` (`src/ui/board.js:2003,2016`). **At 38 CSS px on a 2× screen
+      both still carry ~4× the pixels they can use — 63 KB, more than half the whole remaining
+      candidate list, in a bucket labelled "do not shrink".** They need their gameplay slots
+      measured, not assuming.
+      **(c) the camera-layer caveat, open since CEO 83 and still unfixed** — the probe applies the
+      zoom ceiling to `svg image` only, so an HTML `<img>` inside `CAM_HTML_LAYERS`
+      (`src/ui/stage.js:476`) is measured at whatever zoom happened to be on. `trade-swirl` and
+      `wind-arrow` are both in `rimHost` (`src/ui/board.js:243-250`), so **their two rows in the
+      current candidate list are FLOORS, not values** — 2 of the 12.
+      **Sizing: this is a measurement item, not a resize item. It decides whether the 2.3% recorded
+      in `.planning/ASSET-DISPLAY-SIZES.md` is the real answer or an underestimate.** No game code.
+      *(That sentence used to cite `T-087`, which is "remove the Your-rulings-in-hand box from the
+      Glass" — the row argued against a handle that is not the number. Corrected by CEO 143.)*
+      **⛔ CLOSED 2026-09-03 ON HIS OWN RULING — see the standing note directly below this row.**
