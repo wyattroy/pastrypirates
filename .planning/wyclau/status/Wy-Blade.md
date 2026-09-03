@@ -5,22 +5,22 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T05:58:08.586Z	self-publish check
+2026-09-03T06:36:59.010Z	1 task points at a file or a process that is gone — a watch corrects the wording. 6 tasks were measured on an older build, so nobody knows yet whether they are still broken — a watch re-measures them; not yours to answer.
 ```
 
 ## In hand (IN-HAND)
-```
-{
-  "item": "Pose the downwind battle card in Chrome and WebKit — is the sentence clipped, or was the screenshot early?",
-  "handle": "T-012",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-03T05:59:43.843Z",
-  "staleAfterMinutes": 90
-}
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
-None recorded.
+```
+{
+  "what": "sea trial, 10 legs",
+  "startedAt": "2026-09-03T06:24:45.060Z",
+  "updatedAt": "2026-09-03T06:25:55.973Z",
+  "progress": "0/10 legs",
+  "staleAfterMinutes": 53
+}
+```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```

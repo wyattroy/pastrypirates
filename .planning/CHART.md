@@ -107,6 +107,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
   reminder; that is a source question, not a screenshot one.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+  ### ✅ THE SEPARATE LEAD IS ANSWERED AND FIXED — it was NOT a generic rule reminder
+  Watch 2026-09-03T05:59Z, **CEO 148 (PARTIAL — this half YES)**, commit `39575082`, stamp
+  `2026.09.03.1`. **The flip ceremony called EVERY downwind battle a crosswind.** `src/ui/stage.js`
+  looked for the captain in `dwTag.parentElement` — that is `.btl-wind`, a div holding the badge and
+  nothing else — so the lookup returned null every time and fell through to the crosswind sentence.
+  `renderBattle` now stamps `.btl-col.dw` from the same `dw` that writes the badge and the ceremony
+  reads that, so the two cannot disagree (rule 23). Red→green gate
+  `scripts/qa/flip_ceremony_names_the_wind_check.mjs` (`--before` reproduces the pre-fix DOM and
+  must go RED); pair in `.planning/posed/flip-ceremony-wind-chrome-{before,after}.png`.
+  ⚠ **A CORRECTION THE WATCH OWES IN THE OPEN.** Its commit says the approved copy
+  `@copy misc.ceremony.windstakes` *"has never once been shown to a player"*. **False, and CEO 148
+  found it.** The ceremony shipped working in `b07a7d2b` (2026-08-13) with the pill still inside the
+  column; `a1913666` (2026-08-15, "one wind pill for both captains" — Wyatt's own playtest-23 item)
+  moved it out to `.btl-wind` and broke the lookup silently. **A dated 19-day regression with a named
+  commit, which is more useful than the tidier sentence.** Third verdict running on this branch to
+  find a sentence tidier than the record.
+
+  ### ⛔ THE HEADLINE HALF IS **NOT** SETTLED — AND THE WATCH'S FIRST ANSWER WAS WRONG
+  It reported *"NOT CLIPPED, both engines — explanation B is dead."* **Withdraw that.** CEO 148:
+  the pose was on the wrong stage. A battle card is placed `.centered`
+  (`src/ui/stage.js:3721-3722`), but the probe posed straight after the opening ceremony, which
+  leaves `#actionPanel`'s `dataset.pp4Stage` set, so it landed in **`pp4Center`** — and
+  `index.html:2277-2278` DROPS the clip box there (`overflow:visible`, row `max-content !important`).
+  Every clip reading came back zero **because of the stylesheet, not because of the card.**
+  `.centered` keeps `index.html:467` (a pinned px row on a 180ms transition) and `:473`
+  (`overflow:hidden`) — **the exact mechanism explanation B names. It is still live.**
+  **THE INSTRUMENT IS ALREADY FIXED AND THE RUN IS ONE COMMAND.**
+  `scripts/qa/t012_downwind_card_pose.mjs` now clears `pp4Stage` before posing AND refuses to report
+  at all unless the card is on `centered` — so it can never again answer about the wrong screen:
+  ```
+  node scripts/qa/t012_downwind_card_pose.mjs          # and --wk
+  ```
+  **DELIBERATELY NOT RUN BY THAT WATCH: a sea trial was sailing** (`2026-09-03T0624Z-Wy-Blade`,
+  pid 29700) and this project's settle window is already marginal at 2.7s against 2.6s. Run it once
+  the trial is down.
+  **AND THE LIVE LEAD IS ALREADY NAMED, from the watch's own prediction file** — `src/ui/panel.js:395-406`
+  records a receipted case where a late-decoding inline `<img>` makes the panel measure one line
+  short and `#apGridInner` then clips the line, *"which is exactly why it reproduces only
+  sometimes"*. This sentence carries exactly such an image (the coin, via `emojify()`,
+  `src/shared/index.js:184`). **That mechanism only exists in `.centered`.** Check it there first.
+  ⚠ **AND EXPLANATION A AS WRITTEN IS SEPARATELY UNSUPPORTED:** the typewriter never touches this
+  card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
+  has none. So "a progressive reveal caught early" cannot mean the typewriter.
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**

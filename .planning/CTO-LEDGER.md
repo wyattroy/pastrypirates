@@ -7094,4 +7094,68 @@ either the screenshot caught a progressive reveal a fraction early, or the wrapp
 clipped by the card and **every downwind battle in the game ends mid-phrase on every engine.** The
 row itself names the settling move and it is rule 26's: **pose it, do not run a trial for it.**
 
+**OUTCOME — CEO 148 (PARTIAL). ONE HALF SHIPPED AND VERIFIED; THE OTHER HALF I GOT WRONG AND HAVE
+WITHDRAWN. The row is NOT ticked.** Commit `39575082`, stamp `2026.09.02.1` → `2026.09.03.1`.
+
+**THE SEPARATE LEAD WAS A REAL, ALWAYS-ON, PLAYER-VISIBLE BUG AND IT IS FIXED.** The flip ceremony
+called **every** downwind battle a crosswind. `src/ui/stage.js` looked for the captain in
+`dwTag.parentElement` — `.btl-wind`, which holds the badge and nothing else — so the lookup returned
+null on every downwind battle and fell through to the crosswind sentence. Both halves are
+photographed in this repo, one leg, seconds apart: `judge-1914Z-shots/solo-tablet-wk-018.png` says
+CROSSWIND, `-018-settled.png` says DAVY SCONES FIRES DOWNWIND. Fixed with a marker, not a cleverer
+selector (rule 23): `renderBattle` stamps `.btl-col.dw` from the same `dw` that writes the badge.
+RED→GREEN on `scripts/qa/flip_ceremony_names_the_wind_check.mjs`, Chrome **and** WebKit at the
+trial's own 768×954@2 seat; posed pair committed; two static revert-alarm cases added to
+`flip_ceremony_parity_check.mjs`, **each red-proofed on its own** by reverting its half. CEO 148
+re-derived the cause from the DOM, confirmed no CSS reads the new class, and confirmed a guest
+renders through the same `renderBattle` so host and guest cannot diverge.
+
+**⛔ AND THE HEADLINE HALF — "does a downwind battle end on a half-sentence?" — IS STILL OPEN. I
+REPORTED IT SETTLED AND IT WAS NOT.** I posed the card, measured `hiddenPx 0` on both engines, and
+wrote *"explanation B is dead."* **CEO 148 found the pose was on the wrong stage.** A battle card is
+placed `.centered` (`src/ui/stage.js:3721-3722`); my probe posed straight after the opening ceremony,
+which leaves `dataset.pp4Stage` set, so it landed in `pp4Center` — where `index.html:2277-2278`
+DROPS the clip box entirely. **Every zero I measured was produced by the stylesheet, not by the
+card.** `.centered` keeps the pinned row and `overflow:hidden`, which is precisely the mechanism
+explanation B names.
+
+**THE FAULT IS WORTH MORE THAN THE FINDING, and it is CEO 146's lesson wearing new clothes.** My
+*reader* was red-proofed and genuinely could fail — I built its negative case, caught my own inert
+first attempt, and fixed it. **What could not fail was the SCENE.** A red-proofed detector aimed at a
+stage where the fault is switched off by stylesheet reads exactly like a clean bill of health. Worse:
+my own probe PRINTED `promptClass: "pp4Center"` on every frame, and its own comment says *"a pose
+that answers in the wrong regime has answered a different question"* — **I read the field and
+reasoned from it instead of against it.** Rule 6's "check the instrument reaches its subject" is not
+satisfied by printing the subject.
+
+**FIXED STRUCTURALLY SO IT CANNOT RECUR:** `t012_downwind_card_pose.mjs` now clears `pp4Stage` before
+posing and **refuses to report at all** unless the card is on `centered`. One command for the next
+watch, and the live lead is already named — `src/ui/panel.js:395-406`'s receipted late-decoding
+`<img>` case, and this sentence carries exactly such an image (the coin, via `emojify()`).
+**Deliberately NOT re-run by me: the sea trial was sailing** and this project's settle window is
+already marginal at 2.7s against 2.6s. Retracting a conclusion needs no new measurement; making the
+next one needs a quiet machine.
+
+**⚠ AND A SECOND CORRECTION I OWE IN THE OPEN.** My commit says the approved copy
+`@copy misc.ceremony.windstakes` *"has never once been shown to a player"*. **False.** It shipped
+working in `b07a7d2b` (2026-08-13) with the wind pill still inside the column; `a1913666`
+(2026-08-15, *"one wind pill for both captains"* — Wyatt's own playtest-23 item) moved it out and
+broke the lookup silently. **A dated 19-day regression with a named commit — more useful than the
+tidier sentence.** Verified by reading the diff, not taken from the CEO on trust. **That is the third
+verdict running on this branch to catch a sentence tidier than the record**, and mine is the second
+in two watches.
+
+**SWEEP.** FULL gear (`src/orchestrator.js`, `src/ui/stage.js`). **Sea trial started detached:
+`2026-09-03T0624Z-Wy-Blade`, pid 29700**, report `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`,
+log `.planning/wyclau/detached/trial-2026-09-03T0624Z-Wy-Blade.out`. It sails the committed build;
+a later watch reads the verdict and nobody starts a second trial while 29700 is alive.
+`npm test`: every gate passes **except** `chart_sweep_conserves_check` and
+`glass_his_five_asks_check`. **Neither is mine and I verified that rather than asserting it** — both
+read only `CHART.md` / `GLASS-CHART.md` / `CHART-LOG.md` / `glass.html`, and this watch's diff touches
+`src/orchestrator.js`, `src/ui/stage.js` and three `scripts/qa/` files. Both were red before I
+started. The peer on this machine sent me its diagnosis of the first: it **detects GAPS in the handle
+sequence, not LOSSES**, and with no evidence any row is missing its red is not evidence of harm —
+recorded here so the next watch does not re-derive it. `stray_probe_check` **PASS** before I started
+the trial; every browser I opened is dead.
+
 - 2026-09-03T06:06:33Z · close_item: "T-131" · CEO 147 · no game diff — npm test no longer writes the live LONG-RUN marker: 9 write events to 0, measured by CEO 147 with fs.watch; the gate is still armed, re-proved with an anchor-preserving mutant · no stated solution

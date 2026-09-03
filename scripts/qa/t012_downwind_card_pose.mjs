@@ -50,8 +50,22 @@ const wait = async (m, expr, ms = 30000, step = 250) => {
 /* THE POSE, run in the page. Builds the sentence from the game's own template and pname(), then
    hands it to the game's own renderer. `dw` is passed explicitly so the card cannot fall back to
    deriving a crosswind from wherever the attract board happens to have parked its ships. */
+/* ⛔ CLEAR `pp4Stage` FIRST, OR THIS PROBE ANSWERS ABOUT THE WRONG SCREEN — and it did, once.
+   A battle card is placed by `promptTick` as `.centered` (src/ui/stage.js:3721-3722:
+   `const isBattle = !!box.querySelector(".btl"); if (big || isBattle || !u){ ...add("centered") }`).
+   `pp4Center` is a DIFFERENT stage, entered only when `#actionPanel` carries `dataset.pp4Stage`
+   (src/ui/stage.js:2744) — and the opening ceremony leaves that flag set, so a probe that poses
+   straight after boot lands in `pp4Center` without touching anything.
+   THAT DISTINCTION IS THE WHOLE QUESTION. `pp4Center` DROPS the clip box (index.html:2277-2278 —
+   `#apGridInner` overflow:visible, row `max-content !important`), so a card there CANNOT cut its
+   text and every clip reading comes back zero by stylesheet, not by measurement. `.centered` keeps
+   `index.html:467` (a pinned px row on a 180ms transition) and `:473` (`overflow:hidden`) — which
+   is exactly the mechanism under test.
+   The first run of this probe reported "NOT CLIPPED, both engines" from `pp4Center` and it proved
+   nothing. Caught by CEO 148. The regime is now cleared before the pose AND asserted after it. */
 const POSE = (attIdx, defIdx) => `(async () => {
   const { appState } = await import('/src/state/index.js');
+  delete document.getElementById('actionPanel').dataset.pp4Stage;
   const { pname, pn } = await import('/src/ui/util.js');
   const { renderBattleFromSnap } = await import('/src/ui/flow.js');
   /* pn(), NOT pname(). The battle RUNNER binds its own \`nm\` to pn (src/orchestrator.js:635) —
@@ -175,8 +189,17 @@ const say = (o) => JSON.stringify(o);
     console.log(`  SETTLED +2.6s: ${say(late)}`);
     console.log(`  FORCED CLIP  : ${say(forced)}`);
 
+    /* THE SCENE GATE. Refuse to report anything unless the card is on the stage the game puts it
+       on. CEO 148's finding, made structural: "a red-proofed detector aimed at a stage where the
+       fault is switched off by stylesheet reads exactly like a clean bill of health." The reader
+       could fail; the SCENE could not. */
     if (late.missing || early.missing || forced.missing) {
       bad = "the probe could not find .btl-result or #apGridInner — it measured nothing";
+    } else if (!/\bcentered\b/.test(late.promptClass) || /pp4Center/.test(late.promptClass)) {
+      bad = `WRONG STAGE — the card is on "${late.promptClass}", and a battle card belongs on "centered" `
+          + `(src/ui/stage.js:3721-3722). #apGridInner overflow here is "${late.innerOverflow}". `
+          + `On pp4Center the clip box is dropped (index.html:2277-2278), so every clip reading would `
+          + `come back zero because of the stylesheet, not because of the card. Refusing to answer.`;
     } else {
       /* The expected TEXT is the source sentence with the coin removed, because the coin is drawn
          as an <img> (see READ's note). Both halves are still checked: the words by string compare,
