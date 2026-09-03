@@ -27,12 +27,20 @@
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname , resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRIPT = join(ROOT, "scripts", "wyclau", "mark_glass_published.mjs");
+/* The page the seeded harvest receipt names. Any name, so long as the flag and the receipt agree —
+   which is what the writer checks. A case that deliberately passes its own --harvested= keeps it. */
+/* ⚑ ABSOLUTE, because the publish stamp now compares the RESOLVED PATH — CEO 168 showed a
+   basename is not an identity: two sessions hold byte-identical names for the same page
+   version, so the guard could not tell "did YOU read it?" from "did anyone?". */
+const CARRIED_PAGE = resolve("/sessions/gate/tool-results/artifact-74034bde-1788386140-0fbe.html");
+const withHarvested = (args) => args.some((a) => String(a).startsWith("--harvested="))
+  ? args : [...args, `--harvested=${CARRIED_PAGE}`];
 const SIBLING = join(ROOT, "scripts", "wyclau", "glass_needs_publish.mjs");
 
 let failures = 0;
@@ -83,9 +91,16 @@ function runInSandbox(args) {
   } catch { /* no git here: the assertions below will show it as a real failure, not hide it */ }
   const stamp = join(box, ".planning", "wyclau", "LAST-PUBLISH");
   writeFileSync(stamp, "SENTINEL-UNTOUCHED\n");
+  /* ⛔ THE PUBLISH STAMP NOW REQUIRES --harvested= AND A MATCHING HARVEST RECEIPT (`T-210`):
+     one session's look may no longer license another session's overwrite of his page. **This
+     gate's subject is the VERSION FIELD**, so it satisfies the precondition and goes on testing
+     that — seeding the receipt rather than loosening the refusal, because a refusal relaxed for
+     a test is not a refusal. */
+  writeFileSync(join(box, ".planning", "wyclau", "LAST-HARVEST"),
+    JSON.stringify({ artifactVersion: "seeded", harvestedPath: CARRIED_PAGE }));
   let code = 0, out = "";
   try {
-    out = execFileSync(process.execPath, [copy, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    out = execFileSync(process.execPath, [copy, ...withHarvested(args)], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   } catch (e) {
     code = e.status ?? 1;
     out = `${e.stdout ?? ""}${e.stderr ?? ""}`;

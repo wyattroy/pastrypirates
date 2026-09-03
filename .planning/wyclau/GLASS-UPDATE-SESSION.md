@@ -318,7 +318,9 @@ publish. This session IS the terminal.
 >    *(The refusal is read from the tool's documented contract and from the conflict notifications
 >    this page produces in practice; a controlled live test has not been run —
 >    `INBOX.md`, `INBOX-20260902T192000Z`. Refusing `force` is right either way.)*
-> 8. `node scripts/wyclau/mark_glass_published.mjs --version=<id>` — **`--version` is REQUIRED and a
+> 8. `node scripts/wyclau/mark_glass_published.mjs --version=<id> --harvested=<the page file your read saved>` — **BOTH flags are
+>    REQUIRED (`T-210`: `--harvested=` names the page YOU read, and the harvest receipt must name
+>    the same one, so one session's look cannot license another's republish). `--version` is a
 >    bare call exits 1.** The id is the artifact version the publish produced; the publish
 >    confirmation does not print it inline, so **re-read the artifact and take the version from the
 >    result**, checking its `generatedAt` matches what you just wrote. **No version id means you did

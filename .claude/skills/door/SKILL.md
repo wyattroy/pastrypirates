@@ -63,6 +63,13 @@ It carries **every idea, every comment, every ruling and his DO NOW pin** into t
 you are unsure), and **counts what landed by re-reading the files**, so a write that did not happen
 says so instead of being confirmed. **A republish without the harvest deletes his words.**
 
+> **⛔ AND THE PUBLISH STAMP NOW REFUSES WITHOUT `--harvested=` TOO (`T-210`).** Name the page file
+> YOUR read saved; the harvest receipt must name the same one. **Another session's harvest is not
+> yours** — that receipt is machine-local and shared, and on 2026-09-03 one session's look licensed
+> a different session's republish twenty-nine seconds later, by a session that had never opened the
+> page. It does not close the race (he can write between your read and your publish); it closes the
+> case where the publisher never looked at all.
+>
 > **⚑ DO NOT TRANSCRIBE BY HAND ANY MORE — that is what `T-140` removed.** The reading is still
 > yours (only the Artifact tool can fetch a published page; a Bell-launched watch has none, and
 > writes `GLASS-NOTE.md` instead). The *carrying* is not. A hand-copy that misses one of his
@@ -119,7 +126,7 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    the previous watch closed · blocked on Wyatt · any detached trial in flight (read its report,
    check its pid) · what THIS watch will do. Then pulse:
    `node scripts/wyclau/glass.mjs --note "watch <UTC>: <what this watch is taking up>"` — and
-   republish + `node scripts/wyclau/mark_glass_published.mjs --version=<id>` (a pulse he cannot see
+   republish + `node scripts/wyclau/mark_glass_published.mjs --version=<id> --harvested=<the page file your read saved>` (a pulse he cannot see
    is not a pulse). **`--version` is the id the Artifact publish returned, and it is REQUIRED** — a
    bare call exits 1 and writes nothing. **If you have no version id you did not publish, and you
    must not stamp:** a Bell-launched watch has no Artifact tool on some machines and cannot publish
@@ -253,7 +260,8 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    The reason the line was missing is that this file was VENDORED and no watch was allowed to edit
    it; his ruling inverted that (the project owns its copy), and this is the first edit under it.
    **A capability nothing invokes is a capability that never runs.**
-6. **Republish the Glass** (harvest first — always), `mark_glass_published.mjs --version=<id>`, then
+6. **Republish the Glass** (harvest first — always),
+   `mark_glass_published.mjs --version=<id> --harvested=<the page file your read saved>`, then
    `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
    include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its
    transport. Commit (`git pull --rebase` first), push.

@@ -1908,7 +1908,7 @@ console.log(`  boundary and before you go quiet, or he is reading a page that ha
 console.log(`  (v2: the page saves itself via the "artifact" capability — pass`);
 console.log(`  capabilities {artifact:{}} on a fresh publish, or if the page says it can't save.)`);
 console.log(`  ⚠ THEN RUN, with the version the publish call returned:`);
-console.log(`      node scripts/wyclau/mark_glass_published.mjs --version=<id>`);
+console.log(`      node scripts/wyclau/mark_glass_published.mjs --version=<id> --harvested=<the page file your read saved>`);
 console.log(`  A BARE CALL IS REFUSED (2026-09-01). It used to stamp "Glass published"`);
 console.log(`  unconditionally, so anything that ran it — including a watch with no Artifact`);
 console.log(`  tool, which cannot publish at all — forged a publish. A stamp that could only`);

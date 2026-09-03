@@ -60,7 +60,7 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { basename, join, dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 /* The gate reads the SAME definition the writers do — asking a second copy whether a value is a
@@ -92,7 +92,7 @@ const REAL_VERSION_ID = "1788386140-0fbe";   // what LAST-PUBLISH held eleven mi
    republishing over his words. **This gate is about the VERSION FIELD'S KIND, not about the carry**,
    so it satisfies the precondition and goes on testing its own subject. Seeding it here rather than
    loosening the writer keeps the refusal real everywhere else. */
-function sandbox(scriptName, args, { chart = null, carry = null } = {}) {
+function sandbox(scriptName, args, { chart = null, carry = null, harvest = null } = {}) {
   const box = mkdtempSync(join(tmpdir(), "receipt-kind-"));
   mkdirSync(join(box, "scripts", "wyclau", "lib"), { recursive: true });
   mkdirSync(join(box, ".planning", "wyclau"), { recursive: true });
@@ -122,6 +122,11 @@ function sandbox(scriptName, args, { chart = null, carry = null } = {}) {
   };
   writeFileSync(receipts.harvest, "SENTINEL-UNTOUCHED\n");
   writeFileSync(receipts.publish, "SENTINEL-UNTOUCHED\n");
+  /* ⚠ AFTER the sentinels, deliberately — they are written last and would overwrite a seed
+     placed earlier, which is how this looked like a real refusal when the seed was in place (`T-210`).
+     Only the PUBLISH cases pass `harvest`, so the harvest-refusal cases below still see the sentinel
+     and their "a refusal that writes is not a refusal" assertion keeps working. */
+  if (harvest !== null) writeFileSync(receipts.harvest, harvest);
 
   /* ⚠ spawnSync, NOT execFileSync, AND THIS GATE ALREADY PAID FOR IT ONCE. execFileSync RETURNS
      stdout and hands stderr back only inside the thrown error — so on a SUCCESSFUL run its stderr is
@@ -145,12 +150,22 @@ function sandbox(scriptName, args, { chart = null, carry = null } = {}) {
    has to exist and be empty of live questions. */
 const EMPTY_CHART = "# THE CHART\n\n## BLOCKED ON WYATT\n\n| question | why it is his |\n|---|---|\n\n## RULED\n\n| question | his verdict |\n|---|---|\n";
 
-const CARRIED_PAGE = "artifact-74034bde-1788386140-0fbe.html";
+/* ⚑ ABSOLUTE, because the publish stamp now compares the RESOLVED PATH — CEO 168 showed a
+   basename is not an identity: two sessions hold byte-identical names for the same page
+   version, so the guard could not tell "did YOU read it?" from "did anyone?". */
+const CARRIED_PAGE = resolve("/sessions/gate/tool-results/artifact-74034bde-1788386140-0fbe.html");
 const harvest = (v, extra = []) => sandbox("mark_glass_harvest.mjs",
   [`--version=${v}`, "--rulings=none", `--harvested=${CARRIED_PAGE}`, ...extra],
-  { chart: EMPTY_CHART, carry: `2026-09-03T11:00:00.000Z	carried=0	from=${CARRIED_PAGE}
+  { chart: EMPTY_CHART, carry: `2026-09-03T11:00:00.000Z	carried=0	from=${basename(CARRIED_PAGE)}
 ` });
-const publish = (v) => sandbox("mark_glass_published.mjs", [`--version=${v}`]);
+/* ⚑ `--harvested=` IS MANDATORY ON THE PUBLISH STAMP TOO NOW (`T-210`): it refuses unless THIS
+   session named the page it read and LAST-HARVEST names the same one, so one session's look can no
+   longer license another's overwrite. **This gate's subject is the VERSION FIELD'S KIND**, so it
+   satisfies the precondition and goes on testing its own thing — seeding the receipt rather than
+   loosening the refusal, which is what keeps the refusal real everywhere it matters. */
+const publish = (v) => sandbox("mark_glass_published.mjs",
+  [`--version=${v}`, `--harvested=${CARRIED_PAGE}`],
+  { harvest: JSON.stringify({ artifactVersion: v, harvestedPath: CARRIED_PAGE }) });
 
 console.log("the Glass receipts must record an IDENTITY, not a clock\n");
 

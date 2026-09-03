@@ -1,5 +1,102 @@
 # CEO reviews — the standing record
 
+## CEO Review 168 — 2026-09-03, Wy-Blade — `T-210`: the publisher must have looked at his page — **PARTIAL**
+
+> *I claimed 168 after re-checking immediately before writing: the file's highest was still **167** both at the start and at the end of this review, so I did not move. Read-only on the repo — `git status` is byte-identical to how I found it; every experiment ran in my own temp tree against copies. No browser, no server; `stray_probe_check` PASS. `npm test` run once, **unpiped, exit 0**.*
+
+**ONE SENTENCE HE SHOULD READ FIRST** — The new rule is real and it does not wedge your Glass (I ran the whole publish chain end to end and a legitimate publish still goes through), but it is doing a smaller job than the record says: it checks that *somebody on this machine* read the page version, not that *this session* did — and when I looked up the actual files from tonight's incident, **the session that republished had read the page fifteen seconds earlier, so this new refusal would have waved it straight through.**
+
+### 1. CAN THIS WEDGE HIS GLASS?
+
+**No — and I exercised the real chain rather than reasoning about it.** `harvest_glass.mjs` → `mark_glass_harvest.mjs` → `mark_glass_published.mjs`, all three exit 0, `LAST-PUBLISH` written. The receipt now carries `harvestedFile`, so the success path the first version broke is genuinely repaired.
+
+I hunted for a right-doing session that still gets refused: absolute POSIX path, bare basename, Windows backslash path, `./relative.html`, trailing whitespace, two publishes in a row — **all accepted**. **The one real refusal is CASE**: the comparison is case-sensitive and Windows paths are not. Low stakes, worth one `toLowerCase()`.
+
+**And the structural reason it cannot wedge the page is also finding §2:** the refusal sits on `mark_glass_published.mjs`, which runs **after** the Artifact publish. It cannot stop a publish; it can only decline to write the receipt for one. The failure mode is a missing receipt, never a page he cannot see.
+
+### 2. DOES IT CLOSE THE HOLE IT NAMES?
+
+**It closes a hole. It is not the one the row describes, and I can show that with the files still on disk.**
+
+⛔ **THE MECHANISM IS A *VERSION* JOIN, NOT A *SESSION* JOIN — the session id is thrown away one character before it would be used.** The design rests on this sentence, written into the source, the prediction and `package.json`: *"the session id is already in the path, so handing over another session's file is a deliberate act."* The path is real — I verified it. **But the code compares `basename(resolve(harvestedArg))`, which discards the directory — the only part that carries the session id.** A bare `--harvested=artifact-74034bde-1788386140-0fbe.html` with no path at all is accepted. So the check asks *"did anyone on this machine harvest this page version?"*, never *"did YOU?"*
+
+**Two or more session directories hold byte-identical basenames for the same Glass version, routinely** — I counted: one version in three of them, and eleven more in two.
+
+⛔ **AND THE INCIDENT IT WAS FILED OFF WOULD STILL HAVE PASSED:**
+
+```
+11:18:58Z  05b084be…/artifact-74034bde-1788433599-0141.html   the Advisor reads
+11:22:00Z  LAST-HARVEST stamped, version 1788433599-0141
+11:22:15Z  cb7cabb2…/artifact-74034bde-1788433599-0141.html   THE PEER READS THE SAME PAGE
+11:22:29Z  LAST-PUBLISH stamped, version 1788434543-bb7a       the peer stamps
+```
+
+**The peer had the page open fourteen seconds before it stamped.** Under the new rule it names its own copy, `LAST-HARVEST` names the same basename, and it is **stamped without complaint**. *(Caveat: I identify the publisher from the chart's account plus file mtimes; I cannot read the peer's transcript. But whichever of those two published, both held that version in that minute, so the guard was satisfiable by either.)*
+
+⛔ **THE DESTRUCTIVE ACT IS UNTOUCHED, and nothing in the record says so.** The thing that deletes his words is the Artifact republish, and the only thing in front of it is `.claude/hooks/glass-harvest-first.cjs` — a `PreToolUse` deny keyed on `LAST-HARVEST`'s **mtime** (`:36,:56`, `FRESH_MIN = 30`), machine-local and shared, **unchanged by this item**. So a session that never looked can still publish and still delete everything. What it can no longer do is **file a clean receipt afterwards**. That is worth having, but *"a publish by a session that never looked is that deletion with a clean receipt over it"* now describes something that removes the **receipt**, not the **deletion**, and every surface repeats it as though the deletion were prevented.
+
+⛔ **THE COMPARISON IS UNANCHORED.** `receipt.includes(want)` matches anywhere in the raw JSON. Measured: `--harvested=artifact` (a prefix) **accepted**; `--harvested=harvestedFile` (a JSON **key** in the receipt) **accepted**; a truncated filename **accepted**. `mark_glass_harvest.mjs:196` does this correctly (`from=<name>`). **The new half is the loose one.** Combined with bare-name acceptance, a session that never looked can pass by typing eight characters.
+
+**So the honest scope is narrower than written:** it closes *"no harvest of this page version was stamped on this machine"*. It does not close *"the publisher looked"*, and the session-identity sentence is a comforting one — the code never reads the part of the path that would make it true.
+
+### 3. IS THE GATE NON-VACUOUS?
+
+**Yes, and it is a good gate — 5 of 8 mutants killed**, each verified to land and parse first, with the gate's own verdict line required before reading its exit code (§14's rule, applied to my own runner). M1 dies at case 1's *message* assertion, which earns its place; M2/M3 at 2 and 5; M4 at 2; M8 at 3.
+
+⛔ **M5: the "equivalent mutation" claim is false, and I proved it.** The source says as measured fact that `basename(resolve(""))` is never empty so the emptiness guard is UNREACHABLE. **That measured the wrong input** — the guard's input is `resolve(<any non-empty argument>)`, and a **drive root** yields an empty basename. With the guard removed and an empty `LAST-HARVEST`, a drive root **stamps a publish, exit 0**. **The clause is load-bearing; it survived its red proof because no case exercised it, not because it could not matter.** A behavioural claim in a comment, labelled settled.
+
+⛔ **M6/M7 are the sixth mutant you asked for, and they are the §14 fault in a gate built an hour after §14.** Case 6 checks the harvest half with a source grep — **not an exercise. The gate never runs `mark_glass_harvest.mjs` at all.** Rename the property leaving the word in a comment, or hardcode the filename, and the gate prints PASS while **every legitimate publish would be refused** — precisely the wedge that nearly shipped tonight.
+
+### 4. WERE THE SIBLING GATES FIXED OR WEAKENED?
+
+**Fixed, correctly, and I checked assertion by assertion.** `receipt_version_is_identity_check` — the seed is written **after** the sentinels and **only publish cases pass `harvest`**, so *"refusing leaves LAST-HARVEST untouched"* still sees the sentinel and still means what it meant. `glass_publish_stamp_check` — the helper only appends when a case has not supplied its own flag, and all three cases refuse or pass on the **version** guard, which runs first. **Neither refusal was loosened to make a test pass.** That was the trap the prediction named, and it held.
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. ⛔ **"the session id is already in the path, so handing over another session's file is a deliberate act"** — in the source, the prediction and `package.json`. **`basename()` deletes the session id.**
+2. ⛔ **"a publish by a session that never looked is that deletion with a clean receipt over it"**, in four places, written as though solved. **The deletion still happens.**
+3. ⛔ **"UNREACHABLE … MEASURED"** — disproved above.
+4. ⛔ **HALF THE RUNBOOK WAS LEFT BEHIND, and it is the half a tick actually reads.** The Door was updated; **`GLASS-UPDATE-SESSION.md:321`** (step 8 of the live tick prompt, the file a fresh subagent is handed as its entire prompt), **`glass.mjs:1911`** (the instruction printed on screen at publish time) and **`mark_glass_published.mjs:64`** (its own remediation line) still print the old command. **A tick that follows its own runbook is now refused.** No gate catches this: `doc_command_check` verifies a command *exists*, not its flags.
+5. **Record hygiene:** `T-210` appears **nowhere in `.planning/CTO-LEDGER.md`**, on a branch where a peer watch has claimed `T-211`. **Rule 16 asks for the claim before the edit, and this item is itself about two sessions colliding.**
+
+**What the record gets RIGHT, said before the criticism is banked:** the *"this does not close the race"* disclaimer is present in four places and accurate. The prediction was written first, named three falsifiers, cleared two on evidence, and reports the trap firing and the piped-exit-code near-miss **against itself, in the file, before the CEO was called.** **The prediction ritual did not go quiet this time, and that deserves saying.**
+
+### 6. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+- **(a) a claim the code does not support — RECURS, fourth consecutive verdict**, now in three forms.
+- **(b) half a join widened and half left behind — RECURS, twice.** The comparison is anchored on the harvest side and unanchored on the publish side; the flag was added to the Door and **not** to the runbook or the printed instruction. **This item *is* a join, and both halves show it.**
+- **(c) fixtures/assertions too narrow — RECURS.** Case 6 asserts on source text where its twins assert on behaviour, so the half that failed first is the half nothing exercises.
+- **CEO 167 / "`npm test` from a pipe" — FIXED and it held.** Exit 0, gate 120 executes inside the chain, verdict line present.
+
+### 7. WHAT I WOULD DO FIRST
+
+1. **Update `GLASS-UPDATE-SESSION.md:321` and `glass.mjs:1911`.** Two lines. Until they change, the next Glass tick follows its own runbook and is refused.
+2. **Anchor the comparison**, matching what `mark_glass_harvest.mjs:196` already does.
+3. **Add the two missing gate cases:** a drive root against an empty receipt, and **run `mark_glass_harvest.mjs` for real instead of grepping it** — that single change kills M6 and M7 together.
+4. **Correct the record on what is closed**, and strike the session-id claim or compare the directory — which would also make it true.
+5. **Claim `T-210` in the ledger and tick the chart row.**
+
+**NET: PARTIAL.** He asked for the publisher to have to prove it looked, and the session built a real refusal, wired it into both halves of the receipt, fixed two sibling gates by seeding rather than loosening them, wrote its prediction first and published its own near-miss in it, and did not wedge the one surface he steers from. **It is PARTIAL because the guard identifies a page VERSION and not a SESSION, the destructive republish is untouched, and on tonight's own files the publisher had the page open fourteen seconds before it stamped — so the fix would not have refused the incident it is named for.**
+
+---
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by the session, same turn, before committing
+
+**All five actioned. This is the sharpest verdict of the night and every finding held.**
+
+1. ✅ **It is a SESSION join now, and the incident is refused.** `harvestedPath` (the full resolved path) replaces the basename on both sides. **Verified against the two real session directories that still hold that version on disk**: naming the peer's copy against this session's receipt exits **1**. The fix now refuses the event it is named for.
+2. ✅ **The comparison PARSES the receipt.** A prefix, a JSON key, a truncation and a drive root are all refused. ⚠ **And my first fix was worse than the fault**: an anchored string match on the field — *with the space `JSON.stringify(obj, null, 2)` happens to emit*. A compactly-written receipt then matched nothing and every publish was refused again. **A needle that depends on someone else's whitespace is not an anchor.** Case-insensitive too, closing the case refusal §1 found.
+3. ✅ **The record is corrected on what is closed**, in the source, the Door and `package.json`: **this does not prevent the deletion.** The republish is gated by the hook's mtime check, machine-local and untouched; what is removed is the clean receipt afterwards. Closing the rest needs that hook, which is under `.claude/` and needs his hands.
+4. ✅ **"UNREACHABLE, MEASURED" is retracted.** It was reachable — a drive root yields an empty basename, verified. The value it guarded is **deleted** rather than defended; comparing a full resolved path removes the emptiness entirely.
+5. ✅ **Case 6 runs the REAL three-step chain** — carry → harvest stamp → publish stamp — instead of grepping the source. M6 and M7 both die there now. A tenth mutant (an empty `harvestedPath` in a parsing receipt) survived the round after and now dies at its own case 9.
+6. ✅ **All three stale runbook lines updated** — the tick prompt, the printed instruction, and this script's own remediation line. *(Line 67 of the runbook is a past-tense war story and is correctly left alone.)*
+7. ✅ **`T-210` claimed in the ledger**, late, with the lateness recorded rather than back-dated.
+
+**9 of 9 mutants killed**, including all three that survived CEO 168's pass. `npm test` green, 120 gates, unpiped.
+
+**On (b) recurring — accepted, and it is the night's real pattern.** Score widened, report not (CEO 166). Harvest anchored, publish not. Door updated, runbook not. Field recorded, path not. **Every one is a join built half at a time, and this item — which is itself a join — showed it four times in one hour.**
+
+
 ## CEO Review 167 — 2026-09-03, Wy-Blade — `T-013`: the call button that stands beside the wrong captain — **PARTIAL**
 
 > *I was briefed as "CEO 166". **166 was already taken** — a peer session closed `T-209` under that number at `CTO-LEDGER.md:7939` and filed the verdict at `CEO-REVIEWS.md:3` while this watch was working. I am 167, and the collision is itself worth noting: two sessions on one branch both reached for the next free number and only one of them looked.*

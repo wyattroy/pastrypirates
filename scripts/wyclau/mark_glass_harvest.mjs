@@ -278,6 +278,22 @@ Nothing was written.`);
 
 const receipt = {
   artifactVersion: version,
+  /* ⛔ THE FILE, NOT ONLY THE VERSION — `T-210`. `mark_glass_published.mjs` now refuses to stamp
+     unless the publishing session names the page IT read and this receipt names the same one, and
+     that check has nothing to match against unless the filename is recorded here. Caught by that
+     tool's own red proof: with only `artifactVersion` stored, the SUCCESS path refused too, which
+     would have wedged the one surface he steers from. The path carries the reading session's id
+     (`…/projects/<project>/<SESSION-ID>/tool-results/…`), so this is also what makes one session's
+     harvest distinguishable from another's. */
+  harvestedFile: basename(resolve(harvestedArg)),
+  /* ⛔ AND THE FULL PATH, BECAUSE THE BASENAME IS NOT AN IDENTITY — CEO 168. The design claimed
+     the reading session's id made a cross-session hand-over deliberate; it is in the path
+     (`…/projects/<project>/<SESSION-ID>/tool-results/…`) and `basename()` THREW IT AWAY, one
+     character before it would have been used. Measured: two or more session directories routinely
+     hold byte-identical basenames for the same Glass version — one version in three of them, and
+     eleven more in two. So the check asked *"did anyone on this machine read this page version?"*
+     and never *"did YOU?"* This field is what makes the publish stamp's join a SESSION join. */
+  harvestedPath: resolve(harvestedArg),
   harvestedAt: new Date().toISOString(),
   ideaIds: listOf("ideas"),
   /* DERIVED, NOT RE-TYPED. A question retired by this run WAS a ruling this harvest carried, so the

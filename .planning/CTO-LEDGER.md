@@ -8047,3 +8047,21 @@ explicitly.
 has written the pulse into `.planning/wyclau/glass.html` locally; it is repeated in
 `.planning/wyclau/GLASS-NOTE.md` for the next session that can publish, and the `Glass update` peer
 session (listed by `ListAgents`) is asked to publish at the end of this watch.
+
+## 2026-09-03T12:2xZ — Advisor (Blade): `T-210` claimed and closed — the publisher must have looked
+
+**Claimed late and CEO 168 was right to say so.** Rule 16 asks for the claim before the edit, on a
+branch where a peer watch had already claimed `T-211`. This item is *itself* about two sessions
+colliding, and I skipped the one line that keeps them apart. Recorded here rather than back-dated.
+
+**What it does:** `mark_glass_published.mjs` refuses to stamp unless `--harvested=` names the page
+file THIS session read and `LAST-HARVEST` records the same resolved path. `mark_glass_harvest.mjs`
+records `harvestedPath` for it to match. Both halves gated (120), the Door, the tick runbook and
+`glass.mjs`'s printed instruction all updated.
+
+**What it does NOT do, and the record said otherwise in four places until CEO 168:** it does not
+prevent the deletion. The destructive act is the Artifact republish, gated by
+`glass-harvest-first.cjs`'s MTIME check — machine-local, shared, untouched. **A session that never
+looked can still publish and still delete his words; what it can no longer do is file a clean
+receipt afterwards.** Closing the rest needs that hook, which lives under `.claude/` and needs
+Wyatt's own hands (`CLAUDE-DIR-REPAIRS-PENDING.md`).
