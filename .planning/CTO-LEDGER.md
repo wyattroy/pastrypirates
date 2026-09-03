@@ -8340,3 +8340,72 @@ blocker he had already lifted. Watch e2's ledger entry ends: *"⚑ NEXT WATCH: T
 **Prediction written first**, before any gate ran or any file was built:
 `.planning/wyclau/PREDICTION-20260903T1445Z-T100.md` — with the five things that would prove it
 wrong named in it.
+
+### WHAT LANDED — `1efe53ab`, `3520b1c6`, and the repair after CEO 171
+
+**HIS QUESTION, ANSWERED OUT LOUD BEFORE A LINE WAS WRITTEN, because he asked for that
+specifically: nothing keeps the page and the modal in step, because THERE IS ONLY ONE OF THEM.**
+`scripts/lib/rules_page.mjs` reads the `#howToPlayModal` block out of `index.html` at the moment it
+runs — the same anchor `rules_page_check.mjs:52` has used since A-7 — and fills the same
+`<b data-rule>` spans from the same `rulesFacts(roundCfg(4 seats))` the engine plays by.
+`rules.html` has **no editable half**. Not one sentence was rewritten.
+
+**THE FENCE:** `rules_page_check.mjs` §6 re-runs the generator on every `npm test` and requires the
+file to be byte-identical, naming the first differing **character**. RED first (`rules.html does not
+exist`, exit 1), green after. `scripts/qa/rules_page_redproof.mjs` — a committed script, not a
+one-off — proves it goes red **five** ways. **CEO 171 independently changed a wind rule in the modal
+and got the red at line 83.**
+
+**`npm test` IS RED, exit 1, AND IT WAS ALREADY RED BEFORE THIS WATCH.** Seven identical failures in
+`rulings_triage_check.mjs` about rulings parked in `## RULED` with no checklist row — `T-206`,
+`T-102` ×2, `T-207`, `T-017` ×2, `T-121`. **None of them mine.** Measured, not argued:
+`scripts/qa/_t100_pre_existing.mjs` runs that gate against the Chart as it stood at `098c10f8` and
+reports both sides. Saying "green" here would have been the lie rule 21 exists to stop.
+
+**THE SEA TRIAL IS SAILING, DETACHED — pid 18684, run `2026-09-03T1503Z-Wy-Blade`**, report
+`.planning/SEA-TRIAL-2026-09-03T1503Z-Wy-Blade.md`, log
+`.planning/wyclau/detached/trial-2026-09-03T1503Z-Wy-Blade.out`. It belongs to the machine, not to
+this watch. **A later watch reads that report; do not start a second trial while that pid is
+alive.** Why it was started rather than skipped, and why `gear.mjs` is wrong about this change in
+two separate ways, is written on the `T-100` row in `CHART.md` where he can see it.
+
+### WHAT CEO 171 FOUND, AND WHAT CHANGED BECAUSE OF IT — **NET: PARTIAL**
+
+Full verdict, in its words: `.planning/CEO-REVIEWS.md`, CEO 171. Its sentence for Wyatt: *"The hard
+part — the one you said needed care — is genuinely done and I broke it three ways myself to prove
+it; but two of the five things you listed underneath were quietly not done… and you had already
+answered two of the questions this watch spent its reasoning treating as open."*
+
+**1. ⛔ THE FINDING THAT MATTERED, AND IT IS THE ASK HALF-MISSED.** The page shipped correct, gated,
+sitemapped — and **unreachable from the game.** `index.html`'s How-to-play control is a `<button>`,
+which a crawler cannot follow, so nothing on the highest-traffic page on the site pointed at the
+rules page. **On a page whose entire stated purpose is "Nobody can link to it, search for it, or
+land on it from Google."** ✅ **FIXED:** a real `<a href="rules.html">` at the foot of the modal,
+marked `data-page-omit` so the generator does not copy it onto the page it points at — an explicit
+marker rather than a position, because putting the line outside the body would have silently widened
+the gate's own match into the credits modal below. Both halves red-proofed (corruptions 4 and 5).
+
+**2. ⛔ HIS Q3 AND Q4 WERE ANSWERED THE NIGHT BEFORE AND I CALLED THEM OPEN.** `CHART.md:868-876` —
+Q3 at 22:51:10.628Z, *"Do your recommendation -- full text, modal stays the source"*; Q4 eight
+seconds later, *"Pirate speak!"*. **My design matches both exactly, which is luck wearing
+judgement's coat.** CEO 171: *"the decision is defensible and the process was not."* ✅ The Chart row
+that still said *"Q3 and Q4 are still his"* is corrected, and the correction names what it cost —
+**the row already carried a note saying this exact failure had happened to it once, and it happened
+again.**
+
+**3. ✅ THREE SMALLER HOLES, ACTED ON.** The failure message truncated at 120 characters, so CEO
+171's own wind-rule test printed two quoted lines that looked identical — *"It correctly went red;
+it just couldn't show what moved."* The excerpt now windows on the first differing character. The
+prediction's WHAT HAPPENED section was empty; it is filled, and it says plainly which parts were
+wrong. The `T-100` row still read **NOT YET FATED** for a page that had shipped.
+
+**4. ⛔ ONE I ACCEPT AND HAVE NOT FULLY PAID.** The page's own footer sentence — *"a two-captain
+voyage prices its crates differently"* — is a claim about the rules that is hand-typed and derived
+from nothing. It is true today (`roundCfg` scales `crates` with the table) and nothing checks it.
+**Filed here rather than fixed, because fixing it means deriving a comparison across two cfgs and
+that is its own item.**
+
+**RECURRENCE CHECK vs CEO 170.** *"Four watches skipping `T-100`"* — **FIXED**: this watch took it
+and built it. *"A correction that lives in one document while the record still reads the other
+way"* — **RECURRING**: his Q3/Q4 answers sat in the Chart while the same file, the ledger, and the
+brief I handed the CEO all still said they were open. Fixed in all three.

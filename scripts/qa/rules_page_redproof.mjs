@@ -75,6 +75,22 @@ try {
   if (three === indexOrig) throw new Error("red-proof could not find the powder sentence in index.html's modal — the mutation was a no-op");
   fs.writeFileSync(INDEX, three);
   check("modal changed, page not regenerated", gateFails(), "the stale page goes RED instead of drifting quietly — the case Wyatt named");
+  fs.writeFileSync(INDEX, indexOrig);
+
+  /* 4 and 5 — CEO 171's finding and its fix. The page shipped correct, gated and UNREACHABLE from
+     the game, because index.html's How-to-play control is a <button> a crawler cannot follow. Both
+     halves of the repair are proven here: the link must be there, and it must NOT be copied onto
+     the page it points at. */
+  const four = indexOrig.replace('<a href="rules.html">playpastrypirates.com/rules.html</a>', 'playpastrypirates.com/rules.html');
+  if (four === indexOrig) throw new Error("red-proof could not find the share link in index.html — the mutation was a no-op");
+  fs.writeFileSync(INDEX, four);
+  check("the game page's link to the rules removed", gateFails(), "an unreachable rules page goes RED — the half of his ask that shipped missed the first time");
+  fs.writeFileSync(INDEX, indexOrig);
+
+  const five = rulesOrig.replace("</div>\n</body>", '<a href="rules.html">self</a>\n</div>\n</body>');
+  if (five === rulesOrig) throw new Error("red-proof could not find the page's closing markup — the mutation was a no-op");
+  fs.writeFileSync(RULES, five);
+  check("the omit marker leaking the share line onto the page", gateFails(), "a page that links to itself goes RED");
 } finally {
   fs.writeFileSync(RULES, rulesOrig);
   fs.writeFileSync(INDEX, indexOrig);
@@ -85,5 +101,5 @@ try {
   if (!restored) bad++;
 }
 
-console.log(bad ? `\nFAILED — ${bad} hole(s) in the fence` : "\nPASSED — §6 fails on all three ways the page and the modal could drift apart");
+console.log(bad ? `\nFAILED — ${bad} hole(s) in the fence` : "\nPASSED — §6 fails on all five ways the page, the modal and the link between them could break");
 process.exit(bad ? 1 : 0);

@@ -1,5 +1,80 @@
 # CEO reviews — the standing record
 
+## CEO Review 171 — 2026-09-03, Wy-Blade — watch e3, `T-100`: build `/rules.html` — **PARTIAL**
+
+> *Spawned fresh. Its verdict is reproduced below IN ITS OWN WORDS — the watch it reviewed did not
+> soften it. Where the watch acted on a finding after the verdict was written, that is marked
+> **[acted on]** and nothing in the CEO's text was edited to match.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *"The hard part — the one you said needed care — is genuinely
+done and I broke it three ways myself to prove it; but two of the five things you listed underneath
+('wire the footer links', 'run the sea trial') were quietly not done and appear in no commit
+message, no ledger entry and nothing you would ever see — **and you had already answered two of the
+questions this watch spent its reasoning treating as open.**"*
+
+**ITEM BY ITEM, its table:** the page-and-modal constraint **DONE — and it is real, not rhetoric**;
+answering *"what makes these two agree?"* out loud **DONE**; the footer links **NOT DONE**; title /
+description / `og:` **DONE**; both screenshots **DONE**; the sea trial **NOT DONE, and not
+declared**; `PP4_STAMP` **DONE**; nothing pushed to `main`, branch only — **safe**.
+
+**IT BROKE THE ONE-SOURCE CLAIM ITSELF RATHER THAN BELIEVING IT.** *"I corrupted both halves myself
+and restored the tree afterwards."* Test A, a sentence hand-edited into `rules.html` → red at line
+101. **Test B, his actual nightmare:** it changed a wind rule in the modal — *"Across the wind
+doesn't count against ye"* → *"now DOES count"* — and did not regenerate → red at line 83. Its
+conclusion: *"Six months from now, someone who fixes a wind rule in one place and not the other gets
+a red build, not a contradiction. That is what you asked for and it is there."*
+
+**⛔ ITS FINDING, AND IT IS THE ONE THAT MATTERED:** *"your game page links to your new rules page
+**nowhere at all**. Only `about.html:209` does. For a page whose entire stated purpose was that
+people can find it, the highest-traffic page on the site doesn't point at it."* The footer's How-to-
+play control is a `<button>`, which a crawler cannot follow. **[acted on]** — a real
+`<a href="rules.html">` now sits at the foot of the modal, marked `data-page-omit` so it is not
+copied onto the page it points at; both halves red-proofed, taking the red proof from three
+corruptions to five.
+
+**⛔ AND THE ONE THE WATCH SHOULD HAVE FOUND ITSELF:** *"you had already ruled it"* —
+`CHART.md:868-876`, 2026-09-02T22:51:10Z, *"Do your recommendation -- full text, modal stays the
+source"*, and 22:51:18Z, *"Pirate speak!"*. **The watch reasoned its way to both answers and called
+them open.** Its verdict: *"the decision is defensible and the process was not… A ten-second grep of
+`CHART.md` for `rules-page-3-of-4` would have surfaced your two rulings and removed the only genuine
+judgement call in the item."* **[acted on]** — verified by reading those lines, recorded in the
+prediction file's WHAT HAPPENED, and the stale *"Q3 and Q4 are still his"* claim corrected on the
+Chart.
+
+**ON THE SEA TRIAL, and it did not let the watch off:** *"The fault is not the skipping — it is the
+silence. Rule 24 exists so 'did you run it?' is answered by opening a report. There is no report and
+no stated skip, so the honest answer to that question is currently unavailable to you."* It also
+notes his own instruction cited `node 4/scripts/qa/gear.mjs`, a path the cutover deleted.
+**[acted on]** — the skip is now written down, with its reasoning, where he can see it.
+
+**THREE SMALLER HOLES IT FOUND IN THE FENCE, none fatal.** The page's own footer sentence about a
+two-captain voyage is hand-typed and derived from nothing. The failure message truncated both lines
+at 120 characters, so its Test B printed *"two lines that look identical"* — *"It correctly went
+red; it just couldn't show what moved."* **[acted on]** — the excerpt now windows on the first
+differing character, not the start of the line. The four-seat table is hardcoded, *"fine, and the
+page says so"*.
+
+**WHAT IT CONFIRMED THAT THE WATCH CLAIMED.** *"The prediction is genuine"* — committed four
+minutes before the implementation, five real falsifiers, untouched since — *"but its 'WHAT HAPPENED'
+section was left empty."* **[acted on]**. And *"the 'npm test was already red' claim is TRUE and I
+reproduced it… Saying 'green' would have been a lie and they didn't."*
+
+**RECURRENCE vs CEO 170.** *"Four watches skipping `T-100`"* — **FIXED**: *"This watch took it and
+built it."* *"A correction that lived in one document while the ledger still read the other way"* —
+**RECURRING, in new clothing**: his Q3/Q4 answers sit in `CHART.md:868-876` while `CHART.md:1089`
+and the ledger both still said they were open — *"the wrong record has now propagated into the
+review process"* — and the `T-100` row still read **NOT YET FATED** for a page that had shipped.
+**[acted on]** on all three.
+
+**DELEGATION:** *"I found no wasteful bulk reading; the watch worked through small scripts and gates
+rather than hauling files into its head. The fault is the same shape CEO 170 named: one read it did
+not do."*
+
+**HOUSEKEEPING IT VOLUNTEERED:** its two corruption tests were fully reverted, `git status` clean on
+every file it touched, gate green again, `stray_probe_check` clean.
+
+---
+
 ## CEO Review 170 — 2026-09-03, Wy-Blade — watch e2, `T-215`: the trial's finding reaches him as a number — **PARTIAL**
 
 > *Spawned fresh, read-only on the repo except for this entry. Every number below was re-run by me — the gate, the red proof, `npm test`, the real-data probe — and every file time was read off disk rather than taken from the watch's account.*

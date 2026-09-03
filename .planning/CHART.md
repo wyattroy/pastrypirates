@@ -1044,11 +1044,36 @@ session's mandate is harvest-and-publish only.**
   - Run the sea trial: node 4/scripts/qa/gear.mjs, then sea_trial.mjs
   - Bump PP4_STAMP in src/ui/stage.js before pushing
 
-  Every push to main is served to real players immediately. Read the diff."* → **NOT YET FATED —
-  harvested verbatim, not investigated. This session's mandate is harvest-and-publish only.**
+  Every push to main is served to real players immediately. Read the diff."*
   ⚠ **References "the content split I approved in the previous session" and "node 4/scripts/qa/
   gear.mjs" — the `4/` tree language predates this repo's v2.0 cutover (game code now lives at
   repo root, not `4/`). Whoever picks this up should reconcile the path before running anything.**
+
+  ### ⚑ BUILT 2026-09-03 by watch e3 — CEO 171 (PARTIAL), commits `1efe53ab`, `3520b1c6`
+  **The answer to his question, out loud: nothing keeps them in step, because there is only one of
+  them.** `scripts/lib/rules_page.mjs` reads the `#howToPlayModal` block out of `index.html` at the
+  moment it runs and fills the same `<b data-rule>` spans from the same `rulesFacts(cfg)` the
+  engine plays by; `rules.html` has no editable half. `rules_page_check.mjs` §6 re-runs the
+  generator on every `npm test` and requires the file to be byte-identical, naming the first
+  differing character. `scripts/qa/rules_page_redproof.mjs` proves it goes red five ways — and
+  **CEO 171 independently changed a wind rule in the modal without regenerating and got the red**.
+  Pictures: `.planning/posed/t100-rules-desktop-1280.png`, `t100-rules-phone-390.png`,
+  `t100-modal-phone-390.png`, `t100-modal-share-line-390.png`, `t100-about-ruleslink-1280.png`.
+  **THE SEA TRIAL, WRITTEN DOWN RATHER THAN QUIETLY SKIPPED — CEO 171: *"The fault is not the
+  skipping, it is the silence."*** `gear.mjs` says **FULL**, and it is wrong twice here: with only
+  `sitemap.xml` uncommitted it named a **sitemap** as a file where *"behaviour can change"*, and it
+  never saw `rules.html` at all because it reads the uncommitted diff and the page was already
+  committed (a second face of `T-136`, and not the one that row describes). **The only game code
+  this item changed is one build-stamp string, four CSS lines, and one `<p>` inside a modal that
+  opens on a button — every one of which was photographed at two sizes.** A robot sailing three
+  modes exercises none of it. **So a trial was STARTED DETACHED rather than skipped** — it belongs
+  to the machine, not to the watch, and the next watch reads its report. Pid and report path in the
+  ledger under WATCH e3.
+  ⚑ **AND THIS ITEM IS THE WORKED EXAMPLE FOR HIS OWN ASK, `T-206`'s ruling:** *"we need a way to
+  bypass sea trial for this -- it clearly doesn't need a full one given that you're just adding a
+  tag to index; so we need a way to tell sea trial that and manually choose the depth of the
+  trial."* **He asked for exactly this control and it does not exist yet**, which is why this
+  paragraph has to be prose instead of a flag.
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"I want to give Pastry Pirates' rules a
       ⟨`T-099`⟩
@@ -1086,8 +1111,22 @@ session's mandate is harvest-and-publish only.**
   **Q2 → `INBOX-20260902T225032Z`:** *"Agree with your rec -- delete "how it plays"*, confirmed by
   him in the question UI two minutes later — *"That's the whole instruction."* **Done and closed
   2026-09-03 as `T-114`**, commit `c5ca91b8`, CEO 154.
-  **Q3 and Q4 are still his** (`rules-page-3-of-4…`, `rules-page-4-of-4…` on his Your Call card),
-  so this row stays open — but it is open on TWO questions now, not four, and it blocks nothing.
+  ### ⚑ HE ANSWERED 3 AND 4 IN THE SAME MINUTE, AND THIS ROW SAID "STILL HIS" FOR A DAY
+  **CORRECTED 2026-09-03T15:xxZ by watch e3, on CEO 171's finding.** The line here used to read
+  *"Q3 and Q4 are still his"*. **Both were answered on 2026-09-02, eight seconds apart, and the
+  answers are in this same file at `CHART.md:868-876`:**
+  **Q3 → `T-117`, 22:51:10.628Z:** *"Do your recommendation -- full text, modal stays the source."*
+  **Q4 → `T-118`, 22:51:18.219Z:** *"Pirate speak!"*
+  **So all four questions are answered and this row blocks nothing and waits on nothing.**
+  ⚠ **AND IT COST EXACTLY WHAT THE NOTE ABOVE SAYS IT WOULD, one paragraph later, to the same
+  row.** Watch e3 built `/rules.html` reasoning from first principles that the modal should keep
+  its full text and the page should speak pirate — **both of which he had already ruled** — and
+  wrote in its own prediction file that these were open questions. The design matches his rulings
+  exactly, which is luck wearing judgement's coat. CEO 171: *"the decision is defensible and the
+  process was not… A ten-second grep of `CHART.md` for `rules-page-3-of-4` would have surfaced your
+  two rulings and removed the only genuine judgement call in the item."*
+  **The lesson is the one already written above it and it recurred anyway: harvesting his words is
+  only half the job; the other half is telling the rows that were waiting on them.**
   ⚠ **WHY THIS NOTE EXISTS, and it is the reusable part.** His answers were harvested into the
   INBOX correctly and **no Chart row was ever updated to say so.** The ranker gives +100 to a row
   citing a live `INBOX-` entry of his; these entries were cited by nothing, so his freshest

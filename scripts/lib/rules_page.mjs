@@ -64,7 +64,22 @@ export async function renderRulesPage(repo) {
      its numbers depending on who generated it would be exactly the drift this exists to stop. */
   const facts = rulesFacts(roundCfg(["human", "bot", "bot", "bot"]));
 
-  const filled = body[1].replace(/<b data-rule="([a-zA-Z0-9_]+)"><\/b>/g, (whole, key) => {
+  /* ELEMENTS MARKED data-page-omit ARE THE MODAL'S, NOT THE PAGE'S — added for T-100 on CEO 171's
+     finding. The modal now carries one line that is not a rule: a link to this very page, so that a
+     crawler following links from the homepage can reach it and a player has a URL to send someone.
+     Copying it onto the page would give the page a link to itself and, worse, promote the one
+     non-rules sentence in the modal into rules text.
+
+     AN EXPLICIT MARKER, NOT A POSITION. The obvious alternative was to put the line after the
+     scrolling body and let the extraction stop before it — but the extraction and the gate both
+     find the modal by counting closing tags, so a <p> in that gap would have silently widened
+     rules_page_check.mjs:52's match into the credits modal below. A marker cannot do that, and the
+     next person adding a line here does not have to know any of this. */
+  const kept = body[1].replace(/<(\w+)[^>]*\sdata-page-omit[^>]*>[\s\S]*?<\/\1>\s*/g, "");
+  if (kept === body[1] && /data-page-omit/.test(body[1]))
+    throw new Error("the modal carries data-page-omit and the stripper matched nothing — refusing to publish a page that may contain the modal's own non-rules line");
+
+  const filled = kept.replace(/<b data-rule="([a-zA-Z0-9_]+)"><\/b>/g, (whole, key) => {
     if (!(key in facts)) throw new Error(`the modal carries data-rule="${key}" and rulesFacts() computes no such fact — the page would render a blank where a number belongs`);
     return `<b data-rule="${key}">${facts[key]}</b>`;
   });

@@ -226,7 +226,14 @@ const modalNoComments = modal.replace(/<!--[\s\S]*?-->/g, "");
            sends the next reader diffing by eye, and this one can afford to be specific. */
         const a = onDisk.split("\n"), b = expected.split("\n");
         let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
-        fail(`rules.html has drifted from the modal it is generated from — first difference at line ${i + 1}.\n       on disk : ${JSON.stringify((a[i] || "<end of file>").trim().slice(0, 120))}\n       generated: ${JSON.stringify((b[i] || "<end of file>").trim().slice(0, 120))}\n       Run: node scripts/build_rules_page.mjs   (never hand-edit rules.html)`);
+        /* WINDOW THE EXCERPT ON THE DIFFERENCE, NOT ON THE START OF THE LINE. CEO 171 changed a
+           wind rule 300 characters into a paragraph and got two quoted lines that looked
+           IDENTICAL — the gate went red correctly and then could not show what had moved, which
+           is a fair way to make a reader distrust a true failure. */
+        const la = a[i] || "<end of file>", lb = b[i] || "<end of file>";
+        let c = 0; while (c < la.length && c < lb.length && la[c] === lb[c]) c++;
+        const cut = s => JSON.stringify(s.slice(Math.max(0, c - 40), c + 80));
+        fail(`rules.html has drifted from the modal it is generated from — line ${i + 1}, character ${c + 1}.\n       on disk : …${cut(la)}\n       generated: …${cut(lb)}\n       Run: node scripts/build_rules_page.mjs   (never hand-edit rules.html)`);
       }
     }
     /* The page must be findable, which is the entire point of his ask — "Nobody can link to it,
@@ -255,6 +262,26 @@ const modalNoComments = modal.replace(/<!--[\s\S]*?-->/g, "");
     const aboutHtml = fs.readFileSync(path.join(REPO, "about.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
     if (/href="rules\.html"/.test(aboutHtml)) pass("about.html links to the rules page");
     else fail('about.html links nowhere to rules.html — its own "How it plays" section was deleted on his ruling, so a stranger there now has no route to the rules at all');
+
+    /* CEO 171'S FINDING, FENCED SO IT CANNOT COME BACK. The first version of this page shipped
+       correct, gated, sitemapped — and UNREACHABLE FROM THE GAME. index.html's "How to play"
+       control is a <button>, which a crawler cannot follow, so nothing on the highest-traffic page
+       on the site pointed at the rules page. For a page whose whole purpose is "Nobody can link to
+       it, search for it, or land on it from Google", that is the ask half-missed. A real <a> now
+       lives at the foot of the modal. */
+    const indexHtml = fs.readFileSync(path.join(REPO, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+    if (/<a [^>]*href="rules\.html"/.test(indexHtml)) pass("the game page carries a real link a crawler can follow to rules.html");
+    else fail('index.html contains no <a href="rules.html"> — the footer control is a <button>, so the rules page is unreachable from the game it describes, and unreachable to a crawler following links from the homepage');
+
+    /* …and the other half of that link: it must NOT be copied onto the page, or the page links to
+       itself and the modal's one non-rules sentence becomes rules text. This is what data-page-omit
+       buys, so it is asserted rather than trusted. */
+    /* The RELATIVE form only — the head legitimately carries the absolute canonical and og:url
+       (https://playpastrypirates.com/rules.html), so testing for the bare filename would fail on a
+       perfectly good page. Caught before this shipped by reading the generated head. */
+    if (/data-page-omit/.test(indexHtml) && /href="rules\.html"/.test(rules))
+      fail("the omit marker did not take — rules.html carries the modal's own link back to rules.html, so the page now links to itself and a non-rule reads as a rule");
+    else pass("the modal's share line is marked data-page-omit and does not reach the page");
   }
 }
 

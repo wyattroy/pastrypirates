@@ -217,6 +217,10 @@
     line-height: 20px; border: 1.5px solid var(--teal); background: #fff;
     color: var(--ink); }
   .footerHow, .footerCredits, .footerLog { border: 1.5px solid #4a7fa6; background: #eaf2f8; color: #355e7e; }
+  /* The share line at the foot of the How-to-play modal (T-100). Quieter than the rules above it —
+     it is the one sentence in there that is not a rule. */
+  .howShare { margin-top: 16px; font-size: 12px; opacity: .7; }
+  .howShare a { color: var(--teal); }
   .footerHow:hover, .footerCredits:hover, .footerLog:hover { background: #dcebf5; }
   .footerFeedback { border: 1.5px solid #3f9d6e; background: #e8f7ee; color: #2c6e4d; }
   .footerFeedback:hover { background: #d9f1e5; }
@@ -2849,6 +2853,19 @@
       <h4><img class="narrIcon" src="assets/icons/crown.png" alt=""> Winning</h4>
       <p>First captain to bake their full recipe wins the voyage. Two captains bakin' it on the same day? No contest — they <b>bake together</b>. <b>Best Baker</b> goes to whoever brought the most to the bench: most crates in the hold, then most coin, then whoever got home first.</p>
       <p><i>May yer flips be heads and yer rivals be broke.</i></p>
+      <!-- T-100 / CEO 171. THE ONLY CRAWLABLE LINK FROM THE GAME TO ITS OWN RULES PAGE, and it was
+           missing: the footer's "How to play" is a <button>, so a search engine following links
+           from the homepage could never reach /rules.html at all — on a page whose entire purpose
+           is that people can FIND it. Wyatt's ruling stands untouched (2026-09-02T22:51:10Z, "Do
+           your recommendation -- full text, modal stays the source"): this navigates nobody, it
+           gives the reader a URL they can send to a shipmate.
+
+           data-page-omit IS LOAD-BEARING. scripts/lib/rules_page.mjs drops any element carrying it
+           before generating /rules.html — otherwise the page would carry a link to itself, and
+           worse, the modal's ONE non-rules sentence would become rules text. It is an explicit
+           marker rather than a position, so adding another line here does not silently change
+           where the extraction stops. -->
+      <p class="howShare" data-page-omit>These rules live at <a href="rules.html">playpastrypirates.com/rules.html</a> — a page ye can send to a shipmate.</p>
     </div>
   </div>
 </div>
