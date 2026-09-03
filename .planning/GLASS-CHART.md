@@ -645,3 +645,30 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       changes on its own again?** Recommended: yes — an order that shifts under him without anyone
       touching it is worse than one honest reshuffle.
       **Sizing: MEDIUM. No game code. Blocks nothing except the twelve gates behind it.**
+- [ ] **A GATE IN `npm test` WRITES THE LIVE `LONG-RUN` MARKER — SO THE SUITE AND A SAILING SEA
+      ⟨`T-131`⟩
+      TRIAL FIGHT OVER ONE FILE, AND THE SUITE CAN FREEZE THE TRIAL.** Measured 2026-09-03T04:0xZ.
+      `scripts/qa/glass_longrun_status_check.mjs` plants four fixtures in the REAL
+      `.planning/wyclau/LONG-RUN` (`:55, :92, :100, :109`) and restores the previous contents at
+      `:116`. A detached sea trial writes that same file as it sails.
+      **TWO CONSEQUENCES, THE SECOND ONE DAMAGING:**
+      1. the gate reads the TRIAL's marker where it expected its fixture — all three staleness cases
+         fail on the same live JSON. **This is what a red `npm test` looked like tonight** (3
+         failures), and it is not the pre-existing chartkeeper fault (`T-130`), which is a different
+         gate further down the chain.
+      2. the restore writes back a snapshot taken BEFORE the trial's updates — **so running the
+         suite can freeze a live trial's progress** at whatever it was when the suite started.
+      **OBSERVED:** trial pid 35064 sat at `0/10 legs`, `updatedAt` 03:42:32Z, for 25 minutes while
+      `npm test` was run repeatedly beside it. ⚠ **Whether the gate froze it or the trial was simply
+      slow was NOT established, and that ambiguity IS the finding** — an instrument that writes its
+      subject's file makes its subject unreadable. Not reported as proven damage.
+      ⚠ **IT IS A DESTROY-THEN-REPAIR, WHICH THIS PROJECT HAS ALREADY RULED AGAINST**, in `T-112`'s
+      own row: *"Do NOT fix it by making the gate restore the file afterwards — a destroy-then-repair
+      is still a window, and this project has already lost a note inside one."* That was about
+      `GLASS-NOTE.md`; **this is the same fault in the same shape, one file over.**
+      **THE FIX IS THE SAME SHAPE AS THE ONE ALREADY SHIPPED** — a `--marker=<path>` override on the
+      reader, so the gate points it at a fixture instead of borrowing the real file and putting it
+      back. Compare `glass.mjs --consume-note`, which fixed exactly this for his queued note.
+      **UNTIL IT IS FIXED: do not run `npm test` beside a sailing trial.** A warning to that effect
+      is at the top of the gate, where somebody will actually meet it.
+      **Sizing: SMALL. No game code.**

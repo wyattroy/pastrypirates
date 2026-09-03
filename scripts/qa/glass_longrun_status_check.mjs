@@ -30,6 +30,30 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(fileURLToPath(import.meta.url), "..", "..", "..");
 const GLASS = join(ROOT, "scripts", "wyclau", "glass.mjs");
+/* ⚠⚠ THIS GATE WRITES THE REAL, LIVE `LONG-RUN` MARKER, AND A SAILING SEA TRIAL WRITES THE SAME
+ * FILE. MEASURED 2026-09-03T04:0xZ, filed as `T-131`. NOT YET FIXED — read this before you run
+ * `npm test` next to a trial.
+ *
+ * WHAT HAPPENS. The gate plants four fixtures in this file (`:55, :92, :100, :109`) and puts the
+ * previous contents back at `:116`. With a trial in flight both of them are writing it, so:
+ *   1. the gate READS the trial's marker where it expected its own fixture — all three staleness
+ *      cases then fail on the same live JSON, which is what a red suite looked like tonight; and
+ *   2. worse, the restore writes back a snapshot taken BEFORE the trial's updates, so **the gate
+ *      can freeze a live trial's progress at whatever it was when `npm test` began.**
+ *
+ * On 2026-09-03 a trial (pid 35064) sat at `0/10 legs` with `updatedAt` 03:42:32Z for 25 minutes
+ * while `npm test` was run repeatedly beside it. Whether the gate froze it or the trial was merely
+ * slow was NOT established — and that ambiguity is itself the cost: **an instrument that writes its
+ * subject's file makes its subject unreadable.**
+ *
+ * ⚠ AND IT IS A DESTROY-THEN-REPAIR, WHICH THIS PROJECT HAS ALREADY RULED AGAINST. `T-112`'s row
+ * says it in as many words: *"Do NOT fix it by making the gate restore the file afterwards — a
+ * destroy-then-repair is still a window, and this project has already lost a note inside one."*
+ * That was written about `GLASS-NOTE.md` and the fix there was to make the destructive half OPT-IN
+ * (`glass.mjs --consume-note`). **This is the same fault in the same shape, one file over.**
+ *
+ * THE FIX IS THE SAME SHAPE TOO: give the reader a `--marker=<path>` override so the gate can point
+ * it at a fixture, instead of borrowing the real one and putting it back. */
 const MARKER = join(ROOT, ".planning", "wyclau", "LONG-RUN");
 const OUT = join(ROOT, ".planning", "wyclau", "glass.html");
 
