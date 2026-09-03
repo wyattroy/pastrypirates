@@ -6295,3 +6295,18 @@ above was written.
 handle a drag would have to move; and nothing on the page can persist an order. The work is the
 three joints — the row carries its handle, the page records the order he drags into, and the
 Chartkeeper obeys that order on the next rank.
+
+## ADVISOR 2026-09-03T01:48Z — claims `T-105` step 1, at his instruction, with no watch running
+
+**His words, 9:47 PM ET:** *"while the watch is paused, do the task at the top of the chart"*.
+
+`IN-HAND` was empty and the last watch ended at 9:44 PM, so nothing was claimed. **Row one under the
+new Door ordering is `T-105`, score 196.** Claiming it here before touching anything, per the Door.
+
+**WHAT IS ACTUALLY LEFT OF T-105, per the plan as amended by CEO 117** — Layer A was measured TRUE
+(a stale publish is refused), so the remaining work is **one gate**: fail the build if `force` ever
+appears in the Glass publish path. The runbook says *"NEVER PASS `force`"* and **nothing enforces
+it — a sentence is exactly what failed here.**
+
+⚠ **THE ADVISOR IS RECORD-ONLY AND THIS IS OUTSIDE THAT LINE.** He directed it in the moment and it
+is named as such in the reply, per the standing exception.
