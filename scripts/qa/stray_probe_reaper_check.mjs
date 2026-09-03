@@ -49,14 +49,55 @@ console.log("stray_probe_reaper_check — abandoned browsers are KILLED, and the
 
 /* 2 — ⛔ IT KILLS ORPHANS ONLY. Asserted on the SOURCE because the live machine may legitimately
  *     have zero orphans right now, and a case that can only run on a dirty machine is a case that
- *     never runs. The two halves: it must select on `orphan`, and it must not kill the whole list. */
+ *     never runs.
+ *
+ * ⚠ THIS CASE WAS VACUOUS AND THIS IS WHY. CEO 182 replaced the selection with `probes.slice()` in
+ * an isolated copy — a reaper that kills EVERY debug browser on the machine, a sailing sea trial and
+ * a posed board included — and this case printed PASS. Its regex looked for `.filter(p => p.orphan)`
+ * ANYWHERE in the file, and the after-the-fact recount 23 lines below the kill loop contains exactly
+ * that string. **Delete the real filter, keep the counter, gate stays green** — an instrument
+ * certifying a safety property it structurally could not see, guarding something that now runs
+ * unattended on his laptop at the end of every turn. That is the worst place this project's
+ * recurring fault has landed.
+ *
+ * ⚑ SO IT NOW ANCHORS TO THE TWO STATEMENTS THAT ACTUALLY DECIDE WHAT DIES: the single
+ * `const orphans = …` that names the doomed set, and the loop that hands pids to `killPid`. And it
+ * PROVES ITSELF ON EVERY RUN — the two mutants below are applied to an in-memory copy and must both
+ * go red before the real source is allowed to go green. A case that cannot fail can no longer report
+ * that it passed. */
 {
   const src = readFileSync(join(ROOT, "scripts", "qa", "kill_stray_probes.mjs"), "utf8");
-  if (!/\.filter\(\s*\(?\s*p\s*\)?\s*=>\s*p\.orphan\s*\)/.test(src)) {
-    fail("the reaper no longer selects orphans — it must never kill a probe whose launcher is alive, or it breaks a posed board or a sailing trial");
-  } else if (/for\s*\(const\s+\w+\s+of\s+probes\)/.test(src)) {
-    fail("the reaper iterates ALL probes, not just the orphans");
-  } else pass("it kills orphans only — a probe with a live launcher is in use and is left alone");
+
+  /* The judge, so the mutants are judged by the same eyes as the real thing. */
+  const judge = (s) => {
+    const sel = s.match(/^[ \t]*const\s+orphans\s*=\s*(.+?);[ \t]*$/m);
+    if (!sel) return "there is no single `const orphans = …` statement any more — the reaper does not name what it is allowed to kill, so nothing here can check the restraint";
+    if (!/\bprobes\b\s*\.filter\(\s*\(?\s*(\w+)\s*\)?\s*=>\s*\1\.orphan\s*\)/.test(sel[1]))
+      return `what the reaper kills is now \`${sel[1].trim()}\` — it must be probes.filter(p => p.orphan), or the next tidy-up takes a posed board mid-photograph and a sea trial at sea with it`;
+    const loop = s.match(/for\s*\(\s*const\s+\w+\s+of\s+(\w+)\s*\)\s*\(?\s*killPid/);
+    if (!loop) return "cannot find the loop that hands pids to killPid — the gate cannot see what it iterates, so it must not say PASS";
+    if (loop[1] !== "orphans") return `the kill loop iterates \`${loop[1]}\`, not \`orphans\` — the selection above it is then decoration`;
+    return null;
+  };
+
+  /* RED FIRST, on every run: the exact mutation CEO 182 made, plus its sibling. */
+  const mutants = [
+    ["the selection replaced by `probes.slice()` (CEO 182's own mutation)",
+     src.replace(/^([ \t]*const\s+orphans\s*=\s*).+?;[ \t]*$/m, "$1probes.slice();")],
+    ["the kill loop switched to iterate every probe",
+     src.replace(/(for\s*\(\s*const\s+\w+\s+of\s+)orphans(\s*\)\s*\(?\s*killPid)/, "$1probes$2")],
+  ];
+  let proofs = 0;
+  for (const [what, mut] of mutants) {
+    if (mut === src) fail(`could not build the mutant "${what}" — the source no longer has the shape this case mutates, so the red proof did not run and its PASS would mean nothing`);
+    else if (!judge(mut)) fail(`⛔ VACUOUS: with ${what}, this case still judges the reaper safe. That is the CEO 182 fault returning.`);
+    else proofs++;
+  }
+  if (proofs === mutants.length) pass(`the restraint check can FAIL — both mutants go red (${proofs}/${mutants.length}), so its green below is worth something`);
+
+  const why = judge(src);
+  if (why) fail(why);
+  else pass("it kills orphans only — a probe with a live launcher is in use and is left alone");
 }
 
 /* 3 — ONE DEFINITION OF "ORPHANED" (rule 23). The detector and the reaper must not each decide what

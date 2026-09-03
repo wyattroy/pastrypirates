@@ -95,8 +95,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-235`⟩
-- [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-102`⟩
 - [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-207`⟩
 - [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -556,6 +554,26 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
 
+- [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
+      AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
+      `npm test` fails, the report's "the browser-free checks failed" section prints **only the
+      tail of the output**, which on this branch is fixture chatter from two gates that **PASS** —
+      `chartkeeper: 2 rows carry DO NOW — T-802, T-803` and temp-dir paths from `do_now_check`'s
+      own red-proofs. **The gate that actually failed is never named.** In the report this watch
+      produced, the real failure was `chart_sweep_conserves_check` on the orphaned handles
+      `T-233`/`T-234`, and nothing in the file says so.
+      **WHY THIS IS WORSE THAN A COSMETIC BUG:** CEO 185's words — *"anyone opening that report
+      concludes the Chartkeeper is broken."* Rule 24 exists because *"did you QA it?"* can be
+      answered evasively and *"did you run the sea trial?"* cannot, since a sea trial **leaves a
+      report he can open**. A report that misnames its own failure gives that mechanism back its
+      evasiveness, with nobody lying.
+      **Start here:** the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
+      FAILING gate (the last `&&` link to exit non-zero), not the last N lines of stdout, which on a
+      chain of 129 gates is whoever printed most recently. **Red-proof: make a known gate fail and
+      assert the report names THAT gate by filename.**
+      Sizing: no game code. Not this watch's to take — filed where the next one will see it.
+      ⟨`T-237`⟩
+
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
       watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
@@ -577,26 +595,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
-
-- [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
-      AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
-      `npm test` fails, the report's "the browser-free checks failed" section prints **only the
-      tail of the output**, which on this branch is fixture chatter from two gates that **PASS** —
-      `chartkeeper: 2 rows carry DO NOW — T-802, T-803` and temp-dir paths from `do_now_check`'s
-      own red-proofs. **The gate that actually failed is never named.** In the report this watch
-      produced, the real failure was `chart_sweep_conserves_check` on the orphaned handles
-      `T-233`/`T-234`, and nothing in the file says so.
-      **WHY THIS IS WORSE THAN A COSMETIC BUG:** CEO 185's words — *"anyone opening that report
-      concludes the Chartkeeper is broken."* Rule 24 exists because *"did you QA it?"* can be
-      answered evasively and *"did you run the sea trial?"* cannot, since a sea trial **leaves a
-      report he can open**. A report that misnames its own failure gives that mechanism back its
-      evasiveness, with nobody lying.
-      **Start here:** the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
-      FAILING gate (the last `&&` link to exit non-zero), not the last N lines of stdout, which on a
-      chain of 129 gates is whoever printed most recently. **Red-proof: make a known gate fail and
-      assert the report names THAT gate by filename.**
-      Sizing: no game code. Not this watch's to take — filed where the next one will see it.
-      ⟨`T-237`⟩
 
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩

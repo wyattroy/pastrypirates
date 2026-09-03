@@ -432,12 +432,26 @@ const orderedRows = (p) =>
     else pass("every open task on his card carries its handle, so a drop can say which row moved");
     if (!/id="taskList"/.test(card)) fail("the task list has no id — the page's own script would have to find it by tag or position, which resolves to the artifact HOST's markup");
     else pass("the task list is addressed by id, never by position");
-    if (!/pointerdown/.test(page) || !/pointermove/.test(page))
-      fail("the list is not wired with pointer events — dragstart/drop do not fire on iOS Safari, so this would be inert on the phone he reads this page on and perfect on the laptop it was written on");
-    else pass("the drag is wired with pointer events: one path for mouse and touch");
-    if (!/touch-action\s*:\s*none/.test(page))
-      fail("nothing sets touch-action:none on a draggable row — the browser claims a vertical drag as a page scroll and pointermove never arrives, so the reorder is dead on a phone");
-    else pass("a draggable row releases the scroll gesture, so a drag on a phone reaches the page");
+    /* ⛔ TWO CASES USED TO SIT HERE DEMANDING THE DRAG HE DELETED, and CEO 182 caught both — a
+     * hundred lines above the sibling case that was re-pointed on the same day, which is exactly how
+     * a re-point misses half its own subject.
+     *
+     * **The worse half is HOW they were passing.** They grepped the whole rendered page for the bare
+     * word `pointermove`, and the five hits left in it are all PROSE: three code comments, and two
+     * from the Chart note ANNOUNCING the deletion ("DRAG REMOVED: 62 lines of pointerdown/
+     * pointermove/drop…"). So a build gate's verdict was being produced by the obituary of the thing
+     * it was checking for — and edit that note and the suite goes red claiming the drag is broken on
+     * iOS. Rule 6, in a gate: a comment is not a measurement.
+     *
+     * ⚑ WHAT REPLACES THEM IS THE PROPERTY HE ACTUALLY ASKED FOR — every row is moveable — asserted
+     * against the RUNNABLE SCRIPT, never the page's prose. The gesture case lives at case 16d below;
+     * this one is about the button existing on every row the card draws. */
+    const rows = [...card.matchAll(/<li\b[^>]*data-handle="T-\d{3}"/g)].length;
+    const arrows = [...card.matchAll(/class="totop"/g)].length;
+    if (!rows) fail("the Tasks card draws no rows at all, so nothing can be said about whether they are moveable");
+    else if (arrows !== rows)
+      fail(`${rows} row(s) on his card and ${arrows} ▲ top button(s) — every row must be moveable, his instruction 2026-09-03; a row without the arrow cannot be moved by any means now the drag is gone`);
+    else pass(`every row on his card carries the ▲ top button — ${rows} of ${rows}, so none of them is stranded where it sits`);
     if (!/state\.order\s*=/.test(page))
       fail("the page never records an order onto its state — he could drag all day and nothing would leave the tab");
     else pass("the sequence he drags is written onto the page's own state");

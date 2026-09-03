@@ -9483,3 +9483,92 @@ mid-animation, so judge findings drawn from them are weak evidence.
 hook blocked and the retry — a peer's operation discarded the unstaged change on this shared tree.
 Second time it was written and committed in ONE action. **On a tree three sessions write, an append
 that is not committed in the same breath is an append that may not exist.**
+
+- 2026-09-03T21:21:05Z · close_item: "should the sitemap's page list be generated from the actual " · CEO 185 · no game diff — no game code by design: his ruling is about how sitemap.xml is GENERATED, so the change is the writer, a shared predicate and a gate — sitemap.xml itself is byte-identical (commits 25dbac76, e6331c15) · no stated solution
+
+### WHAT THIS WATCH DID — `T-102` CLOSED (CEO 185, PARTIAL), commits `25dbac76` + `e6331c15`
+
+**HIS RULING WAS HALF-SATISFIED BEFORE I STARTED, AND NOBODY HAD SAID SO.** `crawl_intent_check.mjs`
+— built 83 minutes earlier by another watch, for a different job under the *same handle* — already
+fails the build on a served page that declares itself indexable and is missing from `sitemap.xml`.
+So **detection** existed. **Generation** did not: `sitemap_write.mjs` read its URL list out of the
+very file it was rewriting, so it could never add a missing page nor drop one that had stopped being
+public, and the repair for that red build was to hand-type a `<loc>` — the hand-kept list his ruling
+removes. CEO 185 verified this independently rather than taking my word: *"the watch understated
+nothing and overstated nothing there."*
+
+**THE COMMENT I DELETED ARGUED THE OPPOSITE AND WAS RIGHT WHEN WRITTEN**, which is worth more than
+the fix. It said the list must stay hand-kept because a generator *"walking the directory would
+quietly re-add every one of them"*. True of a generator that walks the directory. This one asks each
+page what it DECLARES — and that only became possible when the thirteen already-live working pages
+got their `noindex` that same afternoon. **The editorial decision did not disappear; it moved to the
+page it is about**, the one place it cannot go stale relative to its subject.
+
+**⛔ THE TWO FAULTS OF MINE THE CEO CAUGHT, AND THE SECOND IS THE REAL ONE.**
+1. I wrote *"RED FIRST ON THE REAL UNMODIFIED WRITER"* into the commit message **and into
+   `package.json`'s ceiling paragraph, the one a future audit reads**. False: I added the
+   `--sitemap=` seam *before* going red, and the pre-ruling writer had no parser for that flag, so
+   it would have read the real sitemap twice and PASSED. **A seam added to make a red possible is a
+   modification.** Corrected in place.
+2. **My own gate would have blessed a full revert of my own fix.** Clause 1 compared the writer's
+   output across two fixtures — which only a writer that READS the flag can notice, and no real
+   writer does. Restore the hand-kept writer and the gate stays green. Clause 1 is now a claim about
+   the writer's SOURCE (it must never `readFileSync(SITEMAP)`), **proved against the real
+   pre-change file** — `git show 25dbac76^:scripts/qa/sitemap_write.mjs` line 43 — not against a
+   stub. Fourth `--red` mode added; the fixture comparison kept as 1b, demoted, weakness stated.
+
+**AND A RED MODE OF MINE WAS CAUGHT AS A DUD BY THE HOUSE RULE ITSELF.** `--red=extrapage` fed the
+same fixture to both runs, making clause 1 trivially TRUE rather than breaking it; *"a mode that
+changes nothing exits 2"* said so. **That rule earned its keep on the first day I used it.**
+
+**MY FIXTURE WAS ALSO WRONG ABOUT THE WORLD:** it invited `/lab.html` because `robots.txt` fences
+it, and `/lab.html` is not in this repo at all. **A fixture is a claim about the world too.**
+
+**PREDICTION** (`.planning/wyclau/PREDICTION-20260903T2048Z-T-102-sitemap-list.md`, written before
+any measurement): all three held — the predicate, the exact set `/ · /about.html · /rules.html`, and
+`/classic/index.html` excluded by its own `noindex, follow` at line 15, checked rather than trusted.
+**The falsifier that mattered did not fire** and that is recorded rather than dropped. **Both real
+faults were in things I never predicted** — the project's pattern, exactly. ⚠ **The results section
+was MISSING when the CEO read it — CEO 180's finding 2 recurring verbatim** — and is now written.
+
+**SEA TRIAL: gear lowered FULL → COSMETIC on the record, reason typed** (no game code; and a FULL
+ten-leg trial was already sailing this tree for `T-017`). COSMETIC = **0 legs, no browser**, so no
+collision. Own report file, never the shared path:
+`.planning/sea-trials/SEA-TRIAL-2026-09-03T2048Z-Wy-Blade-T102-sitemap-list.md`. **It reads FAILED,
+honestly**, because `npm test` is red on a fault that is NOT mine: `chart_sweep_conserves_check`
+accusing `T-233`/`T-234`. **The CEO verified that independently** — the handles trace to `4c6f1624`,
+three commits before my parent, and the four gates before it pass. Every gate downstream of the
+failure point was run by hand and passes, including both sitemap gates and all five of
+`crawl_intent_check`'s red modes after the refactor.
+
+**⛔ AND THAT ACCUSATION IS THE GATE CRYING WOLF A THIRD TIME, WHICH ITS OWN HEADER PREDICTS.** It
+accuses a handle that *"appears as text somewhere in the charts"* but owns no row. `T-233`/`T-234`
+appear **only in the prose of the `T-222` row that documents the chartkeeper bug that created
+them** — so **the row filed to describe the fault is what manufactures the accusation.** Any future
+row describing a retired handle will do the same. Not fixed here (that is `T-222`'s, and another
+session is live in that very file as I write). **The previous watch's claim that reverting the text
+left them *"free again"* is false: handles are never reused, so the gap is permanent until
+something owns them.**
+
+**FILED, NOT WORKED — `T-237`**, from CEO 185 while it audited this item: a failed sea trial report
+prints the TAIL of `npm test` rather than naming the gate that failed, which on this branch is
+fixture chatter from two gates that PASS. Its words: *"anyone opening that report concludes the
+Chartkeeper is broken."* **Rule 24 stands on him opening that file and believing it.**
+
+**ROWS SKIPPED:** ranks 1–2 (`T-017`) were HELD by an `IN-HAND` claim 49 minutes old — and
+unclosable anyway, their trial having no verdict yet.
+
+**TWO SESSIONS WERE LIVE ON THIS TREE THROUGHOUT AND IT SHOWED TWICE.** A peer's git operation
+discarded my unstaged `CHART.md` re-rank mid-watch (the same failure the entry above this one
+records), and four files I never touched — `stray_probes.mjs`, `chart_sweep_conserves_check.mjs`,
+`do_now_check.mjs`, `stray_probe_reaper_check.mjs` — were mid-edit by a peer at commit time. **Every
+stage was an explicit path list and the staged diff was read before each commit**; nothing of
+theirs was swept in, and `package.json` was re-read immediately before staging, which is the exact
+guard `_ceiling_raise_2026_09_03n` was written to demand.
+
+**Browsers:** this watch launched **none** — COSMETIC needs no voyage. `stray_probe_check` reports
+SKIP with 14 debug-port browsers up, all belonging to the live `T-017` trial, which has a live
+launcher. Nothing of mine to kill.
+
+**No lesson written today** — `LESSONS.md` already carries one for 2026-09-03 and `add_lesson.mjs`
+refuses a second by design.

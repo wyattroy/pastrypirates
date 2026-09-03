@@ -171,10 +171,33 @@ function missingHandles(inChart, inLog, corpus) {
    *     naming a task. Encoded because the convention already exists in three gates. */
   const renumberedAway = new Set(
     [...corpus.matchAll(/RENUMBERED\s+`?(T-\d{3})`?\s*(?:→|->)/g)].map((m) => m[1]));
+
+  /* (c) ⛔ AN ID MINTED AND REVERTED IS NOT A LOST ROW EITHER — the same shape as (a), and the third
+   *     face of the one sentence this function turns on: **prose ABOUT a handle is not evidence that
+   *     handle ever owned a row.**
+   *
+   *     Added 2026-09-03 after this gate failed the whole shared branch for hours. A watch's write
+   *     went wrong, allocated `T-233`/`T-234`, and was reverted WITH the ids — then wrote the
+   *     incident up on the Chart, honestly, naming them. The write-up was the only trace either id
+   *     ever had, and this check read that trace as *"two rows existed and have vanished"*. **The
+   *     record was punished for being honest about itself**, which is word for word the fault (a)
+   *     exists to prevent, arriving through a door (a) does not cover.
+   *
+   *     It is a declaration, not a keyword sweep: the LINE must say out loud that the id was
+   *     spurious, reverted, or never written. A row cannot become exempt by accident, and a real
+   *     lost row cannot hide here unless somebody writes a false sentence about it — at which point
+   *     the record is lying and no structural check can help. */
+  const declaredNeverReal = new Set();
+  for (const line of corpus.split("\n")) {
+    if (!/\b(spurious|reverted|never (?:existed|written|owned|allocated))\b/i.test(line)) continue;
+    for (const m of line.matchAll(/T-\d{3}/g)) declaredNeverReal.add(m[0]);
+  }
+
   const out = [];
   for (const h of seen) {
     if (owned.has(h)) continue;
     if (renumberedAway.has(h)) continue;
+    if (declaredNeverReal.has(h)) continue;
     if (/^T-8\d\d$/.test(h)) continue;
     out.push(h);
   }

@@ -57,5 +57,10 @@ export function killPid(pid) {
     if (isWin) execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { stdio: "ignore" });
     else process.kill(pid, "SIGKILL");
   } catch { /* already gone, or not ours to kill — verified below either way */ }
-  try { process.kill(pid, 0); return false; } catch { return true; }
+  /* ⛔ A BARE catch HERE COUNTS SOMEBODY ELSE'S BROWSER AS KILLED. `process.kill(pid, 0)` throws two
+     different things and they mean opposite facts: ESRCH is "the process is gone" (we killed it),
+     EPERM is "it is very much alive, it just is not ours to touch". Treating both as success made
+     the reaper report kills it had not made — CEO 182. Only ESRCH is a death. */
+  try { process.kill(pid, 0); return false; }
+  catch (e) { return String(e?.code ?? "") !== "EPERM"; }
 }
