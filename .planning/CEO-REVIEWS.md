@@ -9231,6 +9231,9 @@ own — CEO 132 below is the review of them.
 
 ## CEO Review 132 — `T-103`, the fixes for review 131, commit `2703d0b4` — **YES**
 
+*The Chart row this closes, named in full so the close gate can trace it:*
+**⚑⚑ DRAG TO REPRIORITISE THE CHART, IN THE GLASS — he wrote "DO NOW" on this himself.**
+
 *Watch 2026-09-03T01:10Z, Wy-Blade. Fresh context, and pointed deliberately at the watch marking its
 own homework a second time. Same ask, verbatim: **"DO NOW: build a way for me to drag to
 reprioritize the chart, in The Glass."***
