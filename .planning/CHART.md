@@ -447,6 +447,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       file, and inventing a fix underneath it at 7am is how two sessions produce three bugs. Filed
       with the evidence so whoever holds that file can act on it.
       **Sizing: SMALL for the restore (done). The sweep fix is theirs.**
+- [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
+      ⟨`T-138`⟩
+      His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
+      before it was put to him, and still true: this game has NO stats or admin page at all** —
+      `stats.html` and `lab.html` do not exist at the repo root.
+      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
+      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
+      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
+      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
+      only surface.** Removing it would have dropped all four off the page he reads, silently, with
+      every gate still green. Its own finding, handed over rather than shipped past.
+      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
+      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+- [ ] Your ruling: stop `SCHEDULED` hiding your ideas. **His ruling, not yet built.**
+      ⟨`T-139`⟩
+      Measured with the page's own logic when it was put to him: **13 of his 15 ideas were hidden
+      from the Glass, 9 of them by the word `SCHEDULED`**, which the code treated as identical to
+      SHIPPED and CLOSED — against the Charter's own words, *"Every idea gets a visible fate
+      (shipped / scheduled / parked-with-a-reason)"*. A fate is supposed to be VISIBLE; `SCHEDULED`
+      was being used to make one disappear.
+      ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
+      that was its only surface is deleted.
+      **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
@@ -561,8 +584,6 @@ carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
 | item | HIS RULING | now |
 |---|---|---|
 | <!--qid:admin-console-where--> **Your player-count console — where should it live?** You asked for *"a firebase admin console so I can see how many people are playing"*. **Measured first: the current game has NO stats or admin page at all** — `stats.html` and `lab.html` do not exist at the repo root; the only one in the repo is `classic/stats.html`, inside the frozen v1. So this is a new surface however it is built, and where it goes is yours. | put it at /stats.html behind a simple curtain and block it from robots.txt | |
-| Recipe pictures: convert PNG → WebP (21 pastry images, 1.71MB → 1.18MB, no visible change) | **"Do it; but I am surprised that they are already 'too small'— what is the maximum size they are displayed at?"** — ruled on the Glass 2026-09-02T00:58:35.117Z | |
-| May a watch publish to staging on its own? The tree is green, trial-covered and every screen judged, and the one command that puts it on `staging.playpastrypirates.com` is the one thing an unattended watch is not allowed to run — three forms all answered "This command requires approval." | **YES** — ruled on the Glass 2026-09-02T04:03:36.066Z, no note attached | |
 | Do you want `SCHEDULED` to stop hiding your ideas? Measured with the page's own logic: 13 of your 15 ideas are hidden from the Glass, 9 of them by the word `SCHEDULED` — which the code treats as identical to SHIPPED and CLOSED, against the Charter's own words: "Every idea gets a visible fate (shipped / scheduled / parked-with-reason)." | **"yes"** — ruled on the Glass 2026-09-02T12:28:02.757Z, no note attached | |
 
 ## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
