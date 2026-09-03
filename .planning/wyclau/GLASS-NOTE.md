@@ -124,6 +124,31 @@ should quietly renumber this** — it wants a session that can work out which re
 appended and say so. Flagged, not fixed, because guessing at it would put a second false statement
 in an append-only record.
 
+## 2g. The pulse the 19:25Z watch could not send — `T-102` is CLOSED
+
+> watch 2026-09-03T19:25Z: took `T-102`, his ruling **"yes"** on *"Google can index your working
+> files right now."* **He was right about the thirteen and one detail of it was wrong, and both are
+> now measured rather than argued.** Thirteen dev pages really were live on the domain with nothing
+> stopping a crawler — five art-review galleries, seven sketch mockups and the battle simulator —
+> and every one now tells Google to stay out. The nineteen `.planning` files in his note were never
+> exposed at all: GitHub hides any folder starting with a dot, verified by asking the live site
+> (`/art-review/gallery.html` → 200, `/.planning/playtest-checklist.html` → 404). CEO 183:
+> **PARTIAL**, and its main finding was worth the round — see below. Closed through the gate,
+> commits `8e6d4973` and `3ac55cc9`.
+
+**THE PART HE MIGHT WANT TO KNOW, in one line:** *the folders he named held far more than the
+thirteen pages — `scripts/` alone serves 376 files that have no way to carry a "stay out" tag — and
+the first pass missed all of them.* A picture or a script cannot hold the tag, so those needed the
+site-wide rulebook instead; four folders are now fenced there, while the game's own art and code are
+deliberately left open, because a search engine blocked from those cannot see the game it is ranking.
+
+⚠ **AND ONE HONEST ADMISSION HE SHOULD SEE, because it touches the two-sessions rule he cares
+about.** This watch's first commit accidentally carried a *different* session's half-finished change
+to `package.json`, because `git add <that file>` stages the file as it stands at that instant — not
+the edit you made to it. For about thirty seconds the branch would have failed on a fresh checkout.
+It healed itself when the other session committed, and nobody was affected. **The reusable rule, now
+written into `package.json`: re-read a shared file immediately before you stage it.**
+
 ## 3. What a later watch should NOT re-do
 
 - **Do not re-ask him the analytics question.** He answered it (`qid:t206-ga-turn-on`), the answer

@@ -5,43 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T19:07:04.377Z	self-publish check
+2026-09-03T19:51:26.280Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-```
-(no claim — the 18:41Z Blade watch released T-216 at 2026-09-03T19:0xZ)
-
-T-216 is OPEN and UNCLAIMED, deliberately, for the SECOND time. It is not blocked and it is not a
-stall: the forecast sentence is fixed and gated, and the remainder is named precisely.
-
-WHAT THE NEXT WATCH TAKES, and it is narrow:
-  1. Re-check the RIGHT rows in the audit table (.planning/CTO-LEDGER.md, this watch's entry)
-     against the WRITE-SITES of the state each claim reads — never against the comparator or the
-     comment alone. That method rule was earned this watch by getting one wrong exactly that way.
-  2. His ruling on `qid:t216-baker-tiebreak` (CHART.md → BLOCKED ON WYATT) decides whether the page
-     or the engine moves on Best Baker's third tiebreak. Do not pick it yourself.
-
-Then close INBOX-20260902T225008Z through scripts/wyclau/close_item.mjs. Do not tick by hand.
-
-⛔ NOT MINE: the Blade interactive session shipped his DO NOW move-to-top button in 6f526772 and had
-a ten-leg sea trial at sea at 18:45Z. Its browsers are not yours to kill.
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
 ```
 {
   "what": "sea trial, 10 legs",
   "startedAt": "2026-09-03T18:45:50.754Z",
-  "updatedAt": "2026-09-03T19:04:21.063Z",
-  "progress": "2/10 legs",
+  "updatedAt": "2026-09-03T19:52:24.373Z",
+  "progress": "8/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T225801Z.out/.err, kit: readable)
 2026-09-02T23:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T233801Z.out/.err, kit: readable)
 2026-09-03T00:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T000801Z.out/.err, kit: readable)
 2026-09-03T00:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T003801Z.out/.err, kit: readable)
@@ -81,4 +63,5 @@ a ten-leg sea trial at sea at 18:45Z. Its browsers are not yours to kill.
 2026-09-03T17:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T173801Z.out/.err, kit: readable)
 2026-09-03T18:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T180801Z.out/.err, kit: readable)
 2026-09-03T18:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T183801Z.out/.err, kit: readable)
+2026-09-03T19:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T191801Z.out/.err, kit: readable)
 ```

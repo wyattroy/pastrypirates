@@ -13780,7 +13780,14 @@ live one."* It also found CEO 135's own findings 1 and 5 (no commit; untracked s
 
 ---
 
-## CEO 183 — watch 2026-09-03T19:25Z, Wy-Blade, `T-102` — **PARTIAL**
+## CEO Review 183 — watch 2026-09-03T19:25Z, Wy-Blade, `T-102` — **PARTIAL**
+
+> **THE HEADING SAYS "CEO Review", NOT "CEO", AND THAT IS NOT COSMETIC.** `close_item.mjs` greps for
+> the words *"CEO Review <n>"*, so a verdict filed as `## CEO 183` is a verdict the close gate
+> cannot see — it refuses with *"CEO Review 183 is not in CEO-REVIEWS.md"* while the review sits
+> in the file, three lines above. **`## CEO 182` directly above this one is filed that way**, and so
+> are the 180s cited elsewhere. Filing it correctly here rather than loosening the gate: the gate is
+> right that a verdict must be findable, and the fix is to write the heading it looks for.
 
 **ASK, VERBATIM:** his ruling **"yes"** on *"⚑ Google can index your working files right now, and
 your note assumed it could not. You listed `art-review/`, `scripts/` and `.planning/` as 'correctly

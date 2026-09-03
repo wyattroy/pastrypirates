@@ -9163,3 +9163,96 @@ to record arrival. Taste is his; a gate must not pick.
 right for the build and useless to me, so I asked about mine specifically — **0 chrome processes
 carrying my port (9471) or my profile**. The 9 that remain belong to that live trial and are not
 mine to kill.
+
+- 2026-09-03T19:55:37Z · close_item: "Google can index your working files right now" · CEO 183 · no game diff — no game code is right: the ask is what this site tells a crawler -- robots.txt, thirteen dev/review pages and a new gate; src/ and index.html untouched (commits 8e6d4973, 3ac55cc9) · no stated solution
+
+## WATCH 2026-09-03T19:25Z — Wy-Blade (Bell) — `T-102`, his ruling "yes" on the crawlable working files — **CLOSED**
+
+**Situation at the start.** Last progress: the 18:41Z watch closed out and released `T-216`
+deliberately. Blocked on Wyatt: four questions on his Your Call card. **A detached ten-leg sea trial
+was live the whole time** (`LONG-RUN`, started 18:45:50Z, 5/10 legs, heartbeat 30s fresh, 24 browsers
+up) — **not mine, not touched, and its browsers not killed.** This watch took the top-ranked
+unclaimed Chart row, which was `T-102`.
+
+⚠ **NO ARTIFACT TOOL IN THIS SESSION** — measured, not assumed (`ToolSearch` returned `SendMessage`
+only). So the Glass could not be read, harvested or republished, and `mark_glass_published.mjs` was
+correctly NOT stamped. What this watch wanted shown is in `GLASS-NOTE.md` §2g. `ListAgents` showed no
+Glass session to ask.
+
+**HIS RULING WAS RIGHT ON THE COUNT AND WRONG ON THE PARENTHETICAL, AND THE THING THAT SEPARATED
+THEM WAS ASKING THE LIVE DOMAIN RATHER THAN THE REPO.** `/art-review/gallery.html` → **200**;
+`/.planning/playtest-checklist.html` → **404**. This repo has no `.nojekyll` and no `_config.yml`, so
+Pages runs Jekyll, which drops any path segment starting with `.` or `_`. So *"nineteen files under
+`.planning/`"* were never exposed, and *"thirteen pages"* was exact. **The CEO independently ruled
+out the rival explanation** — that the file simply is not on `main` — by finding it at `98961df7`,
+2026-08-25. That check is the reason this correction can be trusted.
+
+**RED 15 of 22, not 13: the set had grown while the ruling sat unactioned.** `scratchpad/` did not
+exist when he ruled and carries two more pages today. That is the argument for the gate deriving its
+sets rather than holding a list, and it made itself.
+
+**THE FIX SPLITS BY TOOL, and which tool applies is not a style choice.** A `Disallow` stops a
+crawler FETCHING, so it can never read a `noindex` and never drops a URL it already holds. Thirteen
+already-live pages therefore got the page-level `noindex` and were deliberately kept OUT of
+`robots.txt`; `/scratchpad/`, never reachable, was fenced there instead.
+
+**AFTER CEO 183 (PARTIAL) — THE FINDING THAT WAS WORTH THE ROUND.** His ask named `art-review/`,
+`scripts/` and `.planning/`, and the first pass fixed only the `.html` in them. **`scripts/` serves
+376 non-HTML files, `art-review/` 117, `docs/` 25, `notes/` 2** — none of which can carry a meta tag,
+and Pages cannot send an `X-Robots-Tag`, so `robots.txt` was the only tool and it was not used.
+**This watch's own prediction file had said exactly that and it was dropped without a word.** Four
+folders are now fenced, with per-page `Allow:` overrides so the thirteen stay fetchable long enough
+to be told to leave. `assets/`, `src/`, `sfx/` and `classic/` are deliberately open: a crawler
+blocked from those cannot render the game it is ranking.
+
+**⛔ THE GATE DISARMED ITSELF THE MOMENT THE FENCES WENT IN, AND ONLY A RED-PROOF SAW IT.** With
+`/art-review/` fenced and per-page `Allow:` overrides added, the gate's Disallow-only reader treated
+all thirteen already-live pages as fenced and **stopped requiring the noindex that is their entire
+purpose** — while still printing PASS. `--red=nometa` reporting *"changed nothing"* is the only
+reason anybody noticed. Now implements longest-match-wins (RFC 9309). **A gate that passes for a new
+reason is not a gate that passed** — and this is the second time in two days a gate on this branch
+has been green while measuring the wrong thing.
+
+**FIVE `--red=` MODES ARE BUILT IN**, because CEO 183 could not audit the first version at all:
+breaking it required editing a page and it was read-only. `nometa`, `bodymeta`, `publicnoindex`,
+`unfenced`, `newfolder` all trip, and **a mode that changes nothing exits 2 rather than passing.**
+
+**⛔ MY OWN FAULT, AND IT IS THE MOST REUSABLE THING IN THIS ENTRY.** Commit `8e6d4973` set
+`gates.total` to **128**, not the 127 I wrote. Another session was mid-edit in `package.json`;
+`git add package.json` staged it **as it then stood**, sweeping in that session's
+`stray_probe_reaper_check.mjs` line while that gate's file was still untracked. For ~30 seconds the
+branch head named a gate a fresh clone would not have, and `npm test` would have died at gate 2. It
+self-healed when `df00bfee` landed. **THE LESSON IS SHARPER THAN "mind `git add -A`": THIS WAS AN
+EXPLICIT PATH.** `git add <file>` stages the file as it stands NOW, not the change you made to it.
+**CLAUDE.md §3's two-sessions rule does not say "re-read a shared file before you stage it". It
+should.**
+
+**A SECOND PROCESS FAULT, FOUND BY THE CLOSE GATE REFUSING.** `close_item.mjs` greps for the words
+*"CEO Review <n>"*, so this verdict filed as `## CEO 183` was invisible to it — it refused while the
+review sat three lines above in the same file. **`## CEO 182`, directly above, is filed that way
+too**, which is one mechanical reason a verdict can exist and a close can still be impossible. Fixed
+here by writing the heading the gate looks for, not by loosening the gate, and noted in the review.
+
+**GEAR LOWERED ON THE RECORD, FULL → COSMETIC**, twice, reason typed both times: no game code
+changed, nothing here is fetched or executed by the game, and a FULL run would have collided with the
+live ten-leg trial. Reports: `SEA-TRIAL-2026-09-03T1935Z-Wy-Blade-T102.md` and `...T1958Z-...-T102b.md`,
+their own files, never the shared path.
+
+**VERIFIED BY WHAT THE BROWSER PARSED, NOT BY WHAT THE FILE HOLDS** — a meta stranded outside
+`<head>` is still in the file and ignored by Google. All three page families returned
+`document.head` → `"noindex, nofollow"`; `.planning/posed/t102-{gallery,sketch,battlesim}.png` show
+them rendering, the simulator still running its 20,000 battles. `npm test` green throughout.
+
+⚠ **FOUR TOMBSTONED SCRATCH FILES REMAIN ON DISK, UNTRACKED** — `scripts/_t102_noindex.mjs` and
+`scripts/qa/_t102_{shot,headpos,expose}.mjs`. **This session's sandbox refuses EVERY file deletion**
+(`rm`, `git clean`, PowerShell `Remove-Item`, absolute and relative alike), so they are emptied to
+comments naming each other. One of them was carrying a false line (*"removed before the commit"*)
+and another a false claim about gate coverage; both are corrected in place rather than dropped. **A
+session with delete rights should remove all four.**
+
+**Browsers:** this watch launched exactly one, for the posed shots, and killed it in a `finally`
+(*"browser killed, server closed"* on stdout). The 24 that `stray_probe_check` sees belong to the
+live trial and are not mine.
+
+**No lesson written today** — `LESSONS.md` already carries one for 2026-09-03 and `add_lesson.mjs`
+refuses a second.
