@@ -2180,3 +2180,25 @@ status: STANDING — never closed, applied every time he uses the word.
 > Def to move doesn’t work on mobile. New idea: add a “move to top” button to the right of each item in the list. I click it once, it puts it at the top of the list.
 solution: none stated
 status: OPEN — PINNED by him on the Glass; take this before anything ranked
+
+## INBOX-20260903T2010Z — every Chart row must be moveable; he chose: give every row a real tag
+> "it looks like not all the Glass Chart rows have buttons next to them that allow them to be moved
+> up; but they all need to be moveable. can you explain why, and design an elegant solution?"
+>
+> His pick from the numbered options (option 1, the recommendation):
+> "Give every row a real tag — a pass assigns a fresh ⟨T-nnn⟩ to every untagged row and to the
+> second carrier of any shared tag. Every row then drags, taps, AND can be written back to the Chart
+> file. Deletes the special case instead of teaching the page to cope with it."
+solution: HIS CHOICE, VERBATIM ABOVE. Assign a handle to every open row that lacks one, and split
+  every shared handle so no two open rows carry the same one. Then the page's own rule -- a row is
+  draggable when it can be named -- makes every row draggable without the page changing at all.
+  MEASURED CAUSE, 40 of 67 rows had no button: 6 checklist rows with no ⟨T-nnn⟩ at all; 10 rows
+  whose tag is shared with another open row (T-017, T-102, T-207, T-216, T-206, each x2), which the
+  page deliberately refuses to drag because a saved order could not say WHICH row moved; and every
+  IDEA INBOX row, which glass.mjs:673 hands `handle: null` unconditionally.
+  THE UNDERLYING FAULT IN ONE SENTENCE: the order is saved as a list of TASK TAGS but the thing he
+  orders is ROWS, and there are more rows than tags.
+  ⚠ THE RISK HE ACCEPTED, to be swept before applying: splitting a duplicate changes one row's tag,
+  so a reference to it elsewhere in the record can go stale. Handles are allocated once and never
+  reused (chart_sweep_conserves_check), so the split must take a FRESH number, never recycle one.
+status: OPEN — taken now.
