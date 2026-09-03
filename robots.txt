@@ -5,12 +5,25 @@
 # is kept out of the index below. The previous game is kept at /classic so old
 # bookmarks and saved voyages keep working; it is noindex,follow there so it cannot compete with
 # the front door for the same search results.
+#
+# WHICH TOOL FOR WHICH PAGE — the distinction T-102 turned on, written down here rather than
+# re-derived. A Disallow stops a crawler FETCHING a page; it does not remove a URL Google
+# already holds, because the crawler can never come back and read a noindex. So:
+#   • a page that has ALREADY BEEN LIVE gets `<meta name="robots" content="noindex, nofollow">`
+#     in the page itself, and is deliberately NOT listed below — the crawler has to be let in
+#     to be told to leave. That is the five art-review galleries, the seven notes/sketches
+#     mockups and scripts/battle_sim.html, all thirteen fixed on 2026-09-03.
+#   • a path that was NEVER reachable is fenced here, where it costs nothing. /scratchpad/ is
+#     that case: it exists only on a working branch and answers 404 on the domain today.
+# `scripts/qa/crawl_intent_check.mjs` derives both sets and fails the build on a served page
+# that states neither, so a page added tomorrow cannot slip through the way these thirteen did.
 User-agent: *
 Allow: /
 Disallow: /lab.html
 Disallow: /stats.html
 Disallow: /classic/lab.html
 Disallow: /classic/stats.html
+Disallow: /scratchpad/
 Disallow: /4/
 
 Sitemap: https://playpastrypirates.com/sitemap.xml

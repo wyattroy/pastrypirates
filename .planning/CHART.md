@@ -91,53 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
-      ⟨`T-216`⟩
-      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
-      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
-      its own status line says what it is waiting for: *"the answer that unblocks
-      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
-      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
-      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
-      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
-      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
-      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
-      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
-      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
-      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
-      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
-      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
-      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
-      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
-      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
-      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
-      that code still states the OLD rule in full**, so reading the code's own commentary would have
-      confirmed the error.
-      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
-      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
-      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
-      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
-      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
-      found the first version would have passed green.
-      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
-      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
-      found them right. At that rate roughly three more wrong statements are still live. Closing now
-      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
-      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
-      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
-      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
-      don't end on one", crate prices as an island empties — each against the code that implements it,
-      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
-      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
-      cannot disagree.
-      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
-      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
-      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
-      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
-      finding recurring one item later** (*"a claim in the record that the record itself
-      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
-      the reusable half is narrower than "don't lie": **a note about work still to do must never live
-      inside a row you are closing** — the close is exactly what makes it unreadable.
 - [ ] Your ruling: ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-102`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -228,11 +181,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -263,6 +211,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
@@ -570,24 +522,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
 
-- [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
-      ⟨`T-216`⟩
-      His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
-      me options to choose number or letter them"*. It is written at
-      `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
-      else** — grep for "number or letter" across `.claude/` returns nothing. **CEO 172's finding:**
-      the CHARTER is one hop off the path of every session that needs it — `.claude/CLAUDE.md` is
-      loaded into every session, and the Door does not name the CHARTER at all.
-      **THE JOB:** copy the rule into `.claude/CLAUDE.md` §1's *"Ask with the question UI"* block and
-      into `.claude/memory/DECISIONS.md`, then point
-      `scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the new home.
-      ⚠ **WHY IT IS A ROW AND NOT ALREADY DONE:** the 15:13Z watch's Edit tool was **refused on both
-      files** (measured, twice). **That fence is on one agent's tool, not on the files** — a session
-      edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day
-      (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
-      precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
-      rather than writing it somewhere else again.**
-
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -614,6 +548,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
+
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -626,6 +561,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
+
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
@@ -689,7 +625,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       correct and `vendor_check.mjs` reports it AHEAD, so this is the back-port pass working as
       designed rather than drift — **but the kit is the copy that leaves this machine**, and it
       still shows his old labels. Take it with the other seven files that copy is behind on.
-
 - [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
       ⟨`T-212`⟩
   KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
@@ -699,6 +634,53 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
   it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
   to bump. **Sizing: small, instrument only, no game code.**
+- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
+      ⟨`T-216`⟩
+      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
+      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
+      its own status line says what it is waiting for: *"the answer that unblocks
+      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
+      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
+      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
+      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
+      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
+      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
+      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
+      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
+      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
+      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
+      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
+      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
+      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
+      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
+      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
+      that code still states the OLD rule in full**, so reading the code's own commentary would have
+      confirmed the error.
+      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
+      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
+      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
+      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
+      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
+      found the first version would have passed green.
+      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
+      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
+      found them right. At that rate roughly three more wrong statements are still live. Closing now
+      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
+      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
+      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
+      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
+      don't end on one", crate prices as an island empties — each against the code that implements it,
+      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
+      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
+      cannot disagree.
+      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
+      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
+      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
+      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
+      finding recurring one item later** (*"a claim in the record that the record itself
+      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
+      the reusable half is narrower than "don't lie": **a note about work still to do must never live
+      inside a row you are closing** — the close is exactly what makes it unreadable.
 
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
@@ -873,6 +855,24 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
+- [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
+      ⟨`T-216`⟩
+      His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
+      me options to choose number or letter them"*. It is written at
+      `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
+      else** — grep for "number or letter" across `.claude/` returns nothing. **CEO 172's finding:**
+      the CHARTER is one hop off the path of every session that needs it — `.claude/CLAUDE.md` is
+      loaded into every session, and the Door does not name the CHARTER at all.
+      **THE JOB:** copy the rule into `.claude/CLAUDE.md` §1's *"Ask with the question UI"* block and
+      into `.claude/memory/DECISIONS.md`, then point
+      `scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the new home.
+      ⚠ **WHY IT IS A ROW AND NOT ALREADY DONE:** the 15:13Z watch's Edit tool was **refused on both
+      files** (measured, twice). **That fence is on one agent's tool, not on the files** — a session
+      edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day
+      (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
+      precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
+      rather than writing it somewhere else again.**
 
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
