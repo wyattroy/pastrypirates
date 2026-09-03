@@ -1,5 +1,36 @@
 # CEO reviews — the standing record
 
+## CEO Review 169 — 2026-09-03, Wy-Blade — `T-211`: the call circle's captain is not on screen — **PARTIAL**
+
+> *Spawned fresh by watch d4 after the work, read-only, no browser and no server of its own. It verified every number itself, opened both screenshots, read the sea-trial report, and checked the peer's uncommitted work before accepting the watch's account of the `npm test` failures.*
+
+**ONE SENTENCE HE SHOULD READ FIRST, in its words** — *"The buttons now sit beside the right boats and the two pictures prove it — but the sea trial that was supposed to check the rest of the game was never actually sailed: it replayed a 90-minute run from before the fix and stamped it FAILED, so that debt is still open and the Chart still tells the next watch the opposite of what was learned."*
+
+**NET: PARTIAL.** *"The thing Wyatt asked for happened on this road, it was proven the hard way (wrong fix admitted, red proof, matched pair), and the honest limits are named. It falls short of PASS on the record, not the code."*
+
+**WHAT IT CONFIRMED, having checked it rather than taken the watch's word:**
+- Both screenshots opened and compared. BEFORE: *"two white call circles stacked against the right edge, both clipped by the screen edge, and **there is no boat anywhere near them**."* AFTER: *"'Call Captain 1' sits immediately left of the teal-sailed hull and 'Call Captain 2' immediately right of the green-sailed hull."* Same seeded game — it verified the crew panel is identical in both.
+- **It found the player's road independently**, which the row had marked UNPROVEN: `src/ui/flow.js:2538` asks "Attack whom?" and its options include a `← Back` carrying the player's own seat, so open-Attack → Back → sail → open-Attack again is the same sentence about the same seats from a different square. *"That is why the watch's first fix (adding the seat list) made nothing better and the square did."*
+- The `npm test` failures are genuinely a peer's uncommitted `T-210` work: *"The watch touched neither file. **Not a dodge.**"*
+- Both seeded fixtures really are seeded, and the pair really is the same board.
+
+**THE THREE FAULTS IT FOUND, all acted on before this was written:**
+1. ⛔ **"The sea trial is in flight" was FALSE, and this is the biggest thing in this review.** The first detached trial reported **FAILED — 0 of 10 sailed, 10 NOT RUN** in one minute: the trial keys "have I tested this build?" on `PP4_STAMP`, the fix did not bump it, so every leg RESUMED a run finished **89 minutes before the fix existed**. *"The trial CEO 167 said was owed is still owed, and there is now a report on disk that looks like it was paid."* **FIXED:** stamp bumped to `2026.09.03.2`, trial re-started — run `2026-09-03T1248Z-Wy-Blade`, verified IN PROGRESS on the new stamp. **The instrument fault itself is filed as `T-212`.**
+2. **"Two findings filed on the Chart" was FALSE** — they lived only in the commit message, and the `T-211` row still said UNPROVEN and quoted 34 of 42, *"the opposite of what this watch proved."* **FIXED:** the row is corrected and the findings are rows `T-213` (the warm-up) and `T-214` (the top board row).
+3. **The prediction file's ACT TWO was empty.** **FIXED:** written, including the falsifier that fired and the scoreboard of what was wrong.
+
+**IS CEO 167'S FAULT FIXED OR RECURRING?**
+- *"A gate whose fixture is not shaped like the real subject"* — **fixed**, both the gate and the shot script pin the board.
+- *"The picture nobody looked at"* — **fixed**, matched pair.
+- *"A falsifier that fired and was not disclosed"* — **fixed in substance, weak in the record** at review time; the record is now written.
+- *"The trial nobody sailed"* — **RECURRED IN NEW CLOTHING, and worse.** *"Last time it was skipped and labelled a skip. This time it was started, exited in 60 seconds having sailed nothing, and was reported as in flight. That is worse than the honest skip, because it leaves an artifact."*
+
+**ITS ONE CAVEAT ON THE NUMBERS, kept because it is fair:** *"the 'before 18 / first-fix 21 / red-proof 11' spread on a supposedly pinned board shows the gate has ±several rows of run-to-run wobble. The direction (0 versus 11–21) is decisive; the individual numbers are not quotable."*
+
+**Bulk reading:** *"I found none"*, with the stated limit that it cannot audit a transcript from the repo.
+
+---
+
 ## CEO Review 168 — 2026-09-03, Wy-Blade — `T-210`: the publisher must have looked at his page — **PARTIAL**
 
 > *I claimed 168 after re-checking immediately before writing: the file's highest was still **167** both at the start and at the end of this review, so I did not move. Read-only on the repo — `git status` is byte-identical to how I found it; every experiment ran in my own temp tree against copies. No browser, no server; `stray_probe_check` PASS. `npm test` run once, **unpiped, exit 0**.*

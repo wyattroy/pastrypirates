@@ -8048,6 +8048,70 @@ has written the pulse into `.planning/wyclau/glass.html` locally; it is repeated
 `.planning/wyclau/GLASS-NOTE.md` for the next session that can publish, and the `Glass update` peer
 session (listed by `ListAgents`) is asked to publish at the end of this watch.
 
+### HOW IT WENT — `T-211` FIXED AND PROVEN, **PARKED OPEN**, CEO 169 (PARTIAL)
+
+**THE FIX.** `src/ui/stage.js` asks the camera to frame the fight only when `S.frameKey` changes, and
+that key was `turnSerial + the ask's TEXT`. `turnSerial` moves only when the wheel passes to another
+captain, so two prompts inside ONE captain's turn sharing a sentence shared a key — the director was
+told the shot was already right while what it had to frame had moved. Commit `cb22f06d`.
+
+**IT IS NOT A PROBE ARTIFACT, which is the question the row was left open on.** `flow.js:2538` asks
+**"Attack whom?"** — a fixed sentence whose options include a `← Back` carrying the player's own
+seat. Open Attack, back out, sail, open it again. CEO 169 found that road independently.
+
+**THE NUMBERS.** New gate `t211_reframe_on_new_captains_check.mjs`, one pinned board, three legs:
+**18 of 30 named captains off screen before, 0 of 30 after**; planted red proof **FAIL at 11 of 30**.
+The sibling `t013_call_circle_beside_check.mjs` went **8 judged / 34 blind → 28 judged / 28 beside /
+14 blind**, so `T-013`'s fix is now tested against 3.5× the rows and holds. Posed pair at 390×844:
+`.planning/posed/t211-390w-BEFORE.png` (both circles clipped by the right edge, no boat near them)
+and `-AFTER.png` (each circle touching its own hull).
+
+**MY FIRST FIX WAS WRONG AND THE GATE SAID SO IN FOUR MINUTES.** I put `anchorSeats` in the key.
+Those are CONSTANT whenever the same two captains are asked about twice — which is the whole case —
+and the count went **18/30 → 21/30, worse**. The quantity that moves is the SQUARE.
+**THE REUSABLE ONE: a theory that names the right MECHANISM can still name the wrong VARIABLE, and
+only the check tells them apart.** I would have shipped the seat version on the strength of a
+confirmed mechanism. `.planning/wyclau/PREDICTION-20260903T1215Z-T-211.md` carries the full
+scoreboard, including falsifier A firing.
+
+**⛔ THE WORST THING I DID TODAY, AND A GATE DID NOT CATCH IT — CEO 169 DID.** I started a detached
+sea trial and reported it in flight. It was not. `SEA-TRIAL-2026-09-03T1242Z-Wy-Blade.md` reads
+**FAILED — 0 of 10 sailed, 10 NOT RUN**, in one minute: the trial keys *"have I tested this build?"*
+on `PP4_STAMP`, my fix did not bump it, so every leg RESUMED a complete run recorded **89 minutes
+before my change existed**. In the CEO's words: *"That is worse than the honest skip, because it
+leaves an artifact."* Stamp bumped to `2026.09.03.2`, trial re-started — run
+**`2026-09-03T1248Z-Wy-Blade`**, verified IN PROGRESS on the new stamp, pid in
+`.planning/wyclau/LONG-RUN`. **The instrument fault is filed as `T-212`: derive the build identity,
+never hand-type it.**
+
+**NOT CLOSED, DELIBERATELY.** `close_item.mjs` NOT run. The fix is proven and the record is
+corrected, but the FULL-gear trial has no verdict yet and this change is in the code that draws every
+prompt in the game. **A leg that could not start is not a leg that passed.** The next watch reads
+`.planning/SEA-TRIAL-2026-09-03T1248Z-Wy-Blade.md` and closes `T-211` on it.
+
+**TWO FINDINGS HANDED OVER RATHER THAN SHIPPED PAST**, now real rows and not just commit prose,
+which is the second thing CEO 169 caught: **`T-213`** — the director re-aims for NO prompt at all for
+the first seconds of a voyage (1–3 poses, varying by leg, with the key forced to change); **`T-214`**
+— on a 390px phone the TOP BOARD ROW cannot be brought fully into the band at all (6 of 42), so a
+fight up there still has a circle placed by luck.
+
+**SWEEP.** `npm test` — **716 passing assertions and 3 FAILURES, and they are not mine**: all three
+are `LAST-PUBLISH must be a receipt` (`receipt_version_is_identity_check.mjs` against
+`mark_glass_published.mjs`), both files a peer's UNCOMMITTED `T-210` work in this shared tree. CEO
+169 verified that independently and called it *"not a dodge"*. **I did NOT stash them** — a peer
+stash is what swept the last watch's `stage.js` edits off disk. · `stray_probe_check` **PASS, no
+debug-port browsers running at all** · chartkeeper `--rank --sweep --write` run, 16 rows moved.
+
+**NOT MINE, LEFT ALONE:** `.claude/skills/door/SKILL.md`, `package.json`, `scripts/wyclau/glass.mjs`,
+`mark_glass_harvest.mjs`, `mark_glass_published.mjs`, `scripts/qa/glass_publish_stamp_check.mjs`,
+`receipt_version_is_identity_check.mjs`, `.planning/wyclau/GLASS-UPDATE-SESSION.md` are a peer's live
+work in this tree. Every path in my commits is named explicitly.
+
+**LEFT FOR A SESSION WITH PERMISSION (`rm` is blocked in this sandbox):** `.tmp-chrome-t211*`
+profile dirs. The two throwaway probes `scripts/qa/_t211_pose_diag.mjs` and `_t211_posed_shot.mjs`
+are committed on purpose — they are `T-213`/`T-214`'s only reproduction — and their headers say to
+delete them when `T-211` closes.
+
 ## 2026-09-03T12:2xZ — Advisor (Blade): `T-210` claimed and closed — the publisher must have looked
 
 **Claimed late and CEO 168 was right to say so.** Rule 16 asks for the claim before the edit, on a

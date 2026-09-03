@@ -140,15 +140,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **WHAT IS ALREADY KNOWN, so nobody re-derives it:** `src/ui/stage.js` asks the camera to frame the
   fight (`camFitSeats(anchorSeats)`) only when `S.frameKey` changes, and that key is
   `turnSerial + the ask's TEXT` — **it does not contain the seats the question is about**, although
-  `anchorSeats` is computed one line away and is already in the placement memo key. Two prompts about
-  different captains with the same sentence therefore share a frame. **UNPROVEN: whether that is the
-  live cause or an artifact of the probes, which re-pose the same sentence.** A watch taking this
-  writes the prediction first and settles that before changing anything.
-  **The instrument exists and is now deterministic:**
-  `node scripts/qa/t013_call_circle_beside_check.mjs --seed=20260903` — its UNANSWERABLE count is
-  exactly this row's population, and it was **34 of 42** the day this row was written.
-  **Sizing: small-to-medium. `src/ui/stage.js`, so FULL gear and a posed pair — and it owes `T-013`'s
-  deferred sea trial too, since it moves the same function.**
+  `anchorSeats` is computed one line away and is already in the placement memo key.
+  **⚑ SETTLED AND FIXED 2026-09-03T12:4xZ by watch d4 — commit `cb22f06d`, CEO 169 (PARTIAL). THE
+  TEXT ABOVE WAS RIGHT ABOUT THE MECHANISM AND WRONG ABOUT THE VARIABLE, AND THAT COST A ROUND.**
+  It is not the *seats* — those are CONSTANT whenever the same two captains are asked about twice,
+  which is the whole case. It is **WHERE THEY ARE**. The key now carries the LOGICAL square
+  (`players[i].pos`), not the rendered transform, so it is still during a glide and the "cannot
+  re-aim at every frame" property is preserved.
+  **NOT A PROBE ARTIFACT — that question is answered.** `src/ui/flow.js:2538` asks **"Attack whom?"**,
+  a fixed sentence whose options include a `← Back` carrying the player's own seat. Open Attack, back
+  out, sail, open it again: same turn, same sentence, boats elsewhere, no re-aim. Confirmed
+  independently by CEO 169.
+  **THE NUMBERS, one pinned board, three legs:** new gate
+  `node scripts/qa/t211_reframe_on_new_captains_check.mjs` — **18 of 30 named captains off screen
+  before, 0 of 30 after**; planted red proof (the clause removed again) **FAIL at 11 of 30**. The
+  sibling `t013_call_circle_beside_check.mjs` went from **8 judged / 34 blind** to **28 judged /
+  28 beside / 14 blind**, so `T-013`'s fix is now tested against 3.5× the rows and holds.
+  **Posed pair:** `.planning/posed/t211-390w-BEFORE.png` (both circles clipped by the right edge with
+  no boat near them) and `t211-390w-AFTER.png` (each circle touching its own hull), same seed.
+  ⛔ **STILL OPEN, AND THAT IS WHY THIS ROW IS NOT TICKED: the FULL-gear sea trial has no verdict.**
+  Run `2026-09-03T1248Z-Wy-Blade`, IN PROGRESS on build `2026.09.03.2`.
+  ⚠ **AND THE FIRST TRIAL THIS WATCH STARTED SAILED NOTHING WHILE LOOKING LIKE IT HAD.** Report
+  `SEA-TRIAL-2026-09-03T1242Z-Wy-Blade.md` reads **FAILED — 0 of 10 sailed, 10 NOT RUN**: the trial
+  keys "have I tested this build?" on `PP4_STAMP`, the fix did not bump it, so every leg RESUMED a
+  complete run recorded **89 minutes before the fix existed**. Caught by CEO 169, not by any gate.
+  The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
+  **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -280,11 +297,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
       ⟨`T-009`⟩
   `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
@@ -298,7 +310,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
-
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -306,8 +317,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
-
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -361,7 +371,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.2, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
@@ -370,7 +384,17 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
+
+- [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
+      ⟨`T-214`⟩
+  2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
+  named hull off screen, and every one of them was on board row 0 (row 1 too at 390×844). The
+  director tried and could not. **A fight in the top row therefore still has a call circle placed by
+  luck rather than beside its captain — which is Wyatt's `INBOX-20260901T1332Z` sentence surviving
+  `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
+  and below and says so in its header, so it cannot pass by hiding this.
+  **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
 
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
@@ -452,6 +476,27 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
 
+- [ ] **THE DIRECTOR RE-AIMS FOR NOTHING AT ALL FOR THE FIRST SECONDS OF A VOYAGE.** Measured
+      ⟨`T-213`⟩
+  2026-09-03 by watch d4 while fixing `T-211`, and handed over rather than fixed. With the frame key
+  FORCED to change every time — so nothing was memoised — the first **one to three** prompts after
+  the opening ceremony still left both named hulls off screen: **phone 4 poses, phone-short 2,
+  tablet 1**. Something ahead of the camera is holding it, and it is not the key.
+  **A player meets this as: the very first question of the voyage is asked about a boat you cannot
+  see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
+  is awake before judging, so this is invisible to that gate by design — the wait itself is the
+  measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
+
+- [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
+      ⟨`T-212`⟩
+  KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
+  code changed, `PP4_STAMP` did not, so `scripts/playtest_gate.mjs` resumed a run from 89 minutes
+  earlier and wrote **FAILED — 0 of 10 sailed** onto the new build in 60 seconds, with a report on
+  disk that looks exactly like a trial that was paid. **Rule 24 stands on opening that report.**
+  The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
+  it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
+  to bump. **Sizing: small, instrument only, no game code.**
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -481,7 +526,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.2, so its evidence no longer describes this game
 
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
@@ -506,7 +551,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.2, so its evidence no longer describes this game
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
   sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
@@ -588,7 +633,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.2, so its evidence no longer describes this game
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
   WebKit frame — mechanism unproven.** The residual of `T-005`, split off so a closed answer stops
