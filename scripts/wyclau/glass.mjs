@@ -67,7 +67,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
@@ -805,10 +805,32 @@ const rows = (list, empty, ordered = false) => list === null
    heartbeat of 2026-08-31 rebuilt on the page instead of in a Monitor. */
 let longRun = null;
 try {
+  /* ⛔ `--longrun-root=<dir>` — SO A GATE NEED NOT BORROW THE LIVE MARKER. Added 2026-09-03 (`T-131`).
+   *
+   * `glass_longrun_status_check` used to plant its four fixtures in the REAL
+   * `.planning/wyclau/LONG-RUN` and put the previous contents back afterwards. A detached sea trial
+   * writes that same file as it sails, so with a trial at sea the gate read the TRIAL's JSON where
+   * it expected its own fixture — three cases failed, and that is what a red `npm test` was tonight.
+   * Worse in principle: the restore writes back a snapshot taken BEFORE the trial's updates, so the
+   * suite could freeze a live trial's progress.
+   *
+   * MEASURED, and the first measurement was the WRONG QUANTITY. A checksum before and after came
+   * back identical — the restore works fine when nothing else is writing — which says nothing about
+   * the hazard. The right quantity is whether it WRITES AT ALL, because any write is a window:
+   * mtime moved 1788413868 → 1788413882 on an untouched marker. **A net-zero change is not the same
+   * as never touching it.**
+   *
+   * THIS IS `--consume-note`'S SHAPE AGAIN, and deliberately so: the generator resolves its own
+   * paths from ITS OWN file location, so a gate CANNOT sandbox it by changing directory. The
+   * override has to exist here or the destructive coupling cannot be broken at all. And it is a
+   * ROOT, not a file path, because `longRunStatus(dir)` derives the marker from a repo root — one
+   * definition of where that file lives, not two (rule 23). */
+  const lrRootArg = argv.find((a) => a.startsWith("--longrun-root="));
+  const LR_ROOT = lrRootArg ? resolve(lrRootArg.slice(15)) : ROOT;
   const lr = await import("./longrun_status.mjs");
-  const st = lr.longRunStatus(ROOT);
+  const st = lr.longRunStatus(LR_ROOT);
   if (st.code === lr.PROGRESSING) {
-    const m = JSON.parse(readFileSync(join(WY, "LONG-RUN"), "utf8"));
+    const m = JSON.parse(readFileSync(join(LR_ROOT, ".planning", "wyclau", "LONG-RUN"), "utf8"));
     longRun = {
       what: m.what ?? "a long run",
       progress: m.progress ?? "",

@@ -24,15 +24,16 @@
  */
 "use strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, rmSync, existsSync, mkdtempSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(fileURLToPath(import.meta.url), "..", "..", "..");
 const GLASS = join(ROOT, "scripts", "wyclau", "glass.mjs");
 /* ⚠⚠ THIS GATE WRITES THE REAL, LIVE `LONG-RUN` MARKER, AND A SAILING SEA TRIAL WRITES THE SAME
- * FILE. MEASURED 2026-09-03T04:0xZ, filed as `T-131`. NOT YET FIXED — read this before you run
- * `npm test` next to a trial.
+ * FILE. MEASURED 2026-09-03T04:0xZ, filed as `T-131`. ✅ **FIXED 2026-09-03T05:4xZ — kept as the
+ * record of why this gate no longer goes near the real file.**
  *
  * WHAT HAPPENS. The gate plants four fixtures in this file (`:55, :92, :100, :109`) and puts the
  * previous contents back at `:116`. With a trial in flight both of them are writing it, so:
@@ -52,9 +53,24 @@ const GLASS = join(ROOT, "scripts", "wyclau", "glass.mjs");
  * That was written about `GLASS-NOTE.md` and the fix there was to make the destructive half OPT-IN
  * (`glass.mjs --consume-note`). **This is the same fault in the same shape, one file over.**
  *
- * THE FIX IS THE SAME SHAPE TOO: give the reader a `--marker=<path>` override so the gate can point
- * it at a fixture, instead of borrowing the real one and putting it back. */
-const MARKER = join(ROOT, ".planning", "wyclau", "LONG-RUN");
+ * THE FIX IS THE SAME SHAPE TOO, AND IT SHIPPED AS `--longrun-root=<dir>`: the reader is pointed at
+ * a throwaway root, instead of borrowing the real file and putting it back.
+ *
+ * ⚠ THE FIRST MEASUREMENT OF THIS WAS THE WRONG QUANTITY, WHICH IS THE REUSABLE PART. A checksum of
+ * the marker before and after a gate run came back IDENTICAL — the restore works perfectly when
+ * nothing else is writing — and that says nothing at all about the hazard. The right quantity is
+ * whether it WRITES, because any write is a window: mtime moved 1788413868 → 1788413882 on an
+ * untouched marker. **A net-zero change is not the same as never touching it.** */
+/* ⛔ THE FIXTURE MARKER NOW LIVES IN A THROWAWAY ROOT. This read
+ *   const MARKER = join(ROOT, ".planning", "wyclau", "LONG-RUN");
+ * i.e. the REAL file a sailing sea trial writes. The generator now takes
+ * `--longrun-root=<dir>`, so this gate builds its own tiny root and points the reader at that.
+ * Nothing here touches the live marker any more, and the destroy-then-repair at the end of the
+ * old version is gone rather than made safer — `T-112`'s row: "a destroy-then-repair is still a
+ * window, and this project has already lost a note inside one." */
+const LR_ROOT = mkdtempSync(join(tmpdir(), "glass-longrun-"));
+mkdirSync(join(LR_ROOT, ".planning", "wyclau"), { recursive: true });
+const MARKER = join(LR_ROOT, ".planning", "wyclau", "LONG-RUN");
 const OUT = join(ROOT, ".planning", "wyclau", "glass.html");
 
 const failures = [];
@@ -65,13 +81,13 @@ const check = (label, cond, detail) => {
 
 console.log("glass_longrun_status_check — a slow job must read as WORKING, not as dead\n");
 
-/* The real generator against a real marker — never a copy of its logic (HARD-WON-LESSONS §12i).
-   The marker is restored to whatever was there before, so running this gate cannot disturb a trial
-   that is genuinely sailing on this machine right now. */
+/* The real generator against a real marker — never a copy of its logic (HARD-WON-LESSONS §12i) —
+   but the marker is now this gate's OWN, in a temp root. Running this gate cannot disturb a trial
+   sailing on this machine because it never opens the file that trial writes. */
 const had = existsSync(MARKER);
 const previous = had ? readFileSync(MARKER, "utf8") : null;
 const iso = (minsAgo) => new Date(Date.now() - minsAgo * 60000).toISOString();
-const gen = () => { execFileSync("node", [GLASS, "--note", "longrun status check"], { cwd: ROOT, stdio: "pipe" }); return readFileSync(OUT, "utf8"); };
+const gen = () => { execFileSync("node", [GLASS, "--longrun-root=" + LR_ROOT, "--note", "longrun status check"], { cwd: ROOT, stdio: "pipe" }); return readFileSync(OUT, "utf8"); };
 const stateOf = (html) => JSON.parse(html.match(/id="glassState">([^<]*)</)[1]);
 
 try {
