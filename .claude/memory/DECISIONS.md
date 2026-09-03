@@ -1,5 +1,84 @@
 # Wyatt's standing decisions
 
+## ⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed aft — 2026-09-03T14:09:49.395Z
+
+Asked on the Glass: *"⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean? Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an order: on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of 196 (chartkeeper.mjs's score()), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. There is no way back from the page. Dragging a row and putting it exactly back does clear it; nothing else does."* — **Wyatt ruled "yes"**, 2026-09-03T14:09:49.395Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T140949Z-t121-drag-scope -->
+
+## ⟨T-017⟩ The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is tha — 2026-09-03T14:11:00.824Z
+
+Asked on the Glass: *"⟨T-017⟩ The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read? Your three screenshots of Crustbeard and Flaky Jack hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: .planning/posed/t017-before.png, t017-after.png, t017-after-circle.png."* — **Wyatt ruled "note"**, 2026-09-03T14:11:00.824Z.
+
+**His note, verbatim:** *"Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can’t see them in the glass"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141100Z-t017-name-type-too-small -->
+
+## ⟨T-017⟩ Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the nam — 2026-09-03T14:11:52.148Z
+
+Asked on the Glass: *"⟨T-017⟩ Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched? Consistency is one of your core values, so I have not chosen this myself."* — **Wyatt ruled "note"**, 2026-09-03T14:11:52.148Z.
+
+**His note, verbatim:** *"Only shrink the long words/phrases/names"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141152Z-t017-fan-mixed-sizes -->
+
+## ⟨T-102⟩ ⚑ Google can index your working files right now, and your note assumed it could not. You listed art-re — 2026-09-03T14:12:36.954Z
+
+Asked on the Glass: *"⟨T-102⟩ ⚑ Google can index your working files right now, and your note assumed it could not. You listed art-review/, scripts/ and .planning/ as "correctly EXCLUDED" — they are excluded from the sitemap, but the sitemap is an invitation, not a fence. Thirteen pages are live on the domain with nothing stopping a crawler: five art-review/ galleries, seven notes/sketches/ mockups, and battle_sim.html (plus nineteen files under .planning/). Only four pages in the whole repo say anything about crawling at all."* — **Wyatt ruled "yes"**, 2026-09-03T14:12:36.954Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141236Z-t102-working-files-indexable -->
+
+## ⟨T-207⟩ Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, k — 2026-09-03T14:13:51.974Z
+
+Asked on the Glass: *"⟨T-207⟩ Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs? You reported "the 2nd line is cut off during writing, but only sometimes". That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. A battle card has no typing to wait for, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; on Safari's engine it is a flat fifth of a second with the whole line missing, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: .planning/posed/t012-seq-webkit-2-cut.png and t012-seq-webkit-3-settled.png."* — **Wyatt ruled "note"**, 2026-09-03T14:13:51.974Z.
+
+**His note, verbatim:** *"Leave it."*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141351Z-t012-battle-card-clip -->
+
+## ⟨T-102⟩ You asked me to recommend rather than build: should the sitemap's page list be generated from the actu — 2026-09-03T14:14:19.245Z
+
+Asked on the Glass: *"⟨T-102⟩ You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages? You were right that it goes stale silently — nothing anywhere notices a page missing from sitemap.xml, and /rules.html would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow."* — **Wyatt ruled "yes"**, 2026-09-03T14:14:19.245Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141419Z-t102-sitemap-coverage -->
+
+## ⟨T-206⟩ There is probably already a Google Analytics account sitting in your Google login for this game, and n — 2026-09-03T14:20:27.231Z
+
+Asked on the Glass: *"⟨T-206⟩ There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice. You asked for "google analytics on playpastrypirates.com". The game's Firebase settings carry a Google Analytics ID, G-2KK6EZDZSP. Google normally writes that line in only when Analytics is switched on for a project — but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check. What I did measure, across every one of the 38 pages and 71 script files in the repo: nothing anywhere loads it. No gtag.js, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. And here is what the game already tells you without Google, measured on the live site this morning, last 14 days: 237 page loads from 123 different browsers → 44 voyages started (by 19 of them) → 8 finished. Solo 35, pass-and-play 3, crew 6. ⚠ Those last two ratios read worse than the game deserves and I nearly quoted them at you flat: the counter only records a start for the person who begins a voyage, so every crew guest, and every player who resumes a saved game, counts as "opened it and never played" — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much."* — **Wyatt ruled "note"**, 2026-09-03T14:20:27.231Z.
+
+**His note, verbatim:** *"Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this— it clearly doesn’t need a full one given that you’re just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T142027Z-t206-ga-turn-on -->
+
+
 ## AN UNATTENDED WATCH MAY **READ** THE `claude-kit` FOLDER — 2026-09-02T12:39:56.363Z
 
 Asked on the Glass: *"May an unattended watch READ the claude-kit folder?"* — **Wyatt ruled "yes"**,
