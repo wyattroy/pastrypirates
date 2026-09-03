@@ -112,6 +112,20 @@ try {
     bad("the runbook no longer tells the tick to turn his DO NOW press into a pin — the press would land on the page and reach the Chart never");
 }
 
+/* 5. THE SAME INSTRUCTION, IN THE FILE EVERY WATCH ACTUALLY READS.
+   Case 4 asserts the Glass runbook still tells a session to turn his `now: true` press into a pin.
+   That runbook is read by the Glass-update session; **the DOOR is read by every watch**, and until
+   2026-09-03 its harvest step named the ideas and the rulings and not the pin. `T-104` was left open
+   for exactly that omission. A one-line instruction that lives in only one of two files a session
+   might enter through is an instruction that runs some of the time. */
+{
+  const src = existsSync(DOOR) ? readFileSync(DOOR, "utf8") : "";
+  if (/--do-now=/.test(src) && /now"?\s*:\s*true/i.test(src))
+    ok("the DOOR's harvest step also tells a watch to carry the pin — not just the Glass runbook");
+  else
+    bad("the Door's harvest step does not name `--do-now=` — a watch that enters here carries his idea across and drops his press");
+}
+
 console.log(failed
   ? `\nFAIL -- ${failed} check(s) failed. His DO NOW button does not meet his own definition.`
   : "\nAll checks passed. (Half 1 and half 2 are proven; the press-to-pin hop is a session step, not code.)");

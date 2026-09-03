@@ -51,11 +51,37 @@ Then read, do not re-derive:
 4. `.planning/CTO-LEDGER.md` — tail only: what other live sessions or a detached trial have claimed.
 
 **Harvest the Glass before anything republishes it** (the hook enforces this): read the live
-artifact (Artifact tool, `action: "read"`, the URL `glass.mjs` prints), copy every idea and every
-ruling from its state into the INBOX / `DECISIONS.md`, commit. A republish without the harvest
-deletes his words. If this session has no Artifact tool, write that fact to the ledger — plainly,
-as "no Artifact tool in this session", never as a guess about why — and continue; the next capable
-session harvests.
+artifact (Artifact tool, `action: "read"`, the URL `glass.mjs` prints), copy **every idea, every
+ruling AND every comment** from its state into the INBOX / `DECISIONS.md` / the row each comment
+names, commit. A republish without the harvest deletes his words.
+
+> ### ⚠ THREE THINGS OF HIS LIVE ON THAT PAGE, NOT TWO — AND ONE MORE MUST BE CARRIED BY HAND
+>
+> **`glassState.comments` (added 2026-09-03, `T-076`) is his per-item comment box**, shaped
+> `{"T-nnn": [{"text": "…", "at": "…"}]}` and keyed by the row's handle. **File each comment onto
+> the row its handle names** — a comment is him talking about a SPECIFIC item, so filing it as a
+> loose idea loses the half that matters. This line used to say "every idea and every ruling", and
+> `glass.mjs`'s own end-of-render banner used to say a republish "DELETES both". **Both counted two
+> when there were three.**
+>
+> ⛔ **AND IF AN IDEA CARRIES `"now": true`, HE PRESSED DO NOW ON IT.** Carrying the idea across is
+> not enough — **the flag does not travel by itself.** Run, with the handle of the row you just
+> wrote:
+>
+> ```bash
+> node scripts/wyclau/chartkeeper.mjs --do-now=<T-nnn>
+> ```
+>
+> **This is the one joint in his DO NOW button that is a session remembering something** (`T-104`).
+> Everything either side of it is mechanical and gated: the press pins the idea and tells him so,
+> and RANK puts a pinned row first at score 9,000,000 with **YOU SAID DO NOW** beside it — measured,
+> rank 46 → rank 1. **Between those two halves is this command, and if you skip it his press reaches
+> the top of nothing.** The Glass runbook has carried this instruction since it was built; **the
+> Door — the file every watch actually reads — did not, and that omission is the gap `T-104` was
+> left open for.**
+
+If this session has no Artifact tool, write that fact to the ledger — plainly, as "no Artifact tool
+in this session", never as a guess about why — and continue; the next capable session harvests.
 
 ---
 
