@@ -130,6 +130,25 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+- [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
+      ⟨`T-211`⟩
+  THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
+  watch that fixed the other mechanism, at CEO 146's own instruction not to assume one change cures
+  both. **There is no boat to be beside**, so the circle takes the nearest legal spot in the band and
+  is then "next to someone else" by luck — which is Wyatt's sentence
+  (`INBOX-20260901T1332Z`) arriving by a completely different road from the pill eviction.
+  **WHAT IS ALREADY KNOWN, so nobody re-derives it:** `src/ui/stage.js` asks the camera to frame the
+  fight (`camFitSeats(anchorSeats)`) only when `S.frameKey` changes, and that key is
+  `turnSerial + the ask's TEXT` — **it does not contain the seats the question is about**, although
+  `anchorSeats` is computed one line away and is already in the placement memo key. Two prompts about
+  different captains with the same sentence therefore share a frame. **UNPROVEN: whether that is the
+  live cause or an artifact of the probes, which re-pose the same sentence.** A watch taking this
+  writes the prediction first and settles that before changing anything.
+  **The instrument exists and is now deterministic:**
+  `node scripts/qa/t013_call_circle_beside_check.mjs --seed=20260903` — its UNANSWERABLE count is
+  exactly this row's population, and it was **34 of 42** the day this row was written.
+  **Sizing: small-to-medium. `src/ui/stage.js`, so FULL gear and a posed pair — and it owes `T-013`'s
+  deferred sea trial too, since it moves the same function.**
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -192,6 +211,36 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **And CEO 146's caution, which the fix must not flatten:** a circle *stranded away from every
   boat* and a circle *sitting on the wrong boat* are both inside what Wyatt reported, and they may
   not be the same bug. Do not assume one change cures both — measure both columns.
+
+  ### ✅ ONE OF THE TWO MECHANISMS IS FIXED AND PROVEN — 2026-09-03, watch g2, CEO 167 (PARTIAL)
+  **The circles were never placed wrong. They were placed right and then EVICTED.** The ask pill —
+  placed first, and nearly screen-wide — was dropped a fixed distance below the lowest boat in the
+  fight and landed on the circle; the existing "never cover the question" push then threw the circle
+  clear of a whole pill in one 100px+ jump, and it came to rest beside whoever was nearby. That
+  distance, `bot + R + 34`, is **a constant standing in for a boat plus a petal (rule 9), sized on a
+  phone**: it clears a 35px phone boat by 8px and lands 10px inside a 74px tablet one. Fixed by
+  deriving it from where the circles will actually be — each boat's rendered radius, the petal at its
+  pulse peak, the same band clamp the circles get, and the same swell-disc the eviction test itself
+  uses. Commits `3781a7cf`, `13b17092`. `pillSpotFor`'s other caller is untouched.
+
+  **THE POSED A/B, one pinned board, the only difference being whether the derived drop is passed**
+  (`node scripts/qa/t013_call_circle_beside_check.mjs --seed=20260903`):
+  **before FAIL, 1 of 8 · after PASS, 0 of 8**, identical denominators. And on the row's own
+  instrument across 21 poses: **wrong boat 22 → 8**, wrong boat where the named hull is on screen
+  **14 of 34 → 3 of 22**, anchored **13 → 18 of 42**.
+
+  ⛔ **NOT CLOSED, AND THE NUMBER THAT SAYS WHY IS 34 OF 42.** On the pinned board **34 of 42 circles
+  name a captain who is not on screen at all** — there is no boat to be beside, the gate refuses to
+  judge those rows rather than manufacture a verdict (rule 6), and **that is the bigger half of what
+  Wyatt is looking at.** Stranded fell only 5 of 29, against this watch's own written floor of 6.
+  **The second mechanism is the next item and it is NOT this row's remaining work — it is its own
+  row.** See `T-211` immediately below.
+
+  ⛔ **NO SEA TRIAL, AND THAT IS A SKIP, NOT A WAIver.** Gear is FULL and `src/ui/stage.js` draws
+  every prompt. CEO 167 called it plainly: unlike a page nothing links to, this is live game code and
+  the trial is owed. It was not started because the second mechanism will change this same function
+  again within a watch or two, and a 90-minute trial of code about to move tests the wrong build —
+  **but that is a reason, not an excuse, and the trial is owed before this ships.**
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.

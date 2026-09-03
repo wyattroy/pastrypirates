@@ -90,9 +90,16 @@ else {
      the search to the branch would therefore fail a tree in which the derivation is MORE shared, not
      less — a gate punishing the fix for rule 23.
      What it still cannot be walked past: the definition must measure a real rect (`fixedRect`), and
-     the branch must actually CALL it, so a `boatRad` defined honestly somewhere and unused here does
-     not satisfy this. Both halves are required below. */
-  const radDef  = /const boatRad\s*=[\s\S]{0,180}fixedRect\(/.test(code) && /\bboatRad\s*\(/.test(branch);
+     THE SEED ITSELF must call it.
+
+     ⛔ "THE BRANCH MUST CALL IT" WAS NOT ENOUGH, AND CEO 167 WALKED PAST IT WHILE THE COMMIT CLAIMED
+     OTHERWISE. Replacing the seed's `const rad = boatRad(anchorSeats[k])` with a literal `26` — the
+     ORIGINAL W5-2 defect, restored exactly — passed all five clauses, because `hulls` a few lines
+     down still calls `boatRad(i)` and satisfied a branch-wide search. The `rad` in `(rad + HALF +
+     AIR)` would have been a constant while this gate reported the offset "derived". Pre-existing,
+     and the previous commit said it was closed when it was not. The call has to be in the SEED,
+     which is the expression the offset is actually built from. */
+  const radDef  = /const boatRad\s*=[\s\S]{0,180}fixedRect\(/.test(code) && /\bboatRad\s*\(/.test(seed || "");
   const live = t => t && !/^\s*0\s*$/.test(t) && !/\*\s*0\b/.test(t) && !/\b0\s*\*/.test(t);
   const derived = !!whole && live(halfDef) && live(airDef) && radDef && /growPeak/.test(halfDef);
   const constantStern = !!seed && /ay\s*[+-]\s*\d+(?!\s*\*)/.test(seed);

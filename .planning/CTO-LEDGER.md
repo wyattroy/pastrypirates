@@ -7937,3 +7937,87 @@ it. This entry is the correction, and the count command is written above so the 
 not have to trust either number.
 
 - 2026-09-03T11:47:14Z · close_item: "T-209" · CEO 166 · no game diff — no game code — the Chart ranker · no stated solution
+
+---
+
+## watch g2 — `T-013` WORKED, NOT CLOSED. CEO 167 — PARTIAL. One mechanism of two, proven by a posed A/B.
+
+**WHAT SHIPPED.** `3781a7cf` and `13b17092`, plus this entry's commit. `src/ui/stage.js` (game code),
+`scripts/qa/t013_call_circle_beside_check.mjs` (new), `scripts/qa/w52_call_beside_boat_check.mjs`.
+
+**THE FINDING, AND IT IS NOT WHAT THE ROW EXPECTED.** The call circles were never placed wrong. They
+were placed right and then **EVICTED**: the ask pill, placed first and nearly screen-wide, is dropped
+`bot + R + 34` below the lowest boat in the fight, lands on the circle, and the existing "never cover
+the question" push throws the circle clear of a whole pill in one 100px+ jump — beside whoever is
+nearby. `R + 34` is **a constant standing in for a boat plus a petal (rule 9), sized on a phone**: it
+clears a 35px phone boat by 8px and lands 10px inside a 74px tablet one, and when the fight is above
+the band both the pill and the circle clamp to the same ceiling.
+
+**THE POSED A/B, ONE PINNED BOARD (rule 26), the only difference being whether the derived drop is
+passed: before FAIL 1 of 8 · after PASS 0 of 8, identical denominators.** On the row's own
+instrument across 21 poses: wrong boat **22 → 8**; wrong boat where the named hull is on screen
+**14 of 34 → 3 of 22**; anchored **13 → 18 of 42**.
+
+**⛔ THE CEO SAID PARTIAL AND THE THREE FINDINGS ARE ALL REAL. Every one was fixed before this
+commit, and the verdict was NOT rewritten afterwards.**
+1. **MY GATE CLAIMED A SEEDED BOARD AND NEVER SEEDED ONE.** Its header said *"the same seeded board
+   every run"* while `startSinglePlayer` (`src/ui/flow.js:3232`) took `Math.floor(Math.random()*1e9)`.
+   So my first before/after was **a rate over two different boards** — the exact thing rule 26 exists
+   to replace, wearing rule 26's own words. `--seed=` now pins `Math.random` to mulberry32 before the
+   game starts, and the A/B above is the re-run.
+2. **THE TAMPER MY OWN COMMIT SAID IT CLOSED WAS STILL OPEN.** Putting the literal `26` back into the
+   placement seed — **the original W5-2 defect, restored exactly** — still passed
+   `w52_call_beside_boat_check.mjs`, because `hulls` a few lines down also calls `boatRad(` and
+   satisfied a branch-wide search. Now the SEED itself must call it. Red-proofed: planted, FAIL;
+   restored, PASS.
+3. **TWO OF MY OWN FALSIFIERS HAD FIRED AND I HAD NOT COME BACK TO THEM.** (a) There is no
+   `max(R + 34, …)` in the shipped code — the one-pixel correction rewrote the expression and dropped
+   it, so **a phone's drop moved 104 → 109** and *"every existing phone number is byte-identical"* is
+   **false**. (b) STRANDED fell **5** of 29 against my own written floor of 6, which under my own rule
+   means the mechanism is real and is not the whole of it. Both written into the prediction file's
+   third act rather than left in the list.
+
+**THE ONE WORTH CARRYING FORWARD, and it is CEO 165's finding (c) in a fourth costume:** *my
+instrument's fixture was not shaped like the real subject.* I wrote "posed" in the header, believed
+the header, and read a before/after off a board that changed underneath me. **A gate that describes
+itself is not a gate that was checked.**
+
+**⛔ NOT CLOSED, AND THE NUMBER IS 34 OF 42.** On the pinned board, 34 of 42 circles name a captain
+who is not on screen at all — no boat to be beside, so the gate refuses to judge those rows rather
+than manufacture a verdict (rule 6). **That is the bigger half of what Wyatt is looking at.** Filed
+as its own row, `T-211`, with what is already known about it (`S.frameKey` is `turnSerial + the ask's
+text` and does not contain the seats the question is about) marked **UNPROVEN**, because the probes
+re-pose one sentence and that could manufacture the same symptom. `close_item.mjs` deliberately NOT
+run.
+
+**⛔ SEA TRIAL: NOT RUN, AND I AM CALLING IT A SKIP.** Gear FULL, and `src/ui/stage.js` draws every
+prompt — unlike CEO 164's `stats.html`, nothing about this is honest-by-construction. My reason is
+that `T-211` moves this same function within a watch or two and a 90-minute trial of code about to
+change tests the wrong build. **That is a reason, not a waiver, and the trial is owed before this
+ships.** CEO 167 judged it a skip and it is recorded here as one.
+
+**RULE 19'S OTHER HALF, MISSED, IN THE CEO'S WORDS:** *"the change moves a screen-wide banner and
+nobody looked."* The numeric instrument is the right one for the geometry (rule 26 sanctions exactly
+this), and it is not a substitute for one look at the picture. Owed with the trial.
+
+**⚠ A PEER SESSION RAN `git stash` MID-WATCH AND SWEPT MY UNCOMMITTED `src/ui/stage.js` OFF DISK.**
+Nothing warned me; I found it when a probe reported "no buttons" and my edits were simply gone. Two
+sessions on one branch, `CLAUDE.md` §3 — and the rule there covers commits and claims, not **a peer
+tidying the working tree you are standing in.** `stash@{0}` still exists, holds that one file, and
+was left untouched; I re-applied the edits by hand and **committed before verifying**, which is
+backwards and was the right call anyway. **THE REUSABLE ONE: on a shared branch, commit game-code
+edits as soon as they compile — an uncommitted edit is not yours.**
+
+**SWEEP.** `npm test` **PASS, 0 failure(s)**, run unpiped, three times across this watch ·
+`w52_call_beside_boat_check` red-proofed twice, both clauses I touched · `stray_probe_check`
+**PASS — no debug-port browsers are running at all** · chartkeeper `--rank --sweep --write` clean,
+23 open rows.
+
+**LEFT FOR A SESSION WITH PERMISSION: `rm` IS BLOCKED IN THIS SANDBOX**, and it blocked the CEO's too.
+Untracked scratch to delete: `scripts/qa/_t013_stage_diag.mjs` (mine, throwaway),
+`scripts/qa/_ceo166_redproof.mjs`, `.tmp-ceo166/`, `scratchpad/ceo166/` (the CEO's), and the
+`.tmp-chrome-t013*` profile dirs.
+
+**NOT MINE, LEFT ALONE:** `.planning/GLASS-CHART.md`, `package.json`, `scripts/wyclau/chartkeeper.mjs`
+and `docs/HARD-WON-LESSONS.md` are a peer's live work in this tree. Every path in my commits is named
+explicitly.

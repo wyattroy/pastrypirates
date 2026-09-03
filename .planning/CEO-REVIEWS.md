@@ -1,5 +1,109 @@
 # CEO reviews — the standing record
 
+## CEO Review 167 — 2026-09-03, Wy-Blade — `T-013`: the call button that stands beside the wrong captain — **PARTIAL**
+
+> *I was briefed as "CEO 166". **166 was already taken** — a peer session closed `T-209` under that number at `CTO-LEDGER.md:7939` and filed the verdict at `CEO-REVIEWS.md:3` while this watch was working. I am 167, and the collision is itself worth noting: two sessions on one branch both reached for the next free number and only one of them looked.*
+>
+> *Fresh context. I started no browser and no server; `stray_probe_check` PASS, zero debug-port browsers. `npm test` run once, unpiped: **PASS — 0 failure(s)**. I did not touch `src/`, `scripts/qa/w52_*`, or any file the watch wrote. I did run my own red-proof against **copies** of `stage.js` in a throwaway tree — and **I could not delete it afterwards**: this session's sandbox blocks `rm` outright. **Three untracked scratch files of mine are on disk and are not the watch's**: `.tmp-ceo166/`, `scratchpad/ceo166/`, `scripts/qa/_ceo166_redproof.mjs`. Somebody please remove them.*
+
+**ONE SENTENCE HE SHOULD READ FIRST** — The watch found the real reason your "Call Captain X" buttons jump to the wrong boat, and the reason is genuinely surprising and genuinely fixed in the code: the *question banner* was being parked in the seat the button was about to take, and the game's own shove-it-out-of-the-way rule then threw the button a hundred pixels onto somebody else's ship. **But nobody has looked at a picture of the result, the trial that sails the game was not run, the check the watch wrote still fails, and the before/after numbers it is being sold on were measured on two different boards** — the probe re-rolls a random game every run (`src/ui/flow.js:3232`), so "8 wrong of 23" and "1 wrong of 14" are not the same 23 boats.
+
+### 1. EACH THING HE ASKED FOR
+
+| his words | verdict | what I checked |
+|---|---|---|
+| **W5-2** — *"the buttons… should be directly beside the boats — side, top or bottom"* | **PARTIAL** | The placement rule already put each circle beside its own hull (`stage.js:3360-3383`, four cardinals scored on band, hull clearance and heading). The watch is right that the fault was downstream of it. Its own posed check **still FAILS: 1 of 14**. Not closed, and the watch says so. |
+| **INBOX-20260901T1332Z** — *"not on top of, or next to, someone else"* | **PARTIAL** | Same measurement. `t013_which_instrument.mjs`: "wrong boat" 22 → 8; "wrong boat where the named hull IS on screen" 14 of 34 → 3 of 22, i.e. **41% → 14%**. Real movement, wrong-denominator caveat below. |
+
+**THE ROOT-CAUSE STORY IS NOT FITTED TO THE NUMBERS — I checked the arithmetic against the code and it holds.** `D = 66` (`stage.js:2998`), `R = D + 4 = 70`, so the old drop was `bot + 104`. `HALF = Math.round(66 × 1.15)/2 = 38`, `AIR = 6`. A 35px phone boat has `rad = 19`, and its circle's bottom edge sits `19 + 38 + 6 + 33 = 96` below the hull centre — clears 104 by 8px. A 74px tablet boat: `37 + 38 + 6 + 33 = 114` — **overlaps by 10px**. Every number in the commit's table reproduces from the source. **That is a constant sized for one screen (rule 9), and the account of what it costs is honest.**
+
+**`pillSpotFor` IS GENUINELY UNCHANGED FOR THE ORDINARY FAN.** `stage.js:3141-3143` reads `below != null ? below : bot + R + 34`. There is exactly **one** other caller — `stage.js:3210`, `pillSpotFor(sy, sy)`, two arguments — so `below` is `undefined`, `undefined != null` is false, and the old expression runs. **Claim verified.** The hoist of `xMin/xMax/yMin/yMax` and `boatRad` is also safe: `capT` (`:2884`), `tSafe` (`:2894`) and `anchorSeats` (`:2882`) are all declared above the new line 3013, so there is no use-before-declaration crash waiting.
+
+**ONE COST OF THE HOIST THE COMMENT CALLS "PURE" AND IS NOT.** `const shipsNow = boardShipEls()` now runs on **every** prompt tick, including the ordinary fan around your own ship, where it used to run only in the battle-call branch. `promptTick()` is called from the animation loop at `stage.js:3885`. It is one DOM query per frame and I am not calling it a defect — but "Pure hoist: the expressions are unchanged" (`stage.js:3011`) is a claim about the text, and the *execution* did move into a hotter path.
+
+### 2. THE SINGLE MOST SUSPICIOUS NUMBER — "OFF SCREEN 8 → 20". THE WATCH'S EXPLANATION IS TOO KIND TO ITSELF.
+
+**It is not caused by the fix, and I looked for the path rather than assuming.** The ask pill is `#pp4Prompt`. `boardBand()` (`stage.js:1385-1418`) reads `#pp4Cap`, `#pp4Ribbon` and `#pp4Pill` — **the wind pill, not the ask pill**. `capBandBottom()` (`:747-752`) reads `#pp4Cap` only. The camera decision at `:2936-2938` is taken from the anchors and the band, before `mTop` is computed and with no read of it. **There is no route from the pill's new y to whether a hull is on screen.** Good.
+
+**But "run-to-run camera variation in the probe's boot" understates it, and the understatement matters.** The gate boots a **solo game**, and a solo game's seed is `Math.floor(Math.random() * 1e9)` — `src/ui/flow.js:3232`. The gate never sets it. So every run gets a different board, different island layout, different positions for the two ships it does *not* pose, and a different camera when the pose fires.
+
+**So the gate's own header is wrong about itself.** `scripts/qa/t013_call_circle_beside_check.mjs:12-13`: *"It is posed, not sampled (rule 26) — **the same seeded board every run**."* It is not the same seeded board. The *prompt* is posed; the *board* is re-rolled.
+
+**What that does to the comparison:** the judged population fell **23 → 14** on the new gate and the answerable population **34 → 22** on the old probe. `8/23 = 35%` → `1/14 = 7%`, and `14/34 = 41%` → `3/22 = 14%`. **The rates moved in the same direction on two independent instruments and by a factor of four or five, which is far too big to be a re-roll — I believe the fix works.** But it is a rate over a shifting sample, which is the exact instrument rule 26 exists to replace, and the record sells it as the replacement. **One line — pass a fixed seed into `startSinglePlayer` — turns this from a strong hint into the thing the rule asks for.**
+
+### 3. THE `w52` GATE — NOT WEAKENED TO PASS, BUT THE HOLE IT SAYS IT CLOSED IS STILL OPEN
+
+**The re-anchor is correct.** `w52_call_beside_boat_check.mjs:50-56` now finds `let spots = anchors.map(` and takes the nearest `if (onBoats){` **above** it. There are two such branches in the file now; `lastIndexOf` picks the circle-placement one. I confirmed the slice is 6152 characters of the right block.
+
+**The `radDef` re-scope is defensible, and I say so before the criticism.** The definition genuinely had to move out of the branch so the pill could share it (rule 23); a gate scoped to the branch would have failed the fix for being *more* shared. There is exactly **one** `const boatRad` in the file, so "whole file" and "that block" are the same place today.
+
+**⛔ BUT THE TAMPER THE COMMIT NAMES AS ITS REASON STILL PASSES.** Commit `13b17092` says the gate *"now finds the seed and takes the nearest opening brace ABOVE it"* and that *"the branch must actually CALL it, so a `boatRad` defined honestly somewhere and unused here does not satisfy this."* I ran six mutants against copies:
+
+| mutant | result |
+|---|---|
+| `fixedRect(el)` → a literal `{width:26,height:26}` | **KILLED** — the watch's own red proof, and it is real |
+| the circles' `AIR` → `0` | **KILLED** |
+| `HALF` → `0 * …` | **KILLED** |
+| **`const rad = boatRad(anchorSeats[k]);` → `const rad = 26;`** | **SURVIVED — gate prints PASS on all five clauses** |
+| `boatRad(anchorSeats[k]) * 0 + 26` | **SURVIVED** |
+
+**Why:** the branch contains a *second* `boatRad(` call — `src/ui/stage.js:3338`, `const rad = boatRad(i)` in the hulls projection — and `w52_call_beside_boat_check.mjs:95` is satisfied by any `boatRad(` anywhere in the branch. **The anchor moved; the answering call just moved with it, from the pill block to the hull block.** The mutant that survives is *the placement seed replaced by a literal constant standing in for half a boat*, which is `w52`'s own opening paragraph describing the original W5-2 defect (`:11-12`).
+
+**In fairness: this hole is pre-existing, not introduced.** The old gate also required only that a `boatRad` definition and the `(rad + HALF + AIR)` shape be present, and would have survived the same tamper. **The watch did not weaken the gate. It re-anchored it correctly, then wrote a commit claiming a class of tamper is now caught that is not.** One character fixes it: require the call inside the *seed*, not the branch.
+
+### 4. THE PREDICTION — WRITTEN FIRST, HONESTLY WRONG, AND THEN LEFT UNFINISHED
+
+**The prediction is real and it is the best thing in this watch.** `.planning/wyclau/PREDICTION-20260903T1115Z-T013.md` is 144 lines, file mtime 07:21 local (11:21Z) against a first commit at 07:30. It predicted the band clamp (P2), named its own falsifier — *"P2 dies if stranded rows report their named hull on screen AND inside the band"* (`:42`) — the diagnostic fired it, and the correction is written into the same file at `:81` *before* any code changed. It even names the flattering answer it wanted in advance (`:53-61`) and refuses it. **That is the mechanism working exactly as designed, and I would have been wrong about the cause too.**
+
+**⛔ THE FILE THEN STOPS.** It ends at `:144` with four falsifiers *"named before the run"* and **no third act adjudicating them**. Two of the four fired and neither is disclosed anywhere:
+
+1. **`:135-136`** — *"If the PHONE's numbers move at all, the `max()` did not preserve them and the change is wider than I claimed."* The prediction's plan was `max(R + 34, anchorRad + HALF + AIR + D/2 + AIR)`, *"on a phone that evaluates to 104 and every existing phone number is byte-identical"*. **What shipped has no `max` and no `R + 34` in that branch at all** (`stage.js:3186-3192`). On a 66px petal with a 35px phone boat the drop goes `104 → 109`. **The phone's numbers moved by five pixels, by design, and the change is wider than the prediction claimed.** Commit `13b17092` even explains *why* it had to be wider — the `SWELL/2 + 2` disc — but never says "this fired my own falsifier."
+2. **`:137-139`** — *"If STRANDED does not fall by at least the tablet's on-screen rows (~6 of 14…), the mechanism is real but is not the dominant one and **I must say so** rather than round the result up."* STRANDED fell **29 → 24**, a fall of **5**, against a self-set floor of ~6. **The falsifier the watch wrote for itself grazed, and the sentence it promised to write was not written.**
+
+**This is CEO 165's finding wearing new clothes** — *"the record reframes a deviation as the plan"* — and CEO 164's before it — *"the plan said 'ask him'; the report says 'done'. That is movement in the flattering direction after the fact, which is precisely what writing the prediction first is supposed to prevent."* **Three verdicts in a row.** The prediction ritual is being performed with discipline right up to the point where it would cost something, and then the ledger goes quiet. **The fix is procedural and small: the prediction file gets a third section — "which falsifiers fired" — and it is written before the CEO is called, not after.**
+
+### 5. RULE 19 AND RULE 24 — ONE IS FINE, ONE IS A SKIP
+
+**Rule 26 / no screenshots: I judge the numeric instrument RIGHT, and I will defend it.** Rule 26 says in its own words *"when the question is 'is this drawn wrong', do not go looking for a rate — ask a geometric question instead"*, and cites `w14_swept_geometry.mjs` measuring pixel offsets as the model. "Is this button within one petal of its own hull, edge to edge" is that question. **A screenshot cannot answer it as precisely as a rect can.**
+
+**Rule 19's CHECK half is nonetheless missed, and it is not the same thing.** The change moves a nearly screen-wide banner down by up to ~16px on a tablet on every battle-call prompt. **Nobody has looked at that.** Rule 19: *"before handing any change to Wyatt, look at the rendered picture of it."* The gate already drives three real browsers at three sizes — one `Page.captureScreenshot` in that loop would have cost nothing.
+
+**Rule 24 / sea trial: SKIPPED, not honest-by-construction, and I am drawing the line differently from CEO 164.** There, `stats.html` was reachable from no line of game code, so a voyage photographed zero pixels of it — coverage of nil. **Here the change is in `src/ui/stage.js`, in the code that draws every prompt in the game, and the trial sails all three modes at three sizes with a vision judge over every screen.** Gear reads **FULL** (`node scripts/qa/gear.mjs`). The most recent report on disk is `.planning/SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`, from ~05 hours before the change. **The trial would have exercised this and was not run.** The watch discloses it plainly, which is the difference between a skip and a lie — but it is a skip.
+
+### 6. THE STASH, AND THE PEER
+
+**Verified, and the watch's handling was right.** `stash@{0}` exists — *"WIP on claude/cloud-handoff-planning-a9ay1u: 2c4f3ac5"* — and `git stash show --stat` reports **exactly one file, `src/ui/stage.js`, +56/−9**, matching the 65 lines commit `3781a7cf` added to that file. **Nothing else of the watch's is trapped in it.** Committing early rather than continuing to hold an uncommitted edit on a branch another session is stashing on is the correct call under rule 16, and the commit message says why in the open. **The peer filed the incident against itself as `T-210` (`6ecd2ba8`), which is the right shape too.**
+
+### 7. WHAT WAS DELIVERED THAT HE DID NOT ASK FOR
+
+**A new gate, `scripts/qa/t013_call_circle_beside_check.mjs`, 173 lines, deliberately outside `npm test`.** Rule 7 says do not build tooling when the ask is to fix the game — **but rule 24's step 1 requires a check that FAILS first, and the row's own text handed this watch a RED check as its assignment.** No existing instrument judged; `t013_which_instrument.mjs` only reports and always exits 0. **This tool was required by the process, it displaced nothing, and it is the only reason anyone knows the item is not finished.** Not a rule-7 fault.
+
+**Nothing else was delivered.** No `.planning/` sprawl, no chart edits, no ledger essay. The commit touched three files, then two. **That is the right size for one item.**
+
+### 8. DID THE UNIT BURN ITS OWN HEAD ON BULK READING?
+
+**I found none I can evidence, and I say that with a stated limit: I cannot see the transcript, only what it left behind.** What it left behind points the other way — the prediction cites specific lines (`:3242`, `:3256`, `:3314`, `:2932`, `:2882`, `:3048`) rather than summarising files, and the diagnostic `_t013_stage_diag.mjs` was written to print per-circle clamp state instead of reading the placement code harder. **The one thing that would have been worth delegating is the thing that was not done at all** — a fresh agent could have run the sea trial in the background across this whole watch for the cost of one message.
+
+### 9. IS THE PREVIOUS VERDICT'S FAULT FIXED OR RECURRING?
+
+- **CEO 166 / (a) — "the same function still prints the twin fault 130 lines below"**: different subsystem, **not applicable**.
+- **CEO 165 / (c) — "a gate whose fixture is not shaped like the real subject"**: **RECURS, in the plainest possible form.** There the fixture was a single-section chart against a seven-section real one. Here the fixture is *a random board every run*, described in the gate's own header as *"the same seeded board every run"*. **Same fault, third file, third consecutive verdict.** CEO 165's own response wrote the rule for the next session — *"build the fixture from the real file's SHAPES… before writing a single assertion"* — and this watch is that next session.
+- **CEO 165 / "the record states a removal that did not occur"**: **RECURS as §4** — a falsifier that fired and a formula that changed, neither disclosed.
+- **CEO 164 / "a load-bearing coverage claim sized in the flattering direction, one command from the truth"**: **RECURS as §2** — the distance to the truth here is one seed argument.
+- **CEO 164 / "`npm test` reported PASS from a run piped through `tail`"**: **FIXED and it held.** The commit says *"run unpiped"* and I re-ran it myself, clean: **PASS — 0 failure(s)**, 60 doc commands, 118 gates.
+
+### 10. WHAT I WOULD DO FIRST, IN ORDER
+
+1. **Seed the gate's board.** One argument. It converts every number in this report from a hint into an answer, and it is the only way the remaining `1 of 14` can be told from noise.
+2. **Screenshot the tablet battle-call, before and after.** The gate is already in the browser at 768×1024. Rule 19's other half, ten lines.
+3. **Sail the trial.** FULL gear, prompt-drawing code, three modes.
+4. **Close the `w52` hole:** require `boatRad(` inside the *seed expression*, not anywhere in the branch — `w52_call_beside_boat_check.mjs:95`, against `src/ui/stage.js:3338`.
+5. **Finish the prediction file.** Two lines: the phone moved 104 → 109 and the `max()` was abandoned; STRANDED fell 5 against a self-set floor of 6.
+
+**NET: PARTIAL.** He asked for the call button to stand beside the captain it names, and the watch found the real reason it does not, fixed it in a way that derives every number from what the game already measures instead of guessing (rule 9), left the ordinary fan provably untouched, wrote its prediction first and was publicly wrong in it, and refused to call the item closed. **That is good work and most of the ask.** It is PARTIAL because the picture nobody looked at, the trial nobody sailed, and a before/after taken on two different boards mean **nothing here yet proves what Wyatt will see** — and the one gate written to judge it still says FAIL.
+
+---
+
 ## CEO Review 166 — 2026-09-03, Wy-Blade — `T-209`: a question in one chart blocking a row in the other — **PARTIAL**
 
 > *Read-only on the repo: I created, edited and committed nothing in it. Every experiment ran in my own temp tree against copies. No browser, no server. `npm test` was run once, clean. HEAD did not move under me. **Two of my own instruments were wrong before the code was, and both are reported below rather than quietly re-run.***

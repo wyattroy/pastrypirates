@@ -9,8 +9,15 @@
  * WHAT THIS GATE IS, AND WHAT IT IS NOT. `t013_which_instrument.mjs` REPORTS — it prints ANCHORED
  * vs STRANDED and always exits 0, because its job was to settle which of two probes was honest.
  * This one JUDGES, on the one statement that is his: a circle whose captain is standing right there
- * on screen has to be beside that captain. It is posed, not sampled (rule 26) — the same seeded
- * board every run, so a change is answerable in minutes instead of over a stochastic voyage.
+ * on screen has to be beside that captain.
+ *
+ * ⛔ IT IS POSED, AND THE FIRST VERSION ONLY SAID SO. This header claimed "the same seeded board
+ * every run" while `startSinglePlayer` (`src/ui/flow.js:3232`) took `Math.floor(Math.random()*1e9)`
+ * and nothing here set it — so every run built a DIFFERENT board, the count of rows it could even
+ * judge swung 23 → 14 between two runs, and a before/after read off those two numbers was a rate
+ * over a shifting sample: the exact thing rule 26 exists to replace, wearing rule 26's own words.
+ * Caught by CEO 167. `--seed=` now pins it (default `T013_SEED`), so before and after are the same
+ * board and the comparison is an A/B rather than two samples.
  *
  * ⚠ IT JUDGES ONLY THE ROWS IT CAN ANSWER. When the named hull is off screen there is no boat to be
  * beside, and calling that "wrong" would be a measurement that cannot fail (rule 6 — and CEO 146
@@ -29,6 +36,15 @@ import { serve, launch, attach, killAll, sleep, REPO } from "../mp_rig.mjs";
 import { freshProfileDir } from "../lib/cdp.mjs";
 
 const RED = (process.argv.find(a => a.startsWith("--red=")) || "").slice(6);
+/* THE BOARD IS PINNED HERE, NOT WISHED FOR. `startSinglePlayer` takes its voyage seed from
+   `Math.random()`, and the bot temperaments and the sea sightings come from the same well — so the
+   only way to hand two runs the same board is to make that well deterministic before the game is
+   started. mulberry32 is the generator the engine itself uses (see PROJECT: "the multiplayer engine
+   is seeded (mulberry32)"), so this is the game's own arithmetic, not a second one. */
+const SEED = Number((process.argv.find(a => a.startsWith("--seed=")) || "--seed=20260903").slice(7)) >>> 0;
+const PIN_RANDOM = `(()=>{let s=${SEED}>>>0;Math.random=function(){s|=0;s=s+0x6D2B79F5|0;
+  let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;
+  return((t^t>>>14)>>>0)/4294967296;};return true;})()`;
 const PORT = 8498, DBG = 9398;
 launch(DBG, freshProfileDir(path.join(REPO, ".tmp-chrome-t013g")));
 const url = serve(PORT);
@@ -100,9 +116,12 @@ async function boot(tag, w, h, mobile){
   await C.send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: mobile ? 2 : 1, mobile });
   await C.goto(url);
   await C.waitFor(`document.readyState==='complete'`, 30000, `${tag}: load`);
-  await C.ev(`localStorage.clear();localStorage.setItem('pp_id','t013g-'+Math.floor(Math.random()*1e9));true`);
+  // a FIXED player id too — `pp_id` is what the stats page excludes by, and a random one is one
+  // more thing that differs between the run you measured before and the run you measured after
+  await C.ev(`localStorage.clear();localStorage.setItem('pp_id','t013g-fixed');true`);
   await C.goto(url);
   await C.waitFor(`document.readyState==='complete'`, 30000, `${tag}: reload`);
+  await C.ev(PIN_RANDOM);          // BEFORE the game is started — see the SEED note at the top
   await sleep(1000);
   await C.waitFor(`(()=>{const e=document.getElementById('choiceSolo');return !!(e&&e.offsetParent)})()`, 25000, `${tag}: home`);
   await C.ev(`document.getElementById('choiceSolo').click();true`);
@@ -164,6 +183,7 @@ console.log(`  judged (named hull fully on screen) ... ${judged}`);
 console.log(`  beside its own captain ............... ${beside}`);
 console.log(`  UNANSWERABLE (named hull off screen) . ${unanswerable}   <- a second, still-open mechanism; not judged`);
 console.log(`  NOT RUN .............................. ${notRun}`);
+console.log(`  seed ................................. ${SEED}   (same board every run; --seed= to change it)`);
 if (RED) console.log(`  RED PROOF ACTIVE: --red=${RED}`);
 fails.forEach(f => console.log(`  FAIL  ${f}`));
 killAll();
