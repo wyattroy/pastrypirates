@@ -1,5 +1,58 @@
 # CEO reviews — the standing record
 
+## CEO Review 170 — 2026-09-03, Wy-Blade — watch e2, `T-215`: the trial's finding reaches him as a number — **PARTIAL**
+
+> *Spawned fresh, read-only on the repo except for this entry. Every number below was re-run by me — the gate, the red proof, `npm test`, the real-data probe — and every file time was read off disk rather than taken from the watch's account.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** *"The fix is real and I reproduced every measurement in it — but the 'one new bug nobody has filed' it is handing you is a screen your own Chart opened by eye yesterday and threw out as a false alarm, and as of this review nothing the watch did has been committed, pushed, or put on the Glass."*
+
+**NET: PARTIAL.**
+
+**WHAT I CONFIRMED MYSELF, and it is substantial:**
+- `node scripts/qa/judge_coverage_check.mjs` → **PASS, 0 failures**, 11 assertions. `npm test` → **`PASS — 0 failure(s)`, exit 0**, run to completion.
+- **Red proof HELD.** `red_proof_at_ref.mjs --ref=HEAD` → `FAIL — 5 failure(s)`. It is the *right* instrument here and the watch's reasoning for that is correct: the tool's own header warns that a gate importing a sibling from `scripts/lib/` gets the worktree's OLD sibling — **here that sibling IS the subject**, which is what makes the red honest. `git show HEAD:scripts/qa/judge_coverage_check.mjs` has **5** checks; the tree has **11**, so **5 of the 6 new assertions go red**. The watch's own correction is slightly *harder* on itself than the facts warrant (it counts *"a judged FAIL is still reported"* among the green ones; that assertion is pre-existing, not new).
+- **The real-data run reproduces exactly:** 10 screens named, across 6 legs, collapsing to 5 distinct descriptions.
+- ⚑ **THE EYE-CHECK FAILURE IS TRUE AND IT IS THE BEST THING IN THIS WATCH.** `sea-trial-shots/report.json` is dated **08:43:52** and `sea-trial-shots/solo-tablet-029-settled.png` is dated **09:13:35** — *the picture is thirty minutes newer than the verdict that describes it.* First-hand, on this watch, in the ordinary course of trying to use the fix. That is `T-215`'s unfixed second half caught live, and it is worth more than the half that was fixed.
+- **"A TRIAL IS LIVE" IS TRUE THIS TIME.** `.planning/wyclau/LONG-RUN` moved **6/10 → 8/10 legs** across two observations 13 minutes apart while I watched, on build `2026.09.03.2`, report reading IN PROGRESS. **CEO 169's headline fault is FIXED, not recurring** — and I checked it by the moving marker, not by anybody's word.
+- **The prediction file's self-catch is real and is the rule working.** `PREDICTION-20260903T1350Z-T215-orphaned-work.md:51-58` — it wrote the RESULT section in the same keystroke as the prediction, caught itself, and recorded the fact instead of deleting it.
+
+**⛔ THE FINDING OF THIS REVIEW: THE "NEW DEFECT NOBODY HAS FILED" IS A SCREEN THE CHART ALREADY THREW OUT.**
+
+`CHART.md:463-464` (`T-019`, updated 2026-09-03): *"the **'FORECAST ribbon clipped by the sidebar'** is refuted by its own screenshot: the pill reads `WIND NOW: E→ · FORECAST: S↓` complete, with ~280px of empty board before the sidebar."* A human opened **all ten** of these FAIL verdicts and found **two false positives**. The other is `CHART.md:461-462`: the *"'Arrgh!' bubble with no tail"* is **a button** — `panel.js:1156`, `<button class="apBtn" id="bmCerGo">Arrgh!</button>`.
+
+The watch reported the first as its one new finding and the second as unfiled. **Both are already dead.** And the third it marked unfiled — *"pink captains panel bleeds under the End of Voyage modal"* — is `T-142`: `CHART.md:271` names `solo-tablet-029` as one of that row's own five screens, verified by eye at `CHART.md:268-270`. **So "2 of 5 already filed" is really 4 of 5, and the fifth is a false alarm.**
+
+It is the same data, which is why the overlap is total: `report.json` is dated 08:43 EDT = **12:43 UTC** — the `1242Z` trial that, per CEO 169, resumed the `0624Z` run. These are the exact ten verdicts `T-019` adjudicated.
+
+**And the Chart says, in bold, not to do this:** `CHART.md:469-471` — *"**ITS ISSUE STRINGS ARE NOT QUOTABLE. A judged FAIL is a POINTER TO A SCREEN WORTH OPENING, never a description of what is wrong with it**" — and the session that filed those five as bugs is the proof."* **CEO 158's finding, recurring one day later, in a watch whose whole item is about that judge.** One grep for `FORECAST` in `CHART.md` — ten seconds — would have caught it.
+
+**A SECOND CONSEQUENCE, and it is about to be committed:** the new comment block in `scripts/qa/judge_coverage_check.mjs` still asserts *"and the third was **CONFIRMED BY EYE** — the pink panel really is there, undimmed, past both edges of the card."* That is a behavioural claim inherited from another session about **the one screenshot this watch personally could not confirm**. Rule 6's other half — a comment that makes a runtime claim and rots. Fix it before the commit.
+
+**WAS TAKING A `GLASS-CHART.md` ROW LEGITIMATE FOR A WATCH? NO, AND I CHECKED THE ARGUMENT ROW BY ROW.**
+`GLASS-CHART.md:11` — *"**The Advisor works THIS file. A watch works `CHART.md`, which is now the GAME.**"* — quoting Wyatt at `:5-7`: *"YOU will work on the chart -- the Watch will work on the game."*
+- Ranks 1-4 hold up. `T-099` — its own row says *"This row closes when he answers, not before"* (`CHART.md:1058`). `T-138` — *"that half is your call"* (`CHART.md:94`). `T-211` — watch d4's, waiting on the live trial. `T-143` — watch e1's, claimed 13:05Z, 43 minutes old. **All four correctly skipped.**
+- **The blanket "ranks 5-9 all edit game code or the trial harness" is where it fails.** `T-100` (*build `/rules.html`*, `CHART.md:999`) creates a **new page** — it touches nothing the running legs load. Its blocker was **lifted on 2026-09-02** (`CHART.md:1063`: *"So `T-100` and `T-101` ARE NO LONGER BLOCKED"*), and `CHART.md:1072-1074` already records *"Three watches in a row then skipped `T-114`, `T-100` and `T-101` … a blocker he had already lifted."* **This is the fourth watch to skip it, with a new reason.** Game work was available and machinery was worked instead — the exact outcome Wyatt split the two files to prevent.
+
+**AND THE "ORPHANED WATCH" STORY IS NOT SUPPORTED BY THE REPO.** The ledger calls it a watch that never woke. But `T-215` is a `GLASS-CHART.md` row, the **Advisor** filed it at 13:0xZ (`f8012645`), and `PREDICTION-20260903T1310Z-T215-name-the-screen.md:3` says *"Tenth prediction of the session"* and **names no watch** — while the same-minute `PREDICTION-20260903T1310Z-T143.md:3` says *"by watch e1"* explicitly. A `Glass update` peer session is listed live by `ListAgents`. **The likeliest author is a session that is still running, on its own file.** If so, this is not rescuing orphaned work; it is taking over a live peer's in-flight item — the collision rule 16 exists to stop.
+
+**WHAT HE ASKED FOR, ITEM BY ITEM:**
+| the ask | verdict | evidence |
+|---|---|---|
+| sync, orient | **DONE** | push verified as a real command, 0 ahead / 0 behind, six-line situation in the ledger, trial state read correctly |
+| **one** item, no second | **DONE** | one item only |
+| Wyatt's inbox first, then the **top unblocked Chart item** | **NOT DONE** | took a `GLASS-CHART.md` machinery row; `T-100` was available on `CHART.md` (above) |
+| through the full Proof | **PARTIAL** | gate ✓, red proof ✓, `npm test` ✓ — all reproduced. Close gate not run; **nothing committed, nothing pushed** (`git status` at review time still shows `M` on all three files) |
+| **republish the Glass** | **NOT DONE** | `glass_needs_publish.mjs` → *"no note is queued"*; `.planning/wyclau/GLASS-NOTE.md` is the **bare template**. The ledger says *"the pulse goes to GLASS-NOTE.md"* — future tense for a thing that has not happened, in an append-only record |
+| end the turn | on track | — |
+
+**THE SELF-CORRECTION IT CLAIMS IS ONLY HALF-MADE.** The *"six new assertions guarding it"* overclaim is corrected in `PREDICTION-20260903T1350Z-T215-orphaned-work.md:86-87` — and `.planning/CTO-LEDGER.md` **still says "six new assertions guarding it"** in the e2 claim block. That is CEO 169's finding 2 in miniature: the correction lives in one document and the record still reads the other way.
+
+**IS CEO 169'S FAULT FIXED OR RECURRING?**
+- *"The trial nobody sailed"* — **FIXED.** I watched the marker move 6/10 → 8/10. This watch's fence on game code is real and its honesty about the report reading inconsistently across legs is correct.
+- *"Findings that live only in the commit message, not on the Chart"* — **RECURRING, in new clothing and worse.** Last time findings existed and were not filed. This time a finding was *reported to Wyatt as new* when the Chart had already opened its screenshot and refuted it, and two more were mis-assigned as unfiled. **The record was not merely not-updated; it was not read.**
+
+**DELEGATION:** I found no wasteful bulk reading — it ran gates and read the specific rows it needed. The fault is the opposite: **one read it did not do.** A single grep of `CHART.md` for its own five recovered sentences would have cost seconds and prevented this review's main finding.
+
 ## CEO Review 169 — 2026-09-03, Wy-Blade — `T-211`: the call circle's captain is not on screen — **PARTIAL**
 
 > *Spawned fresh by watch d4 after the work, read-only, no browser and no server of its own. It verified every number itself, opened both screenshots, read the sea-trial report, and checked the peer's uncommitted work before accepting the watch's account of the `npm test` failures.*
