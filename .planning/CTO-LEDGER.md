@@ -6396,3 +6396,26 @@ it — a sentence is exactly what failed here.**
 is named as such in the reply, per the standing exception.
 
 - 2026-09-03T02:01:22Z · close_item: "DRAG TO REPRIORITISE THE CHART, IN THE GLASS" · CEO 132 · no game diff — no game code is right: the ask is his own page and the tool that ranks it -- he can drag the Tasks list, the order rides as handles, and chartkeeper --order= makes RANK obey it; commits 8327a1b9 and 2703d0b4, src/ and index.html untouched · no stated solution
+
+## WATCH 2026-09-03T02:09Z — claims `T-105`, the two `.claude/` repairs, in a session where HE IS PRESENT
+
+- **Watch started** 2026-09-03T02:09:14Z, Blade, branch `claude/cloud-handoff-planning-a9ay1u`,
+  `can_push.mjs` clean (tracking, no rebase, no merge in progress).
+- **Last progress:** the Advisor closed `T-103` (the Glass drag) at 02:01:22Z, CEO 132, and landed
+  `T-105` step 1 (the force gate) at commit `0f0b2d44`.
+- **Blocked on Wyatt:** the staging-deploy question and the `BLOCKED ON WYATT` table as it stands.
+- **Detached trial in flight:** none — no `.planning/wyclau/LONG-RUN` on disk.
+- **Nothing held:** `IN-HAND` is empty and the last ledger line is a CLOSE, not a claim.
+- **WHAT THIS WATCH WILL DO:** take Chart row one, `T-105`, score 196 — **specifically the half three
+  watches have stalled on**: the two `.claude/` repairs written out verbatim in
+  `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`.
+
+⚠ **WHY THIS WATCH IS TAKING A ROW THE RECORD CALLS BLOCKED, AND THE REASONING IS NAMED SO IT CAN BE
+OVERRULED.** `CLAUDE-DIR-REPAIRS-PENDING.md` says the wall is Claude Code's own sensitive-file
+protection on Edit/Write, that Wyatt cannot lift it by ruling, and that **"the only route is Wyatt,
+in a session where he is present"**. **This is that session** — he invoked the Door himself, at the
+keyboard, so a permission prompt has somebody to answer it. The previous ledger entry measured the
+same thing from the other side: *"an interactive session on this machine edited that same file
+during this watch … the route the record predicted — him, present, in a session — is the one that
+worked."* No script writes the bytes; the Edit tool is used exactly as it was refused, and if it is
+refused again that is the finding and the row goes back untouched.
