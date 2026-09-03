@@ -1545,7 +1545,7 @@ status: OPEN — his half is done; the publishing half is being run now, and his
 
 solution: the receipt must carry the ARTIFACT VERSION ID — the `1788385523-b046` form the Artifact tool reports and that changes on every save, including his — never `glassState.generatedAt`.
 
-status: OPEN — FOR A WATCH, and it should be near the top: `T-105`'s Layer B is currently unable to do the one thing it exists for.
+status: DONE 2026-09-03 — CEO 130, no game diff — no game diff -- the ask is the Glass receipts' own format, not the game: both writers now refuse a clock, gate 112 red-proofed on the two real strings from his 2026-09-02 receipts; src/ and index.html untouched; his solution first: commit 60b8f02
 
   **WHAT IS ON DISK RIGHT NOW** (`.planning/wyclau/LAST-HARVEST`, written 21:55:11Z by
   `scripts/wyclau/mark_glass_harvest.mjs:79`):

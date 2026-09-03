@@ -6265,3 +6265,7 @@ in future tense with no outcome (this section is the fix, tenth verdict running 
 when both held real ids (the close gate below writes the tick and sweeps the row); and
 `_t111_probe.mjs` cited a ledger record of the delete fence that did not exist until the paragraph
 above was written.
+
+- 2026-09-03T01:01:19Z · close_item: INBOX-20260902T2156Z · CEO 130 · no game diff — no game diff -- the ask is the Glass receipts' own format, not the game: both writers now refuse a clock, gate 112 red-proofed on the two real strings from his 2026-09-02 receipts; src/ and index.html untouched · his solution first: commit 60b8f02
+
+- 2026-09-03T01:04:14Z · close_item: "A FIELD NAMED `artifactVersion` HOLDS A CLOCK" · CEO 130 · no game diff — no game diff -- the ask is the Glass receipts' own format, not the game: both writers refuse a clock from one shared definition, gate 112 red-proofed on the two real strings from his 2026-09-02 receipts; src/ and index.html untouched · no stated solution

@@ -25,6 +25,26 @@ states the fix in two parts: **(1)** pass the tool's `<epoch>-<hash>` id to
 missing gate — fail if the recorded version parses as a date — and red-proof it against today's
 files.
 
+> **TRACEABILITY, added after filing at the close gate's request — the verdict itself is unchanged.**
+> This review closes the Chart row that opens **A FIELD NAMED `artifactVersion` HOLDS A CLOCK, IN
+> BOTH RECEIPTS, AND THE GATE CANNOT SEE IT**, and the closing commit is **`60b8f023`**.
+> **I verified that commit is the work I reviewed before writing this line**, rather than taking it
+> on trust: it is HEAD, and it carries the same ten files I judged — `artifact_version.mjs`,
+> `receipt_version_is_identity_check.mjs`, the two writers, the two repaired sandboxes, the
+> prediction, `package.json`, the ledger, and this file. **All three of my findings are fixed inside
+> it, and I checked each one on disk:** the ledger now carries a past-tense outcome under the claim
+> (`CTO-LEDGER.md:6212-6267`); the back road is named in the shared module
+> (`artifact_version.mjs:29`), in the gate (`receipt_version_is_identity_check.mjs:47`) and in the
+> ledger (`:6222-6230`) — and named honestly, as *"a detector, not a preventer"*; and
+> `_t111_probe.mjs:7` now cites a ledger record that actually exists (`:6254-6260`). I re-ran
+> `npm test` myself against this commit: **PASS, 0 failures.**
+> **So yes — tick it.** My finding 5c was that the row he reads still called this unbuilt and still
+> asserted his receipts hold a clock when they hold real ids; **closing the row is the fix for that
+> finding, not a way around it.** What stays open is not part of `T-111`: the `date -u … >
+> LAST-HARVEST` line in `glass-harvest-first.cjs`, which is edit 2c in
+> `CLAUDE-DIR-REPAIRS-PENDING.md` and needs Wyatt's own hands. **Four watches have now been refused
+> it.**
+
 **THE SENTENCE FOR WYATT, UNPARAPHRASED:**
 
 > "Yes. Your page has two little receipts that say 'here is the version of the page I read before I
