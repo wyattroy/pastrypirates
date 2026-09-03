@@ -60,8 +60,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ID_RE, bodyOf, chunk, dropSection, idOfRow, overlap, parseChart, replaceSection, rowKey, section,
-  tableRows, titleOf, tokens,
+  ID_RE, bodyOf, chunk, dropSection, idOfRow, openHandleCarriers, overlap, parseChart,
+  replaceSection, rowKey, section, tableRows, titleOf, tokens,
 } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -213,16 +213,18 @@ const headSetOrder = (inner, n) => `${headUnorder(inner)} · order: ${n}`;
        land is indistinguishable from one that was ignored. Partial application would be worse than
        either — he would get an order that is his in places and ours in the rest, with nothing
        saying which. */
-    const slotOf = new Map();
-    const carriers = new Map();
-    for (let i = 0; i < lines.length; i++) {
-      const m = HEAD_ANY.exec(lines[i]);
-      if (!m) continue;
-      const h = headHandle(m[2]);
-      if (!h || !headIsOpen(lines, i)) continue;
-      slotOf.set(h, i);
-      carriers.set(h, (carriers.get(h) ?? 0) + 1);
-    }
+    /* ⚑ ONE DEFINITION OF "WHO OPENLY CARRIES THIS HANDLE", SHARED WITH THE PAGE — `T-122`.
+       This loop used to be its own: `headIsOpen`'s eleven-line window, counted here, while
+       `glass.mjs:572` counted duplicates its own way to decide what he may drag. **A handle those
+       two disagreed about is the page offering a gesture this command then refuses whole, and
+       telling him it saved.** Rule 23's question — what makes these two agree? — answered
+       "nothing" until this import.
+       MEASURED BEFORE CONVERGING rather than assumed compatible: both rules produced the identical
+       set on both live charts (22 and 26, zero seen by one and not the other), so this is one rule
+       that had been written twice, not two rules being flattened into one. */
+    const carriersAt = openHandleCarriers(original);
+    const slotOf = new Map([...carriersAt].map(([h, at]) => [h, at[0]]));
+    const carriers = new Map([...carriersAt].map(([h, at]) => [h, at.length]));
     const missing = want.filter((h) => !slotOf.has(h));
     const dupes = want.filter((h, i) => want.indexOf(h) !== i);
     /* ⚠ AND THE ONE THIS CHART CAN ACTUALLY PRODUCE TODAY: a handle carried by TWO open rows.

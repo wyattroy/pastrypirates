@@ -157,6 +157,59 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/* ═══ WHO OPENLY CARRIES A HANDLE — ONE DEFINITION, because two files were each deciding
+   "is this handle ambiguous?" on their own, which is rule 23 inside the fix written to close
+   rule 23's last instance (`T-122`, filed by CEO 132).
+
+   THE TWO DECIDERS, before this existed:
+     · `glass.mjs:572-577` counted duplicates across OPEN CHECKLIST ROWS and made an ambiguous
+       row undraggable;
+     · `chartkeeper.mjs --order` counted `carriers` over any handle line with a checkbox within
+       ELEVEN LINES above it, and refused the whole drag sequence.
+   A handle those two disagreed about is `T-103`'s original fault returning: **the page offers him
+   a drag the command then refuses whole, and it tells him it saved.**
+
+   ⚑ MEASURED BEFORE CONVERGING, because "they might be deliberately different" was a real
+   possibility and averaging two intentional rules would be worse than leaving them apart
+   (`PREDICTION-20260903T1100Z-T122-one-ambiguity.md`, falsifier 1). On both live charts the two
+   rules produce **exactly the same set**: 22 handles on `CHART.md`, 26 on `GLASS-CHART.md`, with
+   **zero** seen by one and not the other. They were two spellings of one rule, so there is now one.
+
+   ⚑ AND THE ELEVEN-LINE WINDOW IS GONE, which is rule 9's half of this. A line window is a constant
+   standing in for "this handle belongs to that row" — right until somebody writes a twelfth line of
+   prose above a marker, at which point a real row silently stops carrying its own handle. Ownership
+   is read from the row's structure instead: a marker line belongs to the nearest `- [ ]`/`- [x]`
+   head ABOVE it, with no distance limit, and the search stops at the next `## ` heading so a marker
+   can never be adopted by a row in a different section.
+
+   Returns Map<handle, number[]> — every OPEN row's marker line index, in file order. Callers get
+   ambiguity (`length > 1`), the slot (`[0]`), and the count from one place. */
+export function openHandleCarriers(chartText) {
+  const lines = String(chartText ?? "").split("\n");
+  const out = new Map();
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^\s*⟨`(T-\d{3})`[^⟩]*⟩\s*$/.exec(lines[i]);
+    if (!m) continue;
+    let open = null;
+    for (let j = i - 1; j >= 0; j--) {
+      if (/^## /.test(lines[j])) break;              // a marker never crosses a section boundary
+      const h = /^[-*] \[([ xX])\]/.exec(lines[j]);
+      if (h) { open = h[1] === " "; break; }
+    }
+    if (open !== true) continue;
+    if (!out.has(m[1])) out.set(m[1], []);
+    out.get(m[1]).push(i);
+  }
+  return out;
+}
+
+/** Handles carried by MORE THAN ONE open row — the page must not offer a drag on one, and
+    `--order=` must refuse a sequence containing one. Derived, never a list somebody typed, so it
+    corrects itself the moment the duplicate is repaired. */
+export function ambiguousHandles(chartText) {
+  return new Set([...openHandleCarriers(chartText)].filter(([, at]) => at.length > 1).map(([h]) => h));
+}
+
 /* ═══ A QUESTION'S IDENTITY — the join between a row in `## BLOCKED ON WYATT` and the ruling Wyatt
    makes against it. ONE definition, imported by glass.mjs (which stamps it into his page),
    retire_answered.mjs (which acts on it) and answered_question_retired_check.mjs (which gates it),

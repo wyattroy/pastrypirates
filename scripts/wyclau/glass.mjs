@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { chunk, stateOf, parkedReason, titleOf, questionId, stripQid, idOfRow } from "./lib/chart_model.mjs";
+import { chunk, stateOf, parkedReason, titleOf, questionId, stripQid, idOfRow, ambiguousHandles } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -569,11 +569,21 @@ if (chart !== null) {
      be named. Such a row is still shown — he steers by this list — and it simply does not move,
      which is the same honest treatment an inbox idea gets. Derived from the rows themselves, never
      from a list somebody typed, so it corrects itself the moment `T-107` is repaired. */
-  const handleCount = new Map();
-  for (const r of checklistRows) if (r.handle) handleCount.set(r.handle, (handleCount.get(r.handle) ?? 0) + 1);
+  /* ⚑ THE AMBIGUITY RULE IS NOW IMPORTED, NOT RE-DERIVED HERE — `T-122`, filed by CEO 132.
+     This counted duplicates its own way while `chartkeeper --order=` counted them a second way
+     (an eleven-line window around a checkbox). **A handle those two disagreed about is this page
+     offering him a drag the command then refuses whole — and telling him it saved**, which is
+     `T-103`'s original fault returning inside the fix written to close it.
+     Rule 23: *what makes these two agree?* Until this line the honest answer was "nothing"; now
+     there is one definition, in `lib/chart_model.mjs`, beside `idOfRow`.
+     MEASURED BEFORE CONVERGING (`PREDICTION-20260903T1100Z-T122`): the two rules produced the
+     IDENTICAL set on both live charts — 22 handles and 26, zero seen by one and not the other — so
+     nothing about his page changes today. That is also why this needs a red proof against a chart
+     where they DO disagree, rather than "it still passes". */
+  const ambiguous = ambiguousHandles(chart);
   const openChecklist = checklistRows.map((r) => ({
     text: r.text,
-    handle: r.handle && handleCount.get(r.handle) === 1 ? r.handle : null,
+    handle: r.handle && !ambiguous.has(r.handle) ? r.handle : null,
     detail: r.detail,
   }));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
