@@ -26,6 +26,8 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ---
 
+## STEP 1 CHECKLIST
+
 - [x] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own (closed 2026-09-03 · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently)
       ⟨`T-112`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"I'm not sure if this is closed or not -- investigate."*
