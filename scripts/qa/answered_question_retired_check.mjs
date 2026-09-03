@@ -435,7 +435,39 @@ const HIS_VERDICT = `**"Do a new /rules.html that explains the rules -- using th
   rmSync(dir, { recursive: true, force: true });
 }
 
-// 17/17 -- ONE DEFINITION OF THE RETIREMENT, NOT TWO. Rule 23: two things that must agree are one
+// 18/19 -- THE GUARD CANNOT BE SKIPPED BY OMITTING THE FLAG. CEO 127's first finding, and it was
+//          right: a refusal keyed on an OPTIONAL argument fires only when the session remembered the
+//          argument, which is the same "a session remembered" the whole item exists to delete.
+//          So `--rulings=` is mandatory, and a page that carried nothing says so out loud.
+{
+  const before = chartWith([REAL_PREREPAIR_QUESTIONS[0]]);
+  const dir = stage(before);
+  const silent = runHarvest(dir, [`--version=${REAL_VERSION}`]);          // the path that actually failed
+  const receiptAfterSilent = receiptOf(dir);
+  if (silent.code === 0)
+    fail("mark_glass_harvest.mjs stamped a harvest that never said what rulings it carried. The refusal in case 13 keys on --rulings=, so omitting it walks straight past the guard — a session forgetting one flag is exactly the failure being fixed.");
+  else if (receiptAfterSilent !== null)
+    fail("the stamp refused a harvest with no --rulings= and wrote the receipt anyway.");
+  else if (!silent.out.includes("--rulings=none"))
+    fail(`the refusal does not name the escape for a page that carried nothing, so an honest empty harvest has no way through. Got: ${silent.out.slice(0, 200)}`);
+  else pass("a harvest that does not say what rulings it carried is REFUSED — the guard cannot be skipped by omitting the flag.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 19/19 -- AND THE ESCAPE REALLY WORKS, otherwise case 18 just breaks every quiet tick. Most ticks
+//          carry nothing; `--rulings=none` must stamp cleanly and record an empty set.
+{
+  const dir = stage(chartWith([]));
+  const r = runHarvest(dir, [`--version=${REAL_VERSION}`, "--rulings=none"]);
+  const receipt = receiptOf(dir);
+  if (r.code !== 0) fail(`a quiet tick declaring --rulings=none was refused (exit ${r.code}): ${r.out.slice(0, 200)}`);
+  else if (receipt === null) fail("--rulings=none was accepted and wrote no receipt.");
+  else if ((receipt.rulingKeys ?? []).length !== 0) fail(`--rulings=none recorded ${receipt.rulingKeys.length} ruling key(s) — "none" was read as an id.`);
+  else pass("a quiet tick declares --rulings=none, stamps cleanly, and records an empty ruling set.");
+  rmSync(dir, { recursive: true, force: true });
+}
+
+// 17/19 -- ONE DEFINITION OF THE RETIREMENT, NOT TWO. Rule 23: two things that must agree are one
 //          thing or they will drift. The moment the stamp became a second caller, the RULED-row
 //          construction and the deletion had to move to one module both import — otherwise the pipe
 //          escaping, the qid stamp and the single-write atomicity exist twice and one copy rots.

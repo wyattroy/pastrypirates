@@ -11,6 +11,69 @@
 > **112 twice, 116 twice, 126 twice — all on 2026-09-02.** Every one happened the same way: a reviewer read the highest number at the START of a five-minute review and another session took it DURING. Each was correct when it looked. **A CEO told "read the previous verdict" then reads one of two and cannot tell which.** An out-of-order file hands over the wrong verdict; a duplicated number hands over a coin flip.
 > **CLAIM THE NUMBER IN THE SAME ACT AS THE WRITE, or re-check it immediately before filing — not when the review begins.** If you find a duplicate, renumber the LATER one and say so inside its own entry, as was done for 127.
 
+## CEO Review 129 — 2026-09-03T00:4xZ (8:4x PM ET), Wy-Blade — `T-090` gap (a): the harvest becomes the caller. **PARTIAL**
+
+> **Number claimed AT THE WRITE, per the box above.** The reviewer was briefed as "the CEO" with no
+> number; 126, the renumbered 127 and 128 were all on file when this was written, so this is 129.
+
+**THE ASK IT JUDGED, verbatim (his sixth report in twelve hours):** *"the page continues to re-show
+me thw e questions AFTER they're harvested. this is NOT fixed and it is a PRIORITY more than any of
+the SEO work"* — against `T-090` gap (a), CEO 125's residual: *"NOTHING CALLS THE SCRIPT."*
+
+**ITS ONE-LINE ANSWER TO THE NARROW QUESTION, UNPARAPHRASED — this is the sentence for Wyatt:**
+
+> "Partly. The harvest command can now delete your answered questions in the same breath as
+> recording your answer — and it refuses to file its receipt if it's been told which ones you
+> answered and hasn't cleared them. But telling it is still optional: a session that skips that one
+> flag stamps a clean harvest and your page keeps asking. And nothing about tonight's work was
+> written into the Chart, so from where you sit nothing looks different yet."
+
+**WHAT IT VERIFIED AND HELD, checked against disk rather than taken on trust:** `npm test` exits 0
+(it ran it). No game code — `src/`, `index.html`, `about.html`, `classic/` untouched across all three
+commits. **The join is real and it re-derived it independently**: `glass.mjs:436` stamps each ask's
+id with `questionId(q).id` and `lib/retire.mjs` reads the live row's id with the same function from
+`chart_model.mjs:173-185` — one definition, so the two cannot disagree by construction. **The
+extraction moved no behaviour**: the deleted block is reproduced line for line in the module. **No
+new case is vacuous** — it checked all five against the pre-fix stamp and all five genuinely fail.
+Nothing left uncommitted.
+
+**ITS FIVE FINDINGS. Three fixed inside the same watch; two named and open.**
+
+1. ⚑ **THE SHARPEST, AND IT WAS RIGHT: the refusal was OPT-IN.** The guard keyed on `--rulings=`,
+   which was optional — so a harvest that simply omitted the flag stamped a clean receipt beside his
+   still-asking question. Its words: *"the trigger is still a session remembered, which is the exact
+   sentence the commit uses to condemn the old design."* **FIXED in the same watch, red first:**
+   `--rulings=` is now mandatory, `--rulings=none` is the declaration for a quiet tick, and two new
+   cases (18, 19) went red then green. The gate is 19 cases.
+2. **"A hook requires it" was FALSE, and it was the load-bearing claim of the design.**
+   `.claude/hooks/glass-harvest-first.cjs` contains zero occurrences of `mark_glass_harvest` — it
+   checks the stamp FILE's mtime, and its own deny text still teaches `date -u … > LAST-HARVEST`,
+   which this gate's `harvestKeys()` then cannot parse, blinding the gate too. **FIXED where a watch
+   may write** (the false claim is deleted and corrected in the file's header and on the Chart row);
+   **the hook repair itself is under `.claude/` and is refused to an unattended watch** —
+   `CLAUDE-DIR-REPAIRS-PENDING.md`, Wyatt's own hands.
+3. **CEO 126's finding 1 RECURS — ninth consecutive verdict about a sentence rounding toward
+   finished.** The ledger entry ended on a future-tense promise with no outcome beneath it. FIXED:
+   an outcome section now sits under the claim.
+4. **CEO 126's finding 3 RECURS, wider: the record he reads was never updated.** The fix commit
+   touched no `CHART.md`, so the `T-090` row still said *"NOTHING CALLS THE SCRIPT"* and *"12
+   cases"*. **His page renders that file — so his page would still have told him this was unbuilt.**
+   FIXED: the row now carries what shipped, what CEO 129 caught, and what is still open.
+5. **Minor, and a real deviation nobody had disclosed:** `SPEC-ANSWERED-QUESTIONS-RETIRE.md:79` asks
+   for the `RULED` row written with the `now` cell FILLED; the code leaves it empty. The reason is
+   sound (an empty `now` is what marks a ruling untriaged) and was simply never named as a
+   departure. FIXED: named at the line that writes it.
+
+**ITS CHEAPEST-THING-LEFT, TAKEN:** *"Make `--rulings=` mandatory, accepting `--rulings=none`… it is
+the only change that makes tonight's guard fire on the path that actually failed."*
+
+**WHAT REMAINS OPEN ON `T-090`, and neither is a watch's to close:** the spec's acceptance test —
+answer a question on the LIVE page and watch it leave — needs the Artifact tool a Bell-launched
+watch does not have; and the Door still teaches the old two-act harvest, an edit under `.claude/`
+that three watches have now been refused.
+
+---
+
 ## CEO Review 128 — 2026-09-03T0x:xxZ, Wy-Blade — `SPEC-GLASS-REQUIREMENTS.md` → `DESIGN-GLASS-V2.md`, the scoping document and the bluesky redesign
 
 > ⚠ **THE REVIEWER WROTE THIS AS 127 AND IT IS FILED AS 128, BECAUSE THE COLLISION IT DIAGNOSED WAS

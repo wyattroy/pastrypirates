@@ -6120,3 +6120,63 @@ by `git diff` and independently by CEO 126. `npm test` exits 0.
   CEO 125 and the row agree on what is left: the retirement is BUILT and **nothing calls it**.
   The fix is to put it inside the one command every harvest must run —
   `scripts/wyclau/mark_glass_harvest.mjs`. **No game code, no sea trial.**
+
+⚠ **Everything above this line was written at the CLAIM, before the work — future tense, in the file
+whose own convention forbids it. CEO 126 called that out on the previous watch and CEO 129 called it
+out again here, ninth consecutive. THIS IS THE OUTCOME, written after.**
+
+### WHAT ACTUALLY HAPPENED — `T-090` gap (a) is CLOSED. The harvest is the caller.
+
+**THE HARVEST NOW RETIRES HIS ANSWERED QUESTIONS.** `scripts/wyclau/mark_glass_harvest.mjs` — the
+command the harvest ends on — takes `--retire=<qid>::<his words, verbatim>` (repeatable) and
+retires each question **in the same act that writes its receipt**: his answer into `## RULED` under
+its qid, the row out of `## BLOCKED ON WYATT`, one write. **A bad pair writes NEITHER the Chart nor
+the receipt** — half a harvest is a record that lies, and this whole item exists because the record
+and his page disagreed.
+
+**AND IT REFUSES.** A ruling it is carrying whose question is still live, with no verdict, is
+refused with the exact `--retire=` line to add. **`--rulings=` is mandatory**, so a tick that
+carried nothing must say `--rulings=none` — declaring nothing and saying nothing are different
+sentences and only one can be audited.
+
+**ONE DEFINITION (rule 23).** The act moved to `scripts/wyclau/lib/retire.mjs` the moment there were
+two callers, carrying the three details a second copy would have had to reproduce: the pipe and
+newline escaping CEO 125 earned, the `<!--qid:-->` stamp that makes the answered-set readable
+without the gitignored receipt, and the single-write atomicity.
+
+**THE FOUR STEPS, IN ORDER, TWICE.** Five cases written first, all RED on the live tree (the stamp
+filed a receipt beside his still-asking question; `--retire=` was an argument it silently ignored;
+the module did not exist), all green after. Then CEO 129's finding produced two MORE cases, red
+first, green after. **Gate: 19 cases. `npm test` exits 0.** Cases 9-12 — `retire_answered.mjs` end
+to end on his real 6:50 PM question — pass unchanged through the extraction, which is what proves it
+moved no behaviour; CEO 129 re-derived that independently, line for line.
+
+⚑ **CEO 129 (PARTIAL) CAUGHT THE HOLE THAT MATTERED, AND IT IS WORTH MORE THAN THE FIX WAS.** The
+first version's refusal was **OPT-IN**: it keyed on `--rulings=`, which was optional, so a session
+that left the flag off stamped a clean receipt beside his still-asking question. Its sentence:
+*"the trigger is still a session remembered, which is the exact sentence the commit uses to condemn
+the old design."* Fixed inside the same watch.
+
+⚠ **AND A CLAIM OF THIS WATCH'S THAT CEO 129 KILLED, CORRECTED IN THE OPEN.** The commit and the
+file header both said the stamp is a command *"a hook requires"*. **It does not.**
+`.claude/hooks/glass-harvest-first.cjs` never names it — it reads the stamp FILE's mtime, and its
+own deny text still teaches a bare `date -u` timestamp, which this gate's own `harvestKeys()` cannot
+parse. **So a session obeying that hook satisfies the hook, never runs this command, and blinds the
+gate.** The repair is under `.claude/`, refused to an unattended watch by the harness itself (three
+watches have now proved it); it is written out in `CLAUDE-DIR-REPAIRS-PENDING.md` and needs Wyatt's
+hands.
+
+**NOT CLOSED THROUGH THE GATE, AND THE REASON IS PART 4, NOT THE EVIDENCE.** `T-090` also owes the
+acceptance test in `SPEC-ANSWERED-QUESTIONS-RETIRE.md` §4: **answer a question on the LIVE page and
+watch it leave, with no human editing `CHART.md`.** A Bell-launched watch has no Artifact tool, so
+that half cannot be run from here — measured on this machine, not assumed. The Chart row now carries
+gap (a) as closed and part 4 as open.
+
+**ALSO DONE, deliberately as its OWN commit (`0c58d47f`) so it is not mixed into the item:** rescued
+`.planning/DESIGN-GLASS-V2.md`, the 30 KB blue-sky Glass design another session left UNTRACKED in
+this shared checkout. The same thing happened to the previous watch six hours ago and a peer had to
+rescue its work. An untracked file in a tree three sessions share is one `git checkout` away from
+gone, and this one is a thing Wyatt asked for by name.
+
+**NO GAME CODE:** `src/`, `index.html`, `about.html` and `classic/` untouched — verified by
+`git diff` and independently by CEO 129 across all three commits. `npm test` exits 0.

@@ -185,15 +185,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       definition of a question's id (`questionId`/`stripQid`/`QID_RE`) and `glass.mjs` imports it
       instead of its own inline slug; `scripts/wyclau/retire_answered.mjs` writes the `RULED` row and
       deletes the `BLOCKED ON WYATT` row in a single file write;
-      `scripts/qa/answered_question_retired_check.mjs` is in `npm test` (111 gates) with 12 cases,
+      `scripts/qa/answered_question_retired_check.mjs` is in `npm test` (111 gates) with 19 cases,
       **red-proofed on the real event** — his five 6:50 PM rules-page questions, verbatim out of
       commit `cb7cfc89` and checked against that commit by the gate itself, replayed against the five
       keys `LAST-HARVEST` really stored his answers under: 5 of 5 caught.
-      ⚠ **AND WHAT IS HONESTLY STILL MISSING, SAID PLAINLY BECAUSE THE PROSE AROUND IT DID NOT.**
-      (a) **NOTHING CALLS THE SCRIPT.** The spec (`SPEC-ANSWERED-QUESTIONS-RETIRE.md:78-84`) asks for
-      retirement *"run by the harvest… not a session following a runbook step"*, and what shipped is
-      a command a session types from a runbook step. The atomic half is built; the automatic half is
-      not. CEO 125 found this and the watch's own prediction had set it as the falsifier.
+      ✅ **(a) IS CLOSED — 2026-09-03T00:5xZ, CEO 127 (PARTIAL), commit `797c53f3` + its follow-up.
+      THE HARVEST IS NOW THE CALLER.** `scripts/wyclau/mark_glass_harvest.mjs` — the command the
+      harvest ends on — takes `--retire=<qid>::<his words>` and retires the question **in the same
+      act that writes its receipt**; a ruling it is carrying whose question is still live and has no
+      verdict is **REFUSED**; and `--rulings=` is **mandatory**, so a tick that carried nothing must
+      say `--rulings=none` rather than stay silent. The act itself moved to one definition,
+      `scripts/wyclau/lib/retire.mjs`, imported by both callers. Gate: 19 cases, five written RED
+      first (the stamp filed a receipt beside his still-asking question; `--retire=` was silently
+      ignored; the module did not exist), all green after. `npm test` exits 0, no game code.
+      ⚠ **WHAT CEO 127 CAUGHT AND IT WAS RIGHT: the first version's refusal was OPT-IN** — it keyed
+      on `--rulings=`, which was optional, so a session that left the flag off stamped a clean
+      receipt beside his still-asking question. **The trigger was still "a session remembered", which
+      is the sentence this whole item exists to delete.** Fixed in the same watch by making the
+      declaration mandatory; two more cases, red first.
+      ⚠ **AND A CLAIM IT KILLED, CORRECTED HERE RATHER THAN QUIETLY DROPPED:** the fix described the
+      stamp as a command *"a hook requires"*. **It does not.** `.claude/hooks/glass-harvest-first.cjs`
+      never names it — it reads the stamp FILE's mtime, and its own deny text still teaches a bare
+      `date -u` timestamp, which a gate here then cannot parse. That hook is under `.claude/`, where
+      an unattended watch is refused permission to write (proven by three watches); the repair is
+      written out in [`CLAUDE-DIR-REPAIRS-PENDING.md`](wyclau/CLAUDE-DIR-REPAIRS-PENDING.md) and
+      needs Wyatt's own hands.
+      ⚠ **WHAT IS STILL MISSING, SAID PLAINLY BECAUSE THE PROSE AROUND IT DID NOT.**
       (b) ⚠ **THE DOOR — THE ONE WAY INTO EVERY SESSION — STILL TEACHES THE OLD TWO-ACT HARVEST**
       (`.claude/skills/door/SKILL.md:53-58`). **CEO 125: this is the gap that produces instance
       seven.** The edit was written twice and REFUSED BY A PERMISSION PROMPT both times, so a watch

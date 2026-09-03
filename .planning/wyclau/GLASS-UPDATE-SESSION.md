@@ -199,9 +199,12 @@ publish. This session IS the terminal.
 >    Gate: `scripts/qa/glass_gate_verdict_logged_check.mjs`.
 > 4. **STAMP WHAT YOU READ, NOT WHEN YOU LOOKED — AND RETIRE HIS ANSWERED QUESTIONS IN THE SAME
 >    BREATH:**
->    `node scripts/wyclau/mark_glass_harvest.mjs --version=<the version the step-2 read returned>`
->    — add `--ideas=<ids>` / `--rulings=<keys>` if step 2 carried anything across. **A bare call is
->    refused**, the same way `mark_glass_published.mjs` refuses one.
+>    `node scripts/wyclau/mark_glass_harvest.mjs --version=<…> --rulings=<keys, or the word none>`
+>    — add `--ideas=<ids>` if step 2 carried ideas across. **A bare call is refused**, the same way
+>    `mark_glass_published.mjs` refuses one.
+>    ⚑ **`--rulings=` IS NOT OPTIONAL. A tick that carried none of his answers writes
+>    `--rulings=none`** — declaring nothing and saying nothing are different sentences, and only one
+>    of them can be audited. (A `--retire=` pair below counts as the declaration on its own.)
 >
 >    ⚑ **AND FOR EVERY RULING HE MADE, ADD A `--retire=` PAIR. IT IS REPEATABLE:**
 >    `--retire=<the ruling's key>::<his words, verbatim>`

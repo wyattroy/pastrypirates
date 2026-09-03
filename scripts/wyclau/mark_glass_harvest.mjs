@@ -21,15 +21,28 @@
 // enough — its own commit says "all five rules-page questions in the Your Call table above are now
 // answered" and it left all five asking.
 //
-// THIS FILE IS THE CALLER, AND IT WAS ALWAYS THE RIGHT ONE. It is the one command a harvest cannot
-// skip (the runbook requires it, a hook requires it, a gate reads its receipt), and it is already
-// handed the exact ids he ruled under in `--rulings=`. So it now does two things nothing else did:
+// THIS FILE IS THE CALLER, AND IT WAS ALWAYS THE RIGHT ONE. It is the command the runbook's harvest
+// ends on and the one whose receipt a gate reads, and it is already handed the exact ids he ruled
+// under in `--rulings=`. So it now does three things nothing else did:
 //
-//   · `--retire=<qid>::<verdict>` retires the question IN THE SAME ACT that writes the receipt; and
-//   · a `--rulings=` key whose question is STILL LIVE and carries no verdict is REFUSED.
+//   · `--retire=<qid>::<verdict>` retires the question IN THE SAME ACT that writes the receipt;
+//   · a `--rulings=` key whose question is STILL LIVE and carries no verdict is REFUSED; and
+//   · `--rulings=` is MANDATORY — a harvest that does not say what it carried is refused, and a page
+//     that carried nothing says `--rulings=none` out loud.
 //
-// The refusal is the half that matters. A capability the caller may skip is a runbook step wearing a
-// flag, and a runbook step is exactly what failed six times.
+// The third one is what makes the second real, and it was missing for an hour. CEO 127: **"the
+// refusal is opt-in: the flag it keys on is optional"** — so a session that simply omitted
+// `--rulings=` stamped a clean receipt beside his still-asking question, and the trigger was still
+// *a session remembered*, which is the sentence this whole item exists to delete.
+//
+// ⚠ AND ONE CLAIM THIS HEADER MADE AND CEO 127 KILLED, CORRECTED RATHER THAN QUIETLY DROPPED: it
+// said "a hook requires it". **It does not.** `.claude/hooks/glass-harvest-first.cjs` contains zero
+// occurrences of this file's name — it checks the STAMP FILE's mtime, and its own remediation text
+// still tells a session to write a bare `date -u` timestamp into it. A session obeying that hook
+// satisfies the hook, never runs this command, and leaves a receipt this project's gates cannot
+// parse. **That hook lives under `.claude/`, which an unattended watch is refused permission to
+// edit** (three watches have now proved it) — the repair is written out in
+// `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md` and needs Wyatt's own hands.
 //
 // ⚠ WHY THIS FILE EXISTS — WYATT'S OWN SENTENCE, AND IT IS THE WHOLE DESIGN (2026-09-02, `T-105`):
 //
@@ -103,6 +116,36 @@ verbatim, commit, and stamp with the version that read returned.`);
   process.exit(1);
 }
 
+/* ⚑ `--rulings=` IS MANDATORY, AND THAT IS WHAT MAKES THE REFUSAL BELOW REAL — CEO 127.
+   The guard further down asks "does a ruling this harvest carried still have a live question?".
+   While `--rulings=` was optional, a session that simply left it off was never asked — so the
+   trigger was still *a session remembered*, which is the exact thing six instances of this bug were
+   made of. A page that genuinely carried nothing has to SAY so: `--rulings=none`. Declaring nothing
+   and saying nothing are different sentences, and only one of them can be audited. */
+const rulingsArg = argOf("rulings");
+/* A `--retire=` pair IS a declaration — it names a ruling and hands over his words. Requiring
+   `--rulings=` beside it would be asking the caller to say the same thing twice, and a field nobody
+   needs is a field that drifts from the one that matters. */
+if (!rulingsArg && allOf("retire").length === 0) {
+  console.error(`REFUSING TO STAMP — this harvest did not say what rulings it carried.
+
+Every tick reads his page. Either he ruled on something or he did not, and the receipt has to say
+which — because the check that stops his page re-asking a question he has answered is keyed on
+exactly that list. Left off, it has nothing to check and waves the harvest through.
+
+  --rulings=<key>,<key>    the questions he answered on this read
+  --rulings=none           he answered nothing on this read
+
+If he DID answer something, retire it in the same act rather than only naming it:
+
+  --retire=<key>::<his words, verbatim>
+
+Nothing was written.`);
+  process.exit(1);
+}
+/* "none" is a DECLARATION, not an id, and it is filtered before anything treats it as one. */
+const declaredRulings = (!rulingsArg || rulingsArg.toLowerCase() === "none") ? [] : listOf("rulings").map((k) => k.toLowerCase());
+
 /* ═══ THE RETIREMENT — computed BEFORE anything is written, so a refusal leaves the tree exactly as
    it found it. Half a harvest is worse than none: a Chart edited with no receipt, or a receipt
    claiming a retirement that did not happen, are both records that lie, and this whole item exists
@@ -148,7 +191,7 @@ if (retireArgs.length) {
    the exact thing he has now reported six times. Refuse, and say which question and how. */
 if (chart !== null) {
   const stillAsking = new Set(liveQuestions(chart).map((q) => q.id));
-  const unretired = listOf("rulings").map((k) => k.toLowerCase()).filter((k) => stillAsking.has(k) && !retiredIds.includes(k));
+  const unretired = declaredRulings.filter((k) => stillAsking.has(k) && !retiredIds.includes(k));
   if (unretired.length) {
     console.error(`REFUSING TO STAMP — ${unretired.length} question(s) he has ANSWERED are still asking him.
 
@@ -174,7 +217,7 @@ const receipt = {
   ideaIds: listOf("ideas"),
   /* DERIVED, NOT RE-TYPED. A question retired by this run WAS a ruling this harvest carried, so the
      caller never has to name it twice — and the receipt cannot disagree with what was retired. */
-  rulingKeys: [...new Set([...listOf("rulings").map((k) => k.toLowerCase()), ...retiredIds])],
+  rulingKeys: [...new Set([...declaredRulings, ...retiredIds])],
 };
 
 mkdirSync(WY, { recursive: true });

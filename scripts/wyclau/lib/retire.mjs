@@ -55,6 +55,12 @@ export function retireQuestion(chartText, qidRaw, verdictRaw) {
      and his page still asks", so a silent success is this bug wearing a different hat. */
   if (!target) return { ok: false, error: `no live question in \`## BLOCKED ON WYATT\` has the id "${qid}".`, live: rows.map((r) => r.id) };
 
+  /* ⚠ THE "now" CELL IS LEFT EMPTY, AND THAT IS A DEPARTURE FROM THE SPEC — named here rather than
+     left to be discovered. `SPEC-ANSWERED-QUESTIONS-RETIRE.md:79` asks for the row written "with the
+     `now` cell filled". `## RULED` is a WAITING ROOM with its own three-move process, and an empty
+     "now" is what marks a ruling as untriaged; filling it here would file his answer as already
+     acted on the instant it is recorded. Flagged by CEO 127 as an undisclosed deviation, which it
+     was. If he wants it filled, it is one expression — but the triage lifecycle has to move too. */
   const ruledRow = `| <!--qid:${qid}--> ${cell(stripQid(target.cell))} | ${cell(verdict)} | |`;
 
   const ruledText = section(chartText, "RULED") ?? "";
