@@ -235,7 +235,10 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
   const html = render({ chart: CHART(ONE_ROW, "- [ ] **First thing.**\n- [ ] **Second thing.**"), status: HELD });
   const card = (/<h2>The Chart \(Tasks To Do\)[\s\S]*?<\/section>/.exec(html) || [""])[0];
   if (!card) fail("the Tasks card could not be found at all");
-  else if (!/<ol>/.test(card)) fail("the Tasks list is still bullets — he has asked twice for numbers, and the rank order the Chartkeeper writes is unreadable without them");
+  /* `<ol\b`, not `<ol>`: the drag (`T-103`) gave the list an id, and an assertion pinned to the
+     bare tag failed against a page still numbering his tasks exactly as he asked. What he asked
+     for is NUMBERS — an ordered list — and that is what this matches. */
+  else if (!/<ol\b/.test(card)) fail("the Tasks list is still bullets — he has asked twice for numbers, and the rank order the Chartkeeper writes is unreadable without them");
   else pass("the Tasks list is numbered");
 }
 
@@ -302,7 +305,9 @@ const plain = (line) => String(line).replace(/<[^>]+>/g, "").trim();
   ].join("\n");
   const card = (/<h2>The Chart \(Tasks To Do\)[\s\S]*?<\/section>/.exec(
     render({ chart: CHART(ONE_ROW, wrapped), status: HELD })) || [""])[0];
-  const first = (/<li>([\s\S]*?)<\/li>/.exec(card) || [null, ""])[1];
+  // Attributes allowed on the row: a draggable task carries its handle (`T-103`). What is being
+  // read here is the row's TEXT, and that is unchanged by anything the tag carries.
+  const first = (/<li\b[^>]*>([\s\S]*?)<\/li>/.exec(card) || [null, ""])[1];
 
   if (/^Fix the glass[\s\S]*my$/.test(first.trim()))
     fail(`the row is cut where CHART.md happens to wrap: "${first.trim()}" — a line break in the source is not the end of his sentence`);

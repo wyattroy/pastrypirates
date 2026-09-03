@@ -153,6 +153,17 @@ publish. This session IS the terminal.
 >    that reaches nothing** — RANK reads the `now: yes` field the command writes, and nothing else.
 >    (`T-104`, his words: *"Add a 'DO now' button next to 'Send to the Chart' button that tells RANK
 >    to put this task at the top"*. The button is the easy half; this line is the joint.)
+>    ⚑ **AND IF `order` IS NOT NULL, HE DRAGGED HIS TASK LIST INTO A NEW SEQUENCE. Same joint, same
+>    shape — the drag does not travel by itself either:**
+>    `node scripts/wyclau/chartkeeper.mjs --order=<the handles in glassState.order.handles, comma-separated, in that exact sequence>`
+>    That command writes his sequence onto those rows and **clears the previous order in the same
+>    act** — one order, replaced whole, never merged, so the list is never half his and half ours.
+>    It REFUSES outright, writing nothing, if any handle names no open row or names two of them.
+>    **Copy the handles, never the row text** — the page truncates and de-shouts a title for him, so
+>    the text on his screen is not the row's name. To put the list back on its derived ranking:
+>    `node scripts/wyclau/chartkeeper.mjs --order-clear`
+>    (`T-103`, his words: *"DO NOW: build a way for me to drag to reprioritize the chart, in The
+>    Glass."* His pin still outranks his drag — the pin is the later, sharper act.)
 > 2b. ⚑ **AND FOR EVERY KEY IN `rulings`, RETIRE THE QUESTION. YOU DO NOT HAVE TO REMEMBER THIS ANY
 >    MORE — STEP 4's STAMP DOES IT, AND REFUSES TO STAMP IF YOU SKIP IT.** Carry each ruling's key
 >    and his words into step 4 as a `--retire=` pair and the retirement happens in the same act as

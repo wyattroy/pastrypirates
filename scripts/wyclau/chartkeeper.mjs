@@ -170,6 +170,96 @@ const headIsOpen = (lines, i) => {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+   HIS ORDER — "DRAG TO REPRIORITIZE". THE WHOLE LIST, NOT ONE SLOT.
+
+   Wyatt, Glass, 2026-09-02 3:09 PM ET: "DO NOW: build a way for me to drag to reprioritize the
+   chart, in The Glass."
+
+   ⚠ THIS IS NOT A SECOND DO NOW AND MUST NEVER BE COLLAPSED INTO ONE. The pin above is his
+   INTERRUPT — one slot, deliberately, because "an interrupt with a queue is just another backlog".
+   A drag is the opposite act: he is telling this tool the SEQUENCE he wants the list worked in.
+   One is "this, now"; the other is "and then these, in this order". Trying to serve both from one
+   boolean is how the pin would quietly become the backlog his own constraint forbids.
+
+   WHY IT IS THE SAME HEAD LINE AND NOT A NEW FILE — the identical reasoning as the pin: the Chart
+   is the record, `⟨…⟩` already carries `needs:`, `size:` and `now:`, and `glass.mjs` renders the
+   row so he can SEE where it landed. A separate order file is a second thing kept in step with the
+   first by nobody (rule 23).
+
+   ONE ACT, for the same reason the pin is: `--order=` clears every existing `order:` field and
+   writes 1..N onto the rows named, in that sequence, in a single read-modify-write. There is no
+   "add to the order" and no "clear the old one first" — a rule like that is a rule somebody skips.
+   ───────────────────────────────────────────────────────────────────────────────────────────── */
+const headOrder = (inner) => {
+  const m = /(?:^|·)\s*order\s*:\s*(\d{1,3})\b/i.exec(inner);
+  return m ? Number(m[1]) : null;
+};
+const headUnorder = (inner) => inner
+  .replace(/\s*·\s*order\s*:\s*\d{1,3}\b/gi, "")
+  .replace(/^\s*order\s*:\s*\d{1,3}\s*·?\s*/i, "")
+  .trim();
+const headSetOrder = (inner, n) => `${headUnorder(inner)} · order: ${n}`;
+
+{
+  const wanted = opt("order", null);
+  const clearing = flag("order-clear");
+  if (wanted !== null || clearing) {
+    const lines = original.split("\n");
+    const want = wanted === null ? [] : String(wanted)
+      .split(",").map((h) => h.replace(/[`\s]/g, "")).filter(Boolean);
+    /* A HANDLE HE DRAGGED THAT LANDS NOWHERE IS REFUSED, AND NOTHING IS WRITTEN. Same refusal as
+       the pin's, for the same reason in his own words' consequence: an instruction he cannot see
+       land is indistinguishable from one that was ignored. Partial application would be worse than
+       either — he would get an order that is his in places and ours in the rest, with nothing
+       saying which. */
+    const slotOf = new Map();
+    const carriers = new Map();
+    for (let i = 0; i < lines.length; i++) {
+      const m = HEAD_ANY.exec(lines[i]);
+      if (!m) continue;
+      const h = headHandle(m[2]);
+      if (!h || !headIsOpen(lines, i)) continue;
+      slotOf.set(h, i);
+      carriers.set(h, (carriers.get(h) ?? 0) + 1);
+    }
+    const missing = want.filter((h) => !slotOf.has(h));
+    const dupes = want.filter((h, i) => want.indexOf(h) !== i);
+    /* ⚠ AND THE ONE THIS CHART CAN ACTUALLY PRODUCE TODAY: a handle carried by TWO open rows.
+       `--rank` already warns about it (three pairs on the live Chart as this was written), and the
+       warning is right that nothing may be claimed from such a mention. A drag is worse than a
+       mention — silently ordering the wrong row is exactly the mis-attribution that fault causes,
+       and he would never know which of the two he had moved. */
+    const ambiguous = [...new Set(want.filter((h) => (carriers.get(h) ?? 0) > 1))];
+    if (missing.length || dupes.length || ambiguous.length) {
+      if (missing.length) console.error(`chartkeeper --order: no OPEN row on ${CHART} carries ${missing.join(", ")}.`);
+      if (dupes.length) console.error(`chartkeeper --order: ${dupes.join(", ")} appears more than once — an order is a sequence, not a bag.`);
+      if (ambiguous.length) console.error(`chartkeeper --order: ${ambiguous.join(", ")} is carried by MORE THAN ONE open row — ordering one of two rows nobody can tell apart would move the wrong task and say nothing. Give one of each pair a new handle first.`);
+      console.error("  NOTHING was written. A partly-applied order is his in places and ours in the rest,");
+      console.error("  with nothing on the page saying which — worse than refusing outright.");
+      process.exit(2);
+    }
+    const at = new Map(want.map((h, i) => [slotOf.get(h), i + 1]));
+    let released = 0;
+    const out = lines.map((l, i) => {
+      const m = HEAD_ANY.exec(l);
+      if (!m) return l;
+      if (at.has(i)) return `${m[1]}⟨${headSetOrder(m[2], at.get(i))}⟩${m[3]}`;
+      if (headOrder(m[2]) !== null) { released++; return `${m[1]}⟨${headUnorder(m[2])}⟩${m[3]}`; }
+      return l;
+    });
+    writeFileSync(CHART, out.join("\n"));
+    if (want.length) {
+      console.log(`ORDER   ${want.length} row(s) carry your order — RANK works them in that sequence: ${want.join(" → ")}`);
+      if (released) console.log(`        cleared ${released} row(s) from the previous order: one order, replaced whole, never merged.`);
+      console.log("        Anything you did not drag keeps its derived rank, underneath yours.");
+    } else {
+      console.log(released ? `ORDER   cleared — ${released} row(s) released, the list is derived again.` : `ORDER   nothing was ordered; there was nothing to clear.`);
+    }
+    process.exit(0);
+  }
+}
+
 /* TWO PINS CANNOT BE PRODUCED BY THE COMMAND ABOVE, SO TWO PINS MEAN A HAND EDIT — and a hand edit
    is what this record keeps losing to. Fail the build, name both, and do not guess which he meant. */
 {
@@ -817,6 +907,22 @@ function score(row, { reapByKey, reapFaultByKey, settleByKey, ruleTokens, blocke
     s += 10000;
     why.push("YOU SAID DO NOW");
   }
+  /* HIS DRAGGED ORDER OUTRANKS EVERY DERIVED SIGNAL AND SITS UNDER HIS PIN. Same reasoning as the
+     pin's, one step down: everything else in this function is a GUESS about what he would want,
+     and this is him saying it. It sits BELOW `now: yes` because a pin is a later, sharper act than
+     an ordering — he can always drag again, and the interrupt he typed most recently should not be
+     buried by a list he arranged this morning.
+     ⚠ THAT MARGIN IS A JUDGEMENT, NOT A MEASUREMENT, AND IT IS HIS TO OVERRULE. It was written
+     down as such in PREDICTION-20260903T0110Z-T103.md before the code existed. If he is ever seen
+     re-dragging to undo a pin, the two are the wrong way round.
+     THE STEP IS 1 PER POSITION AND THE BASE IS FAR ABOVE THE DERIVED RANGE (which tops out in the
+     low hundreds), so his order can never be perturbed by a signal — but a row he dragged that is
+     also BLOCKED still says so in its why-now phrase, exactly as a pinned one does. */
+  const dragged = Number(headField(row, "order"));
+  if (Number.isInteger(dragged) && dragged > 0) {
+    s += 5000 - dragged;
+    why.push(`you dragged this to ${dragged}`);
+  }
   const gated = /\bGATED:/.test(row.raw);
   const needsWyatt = (headField(row, "needs") || "").toLowerCase() === "wyatt";
   /* WAITING ON HIM IS A FACT ABOUT THIS ROW, NOT ABOUT THE WORDS IT USES. This read
@@ -933,6 +1039,17 @@ function score(row, { reapByKey, reapFaultByKey, settleByKey, ruleTokens, blocke
   if (size === "L") { s -= 3; }
 
   if (!why.length) why.push("no signal either way");
+  /* ⚑ HIS OWN SAY-SO REPLACES THE NUMBER; IT DOES NOT COMPETE WITH IT. Both his signals were
+     ADDED to the derived score at first, and the drag case caught why that is wrong within one
+     run: he dragged four rows into a sequence and RANK gave him a different one, because a row
+     carrying +30 for touching `src/` out-scored the row he had put one place above it. **A margin
+     that a derived signal can close is not an ordering — it is a suggestion.**
+     So a row he has spoken about keeps its why-now phrases (he is still told it is blocked, or
+     small, or player-facing) and loses its derived NUMBER entirely. The pin sits above the drag
+     because it is the later, sharper act — see the note on `order` above; that margin is his to
+     overrule and `do_now_check.mjs` case 13 is where it is written down. */
+  if ((headField(row, "now") || "").toLowerCase() === "yes") return { s: 9000000, whyNow: why.join(" · ") };
+  if (Number.isInteger(dragged) && dragged > 0) return { s: 1000000 - dragged, whyNow: why.join(" · ") };
   return { s, whyNow: why.join(" · ") };
 }
 

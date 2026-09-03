@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { chunk, stateOf, titleOf, questionId, stripQid } from "./lib/chart_model.mjs";
+import { chunk, stateOf, titleOf, questionId, stripQid, idOfRow } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -477,11 +477,19 @@ if (chart !== null) {
      The marker is added AFTER `shortTask`, deliberately: `deShout` downcases a run of two capitalised
      words, so "DO NOW" written before it comes out as "Do now" — his own emphasis, quietly removed
      by a rule written for somebody else's shouting. */
+  /* ⚑ EACH TASK NOW CARRIES ITS HANDLE, AND THAT IS WHAT MAKES THE DRAG POSSIBLE AT ALL.
+     His words, 2026-09-02 3:09 PM ET: "DO NOW: build a way for me to drag to reprioritize the
+     chart, in The Glass." A drop has to be able to SAY which row moved, and until now every task
+     on this card was a plain string — so there was nothing for a drag to name. The handle rides as
+     a data attribute, exactly as the in-hand item's does: machines keep it, he never reads it. */
   const openChecklist = chunk(stepSec, "checklist")
     .filter((c) => c.type === "row" && /^- \[ \] /.test(c.lines[0]))
-    .map((c) => (c.lines.some((l) => /^\s*⟨[^⟩]*(?:^|·)\s*now\s*:\s*yes\b[^⟩]*⟩\s*$/i.test(l))
-      ? `⚡ DO NOW — ${shortTask(titleOf(c.lines))}`
-      : shortTask(titleOf(c.lines))));
+    .map((c) => ({
+      text: c.lines.some((l) => /^\s*⟨[^⟩]*(?:^|·)\s*now\s*:\s*yes\b[^⟩]*⟩\s*$/i.test(l))
+        ? `⚡ DO NOW — ${shortTask(titleOf(c.lines))}`
+        : shortTask(titleOf(c.lines)),
+      handle: idOfRow(c.lines),
+    }));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
      SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
      pending. Feeding the whole inbox in made the Tasks card count answered ideas as work left to
@@ -549,7 +557,10 @@ if (chart !== null) {
     .map((b) => b.state === "committed" ? `SCHEDULED · ${b.head}`
               : b.state === "parked"    ? `PARKED · ${b.head}`
               : b.head);
-  tasks = [...openChecklist, ...shownInbox.map(shortTask)];
+  /* An idea in the inbox has no Chart row yet, so it has no handle and nothing could carry an
+     `order:` for it. It is still shown — he steers by this list — but it is not draggable, and the
+     page says so rather than letting him move something that would silently snap back. */
+  tasks = [...openChecklist, ...shownInbox.map((t) => ({ text: shortTask(t), handle: null }))];
   // ⚠ A RELAY CAUGHT THE FIRST VERSION, 2026-08-31: the heading's done/open counts were scanning
   // the WHOLE Chart file for any "- [x]"/"- [ ]" while the list underneath came from ONE section
   // plus the inbox -- they happened to agree that day only because every checkbox in the file
@@ -804,7 +815,12 @@ const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, long
   inHand: (inHand.state === "held" || inHand.state === "cold")
     ? { item: inHand.words, handle: inHand.handle ?? null, claimedAt: inHand.at, staleAfterMinutes: inHand.stale }
     : null,
-  ideas: [], rulings: {} };
+  /* `order` is HIS drag, and it starts NULL on every generation for exactly the same reason
+     `ideas` starts empty and `rulings` starts `{}`: this script cannot read the artifact, so a
+     republish without a harvest would carry a stale order forward as though he had just made it.
+     The harvest contract covers all three — read the live page, take `ideas`, `rulings` AND
+     `order`, act on them, then regenerate. */
+  ideas: [], rulings: {}, order: null };
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
@@ -880,6 +896,18 @@ const PAGE = `<meta charset="utf-8">
     padding:1rem 1.15rem;margin-bottom:1.1rem;box-shadow:0 1px 2px rgba(31,66,73,.05);}
   .card.accentCard{border-color:var(--signal);border-width:1.5px;}
   ul{margin:.3rem 0;padding-left:1.2rem;} li{margin-bottom:.35rem;font-size:.95rem;}
+  /* ⚠ touch-action:none IS LOAD-BEARING, NOT A POLISH. Without it the browser claims a vertical
+     drag as a page scroll and never delivers pointermove, so the whole reorder is dead on a
+     phone — the one device he reads this page on — while working perfectly with a mouse. */
+  /* user-select:none IS ALSO NOT POLISH — the first posed desktop drag left the three rows it
+     passed over painted in browser-blue selection highlight, because a mouse drag across text is a
+     text selection unless something says otherwise. It reads as the page breaking. Caught in the
+     screenshot, not in the source; a gate could not have seen it. */
+  li.drag{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+    padding:.15rem .35rem;margin-left:-.35rem;border-radius:5px;}
+  li.drag:hover{background:var(--paleblue);}
+  li.dragging{cursor:grabbing;background:var(--paleblue);opacity:.85;
+    box-shadow:0 2px 6px rgba(31,66,73,.18);}
   .muted{color:var(--muted);} .bad{color:var(--stale);}
   code{font-family:ui-monospace,monospace;font-size:.85em;background:var(--paleblue);
     padding:.05em .3em;border-radius:4px;}
@@ -1016,8 +1044,18 @@ const PAGE = `<meta charset="utf-8">
          week"), and an unlabelled count that silently drops to 0 overnight reads as work having
          been LOST — which would be worse than the ever-growing number it replaced. -->
     <h2>The Chart (Tasks To Do) — ${checklist === null ? "?" : checklist.done} done today · ${checklist === null ? "?" : checklist.open} open</h2>
+    <!-- HIS WORDS, 2026-09-02 3:09 PM ET: "DO NOW: build a way for me to drag to reprioritize the
+         chart, in The Glass." The drag lives here rather than in a separate editor because this is
+         the list he already reads; a second screen showing the same rows in a different order is
+         two things kept in step by nobody (rule 23).
+         A row he can drag carries its handle. An inbox idea has no Chart row yet, so it has no
+         handle, and it is rendered plainly and left alone. -->
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-      : rows(tasks.map(esc), "Nothing open — full detail in .planning/CHART.md.", true)}
+      : tasks.length === 0 ? `<p class="muted">Nothing open — full detail in .planning/CHART.md.</p>`
+      : `<ol id="taskList">${tasks.map((t) => (t.handle
+          ? `<li class="drag" data-handle="${esc(t.handle)}">${esc(t.text)}</li>`
+          : `<li>${esc(t.text)}</li>`)).join("")}</ol>
+      <p class="muted" id="orderNote">Drag a task to move it. Where you put it is where a watch starts.</p>`}
   </section>
 
   <section class="card">
@@ -1384,6 +1422,102 @@ const PAGE = `<meta charset="utf-8">
     }
     send.addEventListener("click", function(){ sendIdea(false); });
     doNow.addEventListener("click", function(){ sendIdea(true); });
+
+    /* ⚑ DRAG TO REPRIORITISE — his words, 2026-09-02 3:09 PM ET: "DO NOW: build a way for me to
+       drag to reprioritize the chart, in The Glass."
+
+       ⚠ POINTER EVENTS, NOT HTML5 DRAG-AND-DROP, AND THAT IS THE WHOLE REASON THIS IS NOT FOUR
+       LINES. The dragstart/drop events do not fire on iOS Safari at all, so a page built on them
+       works perfectly on the laptop this was written on and is INERT on the phone he reads it on —
+       the exact shape of fault this project keeps paying for (a gate aimed at the wrong tree; a
+       rule that was decorative on Windows). pointerdown/pointermove is ONE code path for mouse and
+       touch, which is also rule 23's answer: one gesture, not two kept in step.
+
+       WHAT IS SAVED IS THE SEQUENCE OF HANDLES, never the row text. Row text is de-shouted and
+       truncated for him and changes whenever somebody edits the Chart; the handle is the thing the
+       Chartkeeper can act on. A watch applies it with ONE command, named in the runbook:
+         node scripts/wyclau/chartkeeper.mjs --order=<the handles, in order>
+       Until that runs, his order is recorded and visible and the list has NOT moved — the same
+       honest joint as the pin, and the page says so rather than implying otherwise. */
+    var taskList = document.getElementById("taskList");
+    var orderNote = document.getElementById("orderNote");
+    if (taskList && orderNote) {
+      var draggables = function(){
+        return Array.prototype.slice.call(taskList.querySelectorAll("li.drag"));
+      };
+      var sequence = function(){
+        return draggables().map(function(li){ return li.getAttribute("data-handle"); });
+      };
+      /* The saved order is compared against what the page was BORN with, so "you have moved this"
+         is a fact about his drag and not about the Chart's file order. */
+      var born = sequence().join(",");
+      var held = null, startY = 0, moved = false;
+
+      function saveOrder(){
+        var seq = sequence();
+        if (seq.join(",") === born) { state.order = null; }
+        else { state.order = { handles: seq, at: new Date().toISOString() }; }
+        if (!cap) { orderNote.textContent = "This view can’t save an order — open the artifact itself."; return; }
+        orderNote.textContent = "Saving your order…";
+        cap.publish(buildDoc(state)).then(function(){
+          orderNote.textContent = state.order
+            ? "Your order is saved. A watch works the list from the top, in the order you left it."
+            : "Back to the order this page arrived in.";
+        }, function(){
+          orderNote.textContent = "Didn’t save — drag it again to retry.";
+        });
+      }
+
+      taskList.addEventListener("pointerdown", function(ev){
+        var li = ev.target && ev.target.closest ? ev.target.closest("li.drag") : null;
+        if (!li || !taskList.contains(li)) return;
+        held = li; startY = ev.clientY; moved = false;
+        li.setPointerCapture(ev.pointerId);
+        li.classList.add("dragging");
+      });
+
+      taskList.addEventListener("pointermove", function(ev){
+        if (!held) return;
+        if (!moved && Math.abs(ev.clientY - startY) < 6) return; // a tap is not a drag
+        moved = true;
+        ev.preventDefault(); // stop the page scrolling under his finger mid-drag
+        var others = draggables().filter(function(li){ return li !== held; });
+        var before = null;
+        for (var i = 0; i < others.length; i++) {
+          var r = others[i].getBoundingClientRect();
+          if (ev.clientY < r.top + r.height / 2) { before = others[i]; break; }
+        }
+        if (before) { if (before !== held.nextSibling) taskList.insertBefore(held, before); }
+        else {
+          var last = others[others.length - 1];
+          if (last && last !== held.previousSibling) taskList.insertBefore(held, last.nextSibling);
+        }
+      });
+
+      function drop(ev){
+        if (!held) return;
+        var li = held;
+        held = null;
+        li.classList.remove("dragging");
+        try { li.releasePointerCapture(ev.pointerId); } catch (e) {}
+        if (moved) saveOrder();
+      }
+      /* ⚠ ON THE DOCUMENT, NOT ON THE LIST, AND THIS WAS MEASURED RATHER THAN REASONED. With the
+         listeners on the list, the posed desktop drag reordered the rows perfectly and NEVER SAVED:
+         moving the held row with insertBefore drops its pointer capture, and the release then
+         landed somewhere the list never saw. The phone leg saved and the laptop leg did not — a
+         difference invisible in the source and visible in two screenshots.
+         A release ends a drag wherever it happens. That is also true of the ordinary case: he lifts
+         his finger past the edge of the list, and the order he just made must still be his. */
+      document.addEventListener("pointerup", drop);
+      document.addEventListener("pointercancel", drop);
+
+      // If a previous order is still on the page, say so — an instruction he cannot see landed is
+      // indistinguishable from one that was ignored, which is his own lesson from the pin.
+      if (state.order && state.order.handles && state.order.handles.length) {
+        orderNote.textContent = "Your order is saved. A watch works the list from the top, in the order you left it.";
+      }
+    }
   })();
 </script>
 `;

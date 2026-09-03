@@ -253,8 +253,13 @@ const pinnedRows = (p) =>
     /* And ONE SLOT on the page too: a second pin must release the first before it is published. */
     if (!/releasePins/.test(page)) fail("nothing on the page releases a previous pin — he could pin three ideas and the page would show three interrupts");
     else pass("pinning on the page releases any previous pin, before it is ever saved");
-    const tasksCard = page.split(/<h2>The Chart \(Tasks To Do\)/)[1]?.split("</section>")[0] ?? "";
-    if (!tasksCard) fail("could not find the Tasks card in the rendered page");
+    /* ⚠ SCOPED TO THE LIST ITSELF, NOT THE CARD — and it was scoped to the card until the drag
+       landed, at which point an HTML COMMENT quoting his words ("DO NOW: build a way for me to
+       drag…") became the first match in the card and this case failed against a page that was
+       drawing the pin perfectly. A check that a comment can fool is a check about the source text
+       and not about what he sees. The rows are what he sees. */
+    const tasksCard = page.split(/<ol id="taskList">/)[1]?.split("</ol>")[0] ?? "";
+    if (!tasksCard) fail("could not find the Tasks list in the rendered page");
     else if (!/DO NOW/i.test(tasksCard))
       fail("a row carrying his pin is not marked on his Tasks card — an interrupt he cannot see is indistinguishable from one that was ignored");
     /* Case-INSENSITIVE, and that is not laziness: the page de-shouts a row's title on purpose
@@ -287,6 +292,184 @@ const pinnedRows = (p) =>
     else if (!/"now"\s*:\s*true|`now`|now.*true/i.test(harvest))
       fail("the harvest step names the command but not the flag that triggers it — a session cannot tell which idea he pinned");
     else pass("the harvest step names both the flag it must look for and the command that carries it");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   HIS OTHER HALF — "DRAG TO REPRIORITIZE". Cases 10-16.
+
+   Wyatt wrote TWO notes in one breath on 2026-09-02 at 3:09 PM ET. The button above is one of
+   them; this is the other: "DO NOW: build a way for me to drag to reprioritize the chart, in The
+   Glass."
+
+   ⚠ WHY THEY SHARE A GATE AND NOT A CONCEPT. They are both "his own say-so, written onto a row,
+   obeyed by RANK" — the same joint, the same failure mode, and a second gate would be a second
+   place to keep the same reasoning. But they are NOT the same feature and the cases below prove
+   they cannot be collapsed: the pin is ONE SLOT (case 3), an order is a SEQUENCE (case 11), and
+   the pin still outranks the order (case 13). Serving both from one boolean would turn his
+   interrupt into the queue his own constraint forbids.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+const orderedRows = (p) =>
+  (readFileSync(p, "utf8").match(/^\s*⟨[^⟩]*\border\s*:\s*\d+[^⟩]*⟩\s*$/gmi) || []).length;
+
+/* ── 10. THE ORDER HE DRAGS IS THE ORDER RANK WORKS. Every derived signal is a guess; this is him
+      saying it, so it must beat all of them — including the row RANK already loves. ──────────── */
+{
+  const p = chartFile("order-wins", FIXTURE);
+  const before = rankTitles(p);
+  if (!before || !/RANK ALREADY LOVES/.test(before[0]))
+    fail("the fixture is not set up as intended for the order cases");
+  const r = run([`--chart=${p}`, "--order=T-803,T-804,T-802,T-801"]);
+  if (r.code !== 0) fail(`--order exited ${r.code}: ${r.out.trim().slice(0, 200)}`);
+  const after = rankTitles(p);
+  if (!after) fail("--rank --json produced no ordered list after the drag");
+  else {
+    const want = ["HE WANTS DONE NOW", "ANOTHER ORDINARY ROW", "ORDINARY MIDDLE ROW", "RANK ALREADY LOVES"];
+    const got = after.slice(0, 4);
+    const ok = want.every((w, i) => new RegExp(w, "i").test(got[i] ?? ""));
+    if (!ok) fail(`the list is not in the order he dragged.\n        he asked for: ${JSON.stringify(want)}\n        RANK gave:    ${JSON.stringify(got.map((t) => t.slice(0, 34)))}`);
+    else pass("RANK works the list in the exact sequence he dragged, over its own derived order");
+  }
+}
+
+/* ── 11. AN ORDER IS A SEQUENCE, AND IT IS REPLACED WHOLE. A second drag must not be merged into
+      the first: two orders half-applied is a list that is his in places and ours in the rest, with
+      nothing on the page saying which. ───────────────────────────────────────────────────────── */
+{
+  const p = chartFile("order-replaced", FIXTURE);
+  run([`--chart=${p}`, "--order=T-803,T-804,T-802,T-801"]);
+  if (orderedRows(p) !== 4) fail(`after one drag ${orderedRows(p)} rows carry an order, expected 4`);
+  else pass("a drag writes his sequence onto exactly the rows he moved");
+  run([`--chart=${p}`, "--order=T-802,T-801"]);
+  if (orderedRows(p) !== 2)
+    fail(`a second drag left ${orderedRows(p)} ordered rows — the previous order was merged into it rather than replaced, so part of the list is his and part is stale`);
+  else {
+    const titles = rankTitles(p);
+    if (titles && /ORDINARY MIDDLE ROW/.test(titles[0]) && /RANK ALREADY LOVES/.test(titles[1] ?? ""))
+      pass("a second drag replaces the first whole — one order, never merged");
+    else fail(`the second drag did not take effect; got ${JSON.stringify((titles || []).slice(0, 2).map((t) => t.slice(0, 34)))}`);
+  }
+}
+
+/* ── 12. HE CAN PUT IT BACK. An order that cannot be cleared is a list that can never return to the
+      ranking the tool derives, and RANK is the thing he asked for in the first place. ────────── */
+{
+  const p = chartFile("order-clear", FIXTURE);
+  run([`--chart=${p}`, "--order=T-803,T-804"]);
+  if (orderedRows(p) !== 2) fail("case 12 cannot run — nothing was ordered to clear");
+  const r = run([`--chart=${p}`, "--order-clear"]);
+  if (r.code !== 0) fail(`--order-clear exited ${r.code}: ${r.out.trim().slice(0, 160)}`);
+  else if (orderedRows(p) !== 0) fail("--order-clear left rows ordered — his list could never go back to the derived ranking");
+  else {
+    const titles = rankTitles(p);
+    if (titles && /RANK ALREADY LOVES/.test(titles[0])) pass("clearing the order restores the derived ranking");
+    else fail("the ranking did not return to its underived order after the clear");
+  }
+}
+
+/* ── 13. HIS PIN STILL OUTRANKS HIS ORDER, and this is the case that proves the two features were
+      not collapsed. A pin is a later, sharper act than an ordering — he can always drag again.
+      ⚠ THE MARGIN IS A JUDGEMENT AND HIS TO OVERRULE; it is written down as such in
+      PREDICTION-20260903T0110Z-T103.md and in score()'s own comment. This case exists so that if
+      he ever rules the other way, changing it is one deliberate edit and not a silent drift. ── */
+{
+  const p = chartFile("pin-beats-order", FIXTURE);
+  run([`--chart=${p}`, "--order=T-803,T-804,T-802,T-801"]);
+  run([`--chart=${p}`, "--do-now=T-801"]);
+  const titles = rankTitles(p);
+  if (!titles) fail("could not rank with both a pin and an order in play");
+  else if (!/RANK ALREADY LOVES/.test(titles[0]))
+    fail(`he pinned T-801 and it is not first — the pin lost to an order he made earlier, so his most recent word is not the one obeyed`);
+  else if (!/HE WANTS DONE NOW/.test(titles[1] ?? ""))
+    fail("the pin won but the rest of his dragged order was lost underneath it");
+  else pass("the pin sits above his dragged order, and the order survives underneath it");
+}
+
+/* ── 14. A DRAG THAT LANDS NOWHERE IS REFUSED AND NOTHING IS WRITTEN — including the handles that
+      WOULD have resolved. A partly-applied order is the worst of the three outcomes. ─────────── */
+{
+  const p = chartFile("order-nowhere", FIXTURE);
+  const r = run([`--chart=${p}`, "--order=T-803,T-999"]);
+  if (r.code === 0) fail("ordered a handle that is on no row and reported success");
+  else if (orderedRows(p) !== 0) fail("refused the drag and wrote part of it anyway — his list would be half his and half ours, with nothing saying which");
+  else pass("a drag naming a row that does not exist is refused, and writes nothing at all");
+}
+
+/* ── 15. AND THE AMBIGUITY THIS CHART CAN ACTUALLY PRODUCE TODAY: one handle on two open rows.
+      --rank already warns about it; a drag must REFUSE, because silently moving one of two rows
+      nobody can tell apart is the mis-attribution that fault causes. ─────────────────────────── */
+{
+  const TWIN = FIXTURE.replace("⟨`T-804`⟩", "⟨`T-803`⟩");
+  const p = chartFile("order-ambiguous", TWIN);
+  const r = run([`--chart=${p}`, "--order=T-803,T-802"]);
+  if (r.code === 0) fail("two open rows carry T-803 and the drag applied anyway — one of them moved and nothing says which");
+  else if (!/T-803/.test(r.out)) fail("refused an ambiguous drag without naming the handle");
+  else if (orderedRows(p) !== 0) fail("refused, and ordered something anyway");
+  else pass("a drag naming a handle carried by two open rows is refused, and names it");
+}
+
+/* ── 16. THE PAGE. Every task he can drag must carry its handle, the list must be wired with
+      POINTER events (mouse and touch are one path — dragstart never fires on the phone he reads
+      this on), and the sequence must be what is saved. ⚠ SOURCE-SHAPE ASSERTIONS, said plainly:
+      there is no DOM here, so this gate cannot drag anything. What covers the gesture is the
+      browser screenshot the watch takes of this same rendered page. ─────────────────────────── */
+{
+  const p = chartFile("order-page", FIXTURE);
+  const out = join(tmp, "glass-order.html");
+  let page = "";
+  try {
+    execFileSync(process.execPath, [GLASS, `--chart=${p}`, `--out=${out}`], { encoding: "utf8", cwd: ROOT });
+    page = readFileSync(out, "utf8");
+  } catch (e) {
+    fail(`glass.mjs could not render against a fixture Chart (${String(e.status ?? e.message).slice(0, 120)})`);
+  }
+  if (page) {
+    const card = page.split(/<h2>The Chart \(Tasks To Do\)/)[1]?.split("</section>")[0] ?? "";
+    const handles = [...card.matchAll(/data-handle="(T-\d{3})"/g)].map((m) => m[1]);
+    if (handles.length !== 4)
+      fail(`the Tasks card carries ${handles.length} draggable rows, expected 4 — a task with no handle is a task a drop cannot name, which is why this could not be built before`);
+    else pass("every open task on his card carries its handle, so a drop can say which row moved");
+    if (!/id="taskList"/.test(card)) fail("the task list has no id — the page's own script would have to find it by tag or position, which resolves to the artifact HOST's markup");
+    else pass("the task list is addressed by id, never by position");
+    if (!/pointerdown/.test(page) || !/pointermove/.test(page))
+      fail("the list is not wired with pointer events — dragstart/drop do not fire on iOS Safari, so this would be inert on the phone he reads this page on and perfect on the laptop it was written on");
+    else pass("the drag is wired with pointer events: one path for mouse and touch");
+    if (!/touch-action\s*:\s*none/.test(page))
+      fail("nothing sets touch-action:none on a draggable row — the browser claims a vertical drag as a page scroll and pointermove never arrives, so the reorder is dead on a phone");
+    else pass("a draggable row releases the scroll gesture, so a drag on a phone reaches the page");
+    if (!/state\.order\s*=/.test(page))
+      fail("the page never records an order onto its state — he could drag all day and nothing would leave the tab");
+    else pass("the sequence he drags is written onto the page's own state");
+    if (!/"order"\s*:\s*null/.test(page))
+      fail("the generated state does not start with an empty order — a republish would carry a stale order forward as though he had just made it");
+    else pass("every generation starts with no order, the same harvest contract as ideas and rulings");
+    /* The handles, not the row text: text is de-shouted and truncated for him and changes whenever
+       anyone edits the Chart, so an order saved by text could not be applied a day later. */
+    if (!/getAttribute\("data-handle"\)/.test(page))
+      fail("the saved order does not read the handles — an order recorded by row text cannot be applied once the Chart is edited");
+    else pass("the order is saved as handles, which is the thing the Chartkeeper can act on");
+    if (!/cap\.publish/.test(page.split(/function saveOrder/)[1]?.slice(0, 900) ?? ""))
+      fail("the order is put on the state and never published — it would live only in his tab until he closed it");
+    else pass("saving an order publishes it, the same way a ruling is saved");
+  }
+}
+
+/* ── 17. THE JOINT AGAIN. Same reasoning as case 9, for the same reason: between his drag and RANK
+      sits a session reading the page by hand. A capability nothing invokes is a capability that
+      never runs — the sentence this project has now written down three times. ─────────────────── */
+{
+  const RUNBOOK = join(ROOT, ".planning", "wyclau", "GLASS-UPDATE-SESSION.md");
+  let book = "";
+  try { book = readFileSync(RUNBOOK, "utf8"); } catch { fail(`could not read ${RUNBOOK}`); }
+  if (book) {
+    const harvest = book.split(/HARVEST FIRST/)[1]?.slice(0, 2500) ?? "";
+    if (!harvest) fail("the runbook has no HARVEST FIRST step any more — this check is pointed at the wrong place");
+    else if (!/--order=/.test(harvest))
+      fail("the harvest step does not tell the session to run chartkeeper --order= — so his drag reaches the Chart as nothing at all and RANK never learns of it");
+    else if (!/\border\b/.test(harvest))
+      fail("the harvest step names the command but not the state field it must look for");
+    else pass("the harvest step names the order field and the command that carries it");
   }
 }
 
