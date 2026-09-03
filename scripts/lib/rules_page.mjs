@@ -40,6 +40,30 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+/* engineClaims(page, key) — every sentence on the rules page marked as answerable by the engine.
+ *
+ * ONE LOCATOR, FOR THE SAME REASON renderRulesPage() IS ONE GENERATOR (rule 23). There are now TWO
+ * gates that each take a marked sentence off this page and compare it against a function they call
+ * on a real Game — sanctuary (`canAttack`) and the forecast (`forecastWind`). Each owns its own
+ * measurement and its own classifier, which is right: they are different rules and a shared
+ * classifier would be a worse one for both. What they must NOT each own is *how a marked sentence is
+ * found*, because that is one fact about the page, and two copies of it drift the moment the marker
+ * changes shape — leaving one gate reading nothing and reporting green.
+ *
+ * THIS IS THE "SECOND CONSUMER" MOMENT CLAUDE.md §2 NAMES. The sanctuary gate was written with an
+ * inline regex when it was the only reader. The forecast gate is the second, so the first was moved
+ * onto this function rather than the regex being copied — converge when the second appears, never
+ * run them side by side.
+ *
+ * Returns the inner HTML of each matching span, in document order. Any number is possible; the
+ * CALLER decides how many it expects, because "exactly one" is a fact about a particular rule and
+ * not about the mechanism.
+ */
+export function engineClaims(page, key) {
+  const re = new RegExp(`<span data-engine-rule="${key}">([\\s\\S]*?)</span>`, "g");
+  return [...page.matchAll(re)].map(m => m[1]);
+}
+
 /* The register question (his Your Call card, "rules page 4 of 4") is MOOT BY CONSTRUCTION and that
    is deliberate, not an oversight: the page speaks whatever the modal speaks, because it IS the
    modal. Rule the modal into plain English tomorrow and this page follows in one command. Nobody

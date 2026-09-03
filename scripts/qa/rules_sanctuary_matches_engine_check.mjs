@@ -27,7 +27,7 @@
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderRulesPage } from "../lib/rules_page.mjs";
+import { renderRulesPage, engineClaims } from "../lib/rules_page.mjs";
 import { Game, roundCfg } from "../../src/engine/index.js";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -63,7 +63,11 @@ else fail("the probe could not stage a legal attack even before the ovens were l
 const sanctuary = beforeOvens && !afterOvens;
 
 const page = await renderRulesPage(REPO);
-const marked = [...page.matchAll(/<span data-engine-rule="sanctuary">([\s\S]*?)<\/span>/g)].map(m => m[1]);
+/* CONVERGED 2026-09-03 (T-216). This was an inline regex while it was the only reader of these
+   markers. The forecast gate is the second, so the locator moved into rules_page.mjs and BOTH read
+   it — CLAUDE.md §2's "when a SECOND consumer appears, CONVERGE", rather than copying the regex and
+   keeping two of them in step by memory. Nothing about this gate's measurement or classifier moved. */
+const marked = engineClaims(page, "sanctuary");
 
 /* 1. the rules text says something about it, in a place a gate can address */
 const found = RED === 1 ? [] : marked;

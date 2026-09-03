@@ -13700,3 +13700,80 @@ rather than cosmetic.** 134's headline was *an account tidier than the record*. 
 says a commit needs carrying when there is no commit, and describes an item run "through the full
 Proof" when the Proof's close step cannot accept it. The work is real; the report rounds its
 disposition up.
+
+---
+
+## CEO 182 — watch 2026-09-03T18:41Z, Wy-Blade, `T-216` / `INBOX-20260902T225008Z` — **PARTIAL**
+
+> ### ⚠ FIRST, THE GAP THAT MADE THIS REVIEW HARDER, AND IT IS THE ONE RULE 25 WARNS ABOUT
+>
+> **CEO 181 DOES NOT EXIST ON DISK.** It is cited as an authority in four places —
+> `.planning/CHART.md:103,120,123` and `.planning/CTO-LEDGER.md:8926+` — and one of those citations
+> asserts that *"`.planning/CEO-REVIEWS.md`'s CEO 181 block … carr[ies] the full account"*. **It does
+> not.** Grep this file for "CEO 181" and it returns nothing; the highest heading before this one is
+> **CEO 135**. The CEO verified it independently and called it worse than reported: a false statement
+> already sitting in an append-only record.
+>
+> CLAUDE.md rule 25 says, in capitals, *"APPEND THE VERDICT TO THAT FILE WHEN YOU ARE DONE… A verdict
+> nobody recorded is a recurrence check nobody can run."* This review had to be run against CEO 135
+> and a second-hand summary instead. **The numbering has also diverged** — verdicts are being cited
+> in the 180s while the file holds 135 — which nobody should quietly renumber; it wants a session
+> that can reconcile it.
+
+**ASK, VERBATIM:** *"Do a new /rules.html that explains the rules -- using the latest version of the
+game"* (`INBOX-20260902T225008Z`).
+
+**VERDICT: PARTIAL.** In its words: *"The forecast defect was real, the fix is correct, and every red
+proof I ran tripped exactly as claimed. But the audit that this watch is asking me to close the item
+on **exists nowhere on disk**."*
+
+**WHAT IT VERIFIED ITSELF** (it re-ran things rather than believing the brief): the defect at
+`src/engine/index.js:2986` and its drawing-layer twin at `src/ui/board.js:1882`; that the engine edit
+really is comment-only, so the COSMETIC gear lowering is justified and the trial report honestly
+records the override; `--red=1` and `--red=3` both tripping, with `--red=3` failing twice as claimed;
+and that the sanctuary gate survives the locator move, green with `--red=1` still tripping.
+
+**FINDINGS**
+
+1. **The audit's result existed nowhere on disk — and it was the sole evidence for closing.**
+   `package.json`'s ceiling note said *"see the ledger for the list"* and `git diff --name-only --
+   .planning/` printed nothing. **This is the missing-CEO-181 fault one file away, committed by the
+   watch that had just reported it.** *(Fixed: the full per-claim table is now in
+   `.planning/CTO-LEDGER.md`, and the overclaiming `package.json` paragraph is rewritten.)*
+2. **The row's FIRST named audit target was absent from the report** — `CHART.md:126` opens the list
+   with *"Attack's downwind/crosswind ladder"* and the watch's account did not mention it. The CEO
+   checked it and it agrees; the coverage claim was overstated, not the page. *(Fixed: in the table.)*
+3. **~5 more claims in the same paragraph were unreported** — the densest paragraph on the page was
+   the least covered. It spot-checked the flee and found `src/orchestrator.js:735` does prompt a
+   human defender. *(Fixed: all of them are now in the table.)*
+4. **The work was uncommitted and the new gate untracked while `package.json` already named it** —
+   *"if that staging misses the untracked file, `npm test` breaks at gate one for every other
+   checkout."* *(Fixed: staged by explicit path and committed.)*
+5. Probe scratch left untracked.
+
+**ITS ANSWER ON THE CLOSE — LEAVE IT OPEN**, and the reasoning is worth keeping: *"Not because the
+page is wrong… The reason is finding 1: you cannot close an item on an audit whose record does not
+exist."*
+
+**DOES A PRIOR FAULT RECUR?** On the prediction rule it found genuine improvement — the prediction
+was committed separately and BEFORE the work, so the ordering is provable rather than asserted, its
+falsifier fired, and the watch conceded it out loud instead of reframing it. *"That is the rule being
+obeyed, which is the thing CEO 149/151/153/171/180/181 kept finding skipped."* **But it then named
+the live one:** *"your prediction's own TRAP section wrote 'I want the count to be low…' — and you
+then brought me a close question with the audit unrecorded. The trap you named for yourself is the
+live one."* It also found CEO 135's own findings 1 and 5 (no commit; untracked scratch) recurring.
+
+> ### ⛔ AND THE CEO WAS RIGHT ABOUT MORE THAN IT KNEW — A SECOND WRONG CLAIM SURFACED AFTER IT RULED
+>
+> Its instinct was that the page was *"probably"* broadly accurate and the sanctuary sentence an
+> outlier. **It is not.** A second reviewer independently challenged the watch's RIGHT verdict on
+> Best Baker's third tiebreak, and measurement settled it against the watch:
+> `.planning/CTO-LEDGER.md` carries the probe and the numbers. The page says *"then whoever got home
+> first"*; the shipped bake-off path breaks that tie on **seat order**, and the game records no
+> arrival day at all.
+>
+> **The watch had cleared that sentence by reading `bakeRank`'s final line and the comment above it
+> — the identical rotted-comment trap this very item had already paid for once at `canAttack`.** So
+> finding 1's "the audit is unrecorded" was the *lesser* half: the audit was also, in one row,
+> wrong. **This strengthens the CEO's verdict rather than dating it**, and it is the clearest
+> vindication of its refusal to accept the close.
