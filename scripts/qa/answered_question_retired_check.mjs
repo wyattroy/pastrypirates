@@ -59,7 +59,7 @@
 //
 // House convention: no test runner, one PASS/FAIL line per case, every case runs before exit.
 
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -270,9 +270,20 @@ function stage(chartMd) {
      the caller, so the fault cannot be reproduced without it. Each file is copied IF IT EXISTS —
      a case whose subject is missing must FAIL with that sentence, not crash the whole gate here and
      take the eleven cases below it down with an ENOENT nobody can read. */
-  for (const f of [["retire_answered.mjs"], ["mark_glass_harvest.mjs"], ["lib", "chart_model.mjs"], ["lib", "retire.mjs"]]) {
+  for (const f of [["retire_answered.mjs"], ["mark_glass_harvest.mjs"]]) {
     try { writeFileSync(join(dir, "scripts", "wyclau", ...f), readFileSync(join(ROOT, "scripts", "wyclau", ...f))); } catch { /* reported by the case that needs it */ }
   }
+  /* ⚠ THE WHOLE lib/ FOLDER, DERIVED RATHER THAN LISTED — earned 2026-09-03 (`T-111`). This used to
+     name chart_model.mjs and retire.mjs by hand. `mark_glass_harvest.mjs` then gained one more
+     import — lib/artifact_version.mjs — and FIVE cases here failed against a script that was
+     working, every one of them reporting ERR_MODULE_NOT_FOUND as if it were the fault under test.
+     A hand-kept list of what to stage rots exactly like the thing it guards; the directory is the
+     answer, and the next shared module needs nobody to remember this file. */
+  try {
+    for (const f of readdirSync(join(ROOT, "scripts", "wyclau", "lib"))) {
+      writeFileSync(join(dir, "scripts", "wyclau", "lib", f), readFileSync(join(ROOT, "scripts", "wyclau", "lib", f)));
+    }
+  } catch { /* reported by the case that needs it */ }
   writeFileSync(join(dir, ".planning", "CHART.md"), chartMd);
   return dir;
 }

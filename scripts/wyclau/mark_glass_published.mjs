@@ -43,6 +43,7 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { clockRefusal, unrecognisedNote } from "./lib/artifact_version.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -73,6 +74,20 @@ then you cannot publish and must not stamp. Write what you wanted shown into
 .planning/wyclau/GLASS-NOTE.md and commit it; the next session that CAN publish folds it in.`);
   process.exit(1);
 }
+
+/* ⚑ AND IT MUST BE AN IDENTITY, NOT A CLOCK — `T-111`. Refusing an EMPTY value is not checking its
+   KIND: on 2026-09-02 this file recorded `version=2026-09-02T22:06:23.279Z`, eleven minutes after
+   holding a real id, and nothing objected. That also broke a detector that was working — the
+   cheapest way to tell HIS save from a session's publish was whether this line named the version the
+   notification announced, and two different KINDS of value cannot be compared at all. The rule is
+   shared with the harvest stamp; one copy, or they drift. */
+const clockProblem = clockRefusal(version, "scripts/wyclau/mark_glass_published.mjs");
+if (clockProblem) {
+  console.error(clockProblem);
+  process.exit(1);
+}
+const oddVersion = unrecognisedNote(version, "scripts/wyclau/mark_glass_published.mjs");
+if (oddVersion) console.error(oddVersion);
 
 /* RECORD WHAT WAS PUBLISHED, not merely that something was. Without this the receipt says a publish
    happened and nothing can ask "of what?" — so glass_needs_publish.mjs has nothing to compare the

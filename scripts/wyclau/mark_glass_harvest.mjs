@@ -78,6 +78,7 @@ import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { liveQuestions, retireQuestion } from "./lib/retire.mjs";
+import { clockRefusal, unrecognisedNote } from "./lib/artifact_version.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -115,6 +116,18 @@ then move every glassState.ideas AND glassState.rulings entry into .planning/CHA
 verbatim, commit, and stamp with the version that read returned.`);
   process.exit(1);
 }
+
+/* ⚑ AND IT MUST BE AN IDENTITY, NOT A CLOCK — `T-111`. Refusing an EMPTY value is not checking its
+   KIND, and that gap is what let a timestamp sit in this field on 2026-09-02 under a name everyone
+   trusted. The rule lives in lib/artifact_version.mjs because the publish stamp enforces the same
+   one, and two copies of it would drift silently. */
+const clockProblem = clockRefusal(version, "scripts/wyclau/mark_glass_harvest.mjs");
+if (clockProblem) {
+  console.error(clockProblem);
+  process.exit(1);
+}
+const oddVersion = unrecognisedNote(version, "scripts/wyclau/mark_glass_harvest.mjs");
+if (oddVersion) console.error(oddVersion);
 
 /* ⚑ `--rulings=` IS MANDATORY, AND THAT IS WHAT MAKES THE REFUSAL BELOW REAL — CEO 127.
    The guard further down asks "does a ruling this harvest carried still have a live question?".

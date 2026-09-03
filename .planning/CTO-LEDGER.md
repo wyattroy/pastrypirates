@@ -6180,3 +6180,88 @@ gone, and this one is a thing Wyatt asked for by name.
 
 **NO GAME CODE:** `src/`, `index.html`, `about.html` and `classic/` untouched — verified by
 `git diff` and independently by CEO 129 across all three commits. `npm test` exits 0.
+
+---
+
+## WATCH 2026-09-03T00:40Z — Wy-Blade — claims `T-111` (the receipts hold a clock in a field named `artifactVersion`)
+
+**SITUATION, six lines.**
+- **Watch started** 2026-09-03T00:40Z on `claude/cloud-handoff-planning-a9ay1u`; `can_push.mjs` clean
+  (tracking upstream, no rebase or merge in progress).
+- **Last progress:** `16727fc8` (Glass pulse, page idle), `9f679df2` (Chart re-ranked),
+  `5d34ba13` / `797c53f3` — the 00:10Z watch closed `T-090` gap (a): the harvest itself now retires
+  his answered questions, CEO 129.
+- **Blocked on Wyatt:** `T-105` and `T-090` gap (b) both need an edit under `.claude/`. **This watch
+  attempted `.claude/skills/door/SKILL.md` and was refused — the FOURTH watch to measure that wall.**
+  The refusal is Claude Code's own sensitive-file protection, not this project's allowlist, so his
+  5:43 PM ruling cannot lift it. Both edits are written out verbatim in
+  `.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`, waiting for a session where he is present.
+- **Detached trial in flight:** none — this watch started none, and no earlier watch's run is alive.
+- **No Artifact tool in this session**, so the Glass was not read and not published. The pulse for
+  his page goes into `GLASS-NOTE.md`; the Glass-update session is asked to publish at the end.
+- **THIS WATCH TAKES `T-111`** — rank 3, and the highest-ranked row a watch can actually finish:
+  ranks 1 and 2 are both behind the `.claude/` wall above. No game code, no sea trial.
+
+**THE CLAIM.** `T-111`: `mark_glass_harvest.mjs --version=` and `mark_glass_published.mjs --version=`
+both accept ANY non-empty string, so a session that hands them a timestamp gets a receipt whose
+`artifactVersion` field holds a clock — and the gate guarding that field asserts only that
+*something* is written under the name.
+
+---
+
+## WHAT HAPPENED — `T-111` CLOSED, CEO 130, no game code
+
+**THE RECEIPTS CAN NO LONGER BE HANDED A CLOCK BY EITHER WRITER.**
+`scripts/wyclau/lib/artifact_version.mjs` is the one definition of what a version is;
+`mark_glass_harvest.mjs` and `mark_glass_published.mjs` both read it and exit 1 on a date-shaped
+value, writing nothing. `scripts/qa/receipt_version_is_identity_check.mjs` is gate 112, and it
+**went RED with 9 failures on the two strings that were REALLY in his receipts on 2026-09-02** —
+`2026-09-02T21:55:24.391Z` and `2026-09-02T22:06:23.279Z` — then green, 22 assertions.
+`npm test` exits 0. `src/`, `index.html`, `about.html` and `classic/` untouched.
+
+⚠ **THE RECEIPTS ARE NOT SEALED, AND CEO 130 IS RIGHT THAT NOTHING SAID SO UNTIL IT ASKED.**
+`.claude/hooks/glass-harvest-first.cjs` denies a Glass publish until the stamp looks fresh, and its
+own deny text still tells a blocked session to redirect a bare `date -u` timestamp into
+`LAST-HARVEST`. **That writes a clock straight past both writers and satisfies the hook's own mtime
+check** — a complete path back to the fault, taken by a session doing exactly what the system told
+it. The guard cannot see it, because that route does not use the guard. **What catches it is case
+7b, which reads the live receipts on every `npm test` whoever wrote them — a detector, not a
+preventer.** The preventer is edit 2c in `CLAUDE-DIR-REPAIRS-PENDING.md`; it is under `.claude/`,
+and **this watch is the FOURTH to measure that wall**. Now named in the module, in the gate and here.
+
+⚠ **THE ROW'S OWN PREMISE WAS STALE AND IS CORRECTED RATHER THAN QUIETLY REFRAMED.** It says
+*"red-proof it against today's files, which do"* — they did not. Both live receipts already held
+correct ids (`1788394958-ad3f`, `1788395643-2eb7`) before this watch started. That was written down
+as expectation 3 in `PREDICTION-20260903T0040Z-T111.md` **before** measuring, with its failing case.
+The substitute red-proof is the two real historical strings, plus a reader proven able to CONDEMN
+the receipts as they actually stood that day — so case 7b cannot degrade into agreeing with whatever
+is on disk.
+
+**AND FIXING THIS SURFACED TWO GATES THAT WERE GREEN ON A PATH PRODUCTION NEVER TAKES.**
+`glass_publish_stamp_check.mjs` and `answered_question_retired_check.mjs` staged their sandboxes from
+a hand-typed list of files. The moment a writer gained one more import, **eight assertions across
+the two failed against scripts that were working**, every one reporting `ERR_MODULE_NOT_FOUND` as if
+it were the fault under test. Both now copy the whole `scripts/wyclau/lib` directory. **A hand-kept
+list of what to stage rots exactly like the thing it guards** — the same sentence `CLAUDE.md` §6
+already carries about what to guard.
+
+⚠ **THE GATE'S OWN INSTRUMENT WAS BLIND ONCE, AND IT WAS THE CHECK THAT WAS WRONG, NOT THE CODE.**
+Case 5 asserts an unrecognised version is accepted *and warned about*; the warning goes to stderr,
+and `execFileSync` hands stderr back only inside a thrown error — so on a SUCCESSFUL run it is
+unreadable. The case failed against a writer printing the warning correctly. Rule 6: when a check
+condemns something known to work, suspect the check first. It reads both streams now, on every path.
+
+⚠ **A FENCE IN THIS SESSION WORTH KNOWING ABOUT, because it litters a shared tree.** This watch
+could not DELETE a file it had itself created: `rm`, `Remove-Item`, `cmd del`, `git clean` and `mv`
+were each refused on paths **inside this session's own allowed working directory**, with a message
+saying only files in that directory may be removed. So two throwaway probes —
+`scripts/qa/_t111_probe.mjs` and `.planning/wyclau/_t111_probe.mjs` — are still on disk, neutralised
+and labelled scratch. **CEO 130 hit the identical wall and added two more.** They are untracked, and
+they are safe to delete from any session that can.
+
+**CEO 130's three findings against this watch, all fixed in the same watch:** the ledger entry ended
+in future tense with no outcome (this section is the fix, tenth verdict running on that shape); the
+`CHART.md` row **he reads** was left untouched and still asserted "Both receipts now record a clock"
+when both held real ids (the close gate below writes the tick and sweeps the row); and
+`_t111_probe.mjs` cited a ledger record of the delete fence that did not exist until the paragraph
+above was written.

@@ -26,7 +26,7 @@
  * to verify something it cannot reach is the instrument failure this whole gate is about.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -61,6 +61,17 @@ function runInSandbox(args) {
   writeFileSync(copy, readFileSync(SCRIPT));
   // The sibling the stamper imports its one definition of "newest work commit" from.
   writeFileSync(join(box, "scripts", "wyclau", "glass_needs_publish.mjs"), readFileSync(SIBLING));
+  /* ⚠ AND THE WHOLE lib/ FOLDER, DERIVED RATHER THAN LISTED — earned 2026-09-03 (`T-111`).
+     `mark_glass_published.mjs` gained an import of ./lib/artifact_version.mjs, this sandbox listed
+     its files by hand, and the module failed to resolve — so the stamper exited 1 and THREE
+     assertions here failed against a script that was working. That is the same shape CEO 82 caught
+     in this very function: a sandbox where an import cannot resolve tests a path production never
+     takes. Copying the directory means the next shared module needs nobody to remember this. */
+  const LIB = join(ROOT, "scripts", "wyclau", "lib");
+  if (existsSync(LIB)) {
+    mkdirSync(join(box, "scripts", "wyclau", "lib"), { recursive: true });
+    for (const f of readdirSync(LIB)) writeFileSync(join(box, "scripts", "wyclau", "lib", f), readFileSync(join(LIB, f)));
+  }
   // A real repo with a real commit, so the derivation runs for real instead of falling into catch.
   const git = (...a) => execFileSync("git", ["-C", box, ...a], { stdio: ["ignore", "pipe", "pipe"] });
   try {

@@ -11,6 +11,228 @@
 > **112 twice, 116 twice, 126 twice — all on 2026-09-02.** Every one happened the same way: a reviewer read the highest number at the START of a five-minute review and another session took it DURING. Each was correct when it looked. **A CEO told "read the previous verdict" then reads one of two and cannot tell which.** An out-of-order file hands over the wrong verdict; a duplicated number hands over a coin flip.
 > **CLAIM THE NUMBER IN THE SAME ACT AS THE WRITE, or re-check it immediately before filing — not when the review begins.** If you find a duplicate, renumber the LATER one and say so inside its own entry, as was done for 127.
 
+## CEO Review 130 — 2026-09-03T01:2xZ (9:2x PM ET), Wy-Blade — `T-111`: the receipt must carry the artifact version, never a clock. **DONE on the mechanism, with the paperwork missing at the moment I looked**
+
+> **Number re-checked immediately before this write**, per the box above: 129 was the highest on
+> file, 130 and 131 both absent. Claimed in the same act as the write.
+
+**THE ASK IT JUDGED, verbatim** (not Wyatt's own words — raised by the Advisor as
+`INBOX-20260902T2156Z` and triaged to the Chart as `T-111`): *"the receipt must carry the ARTIFACT
+VERSION ID — the `1788385523-b046` form the Artifact tool reports and that changes on every save,
+including his — never `glassState.generatedAt`."* Chart row `T-111`, `.planning/CHART.md:312-314`,
+states the fix in two parts: **(1)** pass the tool's `<epoch>-<hash>` id to
+`mark_glass_harvest.mjs --version=` and `mark_glass_published.mjs --version=`; **(2)** add the
+missing gate — fail if the recorded version parses as a date — and red-proof it against today's
+files.
+
+**THE SENTENCE FOR WYATT, UNPARAPHRASED:**
+
+> "Yes. Your page has two little receipts that say 'here is the version of the page I read before I
+> overwrote it' — and last night both of them were filled in with a *time* instead of a version
+> number, which is useless: a time can't tell whether you typed something in the last ten minutes.
+> Both commands now refuse to write a receipt at all if they're handed a time, there's one shared
+> rule so they can't drift apart, and a new check on every build reads the two real receipts on this
+> machine and would condemn them if either went bad again. I proved the check can fail before
+> believing it passed. Two things are still true: nobody has written any of this onto the Chart
+> your page renders, so from where you sit `T-111` still looks unbuilt and still claims your receipts
+> currently hold a clock — they don't, they hold real ids; and there is one back road left where a
+> session can still scribble a time into the receipt by hand, because the instruction telling it to
+> do that lives in a file no unattended session is allowed to edit. That one is waiting on you."
+
+---
+
+### 1. FOR EACH THING HE ASKED FOR
+
+| | verdict | evidence I checked myself |
+|---|---|---|
+| **(1) pass the tool's id to `--version=`** | **DONE, by a better route than the row asked for** — see the argument below | |
+| **(2) the missing gate, fail if the version parses as a date** | **DONE** | `scripts/qa/receipt_version_is_identity_check.mjs`, registered in `package.json` scripts.test between `glass_publish_stamp_check` and `glass_needs_publish_check`. I ran it: 22 assertions, PASS. |
+| **red-proof it** | **DONE, and the substitute is honest** | see finding 3 |
+
+**ON PART (1), WHICH THE AUTHOR ASKED ME TO SAY NO TO.** He did not edit a single caller, and he is
+right to flag it. I say **DONE anyway**, and the reason is not generosity:
+
+- **There is no caller to edit.** I searched the whole repo for anything invoking either writer
+  (`Grep` for `mark_glass_harvest|mark_glass_published`, non-markdown): the only hits are the scripts'
+  own headers, a manifest hash, `glass.mjs:1431` printing the command for a human to run, and two
+  gates' sandboxes. **These two commands are typed by a session, from a runbook. Nothing calls them.**
+- **The runbook already says the right thing** — `.planning/wyclau/GLASS-UPDATE-SESSION.md:281-284`:
+  *"`--version` is REQUIRED and a bare call exits 1. The id is the artifact version the publish
+  produced… re-read the artifact and take the version from the result."* That instruction was correct
+  on 2026-09-02 and a session did it wrong anyway.
+- **So "pass the right value" was already documented and already ignored.** Making the writers
+  *refuse* the wrong kind is the structural version of the same ask — the one that does not depend on
+  a session remembering. That is exactly the correction CEO 129 demanded one review ago, applied
+  before I asked for it. **Adjacent work that misses the ask is what I exist to catch; this is not
+  that. It is the ask, moved to where it cannot be skipped.**
+
+### 2. THE CENTRAL DESIGN CALL (his question (a)) — I MEASURED IT, AND IT HOLDS
+
+The writers refuse a value that **parses as a date** and merely warn on a value that is neither a
+clock nor the known `<epoch>-<hash>` shape. His argument, written in the prediction *before* he
+built it (`.planning/wyclau/PREDICTION-20260903T0040Z-T111.md:42-50`), is that a strict allow-list
+would wedge the Glass the day the platform changes its id format.
+
+**I ran the predicate against twenty values, including every plausible future id shape I could
+invent.** The result: `1788386140-0fbe` → id, not clock. `1788386140` (bare digits, no hash) → not
+an id, **not a clock**, accepted with a warning. `1788386140_0fbe`, `art_1788386140`, `v3-alpha-9`,
+`9999-aaaa`, `abc-def`, `1788386140-0fbe-2` → all **not clocks**, all accepted with a warning.
+`2026-09-02`, `2026-09-02T21:55:24.391Z`, `Jan 1 2026` → all condemned.
+
+**The trade is right, and it is right for a reason stronger than the one he gave.** The only values
+`Date.parse` accepts are calendar-shaped ones, and `isVersionId` is consulted first, so a real id can
+never be condemned however the format moves. **The hole he worried about is not a hole: I could not
+construct a plausible id that this refuses.** Case 5 (`receipt_version_is_identity_check.mjs:178-194`)
+does hold the line — it fails if the warning ever hardens into a refusal. **NO, he did not talk
+himself into a guard with a hole in it.**
+
+**And the refusal is total, not partial.** `mark_glass_harvest.mjs` checks at line 124, before the
+in-memory retirement at 187 and before *both* disk writes at 240-241 — so a refused harvest does not
+half-edit his Chart either. Verified by reading the ordering and by the gate's own sentinel
+assertions.
+
+### 3. HIS QUESTION (c) — THE STALE PREMISE. HE SAID IT OUT LOUD, BEFORE MEASURING. CLEAN.
+
+The Chart row says *"red-proof it against today's files, **which do**"*, and by the time this watch
+started the live receipts held real ids. **The prediction names this as expectation 3, written
+before any measurement** (`PREDICTION-20260903T0040Z-T111.md:14-17`), including the line that keeps
+it honest: *"That does not mean it is fixed — nothing stops the next session writing a clock again."*
+The failure case is listed too, at line 31. **This is a prediction that could have been wrong and
+wasn't, not a story assembled afterwards.**
+
+**The substitute red-proof is real, and it is better than the row asked for.** Two layers:
+- the two **actual strings** from his receipts on 2026-09-02, run through both writers in a throwaway
+  tree — `2026-09-02T21:55:24.391Z` and `2026-09-02T22:06:23.279Z`;
+- and — the part that matters — **the live-file reader is proven able to CONDEMN**, by being fed the
+  two receipts reconstructed exactly as they stood that day (`:228-239`). Without that, case 7b would
+  agree with whatever is on disk and could never fail. **He built the anti-vacuous proof unprompted.**
+  There is even a case proving the reader ignores the receipt's own leading timestamp and judges only
+  the version field (`:240-243`).
+
+I confirmed the ceiling claim independently: `quiet_gate_report.mjs` offers **0 of 18** candidates,
+ninth raise running. 111 → 112 with a written justification key. `npm test` reaches its last gate and
+exits 0 — I ran the whole suite.
+
+### 4. RECURRENCE OF CEO 129'S FINDING (his question (d)) — PARTLY, AND HE DID NOT NAME IT
+
+CEO 129's sharpest finding was **the refusal was OPT-IN — the trigger was still "a session
+remembered."** Here the shape is **much better but not gone.**
+
+**Better:** the guard has two independent layers. The writers refuse at the moment of the act, and
+case 7b of the new gate reads the two receipts **as they sit on disk, whoever wrote them** — so a bad
+value planted by any route is caught at the next `npm test`. That is genuinely not opt-in.
+
+**⚑ BUT THERE IS ONE LIVE BACK ROAD, AND NOTHING IN THIS WATCH'S WORK MENTIONS IT.**
+`.claude/hooks/glass-harvest-first.cjs:79` — the deny message a session reads *at the exact moment it
+is blocked from publishing* — still instructs:
+
+```
+date -u +%Y-%m-%dT%H:%M:%SZ > .planning/wyclau/LAST-HARVEST
+```
+
+**That writes a bare clock straight into the receipt, never touching `mark_glass_harvest.mjs`, and
+it satisfies the hook's own freshness test, which reads only the file's mtime (`:56-57`).** So the
+new refusal never runs on that path. The gate catches it afterwards — but as *"records no version at
+all"* (the file is not JSON), which is the right verdict for the wrong reason, and only after the
+publish has happened.
+
+**This is not the watch's fault and I am not scoring it as one:** the hook is under `.claude/`, four
+watches have now been refused that edit, and the repair is already written out for Wyatt
+(`CLAUDE-DIR-REPAIRS-PENDING.md`; also `CHART.md:123` and `:208-210`; CEO 129 finding 2).
+**The fault is that `T-111`'s own artifacts never connect the two.** I checked all of them — the
+shared module, the new gate's header, both writers' new comment blocks, the ledger entry and the
+`package.json` justification — and **none contains the string `glass-harvest-first`**. A reader of
+this work would conclude the receipts are now sealed. They are not, and the one remaining opening is
+the surface a session is *most* likely to read.
+
+### 5. CLAIMS THE REPO DOES NOT SUPPORT (his question (e)) — TENTH VERDICT RUNNING
+
+**⚑ 5a. THE LEDGER ENTRY ENDS IN FUTURE TENSE WITH NO OUTCOME UNDER IT.**
+`.planning/CTO-LEDGER.md:6205-6210` is the last thing in the file (it ends at 6211). It states the
+claim and then: *"**Fix:** one shared predicate both writers read, refusing a clock-shaped value;
+gate the CONTENTS, not the name; red-proof on the two real values the Chart row quotes."*
+**That is a plan, in a record whose own rule is "no future tense in an append-only record — a
+prediction in a log rots into a lie with nobody editing it."** It is also, precisely, CEO 126
+finding 1 and CEO 129 finding 3, **for the tenth consecutive verdict.** Nothing beneath it says what
+happened, that the gate is green, that `npm test` passes, or that no game code moved.
+
+**⚑ 5b. A FILE HEADER CITES A LEDGER RECORD THAT DOES NOT EXIST.**
+`scripts/qa/_t111_probe.mjs:6` says the deletion refusal is *"recorded in `.planning/CTO-LEDGER.md`
+under this watch."* **It is not.** I read this watch's entire entry (`:6186-6211`): no mention of
+`_t111`, of a scratch file, or of a delete refusal. Earlier watches did record exactly this
+(`:1507`, `:1678`, `:1854`), so the convention exists and was simply not followed here. A comment
+that cites evidence which is not there is the same fault as a comment that describes runtime
+behaviour — **it will be believed by the next reader.**
+
+**⚑ 5c. THE CHART ROW HE ACTUALLY READS IS UNTOUCHED, AND IT IS NOW WRONG IN TWO WAYS.**
+`.planning/CHART.md:295` is still `- [ ]`, still headlined *"…AND THE GATE CANNOT SEE IT BECAUSE IT
+ONLY CHECKS THE NAME"*, still prints **"THE FIX:"** as an instruction to somebody in the future, and
+still asserts at `:306-307` **"Both receipts now record a clock and call it a version."** That
+sentence is false on this machine — I read both files through the gate: `LAST-HARVEST` holds
+`1788394958-ad3f`, `LAST-PUBLISH` holds `1788395643-2eb7`. **His page renders that file. It would
+tell him tonight that this is unbuilt and that his receipts are broken, and neither is true.**
+This is **CEO 129 finding 4, recurring verbatim, one review later.**
+
+*(Mitigating, and I want it on the record: **everything is still uncommitted** — `git status` shows
+all eleven paths dirty. It is entirely possible the Chart row and the ledger outcome were queued to
+be written in the same commit. But CEO 129 made the same allowance and the same gap appeared again,
+so I am scoring what is on disk. **The fix is ten minutes and it is the difference between work that
+happened and work he can see.**)*
+
+**Nothing else overclaimed.** I checked the `package.json` justification sentence by sentence — the
+two receipt strings, the eleven-minute spread, the two page versions sharing one `generatedAt`, the
+0-of-18 quiet-gate count, the "gate on a field's NAME is not a gate on its CONTENTS" diagnosis
+(`glass_harvest_hook_check.mjs` really does assert only the name) — **and every one of them holds.**
+It is long, but it is not decorated.
+
+### 6. THE TWO UNDELETABLE SCRATCH FILES (his question (f)) — HONEST HANDLING, AND I REPRODUCED IT
+
+`scripts/qa/_t111_probe.mjs` and `.planning/wyclau/_t111_probe.mjs` are emptied to one `console.log`,
+labelled SCRATCH, and registered nowhere — so they cannot be mistaken for a gate.
+
+**I did not take the deletion story on trust. I hit the identical wall.** Writing my own probe to
+measure the predicate, I then tried `rm`, `cp`, and `Remove-Item` on paths **inside the session's own
+allowed working directory** and each was refused, `Remove-Item` with a message that contradicts
+itself: *"may only access files in the allowed working directories: 'C:\Users\wyatt\Projects\
+pastrypirates'"* — on a path under exactly that directory. **This is an environment fault, not
+laziness, and the watch's account of it is accurate.** Leaving them neutralised and labelled is the
+right handling; the only thing missing is the one ledger line saying so (finding 5b).
+
+**Two more are now on disk with my name on them** — `scripts/qa/_ceo130_probe.mjs` and
+`.planning/_ceo130_probe.mjs`, neutralised and labelled the same way, for the same reason.
+**Whoever next has a session that can delete files: there are four.**
+
+### 7. BULK READING IN THE MAIN THREAD? NONE THAT I CAN SEE — AND ONE THING TO WATCH
+
+Nothing in this account looks like a whole file read to find one rule. The reads were the two writers,
+the Chart row, the two sandboxes, and the gate under construction — **all files actively being
+edited, which belong in the main thread by design.** The `ceo_brief.mjs` output prints a branch-wide
+diffstat of ~300 lines that nobody needs; **that is the tool's cost, not the watch's**, and it lands
+in the reviewer's context, not the author's. Worth trimming one day.
+
+### 8. WHAT WAS DELIVERED THAT HE DID NOT ASK FOR
+
+**Two other gates were repaired** — `glass_publish_stamp_check.mjs` (3 assertions) and
+`answered_question_retired_check.mjs` (5) — whose sandboxes listed the staged files by hand and so
+could not resolve the new import. **This was not scope creep; it was cleanup this change caused**, and
+the repair is the right one: both now copy the whole `scripts/wyclau/lib` directory with `readdirSync`
+rather than naming files. That is this project's own standing lesson — *a hand-kept list of what to
+guard rots exactly like the thing it guards* — applied without being told. **It displaced nothing.**
+
+### 9. THE CHEAPEST THING LEFT, IN ORDER
+
+1. **Write the outcome under the ledger claim, and update the `T-111` Chart row** — ten minutes, and
+   until it happens his page says this is unbuilt and his receipts are broken. Delete the stale
+   *"Both receipts now record a clock"* sentence; it is measurably false.
+2. **Add one paragraph to the new gate's header naming `glass-harvest-first.cjs:79` as the remaining
+   opening**, and point it at `CLAUDE-DIR-REPAIRS-PENDING.md`. It costs nothing and it stops the next
+   reader believing the receipts are sealed.
+3. **Fix `scripts/qa/_t111_probe.mjs:6`** — it cites a ledger record that does not exist.
+4. **Wyatt's hands only:** the `date -u … > LAST-HARVEST` line in the harvest hook. Four watches have
+   now been refused this edit.
+
+---
+
 ## CEO Review 129 — 2026-09-03T00:4xZ (8:4x PM ET), Wy-Blade — `T-090` gap (a): the harvest becomes the caller. **PARTIAL**
 
 > **Number claimed AT THE WRITE, per the box above.** The reviewer was briefed as "the CEO" with no
