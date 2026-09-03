@@ -61,7 +61,8 @@ export function retireQuestion(chartText, qidRaw, verdictRaw) {
      "now" is what marks a ruling as untriaged; filling it here would file his answer as already
      acted on the instant it is recorded. Flagged by CEO 127 as an undisclosed deviation, which it
      was. If he wants it filled, it is one expression — but the triage lifecycle has to move too. */
-  const ruledRow = `| <!--qid:${qid}--> ${cell(stripQid(target.cell))} | ${cell(verdict)} | |`;
+  const questionText = stripQid(target.cell);
+  const ruledRow = `| <!--qid:${qid}--> ${cell(questionText)} | ${cell(verdict)} | |`;
 
   const ruledText = section(chartText, "RULED") ?? "";
   const headerRule = ruledText.split("\n").findIndex((l) => /^\|[\s:|-]+$/.test(l.trim()));
@@ -74,6 +75,30 @@ export function retireQuestion(chartText, qidRaw, verdictRaw) {
   const before = next;
   next = next.split("\n").filter((l) => l !== target.raw).join("\n");
   if (next === before) return { ok: false, error: `the question row was found by the parser but its exact line could not be removed. Nothing was written. The row: ${target.raw.slice(0, 90)}…`, live: rows.map((r) => r.id) };
+
+  /* ⚑ THIRD EDIT, ADDED 2026-09-03 WITH T-087, AND IT IS THE ACT COMPLETING ITSELF RATHER THAN A
+     NEW FEATURE. Until today `## RULED` was RENDERED on the Glass, under "Your rulings, in hand",
+     so a row landing here with an empty "now" was still on the page he reads while it waited to be
+     triaged. Wyatt asked for that card to be removed (2026-09-02T13:18:28.755Z) and it is gone.
+     Nothing renders this section now — so without this insert, THE ONE ACT THAT PROMISES TO
+     RECORD HIS ANSWER WOULD MOVE IT SOMEWHERE ONLY SESSIONS CAN SEE, which is the same fault, one
+     table over, as the one this whole module exists to fix.
+     `rulings_triage_check.mjs` case 5 fails the build on exactly that state. Found by CEO 151,
+     which pointed out that the new rule would otherwise go red on this function's own normal
+     output — a gate condemning the tool that feeds it.
+     THE SAFE DEFAULT IS "SHOW IT": a task row is written whether or not work turns out to be
+     owed, because a ruling wrongly SHOWN costs him far less than one wrongly hidden — the same
+     asymmetry `rulings_triage_check.mjs:42-44` already states. A watch that finds nothing owed
+     moves the row to SETTLED and deletes this task, which is step 3 of the documented process.
+     BEST EFFORT BY DESIGN: a Chart with no `## STEP 1 CHECKLIST` (every fixture in
+     `answered_question_retired_check.mjs` is one) is left alone rather than refused. Recording his
+     answer must never fail because a section is missing — the record is worth more than the
+     bookkeeping. */
+  const checklistText = section(next, "STEP 1 CHECKLIST");
+  if (checklistText) {
+    const taskRow = `- [ ] Your ruling: ${cell(questionText)} — his answer: ${cell(verdict)} **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.`;
+    next = next.replace(checklistText, `${checklistText.replace(/\s+$/, "")}\n\n${taskRow}\n`);
+  }
 
   return { ok: true, next, row: ruledRow };
 }

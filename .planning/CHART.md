@@ -551,35 +551,46 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ## RULED — his answers, waiting to be triaged
 
-> ### THIS SECTION IS A WAITING ROOM, NOT AN ARCHIVE. Read this before adding a row.
+> ### ⚠ NOTHING RENDERS THIS SECTION ANY MORE. A ROW LEFT HERE IS A RULING HE CANNOT SEE.
 >
-> Wyatt, 2026-09-01 (INBOX-20260901T1310Z): *"The Glass's Your Rulings -- In Hand are stale; there
-> must be a process that triages them and adds them to the Tasks list, then removes them from the
-> Your Rulings list."* **This section IS that card** — the Glass renders every row of it under
-> "Your rulings, in hand", so a row that stays here forever is a card he stops reading. It held
-> eight rows, five of them shipped or closed days earlier.
+> **Read this before adding a row. It changed on 2026-09-03 and the change inverts the old rule.**
 >
-> **THE PROCESS, and it is three moves, done by the watch that harvests or acts on a ruling:**
+> Wyatt, on the Glass 2026-09-02T13:18:28.755Z: *"Remove the "Your rulings in hand" box from the
+> Glass"* (`T-087`, done by watch c1). **This section USED TO BE that card** — the Glass rendered
+> every row of it under "Your rulings, in hand", which is why waiting here was safe: he could see
+> a ruling sitting untriaged. **It is gone at his instruction, so this table is now session-facing
+> only.** Four of his rulings were parked here the hour it was removed, and removing it would have
+> dropped all four off the page he reads with every gate still green.
 >
-> 1. **A freshly harvested ruling lands HERE**, with the `now` cell left EMPTY — it has not been
->    triaged yet, and an empty cell is the honest way to say so.
-> 2. **Triage it.** If it still needs work, add a `- [ ] Your ruling: …` row to the STEP 1
->    CHECKLIST — that is what puts it in the Glass's Tasks card, automatically, with no second
->    list to keep in step. If nothing is left to do, no task is needed.
-> 3. **Move the whole row down to SETTLED RULINGS**, with the verdict written into its `now` cell.
->    It leaves this card and stays on the record forever.
+> His original ask, still the reason the lifecycle exists — 2026-09-01, INBOX-20260901T1310Z:
+> *"The Glass's Your Rulings -- In Hand are stale; there must be a process that triages them and
+> adds them to the Tasks list, then removes them from the Your Rulings list."*
 >
-> **Enforced, not remembered:** `scripts/qa/rulings_triage_check.mjs` fails the build if a row here
-> carries a verdict (it belongs in SETTLED), or if a settled ruling with work outstanding has no
-> checklist row (it would have vanished from every surface he can see). Both directions
+> **THE PROCESS, three moves, done by the watch that harvests or acts on a ruling — and move 2 is
+> no longer optional:**
+>
+> 1. **A freshly harvested ruling lands HERE** with the `now` cell EMPTY — untriaged, and an empty
+>    cell is the honest way to say so. `scripts/wyclau/lib/retire.mjs` writes it.
+> 2. **It gets a `- [ ] Your ruling: …` row in the STEP 1 CHECKLIST, ALWAYS** — that is what puts
+>    it on the Glass's Tasks card, with no second list to keep in step. **This used to read "if
+>    nothing is left to do, no task is needed"; that is now a build failure**, because with the
+>    card gone the only alternative to a task row is invisibility. A ruling that turns out to owe
+>    nothing goes straight to move 3. `retireQuestion()` writes this row in the same act as the
+>    one above, so the harvest can no longer leave a ruling stranded.
+> 3. **Move the whole row down to SETTLED RULINGS** in [`CHART-LOG.md`](CHART-LOG.md), verdict in
+>    its `now` cell, and delete its task row. It leaves the waiting room and stays on the record.
+>
+> **Enforced, not remembered:** `scripts/qa/rulings_triage_check.mjs` — 8 cases — fails the build
+> if a row here carries a verdict (it belongs in SETTLED), if a row here has no checklist row (it
+> is on no surface he can see), or if a settled ruling with work outstanding has no checklist row.
+> It also holds his removal in place: case 7 re-renders the real Glass and fails if the card comes
+> back, and case 8 fails if the harvest tool and this rule ever drift apart. Every direction
 > red-proofed.
 
-*Three rulings are waiting, freshly harvested (rows below, `now` cell empty by design — not yet
-triaged). The two `T-105` rulings that carried verdicts were moved to SETTLED RULINGS in
-[`CHART-LOG.md`](CHART-LOG.md) by the 6:30 PM ET watch of 2026-09-02 — **they were written with
-their verdicts and left here, which had `npm test` RED on that watch's arrival.** Step 3 of the
-process above is the move, and it is not optional. The prior eight were triaged 2026-09-01; three
-carried work and are in the STEP 1 CHECKLIST, tagged "Your ruling:".*
+*How many are waiting is the row count below — [not a number typed here](CHART-LOG.md), because a
+hand-typed count is wrong the moment work continues (this paragraph said "three" while two were
+waiting). `node scripts/qa/rulings_triage_check.mjs` prints the tally and names any row that is
+stranded.*
 
 | item | HIS RULING | now |
 |---|---|---|

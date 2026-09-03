@@ -28,6 +28,65 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 152 — 2026-09-03, Wy-Blade — `T-087`: remove the "Your rulings, in hand" box from the Glass — **PARTIAL**
+
+> *Number claimed order-independently immediately before writing: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **151**, `grep -c "^## CEO Review 152"` → **0**. No collision. Watch c1 was the subject, not the author of the verdict below — it is quoted from a fresh-context CEO that read the diff, ran the gates and re-measured every number.*
+
+**VERDICT: PARTIAL** — the box is out of the code and out of the file the generator writes, proven
+by a check that can genuinely fail. It is not yet off the page Wyatt opens, and the watch's own
+stated way of getting it there was never actually written.
+
+**What it verified as done properly.** The removal is real: `glass.mjs:1249-1273` deletes the
+section, `:477-484` the `## RULED` parse, `:1066-1072` the `.twoCol` CSS. No surviving consumer of
+`ruled`; no surviving `.twoCol` rule. The rendered `.planning/wyclau/glass.html` contains zero
+occurrences of the heading and zero of `<table id="ruled">` — checked on the artifact on disk, not
+the source. **All four of the watch's incidental numbers survived independent re-measurement**
+(`stats.html`/`lab.html` absent at root; `.twoCol` really was `1fr 1fr`; four rulings confirmed via
+the peer's commit `1d952c90`; nothing else read `ruled`). **So CEO 150's fault — a count stated as
+fact and never measured — did NOT recur.** It also corrected a false claim it inherited: the gate's
+old header said `glass.mjs` was un-editable vendored code, and *"that lie would have made a future
+watch refuse your instruction."*
+
+**Its six findings, and what happened to each.**
+1. **The box is still on the page he opens**, and `GLASS-NOTE.md` — the relay the watch itself named
+   — was the untouched empty template. **FIXED before the close:** the note is written.
+2. **The new build rule failed the harvest tool's own normal output.** `retireQuestion()`
+   (`lib/retire.mjs:58-64`) writes a `## RULED` row with an empty `now` and no checklist row —
+   character-for-character the state case 5 asserts must FAIL. *"Wyatt answers a question, a watch
+   harvests it with the standard tool, and `npm test` goes red on the harvest's own normal output."*
+   **FIXED:** `retireQuestion` now writes the task row in the same act, and case 8 tests the seam so
+   the two cannot drift apart again.
+3. **The Chart's prose box still described the deleted card as live** — and `:568`'s "if nothing is
+   left to do, no task is needed" was finding 2 written down as official process. The peer's commit
+   named this watch as its owner. **FIXED.**
+4. **Case 7's red-proof only tested its own regex against its own string**, while every other case
+   goes through the real generator. **FIXED:** it now restores the card in the generator SOURCE and
+   re-renders.
+5. **A hand-read number inside a PASS line, always zero** (`:179` counted SETTLED from `CHART.md`, a
+   section empty since the sweep). **FIXED** — it now reads 18.
+6. Two prose slips (a mis-numbered case reference; "phone breakpoint" for a 64rem desktop one).
+   **FIXED.**
+
+**Does a fault from CEO 150 recur?** *"Not in its literal form — and yes in its general form, which
+is the one that matters. The fence was drawn around the code change, and the three unfinished things
+are all outside it. A prediction protects the claim you wrote it for, and this one was written about
+the generator, not about his page."*
+
+**On rule 19, and it is the honest gap:** the watch opened no browser because a sea trial was at sea
+(pid 29700, 7/10 legs, settle margin 2.7s against 2.6s). The CEO accepted the trade — *"the watch
+left nothing running and told the truth"* — with one reservation: nobody had looked at what "Shipped
+today" does spanning full width. **Settled structurally instead of photographically:** the rendered
+page now contains six `<section class="card">` elements and zero wrapped in a `<div>`, all governed
+by one `.card` rule at `glass.mjs:1016` with no width variant — so unwrapping the grid returns that
+card to the same default six other cards already use on his page. No new layout was created.
+
+**The thing it said the watch would not say on its own, kept in its words:** *"The box is out of the
+code, but it is still on the page you'll open, and I can't republish — this session has no Artifact
+tool."* And its second, softer one, which the watch had missed: `glass.mjs:1281-1283` still renders
+**"Your newest rulings on record"** in The Captain's log. *"His rulings did not vanish from the
+Glass. They stopped having a waiting-room card and kept their record card. That is a better answer
+to 'where did my rulings go' than the four-rulings rescue story, and it was one grep away."*
+
 ## CEO Review 151 — 2026-09-03, Wy-Blade — `T-104`: does his DO NOW button reach the watch? — **PARTIAL**
 
 > *Number claimed order-independently immediately before writing: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **150**, `grep -c "^## CEO Review 151"` → **0**. No collision; I did not have to move. I am read-only — `git status` shows no tracked file modified by me. All four mutants ran on a full isolated copy of the repo's `scripts/` + `.claude/skills/door/` + `.planning/wyclau/` in my scratchpad. Rule 17: I launched no browsers; `stray_probe_check` reports SKIP — a trial is at sea with 20 expected browsers.*

@@ -418,7 +418,7 @@ const branch = tryGit(["rev-parse", "--abbrev-ref", "HEAD"]) ?? "unreadable: git
 
 // --- the Chart: checklist tallies + task text + blocked-on-Wyatt + inbox items ---
 const chart = tryRead(CHART_OVERRIDE ?? join(ROOT, ".planning", "CHART.md"));
-let checklist = null, blocked = null, inboxItems = null, ruled = null, tasks = null;
+let checklist = null, blocked = null, inboxItems = null, tasks = null;
 /* HIS ASK 3's DANGEROUS HALF. "If there are no calls for me to make, don't show the Your Call box"
    is one conditional — but `blocked.length === 0` is reachable for TWO completely different reasons,
    and they must not look the same to him:
@@ -474,15 +474,14 @@ if (chart !== null) {
     .filter((b) => /^[-*] /.test(b))
     .map((b) => ({ head: b.split("\n")[0].replace(/^[-*] /, ""), all: b }));
   inboxItems = inboxBlocks.map((b) => b.head);
-  // HIS RULINGS, DERIVED — the Helm's record migrated into this page. Sourced from the Chart's
-  // RULED table (never hand-typed here), so a ruling shows on the Glass the moment it is
-  // harvested, and cannot drift from the record the engine works to.
-  const ruledSec = chart.split(/^## RULED[^\n]*$/m)[1]?.split(/^## /m)[0] ?? "";
-  ruled = ruledSec.split("\n")
-    .filter((l) => l.startsWith("|") && !/^\|\s*item\b/i.test(l) && !/^\|\s*-+/.test(l))
-    .map((l) => l.split("|").map((c) => unmark(c.trim())).filter(Boolean))
-    .filter((c) => c.length >= 2)
-    .map(([item, call, now]) => ({ item, call, now: now ?? "" }));
+  /* ⚑ THE ## RULED PARSE IS DELETED WITH ITS CARD (T-087, 2026-09-03) — nothing else read it.
+     It said: "HIS RULINGS, DERIVED — the Helm's record migrated into this page. Sourced from the
+     Chart's RULED table (never hand-typed here), so a ruling shows on the Glass the moment it is
+     harvested, and cannot drift from the record the engine works to."
+     Kept as a note rather than left computing an unread value, because a parse with no consumer
+     is the thing that looks like coverage and is not: it would go on reading his rulings
+     correctly, forever, onto no page. His rulings still cannot drift — they reach him as Tasks
+     rows now, which is the surface he steers by. */
   // ITEM 6 — ONE MERGED TASK LIST, not two counts kept in step by nothing. Open items from the
   // reboot checklist (the only checklist section today) plus any Chart-inbox items, in that
   // order — the checklist is the standing plan, the inbox is what just arrived.
@@ -1064,15 +1063,14 @@ const PAGE = `<meta charset="utf-8">
     word-break:break-word;overflow-wrap:anywhere;}
   .meta{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--muted);margin-top:1.5rem;}
   .count{font-weight:700;color:var(--signal);}
-  /* HIS EDIT 3, 2026-09-01: "Shipped Today is in the left column, and Your Rulings is on the right
-     column. On mobile, one column with Shipped Today is on top." Source order already puts Shipped
-     first, so the phone case is the grid simply not applying -- no reordering rule to keep in step.
-     The breakpoint is the sheet's own width (40rem), not a device guess. */
-  .twoCol{display:grid;grid-template-columns:1fr;gap:0;}
+  /* ⚑ THE .twoCol GRID IS GONE WITH THE CARD IT PAIRED (T-087, 2026-09-03). It carried HIS EDIT 3,
+     2026-09-01: "Shipped Today is in the left column, and Your Rulings is on the right column. On
+     mobile, one column with Shipped Today is on top." That instruction described a PAIR; he has
+     since asked for the right-hand card to be removed, and a two-column grid holding one child is
+     a card boxed into half a wide screen with dead space beside it. The phone case was already
+     one column, so nothing changes there. The .sheet width below is unrelated and stays. */
   @media (min-width: 64rem){
     .sheet{max-width:62rem;}
-    .twoCol{grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start;}
-    .twoCol > .card{margin-bottom:0;}
   }
   /* HIS EDIT 2: each shipped thing is its own pill, closed, opening to the commit's reasoning. */
   .pills{display:flex;flex-direction:column;gap:.4rem;margin:.3rem 0 0;}
@@ -1248,25 +1246,33 @@ const PAGE = `<meta charset="utf-8">
       <p style="white-space:pre-line;margin:.2rem 0;font-size:.95rem">${esc(newestLesson.body)}</p>`}
   </section>
 
-  <!-- HIS EDIT 3: "Shipped Today is in the left column, and Your Rulings is on the right column.
-       On mobile, one column with Shipped Today is on top." The grid below is that, and the source
-       order puts Shipped first so the one-column phone case needs no reordering rule. -->
-  <div class="twoCol">
+  <!-- ⚑ "YOUR RULINGS, IN HAND" IS GONE — Wyatt, on this page, 2026-09-02T13:18:28.755Z: "Remove
+       the 'Your rulings in hand' box from the Glass" (T-087). It showed him his own answers back;
+       what he steers by is the work they turn into, and that is the Tasks card.
+
+       HIS EDIT 3 WENT WITH IT, and that is why the grid is gone rather than left holding one
+       child: "Shipped Today is in the left column, and Your Rulings is on the right column. On
+       mobile, one column with Shipped Today is on top." A .twoCol holding a single card is two
+       equal columns with one of them empty at 64rem and wider — a DESKTOP breakpoint, not a phone
+       one; the first draft of this note said "phone breakpoint" and CEO 151 was right that it was
+       backwards, since the phone case is the grid simply not applying — so deleting the card
+       without unwrapping the grid would have left Shipped today boxed into the left half of a
+       wide screen with dead space beside it. The phone case was already one column and is
+       unaffected.
+
+       WHAT THIS COST, WRITTEN DOWN BECAUSE THE NEXT READER WILL ASK WHERE HIS RULINGS WENT: this
+       card was the only surface rendering the Chart's RULED waiting room. Four of his rulings
+       were sitting in it the day it was removed. That section is now session-facing only, so a
+       ruling has to be triaged in the same act that harvests it — task row if it owes work,
+       straight to SETTLED if it does not. scripts/qa/rulings_triage_check.mjs case 5 fails the
+       build on any ruling parked there without a task row, which is the protection this card used
+       to give, moved onto the record. -->
   <section class="card">
     <h2>Shipped today (${commits === null ? "?" : commits.length} commits)</h2>
     ${commits === null ? `<p class="bad">unreadable: git log failed</p>`
       : commits.length === 0 ? `<p class="muted">Nothing yet today.</p>`
       : `<div class="pills">${commits.slice(0, 12).map(pillHtml).join("")}</div>${commits.length > 12 ? `<p class="muted">…and ${commits.length - 12} more</p>` : ""}`}
   </section>
-
-  <section class="card">
-    <h2>Your rulings, in hand (${ruled === null ? "?" : ruled.length})</h2>
-    ${ruled === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
-      : ruled.length === 0 ? `<p class="muted">Nothing ruled yet.</p>`
-      : `<table id="ruled">${ruled.map((r) => `<tr><td>${esc(r.item)}</td><td><b>${esc(r.call)}</b><br><span class="muted">${esc(r.now)}</span></td></tr>`).join("")}</table>
-    <p class="muted">Migrated from the Helm and derived from the Chart — the watches work to these.</p>`}
-  </section>
-  </div>
 
   <section class="card">
     <h2>The Captain's log</h2>
