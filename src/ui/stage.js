@@ -2429,6 +2429,70 @@ function menuButtons(ap){
   if (!btns.every(b => b._shortHtml != null || b.textContent.trim().length <= 16)) return null;
   return btns;
 }
+
+/* SIZE THE LABEL TO THE DISC — one rule, at the one place a petal's label is set (T-017).
+ *
+ * WYATT'S EVIDENCE, three sightings on three configurations: a trade-offer circle cannot hold the
+ * captain's name it names. `solo-tablet-014-settled.png` — *Crustbeard* crossing both rims of its
+ * own disc while "Walk away" in the identical circle beside it fits with room to spare;
+ * `crew-desktop-guest-012-settled.png` — *Flaky Jack* hanging out of both sides;
+ * `solo-desktop-wk-021-settled.png` — WebKit, build 2026.09.01.8, reading `rustbea`. Chromium
+ * tablet, Chromium crew-desktop, WebKit desktop: neither engine-, size- nor mode-specific.
+ * His standing instruction on the call circles: "Fix this universally, not through patches."
+ *
+ * WHY IT IS HERE AND NOT IN THE TRADE CODE. The name is not special — it is simply the longest
+ * thing anyone has put in a petal yet, and a player may type a longer one still. Every radial
+ * label goes through the swap below, so fitting here covers the trade circles, the sail choices,
+ * the dock, the battle calls and anything added later, without any of them knowing this happened.
+ * Fixing `flow.js`'s two trade lines would have fixed two labels and left the rule unwritten.
+ *
+ * WHY IT SHRINKS RATHER THAN CLIPS OR TRUNCATES. `overflow:hidden` would hide the very word the
+ * circle exists to say — it would turn a visible fault into a silent one, which is how "rustbea"
+ * happened in the first place. This repo already rejected truncation for exactly this reason one
+ * scale up: `refreshNameMarquees` (src/ui/util.js:183) scrolls an over-long captain name "instead
+ * of blowing out the layout or truncating unreadably". Same value, smaller box.
+ *
+ * NOTHING IS A CONSTANT (rule 9). The starting size is whatever the stylesheet computed — the
+ * inline size is cleared first, so this reads the CSS rather than a number copied out of it, and a
+ * restyle of `#pp4Prompt.radial .apBtn` carries through with nothing here to update. The floor is
+ * a FRACTION of that same size, not a typed px value, and the boundary is the disc's own painted
+ * box rather than arithmetic about 66px and its border.
+ *
+ * MEASURED, not reasoned: at the shipped 9.5px, "Davy Scones" and "Dough Hook" wrap to two lines
+ * and put ink 5.3-5.6px ABOVE the rim at all three sizes, while "Walk away" — one line, in the
+ * same disc — stays inside at every one. `scripts/qa/trade_circle_name_fits_check.mjs` is that
+ * measurement and it FAILED before this function existed. */
+function fitLabelToDisc(b){
+  /* Re-fitting every frame would cost a forced layout per petal per frame for a box that has not
+     changed. The key is the content AND the disc's width, so a genuine restyle or a size change
+     re-fits and nothing else does. */
+  const key = String(b._shortHtml) + "|" + b.clientWidth + "x" + b.clientHeight;
+  if (b._fitKey === key) return;
+  b.style.fontSize = "";                      // always start from what the stylesheet says
+  const base = parseFloat(getComputedStyle(b).fontSize);
+  if (!(base > 0) || !b.clientWidth){ b._fitKey = null; return; }   // not laid out yet — try again
+  /* The label fits when every painted line of it is inside the disc's own box. getClientRects()
+     gives one rect per LINE, so a name that wraps is judged on the lines it really draws — which
+     matters because "Dough Hook" can wrap and "Crustbeard" is one unbreakable word that cannot. */
+  const fits = () => {
+    const br = b.getBoundingClientRect();
+    for (const n of b.childNodes){
+      if (!n.textContent || !n.textContent.trim()) continue;
+      const rng = document.createRange(); rng.selectNodeContents(n);
+      for (const q of rng.getClientRects()){
+        if (q.width <= 0 && q.height <= 0) continue;
+        if (q.left < br.left - 0.5 || q.right > br.right + 0.5 ||
+            q.top < br.top - 0.5 || q.bottom > br.bottom + 0.5) return false;
+      }
+    }
+    return true;
+  };
+  // bounded by construction: half-pixel steps from `base` down to 60% of it, ~8 iterations at 9.5px
+  for (let px = base; !fits() && px > base * 0.6; ){
+    px -= 0.5; b.style.fontSize = px + "px";
+  }
+  b._fitKey = key;
+}
 // enterCenterStage() — flip the prompt box to centre-stage mode NOW, synchronously. promptTick
 // calls it on its own beat; the bake-off (via __pp4.stageCenterNow) calls it BEFORE building its
 // panel, because panel() measures its height at build time and a measurement taken under the
@@ -2770,7 +2834,9 @@ function promptTick(force){
     // playtest 10: circles carry the SHORT form of a long action (Wyatt's pick: "short verbs,
     // details in the pill") — the full label is kept for the card fallback and restored there
     menu.forEach(b => {
-      if (b._shortHtml != null && !b._radSwapped){ b._fullHtml = b.innerHTML; b.innerHTML = emojify(String(b._shortHtml)); b._radSwapped = true; }
+      if (b._shortHtml != null && !b._radSwapped){ b._fullHtml = b.innerHTML; b.innerHTML = emojify(String(b._shortHtml)); b._radSwapped = true; b._fitKey = null; }
+      // T-017: whatever label this petal ended up with, make it fit the circle. See fitLabelToDisc.
+      fitLabelToDisc(b);
     });
     const [sx, sy] = toScreen(uu[0], uu[1]);
     /* A CHOICE ABOUT SOMEONE ELSE'S SHIP SITS ON THAT SHIP — Wyatt's pick, playtest 22. The battle
@@ -3585,6 +3651,9 @@ function promptTick(force){
   S.radKey = null;
   [...ap.querySelectorAll(".apBtn")].forEach(b => {
     b.style.position = ""; b.style.left = ""; b.style.top = "";
+    // T-017: the shrink is a RADIAL affordance — a card has room, so hand the size back to the
+    // stylesheet on the way out, or a petal that once held a long name would stay small as a card.
+    b.style.fontSize = ""; b._fitKey = null;
     if (b._radSwapped){ b.innerHTML = b._fullHtml; b._radSwapped = false; }   // card shows the full label
   });
   /* W3-1 (Wyatt, 2026-08-27): "the battle box choreography is glitchy... it appears for an
