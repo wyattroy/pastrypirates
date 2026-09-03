@@ -139,6 +139,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       the reusable half is narrower than "don't lie": **a note about work still to do must never live
       inside a row you are closing** — the close is exactly what makes it unreadable.
 
+- [ ] Your ruling: ⟨`T-216`⟩ **Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix.** When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — **whoever got home first**. The first two are exactly right. The third is not: the game breaks that last tie by **seat order**, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. **Nothing in the game records when a captain got home**, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat. — his answer: Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking
+      ⚑ **TRIAGED 2026-09-03T23:5xZ by the `T-216` gate watch: IT OWES WORK, AND IT IS THE ONLY
+      PLAYER-VISIBLE THING LEFT ON HIS RULES-PAGE ASK.** Not deleted, not moved to SETTLED — a
+      ruling with an unbuilt consequence is not settled. **CEO 191's headline, in its own words:**
+      *"you ruled two hours before this watch started that the 'got home first' tiebreak should be
+      fixed in the game, and that fix still has not been started, so the false sentence is still on
+      your public rules page tonight."*
+      **THE JOB, so the next watch does not re-derive it.** `endBakeDay()` (`src/engine/index.js`)
+      fills `finishOrder` from `players.filter(q => q.bakedToday)` — **seat order** — and `bakeRank`
+      ends on `finishOrder.indexOf(a) - finishOrder.indexOf(b)`. Nothing anywhere records the DAY a
+      captain lit their ovens, so his rule cannot be honoured by re-sorting what exists; the day has
+      to be captured first. `lightOvens()` is where a captain arrives and is the natural place to
+      stamp it. **Then `bakeRank`'s last comparator reads that stamp**, and seat order becomes the
+      tie-break of the tie-break rather than the rule.
+      ⚠ **THIS IS GAME CODE AND IT TOUCHES THE END-OF-VOYAGE RANKING, which he was told and
+      accepted.** Gear FULL, and a new field on a player is a change to what the engine carries —
+      check `docs/DETERMINISM-RERECORD.md` before assuming the corpus is unaffected. **It is its own
+      item, deliberately not folded into `T-216`'s gate work**: fencing 24 sentences and changing how
+      a voyage is won are different jobs, and doing them in one watch would finish neither.
+      **`INBOX-20260902T225008Z` CANNOT CLOSE UNTIL THIS LANDS** — one sentence on a public page
+      still describes a game nobody is playing.
+      ⟨`T-216`⟩
+
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
       `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
@@ -182,9 +205,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
       deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
       npm test 124/124. No game code — `src/` and `index.html` untouched.
-
-- [ ] Your ruling: ⟨`T-216`⟩ **Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix.** When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — **whoever got home first**. The first two are exactly right. The third is not: the game breaks that last tie by **seat order**, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. **Nothing in the game records when a captain got home**, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat. — his answer: Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-216`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -339,6 +359,31 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
       exact evasion Wyatt chose the words "sea trial" to make impossible.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
+- [ ] **A CAPTAIN WHO CALLS THE WINNER OF A FIGHT THAT ENDS IN A FLIGHT IS NEVER TOLD ANYTHING.**
+      ⟨`T-249`⟩
+      Filed 2026-09-03T23:5xZ by the `T-216` watch, out of the rules-page audit rather than from a
+      playtest. **⚠ OBSERVED IN THE CODE, NOT MEASURED — and it is written that way on purpose
+      (rule 6).** Nobody has seen this happen on a screen; do not report it to Wyatt as confirmed,
+      and pose it before fixing it.
+      **WHAT THE CODE SAYS.** `src/orchestrator.js:639` collects the side bets before the first
+      broadside, so by the time the flip resolves a spectating captain has already been asked to
+      call the winner. The fight then has three exits, and only two of them settle:
+      `:824` pays nobody on a NULL (`settleSideBets(bets,null)`) and `:857` pays the right callers on
+      a win — but **`:817` is `if(fled)return;`**, which leaves the function before either. So on a
+      both-tails escape the `bets` array is dropped: no `sidebet` event, no coins, and **no
+      "🔭 The Lookout settles" line**, which is the only thing that tells a caller their call was
+      resolved at all.
+      **WHY IT IS NOT A RULES-PAGE FAULT, which is how it was found.** The page says *"Nobody's paid
+      on a battle that ends with no winner"*, and a flight IS such a battle, so the words stay true
+      and nobody is wrongly paid. **The defect is silence, not arithmetic** — a captain is asked a
+      question and never hears the answer, and from that seat it is indistinguishable from the game
+      having forgotten them.
+      **THE FIX IS PROBABLY ONE LINE** (`await settleSideBets(bets,null)` before the early return),
+      **but the ORDER is the part to think about**: `:813` has already torn the battle panel down.
+      **HOW TO PROVE IT FIRST:** a posed crew game with three captains — one attacks, one is
+      attacked holding a recipe crate it has no spare of (so `holdingCritical` makes the bot flee),
+      and one spectates and calls. Watch the third screen.
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
@@ -537,6 +582,26 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+- [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
+      ⟨`T-250`⟩
+      Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
+      than as a fault**. `rules_claims_match_engine_check.mjs` (npm test gate 132) now measures 23 of
+      that page's claims by playing a real `Game`, and red-proofs every one by mutating the engine.
+      **These are the ones it cannot reach**, because they are not in the engine:
+      the human defender's free escape prompt and the human winner's crate choice
+      (`src/orchestrator.js`), *"nobody's paid on a battle that ends with no winner"*
+      (`settleSideBets`, `src/ui/flow.js:3131`), the paid re-fire *"as often as they can pay"* on the
+      live path, the dock's *"buy with the coin ye just earned"* and *"stay as long as ye like"*, and
+      the bake-off's shuffle → name-back → lock-in loop (`src/ui/bakeoff.js`).
+      **All six were verified by READING, by the 2026-09-03T18:41Z watch** (its table is in
+      `.planning/CTO-LEDGER.md`), and that same watch then demonstrated its own read fallible on the
+      Best Baker tiebreak — it reported that sentence RIGHT off `bakeRank`'s final `indexOf` and the
+      rotted comment above it. **So a read verdict here is worth exactly what that one was.**
+      **THE SHAPE OF THE ANSWER, so nobody re-derives it:** these need either a driven browser or a
+      second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
+      the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
+      believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
 
 
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**

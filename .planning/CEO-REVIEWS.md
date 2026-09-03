@@ -1,5 +1,87 @@
 # CEO reviews — the standing record
 
+## CEO 191 — `T-216`, "using the latest version of the game" — **PARTIAL** — 2026-09-03T23:4xZ
+
+*Its words, not a paraphrase. The ask reviewed: `INBOX-20260902T225008Z`, "Do a new /rules.html that
+explains the rules -- using the latest version of the game."*
+
+> **1. Each half of his ask.** Half one — "a new /rules.html that explains the rules": **DONE** (by a
+> prior watch, not this one). Half two — "using the latest version of the game": **PARTIAL.**
+> `rules_claims_match_engine_check.mjs` runs green: claims measured by playing a real `Game`, engine
+> mutations, every one reddening exactly the claim it names and nothing else. I ran it. **It is not a
+> paper gate.** But **the page is still telling players something the game does not do.**
+> `rules.html:109` says Best Baker's last tiebreak is "whoever got home first"; the game uses seat
+> order. That sentence is live on the public site right now.
+>
+> **2. What he did not ask for — and yes, it displaced the thing he did.** He asked for a rules page
+> that matches the game. He got a 132nd gate and the 24th consecutive ceiling raise. Defensible on
+> its face… **But here is the problem.** Wyatt **ruled on the tiebreak at 21:30Z**
+> (`.claude/memory/DECISIONS.md:21`). This watch began at 23:10Z, two hours later, with that ruling
+> already on disk. It built the gate, filed two findings of its own devising, and left his own ruled
+> item at `.planning/CHART.md:186` marked "Untriaged" with no work row created for it. **The one
+> change on this ask that a player would ever notice was already decided by him, and the watch spent
+> its window fencing sentences that were already true. The game is not better today in any way a
+> player would see.**
+>
+> **3. Attacking the gate the way 190 was attacked.** The coverage assertion is sound — I tried to
+> break it and could not… **No no-op mutations**… **That is genuinely better than what 190 found.**
+> What I did find: **(a)** the file's own header says "Sixteen" four times and it measures
+> twenty-three; the `package.json` note repeats it. **(b)** Three claims print a page sentence wider
+> than what they measured — the storm quotes "it blows every ship at once" while the probe pushes
+> ONE ship, *"delete that loop and the gate stays green"*; the land claim ends "and nobody loses a
+> turn" while *"it asserts the return string is `landHeld`* and infers "a hold, not a forfeit" from
+> the **name of a string**. That is a comment standing in for a measurement, which is the exact trap
+> rule 6 names"; the sail claim quotes "in any mix of directions" and measures one straight line.
+> **(c)** `:169` **compares the engine to itself** — *"Change the black market from 10 to 7 and this
+> claim stays green while the page still says 10."* **(d)** A latent hole: turn the bake-off flag off
+> and half a claim silently stops being measured while still printing PASS.
+> `T-249`'s citation checks out.
+>
+> **4. Has 190's fault recurred?** At the level 190 found it — **no, it is fixed.** One radius out —
+> **yes, in new clothing, and this is the tenth turn of the same screw.** The pattern is *an
+> instrument announcing more than it looked at.* Here the measurements are real and the
+> announcements are not… **the same species, and it landed in the prose of the very file written to
+> answer 190.**
+>
+> **5. Delegation.** *"I cannot answer this from the repo and I will not guess."* One candidate
+> named: reading fourteen engine methods across a 3,000-line file is the classic shape a subagent
+> could have absorbed. **No positive evidence of bulk main-thread reading; no evidence against it.**
+>
+> **6. The sentence to read first.** *"The gate is real and it works — I ran it and tried to break
+> it — but you ruled two hours before this watch started that the 'got home first' tiebreak should
+> be fixed in the game, and that fix still has not been started, so the false sentence is still on
+> your public rules page tonight."*
+>
+> **NET: PARTIAL.** *"Honest work, honestly scoped, correctly left open — and pointed at the half of
+> the ask that was already true instead of the half you had already ruled on."*
+
+**ACTED ON, SAME WATCH — all four gate findings fixed, and the triage it asked for done:**
+- **(a) The count.** Removed from the header and from `package.json` entirely rather than corrected.
+  It is printed from `Object.keys()` at runtime and nowhere else — CLAUDE.md §5, never hand-type a
+  number that can be counted.
+- **(b) The three over-wide quotes, fixed by WIDENING THE MEASUREMENT, not by narrowing prose,
+  except where narrowing was the honest answer.** The storm now calls `runStorm("S")` and asserts all
+  four captains' displacements, with its own mutation reducing `stormOrder` to one seat — the exact
+  deletion CEO 191 said would have stayed green. The sail claim now sails an L, which needed
+  `openWater()` taught about the elbow squares plus a seed search, **because seed 4242 has no square
+  with four clear squares every way and a clear corner — and the first attempt reported THE RULES
+  PAGE CONTRADICTS THE GAME when the probe had walked into an island.** The land claim's quote is
+  narrowed and the file says in place why an absent turn-forfeit state cannot honestly be mutated.
+- **(c) The black market no longer compares the engine to itself.** The numeral is
+  `rules_page_check`'s job through the `data-rule` span; this claim now asserts what no generator
+  covers — the price never MOVES and the shelf never runs dry — and quotes only that.
+- **(d) The `!cfg.bakeoff ||` escape hatch is gone.** With the flag off the claim goes RED and says
+  the page needs re-deciding, rather than printing PASS over something it stopped measuring.
+- **Its headline finding — his ruled tiebreak sitting untriaged — is triaged.** `.planning/CHART.md`
+  now carries the job in full: `endBakeDay` fills `finishOrder` in seat order, nothing records the
+  day a captain lit their ovens, so `lightOvens` must stamp it before `bakeRank` can read it. **It is
+  NOT folded into this watch's item** — fencing 24 sentences and changing how a voyage is won are
+  different jobs, and the Door allows one item per watch. **`INBOX-20260902T225008Z` stays open until
+  it lands**, which is now stated on the row itself rather than only in a ledger entry.
+- **Its point 2 stands and is not argued with.** The gate was the previous watch's named remainder,
+  but a player sees nothing today. That is the honest cost of this watch.
+
+---
 
 **ACTED ON, SAME SESSION — all three findings, each with its own red proof run on the real
 file and the mutation verified applied before the result was read:**
