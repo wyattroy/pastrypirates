@@ -138,7 +138,10 @@ coords to read them, but ALWAYS pass full-frame coords back).
 - **Which cane icon** wins — nothing chosen.
 - **The two picker defects** he was offered and left unticked: the *"Bake this!"* pill covers the
   recipe artwork, and the picker card hides the lower 45% of the board.
-- **`notes/x.png` must move to `assets/icons/`** before the X can ship.
+- ~~**`notes/x.png` must move to `assets/icons/`** before the X can ship.~~ **DONE 2026-09-03** —
+  the 265x284 original is now `assets/icons/course-marker-x.png` (not the tuner's downscale), and the
+  source is `art-review/x/x.psd`. Named `course-marker-x` because `cancel-x.png` and `close-x.png`
+  already exist. The originals are still in the gitignored `notes/`; these copies are the tracked ones.
 - **The ribbon overflows at 320px** once the `?` is added (measured: 21px, at any variant). The fix
   belongs to the ribbon's flex behaviour and can ship on its own.
 
