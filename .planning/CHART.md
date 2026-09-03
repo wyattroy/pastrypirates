@@ -1176,6 +1176,32 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+**Harvested idea and rulings, 2026-09-03, verbatim from the Glass (`glassState`, generatedAt
+2026-09-03T21:22:07.082Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
+
+- **New idea, untriaged**: *"we need to push all these changes to staging!!"* (at
+  2026-09-03T21:31:29.394Z)
+
+- `t206-which-pages` — **⟨`T-206`⟩ Google Analytics is one line away from being switched on… which
+  pages should it watch?** His answer (choice: `opt-1c3dz25`, at 2026-09-03T21:29:37.111Z):
+  *"The public pages only — the game, About and Rules"*
+
+- `t220-shallow-green` — **⟨`T-220`⟩ A shallow sea-trial depth still comes back RED — is that
+  right?** His answer (choice: `opt-59ub99`, at 2026-09-03T21:30:14.426Z): *"Let a depth you chose
+  come back green when its own checks pass — much nicer to use, and it removes a guard that has
+  caught a real failure once"*
+
+- `t216-baker-tiebreak` — **⟨`T-216`⟩ The rules page promises a "got home first" tiebreak the game
+  does not give — which side should move?** His answer (choice: `opt-ydq4re`, at
+  2026-09-03T21:30:35.726Z): *"Change the game to match the page — record the day each captain
+  lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches
+  the end-of-voyage ranking"*
+
+- `t206-cookie-choice` — **⟨`T-206`⟩ Second analytics call: cookie notice, or not?** His answer
+  (choice: `opt-1cqjffl`, at 2026-09-03T21:30:55.944Z): *"Cookieless, no banner — you keep the
+  referrer, the geography and the per-page numbers, set no cookie, and no child is asked to
+  consent"*
+
 **Harvested rulings, 2026-09-03, verbatim from the Glass (`glassState`, generatedAt
 2026-09-03T15:51:42.786Z).** The session that harvested these could only harvest and publish, so each
 carries its fate below, added when it got one.
