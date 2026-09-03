@@ -99,16 +99,86 @@ const chartOwned = new Set(ownedIn(chart));
 const logOwned = new Set(archivedIn(log ?? ""));
 
 /** Handles allocated below the highest one and owned by no row in either record. */
-function missingHandles(inChart, inLog) {
+/* ⛔ EVIDENCE A ROW EXISTED — NOT A GAP IN A NUMBER LINE. Rewritten 2026-09-03 after this check
+ * cried wolf twice in one night, from two different hands.
+ *
+ * It used to walk 1..max(owned) and accuse every integer nobody owned. **A hand-minted handle
+ * therefore manufactured a vanished row for every number it skipped.** My own `T-203` invented
+ * **68**; another session's `T-204`–`T-206` invented **60** four hours later. Neither had lost
+ * anything. **A fault that recurs from two independent hands is the design's, not the hands'.**
+ *
+ * The header above promises "the sweep may never LOSE a row". A gap is not a loss — it is also an
+ * id minted for a row never written, or a number the allocator stepped over. So the rule is now:
+ * **a handle is accused only if there is EVIDENCE it ever existed** — it appears as text somewhere
+ * in the two charts or the log — **and yet no row owns it.** That is a row that was here and left.
+ *
+ * ⛔ WHAT THIS GIVES UP — **AND THE FIRST VERSION OF THIS PARAGRAPH UNDERSTATED IT BADLY, IN THE
+ * FLATTERING DIRECTION.** It said *"a row deleted along with every mention of it anywhere is now
+ * invisible"*, which reads like a corner case. **It is the ordinary case.** CEO 160 asked for the
+ * number and it is one command:
+ *
+ *   MEASURED 2026-09-03 on the live records — 83 owned rows, and if a row were deleted outright:
+ *     .planning/CHART.md         56 rows — 14 still caught, **42 invisible**
+ *     .planning/GLASS-CHART.md   27 rows — 14 still caught, **13 invisible**
+ *     total                      83 rows — 28 still caught, **55 invisible (66%)**
+ *   (Method: a handle survives deletion only if it appears somewhere BESIDES its own owner line.
+ *    Most rows are mentioned exactly once, on that line. `T-121`, `T-123`, `T-142` and `T-206` each
+ *    appear precisely once — and `T-123`, the row that produced this very change, is in the
+ *    invisible set.)
+ *
+ * **SO THIS IS A STOPGAP, LABELLED AS ONE.** It is still the right trade today — the old rule's red
+ * was 60 accusations with nothing lost, which is 100% loss of power because it teaches a session to
+ * step over the failure, and two independent hands hit it in one night. But two thirds is not a
+ * corner, and the recovery is cheap: **have `--sweep` write the handles it owned into
+ * `CHART-LOG.md` as it runs.** Then every handle has a witness that outlives its row, the number
+ * line is not needed, and this check goes back to full power. Until that lands, read this gate as
+ * *"catches a third of deletions"*, not as *"catches deletions"*.
+ *
+ * ⚠ WHY THE SCAN READS ONLY THE THREE RECORD FILES — **and the reason written here first was the
+ * REVERSE of the truth, which is rule 6's other half biting inside a shipped gate.** It claimed
+ * that this function's own failure output landing back in a record file would make every accused
+ * handle count as evidence and the check would *"quietly stop firing"*. CEO 160 measured that:
+ * pasting the failure line into a chart takes accusations from **1 to 3**. It gets LOUDER, never
+ * quieter — because being SEEN is a precondition for being accused, not an exemption. The only
+ * exemption is being OWNED.
+ *
+ * **The real reason is the sentence twelve lines below, which was right all along: prose about a
+ * handle is not evidence that handle ever owned a row.** A wide corpus manufactures false
+ * accusations; that is what the limit prevents. */
+function missingHandles(inChart, inLog, corpus) {
   const owned = new Set([...inChart, ...inLog]);
   if (!owned.size) return [];
-  const max = Math.max(...[...owned].map((h) => Number(h.slice(2))));
+  const seen = new Set((corpus.match(/T-\d{3}/g) || []));
+
+  /* ⚠ TWO EXCLUSIONS. **THE FIRST RUN PRODUCED TWO FALSE ACCUSATIONS AND I WROTE DOWN THE WRONG
+   * CAUSE FOR THEM** — this comment used to say my predicted self-reference trap had *"fired in a
+   * milder form"*. It had not fired; CEO 160 showed it CANNOT fire (see the header — being seen is
+   * a precondition for accusation, so that output makes the gate louder, not quieter).
+   * **What I actually observed was two false accusations; what I wrote down was my explanation of
+   * them, in the same voice, and the explanation was wrong.** That is CEO 158's finding recurring
+   * in a new medium: looking at a result licenses you to report the RESULT, never the MECHANISM.
+   *
+   * The two survivors, correctly stated: `T-203`, accused because a row EXPLAINS that it was
+   * renumbered away, and `T-802`, accused because a row QUOTES a gate's fixture output.
+   * **Prose ABOUT a handle is not evidence that handle ever owned a row.** That one sentence is the
+   * whole reason for both exclusions and for the narrow corpus.
+   *
+   * (a) A DOCUMENTED RENUMBER IS A RETIREMENT, not a loss. `RENUMBERED T-203 → T-135` is a row
+   *     saying out loud where that id went; treating it as a vanished row punishes the record for
+   *     being honest about itself.
+   * (b) `T-8xx` IS THE FIXTURE RANGE. `chartkeeper_check` and `do_now_check` build throwaway charts
+   *     with `T-801`/`T-802`/`T-803`, and a row that quotes their output is discussing a test, not
+   *     naming a task. Encoded because the convention already exists in three gates. */
+  const renumberedAway = new Set(
+    [...corpus.matchAll(/RENUMBERED\s+`?(T-\d{3})`?\s*(?:→|->)/g)].map((m) => m[1]));
   const out = [];
-  for (let i = 1; i <= max; i++) {
-    const h = `T-${String(i).padStart(3, "0")}`;
-    if (!owned.has(h)) out.push(h);
+  for (const h of seen) {
+    if (owned.has(h)) continue;
+    if (renumberedAway.has(h)) continue;
+    if (/^T-8\d\d$/.test(h)) continue;
+    out.push(h);
   }
-  return out;
+  return out.sort();
 }
 
 /* 1/4 -- NEVER BOTH, AND THIS ONE REPORTS RATHER THAN FAILS. READ WHY BEFORE CHANGING IT.
@@ -152,7 +222,7 @@ function missingHandles(inChart, inLog) {
 {
   if (log === null) { pass("no CHART-LOG.md yet — nothing has been swept on this machine"); }
   else {
-    const gaps = missingHandles(chartOwned, logOwned);
+    const gaps = missingHandles(chartOwned, logOwned, chart + String.fromCharCode(10) + (log ?? ""));
     if (gaps.length) fail(`${gaps.length} allocated handle(s) are owned by NOTHING in either file — ${gaps.slice(0, 8).join(", ")}. Handles are allocated once and never reused, so a gap is a row that existed and has left both records: the one failure a sweep cannot undo`);
     else pass(`every handle up to the highest allocated is owned by exactly one row — no row has fallen between the two files`);
 
@@ -169,9 +239,14 @@ function missingHandles(inChart, inLog) {
  *         claim is corrected here rather than quietly dropped, because an unearned "red-proofed" is
  *         the same currency as an unmeasured defect (rule 6). CEO 107 found it in one pass. */
 {
-  const chartFixture = "- [ ] **A ROW**\n      ⟨`T-001`⟩\n- [ ] **ANOTHER**\n      ⟨`T-003`⟩\n";
+  /* ⚠ THE FIXTURE MOVED WITH THE SEMANTICS, AND SAYING SO MATTERS. The check used to walk the
+     integer line, so a bare gap at T-002 was enough to catch. It now accuses only handles there is
+     EVIDENCE existed, so the fixture must supply that evidence -- the mention of T-002 in the first
+     row body IS the subject of this test. Without it the case would pass vacuously, which is the
+     fault this gate own header is about. */
+  const chartFixture = "- [ ] **A ROW** (split out of `T-002`, which is not here)\n      ⟨`T-001`⟩\n- [ ] **ANOTHER**\n      ⟨`T-003`⟩\n";
   const logFixture = "## T-004 — 2026-09-02 — **AN ARCHIVED ROW**\n\n- [x] **AN ARCHIVED ROW** with a body long enough to count.\n";
-  const gaps = missingHandles(new Set(ownedIn(chartFixture)), new Set(archivedIn(logFixture)));
+  const gaps = missingHandles(new Set(ownedIn(chartFixture)), new Set(archivedIn(logFixture)), chartFixture + logFixture);
   if (!gaps.includes("T-002")) fail(`the gap check cannot fail: handles 1, 3 and 4 exist, 2 does not, and it reported ${JSON.stringify(gaps)}`);
   else pass("red-proof: a handle owned by neither record is caught");
 

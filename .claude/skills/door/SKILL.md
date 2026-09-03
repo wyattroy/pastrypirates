@@ -51,9 +51,22 @@ Then read, do not re-derive:
 4. `.planning/CTO-LEDGER.md` — tail only: what other live sessions or a detached trial have claimed.
 
 **Harvest the Glass before anything republishes it** (the hook enforces this): read the live
-artifact (Artifact tool, `action: "read"`, the URL `glass.mjs` prints), copy **every idea, every
-ruling AND every comment** from its state into the INBOX / `DECISIONS.md` / the row each comment
-names, commit. A republish without the harvest deletes his words.
+artifact (Artifact tool, `action: "read"`, the URL `glass.mjs` prints), then **run the harvest and
+commit what it writes**:
+
+```bash
+node scripts/wyclau/harvest_glass.mjs --html=<the file the read saved>   # --dry-run to look first
+```
+
+It carries **every idea, every comment, every ruling and his DO NOW pin** into the INBOX and
+`DECISIONS.md`, skips anything already on record (so running it twice is safe — and you should, if
+you are unsure), and **counts what landed by re-reading the files**, so a write that did not happen
+says so instead of being confirmed. **A republish without the harvest deletes his words.**
+
+> **⚑ DO NOT TRANSCRIBE BY HAND ANY MORE — that is what `T-140` removed.** The reading is still
+> yours (only the Artifact tool can fetch a published page; a Bell-launched watch has none, and
+> writes `GLASS-NOTE.md` instead). The *carrying* is not. A hand-copy that misses one of his
+> comments looks exactly like a clean harvest, which is the fault that cost him words on 2026-09-03.
 
 > ### ⚠ THREE THINGS OF HIS LIVE ON THAT PAGE, NOT TWO — AND ONE MORE MUST BE CARRIED BY HAND
 >

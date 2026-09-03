@@ -60,6 +60,31 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       **TWO SHAPES, and the second is probably his call:** save only the rows AHEAD of the last one
       he actually moved, so the tail keeps its derived rank — or give him a way back on the page
       ("use the ranked order"), which is one button and one `--order-clear` in the harvest.
+      ✅ **REPLACED 2026-09-03T09:4xZ by `scripts/qa/red_proof_at_ref.mjs`, and the old file is
+      DELETED rather than left as scratch nobody re-runs.**
+      `git worktree add --detach` materialises the WHOLE tree at the ref in a temp dir. **The shared
+      checkout is never written** — the window does not get shorter, it stops existing — and the
+      two-file limit goes with it, because every file is at the ref, which was the row's *"sibling
+      limit"*.
+      ⚑ **AND THE PART A WORKTREE ALONE GETS BACKWARDS, which I only found while building it:
+      A RED PROOF IS TODAY'S CHECK AGAINST YESTERDAY'S CODE.** A bare worktree hands you yesterday's
+      CHECK as well, which proves nothing — it would faithfully report the old gate passing on the
+      old code. **The current gate file is copied INTO the worktree before it runs.** My prediction
+      did not name this; implementing it did.
+      ✅ **`--ref` IS REQUIRED, no default** — CEO 131's fault on the old tool was that `HEAD` is
+      correct exactly once, before the work is committed, and afterwards checks the change against
+      itself and prints a pass that looks like a failed red proof.
+      **MEASURED:** `--ref=8327a1b9^` → *"RED PROOF HELD — do_now_check.mjs FAILS against
+      8327a1b9^"*, with `git status` on both hazard files clean afterwards.
+      ⚠ **AND IT LEFT A WORKTREE BEHIND ON ITS FIRST RUN, WHICH IS THE FUNNIEST FAULT OF THE NIGHT
+      AND WORTH THE LINE:** I called `process.exit()` inside the `try`, **which terminates before a
+      `finally` runs**, so the cleanup was written, correct and unreachable. **A tool built to stop
+      touching shared state left state behind on its first outing.** Fixed by setting the code and
+      exiting after the block; re-run clean — 1 worktree registered (just the repo), 0 temp dirs,
+      0 files touched.
+      ⚠ **One honest caveat rather than "touches nothing": `git worktree add` writes metadata under
+      `.git/worktrees/` in the shared repo.** Not tracked content, no other session reads it, removed
+      on the way out — but it is not nothing.
       **Sizing: SMALL. No game code.**
 - [ ] **THE PAGE AND THE CHARTKEEPER EACH DECIDE "IS THIS HANDLE AMBIGUOUS?" ON THEIR OWN — rule 23,
       ⟨`T-122` · size: S⟩
@@ -316,6 +341,22 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       **THE SHAPE OF A REAL FIX:** the harvest carries the state mechanically rather than by
       instruction — same family as `T-105`'s remaining layers, and probably one job with them.
       **Sizing: MEDIUM. No game code. Nothing here is blocked on Wyatt.**
+      ✅ **BUILT 2026-09-03T10:5xZ — `scripts/wyclau/harvest_glass.mjs`, gated by
+      `scripts/qa/harvest_carries_his_words_check.mjs` (gate 117), named in the Door.** It takes the
+      HTML the Artifact read saves, and writes ideas + comments → `INBOX.md`, rulings →
+      `DECISIONS.md`, and his DO NOW press into both the entry's title and its `status:` line.
+      Idempotent on his own `at` stamp, so a second run is a no-op — and it will be run twice,
+      because a session unsure whether it harvested runs it again, which is the right instinct.
+      **THE HAND STEP THAT REMAINS, stated rather than hidden: READING the page.** Only the Artifact
+      tool can fetch a published artifact and a Bell-launched watch has none. **What is gone is the
+      TRANSCRIBING**, which is where a missed comment looked exactly like a clean harvest.
+      ⚠ **AND THE RED PROOF FOUND THE SAFEGUARD UNGUARDED, which is this row's own fault one layer
+      up.** Six mutants against a COPY (`--tool=`, never the shared tree — `T-112`); two survived.
+      One was the read-back-from-disk that the whole design rests on: swapping it for a count of the
+      loop passed every case, because the case meant to catch it makes the destination unreadable
+      and the tool exits at the guard before counting anything. **I wrote the safety net and a test
+      that could not see it.** Case 5b reaches it now. The other: an `OR` across the title and the
+      status line tested neither, so the pin could vanish from the heading unnoticed.
 - [ ] **THE PROJECT OWNS ITS DOOR — his ruling, and it is what finally lets the Chartkeeper
       ⟨`T-079`⟩
       RANK run.** 2026-09-02, question UI. **Depends on `T-078`. Sizing: one line of the Door plus a

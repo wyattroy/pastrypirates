@@ -1135,7 +1135,25 @@ const seenIds = [
   ...(existsSync(LOG) ? (readFileSync(LOG, "utf8").match(/`T-(\d{3})`/g) || []) : []),
 ].map((m) => Number(m.slice(3, 6)));
 let nextIdNum = (seenIds.length ? Math.max(...seenIds) : 0) + 1;
-const mintId = () => `T-${String(nextIdNum++).padStart(3, "0")}`;
+
+/* ⛔ 800–899 IS THE FIXTURE RANGE AND MUST NEVER BE MINTED FOR A REAL ROW. Four gates build
+ * throwaway charts with `T-800`…`T-804` (`chartkeeper_check`, `do_now_check`,
+ * `do_now_reaches_the_watch_check`, `glass_done_today_check`), and since 2026-09-03
+ * `chart_sweep_conserves_check` EXCLUDES the whole range — so a real row minted in it would be
+ * permanently invisible to the one check that notices a row disappearing.
+ *
+ * ⚠ THIS IS NOT HYPOTHETICAL AND CEO 160 CAUGHT IT ONE MOVE AHEAD OF THE MISTAKE. The ceiling
+ * above is `max(seen)`, taken from whatever chart this is pointed at. Against `CHART.md` that is
+ * 206 today — safe. **Against `.planning/GLASS-CHART.md` it is 802**, because a row there QUOTES a
+ * gate's fixture output, so the very next handle would be `T-803`. And pointing the chartkeeper at
+ * the Glass chart is the obvious next fix — this file's own header records that FIVE tools tonight
+ * had a chart path written into them and every one went quietly wrong. Skip the range instead of
+ * relying on nobody taking that step. */
+if (nextIdNum >= 800 && nextIdNum <= 899) nextIdNum = 900;
+const mintId = () => {
+  if (nextIdNum >= 800 && nextIdNum <= 899) nextIdNum = 900;
+  return `T-${String(nextIdNum++).padStart(3, "0")}`;
+};
 
 /* ⚑ EVERY OPEN ROW GETS ITS HANDLE BEFORE ANYTHING RANKS IT. THE ONE MINTING SITE.
  *

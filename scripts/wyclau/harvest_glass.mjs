@@ -1,0 +1,206 @@
+#!/usr/bin/env node
+/* harvest_glass.mjs — carry Wyatt's writing off the Glass and into the record, MECHANICALLY.
+ *
+ * `T-140`. Four kinds of his own words live only in the live artifact's state block:
+ * `ideas`, `comments`, `rulings`, and the `now:true` pin on a pressed idea. **A republish
+ * regenerates the page with `ideas: []` and `rulings: {}`** — so anything not carried across
+ * first is DELETED. `glass-harvest-first.cjs` proves a session READ the page. Nothing proved it
+ * MOVED anything, and between his press and his Chart sat one human-shaped step, four times over.
+ *
+ * ⚠ WHY THIS IS A ROW AND NOT A NOTE: a comment box that rendered and did not save cost him words
+ * on 2026-09-03 (`T-076`, found by CEO 144). The machine said done, the words were gone, and every
+ * gate was green. **A hand-transcription step fails exactly that way and nothing reports it.**
+ *
+ * WHAT IS STILL A HAND STEP, said plainly rather than overclaimed: **getting the HTML.** Only the
+ * Artifact tool can read a published artifact — a node script cannot fetch one, and a Bell-launched
+ * watch has no Artifact tool at all. So the session still reads the page. What it no longer does is
+ * TRANSCRIBE it.
+ *
+ * USAGE:
+ *   node scripts/wyclau/harvest_glass.mjs --html=<path>     # the file the Artifact read saved
+ *   node scripts/wyclau/harvest_glass.mjs --html=<path> --dry-run
+ *
+ * EXIT: 0 harvested (or nothing to harvest — an empty page is a success, not a failure)
+ *       1 could not read the state block, or a write did not land
+ *       2 usage
+ *
+ * ⚑ IDEMPOTENT BY HIS TIMESTAMP, AND THIS IS LOAD-BEARING. It WILL be run twice — a session unsure
+ * whether it harvested runs it again, which is the correct instinct. Every entry carries the `at`
+ * from his own keystroke; an entry whose `at` is already in the destination file is skipped. A
+ * harvest that duplicated his words would be worse than the hand step, which at least has a human
+ * noticing the repeat.
+ *
+ * ⚑ AND THE COUNTS ARE READ BACK OFF DISK, NEVER TAKEN FROM THE LOOP. The failure this row is
+ * about is "the machine says done and the words are gone", so a summary counted from the array it
+ * iterated would reproduce that fault one layer up. Every number printed below is counted by
+ * re-reading the destination file and finding the id in it.
+ */
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+
+const argv = process.argv.slice(2);
+const arg = (n) => (argv.find((a) => a.startsWith(`--${n}=`)) ?? "").split("=").slice(1).join("=");
+const DRY = argv.includes("--dry-run");
+const HTML = arg("html");
+
+/* ⚑ THE DESTINATIONS ARE OVERRIDABLE **SO A GATE CAN POINT THEM AT SCRATCH FILES**, and that is
+ * the whole reason. The alternative — let a check write the real INBOX and put it back afterwards —
+ * is the destroy-then-repair this project ruled against on `T-112`: *"a destroy-then-repair is
+ * still a window, and this project has already lost a note inside one."* On a branch three sessions
+ * share, a check that writes his instruction queue is a check that can eat an instruction.
+ * `glass.mjs` had to learn the same lesson as `--longrun-root=` (`T-112`); this one is born with it. */
+const INBOX = arg("inbox") ? resolve(arg("inbox")) : join(ROOT, ".planning", "wyclau", "INBOX.md");
+const DECISIONS = arg("decisions") ? resolve(arg("decisions")) : join(ROOT, ".claude", "memory", "DECISIONS.md");
+
+if (!HTML) {
+  console.log("usage: --html=<path to the HTML the Artifact read saved> [--dry-run]");
+  console.log("  read the Glass first (Artifact tool, action \"read\"); it saves the page to a file.");
+  process.exit(2);
+}
+const htmlPath = resolve(HTML);
+if (!existsSync(htmlPath)) { console.log(`no such file: ${htmlPath}`); process.exit(2); }
+
+/* The state block is the page's own contract with itself — `glass.mjs` writes it at line ~1146 and
+ * the page parses it back at ~1320. Matching the id rather than the position is deliberate: the
+ * page carries other JSON and the runtime shell prepends its own scripts. */
+const html = readFileSync(htmlPath, "utf8");
+const m = html.match(/<script type="application\/json" id="glassState">([\s\S]*?)<\/script>/);
+if (!m) {
+  console.log("no #glassState block in that file — is it the Glass, and is it the RAW html?");
+  process.exit(1);
+}
+let state;
+try { state = JSON.parse(m[1]); }
+catch (e) { console.log(`#glassState is not JSON: ${String(e.message).slice(0, 120)}`); process.exit(1); }
+
+const ideas = state.ideas ?? [];
+const rulings = state.rulings ?? {};
+const comments = state.comments ?? {};
+
+/* His `at` is an ISO string. The INBOX heading format is `## INBOX-<compact UTC>` and the close
+ * gate parses it, so the shape is not ours to invent — see INBOX.md's own "Entry format" block. */
+const stamp = (iso) => String(iso ?? "").replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z").slice(0, 16);
+const firstLine = (t) => String(t ?? "").trim().split("\n")[0].slice(0, 90).trim() || "(no title)";
+const quote = (t) => String(t ?? "").trim().split("\n").map((l) => `> ${l}`).join("\n");
+
+const planned = { ideas: [], comments: [], rulings: [] };
+
+for (const i of ideas) {
+  const id = `INBOX-${stamp(i.at)}`;
+  planned.ideas.push({
+    id, pinned: i.now === true,
+    /* A pinned idea is his DO NOW press. It carries into the entry title so a watch reading the
+     * INBOX sees the interrupt without needing the page — the pin's whole point is that it beats
+     * the ordering, and an ordering signal that only exists on the page is one a watch cannot obey. */
+    block: `## ${id} — ${i.now === true ? "⚑ HE PRESSED DO NOW — " : ""}${firstLine(i.text)}\n`
+      + `${quote(i.text)}\n`
+      + `solution: none stated\n`
+      + `status: OPEN${i.now === true ? " — PINNED by him on the Glass; take this before anything ranked" : ""}\n`,
+  });
+}
+
+for (const [handle, arr] of Object.entries(comments)) {
+  for (const c of arr ?? []) {
+    const id = `INBOX-${stamp(c.at)}`;
+    planned.comments.push({
+      id, handle,
+      /* ⚠ THE HANDLE MAY NO LONGER OWN A ROW — he comments, the row closes and sweeps to
+       * CHART-LOG.md, and the comment now points at nothing. It is still HIS WRITING, so it is
+       * carried regardless and the handle is recorded as written. Dropping it silently would be
+       * the very fault this tool exists to prevent, with a zero exit code. */
+      block: `## ${id} — his comment on \`${handle}\`\n`
+        + `${quote(c.text)}\n`
+        + `solution: none stated\n`
+        + `status: OPEN — left on \`${handle}\` via the Glass's comment box\n`,
+    });
+  }
+}
+
+for (const [qid, r] of Object.entries(rulings)) {
+  const id = `RULING-${stamp(r.at)}-${qid}`;
+  const q = String(r.q ?? qid).trim();
+  planned.rulings.push({
+    id,
+    /* DECISIONS.md is newest-at-TOP, under the H1. The charter asks every ruling to record the
+     * alternative he did NOT pick; a script cannot know it, so it says so rather than invent one. */
+    block: `## ${q.replace(/\s+/g, " ").slice(0, 110)} — ${r.at}\n\n`
+      + `Asked on the Glass: *"${q.replace(/\s+/g, " ")}"* — **Wyatt ruled "${r.choice}"**, ${r.at}.\n\n`
+      + (r.note ? `**His note, verbatim:** *"${String(r.note).trim().replace(/\s+/g, " ")}"*\n\n` : "")
+      + `**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass\n`
+      + `by \`harvest_glass.mjs\`, which sees his answer and not the options it was put beside. The\n`
+      + `session that acts on it should fill this in from the question's own card.\n\n`
+      + `<!-- harvest-id: ${id} -->\n`,
+  });
+}
+
+const total = planned.ideas.length + planned.comments.length + planned.rulings.length;
+if (total === 0) {
+  console.log("nothing on the Glass to harvest — 0 ideas, 0 comments, 0 rulings.");
+  console.log("(That is a clean page, not a failure: whoever republished last carried his words across.)");
+  process.exit(0);
+}
+
+/* ⚠ READ THE DESTINATIONS BEHIND A GUARD. The first version let `readFileSync` throw, which exits
+ * non-zero — technically a failure — but hands a session a raw ENOENT stack over `node:fs` internals
+ * at the exact moment his unharvested words are still on the page. **A stack trace is not a report.**
+ * Rule 3: say what breaks for a player (here, for him) before saying how you know. */
+const readOr = (p, what) => {
+  try { return readFileSync(p, "utf8"); }
+  catch (e) {
+    console.log(`cannot read ${what}: ${p}`);
+    console.log(`  (${String(e.code ?? e.message).slice(0, 60)})`);
+    console.log("");
+    console.log("!! NOTHING WAS HARVESTED. His words are still on the page — do NOT republish the Glass.");
+    process.exit(1);
+  }
+};
+const inboxBefore = readOr(INBOX, "the INBOX");
+const decisionsBefore = readOr(DECISIONS, "DECISIONS.md");
+
+const newInbox = [...planned.ideas, ...planned.comments].filter((e) => !inboxBefore.includes(`## ${e.id}`));
+const newRulings = planned.rulings.filter((e) => !decisionsBefore.includes(e.id));
+const skipped = total - newInbox.length - newRulings.length;
+
+if (DRY) {
+  console.log(`would carry ${newInbox.length + newRulings.length} of ${total} (${skipped} already on record):`);
+  for (const e of [...newInbox, ...newRulings]) console.log(`  + ${e.id}`);
+  process.exit(0);
+}
+
+/* INBOX entries append at the END: the file is chronological and the close gate reads its own
+ * headings, not positions. DECISIONS entries go at the TOP, under the H1, because that file is
+ * newest-first — and a `tail` on it has already misled one session tonight. */
+if (newInbox.length) {
+  writeFileSync(INBOX, `${inboxBefore.replace(/\s*$/, "")}\n\n${newInbox.map((e) => e.block).join("\n")}`);
+}
+if (newRulings.length) {
+  const lines = decisionsBefore.split("\n");
+  const h1 = lines.findIndex((l) => /^# /.test(l));
+  const at = h1 === -1 ? 0 : h1 + 1;
+  writeFileSync(DECISIONS, [...lines.slice(0, at), "", ...newRulings.map((e) => e.block), ...lines.slice(at)].join("\n"));
+}
+
+/* ⚑ COUNTED FROM THE FILE, NOT FROM THE LOOP ABOVE — see the header. If a write silently no-ops,
+ * these numbers say so instead of confirming an intention. */
+const inboxAfter = readFileSync(INBOX, "utf8");
+const decisionsAfter = readFileSync(DECISIONS, "utf8");
+const landedInbox = newInbox.filter((e) => inboxAfter.includes(`## ${e.id}`)).length;
+const landedRulings = newRulings.filter((e) => decisionsAfter.includes(e.id)).length;
+
+console.log(`ideas + comments -> INBOX.md:      ${landedInbox} of ${newInbox.length} new (verified in the file)`);
+console.log(`rulings -> DECISIONS.md:           ${landedRulings} of ${newRulings.length} new (verified in the file)`);
+if (skipped) console.log(`already on record, skipped:        ${skipped}`);
+const pins = planned.ideas.filter((e) => e.pinned).length;
+if (pins) console.log(`⚑ HE PRESSED DO NOW on ${pins} — that entry says so, and it beats the ranking.`);
+
+if (landedInbox !== newInbox.length || landedRulings !== newRulings.length) {
+  console.log("");
+  console.log("!! SOMETHING DID NOT LAND. His words are still on the page — do NOT republish the Glass.");
+  process.exit(1);
+}
+console.log("");
+console.log("Now commit these files, THEN republish the Glass. Republishing first deletes his words.");
+process.exit(0);

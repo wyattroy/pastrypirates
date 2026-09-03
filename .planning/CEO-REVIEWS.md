@@ -1,5 +1,119 @@
 # CEO reviews — the standing record
 
+## CEO Review 161 — 2026-09-03, Wy-Blade — `T-123`: a red proof that touches nothing, and a gate that stopped crying wolf — **PARTIAL**
+
+> ⚠ **FILED AS 161, WRITTEN AS 160 — THE FOURTH NUMBER COLLISION TONIGHT.** This reviewer checked
+> (`sort -n | tail -1` → 159, `grep -c "^## CEO Review 160"` → 0) and re-checked before writing, and
+> was still overtaken: a peer session claimed 160 for `T-012` and committed it inside this review's
+> twelve-minute window. **Checking harder does not fix this** — both sessions checked correctly and
+> both were right when they looked. The number is claimed at FILING time and this file is the only
+> lock. The verdict text below is unedited apart from this box.
+>
+> *Read-only: it edited, created and committed nothing in the repo. HEAD `4f583437`, unchanged from
+> its session start. No browser launched; `stray_probe_check` PASS afterwards. It ran
+> `red_proof_at_ref.mjs` three times and the sweep gate five, verifying after each that the
+> checkout, `git worktree list` and `%TEMP%` were clean.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** Both fixes do what they say — the red-proof tool genuinely touches nothing shared, and the gate has stopped inventing 60 lost rows a night — but the new tool says **"RED PROOF HELD"** about a check that crashed and never ran a single case, and the gate's honest-sounding line about what it gave up understates the loss by a lot: **I measured it, and two thirds of the rows on your Chart could now be deleted without this check noticing.**
+
+### 1. DOES THE RED PROOF TOOL WORK, AND LEAVE NOTHING BEHIND?
+
+**Yes on both, verified by running it, not by reading it.** Before: `glass.mjs` `20c7ee74…`, `chartkeeper.mjs` `6ae0eb79…`, both clean, one worktree, no `redproof-*` in `%TEMP%`. After `--ref=8327a1b9^`: **byte-identical hashes**, both still clean, `git worktree list` still one entry, no temp dirs. Same after two further runs. *"The window does not get shorter, it stops existing"* holds.
+
+**The `process.exit`-skips-`finally` fix is real.** Three runs, zero leftovers. And the session wrote its own first-run failure into the header — *"a tool built to stop touching shared state, leaving state behind on its first outing"* — a self-incriminating detail nobody would have found. **That belongs on the record in its favour.**
+
+**"Today's gate, yesterday's code" is correctly built.** `do_now_check.mjs:40` computes `ROOT` from `fileURLToPath(import.meta.url)`, so the copy resolves to the worktree. I watched it produce **23 genuine FAILs** at `8327a1b9^`, every one a feature `T-103` added afterwards.
+
+⚠ **But the header's stated reason is wrong.** It says *"it imports only node builtins, so the copy carries no dependency on the new tree."* The gate has **many** repo-relative dependencies — `KEEPER`, `GLASS`, a runbook at lines 284 and 537. What saves it is `import.meta.url` travelling with the copy. Right conclusion, wrong mechanism.
+
+⛔ **THE ONE REAL DEFECT, AND IT IS THIS WATCH'S OWN SUBJECT.** The tool treats **any** non-zero exit as "the gate failed", so it cannot tell a check that FAILED from one that COULD NOT RUN:
+
+```
+node scripts/qa/red_proof_at_ref.mjs --ref=6f5edcee^
+  → code: 'MODULE_NOT_FOUND'   (chartkeeper.mjs did not exist yet)
+  → RED PROOF HELD — do_now_check.mjs FAILS against 6f5edcee^. The check can see its subject.
+  → exit 0
+```
+
+**A gate that could not start is certified as a gate that proved its subject.** Rule 24's NOT-RUN column erased inside the one tool whose job is establishing that a check can fail. **One `if` fixes it: parse the gate's own FAIL line, not an exit code.**
+
+*`--ref` is genuinely required and exits 2 — that closes CEO 131 properly. Deleting `_t103_redproof.mjs` is right: five surviving references, all narrative, nothing executes it.*
+
+### 2. IS THE SWEEP GATE NOW HONEST, OR JUST QUIETER?
+
+**Honest — but its own account of the cost is wrong by a factor I could measure in one command, and wrong in the flattering direction.**
+
+I sabotaged it two ways in an isolated copy — blinded the evidence scan, then made the ownership reader match every `T-nnn` anywhere — and **both times the case went red**. The fixture change mentioning `T-002` is necessary and does its job.
+
+⛔ **THE COST IS 67%, NOT A CORNER CASE.**
+
+| | rows | still caught | **invisible** |
+|---|---|---|---|
+| `CHART.md` | 56 | 13 | **43** |
+| `GLASS-CHART.md` | 27 | 14 | **13** |
+| **total** | **83** | **27 (33%)** | **56 (67%)** |
+
+`T-121`, `T-123`, `T-142`, `T-206` each appear **exactly once** — on their own owner line. **`T-123` — this row — is in the invisible set.** I reproduced CEO 158's incident on real data: a five-row range deletion → **4 caught, 1 invisible**.
+
+**Is the trade still right? On balance yes.** Sixty accusations with nothing lost teaches a session to step over the failure — 100% loss, not 67%. **But the sizing must be corrected, and the loss is recoverable: have `--sweep` write owned handles into `CHART-LOG.md`.** That is the fix; this is the stopgap.
+
+**The two exclusions are principled — I checked the convention rather than taking its word.** `T-8xx` is real in **four** gates. `RENUMBERED X → Y` likewise, four instances at his own instruction.
+
+⚠ **But nothing reserves that range, and a fixture handle has escaped into it.** `` `T-802` `` sits in `GLASS-CHART.md:281`. `chartkeeper.mjs:1137` mints `max(seen)+1`. Against `CHART.md` → `T-207`, safe. **Against `GLASS-CHART.md` → `T-803`, permanently invisible to this gate.** And pointing chartkeeper at the Glass chart is the obvious sixth fix — this gate's own header says *"THIS IS THE FIFTH TOOL TONIGHT WITH THIS EXACT FAULT."* One line in `mintId` closes it.
+
+### 3. WERE THE PREDICTIONS GENUINE?
+
+**Both genuine and materially better than decoration. One falsifier is logically unsound and survived into shipped code.**
+
+**`T-123` — genuine, and it constrained the work.** Falsifier #1 named a real risk from `T-112`, named exactly what to check, and named both outcomes in advance. #2 verified. #3 **fired** and is reported as *"ONE HONEST CAVEAT, because 'touches nothing shared' would be overclaiming."* **This is what a prediction is supposed to do.**
+
+**Sweep gate — genuine, honestly reported, unsound in one place.** Falsifier #2 fired and *"Real reduction in power"* is in the shipped comment, unglossed. Credit for that.
+
+**Falsifier #3 is wrong as reasoning.** It predicted the gate's own output landing in a record file would make the check *"quietly stop firing."* **Being seen is a precondition for accusation, not an exemption.** Measured: pasting the failure line into a Chart took accusations **1 → 3**. It gets LOUDER. The predicted mechanism is unreachable.
+
+### 4. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. ⛔ **"the check would quietly stop firing"** — **false, measured 1 → 3.** The corpus limit is right; its stated reason is the reverse of the truth. The gate **contradicts itself twelve lines later**, correctly: *"Prose ABOUT a handle is not evidence that handle ever owned a row."*
+2. ⛔ **"the trap fired in a milder form."** It did not fire and cannot. What was observed was two false accusations; the explanation attached is wrong, and the explanation is what got written down.
+3. ⚠ **"invisible to this check"** — true but badly sized. **56 of 83, 67%.**
+4. ⚠ **"RED PROOF HELD"** on a gate that crashed.
+5. ⚠ **"imports only node builtins."** Dependencies at lines 41, 42, 284, 537.
+
+**An observation I cannot fully account for.** My **first** run printed `FAIL — 60 allocated handle(s)… T-144, T-145, …`; every run since PASSes. The arithmetic identifies it as the *old* rule. HEAD never moved, yet `.planning/CHART.md` became modified *during* my review by a peer. **I did not do it and I cannot attribute it.** I raise it because it is the precise hazard `T-123` exists to remove.
+
+### 5. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING?
+
+**CEO 158's finding A — *"reporting your explanation of a screen as the observation"* — RECURRING, in a new medium.** The screen is now a gate's output. **Looking licenses you to report the thing; it does not license you to report the mechanism.**
+
+**CEO 158's finding B — the range replacement — DOES NOT RECUR, and I checked rather than assumed.** `GLASS-CHART.md` owns **27** handles at HEAD and **27** in the working tree: zero lost.
+
+**CEO 156 — a load-bearing number nobody reconciled — RECURRING in kind.** The reduction in power shipped unsized when it was one command from being measured.
+
+### 6. WHAT I WOULD DO FIRST
+
+1. **Make `red_proof_at_ref.mjs` parse the verdict, not the exit code** — a third state, `COULD NOT RUN`. The only actively dangerous item, because every future red proof routes through it.
+2. **Fix the self-reference comment — it is backwards.** Delete the "quietly stop firing" claim outright.
+3. **Put the real number in: 56 of 83, 67%**, with the method, and file the recovery via `--sweep` → `CHART-LOG.md`. Label the current rule a stopgap.
+4. **Reserve 800–899 in `chartkeeper.mjs:1138`.**
+5. **Correct the builtins-only header line.**
+6. **Then close `T-123` and commit**, with 1 and 2 folded in.
+
+---
+
+### WHAT THE SESSION DID WITH THIS VERDICT — appended by the session, same turn, before committing
+
+All six actioned. Five verified by measurement, and **one of them proved the verdict's own diagnosis wrong**:
+
+1. ✅ **Three states in `red_proof_at_ref.mjs`** — but ⛔ **THE MECHANISM IS NOT THE ONE EITHER OF US NAMED, and the obvious fix does not work.** CEO 161 read this as *"the gate crashed and zero cases ran"*, and the first fix here asked whether the gate had printed a verdict at all. **Both wrong.** Measured: at that ref the gate runs fine and prints twenty-odd honest `FAIL` lines. The `MODULE_NOT_FOUND` is inside a **subprocess it drives** (`chartkeeper.mjs`), so its harness could not operate and every case failed for a reason unrelated to the subject. **That is a far better hidden NOT-RUN than a crash: the gate is fluent, confident, and failing about the wrong thing.** It now detects loader/missing-file text inside the failure lines. Verified on all three outcomes: dependency-missing → `COULD NOT RUN` exit **3**; `8327a1b9^` → `RED PROOF HELD` exit **0**; `HEAD` → gate passed, exit **1**. Tree and worktrees clean after each.
+2. ✅ **The backwards comment is deleted**, replaced by what the code does and by the sentence the gate already had right — in both places that carried it.
+3. ✅ **The number is in the header, measured independently: 55 of 83 (66%)** — 42 of 56 on `CHART.md`, 13 of 27 on `GLASS-CHART.md`. One row off the verdict's count, because a row changed between the two measurements. **Labelled a stopgap, with the `--sweep` → `CHART-LOG.md` recovery named.**
+4. ✅ **800–899 reserved in `chartkeeper.mjs`**, at both the ceiling and inside `mintId`. Red-proofed on a fixture whose ceiling is `T-802`: mints **`T-900`/`T-901`**, three runs identical. ⚠ **An earlier run of that same test printed `T-803`/`T-804` and I cannot account for the difference** — recorded as an unexplained observation rather than given a cause it has not earned.
+5. ✅ **The builtins claim is corrected**, with the three cases spelled out (`import.meta.url` isolated · sibling imports come from the OLD tree · a hardcoded root is NOT isolated).
+6. ✅ `npm test` green, **117 gates**.
+
+**On finding A recurring — accepted without qualification.** *"The trap fired in a milder form"* was an explanation written in the voice of an observation, and it was wrong. Both places that carried it now say what was actually seen, and separately why. **This is the same fault the verdict names, caught by the verdict, in the work done to close the row that fault produced.**
+
+
 > ### ⚠ THIS FILE IS NOT IN ORDER, AND IT FOOLED ME. Fix it or the recurrence check keeps a hole.
 > The convention is newest at the top. **CEO 85, 86 and 87 were appended at the BOTTOM** (line
 > ~4783 onward). A CEO told "read the newest two" opens the top, finds **84**, and reads a
