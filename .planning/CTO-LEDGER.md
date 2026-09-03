@@ -8587,3 +8587,26 @@ his page was overwritten. `.planning/wyclau/GLASS-NOTE.md` carries what he shoul
 warning CEO 173 finding 3 earned: **`LAST-PUBLISH` was stamped 54 seconds BEFORE this change was
 written, so until a publish lands, the row leaving his page has not happened for him.** The Glass
 session was asked to publish (Door step 6b).
+
+### ⚠ POSTSCRIPT — THIS WATCH'S WORK IS IN COMMIT `84e2afeb`, WHOSE SUBJECT NAMES NONE OF IT
+
+**Two sessions ran `git add` and `git commit` against the same working tree inside the same second,
+and the peer's commit won.** `84e2afeb` — subject *"his ask: number the options with a
+(recommended)"* — carries all five of this watch's files (`CHART.md`'s `T-099` fate and the new
+⟨`T-216`⟩ row, CEO Review 173, this ledger entry, `GLASS-NOTE.md`, and
+`PREDICTION-20260903T1548Z-T-099.md`) alongside the peer's own. My `git commit` then reported
+*"nothing added to commit"* — **which reads exactly like "your edits are gone", and they were
+already safely committed and pushed.** Both sessions are honest and neither did anything wrong; the
+tree is shared and `git add <path>` is not a lock.
+
+**THE REUSABLE PART, because rule 16 does not cover it.** The Chart's two-sessions rules are
+*pull --rebase before every commit* and *claim the item in the ledger* — **both of which we did**,
+and neither prevents this. A ledger claim reserves an ITEM; it reserves no FILE, and two sessions
+working different items were still editing one `CHART.md`. What actually protects the record is
+narrower: **cite the commit that carries your work only AFTER you have read it back**, because the
+sha you are about to type may belong to somebody else. The entry above names no sha for exactly
+that reason, and one is named here only after `git show --stat 84e2afeb` was read.
+
+**What the next watch should NOT conclude:** that `84e2afeb`'s subject describes its contents. A
+`git log --oneline` on this branch will not show `T-099` closing at all. **Search the files, not
+the subjects.**
