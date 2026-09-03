@@ -84,8 +84,12 @@ console.log("glass_longrun_status_check — a slow job must read as WORKING, not
 /* The real generator against a real marker — never a copy of its logic (HARD-WON-LESSONS §12i) —
    but the marker is now this gate's OWN, in a temp root. Running this gate cannot disturb a trial
    sailing on this machine because it never opens the file that trial writes. */
-const had = existsSync(MARKER);
-const previous = had ? readFileSync(MARKER, "utf8") : null;
+/* ⛔ THE RESTORE THAT USED TO LIVE HERE IS DELETED, NOT KEPT "just in case".
+ * It read `const had = existsSync(MARKER); const previous = …` and put the contents back in a
+ * `finally`. Once MARKER moved into a freshly-made `mkdtempSync` dir, `had` could never be true,
+ * so the restore branch was unreachable — **a restore whose subject had been removed.** CEO 147
+ * found it still sitting there and named the hazard exactly: leave it and the next reader believes
+ * this gate still restores something. That belief is what the whole row was about. */
 const iso = (minsAgo) => new Date(Date.now() - minsAgo * 60000).toISOString();
 const gen = () => { execFileSync("node", [GLASS, "--longrun-root=" + LR_ROOT, "--note", "longrun status check"], { cwd: ROOT, stdio: "pipe" }); return readFileSync(OUT, "utf8"); };
 const stateOf = (html) => JSON.parse(html.match(/id="glassState">([^<]*)</)[1]);
@@ -113,8 +117,24 @@ try {
   const live = html.slice(html.lastIndexOf("<script>"));
   const lrLogic = (live.match(/var lr = state\.longRun[\s\S]*?lrLive = lrAgeMin >= 0 && lrAgeMin <= lr\.staleAfterMinutes;\s*\}/) || [])[0];
   if (!lrLogic) {
-    check("the page's own script decides staleness against the long run", false,
-      "could not find the client's longRun decision at all — it may have been removed or rewritten");
+    /* ⚠ THIS IS A COUPLING ALARM, NOT A BEHAVIOURAL CHECK, AND SAYING SO IS THE POINT.
+     * The extractor regex above CONTAINS the expression it is fishing for, `lrAgeMin <=
+     * lr.staleAfterMinutes`. So ANY edit to that comparison stops the MATCH and fires this branch —
+     * which reads, to a casual eye, like the gate catching a behavioural regression. It is not: the
+     * three `runAt` cases below never run at all when this fires.
+     *
+     * CEO 147 caught this session drawing exactly that false conclusion. It red-proofed the gate by
+     * flipping `<=` to `>`, saw one failure, and reported the gate armed. The gate IS armed — 147
+     * proved it properly with mutants that leave the anchor text intact (zeroing `lrAgeMin` fires
+     * two real cases; raising `MAX_STALE_MINUTES` fires a third) — but the experiment used did not
+     * show that. **"I mutated it and it went red" is only evidence if you check WHICH assertion
+     * went red.** CEO 62 made the same criticism of an earlier version of this gate.
+     *
+     * DO NOT RED-PROOF THIS GATE BY EDITING THE STALENESS COMPARISON. Mutate a value it reads
+     * instead. */
+    check("COUPLING: the page's longRun decision is still where this gate looks for it", false,
+      "could not find the client's longRun decision at all — it was removed, rewritten, or its text "
+      + "changed shape. This is NOT a behavioural failure: the staleness cases below did not run.");
   } else {
     // Run the real snippet with a synthetic state and a moved clock.
     const runAt = (ageMin, staleAfterMinutes) => {
@@ -153,8 +173,11 @@ try {
   check("a marker claiming a YEAR of allowed silence is refused, not carried",
     !st.longRun, `got ${JSON.stringify(st.longRun)} — a hold-off no evidence could ever withdraw`);
 } finally {
-  if (had) writeFileSync(MARKER, previous);
-  else rmSync(MARKER, { force: true });
+  /* Take the whole throwaway root with us. Without this the gate leaked one `glass-longrun-*`
+     directory per run — CEO 147 counted 12 in %TEMP% and watched it go 10 → 11 across a single
+     run. A gate that tidies the file it borrowed and then litters a directory has moved the mess
+     rather than removed it. */
+  rmSync(LR_ROOT, { recursive: true, force: true });
 }
 
 if (failures.length) { console.error(`\nFAIL — ${failures.length} failure(s)`); process.exit(1); }

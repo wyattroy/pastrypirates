@@ -1545,7 +1545,11 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       ⚠ **STILL UNGUARDED, SAID IN WRITING RATHER THAN QUIETLY:** `scripts/qa/_t076_row_ui_probe.mjs`
       is NOT in `npm test` and nothing re-runs it, and **no gate anywhere reads
       `glassState.comments`** — the harvest is version-identity enforced and field-blind. Wiring the
-      probe into the suite is deliberately NOT done: it launches a browser, and `T-131` is the open
+      probe into the suite is deliberately NOT done: it launches a browser. ⚠ **HALF THIS REASON HAS
+      SINCE EXPIRED — `T-131` was fixed 2026-09-03T05:4xZ, so `npm test` no longer collides with a
+      sailing trial. The remaining merit is only that it launches a browser; CEO 147: "the reason
+      should be re-examined on its remaining merits, not inherited."** The original text said
+      `T-131` is the open
       row about `npm test` colliding with a sailing sea trial. **Run it by hand after any change to
       the row UI.**
       ⛔ **NOT part of this row:** *remove items once complete* — SWEEP exists but is still the
@@ -1624,3 +1628,62 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       waited on him. *(The general lesson, and it is rule 6's: a question parked for Wyatt costs him
       a decision. Check whether it is still a question before parking it.)*
       **Sizing: MEDIUM. No game code. Blocks nothing except the twelve gates behind it.**
+
+## T-131 — 2026-09-03 — FIXED 2026-09-03T05:4xZ — npm test NO LONGER WRITES THE LIVE LONG-RUN MARKER. It used to, and the SUITE AND A SAILING SEA (closed 2026-09-03 · CEO 147 · no game diff — npm test no longer writes the live LONG-RUN marker: 9 write events to 0, measured by CEO 147 with fs.watch; the gate is still armed, re-proved with an anchor-preserving mutant) TRIAL FIGHT OVER ONE FILE, AND THE SUITE CAN FREEZE THE TRIAL. Measured 2026-09-03T04:0xZ. scripts/qa/glass_longrun_status_check.mjs plants four fixtures in the REAL .planning/wyclau/LONG-RUN (:55, :92, :100, :109) and restores the previous contents at :116. A detached sea trial writes that same file as it sails. TWO CONSEQUENCES, THE SECOND ONE DAMAGING: 1. the gate reads the TRIAL's marker where it expected its fixture — all three staleness cases fail on the same live JSON. This is what a red npm test looked like tonight (3 failures), and it is not the pre-existing chartkeeper fault (T-130), which is a different gate further down the chain. 2. the restore writes back a snapshot taken BEFORE the trial's updates — so running the suite can freeze a live trial's progress at whatever it was when the suite started. OBSERVED: trial pid 35064 sat at 0/10 legs, updatedAt 03:42:32Z, for 25 minutes while npm test was run repeatedly beside it. ⚠ Whether the gate froze it or the trial was simply slow was NOT established, and that ambiguity IS the finding — an instrument that writes its subject's file makes its subject unreadable. Not reported as proven damage. ✅ RESOLVED 20 MINUTES LATER, AND IN THE TRIAL'S FAVOUR: IT WAS SLOW, NOT FROZEN. The marker moved to 1/10 legs, updatedAt 03:55:12Z, with pid 35064 still alive — so leg 1 simply took ~14 minutes and nothing was clobbered. Consequence (1), the read collision, is still PROVEN — three gate cases failed against live trial JSON, which is what tonight's red suite was. Consequence (2), the freeze, is a real code path with NO observed instance: the restore at :116 genuinely writes back a pre-run snapshot, so the race exists, but it did not fire here. Say it that way and no stronger. ⚠ IT IS A DESTROY-THEN-REPAIR, WHICH THIS PROJECT HAS ALREADY RULED AGAINST, in T-112's own row: "Do NOT fix it by making the gate restore the file afterwards — a destroy-then-repair is still a window, and this project has already lost a note inside one." That was about GLASS-NOTE.md; this is the same fault in the same shape, one file over. ✅ SHIPPED as glass.mjs --longrun-root=<dir> — a ROOT and not a file path, because longRunStatus(dir) already derives the marker from a repo root: one definition of where that file lives, not two (rule 23). The gate builds a throwaway root and points the reader there. Same shape as --consume-note, which fixed exactly this for his queued note, and for the same reason: the generator resolves paths from ITS OWN file location, so a gate cannot sandbox it by changing directory — the override has to exist in the generator or the coupling cannot be broken at all. ✅ THE OLD WARNING IS WITHDRAWN. npm test IS SAFE TO RUN BESIDE A SAILING TRIAL. This row used to read "UNTIL IT IS FIXED: do not run npm test beside a sailing trial", and CEO 147 was right that leaving it up was the costliest line here — an instruction to every watch to avoid the suite, for a reason that had expired. MEASURED BY CEO 147 WITH A BETTER INSTRUMENT THAN MINE: fs.watch on the directory, which sees the ACT of writing, against the pre-fix gate and the shipped one — 9 write events → 0, and 0 across the entire npm test suite. My own first instrument was a checksum, and the old code's create→write→delete has a net result indistinguishable from never touching the file. A net-zero change is not the same as never touching it. ⚠ DO NOT RED-PROOF THIS GATE BY EDITING THE STALENESS COMPARISON — I DID, AND GOT THE RIGHT ANSWER FOR THE WRONG REASON. The extractor regex CONTAINS lrAgeMin <= lr.staleAfterMinutes, so flipping it breaks the MATCH and fires the coupling branch, while the three behavioural cases never run at all. The gate is armed — re-proved here with an anchor-preserving mutant (lrAgeMin = 0 → 2 real failures) — but "I mutated it and it went red" is only evidence if you check WHICH assertion went red. That branch is now labelled COUPLING: so it cannot be mistaken for a behavioural check again. CEO 62 made this same criticism of an earlier version of this gate. ✅ Also removed: the restore scaffolding, which had become a restore with no subject (its had could never be true once the marker moved into a fresh temp dir), and the temp root is now deleted — it was leaking one directory per run, 12 counted in %TEMP%. Sizing: SMALL. No game code.
+
+- [x] **FIXED 2026-09-03T05:4xZ — `npm test` NO LONGER WRITES THE LIVE `LONG-RUN` MARKER. It used to, and the SUITE AND A SAILING SEA (closed 2026-09-03 · CEO 147 · no game diff — npm test no longer writes the live LONG-RUN marker: 9 write events to 0, measured by CEO 147 with fs.watch; the gate is still armed, re-proved with an anchor-preserving mutant)
+      ⟨`T-131`⟩
+      TRIAL FIGHT OVER ONE FILE, AND THE SUITE CAN FREEZE THE TRIAL.** Measured 2026-09-03T04:0xZ.
+      `scripts/qa/glass_longrun_status_check.mjs` plants four fixtures in the REAL
+      `.planning/wyclau/LONG-RUN` (`:55, :92, :100, :109`) and restores the previous contents at
+      `:116`. A detached sea trial writes that same file as it sails.
+      **TWO CONSEQUENCES, THE SECOND ONE DAMAGING:**
+      1. the gate reads the TRIAL's marker where it expected its fixture — all three staleness cases
+         fail on the same live JSON. **This is what a red `npm test` looked like tonight** (3
+         failures), and it is not the pre-existing chartkeeper fault (`T-130`), which is a different
+         gate further down the chain.
+      2. the restore writes back a snapshot taken BEFORE the trial's updates — **so running the
+         suite can freeze a live trial's progress** at whatever it was when the suite started.
+      **OBSERVED:** trial pid 35064 sat at `0/10 legs`, `updatedAt` 03:42:32Z, for 25 minutes while
+      `npm test` was run repeatedly beside it. ⚠ **Whether the gate froze it or the trial was simply
+      slow was NOT established, and that ambiguity IS the finding** — an instrument that writes its
+      subject's file makes its subject unreadable. Not reported as proven damage.
+      ✅ **RESOLVED 20 MINUTES LATER, AND IN THE TRIAL'S FAVOUR: IT WAS SLOW, NOT FROZEN.** The
+      marker moved to `1/10 legs`, `updatedAt` 03:55:12Z, with pid 35064 still alive — so leg 1
+      simply took ~14 minutes and nothing was clobbered. **Consequence (1), the read collision, is
+      still PROVEN** — three gate cases failed against live trial JSON, which is what tonight's red
+      suite was. **Consequence (2), the freeze, is a real code path with NO observed instance:** the
+      restore at `:116` genuinely writes back a pre-run snapshot, so the race exists, but it did not
+      fire here. *Say it that way and no stronger.*
+      ⚠ **IT IS A DESTROY-THEN-REPAIR, WHICH THIS PROJECT HAS ALREADY RULED AGAINST**, in `T-112`'s
+      own row: *"Do NOT fix it by making the gate restore the file afterwards — a destroy-then-repair
+      is still a window, and this project has already lost a note inside one."* That was about
+      `GLASS-NOTE.md`; **this is the same fault in the same shape, one file over.**
+      ✅ **SHIPPED as `glass.mjs --longrun-root=<dir>`** — a ROOT and not a file path, because
+      `longRunStatus(dir)` already derives the marker from a repo root: one definition of where that
+      file lives, not two (rule 23). The gate builds a throwaway root and points the reader there.
+      Same shape as `--consume-note`, which fixed exactly this for his queued note, and for the same
+      reason: the generator resolves paths from ITS OWN file location, so a gate cannot sandbox it
+      by changing directory — the override has to exist in the generator or the coupling cannot be
+      broken at all.
+      ✅ **THE OLD WARNING IS WITHDRAWN. `npm test` IS SAFE TO RUN BESIDE A SAILING TRIAL.** This row
+      used to read *"UNTIL IT IS FIXED: do not run `npm test` beside a sailing trial"*, and CEO 147
+      was right that leaving it up was the costliest line here — **an instruction to every watch to
+      avoid the suite, for a reason that had expired.**
+      **MEASURED BY CEO 147 WITH A BETTER INSTRUMENT THAN MINE:** `fs.watch` on the directory, which
+      sees the ACT of writing, against the pre-fix gate and the shipped one —
+      **9 write events → 0**, and **0 across the entire `npm test` suite**. My own first instrument
+      was a checksum, and the old code's create→write→delete has a net result indistinguishable
+      from never touching the file. *A net-zero change is not the same as never touching it.*
+      ⚠ **DO NOT RED-PROOF THIS GATE BY EDITING THE STALENESS COMPARISON — I DID, AND GOT THE RIGHT
+      ANSWER FOR THE WRONG REASON.** The extractor regex CONTAINS `lrAgeMin <= lr.staleAfterMinutes`,
+      so flipping it breaks the MATCH and fires the coupling branch, while the three behavioural
+      cases never run at all. The gate *is* armed — re-proved here with an anchor-preserving mutant
+      (`lrAgeMin = 0` → **2 real failures**) — but **"I mutated it and it went red" is only evidence
+      if you check WHICH assertion went red.** That branch is now labelled `COUPLING:` so it cannot
+      be mistaken for a behavioural check again. CEO 62 made this same criticism of an earlier
+      version of this gate.
+      ✅ Also removed: the restore scaffolding, which had become **a restore with no subject** (its
+      `had` could never be true once the marker moved into a fresh temp dir), and the temp root is
+      now deleted — it was leaking one directory per run, 12 counted in `%TEMP%`.
+      **Sizing: SMALL. No game code.**

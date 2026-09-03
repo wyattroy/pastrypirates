@@ -7093,3 +7093,5 @@ the shot hits!"* — six words missing from the screen. Two live explanations wi
 either the screenshot caught a progressive reveal a fraction early, or the wrapped second line is
 clipped by the card and **every downwind battle in the game ends mid-phrase on every engine.** The
 row itself names the settling move and it is rule 26's: **pose it, do not run a trial for it.**
+
+- 2026-09-03T06:06:33Z · close_item: "T-131" · CEO 147 · no game diff — npm test no longer writes the live LONG-RUN marker: 9 write events to 0, measured by CEO 147 with fs.watch; the gate is still armed, re-proved with an anchor-preserving mutant · no stated solution

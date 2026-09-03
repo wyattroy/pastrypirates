@@ -28,6 +28,119 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 147 — 2026-09-03, Wy-Blade — `T-131`: the suite that wrote the sea trial's own marker — **PARTIAL**
+
+> *Number checked twice, order-independently: `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **146**, and `grep -c "^## CEO Review 147"` → **0**, at the start of the pass and again immediately before finalising. No collision; I did not have to move. I am read-only and did not file this myself.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The fix is real and I proved it harder than the session did — running the whole test suite now touches the sea trial's file **zero times** where the old one touched it nine — but the row on his Chart still says, in the present tense, that the suite *does* write it, and still tells him not to run `npm test` beside a sailing trial, which is no longer true.
+
+---
+
+### 1. DID IT HAPPEN? — **YES, on all four mechanical claims.**
+
+| claim | verdict | evidence |
+|---|---|---|
+| `--longrun-root=<dir>` exists | **YES** | `scripts/wyclau/glass.mjs:828-829` — `const lrRootArg = argv.find(a => a.startsWith("--longrun-root="))` / `const LR_ROOT = lrRootArg ? resolve(lrRootArg.slice(15)) : ROOT`. Passed to `longRunStatus(LR_ROOT)` at `:831` and to the marker read at `:833`. |
+| gate builds a throwaway root | **YES** | `scripts/qa/glass_longrun_status_check.mjs:71-73` — `mkdtempSync(join(tmpdir(), "glass-longrun-"))`, then `MARKER` under it. Invocation at `:90` passes `--longrun-root=`. |
+| **default unchanged** | **YES, measured both ways** | In an isolated copy I planted a marker `{"what":"DEFAULT-PATH-SENTINEL","progress":"4/9 legs"}` at the canonical path. **No flag → `longRun = {"what":"DEFAULT-PATH-SENTINEL","progress":"4/9 legs",…}`. With `--longrun-root=<empty tree>` → `longRun = null`.** The override is opt-in; nothing about ordinary use moved. |
+| live marker never written | **YES — see below** | |
+
+**2. THE WRITE MEASUREMENT — I did not use a checksum, and here is why that matters.**
+
+**Instrument: `fs.watch` on `.planning/wyclau/`, filtered to events naming `LONG-RUN`, wrapped around the gate run**, plus `mtimeMs`/`size`/existence before and after. A watcher detects the *act of writing*; a checksum detects only the *net result*, and the old code's whole shape was create → write → delete, whose net result is indistinguishable from never touching it. That was the session's own first wrong measurement and I did not repeat it.
+
+**I red-proofed the instrument before believing it** — extracted the pre-fix gate (`git show d5fe8cd5:scripts/qa/glass_longrun_status_check.mjs`) and ran it against an isolated tree under the same watcher:
+
+| run | `LONG-RUN` write events | end state |
+|---|---|---|
+| **pre-fix gate (`d5fe8cd5`)** | **9** — `rename`, ×7 `change`, `rename` | absent |
+| **shipped gate (`8a1a816a`)**, real repo | **0** | absent |
+| **the entire `npm test` suite**, real repo | **0** | absent |
+
+**Both runs end with the file absent and identical.** That is the finding in one line: the instrument that could not tell them apart is the one the session first reached for, and the watcher separates them cleanly. The live marker is not restored — it is never opened.
+
+---
+
+### 2. CAN THE GATE STILL FAIL? — **Yes, it is genuinely armed. But the session's own red-proof did not prove that, and it does not know it.**
+
+**The session's experiment was `<=` → `>` on the staleness comparison, reported as "went RED, 1 failure". I reproduced it exactly and got that result — for the wrong reason.** The gate extracts the client's logic with a regex at `glass_longrun_status_check.mjs:114` that **contains the very expression being mutated**:
+
+```
+/var lr = state\.longRun[\s\S]*?lrLive = lrAgeMin >= 0 && lrAgeMin <= lr\.staleAfterMinutes;\s*\}/
+```
+
+So changing `<=` breaks the *match*, and the failure that fires is `:116` — *"could not find the client's longRun decision at all"*. **That is a text detection, not a behavioural one.** The three `runAt` cases the mutation was meant to exercise never ran. This is CEO 62's original criticism of this same gate resurfacing in a subtler costume, and it is exactly the kind of accidental green the session said it was guarding against.
+
+**So I red-proofed it properly, with mutants that leave the anchor text intact.** All work done on a copy of `scripts/wyclau/` in my temp dir; the repo copies were never modified (`git diff` on both files: empty, checked at the end).
+
+| mutant | what it breaks | gate result |
+|---|---|---|
+| baseline (unmutated copy) | — | **9/9 PASS, exit 0** |
+| `var lrAgeMin = (Date.now() - …)/60000` → `var lrAgeMin = 0` | a stalled job reads as live | **FAIL ×2, exit 1** — *"a job quiet past its own rule still showed as working"* and *"a FUTURE-dated marker is not treated as very fresh"* |
+| `MAX_STALE_MINUTES = 240` → `99999999` (`longrun_status.mjs:43`) | the year-of-silence ceiling | **FAIL ×1, exit 1** — *"a hold-off no evidence could ever withdraw"* |
+
+**The gate was not neutered by being pointed at a fixture — it fails on real behaviour, on both the page side and the reader side.** The conclusion the session reached is correct; the experiment it reached it with was not. That distinction is the point of this section, because three verdicts in a row have now found checks that could not fail, and "I mutated it and it went red" is only evidence if you check *which* assertion went red.
+
+---
+
+### 3. WAS THE PREDICTION GENUINE? — **Yes, and provably so from git rather than from its own say-so.**
+
+`.planning/wyclau/PREDICTION-20260903T0535Z-T131-marker-collision.md` was committed in **`8ba82cf4` at 01:37:28 −0400**, a *different and earlier* commit than the fix (**`8a1a816a`, 01:41:33 −0400**). It is not a file that appeared alongside the work.
+
+**The content proves it harder than the timestamp does: it predicts the wrong flag.** It names `--marker=<path>` (lines 20, 34) five separate times. What shipped is `--longrun-root=<dir>`. **A retrofitted prediction is never wrong** — and the session's reasoning for the change is recorded in the code at `glass.mjs:826-827`: *"a ROOT, not a file path, because `longRunStatus(dir)` derives the marker from a repo root — one definition of where that file lives, not two (rule 23)."* That is its own falsifier #1 firing and being answered.
+
+**Its most valuable falsifier was confronted head-on.** Acceptance point 3 said *"byte-identical afterwards"* — and the session discovered that byte-identity was satisfied by the broken code too, said so in the commit message in capitals (*"THE FIRST MEASUREMENT WAS THE WRONG QUANTITY"*), and switched to mtime. It left that lesson in the gate header at `:59-63` rather than quietly correcting it. **That is the behaviour rule 6 asks for, and it is the best thing in this change.**
+
+**Where it fell short: acceptance point 4** — *"revert one behaviour it guards and watch a case go red"* — was performed but not inspected. It watched *a* case go red and did not check it was the case it had aimed at. It wasn't (§2).
+
+---
+
+### 4. CLAIMS THE REPO DOES NOT SUPPORT
+
+- **"The destroy-then-repair is GONE, not made safer" — true of the live file, but the scaffolding is still there with no subject.** `glass_longrun_status_check.mjs:87-88` still reads `const had = existsSync(MARKER); const previous = had ? readFileSync(MARKER,"utf8") : null;` and `:155-158` still has the `finally { if (had) writeFileSync(MARKER, previous); else rmSync(MARKER, {force:true}); }`. Because `MARKER` now sits inside a **freshly created** `mkdtempSync` dir (`:71-73`), `had` **can never be true** — so `writeFileSync(MARKER, previous)` at `:156` is unreachable. Harmless, and exactly the leftover the class of fault leaves behind: a restore whose subject was removed. Delete it, or the next reader will believe this gate still restores something.
+- **New litter, small but real: the temp root is never removed.** `mkdtempSync` at `:71` has no cleanup. I counted **12** `glass-longrun-*` directories in `%TEMP%`, and watched the count go **10 → 11** across one gate run. Every `npm test` leaves one behind.
+- **A decision downstream now rests on a fault that no longer exists.** `.planning/CHART-LOG.md:1548` justifies leaving `_t076_row_ui_probe.mjs` out of `npm test` because *"`T-131` is the open row about `npm test` colliding with a sailing sea trial."* That collision is fixed. The reason should be re-examined on its remaining merits (it launches a browser), not inherited.
+- **One thing I observed and could not explain, reported as observation:** `.planning/wyclau/LONG-RUN` was present in a directory listing at the start of this pass and absent four minutes later. **My measurements exclude this gate and the whole suite as the cause** (0 write events across `npm test`). I did not chase it further; it is most likely another session's tooling, and it is not `T-131`'s.
+
+---
+
+### 5. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING? — **RECURRING, and this is the clearest case yet of exactly what 145 warned about.**
+
+145's structural lesson: *"Every row whose body says ✅ SHIPPED under a headline that says still open is a row that now lies to him twice as loudly."* It said `T-076` was the first case and would not be the last. **`T-131` is the next case, and it is worse, because here the body is stale too.**
+
+`.planning/GLASS-CHART.md`, right now, four hours after the fix landed:
+
+| line | what it says | true? |
+|---|---|---|
+| `:31` | `- [ ] **A GATE IN \`npm test\` WRITES THE LIVE \`LONG-RUN\` MARKER…**` — present tense, still unticked | **No.** 0 writes, measured. |
+| `:59` | *"**THE FIX IS THE SAME SHAPE AS THE ONE ALREADY SHIPPED** — a `--marker=<path>` override"* — future tense | **No.** It shipped, as `--longrun-root=<dir>`. |
+| `:62` | *"**UNTIL IT IS FIXED: do not run `npm test` beside a sailing trial.**"* | **No, and this one costs something** — it is an active instruction to a watch to avoid the suite for a reason that has expired. |
+| `:65` | `⚑ SETTLE — half done` | Stale. |
+
+**`grep -c "longrun-root" .planning/GLASS-CHART.md` → 0.** The shipped fix is not mentioned anywhere on the row that describes the problem it solved. And because 145's own accepted fix now carries the full headline into the expanded body, `:31`'s false present-tense sentence is the **first complete thing he reads when he opens the row**. 144's fault, 145's fault, and now 146's — the same shape three nights running.
+
+---
+
+### 6. WHAT I WOULD DO FIRST
+
+1. **Rewrite the four sentences above and tick the row** — five minutes, no code. Especially `:62`: an instruction not to run the test suite is a live cost to every watch that reads it. If the row is not being closed in this act, at minimum strike `:62` and add the shipped flag name.
+2. **Fix the red-proof, not just the record.** The `runAt` cases at `:124-127` are armed — I proved it — but nothing in the gate's own output distinguishes *"the logic is wrong"* from *"the logic moved and my regex lost it"*. The `:116` branch is a **coupling alarm masquerading as a behavioural check**. Rename it so it says so, and note on the row that a `<=` mutation is caught by the extractor, so the next session does not repeat that experiment and draw the same false conclusion.
+3. **Delete the dead `had`/`previous`/`finally` restore at `:87-88` and `:155-158`**, and `rmSync(LR_ROOT, {recursive:true})` at the end. One is a restore with no subject; the other is 12 directories and counting.
+4. **`npm test`: exit 1, one gate — `chart_sweep_conserves_check`**, *"106 allocated handle(s) are owned by NOTHING in either file — T-002, T-008, T-014, T-021, T-024, T-025, T-027, T-028"*, plus two advisory `REPORT` lines. **Confirmed as the ONLY failure, and confirmed not caused by this change:** `git show 8a1a816a --stat` touches exactly two files, both under `scripts/`, and this gate reads `CHART.md`/`GLASS-CHART.md` handle ownership. Another session's; not re-litigated. Every other gate in the chain passed, including the five the commit claims it swept.
+
+*Rule 17: I launched no browsers; `stray_probe_check` reports **"no debug-port browsers are running at all"**. All mutation work was done on copies under my scratchpad — `git diff HEAD -- scripts/qa/glass_longrun_status_check.mjs scripts/wyclau/glass.mjs` is empty.*
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All four acted on, and §2 is the most useful thing anyone has said about a red-proof in this project.**
+
+- **(6.2) DONE, and the correction is against me.** My red-proof flipped `<=` to `>` and I reported the gate armed. It *is* armed — but the failure I saw was the extractor regex losing its match, and the regex **contains the expression I mutated**. The three behavioural cases never ran. **"I mutated it and it went red" is only evidence if you check WHICH assertion went red**, and I did not. Re-proved here the way 147 showed, with an anchor-preserving mutant (`lrAgeMin = 0`) → **2 real behavioural failures**. That branch is now labelled `COUPLING:` and its comment tells the next session not to repeat my experiment.
+- **(6.1) DONE** — all four sentences corrected and the row ticked. `:62` mattered most and 147 is right about why: *"an instruction not to run the test suite is a live cost to every watch that reads it."* The old warning is quoted as withdrawn rather than deleted, so the record still shows what was believed. `grep "longrun-root"` on the row: **0 → 1**.
+- **(6.3) DONE** — the `had`/`previous`/`finally` restore is deleted, not kept "just in case": once `MARKER` moved into a fresh `mkdtempSync` dir, `had` could never be true, so it was **a restore with no subject**, and 147 names the hazard precisely — leave it and the next reader believes this gate still restores something. The temp root is now removed too; it was leaking one directory per `npm test`.
+- **(6.4) NOT MINE, and confirmed the same way it did** — `chart_sweep_conserves_check` alone, another session's, not re-litigated.
+- **On its unexplained observation — `LONG-RUN` appearing then vanishing mid-pass — I can close it, and it was mine, not another session's tooling.** I planted a sentinel there while proving the acceptance test, then deleted it. Worse than it sounds: `publish_status.mjs` had already copied it into `.planning/wyclau/status/Wy-Blade.md`, which IS tracked and IS what the Glass renders, and another session's commit swept that file up. **His page showed a sea trial at "9/10 legs" that never existed, for about three minutes.** Cleaned. *I fixed a gate for borrowing the live marker and then borrowed it myself, one command later, to prove the fix.*
+- **On (3):** its method for testing the prediction is better than the prediction was — checking that it named the WRONG flag, because *"a retrofitted prediction is never wrong."* Worth stealing for every future prediction audit.
+
 ## CEO Review 146 — 2026-09-03, Wy-Blade — `T-013`: which instrument is telling the truth about the call-the-winner circle? — **PARTIAL**
 
 > ⚠ **RENUMBERED 145 → 146. THE SIXTH COLLISION, AND THE SECOND IN THREE HOURS.** This review was
