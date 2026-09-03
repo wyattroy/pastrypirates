@@ -191,8 +191,12 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    `chartkeeper.mjs` gives **+100** to any row citing a live `INBOX-` entry of his and **+8 per
    mention**, so a fresh instruction of his arrives at the top on its own. **If something of his is
    not ranking first, that is a bug in the scoring to report — not a reason to go back to reading
-   the queue by age.** And a row he has dragged to the top on the Glass is pinned there; his drag
-   beats the score.
+   the queue by age.** And a row he has moved to the top on the Glass — one tap on **▲ top**, on
+   every row — is pinned there; **his order beats the score.** *(The `order:` mechanism is
+   unchanged; the GESTURE is not. He removed the drag on 2026-09-03 — "really buggy and didn't work
+   as intended, we'll just use the arrows" — and this line went on teaching it to every session that
+   enters here, which is why CEO 182 found it. A retired gesture named in the one file everybody
+   reads is a gesture that comes back.)*
 3. **Work it through the Proof, with the teeth** (his rulings, 2026-09-01, all three):
    - **His stated solution first.** If the item carries `solution:` in his words, your FIRST act
      is to implement and measure exactly that — before any investigation, before any tooling.

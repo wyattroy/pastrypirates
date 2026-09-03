@@ -255,7 +255,7 @@ const headSetOrder = (inner, n) => `${headUnorder(inner)} · order: ${n}`;
     if (want.length) {
       console.log(`ORDER   ${want.length} row(s) carry your order — RANK works them in that sequence: ${want.join(" → ")}`);
       if (released) console.log(`        cleared ${released} row(s) from the previous order: one order, replaced whole, never merged.`);
-      console.log("        Anything you did not drag keeps its derived rank, underneath yours.");
+      console.log("        Anything you did not move keeps its derived rank, underneath yours.");
     } else {
       console.log(released ? `ORDER   cleared — ${released} row(s) released, the list is derived again.` : `ORDER   nothing was ordered; there was nothing to clear.`);
     }
