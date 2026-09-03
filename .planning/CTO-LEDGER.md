@@ -8304,3 +8304,39 @@ message"* — **RECURRING, WORSE**: last time findings existed and were not file
 was reported as new when the Chart had already refuted it.
 
 - 2026-09-03T14:12:10Z · close_item: "T-215" · CEO 170 · no game diff — no game-code diff by nature: the fault was the trial's own reporting, fixed in scripts/lib/leg_verdict.mjs at commit 2182d2a4 — one number becomes ten named screens, labelled a POINTER not a diagnosis per T-019 · no stated solution · the trial names the screen it failed, and says its own words are not quotable
+
+---
+
+## WATCH e3 — Wy-Blade, 2026-09-03T14:38Z — CLAIMS `T-100` (build `/rules.html`)
+
+**Watch started** 2026-09-03T14:38:32Z, Wy-Blade (Windows). `can_push.mjs` healthy; the real
+`git push origin claude/cloud-handoff-planning-a9ay1u` ran and answered *Everything up-to-date*, so
+this watch is visible.
+
+**Last progress** watch e2 closed `T-215` at 14:12:10Z (CEO 170, commit `2182d2a4`) — the sea
+trial's verdict line now names the ten screens it failed on instead of printing one number, and
+labels its own sentences a POINTER, not a diagnosis.
+
+**Blocked on Wyatt** Q3 and Q4 of the rules-page split (`rules-page-3-of-4`, `rules-page-4-of-4` on
+his Your Call card), plus the cutover merge and the Glass Ideas-box look. None of them fence this
+item — see below.
+
+**Detached trial in flight** none claimed since e2's; no `--report=` marker held open.
+
+**No Artifact tool in this session** — stated as fact, not guessed: `ToolSearch` for `Artifact`
+returns only `SendMessage`. So the Glass is not mine to harvest or publish, and no
+`mark_glass_published` stamp may be written by me. The pulse goes to `GLASS-NOTE.md`, and I ask the
+Glass session to publish (step 6b) at the end.
+
+**CLAIMED: `T-100`** — build the rules page. Chose it over rank 1 (`T-099`) deliberately and the
+reason is in the row itself: `T-099` is open on TWO questions of his and `CHART.md:1080` says in its
+own words *"This row closes when he answers, not before."* A watch cannot close a row that is
+waiting on him. `T-100` is the first row below it that a watch can actually finish, it is unheld
+(`IN-HAND` empty, no ledger claim under 90 minutes), its blocker was lifted by Wyatt on 2026-09-02
+at 6:50 PM ET (`INBOX-20260902T225008Z`, *"Do a new /rules.html that explains the rules"*), and
+**CEO 170 named it by name as the row four consecutive watches have skipped** — each time citing a
+blocker he had already lifted. Watch e2's ledger entry ends: *"⚑ NEXT WATCH: TAKE `T-100`."*
+
+**Prediction written first**, before any gate ran or any file was built:
+`.planning/wyclau/PREDICTION-20260903T1445Z-T100.md` — with the five things that would prove it
+wrong named in it.
