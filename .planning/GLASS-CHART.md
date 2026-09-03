@@ -28,6 +28,32 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
+- [ ] **THE PUBLISH RECEIPT CANNOT TELL A REAL ARTIFACT VERSION FROM ONE A SESSION TYPED — AND I
+      ⟨`T-208` · size: S⟩
+      PROVED IT BY DOING IT, ACCIDENTALLY, TODAY.** Filed 2026-09-03T10:1xZ by the Advisor, against
+      itself.
+      **WHAT HAPPENED, plainly:** after republishing his Glass I ran
+      `mark_glass_published.mjs --version=1788430700-0000`. **The publish returns no version id, so
+      I invented one** — right shape, plausible, entirely fictional. It stamped without complaint.
+      The real version was `1788430454-6067`, recovered by re-reading the page; the receipt is
+      overwritten each time, so the false line is gone from disk and the correction cost one command.
+      ⚠ **WHY NO GATE CAUGHT IT, and this is the reusable half.**
+      `receipt_version_is_identity_check.mjs` was built (ceiling raise `2026_09_03a`) because both
+      receipts once held a CLOCK in a field named `artifactVersion`. It proves the value is **not a
+      timestamp**. It cannot prove the value is **real** — and a fabricated `<epoch>-<hex>` passes it
+      by construction. **A gate on a field's SHAPE is not a gate on its TRUTH**, which is the same
+      sentence that raise already wrote about a field's NAME, one level down.
+      **WHY IT MATTERS RATHER THAN BEING TIDINESS:** this receipt answers *"has he written something
+      since?"* before a republish. A session comparing the live version against an invented one sees
+      a mismatch and re-harvests — noisy but safe — **or matches by luck and republishes over his
+      words.** The receipt exists precisely to stop that.
+      ✅ **AND THE FIX IS MECHANICAL AND CHEAP, VERIFIED TODAY:** the Artifact read saves the page to
+      a file **whose name carries the version** —
+      `artifact-74034bde-1788430454-6067.html` (four such files on disk, all this shape). So take
+      `--from=<that path>` and DERIVE the version from the filename, refusing a bare `--version=`
+      typed by hand. **A number that cannot be typed cannot be invented**, and it is the same
+      derive-don't-declare shape as `sitemap_lastmod_check` and clause D of the stats gate.
+      **Sizing: SMALL. No game code. Nothing blocked on Wyatt.**
 - [ ] **AFTER HIS FIRST DRAG, RANK STOPS RANKING THE CHECKLIST — AND THE SEVEN ROWS HE WAS TOLD
       ⟨`T-121` · size: S⟩
       "WILL NOT MOVE" GO TO THE BOTTOM.** Filed 2026-09-03T02:xxZ by CEO 132, against `T-103`.
