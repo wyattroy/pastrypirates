@@ -426,6 +426,27 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.1, so its evidence no longer describes this game
 
+- [ ] Your ruling: the Glass's Ideas box corrupting the page after a save — **GATED: awaiting his own look at the live page**, which only he can do.
+      ⟨`T-137`⟩
+      ⛔ **RESTORED A SECOND TIME, 2026-09-03T07:0xZ. A SWEEP HAS NOW EATEN THIS ROW TWICE WHILE IT
+      WAITS ON HIM — AND RESTORING IT A THIRD TIME IS NOT THE FIX.**
+      First as `T-124`, then as `T-135`. Both times the archive entry reads `- [x]` and carries **no
+      close pointer** — compare any real close, which reads `(closed · CEO nnn · …)`. So it did not go
+      through `close_item.mjs` either time.
+      **AND THE SECOND TIME IT WAS NOT EVEN TICKED FIRST.** `git show 78b0a2fa -- .planning/CHART.md`
+      removes the row as `- [ ]` — open — and the same commit writes it into `CHART-LOG.md` as
+      `- [x]`. **The sweep archived an OPEN row and marked it finished on the way out.**
+      ⚠ **WHAT MAKES THIS WORSE THAN A LOST ROW: the row's own text says it is gated on an action
+      only Wyatt can perform.** A sweep that takes those is a sweep that quietly retires the things
+      waiting on him — which is the one category that can never be finished by a session, and so the
+      one category that can sit long enough to look abandoned.
+      **THE REUSABLE FAULT, and it is the same one twice over: A TICK IS NOT A CLOSE.** Sweep
+      archives what is ticked; only `close_item.mjs` records WHY. Here something ticked on the way to
+      archiving, so even the tick is not evidence of a judgement anyone made.
+      **NOT FIXED HERE.** The sweep lives in `chartkeeper.mjs`, another session is actively in that
+      file, and inventing a fix underneath it at 7am is how two sessions produce three bugs. Filed
+      with the evidence so whoever holds that file can act on it.
+      **Sizing: SMALL for the restore (done). The sweep fix is theirs.**
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
