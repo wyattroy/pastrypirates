@@ -91,6 +91,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] **STAGING IS CURRENT WITH EVERYTHING COMMITTED — THE ANALYTICS WORK IS THE ONE THING NOT ON
+      ⟨`T-247`⟩
+  IT, AND IT IS UNCOMMITTED IN ANOTHER SESSION'S HANDS.** His instruction, `INBOX-20260903T213129Z`,
+  2026-09-03T21:31:29Z: *"we need to push all these changes to staging!!"*
+  **MEASURED, NOT ASSUMED — `scripts/qa/_t247_staging_parity.mjs`.** It fetches the real site and
+  compares bytes, because the build stamp is a claim the publisher wrote about itself
+  (`deploy-staging.sh:270` rewrites it; `docs/GIT-AND-DEPLOY.md` §5 is the day that lied). Its
+  candidate list is `git ls-files` **plus untracked-not-ignored** — exactly what rsync sends — and
+  its exclude list is **parsed out of `deploy-staging.sh`**, so nobody retypes it.
+  **STATE at 2026-09-03T22:0xZ:** staging serves `2026.09.03.4-staging@a72f2f12` and every
+  COMMITTED file on this branch is byte-identical on it. Photographed too (rule 19): the lobby draws
+  at 1280×900 and 390×844, `window.firebase` is LOADED, `rules.html` renders —
+  `.planning/posed/t247-staging-*.png`.
+  **WHAT IS NOT ON IT:** the `T-206` analytics work — `src/analytics.js` (untracked) and edits to
+  `index.html`, `about.html`, `rules.html`, `package.json`, `scripts/lib/rules_page.mjs`. It landed
+  at 21:48Z, **after** his instruction, and it is **uncommitted**.
+  ⛔ **WHY THIS WATCH DID NOT PUBLISH IT, AND IT IS NOT CAUTION — IT IS A SECOND LYING STAMP.**
+  `deploy-staging.sh:196` rsyncs the WORKING TREE; `:261` stamps the build with
+  `git rev-parse --short HEAD`. Publishing now puts code on the address he plays that exists in **no
+  commit**, under a stamp naming a commit without it — the 2026-08-27 fault, re-created. It is also
+  a live peer session's work, and `.claude/CLAUDE.md` §3 says shared artifacts are owned, not shared.
+  **THE NEXT STEP IS ONE COMMAND, THE MOMENT THE OWNER COMMITS:**
+  `npm run deploy:staging -- "analytics"` then `node scripts/qa/_t247_staging_parity.mjs` until PASS.
+  ⚠ **CEO 187 SAID NO TO THIS ITEM AND IT IS NOT TICKED.** Its charge stands and is worth repeating
+  rather than softening: *"He wrote an imperative… The watch answered a question he did not ask."*
+
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
   sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase

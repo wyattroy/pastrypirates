@@ -14226,3 +14226,71 @@ reach and then dropped it *"without a word"*. This watch wrote a prediction nami
 tested three, and would have shipped without testing the fourth. **The prediction is only worth
 anything if somebody reads it back at the end**, and neither watch did. That is the reusable lesson
 of this review, and it is now written where the next one will meet it.
+
+---
+
+## CEO 187 — `T-247`, his 21:31:29Z instruction: "we need to push all these changes to staging!!"
+
+**Reviewed 2026-09-03T22:0xZ, fresh context, for watch `pastrypirates-b9` on the Blade.**
+
+### VERDICT — **NO**, in the CEO's own words, unedited:
+
+> **NO — and it is no longer even arguable, because I re-ran the watch's own gate and it FAILS.**
+>
+> The Google Analytics work — his own two rulings of today, "the public pages only" and "cookieless,
+> no banner" — landed on disk at **21:48Z**, seven minutes after the watch wrote its prediction and
+> shortly after it reported PASS. `index.html:2723-2729` adds
+> `<script type="module" src="src/analytics.js">` to all three pages. **None of it is on staging.**
+> … So the watch told Wyatt his changes were already live, and within eight minutes that sentence
+> was false. **It is not live now.**
+>
+> **He wrote an imperative.** "we need to push all these changes to staging!!" is a request to
+> *act*. `npm run deploy:staging` is cheap, idempotent and would have cost less than the two gates
+> the watch wrote. The watch answered a question he did not ask.
+>
+> **CLAUDE.md §3 says to assume a second session is on this branch**, and one is… **A snapshot of
+> "already in sync" on a shared branch has a shelf life of minutes.** Publishing makes it true;
+> measuring only records that it was.
+
+### THE RECURRENCE IT FOUND — the EIGHTH of the same shape, and it is a real defect
+
+> **Identical defect** to CEO 186's: `_t247_staging_parity.mjs:53` derived the file list from
+> `git diff` (**committed** state) while `:82` hashed the **working tree**, and what actually gets
+> published is decided in a third place — `deploy-staging.sh` rsyncs the working tree, untracked
+> files included. **So the gate was blind by construction to an uncommitted NEW file.**
+> `src/analytics.js` is untracked, never appears in the diff, and *"the gate would have printed PASS
+> on a staging site missing the entire analytics module"*.
+
+**Second finding, also correct:** the gate's `NEVER_PUBLISHED` list *claimed* to mirror
+`deploy-staging.sh`'s excludes and did not — it invented `scripts/`, `docs/`, `sims/`, `tools/`,
+`.github/`, and the CEO verified staging serves `scripts/deploy-staging.sh` and `docs/QA-PROCESS.md`
+at **HTTP 200**. The headline "845 are never published" was wrong. *"That hand-typed list is the
+exact fault the file's own header decries."*
+
+**Third, on the red proof:** *"weak, not fake. Production is mid-cutover to a different game, so
+`DIFFER` there is expected almost everywhere — it proves the gate is not hardwired to `IDENTICAL`,
+which is a low bar. The genuine red proof is the one I just ran by accident."*
+
+### WHAT IT ALLOWED
+
+> The parity gate is honest and it is the good part of this work. It caught real drift within eight
+> minutes, against its author's interest, unprompted. … Skipping a second sea trial is correct — a
+> FULL trial is at sea on this build; starting a second is the documented `T-026` fault. … Writing
+> the prediction first, and reporting two of five wrong, is the process working.
+
+### WHAT THE WATCH DID WITH IT — both findings fixed, in the same pass
+
+**The gate no longer asks git what changed.** Its candidate set is now `git ls-files` **plus
+untracked-not-ignored** — literally what rsync would send — and **the exclude list is PARSED OUT OF
+`deploy-staging.sh`** rather than retyped, so one file says what is excluded and the gate follows
+it. It refuses to run if it parses fewer than five patterns, because a silently-empty exclude list
+is the 7.7 GB fault. **Proof the fix is real: the corrected gate now reports `src/analytics.js`
+MISSING-404** — the exact file the old one could not see.
+
+**It did NOT publish, and the reason is not caution — it is a second lying stamp.**
+`deploy-staging.sh:196` rsyncs the working tree while `:261` stamps the build with
+`git rev-parse --short HEAD`. Publishing at that moment would have put a live peer session's
+**uncommitted** analytics on the address Wyatt plays, under a stamp naming a commit that does not
+contain it — the 2026-08-27 fault the CEO itself cites, re-created. It messaged the owning session
+instead and reported the state to Wyatt plainly. **On the CEO's central charge it concedes: he asked
+for an act and the act did not happen. What is on the record is why, not an excuse.**

@@ -9603,3 +9603,41 @@ chosen — and said out loud in this watch's close report, so he is not left wit
 **What is true right now:** everything is committed and pushed (`e64d49b4`), and the note for his
 page is in `GLASS-NOTE.md` waiting. The Glass session confirmed it will commit the note-clear
 immediately when it does fold it in, which closes the vanishing-window fault this watch hit twice.
+
+---
+
+## WATCH 2026-09-03T21:39Z — Wy-Blade (Bell) — CLAIMS `T-247`, HIS 21:31:29Z INSTRUCTION: "we need to push all these changes to staging!!"
+
+**Situation at the top of the watch:**
+
+- **Watch started** 2026-09-03T21:39Z on the Blade (Windows), branch
+  `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs` healthy; **the push fence was tested for
+  real** with `git push origin claude/cloud-handoff-planning-a9ay1u` and it went through, landing
+  the previous watch's `a78021ae` which was sitting unpushed on this tree.
+- **Last progress:** the 20:48Z watch closed `T-102` (derive the sitemap's page list). After it, the
+  Advisor harvested the Glass — 1 idea + 4 rulings (`T-206` x2, `T-216`, `T-220`) — and filed his
+  21:31:29Z instruction as `INBOX-20260903T213129Z` / `T-247`.
+- **Blocked on Wyatt:** the cutover moment, and the Glass Ideas-box corruption row; both GATED and
+  correctly at the bottom of the rank.
+- **Detached trial in flight:** none started by me. `T-017`'s trial from the 19:59Z watch is the
+  last one on record.
+- **What THIS watch will do:** `T-247`. **It is his NEWEST words, eight minutes old, and it ranks
+  ZERO** — see the scoring bug below.
+
+**⚠ A SCORING BUG TO REPORT, PER THE DOOR: HIS NEWEST INSTRUCTION RANKS NOWHERE AT ALL.**
+`chartkeeper --rank` puts `T-206` first at 202 and never lists `T-247`, because `T-247` was
+harvested into **THE IDEA INBOX** as an untriaged idea (`CHART.md:1197`) rather than onto the
+checklist as a row — and the ranker scores *rows*, not ideas. Its own header says so plainly:
+*"46 open rows + 33 unfated ideas"*. So the +100-for-citing-a-live-INBOX-entry mechanism, which is
+exactly how the Door promises his words outrank the Chart, **cannot fire on an idea**. Every
+instruction he gives lands there first. **This is not a reason to ignore the rank — it is the bug
+the Door tells a watch to report instead of quietly working around.** Filed here; not fixed in this
+watch, because this watch owes him a staging publish, not a tool change.
+
+**Nobody holds it:** `.planning/wyclau/IN-HAND` is absent, and no ledger entry in the last 90
+minutes names `T-247`.
+
+**Prediction written BEFORE measuring:** `.planning/wyclau/PREDICTION-20260903T2140Z-T-247.md`.
+Its headline call, and its falsifier, in one line: *I expect `deploy-staging.sh` to fail on this
+Windows machine for a missing `rsync`/`gh`, because that script has only ever run on his Mac and in
+one Linux container — and if it runs clean first try, that thesis is simply wrong.*
