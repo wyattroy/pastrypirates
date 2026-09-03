@@ -3172,11 +3172,22 @@ function promptTick(force){
            So the drop is DERIVED from where each circle will actually be — its own boat's rendered
            radius, the petal at the top of its pulse, the file's AIR, and the SAME band clamp the
            circles are about to get — rather than from a number that assumed a phone. The `max` over
-           the anchors is because the pill must clear the LOWEST circle, not the lowest boat. */
-        const HALF0 = Math.round(D * S.growPeak) / 2, AIR0 = 6;
+           the anchors is because the pill must clear the LOWEST circle, not the lowest boat.
+
+           ⚠ AND THE CLEARANCE IS THE EVICTION TEST'S OWN, NOT THE BOX'S — this cost a whole extra
+           measured pass. The first version cleared the circle's BOTTOM EDGE plus the file's 6px of
+           air (`t + D + 6`). But `onPill` below does not ask about the box: it treats the petal as a
+           DISC of radius `SWELL/2 + 2` around its centre, because that is what a swollen circle
+           actually paints. On a 390x664 phone that is 40px against the box's 33 — so the pill landed
+           ONE PIXEL inside the disc, `onPill` fired, and the circle was evicted 165px anyway with
+           every number in this block otherwise correct. Two things asking "is the circle on the
+           pill?" and answering differently is rule 23 at one-pixel scale, and one pixel is all it
+           takes. The clearance is now built from the same `SWELL/2 + 2` the push uses, plus the
+           file's air on top so a fix does not sit exactly on the threshold it satisfies. */
+        const SWELL0 = Math.round(D * S.growPeak), HALF0 = SWELL0 / 2, AIR0 = 6;
         const belowCircles = Math.max(...anchors.map(([, ay], k) => {
           const t = Math.min(Math.max(ay + (boatRad(anchorSeats[k]) + HALF0 + AIR0) - D / 2, yMin), yMax);
-          return t + D + AIR0;
+          return t + D / 2 + HALF0 + 2 + AIR0;
         }));
         mTop = pillSpotFor(Math.min(...anchors.map(p => p[1])), Math.max(...anchors.map(p => p[1])), belowCircles);
       }
