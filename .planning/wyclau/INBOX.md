@@ -1152,7 +1152,7 @@ status: DONE 2026-09-02 — CEO 124, no game diff — no game code is right: he 
 
 solution: his own: build it to the split he approves in the item above, and answer OUT LOUD, before writing anything, what makes the in-game modal and the page agree — if the honest answer is "we keep them in sync", redesign before writing a line. No build step exists in this project, so the answer has to work without one.
 
-status: OPEN — FOR A WATCH.
+status: DONE 2026-09-03 — CEO 171, commit 067760a (1 game file); his solution first: commit 1efe53a
 
   ⚠ **BLOCKED ON THE ITEM ABOVE BY HIS OWN WORDS** — it opens *"following the content split I approved in the previous session"*, and he has not been asked yet. **Do not start this one first.**
 

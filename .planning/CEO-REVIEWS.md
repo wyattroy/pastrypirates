@@ -1,6 +1,8 @@
 # CEO reviews — the standing record
 
-## CEO Review 171 — 2026-09-03, Wy-Blade — watch e3, `T-100`: build `/rules.html` — **PARTIAL**
+## CEO Review 171 — 2026-09-03, Wy-Blade — watch e3, `T-100` / `INBOX-20260902T190730Z`: build `/rules.html` — **PARTIAL**
+
+*Item: `INBOX-20260902T190730Z` (Chart handle `T-100`). Closing commit: `067760ac`.*
 
 > *Spawned fresh. Its verdict is reproduced below IN ITS OWN WORDS — the watch it reviewed did not
 > soften it. Where the watch acted on a finding after the verdict was written, that is marked

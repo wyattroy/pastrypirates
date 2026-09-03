@@ -1,0 +1,35 @@
+T-139 CLOSED — his three fate states are all built, and the one nobody built was hiding in plain sight
+
+Closed through close_item.mjs, CEO 155 (PARTIAL) then CEO 157 (DONE), work
+in 417adefc. Chart row swept to CHART-LOG.md by the gate.
+
+THE HALF NOBODY HAD BUILT. He ruled three states on 2026-09-02 and two of
+them shipped that day. The third — "PARKED shows DIMMED with its reason" —
+did not, so for a day a parked idea rendered as a bare tag at full weight
+beside live work. CEO 155 found it, and found that the gate written that
+same morning was certifying the two-thirds version as green, because its
+fixture wrote the parked reason on the head line where no real parked idea
+has ever written one.
+
+⚠ THE SHARED-TREE HAZARD, OBSERVED TWICE IN ONE WATCH, AND THIS IS THE PART
+WORTH KEEPING. Three sessions are live in this one working tree.
+(1) Six staged files silently left the INDEX between git add and git commit,
+so the commit landed with only the four new files while its message
+described all ten. No error, no conflict. Caught by reading the commit's own
+output rather than trusting it; repaired by amending before the push.
+(2) The Glass session committed GLASS-NOTE.md at 7290484b under the subject
+"reset after consuming into pulse" while ADDING six lines — my note, written
+seconds earlier, which it had not consumed. The words survived and are in
+HEAD unconsumed, so the next publisher picks them up; but a session that had
+trusted that subject line would have believed its note was delivered.
+DECISIONS.md already warns that an uncommitted EDIT does not survive another
+session's git command. These are the INDEX and the RACE versions of the same
+thing. Stage and commit in one breath, and read what the commit says it
+wrote.
+
+Ledger carries the full account: the measurement (13 of his ideas are on his
+page only because of this ruling), the two permanent red-proofs, the posed
+pair on the real Chart, my wrong prediction P2, and CEO 155's fault
+recurring inside the fix for it.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

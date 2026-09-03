@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T14:09:12.208Z	self-publish check
+2026-09-03T15:04:01.110Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -15,18 +15,15 @@ None recorded.
 ```
 {
   "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-03T12:48:20.486Z",
-  "updatedAt": "2026-09-03T14:06:29.465Z",
-  "progress": "9/10 legs",
+  "startedAt": "2026-09-03T15:03:21.777Z",
+  "updatedAt": "2026-09-03T15:04:19.139Z",
+  "progress": "0/10 legs",
   "staleAfterMinutes": 53
 }
 ```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T16:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T160802Z.out/.err, kit: readable)
-2026-09-02T16:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T164802Z.out/.err, kit: readable)
-2026-09-02T17:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T173802Z.out/.err, kit: readable)
 2026-09-02T18:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T181801Z.out/.err, kit: readable)
 2026-09-02T18:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T184801Z.out/.err, kit: readable)
 2026-09-02T19:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T192801Z.out/.err, kit: readable)
@@ -64,4 +61,7 @@ None recorded.
 2026-09-03T13:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T132801Z.out/.err, kit: readable)
 2026-09-03T13:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T133801Z.out/.err, kit: readable)
 2026-09-03T13:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T134801Z.out/.err, kit: readable)
+2026-09-03T14:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T141801Z.out/.err, kit: readable)
+2026-09-03T14:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T142801Z.out/.err, kit: readable)
+2026-09-03T14:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T143801Z.out/.err, kit: readable)
 ```

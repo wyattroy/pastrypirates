@@ -8409,3 +8409,5 @@ that is its own item.**
 and built it. *"A correction that lives in one document while the record still reads the other
 way"* — **RECURRING**: his Q3/Q4 answers sat in the Chart while the same file, the ledger, and the
 brief I handed the CEO all still said they were open. Fixed in all three.
+
+- 2026-09-03T15:04:53Z · close_item: INBOX-20260902T190730Z · CEO 171 · commit 067760a (1 game file) · his solution first: commit 1efe53a · /rules.html IS the How-to-play modal -- generated from it, byte-gated, red-proofed five ways; reachable from the game and in the sitemap

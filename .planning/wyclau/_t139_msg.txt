@@ -1,0 +1,84 @@
+T-139: SCHEDULED no longer hides his ideas, PARKED now dims and says why — and the gate that was certifying two-thirds of his ruling
+
+His ruling, question UI, 2026-09-02T12:28:02.757Z, answer "yes"
+(.claude/memory/DECISIONS.md:695): the fate lexicon becomes THREE states —
+OPEN shows, SCHEDULED shows AND SAYS SO, **PARKED shows DIMMED with its
+reason**, and only genuinely-finished words hide.
+
+WHAT THE ROW SAID AND WHY IT WAS HALF WRONG. `.planning/CHART.md:94` read
+"He answered; not yet built." Two thirds of it WAS built the day he ruled;
+the parked clause was not. The "not yet built" phrase was written fresh at
+`1d952c90` (07:16Z today, watch c1's triage of `## RULED`) without a
+measurement — a shipped fix condemned on a reading, which is rule 6 in the
+direction nobody watches for.
+
+MEASURED FIRST, on the live Chart with the page's own parse and the one fate
+rule: 34 ideas — 14 open, 12 SCHEDULED, 1 parked, 7 finished. The live rule
+hides 7; the pre-ruling one-list rule would hide 20. THIRTEEN of his own
+ideas are on his page only because of this ruling, including two he marked
+DO NOW and three LIVE BUG REPORTS. Nothing guarded that. One word moved back
+into one list takes all thirteen away with every check still green.
+
+THE CLAUSE THAT WAS NEVER BUILT, found by CEO 155. A parked idea rendered as
+a bare "PARKED · title" — the tag without the why, at full weight beside live
+work — and the FIRST version of the gate in this commit certified that as
+green, because its fixture wrote the parked reason on the HEAD line where no
+real parked idea has ever written one. Both are fixed here.
+
+  * lib/chart_model.mjs — new parkedReason(), DERIVED from the verdict the
+    Chart already declares ("PARKED, low priority" -> "low priority"), never
+    a new field somebody must remember to type; a field like that would be
+    blank on every idea parked before it existed. An empty answer is returned
+    honestly when the Chart said no why.
+  * glass.mjs — why and dim ride on the task and render on the VISIBLE row,
+    deliberately not in detail, which sits behind a collapsed "more" toggle.
+    A reason he has to tap to see is a reason he cannot see; his word was
+    "shows". li.dim opacity .72 — dimmed, not hidden, because the whole point
+    of three states is that he can still overrule the parking.
+
+THE GATE, AND IT READS THE RENDERED PAGE RATHER THAN THE RULE. A gate that
+imports stateOf and asserts what it returns is asking the suspect about
+itself. This copies the real glass.mjs and model into a throwaway tree,
+renders a fixture Chart carrying one idea of each fate, and inspects what is
+on the page. TWO permanent red-proofs, because there were two regressions a
+day apart in different files: --before (the old one-list lexicon) breaks
+5 of 9; --before-parked (the two-thirds render) breaks 2 of 9, and those two
+are exactly the reason and the dimming. Both refuse to run rather than pass
+if their patch no-ops.
+
+POSED ON THE REAL CHART, not only a fixture (rule 26) —
+.planning/posed/t139-parked-before.png and -after.png, same file, same single
+parked row, scrolled into view and reported back so a shot of the wrong
+screen cannot pass as evidence (the trap that killed the T-012 pose).
+dimmed:false opacity:1 why:null  ->  dimmed:true opacity:0.72 why:"low
+priority", with the rows either side unchanged.
+
+⚠ A CORRECTION THIS WATCH OWES IN THE OPEN. My prediction's P2 guessed the
+"not yet built" text had been CARRIED ACROSS unchanged from the RULED table.
+That was WRONG — falsifier F2 fired: git log -S puts it at 1d952c90, written
+fresh 19 hours after the ruling shipped. The conclusion (nobody re-checked)
+held; the mechanism I predicted did not.
+
+⚠ AND THE FAULT CEO 155 NAMED, RECORDED BECAUSE IT RECURRED INSIDE THE FIX.
+It found the unchecked clause was quoted in my own prediction's first
+paragraph and then tested by none of P1-P4. CEO 157 then found the SAME
+weakened paraphrase — "PARKED shows with its reason", one word lighter —
+still sitting in this gate's header and in the ceiling justification AFTER
+the gap was closed. Both now quote him in full, with a note saying why the
+word is load-bearing: a gate testing the right thing under a header quoting
+the weakened version will drift back to the header.
+
+⚠ SEA TRIAL: NOT RUN, AND IT WOULD NOT HAVE SEEN THIS. gear.mjs says FULL and
+its stated reason is package.json alone. No game code changed — src/ and
+index.html are untouched — and the trial plays the game. Said plainly rather
+than rounded up. npm test (115 gates, 0 failures) is the real half, and
+stray_probe_check reports no debug-port browsers.
+
+CEO 155 (PARTIAL — it found the missing clause) and CEO 157 (DONE) are both
+appended to .planning/CEO-REVIEWS.md.
+
+Ceiling 114 -> 115: quiet_gate_report.mjs offers 0 of 18 retirement
+candidates for the tenth raise running, so no live per-bug gate was traded
+away for a planning-tooling one.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
