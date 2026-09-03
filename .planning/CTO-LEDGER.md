@@ -7020,5 +7020,42 @@ false positive, and the gate's own suggestion ("turn this into a fail()") would 
 
 **THE ITEM: `T-013`, rank ONE of the ranked Chart (score 38), taken because it is row one and nothing holds it.** Two instruments disagree about how often a trade-call circle lands nearest the WRONG captain: `w54` says 15–16 of 21, `w52` says 1 of 12. **Wyatt has asked for this twice** (W5-2, and `INBOX-20260901T1332Z`: *"not on top of, or next to, someone else"*). It is a posed question, not a rate — rule 26.
 
+**SETTLED. `w54` IS TELLING THE TRUTH AND THE DEFECT IS LIVE — CEO 146 (PARTIAL). THE ROW IS NOT TICKED, because the game is not fixed.**
+
+**PREDICTION WRITTEN BEFORE EITHER PROBE RAN**, `.planning/PREDICTION-20260903T0525Z-T013-which-instrument.md`, four named falsifiers. **P2 and P4 held. P1's arithmetic held and the conclusion I drew from it did not. P3 — the one that mattered — was WRONG**: I predicted the picture would side with `w52`. It does not.
+
+**THE PHOTOGRAPH IS THE ARBITER AND IT TOOK ONE LOOK.** `mp-rig-shots/w54-t013-phone-20-50.png`, taken this watch on this build: both call circles sit in **open water in the middle of the board, roughly 400px below the only boats on screen, one of them parked on a sugar-cube island.** No hull beside, above, below or under either. The CEO opened it independently and described the same thing before reading my account of it.
+
+**WHY THE TWO INSTRUMENTS DISAGREED, AND NEITHER WAS LYING.** `w52` never moves a boat, so all four hulls stay bunched within ~140px, the anchored placement always succeeds, and every circle lands 11px from its own. Re-run this watch: **0 of 12**. It is a true statement about a board on which the fault **cannot occur**. `w54` teleports the pair, which is the only way to reach the boards where it does.
+
+**MEASURED, twice, 42 circles each time — and the useful split is by DISTANCE, not by verdict:**
+
+| | run 3 | run 4 |
+|---|---|---|
+| **anchored** — within 16px of the boat it names | 10 of 42 | 18 of 42 |
+| — of those, nearest the WRONG captain | **0** | **0** |
+| **stranded** | 32 | 24 |
+| — of those, nearest the WRONG captain | 22 | 15 |
+| widest anchored / closest stranded | 13px / 49px | 10px / 51px |
+
+**28 anchored circles across two runs and not one names the wrong captain; 37 of 56 stranded ones do — about what chance gives you among four hulls. AND NO CIRCLE IN EITHER RUN LANDED BETWEEN 13px AND 49px.** That hole is the finding: **the placement switches, it does not drift.** So *"on the wrong boat"* is the SYMPTOM; the fault is that the circle is often beside no boat at all — which explains both of his sentences with one mechanism.
+
+**ONE OF THE TWO CANDIDATE MECHANISMS IS MEASURED DEAD.** *Mid-glide*: the ships had **stopped** in all 21 poses and the count is identical early and late (22→22, then 15→15). **This project has buried three geometry theories on an adjacent bug by re-running them; this one was killed by measurement in a single pass, and it is now written where the next reader will meet it.** *(`w54`'s own "STILL MOVING at the 10s cap" on 19 of 21 is its pill-and-circles signature catching the board's permanent breathing, not its ships — a misleading line, filed, not fixed here.)* The surviving mechanism, *nothing to be beside*: 9–17 of 42 circles name a captain whose hull is off screen, and `src/ui/stage.js:2864-2869` builds that anchor as `boatUXY(seat)` → `toScreen(…)` with `anchors.every(Boolean)` **true for a point nobody can see**. It is not the whole of it — ~8 of 33 answerable rows have the named hull plainly on screen and are still wrong.
+
+**⚠ THE CEO CAUGHT MY OWN INSTRUMENT COMMITTING THE FAULT THE PREVIOUS REVIEW HAD JUST NAMED, AND IT WAS THE NUMBER I HAD CHOSEN TO HEADLINE.** `wrongBoatVisible` walked only the on-screen hulls and then asked `nearestOn !== seat`, so an off-screen NAMED captain was skipped by its own loop and the row reported "wrong" with certainty whatever the game drew — **17 of 42 judgements forced.** Rule 6's *"a measurement that cannot fail is not a measurement"*, one file after CEO 144 named it. **Fixed** (`scripts/qa/t013_which_instrument.mjs:99-113`, answered only where answerable, `null` where not), re-run, and the void 27 is recorded as void rather than quietly dropped.
+
+**⚠ AND IT CAUGHT MY SECOND SENTENCE TIDIER THAN THE RECORD, WHICH MY OWN DATA DISPROVES.** I wrote *"every correct circle 4–11px, every wrong one 106–229px, nothing in between."* **106px, 136–141px and 225px each appear on BOTH sides of that run.** The corrected claim is the anchored/stranded table above, which two runs support. **There was also no log**, so nobody could have checked either sentence — `.planning/T013-RUNS-20260903.md` now transcribes all four runs in full, including both lists of per-circle gaps.
+
+**ALL FIVE ACTIONABLE CEO FINDINGS ACTED ON BEFORE ENDING**, listed under the verdict in `.planning/CEO-REVIEWS.md`. Its finding 7 — that `CHART.md` still told the next reader *"DO NOT read that as a live 15-in-21 defect"* — is the one worth repeating: **a row that waves the next watch off a real defect costs more than one that merely omits it.** Those four lines are now quoted and marked wrong in the open, not deleted.
+
+**⚠ THE SIXTH CEO-NUMBER COLLISION, AND THE SECOND IN THREE HOURS.** Mine was commissioned when 144 was highest; a peer filed **145 at 05:33:52Z while my review was being written**, and that peer's header records it checking the number correctly twice. **Two sessions can both check honestly and both be right at the moment they look.** Renumbered to 146; all four of my working citations corrected in the same commit.
+
+**⚠ AND THE FILE FENCE ON THIS MACHINE BIT AGAIN, THIRD WATCH RUNNING.** `>` redirection into the repo is **refused** — so `node … > run.log` cannot be used to keep evidence, and the log above had to be transcribed through the Write tool. Same fence that blocked a6's `rm` and a7's `>>` to this ledger. **A watch here cannot pipe a probe's output to a file. Write the log with the Write tool or you will finish with no evidence, which is exactly what CEO 146 caught.**
+
+**WHY THE ROW STAYS OPEN.** The fix is `src/ui/stage.js`'s radial placement — **FULL gear, needs a sea trial**, and that file carries a long graveyard. The next watch does not need to re-argue any of this: `node scripts/qa/t013_which_instrument.mjs` prints ANCHORED vs STRANDED and the job is to empty the stranded column. **CEO 146's caution is on the row so it cannot be flattened:** a circle *stranded away from every boat* and a circle *sitting on the wrong boat* may not be the same bug — measure both columns.
+
+**SWEEP.** No game code — `src/` and `index.html` untouched, so no sea trial is owed. `stray_probe_check` **PASS, 0 debug-port browsers** — every probe this watch started is dead. `npm test` not run in full: `.planning/CHART.md` was modified-and-uncommitted by the live Advisor throughout this watch, and I did not run `chartkeeper --write` over a peer's open edit. **Two red gates the Advisor flagged to me mid-watch (`no_ambiguous_handle_check` on a shared `T-017`, and `chart_sweep_conserves_check` on 38 unowned handles) are NOT mine and are NOT this row's** — verified by it against HEAD, twice; recorded here so the next watch finds them rather than discovering them.
+
+
 
 - 2026-09-03T05:37:03Z · close_item: "T-076" · CEO 145 · no game diff — expandable rows and a per-item comment box both shipped and verified in a real browser; the box shipped broken for ~15 min, is fixed, and the probe now fails on that bug · no stated solution

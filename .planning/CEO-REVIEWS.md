@@ -28,6 +28,134 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 146 — 2026-09-03, Wy-Blade — `T-013`: which instrument is telling the truth about the call-the-winner circle? — **PARTIAL**
+
+> ⚠ **RENUMBERED 145 → 146. THE SIXTH COLLISION, AND THE SECOND IN THREE HOURS.** This review was
+> commissioned when 144 was the highest on file. **A peer filed its own 145 at 05:33:52Z while this
+> review was being written** — and that peer's own header records it checking the number twice,
+> correctly, and still losing the race. Two sessions can both check honestly and both be right at
+> the moment they look. Renumbered to the later value per the banner's rule. **Nothing below is a
+> follow-up to 145; the two reviews are about different rows and were written in parallel.**
+> *(The watch's own working notes had cited "CEO 145" before the collision was found; all four
+> citations were corrected to 146 in the same commit as this entry.)*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The watch settled the argument correctly — I opened its
+screenshot myself and the two "Call Captain" circles are floating in open water in the middle of the
+board, roughly 400 pixels below the only boats on screen, which is exactly what Wyatt reported twice
+— but the headline number it wants to hand him (27) comes from a test that is *rigged to say
+"wrong"* for 17 of those cases no matter what the game draws, the supporting measurements were never
+written down anywhere, and the Chart row still tells the next reader the opposite conclusion.
+
+**VERDICT: PARTIAL.**
+
+**1. The ask happened. The question is genuinely settled, not re-described.** The row's stated first
+job (`.planning/CHART.md:103-104` — *"Which instrument is telling the truth is the first thing to
+settle"*) was answered three independent ways: a structural reason `w52` cannot see the fault, a
+third probe built to separate two named mechanisms, and a photograph. That is more than a
+re-description, and the watch got there by writing a prediction first and then saying out loud that
+its own P3 was wrong (`.planning/PREDICTION-20260903T0525Z-T013-which-instrument.md:69`). Being
+wrong in public, on the record, is what makes the rest of the note believable.
+
+**2. I opened `mp-rig-shots\w54-t013-phone-20-50.png` and the picture supports `w54`, not `w52`.**
+What I see: a phone board, day 1. Two boats sit in the top row — one green-sailed hull near the
+top-right, another half-cut off at the right edge. The two white call circles, "Call Captain 1" and
+"Call Captain 2", sit far below them in the middle of the board, one in open water and one parked
+squarely on the sugar-cube island. There is no hull beside, above, below, or under either circle.
+The player's own pink-sailed boat is not near them either. **Neither circle is beside the captain it
+names, and it is not a near miss — it is the width of half the board.** That is Wyatt's complaint,
+photographed on the shipped tree. One thing the watch did not say: this shot shows circles *stranded
+away from every boat*, not circles *sitting on the wrong boat*. Both are inside what he asked for,
+but they may not be the same bug, and the fix should not assume they are.
+
+**3. The new probe has exactly the fault CEO 144 named: a path where it cannot fail.**
+`scripts/qa/t013_which_instrument.mjs:102-103` builds `nearestOn` by walking only the boats whose
+`on` flag is true. Line 109 then declares the row wrong with `wrongBoatVisible: seat!=null &&
+nearestOn!==seat`. **If the named captain's own hull is off screen, that captain is skipped by the
+loop at line 103, so `nearestOn` can never equal `seat`, so the row reports "wrong" with certainty —
+whatever the game drew, wherever the circle landed.** The probe's own comment at lines 100-101
+defines the test as *"If the circle is nearest the right captain among the visible boats, no player
+is being told anything false"* — a condition that is unsatisfiable for an off-screen captain. So the
+summary line at `:189`, which labels this number *"the only one a player could be misled by"*, is
+not 27 independent judgements: it is at least 17 forced results plus about 10 real ones. **Do not
+quote 27 to Wyatt.** The direction of the conclusion survives — a circle naming someone you cannot
+see *is* misleading — but the number is a tautology wearing a measurement's clothes, and that is the
+exact shape of the fault the last review caught.
+
+**4. The 4–11px / 106–229px "clean break" cannot be checked by anyone, and two sentences in the same
+note pull against each other.** No run log was saved: the phrase `nearest among VISIBLE` exists in
+exactly one file on this machine, the script itself, so every per-circle number lives only in a
+console the watch has since closed. That alone makes it a sentence tidier than the record. Worse,
+`PREDICTION-…md:83-87` says 17 circles name a captain whose hull is **off the screen entirely**,
+while `:90-91` says every wrong circle sits **106–229px** from its own hull. On a 390-wide phone with
+a circle near the middle of the board, a hull fully outside the viewport is generally further away
+than 229px — often several hundred. The two claims may both be true of different subsets, but as
+written they do not obviously fit together and there is no log to reconcile them. **Neither number
+should be handed to Wyatt as fact.**
+
+**5. The off-screen count of 17 is a floor, not a value — and that helps the argument, so it should
+be said.** The `on` test at `t013_which_instrument.mjs:92` asks only whether the hull is inside the
+*browser window* (`vw`/`vh`, line 87). But the board has its own hard edge: in the screenshot I
+opened, a sugar island at the bottom-centre is cleanly sliced off where the board ends and the
+CAPTAINS panel begins. A hull below that line but above the bottom of the window counts as "on
+screen" to this probe and is invisible to the player. So the real off-camera count is 17 or more.
+
+**6. The mid-glide theory really is dead, and that is worth the watch on its own.** Measured at
+`w54`'s moment and again after the hulls stop: 22 and 22, with ships reported stopped on all 21
+poses (`:158-166`). One candidate cause eliminated by measurement rather than by argument. This
+project has buried three geometry theories on an adjacent bug; killing one cleanly is a real deposit.
+
+**7. Leaving the game unfixed is the right call — but the record is not finished, and that is what
+makes this PARTIAL rather than PASS.** No game code was touched (`git diff` over `src/` and
+`index.html` is empty), which is correct: a change to the radial placement in
+`src/ui/stage.js:2864-2869` is FULL gear and needs a sea trial. **But `.planning/CHART.md:98-104`
+still says, to the next reader, `w52` *"reports 11 of 12 circles nearest their own boat at an 11px
+gap"* and "DO NOT read that as a live 15-in-21 defect" — advice this watch has now proved
+backwards.** The Chart is unmodified in the working tree, its last three commits are chartkeeper
+sweeps, and no fix row exists: `T-013` appears exactly once in the file. **A settled question that is
+not written down is not settled** — the next watch will open the Chart, read that paragraph, and
+re-run this argument from the start. Before this watch ends: correct those lines in the open, and
+file the fix row.
+
+**Does CEO 144's fault recur? YES, in one of its two halves.** CEO 144 named two recurring faults: *a
+sentence tidier than the record*, and *an instrument built so it cannot fail*. The second recurs
+literally — `wrongBoatVisible` at `t013_which_instrument.mjs:109` has a guaranteed-true path for 17
+of its 42 judgements, and it is the number the watch chose to headline. The first recurs in a milder
+form: the conclusion is honest and I believe it, but the measurements behind it were not preserved,
+and two of the quoted figures do not sit comfortably together.
+
+**The difference from 144, and it matters:** last time the *conclusion* was false — the comment box
+saved nothing. This time the conclusion is **true**, and I verified it independently by opening the
+picture. What is unsound is the arithmetic dressing around it. So the fix is small: drop the 27, keep
+the photograph, save the log next time, and correct the Chart before the next watch reads it.
+
+---
+
+### WHAT THE WATCH DID WITH THIS VERDICT, BEFORE ENDING — all five actionable findings, acted on
+
+- **Finding 3 — the metric that could not fail is FIXED**, `scripts/qa/t013_which_instrument.mjs:99-113`:
+  `wrongBoatVisible` is now asked only where the named hull is itself on screen, and returns `null`
+  rather than `false` where the question is unanswerable, so the summary counts unmeasured rows apart
+  instead of folding them into a total. **Re-run after the fix: 8 wrong of 33 answerable, not 27.**
+  The void 27 is recorded as void in `.planning/T013-RUNS-20260903.md`.
+- **Finding 4 — the log exists now.** `.planning/T013-RUNS-20260903.md` transcribes all four runs
+  including both full lists of per-circle gaps. **And it kills the watch's own "clean break" sentence
+  using its own data:** 106px, 136–141px and 225px each appear on BOTH sides of that run. The CEO was
+  right to distrust it; the correction is written in the open in the prediction note, not reworded.
+- **The claim that replaced it, checked against both logs:** split by distance rather than by
+  verdict, **28 anchored circles across two runs (≤16px from the boat they name) and NOT ONE names
+  the wrong captain**, against 37 of 56 stranded ones that do — and **no circle in either run ever
+  landed between 13px and 49px.** So the placement switches rather than drifts, and "wrong boat" is
+  the symptom of stranding.
+- **Finding 7 — `.planning/CHART.md` is corrected in the open**, with the four misleading lines
+  quoted and marked wrong rather than deleted, and the row re-pointed at the fix with a RED check
+  already written for the next watch.
+- **Findings 2 and 5 carried forward, not flattened:** the row now warns that *stranded from every
+  boat* and *on the wrong boat* may be two bugs, and the off-screen count is stated as a floor.
+- **Finding 1's caveat honoured: the row is NOT ticked.** The game is not fixed, and this is the
+  night the project learned *a tick is not a close*.
+
+---
+
 ## CEO Review 145 — 2026-09-03, Wy-Blade — `T-076` follow-up: did the comment-box fix hold? — **PARTIAL**
 
 > *Number checked order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **144**, and `grep -c "^## CEO Review 145"` → **0**) twice: at the start of the pass and again at 05:33:52Z immediately before finalising. I am read-only and did not file this myself.*
