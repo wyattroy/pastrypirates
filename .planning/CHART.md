@@ -146,6 +146,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
   page only, no other surface), the caveat above stated in his words, and the third option.
   **Consent is left to him, explicitly, and not defaulted.**
+- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
+      ⟨`T-216`⟩
+      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
+      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
+      its own status line says what it is waiting for: *"the answer that unblocks
+      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
+      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
+      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
+      **WHAT IT NEEDS:** a close through `scripts/wyclau/close_item.mjs`
+      (`--item="INBOX-20260902T225008Z" --ceo=<n> --commit=4dbc7842`), which writes the fate, and
+      check whether `INBOX-20260902T190730Z` and `INBOX-20260902T225032Z`'s siblings are in the same
+      state while you are in there. **NOT hand-patched** — the gate writes the INBOX fate, the tick
+      and the ledger entry together so the three cannot disagree.
+      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
+      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
+      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
+      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
+      finding recurring one item later** (*"a claim in the record that the record itself
+      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
+      the reusable half is narrower than "don't lie": **a note about work still to do must never live
+      inside a row you are closing** — the close is exactly what makes it unreadable.
+- [ ] Your ruling: ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-102`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. — his answer: Only shrink the long words/phrases/names **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
@@ -154,8 +177,18 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⟨`T-206`⟩
 - [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-121`⟩
+- [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-102`⟩
 - [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-207`⟩
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
+- [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-102`⟩
+
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -195,6 +228,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+
+- [ ] Your ruling: **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. — his answer: YES — his words to the Advisor, 2026-09-03 ~11:55 AM ET: "for every call i need to make, you should label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box". He also named the cause: "There is no yes button -- only one that says do it -- but what the it is, is unclear." Built the same turn: questions declare numbered options, the page renders them, and the write-in box is labelled Other. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-218`⟩
+
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
   THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
@@ -232,6 +269,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -262,32 +300,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
-      ⟨`T-216`⟩
-      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
-      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
-      its own status line says what it is waiting for: *"the answer that unblocks
-      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
-      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
-      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
-      **WHAT IT NEEDS:** a close through `scripts/wyclau/close_item.mjs`
-      (`--item="INBOX-20260902T225008Z" --ceo=<n> --commit=4dbc7842`), which writes the fate, and
-      check whether `INBOX-20260902T190730Z` and `INBOX-20260902T225032Z`'s siblings are in the same
-      state while you are in there. **NOT hand-patched** — the gate writes the INBOX fate, the tick
-      and the ledger entry together so the three cannot disagree.
-      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
-      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
-      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
-      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
-      finding recurring one item later** (*"a claim in the record that the record itself
-      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
-      the reusable half is narrower than "don't lie": **a note about work still to do must never live
-      inside a row you are closing** — the close is exactly what makes it unreadable.
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
@@ -535,7 +547,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-216`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
@@ -553,7 +564,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
-
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -563,7 +573,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
-
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -580,7 +589,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
-
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -609,6 +617,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
+
 - [ ] **THE AUTOMATIC VISION JUDGE CLEARED A SCREEN WITH PLAINLY CLIPPED TEXT ON IT — filed
       ⟨`T-019`⟩
   2026-09-02 so nobody reads "218 PASS in 221" as "the screens are clean".**
@@ -640,6 +649,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
+
 - [ ] **THE DIRECTOR RE-AIMS FOR NOTHING AT ALL FOR THE FIRST SECONDS OF A VOYAGE.** Measured
       ⟨`T-213`⟩
   2026-09-03 by watch d4 while fixing `T-211`, and handed over rather than fixed. With the frame key
@@ -650,12 +660,14 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   see.** `scripts/qa/t211_reframe_on_new_captains_check.mjs` now waits for the director to prove it
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
+
 - [ ] **THE KIT'S COPY OF THE GLASS STILL SAYS "Do it" AND "Don't".**
       ⟨`T-217`⟩
       `claude-kit/plugins/wyclau/bin/glass.mjs:661-662`, found by CEO 172. The project copy is
       correct and `vendor_check.mjs` reports it AHEAD, so this is the back-port pass working as
       designed rather than drift — **but the kit is the copy that leaves this machine**, and it
       still shows his old labels. Take it with the other seven files that copy is behind on.
+
 - [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
       ⟨`T-212`⟩
   KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
@@ -705,9 +717,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
 
-- [ ] Your ruling: ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-102`⟩
-
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
 
@@ -745,13 +754,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
-
-- [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-102`⟩
-
-- [ ] Your ruling: **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. — his answer: YES — his words to the Advisor, 2026-09-03 ~11:55 AM ET: "for every call i need to make, you should label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box". He also named the cause: "There is no yes button -- only one that says do it -- but what the it is, is unclear." Built the same turn: questions declare numbered options, the page renders them, and the write-in box is labelled Other. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-
-- [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
