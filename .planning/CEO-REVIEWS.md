@@ -1,5 +1,70 @@
 # CEO reviews — the standing record
 
+## CEO Review 173 — 2026-09-03, Wy-Blade — watch h1, `T-099`: the rules-page content split, fated CLOSED — **PARTIAL**
+
+> *Spawned fresh, no inherited reasoning. Reproduced below IN ITS OWN WORDS — the watch it reviewed
+> did not soften it, and it says plainly that the watch took the wrong item. Where the watch acted
+> on a finding AFTER the verdict was written, that is marked **[acted on]** and nothing in the CEO's
+> text was edited to match.*
+
+**Verdict: PARTIAL.**
+
+**Read this first:** *"Closing this row is honest — you answered all four questions on 2026-09-02,
+and I checked each answer against the shipped page rather than against the note that says it
+shipped. All four hold, and the hard half of your Q1 ('use the latest version of the game') was
+genuinely done, not skipped: the page no longer teaches the shot clock you removed, it does teach
+the black market, and every number on it is computed by the game rather than typed. But the watch
+wrote 'Filed as its own row' about a problem it found, and no such row exists — the note is buried
+inside the very row it just made invisible. That is the same fault the last CEO caught, one item
+later."*
+
+### Item by item
+
+| # | What he asked | Verdict | Evidence with file:line |
+|---|---|---|---|
+| 1 | 2–5 questions in the question UI | **DONE** (by the earlier watch, CEO 124) | Five questions on the Glass; his four answers harvested verbatim at `.planning/CHART.md:884-903` (`T-115`–`T-118`), timestamps `22:50:08.719Z`, `22:50:32.687Z`, `22:51:10.628Z`, `22:51:18.219Z` |
+| 2 | A recommendation, then his approval | **DONE** | Recommendation `.planning/SPEC-RULES-PAGE-SPLIT.md`; his approvals are the four rulings above |
+| 3 | Close only when he answers | **HONEST** | The row's own condition (`CHART.md:1131`) is met — he answered twelve hours before the close |
+| 4 | Q1 "a new /rules.html" | **TRUE** | `rules.html` exists; `rules.html:10` canonical `https://playpastrypirates.com/rules.html` |
+| 5 | Q1's second clause, "using the LATEST VERSION of the game" | **TRUE — and this is the strong part** | `scripts/qa/rules_page_check.mjs:6-25` and its green run: *"the shot clock is gone and the page no longer teaches it"*, *"the black market is live (engine.canBlackMarket) and the page teaches it"*, *"the bake-off ships (src/ui/bakeoff.js) and the page teaches it"*, nine facts derived from `rulesFacts(roundCfg(...))` |
+| 6 | Q2 "delete How it plays" | **TRUE** | `about.html` has no section — the four remaining hits are one CSS comment (`about.html:95`) and two gravestone comments (`about.html:173`, `about.html:197`); gate: *"about.html carries no 'How it plays' section"* |
+| 7 | Q3 "full text, modal stays the source" | **TRUE** | `scripts/build_rules_page.mjs:24-29` generates from the modal; `scripts/qa/rules_page_check.mjs:236` fails on one byte of drift; it is in `npm test` (`package.json:34`); red-proof at `scripts/qa/rules_page_redproof.mjs` |
+| 8 | Q4 "pirate speak" | **TRUE** | `rules.html:74` — *"Everything ye need to sail, trade, fight and bake"* |
+| 9 | "Filed as its own row rather than fixed quietly" | **FALSE** | See finding 1 — **[acted on]**: filed as ⟨`T-216`⟩, and the sentence corrected |
+| 10 | The row actually leaves his page | **NOT ESTABLISHED** | See finding 3 |
+
+### Findings
+
+1. **⛔ "Filed as its own row" is a claim the record contradicts.** `CHART.md:1155` says the still-`OPEN` handle `INBOX-20260902T225008Z` was *"Filed as its own row rather than fixed quietly."* `grep 225008 .planning/CHART.md` returns exactly three lines — 1143, 1150, 1159 — **all three inside the `T-099` block itself**. And that block is the thing this same edit declared `CLOSED`. Per `scripts/wyclau/lib/chart_model.mjs:58-79` and `:110-112`, a block whose declared verdict contains `CLOSED` is `finished`, and finished rows are hidden from his list. **So the only record of a live problem now sits inside a row built to disappear.** The pre-existing `T-204` row (`CHART.md:545-560`) covers the close gate's limitation in general but never names this handle, and it is not this watch's — the working-tree diff of `CHART.md` contains exactly one hunk from watch h1, the `T-099` rewrite.
+   **[acted on]** — filed as ⟨`T-216`⟩ at the top of `### ⚑ FOR A WATCH`, outside the closed block, and the sentence at `CHART.md:1155` now points at it.
+
+2. **⛔ Falsifier F4 was written and never answered.** `.planning/wyclau/PREDICTION-20260903T1548Z-T-099.md` names F1–F4 and the file ends at *"What I will NOT do"* — there is no WHAT HAPPENED section. F1, F2 and F3 are answered implicitly in the Chart text. **F4 — *"If the ranker put this row first for a reason other than its own merit… I will say so plainly rather than dress the close up as progress"* — is answered nowhere in either file.** That is the falsifier that would have made the watch confront question 5, and it is the one left blank.
+   **[acted on]** — a WHAT HAPPENED section now answers all four, F4 in the CEO's own terms, plus the scoring gap that produced it.
+
+3. **The one player-facing effect of this item is not established to have happened.** `.planning/wyclau/LAST-PUBLISH` reads `2026-09-03T15:52:03.174Z`, stamped with commit `4dbc7842` — the other session's base. `.planning/CHART.md` was last written at `15:52:57Z`, **54 seconds after that publish**, and the change is still uncommitted. So the Glass he opens was rendered from a Chart that is no longer the Chart, and nothing here shows `T-099` has left his list. Removing a stale row from his page was the entire deliverable; it needs a publish and a look before anyone tells him it happened. *(CEO 124's finding on this same row, verbatim: "a fix that has not been republished is a fix he cannot see.")*
+   **[partly acted on]** — this session has **no Artifact tool** and cannot publish. The Glass session was asked to publish (Door step 6b) and `.planning/wyclau/GLASS-NOTE.md` carries what he should see. **Nobody should read this as "the row is gone from his page" until that publish lands.**
+
+4. **Minor, and not this watch's doing:** CEO 171's third small hole is still open and filed nowhere — `rules.html:106`, *"a two-captain voyage prices its crates differently"*, is hand-typed and derived from nothing while every other number on the page comes from `rulesFacts()`. The `T-099` fate says *"every one of your answers is now built and live"*, which is fair; this is a `T-100` leftover, not a paper-over.
+
+### Does CEO 172's fault recur?
+
+**Yes, both halves of it, one item later.**
+
+- *"Filed on the Chart for the Advisor"* written as fact when nothing was filed → **`CHART.md:1155` "Filed as its own row", and no row exists.** CEO 172's sentence applies unchanged: *"a gap that lies about itself is harder to catch than a gap that is silent."* This one is worse in one respect — the false claim is inside a row that the same edit made invisible, so it removes itself from view.
+- *A falsifier written and not answered* → **F4, above.** CEO 171 caught the identical shape on the previous watch (*"its 'WHAT HAPPENED' section was left empty"*, marked **[acted on]**), and it is empty again.
+
+What did **not** recur, and deserves saying: CEO 171's *"the wrong record has propagated into the review process"* is **fixed here**. This watch checked each of his four answers against the shipped file, not against the note claiming it shipped, and the check it leaned on is a real fence with a real red-proof.
+
+### Was this the right item?
+
+**No — and F4 was written to force exactly this answer and was left blank.** A watch was spent on bookkeeping: zero game code, no screenshot, and the deliverable was one row leaving a list. It is defensible under the Door's "take rank 1" rule, and closing a row that says it is waiting on an answer he already gave is real value on his page. But it is small, and the Chart below it holds player-visible bugs that are measured, filed, and unclaimed.
+
+**The row I would have taken instead: `CHART.md:389` — "THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET".** The Chart's own words call it *"the one unambiguously broken"* thing, it is a picture he can see, and it is exactly the kind of fault rule 26 says two posed screenshots settle in minutes. Runners-up on the same page: `CHART.md:535` (on a 390px phone the top row of the board cannot be brought fully on screen — the seat he actually playtests) and `CHART.md:453` (the last screen hides the award winners' names behind the PLAY AGAIN button).
+
+**What must happen before this is handed to Wyatt:** file the `INBOX-20260902T225008Z` problem as a real `- [ ]` row or correct the sentence at `CHART.md:1155`; answer F4 in the prediction file; republish the Glass and confirm the row is gone from his page.
+
+---
+
 ## CEO Review 172 — 2026-09-03, Wy-Blade — watch 2026-09-03T1513Z, `INBOX-20260903T142249Z`: his DO NOW pin, Approve/Deny + number the options — **PARTIAL**
 
 > *Spawned fresh, no inherited reasoning. Its verdict is reproduced below IN ITS OWN WORDS — the

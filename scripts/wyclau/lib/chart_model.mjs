@@ -157,6 +157,55 @@ export function chunk(sectionText, marker) {
 
 export const ID_RE = /`(T-\d{3})`/;
 
+/* ═══ THE OPTIONS ON A QUESTION PUT TO WYATT — his instruction, 2026-09-03 ~11:55 AM ET:
+ *
+ *   "please change the response buttons -- they are unclear. There is no 'yes' button -- only one
+ *    that says 'do it' -- but what the 'it' is, is unclear. for every call i need to make, you
+ *    should label your suggestions in the same way as the claude question UI does -- with numbers,
+ *    and a (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box"
+ *
+ * ⛔ THE CAUSE IS NOT THE BUTTON WORDS, AND RELABELLING THEM WOULD ANSWER THE SENTENCE AND NOT THE
+ * COMPLAINT. The Glass had three FIXED buttons — Approve / Deny / Let's talk — identical on every
+ * card, so they could not name what he was approving. The only per-question text was one prose line
+ * beginning "My recommendation:", which the buttons never referred to. **"Approve" meant "the thing
+ * in that paragraph", and he had to hold the paragraph in his head while pressing a word that did
+ * not repeat it.**
+ *
+ * So a question DECLARES its options, and the page renders them numbered. Written in the
+ * Recommendation cell of `## BLOCKED ON WYATT`, in a form that still reads as prose to anyone
+ * opening the file in an editor:
+ *
+ *     1. Give me a way back (recommended) · 2. Save only the rows I dragged · 3. Nothing is wrong
+ *
+ * SEPARATOR: `·` or `|` is not available (the cell is a markdown table cell), so options are split
+ * on the NUMBER ITSELF — `N.` at a boundary — which means an option may contain any punctuation
+ * except a bare "N." sequence. Tested against a decimal ("2.6s budget") because this project's
+ * questions really do quote measurements.
+ *
+ * RETURNS [] when the cell declares none — every question written before today, which must keep
+ * working. That fallback is the thing most likely to become a permanent excuse, so
+ * `glass_numbered_options_check.mjs` requires options on any question added from now on. */
+export function questionOptions(recCell) {
+  const text = String(recCell ?? "").trim();
+  /* A boundary before the digit, so "2.6s" inside an option's text cannot start a new one:
+     the number must open the string or follow whitespace, and be followed by "." then a space. */
+  const parts = text.split(/(?:^|\s)(?=[1-9]\d?\.\s)/).map((x) => x.trim()).filter(Boolean);
+  const opts = [];
+  for (const part of parts) {
+    const m = /^([1-9]\d?)\.\s+([\s\S]+)$/.exec(part);
+    if (!m) continue;
+    let label = m[2].trim().replace(/[·|;]\s*$/, "").trim();
+    /* (recommended) is stripped from the LABEL and raised to a flag — his phrasing, and it must not
+       be part of the button text or it reads as an option called "X (recommended)". */
+    const rec = /\(recommended\)/i.test(label);
+    label = label.replace(/\s*\(recommended\)\s*/i, " ").replace(/\s+/g, " ").trim();
+    if (label) opts.push({ n: m[1], label, recommended: rec });
+  }
+  /* ONE option is not a choice — it is the old prose line with a numeral on it, and rendering a
+     single button would be worse than the three words it replaced. Two or more, or nothing. */
+  return opts.length >= 2 ? opts : [];
+}
+
 /* ═══ WHO OPENLY CARRIES A HANDLE — ONE DEFINITION, because two files were each deciding
    "is this handle ambiguous?" on their own, which is rule 23 inside the fix written to close
    rule 23's last instance (`T-122`, filed by CEO 132).

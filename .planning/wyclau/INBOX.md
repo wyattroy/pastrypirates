@@ -2083,3 +2083,31 @@ status: DONE 2026-09-02 — measured red, fixed, measured green, and the guarant
 > Change the buttons that say Do It and Don’t to Approve and Deny— and always when giving me options to choose number or letter them
 solution: none stated
 status: DONE 2026-09-03 — CEO 172, no game diff — no game code is right: the buttons he named are on the Glass, his own status page -- glass.mjs, harvest_glass.mjs, a new gate and the CHARTER, commit 3abce5e8; index.html and src/ untouched
+
+## INBOX-20260903T1600Z — the Your Call buttons are unclear: number the options like Claude's question UI
+> "please change the response buttons -- they are unclear. There is no "yes" button -- only one
+> that says "do it" -- but what the "it" is, is unclear. for every call i need to make, you should
+> label your suggestions in the same way as the claude question UI does -- with numbers, and a
+> (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box"
+solution: label every option the way Claude's question UI does — NUMBERED (1, 2, 3, 4), one marked
+  **(recommended)**, and a write-in box for "other". He replies with the number.
+status: OPEN
+
+## INBOX-20260903T1605Z — always get CEO to approve your work
+> "always get CEO to approve your work"
+solution: his words — the CEO runs after EVERY item, before he sees it, and its verdict reaches him
+  in ITS words. Restated because he had to say it again mid-turn on 2026-09-03.
+status: OPEN — standing instruction, not a one-off
+
+## INBOX-20260903T1615Z — THE LESSON is two days old, formatted wrong, and nothing formally produces one
+> "also: the Lesson is two days old; it is formatted wrong, and whatever process is supposed to give
+> me new ones does not exist in a formal way yet. build that, get CEO approval."
+solution: build the process that produces a lesson (his words), and fix the formatting. Three faults
+  are visible in the screenshot he sent:
+    (a) STALE — the card reads "No lesson yet today — the day's close owes one. The newest, from
+        2026-09-01". Today is 2026-09-03.
+    (b) HARD-WRAPPED SOURCE RENDERED LITERALLY — lines break mid-sentence ("...because from the
+        outside a" / "hard-working session and a dead one look identical.") because the source is
+        wrapped at ~95 columns for an editor and the page prints those newlines.
+    (c) MARKDOWN NOT RENDERED — *crash-only design* shows as literal asterisks on his page.
+status: OPEN

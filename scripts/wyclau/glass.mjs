@@ -72,7 +72,7 @@ import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 /* THE ONE READING OF WHAT IS OPEN. See the convergence note further down: this file used to carry
    its own copy of the fate rule and the two drifted by eleven rows within hours. One function now. */
-import { chunk, stateOf, parkedReason, titleOf, questionId, stripQid, idOfRow, ambiguousHandles } from "./lib/chart_model.mjs";
+import { chunk, stateOf, parkedReason, titleOf, questionId, stripQid, idOfRow, ambiguousHandles, questionOptions } from "./lib/chart_model.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WY = join(ROOT, ".planning", "wyclau");
@@ -462,6 +462,9 @@ if (chart !== null) {
     .map(([q, rec, since]) => ({
       id: questionId(q).id,
       q: unmark(stripQid(q)), rec: unmark(rec ?? ""), since: since ?? "",
+      /* HIS NUMBERED OPTIONS — see `questionOptions` in lib/chart_model.mjs for why the buttons
+         could not name what he was approving until a question declared them. */
+      opts: questionOptions(unmark(rec ?? "")),
     }));
   const inboxSec = chart.split(/^## THE IDEA INBOX$/m)[1]?.split(/^## /m)[0] ?? "";
   /* WHOLE BLOCKS, not first lines. An idea's fate ("SHIPPED", "PARKED", "SCHEDULED") is written
@@ -966,10 +969,13 @@ const state = { v: 2, generatedAt: nowIso, lastProgressAt: lastProgressIso, long
 
 // DEMO MODE renders two example asks INTO THE PAGE ONLY (blocked/asks markup below); it never
 // touches `state`, so glassState.ideas/rulings on a --demo render are identical to a real one.
+/* The demo cards show BOTH shapes on purpose: one with his numbered options and one without, so a
+   --demo render proves the fallback still draws rather than only the new path. */
 const demoAsks = !DEMO ? [] : [
-  { id: "demo-1", q: "Should the wind gauge show forecast, or just the current push?", rec: "Current only — the forecast lives in the narration line already." },
+  { id: "demo-1", q: "Should the wind gauge show forecast, or just the current push?",
+    rec: "1. Current push only (recommended) · 2. Show both · 3. Let me toggle it" },
   { id: "demo-2", q: "Ship a small music bed under the lobby screen?", rec: "Not yet — the mute control redesign should land first." },
-];
+].map((a) => ({ ...a, opts: questionOptions(a.rec) }));
 const askList = [...(blocked ?? []), ...demoAsks];
 
 /* THE PAGE, WITH TWO TOKENS. __GLASS_STATE__ is replaced by the state JSON; __GLASS_TPL__ by a
@@ -1145,6 +1151,16 @@ const PAGE = `<meta charset="utf-8">
   .rb{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;
     padding:.5rem .9rem;font:inherit;cursor:pointer;}
   .rb[aria-pressed="true"]{background:var(--teal);color:var(--parch);border-color:var(--teal);font-weight:600;}
+  /* HIS NUMBERED OPTIONS. Full-width and stacked, because the labels are sentences rather than
+     single words and a row of them would wrap into an unreadable hedge on a phone. The NUMBER is
+     the thing he reads first -- he asked to "reply with 1, 2, 3, 4" -- so it is bold and leads. */
+  .rb.num{display:flex;align-items:baseline;gap:.5rem;width:100%;text-align:left;line-height:1.4;}
+  .rb.num b{color:var(--accent);font-size:1.05em;min-width:1ch;}
+  .rb.num[aria-pressed="true"] b{color:var(--parch);}
+  .ruleRow:has(.rb.num){flex-direction:column;align-items:stretch;}
+  .recTag{margin-left:auto;padding:.1rem .45rem;border-radius:999px;background:var(--lemon);
+    color:#5a4a00;font-size:.72em;font-weight:600;white-space:nowrap;}
+  .rb.num[aria-pressed="true"] .recTag{background:var(--parch);color:var(--ink);}
   .rnote{width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);border:1px solid var(--line);
     border-radius:8px;padding:.5rem;font:inherit;font-size:.93rem;resize:vertical;}
   .rstate{margin:.4rem 0 0;font-size:.88rem;}
@@ -1178,7 +1194,7 @@ const PAGE = `<meta charset="utf-8">
       ? `<p class="bad">This page could not read part of BLOCKED ON WYATT — there is content in that section that is not a table row, so a question may be waiting there that this card cannot show. Open .planning/CHART.md.</p>`
       : `${blockedUnreadable ? `<p class="bad">…and there is more in that section this page could not read — content that is not a table row. Open .planning/CHART.md.</p>` : ""}<div id="asks">${askList.map((b) => `<div class="ask" data-id="${esc(b.id)}">
       <p class="q">${esc(b.q)}${b.id.startsWith("demo-") ? `<span class="demoTag">example — not real</span>` : ""}</p>
-      <p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>
+      ${b.opts.length ? "" : `<p class="rec"><b>My recommendation:</b> ${esc(b.rec)}</p>`}
       <!-- HIS WORDS, DO NOW pin, 2026-09-03 10:22 AM ET: "Change the buttons that say Do It and
            Don't to Approve and Deny". Two labels, and only two — "Let's talk" is not in his
            sentence and is left exactly as it was.
@@ -1189,12 +1205,13 @@ const PAGE = `<meta charset="utf-8">
            glassState.rulings, and the redraw below compares a saved ruling against them to decide
            which button shows as pressed. Renaming a value would un-press every answer already
            saved on his live page. Gated: glass_ruling_button_words_check.mjs case 4. -->
-      <div class="ruleRow">
-        <button type="button" class="rb" data-choice="yes">Approve</button>
+      <div class="ruleRow">${b.opts.length
+        ? b.opts.map((o) => `<button type="button" class="rb num" data-choice="opt${esc(o.n)}" data-label="${esc(o.label)}"><b>${esc(o.n)}</b> ${esc(o.label)}${o.recommended ? `<span class="recTag">recommended</span>` : ""}</button>`).join("")
+        : `<button type="button" class="rb" data-choice="yes">Approve</button>
         <button type="button" class="rb" data-choice="no">Deny</button>
-        <button type="button" class="rb" data-choice="talk">Let's talk</button>
+        <button type="button" class="rb" data-choice="talk">Let's talk</button>`}
       </div>
-      <textarea class="rnote" rows="2" placeholder="A note, if you want one — your words outrank the button."></textarea>
+      <textarea class="rnote" rows="2" placeholder="${b.opts.length ? "Other — write your own answer here. Your words outrank the buttons." : "A note, if you want one — your words outrank the button."}"></textarea>
       <p class="muted rstate"></p>
     </div>`).join("")}</div>`}
   </section>`}
@@ -1557,8 +1574,23 @@ const PAGE = `<meta charset="utf-8">
       if (el.getAttribute("data-id").indexOf("demo-") === 0) return; // demo cards never save
       var id = el.getAttribute("data-id");
       if (!state.rulings) state.rulings = {};
+      /* STORE THE WORDS, NOT THE NUMERAL. T-121 harvested ruling reads "Wyatt ruled yes" and its
+         own entry admits "the alternative he did not pick: not recorded" -- storing "2" alone would
+         be strictly worse, because a number is meaningless in DECISIONS.md once the question card
+         is gone. The label he pressed AND every option he was shown go with it.
+         NO BACKTICKS IN THIS COMMENT: it sits inside the client-script template literal, and one
+         backtick ends the string and stops the whole generator parsing. The file says so a hundred
+         lines up; I did it anyway on the first try. */
+      var lbl = null, allOpts = [];
+      Array.prototype.forEach.call(el.querySelectorAll(".rb"), function(b){
+        var d = b.getAttribute("data-label");
+        if (d) allOpts.push(b.getAttribute("data-choice") + ": " + d);
+        if (b.getAttribute("data-choice") === choice && d) lbl = d;
+      });
       state.rulings[id] = {
         choice: choice,
+        chose: lbl,
+        options: allOpts,
         note: el.querySelector(".rnote").value.trim(),
         q: el.querySelector(".q").textContent,
         at: new Date().toISOString(),

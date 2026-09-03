@@ -267,6 +267,28 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
+      ⟨`T-216`⟩
+      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
+      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
+      its own status line says what it is waiting for: *"the answer that unblocks
+      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
+      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
+      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
+      **WHAT IT NEEDS:** a close through `scripts/wyclau/close_item.mjs`
+      (`--item="INBOX-20260902T225008Z" --ceo=<n> --commit=4dbc7842`), which writes the fate, and
+      check whether `INBOX-20260902T190730Z` and `INBOX-20260902T225032Z`'s siblings are in the same
+      state while you are in there. **NOT hand-patched** — the gate writes the INBOX fate, the tick
+      and the ledger entry together so the three cannot disagree.
+      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
+      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
+      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
+      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
+      finding recurring one item later** (*"a claim in the record that the record itself
+      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
+      the reusable half is narrower than "don't lie": **a note about work still to do must never live
+      inside a row you are closing** — the close is exactly what makes it unreadable.
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -726,6 +748,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 - [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-102`⟩
+
+- [ ] Your ruling: **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. — his answer: YES — his words to the Advisor, 2026-09-03 ~11:55 AM ET: "for every call i need to make, you should label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box". He also named the cause: "There is no yes button -- only one that says do it -- but what the it is, is unclear." Built the same turn: questions declare numbered options, the page renders them, and the write-in box is labelled Other. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -780,8 +804,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
-| <!--qid:donow-buttons-numbered--> **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. | **(1) — Recommended.** Numbers on a tap target are decoration, and the clause that earns its keep is the one covering everything you answer in words. Say the word and (2) or (3) is a two-string change with the gate already around it. | 2026-09-03 |
-| <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
+| <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | 1. I have done it — tick this away (recommended) · 2. Remind me again tomorrow · 3. Not worth doing — drop it · 4. Do it for me if you ever can (you cannot: only the property owner can) | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions
@@ -833,6 +856,7 @@ stranded.*
 
 | item | HIS RULING | now |
 |---|---|---|
+| <!--qid:donow-buttons-numbered--> **Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves?** You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: **Approve · Deny · Let's talk**. I did not number them on my own, because the reason numbering helps is that you can reply *"B"* in a few words — and a button you TAP does not need a name to say back. Three ways to go: **(1)** leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; **(2)** number these three too — *1 Approve · 2 Deny · 3 Let's talk* — so "always" really does mean always and there is nothing to remember; **(3)** letter them instead — *A · B · C*. | YES — his words to the Advisor, 2026-09-03 ~11:55 AM ET: "for every call i need to make, you should label your suggestions in the same way as the claude question UI does -- with numbers, and a (recommended) -- so I can reply with 1, 2, 3, 4, or other and write in the box". He also named the cause: "There is no yes button -- only one that says do it -- but what the it is, is unclear." Built the same turn: questions declare numbered options, the page renders them, and the write-in box is labelled Other. | |
 | <!--qid:t206-ga-turn-on--> ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. | Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial | |
 | <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | yes | |
 | <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | Leave it. | |
@@ -1121,15 +1145,39 @@ session's mandate is harvest-and-publish only.**
   About keeps, and whether the in-game modal shows the full text or a short version that links out.
 
   Do not write any code this session. Come back with a recommendation and let me approve it."* →
-  **WORKED 2026-09-02 6:3xPM ET, CEO 124 (PARTIAL), commit `2b2ef256`, closed as
-  `INBOX-20260902T190723Z`. THIS ROW STAYS OPEN ON PURPOSE: the questions are asked and the
-  recommendation is written — the DECISION is his, and it is the five rows at the top of your Your
-  Call card.** One tap each. Recommendation: a new `/rules.html` carrying the modal's text, with
-  About's rules section deleted rather than corrected, so it stays two pages and not three.
-  Reasoning and the four measured errors on the public About page:
-  [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md). **`T-100` (build the page) and `T-101`
-  (the credits page) are blocked on question 1 by his own sentence.** This row closes when he
-  answers, not before.
+  **CLOSED 2026-09-03 — you answered all four questions, and every one of your answers is now
+  built and live.** Your rules live at `/rules.html`; About's old "How it plays" is gone; the
+  in-game modal is still the one source the page is generated from; and the page speaks pirate.
+  Recommendation as approved: a new `/rules.html` carrying the modal's text, with About's rules
+  section deleted rather than corrected, so it stays two pages and not three. Reasoning and the
+  four measured errors on the public About page:
+  [`SPEC-RULES-PAGE-SPLIT.md`](SPEC-RULES-PAGE-SPLIT.md).
+  The row's own condition was *"this row closes when he answers, not before"* — worked
+  2026-09-02 6:3xPM ET (CEO 124, commit `2b2ef256`, closed as `INBOX-20260902T190723Z`), and
+  fated 2026-09-03 by watch h1 once all four answers were checked against the shipped pages.
+
+  **THE FOUR ANSWERS, EACH CHECKED AGAINST THE THING THAT SHIPPED — not against the note that
+  says it shipped** (`.planning/wyclau/PREDICTION-20260903T1548Z-T-099.md` names the falsifiers
+  first, and one of them fired):
+
+  | his answer | where it is on record | what was checked |
+  |---|---|---|
+  | Q1 *"Do a new /rules.html… using the latest version of the game"* | `INBOX-20260902T225008Z`, ⟨`T-115`⟩ | `rules.html` exists at the repo root, canonical `https://playpastrypirates.com/rules.html` |
+  | Q2 *"Agree with your rec — delete \"how it plays\""* | `INBOX-20260902T225032Z`, ⟨`T-116`⟩ | the section is gone from `about.html`; its three remaining mentions are a CSS comment and two HTML gravestones |
+  | Q3 *"Do your recommendation — full text, modal stays the source"* | ⟨`T-117`⟩, 22:51:10.628Z | `rules.html` is GENERATED from the modal by `scripts/build_rules_page.mjs`; `rules_page_check.mjs` re-runs it every `npm test` and goes red on a one-byte drift |
+  | Q4 *"Pirate speak!"* | ⟨`T-118`⟩, 22:51:18.219Z | the shipped page is in ye/yer throughout — *"Everything ye need to sail, trade, fight and bake"* |
+
+  ⛔ **AND THE FALSIFIER THAT FIRED, BECAUSE IT IS THE REUSABLE PART.** The prediction said: *if a
+  `BLOCKED ON WYATT` question still names this row, it is genuinely waiting on him.* None does —
+  but the check turned up something else. **`INBOX-20260902T225008Z` — his own Q1 ruling — still
+  reads `status: OPEN`, and its stated purpose is *"the answer that unblocks
+  `INBOX-20260902T190730Z` (build the rules page)"*. The page has been built and closed
+  (`T-100`, CEO 171).** So his answer is sitting in the queue as an open instruction whose whole
+  job is already done, which is the same shape as the complaint he made on 2026-09-02 6:57 PM ET.
+  **NOT hand-patched:** an INBOX fate is `close_item.mjs`'s to write, and that gate needs a Chart
+  row that OWNS the handle. **Filed as ⟨`T-216`⟩ at the top of `### ⚑ FOR A WATCH`** — a real open
+  row, outside this block, because CEO 173 caught the first version of this sentence claiming a
+  filing that did not exist, inside the very row this edit was closing.
 
   ### ⚑ HE ANSWERED 1 AND 2 ON 2026-09-02 AT 6:50 PM ET, AND FOR TWELVE HOURS NOBODY TOLD THIS ROW
   **Q1 → `INBOX-20260902T225008Z`:** *"Do a new /rules.html that explains the rules -- using the
