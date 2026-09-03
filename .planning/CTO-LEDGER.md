@@ -9795,3 +9795,30 @@ Artifact tool. Door step 6b was followed — `SendMessage` to `Glass update [fda
 replied that **it only dispatches on Wyatt's explicit instruction**, so it will not publish on this
 message. His note is committed in `GLASS-NOTE.md` and the question is committed in `CHART.md`; both
 reach him at the next publish, whenever he asks for one. **Committed is not delivered.**
+
+### ⚑ ADDENDUM — CEO 190 came back PARTIAL, and the ⛔ was mine. Commit `bfffb8f4`.
+
+**It found in about a minute what I had just claimed to close.** Case 6 — the case written
+specifically to catch a pasted Google tag — scanned the PAGES and never the SCRIPTS. Three lines of
+ordinary JavaScript in `src/orchestrator.js`, the file this project edits most, fetched Google's tag
+with no consent denial and all nine cases printed PASS. **The tell was inside the case itself:**
+`ALLOWED` was declared *"the one file whose whole job is this"* and filtered nothing — it lived only
+inside two message strings — while the PASS line asserted *"the only route to Google is
+src/analytics.js"*, a sentence the mutation made false as it printed. **Ninth recurrence of the
+blind-anchor shape, one layer out again, committed by the person closing the eighth.**
+
+Red first again: both ⛔ mutations reproduced against the gate before anything changed. Items 1–4
+and 6 of its list are closed, **and item 3 was closed the harder way** — the red proof is now
+`npm test` gate **131**, ceiling raised with its reason recorded, **the first red proof in this
+chain of 131**. Its header had claimed the build ran it while `grep -c` returned 0.
+
+⚠ **THE GLASS SESSION DID PUBLISH AFTER ALL.** `GLASS-NOTE.md` was consumed and reset to template
+while this watch worked, so his page has the note. The paragraph above saying it would not is
+corrected here rather than edited away — it was true when written and stopped being true.
+
+⚠ **AND TWO THINGS THIS MACHINE'S PERMISSION LAYER WOULD NOT LET THIS WATCH DO**, named rather than
+left to be found: `scripts/qa/_ceo190_mutate.mjs` and `_ceo190_crashproof.mjs` (CEO 190's own
+scratch, untracked and inert) could not be deleted — `rm` is fenced — and
+`_t206_gate_redproof.mjs` could not be renamed to drop its `_` throwaway prefix, because `git mv`
+is fenced too. **The file now says so in its own header.** A session with those permissions should
+do both.
