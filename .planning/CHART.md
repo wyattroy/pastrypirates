@@ -341,6 +341,43 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
 
+- [ ] **TEN SCREENS THE EYES REJECTED IN THE 0624Z TRIAL — FIVE REAL LAYOUT BUGS, AND NOBODY HAD
+      ⟨`T-142`⟩
+      OPENED THEM.** Extracted 2026-09-03T08:5xZ from `sea-trial-shots/legs/*2026.09.03.1.json`;
+      **two verified by eye against the screenshots, not taken from the judge's word.**
+      **THESE ARE THE ONLY GAME-FACING FINDINGS OF THE NIGHT.** CEO 156: *"the half most likely to be
+      a real bug a player would see, and they are the half nobody has opened — rule 19's live
+      detector doing its job and being filed as a footnote under a settle-timing story."*
+      **1. THE "PLAY AGAIN!" BUTTON SITS ON TOP OF THE AWARD CARDS AND CUTS THEIR LABELS.**
+      `crew-phone-host-027`, `solo-phone-021`. **Verified by eye:** the button overlaps both cards
+      and the right-hand label is cut off mid-word. **This is the LAST SCREEN A PLAYER SEES.**
+      Phone and crew-phone — two independent legs, same fault.
+      **2. THE RECIPE MODAL CLIPS THE FIRST TWO CAPTAINS OFF THE CAPTAINS PANEL.** FOUR screens,
+      two legs, tablet only: `solo-tablet-002/003`, `solo-tablet-wk-002/003`. **Verified by eye:**
+      *"Davy Scones"* renders as **"Davy"** and *"Dough Hook"* as **"Dou"**, and both lose their
+      dubloon counts, while Flaky Jack and Crustbeard below are complete. **The most repeated fault
+      in the run.**
+      ⚠ **AND SOMETHING THE JUDGE DID NOT FLAG, which is rule 22's point — his annotations are a
+      floor, not a ceiling:** the same screen's top bar reads **`WIND NOW: ? · FORECAST: ?`** on
+      Day 1. That may be correct before any wind exists; **it is unverified either way and nobody
+      asked.**
+      **3. THE CAPTAINS PANEL BLEEDS THROUGH THE END-OF-VOYAGE MODAL WITH NO DIMMING.**
+      `solo-tablet-029` — *"pink captains panel from the screen behind bleeds through, clipped at the
+      left and right edges, with no dimming overlay to hide it."*
+      **4. THE FORECAST RIBBON IS CUT OFF BY THE SIDEBAR.** `solo-desktop-wk-016` —
+      *"`FORECAST: S...` truncated."* Desktop-wide only.
+      **5. THE "ARRGH!" BUBBLE FLOATS WITH NO TAIL**, unconnected to any ship. `solo-desktop-020`,
+      `solo-tablet-wk-017`. **Lowest confidence of the five (0.6 and 0.55) and the only one I did
+      NOT verify by eye — treat it as observed-once, not measured** (rule 6).
+      **THE SHAPE ACROSS ALL FIVE: something on top of something else, cutting its text.** Four of
+      the five are one element overlapping another's words. That is one class of bug, not five, and
+      it is worth asking whether one layering rule fixes most of it (rule 23's question: what makes
+      these agree?).
+      ⛔ **THESE BLOCK THE STAGING DEPLOY** — six of ten legs stay red on them and on four untried
+      buttons even if `T-141`'s settle bug is fixed. See `GLASS-CHART.md` `T-136`.
+      **Sizing: the bugs are SMALL and each is a screenshot away from being confirmed. There are five
+      of them and they are GAME CODE, so: FULL gear, and posed pairs (rule 26) rather than a rate.**
+
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
@@ -361,7 +398,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
-
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
