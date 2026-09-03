@@ -355,45 +355,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
 
-- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
-      ⟨`T-237`⟩
-  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
-  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
-  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
-  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
-  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
-  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
-  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
-  `judge-1914Z-shots/` and are the "before" of the posed pair.
-  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
-  compact label as `short:` — the captain's name as line one of a two-line label inside a
-  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
-  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
-  shorten (his standing instruction on the call circles: *"Fix this universally, not through
-  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
-  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
-
-  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
-  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
-  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
-  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
-  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
-  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
-  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
-  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
-  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
-  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
-  name to the disc, written once.
-      ⚑ **WORKED 2026-09-03T1959Z, NOT YET CLOSED — a FULL trial is sailing on it.** His solution
-        ("Do bigger circles, not smaller text") is implemented in `src/ui/stage.js`
-        (`fitFanToLabels`); the new gate `scripts/qa/trade_circle_type_size_check.mjs` went RED
-        (12 labels at 5.5–6.0px against a declared 9.5px) and is GREEN, and the sibling fit gate is
-        green with a repaired guard. CEO 184 PARTIAL. **The close is blocked ONLY on the trial:**
-        pid 53536, `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`, build `2026.09.03.4`.
-        The next watch reads that report and, if it sails clean, closes all three `T-017` rows with
-        `close_item.mjs --ceo=184`. Full account in `.planning/CTO-LEDGER.md`.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — cites a trial report that is not on disk: .planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md
-
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
   THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
@@ -454,7 +415,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       exact evasion Wyatt chose the words "sea trial" to make impossible.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
-
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -473,6 +433,45 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
       scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
       posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
+
+
+- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
+      ⟨`T-237`⟩
+  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
+  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
+  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
+  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
+  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
+  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
+  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
+  `judge-1914Z-shots/` and are the "before" of the posed pair.
+  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
+  compact label as `short:` — the captain's name as line one of a two-line label inside a
+  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
+  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
+  shorten (his standing instruction on the call circles: *"Fix this universally, not through
+  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
+  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+
+  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
+  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
+  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
+  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
+  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
+  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
+  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
+  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
+  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
+  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
+  name to the disc, written once.
+      ⚑ **WORKED 2026-09-03T1959Z, NOT YET CLOSED — a FULL trial is sailing on it.** His solution
+        ("Do bigger circles, not smaller text") is implemented in `src/ui/stage.js`
+        (`fitFanToLabels`); the new gate `scripts/qa/trade_circle_type_size_check.mjs` went RED
+        (12 labels at 5.5–6.0px against a declared 9.5px) and is GREEN, and the sibling fit gate is
+        green with a repaired guard. CEO 184 PARTIAL. **The close is blocked ONLY on the trial:**
+        pid 53536, `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`, build `2026.09.03.4`.
+        The next watch reads that report and, if it sails clean, closes all three `T-017` rows with
+        `close_item.mjs --ceo=184`. Full account in `.planning/CTO-LEDGER.md`.
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
