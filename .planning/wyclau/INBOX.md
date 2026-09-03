@@ -2111,3 +2111,21 @@ solution: build the process that produces a lesson (his words), and fix the form
         wrapped at ~95 columns for an editor and the page prints those newlines.
     (c) MARKDOWN NOT RENDERED — *crash-only design* shows as literal asterisks on his page.
 status: OPEN
+
+## INBOX-20260903T1556Z — REPLACE Approve and Deny with 1 2 3 Other (his ruling, harvested off the Glass)
+> "this is a perfect example of why "approve" and "deny" make no sense here -- what would "approve"
+> even mean in response to your above question? Replace Approve and Deny with 1 2 3 Other, to bring
+> Glass into parity with Claude's question UI, and leave the box as a space to write "other" content
+> in"
+solution: HIS WORDS — the three fixed buttons GO. Every question gets numbered options; the write-in
+  box is the "other". Parity with Claude's question UI, which is what he asked for twice before.
+status: DONE 2026-09-03 — every card is 1 2 3 Other; a question that declares its own
+  options gets those, one that declares none gets numbered defaults. The stored keys stay yes/no/talk
+  so nothing he already ruled comes un-pressed, and option keys are now derived from the WORDS, so
+  inserting an option can never move his tick onto a choice he never made.
+  ⚠ AND HE HAD TO ASK THREE TIMES, THE LAST TIME AFTER THE OPPOSITE WAS GATED. The Advisor missed
+  this ruling for eight minutes and then wrote numbered_options_check case 4 asserting a prose
+  question KEEPS the word "Approve" — so the build would have failed on anyone doing what he asked.
+  Caught by CEO 174. A SECOND gate (glass_ruling_button_words_check) was found doing the same thing
+  from his earlier 10:22 instruction; both corrected. THE RULE EARNED: gate the PROPERTY he wanted,
+  never the literal string — the string is the part he keeps changing, and he is entitled to.
