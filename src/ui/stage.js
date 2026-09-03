@@ -2471,18 +2471,33 @@ function fitLabelToDisc(b){
   b.style.fontSize = "";                      // always start from what the stylesheet says
   const base = parseFloat(getComputedStyle(b).fontSize);
   if (!(base > 0) || !b.clientWidth){ b._fitKey = null; return; }   // not laid out yet — try again
-  /* The label fits when every painted line of it is inside the disc's own box. getClientRects()
-     gives one rect per LINE, so a name that wraps is judged on the lines it really draws — which
-     matters because "Dough Hook" can wrap and "Crustbeard" is one unbreakable word that cannot. */
+  /* THE BOUNDARY IS THE CIRCLE, NOT THE SQUARE AROUND IT — and getting that wrong once shipped a
+     green check over a still-broken screen. The petal is `border-radius:50%` (index.html:1847), so
+     its widest point is its middle and it narrows to nothing at the top. A first cut of this
+     compared each line against the button's bounding RECT and every name passed, while the posed
+     picture still showed them crossing the painted rim: CEO 136, reading that pair, — "the check
+     passes while the screen he photographed is still wrong… this is not a corner case, it is THE
+     case, because that is exactly where these labels sit."
+     So each line's four corners must lie inside the inscribed circle. getClientRects() gives one
+     rect per LINE, so a name that wraps is judged on the lines it really draws — which matters
+     because "Dough Hook" can wrap and "Crustbeard" is one unbreakable word that cannot. */
   const fits = () => {
     const br = b.getBoundingClientRect();
+    const cx = br.left + br.width / 2, cy = br.top + br.height / 2;
+    // the PAINTED rim sits inside the border, so the usable radius is the border-box radius less it
+    const bw = parseFloat(getComputedStyle(b).borderTopWidth) || 0;
+    const r = Math.min(br.width, br.height) / 2 - bw;
+    if (!(r > 0)) return true;                       // not laid out — nothing to judge
+    const r2 = (r + 0.5) * (r + 0.5);                // half a pixel of rounding tolerance
     for (const n of b.childNodes){
       if (!n.textContent || !n.textContent.trim()) continue;
       const rng = document.createRange(); rng.selectNodeContents(n);
       for (const q of rng.getClientRects()){
         if (q.width <= 0 && q.height <= 0) continue;
-        if (q.left < br.left - 0.5 || q.right > br.right + 0.5 ||
-            q.top < br.top - 0.5 || q.bottom > br.bottom + 0.5) return false;
+        for (const [x, y] of [[q.left, q.top], [q.right, q.top], [q.left, q.bottom], [q.right, q.bottom]]){
+          const dx = x - cx, dy = y - cy;
+          if (dx * dx + dy * dy > r2) return false;
+        }
       }
     }
     return true;

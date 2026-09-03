@@ -105,6 +105,7 @@ const MEASURE = `(()=>{
   for(const b of document.querySelectorAll('.apBtn[data-t017]')){
     const cs=getComputedStyle(b), br=b.getBoundingClientRect();
     let L=Infinity,R=-Infinity,T=Infinity,B=-Infinity,text='';
+    const corners=[];
     for(const node of b.childNodes){
       if(node.nodeName==='BR'||!node.textContent||!node.textContent.trim()) continue;
       /* The name arrives wrapped in <b> (pn(), src/ui/util.js:312) and the control arrives as a
@@ -116,16 +117,26 @@ const MEASURE = `(()=>{
       for(const q of r.getClientRects()){
         if(q.width<=0&&q.height<=0) continue;
         L=Math.min(L,q.left); R=Math.max(R,q.right); T=Math.min(T,q.top); B=Math.max(B,q.bottom);
+        corners.push([q.left,q.top],[q.right,q.top],[q.left,q.bottom],[q.right,q.bottom]);
       }
       if(!text) text=node.textContent.trim();
     }
     const has=isFinite(L);
+    /* THE BOUNDARY IS THE INSCRIBED CIRCLE, NOT THE SQUARE AROUND IT. The petal is
+       border-radius:50% (index.html:1847): widest at its middle, narrowing to nothing at the top —
+       which is exactly where these labels sit. Judging against the bounding RECT passed every name
+       while the posed picture still showed them crossing the painted rim. Worst overhang below is
+       the furthest any line-corner escapes that circle, in px. */
+    const cx=br.left+br.width/2, cy=br.top+br.height/2;
+    const bw=parseFloat(cs.borderTopWidth)||0;
+    const rad=Math.min(br.width,br.height)/2-bw;
+    let worst=0;
+    for(const [x,y] of corners){
+      const d=Math.hypot(x-cx,y-cy)-rad;
+      if(d>worst) worst=d;
+    }
     out.push({tag:b.dataset.t017, text,
-      /* THE DISC ITSELF is the denominator — its painted border box. This is what the eye judges
-         and what Wyatt's screenshots show being crossed: ink left of the left rim, ink above the
-         top rim. An earlier cut compared against clientWidth-minus-padding, which condemned "Walk
-         away" (a label his own screenshot shows fitting comfortably) and thereby voided its own
-         verdict. The rim is the honest boundary. */
+      out:+worst.toFixed(2), rad:+rad.toFixed(2),
       outL:has?+(br.left-L).toFixed(2):0, outR:has?+(R-br.right).toFixed(2):0,
       outT:has?+(br.top-T).toFixed(2):0,  outB:has?+(B-br.bottom).toFixed(2):0,
       box:+br.width.toFixed(2), font:cs.fontSize,
@@ -191,13 +202,11 @@ for (const s of SIZES) {
   for (const r of rows) {
     /* A hair of rounding is not a defect the eye can see; a whole letter is. 1px of tolerance
        keeps sub-pixel layout noise from being reported as a fault. */
-    const sides = [["left", r.outL], ["right", r.outR], ["above", r.outT], ["below", r.outB]]
-      .filter(([, v]) => v > 1);
-    const fits = sides.length === 0;
+    const fits = r.out <= 1;
     const label = r.tag === "control" ? `${CONTROL} (control)` : r.text;
-    const how = sides.map(([n, v]) => `${v}px ${n}`).join(", ");
+    const how = `${r.out}px past the ${r.rad}px rim`;
     console.log(`      ${fits ? "fits    " : "OUTSIDE "}  ${label.padEnd(24)} ` +
-      (fits ? `inside the ${r.box}px disc` : `ink outside the rim: ${how}`));
+      (fits ? `inside the ${r.rad}px rim` : `ink ${how}`));
     if (!fits && r.tag === "control") controlBroken.push(`${s.name}: ${CONTROL} — ${how}`);
     else if (!fits) offenders.push(`${s.name}: ${r.text} — ${how}`);
   }
