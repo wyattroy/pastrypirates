@@ -14294,3 +14294,53 @@ MISSING-404** — the exact file the old one could not see.
 contain it — the 2026-08-27 fault the CEO itself cites, re-created. It messaged the owning session
 instead and reported the state to Wyatt plainly. **On the CEO's central charge it concedes: he asked
 for an act and the act did not happen. What is on the record is why, not an excuse.**
+
+---
+
+## CEO 188 — `T-247` again, AFTER the publish. Same item, fresh context, and the previous verdict was NO.
+
+**Reviewed 2026-09-03T22:2xZ.** The `Blade` session committed the analytics work as `09f8658c` on
+this watch's ask; the watch committed `401674f8`, pushed, and ran `npm run deploy:staging`.
+
+### VERDICT — **YES**, in its own words:
+
+> **YES.** The publish happened, it is complete, and the Jekyll rule is honest — but the falsifier
+> script it rests on has since gone vacuous, and one claim in the watch's report is stale.
+>
+> **The publish is real.** `curl` of staging returns `PP4_STAMP = "2026.09.03.4-staging@401674f8"` —
+> matches `git log` HEAD. **Not read from the watch's report.**
+> **The analytics work is live**, which was the substance of "all these changes":
+> `staging.playpastrypirates.com/src/analytics.js` → HTTP **200**, and staging's `index.html`
+> carries the module tag. *"That file is the exact one CEO 187 proved the old gate was blind to. It
+> is now on his page."*
+> **I re-ran the gate myself**, not the watch's transcript: PASS, 566 files, 0 DIFFERS.
+>
+> **The Jekyll exclusion hides nothing a player loads.** *"This was the thing to be most suspicious
+> of and it survives"* — a glob for `{src,assets,audio,img,images,fonts,css,js}/**/[_.]*` returns
+> **no files**. *"This is a server fact being described, not a failure being laundered."*
+> **CEO 187's structural fault does not recur** — candidate set and hashing now read the same thing.
+
+### ITS FINDING, WHICH WAS REAL AND IS FIXED IN THIS SAME PASS
+
+> **`_t247_why404.mjs` is now a check that cannot fail.** The gate strips every Jekyll-hidden file
+> from `publishable` **before** comparing, so no hidden file can ever land in `bad`… Re-running it
+> today prints **"HYPOTHESIS HOLDS" having tested nothing.** That is rule 6's *"a measurement that
+> cannot fail is not a measurement,"* **reintroduced by the very act of teaching the rule to the
+> gate.**
+
+**THAT IS THE LESSON OF THIS ITEM AND IT IS NOT OBVIOUS: fixing a gate can silently kill the check
+that justified the fix.** The evidence was honest when taken and the artifact left on disk was not.
+**Fixed:** the gate now takes `--test-jekyll-rule`, which turns the rule OFF so the claim can be
+re-measured, and `_t247_why404.mjs` passes it and **refuses with exit 2 if it ever sees zero
+failures** — because an empty set is exactly the vacuous pass. Re-run after the fix: **84 failing,
+84 explained, 0 unexplained.** It is testing something again.
+
+**Its second finding, accepted as stated:** the gate the CEO ran was a working-tree version in no
+commit. True at the time; committed in the same commit as this verdict.
+
+**And its third, which is a standing gate on the merge, not a nice-to-have:**
+
+> `09f8658c` puts new game code on the address Wyatt plays. Staging is by design where
+> work-in-progress goes, so this is not shipping untested code to players; **naming the debt rather
+> than hiding it is correct. The gate is at `main`: that FULL trial is a hard precondition on the
+> merge.**

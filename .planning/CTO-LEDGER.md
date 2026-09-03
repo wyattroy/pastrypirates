@@ -9641,3 +9641,59 @@ minutes names `T-247`.
 Its headline call, and its falsifier, in one line: *I expect `deploy-staging.sh` to fail on this
 Windows machine for a missing `rsync`/`gh`, because that script has only ever run on his Mac and in
 one Linux container — and if it runs clean first try, that thesis is simply wrong.*
+
+### CLOSED 2026-09-03T22:3xZ — PUBLISHED. `2026.09.03.4-staging@401674f8`, 566 files verified byte for byte.
+
+**https://staging.playpastrypirates.com/** — his ask, done, and the second CEO ran the gate itself
+rather than reading my report.
+
+**BOTH MY HEADLINE PREDICTIONS WERE WRONG, IN THE SAME DIRECTION: I assumed the job was hard and
+undone.** `rsync` and `gh` are both installed here (`/c/ProgramData/chocolatey/bin/rsync`,
+`/c/Program Files/GitHub CLI/gh`), so the "Mac assumption" thesis was simply false; and `gear.mjs`
+says **FULL**, not the COSMETIC I guessed. Full account in the prediction file.
+
+**THE ARC OF THIS WATCH IS THE PART WORTH READING, because it turns on one sentence in the record.**
+
+1. At 21:41Z staging already served this branch's code, published within a minute of his
+   instruction. **My own written falsifier — *"the staging site already serves this branch's sha →
+   the item is already done"* — fired**, which is the only reason I did not re-publish for nothing.
+2. **I nearly told him "it's live" on the strength of the STAMP.** `docs/GIT-AND-DEPLOY.md` §5 is
+   the day that stamp lied: `deploy-staging.sh:270` rewrites it on the published copy, so it is a
+   claim the publisher wrote about itself. So I wrote a gate that compares **bytes** instead.
+3. **CEO 187 said NO, and it was right twice over.** *"He wrote an imperative… The watch answered a
+   question he did not ask."* And it found a real defect: my gate listed files from `git diff`
+   (COMMITTED) while hashing the WORKING TREE, so it was **blind by construction to an untracked new
+   file** — and proved it live, because `src/analytics.js` had appeared under my feet at 21:48Z and
+   the gate could not see it. **Eighth recurrence of CEO 186's shape.**
+4. **The blocker was not caution, it was a SECOND lying stamp.** `deploy-staging.sh:196` rsyncs the
+   working tree; `:261` stamps with `git rev-parse --short HEAD`. Publishing then would have put a
+   live peer's **uncommitted** analytics on his page under a stamp naming a commit without it.
+5. **So I asked instead of guessing.** `SendMessage` to `Blade [53b082]` laid out three options and
+   said I would not wait. It committed as `09f8658c` and replied *"your stamp reasoning was right
+   and I'd have made the same call."* **That is Door step 6b's mechanism used for something it was
+   not written for, and it worked.**
+6. Committed `401674f8`, pushed, published, verified: **PASS, 566 files byte-identical, 0 DIFFERS.**
+
+**⚠ AND THE FAULT I INTRODUCED WHILE FIXING ONE, because it is the subtlest thing here.** 84 files
+404 on staging; I hypothesised Jekyll (it serves no path segment starting with `_` or `.`), wrote
+`_t247_why404.mjs` with its own falsifier, measured **84 of 84 explained, 0 unexplained**, and
+taught the rule to the gate. **CEO 188 found that teaching the gate the rule KILLED the check that
+justified it** — the gate now strips those files before comparing, so `bad` is empty and the script
+printed *"HYPOTHESIS HOLDS"* over nothing. **Fixing a gate can silently make the measurement behind
+it vacuous.** Fixed: `--test-jekyll-rule` turns the rule off so the claim is re-measured, and the
+script **exits 2 rather than concluding** if it ever sees zero failures. Re-run: 84 explained again.
+
+**⛔ TWO DEBTS, NAMED SO NOBODY READS THIS AS FINISHED:**
+- **THE FULL SEA TRIAL IS OWED ON `09f8658c`.** `gear.mjs` says FULL. The trial at sea during this
+  watch started 20:31Z against `2026.09.03.4` **before analytics existed**, so it does not cover
+  this commit. Neither session started a second — that is the `T-026` fault. **CEO 188: "the gate is
+  at `main`: that FULL trial is a hard precondition on the merge."**
+- **`index.html`'s front-card privacy line no longer covers production** once Analytics is on that
+  page. Nothing fires on staging (`src/analytics.js` refuses any hostname that is not exactly
+  `playpastrypirates.com`), so staging is unaffected — but it must not reach production unamended.
+  **The `Blade` session is putting the copy question to Wyatt directly; it is not mine.**
+
+**Browsers:** this watch launched one, on port 9747, twice, and killed it by port both times —
+scoped so the sea trial's four were never touched. `stray_probe_check` reports the same 4 as when I
+arrived. **Rows skipped:** none held; I took his newest instruction over Chart rank 1 (`T-206`)
+because it is his own words eight minutes old, and reported the scoring bug that let it rank zero.

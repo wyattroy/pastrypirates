@@ -91,31 +91,35 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] **STAGING IS CURRENT WITH EVERYTHING COMMITTED — THE ANALYTICS WORK IS THE ONE THING NOT ON
+- [ ] **PUBLISHED — staging serves `2026.09.03.4-staging@401674f8`, and 566 files were checked
       ⟨`T-247`⟩
-  IT, AND IT IS UNCOMMITTED IN ANOTHER SESSION'S HANDS.** His instruction, `INBOX-20260903T213129Z`,
-  2026-09-03T21:31:29Z: *"we need to push all these changes to staging!!"*
-  **MEASURED, NOT ASSUMED — `scripts/qa/_t247_staging_parity.mjs`.** It fetches the real site and
-  compares bytes, because the build stamp is a claim the publisher wrote about itself
-  (`deploy-staging.sh:270` rewrites it; `docs/GIT-AND-DEPLOY.md` §5 is the day that lied). Its
-  candidate list is `git ls-files` **plus untracked-not-ignored** — exactly what rsync sends — and
-  its exclude list is **parsed out of `deploy-staging.sh`**, so nobody retypes it.
-  **STATE at 2026-09-03T22:0xZ:** staging serves `2026.09.03.4-staging@a72f2f12` and every
-  COMMITTED file on this branch is byte-identical on it. Photographed too (rule 19): the lobby draws
-  at 1280×900 and 390×844, `window.firebase` is LOADED, `rules.html` renders —
-  `.planning/posed/t247-staging-*.png`.
-  **WHAT IS NOT ON IT:** the `T-206` analytics work — `src/analytics.js` (untracked) and edits to
-  `index.html`, `about.html`, `rules.html`, `package.json`, `scripts/lib/rules_page.mjs`. It landed
-  at 21:48Z, **after** his instruction, and it is **uncommitted**.
-  ⛔ **WHY THIS WATCH DID NOT PUBLISH IT, AND IT IS NOT CAUTION — IT IS A SECOND LYING STAMP.**
-  `deploy-staging.sh:196` rsyncs the WORKING TREE; `:261` stamps the build with
-  `git rev-parse --short HEAD`. Publishing now puts code on the address he plays that exists in **no
-  commit**, under a stamp naming a commit without it — the 2026-08-27 fault, re-created. It is also
-  a live peer session's work, and `.claude/CLAUDE.md` §3 says shared artifacts are owned, not shared.
-  **THE NEXT STEP IS ONE COMMAND, THE MOMENT THE OWNER COMMITS:**
-  `npm run deploy:staging -- "analytics"` then `node scripts/qa/_t247_staging_parity.mjs` until PASS.
-  ⚠ **CEO 187 SAID NO TO THIS ITEM AND IT IS NOT TICKED.** Its charge stands and is worth repeating
-  rather than softening: *"He wrote an imperative… The watch answered a question he did not ask."*
+  BYTE FOR BYTE rather than taken on the stamp's word.** His instruction,
+  `INBOX-20260903T213129Z`, 2026-09-03T21:31:29Z: *"we need to push all these changes to
+  staging!!"* → **https://staging.playpastrypirates.com/**
+  **THE GATE: `scripts/qa/_t247_staging_parity.mjs`.** It fetches the real site and compares bytes,
+  because the build stamp is a claim the publisher wrote about ITSELF (`deploy-staging.sh:270`
+  rewrites it; `docs/GIT-AND-DEPLOY.md` §5 is the day that lied). Its candidate list is
+  `git ls-files` **plus untracked-not-ignored** — exactly what rsync sends — and its exclude list is
+  **parsed out of `deploy-staging.sh`**, so nobody retypes it. Photographed too (rule 19), AFTER the
+  new analytics `<script>` landed in `index.html`: lobby draws at 1280×900 and 390×844,
+  `window.firebase` LOADED, `rules.html` renders — `.planning/posed/t247-staging-*.png`.
+  **It includes `T-206`'s analytics work** (`09f8658c`), which the `Blade` session committed on this
+  watch's ask; publishing before that would have put uncommitted code on his page under a stamp
+  naming a commit without it.
+  ⚠ **TWO THINGS THAT ARE NOT DONE AND MUST NOT BE READ AS DONE:**
+  **(a) THE FULL SEA TRIAL IS OWED ON `09f8658c`.** `gear.mjs` says FULL. The trial that was at sea
+  during this watch started at 20:31Z against `2026.09.03.4` **before** analytics existed, so it
+  does not cover this commit. Neither session started a second — that is the `T-026` fault. **A
+  later watch sails it.**
+  **(b) THE FRONT-CARD PRIVACY LINE IS NOW INCOMPLETE FOR PRODUCTION.** `index.html`'s footer still
+  reads *"Anonymised move data is recorded… nothing beyond the name ye confirm… is collected."*
+  With Google Analytics on that page in production that sentence no longer covers what happens.
+  **It does not affect staging — analytics refuses any hostname that is not exactly
+  `playpastrypirates.com`, so nothing fires there** — but it must not reach production unamended.
+  Raised by the `Blade` session, which is putting the copy question to Wyatt directly.
+  ⚠ **CEO 187 SAID NO to the state of this item before the publish, and its charge is kept rather
+  than softened:** *"He wrote an imperative… The watch answered a question he did not ask."* The
+  publish above is the answer to it.
 
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
