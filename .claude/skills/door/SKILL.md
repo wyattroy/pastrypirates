@@ -179,6 +179,19 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
      You may disagree only AFTER showing the measured result of his version.
    - **A failed tool means look at the game the way he would** — screenshot it, play it. Never a
      second instrument for the same bug.
+   - ⛔ **WRITE THE PREDICTION FIRST — one file, before you measure anything.**
+     `.planning/wyclau/PREDICTION-<UTC>-<handle>.md`: what you expect, WHY, and **what would prove
+     you wrong.** Then measure, then say plainly which parts were wrong.
+     **THIS IS IN CLAUDE.md ALREADY AND IT KEEPS BEING SKIPPED — three consecutive CEO verdicts
+     (149, 151, 153) found the same session conceding it and then skipping it again.** It is here
+     because a rule at the top of a file somebody read this morning is not a rule at the moment of
+     work. The pattern is exact and it is worth knowing before it happens to you: **the claims that
+     got predictions were the ones that turned out FINE. The claim with no prediction was the one
+     that was false, every time.**
+     *Worked example, `T-021`:* a session argued the Bell stays silent while a watch is alive, from
+     the GAPS between log lines. One line — *"if the task never fired during those gaps, my
+     reasoning is wrong"* — is the falsifier it never tested, and the whole argument would have
+     collapsed on it. **Writing it down is how you notice you have not tested it.**
    - Otherwise the loop is unchanged: gear → red check first → fix → same check green → posed
      pair or played verification at the gear's depth → fresh-context CEO → verdict appended to
      `.planning/CEO-REVIEWS.md`.
