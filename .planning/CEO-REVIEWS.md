@@ -28,6 +28,200 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 158 — 2026-09-03, Wy-Blade — `T-142`: ten screens the eyes rejected — are they real? — **PARTIAL**
+
+> *Number: `grep … | sort -n | tail -1` → **157**; `grep -c "^## CEO Review 158"` → **0**, no `_ceo158_*` scratch files. Re-checked immediately before writing. I did not move.*
+>
+> *Read-only: I edited, created and committed nothing. **No browser launched** — every finding below comes from PNGs already on disk, the leg JSONs, and `src/`.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** The counting is honest and one bug here is real and worth fixing — the captains panel showing through modals on a tablet — but of the five filed, **one is not a bug at all, one is not visible in its own screenshot, two are the same bug filed twice, and the one the session was most confident about has the wrong explanation attached to it**, which would send a fixer at a layer that was already fixed the way you asked for on 2026-08-27.
+
+---
+
+### 1. ARE THE BUGS REAL?
+
+I read all ten leg JSONs and opened six of the ten screens myself.
+
+**First, provenance, because `T-015` two rows above says these filenames get overwritten.** All ten PNGs carry mtimes 02:32–03:48 EDT on 2026-09-03, inside the 0624Z run's window, and `solo-desktop-020` / `solo-desktop-wk-016` show a legible **`Build 2026.09.03.1`** in the corner. **The stale-picture hazard did not bite.** The row does not say it checked this; it got lucky rather than careful.
+
+**Bug 1 — "Play again!" over the award cards — SYMPTOM REAL, MECHANISM WRONG. This is the important one.**
+
+What I see in `crew-phone-host-027-settled.png`: the two award cards end abruptly, `test1` (left) is complete, `test2` (right) is sliced **horizontally through the middle of its letters**. In `solo-phone-021-settled.png` **both** labels are cut — "Davy Scones" and "Crustbeard", top halves only.
+
+But the button is **not** what cuts them. In both pictures the cut sits ~15px **above** the teal button, with the card's own pale background in the gap. That is not an overlap; that is content clipped at a scroller's edge with a footer sitting below it — which is precisely the fix **you specified on 2026-08-27** (`index.html`, above `.pp4Again`): *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never covering."* That comment records this same judge flagging the same screen as its **eighth** flag, twice fixed. **The shipped fix appears to be working, and the judge is describing the old fault it no longer has.**
+
+The row says *"Verified by eye: the button overlaps both cards and the right-hand label is cut off mid-word."* **Both halves of that are wrong.** Nothing is cut mid-word — the cut is through the letters' height, not their length — and the button overlaps neither card. And it is under-stated in the other direction: on solo-phone **both** labels are cut, not the right-hand one.
+
+*My falsifier, so this is not just my reading against theirs:* if a posed 390×664 pair shows the teal button's own pixels covering the label, I am wrong and the judge is right. I judge that unlikely from the gap, not impossible.
+
+**What IS real here, and it is a design question, not a layering bug:** on a 390px phone the last screen of the voyage hides who won which award until you scroll, while the tablet (`solo-tablet-029`) shows all four awards *and* the whole stats table with the button clear below. That is worth your attention — and the Chart **already has a row calling for exactly that posed 390×664 pair against the tablet**, a few rows above `T-142`.
+
+**Bug 2 — recipe modal clips the captains panel (tablet) — REAL, and the session read it better than the judge did.** In `solo-tablet-002-settled.png` the recipe card's left edge cuts the top two captain rows: pink **"Davy"**, green **"Dou"**, both losing their dubloon counts, while Flaky Jack and Crustbeard below are complete. The judge wrote "Dav"; the session wrote "Davy"; **the session is right**, which is real evidence it opened the file rather than copying the verdict. Four screens, two legs.
+
+**Bug 3 — captains panel bleeds through the End of Voyage modal (tablet) — REAL, and it is the SAME BUG as bug 2.** `#pp4Cap` is `position:fixed; left:0; right:0; bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` with nothing covering the fixed bar behind them. So the bar shows wherever the card does not reach it — to the *left* under the recipe modal, and out both *sides* under the EoV modal. **One mechanism, one panel, one size. Filed as two.**
+
+**Bug 4 — FORECAST ribbon cut off by the sidebar — NOT SUPPORTED BY ITS OWN SCREENSHOT.** In `solo-desktop-wk-016-settled.png` the pill reads **`WIND NOW: E→ · FORECAST: S↓`** — complete, arrow and all — and ends around x≈860. The sidebar begins at x≈1140. **There are ~280px of empty board between the text and the thing said to be clipping it.** Whatever else is true, the sidebar is not cutting it. This is the one group the session did *not* claim to have eye-verified, and it is filed in the same declarative voice as the two it did.
+
+**Bug 5 — the "Arrgh!" bubble with no tail — JUDGE FALSE POSITIVE, provably.** It is not a bubble. `src/ui/panel.js:1156`: `<button class="apBtn" id="bmCerGo" type="button">Arrgh!</button>` — it is the **button you press** to dismiss the narration above it (`flow.js:3021`, *"NARR-01/D-25, Wyatt-approved 2026-07-29: button trimmed to just 'Arrgh!'"*). I opened both screens: in each, the round Arrgh! sits centred directly beneath its "The shelves be bare…" box — **exactly where rule 11 says it goes**, message text then action buttons, top to bottom. It has no tail because it was never a speech bubble. The session was right to hold it as unmeasured; the answer was one grep away.
+
+---
+
+### 2. IS ANYTHING MISSING OR MISCOUNTED?
+
+**The counts are clean, and I re-derived every one.** 316 screens judged across ten legs; **10 FAIL**; six legs — crew-phone, solo-desktop, solo-desktop-wk, solo-phone, solo-tablet, solo-tablet-wk. The five groups sum to exactly ten (2+4+1+1+2) with **no screen dropped, merged away, or double-counted**. CEO 156's ten-and-six holds. **CEO 153/156's "load-bearing number nobody reconciled" does NOT recur here** — that is the best thing in this row.
+
+**The WIND observation is answered, and the answer is that you asked for it.** `src/ui/stage.js:1227-1234`:
+
+> *"THE PILL IS ALWAYS ON SCREEN (**Wyatt's afternoon list, item 5:** 'Wind pill from frame one — `WIND NOW: ? · FORECAST: ?` placeholder so the board never jumps when the pill appears')."*
+
+Before the first wind is rolled there is nothing to report; it used to return empty and the whole board jumped once every voyage. **Intended, by your own instruction, in those exact characters.** Marking it unverified was correct under rule 6; leaving it there when one grep of the string already typed into the row settles it is the rule-28 miss.
+
+**And rule 28's file already carries bug 4.** `docs/INTENDED-BEHAVIOUR.md:274` — *"The FORECAST ribbon text clipping mid-word | Triaged as 'pre-existing' repeatedly and carried as a known item | **Known is not the same as intended.** No ruling found."* Filed here as a fresh desktop-wide discovery. That same file also notes at line 123 that this judge *"hallucinated the wind direction in the same pass"* — and it did it again on solo-phone-021, inventing the award winners as *"Best Score"* and *"Crestboard"* when they are Davy Scones and Crustbeard. **The judge's issue strings are not quotable.**
+
+---
+
+### 3. IS THE "ONE CLASS OF BUG" CLAIM SOUND?
+
+**No. It is a tidy-sounding overreach, and it is tidy in the direction that hides the real consolidation.**
+
+The row says *"four of the five are one element overlapping another's words… one class of bug, not five… worth asking whether one layering rule fixes most of it."* Taking them one at a time: bug 5 is **not a bug**, bug 4 is **not visible in its screenshot**, bugs 2 and 3 are **the same bug**, and bug 1 is a **different mechanism** from 2 and 3 — a footer-and-scroller height reservation inside one card, versus a fixed page-bottom bar showing around a centred modal. There is no set of four sharing a class.
+
+**The true consolidation is better than the claimed one:** five filed rows are **two real defects** — `#pp4Cap` behind modals on tablet, and the phone End-of-Voyage crop. Say that instead; it is shorter, it is true, and it is more useful.
+
+And *"one layering rule fixes most of it"* is the shape of the settled argument this repo warns about (rule 10). The graveyard for this exact button is written into `index.html`: a padding reservation (2026-08-26), then a footer moved out of the scroller (2026-08-27, your call), after **eight** judge flags. **A ninth layering rule is what that history is warning against.**
+
+---
+
+### 4. CLAIMS THE REPO DOES NOT SUPPORT
+
+1. **"Verified by eye: the button overlaps both cards and the right-hand label is cut off mid-word."** Neither picture shows an overlap or a mid-word cut. **CEO 153/156's "an inference presented as a measurement" — RECURRING, and worse than before, because the word *verified* is attached to it.** Looking at a screen and then reporting your *explanation* of it as the observation is the same fault in a new place.
+2. **Bug 4, stated flatly as a bug.** Taken from the judge, never eye-checked, refuted by ~280px of empty board in its own screenshot. **Same fault, second instance.**
+3. **Bug 5 as an open question.** It is closed, against it: `panel.js:1156` makes it a button.
+4. **The WIND observation as "nobody asked."** You asked. `stage.js:1227`.
+5. **"THESE ARE THE ONLY GAME-FACING FINDINGS OF THE NIGHT."** True in spirit, but with 5 of 10 screens now non-defects, the row promises more than it delivers.
+6. **"Four of the five are one class."** §3.
+
+**Is it honest about confidence?** Half. It flagged bug 5 and the WIND correctly and got real credit for both. But bug 4 is the judge's word in the same voice as the verified ones, and bug 1's *"verified by eye"* stretches over a mechanism claim the eye cannot deliver. **The unverified things are labelled; the over-read ones are not.**
+
+---
+
+### 5. WHAT I WOULD DO FIRST
+
+1. **Fix the captains panel showing through modals on tablet — bugs 2 and 3, merged into one row.** It is 5 of the 10 screens, it has a mechanism you can point at (`#pp4Cap`, `position:fixed; bottom:0; z-index:22`, no scrim over it), it is repeatable, and it is the only one here that is unambiguously broken. **This is the one worth his attention.**
+2. **Strike bug 5 and correct bug 4 before he reads the row.** One is a button doing its job; the other is refuted by its own picture and is already carried in `INTENDED-BEHAVIOUR.md`. Leaving them costs him trust in the other three.
+3. **Rewrite bug 1 as the question it actually is**, and put it to him: *"on a phone the last screen of the voyage hides who won which award until you scroll — the tablet shows all four. Is that acceptable?"* Do **not** file it as a layering bug — the footer-outside-the-scroller fix is his own from 2026-08-27 and appears to be holding. The posed 390×664 pair the Chart already asks for settles it.
+4. **Record the WIND answer in `INTENDED-BEHAVIOUR.md` with the `stage.js:1227` citation**, so the fourth session to notice it does not have to ask him a third time.
+5. **Add one line to the judged-screen caveat (`T-019`):** of ten FAILs a human has now opened, **two were false positives and one had the wrong mechanism**. That is a real, countable statement about this instrument, and it belongs beside the "PASS is a floor" caveat that is already there.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+**All five done. This is the most useful verdict of the night and almost all of it is against me.**
+
+- **(5.1) DONE** — bugs 2 and 3 merged into one row, `T-142`, with its mechanism: `#pp4Cap` is `position:fixed; bottom:0; z-index:22` and modals are centred cards at `z-index:1000` **with no scrim**, so the bar shows wherever the card does not reach it. Five of the ten screens, one panel, one size. **The only unambiguously broken thing in the set.**
+- **(5.3) DONE, and this is the correction that matters most.** I wrote *"verified by eye: the button overlaps both cards and the right-hand label is cut off mid-word."* It opened the same pictures: **the cut sits ~15px ABOVE the button with the card's own background in the gap** — a scroller edge, not an overlap — and on solo-phone **both** labels are cut. **And the thing I called the bug is his own fix from 2026-08-27, apparently holding**, recorded in `index.html` as this judge's *eighth* flag on that screen, twice fixed. **I proposed a ninth layering rule at the layer the graveyard warns about.** Refiled as `T-143`, a design question for him.
+- **(5.2) DONE** — bug 5 struck with the proof (`panel.js:1156` makes it a button, sitting exactly where rule 11 puts it), and bug 4 struck as refuted by its own screenshot.
+- **(5.4) DONE** — the WIND answer is in `INTENDED-BEHAVIOUR.md` with his own citation. I wrote *"nobody asked"*; **he asked, in those exact characters** (`stage.js:1227`, his afternoon list item 5).
+- **(5.5) DONE** — `T-019`'s caveat now measures the judge in BOTH directions: its clean count was already known to be a floor; now its FAILs carry *"of ten a human opened, two were false positives and one had the wrong mechanism"*, plus its invention of the award winners' names. **A judged FAIL is a pointer to a screen worth opening, never a description of what is wrong with it.** Also written into `HARD-WON-LESSONS` §13.
+- **On §4's finding 1, which is the one I want on the record against me:** *"looking at a screen and then reporting your explanation of it as the observation."* I did open that screenshot. **What I wrote down was not what I saw; it was my explanation of what I saw, in the same sentence and the same voice.** Looking licenses you to report the thing. It does not license you to report the mechanism.
+- **On its provenance check:** it verified the PNGs were from this run (mtimes in the window, `Build 2026.09.03.1` legible in two of them) and noted I *"got lucky rather than careful"* by not checking. Correct — `T-015` two rows above says these filenames get overwritten, and I did not look.
+- ⛔ **AND WHILE MAKING THESE CORRECTIONS I DELETED FOUR OF HIS ROWS.** Rewriting `T-142` I replaced a range between two anchors and four unrelated rows lived inside it, including another session's in-flight work. Caught by `chart_sweep_conserves_check` — the gate whose ownership regex I had fixed six hours earlier — and restored verbatim from `HEAD`. **A range replacement is a deletion of everything you did not look at.** In `HARD-WON-LESSONS` §13.
+
+## CEO Review 159 — 2026-09-03, Wy-Blade — `admin-console-where`: his player-count console at `/stats.html` — **BUILT AND TRUE, NOT SHIPPED, AND THE CURTAIN'S WORD IS IN THE REPO**
+
+> *Numbered **159**, not 158, deliberately. `grep -oE "^## CEO Review [0-9]+" | sort -n | tail -1`
+> returns **157** — but commit `8d53a4fe`'s own subject line reads "CEO 158 took my bug list apart",
+> and `grep "CEO 158"` on this file finds **nothing**. **CEO 158 was run and never filed.** Reusing
+> 158 here would hide that; skipping it leaves the hole visible, which is what this file's banner
+> asks for. The verdict I was handed as "previous" is therefore 157, one review older than it looked.*
+>
+> *Read-only on the product. I started no browser: the two posed PNGs were opened as files, and
+> `stray_probe_check` inside `npm test` reports clean. I ran the watch's gate all five ways
+> (real + four `--red=`), re-ran both live-database probes, and `curl`ed three URLs. I wrote nothing
+> except this entry.*
+
+**ONE SENTENCE FIRST:** *The console you asked for is built, I opened both screenshots myself and the
+numbers in them are real — and the password to your curtain is sitting in plain English in a file
+the page itself tells you to open, so fix that one word before this goes anywhere near the live site.*
+
+---
+
+### 1. HIS RULING, CLAUSE BY CLAUSE
+
+His ask, 2026-09-02: *"Add google analytics to playpastrypirates.com and create a firebase admin
+console so I can see how many people are playing."* His ruling on it: *"put it at /stats.html behind
+a simple curtain and block it from robots.txt."*
+
+| clause | verdict | what I checked |
+|---|---|---|
+| **at `/stats.html`** | **BUILT, NOT SHIPPED** | `stats.html` exists at the repo root, 16,218 bytes, a real page. It is **untracked** (`git status`: `?? stats.html`) and `curl https://playpastrypirates.com/stats.html` → **404**, staging → **404**. He cannot open it yet. |
+| **behind a simple curtain** | **DONE — mechanism sound, secret compromised** | `stats.html:96-102` is the gate form; `reveal()` at `:149-154` is the only caller of `load()`, so a stranger at the URL costs the database nothing. I looked at `.planning/posed/stats-curtain-390w-after.png` myself: word prompt, no numbers. **But see FINDING 1.** |
+| **block it from robots.txt** | **ALREADY TRUE, AND THE WATCH SAID SO BEFORE CLAIMING IT** | `robots.txt:11` is `Disallow: /stats.html`, put there by commit `fb74eedc` (the 2026-08-26 cutover), and `git status` shows `robots.txt` **unmodified** this watch. The prediction records it at `PREDICTION-…admin-console-where.md:60-63` as *measured, not predicted*, expressly "so it cannot later be reported as work this watch did." **That is the single most creditable act of the pass** and it is exactly what this seat exists to reward. |
+| **"so I can see how many people are playing"** | **DONE for history, PARTIAL for "right now"** | The page answers his sentence with real numbers. The live count is honest but narrower than the words — see below. |
+| **Google Analytics** | **NOT DONE — honestly scoped, not quietly narrowed** | `.planning/wyclau/INBOX.md:1477`: *"These are **not** one item"*, and it sizes GA as a third-party script on every public page real players use. His ruling here names the console only. **This is correct scoping, not a dodge — but the GA half is still open and nothing on his page will remind him unless the row says so.** |
+
+### 2. WHAT I RE-MEASURED MYSELF, RATHER THAN TAKE
+
+- **Every number in the ceiling justification is exact.** `_stats_data_probe.mjs`: visits **237** rows / **123** distinct browsers, starts **44**, fins **8**, gamelogs **289** — all HTTP 200, 14-day window. `_stats_builds_probe.mjs`: **192** rows `"v4"`, **44** rows `"main"`, **1** row holding `{"-P0FDHq7K_o_fGoQljZd":"v4"}`. Six figures, six matches. No hand-typed number has rotted here (which was CEO 157's finding — it has **not** recurred).
+- **`classic/stats.html` really is live** — `curl` → **200**. The "port, don't invent" claim holds.
+- **All four red-proofs go red on their own clause, and only their own.** `--red=absent` → A only. `--red=nocurtain` → B only. `--red=robots` → C, in **both** places (the robots line and the meta tag). `--red=renamed` → D only, naming `voyagestarts`. `npm test` → **exit 0, "PASS — 0 failure(s)"**, and `gate_count_check` (which runs first and would fail on a miscount) passed with `total: 116`.
+- **The two defects rule 19 caught are real and are fixed. I looked at both pictures.** Before (`stats-open-390w.png`): three cards in a row and a fourth — "8 finished by others" — stranded as a full-width slab, and the 2026-08-29 builds cell reading the literal text `v4 [obje Object]`. After (`stats-open-390w-after.png`): a clean 2×2 block, and that cell reads `v4:6…`. **Neither was visible to any assertion; both came from looking.** That is rule 19 working as designed and it should be said plainly.
+
+### 3. FINDINGS — six, all citable
+
+**FINDING 1 — THE CURTAIN'S WORD IS WRITTEN IN PLAIN ENGLISH IN THE REPO, AND THE PAGE POINTS AT THE FILE.** This is the one that matters.
+`scripts/qa/_curtain_hash.mjs:5` reads `const word = process.argv[2] || "sugarfish";`. I ran it: `sugarfish → ed838a0990f365caef3ac366ec790ffd5c1ba88d261c1ce4169627714d7f1438` — **character for character the `CURTAIN_SHA256` at `stats.html:114`.** And `stats.html:95` says, in the comment directly above it: *"Change it with: node scripts/qa/_curtain_hash.mjs &lt;new word&gt;"*. **So the page names the file that contains its own password.** The stated reason for hashing at `:94` — *"so a shoulder-glance at the source does not hand it over"* — is defeated by the line beneath it. The mitigation is that `_curtain_hash.mjs` is untracked today; that is luck, not design, and it sits one `git add -A` away from being published in a public repo. *(Separately: a single lowercase dictionary word behind SHA-256 is a few milliseconds of guessing even without the file. That is acceptable for a curtain — the file is not.)* **Change the word and delete the default before this ships.**
+
+**FINDING 2 — CLAUSE D IS HALF DERIVED AND HALF HAND-TYPED, AND THE HAND-TYPED HALF LEAVES THE HEADLINE NUMBER UNGUARDED.**
+`stats_console_check.mjs:17-23` claims the node names are *"parsed out of `src/ui/usage.js` and `src/net/writers.js` themselves… **Derived, never hand-typed**."* Line 144 genuinely derives (`put\("([A-Za-z][A-Za-z0-9_]*)\//g`). **Line 145 does not:** `/db\.ref\("(gamelogs)\//g` — the capture group is the literal word `gamelogs`. Rename that node in `writers.js` and the parse returns nothing for it, the expected set silently loses it, and **the gate goes green on a console reading a node nobody writes** — precisely the failure clause D says it exists to stop. **And `presence` is not covered at all:** `src/net/writers.js:263` writes `presence/<myId>`, and the gate's own green output lists *"fins, gamelogs, starts, visits"*. **The one number at the top of his page — "playing right now" — is the one node with no gate on it.**
+
+**FINDING 3 — "EVERY ONE REFUSES TO RUN IF ITS PATCH NO-OPS" IS TRUE OF THREE RED-PROOFS, NOT FOUR — AND THIS IS CEO 157's FAULT INVERTED.**
+`stats_console_check.mjs:28` and `package.json`'s `_ceiling_raise_2026_09_03c` both say all four. `--red=absent` at `:72` sets `pageExists = false` directly and never calls `patched()`, so it carries no bite check. CEO 157 caught a header quoting a **weakened** version of what its code tested; this is the same seam with the sign flipped — a header quoting a **stronger** version. **The habit that produces both is unfixed: the prose about a gate is written from intent, not from the gate.**
+
+**FINDING 4 — THE GEAR PICKER CANNOT SEE A BRAND-NEW ROOT PAGE, AND THE WATCH'S OWN FALSIFIER WAS AIMED AT THIS AND READ AS PASSING.**
+`scripts/qa/gear.mjs:36-37` builds its file list from `git diff --name-only` plus `--cached`. **An untracked file never enters either.** `stats.html` is untracked, so `gear.mjs` printed `GEAR: FULL — why: behaviour can change in: package.json` and **never mentioned the page at all**. Had the ceiling not been raised in the same pass, a new page served to real players from the repo root would have scored **NONE**. The prediction's F5 (`PREDICTION-…:68-69`) says exactly this: *"if gear.mjs reports COSMETIC or NONE for a brand-new root page, the gear picker is wrong and that is a finding."* It reported FULL for an unrelated reason, so the falsifier did not fire — **and the hole it was pointing at is real and still open.** This belongs in the ledger as a finding in its own right.
+
+**FINDING 5 — THE STATED REASON FOR SKIPPING RANK 1 DOES NOT MATCH HIS PAGE.** The skip is **right**: `CHART.md:878-891` says of `T-099`, in its own words, *"This row closes when he answers, not before."* But the reason as given — waiting on two questions — points at rows that are not there: the **BLOCKED ON WYATT** table (`CHART.md:566-571`) holds **five** questions and **none of them is `T-099`'s**; Q1 and Q2 are recorded answered and Q3–Q5 appear nowhere on his page. Right conclusion, wrong citation, and the missing rows are worth someone's attention independently of this item.
+
+**FINDING 6 — THE "123 UNIQUE PLAYERS BESIDES YOU" IN BOTH POSED SHOTS IS NOT THE NUMBER HE WILL SEE.** My own probe returns **123 distinct browsers in total**. The card excludes "you" via `myIds()` (`stats.html:159-164`), which reads `pp_id` from `localStorage` — and the shot was taken in a fresh headless browser that has none, so **nothing was excluded**. On his own laptop it will read 122 or fewer. Not a page bug; a caption on the evidence that is off by one, and the kind of thing that becomes a phantom defect later if nobody writes it down.
+
+### 4. THE SEA TRIAL — THE POSITION IS HONEST. THE REPORT MUST NOT BE CITED AS A SAIL.
+
+**The watch's reasoning holds, and the facts support it rather than its say-so.** `gear.mjs` says FULL and its reason is `package.json` alone; `git diff --stat` shows **one file changed, package.json** — no `src/`, no `index.html`; and nothing in the game links or imports `stats.html`. A three-mode voyage cannot photograph a page the game never opens. **Coverage of this change by a sea trial is zero by construction, and saying so is not choosing depth by mood.**
+
+**But the detached run does not support the word "ran".** `.planning/SEA-TRIAL-2026-09-03T0912Z-Wy-Blade.md` reads **"FAILED — 0 of 10 voyage(s) sailed, 10 NOT RUN"**, and every leg says *"RESUMED — a complete result for build 2026.09.03.1 is already on record; not re-sailed."* It photographed nothing new. **So the close entry must say, in these words: sea trial NOT RUN for this item; gear FULL on `package.json` alone; no game code touched.** Rule 24's NOT-RUN column is the one thing the record may never lose, and a FAILED resumed report left sitting next to a closed item is exactly how "we tested it" becomes a lie.
+
+### 5. IS THE PREVIOUS FAULT FIXED?
+
+CEO 157 found three things. **One fixed, one not recurred, one half fixed:**
+- **Hand-typed number gone stale — NOT RECURRED.** I re-measured all six figures off the live database; every one is exact.
+- **Header quoting a different version of the ruling than the code tests — RECURRED, INVERTED.** FINDING 3.
+- **Nothing committed / no close entry / `IN-HAND` unclaimed — HALF FIXED, and the fixed half is genuine.** `.planning/wyclau/IN-HAND` **does** hold this item, claimed at **09:00:57Z** — *before* the prediction was written at **09:01:28Z** (file mtimes; the prediction has not been touched since, which is also the evidence that it was not retrofitted). Rule 16 satisfied for the first time in three reviews. **Still open:** nothing is committed, `CTO-LEDGER.md` has no close entry for `admin-console-where`, and `CHART.md:623` still tells him *"`stats.html` and `lab.html` do not exist at the repo root"* — a sentence the working tree has made false.
+
+### 6. THE THREE THINGS I WAS ASKED TO JUDGE DIRECTLY
+
+- **Is the curtain honest?** **The framing is; the execution is not.** `stats.html:88-95` says outright *"IT IS NOT A LOCK AND MUST NOT BE DESCRIBED AS ONE"* and explains that the nodes are world-readable because the game writes them by unauthenticated REST from every player's browser. I checked the premise rather than taking it: `src/net/index.js:79` already ships that database URL to every player, so the page discloses nothing new. **That is the honest framing, not dressing.** What is dishonest by accident is FINDING 1.
+- **Is "playing right now" honest?** **Yes, and it is labelled three times** — in the source (`:33-35`), on the page itself (`:259`, *"counts browsers holding a live connection… someone who opened it and walked away still counts"*), and by drawing **—** rather than **0** when the read fails (`:242-244`). The red-proof is real work: `_stats_presence_live.mjs` reads the same shallow endpoint the page reads, opens the real game in a real browser, and watches the count move — bounded to 30 iterations, killed in-script. It proves the card **can move**, which is all it claims. It does not exercise the page's own `getPresence()`, so a bug in that function would survive it.
+- **Does clause D work, or is it theatre?** **Half works, half is theatre.** FINDING 2.
+
+### 7. CONTEXT SPEND — NO FAULT
+
+Nothing here needed delegating and nothing was bulk-read for one fact. I read `stats.html` whole (the artifact under judgement), `stats_console_check.mjs` whole (the instrument under judgement), the prediction (his frame), and two PNGs by eye — all four are the documented exceptions, and delegating them would have been the worse error. I read the 2-page trial report, not its 13,000-line shot JSON.
+
+### 8. SHOULD IT TICK?
+
+**Not yet, and this one is genuinely close — it is one word and one commit away, not one build away.**
+
+1. **Change the curtain word and strip the default from `scripts/qa/_curtain_hash.mjs:5`.** Non-negotiable before this reaches the live domain.
+2. **Fix clause D's writers half** — derive the node name instead of typing `gamelogs`, and cover `presence`, which is the number he will look at first.
+3. **Correct the two overclaims** — `stats_console_check.mjs:28` and `package.json`'s `_ceiling_raise_2026_09_03c` on the four red-proofs.
+4. **Commit it, write the close entry with the sea trial recorded NOT RUN and its reason, and update `CHART.md:623`** — the row still says the page does not exist.
+5. **Raise FINDING 4 as its own item.** `gear.mjs` is blind to untracked files, which means the gear picker is blind to every new page on the day it is written. That is a hole in the chain he is relying on.
+6. **Say the GA half is still open** where he can see it — his one sentence asked for two things and only one of them is answered.
+
+**What I would not want lost in the criticism: the robots half was already done, and the watch wrote that down as *measured, not built*, in a prediction file it never edited afterwards, before anyone could have asked. Every number it reported off the live database is exact. And two real defects were found by looking at a picture that no assertion could see. That is the process working.**
+
+---
+
 ## CEO Review 157 — 2026-09-03, Wy-Blade — `T-139`: the third clause, built after CEO 155 found it missing — **DONE, with two loose ends**
 
 > *Number claimed order-independently (`grep -oE "^## CEO Review [0-9]+" | sort -n | tail -1` → **156**,
