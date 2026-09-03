@@ -185,6 +185,16 @@ the "Ahoy!" message behind them. In a real prompt the message lifts itself clear
 this is probably an artifact of how the picture was posed — **but that has not been measured, so
 nobody should tell him it is fine.**
 
+## 2i. ⚠ §1 IS STALE — THE LINK IT ASKS FOR IS ALREADY ON THE CHART
+*(checked by the Glass-update tick of 2026-09-03T20:5xZ, before folding this note into a publish)*
+
+**§1's instruction — "publish `ANALYTICS-PLAN.html`, put the URL in `CHART.md` and `CHART-LOG.md`"
+— is already done.** Both files carry `https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0`
+(`CHART.md:807,932,1026,1029`; `CHART-LOG.md:724`), the two numbered decisions with a recommendation
+marked are already the `qid:t206-which-pages` / `qid:t206-cookie-choice` rows §1b describes, and his
+ruling on `qid:t206-ga-turn-on` is settled in `CHART-LOG.md`. **Nothing left to publish for T-206.**
+Do not re-publish `ANALYTICS-PLAN.html` on the strength of §1 alone — check the Chart first.
+
 ## 3. What a later watch should NOT re-do
 
 - **Do not re-ask him the analytics question.** He answered it (`qid:t206-ga-turn-on`), the answer
