@@ -482,7 +482,7 @@ if (chart !== null) {
      chart, in The Glass." A drop has to be able to SAY which row moved, and until now every task
      on this card was a plain string — so there was nothing for a drag to name. The handle rides as
      a data attribute, exactly as the in-hand item's does: machines keep it, he never reads it. */
-  const openChecklist = chunk(stepSec, "checklist")
+  const checklistRows = chunk(stepSec, "checklist")
     .filter((c) => c.type === "row" && /^- \[ \] /.test(c.lines[0]))
     .map((c) => ({
       text: c.lines.some((l) => /^\s*⟨[^⟩]*(?:^|·)\s*now\s*:\s*yes\b[^⟩]*⟩\s*$/i.test(l))
@@ -490,6 +490,22 @@ if (chart !== null) {
         : shortTask(titleOf(c.lines)),
       handle: idOfRow(c.lines),
     }));
+  /* ⚠ A HANDLE CARRIED BY TWO OPEN ROWS CANNOT BE DRAGGED, AND THIS IS NOT A DETAIL — IT IS WHAT
+     MADE THE FIRST VERSION OF THE DRAG INERT ON HIS REAL CHART. CEO 131 measured it: the page saved
+     all 57 rows, three of those handles are carried twice (`T-088`, `T-008`, `T-079` — his own open
+     row `T-107` names them), and `chartkeeper --order=` refuses the whole sequence rather than move
+     one of two rows nobody can tell apart. So EVERY drag he made died at the command while the page
+     told him it was saved.
+     The refusal is right and stays. What was wrong was offering him a gesture on a row that cannot
+     be named. Such a row is still shown — he steers by this list — and it simply does not move,
+     which is the same honest treatment an inbox idea gets. Derived from the rows themselves, never
+     from a list somebody typed, so it corrects itself the moment `T-107` is repaired. */
+  const handleCount = new Map();
+  for (const r of checklistRows) if (r.handle) handleCount.set(r.handle, (handleCount.get(r.handle) ?? 0) + 1);
+  const openChecklist = checklistRows.map((r) => ({
+    text: r.text,
+    handle: r.handle && handleCount.get(r.handle) === 1 ? r.handle : null,
+  }));
   /* AN IDEA WITH A FATE IS NOT AN OPEN TASK. The inbox exists so every idea gets a fate --
      SHIPPED / SCHEDULED (where) / PARKED (why) -- and once it has one it is resolved, not
      pending. Feeding the whole inbox in made the Tasks card count answered ideas as work left to
@@ -1052,10 +1068,14 @@ const PAGE = `<meta charset="utf-8">
          handle, and it is rendered plainly and left alone. -->
     ${tasks === null ? `<p class="bad">unreadable: CHART.md missing or unparseable</p>`
       : tasks.length === 0 ? `<p class="muted">Nothing open — full detail in .planning/CHART.md.</p>`
-      : `<ol id="taskList">${tasks.map((t) => (t.handle
+      : `<p class="muted" id="orderNote">Drag a task to move it. Where you put it is where a watch starts.</p>
+      <ol id="taskList">${tasks.map((t) => (t.handle
           ? `<li class="drag" data-handle="${esc(t.handle)}">${esc(t.text)}</li>`
-          : `<li>${esc(t.text)}</li>`)).join("")}</ol>
-      <p class="muted" id="orderNote">Drag a task to move it. Where you put it is where a watch starts.</p>`}
+          : `<li>${esc(t.text)}</li>`)).join("")}</ol>`}
+      <!-- ⚠ THE NOTE SITS ABOVE THE LIST, NOT UNDER IT — CEO 131's finding 4. Underneath, the
+           confirmation of a drag near the top of a 57-row list was fifty rows below his finger, on
+           a phone showing eight of them. A confirmation he cannot see is the fault this whole
+           item exists to remove, one level up. -->
   </section>
 
   <section class="card">
@@ -1449,9 +1469,40 @@ const PAGE = `<meta charset="utf-8">
         return draggables().map(function(li){ return li.getAttribute("data-handle"); });
       };
       /* The saved order is compared against what the page was BORN with, so "you have moved this"
-         is a fact about his drag and not about the Chart's file order. */
+         is a fact about his drag and not about the Chart's file order. Captured BEFORE the saved
+         order is re-applied below, or dragging back to the generated order could never clear it. */
       var born = sequence().join(",");
       var held = null, startY = 0, moved = false;
+
+      /* ⚑ AN ORDER HE ALREADY MADE IS PUT BACK ON THE LIST, ON EVERY LOAD, BEFORE HE TOUCHES
+         ANYTHING — CEO 131's finding 3, and it was the worst of the three because it made the page
+         LIE to him. What gets published is this template rebuilt from the state (buildDoc), so the
+         rows he had just moved on screen were never serialised: reload the artifact and the list
+         snapped back to the Chart's file order while the line under it still said "Your order is
+         saved". His order was genuinely in the page's data the whole time; nothing put it back on
+         the rows. Now it does, so what he reads always matches what he saved. */
+      function applySaved(){
+        var want = state.order && state.order.handles;
+        if (!want || !want.length) return;
+        var by = {};
+        draggables().forEach(function(li){ by[li.getAttribute("data-handle")] = li; });
+        var first = draggables()[0];
+        if (!first) return;
+        /* A marker, not the first row itself, as the insertion point: the first row is usually IN
+           the saved order too, and inserting a node before itself is a no-op that silently reverses
+           everything after it. */
+        var mark = document.createElement("li");
+        mark.style.display = "none";
+        taskList.insertBefore(mark, first);
+        want.forEach(function(h){
+          var li = by[h];
+          if (li) taskList.insertBefore(li, mark);
+        });
+        taskList.removeChild(mark);
+        /* Rows the saved order does not name (added to the Chart since he dragged) keep their
+           generated position at the end of the run, rather than being dropped or guessed at. */
+      }
+      applySaved();
 
       function saveOrder(){
         var seq = sequence();
@@ -1481,6 +1532,14 @@ const PAGE = `<meta charset="utf-8">
         if (!moved && Math.abs(ev.clientY - startY) < 6) return; // a tap is not a drag
         moved = true;
         ev.preventDefault(); // stop the page scrolling under his finger mid-drag
+        /* ⚑ …AND THEREFORE SCROLL IT OURSELVES AT THE EDGES — CEO 131's finding 4, and without this
+           the feature does not work for the list he actually has. Blocking the scroll is what makes
+           the drag possible; it also means that on a phone showing eight of fifty-seven rows he
+           could never move row 30 to row 1 without dropping, scrolling and dragging again — and
+           each drop publishes. Near either edge the page now moves under the drag. */
+        var edge = 70;
+        if (ev.clientY < edge) window.scrollBy(0, -Math.min(18, edge - ev.clientY));
+        else if (ev.clientY > window.innerHeight - edge) window.scrollBy(0, Math.min(18, ev.clientY - (window.innerHeight - edge)));
         var others = draggables().filter(function(li){ return li !== held; });
         var before = null;
         for (var i = 0; i < others.length; i++) {

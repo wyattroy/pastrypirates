@@ -9155,3 +9155,63 @@ though finding 2 then turned out to be behind the same wall after all.
 
 *(One of those two is now guarded for every future file and reported for the existing one; the other
 was behind the wall. The item is NOT closed as finished — see the Chart row and the Inbox entry.)*
+
+---
+
+## CEO Review 131 — `T-103`, "drag to reprioritize the chart, in The Glass", commit `8327a1b9` — **PARTIAL**
+
+*Watch 2026-09-03T01:10Z, Wy-Blade. His ask, verbatim, written by him on the Glass 2026-09-02
+3:09 PM ET: **"DO NOW: build a way for me to drag to reprioritize the chart, in The Glass."***
+
+**ITS VERDICT, IN ITS OWN WORDS, UNPARAPHRASED — the headline first:**
+
+> **PARTIAL — the drag is built and it works under your finger; it reaches your Chart as nothing.**
+
+> He asked for a way to drag to reprioritise the Chart in the Glass, and the gesture was built
+> properly — pointer events so it works with a finger, the scroll gesture released, the selection
+> highlight killed, both faults found by posing the page and photographing it rather than by
+> reasoning, and the posed pair genuinely shows the fourth row moved to first on desktop and on
+> phone. The ranking now treats his say-so as replacing its own guesswork, and his pin still sits
+> above his drag. **But the reprioritising half does not work on his real data:** the page saves the
+> whole 57-row sequence, three of those rows share a handle with another row (`T-088`, `T-008`,
+> `T-079` — the very fault his own open task `T-107` names), and `chartkeeper --order=` refuses
+> outright on a repeated or ambiguous handle (`chartkeeper.mjs:227,233,240`) — measured, exit 2,
+> nothing written. **So every drag he makes today reaches the Chart as nothing, while the page tells
+> him it is saved.** Second, even when an order does apply, the Glass draws tasks in file order
+> (`glass.mjs:485`) and `--order=` does not move rows, so the page only reflects his drag after a
+> Watch runs `--rank --write` — which the Glass-update runbook deliberately does not do; measured
+> *"PAGE MOVED? NO"*. Third, the published page is rebuilt from the original template
+> (`glass.mjs:1218-1232`), so on reload his list snaps back to the old order while the note
+> underneath still reads "Your order is saved" — and the relay note already sent to him claims
+> *"it stays where you put it"*, which is false. The gate is honest and cannot see any of this:
+> every order case exercises four clean handles where the page saves fifty-seven dirty ones. The
+> loosened assertions in `glass_his_five_asks_check.mjs` were checked and are not weaker.
+> **Recurrence:** the fault CEO 130 and its predecessors kept finding — an account tidier than the
+> record — recurs here in the framing of the duplicate-handle refusal as a safety feature rather
+> than as the thing that makes the feature inert on his live Chart.
+
+**WHAT IT PASSED, so the fixes below are not read as a rewrite:** the order genuinely outranks every
+derived signal and the pin genuinely outranks the order; both refusals write nothing; the harvest
+contract (`order` starts empty on every generation) matches ideas and rulings; and the two loosened
+assertions are not weaker — `<ol\b` still requires a numbered list.
+
+### ALL THREE FINDINGS WERE FIXED IN THE SAME WATCH, RED FIRST, in commit `<the fix commit>`
+
+| its finding | what changed | the case that was RED against `8327a1b9` |
+|---|---|---|
+| every drag dies at the command, because three handles are carried twice | a row whose handle names two open rows is **shown and not draggable** — derived from the rows, so it corrects itself the moment `T-107` is repaired | *"a handle carried by TWO open rows is still draggable"* |
+| his page does not move until a Watch re-ranks | the harvest step now runs `--order=` **and** `--rank --write`, named as one act, gated | *"the harvest step applies his order and never re-ranks"* |
+| reload snaps the list back while the note swears it saved | the saved order is **re-applied to the rows on every load**, before he touches anything | *"a saved order is never put back on the rows when the page loads"* |
+| the confirmation is 57 rows below his finger | the note moved **above** the list | *"the order confirmation is below the list"* |
+| a 57-row list cannot be reordered on a phone | the page **scrolls under a drag** held near either edge | *"the drag blocks the page's own scroll and never scrolls it"* |
+
+**AND THE ACCEPTANCE TEST IT ASKED FOR NOW EXISTS AND PASSES ON HIS REAL CHART**, which is the part
+worth keeping: `scripts/qa/_t103_roundtrip.mjs` runs the whole chain against a COPY of the live
+`CHART.md` — render his page → take the sequence a drag would save → `--order=` → `--rank --write`
+→ render again and read the order back. **50 draggable rows, no repeated handle, exit 0, and the
+page comes back in the sequence dragged.** Its own header carries CEO 131's sentence about why the
+gate could not see this: *"the check is honest and it is measuring a different thing than the one
+that is broken."*
+
+⚠ **THE ITEM IS STILL NOT CLOSED.** These fixes are post-verdict, so they carry no verdict of their
+own — CEO 132 below is the review of them.

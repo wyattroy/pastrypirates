@@ -156,8 +156,16 @@ publish. This session IS the terminal.
 >    ⚑ **AND IF `order` IS NOT NULL, HE DRAGGED HIS TASK LIST INTO A NEW SEQUENCE. Same joint, same
 >    shape — the drag does not travel by itself either:**
 >    `node scripts/wyclau/chartkeeper.mjs --order=<the handles in glassState.order.handles, comma-separated, in that exact sequence>`
->    That command writes his sequence onto those rows and **clears the previous order in the same
->    act** — one order, replaced whole, never merged, so the list is never half his and half ours.
+>    ⚠ **AND THEN, IN THE SAME BREATH, RE-RANK — OR HIS PAGE DOES NOT MOVE AND HE IS RIGHT TO THINK
+>    NOTHING HAPPENED:**
+>    `node scripts/wyclau/chartkeeper.mjs --rank --write`
+>    **Measured, not assumed (CEO 131):** `--order=` writes the numbers onto the rows and stops; the
+>    Glass draws its Tasks card in the order the rows physically sit in `CHART.md`. Without the
+>    re-rank the page regenerates in the OLD order with his order recorded invisibly beneath it —
+>    *"PAGE MOVED? NO"*. The same is true of `--do-now`. **Two commands, one act; never the first
+>    without the second.**
+>    That first command writes his sequence onto those rows and **clears the previous order in the
+>    same act** — one order, replaced whole, never merged, so the list is never half his and half ours.
 >    It REFUSES outright, writing nothing, if any handle names no open row or names two of them.
 >    **Copy the handles, never the row text** — the page truncates and de-shouts a title for him, so
 >    the text on his screen is not the row's name. To put the list back on its derived ranking:

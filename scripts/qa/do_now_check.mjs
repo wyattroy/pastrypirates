@@ -455,6 +455,71 @@ const orderedRows = (p) =>
   }
 }
 
+/* ── 16b. THE THREE FAULTS CEO 131 MEASURED, EACH WITH ITS OWN CASE. Every one of them passed the
+      cases above and made the feature useless on his REAL Chart — which is the whole lesson: the
+      order cases hand the command four clean handles, and his page hands it fifty-seven dirty ones.
+      *"The check is honest and it is measuring a different thing than the one that is broken."* ── */
+{
+  /* His live Chart carries three handles twice over (`T-107`). A page that lets him drag such a row
+     produces a sequence the command REFUSES WHOLE — so every drag he made died at the command
+     while the page told him it was saved. The refusal is right; offering the gesture was not. */
+  const TWIN = FIXTURE.replace("⟨`T-804`⟩", "⟨`T-803`⟩");
+  const p = chartFile("page-ambiguous", TWIN);
+  const out = join(tmp, "glass-ambiguous.html");
+  let page = "";
+  try {
+    execFileSync(process.execPath, [GLASS, `--chart=${p}`, `--out=${out}`], { encoding: "utf8", cwd: ROOT });
+    page = readFileSync(out, "utf8");
+  } catch (e) { fail(`glass.mjs could not render the ambiguous fixture (${String(e.status ?? e.message).slice(0, 120)})`); }
+  if (page) {
+    const card = page.split(/<ol id="taskList">/)[1]?.split("</ol>")[0] ?? "";
+    const handles = [...card.matchAll(/data-handle="(T-\d{3})"/g)].map((m) => m[1]);
+    if (handles.includes("T-803"))
+      fail("a handle carried by TWO open rows is still draggable — the command refuses such a sequence whole, so every drag he makes would die there while the page says it saved");
+    else if (handles.length !== 2)
+      fail(`the ambiguous rows were dropped rather than made undraggable — ${handles.length} draggable rows, expected the 2 unambiguous ones`);
+    else pass("a row whose handle names two rows is shown and cannot be dragged, so the sequence he saves is always one the command can apply");
+    /* And the guard must be DERIVED, not a list: the same render with no twin must offer all four. */
+    const clean = join(tmp, "glass-clean.html");
+    execFileSync(process.execPath, [GLASS, `--chart=${chartFile("page-clean", FIXTURE)}`, `--out=${clean}`], { encoding: "utf8", cwd: ROOT });
+    const cleanCard = readFileSync(clean, "utf8").split(/<ol id="taskList">/)[1]?.split("</ol>")[0] ?? "";
+    if ([...cleanCard.matchAll(/data-handle="/g)].length !== 4)
+      fail("the ambiguity guard is over-firing on a clean Chart — it must be derived from the rows, and correct itself the moment the duplicate handles are repaired");
+    else pass("the guard is derived: a Chart with no duplicate handle offers every row");
+  }
+}
+{
+  /* A page rebuilt from the template plus the state showed the OLD order with a line underneath
+     swearing his order was saved. Reload and his list snapped back. The rows must be put in his
+     saved order on load, or the page lies to him about the one thing he did. */
+  const p = chartFile("page-reapply", FIXTURE);
+  const out = join(tmp, "glass-reapply.html");
+  let page = "";
+  try {
+    execFileSync(process.execPath, [GLASS, `--chart=${p}`, `--out=${out}`], { encoding: "utf8", cwd: ROOT });
+    page = readFileSync(out, "utf8");
+  } catch { /* reported by the case above */ }
+  if (page) {
+    const init = page.split(/var taskList = document.getElementById\("taskList"\)/)[1] ?? "";
+    if (!/applySaved\s*\(\s*\)\s*;/.test(init))
+      fail("a saved order is never put back on the rows when the page loads — what is published is the template plus the state, so his list snaps back to the Chart's file order while the note under it still reads 'Your order is saved'");
+    else pass("a saved order is re-applied to the rows on every load, so what he reads matches what he saved");
+    if (!/insertBefore\(\s*mark\s*,/.test(init))
+      fail("the re-apply inserts before a row rather than a marker — the first row is usually in the saved order too, and inserting a node before itself silently reverses everything after it");
+    else pass("the re-apply uses a marker, so a row that is already first cannot invert the rest");
+  }
+  /* The confirmation must sit where he can see it after a drag near the top of a long list. */
+  if (page) {
+    const card = page.split(/<h2>The Chart \(Tasks To Do\)/)[1]?.split("</section>")[0] ?? "";
+    if (card.indexOf('id="orderNote"') > card.indexOf('id="taskList"'))
+      fail("the order confirmation is below the list — on a phone showing eight of fifty-seven rows, a drag near the top puts its own confirmation fifty rows out of sight");
+    else pass("the confirmation sits above the list, where a drag at the top can still be seen to have landed");
+  }
+  if (page && !/window\.scrollBy/.test(page))
+    fail("the drag blocks the page's own scroll and never scrolls it — so on a phone he cannot move row 30 to row 1 at all, which is the list he actually has");
+  else if (page) pass("the page scrolls under a drag held near either edge, so a long list is reorderable in one gesture");
+}
+
 /* ── 17. THE JOINT AGAIN. Same reasoning as case 9, for the same reason: between his drag and RANK
       sits a session reading the page by hand. A capability nothing invokes is a capability that
       never runs — the sentence this project has now written down three times. ─────────────────── */
@@ -470,6 +535,12 @@ const orderedRows = (p) =>
     else if (!/\border\b/.test(harvest))
       fail("the harvest step names the command but not the state field it must look for");
     else pass("the harvest step names the order field and the command that carries it");
+    /* AND THE SECOND COMMAND, which CEO 131 measured as the difference between his order landing
+       and his page not moving: --order= writes numbers onto rows and stops, and the Glass draws its
+       Tasks card in the rows' FILE order. Without a re-rank he reads the old list. */
+    if (harvest && !/--rank\s+--write/.test(harvest))
+      fail("the harvest step applies his order and never re-ranks — the Glass draws tasks in the rows' file order, so his page regenerates unchanged and he is right to think nothing happened");
+    else if (harvest) pass("the harvest step re-ranks in the same act, so the page he next reads is in the order he dragged");
   }
 }
 
