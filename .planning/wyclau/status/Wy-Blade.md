@@ -5,25 +5,25 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T12:03:30.003Z	self-publish check
+2026-09-03T12:49:33.829Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
+None recorded.
+
+## Long run in flight (LONG-RUN)
 ```
 {
-  "item": "T-013 — the call circle is beside the wrong captain",
-  "watch": "Wy-Blade",
-  "claimedAt": "2026-09-03T12:05:02.830Z",
-  "staleAfterMinutes": 90
+  "what": "sea trial, 10 legs",
+  "startedAt": "2026-09-03T12:48:20.486Z",
+  "updatedAt": "2026-09-03T12:49:50.581Z",
+  "progress": "0/10 legs",
+  "staleAfterMinutes": 53
 }
 ```
 
-## Long run in flight (LONG-RUN)
-None recorded.
-
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T12:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T121803Z.out/.err)
 2026-09-02T13:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T130803Z.out/.err)
 2026-09-02T13:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T134803Z.out/.err, kit: readable)
 2026-09-02T14:48:02Z	ring: no watch on deck -- rang the next one (output: watch-20260902T144802Z.out/.err, kit: readable)
@@ -63,4 +63,5 @@ None recorded.
 2026-09-03T10:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T100802Z.out/.err, kit: readable)
 2026-09-03T10:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T103802Z.out/.err, kit: readable)
 2026-09-03T11:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T110802Z.out/.err, kit: readable)
+2026-09-03T12:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T120802Z.out/.err, kit: readable)
 ```
