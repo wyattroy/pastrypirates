@@ -2219,3 +2219,8 @@ solution: HIS WORDS. Drag goes: the pointer handlers, the grab cursor, the "Drag
   so. That wording describes a gesture that no longer exists -- it must become "moveable rows", and
   the count must be EVERY open row, not the subset that could be named.
 status: OPEN — taken now, with the tag assignment.
+
+## INBOX-20260903T213129Z — we need to push all these changes to staging!!
+> we need to push all these changes to staging!!
+solution: none stated
+status: OPEN
