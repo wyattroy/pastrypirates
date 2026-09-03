@@ -91,11 +91,37 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
+- [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
-      His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured
-      before it was put to him, and still true: this game has NO stats or admin page at all** —
-      `stats.html` and `lab.html` do not exist at the repo root.
+      His ask: *"a firebase admin console so I can see how many people are playing"*.
+      ✅ **BUILT 2026-09-03** at `/stats.html`, behind the curtain he asked for, blocked from search
+      — commit `b13a68c0`, CEO 159. Driven and photographed with the real database on a 390px
+      phone: **0 playing right now · 123 unique players (14d) · 44 voyages started · 8 finished**
+      (`.planning/posed/stats-open-390w-t138.png`). ⚠ **The 123 is a HEADLESS browser's number and
+      yours will read 122 or fewer** — the card excludes *you* by reading `pp_id` out of
+      localStorage (`stats.html:170-172`), and the shot was taken in a fresh browser that had none,
+      so nothing was excluded. CEO 159 asked for this to be written down a day ago and it was not;
+      it is written down now so it never becomes a phantom bug.
+      ⚠ **AND FOR A DAY THE ONLY MEASURABLE EFFECT OF THE CURTAIN WAS TO LOCK HIM OUT.** The word
+      was changed on 2026-09-03 to get it out of this public repo (CEO 159, correctly), the record
+      says it *"lives with Wyatt"* — and **nothing anywhere shows anybody ever told him.** Every
+      gate was green through it. Fixed 2026-09-03T11:0xZ: a fresh word, **delivered to his Glass by
+      cross-session message** (the only channel a watch has that is his and not this public repo),
+      the delivered SHA-256 recorded in [`CURTAIN-DELIVERED.md`](wyclau/CURTAIN-DELIVERED.md) — the
+      hash, never the word — and `stats_console_check.mjs` **clause E** now fails the build the day
+      the page's word and that record disagree. **The Glass session confirmed it is on your page**,
+      and separately confirmed the word appears in neither its staged nor its unstaged diff — a
+      second session, holding the word, checking that it never entered the repo.
+      Eight red-proofs; **six isolate to one clause, `--red=nocurtain` trips two** (deleting the
+      hash leaves E nothing to join to). Said exactly because CEO 164 caught the flattering version
+      of that same sentence in this same pass.
+      **THE REUSABLE ONE: A–D WERE ALL GREEN ON A PAGE ITS ONLY READER COULD NOT OPEN.** A gate that
+      checks a secret exists is not a gate that the person it is for HAS it.
+      ⛔ **WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
+      `staging.playpastrypirates.com/stats.html` are both 404 today** (`curl`, 2026-09-03). The page
+      is on this branch only. Shipping it means the staging publish — which `T-016` says needs
+      another ~90-minute trial of the code that would actually ship — or the branch merge, which is
+      GATED on your own ruling. **This row closes when you can load that URL, not before.**
       ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
       BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
       Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it

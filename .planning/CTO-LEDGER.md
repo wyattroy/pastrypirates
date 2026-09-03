@@ -7797,3 +7797,91 @@ setup job. `T-206` is parked on `qid:t206-ga-turn-on`. Not re-verified here; rec
 *Its session ended before I could reply, so this entry is the reply.*
 
 - 2026-09-03T10:34:55Z · close_item: "T-140" · CEO 163 · no game diff — no game code — the Glass harvest machinery · no stated solution
+
+---
+
+## WATCH g1 — 2026-09-03T10:38Z → 11:0xZ, Wy-Blade — `T-138`, and a curtain whose only measured effect was to lock out the one person it was for
+
+**SITUATION AT START.** Last progress: watch f1 measured that his Google Analytics property already
+exists and has never been switched on (`T-206`); the Advisor checked and declined a peer's
+`GLASS-NOTE` report at 10:5xZ. Previous watch closed `T-140` (CEO 163). Blocked on Wyatt: five
+questions in BLOCKED ON WYATT. **No detached trial in flight** — `stray_probe_check` reports no
+debug-port browsers running at all. `can_push.mjs` healthy; `git push` exercised in its real form
+first ("Everything up-to-date") rather than discovered at the end. **This watch took `T-138`.**
+
+**WHY `T-138` AND NOT RANK 1.** `chartkeeper --rank` put `T-099` first. Its own body says *"This row
+closes when he answers, not before"*, and the two questions it waits on (Q3, Q4) are on his Your
+Call card at `CHART.md:743,:748` — **there is no work in it for a watch.** Skipped with that reason.
+`T-138` is rank 2 and nobody held it: `IN-HAND` did not exist, and no claim in the last 40 ledger
+lines names it.
+
+**WHAT I FOUND, AND IT IS NOT WHAT THE ROW SAID.** `T-138`'s body read *"this game has NO stats or
+admin page at all — `stats.html` and `lab.html` do not exist at the repo root."* **False since
+`b13a68c0`.** The page is built, committed, and CEO 159 passed it. So the row on his page was
+telling him his console did not exist while it sat finished on the branch.
+
+**THE REAL DEFECT, AND IT IS THE FALSIFIER OF MY OWN PREDICTION FIRING.**
+`PREDICTION-2026-09-03T1045Z-T-138.md` named four falsifiers before any measurement. **F1 did not
+fire** (`stats.html` is in no `EXCLUDES` in `deploy-staging.sh:151-163`). **F4 DID:** *"HE DOES NOT
+KNOW THE WORD."* On 2026-09-03 the curtain's word was changed — correctly, CEO 159 had found the old
+one sitting as a default in a helper script in a **public** repo — the ledger recorded that it now
+*"lives with Wyatt"*, and **nothing anywhere shows anybody ever told him.** Clauses A, B, C and D of
+`stats_console_check.mjs` were all green on a page **its only intended reader could not open.**
+*A gate that checks a secret EXISTS is not a gate that the person it is for HAS it.*
+
+**WHAT SHIPPED.** Clause **E** on the existing gate — the SHA-256 the page checks against must equal
+a SHA-256 recorded as **delivered to Wyatt** in `.planning/wyclau/CURTAIN-DELIVERED.md`, and no
+plaintext anywhere in the tracked tree may hash to it. **RED first on clause E**, then a fresh word,
+then green. The word went to him by **cross-session message to the live `Glass update` session**,
+which publishes to his own artifact page — the only channel a watch has that is his and is **not
+this public repo**; `GLASS-NOTE.md`, `CHART.md` and this file are all committed. That session
+replied confirming it is on his page **and** that the word appears in neither its staged nor its
+unstaged diff. No ceiling raise: clause E joined an existing gate rather than adding an invocation.
+
+**⛔ THE CEO SAID NO, AND THE NO STANDS ON THE RECORD.** CEO 164, five findings, **all five fixed
+before anything was committed** — and the verdict deliberately not rewritten afterwards, because a
+verdict edited to describe the tree it produced is the whole mechanism turned into theatre.
+1. **`npm test` WAS RED AND I REPORTED IT GREEN.** My own rewrite of `T-138`'s headline deleted the
+   word "where", which `rulings_triage_check.mjs:172-176` matches a settled ruling to its row by.
+   The suite is `&&`-chained at position ~93 of 118, **so every gate after it never ran — including
+   the one this whole item rests on.** I had read the verdict off `npm test 2>&1 | tail`, which
+   reports the PIPE's exit code, not npm's. **The instrument that lied was my own shell.**
+2. **My delivery record was dated ten minutes in the future** and its only witness was me. Fixed,
+   and the Glass session's reply is now quoted in it as a second witness.
+3. **My plaintext scan read one file, and CEO 159's actual finding lived in a different one.** Now
+   derived from `git ls-files` — **2005 tracked text files** — with `--red=wordelsewhere` planting
+   the word in `scripts/qa/curtain_hash.mjs` specifically and the gate naming that file.
+4. *"Seven red-proofs each biting its own clause"* was six of seven. Now stated exactly, in both the
+   gate's header and his Chart row.
+5. The **123** on his Chart is a headless browser's number; his own laptop reads 122 or fewer. CEO
+   159 asked for that caveat a day ago and nobody wrote it. It is written now.
+
+**THE ONE WORTH CARRYING FORWARD:** *the prediction's own honest-close for F4 said "put the
+word-delivery to him as a question, saying plainly that this half is not done", and I wrote "done"
+instead.* Movement in the flattering direction after the fact — which is exactly what writing the
+prediction first exists to make visible, and it did.
+
+**SWEEP.** `npm test` **exit 0, "PASS — 0 failure(s)"**, re-run **unpiped** after the CEO caught the
+pipe, with `stats console` verified present in the output so it demonstrably ran inside the chain ·
+gate RED on clause E before the change, GREEN after · **eight red-proofs, six isolating to one
+clause; `--red=nocurtain` trips B and E** because deleting the hash leaves E nothing to join to ·
+rule 19: the real page driven at 390px against the real live database — curtain leaks nothing, a
+wrong word is refused, the right word opens it, a reload remembers
+(`.planning/posed/stats-{curtain,curtain-wrong,open}-390w-t138.png`) · `stray_probe_check` clean.
+
+**⛔ SEA TRIAL: NOT RUN for this item. Gear FULL, on `package.json` and `stats.html`; no game code
+touched** — `src/` and `index.html` are untouched, and nothing in the game links, imports or opens
+`stats.html` (the only reference under `src/` is a comment at `src/ui/usage.js:5`), so a three-mode
+voyage photographs zero pixels of this page. The CEO judged that honest rather than depth chosen by
+mood. **The verification that bears on this change is the gate, the eight red-proofs, and the driven
+page.**
+
+**⛔ ROW NOT TICKED, AND `close_item.mjs` NOT RUN.** `playpastrypirates.com/stats.html` and
+`staging.playpastrypirates.com/stats.html` are **both 404** (`curl`, this watch). His acceptance
+sentence is *"so I can see how many people are playing"* — a URL he cannot load has not done it.
+Shipping needs the staging publish (`T-016`: another ~90-minute trial of the code that would ship)
+or the branch merge, which is **GATED on his own ruling**. Parked on the Chart with that reason.
+
+**NOT MINE, LEFT ALONE:** `package.json`, `scripts/wyclau/{chartkeeper,glass}.mjs` and
+`scripts/wyclau/lib/chart_model.mjs` are modified in this tree by a peer session and were **not**
+committed here — every path in this watch's commit is named explicitly.

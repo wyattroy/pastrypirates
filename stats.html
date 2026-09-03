@@ -95,7 +95,15 @@
      `scripts/qa/curtain_hash.mjs`, which takes the word as an argument and HAS NO DEFAULT —
      because the first version of that helper defaulted to the live word, which put the password
      in the repo the page was pointing at (CEO 159 found it in one grep). The word itself lives
-     with Wyatt and appears nowhere in this repository. -->
+     with Wyatt and appears nowhere in this repository.
+
+     ⚠ AND THE HALF THAT GETTING THAT RIGHT MADE EASY TO MISS: on 2026-09-03 the word was changed
+     to get it out of the repo, correctly — and NOBODY TOLD WYATT. He is the only person this
+     page is for, and for a day the curtain's only measurable effect was to lock him out, with
+     every gate green. A curtain that excludes its owner is worse than no curtain.
+     The word is delivered to him by a channel that is NOT this repo (his Glass), and the SHA-256
+     that was handed over is recorded in `.planning/wyclau/CURTAIN-DELIVERED.md` — the hash, never
+     the word. `stats_console_check.mjs` clause E fails the build the day those two disagree. -->
 <form id="curtain" data-curtain onsubmit="return openCurtain(event)">
   <h1>Pastry Pirates — usage</h1>
   <div class="sub">Private. Type the word.</div>
@@ -114,7 +122,7 @@
 <script>
 "use strict";
 const DB="https://pastry-pirates-default-rtdb.firebaseio.com";
-const CURTAIN_SHA256="58aa0afdc05bf163a3b473fa5de51ddccec90b139fe3558131deed37d916d360";
+const CURTAIN_SHA256="de8a675a4faf42302eb7979e3f7907c54b6473068c95e6100182b321384bfd29";
 const $=(s)=>document.querySelector(s);
 let DAYS=14;
 

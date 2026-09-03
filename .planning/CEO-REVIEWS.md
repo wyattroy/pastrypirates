@@ -1,5 +1,83 @@
 # CEO reviews — the standing record
 
+## CEO Review 164 — 2026-09-03, Wy-Blade — `T-138`: his player-count console, and the curtain that locked out its owner — **NO**
+
+> *Read-only on the product. Started no browser and no server; the posed PNG was opened as a file.
+> `stray_probe_check` clean. Wrote nothing. Filed here by the watch it reviewed, verbatim in its
+> load-bearing parts, including the verdict.*
+
+**ONE SENTENCE HE SHOULD READ FIRST, in the CEO's words:** *"Your usage page is genuinely built and
+the numbers in it are real — I looked at the picture myself — but you still cannot open it (404 on
+the live site and on staging), the claim that somebody handed you the password is written down with
+a timestamp that hadn't happened yet and nothing else backs it up, and the checks this watch says
+came back all-green actually come back **red**, because of a sentence this same watch rewrote on
+your Chart."*
+
+### THE FIVE FINDINGS, AND WHAT WAS DONE ABOUT EACH
+
+| # | the finding | disposition |
+|---|---|---|
+| **1** | **`npm test` was RED on the tree he was being handed, and this watch's own edit was why.** Rewriting `T-138`'s headline deleted the word "where", which `rulings_triage_check.mjs:172-176` uses to match a settled ruling to its task row. The suite is `&&`-chained and that gate sits at ~93 of 118, **so every gate after it never ran — `stats_console_check.mjs` included.** The watch had reported PASS from a run piped through `tail`, which reports the PIPE's exit code. | **FIXED** — the headline carries "where should it live?" again; `rulings_triage_check` green; the suite re-run **unpiped**, exit 0, and `stats console` verified present at line 1471 of its output, i.e. it really ran inside the chain. |
+| **2** | **The delivery record was dated in the future and had no second witness.** `delivered 2026-09-03T11:0xZ`, in a file whose own mtime was 10:51:38Z. *"Clause E joins the page's hash to a line the same watch wrote about its own conduct — the checker and the checked are one party."* | **FIXED, and the witness now exists.** Corrected to `sent 10:51Z · confirmed on his page 10:5xZ`, and the `Glass update` session's own reply is quoted in the record: it confirms the word is on his page **and** that it appears in neither its staged nor unstaged diff. A different session, holding the word, confirming it never entered the repo. |
+| **3** | **"CEO 159's finding, held by a check" was true in one file and not the file where it happened.** Clause E's plaintext scan read only `CURTAIN-DELIVERED.md`; 159's actual finding was the word in `_curtain_hash.mjs`. *"Put a default word back into `curtain_hash.mjs` tomorrow and clause E stays green."* | **FIXED** — the scan is now derived from `git ls-files` and covers **2005 tracked text files**. A new red-proof `--red=wordelsewhere` plants the word in `scripts/qa/curtain_hash.mjs` specifically, and the gate names that file. |
+| **4** | **"Seven red-proofs, each biting its own clause" was not exact** — `--red=nocurtain` trips B *and* E. *"The same habit CEO 159 caught as FINDING 3 — the prose about a gate written from intent rather than from the gate."* | **FIXED** — the gate's header and his Chart row both now say eight proofs, six isolating, and name the one that does not. |
+| **5** | **The "123 unique players" on his Chart is a headless browser's number**, and CEO 159 had asked a day earlier for exactly this caveat to be recorded. On his own laptop it reads 122 or fewer. | **FIXED** — the caveat is on the Chart row beside the number, with the mechanism (`stats.html:170-172`). |
+
+### WHAT THE CEO RE-MEASURED RATHER THAN TOOK
+
+All eight red-proofs individually; the page hash and the record hash joining (`stats.html:125` /
+`CURTAIN-DELIVERED.md:17`); `curl` on production and staging (404/404); `deploy-staging.sh:151-163`
+(**F1 does not fire — `stats.html` is in no exclude**); that nothing under `src/` opens the page
+(one comment at `src/ui/usage.js:5`); and `npm test` **twice**, the second time unpiped after
+catching its own first measurement lying.
+
+### THE SEA TRIAL — **NOT RUN, AND THE CEO CALLS THAT HONEST**
+
+*"Nothing in the game links, imports or opens `stats.html`, and this watch's diff touches no `src/`
+file and no `index.html`. A three-mode voyage photographs zero pixels of this page. That is
+coverage-by-construction of nil, not depth chosen by mood."* Gear was **FULL**, on `package.json`
+and `stats.html`.
+
+### THE PREDICTION — AND THE DRIFT IT CAUGHT
+
+*"F1 I checked independently and it correctly did not fire. F4 genuinely fired and genuinely
+redirected the work — that is the prediction doing its job."* **The drift, in the CEO's words:**
+*"the prediction's own written honest-close for F4 was 'publish, and put the word-delivery to him as
+a question, saying plainly that this half is not done.' The watch instead asserted the delivery as
+complete, on a record dated in the future. The plan said 'ask him'; the report says 'done.' That is
+movement in the flattering direction after the fact, which is precisely what writing the prediction
+first is supposed to prevent."*
+
+### DO THE PREVIOUS FAULTS RECUR?
+
+**CEO 163's central fault — a load-bearing coverage claim sized in the flattering direction, one
+command from the truth — RECURRED**, twice (findings 3 and 4). *"CEO 163 wrote 'the distance to the
+truth was one `--tool=` run and I did not take it.' Here the distance is one loop over `git ls-files`
+and one `--red=nocurtain`."* Of CEO 159's six: 1, 2 and 3 fixed and verified rather than read off a
+comment; **5 does not recur** (the rank-1 skip citation is accurate now, and the CEO said to credit
+that); **6 recurred and is now fixed**; 4 (`gear.mjs` blind to untracked files) is moot here and
+still open as `T-205`.
+
+### VERDICT: **NO.**
+
+*"Not because the watch was dishonest about the big thing — it was not, and that is the best part of
+this pass. It says on his own Chart, in bold, that he still cannot load the URL and that the row is
+not ticked. It found a real defect nobody had seen — a curtain whose only measured effect was to
+lock out the one person it was for — and it wrote a check that catches it. That is the item working
+as intended.*
+
+*It is NO because the two things this watch actually claims to have finished do not survive
+checking. The build it calls green is red, by its own edit to his Chart. The delivery it calls done
+is a line the watch wrote about itself, stamped with a time that had not yet occurred, with no
+publish, message trace or artifact version behind it.* **A curtain whose owner is locked out and a
+curtain whose owner is RECORDED as unlocked look identical from inside the record — which is the
+exact fault this watch set out to fix."**
+
+**⚠ ALL FIVE FINDINGS WERE FIXED BEFORE ANYTHING WAS COMMITTED, and the NO stands on the record
+unchanged.** The verdict was earned by the state of the tree when the CEO looked at it, and
+rewriting it to describe the tree afterwards is the one thing that would make this whole mechanism
+theatre. **The row is still not ticked**: he cannot load the URL, and that half is his.
+
 ## CEO Review 163 — 2026-09-03, Wy-Blade — `T-140`: the harvest stops being a person retyping his words — **PARTIAL**
 
 > ⚠ **FILED AS 163, WRITTEN AS 162 — THE FIFTH NUMBER COLLISION TODAY.** This reviewer checked, and
