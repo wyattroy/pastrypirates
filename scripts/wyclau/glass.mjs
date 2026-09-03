@@ -1123,7 +1123,26 @@ const PAGE = `<meta charset="utf-8">
      text selection unless something says otherwise. It reads as the page breaking. Caught in the
      screenshot, not in the source; a gate could not have seen it. */
   li.drag{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
-    padding:.15rem .35rem;margin-left:-.35rem;border-radius:5px;}
+    padding:.15rem .35rem;margin-left:-.35rem;border-radius:5px;
+    /* Room at the right for the move-to-top button, which is absolutely positioned so a long row
+       title wraps UNDER it instead of shoving it off the line. */
+    position:relative;padding-right:3.6rem;}
+  /* HIS "MOVE TO TOP" BUTTON (his DO NOW, 2026-09-03: the drag "doesn't work on mobile").
+     SIZED AS A THUMB TARGET, NOT AS A LINK. min-height 32px with real padding: this exists BECAUSE
+     the fine-grained gesture failed him on a phone, so shipping a 12px hit area would reproduce the
+     fault in a different shape. touch-action manipulation keeps the tap immediate and stops the
+     row's own touch-action none drag from claiming the press.
+     NO BACKTICKS IN THIS COMMENT -- it sits inside the page template literal and one backtick ends
+     the string and stops the whole generator parsing. The file says so twice; I did it anyway. */
+  .totop{position:absolute;right:.25rem;top:.1rem;
+    min-height:32px;min-width:44px;padding:.2rem .45rem;
+    font:inherit;font-size:.78em;line-height:1;
+    color:var(--muted);background:var(--surface);
+    border:1px solid var(--line);border-radius:6px;
+    cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .totop:hover{color:var(--accent);border-color:var(--accent);}
+  .totop:active{background:var(--paleblue);}
+  .totop:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
   li.drag:hover{background:var(--paleblue);}
   li.dragging{cursor:grabbing;background:var(--paleblue);opacity:.85;
     box-shadow:0 2px 6px rgba(31,66,73,.18);}
@@ -1352,8 +1371,32 @@ const PAGE = `<meta charset="utf-8">
              three-state ruling. An OPEN or SCHEDULED row is live work and must not be greyed. */
           const why = t.why ? `<span class="rowwhy">${esc(t.why)}</span>` : ``;
           const dim = t.dim ? " dim" : "";
+          /* ⚑ HIS DO NOW PIN, 2026-09-03T18:28:56Z, and it is HIS design, not a guess at one:
+             *"Def to move doesn't work on mobile. New idea: add a 'move to top' button to the right
+             of each item in the list. I click it once, it puts it at the top of the list."*
+
+             ⛔ THE DRAG WAS BUILT ON POINTER EVENTS SPECIFICALLY SO IT WOULD WORK ON HIS PHONE, and
+             the comment where it lives says so at length — *"dragstart/drop do not fire on iOS
+             Safari at all… pointerdown/pointermove is ONE code path for mouse and touch."* **He is
+             telling us it still does not work.** So this is not a second way of doing the same
+             thing to be kept in step (rule 23); it is the gesture that WORKS on the device he
+             actually reads this on, and the drag stays because it is fine on the laptop. Both
+             commit through the same `saveOrder()` — one order, one save path, two ways to reach it.
+
+             A BUTTON, NOT A DRAG TARGET: one tap, no gesture to learn, nothing to hold, and it
+             cannot be swallowed by the page scrolling under a finger — which is the most likely
+             reason the drag fails for him. `type="button"` so it never submits anything. */
+          /* ⛔ NO `data-handle` ON THE BUTTON — IT READS ITS ROW'S. Putting one here gave every task
+             row TWO elements carrying a handle, and `chartkeeper_check` counts them to answer "how
+             many rows can he drag?": it reported 8 draggable rows where there are 4, and the
+             ambiguity guard fired on a clean Chart. **The gate was right and my markup was wrong**,
+             so the markup moved. Loosening a counter to fit a new element is how a gate stops being
+             able to see the thing it counts. */
+          const toTop = t.handle
+            ? `<button type="button" class="totop" title="Move this to the top of the list" aria-label="Move to top">▲ top</button>`
+            : ``;
           return t.handle
-            ? `<li class="drag${dim}" data-handle="${esc(t.handle)}"><span class="rowtitle">${esc(t.text)}</span>${why}${extras}</li>`
+            ? `<li class="drag${dim}" data-handle="${esc(t.handle)}"><span class="rowtitle">${esc(t.text)}</span>${why}${extras}${toTop}</li>`
             : `<li class="${dim.trim()}"><span class="rowtitle">${esc(t.text)}</span>${why}${extras}</li>`;
         }).join("")}</ol>`}
       <!-- ⚠ THE NOTE SITS ABOVE THE LIST, NOT UNDER IT — CEO 131's finding 4. Underneath, the
@@ -1894,6 +1937,50 @@ const PAGE = `<meta charset="utf-8">
            generated position at the end of the run, rather than being dropped or guessed at. */
       }
       applySaved();
+
+      /* ⚑ HIS "MOVE TO TOP" BUTTON — his own design, pinned DO NOW 2026-09-03T18:28:56Z, because
+         the drag "doesn't work on mobile". Deliberately routed through saveOrder() below rather
+         than given its own save: the order is ONE fact, and a second writer for it is the drift
+         rule 23 is about. All this does is move the row and call the existing commit.
+
+         ⚠ IT MOVES ABOVE THE FIRST DRAGGABLE ROW, NOT TO THE TOP OF THE <ol>. The list also holds
+         rows with no handle (an inbox idea, or a row whose handle two rows share) which are not
+         part of the saved sequence — inserting before those would put his pick above rows the
+         order cannot describe, and the position would not survive the next generation. */
+      function moveToTop(handle){
+        var rows = draggables();
+        var li = null;
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].getAttribute("data-handle") === handle) { li = rows[i]; break; }
+        }
+        if (!li) return;
+        var first = rows[0];
+        if (first === li) {                       // already top — say so instead of a silent no-op
+          orderNote.textContent = "That one is already at the top.";
+          return;
+        }
+        taskList.insertBefore(li, first);
+        /* Take him to it. On a phone the row he tapped is under his finger halfway down a long
+           list, and the confirmation line lives at the TOP (CEO 131's finding 4) — so without this
+           he taps and sees nothing move. */
+        if (li.scrollIntoView) { try { li.scrollIntoView({ block: "center" }); } catch (e) { li.scrollIntoView(); } }
+        saveOrder();
+      }
+      Array.prototype.forEach.call(taskList.querySelectorAll("button.totop"), function(btn){
+        btn.addEventListener("click", function(ev){
+          /* The row is a drag target and it expands on click; neither must fire from this button. */
+          ev.preventDefault();
+          ev.stopPropagation();
+          /* The handle comes from the ROW, not from the button -- see the markup's own note: a
+             second data-handle in the DOM made chartkeeper_check count 8 draggable rows where
+             there are 4. One element owns the handle. */
+          var row = btn.parentNode;
+          moveToTop(row && row.getAttribute ? row.getAttribute("data-handle") : null);
+        });
+        /* pointerdown too, or the drag handler starts holding the row the moment he touches the
+           button — the same event path that makes the drag itself unreliable for him. */
+        btn.addEventListener("pointerdown", function(ev){ ev.stopPropagation(); });
+      });
 
       function saveOrder(){
         var seq = sequence();
