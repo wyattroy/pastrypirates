@@ -174,6 +174,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **AND EXPLANATION A AS WRITTEN IS SEPARATELY UNSUPPORTED:** the typewriter never touches this
   card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
   has none. So "a progressive reveal caught early" cannot mean the typewriter.
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 29700, which is not running
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
