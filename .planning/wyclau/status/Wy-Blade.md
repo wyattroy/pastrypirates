@@ -12,9 +12,7 @@
 None recorded.
 
 ## Long run in flight (LONG-RUN)
-```
-{"what":"SENTINEL-T131-ROUND-2","startedAt":"2026-09-03T05:45:00.000Z","updatedAt":"2026-09-03T05:45:00.000Z","progress":"9/10 legs","staleAfterMinutes":53}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
