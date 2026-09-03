@@ -28,6 +28,50 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 138 — 2026-09-03, Wy-Blade — `T-085`: harvesting his claude-kit ruling into DECISIONS.md — **PARTIAL**
+
+> *Number checked order-independently at review time (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **137**). Re-check immediately before filing — three collisions happened on 2026-09-02 exactly this way.*
+
+**ONE SENTENCE HE SHOULD READ FIRST:** His "yes" is now written down where sessions look for it, accurately and with the limits intact — but the same file still carries his *earlier* "never" answer to the same question, twenty-five minutes older and unmarked, so a session that greps for the answer can still find the wrong one.
+
+---
+
+### 1. DID IT HAPPEN? — Yes, the harvest itself is real and accurate.
+
+- **The row's own failing check now passes.** `grep -c "claude-kit folder" .claude/memory/DECISIONS.md` → **1** (was 0). The entry is `.claude/memory/DECISIONS.md:3-35`, at the top of a newest-first file, additive only (`git diff --stat` → 34 insertions, 0 deletions).
+- **Accurate against the source.** Question wording, the answer, and the timestamp match `.planning/CHART-LOG.md:675` verbatim — *"May an unattended watch READ the claude-kit folder?"* / *"yes" — ruled on the Glass 2026-09-02T12:39:56.363Z, no note attached*.
+- **Alternative not picked: present** (`:8-9`) — leave the fence up, route kit work to an attended session. Sourced from the Chart row, not invented. *(Fair caveat: he answered a yes/no with one word and no note, so this is the no-branch reconstructed, not an option he visibly weighed. It is labelled correctly as "the alternative he did not pick", so it stands.)*
+- **Scope limit: present and correct** (`:11-13`) — reading, not pushing; vendored files still say *"edit THERE, not here"*. It does not over-grant.
+- **Format matches the file.** Heading shape, his words quoted, newest at top, the same warning-box idiom used at `:37`.
+
+### 2. CLAIMS THE REPO DOES NOT SUPPORT — one structural defect, no fabrications.
+
+The historical claims check out. *"CEO 106 caught it"* → `.planning/CEO-REVIEWS.md:2525` and its Finding 1. *"Thirty-one minutes"* → CEO 106 says 31; the arithmetic is 30m04s (12:39:56Z → 13:10Z), so the entry inherits its source's rounding rather than inventing anything. *"Two earlier watches' measured refusals"* → commit `9c4edb48`'s message, verbatim. *"Fifteen more hours"* → 12:39Z to 04:1xZ next day, correct.
+
+**THE DEFECT — the file now answers the same question twice, opposite ways, with nothing pointing between them.** `.claude/memory/DECISIONS.md:688`, ruling 2 of *THE KIT IS A FRAMEWORK*: *"May a watch read claude-kit at runtime? | **NEVER — and that is the test.** … The fence stays closed."* That table was committed at `ee1539ac`, **2026-09-02 08:15 EDT = 12:15Z** — twenty-five minutes before his 12:39:56Z "yes". So the new entry supersedes it, and neither entry mentions the other. **This is the harvest failure in miniature:** the whole value of this file is that a session answers from it instead of from memory, and a session that greps `claude-kit` finds "NEVER — and that is the test" sitting unqualified. The file already has the fix idiom — a `SUPERSESSION` note, as used at `:37`.
+
+### 3. IS THE LAST VERDICT'S FAULT FIXED OR RECURRING? — **Recurring, on both counts, as things stand.**
+
+- **CEO 136's core fault — the row left describing the world before its own fix — recurs verbatim.** `.planning/GLASS-CHART.md:54-58` is still `- [ ]` and still reads *"It is in the RULED table below and **nowhere else** (`grep …` → 0)"*. That sentence is now false; the row aims the next reader at work already done. `git status` confirms `.planning/GLASS-CHART.md` is unmodified.
+- **CEO 137's shape — work done but not on the branch — also recurs.** `.claude/memory/DECISIONS.md` is **modified and uncommitted**. An unharvested ruling and an uncommitted harvest are the same thing to every other session and every other machine.
+- **Fixed:** the numbering/ordering discipline. This file's top matter is now correct and 137 sits at the top where it belongs.
+
+### 4. WHAT I WOULD DO FIRST
+
+1. **Mark `:688` superseded** — one line under ruling 2 pointing at the 12:39:56Z entry above it. Without it the harvest is half-done: the right answer is filed and the wrong one is still findable.
+2. **Tick `T-085` and correct its text** (`.planning/GLASS-CHART.md:54-58`) — the `→ 0` claim and "nowhere else" must go, or 136's finding is a third-night recurrence.
+3. **Commit it.** Steps 1–3 are one act.
+
+Nothing here is worth reopening the ruling itself — the substance he gave is recorded faithfully, and the scope limit that would have been dangerous to get wrong is right.
+
+### WHAT THE ADVISOR DID ABOUT IT
+
+- **(4.1) DONE, and it was the finding that mattered.** `DECISIONS.md:688` ruling 2 now opens with a SUPERSEDED marker pointing at the 12:39:56Z entry, with the old "NEVER" struck through and kept as the record of what he ruled at 12:15Z. **Its point is exact: filing the right answer while the wrong one stays findable is not a harvest** — a session grepping `claude-kit` would have hit whichever it reached first, and the older one reads as absolute.
+- **(4.2) DONE** — the row's `→ 0` and *"nowhere else"* claims are gone, replaced by what is now true plus the supersession story, and the row is ticked through the gate on this verdict.
+- **(4.3) DONE** — committed as one act, as it asked.
+- **The generalisable lesson, now written into the row:** *when you harvest a ruling, grep the file for the QUESTION, not only for the absence of the answer.* Every check in this system that asks "is his ruling recorded?" shares this blind spot — an absent answer and a **contradicted** answer look identical to a `grep -c`.
+- **On its fair caveat about the alternative he did not pick:** it is right that he answered a yes/no with one word and no note, so the no-branch is reconstructed rather than something he visibly weighed. Left as written since the entry labels it honestly, but worth carrying: **a one-word ruling gives you an answer, not a rationale**, and the Glass's question UI is where that could be improved rather than in the harvest.
+
 ## CEO Review 137 — 2026-09-03, Wy-Blade — `T-017`: the trade-offer circle that cannot hold its captain's name — **PARTIAL**
 
 **Watch:** `pastrypirates-a3` (Wy-Blade), 2026-09-03T03:10Z. **Asked, verbatim:** *"A TRADE-OFFER

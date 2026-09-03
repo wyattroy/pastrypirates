@@ -6802,3 +6802,5 @@ the broken `--dry-run` form — the gate was pinning the bug in place.
 - 2026-09-03T03:33:11Z · close_item: "T-112" · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently · no stated solution
 
 - 2026-09-03T03:42:00Z · close_item: "T-011" · CEO 136 · no game diff — can_push now prescribes the form the allowlist actually matches; the stale STOP block that told the next watch to discard the working fix is corrected in place · no stated solution
+
+- 2026-09-03T04:00:41Z · close_item: "T-085" · CEO 138 · no game diff — his 12:39:56Z kit ruling is in DECISIONS.md, and the contradicting 12:15Z NEVER row is marked superseded so the wrong answer is no longer findable · no stated solution

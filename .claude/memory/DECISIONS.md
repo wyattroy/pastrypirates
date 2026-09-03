@@ -1,5 +1,39 @@
 # Wyatt's standing decisions
 
+## AN UNATTENDED WATCH MAY **READ** THE `claude-kit` FOLDER — 2026-09-02T12:39:56.363Z
+
+Asked on the Glass: *"May an unattended watch READ the claude-kit folder?"* — **Wyatt ruled "yes"**,
+2026-09-02T12:39:56.363Z.
+
+**The alternative he did not pick:** leave the fence up and keep routing every piece of kit work to
+an attended session (a human), which is what two earlier watches had assumed was permanent.
+
+⚠ **SCOPE, AND IT IS NARROW: this ruling is about READING. Nothing in it authorises a watch to
+PUSH to `claude-kit`.** Vendored files still say *"edit THERE, not here"*; what changed is that a
+watch may now look at the kit to see what it is vendoring, instead of reasoning about it blind.
+
+### WHY THIS ENTRY EXISTS, AND IT IS THE COSTLIEST KIND OF FAILURE THIS FILE PREVENTS
+
+**He removed the fence THIRTY-ONE MINUTES BEFORE a session declared it impossible.** The `T-078`
+work that depended on this ruling started at 13:10Z; the session wrote *"THE HALF OF HIS SENTENCE
+THAT CANNOT BE BUILT HERE"* into a gate comment, reasoning from two earlier watches' measured
+refusals — measurements that were **true when taken and stale when used**. CEO 106 caught it.
+
+**Nobody had harvested the ruling, so the session closing the very item that depended on it answered
+from memory instead of from the record.** `CLAUDE.md` §5: *"A ruling he made that nobody harvested is
+the failure this system exists to stop."*
+
+⚠ **AND THEN IT SAT UNHARVESTED FOR FIFTEEN MORE HOURS**, as `T-085`, because
+`.claude/memory/DECISIONS.md` is permission-protected and **the watches that kept meeting this
+ruling were exactly the sessions that could not write it down.** The row said so plainly: *"a
+two-minute edit this watch was refused permission to make, and its absence has already cost one
+item."* Filed here 2026-09-03T04:1xZ by the Advisor, which is a session that can.
+
+**The reusable lesson, and it is not about the kit:** a measured refusal is evidence about a moment,
+not a standing fact about the world — and a permission that only blocks the sessions who need to
+record something guarantees it never gets recorded. **When a watch cannot write a ruling down, the
+ruling does not wait politely; it gets re-derived wrongly by the next session that needs it.**
+
 ## THE KEEP-WORKING HOOK FIRES ONLY IN THE BOSUN — 2026-08-31, RESTATED 2026-09-01 BECAUSE IT WAS LOST
 
 > **SUPERSESSION PENDING (2026-09-01, the relay redesign, ruling 5):** when the relay lands, the
@@ -651,7 +685,7 @@ individual project."*
 | # | question | HIS RULING |
 |---|---|---|
 | 1 | `vendor_check.mjs` fails the build on any local edit — the kit is authoritative at runtime | **INVERT IT.** The project copy is the truth; the check warns that the KIT is behind. |
-| 2 | May a watch read claude-kit at runtime? | **NEVER — and that is the test.** A watch needing the kit means the file is in the wrong repo. The fence stays closed and becomes a design check rather than an obstacle. |
+| 2 | May a watch read claude-kit at runtime? | ⛔ **SUPERSEDED 25 MINUTES LATER — SEE THE 12:39:56.363Z ENTRY AT THE TOP OF THIS FILE. HE RULED "YES" (for READING).** The text below is what he ruled at 12:15Z and is kept only as the record of that; do not answer from it. ~~**NEVER — and that is the test.**~~ A watch needing the kit means the file is in the wrong repo. The fence stays closed and becomes a design check rather than an obstacle. |
 | 3 | When does a project change reach the kit? | **A periodic batched pass**, never per-commit. Generalising benefits from seeing several changes at once and must never block shipping. |
 | 4 | Does the kit hold the literal file or a generalised one? | **GENERALISED.** A copy is not portable just because it sits in a portable repo. |
 | 5 | What does a new project receive at adoption? | **A copy it owns outright** — no lock file, no hashes. **Plus his amendment: it must also have a way to update to the latest kit as it becomes available.** |

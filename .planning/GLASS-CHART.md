@@ -51,13 +51,24 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       for every gate at once. **Do NOT fix it by making the gate restore the file afterwards** — a
       destroy-then-repair is still a window, and this project has already lost a note inside one.
       **Sizing: SMALL. No game code.**
-- [ ] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch
+- [x] **HARVEST HIS 12:39:56Z KIT RULING INTO `DECISIONS.md` — a two-minute edit this watch (closed 2026-09-03 · CEO 138 · no game diff — his 12:39:56Z kit ruling is in DECISIONS.md, and the contradicting 12:15Z NEVER row is marked superseded so the wrong answer is no longer findable)
       ⟨`T-085`⟩
       was refused permission to make, and its absence has already cost one item.**
       The ruling: *"May an unattended watch READ the claude-kit folder?"* — **"yes"**, ruled on the
-      Glass 2026-09-02T12:39:56.363Z. It is in the RULED table below and **nowhere else**
-      (`grep "claude-kit folder" .claude/memory/DECISIONS.md` → 0). `CLAUDE.md` §5: *"A ruling he
-      made that nobody harvested is the failure this system exists to stop."*
+      Glass 2026-09-02T12:39:56.363Z. `CLAUDE.md` §5: *"A ruling he made that nobody harvested is
+      the failure this system exists to stop."*
+      ✅ **HARVESTED 2026-09-03T04:1xZ** by the Advisor, which is a session that can write that file.
+      `grep "claude-kit folder" .claude/memory/DECISIONS.md` → **1** (it was 0, and that count was
+      this row's own check). Entry at `.claude/memory/DECISIONS.md:3-35`, additive only, with the
+      alternative he did not pick and the READ-not-PUSH scope limit both intact.
+      ⚠ **AND CEO 138 FOUND THE HALF THAT WOULD HAVE MADE THE HARVEST WORTHLESS: THE SAME FILE
+      ANSWERED THE SAME QUESTION "NEVER".** `DECISIONS.md:688` ruling 2 — *"May a watch read
+      claude-kit at runtime? **NEVER — and that is the test.** The fence stays closed."* — committed
+      `ee1539ac` at **12:15Z, twenty-five minutes BEFORE his "yes"**. Filing the right answer while
+      the wrong one stayed findable is not a harvest; a session grepping `claude-kit` would have hit
+      whichever it reached first. **Row 2 is now marked SUPERSEDED and points at the new entry.**
+      *The lesson generalises past this row: when you harvest a ruling, grep the file for the
+      QUESTION, not only for the absence of the answer.*
       **The entry is already written** — it is in the ledger under WATCH 13:10Z and in commit
       `9c4edb48`'s message, including the alternative he did not pick (leave the fence up and keep
       routing kit work to a human) and the scope limit (**this ruling is about READING; nothing in
@@ -662,6 +673,13 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       `npm test` was run repeatedly beside it. ⚠ **Whether the gate froze it or the trial was simply
       slow was NOT established, and that ambiguity IS the finding** — an instrument that writes its
       subject's file makes its subject unreadable. Not reported as proven damage.
+      ✅ **RESOLVED 20 MINUTES LATER, AND IN THE TRIAL'S FAVOUR: IT WAS SLOW, NOT FROZEN.** The
+      marker moved to `1/10 legs`, `updatedAt` 03:55:12Z, with pid 35064 still alive — so leg 1
+      simply took ~14 minutes and nothing was clobbered. **Consequence (1), the read collision, is
+      still PROVEN** — three gate cases failed against live trial JSON, which is what tonight's red
+      suite was. **Consequence (2), the freeze, is a real code path with NO observed instance:** the
+      restore at `:116` genuinely writes back a pre-run snapshot, so the race exists, but it did not
+      fire here. *Say it that way and no stronger.*
       ⚠ **IT IS A DESTROY-THEN-REPAIR, WHICH THIS PROJECT HAS ALREADY RULED AGAINST**, in `T-112`'s
       own row: *"Do NOT fix it by making the gate restore the file afterwards — a destroy-then-repair
       is still a window, and this project has already lost a note inside one."* That was about
