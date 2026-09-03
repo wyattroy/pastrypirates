@@ -2088,3 +2088,48 @@ died and that is itself the finding.
   STILL UNEXPLAINED, and named rather than hand-waved: WHY a watch searching its own tools found
   nothing. Most likely a deferred-tool list that must be searched with the right query before it
   appears — a watch running one search, getting nothing, and concluding absence. Not measured.
+
+- ⚠ THE ARTIFACT QUESTION, THIRD REVISION, AND THE SPLIT IS MACHINE NOT MODE. The Blade session
+  measured `claude -p` on the Blade three times: ABSENT — with a CONTROL of the same shape asking
+  about Read that returned PRESENT, which is what makes ABSENT a real reading rather than a stuck
+  probe. That is better evidence than anything I produced and I accept it for the Blade.
+  BUT IT DOES NOT GENERALISE, and this Mac is the counter-example: `claude -p` here, run twice from
+  a shell just now, returns PRESENT for Artifact (and PRESENT for the Read control). Mac claude is
+  2.1.240 at ~/.local/bin/claude. So print mode HAS the tool on one machine and lacks it on
+  another — the determinant is the machine (version or auth), not the mode.
+  ⚠ AND A CLAIM OF MINE IS WITHDRAWN: "Blade: PRESENT (Wyatt ran it himself)". He wrote only "Re:
+  artifact -- it said PRESENT"; I decided that meant he had run the headless command I gave him.
+  The Blade session located a plausible alternative source (an interactive prompt in its own
+  transcript answering the same wording). I inferred a measurement from an ambiguous report — the
+  same fault I had just finished writing up, one level down. ASKED, not assumed: which did he run?
+  THEREFORE THE FIVE "no Artifact tool" LEDGER ENTRIES WERE HONEST, and my correction of them was
+  wrong. They were Blade print-mode sessions accurately reporting their own tool list. What was
+  wrong was my generalisation from one Mac reading, not their self-reports.
+  NEXT MEASUREMENT, one line on each machine: `claude --version`. If the Blade is older, the whole
+  thing is an update rather than an architecture. Auth path (/login vs API key) is the other
+  documented determinant and is worth the same one-line check.
+
+- ⚠ MY "CLOSE THE GLASS TAB" ADVICE WAS WRONG, AND IT WOULD HAVE INTERFERED WITH HIM USING THE
+  INTERFACE. I read a publish burst (57s, then ~2.5 min, against a two-hour ~15-minute cadence) as
+  either a session loop or the page self-saving, and told him to close the tab to distinguish them.
+  The Blade session measured the actual cause: THE BURST WAS WYATT. He tapped a ruling on the Glass
+  (the WebP/image question) and wrote an idea minutes apart; the publisher read live rather than
+  waiting for its tick, filed the ruling to CHART's RULED table and the idea to the inbox, committed
+  twice and republished. That is the interface behaving exactly as designed the first time he
+  really used it — and my instinct was to switch it off.
+  THE HARVEST WAS RUNNING THE WHOLE TIME, evidenced not asserted: LAST-HARVEST precedes LAST-PUBLISH
+  by ~15-20s on every tick checked, and the burst's first publish was REFUSED by the platform's
+  conflict guard (his ruling landed after the page was generated), so it re-harvested and
+  republished. A session skipping the read could not have known to redo it.
+  LESSON, AND IT IS THE DAY'S SHAPE AGAIN: I inferred a mechanism from a timing pattern and
+  recommended an action on it. The cadence I had been calling "healthy" (a flat 15-minute drumbeat)
+  was the actual defect — Wyatt charged it as a timer-lesson violation, a CEO audit upheld him, and
+  there is now a change-gate (scripts/wyclau/glass_needs_publish.mjs, exit 0 PUBLISH / exit 10
+  NOTHING-MOVED) consulted AFTER the harvest, never instead of it. Expect quiet stretches and short
+  bursts when he is on the page; a steady drumbeat is the thing to distrust.
+- VERSION DATA, AND IT INVERTS MY FIX SUGGESTION: Blade is 2.1.257, this Mac is 2.1.240. The NEWER
+  machine is the one whose `-p` sessions LACK the Artifact tool (its own probe: ToolSearch
+  "select:Artifact" and "+artifact" both empty; its subagent prompt lists "All tools except Agent,
+  Artifact, ArtifactComments..."). So "update the Blade and watches can publish" is dead — if
+  anything the capability is absent in the later build, and updating THIS Mac might lose it. Per
+  machine is the honest scope; neither session has evidence for a general rule.
