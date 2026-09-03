@@ -91,16 +91,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
-- [ ] Your ruling: do you want `SCHEDULED` to stop hiding your ideas? **He answered; not yet built.**
-      ⟨`T-139`⟩
-      Measured with the page's own logic when it was put to him: **13 of his 15 ideas were hidden
-      from the Glass, 9 of them by the word `SCHEDULED`**, which the code treated as identical to
-      SHIPPED and CLOSED — against the Charter's own words, *"Every idea gets a visible fate
-      (shipped / scheduled / parked-with-a-reason)"*. A fate is supposed to be VISIBLE; `SCHEDULED`
-      was being used to make one disappear.
-      ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
-      that was its only surface is deleted.
-      **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
 - [ ] Your ruling: your player-count console — where should it live? **He answered; nobody built it, and it is on no surface but a card that is being deleted.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*. **Measured

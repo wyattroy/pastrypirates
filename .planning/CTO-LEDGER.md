@@ -7359,3 +7359,77 @@ watch can actually finish.
 
 ⚠ **Everything above this line was written at the CLAIM, before the work.** The prediction file is
 `.planning/PREDICTION-20260903T0825Z-T139.md` and it was written before a single measurement.
+
+**THE ITEM. CLAIMED 08:25Z. CLOSED 08:55Z, CEO 155 (PARTIAL) then CEO 157 (DONE), commit
+`417adefc`.** Gear: the picker says FULL and its stated reason is `package.json` alone. **A sea
+trial was NOT run and would not have seen this** — `src/` and `index.html` are untouched and the
+trial plays the game. `npm test` (115 gates, 0 failures) is the browser-free half and it is real;
+`stray_probe_check` reports no debug-port browsers.
+
+**THE ROW SAID "not yet built" AND IT WAS HALF WRONG.** Two of his three states shipped the day he
+ruled. The phrase was written FRESH at `1d952c90` (07:16Z, watch c1's triage of `## RULED`), 19
+hours after the ruling landed, without a measurement. **Rule 6 in the direction nobody watches
+for: a shipped fix condemned on a reading.** Not a criticism of that triage's purpose — it caught
+four rulings about to fall off his page, which was the right catch — but the claim it carried
+forward was untested.
+
+**MEASURED FIRST, ON THE LIVE CHART, with the page's own parse and the one fate rule: 34 ideas —
+14 open, 12 SCHEDULED, 1 parked, 7 finished.** The live rule hides 7; the pre-ruling one-list rule
+would hide 20. **Thirteen of his own ideas are on his page only because of this ruling**, two of
+them marked DO NOW and three of them LIVE BUG REPORTS — and **nothing guarded it.** One word moved
+back into one list takes all thirteen away with every other check still green, which is exactly
+how it happened the first time.
+
+**THE THIRD CLAUSE HAD NEVER BEEN BUILT, AND MY OWN FIRST GATE CERTIFIED ITS ABSENCE.** CEO 155
+found it: *"PARKED shows DIMMED with its reason"* — a parked idea rendered as a bare
+`PARKED · title`, at full weight beside live work, and the gate passed because its fixture wrote
+the reason on the HEAD line, where no real parked idea has ever written one. Built here:
+`parkedReason()` in `lib/chart_model.mjs`, DERIVED from the verdict the Chart already declares
+rather than a new field somebody must type; `why` and `dim` on the visible row in `glass.mjs`,
+deliberately not in `detail` (which hides behind a "more" toggle — his word was *shows*).
+
+**TWO PERMANENT RED-PROOFS, BECAUSE THERE WERE TWO REGRESSIONS A DAY APART IN DIFFERENT FILES.**
+`--before` (the old one-list lexicon, in the model) breaks 5 of 9; `--before-parked` (the
+two-thirds render, in `glass.mjs`) breaks 2 of 9 — and those two are exactly the reason and the
+dimming. Both refuse to run rather than pass if their patch no-ops. **One red-proof would have
+gone on passing through the second regression exactly as the first gate did.**
+
+**POSED ON THE REAL CHART, not only a fixture** —
+`.planning/posed/t139-parked-{before,after}.png`, same file, same single parked row, scrolled into
+view and reported back so a shot of the wrong screen cannot pass as evidence (the trap that killed
+the `T-012` pose). `{dimmed:false, opacity:1, why:null}` → `{dimmed:true, opacity:0.72,
+why:"low priority"}`, rows either side unchanged.
+
+**⚠ A CORRECTION I OWE IN THE OPEN.** My prediction's **P2 was wrong** and its falsifier F2 fired:
+I predicted the "not yet built" text had been CARRIED ACROSS unchanged from the `## RULED` table.
+It was written fresh. The conclusion held; the mechanism I predicted did not.
+
+**⚠ AND CEO 155's FAULT RECURRED INSIDE THE FIX FOR IT.** 155 found the unbuilt clause was quoted
+in my own prediction's first paragraph and then tested by none of P1–P4. CEO 157 then found the
+**same weakened paraphrase** — *"PARKED shows with its reason"*, one word lighter — still sitting
+in the gate's header and the ceiling justification AFTER the gap was closed, plus a hand-typed
+"3 of 5" that had become false. All three fixed before the close. **The reusable half: a gate that
+tests the right thing under a header quoting the weakened version will drift back to the header.**
+
+**⚠ THE INDEX WAS RESET UNDER ME MID-COMMIT, AND THIS IS THE SHARED-TREE HAZARD, OBSERVED.** A peer
+watch is live in this same working tree on `T-141` (`scripts/qa/_t141_settle_curve.mjs`,
+`.planning/wyclau/PREDICTION-20260903T0815Z-T141-settle-curve.md`, its `c9d633a4`). Six staged
+files silently left the index between `git add` and `git commit`, so the commit landed carrying
+only the four NEW files while its message described all ten. Caught by reading the commit output
+instead of trusting it, and repaired by amending before the push. **`DECISIONS.md` already warns
+that an uncommitted edit does not survive another session's git command — this is the INDEX
+version of that, and it fails with no error and no conflict.** Stage and commit in one breath, and
+read what the commit says it wrote.
+
+**LEFT UNDONE, DELIBERATELY.** The sandbox refuses `rm` in this session, so
+`scripts/qa/_t139_measure.mjs`, `_t139_parked_pose.mjs`, `.planning/wyclau/_t139_msg.txt` and the
+CEOs' own `_ceo155_*` / `_ceo156_*` throwaways sit untracked on disk. None is committed and none is
+wired into anything. **A session with permission should delete them** — this is now the third watch
+running to report the same refusal.
+
+**SWEEP.** `npm test` 115 gates, 0 failures · the gate RED 5/9 and 2/9 under its two reconstructed
+worlds, GREEN 9/9 live · posed pair read by eye, both sides · `stray_probe_check` clean —
+`glass_peek` and the pose script both close their Chrome in a `finally`, and that gate is the check
+I trust over a shell builtin on this machine.
+
+- 2026-09-03T08:52:10Z · close_item: "T-139" · CEO 157 · no game diff — no game diff — his ruling is the Glass's fate lexicon, not the game; src/ and index.html untouched (commit 417adefc) · no stated solution

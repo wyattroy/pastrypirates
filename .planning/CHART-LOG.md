@@ -2413,3 +2413,16 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **And do not trust the count.** It was three, then four the moment somebody else looked.
       **Nobody has ever checked this page against the game it describes**, so the honest scope is
       "re-read the whole section", not "fix four sentences".
+
+## T-139 — 2026-09-03 — Your ruling: do you want SCHEDULED to stop hiding your ideas? He answered; not yet built. (closed 2026-09-03 · CEO 157 · no game diff — no game diff — his ruling is the Glass's fate lexicon, not the game; src/ and index.html untouched (commit 417adefc)) Measured with the page's own logic when it was put to him: 13 of his 15 ideas were hidden from the Glass, 9 of them by the word SCHEDULED, which the code treated as identical to SHIPPED and CLOSED — against the Charter's own words, "Every idea gets a visible fate (shipped / scheduled / parked-with-a-reason)". A fate is supposed to be VISIBLE; SCHEDULED was being used to make one disappear. ⚠ Same triage and same reason as the row above — lifted out of ## RULED before the card that was its only surface is deleted. Sizing: SMALL — one fate word, in the filter that decides what he sees.
+
+- [x] Your ruling: do you want `SCHEDULED` to stop hiding your ideas? **He answered; not yet built.** (closed 2026-09-03 · CEO 157 · no game diff — no game diff — his ruling is the Glass's fate lexicon, not the game; src/ and index.html untouched (commit 417adefc))
+      ⟨`T-139`⟩
+      Measured with the page's own logic when it was put to him: **13 of his 15 ideas were hidden
+      from the Glass, 9 of them by the word `SCHEDULED`**, which the code treated as identical to
+      SHIPPED and CLOSED — against the Charter's own words, *"Every idea gets a visible fate
+      (shipped / scheduled / parked-with-a-reason)"*. A fate is supposed to be VISIBLE; `SCHEDULED`
+      was being used to make one disappear.
+      ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
+      that was its only surface is deleted.
+      **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
