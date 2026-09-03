@@ -2912,8 +2912,9 @@ function promptTick(force){
        #boardwrap started clipping (see index.html): what used to paint over the ribbon would now
        be cut off entirely, and a boat you cannot see is worse than a boat in the wrong place.
 
-       Fires ONCE per prompt — S.frameKey is the turn serial plus the ask itself, so a re-place
-       during the glide cannot re-aim the camera at every frame and chase itself. Only when the boat
+       Fires ONCE per prompt — S.frameKey is the turn serial, the ask itself, and the captains it
+       names (T-211), so a re-place during the glide cannot re-aim the camera at every frame and
+       chase itself: nothing in that key moves while a boat glides. Only when the boat
        is genuinely outside the band the circles have to live in; a boat merely near the edge is
        left alone, because the director moving on its own is startling when it was not needed. */
     /* FRAME WHAT THE QUESTION IS ABOUT, NOT WHOEVER IS ANSWERING IT — playtest 22 item 6 (Wyatt):
@@ -2928,8 +2929,24 @@ function promptTick(force){
        displaying the action buttons"). The buttons were placed correctly around the wrong shot.
        `camFitSeats` already exists and is what __pp4.battle uses — the fight simply was not asking
        for it here. */
+    /* THE KEY CARRIES *WHERE* THE CAPTAINS ARE, NOT JUST WHO THEY ARE — T-211, 2026-09-03.
+       It used to be `turnSerial + the ask's TEXT` alone, and `turnSerial` moves only when the wheel
+       passes to another captain (see `actor:` at the foot of this file). So TWO PROMPTS INSIDE ONE
+       CAPTAIN'S TURN THAT SHARE A SENTENCE SHARED A KEY, and the director was told the shot was
+       already right while what it had to frame had moved. `flow.js:2538` asks **"Attack whom?"** —
+       a fixed sentence, asked again after a Back and a move, with the boats somewhere else.
+       Rule 23's question one scale down: what made the shot and its subject agree? Nothing.
+       ⚠ SEATS ALONE ARE NOT ENOUGH, AND THAT WAS THIS WATCH'S FIRST, WRONG FIX — it added
+       `anchorSeats` to the key, which is CONSTANT whenever the same captains are asked about twice,
+       and the gate below went 18/30 to 21/30. The quantity that actually moves is the SQUARE.
+       IT IS THE LOGICAL SQUARE (`players[i].pos`), NOT the rendered transform, on purpose: `pos`
+       changes once per move and is still during a glide, so the "cannot re-aim at every frame and
+       chase itself" property the note above depends on is preserved exactly. */
     if (!S.lock && sx != null){
-      const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent;
+      const gp = appState.game && appState.game.players;
+      const where = gp ? anchorSeats.map(s => (gp[s] && gp[s].pos ? gp[s].pos.join(".") : "?")).join(",") : "";
+      const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent
+                + "|" + anchorSeats.join(",") + "|" + where;
       if (S.frameKey !== key){
         S.frameKey = key;
         const inBand = (px, py) => px >= 8 && px <= vwPx() - 8 && py >= tSafe && py <= capT - 8;

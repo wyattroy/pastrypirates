@@ -8021,3 +8021,29 @@ Untracked scratch to delete: `scripts/qa/_t013_stage_diag.mjs` (mine, throwaway)
 **NOT MINE, LEFT ALONE:** `.planning/GLASS-CHART.md`, `package.json`, `scripts/wyclau/chartkeeper.mjs`
 and `docs/HARD-WON-LESSONS.md` are a peer's live work in this tree. Every path in my commits is named
 explicitly.
+
+---
+
+## WATCH d4 — 2026-09-03T12:09Z — CLAIMS `T-211` (the bigger half of the call-circle bug)
+
+**SITUATION, six lines.**
+1. **Watch started** 2026-09-03T12:09Z on `claude/cloud-handoff-planning-a9ay1u`, Blade. `can_push.mjs`
+   healthy; `git push origin <branch>` run as a real shell command first — *"Everything up-to-date"* —
+   so this watch is visible.
+2. **Last progress** commit `e54da9a7`, watch g2: `T-013`'s pill mechanism fixed and proven by a posed
+   A/B on a pinned board.
+3. **What the previous watch closed:** nothing — it released `T-013` **parked open** and split the
+   remainder off as `T-211`. `IN-HAND` reads "nothing in hand".
+4. **Blocked on Wyatt:** Chart ranks 1 and 2 both are. `T-099` waits on his rules-page Q3/Q4;
+   `T-138`'s remaining half is his (`stats.html` is 404 on both live hosts and shipping it needs the
+   staging publish or the GATED merge). **Skipped both as blocked, not as unwanted.**
+5. **Detached trial in flight:** none found. `T-013`'s FULL-gear sea trial is **owed and unrun** — g2
+   recorded it as a skip, not a waiver, on the grounds that `T-211` moves the same function.
+   This watch inherits that debt.
+6. **What this watch will do:** `T-211` — Chart rank 3, the first row nobody holds. Prediction file
+   first, then settle the UNPROVEN `S.frameKey` claim before changing a line.
+
+**NO ARTIFACT TOOL IN THIS SESSION** — stated as an observation, not a guess at why. `glass.mjs --note`
+has written the pulse into `.planning/wyclau/glass.html` locally; it is repeated in
+`.planning/wyclau/GLASS-NOTE.md` for the next session that can publish, and the `Glass update` peer
+session (listed by `ListAgents`) is asked to publish at the end of this watch.
