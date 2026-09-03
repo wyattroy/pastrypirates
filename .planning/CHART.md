@@ -556,6 +556,28 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
 
+- [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
+      INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
+      watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
+      splitting a timestamp in half: `Filed 2026-09-01T19:30` / marker / blank line /
+      `Z, measured, not fixed (one item).**`. **Both rows ALREADY CARRIED A HANDLE** — `T-014` and
+      `T-092` — sitting on the very next line, so this is not "an unhandled row got one", it is a
+      second handle allocated to a row that had one and written into the prose.
+      **WHY THIS IS WORSE THAN IT LOOKS:** `GLASS-CHART.md` is one of the two lists his Glass
+      renders, three sessions write it, and the damage is INVISIBLE in a rank summary — the run
+      printed a cheerful `2 id(s) allocated · 30 row(s) moved`. Nothing failed. It was found only
+      because the commit's `git diff` was read line by line before staging.
+      **AND IT WAS A SIDE EFFECT NOBODY ASKED FOR:** the command was run with no `--chart=`, so it
+      was pointed at `CHART.md`; it wrote into the sibling anyway.
+      **The two spurious ids `T-233`/`T-234` were reverted with the text**, so nothing references
+      them and they are free again.
+      **Start here:** the id-allocation writer in `scripts/wyclau/chartkeeper.mjs` — why it chose a
+      column inside a title, and why `openHandleCarriers` did not see the handle one line below.
+      Rule 1: a row that already carries a handle must never be allocated a second one.
+      Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
+      shaped like the REAL chart — multi-line titles, marker on the following line.
+      ⟨`T-222`⟩
+
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -585,7 +607,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
-
 - [ ] **A TRIAL'S SCREENSHOTS ARE DESTROYED BY THE NEXT TRIAL, AND THE QUEUE THAT NAMES THEM DOES
       ⟨`T-015`⟩
   NOT NOTICE — measured 2026-09-02, not fixed (one item).** Every leg writes to the SAME filenames
@@ -599,6 +620,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+
 - [ ] **NOTHING AUTOMATIC GUARDS THE TRADE-CIRCLE FIX, AND `npm test` IS THE WRONG HOME FOR IT —
       filed 2026-09-03T2035Z off CEO 184's finding 3, whose diagnosis is right and whose remedy is
       wrong on the facts.** It said to add `trade_circle_type_size_check.mjs` to the suite, citing
@@ -615,28 +637,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **The question this row owes: where do the 40 browser checks belong?** The trial's own leg set
       is the obvious candidate. Sizing: no game code; a mechanism decision, so it may want Wyatt.
       ⟨`T-221`⟩
-
-- [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
-      INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
-      watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
-      splitting a timestamp in half: `Filed 2026-09-01T19:30` / marker / blank line /
-      `Z, measured, not fixed (one item).**`. **Both rows ALREADY CARRIED A HANDLE** — `T-014` and
-      `T-092` — sitting on the very next line, so this is not "an unhandled row got one", it is a
-      second handle allocated to a row that had one and written into the prose.
-      **WHY THIS IS WORSE THAN IT LOOKS:** `GLASS-CHART.md` is one of the two lists his Glass
-      renders, three sessions write it, and the damage is INVISIBLE in a rank summary — the run
-      printed a cheerful `2 id(s) allocated · 30 row(s) moved`. Nothing failed. It was found only
-      because the commit's `git diff` was read line by line before staging.
-      **AND IT WAS A SIDE EFFECT NOBODY ASKED FOR:** the command was run with no `--chart=`, so it
-      was pointed at `CHART.md`; it wrote into the sibling anyway.
-      **The two spurious ids `T-233`/`T-234` were reverted with the text**, so nothing references
-      them and they are free again.
-      **Start here:** the id-allocation writer in `scripts/wyclau/chartkeeper.mjs` — why it chose a
-      column inside a title, and why `openHandleCarriers` did not see the handle one line below.
-      Rule 1: a row that already carries a handle must never be allocated a second one.
-      Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
-      shaped like the REAL chart — multi-line titles, marker on the following line.
-      ⟨`T-222`⟩
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
