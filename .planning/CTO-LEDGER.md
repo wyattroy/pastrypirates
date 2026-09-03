@@ -9726,3 +9726,72 @@ edit to `index.html`, `src/`, or anything a browser loads; and no second sea tri
 fight the run in flight, whose report is the merge evidence CEO 188 called a hard precondition.
 
 Prediction: `.planning/wyclau/PREDICTION-20260903T2245Z-T-206.md`.
+
+### WHAT THIS WATCH DID — commits `c72d6d44`, `2c698da5`, `7a6a54e2`
+
+**THE PREDICTION WAS WRONG ON ITS SECOND CLAIM, AND ITS OWN FALSIFIER IS WHAT CAUGHT IT.** I
+predicted no CEO verdict existed for `09f8658c` and wrote down what would disprove that — *"grep
+the file for the sha, not just the headings."* Grepping found **CEO 189**, a full PARTIAL review
+with six findings and an ordered fix list. **The entire shape of this watch changed on one line
+written before the measurement.** Claims 3, 4 and 5 held; claim 1 held.
+
+**1 — CEO 189's four blind spots are closed, and its five mutations now re-run** (`c72d6d44`).
+RED FIRST: `scripts/qa/_t206_gate_redproof.mjs` replays each mutation against an isolated copy,
+verified applied, with a CONTROL that must pass. Against the gate as it stood: **control green,
+all five mutants PASS** — five ways to break the analytics safety property while the build stayed
+green. Against the fixed gate: control green, **5 of 5 caught, each by the case that should catch
+it.** The gate now derives what it guards from `git ls-files` instead of four typed filenames.
+
+**2 — HIS "YOUR CALL" CARD SAID (0) WHILE A REAL DECISION OF HIS WAITED** (`2c698da5`).
+`## BLOCKED ON WYATT` was an empty table. CEO 189 asked specifically that the front-card privacy
+line stay *"a precondition on the merge; do not let it decay into a task nobody blocks on"* — and a
+precondition living only in a Chart row's prose is exactly that. It is now `qid:t206-privacy-line`,
+numbered 1/2/3 with one `(recommended)`, verified **on the rendered page** rather than asserted.
+
+**3 — CEO 189 ITSELF WAS SITTING UNCOMMITTED** (`7a6a54e2`). The review this whole watch acted on
+existed only in the working tree. That is CEO 188's own second finding about `T-247` — *"the gate
+the CEO ran was a working-tree version in no commit"* — recurring one item later, on the review
+file itself.
+
+### THREE THINGS I GOT WRONG, IN THE OPEN
+
+- **The derivation reported 1753 PAGES.** This game has 22. Thirty-seven stray `.tmp-*`
+  headless-Chrome profile directories are sitting in this repo's root, 47 pages each
+  (`_t206_walk_audit.mjs`). A count nobody can explain is a measurement nobody has made. Replaced
+  with `git ls-files`, minus the paths Jekyll refuses — the same rule that explained 84 of 84
+  staging 404s during `T-247`, not a guess.
+- ⛔ **I INTRODUCED A SYNTAX ERROR INTO THE GATE AND MY OWN HARNESS PRINTED A CLEAN PASS.** The
+  gate was CRASHING on every mutant. It exited non-zero, and "non-zero" was what the harness read
+  as "caught". **A gate that cannot run looks exactly like a gate that is working** — CEO 186's and
+  188's shape, committed by the person fixing it. Every mutation now names the MESSAGE it expects.
+- **A flake, characterised rather than re-run until green.** One run exited 1 with no failing case
+  printed: on Windows `rmSync` can throw out of the `finally` after the verdict is decided. Tidying
+  up must never change a verdict. 6 of 6 green, twice (`_t206_flake_audit.mjs`).
+
+### WHAT IS STILL OWED ON `T-206` — the row is NOT closed, deliberately
+
+1. **THE FULL SEA TRIAL ON THE ANALYTICS BUILD.** The 20:31Z trial **finished during this watch**:
+   **10 of 10 legs sailed**, 99 min, FULL gear, nothing in the not-run column, verdict FAILED on
+   judge findings and settle timing. It sailed build `2026.09.03.4` — **started before analytics
+   existed, so it does not cover `09f8658c`.** ⚠ Its report is **untracked** at
+   `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`; not this watch's to commit, and flagged to
+   the Glass session, which also declined it as outside its mandate. **Somebody must commit it.**
+   ⚠ And CEO 189 sharpened this debt in a way worth carrying: *a FULL trial cannot exercise this
+   change at all* — `analyticsShouldRun` is false on localhost — so it is a precondition on the
+   merge, not the missing evidence for the analytics itself.
+2. **His answer to `qid:t206-privacy-line`.** His words, his call.
+
+**Gear:** no game code. `gear.mjs` reports *"nothing uncommitted"*, which is it saying nothing I
+touched counts as game code — `scripts/qa/` is excluded — so it falls through to the whole branch's
+diff against `main`. This change owes no trial of its own. `npm test`: exit 0, three times.
+
+**Browsers:** this watch started none. `stray_probe_check` PASSES — 4 debug-port browsers up, every
+one with a live launcher.
+
+**Rows skipped:** none held. `IN-HAND` was empty and no ledger claim was under 90 minutes old.
+
+**⚠ HIS PAGE IS NOT REPUBLISHED, AND NOBODY SHOULD READ THIS AS THOUGH IT IS.** This session has no
+Artifact tool. Door step 6b was followed — `SendMessage` to `Glass update [fda089]` — and it
+replied that **it only dispatches on Wyatt's explicit instruction**, so it will not publish on this
+message. His note is committed in `GLASS-NOTE.md` and the question is committed in `CHART.md`; both
+reach him at the next publish, whenever he asks for one. **Committed is not delivered.**
