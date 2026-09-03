@@ -388,6 +388,21 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   FLOOR, not a ceiling**, and any release decision quoting it must say so. Same shape as the green
   suite that blessed the build Wyatt then found seven bugs in. **Not an action item on its own**;
   it is the caveat that belongs beside every judged-screen number from here on.
+  ⚑ **AND NOW THE OTHER DIRECTION, MEASURED THE SAME WAY — ITS FAILS ARE NOT RELIABLE EITHER.
+  2026-09-03, the 0624Z trial: a human opened all TEN of its FAIL verdicts. Of those ten,
+  TWO WERE FALSE POSITIVES and ONE HAD THE WRONG MECHANISM ATTACHED.**
+  · the *"Arrgh! bubble with no tail"* is **a button** — `panel.js:1156`,
+    `<button class="apBtn" id="bmCerGo">Arrgh!</button>` — sitting exactly where rule 11 puts it;
+  · the *"FORECAST ribbon clipped by the sidebar"* is refuted by its own screenshot: the pill reads
+    `WIND NOW: E→ · FORECAST: S↓` complete, with ~280px of empty board before the sidebar;
+  · the *"Play again! button overlaps the award cards"* has a real symptom and the wrong cause — the
+    cut sits ~15px ABOVE the button, which is a scroller edge, not an overlap.
+  **It also invented the award winners on `solo-phone-021`** (*"Best Score"*, *"Crestboard"* for
+  Davy Scones and Crustbeard), which is the same hallucination `INTENDED-BEHAVIOUR.md:123` already
+  records it doing with wind direction. **SO: ITS ISSUE STRINGS ARE NOT QUOTABLE. A judged FAIL is a
+  POINTER TO A SCREEN WORTH OPENING, never a description of what is wrong with it** — and the
+  session that filed those five as bugs is the proof, having attached *"verified by eye"* to a
+  mechanism the eye cannot deliver. Found by CEO 158.
   **HOW STRONG THE CAVEAT IS, MEASURED RATHER THAN ASSERTED (CEO 86's finding 2):** the false PASS
   was found because a human had already flagged that screen, not by sampling. Four further PASS
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS

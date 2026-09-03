@@ -1829,3 +1829,42 @@ Restoring a swept row, a session minted the handle `T-203` because it looked fre
 takes its ceiling from the highest **owned** handle, so jumping 134 → 203 invented **68 vanished
 rows** in one keystroke, and two sessions then reasoned about them. **Take the next handle at the
 FRONTIER; never a round number that looks unused.**
+
+### THE SAME NIGHT, THE OTHER DIRECTION: I TRUSTED AN INSTRUMENT BECAUSE ITS ANSWER WAS THE ONE I WANTED
+
+Everything above is about instruments that could not see. **This is about believing one that could
+see and could not explain**, and it happened after a whole night of writing the entries above.
+
+The sea trial's vision judge FAILED ten screens. A session read its `issues` strings and filed five
+bugs, marking two as unverified. **A CEO opened the pictures.** Of the ten: *"the Arrgh! bubble has
+no tail"* is **a button** (`panel.js:1156`); *"the FORECAST ribbon is clipped by the sidebar"* is
+refuted by its own screenshot, ~280px of empty board between the text and the sidebar; and
+*"the Play again! button overlaps the award cards"* has a real symptom with **the wrong cause** —
+the cut is ~15px **above** the button, a scroller edge, not an overlap. The judge had also invented
+the award winners' names on that screen, which `INTENDED-BEHAVIOUR.md:123` already records it doing
+with wind direction.
+
+**THE RULE, AND IT IS NARROW ENOUGH TO USE: A JUDGED `FAIL` IS A POINTER TO A SCREEN WORTH OPENING.
+IT IS NEVER A DESCRIPTION OF WHAT IS WRONG WITH IT.** The judge is good at *"look here"* and
+unreliable at *"because of this"*. Quote its verdict, never its reasoning.
+
+**And the tell was in the report before the CEO was:** the two claims that turned out false were
+exactly the two the session had NOT opened. **The ones it looked at survived.**
+
+⚠ **WORSE, AND THE PART WORTH REMEMBERING: the failed claim carried the words "VERIFIED BY EYE".**
+The session did open that screenshot. What it wrote down was not what it saw — it was its
+*explanation* of what it saw, in the same sentence and the same voice. **Looking at a thing licenses
+you to report the thing. It does not license you to report the mechanism.**
+
+### AND A RANGE REPLACEMENT IS A DELETION OF EVERYTHING YOU DID NOT LOOK AT
+
+Correcting that row, the same session rewrote `CHART.md` between two anchors — `s[:start] + new +
+s[end:]` — and **four unrelated rows were living between them**, one of them another session's
+in-flight work. They were gone, silently, in a commit about something else.
+
+**`chart_sweep_conserves_check` caught it** — *"4 allocated handle(s) are owned by NOTHING"* — the
+gate whose ownership regex that same session had fixed six hours earlier. All four were restored
+verbatim from `HEAD`.
+
+**Anchor an edit to the thing you are changing, not to the thing after it.** If you must replace a
+range, print what is inside it first.
