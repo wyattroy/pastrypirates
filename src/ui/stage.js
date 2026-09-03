@@ -3005,6 +3005,18 @@ function promptTick(force){
     if (!S.growPeak) S.growPeak = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pp4GrowPeak")) || 1.15;
     const SEP = Math.round(D * S.growPeak) + GAP;
     const R = D + 4;
+    /* ⛔ THE BAND AND THE BOATS ARE READ ONCE, HERE, BECAUSE THE PILL AND THE CIRCLES BOTH NEED THEM.
+       These four bounds used to be declared beside the circles, 130 lines below, and the boat's own
+       rendered radius 30 lines below that — so the ask pill, which is placed FIRST, had no way to ask
+       where the circles were going to end up. It guessed with a constant, and `T-013` is what the
+       guess cost. Pure hoist: the expressions are unchanged and every consumer below reads these.
+       It sits after D, growPeak and R because it is built from them. */
+    const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    const shipsNow = boardShipEls() || [];
+    // the boat's own rendered size. A translate cannot change a box's WIDTH, so this is the one
+    // number that is safe to read off a ship mid-glide; its position comes from the anchors.
+    const boatRad = i => { const el = shipsNow[i]; if (!el) return D / 2;
+      const r = fixedRect(el); return Math.max(r.width, r.height) / 2 || D / 2; };
     const placed = [];
     // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
     // so every sail highlight is an obstacle nothing of ours may cover
@@ -3123,14 +3135,50 @@ function promptTick(force){
          player-facing finding — passplay-phone, "Call Flaky Jack" over "Davy Scones - a battle's
          brewi[ng]". The below-the-boats spot is uncrowded precisely when the above one is not:
          a fight jammed against the ribbon has the whole sea underneath it. */
-      const pillSpotFor = (top, bot) =>
-        (top - R - 96 >= tSafe - 34) ? top - R - 96 : clampTop(Math.min(bot + R + 34, capT - 44));
+      /* `below` IS WHERE THE PILL MAY SIT WHEN IT GOES UNDER THE SHIPS, AND THE ANCHORED BRANCH IS
+         THE ONLY CALLER THAT PASSES ONE. Omitted, this is byte-for-byte the rule it has always
+         been — see the anchored call below for what `bot + R + 34` could not know. */
+      const pillSpotFor = (top, bot, below) =>
+        (top - R - 96 >= tSafe - 34) ? top - R - 96
+                                     : clampTop(Math.min(below != null ? below : bot + R + 34, capT - 44));
       // an ask about other people's ships is centred over THEM, and does not take or reuse the
       // turn's pill lock: that lock exists so a pill does not wander during YOUR turn, and this
       // prompt belongs to a fight in the middle of someone else's
       if (onBoats){
         cxA = anchors.reduce((a, p) => a + p[0], 0) / anchors.length;
-        mTop = pillSpotFor(Math.min(...anchors.map(p => p[1])), Math.max(...anchors.map(p => p[1])));
+        /* ⛔ T-013 — THE PILL GOES BELOW THE CIRCLES, NOT BELOW THE BOATS, AND THOSE ARE DIFFERENT
+           LINES. `bot + R + 34` is a CONSTANT STANDING IN FOR A BOAT PLUS A PETAL (rule 9), and it
+           was sized on a phone. It is wrong in two ways that only ever showed up as "the call button
+           is next to the wrong captain":
+
+             - A BIGGER BOARD HAS BIGGER BOATS. The circle sits `rad + HALF + AIR` out from the hull
+               it names, so its bottom edge is `rad + HALF + AIR + D/2` below the boat's centre —
+               96px past a 35px phone boat, 114px past a 74px tablet one. The pill's 104 clears the
+               first by 8px and lands ON the second.
+             - A BOAT ABOVE THE BAND DRAGS ITS CIRCLE DOWN TO THE CEILING. When the fight is at the
+               top of the board the circle clamps to `yMin` — and the pill's below-spot, measured
+               from a boat that is higher still, clamps to the very same ceiling. Both land on
+               `tSafe` and the pill is drawn on top of the answer.
+
+           Either way the pill push (see the `onPill` note below) then throws the circle clear of a
+           whole pill, which is 100px+ in one jump — and it lands beside whichever captain happens to
+           be there. THAT is Wyatt's report, twice: W5-2, "directly beside the boats", and
+           INBOX-20260901T1332Z, "not on top of, or next to, someone else".
+
+           MEASURED, posed, 2026-09-03 (`scripts/qa/t013_call_circle_beside_check.mjs`): 8 of 23
+           judged circles were not beside their own captain, and in EVERY failing pose the circle's
+           top was the pill's bottom plus the swell's overhang, to the pixel.
+
+           So the drop is DERIVED from where each circle will actually be — its own boat's rendered
+           radius, the petal at the top of its pulse, the file's AIR, and the SAME band clamp the
+           circles are about to get — rather than from a number that assumed a phone. The `max` over
+           the anchors is because the pill must clear the LOWEST circle, not the lowest boat. */
+        const HALF0 = Math.round(D * S.growPeak) / 2, AIR0 = 6;
+        const belowCircles = Math.max(...anchors.map(([, ay], k) => {
+          const t = Math.min(Math.max(ay + (boatRad(anchorSeats[k]) + HALF0 + AIR0) - D / 2, yMin), yMax);
+          return t + D + AIR0;
+        }));
+        mTop = pillSpotFor(Math.min(...anchors.map(p => p[1])), Math.max(...anchors.map(p => p[1])), belowCircles);
       }
       /* THE LOCK IS PER TURN *AND* PER SHIP POSITION — playtest 22 item 8 (Wyatt): "'Wyargh whatll
          ye do' is far below my boat instead of above it, which is where it should be, and this
@@ -3239,7 +3287,8 @@ function promptTick(force){
     // pill and every sail square), then lay ALL the buttons along snug arc rows centred on it —
     // circles nearly touching, wrapping to a second row past four. A cornered boat fans toward
     // whatever water is open; the group stays together instead of scattering.
-    const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    // the band (xMin/xMax/yMin/yMax) is declared once, up beside `SEP` — the ask pill needs it to
+    // know where these circles will land, and it is placed long before they are (T-013).
     // ---- each circle on the boat it names (see `onBoats` above) ----
     if (onBoats){
       /* SEPARATE, THEN CLAMP, THEN SEPARATE AGAIN — and the ORDER is the whole bug. This used to
@@ -3269,11 +3318,9 @@ function promptTick(force){
          The SIDE is chosen rather than assumed — the four cardinals scored on staying inside the
          band, clearing every hull, and pointing AWAY from the other captains in the fight, so two
          circles open outward instead of colliding over the water between the boats. */
-      const ships = boardShipEls() || [];
-      // the boat's own rendered size. A translate cannot change a box's WIDTH, so this is the one
-      // number that is safe to read off a ship mid-glide; its position comes from the anchors.
-      const boatRad = i => { const el = ships[i]; if (!el) return D / 2;
-        const r = fixedRect(el); return Math.max(r.width, r.height) / 2 || D / 2; };
+      // `shipsNow` and `boatRad` are declared once, up beside `SEP`, because the ask pill needs the
+      // boat's size to know where these circles will end up (T-013). Same expressions.
+      const ships = shipsNow;
       // every hull, projected through the SAME camera the anchors used — a rect read straight off
       // a gliding ship would disagree with a target-transform anchor by however far it has left to go
       const hulls = ships.map((_, i) => { const u = boatUXY(i); if (!u) return null;
