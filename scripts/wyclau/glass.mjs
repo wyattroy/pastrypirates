@@ -1536,7 +1536,12 @@ const PAGE = `<meta charset="utf-8">
            the feature does not work for the list he actually has. Blocking the scroll is what makes
            the drag possible; it also means that on a phone showing eight of fifty-seven rows he
            could never move row 30 to row 1 without dropping, scrolling and dragging again — and
-           each drop publishes. Near either edge the page now moves under the drag. */
+           each drop publishes. Near either edge the page now moves under the drag.
+           ⚠ IT SCROLLS ON MOVEMENT, NOT ON DWELL, AND THE FIRST WRITE-UP OF IT SAID OTHERWISE.
+           CEO 132: "no movement, no events, no scroll" — a finger PARKED at the edge does nothing,
+           because this fires inside pointermove and there is no timer. He has to keep the finger
+           moving, 18px a step. That is a real limit and it is filed rather than described away;
+           three documents said "held" and the code has never done "held". */
         var edge = 70;
         if (ev.clientY < edge) window.scrollBy(0, -Math.min(18, edge - ev.clientY));
         else if (ev.clientY > window.innerHeight - edge) window.scrollBy(0, Math.min(18, ev.clientY - (window.innerHeight - edge)));

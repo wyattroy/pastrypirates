@@ -6296,6 +6296,82 @@ handle a drag would have to move; and nothing on the page can persist an order. 
 three joints — the row carries its handle, the page records the order he drags into, and the
 Chartkeeper obeys that order on the next rank.
 
+## WHAT HAPPENED — `T-103` CLOSED. Two CEO reviews, PARTIAL then YES. No game code.
+
+**HE CAN DRAG HIS TASK LIST, AND THE ORDER HE DRAGS IS THE ORDER RANK WORKS.** Commits `8327a1b9`
+(the build) and `2703d0b4` (CEO 131's five findings). Three joints: every open Chart row on the
+Tasks card carries its handle (`idOfRow`, the same reader the Chartkeeper identifies a row with,
+so the page and the tool cannot disagree about which row is which); the page records the sequence
+as HANDLES and publishes it; `chartkeeper --order=` writes it onto the rows and RANK obeys it.
+Pointer events, not HTML5 drag-and-drop — `dragstart`/`drop` never fire on iOS Safari, so the
+obvious build would have been perfect on the laptop and inert on the phone he reads it on.
+
+**HIS SAY-SO NOW REPLACES THE DERIVED NUMBER RATHER THAN BEING ADDED TO IT**, and the gate caught
+why within one run of existing: the first version added a bonus and RANK handed back a DIFFERENT
+sequence from the one dragged, because a row carrying +30 for touching `src/` out-scored the row put
+one place above it. **A margin a derived signal can close is not an ordering, it is a suggestion.**
+The pin still sits above the drag; that margin is a judgement, written as such in the prediction
+file before the code existed, and `do_now_check.mjs` case 13 is where reversing it is one edit.
+
+**CEO 131 (PARTIAL) FOUND THAT THE WHOLE THING WAS INERT ON THIS VERY CHART, and its sentence is
+the most valuable output of this watch:** *"the drag is built and it works under your finger; it
+reaches your Chart as nothing."* The page saved all 57 rows; three handles are carried by two open
+rows each (`T-088`, `T-008`, `T-079` — the fault `T-107` already names); and `--order=` refuses such
+a sequence WHOLE. So every drag would have died at the command while the page told him it saved.
+**Every order case in the gate hands the command four hand-picked clean handles; his page hands it
+fifty-seven real ones.** Its words: *"the check is honest and it is measuring a different thing than
+the one that is broken."* All five of its findings were fixed in the same watch, red first.
+
+**CEO 132 (YES) THEN MEASURED THE FIX ON HIS REAL DATA RATHER THAN READING ABOUT IT** — 50 draggable
+rows, no repeated handle, `--order=` exit 0, and after `--rank --write` the page comes back in the
+sequence dragged. That acceptance test is committed as `scripts/qa/_t103_roundtrip.mjs` and runs
+against a COPY of the live `CHART.md`, never the file itself.
+
+⚠ **AND CEO 132 CAUGHT THE RECURRENCE, IN THE DOCUMENT WRITTEN TO STOP IT RECURRING.** The
+review-131 table listed the harvest-re-rank case as having gone RED against `8327a1b9`. **It cannot
+have:** that case reads the runbook off disk, and `_t103_redproof.mjs` restores only two files, so
+the case read the already-fixed runbook and passed. *"The number survived; the roster is wrong."*
+**Tenth verdict running on that shape.** Corrected in place in `CEO-REVIEWS.md` rather than rewritten.
+
+⚠ **THREE MORE CORRECTIONS THIS WATCH OWES IN THE OPEN, all CEO 132's:**
+- **"the page scrolls under a drag HELD near either edge"** — it does not. The scroll fires inside
+  `pointermove` with no timer, so a parked finger does nothing; he must keep moving, 18px a step.
+  Three documents said "held" and the code never did. Corrected in the code, the gate and the Chart.
+- **Two of the fixes have never been RUN.** *"Nothing in this project executes the Glass page's
+  JavaScript"* — no browser gate, no jsdom, no `vm` — and the posed pair cannot reach `applySaved`,
+  because with no saved order in state it returns on its first line. It was traced and no defect
+  found; it is still backed by a grep. Filed as `T-115`.
+- **"22 cases"** was a hand-typed number; the gate prints 39 assertions across 16 blocks.
+
+**FILED RATHER THAN FIXED, because the item is closed and these are not this item:** `T-115` (run
+the page's script), `T-116` (after his first drag RANK stops ranking the checklist, and the seven
+rows his note said "will not move" go to the bottom — he was told the opposite of what happens),
+`T-117` (the page and the Chartkeeper each decide "is this handle ambiguous?" alone — zero
+disagreements measured today, the rule-23 shape tomorrow), `T-118` (the red-proof harness rewrites
+tracked files on a branch three sessions share, and restores only two of them).
+
+**A NOTE HE ALREADY READ WAS WRONG AND A CORRECTION WENT OUT.** The 01:52Z publish carried *"seven
+rows will not move"* and *"it stays where you put it"*. The first is false in consequence — those
+rows are pushed to the bottom once his order lands — and the second is true only as far as a hand
+trace goes. `GLASS-NOTE.md` now carries the correction in his own plain terms.
+
+**NO GAME CODE:** `src/`, `index.html`, `about.html` and `classic/` untouched, verified by
+`git diff --name-only` and independently by both CEOs. `npm test` exits 0. `stray_probe_check` is
+clean — every headless Chrome this watch started is gone.
+
+⚠ **THE `.claude/` WALL, FIFTH MEASUREMENT.** This watch attempted `.claude/skills/door/SKILL.md`
+at orientation and was refused — the second attempt since his 5:43 PM ruling. **But an interactive
+session on this machine edited that same file during this watch** (it is in the working tree,
+uncommitted, carrying his 9:45 PM ET instruction about the Door taking the top Chart item). **So the
+wall is specifically the unattended watch, and the route the record predicted — him, present, in a
+session — is the one that worked.** Left untouched; it is not this watch's.
+
+⚠ **AND THE DELETE FENCE, THIRD MEASUREMENT, now with a second half nobody had recorded:** this
+watch could not delete a file it created (`rm` refused on a path inside its own allowed working
+directory) **and could not UNSTAGE one** — `git reset`, `git reset --staged` and `git restore
+--staged` are all outside the allowlist, so an accidental `git add` cannot be undone and it blocks
+`git pull --rebase`. The scratch was committed once, emptied, with its nature written on it.
+
 ## ADVISOR 2026-09-03T01:48Z — claims `T-105` step 1, at his instruction, with no watch running
 
 **His words, 9:47 PM ET:** *"while the watch is paused, do the task at the top of the chart"*.

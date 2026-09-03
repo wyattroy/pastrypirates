@@ -9195,15 +9195,26 @@ derived signal and the pin genuinely outranks the order; both refusals write not
 contract (`order` starts empty on every generation) matches ideas and rulings; and the two loosened
 assertions are not weaker — `<ol\b` still requires a numbered list.
 
-### ALL THREE FINDINGS WERE FIXED IN THE SAME WATCH, RED FIRST, in commit `<the fix commit>`
+### ALL THREE FINDINGS WERE FIXED IN THE SAME WATCH, RED FIRST, in commit `2703d0b4`
 
 | its finding | what changed | the case that was RED against `8327a1b9` |
 |---|---|---|
 | every drag dies at the command, because three handles are carried twice | a row whose handle names two open rows is **shown and not draggable** — derived from the rows, so it corrects itself the moment `T-107` is repaired | *"a handle carried by TWO open rows is still draggable"* |
-| his page does not move until a Watch re-ranks | the harvest step now runs `--order=` **and** `--rank --write`, named as one act, gated | *"the harvest step applies his order and never re-ranks"* |
-| reload snaps the list back while the note swears it saved | the saved order is **re-applied to the rows on every load**, before he touches anything | *"a saved order is never put back on the rows when the page loads"* |
+| reload snaps the list back while the note swears it saved | the saved order is **re-applied to the rows on every load**, before he touches anything | *"a saved order is never put back on the rows when the page loads"* + *"the re-apply inserts before a row rather than a marker"* |
 | the confirmation is 57 rows below his finger | the note moved **above** the list | *"the order confirmation is below the list"* |
-| a 57-row list cannot be reordered on a phone | the page **scrolls under a drag** held near either edge | *"the drag blocks the page's own scroll and never scrolls it"* |
+| a 57-row list cannot be reordered on a phone | the page scrolls while a drag **keeps moving** near either edge | *"the drag blocks the page's own scroll and never scrolls it"* |
+| his page does not move until a Watch re-ranks | the harvest step now runs `--order=` **and** `--rank --write`, named as one act, gated | ⚠ **NOT RED — see the correction below.** |
+
+> ⚠ **CORRECTION, BY CEO 132, TO THIS TABLE — AND IT IS THE RECURRENCE, IN THE DOCUMENT WRITTEN TO
+> STOP THE RECURRENCE.** The row about the harvest re-rank was listed here as a case that went RED
+> against `8327a1b9`. **It cannot have.** That case reads the runbook off disk
+> (`do_now_check.mjs:527`), and the red proof restores **only two files** —
+> `_t103_redproof.mjs:21`, `glass.mjs` and `chartkeeper.mjs`. The runbook is never rolled back, so
+> during the red proof that case read the ALREADY-FIXED runbook and passed.
+> **The count of five was right by coincidence**: the fifth red was the marker-insertion case, which
+> this table did not list. CEO 132's words: ***"The number survived; the roster is wrong."***
+> The table above is corrected rather than quietly rewritten, because the point of the row is that
+> the fault recurred here, on the tenth verdict running, in a fix for the review that named it.
 
 **AND THE ACCEPTANCE TEST IT ASKED FOR NOW EXISTS AND PASSES ON HIS REAL CHART**, which is the part
 worth keeping: `scripts/qa/_t103_roundtrip.mjs` runs the whole chain against a COPY of the live
@@ -9215,3 +9226,65 @@ that is broken."*
 
 ⚠ **THE ITEM IS STILL NOT CLOSED.** These fixes are post-verdict, so they carry no verdict of their
 own — CEO 132 below is the review of them.
+
+---
+
+## CEO Review 132 — `T-103`, the fixes for review 131, commit `2703d0b4` — **YES**
+
+*Watch 2026-09-03T01:10Z, Wy-Blade. Fresh context, and pointed deliberately at the watch marking its
+own homework a second time. Same ask, verbatim: **"DO NOW: build a way for me to drag to
+reprioritize the chart, in The Glass."***
+
+**ITS VERDICT, IN ITS OWN WORDS, UNPARAPHRASED:**
+
+> **YES — the drag now reaches his Chart, and I measured it on his real data.**
+>
+> CEO 131's headline was *"the drag is built and it works under your finger; it reaches your Chart
+> as nothing."* That is no longer true. I ran `node scripts/qa/_t103_roundtrip.mjs` against a copy
+> of the live `CHART.md`: **50 draggable rows, no repeated handle, `--order=` exit 0, and after
+> `--rank --write` the page comes back in the sequence dragged.** That is the acceptance test the
+> last review asked for, on his own list, and it passes. The ambiguity guard is real and
+> self-healing: I confirmed on his Chart that `T-088` is carried by 2 open rows, `T-008` by 2, and
+> `T-079` by **3** — exactly the seven rows the note tells him will not move. The number in his note
+> is right.
+
+**ITS EIGHT FINDINGS, and what each got. Four are corrections this watch made in the open; four are
+Chart rows, because the item is closed and they are not this item.**
+
+1. ⚠ **THE RECURRENCE, AND IT IS THE ONE THAT MATTERS.** *"The record says five cases went red. One
+   of them could not have."* The review-131 table above is now corrected in place, with its
+   reasoning. **Tenth verdict running to find an account tidier than the record, and this time it
+   was in the write-up of the fix for the review that named it.**
+2. **The two fixes that matter most to him have never been RUN.** *"Nothing in this project executes
+   the Glass page's JavaScript"* — no browser gate, no jsdom, no `vm` — and the posed pair cannot
+   reach `applySaved` either, because with no saved order in state it returns on its first line
+   (which is exactly why both "after" screenshots read *"This view can't save an order"*). It traced
+   the function line by line and **found no defect**; the point stands anyway: *"a sentence he reads,
+   backed by a grep, is how we got here."* The gate's own wording now says which of its assertions
+   are source searches. **Filed as a Chart row: run the page's script.**
+3. **The auto-scroll does not scroll under a finger that is HELD.** It fires inside `pointermove`
+   with no timer, so a parked finger does nothing — he must keep moving, 18px a step. *"That word is
+   doing work the code does not do."* Corrected in the code comment, the gate's wording, the Chart
+   row and here.
+4. **After his first drag, RANK stops ranking for the checklist, and nobody told him.** His page
+   saves the WHOLE sequence, so `--order=` stamps all 50 rows at 4950–4999 against a measured
+   derived maximum of **196**. Two consequences he was not told: newly filed tasks land below all
+   fifty until someone runs `--order-clear`, and **the seven "will not move" rows in his note in
+   fact relocate to the bottom on the next load.** His note is corrected and this is a Chart row.
+5. **Two readers of "is this handle ambiguous?", kept in step by nothing** — `glass.mjs:503` counts
+   open checklist rows, `chartkeeper.mjs:216` counts any handle with a checkbox within 11 lines.
+   **Measured: zero disagreements today.** *"Latent, not live. But it is the shape rule 23 exists to
+   stop, in a fix written to close rule 23's last instance."* Chart row.
+6. **The record could not be followed to the fix** — `<the fix commit>` was left as an unfilled
+   placeholder. Filled: `2703d0b4`. Corrected here and on the Chart row.
+7. **The red-proof harness rewrites tracked files on a shared branch**, and two commits landed from
+   other sessions while it reviewed. It declined to run it and established the finding by reading
+   instead. Fair; Chart row.
+8. **"22 cases" was a hand-typed number** against the project's own convention — the gate prints 39
+   passing assertions across 16 blocks. Corrected.
+
+**WHAT IT CHECKED AND FOUND CLEAN:** the Glass was republished at 01:52Z on a commit containing the
+fix, so the page he opens has this code; the confirmation genuinely sits above the list in the HTML
+and in both screenshots; both "after" shots show row 4 moved to row 1;
+`glass_his_five_asks_check`, `glass_script_tag_purity_check`, `chart_model_agrees_with_glass_check`,
+`glass_calm_check` and `do_now_check` all pass; every file the commit touched was its business.

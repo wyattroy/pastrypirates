@@ -501,12 +501,19 @@ const orderedRows = (p) =>
   } catch { /* reported by the case above */ }
   if (page) {
     const init = page.split(/var taskList = document.getElementById\("taskList"\)/)[1] ?? "";
+    /* ⚠ THESE TWO ARE SOURCE SEARCHES AND CEO 132 IS RIGHT THAT THEY READ STRONGER THAN THEY ARE.
+       Gut the body of `applySaved` and both still pass, because NOTHING IN THIS PROJECT EXECUTES
+       THE GLASS PAGE'S JAVASCRIPT — no browser gate, no jsdom, no vm — and the posed pair cannot
+       cover it either: with no saved order in the page's state, `applySaved` returns on its first
+       line, which is why both "after" screenshots read "This view can't save an order". So the one
+       fix CEO 131 called the worst is, today, backed by a grep and a hand trace. Filed as its own
+       Chart row rather than described away. The wording below says what is actually being proved. */
     if (!/applySaved\s*\(\s*\)\s*;/.test(init))
       fail("a saved order is never put back on the rows when the page loads — what is published is the template plus the state, so his list snaps back to the Chart's file order while the note under it still reads 'Your order is saved'");
-    else pass("a saved order is re-applied to the rows on every load, so what he reads matches what he saved");
+    else pass("the page CALLS a re-apply of his saved order on load (source search — this gate cannot run it)");
     if (!/insertBefore\(\s*mark\s*,/.test(init))
       fail("the re-apply inserts before a row rather than a marker — the first row is usually in the saved order too, and inserting a node before itself silently reverses everything after it");
-    else pass("the re-apply uses a marker, so a row that is already first cannot invert the rest");
+    else pass("the re-apply inserts before a marker, so a row already first cannot invert the rest (source search)");
   }
   /* The confirmation must sit where he can see it after a drag near the top of a long list. */
   if (page) {
@@ -515,9 +522,12 @@ const orderedRows = (p) =>
       fail("the order confirmation is below the list — on a phone showing eight of fifty-seven rows, a drag near the top puts its own confirmation fifty rows out of sight");
     else pass("the confirmation sits above the list, where a drag at the top can still be seen to have landed");
   }
+  /* ⚠ NAMED HONESTLY AFTER CEO 132: this is a SOURCE SEARCH, and it says "as he keeps moving",
+     not "held". The scroll fires inside pointermove with no timer, so a finger parked at the edge
+     does nothing. Three documents said "held" and the code has never done "held". */
   if (page && !/window\.scrollBy/.test(page))
     fail("the drag blocks the page's own scroll and never scrolls it — so on a phone he cannot move row 30 to row 1 at all, which is the list he actually has");
-  else if (page) pass("the page scrolls under a drag held near either edge, so a long list is reorderable in one gesture");
+  else if (page) pass("the page scrolls while a drag keeps moving near either edge (source search; not a dwell, and not executed here)");
 }
 
 /* ── 17. THE JOINT AGAIN. Same reasoning as case 9, for the same reason: between his drag and RANK
