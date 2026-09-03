@@ -19,6 +19,19 @@
 > **Use `head`, or better, `grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` — which is order-independent
 > and therefore cannot be fooled by either half of this banner.** The two warnings above are about the file
 > being wrong; this one is about the READER being wrong about a file that was perfectly fine.
+>
+> ### ⚑ THE NEWEST VERDICT IS **137**, AND IT IS AT THE BOTTOM OF THIS FILE, NOT HERE.
+> **`CEO Review 137` (`T-017`, PARTIAL) is the last entry in the file, below the oldest reviews.**
+> A watch on 2026-09-03 found its anchor with `tail -25` — the precise trap the warning directly
+> above names — and so appended to the OLDEST end, under a header reading `## CEO 136 —`, which
+> both collided with the real 136 (`T-011`) and did not match `^## CEO Review [0-9]+`, so every
+> order-independent grep in this banner reported it missing. A peer session measured it as absent
+> and reported it as lost; it was neither lost nor swept — it was misfiled twice over in one act.
+> **Renumbered to 137 and given the conforming header by the watch that wrote it.** It was NOT
+> moved up here, deliberately: a peer was editing this same file in this same working tree at the
+> time, and a 65-line cut-and-reinsert is how one session silently eats another's verdict. **A
+> pointer costs nothing and cannot clobber anybody. The next session to hold this file alone should
+> move 137 to the top and delete this box.**
 
 ## CEO Review 136 — 2026-09-03, Wy-Blade — `T-011`: the false green and the false STOP it left behind — **PARTIAL**
 
@@ -9677,9 +9690,14 @@ says a commit needs carrying when there is no commit, and describes an item run 
 Proof" when the Proof's close step cannot accept it. The work is real; the report rounds its
 disposition up.
 
----
+<!-- ⚠ A T-017 VERDICT WAS FILED BELOW THIS LINE ON 2026-09-03 AND HAS BEEN MOVED TO THE TOP AS
+     CEO Review 137. It was written here by a watch that found its anchor with `tail -25` — the
+     exact trap this file's own banner names in its third warning — so it landed at the OLDEST end
+     of a newest-at-top file, under a header reading "## CEO 136 —" instead of "## CEO Review 136 —".
+     Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
+     that matches the file's header convention, which is how a peer came to report it missing. -->
 
-## CEO 136 — T-017, the trade-offer circle that cannot hold its captain's name
+## CEO Review 137 — 2026-09-03, Wy-Blade — `T-017`: the trade-offer circle that cannot hold its captain's name — **PARTIAL**
 
 **Watch:** `pastrypirates-a3` (Wy-Blade), 2026-09-03T03:10Z. **Asked, verbatim:** *"A TRADE-OFFER
 CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME (T-017). Fix this universally, not through patches."*
