@@ -28,6 +28,69 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 139 — 2026-09-03, Wy-Blade — watch a4: the Chartkeeper rewrote his Chart differently every run (`T-130`) — **YES**
+
+**Watch:** Wy-Blade, 2026-09-03T03:50Z–04:1xZ. **Commit:** `0fc41dac`, one file,
+`scripts/wyclau/chartkeeper.mjs`.
+**Item, the Chart row verbatim** (`T-130`, `.planning/GLASS-CHART.md`):
+*"`npm test` HAS BEEN RED ALL NIGHT, AND IT STOPS ~12 GATES SHORT — INCLUDING RULE 17'S."*
+Its failing gate is `chartkeeper_check` case 10f. *(That sentence is kept unbroken on one line
+deliberately: `close_item.mjs:139` traces a `--reason` close by matching the item's first 40
+characters contiguously, so a line wrap inside the row title makes a correctly-filed verdict
+unciteable.)*
+**Asked, verbatim as the watch framed it:** *"Make the Chartkeeper idempotent: running it twice on
+an unchanged Chart must produce the same file. It is the tool the Door tells every watch to run
+before taking row one, and `chartkeeper_check` case 10f was the one red gate in `npm test`."*
+Its words:
+
+> ## VERDICT: **YES** — the thing asked for happened.
+>
+> **The gate is green, and I ran it myself.** `node scripts/qa/chartkeeper_check.mjs` returns
+> **PASS, 98 ok / 0 FAIL**, and case 10f is among the passing cases by name:
+> `scripts/qa/chartkeeper_check.mjs:727` — *"the full pass including SETTLE is idempotent"*. Its
+> sibling in the same block, *"every existing row's first line survived SETTLE byte for byte"*,
+> also passes. The watch's 98/0 number is exact, not rounded.
+>
+> **The change is one file, committed, and `src/` is untouched.** `git show 0fc41dac --stat` —
+> 81 insertions, 9 deletions, one file, full stop. No game code, no docs, no gate edits.
+>
+> **THE RECURRING FAULT — "nothing is committed", thirteen reviews running — DOES NOT RECUR
+> HERE.** This is the first thing I checked and it is clean.
+>
+> **RED-PROOF — and I must be straight about a limit.** I could not execute the pre-fix tool
+> against the gate… So I red-proofed structurally, and the structure is strong. **The gate file
+> was not touched by this commit**, so case 10f cannot have been made vacuous by rewriting the
+> test — it is byte-identical to the version that was red. And it *was* red, on independent
+> record: commit `b13bd142`, authored by a different session, logged `T-130` at
+> `.planning/GLASS-CHART.md:626` saying *"npm test has been red all night on chartkeeper_check
+> case 10f, stopping ~12 gates short."* Eleven minutes later the same unmodified gate is green.
+> Nor is 10f passing because the write pass stopped doing anything: case 10e at `:704-707` carries
+> an explicit can-fail precondition and passes.
+>
+> **`applyHandles` is correct** (`chartkeeper.mjs:1163-1180`) — skips done rows at `:1172`, called
+> at `:1190-1194` under `if (WRITE)`, **before** the `ranked` destructuring at `:1196`, which is
+> the entire point. **There is genuinely ONE minting site now**: `:1136-1138`, used at `:1175`,
+> and the write pass at `:1304` reads `const nextId = mintId;` — an alias, not a second counter.
+>
+> **The `glass_longrun_status_check` attribution is HONEST, not self-serving.** The hazard was
+> filed in commit `d5fe8cd5` **six minutes BEFORE the chartkeeper fix**, not retroactively after a
+> red suite needed explaining… **The caveat I owe you: I did not run `npm test`** (a trial is at
+> sea), so "one remaining failure" is the watch's count, not mine.
+>
+> **One item, no drift.**
+>
+> **The one criticism I will make, and it does not change the verdict.** Case 10f is a whole-file
+> byte comparison over one bundled fixture (`chartkeeper_check.mjs:721-727`). It caught this fault,
+> but only because that fixture happens to contain an Inbox entry naming `THE BLADE HOUR` by
+> handle. **Nothing asserts that property.** If a future edit tidies that entry out, 10f goes quiet
+> without going red, and handle-before-rank has no dedicated guard. The fix is durable; the *proof
+> that it stays fixed* rests on fixture content nobody has pinned. Worth a row on the Chart, not a
+> rework.
+
+**ACTED ON:** its one criticism is filed on the Chart as a row, in its own words, rather than
+argued with — a dedicated case asserting handle-before-rank, so 10f cannot go quiet without going
+red. Not done in this watch: one item per watch, and the CEO itself sized it as a row.
+
 ## CEO Review 138 — 2026-09-03, Wy-Blade — `T-085`: harvesting his claude-kit ruling into DECISIONS.md — **PARTIAL**
 
 > *Number checked order-independently at review time (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **137**). Re-check immediately before filing — three collisions happened on 2026-09-02 exactly this way.*

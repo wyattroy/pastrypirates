@@ -622,7 +622,7 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       ⟨`T-030`⟩
 - [ ] Rulebook cutover: `CLAUDE-next.md` replaces `.claude/CLAUDE.md`; war stories → `.claude/rules/*.md` at their triggers — GATED: at the quiet moment, needs the parallel fix session closed
       ⟨`T-031`⟩
-- [ ] **`npm test` HAS BEEN RED ALL NIGHT, AND IT STOPS ~12 GATES SHORT — INCLUDING RULE 17'S.**
+- [x] **`npm test` HAS BEEN RED ALL NIGHT, AND IT STOPS ~12 GATES SHORT — INCLUDING RULE 17'S.** (closed 2026-09-03 · CEO 139 · no game diff — no game code is right: the item is the Chartkeeper's own idempotence, not the game — commit 0fc41dac mints every open row's handle before the rank, case 10f is green, and on his real Chart it moves 0 rows and allocates 0 ids)
       ⟨`T-130`⟩
       **The failing gate is `chartkeeper_check` case 10f** — *"running the full pass twice produced
       two different files"*. Pre-existing, verified NOT caused by tonight's work three separate ways
@@ -650,12 +650,27 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       rank (a pre-pass; a no-op on the real Chart, where every row already has one), or stop the
       ranker scoring on a file the tool itself writes. **The second is the rule-23 answer** — a
       ranking that reads its own output is two things kept in step by nothing.
-      ⚠ **HIS CALL, BECAUSE IT CAN REORDER HIS LIST:** he steers this order directly (drag, and the
-      DO NOW pin), so a change to what the score reads is not purely mechanism. **Question for him:
-      is it acceptable for the fix to change the current order of the Chart once, if it never
-      changes on its own again?** Recommended: yes — an order that shifts under him without anyone
-      touching it is worse than one honest reshuffle.
+      ⚠ **THE QUESTION FOR HIM WAS RETIRED BY MEASUREMENT, NOT ANSWERED — AND IT WAS RIGHT TO ASK.**
+      This row read: *"HIS CALL, BECAUSE IT CAN REORDER HIS LIST… is it acceptable for the fix to
+      change the current order of the Chart once, if it never changes on its own again?"* Asking
+      before shipping blind was the correct instinct. **But it is only his call if the answer is
+      "it reorders", and it does not.** Measured 2026-09-03T04:2xZ on COPIES of both real charts
+      (`scripts/qa/_ck_realchart.mjs`, scratch): `CHART.md` — **0 ids allocated · 0 rows moved**,
+      row order byte-identical to the file on disk, run 1 === run 2. `GLASS-CHART.md` — the same.
+      **Every open row on his live Chart already carries a handle, so the pre-pass is a no-op there
+      and only ever fires on a row born without one.** There is no reshuffle to approve, so nothing
+      waited on him. *(The general lesson, and it is rule 6's: a question parked for Wyatt costs him
+      a decision. Check whether it is still a question before parking it.)*
       **Sizing: MEDIUM. No game code. Blocks nothing except the twelve gates behind it.**
+- [ ] **CASE 10f CATCHES THIS FAULT ONLY BY ACCIDENT OF ITS FIXTURE — CEO 139's one criticism, filed
+      in its own words rather than argued with.** *"Case 10f is a whole-file byte comparison over one
+      bundled fixture (`chartkeeper_check.mjs:721-727`). It caught this fault, but only because that
+      fixture happens to contain an Inbox entry naming `THE BLADE HOUR` by handle. **Nothing asserts
+      that property.** If a future edit tidies that entry out, 10f goes quiet without going red, and
+      handle-before-rank has no dedicated guard — there is no case anywhere in the file asserting
+      that a row's handle exists before `ranked` is computed. The fix is durable; the proof that it
+      stays fixed rests on fixture content nobody has pinned. Worth a row on the Chart, not a
+      rework."* **Sizing: SMALL — one gate case. No game code.**
 - [ ] **A GATE IN `npm test` WRITES THE LIVE `LONG-RUN` MARKER — SO THE SUITE AND A SAILING SEA
       ⟨`T-131`⟩
       TRIAL FIGHT OVER ONE FILE, AND THE SUITE CAN FREEZE THE TRIAL.** Measured 2026-09-03T04:0xZ.
