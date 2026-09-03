@@ -14345,3 +14345,188 @@ commit. True at the time; committed in the same commit as this verdict.
 > work-in-progress goes, so this is not shipping untested code to players; **naming the debt rather
 > than hiding it is correct. The gate is at `main`: that FULL trial is a hard precondition on the
 > merge.**
+
+## CEO 189 — `T-206`, `09f8658c`: his two analytics rulings, built — **PARTIAL**
+
+**THE ASK.** Two rulings he made on the Glass, 2026-09-03. Which pages: *"The public pages only —
+the game, About and Rules."* Cookies: *"Cookieless, no banner — you keep the referrer, the geography
+and the per-page numbers, set no cookie, and no child is asked to consent."* Plus the caveat the
+card promised him: that "cookieless" rested on how Google *had* worked and would be verified against
+live documentation before anything was installed.
+
+**ONE SENTENCE FOR HIM:** *Google Analytics is wired on exactly the three pages you named, it really
+is cookieless — I checked that against Google's own documentation myself tonight, independently —
+and it genuinely cannot fire on staging or on our test runs; but the safety check written to guard
+it watches the wrong door, and I proved that by pasting the ordinary Google snippet into the game's
+page and watching all seven checks still say "no cookie set".*
+
+**Verdict: PARTIAL.** No browsers or servers started (a sea trial is at sea; `stray_probe_check`
+reported 4 of its browsers up and I added none). Every mutation in an isolated copy under the
+scratchpad, each verified applied before the result was read. The live tree is untouched.
+
+### What held up — verified, not taken on trust
+
+- **The cookieless claim is TRUE, checked independently.** Google's own documentation, fetched
+  tonight: with `analytics_storage` denied the tag *"will not read or write first-party analytics
+  cookies"* and still sends **cookieless pings** — page views, referrer, coarse geography arrive;
+  unique-visitor counts do not. That is precisely what he was told and precisely what he chose. The
+  commit's refusal to round this up — *"Data still reaches Google. 'No cookie' is not 'no data'"* —
+  is correct and should stay in his hands that way. **The caveat he was promised is genuinely
+  closed.**
+- **No second analytics SDK exists to falsify it.** `index.html:40-41` loads only
+  `firebase-app-compat` and `firebase-database-compat`. Across every tracked `.html`/`.js`/`.mjs`,
+  the only files naming `getAnalytics`, `firebase-analytics` or `googletagmanager` are
+  `src/analytics.js` and four QA scripts. `src/net/index.js:84`'s `measurementId` is inert.
+- **Excluding `www.` is CORRECT, not a bug.** `curl -sSI https://www.playpastrypirates.com/` →
+  `301 Moved Permanently`, `Location: https://playpastrypirates.com/`. No page ever renders on
+  `www`, so the `===` loses nothing. `CNAME`, `sitemap.xml` and the canonicals (`index.html:17`,
+  `about.html:10`, `rules.html:10`) all name the apex alone.
+- **The containment is real end to end, not just declared.** Staging's `index.html` carries the
+  module line and `https://staging.playpastrypirates.com/src/analytics.js` returns **200, 4701
+  bytes** — not the silent 404 that would make the tag decoration. And
+  `analyticsShouldRun("staging.playpastrypirates.com")` is false, so nothing fires there.
+  Production `index.html` still contains **zero** `analytics.js` references. Nothing has reached a
+  player.
+- **`npm test` is GREEN and the count is real.** Ran it: **exit 0, 130 gates**. `gate_count_check`
+  derives 130 from the chain and agrees with `package.json:6-7`; `analytics_consent_check` is
+  genuinely in the chain (129th of 130), not merely declared.
+- **The record is honest about what is NOT done.** `.planning/CHART.md:110-119` names both the owed
+  FULL trial and the incomplete privacy line, in the durable record — not only in a commit message
+  nobody re-reads.
+- **Case 2's blindness branch is written the right way round.** `analytics_consent_check.mjs:68`
+  FAILS rather than passes when it cannot find the consent call to inspect, so reformatting the call
+  (single quotes, a hoisted object) goes red instead of green. That is the shape this project keeps
+  asking for and here it is present.
+
+### ⛔ Finding 1 — THE EIGHTH RECURRENCE. The gate defends the order inside one function and cannot see a tag added to the page
+
+`analytics_consent_check.mjs:50-60` drives `mod.installAnalytics(win)` and watches the sequence —
+which is genuinely better than grepping, and is exactly what the commit claims. But `:104-116` asks
+of each page only whether its text contains `src/analytics.js`. **Nothing in the gate ever asks what
+ELSE the page loads.**
+
+Mutation, in an isolated copy, verified applied (`grep -c googletagmanager index.html` → 1): pasted
+the snippet Google's own console hands you into `index.html`'s head, above the canonical link — the
+async `gtag.js` tag with no consent call at all.
+
+```
+7/7 PASS   exit 0
+PASS — his three pages measured, no cookie set, and our own testing never counted.
+```
+
+On a page that now loads googletagmanager with **no consent default**, writes `_ga` onto a child's
+device, and fires on staging, on localhost, and on every one of the sea trial's hundreds of page
+loads an evening.
+
+**And nothing else catches it.** I A/B'd all **25** gates in the 130-chain that read `index.html` at
+all — control against mutant, same copy, same moment — and `diff` of the two exit-code tables is
+**empty**. Not one gate changed its verdict.
+
+This is the precise failure `src/analytics.js:16-21` says the gate exists to stop: *"a page
+identical to the eye that quietly writes a cookie onto a child's device."* The gate stops it in the
+file that already gets it right, and is blind to the file where a future session would actually get
+it wrong — because the realistic mistake is not editing `src/analytics.js`, it is pasting the
+snippet the GA console gives you.
+
+### ⛔ Finding 2 — a grant added anywhere but four named files is invisible, and the PASS line claims the opposite
+
+`:81-87` scans a hardcoded list — `src/analytics.js`, `index.html`, `about.html`, `rules.html`. I
+appended one line to `src/orchestrator.js`, verified applied:
+
+```js
+if (typeof window !== "undefined" && window.gtag) window.gtag("consent","update",{ analytics_storage: "granted" });
+```
+
+The case printed **PASS — *"nothing anywhere grants a storage consent — his 'no banner' ruling has
+no back door."*** `src/orchestrator.js` runs for every player on the game page. That is the back
+door, sitting in the file this project edits more than any other.
+
+### ⛔ Finding 3 — the page-coverage case is satisfied by prose
+
+`:108`'s `has()` is a bare substring test for `src/analytics.js` over the whole file. I replaced
+`about.html`'s script tag with `<!-- analytics removed while debugging; see src/analytics.js -->`.
+Verified: **0 script tags left, 1 mention left.** The case printed PASS — *"all three pages he chose
+load the one analytics module."* Same shape as CEO 182's through-line and CEO 186's
+`stray_probe_reaper_check.mjs:110`.
+
+### ⛔ Finding 4 — `/classic` is unguarded, and it is the option he explicitly DECLINED
+
+`:107`'s `notWant` list is `["stats.html"]`. His ruling rejected *"every page including /classic"*.
+I pasted the same consent-free GA snippet into `classic/index.html` — verified applied — and got
+**7/7 PASS**. `stats.html` is correctly excluded and correctly checked; the list simply stops one
+file short of the words he actually used.
+
+### Finding 5 — the gate cannot tell a live install from a dead one
+
+Commented out `src/analytics.js:83`'s `installAnalytics();` — the only thing that makes the module
+do anything when a page imports it — and got **7/7 PASS**, including *"his three pages measured."*
+Safe direction, so not a ⛔. But if this silently dies, the gate goes on telling him the property is
+collecting. Both cases that run the installer call it by hand; nothing checks that *importing* the
+module installs anything.
+
+### Finding 6 — a second hostname policy, in a project whose rule 23 is about exactly this
+
+`src/analytics.js:48-50` is a new answer to *"which host is the real site."* The existing one is
+`devHost()` in `src/shared/index.js`, pinned hostname-by-hostname — `www.` and a
+`playpastrypirates.com.evil.example` suffix attack included — at `scripts/dev_flag_gate_check.js:48-52`.
+They agree today; nothing makes them agree tomorrow. That is the design-time question ("what makes
+these two agree?") and the cheapest moment to answer it is now, with one caller.
+
+### On the gear (FULL, recorded as OWED)
+
+**Honest, and the owing is in the durable record** — `.planning/CHART.md:110-113`, not only the
+commit message. That is the half that matters and it holds. Two caveats:
+
+1. **A FULL trial cannot exercise this change at all.** `analyticsShouldRun` is false on localhost,
+   so the trial would prove the pages still play and nothing whatever about the analytics. Say that,
+   rather than "the FULL trial is OWED", which reads as though the trial is the missing evidence.
+2. **He asked for the depth picker for this exact case** — *"we need a way to bypass sea trial for
+   this — it clearly doesn't need a full one given that you're just adding a tag to index"*
+   (`.planning/CHART.md:278`) — and it was built (`--gear=` / `--reason=`, gate #128
+   `sea_trial_chosen_depth_check.mjs`). It was neither used nor named. The stated reason, that a
+   second trial "would fight it for its report", is also weaker than the record supports:
+   `--report=` was built on 2026-08-28 so two trials cannot collide (`.planning/CTO-LEDGER.md:115`).
+   Browser contention on one laptop is real; the report collision is solved.
+
+### On the footer privacy line — RAISE was the right call, and blocking was not needed
+
+`index.html:2767` — *"Anonymised move data is recorded… nothing beyond the name ye confirm… is
+collected."* With GA on that page that sentence is genuinely incomplete: cookieless pings still
+carry referrer, coarse geography, user agent and page path. **But nothing has shipped to a child** —
+production carries zero analytics references (curl, tonight) and staging cannot fire the tag. The
+copy is *his* (rule 1: wording is his), and inventing a privacy sentence for a children's game
+without asking him would be worse than asking. What would be wrong is merging to `main` with the
+line unamended, and `.planning/CHART.md:114-119` already states that as a precondition. **Keep it a
+precondition on the merge; do not let it decay into a task nobody blocks on.**
+
+### Recurrence vs 186 / 182
+
+**Eighth, and it has moved outward again in the way 186 named.** 182: a gate blind to its subject.
+186: the gate anchored precisely to a statement it could see, blind to the *definition* that
+statement rested on — one file sideways. Here: anchored precisely to the *function*, blind to the
+*page* — one layer out. 182's other through-line, **a PASS produced by prose**, recurs literally at
+`:108`. And 186's sharpest charge — **a gate that certifies its own sight** — recurs at `:129`,
+whose summary asserts *"no cookie set"* as a property of the deployed pages when what was measured
+is a property of one exported function.
+
+### NET: **PARTIAL**
+
+What he asked for did happen: three pages and only those, cookieless by a mechanism verified against
+Google independently, containment off the live domain real and checked end to end, `npm test` green
+at 130, and the record honest about the trial it owes and the copy line it breaks. What did not
+happen is the thing the commit leads with — the gate does not defend the safety property against the
+way it will actually be broken.
+
+**What I would do first, in order:**
+
+1. **Make the gate read the PAGES, not just the module.** Fail the build if `index.html`,
+   `about.html`, `rules.html`, `classic/index.html` or `stats.html` contains `googletagmanager`
+   outside `src/analytics.js`. One rule closes Findings 1 and 4 together, and it is exactly the
+   mutation I ran.
+2. Replace `:108`'s substring test with a real script-tag match, and re-run my `about.html` A/B
+   against it.
+3. Derive `:82`'s grant scan from the tree — every tracked `.html` plus `src/**/*.js` — instead of
+   four typed filenames, and re-run the `src/orchestrator.js` mutation.
+4. Narrow `:129`'s summary to what was actually measured and name what it did not look at. That is
+   the correction 186 asked for and it is back.
+5. Hold the footer line and the FULL trial as hard preconditions on the merge to `main`.
