@@ -1230,3 +1230,26 @@ so the wider camera is settled, not pending). The removed rows are in git histor
       no repeated handle, and the page comes back in the sequence dragged.**
       Account: [`CEO-REVIEWS.md`](CEO-REVIEWS.md) review 131 ·
       [`PREDICTION-20260903T0110Z-T103.md`](wyclau/PREDICTION-20260903T0110Z-T103.md).
+
+## T-107 — 2026-09-02 — FIVE HANDLES ON THIS CHART ARE EACH CARRIED BY TWO DIFFERENT OPEN ROWS — measured done-when: node scripts/qa/no_ambiguous_handle_check.mjs ⛑ FIRST ROW ON THIS CHART TO CARRY A done-when:, 2026-09-02 10:20 PM ET. His instruction was "design a mechanism to tick rows" and then "now use it". This row's work — no two open rows sharing a handle — is exactly the kind that can state its own end: a gate runs, and the row is finished or it is not. Nobody's judgement is involved. 2026-09-02T21:xxZ, and the tool now says so on every run. T-090, T-103, T-088, T-008 and T-079. Found by CEO 119 on the live Chart, in the handle of the very row that was fixing handle mis-attribution — "the same fault the commit says it rooted out, in a form the fix does not cover." What is already done: an ambiguous handle now claims NOTHING (a ruling naming it names two jobs, so it may speak for neither), and chartkeeper.mjs prints the list on every run instead of quietly coping. Red-proofed both ways in chartkeeper_check.mjs case 14c-ter. What is left is the repair itself, and it is content work: give one row of each pair a new handle. It cannot be automated safely — a handle is grep-able across CHART.md and CHART-LOG.md and other rows point at it, so renumbering blind breaks references. T-079 is the older row about this same class and should be read first; this row supersedes nothing, it just has the measured list. Sizing: five edits to CHART.md plus a sweep for references. No game code, no sea trial.
+
+- [x] **FIVE HANDLES ON THIS CHART ARE EACH CARRIED BY TWO DIFFERENT OPEN ROWS — measured
+      ⟨`T-107`⟩
+      done-when: node scripts/qa/no_ambiguous_handle_check.mjs
+      ⛑ **FIRST ROW ON THIS CHART TO CARRY A `done-when:`, 2026-09-02 10:20 PM ET.** His
+      instruction was *"design a mechanism to tick rows"* and then *"now use it"*. This row's work
+      — no two open rows sharing a handle — is exactly the kind that can state its own end: a gate
+      runs, and the row is finished or it is not. **Nobody's judgement is involved.**
+      2026-09-02T21:xxZ, and the tool now says so on every run.** `T-090`, `T-103`, `T-088`, `T-008`
+      and `T-079`. Found by CEO 119 on the live Chart, in the handle of the very row that was fixing
+      handle mis-attribution — *"the same fault the commit says it rooted out, in a form the fix
+      does not cover."*
+      **What is already done:** an ambiguous handle now claims NOTHING (a ruling naming it names two
+      jobs, so it may speak for neither), and `chartkeeper.mjs` prints the list on every run instead
+      of quietly coping. Red-proofed both ways in `chartkeeper_check.mjs` case 14c-ter.
+      **What is left is the repair itself, and it is content work:** give one row of each pair a new
+      handle. **It cannot be automated safely** — a handle is grep-able across `CHART.md` and
+      `CHART-LOG.md` and other rows point at it, so renumbering blind breaks references. `T-079` is
+      the older row about this same class and should be read first; this row supersedes nothing, it
+      just has the measured list.
+      **Sizing: five edits to `CHART.md` plus a sweep for references. No game code, no sea trial.**

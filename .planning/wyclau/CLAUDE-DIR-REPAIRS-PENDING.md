@@ -43,6 +43,44 @@ what three documents currently say about why this is blocked.*
 
 ---
 
+> ## ⚠ CORRECTION, 2026-09-03T02:1xZ — "A SESSION WHERE HE IS PRESENT" IS NOT THE ROUTE, AND THAT
+> SENTENCE SENT A FOURTH SESSION INTO THE WALL.
+>
+> **This document's box above names presence as the variable.** The 02:09Z watch read exactly that,
+> reasoned that Wyatt had opened the session himself and was at the keyboard, took the row on those
+> grounds, wrote the prediction down first, and **was refused both files anyway.** Presence was not
+> the variable. **Prediction failure case 1, named in advance and fired.**
+>
+> **AND THE TWO FILES ARE REFUSED BY TWO DIFFERENT MECHANISMS, WHICH THIS DOCUMENT CONFLATES.**
+> Measured this watch, both messages quoted exactly as returned:
+>
+> | file | refusal | what it actually is |
+> |---|---|---|
+> | `.claude/hooks/glass-harvest-first.cjs` | *"which is a **sensitive file**"* | the harness's own protected-path list. **No allowlist entry can lift this** — it is not a permissions question, it is a class of file Claude Code guards by name |
+> | `.claude/skills/door/SKILL.md` | *"but you **haven't granted it yet**"* | an ordinary un-allowlisted write. **A `settings.json` allow rule would lift it**, or one approval |
+>
+> **So EDIT 1 and EDIT 2 are not one blocker, they are two, and only one of them is permanent.**
+> Every previous account treats them as a single wall — which is why "his ruling will lift it" was
+> tried, failed, and was then explained by a story that covered both files with one cause.
+>
+> ⚠ **AND A THIRD REFUSAL SURFACED THAT IS NOT A WALL AT ALL, so nobody mistakes it for one:** the
+> hook file's first edit attempt came back as `qa-gear-first.cjs` printing **GEAR: FULL**, because
+> `gear.mjs` classifies by EXCLUSION and a file under `.claude/hooks/` is not on any exclusion list
+> — so a hook is scored as *"code that can change what a captain sees or can do."* It says *"run it
+> again and it will go through"*, and it does. **That is a speed bump wearing the same clothes as
+> the wall**, and a session that stops at it will report this row blocked for the wrong reason.
+>
+> **WHAT IS ACTUALLY LEFT FOR HIM, in the order that costs him least:**
+> 1. **Approve the prompt when a session asks** — one tap, and it covers whichever file is being
+>    written at that moment.
+> 2. **Or paste the two edits himself** — they are below, verbatim, and need no derivation.
+>
+> **Nothing else is worth trying, and the two shortcuts stay closed:** a `node` script writing the
+> bytes, and asking a peer session. Both defeat the protection rather than satisfying it, and the
+> `SendMessage` contract forbids the second in as many words.
+
+---
+
 ## EDIT 1 — `.claude/skills/door/SKILL.md`
 
 **Find this paragraph** (it is the harvest paragraph, currently ending the "sync and orient" section):

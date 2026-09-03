@@ -1880,3 +1880,30 @@ status: OPEN — the requirements doc is written and the blue-sky session is run
   **AND PART 5 IS EIGHT QUESTIONS A DESIGN MUST ANSWER OR IT IS NOT FINISHED**, including: what makes
   "the record changed" and "he sees it" the same event; where his words live such that nothing we do
   can destroy them; and **what does he give up — and is he being asked, or told.**
+
+## INBOX-20260902T2225Z — SPLIT THE GLASS OFF THE CHART: THE ADVISOR WORKS THE MACHINERY, THE WATCH WORKS THE GAME
+
+**HIS WORDS, VERBATIM:**
+
+> I want you to take every Glass-focused task on the Chart, and compile it into a new list and show
+> it to me. Take each of those OFF the chart. YOU will work on the chart -- the Watch will work on
+> the game.
+
+solution: his own. **`.planning/GLASS-CHART.md` is the Advisor's; `.planning/CHART.md` is now the GAME and is a watch's.**
+
+status: DONE 2026-09-02 — 44 rows moved, 16 left. **And it changes this session's standing role: the Advisor is no longer record-only for the machinery — it BUILDS it.**
+
+  **THE NUMBER IS THE ARGUMENT: 44 OF THE 60 OPEN ROWS WERE MACHINERY.** Three quarters of what a
+  watch was being handed had nothing to do with the game. **A watch reading the top of that list was
+  being sent to fix the list.** Sixteen rows remain and every one is the game.
+
+  ⚠ **THE SORT WAS MECHANICAL AND FIVE ROWS WERE MOVED BY HAND.** Word-counting put `T-081` (wire
+  the kit as a `git subtree`) under GAME because it says *"promotion"* and *"merge"*; `T-025`,
+  `T-027`, `T-029`, `T-031` the same. **Any row in the wrong file is one line to move back.**
+
+  **HANDLES UNCHANGED AND NEVER REUSED** — `T-090` means the same row whichever file it is in.
+
+  ⚠ **WHAT THIS BREAKS UNTIL SOMEBODY FIXES IT, NAMED RATHER THAN DISCOVERED:** the Door, the
+  Chartkeeper, the Glass generator and the close gate all read `CHART.md` by path. **They will now
+  rank, sweep, render and close the GAME chart only, and the Glass chart is invisible to every one
+  of them.** That is the next job on this file, and it is mine.
