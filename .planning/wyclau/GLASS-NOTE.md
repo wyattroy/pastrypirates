@@ -149,6 +149,42 @@ the edit you made to it. For about thirty seconds the branch would have failed o
 It healed itself when the other session committed, and nobody was affected. **The reusable rule, now
 written into `package.json`: re-read a shared file immediately before you stage it.**
 
+## 2h. ⚑ THE 19:59Z WATCH — HIS TRADE CIRCLES GOT BIGGER, AND IT IS NOT CLOSED YET
+
+*(added 2026-09-03T2040Z. **This watch had no Artifact tool either** — `ToolSearch` for `Artifact`,
+`ArtifactComments` and `ArtifactData` returned nothing — so it could not read, harvest, publish or
+stamp. **Harvest his page before you republish**, as always; nothing here is a substitute.)*
+
+**In one line for him:** *You said "do bigger circles, not smaller text" — that is now what the game
+does.*
+
+Before, a captain's name like *Crustbeard* only fitted its trade circle by shrinking to a bit over
+half size — **5.5px against the 9.5px everything else uses** — which is exactly why *"Walk away"*
+looked big beside it in his own screenshots. Now the circle grows until the name fits at full size,
+and shrinking is only what happens when the screen genuinely has no more room. **That is his other
+ruling — "only shrink the long words" — kept as the fallback rather than thrown away.**
+
+**Pictures, all on a 390px phone, all in `.planning/posed/`:**
+
+| | |
+|---|---|
+| `t017-before-phone-shrunk.png` | the four names as tiny red specks |
+| `t017-after-phone-grown.png` | the same board, names legible at full size |
+| `t017-after-phone-busy8.png` | eight circles at once — the ceiling holds them small so they still fit |
+| `t017-before-phone-calls.png` / `t017-after-phone-calls.png` | the battle-call circles: 71.7 → 75.0px, no overlap either way |
+
+**⛔ IT IS NOT FINISHED, AND THE REASON IS WORTH ONE LINE TO HIM:** a full sea trial is sailing on it
+now (ten voyages, ~85 minutes, `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`). **The first
+trial this watch started sailed nothing** — all ten legs replayed the previous build's results
+because the build number had not moved. That is `T-212`, already on his Chart, met in the wild. The
+stamp is bumped to `2026.09.03.4` and it is genuinely sailing now. A later watch reads that report
+and closes the item with `close_item.mjs --ceo=184`.
+
+**One thing worth his eye when he looks at the pictures:** the bigger circles cover a little more of
+the "Ahoy!" message behind them. In a real prompt the message lifts itself clear of the circles, so
+this is probably an artifact of how the picture was posed — **but that has not been measured, so
+nobody should tell him it is fine.**
+
 ## 3. What a later watch should NOT re-do
 
 - **Do not re-ask him the analytics question.** He answered it (`qid:t206-ga-turn-on`), the answer
@@ -159,3 +195,14 @@ written into `package.json`: re-read a shared file immediately before you stage 
   is the shape that shipped — a depth a person can lower *on the record*, with the reason and the
   picker's own verdict both printed in the trial report. **It is deliberately NOT ticked**, because
   the hook half in §2c is blocked by a permission. The remaining work is §2c and nothing else.
+- **⟨`T-017`⟩ WAS WORKED 2026-09-03T19:59Z. Do not start it again, and do not re-fix the circles.**
+  The code is in and both gates are green; the only thing outstanding is reading the trial report
+  named in §2h and closing it.
+
+> ⚠ **AND A WARNING EARNED ON THIS VERY FILE, THIRTY SECONDS BEFORE IT WAS COMMITTED.** The 19:59Z
+> watch wrote its §2h by `Write`-ing this file whole, which **deleted every section above it** —
+> including §1, a rule-27 instruction that is still undischarged. It was caught only because the
+> staged diff was read line by line before committing, and it was restored from `HEAD`.
+> **THIS FILE IS APPEND-ONLY IN PRACTICE AND NOTHING ENFORCES THAT.** Add your section with an
+> edit; never rewrite the file. It is the same failure shape as republishing his Glass without
+> harvesting first — a whole-file write over somebody else's words.

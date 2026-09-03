@@ -13878,3 +13878,85 @@ one of those modes immediately caught the gate silently disarming itself.
 **Yes, two of them** — CEO 182's finding 4 (a named-but-untracked gate) and finding 5 (scratch left
 behind), both now fixed and both recorded rather than quietly repaired. Finding 1's shape also
 rhymes with 182's: **evidence and coverage claimed more broadly than the work actually reached.**
+
+---
+
+## CEO Review 184 — `T-017`, the trade-offer circle — watch 2026-09-03T1959Z, Wy-Blade
+
+**HIS ASK, VERBATIM:** *"Do bigger circles, not smaller text. And show me the pictures in the Blad
+session, I can't see them in the glass"* — with his sibling ruling *"Only shrink the long
+words/phrases/names"*.
+
+### VERDICT: **PARTIAL** — in the CEO's own words, not paraphrased
+
+> *"His stated solution really was built — the circles genuinely grow and the names are genuinely
+> full size. But the fix has **not been sea-trialled at all**, and the reason is a verbatim repeat
+> of a fault this same branch recorded nine hours ago."*
+
+**What it verified independently rather than taking on trust:** that `fitFanToLabels` steps the
+disc UP before any shrink (so ruling A is implemented, not relabelled); that `fitLabelToDisc` still
+runs afterwards (so ruling B survives as the fallback); that **every term of `fanDiscCeiling` really
+is derived** — it checked `sep` against the placement's own `SEP` and `room` against the placement's
+own band bounds, and found no smuggled constant; that both `--red=` arms trip separately; and — the
+one it said it most expected to catch — that the sibling-gate repair is **not** self-serving,
+because it confirmed 9.5px and 15px in the stylesheet itself and concluded *"replacing a width cap
+with a font tell is strictly stronger than raising 80 to 120."*
+
+### THE FOUR FINDINGS, AND WHAT WAS DONE ABOUT EACH
+
+**1. THE TRIAL SAILED NOTHING — CONFIRMED, AND IT WAS THE MOST IMPORTANT FINDING.** The report
+`.planning/SEA-TRIAL-2026-09-03T2017Z-Wy-Blade.md` reads **"0 of 10 voyage(s) sailed, 10 NOT RUN"**;
+all ten legs resumed a complete result already on record for build `2026.09.03.3`, which was stamped
+nine hours before this fix existed. **This is `T-212`, sitting at rank 10 on the Chart, met in the
+wild.** The NOT-RUN column did its job and said so plainly — the failure would have been *reading*
+that report as a verdict on this change. `PP4_STAMP` bumped `2026.09.03.3` → `2026.09.03.4` and a
+fresh FULL trial started detached (pid 53536, report
+`.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`), whose log confirms it is sailing the new build.
+
+**2. THE PREDICTION'S FOURTH FALSIFIER WAS UNTESTED — CONFIRMED AND NOW MEASURED.** It named
+*"if growing every radial fan changes screens he has already approved (sail choices, dock, battle
+calls)"*, and only the trade fan had a pair. The CEO was right that this is CEO 183's fault
+recurring in a new coat. **The battle-call fan is the dangerous one and the CEO found the reason
+before I did:** those circles carry a `seat`, so they hang ON the boats they name rather than
+fanning around one ship, and the pre-fix trial already recorded *"'Call Dough Hook' … overlapped and
+its label text clipped by the front 'Call Crustbeard' circle"*. Now posed both ways
+(`.planning/posed/t017-{before,after}-phone-calls.png`): the disc grows **71.7px → 75.0px**, and
+overlap and off-screen are **none in both states**. Growth is bounded by what the label needs and
+*"Call Crustbeard"* needs almost nothing. **The honest limit: that is ONE posed board.** Whether two
+boats can still be close enough to collide is the re-sailed trial's answer, not this pair's.
+
+**3. "PUT THE GATE IN `npm test`" — THE FINDING IS RIGHT, ITS REMEDY IS WRONG ON THE FACTS, AND I AM
+NOT OBEYING IT.** It argued *"about fifty `w##_*` item gates are in that chain, so the convention is
+clear."* Measured: **not one of the 40 browser-driving checks under `scripts/` is in `npm test`** —
+`t013_call_circle_beside_check`, `w14_swept_geometry`, `narration_break_gate`, `crew_stayput_check`
+and the sibling `trade_circle_name_fits_check` are all absent. The `w##_*` gates that ARE in the
+chain (`w21_weather_line_check`, `w41_prompt_centred_check`, `w44_captains_width_check`) launch no
+browser. And the reason is load-bearing: **`sea_trial.mjs` runs `npm test` as its own step 1**, so a
+browser check in the chain would launch browsers inside every trial. Adding mine would have been a
+real fault committed on a confident citation. **The gap it names is nonetheless real** — nothing
+automatic guards this fix — and the right home is the trial's own leg set, not the static chain.
+Filed as a Chart row rather than built, because the ask here was to fix the game.
+
+**4. THE CACHE COULD SKIP THE FIT AND RESTORE THE ORIGINAL BUG — CONFIRMED, AND THIS ONE WAS A REAL
+DEFECT I HAD SHIPPED INTO THE GAME.** The first cut kept one module-level `S.fanKey`. `panel()`
+builds fresh `.apBtns` for every ask, and `menuButtons()` admits a fan whose buttons carry no
+`_shortHtml` provided each label is ≤16 characters — so for such a fan the short-swap never runs and
+nothing cleared the key. Two radial prompts in a row with the same labels at the same viewport would
+share one key and **the second fan's brand-new buttons would never be fitted at all**. It is not
+hypothetical: `src/ui/flow.js:3112` builds the battle calls with no `short:`, and *"Call Crustbeard"*
+is exactly 15 characters. The key now lives on each BUTTON (`b._fanKey`), the shape `_fitKey`
+already uses, so an element that has never been fitted cannot inherit another element's verdict.
+
+**5. Its finding on the narration box is fair and is reported to Wyatt rather than buried:** bigger
+circles cover more of the ask pill in the posed trade shot. In a real prompt the pill lifts to clear
+the circles (`src/ui/stage.js`, the `hit` branch); this pose has no `.apMsg` for that to act on, so
+**it is probably an artifact of the pose and it is NOT yet measured either way.** Stated as observed,
+not diagnosed.
+
+### DOES A PREVIOUS FAULT RECUR?
+
+**Yes — CEO 183's headline, exactly.** That watch wrote a prediction naming what its fix would not
+reach and then dropped it *"without a word"*. This watch wrote a prediction naming four falsifiers,
+tested three, and would have shipped without testing the fourth. **The prediction is only worth
+anything if somebody reads it back at the end**, and neither watch did. That is the reusable lesson
+of this review, and it is now written where the next one will meet it.

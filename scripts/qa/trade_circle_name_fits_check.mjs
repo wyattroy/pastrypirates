@@ -70,8 +70,8 @@ const SIZES = [
    In that fiction "Crustbeard" FITS, flatly contradicting Wyatt's own screenshot of it clipped at
    both ends. THAT CONTRADICTION IS WHAT EXPOSED THE INSTRUMENT rather than the game (rule 6: when a
    check disagrees with something you have seen, suspect the check). `stage.js:2517` and `:2669` are
-   the game's own transitions and both do exactly this. The DISC_MAX guard below now makes the same
-   mistake impossible to report as a result. */
+   the game's own transitions and both do exactly this. The OTHER_STYLE_FONT guard below now makes
+   the same mistake impossible to report as a result. */
 const POSE = (names, control) => `(()=>{
   const p=document.getElementById('pp4Prompt'), ap=document.getElementById('actionPanel');
   if(!p||!ap) return "nostage";
@@ -146,11 +146,23 @@ const MEASURE = `(()=>{
   }
   return JSON.stringify(out);})()`;
 
-/* THE POSE'S OWN GUARD, and it is the lesson of this file's first cut. `#pp4Prompt.radial .apBtn`
-   is 66px wide with a 2.5px border, so a correctly posed petal renders 71px. Anything appreciably
-   larger means the pose landed in a DIFFERENT prompt style and every number after it describes a
-   box the game never draws. A check that cannot tell those apart is not measuring the game. */
-const DISC_MAX = 80;
+/* THE POSE'S OWN GUARD, and it is the lesson of this file's first cut: a pose that lands in a
+   DIFFERENT prompt style describes a box the game never draws, and every number after it is
+   fiction. `pp4Center` renders a 110px disc at 15px type, and in that fiction every name "fits".
+
+   ⚠ IT USED TO BE A WIDTH CAP — `DISC_MAX = 80`, because "a correctly posed petal renders 71px" —
+   AND THAT STOPPED BEING TRUE ON 2026-09-03. Wyatt ruled "Do bigger circles, not smaller text", so
+   `fitFanToLabels` (src/ui/stage.js) now grows the fan's disc until the label fits at the
+   stylesheet's own size: a real, correctly posed radial petal measured 97.8–104.9px that day. The
+   width cap turned this gate's verdict into **NOT RUN at all three sizes** — a gate that had gone
+   blind while still looking healthy, exactly the class `docs/HARD-WON-LESSONS.md` §3 is about.
+
+   SO THE GUARD NOW READS THE TELL THAT ACTUALLY SEPARATES THE TWO STYLES: the FONT. Radial declares
+   9.5px, the centre-stage card 15px. That is a property of which stylesheet rule won, and unlike a
+   width it is not something the fix is allowed to move — the whole point of the fix is that the
+   type stays at 9.5px. Loosening the number to 120 would have worked today and gone blind again the
+   next time a disc grows; this cannot. */
+const OTHER_STYLE_FONT = 15;
 
 console.log("T-017 — does a captain's name fit the circle that names them?\n");
 
@@ -191,9 +203,10 @@ for (const s of SIZES) {
 
   const rows = JSON.parse(await C.ev(MEASURE));
   if (!rows.length) { console.log(`  ${s.name}: NOT RUN — posed, but nothing measured`); continue; }
-  if (!rows[0].radial || rows[0].box > DISC_MAX) {
+  if (!rows[0].radial || parseFloat(rows[0].font) >= OTHER_STYLE_FONT) {
     console.log(`  ${s.name}: NOT RUN — the pose did not land on the radial disc ` +
-      `(radial=${rows[0].radial}, ${rows[0].box}px wide, expected ~71px). Not a pass, and not a fault.`);
+      `(radial=${rows[0].radial}, type ${rows[0].font}, and the centre-stage card is ${OTHER_STYLE_FONT}px). ` +
+      `Not a pass, and not a fault.`);
     continue;
   }
   anyRan = true;

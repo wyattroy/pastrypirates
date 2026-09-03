@@ -9256,3 +9256,143 @@ live trial and are not mine.
 
 **No lesson written today** — `LESSONS.md` already carries one for 2026-09-03 and `add_lesson.mjs`
 refuses a second.
+
+---
+
+## WATCH 2026-09-03T1959Z — Wy-Blade — CLAIMS `T-017` (the trade-offer circle)
+
+**Watch started** 2026-09-03T19:59Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+reports healthy, and `git push origin claude/cloud-handoff-planning-a9ay1u` was run as a real shell
+command **before** any work — *Everything up-to-date*. So this watch can be seen.
+
+**Last progress** — the 19:35Z watch closed `T-102` (noindex on thirteen pages plus the
+`robots.txt` fences the four static folders actually needed), CEO 183 PARTIAL, and recorded two
+faults it committed on the way.
+
+**Blocked on Wyatt** — the BLOCKED ON WYATT table stands; nothing in it gates this row.
+
+**A detached trial is in flight** — the previous watch names a live ten-leg trial as the owner of
+the 24 browsers `stray_probe_check` currently sees. **This watch will not sail a FULL trial into
+it**, and will say so on the record rather than quietly lowering the gear.
+
+**NO ARTIFACT TOOL IN THIS SESSION — stated as observed, not guessed at.** `ToolSearch` for
+`Artifact`, `ArtifactComments` and `ArtifactData` returns *no matching deferred tools*. So this
+watch **cannot read the Glass, cannot harvest it, and therefore must not republish or stamp it**.
+What it wants shown goes to `.planning/wyclau/GLASS-NOTE.md` for the next session that can.
+
+**What THIS watch will do — `T-017`, which is the FIRST row on the ranked Chart.**
+`chartkeeper.mjs --rank --sweep --write` was run before anything was picked. Nothing holds row 1:
+there was no `IN-HAND` file on this machine and no open claim in this ledger's tail.
+
+**THREE OPEN ROWS ARE ONE JOB AND ALL THREE CARRY `T-017`** — which is the ambiguous-handle fault
+`T-107` measured, met in the wild:
+  * `CHART.md:94` — his ruling *"Only shrink the long words/phrases/names"*, untriaged
+  * `CHART.md:96` — his ruling *"Do bigger circles, not smaller text."*, untriaged
+  * `CHART.md:182` — the bug itself: a captain's name clipped by its own offer disc, three
+    sightings across three engine/size configurations.
+
+**Taken as ONE item, because they are one circle on one screen, and his two rulings do not
+conflict**: keep the shrink for long labels only (94), and stop it having to reach 5.5px by growing
+the disc (96). **His stated solution is implemented and measured FIRST**, before this watch offers
+any view of its own.
+
+### WHAT THIS WATCH DID — `T-017` worked, NOT closed; a FULL trial is sailing
+
+**HIS SOLUTION FIRST, AND IT IS THE WHOLE FIX.** `src/ui/stage.js` now grows the fan's disc until
+its longest label fits at the stylesheet's own 9.5px, and only shrinks what still will not fit —
+which by construction is only the long ones, his other ruling. One diameter for the whole fan
+(rule 8, and the placement takes its `D` from `menu[0]`, so mixed widths would space the ring off
+whichever petal came first).
+
+**RED FIRST, ON THE REAL BUILD.** New gate `scripts/qa/trade_circle_type_size_check.mjs` — *is the
+label drawn at the size the stylesheet declares?* — **12 labels at 5.5–6.0px against a declared
+9.5px** at phone, tablet and desktop, with the control *"Walk away"* at a full 9.5px. Green after:
+every label 9.5px on a ~97–105px disc. Both arms red-proofed separately (`--red=nogrow` reproduces
+his own screenshots at ~10–12px past the rim; `--red=crush` reproduces the type he rejected), and a
+`--red=` run that moves no number exits 2 rather than passing.
+
+**⚠ THE FIX BLINDED THE SIBLING GATE, AND ONLY RUNNING IT CAUGHT THAT.**
+`trade_circle_name_fits_check.mjs` guarded "did the pose land on the radial disc?" with a WIDTH cap
+(`DISC_MAX = 80`, from *"a correctly posed petal renders 71px"*). A legitimately grown disc measures
+97–105px, so the gate reported **NOT RUN at all three sizes** — healthy-looking and blind, the same
+class as CEO 183's self-disarming gate the night before. Repaired by changing the discriminator to
+the FONT (radial 9.5px vs the centre-stage card's 15px), which is the one number this fix is
+forbidden to move; loosening 80 to 120 would have worked today and gone blind at the next growth.
+
+**⛔ AND THE GATE I SHOULD HAVE ADDED, I DID NOT — ON PURPOSE, WITH THE MEASUREMENT.** CEO 184 said
+to put the new check into `npm test`, citing *"about fifty `w##_*` item gates are in that chain"*.
+**Measured: not one of the 40 browser-driving checks under `scripts/` is in `npm test`**, and the
+`w##_*` gates that ARE in it launch no browser. `sea_trial.mjs` runs `npm test` as its own step 1,
+so a browser check in the chain would launch browsers inside every trial. **Obeying a confident
+citation would have been the fault here.** The gap it names is real and is a Chart row.
+
+**⛔ CEO 184 FOUND A DEFECT I HAD ALREADY SHIPPED INTO THE GAME, AND IT IS THE BEST THING IN THIS
+ENTRY.** My first cut cached the fan's fit in ONE module-level `S.fanKey`. `panel()` builds fresh
+`.apBtns` for every ask and `menuButtons()` admits a fan carrying no `_shortHtml` provided each
+label is ≤16 characters — so for such a fan the short-swap never runs and nothing cleared the key.
+Two radial prompts in a row with the same labels at the same viewport would share it and **the
+second fan's brand-new buttons would never be fitted at all: the original T-017 bug, restored by its
+own fix.** Not hypothetical — `src/ui/flow.js:3112` builds the battle calls with no `short:` and
+*"Call Crustbeard"* is exactly 15 characters. The key now lives on each button (`b._fanKey`), so an
+element that was never fitted cannot inherit another element's verdict. **Neither gate could see it,
+because both pose exactly one fan and the fault needs two in a row.**
+
+**⛔ THE SEA TRIAL I STARTED SAILED NOTHING, AND I NEARLY READ IT AS A VERDICT.**
+`SEA-TRIAL-2026-09-03T2017Z-Wy-Blade.md`: **"0 of 10 voyage(s) sailed, 10 NOT RUN"** — every leg
+resumed a complete result already on record for build `2026.09.03.3`, stamped nine hours before this
+fix existed. **This is `T-212`, rank 10 on the Chart, met in the wild.** The NOT-RUN column is the
+only reason it is not a lie; the failure would have been mine, in reading it. `PP4_STAMP` bumped to
+**`2026.09.03.4`** and a fresh FULL trial started detached — **pid 53536, report
+`.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`**, log line confirms `build 2026.09.03.4`, gear
+FULL, ten legs. **The next watch reads that report before closing this item.**
+
+**POSED, NOT SAMPLED (rule 26), four pictures at 390×844:**
+`t017-before-phone-shrunk.png` / `t017-after-phone-grown.png` — the names go from tiny red specks to
+legible at full size. `t017-after-phone-busy8.png` — eight petals, disc held to 75.6px by the
+ceiling, no overlap, none off screen. `t017-{before,after}-phone-calls.png` — the battle-call fan,
+**71.7 → 75.0px, no overlap either way**. The "before" is a reconstruction and it is **verified
+against what the real pre-fix build measured** before any picture is written; the script refuses to
+write one if it misses. Tolerance is one shrink step, because the attention swell moves
+`getBoundingClientRect` between frames — a property of the shipped game, not of the check.
+
+**THE HONEST LIMITS, stated rather than discovered later:** the call-fan pair is ONE posed board, so
+whether two boats can still sit close enough to collide is the trial's answer and not this pair's.
+And the grown circles cover more of the ask pill in the posed trade shot — in a real prompt the pill
+lifts to clear them (`stage.js`, the `hit` branch), and this pose has no `.apMsg` for that to act
+on, so it is **observed, not diagnosed**.
+
+**No game trade logic was touched**, so no TRADE-SYSTEM.md invariant is in play and hails per game
+is unchanged — `docs/TRADE-SYSTEM.md` §9 read before starting, as rule 20 requires.
+
+### ⛔ TWO FAULTS THIS WATCH COMMITTED, BOTH CAUGHT BY READING THE STAGED DIFF LINE BY LINE
+
+**1. I DELETED A LIVE INSTRUCTION OF HIS BY WRITING A FILE WHOLE.** `.planning/wyclau/GLASS-NOTE.md`
+is what a watch with no Artifact tool leaves for a session that can publish. I `Write`-ed my own
+section into it and **destroyed all seven sections above it** — including §1, an **undischarged
+rule-27 instruction** to publish `ANALYTICS-PLAN.html` and put the URL in front of him, and four
+questions of his queued for his Your Call card. The staged diff read `180 +++-----------`; that
+minus run is the only reason I looked. Restored from `HEAD` and re-applied as an append: **47
+insertions, 0 deletions.** **THIS IS THE SAME FAILURE SHAPE AS REPUBLISHING HIS GLASS WITHOUT
+HARVESTING** — a whole-file write over somebody else's words — and the Door devotes half a screen to
+that one while nothing anywhere says it about this file. A warning now sits at the bottom of
+`GLASS-NOTE.md` itself, which is the only place a session about to make this mistake will be looking.
+
+**2. `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` AND REPORTED SUCCESS.** It
+allocated `T-233` and `T-234` and spliced each marker **into the middle of a row's title**, cutting
+a timestamp in half (`Filed 2026-09-01T19:30` / marker / blank line / `Z, measured, not fixed`).
+**Both rows already carried a handle on the very next line** (`T-014`, `T-092`). The run printed a
+cheerful `2 id(s) allocated · 30 row(s) moved` and nothing failed. Two things make it worse than a
+cosmetic bug: `GLASS-CHART.md` is one of the two lists **his Glass renders**, and the command was
+given **no `--chart=`** — it was pointed at `CHART.md` and wrote into the sibling anyway. Repaired by
+hand (the sandbox refuses `git restore` and `git checkout --` here), the file is byte-clean against
+`HEAD`, and the two spurious ids went with the text so nothing references them. Filed as ⟨`T-222`⟩.
+
+**THE COMMON THREAD, AND IT IS THE ONE WORTH CARRYING:** both faults were invisible in every tool's
+own report — one printed a success summary, the other printed nothing at all — and both were caught
+by the same act, **reading `git diff --cached` before committing rather than after.** The previous
+watch's entry (CEO 183) ends on a staging fault too. That makes three in two watches, all on shared
+`.planning/` files, none of them visible to a gate.
+
+**Browsers:** every run here launched one and killed it (`_t017_posed_pair.mjs` kills in a
+`finally`, printing *"browser killed, server closed"*). `stray_probe_check` PASS. The browsers alive
+as this watch ends belong to the detached trial and have a live launcher.

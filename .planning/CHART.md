@@ -95,14 +95,14 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⟨`T-017`⟩
 - [ ] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-235`⟩
-- [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-121`⟩
 - [ ] Your ruling: ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. — his answer: yes **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-102`⟩
 - [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-207`⟩
 - [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-236`⟩
+- [ ] Your ruling: ⟨`T-121`⟩ **When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean?** Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an `order:` on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of **196** (`chartkeeper.mjs`'s `score()`), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. **There is no way back from the page.** Dragging a row and putting it exactly back does clear it; nothing else does. — his answer: note recorded on the Glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-121`⟩
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -178,7 +178,52 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   complete run recorded **89 minutes before the fix existed**. Caught by CEO 169, not by any gate.
   The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
   **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.3, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.4, so its evidence no longer describes this game
+- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
+      ⟨`T-219`⟩
+      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
+      `pastrypirates-07` when its own trial finished in **one minute**:
+      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
+      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
+      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
+      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
+      change that does not happen to touch that one string is invisible to the cache and every leg
+      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
+      invariant it is breaking** — *"a result from a different build is a result about different
+      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
+      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
+      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
+      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
+      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
+      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
+      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
+      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
+      exact evasion Wyatt chose the words "sea trial" to make impossible.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
+- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
+      ⟨`T-143`⟩
+      award until you scroll. The tablet shows all four awards AND the whole stats table.**
+      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
+      **through the height of the letters** — content clipped at a scroller's edge.
+      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
+      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
+      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
+      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
+      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
+      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
+      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
+      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
+      covering."* That comment records this same judge flagging this same screen as its **eighth**
+      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
+      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
+      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
+      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -208,51 +253,14 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
   configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
   name to the disc, written once.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
-      ⟨`T-219`⟩
-      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
-      `pastrypirates-07` when its own trial finished in **one minute**:
-      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
-      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
-      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
-      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
-      change that does not happen to touch that one string is invisible to the cache and every leg
-      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
-      invariant it is breaking** — *"a result from a different build is a result about different
-      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
-      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
-      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
-      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
-      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
-      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
-      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
-      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
-      exact evasion Wyatt chose the words "sea trial" to make impossible.
-
-- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
-      ⟨`T-143`⟩
-      award until you scroll. The tablet shows all four awards AND the whole stats table.**
-      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
-      **through the height of the letters** — content clipped at a scroller's edge.
-      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
-      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
-      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
-      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
-      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
-      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
-      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
-      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
-      covering."* That comment records this same judge flagging this same screen as its **eighth**
-      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
-      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
-      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
-      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
+      ⚑ **WORKED 2026-09-03T1959Z, NOT YET CLOSED — a FULL trial is sailing on it.** His solution
+        ("Do bigger circles, not smaller text") is implemented in `src/ui/stage.js`
+        (`fitFanToLabels`); the new gate `scripts/qa/trade_circle_type_size_check.mjs` went RED
+        (12 labels at 5.5–6.0px against a declared 9.5px) and is GREEN, and the sibling fit gate is
+        green with a repaired guard. CEO 184 PARTIAL. **The close is blocked ONLY on the trial:**
+        pid 53536, `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`, build `2026.09.03.4`.
+        The next watch reads that report and, if it sails clean, closes all three `T-017` rows with
+        `close_item.mjs --ceo=184`. Full account in `.planning/CTO-LEDGER.md`.
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
@@ -454,7 +462,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
@@ -509,7 +517,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.3, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
@@ -518,7 +526,25 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.3, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
+- [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
+      ⟨`T-239`⟩
+      His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
+      me options to choose number or letter them"*. It is written at
+      `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
+      else** — grep for "number or letter" across `.claude/` returns nothing. **CEO 172's finding:**
+      the CHARTER is one hop off the path of every session that needs it — `.claude/CLAUDE.md` is
+      loaded into every session, and the Door does not name the CHARTER at all.
+      **THE JOB:** copy the rule into `.claude/CLAUDE.md` §1's *"Ask with the question UI"* block and
+      into `.claude/memory/DECISIONS.md`, then point
+      `scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the new home.
+      ⚠ **WHY IT IS A ROW AND NOT ALREADY DONE:** the 15:13Z watch's Edit tool was **refused on both
+      files** (measured, twice). **That fence is on one agent's tool, not on the files** — a session
+      edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day
+      (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
+      precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
+      rather than writing it somewhere else again.**
 
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
@@ -573,6 +599,44 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+- [ ] **NOTHING AUTOMATIC GUARDS THE TRADE-CIRCLE FIX, AND `npm test` IS THE WRONG HOME FOR IT —
+      filed 2026-09-03T2035Z off CEO 184's finding 3, whose diagnosis is right and whose remedy is
+      wrong on the facts.** It said to add `trade_circle_type_size_check.mjs` to the suite, citing
+      "about fifty `w##_*` item gates are in that chain". **Measured: NOT ONE of the 40
+      browser-driving checks under `scripts/` is in `npm test`** — `t013_call_circle_beside_check`,
+      `w14_swept_geometry`, `narration_break_gate`, `crew_stayput_check` and
+      `trade_circle_name_fits_check` are all absent, and the `w##_*` gates that ARE in the chain
+      (`w21_weather_line_check`, `w41_prompt_centred_check`, `w44_captains_width_check`) launch no
+      browser. **The reason is load-bearing: `sea_trial.mjs` runs `npm test` as its own step 1**, so
+      a browser check in the chain would launch a browser inside every trial.
+      **The gap is nonetheless real** — two per-item browser gates guard `T-017` and only a person
+      typing their names ever runs them, which is the "capability nothing invokes" shape this
+      project has now paid for three times (the ranker, the harvest, the lesson writer).
+      **The question this row owes: where do the 40 browser checks belong?** The trial's own leg set
+      is the obvious candidate. Sizing: no game code; a mechanism decision, so it may want Wyatt.
+      ⟨`T-221`⟩
+
+- [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
+      INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
+      watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
+      splitting a timestamp in half: `Filed 2026-09-01T19:30` / marker / blank line /
+      `Z, measured, not fixed (one item).**`. **Both rows ALREADY CARRIED A HANDLE** — `T-014` and
+      `T-092` — sitting on the very next line, so this is not "an unhandled row got one", it is a
+      second handle allocated to a row that had one and written into the prose.
+      **WHY THIS IS WORSE THAN IT LOOKS:** `GLASS-CHART.md` is one of the two lists his Glass
+      renders, three sessions write it, and the damage is INVISIBLE in a rank summary — the run
+      printed a cheerful `2 id(s) allocated · 30 row(s) moved`. Nothing failed. It was found only
+      because the commit's `git diff` was read line by line before staging.
+      **AND IT WAS A SIDE EFFECT NOBODY ASKED FOR:** the command was run with no `--chart=`, so it
+      was pointed at `CHART.md`; it wrote into the sibling anyway.
+      **The two spurious ids `T-233`/`T-234` were reverted with the text**, so nothing references
+      them and they are free again.
+      **Start here:** the id-allocation writer in `scripts/wyclau/chartkeeper.mjs` — why it chose a
+      column inside a title, and why `openHandleCarriers` did not see the handle one line below.
+      Rule 1: a row that already carries a handle must never be allocated a second one.
+      Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
+      shaped like the REAL chart — multi-line titles, marker on the following line.
+      ⟨`T-222`⟩
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
   release — detached trial → staging → Wyatt plays → merge on his say-so; then the rulebook cutover
@@ -632,6 +696,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
   it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
   to bump. **Sizing: small, instrument only, no game code.**
+
 - [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
       ⟨`T-216`⟩
       FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
@@ -804,7 +869,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.3, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
@@ -852,25 +917,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.3, so its evidence no longer describes this game
-
-- [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
-      ⟨`T-239`⟩
-      His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
-      me options to choose number or letter them"*. It is written at
-      `.planning/wyclau/CHARTER.md`'s *"Putting a choice in front of him"* section and **nowhere
-      else** — grep for "number or letter" across `.claude/` returns nothing. **CEO 172's finding:**
-      the CHARTER is one hop off the path of every session that needs it — `.claude/CLAUDE.md` is
-      loaded into every session, and the Door does not name the CHARTER at all.
-      **THE JOB:** copy the rule into `.claude/CLAUDE.md` §1's *"Ask with the question UI"* block and
-      into `.claude/memory/DECISIONS.md`, then point
-      `scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the new home.
-      ⚠ **WHY IT IS A ROW AND NOT ALREADY DONE:** the 15:13Z watch's Edit tool was **refused on both
-      files** (measured, twice). **That fence is on one agent's tool, not on the files** — a session
-      edited `.claude/CLAUDE.md` on 2026-09-02 (`eee58a5d`) and `DECISIONS.md` the same day
-      (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
-      precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
-      rather than writing it somewhere else again.**
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
@@ -881,6 +928,9 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+
+- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** `.planning/ANALYTICS-PLAN.html`: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
+      ⟨`T-240`⟩
 
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
@@ -919,9 +969,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
-
-- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** `.planning/ANALYTICS-PLAN.html`: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
-      ⟨`T-240`⟩
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
