@@ -938,6 +938,42 @@ try {
 const TODAY = nowIso.slice(0, 10);
 const newestLesson = lessons && lessons.length ? lessons[0] : null;
 
+/* ⛔ THE FAULT HE SCREENSHOTTED, 2026-09-03: *"the Lesson is two days old; it is formatted wrong."*
+   The body used to render under `white-space:pre-line`, which PRESERVES THE SOURCE FILE'S NEWLINES
+   — and `LESSONS.md` is hard-wrapped at ~95 columns for a text editor. So his page broke
+   mid-sentence, at the width of somebody's terminal rather than the width of his screen:
+   *"...because from the outside a / hard-working session and a dead one look identical."* And
+   `esc()` escaped the markdown, so *crash-only design* reached him as literal asterisks.
+
+   ⚑ ESCAPED FIRST, THEN MARKED UP — never the other way round. He writes these lessons, and one
+   quoting a tag must arrive as TEXT, not as markup. Reversing these two lines is a live XSS-shaped
+   bug on a page only he reads, so `lesson_process_check` case 4 fails the build on the order.
+
+   ⚑ LINES THAT WANT THEIR OWN LINE ARE KEPT. Today's lesson is one continuous paragraph, but a
+   future one may hold a list or a command — so list markers, quotes and indented lines survive
+   unwrapping. Flattening everything would trade his fault for a worse one. */
+function lessonHtml(body) {
+  return String(body ?? "").split(/\n\s*\n/).map((para) => {
+    const lines = para.split("\n");
+    /* A line that carries its own structure keeps its break; everything else is editor wrapping
+       and gets re-flowed to HIS screen width. */
+    const structural = (l) => /^\s*(?:[-*+•⚑⛔⚠]|\d+[.)]|>)\s/.test(l) || /^\s{2,}\S/.test(l);
+    const out = [];
+    for (const line of lines) {
+      if (structural(line) || out.length === 0) out.push(line.trim());
+      else if (structural(lines[lines.indexOf(line) - 1] ?? "")) out.push(line.trim());
+      else out[out.length - 1] += ` ${line.trim()}`;
+    }
+    const joined = out.join("\n").replace(/[ \t]+/g, " ").trim();
+    const marked = esc(joined)
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<i>$2</i>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\n/g, "<br>");
+    return `<p style="margin:.45rem 0;font-size:.95rem;line-height:1.5">${marked}</p>`;
+  }).join("");
+}
+
 /* The Captain's log's other half ("Captain", his ruling 2026-09-01 -- "chairman" struck; in-game
    lowercase captains are the players, capital-C Captain on system surfaces is Wyatt): his newest rulings ON RECORD — the top DECISIONS.md headings,
    pointed at rather than restated (a pointer cannot go stale; a copy always can). */
@@ -976,6 +1012,29 @@ const demoAsks = !DEMO ? [] : [
     rec: "1. Current push only (recommended) · 2. Show both · 3. Let me toggle it" },
   { id: "demo-2", q: "Ship a small music bed under the lobby screen?", rec: "Not yet — the mute control redesign should land first." },
 ].map((a) => ({ ...a, opts: questionOptions(a.rec) }));
+/* HIS RULING, harvested off the Glass 2026-09-03T15:56:28Z, and it is his THIRD message about
+   these buttons: "this is a perfect example of why approve and deny make no sense here -- what
+   would approve even mean in response to your above question? REPLACE APPROVE AND DENY WITH
+   1 2 3 OTHER, to bring Glass into parity with Claude question UI, and leave the box as a space
+   to write other content in."
+
+   SO THE THREE FIXED WORDS ARE GONE. A question that declares its own options gets those; a
+   question that declares none gets these three, NUMBERED, so every card he sees is answered the
+   same way -- 1, 2, 3, or write in the box.
+
+   THE STORED KEYS ARE STILL yes/no/talk. data-choice is what glassState.rulings holds and what
+   paintAsk compares to decide which button shows pressed; renaming them would un-press every
+   ruling already on his live page. The LABELS are his; the keys are machinery.
+
+   AND THIS WAS GATED THE WRONG WAY ROUND FOR TWELVE MINUTES. numbered_options_check case 4
+   asserted that a prose question KEEPS the word Approve -- so the build would have failed if
+   anyone removed the word he had already asked to remove, eight minutes before that gate was
+   written. Caught by CEO 174. The assertion is now inverted. */
+const DEFAULT_OPTS = [
+  { n: "1", label: "Yes — go ahead", recommended: false, key: "yes" },
+  { n: "2", label: "No — do not", recommended: false, key: "no" },
+  { n: "3", label: "Let us talk about it first", recommended: false, key: "talk" },
+];
 const askList = [...(blocked ?? []), ...demoAsks];
 
 /* THE PAGE, WITH TWO TOKENS. __GLASS_STATE__ is replaced by the state JSON; __GLASS_TPL__ by a
@@ -1205,13 +1264,9 @@ const PAGE = `<meta charset="utf-8">
            glassState.rulings, and the redraw below compares a saved ruling against them to decide
            which button shows as pressed. Renaming a value would un-press every answer already
            saved on his live page. Gated: glass_ruling_button_words_check.mjs case 4. -->
-      <div class="ruleRow">${b.opts.length
-        ? b.opts.map((o) => `<button type="button" class="rb num" data-choice="opt${esc(o.n)}" data-label="${esc(o.label)}"><b>${esc(o.n)}</b> ${esc(o.label)}${o.recommended ? `<span class="recTag">recommended</span>` : ""}</button>`).join("")
-        : `<button type="button" class="rb" data-choice="yes">Approve</button>
-        <button type="button" class="rb" data-choice="no">Deny</button>
-        <button type="button" class="rb" data-choice="talk">Let's talk</button>`}
+      <div class="ruleRow">${(b.opts.length ? b.opts : DEFAULT_OPTS).map((o) => `<button type="button" class="rb num" data-choice="${esc(o.key ?? `opt${o.n}`)}" data-label="${esc(o.label)}"><b>${esc(o.n)}</b> ${esc(o.label)}${o.recommended ? `<span class="recTag">recommended</span>` : ""}</button>`).join("")}
       </div>
-      <textarea class="rnote" rows="2" placeholder="${b.opts.length ? "Other — write your own answer here. Your words outrank the buttons." : "A note, if you want one — your words outrank the button."}"></textarea>
+      <textarea class="rnote" rows="2" placeholder="Other — write your own answer here. Your words outrank the buttons."></textarea>
       <p class="muted rstate"></p>
     </div>`).join("")}</div>`}
   </section>`}
@@ -1301,7 +1356,7 @@ const PAGE = `<meta charset="utf-8">
       : !newestLesson ? `<p class="muted">No lessons recorded yet — the day's close owes the first one.</p>`
       : `${newestLesson.date === TODAY ? "" : `<p class="muted">No lesson yet today — the day's close owes one. The newest, from ${esc(newestLesson.date)}:</p>`}
       <p style="font-weight:600;margin:.2rem 0 .35rem">${esc(newestLesson.title)}</p>
-      <p style="white-space:pre-line;margin:.2rem 0;font-size:.95rem">${esc(newestLesson.body)}</p>`}
+      <div class="lessonBody">${lessonHtml(newestLesson.body)}</div>`}
   </section>
 
   <!-- ⚑ "YOUR RULINGS, IN HAND" IS GONE — Wyatt, on this page, 2026-09-02T13:18:28.755Z: "Remove

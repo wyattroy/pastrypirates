@@ -307,8 +307,34 @@ whenever the conversation does.
 - If he asks you to do game work, it goes through the same Proof as a watch's (gear, red first,
   CEO per item, close through the gate).
 
+## THE DAILY LESSON IS WRITTEN WITH A COMMAND
+
+```bash
+node scripts/wyclau/add_lesson.mjs --title="<its name>" --body="<the lesson>"
+```
+
+**It is a WRITER, not a generator.** A lesson is something somebody actually learned today; a day
+with none shows honestly on his Glass as *"the day's close owes one"*, and that empty card is worth
+more than a filled one nobody learned anything from. Never invent one to make the card look fresh.
+
+It refuses the four ways an entry goes wrong, and each refusal writes nothing: a date his page
+cannot parse (**such an entry is silently invisible on his card** — no error, just a lesson that
+never appears), a multi-line title, a second lesson for a day that already has one, and an empty
+body. **Do not hard-wrap what you pass it** — the Glass re-flows the text to his screen, and a
+newline written here is a newline he sees.
+
+⚠ **A LESSON IN THE FILE IS NOT A LESSON ON HIS PAGE.** It reaches him only once the Glass is
+regenerated and republished — the same distinction that cost him a day on the retired-question
+fault.
+
+**Why this section exists, and why removing it fails the build** (`lesson_process_check.mjs`
+case 5): what was here before was a sentence — *"one daily lesson if none has been given today"* —
+with nothing behind it, and `LESSONS.md` held exactly ONE entry. **That is the third rule-with-no-
+mechanism on this project** (the ranker nothing ran; the harvest nothing called), and all three were
+found the same way: **he asked again.** A capability nothing invokes is a capability that never runs.
+
 ## Close (both modes)
 
 One short report in his ruled shape — **WHAT WORKED · WHAT I LEARNED (and where it is written) ·
-WHAT'S NEXT** — new information only, one daily lesson if none has been given today. Kill every
-browser and server you started. Never end on an offer.
+WHAT'S NEXT** — new information only, and the day's lesson written with the command above if none
+has been given today. Kill every browser and server you started. Never end on an offer.

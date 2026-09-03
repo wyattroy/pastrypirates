@@ -184,7 +184,24 @@ export const ID_RE = /`(T-\d{3})`/;
  *
  * RETURNS [] when the cell declares none — every question written before today, which must keep
  * working. That fallback is the thing most likely to become a permanent excuse, so
- * `glass_numbered_options_check.mjs` requires options on any question added from now on. */
+ * `numbered_options_check.mjs` requires options on any question added from now on. */
+/* ⛔ THE KEY IS DERIVED FROM THE OPTION'S WORDS, NEVER FROM ITS POSITION. A ruling is stored under
+   this key and his page presses the matching button when he comes back. If the key were "opt2",
+   then inserting a new option 2 into a question he had already answered would silently move his
+   tick onto a choice HE NEVER MADE — and the card would look, to him, exactly like a ruling he
+   remembers making. That is the worst failure this page can have: it does not lose his answer, it
+   fabricates a different one. Caught by CEO 174 before it could happen.
+
+   djb2, folded to 32 bits and printed in base 36 — short enough for an attribute, and it changes
+   whenever the words do. Renaming an option therefore un-presses it, which is CORRECT: a different
+   sentence is a different choice, and asking him again beats guessing he still agrees. */
+export function optionKey(label) {
+  const s = String(label ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return `opt-${h.toString(36)}`;
+}
+
 export function questionOptions(recCell) {
   const text = String(recCell ?? "").trim();
   /* A boundary before the digit, so "2.6s" inside an option's text cannot start a new one:
@@ -199,7 +216,7 @@ export function questionOptions(recCell) {
        be part of the button text or it reads as an option called "X (recommended)". */
     const rec = /\(recommended\)/i.test(label);
     label = label.replace(/\s*\(recommended\)\s*/i, " ").replace(/\s+/g, " ").trim();
-    if (label) opts.push({ n: m[1], label, recommended: rec });
+    if (label) opts.push({ n: m[1], label, recommended: rec, key: optionKey(label) });
   }
   /* ONE option is not a choice — it is the old prose line with a numeral on it, and rendering a
      single button would be worse than the three words it replaced. Two or more, or nothing. */

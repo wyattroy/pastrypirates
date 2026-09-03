@@ -75,11 +75,11 @@ try {
     ].join(NL);
     writeFileSync(join(dir, "CHART.md"), chart);
     try {
-      execFileSync(process.execPath, [join(ROOT, "scripts", "wyclau", "glass.mjs"), `--chart=${join(dir, "CHART.md")}`],
+      execFileSync(process.execPath, [join(ROOT, "scripts", "wyclau", "glass.mjs"), `--chart=${join(dir, "CHART.md")}`, `--out=${join(dir, "glass.html")}`],
         { cwd: ROOT, stdio: "ignore" });
     } catch (e) { fails.push(`3: glass.mjs could not render (exit ${e.status}) — nothing below is checked`); }
     let html = "";
-    try { html = readFileSync(join(ROOT, ".planning", "wyclau", "glass.html"), "utf8"); } catch { /* below */ }
+    try { html = readFileSync(join(dir, "glass.html"), "utf8"); } catch { /* below */ }
     const m = html.match(/<div class="lessonBody">([\s\S]*?)<\/div>/);
     if (!m) fails.push("3: the lesson body did not render on his page at all");
     else {
@@ -100,14 +100,36 @@ try {
   /* 4 — HIS TEXT IS ESCAPED BEFORE IT IS MARKED UP. He writes these; a lesson quoting a tag must
    *     arrive as text, never as markup. Checked on the real renderer through a fixture file. */
   {
+    /* ⛔ FIND IT IN EITHER FORM, AND SAY SO WHEN IT IS NOT THERE. This case used to anchor on the
+       exact string "const lessonHtml" and feed the result straight to `slice`. When the function
+       was restored as `function lessonHtml`, `indexOf` returned -1, `slice(-1, 1399)` handed the
+       check the LAST CHARACTER OF THE FILE, and it then reported "the lesson body is no longer
+       escaped" — **blaming the code for a fault it had never looked at.**
+
+       That is HARD-WON-LESSONS §14 happening inside the gate written to enforce §14: an instrument
+       reporting NOT FOUND has told you something about ITSELF. A -1 from `indexOf` is now its own
+       distinct failure, and the window is brace-matched rather than a guessed 1400 characters. */
     const src = readFileSync(join(ROOT, "scripts", "wyclau", "glass.mjs"), "utf8");
-    const fn = src.slice(src.indexOf("const lessonHtml"), src.indexOf("const lessonHtml") + 1400);
-    if (!/esc\(joined\)/.test(fn)) {
-      fails.push("4: the lesson body is no longer escaped before markdown is applied — a lesson quoting a tag becomes markup on his page");
-    }
-    const escAt = fn.indexOf("esc(joined)"), boldAt = fn.indexOf("<b>$1</b>");
-    if (escAt !== -1 && boldAt !== -1 && boldAt < escAt) {
-      fails.push("4: markdown is applied BEFORE escaping — the escape would then eat the tags it just made");
+    const at = src.search(/(?:function\s+lessonHtml\s*\(|const\s+lessonHtml\s*=)/);
+    if (at === -1) {
+      fails.push("4: lessonHtml is GONE from glass.mjs — the lesson body has no renderer at all, so nothing below could be checked. (A peer overwrite deleted it once already on 2026-09-03.)");
+    } else {
+      const open = src.indexOf("{", at);
+      let depth = 0, end = -1;
+      for (let i = open; i < src.length; i++) {
+        if (src[i] === "{") depth++;
+        else if (src[i] === "}" && --depth === 0) { end = i + 1; break; }
+      }
+      const fn = end > 0 ? src.slice(at, end) : "";
+      if (!fn) fails.push("4: could not read lessonHtml's body — unbalanced braces, so the escape order is UNKNOWN, not proven");
+      else {
+        const escAt = fn.indexOf("esc(joined)"), boldAt = fn.indexOf("<b>$1</b>");
+        if (escAt === -1) {
+          fails.push("4: the lesson body is no longer escaped before markdown is applied — a lesson quoting a tag becomes markup on his page");
+        } else if (boldAt !== -1 && boldAt < escAt) {
+          fails.push("4: markdown is applied BEFORE escaping — the escape would then eat the tags it just made");
+        }
+      }
     }
   }
 
