@@ -7433,3 +7433,107 @@ worlds, GREEN 9/9 live · posed pair read by eye, both sides · `stray_probe_che
 I trust over a shell builtin on this machine.
 
 - 2026-09-03T08:52:10Z · close_item: "T-139" · CEO 157 · no game diff — no game diff — his ruling is the Glass's fate lexicon, not the game; src/ and index.html untouched (commit 417adefc) · no stated solution
+
+## watch d1 — 2026-09-03T09:00Z, Wy-Blade — `admin-console-where`: his player-count console at /stats.html
+
+- **Watch started** 2026-09-03T09:00Z (5:00 AM ET) on Wy-Blade. `can_push.mjs` healthy; the real
+  `git push origin claude/cloud-handoff-planning-a9ay1u` was run as a shell command first and
+  answered *Everything up-to-date*, so this watch is not working into a void.
+- **Last progress:** watch c2 closed `T-139` at 08:52Z on CEO 157.
+- **Blocked on Wyatt:** Chart rank 1 (`T-099`) waits on his own Q3/Q4 about the rules page. It was
+  SKIPPED for that reason and the next unheld row taken. ⚠ **AND CEO 159 found the reason cited was
+  half wrong:** the row says *"this row closes when he answers"*, but none of the five rows in
+  BLOCKED ON WYATT is `T-099`'s — **its questions are on no surface he can see.** Filed here rather
+  than fixed; it is somebody's item, not a footnote.
+- **Detached trial in flight:** none at start.
+
+**⚠ THE SHARED-TREE HAZARD BIT AGAIN, IN A NEW PLACE, IN THE FIRST FIVE MINUTES.** The ledger entry
+one screen up records a peer watch losing six files out of its INDEX mid-commit. This time a peer's
+`git commit` ran while THIS watch's `git add` was staged, and **swept two of my files into its
+commit** — `5e2292a6` is titled "T-142: the ten screens the eyes rejected" and its entire diff is
+`.planning/CHART.md` + `.planning/CHART-LOG.md`, which were mine. The T-142 work its message
+describes is not in it. **The index is process-global and the tree is shared; `git add` followed by
+anything is a window somebody else can commit through.** Stage and commit in one breath — and READ
+what the commit says it wrote, which is the only reason this was caught.
+
+**THE ITEM: `admin-console-where` — his ruling, on his own ask.** CLAIMED 09:00:57Z. His words:
+*"put it at /stats.html behind a simple curtain and block it from robots.txt"*, ruling on *"Add
+google analytics to playpastrypirates.com and create a firebase admin console so I can see how
+many people are playing"* (`INBOX-20260902T214507Z`).
+
+**THE FINDING THAT REFRAMED THE WHOLE ITEM, AND IT WAS SITTING IN A COMMENT.** `src/ui/usage.js:5`
+has said since 2026-08-10 that its three records are *"read back by /stats.html"*. **The writers
+never stopped writing and the READER was left behind in `classic/` at the 2026-08-26 cutover.**
+Measured against the live database, not inferred: **237 page boots from 123 distinct browsers in
+fourteen days, 44 voyages started, 8 finished, 289 finished-game logs** — and
+`https://playpastrypirates.com/stats.html` was a **404** the whole time while
+`https://playpastrypirates.com/classic/stats.html` returned **200**. *His console existed, at a URL
+nobody had told him about, reading his real numbers.* So this was a port and a curtain, not an
+invention, and saying otherwise would have been a bigger claim than the work.
+
+**WHAT SHIPPED.** `stats.html` at the repo root: the proven `classic/` reader, plus a curtain
+(a word, SHA-256'd into the page, remembered per browser, guarded against the private-tab
+`localStorage` throw), plus one card his sentence asked for in its own present tense — **"playing
+right now"**, read from `presence/`, which `netMarkPresence` writes on connect and removes
+`onDisconnect`. **That card was red-proofed rather than assumed:** a real browser opened on the
+game moved it **0 → 1 → 0** (`_stats_presence_live.mjs`). A card that can only ever say 0 is a lie
+on the biggest number on his page.
+
+**HALF HIS RULING WAS ALREADY TRUE WHEN HE GAVE IT, AND THAT IS RECORDED RATHER THAN BILLED.**
+`robots.txt:11` has carried `Disallow: /stats.html` since the cutover commit `fb74eedc`. It was
+written into the prediction file **as measured, not predicted**, before any work, expressly so it
+could not later be reported as this watch's doing.
+
+**RULE 19 EARNED ITS PLACE AGAIN — TWO DEFECTS, NEITHER VISIBLE TO ANY ASSERTION.** The first
+screenshot of the finished page showed a builds cell rendering the literal text `[object Object]`
+and a fourth stat card stranded as a full-width slab at 390px. The first was measured, not guessed:
+of 237 visit rows, **192 hold `"v4"`, 44 hold `"main"`, and exactly one holds a nested Firebase
+push key** `{"-P0FDHq7K_o_fGoQljZd":"v4"}`. Both fixed; before/after at
+`.planning/posed/stats-open-{before-390w,390w-after}.png`.
+
+**⚠ THREE FAULTS OF MINE THAT CEO 159 FOUND, ALL FIXED BEFORE THE CLOSE, AND THE PATTERN IN THEM
+IS THE PART WORTH KEEPING.**
+1. **The curtain's word was in the repo.** My hash helper carried `process.argv[2] || "sugarfish"`
+   — the live word, in the clear, in a public repo, in a file `stats.html` itself pointed the
+   reader at, one line under a comment explaining why the word was hashed. The word is changed and
+   now exists **nowhere in this repository**; `scripts/qa/curtain_hash.mjs` refuses to run without
+   an argument, and the screenshot script takes it as an argument too.
+2. **Clause D of my own gate was half theatre.** It captured the literal string `gamelogs` inside
+   the regex whose header claimed every name was derived, and **`presence` — the biggest number on
+   his page — was covered by nothing.** Both regexes are generic now, with a named `EXEMPT` list
+   carrying a reason per exemption, and a fifth red-proof `--red=renamed-presence` proves the new
+   half bites.
+3. **One red-proof never checked that it bit.** `--red=absent` on a tree with no page proves only
+   that a check fails on a world it was already failing on. It refuses now.
+
+**EVERY CLAIM I WROTE A PREDICTION FOR HELD. EVERY FAULT IS IN SOMETHING I DID NOT PREDICT** — the
+helper's default, my own gate's derivation, my own red-proof's bite. *A prediction protects what it
+points at and nothing else.*
+
+**⚠ AND THE FINDING THAT OUTLIVES THIS ITEM: `gear.mjs` IS BLIND TO A FILE THAT DOES NOT EXIST
+YET.** My prediction P5 said a new root page would be called game code. `gear.mjs` said **FULL**
+and its stated reason was **`package.json` alone** — `scripts/qa/gear.mjs:36-37` reads TRACKED
+changes, so it never saw `stats.html`. **Without the unrelated ceiling raise in the same pass, a
+brand-new page served to real players at the root of the live domain would have scored `NONE`.**
+That picker decides how deeply every change to this game is tested, and the hook reads it too.
+Filed as its own Chart row, deliberately not fixed here.
+
+**SWEEP.** `npm test` **116 gates, 0 failures** (ceiling raised 115 → 116 with its reason in
+`package.json`; `quiet_gate_report` offered 0 of 18 retirement candidates, the eleventh raise
+running) · the gate RED first on clause A before the page existed, then GREEN, with five
+red-proofs each biting its own clause and each refusing to run on a no-op patch · posed pair read
+by eye, both sides · the curtain verified to REFUSE the old word after the change, which is the
+proof it really changed · `stray_probe_check` clean.
+
+**⛔ SEA TRIAL: NOT RUN. Gear FULL, on `package.json` alone, no game code touched.** A trial was
+started detached (pid 47608, `.planning/SEA-TRIAL-2026-09-03T0912Z-Wy-Blade.md`) and **RESUMED
+rather than sailed — 0 of 10 voyages, 10 NOT RUN**, every leg reusing an earlier run's judgements.
+It photographed nothing and must not be cited as a sail. **Its coverage of this change is zero by
+construction in any case:** nothing in the game links `stats.html`, so the robot cannot reach it.
+The verification that bears on this item is the gate, the posed pair, and the live-data read.
+
+**LEFT UNDONE, DELIBERATELY.** Google Analytics — the other half of his sentence, sized in
+`INBOX-20260902T214507Z` as explicitly not the same item, and filed as its own Chart row with the
+one measurement he should see first: the game already collects this, with no third party and no
+consent banner. **And the page is BUILT, NOT SHIPPED** — it is on this branch, not on `main`, so
+`playpastrypirates.com/stats.html` is still a 404 until it merges.

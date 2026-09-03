@@ -244,6 +244,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
+  TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
+  is the falsifier F5 of that watch's own prediction firing — it predicted a new root page would
+  be called game code, `gear.mjs` said **FULL**, and the reason it gave was **`package.json`
+  alone**. `scripts/qa/gear.mjs:36-37` reads TRACKED changes, so it never saw the new page at all.
+  Only the unrelated ceiling raise in the same pass made the verdict come out right. **A gate that
+  is right for the wrong reason is not protection, it is luck**, and this one decides how deeply
+  every change to this game gets tested (`.claude/hooks/qa-gear-first.cjs` reads it too).
+  **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
+  clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
+  as game code is not a drive-by.
+
+- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
+
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
   TRIAL THIS PROJECT HAS RUN. Measured 2026-09-02T02:5xZ by the watch that judged the queue,
@@ -620,7 +644,6 @@ stranded.*
 
 | item | HIS RULING | now |
 |---|---|---|
-| <!--qid:admin-console-where--> **Your player-count console — where should it live?** You asked for *"a firebase admin console so I can see how many people are playing"*. **Measured first: the current game has NO stats or admin page at all** — `stats.html` and `lab.html` do not exist at the repo root; the only one in the repo is `classic/stats.html`, inside the frozen v1. So this is a new surface however it is built, and where it goes is yours. | put it at /stats.html behind a simple curtain and block it from robots.txt | |
 
 
 ## THE FOUNDATION, AS MEASURED 2026-08-31 — not as the plan describes it
