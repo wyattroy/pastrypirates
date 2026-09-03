@@ -9441,3 +9441,45 @@ actual pages?"*. Prediction written BEFORE any measurement, per the Door's step 
 `.planning/wyclau/PREDICTION-20260903T2048Z-T-102-sitemap-list.md` — including the falsifier that
 matters (if the derived set is not exactly the three URLs on file, I report the disagreement rather
 than tuning the predicate until it reproduces the list it is meant to replace).
+
+### 2026-09-03 ~20:3xZ — Advisor — the 84-minute sea trial finished, and it CONFIRMS the call-circle bug on a phone
+
+**The first trial today that actually sailed.** 10 of 10 voyages, 84 min, FULL gear, build
+`2026.09.03.3` — report `.planning/SEA-TRIAL-2026-09-03T1845Z-Wy-Blade.md`. The three earlier runs
+sailed NOTHING (0 of 10, "NOT RUN") for two reasons, both now known: `npm test` was red so the trial
+refused to sail, and the resume cache is keyed on the hand-bumped `PP4_STAMP`, so it replayed cached
+legs of the same stamp. Ten cached legs were archived to `sea-trial-shots/legs-archive/`.
+
+**THE FINDING WORTH HIS TIME — and it is not a judge guess.** On `solo-phone-wk`, a STRUCTURAL check
+failed:
+
+> `✗ 2 structural check failure(s): not-occluded×1 — clickable covered by something else:`
+> `Call Dough Hook <- covered by . <b>`
+
+and, INDEPENDENTLY, the vision judge flagged the same screen:
+
+> `solo-phone-wk-028-settled.png — left 'Call Dough Hook' selection circle is overlapped and its`
+> `label text clipped by the front 'Call Crustbeard' circle`
+
+⚑ **AND THE PICTURE WAS OPENED** (rules 19 and 22; and rule 28, because the judge ALONE is a known
+false-positive family — it is the structural check plus the image that make this real).
+`sea-trial-shots/solo-phone-wk-028-settled.png`: the two Call circles overlap so far that the left
+one shows only a green `D…` / `H…`, while *"Call Crustbeard"* sits fully legible on top of it.
+**Asked to call the winner of a battle on a phone, one of his two choices is unreadable and largely
+untappable.**
+
+**This is not new work — it is EVIDENCE FOR AN OPEN ROW.** The Chart already carries *"THE OTHER
+HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights…"*. This trial
+confirms it is still live on the phone leg, on today's build, with a fresh screenshot.
+
+**The rest, so nothing reads as hidden:** `offered but never exercised: deny` and `… vanilla beans`
+are COVERAGE gaps, not defects. **`N screens never stopped moving before being checked` fired on 5
+of 10 legs** (7–20 screens each, longest wait 2.7s) — the settle problem. Those screens were judged
+mid-animation, so judge findings drawn from them are weak evidence.
+
+**Not claimed as fixed. Not closed.** Filed so the next watch works from the picture, not the log.
+
+⚠ **AND THIS ENTRY WAS WRITTEN TWICE.** The first append was lost between a commit the CEO-cadence
+hook blocked and the retry — a peer's operation discarded the unstaged change on this shared tree.
+Second time it was written and committed in ONE action. **On a tree three sessions write, an append
+that is not committed in the same breath is an append that may not exist.**
