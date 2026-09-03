@@ -1842,3 +1842,41 @@ status: OPEN — FOR A WATCH, after the CEO verdict and after he answers the one
   read, a deploy path that does not disturb the `CNAME` guards, and a cutover running both surfaces
   until he says the new one is better. **Do not cut over blind — the Artifact Glass is how he sees
   everything, and a broken replacement is a day of blindness.**
+
+## INBOX-20260902T2005Z — SCOPE EVERYTHING THE GLASS MUST DO, THEN HAVE A NEW SESSION BLUE-SKY IT, THEN CEO IT
+
+**HIS WORDS, VERBATIM:**
+
+> write a scoping document for everything that the Glass needs to do. add to the end all of your
+> learnings about the limitations and failings. then feed that scoping document to a new session to
+> have it bluesky design a new version of the glass. get the CEO to audit it. if you can use
+> internal claude piping and artifacts, great. if not, suggest an alternative.
+
+solution: his own, in four steps — requirements doc → fresh session designs freely from it → CEO audits the design → report. **And the answer to his tooling question is YES: it can be done internally.**
+
+status: OPEN — the requirements doc is written and the blue-sky session is running; the CEO audit follows its design.
+
+  **THE TOOLING ANSWER, PLAINLY: internal piping works and no alternative is needed.** A subagent is
+  a genuine fresh-context session — it shares no reasoning with this one, which is the whole point of
+  "a new session" — and it can be handed a file path. **Artifacts are available again** (the 200/day
+  limit reset at UTC midnight, 8:00 PM ET, twenty minutes after it blocked his page).
+  **The one honest limit: a subagent cannot be steered mid-flight the way a person could.** It gets
+  its brief once. That is why the brief tells it to argue with the requirements rather than obey
+  them.
+
+  **WHAT WAS WRITTEN: [`SPEC-GLASS-REQUIREMENTS.md`](../SPEC-GLASS-REQUIREMENTS.md)** — everything
+  the Glass must do, **deliberately free of HOW.** No storage engine, no hosting, no framework named
+  anywhere in Parts 1–2. **That omission is the design choice:** every failing of the current Glass
+  traces to one early implementation decision nobody revisited, and naming a mechanism would hand the
+  designer the same rut.
+
+  **PART 3 IS THE APPENDIX HE ASKED FOR** — ten failings, each measured, each with its cause. And the
+  pattern under all of them, which is the real brief for whoever designs the replacement:
+  **two things that must agree, kept in step by discipline rather than by construction, always
+  drift.** The record and the page. The answer and the question. The stamp and the state. The rank
+  and the queue. **Every failure is one instance, so the design question is not "which database" —
+  it is "for each pair that must agree, what makes them the same thing?"**
+
+  **AND PART 5 IS EIGHT QUESTIONS A DESIGN MUST ANSWER OR IT IS NOT FINISHED**, including: what makes
+  "the record changed" and "he sees it" the same event; where his words live such that nothing we do
+  can destroy them; and **what does he give up — and is he being asked, or told.**
