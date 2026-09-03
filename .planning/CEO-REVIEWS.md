@@ -1,5 +1,170 @@
 # CEO reviews — the standing record
 
+
+**ACTED ON, SAME SESSION — all three findings, each with its own red proof run on the real
+file and the mutation verified applied before the result was read:**
+- **The seventh recurrence (case 2b, new).** The gate no longer reads source for this. It asks the
+  OS ITSELF, by its own query, how many debug browsers have a dead parent, and requires the
+  reaper's dry-run appetite to match. Under CEO 186's exact library mutation (`orphan: true`):
+  `THE REAPER WANTS TO KILL 14 BROWSER(S) AND THIS MACHINE HAS 0 ABANDONED ONE(S)` — exit 1,
+  while the three source-level cases still printed PASS, exactly as this review predicted.
+- **Exclusion (c) was a loosening and is now an explicit marker.** `NEVER OWNED A ROW: T-233,
+  T-234`, written on purpose in the record, symmetrical with `RENUMBERED T-nnn →`. This review's
+  own attack was re-run: deleting `T-207`'s owner line FAILS naming it, and adding *"(the first
+  attempt at this was reverted.)"* no longer hides it — it still FAILS naming it.
+- **The arrow count now uses an honest denominator** — every `<li>` the list draws, not the tagged
+  subset that came from the same ternary as the buttons. Reproduced this review's fixture (4 tagged
+  + 1 untagged, verified baseline 4/4/4 and mutation applied): OLD `4 vs 4 → PASS`, NEW `5 vs 4 →
+  FAIL`.
+- **Its item (3) stands open and is being answered to him directly, not filed as a task.**
+- npm test: 129 gates, exit 0.
+
+## CEO Review 186 — 2026-09-03, Wy-Blade — Advisor, the repair of CEO 182's eight findings — **PARTIAL**
+
+**THE ASK.** CEO 182 returned PARTIAL and named three things to do first: (1) make
+`stray_probe_reaper_check.mjs:57` fail on its mutation, (2) delete or repoint
+`do_now_check.mjs:435-441`, (3) tell Wyatt plainly that his next filed idea arrives with no ▲ and
+decide the fallback WITH him. Four commits answered it: `17c88791`, `9896dc46`, `8666b6c7`.
+
+**ONE SENTENCE FOR HIM:** *The browser-killer's safety check was genuinely repaired against the exact
+break the last review made — I re-ran that proof myself and it fails correctly now — but I broke the
+same safety a different way, by changing one line in the neighbouring file that decides what
+"abandoned" even means, and the check still printed PASS six times while the killer announced it
+would take all fourteen browsers your sea trial is using right now.*
+
+**Verdict: PARTIAL.** No browsers or servers started; every mutation in an isolated scratchpad copy,
+each one verified applied before the result was read; the live tree is untouched.
+
+### What held up — verified, not taken on trust
+
+- **`npm test` is GREEN.** Ran it in Git Bash: **exit 0, 129 gates**, `gate_count_check` derives 129
+  and agrees with `package.json`. CEO 182 found it red; that is genuinely fixed. `stray_probe_check`
+  runs 1st and `stray_probe_reaper_check` 2nd of 129 — read out of the chain, not from the claim.
+- **Finding 1's stated red proof HOLDS.** I applied CEO 182's exact mutation
+  (`const orphans = probes.slice();`) to a copy of the real file: gate **FAIL, exit 1, two cases red**,
+  naming the mutation and naming what it would cost. The commit did not overclaim this.
+- **Finding 6 is genuinely fixed.** `scripts/lib/stray_probes.mjs:64-65` — `ESRCH` is a death,
+  `EPERM` is not, no-throw is not. Read line by line; the three branches are right.
+- **Finding 2's actual complaint is gone.** The rendered page is no longer grepped for the bare word
+  `pointermove` in a case that demands it, so no gate's PASS is manufactured by his Chart prose any
+  more. `do_now_check.mjs:551` still fails if the drag returns, which is the correct direction.
+- **Finding 8 is fixed where it mattered.** `door/SKILL.md:194-198` and `chartkeeper.mjs:258` now say
+  *moved*, not *dragged*. No surviving doc or skill teaches the gesture. `glass.mjs:1981`'s
+  `pointerdown` is a legitimate `stopPropagation` on the ▲ button, not a drag remnant — I checked
+  rather than assuming, and `li.drag` no longer carries `touch-action:none`, so nothing is broken
+  for his thumb.
+- **Findings 3, 4, 5 are honestly filed, not described away.** `CHART.md:988-1020` (`T-245`,
+  `T-246`) restate what CEO 182 actually found, including the parts that make the work look bad —
+  *"the arrows are a photograph of one afternoon"*, the header the splitter contradicts, the partial
+  write. Filing over fixing is a fair call: both are latent mechanisms, neither fired on the real run.
+
+### ⛔ Finding 1 — THE SEVENTH RECURRENCE. The safety gate still cannot see the safety property, and now it says out loud that it can
+
+`stray_probe_reaper_check.mjs:69` reads **one file** — `kill_stray_probes.mjs`. Its judge
+(`:72-81`) proves that the doomed set is spelled `probes.filter(p => p.orphan)`. But **`orphan` is a
+field whose meaning is decided in a different file the gate never opens**: `stray_probes.mjs:27-30`
+labels each process `parent-alive` or `orphan`, and `:50` turns that label into the boolean.
+
+I changed `stray_probes.mjs:50` to `orphan: true` in an isolated copy — one line, in the file a
+future session edits whenever the process query needs work (adding a browser, fixing parent
+detection on the Mac). Result, on this machine, at the same moment:
+
+```
+REAL tree:  stray probes: 14 debug-port browser(s) up, every one with a live launcher —
+            in use, not abandoned. Nothing killed.
+MUTANT:     stray probes: WOULD kill 14 orphan(s) — 55448, 12736, 44768, 8184, 42084, 5838
+GATE:       PASS ×6 — including "it kills orphans only — a probe with a live launcher is in
+            use and is left alone"   ...exit 0
+```
+
+**A sea trial is at sea right now and those are its browsers.** A second, independent mutation also
+passes: keep `:44` exactly as written and widen the set in place on the next line
+(`orphans.push(...probes.filter(p => !p.orphan))`) — six PASSes, exit 0.
+
+**Two details make this worse than 182's version, not equal to it.** First, `case 1` at `:45`
+**printed the evidence in its own PASS line** — it quoted `WOULD kill 14 orphan(s)` on a machine with
+zero orphans and only regex-tested for `stray probes:`. Second, the new self-proof at `:96` prints
+*"the restraint check can FAIL — both mutants go red (2/2), so its green below is worth something"* —
+**a confident, checkable claim of non-vacuity that is false in the direction that matters.** CEO 182's
+version was silently blind; this one certifies its own sight.
+
+*(Smaller, same shape, same file: `:110` accepts the string `lib/stray_probes.mjs` appearing anywhere
+in the detector — line 36 is a comment, so that case is prose-satisfiable too. It happens to be true
+today. And `:136`'s `wired()` would stay green if the hook were changed to `--dry-run`.)*
+
+### ⛔ Finding 7 — exclusion (c) is a loosening, and I hid a real lost row behind an ordinary sentence
+
+`chart_sweep_conserves_check.mjs:190-193` exempts every `T-nnn` on any line matching
+`/spurious|reverted|never (existed|written|owned|allocated)/i`. Line **187** promises: *"A row cannot
+become exempt by accident, and a real lost row cannot hide here unless somebody writes a false
+sentence about it."* **Both halves are false, measured.**
+
+- **Already exempt by accident, today, in the live records: 6 handles, only 2 of them the intended
+  `T-233`/`T-234`.** `T-137` and `T-087` are exempted by a line about a *different* incident that
+  happens to say *"Reverted by hand before it was committed"*; `T-130` and `T-123` by their own row
+  titles. They are harmless only because they are still owned — ownership is checked first.
+- **A real lost row hides behind a TRUE sentence.** In a copy: delete `T-207`'s owner line →
+  `FAIL — 1 allocated handle(s) are owned by NOTHING … T-207`. Then append eleven ordinary words to
+  another line that mentions it — *"(the first attempt at this was reverted.)"*, a sentence this
+  repo writes constantly and which claims nothing about the id — → **PASS, exit 0,** printing *"no
+  row has fallen between the two files."*
+
+The word `reverted` is not a declaration; it is one of the most common words in these records. Given
+the gate already admits it catches only ~34% of deletions, an unbounded whole-line keyword grants
+blanket immunity on contact.
+
+### ⛔ Finding 2 — the replacement cannot see the failure his instruction is about
+
+`do_now_check.mjs:449-454` counts `<li … data-handle="T-nnn">` rows against `class="totop"` buttons.
+`glass.mjs:1395-1400` gates **both** on the same `t.handle` ternary — a handle-less row emits neither
+the attribute nor the button. **Numerator and denominator are the same condition, so a row with no
+arrow is invisible to the case.** Rendered a fixture with four tagged rows and one freshly-harvested
+untagged one: `rows=4, arrows=4 → PASS`, printing *"every row on his card carries the ▲ top button —
+4 of 4, so none of them is stranded where it sits"*, while the card draws **5** rows and **1** has no
+arrow. The gate is not vacuous (delete the button inside the handled branch and it fails), but its
+PASS sentence asserts exactly the property `T-245`, in the same tree, says is not held — and the
+gate is the one `npm test` prints.
+
+### Finding on the ask itself — CEO 182's item (3) is half done
+
+*"Tell him plainly … and decide with him"*: `T-245` is a task row, not a question. Nothing is in
+**BLOCKED ON WYATT**, and the row picks the design itself (*"a row cannot EXIST without a tag"*)
+rather than putting the row-index fallback to him. The telling happened; the deciding-with-him did not.
+
+*(Trivial: `glass.mjs:1122-1124`, `1137-1138` and `1155-1156` still describe a `touch-action:none` on
+`li.drag` that the rule no longer carries, one of them flagged ⚠ LOAD-BEARING for the deleted
+gesture. Comments only — rule 6's other half, cheap to correct next time that file is open.)*
+
+### Recurrence vs 182 / 181 / 180 / 178 / 176 / 174
+
+**It recurs — seventh — and it has changed shape in a way worth naming.** 174 to 182 were
+instruments blind to their subject, or gates enforcing a reversed decision. Here the blindness moved
+**one file sideways**: the gate now anchors precisely to the statement it can see and is still blind
+to the definition that statement depends on. And 182's own through-line — *a gate whose PASS is
+produced by prose* — recurs twice: at `chart_sweep_conserves_check.mjs:190`, where English in his
+Chart now decides whether a lost row is reported, and at `stray_probe_reaper_check.mjs:110`. **The
+fault is not being repeated; it is being pushed one level out each time it is repaired.** 181's
+*answered and then not obeyed* recurs mildly in item (3). 180's finding — a fix whose stated reason
+was better than the fix — recurs at `:96`, where the self-proof's claim outruns what it proves.
+
+### NET: **PARTIAL**
+
+Four of the five claimed fixes are real, the branch is green, and the record is honest about what was
+filed rather than fixed. But the headline — *"a case that cannot fail can no longer report that it
+passed"* — is not true of the case that guards a process running unattended on his laptop.
+
+**What I would do first, in order:** (1) make `stray_probe_reaper_check` case 1 cross-check the
+dry-run's would-kill count against the detector's orphan count on the live machine — the two numbers
+already exist, they disagreed by 14 under my mutation, and that single comparison closes the whole
+class without anyone guessing which file gets edited next; (2) fix the self-proof's wording at `:96`
+so it claims only what it tests, and add a mutant that edits `stray_probes.mjs`; (3) replace
+`chart_sweep_conserves_check.mjs:190`'s whole-line keyword with an explicit marker on the line that
+names the id (`NEVER-EXISTED T-233`, the same shape as (a)'s `RENUMBERED T-203 →`), and re-run my
+`T-207` A/B against it; (4) count the card's `<li>` rows, not its handled rows, in
+`do_now_check.mjs:449`, so the gate goes red on the exact day `T-245` predicts.
+
+**ACTED ON — what happened after the verdict** *(to be filled in by the Advisor)*:
+
 ## CEO Review 185 — 2026-09-03, Wy-Blade — Bell watch, `T-102`: derive the sitemap's page list — **PARTIAL**
 
 **HIS REQUEST, VERBATIM** (Glass ruling, `CHART.md:98`): *"You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages? You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow."* — **his answer: `yes`.**

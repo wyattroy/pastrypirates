@@ -796,6 +796,13 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       was pointed at `CHART.md`; it wrote into the sibling anyway.
       **The two spurious ids `T-233`/`T-234` were reverted with the text**, so nothing references
       them and they are free again.
+      NEVER OWNED A ROW: T-233, T-234
+      *(That marker is load-bearing, not decoration. `chart_sweep_conserves_check` accuses any handle
+      it can SEE that no row OWNS — and this write-up was the only trace either id ever had, so the
+      record was being punished for describing its own accident. The marker is the record saying so
+      on purpose, the same way `RENUMBERED T-nnn →` does. It failed the shared branch for hours
+      before it existed, and a keyword-sniffing version of the exemption was worse: CEO 186 hid a
+      real lost row behind eleven ordinary words. Never widen it back into prose.)*
       **Start here:** the id-allocation writer in `scripts/wyclau/chartkeeper.mjs` — why it chose a
       column inside a title, and why `openHandleCarriers` did not see the handle one line below.
       Rule 1: a row that already carries a handle must never be allocated a second one.
