@@ -2436,3 +2436,110 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       ⚠ **Same triage and same reason as the row above** — lifted out of `## RULED` before the card
       that was its only surface is deleted.
       **Sizing: SMALL — one fate word, in the filter that decides what he sees.**
+
+## T-012 — 2026-09-03 — A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT (closed 2026-09-03 · CEO 160 · no game diff — measured, not fixed: it is his own 2026-08-01 P3/P5 bug still live in battle cards, and the panel.js fix is his call -- now a question in BLOCKED ON WYATT) IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT MEASURED, and deliberately not called a defect. solo-tablet-wk-018-settled.png shows "Both fire 🪙 HEADS — but Davy Scones's firing" and stops; src/orchestrator.js:700 writes "…firing downwind and the shot hits!", so six words are missing from the screen. Either the screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27 desktop and 5 of 20 phone screens in this project's own record) or the wrapped second line is clipped by the card and every downwind battle in the game ends mid-phrase on every engine. The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past the reveal, photograph the card. Do not run a trial for this. Separate lead on the screen immediately BEFORE it, observed once: the flip ceremony reads "Crosswind — two heads and the cannonballs collide" while the card that follows reads "↓ DAVY SCONES FIRES DOWNWIND — WINS TIES" — same day, same wind readout. Possibly a generic rule reminder; that is a source question, not a screenshot one. Account: [.planning/JUDGED-2026-09-02T0219Z.md](JUDGED-2026-09-02T0219Z.md).
+
+- [x] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT (closed 2026-09-03 · CEO 160 · no game diff — measured, not fixed: it is his own 2026-08-01 P3/P5 bug still live in battle cards, and the panel.js fix is his call -- now a question in BLOCKED ON WYATT)
+      ⟨`T-012`⟩
+  IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
+  MEASURED, and deliberately not called a defect.** `solo-tablet-wk-018-settled.png` shows
+  *"Both fire 🪙 HEADS — but Davy Scones's firing"* and stops; `src/orchestrator.js:700` writes
+  *"…firing downwind and the shot hits!"*, so six words are missing from the screen. **Either** the
+  screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27
+  desktop and 5 of 20 phone screens in this project's own record) **or** the wrapped second line is
+  clipped by the card and every downwind battle in the game ends mid-phrase on every engine.
+  **The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past
+  the reveal, photograph the card. Do not run a trial for this.**
+  *Separate lead on the screen immediately BEFORE it, observed once:* the flip ceremony reads
+  *"Crosswind — two heads and the cannonballs collide"* while the card that follows reads *"↓ DAVY
+  SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
+  reminder; that is a source question, not a screenshot one.
+  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+  ### ✅ SETTLED 2026-09-03, WATCH e1, CEO 160 (YES) — AND THE ANSWER IS THE ONE NOBODY PICKED
+  **Explanation B IS DEAD. Explanation A IS CONFIRMED, and it has a mechanism now.** Both engines,
+  the trial's own `solo-tablet` seat (768×954 @2), on stage `centered` where the clip box is
+  actually switched on (CEO 148's finding, now structural in both probes — they REFUSE to answer off
+  that stage).
+  **The settled card is WHOLE on Chrome and on WebKit — 0px hidden, both lines drawn.** So the game
+  does *not* permanently cut this sentence, and the alarming half of this row is gone.
+  **But the card genuinely IS cut on screen, briefly, every time.** `#apGrid`'s row animates from a
+  ONE-line height to a TWO-line height over 180ms (`index.html:467`) under `#apGridInner`'s
+  `overflow:hidden` (`:473`), and the card's whole text is written at once — so for the length of
+  that animation a two-line sentence sits in a one-line box.
+  **CHROME: 18px of an 18px line hidden, gone within ~40–160ms. WEBKIT: 18px hidden FLAT for
+  ~140–180ms — no easing at all, then it snaps.** Photographed:
+  [`.planning/posed/t012-seq-webkit-2-cut.png`](posed/t012-seq-webkit-2-cut.png) reads *"Both fire
+  🪙 HEADS — but Crustbeard's firing"* and stops — **his trial screenshot, reproduced on demand** —
+  beside [`t012-seq-webkit-3-settled.png`](posed/t012-seq-webkit-3-settled.png), same board, whole.
+  Probe: `scripts/qa/t012_downwind_sequence_pose.mjs`. Prediction, including the parts it got wrong:
+  [`PREDICTION-20260903T0945Z-T012.md`](wyclau/PREDICTION-20260903T0945Z-T012.md).
+  ⚠ **HONEST LIMIT: this is TABLET WIDTH ONLY, both engines.** The shot came from a tablet so the
+  ask is satisfied, but "dead on every size" is one seat wider than the evidence. Phone and desktop
+  are unmeasured.
+  ⛔ **AND THE FRAMING THIS WATCH GOT WRONG, CORRECTED BY CEO 160 AND WORTH MORE THAN THE
+  MEASUREMENT.** The watch first wrote this up as *"a transient artifact of a deliberate animation,
+  risky to touch"* and as *"any card that grows from a shorter message does this"*. **Both false, and
+  the truth is smaller and much more damning.** `src/ui/panel.js:662-667` already had this argument
+  and settled it, quoting Wyatt: *"Typing into a box still at the OLD height is precisely P3/P5 —
+  'the 2nd line is cut off during writing, but only sometimes' — a bug he reported himself"*, closing
+  *"with the clipping fault still impossible."* **It IS impossible — for narration.** The guard is
+  the typewriter waiting on the resize, and **a battle card has no `.apMsg` to type** (`panel.js:
+  374-375`), so nothing waits: the card is painted whole while the row is still easing up under it.
+  **So this is not working-as-designed. It is his own 2026-08-01 bug, still live in the one path the
+  2026-08-23 fix never reached** — battle cards, and anything else drawn with no text to reveal.
+  **NOT FIXED HERE, DELIBERATELY, AND IT IS HIS CALL not a watch's:** `panel.js` carries measure-once
+  rules earned from a Safari near-crash, so changing when the battle card is painted is a real
+  regression risk against a 40–180ms artifact. **The question is in BLOCKED ON WYATT.** The shape of
+  the answer already exists in the file: for content with no reveal to wait behind, reach the target
+  height before showing it, or skip the transition.
+  ⚠ **TWO FILES TO DELETE THAT THIS WATCH COULD NOT** — its own first draft shot the card AFTER the
+  window and named it for the window, which its header calls *"worse than no screenshot, because the
+  next reader believes it"*: `.planning/posed/t012-seq-chrome-2-transition.png` and its `-webkit-`
+  twin show a WHOLE card under a transition filename. Untracked, so they are not in the record —
+  **this session's fence refused both `rm` and `Remove-Item`, and routing around it with node was
+  not attempted on purpose.** A session that can delete them should.
+
+  ### ✅ THE SEPARATE LEAD IS ANSWERED AND FIXED — it was NOT a generic rule reminder
+  Watch 2026-09-03T05:59Z, **CEO 148 (PARTIAL — this half YES)**, commit `39575082`, stamp
+  `2026.09.03.1`. **The flip ceremony called EVERY downwind battle a crosswind.** `src/ui/stage.js`
+  looked for the captain in `dwTag.parentElement` — that is `.btl-wind`, a div holding the badge and
+  nothing else — so the lookup returned null every time and fell through to the crosswind sentence.
+  `renderBattle` now stamps `.btl-col.dw` from the same `dw` that writes the badge and the ceremony
+  reads that, so the two cannot disagree (rule 23). Red→green gate
+  `scripts/qa/flip_ceremony_names_the_wind_check.mjs` (`--before` reproduces the pre-fix DOM and
+  must go RED); pair in `.planning/posed/flip-ceremony-wind-chrome-{before,after}.png`.
+  ⚠ **A CORRECTION THE WATCH OWES IN THE OPEN.** Its commit says the approved copy
+  `@copy misc.ceremony.windstakes` *"has never once been shown to a player"*. **False, and CEO 148
+  found it.** The ceremony shipped working in `b07a7d2b` (2026-08-13) with the pill still inside the
+  column; `a1913666` (2026-08-15, "one wind pill for both captains" — Wyatt's own playtest-23 item)
+  moved it out to `.btl-wind` and broke the lookup silently. **A dated 19-day regression with a named
+  commit, which is more useful than the tidier sentence.** Third verdict running on this branch to
+  find a sentence tidier than the record.
+
+  ### ⛔ THE HEADLINE HALF IS **NOT** SETTLED — AND THE WATCH'S FIRST ANSWER WAS WRONG
+  It reported *"NOT CLIPPED, both engines — explanation B is dead."* **Withdraw that.** CEO 148:
+  the pose was on the wrong stage. A battle card is placed `.centered`
+  (`src/ui/stage.js:3721-3722`), but the probe posed straight after the opening ceremony, which
+  leaves `#actionPanel`'s `dataset.pp4Stage` set, so it landed in **`pp4Center`** — and
+  `index.html:2277-2278` DROPS the clip box there (`overflow:visible`, row `max-content !important`).
+  Every clip reading came back zero **because of the stylesheet, not because of the card.**
+  `.centered` keeps `index.html:467` (a pinned px row on a 180ms transition) and `:473`
+  (`overflow:hidden`) — **the exact mechanism explanation B names. It is still live.**
+  **THE INSTRUMENT IS ALREADY FIXED AND THE RUN IS ONE COMMAND.**
+  `scripts/qa/t012_downwind_card_pose.mjs` now clears `pp4Stage` before posing AND refuses to report
+  at all unless the card is on `centered` — so it can never again answer about the wrong screen:
+  ```
+  node scripts/qa/t012_downwind_card_pose.mjs          # and --wk
+  ```
+  **DELIBERATELY NOT RUN BY THAT WATCH: a sea trial was sailing** (`2026-09-03T0624Z-Wy-Blade`,
+  pid 29700) and this project's settle window is already marginal at 2.7s against 2.6s. Run it once
+  the trial is down.
+  **AND THE LIVE LEAD IS ALREADY NAMED, from the watch's own prediction file** — `src/ui/panel.js:395-406`
+  records a receipted case where a late-decoding inline `<img>` makes the panel measure one line
+  short and `#apGridInner` then clips the line, *"which is exactly why it reproduces only
+  sometimes"*. This sentence carries exactly such an image (the coin, via `emojify()`,
+  `src/shared/index.js:184`). **That mechanism only exists in `.centered`.** Check it there first.
+  ⚠ **AND EXPLANATION A AS WRITTEN IS SEPARATELY UNSUPPORTED:** the typewriter never touches this
+  card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
+  has none. So "a progressive reveal caught early" cannot mean the typewriter.

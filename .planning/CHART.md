@@ -116,67 +116,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-- [ ] **A DOWNWIND BATTLE MAY END ON A HALF-SENTENCE — TWO LIVE EXPLANATIONS, OPPOSITE FIXES, AND IT
-      ⟨`T-012`⟩
-  IS A POSE NOT A RATE. Observed 2026-09-02 by eye AND independently by the vision judge; NOT
-  MEASURED, and deliberately not called a defect.** `solo-tablet-wk-018-settled.png` shows
-  *"Both fire 🪙 HEADS — but Davy Scones's firing"* and stops; `src/orchestrator.js:700` writes
-  *"…firing downwind and the shot hits!"*, so six words are missing from the screen. **Either** the
-  screenshot caught a progressive reveal a fraction early (the known Safari settle miss — 7 of 27
-  desktop and 5 of 20 phone screens in this project's own record) **or** the wrapped second line is
-  clipped by the card and every downwind battle in the game ends mid-phrase on every engine.
-  **The settling move: pose the same downwind battle on a tablet in Chrome and in WebKit, wait past
-  the reveal, photograph the card. Do not run a trial for this.**
-  *Separate lead on the screen immediately BEFORE it, observed once:* the flip ceremony reads
-  *"Crosswind — two heads and the cannonballs collide"* while the card that follows reads *"↓ DAVY
-  SCONES FIRES DOWNWIND — WINS TIES"* — same day, same wind readout. Possibly a generic rule
-  reminder; that is a source question, not a screenshot one.
-  Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-
-  ### ✅ THE SEPARATE LEAD IS ANSWERED AND FIXED — it was NOT a generic rule reminder
-  Watch 2026-09-03T05:59Z, **CEO 148 (PARTIAL — this half YES)**, commit `39575082`, stamp
-  `2026.09.03.1`. **The flip ceremony called EVERY downwind battle a crosswind.** `src/ui/stage.js`
-  looked for the captain in `dwTag.parentElement` — that is `.btl-wind`, a div holding the badge and
-  nothing else — so the lookup returned null every time and fell through to the crosswind sentence.
-  `renderBattle` now stamps `.btl-col.dw` from the same `dw` that writes the badge and the ceremony
-  reads that, so the two cannot disagree (rule 23). Red→green gate
-  `scripts/qa/flip_ceremony_names_the_wind_check.mjs` (`--before` reproduces the pre-fix DOM and
-  must go RED); pair in `.planning/posed/flip-ceremony-wind-chrome-{before,after}.png`.
-  ⚠ **A CORRECTION THE WATCH OWES IN THE OPEN.** Its commit says the approved copy
-  `@copy misc.ceremony.windstakes` *"has never once been shown to a player"*. **False, and CEO 148
-  found it.** The ceremony shipped working in `b07a7d2b` (2026-08-13) with the pill still inside the
-  column; `a1913666` (2026-08-15, "one wind pill for both captains" — Wyatt's own playtest-23 item)
-  moved it out to `.btl-wind` and broke the lookup silently. **A dated 19-day regression with a named
-  commit, which is more useful than the tidier sentence.** Third verdict running on this branch to
-  find a sentence tidier than the record.
-
-  ### ⛔ THE HEADLINE HALF IS **NOT** SETTLED — AND THE WATCH'S FIRST ANSWER WAS WRONG
-  It reported *"NOT CLIPPED, both engines — explanation B is dead."* **Withdraw that.** CEO 148:
-  the pose was on the wrong stage. A battle card is placed `.centered`
-  (`src/ui/stage.js:3721-3722`), but the probe posed straight after the opening ceremony, which
-  leaves `#actionPanel`'s `dataset.pp4Stage` set, so it landed in **`pp4Center`** — and
-  `index.html:2277-2278` DROPS the clip box there (`overflow:visible`, row `max-content !important`).
-  Every clip reading came back zero **because of the stylesheet, not because of the card.**
-  `.centered` keeps `index.html:467` (a pinned px row on a 180ms transition) and `:473`
-  (`overflow:hidden`) — **the exact mechanism explanation B names. It is still live.**
-  **THE INSTRUMENT IS ALREADY FIXED AND THE RUN IS ONE COMMAND.**
-  `scripts/qa/t012_downwind_card_pose.mjs` now clears `pp4Stage` before posing AND refuses to report
-  at all unless the card is on `centered` — so it can never again answer about the wrong screen:
-  ```
-  node scripts/qa/t012_downwind_card_pose.mjs          # and --wk
-  ```
-  **DELIBERATELY NOT RUN BY THAT WATCH: a sea trial was sailing** (`2026-09-03T0624Z-Wy-Blade`,
-  pid 29700) and this project's settle window is already marginal at 2.7s against 2.6s. Run it once
-  the trial is down.
-  **AND THE LIVE LEAD IS ALREADY NAMED, from the watch's own prediction file** — `src/ui/panel.js:395-406`
-  records a receipted case where a late-decoding inline `<img>` makes the panel measure one line
-  short and `#apGridInner` then clips the line, *"which is exactly why it reproduces only
-  sometimes"*. This sentence carries exactly such an image (the coin, via `emojify()`,
-  `src/shared/index.js:184`). **That mechanism only exists in `.centered`.** Check it there first.
-  ⚠ **AND EXPLANATION A AS WRITTEN IS SEPARATELY UNSUPPORTED:** the typewriter never touches this
-  card — `src/ui/panel.js:454` types `.apMsg`, and `:375` says in its own words that a battle card
-  has none. So "a progressive reveal caught early" cannot mean the typewriter.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 29700, which is not running
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -239,11 +178,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **And CEO 146's caution, which the fix must not flatten:** a circle *stranded away from every
   boat* and a circle *sitting on the wrong boat* are both inside what Wyatt reported, and they may
   not be the same bug. Do not assume one change cures both — measure both columns.
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -256,6 +190,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
       Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
       **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **THE CREW-PHONE GUEST — THE SEAT WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY
       ⟨`T-020`⟩
@@ -451,6 +389,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-017`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
@@ -505,6 +444,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.03.1, so its evidence no longer describes this game
+- [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
+      ⟨`T-207`⟩
+  2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
+  2026-09-03 by watch e1, CEO 160 (YES); the finding is the ✅ block on `T-012`, now archived.
+  **THE FAULT.** `#apGrid`'s row animates from a one-line height to a two-line height over 180ms
+  (`index.html:467`) under `#apGridInner`'s `overflow:hidden` (`:473`). Narration is protected —
+  `src/ui/panel.js:662-667` holds the typewriter until the resize finishes and says why in his own
+  words, *"the 2nd line is cut off during writing, but only sometimes"*, closing *"with the clipping
+  fault still impossible."* **A battle card has no `.apMsg` to type** (`panel.js:374-375`), so
+  nothing waits for the box: the card is painted whole while the row eases up underneath it.
+  **THE SIZE, both engines at the trial's `solo-tablet` seat: Chrome hides 18px of an 18px line for
+  ~40–160ms; WEBKIT holds it FLAT for ~140–180ms with no easing, then snaps.** Photographed:
+  [`posed/t012-seq-webkit-2-cut.png`](posed/t012-seq-webkit-2-cut.png) beside
+  [`-3-settled.png`](posed/t012-seq-webkit-3-settled.png). Probe:
+  `scripts/qa/t012_downwind_sequence_pose.mjs` (its scene gate refuses to answer off `centered`).
+  **THE SHAPE OF THE FIX, already in the file:** for content with nothing to reveal, reach the target
+  height before painting — or skip the transition. **DO NOT START WITHOUT HIS ANSWER**
+  (`qid:t012-battle-card-clip`): `panel.js` carries measure-once rules earned from a Safari
+  near-crash, so this is a real regression risk against a fifth of a second.
+  ⚠ **UNMEASURED, AND NAME IT RATHER THAN ASSUME: PHONE AND DESKTOP.** Everything above is tablet
+  width. CEO 160's own caveat.
+  ⚠ **AND IT AFFECTS THE INSTRUMENT, NOT ONLY THE PLAYER:** the sea trial's judge photographs
+  whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
+  are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.1, so its evidence no longer describes this game
@@ -611,6 +574,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 | <!--qid:t017-fan-mixed-sizes--> ⟨`T-017`⟩ **Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched?** Consistency is one of your core values, so I have not chosen this myself. | **Match them — shrink every circle in a fan to whatever its longest label needs.** One gesture, one look. The cost is that a fan containing one long name makes *every* label in it small, including short ones that had room. Say the word and it is a few lines. | 2026-09-03 |
 | <!--qid:t102-search-console--> ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* | **Do it when you next have a laptop minute — it is a two-minute job.** This is a row rather than a note because a note gets read once and then it is gone; this stays on your page until you tell me it is done. Tap it away when you have. | 2026-09-03 |
 | <!--qid:t102-working-files-indexable--> ⟨`T-102`⟩ **⚑ Google can index your working files right now, and your note assumed it could not.** You listed `art-review/`, `scripts/` and `.planning/` as "correctly EXCLUDED" — they are excluded from the sitemap, but **the sitemap is an invitation, not a fence.** Thirteen pages are live on the domain with nothing stopping a crawler: five `art-review/` galleries, seven `notes/sketches/` mockups, and `battle_sim.html` (plus nineteen files under `.planning/`). Only four pages in the whole repo say anything about crawling at all. | **Let me add four lines to `robots.txt` — `Disallow` for `/art-review/`, `/notes/`, `/scripts/`, `/.planning/`.** Same shape the file already uses for `lab.html` and `stats.html`. It is minutes, not a watch, and it is worth doing whatever you decide about the question below. Say yes and the next watch does it. | 2026-09-03 |
+| <!--qid:t012-battle-card-clip--> ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. | **My recommendation: fix it, but not this week.** It is real and it is on the engine you play on, and it is your own bug coming back — but it is a fifth of a second on a card that then reads correctly, and the file it lives in carries rules earned from a Safari near-crash, so it is not a change to make casually. The clean fix is: when a card has nothing to reveal, let the box reach its full height before painting it. Sizing: one watch, and it wants its own posed pair on all three sizes. **Third option, cheapest and honest: leave it and I will stop the trial's judge reporting it as a bug**, since it is now a known 180ms artifact rather than a mystery. | 2026-09-03 |
 | <!--qid:t102-sitemap-coverage--> ⟨`T-102`⟩ **You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages?** You were right that it goes stale silently — nothing anywhere notices a page missing from `sitemap.xml`, and `/rules.html` would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow. | **Don't generate it — make it go RED instead, once the fence above is closed.** Every page can say whether it is public, in its own tag and in `robots.txt`, so a check derives the answer with no list in it. The day a page lands unlisted, the tests fail and name it. **Generating the file instead needs a hand-kept list of what to leave OUT — the same problem moved somewhere you cannot see it — and it would write a file Google reads with nothing between it and a wrong guess.** Third option: leave it and remember, which is what just failed. Sizing: the fence is minutes, the check is one watch. | 2026-09-03 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,

@@ -7558,3 +7558,91 @@ filed, verdict acted on, ledger entry written, ruling triaged to SETTLED, `rulin
 green — every step the gate would have demanded, **done by hand because the gate would not take
 it.** That is a good outcome produced by discipline, which this project's own record says is the
 thing that does not survive. **Filed as its own Chart row.**
+
+- 2026-09-03T09:58:26Z · close_item: "T-012" · CEO 160 · no game diff — measured, not fixed: it is his own 2026-08-01 P3/P5 bug still live in battle cards, and the panel.js fix is his call -- now a question in BLOCKED ON WYATT · no stated solution
+
+---
+
+## WATCH e1 — 2026-09-03T09:38Z → 10:0xZ, Wy-Blade — `T-012`, the downwind battle that ends on a half-sentence
+
+**SITUATION AT START.** Last progress: watch d1 built his player-count console at `/stats.html`
+(commit `b13a68c0`, CEO 159) and closed by hand because the close gate refuses a ruling that is not
+a `- [ ]` row. Blocked on Wyatt: five questions in BLOCKED ON WYATT. No detached trial in flight —
+`LONG-RUN` empty, `stray_probe_check` reported no debug-port browsers at all. `can_push` healthy and
+a real `git push` went through before any work.
+
+**⚠ I DID NOT TAKE RANK 1, AND HERE IS WHY, ROW BY ROW.** The Door says take the top unblocked row.
+Ranks 1–3 are none of them workable by a watch:
+- **rank 1, `T-099` (154)** — his rules-page split. Its own text says *"this row closes when he
+  answers, not before"*; Q3 and Q4 are still on his Your Call card. **Waiting on him.**
+- **rank 2, `T-206` (138)** — Google Analytics. Its own text: *"consent is his call, not a
+  session's. Never a drive-by add."* **Waiting on him.**
+- **rank 3, `T-138` (100)** — the player-count console. **d1 built it last watch**; the row is
+  unticked because `close_item.mjs` was given the handle `admin-console-where`, which no row owns.
+  **Left for a session to close properly rather than taken as work that is already done.**
+- **rank 4, `T-012`** — unblocked, player-visible, and its settling method already written on the
+  row. Taken.
+**The ranker is not wrong here so much as blind to "blocked on Wyatt" as a state**: three rows it
+put at the top are all waiting on him, and two say so in their own prose. Worth a row; not written
+by me, because I would be filing my fourth thing.
+
+**WHAT I FOUND.** Both explanations on the row were wrong as stated, and the true answer is worse
+than the one that was ranked plausible.
+- **Explanation B — "every downwind battle ends mid-phrase, permanently" — IS DEAD.** Settled card
+  whole on Chrome and WebKit, 0px hidden, on stage `centered` where the clip box is switched on,
+  with a red-proof that bites (force the row 20px short → `hiddenPx 20`). **Tablet width only** —
+  CEO 160's caveat, and it stands.
+- **Explanation A is CONFIRMED and it has a mechanism.** `#apGrid`'s row animates one-line →
+  two-line over 180ms (`index.html:467`) under `overflow:hidden` (`:473`), and the card is painted
+  whole at once. **Chrome hides 18px of an 18px line for ~40–160ms; WebKit holds it FLAT for
+  ~140–180ms, no easing, then snaps.** `posed/t012-seq-webkit-2-cut.png` reproduces his trial
+  screenshot exactly — *"Both fire 🪙 HEADS — but Crustbeard's firing"* and it stops.
+
+**⚠ AND THE PART THAT IS AGAINST ME, WHICH CEO 160 FOUND AND I DID NOT.** I wrote this up as *"a
+transient artifact of a deliberate animation, risky to touch"*. **`src/ui/panel.js:662-667` had
+already had that argument and settled it the other way**, quoting Wyatt's own P3/P5 — *"the 2nd line
+is cut off during writing, but only sometimes"* — and closing *"with the clipping fault still
+impossible."* It is impossible **for narration**, because the guard is the typewriter waiting on the
+resize. **A battle card has no `.apMsg` to type** (`panel.js:374-375`), so nothing waits. **This is
+his own bug, still live in the one path the fix never reached** — not working-as-designed. I also
+wrote *"any card that grows does this"*, which is too broad the same way; the exposure is battle
+cards and anything drawn with no text to reveal. **I did not read `panel.js` before recommending,
+and it is the one file that decides whether this is fixable.**
+
+**THE PREDICTION HELD ITS SHAPE AND I WAS WRONG ON THE MAIN POINT.**
+`.planning/wyclau/PREDICTION-20260903T0945Z-T012.md`. I ranked timing LAST — *"I cannot find its
+mechanism"* — and timing is the answer. I also named the exact hole in my own reasoning before
+looking (*"I have not checked `panel()`"*), and the hole was real, just one level out: **I reasoned
+about how the sentence is written and never about how the box that holds it is sized.**
+
+**TWO INSTRUMENT FAULTS I BUILT AND CAUGHT MID-RUN, both the same shape as the ones this project
+keeps paying for.** (1) The first verdict called **one pixel** of sub-pixel overhang "the sentence
+is CUT", against a row whose subject is six missing words — the bar is now a whole line, derived
+from the card's own line height. (2) The verdict printed **"NO TRANSIENT"** on a run whose own
+bracket line two rows above read `hiddenPx 18`, because taking the screenshot costs ~180ms and ate
+the window before the first timed read; **the camera-open reading is now counted as frame 0.** And
+(3) my first draft shot the card AFTER the window and named the file for the window — the exact
+thing the probe's own header calls *"worse than no screenshot"*.
+
+**LEFT UNDONE, DELIBERATELY, AND ONE THING I COULD NOT DO.**
+- **No game-code fix.** `src/` and `index.html` untouched. The question is his — `panel.js` carries
+  measure-once rules earned from a Safari near-crash, and the artifact is a fifth of a second.
+  Filed as `T-207` (GATED) with the fix's shape, and as `qid:t012-battle-card-clip` in BLOCKED ON
+  WYATT with a marked recommendation and a cheap third option.
+- **⛔ TWO FILES I COULD NOT DELETE.** `posed/t012-seq-{chrome,webkit}-2-transition.png` — whole
+  cards under a transition filename, from my first draft. **This session's fence refused both `rm`
+  and `Remove-Item`; I did not route around it with a node one-liner on purpose.** Untracked, so
+  not in the record. Named on `T-012`'s archived block and here.
+- **Phone and desktop widths are unmeasured.** Named, not assumed.
+
+**SWEEP.** `npm test` **PASS, 0 failures**, run twice (before and after the record edits) ·
+`stray_probe_check` clean before and after · both probes' scene gates verified to REFUSE off
+`centered` · red-proof bites on both engines · posed pairs read by eye, both engines · CEO 160
+**YES**, all three of its handbacks done before the close · `close_item.mjs` closed `T-012` on a
+one-line reason · chartkeeper `--rank --sweep --write` run three times until its orphaned-question
+warning cleared.
+
+**⛔ SEA TRIAL: NOT RUN.** Gear FULL, but on the branch's accumulated diff — **this watch changed no
+game code at all.** The verification that bears on this item is the posed pair on both engines and
+the two probes' red-proofs. A trial cannot answer a question about one 180ms window it does not
+choose, which is the row's own instruction: *"Do not run a trial for this."*

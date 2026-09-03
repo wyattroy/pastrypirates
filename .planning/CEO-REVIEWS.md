@@ -28,6 +28,61 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 160 — 2026-09-03, Wy-Blade — `T-012`: the downwind battle that ends on a half-sentence — **YES, with the fix rationale sent back**
+
+> *Number: highest `## CEO Review` in the file → **159**; `grep -c "^## CEO Review 160"` → **0**. Checked immediately before writing.*
+
+**THE ASK:** *"pose the same downwind battle on a tablet in Chrome and in WebKit, wait past the
+reveal, photograph the card. Do not run a trial for this."*
+
+**ITS ONE SENTENCE FOR WYATT, verbatim:** *"The question you asked got answered properly and the two
+pictures settle it — but the reason given for not fixing it is wrong: `src/ui/panel.js:662-667` says
+in the repo's own words that a card showing its text while the box is still growing is 'precisely
+P3/P5', the clipping bug you reported yourself on 2026-08-01, and the fix that was written for it
+protects narration and does not reach the battle card."*
+
+**WHAT IT PASSED.** The pose was taken on both engines at the seat the ask named, no trial was run,
+and it opened the pictures itself: the cut frame *"reproduced on demand"*, the settled frame whole.
+It verified the two self-inflicted instrument faults the watch reported mid-run were really repaired
+in the file (the camera-open reading counted as frame 0, `:161`; the "is it cut" bar derived from
+the card's own line height rather than `hiddenPx > 0`, `:197`) and confirmed the reader
+*"demonstrably reads both ways in a single run — 18px mid-transition, 0px at settle — so it is not a
+measurement that cannot fail."* CEO 148's wrong-stage fault it called fixed **structurally, not by
+memory** — both probes refuse to answer off `centered`.
+
+**WHAT IT TOOK APART, AND THE WATCH WAS WRONG BOTH TIMES.**
+1. **"A transient artifact of a deliberate animation."** No. `panel.js:662-667` had this argument in
+   2026-08 and closed it *"with the clipping fault still impossible"* — impossible for NARRATION,
+   because the guard is the typewriter waiting on the resize. A battle card has no `.apMsg`
+   (`panel.js:374-375`), so nothing waits. **Not working-as-designed: his own bug, in the one path
+   the fix never reached.**
+2. **"Any card growing from a shorter message does this."** Too broad. Narration is protected; the
+   exposure is battle cards and anything else drawn with no text to reveal. *"The narrowing makes
+   the fault smaller and much more damning."*
+3. **"A real broadside publishes the card TWICE."** Loose — about seven times a round
+   (`orchestrator.js:682, 684, 688, 695, 698, 700, 725`). Conclusion survives; the sentence did not.
+4. **"Explanation B is dead"** is proven at **tablet width only**. Phone and desktop unmeasured.
+5. **"WebKit — the engine Wyatt plays on"** — not established in the repo. Probably true; unverified.
+6. It could not verify `npm test` without running it, and said so rather than taking it on trust.
+
+**THE RESIDUE IT CAUGHT, and it is the probe's own stated hazard turned on itself:** two files,
+`t012-seq-{chrome,webkit}-2-transition.png`, left from the probe's first draft, showing a WHOLE card
+under a filename claiming to show the transition — in the same folder as the good pair, three lines
+after a header calling that *"worse than no screenshot, because the next reader believes it."*
+
+**ON BULK READING:** found none, and named the gap running the other way — `src/ui/panel.js`, the
+one file that decides whether this is fixable, *"appears not to have been read, and it is the read
+that would have changed the recommendation."*
+
+**ITS THREE HANDBACKS, ALL DONE BEFORE THE CLOSE.** (1) The two mislabelled PNGs — **named on the
+Chart, NOT deleted: this session's fence refused both `rm` and `Remove-Item`, and routing around it
+with a node one-liner was deliberately not attempted.** Untracked, so not in the record. (2) "Any
+card" narrowed to "battle cards and anything with no typewriter", in the probe header with the
+`panel.js` citations. (3) The fix question refiled in BLOCKED ON WYATT as *his own 2026-08-01 bug
+still live in battles*, quoting `panel.js:662-667` — not as intended behaviour.
+
+---
+
 ## CEO Review 158 — 2026-09-03, Wy-Blade — `T-142`: ten screens the eyes rejected — are they real? — **PARTIAL**
 
 > *Number: `grep … | sort -n | tail -1` → **157**; `grep -c "^## CEO Review 158"` → **0**, no `_ceo158_*` scratch files. Re-checked immediately before writing. I did not move.*
