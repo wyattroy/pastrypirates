@@ -5,19 +5,21 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T17:34:43.173Z	self-publish check
+2026-09-03T18:04:18.312Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
 ```
-T-206 — claimed 2026-09-03T17:19Z by the watch on the Blade (Windows).
+(no claim — the Blade watch released T-206 at 2026-09-03T17:5xZ)
 
-Working the half CEO 177 left open: his two analytics calls (which pages get the tag; cookie or
-cookieless) exist only on `.planning/ANALYTICS-PLAN.html`, which he cannot tap. Putting them on
-his Your Call card — CHART.md's BLOCKED ON WYATT table — which is the one question surface that
-does not need an Artifact tool.
+T-206 is OPEN and UNCLAIMED, and it is now blocked on WYATT, not on a session. His two calls are
+live rows on his Your Call card — `qid:t206-which-pages` and `qid:t206-cookie-choice` in
+CHART.md's `## BLOCKED ON WYATT`. Nothing about the Google Analytics tag is installed and nothing
+should be until he answers both.
 
-Prediction written first: .planning/wyclau/PREDICTION-20260903T171941Z-T-206.md
+⚑ THE ONE OUTSTANDING ACT NEEDS AN ARTIFACT TOOL, WHICH A BELL WATCH DOES NOT HAVE: republish the
+Glass, so those two questions actually appear on his phone. The Glass session was asked by
+cross-session message at 17:5xZ. See .planning/wyclau/GLASS-NOTE.md §1b.
 ```
 
 ## Long run in flight (LONG-RUN)
@@ -25,7 +27,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-02T21:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T211801Z.out/.err, kit: readable)
 2026-09-02T21:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T215801Z.out/.err, kit: readable)
 2026-09-02T22:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T222801Z.out/.err, kit: readable)
 2026-09-02T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260902T225801Z.out/.err, kit: readable)
@@ -65,4 +66,5 @@ None recorded.
 2026-09-03T16:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T160801Z.out/.err, kit: readable)
 2026-09-03T16:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T164801Z.out/.err, kit: readable)
 2026-09-03T17:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T171801Z.out/.err, kit: readable)
+2026-09-03T17:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T173801Z.out/.err, kit: readable)
 ```

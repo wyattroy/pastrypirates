@@ -8807,3 +8807,92 @@ questions landed within minutes of each other, by two sessions neither of which 
 
 **npm test: EXIT 0**, twice — once before the CEO and once after its fixes. No browsers or servers
 were started by this watch; `stray_probe_check` green inside the run.
+
+---
+
+## WATCH 2026-09-03T17:38Z — Wy-Blade — CLAIMS `T-220` (sea trial at a chosen depth)
+
+**THE SITUATION, six lines.**
+- **Watch started** 2026-09-03T17:38Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+  healthy; `git push` exercised in the real form — *Everything up-to-date*.
+- **Last progress** `1888cc1b` (glass tick) / `a16e102c` — the peer watch put his two analytics
+  calls onto his Your Call card.
+- **The previous watch closed** nothing: it released `T-206` deliberately. `T-206` is blocked on
+  WYATT (`qid:t206-which-pages`, `qid:t206-cookie-choice`), not on a session, and nothing about the
+  GA tag is installed.
+- **Blocked on Wyatt** those two analytics calls, plus the `## BLOCKED ON WYATT` table's rows.
+- **Detached trial in flight** none — no live pid found, and this watch started none.
+- **THIS WATCH TAKES `T-220`**, rank 1 of 39 after `chartkeeper --rank --sweep --write`. `IN-HAND`
+  read *"no claim"* and the ledger tail names no holder. No row was skipped.
+
+**NO ARTIFACT TOOL IN THIS SESSION** — stated as a fact, not a guess about why. This watch cannot
+read or republish the Glass, so it runs no harvest and writes no publish stamp. Anything he needs to
+see goes to `.planning/wyclau/GLASS-NOTE.md` for the next session that can publish.
+
+### WHAT LANDED — `T-220`, and the headline is that HALF OF HIS ASK WAS ALREADY BUILT
+
+**`scripts/sea_trial.mjs` has read `--gear=` since it was written**, and `scripts/qa/gear.mjs:181`
+has been printing `node scripts/sea_trial.mjs --gear=PLUMBING` in its own sweep line the whole time.
+**Nobody had ever told him.** Same shape as `T-216` one row below it on the Chart: an instruction of
+his queued behind work that was already finished. CEO 180 verified the claim against `HEAD` rather
+than taking it.
+
+**AND THE MISSING HALF WAS THE HALF THAT MADE IT SAFE — MEASURED ON THE RECOVERED PRE-CHANGE FILE,
+NOT REASONED ABOUT.** `git show HEAD:scripts/sea_trial.mjs` run with a 20s bound and a scratch report
+path: **`--gear=cosmetic` queued all TEN legs and really began sailing**, while the report header
+read `gear: cosmetic`. That is the 75 minutes he was trying to skip, under a header naming the depth
+he thought he had chosen. `--gear=SHALLOW` did the same. `LEGS[gear] || LEGS.FULL` had no membership
+test. And a forced gear never spawned the picker at all, so the report lost the one number it would
+be judged against — making an honest shallow trial indistinguishable, afterwards, from the
+2026-08-25/26 failure the gear rule exists to stop.
+
+**NOW:** an unknown gear is REFUSED with the four legal depths named; the name is normalised; the
+picker runs on EVERY run so the report carries **both** depths; `--reason=` is carried verbatim; a
+depth lowered below the picker's with nothing typed is **said out loud** — and is **not refused**,
+because refusing is his call and is on his page as `qid:t220-shallow-green`. New `--explain` decides,
+prints and exits before the previous report is archived, before `npm test`, before any browser.
+
+**⚑ THE BUG ONLY RUNNING IT COULD FIND, AND IT IS THE ONE THAT MADE THE BYPASS UNUSABLE.** A
+COSMETIC trial came back **`INCOMPLETE — 10 leg(s) did NOT run`** having correctly sailed the zero
+voyages that gear asks for. `sea-trial-shots/report.json` is whatever the last FULL run left behind,
+and nothing compared it against the fleet THIS run promised — so **every gear below FULL inherited
+the missing legs as failures**, PLUMBING included (three promised, seven phantom). **My written
+prediction reasoned correctly about the verdict ladder and never considered the stale file on disk**
+— the "what happened immediately BEFORE?" blind spot exactly, where the cause is a previous run that
+had already finished. One line fixed it; the same command now reads `0 of 0 · voyages that did NOT
+run: none`. Before and after: `scratchpad/T220-example-trial.md` and `scratchpad/T220-after.md`.
+
+**THE GATE.** `scripts/qa/sea_trial_chosen_depth_check.mjs`, **RED 0/8 on the real unmodified file →
+GREEN 9/9**. Nine `--red=` switches all trip, eight isolating to exactly one clause. Clause 9 came
+later (from the phantom bug) so it was never in that red-first pass, and is red-proofed separately by
+**deleting the fix from the real file** — it fails, and only it does, then restores byte-identical.
+Ceiling 123 → 124 after `quiet_gate_report.mjs` offered 0 of 18 retirement candidates.
+**npm test EXIT 0, three times.** No game code: `src/` and `index.html` untouched.
+
+**CEO 180 — PARTIAL, six findings, all acted on in the same turn.** Its sentence for him is in
+`.planning/CEO-REVIEWS.md`. Two are worth repeating here because they are about how this watch
+worked, not about the code:
+
+- **It caught my own falsifier unanswered.** I wrote *"if `--gear` cannot be reached from the hook
+  that stops the edit, the bypass is theatre — I will check before claiming this is finished"*, and
+  I did not check. **The answer was adverse**: neither the hook nor `gear.mjs`'s own sweep line
+  mentioned the flag. So I had built something that worked and that **nothing told anyone to use**,
+  against an ask whose words are *"a way to TELL sea trial"*. Writing a falsifier and not answering
+  it is worth less than writing none, because the file then reads like diligence.
+- **It caught clause 9 shipping static with a FALSE reason for being static** — I claimed a
+  behavioural version would cost a full `npm test` inside `npm test`; `notrun_provenance_check.mjs`
+  already drives the predicate **eleven lines below the same loop** for free. Clause 9 is
+  behavioural now.
+
+**⛔ WHAT IS STILL OPEN, AND IT IS NOT MINE TO CLOSE — the hook half of CEO 180's top finding.**
+`.claude/hooks/qa-gear-first.cjs` still names only FULL and PLUMBING and never mentions the flag.
+**The edit was attempted and BLOCKED: an unattended watch on this machine is fenced out of
+`.claude/hooks/`.** Not worked around, not silently dropped. `gear.mjs` — which every session runs —
+now carries it, so the capability is discoverable; the hook is the surface that fires at the moment
+of the first edit, and it is the better place. **A session that can write there should finish it.**
+
+**`T-220` IS NOT TICKED.** Its discoverability half is incomplete by a permission, and
+`close_item.mjs` exists to stop the tick that would look tidier here.
+
+**No browsers or servers were started by this watch** — `stray_probe_check` reports 4 debug-port
+browsers, every one with a live launcher, none of them mine.

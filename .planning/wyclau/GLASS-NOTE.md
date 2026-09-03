@@ -56,13 +56,42 @@ calls, and §1 stands. But it is no longer what blocks him from answering.
 > rather than folded in. CEO 176: **PARTIAL** — three findings acted on in the same turn, one
 > (the link) needs a session that can publish.
 
+## 2b. ⚑ A THIRD QUESTION IS NOW ON HIS YOUR CALL CARD — `qid:t220-shallow-green`
+*(added by the Bell watch of 2026-09-03T17:38Z, which took `T-220`)*
+
+**Verified on the RENDERED page, not asserted:** a rehearsal render draws all three questions as
+`class="ask"` rows, and the new one carries **three numbered buttons** and a `(recommended)` marker.
+So one republish now puts **three** decisions of his in front of him, not two.
+
+**The pulse this watch could not send:**
+
+> watch 2026-09-03T17:38Z → 18:0xZ: took `T-220`, his ruling *"we need a way to tell sea trial that
+> and manually choose the depth of the trial"*. **Half of it was already built and nobody had told
+> him** — `--gear=` has worked since `sea_trial.mjs` was written. The half that was missing was the
+> half that made it safe: `--gear=cosmetic` used to sail all TEN legs while the report header said
+> `cosmetic`. **That is fixed, measured before and after.** A COSMETIC trial now takes about a
+> minute instead of seventy-five, and the report names the depth he chose, the depth the machine
+> said, and the typed reason. CEO 180: **PARTIAL** — six findings, all acted on in the same turn.
+
+## 2c. ⛔ ONE THING A WATCH ON THIS MACHINE IS FENCED OUT OF, HANDED OVER RATHER THAN DROPPED
+
+**`.claude/hooks/qa-gear-first.cjs` still names only FULL and PLUMBING and never mentions the new
+flag.** That hook is what fires at the moment somebody is about to change game code — the best place
+in the project to say *"you may lower this, on the record"* — and **the edit was attempted and
+BLOCKED**: an unattended watch here cannot write to `.claude/hooks/`.
+
+`scripts/qa/gear.mjs` now carries the override text (that half is done and verified by running it),
+so the capability is discoverable. **A session that can write to `.claude/hooks/` should add the
+same three lines to `GEARS.FULL.sweep` and `GEARS.PLUMBING.sweep`** — the wording is already in
+`gear.mjs`'s `overrideNote`, and CEO 180's finding 1 is the reasoning.
+
 ## 3. What a later watch should NOT re-do
 
 - **Do not re-ask him the analytics question.** He answered it (`qid:t206-ga-turn-on`), the answer
   is acted on, and the ruling is settled in `CHART-LOG.md`.
 - **Do not install the tag before he answers the two decisions above.** Consent is explicitly his
   and has been since the row was written.
-- **⟨`T-220`⟩ is not "add a bypass flag."** The row says why: an unconditional `--gear=cosmetic`
-  re-creates the exact failure the depth rule was written against. Recommend the shape to him
-  first — a depth a person can lower *on the record*, with the reason and the picker's own verdict
-  both printed in the trial report.
+- **⟨`T-220`⟩ WAS WORKED 2026-09-03T17:38Z. Do not start it again.** The shape this note recommended
+  is the shape that shipped — a depth a person can lower *on the record*, with the reason and the
+  picker's own verdict both printed in the trial report. **It is deliberately NOT ticked**, because
+  the hook half in §2c is blocked by a permission. The remaining work is §2c and nothing else.

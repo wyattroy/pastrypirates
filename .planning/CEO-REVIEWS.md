@@ -1,5 +1,72 @@
 # CEO reviews — the standing record
 
+## CEO Review 180 — 2026-09-03, Wy-Blade — Bell watch, `T-220`: a sea trial at a depth somebody chooses — **PARTIAL**
+
+**HIS REQUEST, VERBATIM** (`INBOX-20260902T214507Z`, ruling on `qid:t206-ga-turn-on`): *"we need a
+way to bypass sea trial for this -- it clearly doesn't need a full one given that you're just adding
+a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial"*
+
+**ITS ONE SENTENCE FOR HIM, in its words:** *"You can now tell the sea trial 'just do the quick
+version' and it works — one minute instead of seventy-five, and the report says out loud what depth
+you picked and what the machine thought it should have been — but the two places that actually tell
+a session how deep to test still say 'run the whole thing' and never mention your new shortcut
+exists, so unless somebody remembers to type it, nothing has changed."*
+
+**Verdict: PARTIAL.**
+
+**WHAT IT VERIFIED RATHER THAN TOOK ON TRUST:** the headline claim is TRUE (`git show
+HEAD:scripts/sea_trial.mjs:87` is `let gear = arg("gear")`, and `gear.mjs:181` has been printing
+`--gear=PLUMBING` all along); both pre-change faults are real and entailed by the source; it **ran
+the new gate itself** and got 9/9, including exit 2 with all four legal depths named; `--explain`
+really is answered before anything heavy; and it re-ran `quiet_gate_report.mjs` to confirm the
+0-of-18 claim.
+
+**ITS FINDINGS, AND WHAT THIS WATCH DID WITH EACH — all acted on in the same turn, before Wyatt saw
+any of it:**
+
+1. ⛔ **THE BYPASS WAS NOT REACHABLE FROM THE PLACE THAT DECIDES THE DEPTH — and it was this watch's
+   own written falsifier, unanswered.** `.claude/hooks/qa-gear-first.cjs:55-64` defined exactly two
+   gears and never mentioned `--gear=`, `--reason=` or `--explain`; `gear.mjs:178-183`'s FULL branch
+   — the branch his own `<script>`-tag example lands in — printed a bare `node scripts/sea_trial.mjs`.
+   **The strongest finding in the review, and correct.** *Acted on:* `gear.mjs` now prints the
+   override, with the reason it is not a loosening, on every FULL and PLUMBING verdict — verified by
+   running it. ⚠ **THE HOOK HALF IS NOT DONE AND IS NOT REFUSABLE BY ARGUMENT: the edit was
+   attempted and BLOCKED — an unattended watch on this machine is fenced out of `.claude/hooks/`.**
+   Written down here rather than worked around. **A session that can write there should finish it.**
+2. ⛔ **THE PREDICTION FILE HAD NO RESULTS — the FOURTH review running to find this shape** (175,
+   177, 179). *Acted on:* all four predictions now answered in
+   `.planning/wyclau/PREDICTION-2026-09-03T1738Z-T-220.md`, including **P4 marked WRONG** and the
+   unanswered falsifier called the worst thing in the watch.
+3. **THE CEILING JUSTIFICATION SAID EIGHT CLAUSES FOR A NINE-CLAUSE GATE** — hand-typed and stale
+   inside the same session, in the one paragraph a future ceiling audit reads (CLAUDE.md §5).
+   *Acted on:* `package.json`'s `_ceiling_raise_2026_09_03k` rewritten, and it now says plainly that
+   the red-first pass covered 8 of 9 because clause 9 came from a bug found afterwards.
+4. **CLAUSE 9 WAS STATIC AND ITS STATED REASON WAS FALSE** — it claimed a behavioural version would
+   cost a full `npm test` inside `npm test`, while `notrun_provenance_check.mjs:69-84` already
+   drives the predicate **eleven lines below that same loop** for nothing. *Acted on:* clause 9 is
+   now behavioural — it lifts the real reconciliation loop out as text and runs it against a ten-leg
+   fixture (0 phantom for COSMETIC, 3 for PLUMBING, 10 for FULL), and still fails when the fix is
+   deleted from the real file. **Its verdict on the shape is the keeper: a wrong reason for a weak
+   check is worse than the weak check, because it stops the next reader looking.**
+5. **THE RECOMMENDED OPTION IN HIS NEW QUESTION WAS NEARLY A NO-OP** — option 1 offered to make the
+   report say something `scratchpad/T220-after.md:7` already says. *Acted on:* rewritten as an
+   honest *"leave it exactly as it is"*.
+6. **UNCOMMITTED WORK ON A SHARED BRANCH** — the new gate was untracked while `package.json` already
+   named it, so any other session's `npm test` would have died at gate 124. *Acted on:* both in one
+   commit. **A recurrence of CEO 179's own finding 2.**
+
+**ON THE QUESTION IT WAS TOLD TO ATTACK HARDEST — is leaving the red verdict a real judgement handed
+to him, or a gap dressed as a question?** Its answer, in its words: ***"Mostly a real judgement, and
+I am not going to pretend otherwise."*** Nothing consumes the trial's exit code, `NOTHING SAILED`
+for a zero-voyage run is pre-existing (`sea_trial.mjs:394-398`), and the improvement is real —
+before the fix the same run said `INCOMPLETE — 10 legs did NOT run`, which is far worse than red.
+**But: *"it only reads as a judgement if finding 1 is closed, and it is not."***
+
+**RECURRENCE vs CEO 179.** Its top finding — *an instrument reporting a property of itself* — does
+**NOT** recur: clause 6 was deliberately rebuilt to read the picker's real answer instead of
+hard-coding one, and says why. CEO 179's finding 2 (uncommitted work) and the standing
+prediction-results fault both DO recur.
+
 ## CEO Review 179 — 2026-09-03, Wy-Blade — Bell watch, `T-206`: his two analytics calls put where he can answer them — **PARTIAL**
 
 **HIS REQUEST, VERBATIM** (`INBOX-20260902T214507Z`): *"Add google analytics to
