@@ -1,5 +1,21 @@
 # Wyatt's standing decisions
 
+
+## ⟨T-206⟩ The front card promises something Google Analytics makes untrue — how should it read? — 2026-09-03 (asked in the question UI, not on the Glass)
+
+Asked directly: his front card reads *"Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected."* With GA on that page the last clause is no longer true, and children play this game. — **Wyatt ruled "Short line, and the detail on About"**, 2026-09-03.
+
+**What he chose, in the words on his card:** trim the front card to something small and true and put the full explanation on the About page, *"which is already in your own plain voice rather than pirate speak"*. Front card stays light; the detail is one tap away.
+
+**The alternatives he did not pick:**
+- Name it plainly on the front card, one extra clause of about twelve words (this was the recommendation)
+- Short line, and the detail on About  ← **his pick**
+- Leave the sentence alone — read it as being about GAME data, analytics as separate
+- Hold analytics off production entirely until the wording is settled
+
+**Consequence, so no session has to re-derive it:** the About copy is OUTSIDE the game world, so it is in his own first-person voice and NOT pirate speak (the standing voice-boundary rule). The front-card line stays inside the world and stays in pirate speak.
+
+<!-- harvest-id: RULING-20260903T2210Z-t206-footer-copy -->
 ## ⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design cal — 2026-09-03T21:30:35.726Z
 
 Asked on the Glass: *"⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix. When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — whoever got home first. The first two are exactly right. The third is not: the game breaks that last tie by seat order, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. Nothing in the game records when a captain got home, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat."* — **Wyatt ruled "Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking"**, 2026-09-03T21:30:35.726Z.

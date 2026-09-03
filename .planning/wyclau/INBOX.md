@@ -2224,3 +2224,32 @@ status: OPEN — taken now, with the tag assignment.
 > we need to push all these changes to staging!!
 solution: none stated
 status: DONE 2026-09-03 — CEO 188, no game diff — no game code is right: his ask was a DEPLOY, not a change — staging now serves 2026.09.03.4-staging@401674f8, verified byte-for-byte across 566 files (0 DIFFERS) by a gate CEO 188 re-ran itself; the game code published is 09f8658c, another session's
+
+## INBOX-20260903T2340Z — ⚑ THE WATCH MUST NOT RUN ON OPUS; and stop this session for usage
+> "we're running out of usage. i need to stop your work, and start you on a different model with
+> smaller context. write a handoff file."
+> "we also need to start having the Watch use a different model setting -- what is it currently
+> using?"
+solution: none stated for WHICH model — that half is his and is unanswered.
+  ⛔ THE ANSWER TO HIS QUESTION, MEASURED: **Opus 5.** `scripts/wyclau/bell.ps1:122` launches every
+  watch as `claude -p "<door prompt>"` plus an optional `--add-dir`, and carries NO `--model` flag,
+  so each watch inherits the CLI default. That default is set in exactly one place —
+  `C:\Users\wyatt\.claude\settings.json` line 2, `"model": "claude-opus-5"`. `ANTHROPIC_MODEL` is
+  unset and neither repo settings file names a model. So an unattended relay has been running the
+  most expensive model every fifteen minutes, around the clock, and **nobody chose that** — it fell
+  out of a launch line that carries no model flag, exactly like the `--add-dir` fence the Bell's own
+  comments describe.
+  ⛔ DO NOT "FIX" IT IN `~/.claude/settings.json`. That key is also what HIS OWN interactive
+  sessions inherit; changing it would quietly downgrade him while he works. The Watch is what should
+  be cheap, not Wyatt. The change is one line in the Bell:
+  `@("-p", "`"$doorPrompt`"", "--model", "<his pick>") + $kitArgs`.
+  ASK HIM WHICH MODEL with the question UI before editing — cost against watch quality is taste, and
+  taste is never defaulted. Recommendation on the record: **Sonnet 5**, because a watch works ONE
+  small item through a written loop with a fresh-context CEO checking it afterwards, which is the
+  shape of work that does not need the expensive model.
+  THEN GATE IT. `bell.ps1 -DryRun` already prints the REAL argument list precisely so a check can
+  read it, so a gate asserting the launch line carries an explicit `--model` is cheap. The whole
+  fault here is a flag that was never there and nothing ever said so — this project's recurring
+  fault (a launcher silently doing something other than what everyone assumed) wearing new clothes.
+status: OPEN — the handoff is written (`.planning/HANDOFF-2026-09-03-ADVISOR-USAGE-STOP.md`) and
+  this session stopped as he asked. The model change itself is UNMADE, waiting on his pick.

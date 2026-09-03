@@ -74,6 +74,10 @@
   .abtRules p { margin: 8px 0; }
 
   /* -------- rule rows: text left, game art right at a consistent half-width -------- */
+  /* The privacy card's list. Same measure and rhythm as .abtRules p, so the card reads as one
+     piece rather than a bolted-on notice — this is Wyatt speaking to a parent, not a legal box. */
+  .abtPrivacy { margin: 8px 0 12px; padding-left: 20px; }
+  .abtPrivacy li { margin: 8px 0; }
   .abtRuleRow { display: flex; align-items: flex-start; gap: 24px; margin: 12px 0 20px; }
   .abtRuleRow p { margin: 0; flex: 1 1 50%; min-width: 0; }
   /* DIRECT child only — the inline .narrIcon art lives inside the <p>, and an unscoped
@@ -224,6 +228,31 @@
       <li class="capFlaky">"YARRRRRGH I always be flippin' tails."<span>— Flaky Jack</span></li>
       <li class="capDough">"Have ye met me pet candycrab?"<span>— Dough Hook</span></li>
     </ul>
+  </div>
+
+  <!-- ⚑ HIS RULING, 2026-09-03, from the question UI: "Short line, and the detail on About." The
+       front card keeps one small true sentence and links here; the real explanation lives on this
+       page, "which is already in your own plain voice rather than pirate speak".
+       ⛔ SO THIS SECTION IS NOT IN PIRATE SPEAK, AND THAT IS THE RULE, NOT AN OVERSIGHT. About sits
+       OUTSIDE the game world — it is Wyatt speaking to a real person, and a parent reading about
+       what happens to their child's data is the last place for a costume. A retroactive audit once
+       "fixed" the credits into pirate voice and the shipped text had been right all along. -->
+  <div class="abtCard abtRules" id="privacy">
+    <h2>What we record</h2>
+    <p>Two things, and neither of them leaves a cookie on your device.</p>
+    <ul class="abtPrivacy">
+      <li><b>How the game is played.</b> Anonymised move data — what happened on the board — so I can
+        see where the game is confusing or unfair and fix it. Nothing beyond the name you type when
+        you pick how to play.</li>
+      <li><b>Basic visit numbers,</b> through Google Analytics: which page you landed on, where you
+        came from, and roughly where in the world you are. It is set up in what Google calls
+        cookieless mode, so <b>nothing is stored on your device and nobody is asked to consent to
+        anything</b> — which matters to me because children play this game. The trade is that I
+        cannot tell repeat visitors from new ones, and I am happy with that.</li>
+    </ul>
+    <p>There are no ads, no advertising trackers, and nothing is sold to anyone. If you would rather
+      not be counted at all, any browser's tracker blocking will stop it, and the game plays exactly
+      the same.</p>
   </div>
 
   <div class="abtCard">
