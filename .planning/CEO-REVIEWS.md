@@ -28,6 +28,89 @@
      Two faults, one act: it collided with the real 136 (T-011) AND was invisible to every grep
      that matches the file's header convention, which is how a peer came to report it missing. -->
 
+## CEO Review 141 — 2026-09-03, Wy-Blade — `T-017`: row one of the Chart was waiting on him and nothing said so — **YES**
+
+> *Number re-checked immediately before filing, order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **140**), per this file's banner. A peer watch was live in the same tree; its `T-097` verdict is 140, directly below.*
+
+**In one sentence for Wyatt:** the top row of your Chart was a job that was actually sitting in your hands waiting for you to answer two questions about type size — the Chart had no way to know that, so it kept offering it to every watch as the next thing to do; the watch wrote your task's name into your two questions, and now that row sinks to the bottom where it belongs and the real next job (the art-library measurement) is on top.
+
+---
+
+### DID THE ASKED-FOR THING HAPPEN? YES.
+
+Your standing instruction is *"the Chart is supposed to take the TOP ITEM ON THE CHART."* A Chart whose top item cannot be taken is a Chart that cannot be obeyed. This watch found row one was untakeable and made it honest. That is on the ask, not adjacent to it.
+
+**I re-measured every claim rather than reading the watch's account.**
+
+| Claim | Verdict |
+|---|---|
+| `T-017` was rank 1 and carried no blocked penalty | **CONFIRMED.** `git show HEAD:.planning/CHART.md \| grep T-017` returns **one line only — `:58`, the row's own handle**. The string appears nowhere in the BLOCKED ON WYATT table, so `naming()` at `chartkeeper.mjs:726` (`r.raw.includes(id)`) returns empty, `livePointer` at `:934` is false, and the −1000 at `:937` cannot fire. |
+| after: rank 41, score −950, why-now leads *"waiting on your answer"* | **CONFIRMED by running it.** `chartkeeper.mjs --rank` line 41: `[ -950] A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME`, why-now `waiting on your answer · …`. |
+| the drop is **exactly** 1000, not approximately | **CONFIRMED by arithmetic, independent of the watch.** The surviving why-now probes are the same set carried by ranks 4–10 (+30) and 11–13 (+20); −1000 + 50 = −950. Nothing else on the row changed, so before was +50. |
+| new rank 1 is `T-088` at +46 | **CONFIRMED.** Rank 1 is `A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM`, score 46; `T-088` is that row's handle (`CHART.md:88`). |
+| the unattached-question warning is gone | **CONFIRMED.** The warning at `chartkeeper.mjs:1552-1554` no longer prints; the only remaining warning is the unrelated duplicate-Inbox-stamp one. |
+| `chartkeeper_check.mjs` PASS, 98 ok / 0 FAIL | **CONFIRMED by running it.** 98 `ok`, zero `FAIL`. |
+| the two questions really are unanswered | **CONFIRMED.** Neither `t017-name-type-too-small` nor `t017-fan-mixed-sizes` appears in `CHART-LOG.md`, `GLASS-CHART.md` or `INBOX.md`. The row genuinely is in your hands. |
+
+**The prediction was genuinely written first, and I checked the clock rather than the header.** `.planning/PREDICTION-20260903T0425Z-T017-blocked.md` was created **00:23:02 EDT**; `.planning/CHART.md` was modified **00:23:48 EDT** — the prediction beat the fix by 46 seconds. Every one of its six numbered expectations held, including the falsifier it named (`qid:admin-console-where` did not appear in the warning). Nothing was reframed after the fact. *(Trivial: the file's self-stamp of 04:25Z is two minutes later than its actual write time — harmless, and in the safe direction.)*
+
+**One thing the watch did not say and should have credit for:** it put ⟨`T-017`⟩ in **cell 0** of both rows. The penalty path (`naming`, `:726`) reads the whole row and would have worked anywhere; but the path that fires when you *answer* (`settledNaming` → `inQuestionCell`, `:733`) reads cell 0 only. Putting it there is what makes your future ruling free the row. And I read `:1111-1115`: the write pass **appends** to the BLOCKED section rather than rewriting it, so the marker survives the Door's `--rank --sweep --write`.
+
+---
+
+### THE FOUR THINGS I WAS ASKED TO ATTACK
+
+**1. Real fix or cosmetic? Real — but the class of fault can recur, and the watch reasoned to the right answer for the wrong question.**
+
+Rejecting a rule that derives `T-017` from the slug `qid:t017-name-type-too-small` is **correct**, and for the reason given: one of the three live qids (`qid:admin-console-where`) carries no handle, so the convention is a two-sample coincidence. I would have rejected it too.
+
+But that was not the only option, and the prediction file's *"WHAT I AM DELIBERATELY NOT DOING"* section considers only that one. **The cheap guard it never weighed: make the existing warning fail.** `chartkeeper.mjs:1552-1554` prints `⚠ N of your open question(s) name no task` and nothing more. Nothing in `package.json:26`'s 114-gate chain reads `unattachedQuestions` against the **live** `.planning/CHART.md` — `chartkeeper_check.mjs:1449-1469` exercises it against throwaway fixtures only. So the sole protection against this recurring is a watch noticing a warning, which is precisely the thing that did not happen tonight. **The next question filed without a handle re-creates this bug in full, silently, and the watch's own account says so without drawing the conclusion.** That is a row for the Glass Chart, not a criticism of tonight's item — but it should be filed, not left in a CEO review.
+
+**2. Was the detector already gated? YES — verified, not taken on trust.** `chartkeeper_check.mjs` case 13e (`:1449-1469`) asserts three separate things: that `unattachedQuestions` names the question holding up no row (`:1460-1461`), that it does **not** name a question that does hold one (`:1462-1463`), and that the human-readable report says so out loud (`:1465-1466`). The watch's citation `1453-1466` is accurate. Its conclusion — *"nothing is broken in the machinery, the output was simply never acted on"* — is correct, and saying that instead of inventing a mechanism to take credit for is the honest call.
+
+**3. Scope: clean.** `git diff --stat` is `.planning/CHART.md | 4 ++--` and nothing else. One new untracked file, the prediction. The other untracked scratch (`_t017_*.mjs`, `_ck_*.mjs`, `glass-peek.png`) all predate this watch — they are present in the session's opening git snapshot, taken before `CHART.md` was touched. One item, one file.
+
+**4. THE SHARED-TREE HAZARD: CLEAR. This is the part I checked hardest, and the watch is exonerated on the evidence, not on its word.** The peer's four files (`scripts/wyclau/close_item.mjs`, `scripts/qa/close_item_check.mjs`, `.planning/GLASS-CHART.md`, `.planning/wyclau/PENDING-KIT-PATCHES.md`) are now clean **because the peer committed them itself**: `0483ef20` at 00:19:53 EDT (*"T-097 CLOSED"*) and `ab2a3dd4` at 00:23:34 EDT. I read `ab2a3dd4`'s own prediction file (`.planning/wyclau/PREDICTION-20260903T0430Z-glass-chart-unrankable.md`), which opens *"Filed because CEO 140 landed this exact criticism on `T-097`"* — unmistakably the peer's lineage, not this watch's. Neither commit touches `.planning/CHART.md`. Nothing was stashed, autostashed, or swept in. **The failure watch a4 recorded last night did not recur.**
+
+---
+
+### FINDINGS AGAINST
+
+**F1 — NOTHING IS COMMITTED, AND THE RECURRING FAULT RECURS. This is the one that matters.** The entire item — the two-line `CHART.md` fix and the prediction — sits uncommitted in the working tree. `git diff --cached` is empty; `git log` shows the last two commits are both the peer's. This is the same finding previous reviews have made, and tonight it is *worse than usual* because of what is in the record two screens above: `.planning/CTO-LEDGER.md`, watch a4, **"⚠ I DESTROYED AN INHERITED UNCOMMITTED CHANGE, AND THE NEXT WATCH SHOULD KNOW HOW"** — a `--autostash` on this exact tree, hours ago, that ate watch a3's uncommitted work. A peer session is live in this tree right now. **The fix is one `git commit -o .planning/CHART.md` away from being safe and it has not been made.**
+
+**F2 — NO LEDGER CLAIM.** `.claude/skills/door/SKILL.md:98` says *"claim it in the ledger before touching anything"*, and `.claude/CLAUDE.md` §3 makes it the whole cross-session coordination mechanism. `grep "T-017" .planning/CTO-LEDGER.md` returns only watch a3's and a4's entries; the last line of the file is the peer's `04:19:27Z` `T-097` close. **There is no claim for this watch's item.** On a single-session tree that is bookkeeping. On this tree, tonight, with a peer committing 25 seconds before this watch wrote `CHART.md`, it is the safety rule being skipped — and it is the same rule whose absence produced F1's incident.
+
+**F3 — ONE OVERSTATEMENT IN THE ACCOUNT.** *"Since the Door tells every watch to take row one, every watch tonight would have picked up a row that is waiting on him."* That is not what the record says. `.planning/CTO-LEDGER.md`, watch a4: **"ROW ONE WAS HELD, AND I SKIPPED IT. Chart rank 1 is `T-017`, worked eight minutes earlier by watch a3."** It skipped correctly, under the Door's 90-minute hold (`door/SKILL.md:105`). The hold on a3's ~03:10Z claim expires around 04:40Z; the watch wrote its fix at 04:23Z. So the honest sentence is *"in about fifteen minutes the hold lapses and the next watch takes a row waiting on Wyatt"* — a fire alarm, not a fire. Still worth fixing, and fixing it before the hold lapsed was good timing. But the account claims a harm that had not yet happened, which is rule 6's shape in miniature.
+
+**F4 — A RED GATE THE ACCOUNT DOES NOT MENTION, AND IT IS NOT THIS WATCH'S.** `node scripts/qa/chart_sweep_conserves_check.mjs` **FAILS** on the live tree right now: *"38 allocated handle(s) are owned by NOTHING in either file — T-002, T-008, T-011, T-014, …"*. It is in `npm test` (`package.json:26`). **I verified it is unrelated to this edit** — `T-017` is not in the failing set, and adding text to two blocked rows allocates no handle and removes no row. The watch's sweep names only `chartkeeper_check`; a reader could fairly take that as "the Chart gates are green" when one of them is red. Naming a red gate you did not cause costs one line and saves the next watch an hour.
+
+---
+
+### THE HONEST-SIZING TEST — PASSES
+
+The account calls it *"two characters of data… no code changed"* and shows a `git diff --stat` of `4 ++--`. That is not an oversell; it is unusually blunt for this project. And it is defensibly **the** item a watch could take right now:
+
+- **Game code was foreclosed.** `.planning/SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md` reads *"IN PROGRESS — no verdict yet"*, gear FULL, on build `2026.09.02.1`; `.planning/wyclau/LONG-RUN` shows **4/10 legs, updated 04:17:26Z**, twelve minutes before I ran this — alive. A `src/` change or a stamp bump would have retired a trial that has been at sea for fifty minutes. **Verified: `git diff` touches no `src/`, no `index.html`, no `playtest_gate.mjs`, no stamp.**
+- **Rank 2 was foreclosed too.** `T-088` (`CHART.md:88-96`) needs a probe driven across five game surfaces, while the trial holds 15 debug browsers.
+- **And the item is literally your sentence.** You said the Chart is supposed to take the top item. Making the top item honest is the smallest possible thing that serves it.
+
+**One boundary I must report rather than assert:** I could not independently verify *"no browser launched."* `stray_probe_check.mjs` **SKIPs** while a trial is at sea (15 debug browsers up, expected), and the process-inspection command I would need is blocked in this environment. Watch a4 reported 10 browsers at ~04:2xZ and there are now 15; that is fully consistent with a trial that advanced from 2/10 to 4/10 legs in the interval, and it does not implicate this watch. **I am telling you I could not check it, rather than calling it clean.**
+
+---
+
+### VERDICT
+
+**YES.** The thing asked for happened: row one of your Chart no longer offers a watch a job that is sitting in your hands. The mechanism was read and not guessed, the prediction was written 46 seconds before the fix and every clause of it held, the measurement reproduces on my own run, the gate is green, the scope is one file and two lines, and the shared-tree hazard that ate work last night did not recur.
+
+**Three things to do before this watch ends, in order:** commit it (F1), write the ledger claim it never made (F2), and file the "turn the warning into a failing gate" row so the next unhandled question does not re-create this in silence (finding 1).
+
+**ACTED ON, ALL FOUR, IN THE ORDER IT GAVE:**
+- **F1 — FIXED, and it was right that this came first.** Committed as `075e553d` and pushed within two minutes of the verdict landing, before anything else in this list. Its account was exact: nothing was committed at the moment it looked.
+- **F2 — FIXED, and the cause is worth recording because it is not "forgot".** The claim WAS written, as the second act of this watch, and the `cat >> .planning/CTO-LEDGER.md <<'LEDGER'` heredoc was **refused by the session's output-redirection fence** — *"Output redirection to … was blocked"* — on a file inside the allowed working directory. The watch read the refusal, moved on to the work, and never came back to it. **A blocked write that returns an error you then step over is indistinguishable, from outside, from never having tried**, which is exactly what the CEO saw. Re-filed through the Edit tool, which is not fenced.
+- **F3 — CORRECT, AND THE ACCOUNT IS AMENDED RATHER THAN DEFENDED.** The claim *"every watch tonight would have picked up a row that is waiting on him"* was an overstatement: watch a4 skipped row one correctly under the 90-minute hold. The honest version is the CEO's — a fire alarm, not a fire, with the hold lapsing around 04:40Z. **Rule 6's shape in miniature, caught by the CEO and not by the watch**, and the ledger entry below carries the corrected sentence.
+- **F4 — NAMED, NOT FIXED.** `node scripts/qa/chart_sweep_conserves_check.mjs` is **RED on this tree right now**, independently of this item: *38 allocated handles are owned by nothing in either file*. Not mine — this edit allocates no handle and removes no row, and `T-017` is not in the failing set. Filed on the Glass Chart so it is somebody's row rather than a sentence in a review.
+- **Finding 1 — FILED as a row on the Glass Chart, in the CEO's own words**: turn the `unattachedQuestions` warning into something that can go red against the LIVE Chart, since today the only protection is a watch noticing a warning, and tonight that is precisely what did not happen.
+
 ## CEO Review 140 — 2026-09-03, Wy-Blade — `T-097`: the close gate read his words as instructions — **PARTIAL**
 
 > *Number checked order-independently (`grep -oE "^## CEO Review [0-9]+" … | sort -n | tail -1` → **139**) at both the start and the end of this review. **Re-check once more in the same act as writing** — three collisions happened on 2026-09-02 exactly this way. I am read-only and did not file this myself.*

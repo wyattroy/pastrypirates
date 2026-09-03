@@ -6891,3 +6891,34 @@ gate is matching the phrase inside the very paragraph that corrects it, so the R
 false positive, and the gate's own suggestion ("turn this into a fail()") would fail a healthy tree.
 
 - 2026-09-03T04:19:27Z · close_item: "T-097" · CEO 140 · no game diff — all three replacement sites now pass a function, so no word of his can be read as an instruction; the row's own s-flag fix was measured destructive and deliberately not taken · no stated solution
+
+---
+
+## watch a5 — 2026-09-03T04:19Z, Wy-Blade — `T-017`: row one of the Chart was waiting on him and nothing said so
+
+> ⚠ **THIS ENTRY IS LATE, AND HOW IT CAME TO BE LATE IS THE REUSABLE PART.** It was written as this
+> watch's SECOND act, before any edit, exactly as `door/SKILL.md` requires — and the
+> `cat >> .planning/CTO-LEDGER.md <<'LEDGER'` heredoc was **refused by this session's
+> output-redirection fence**: *"Output redirection to … was blocked"*, on a file inside the allowed
+> working directory. The watch read the refusal, went on to the work, and never came back.
+> **CEO 141 found no claim and was right to — from outside, a blocked write you step over is
+> identical to never having tried.** Re-filed through the Edit tool, which is not fenced.
+> **If you are a watch on the Blade: `cat >>` into a repo file does not work here. Use Edit.**
+
+**SITUATION AT WATCH START.**
+- **Started** 2026-09-03T04:19Z. Tree synced: 0 ahead / 0 behind `origin/claude/cloud-handoff-planning-a9ay1u`. `can_push` healthy, and the real `git push` form was run as a shell command — *Everything up-to-date*.
+- **Last progress** — watch a4 closed `T-130` (Chartkeeper idempotency, CEO 139 YES), commit `5596a899`.
+- **⚠ A PEER WATCH WAS LIVE IN THIS SHARED WORKING TREE, AND I TOUCHED NOTHING OF ITS.** Four files were modified and uncommitted at my start — `scripts/wyclau/close_item.mjs`, `scripts/qa/close_item_check.mjs`, `.planning/GLASS-CHART.md`, `.planning/wyclau/PENDING-KIT-PATCHES.md` — **written 60 to 120 seconds before I woke** (00:16:46 → 00:17:57 ET against my 00:18:50 start), and citing a CEO 140 that was not yet in `CEO-REVIEWS.md`. That is `T-097`. **This is why `git pull --rebase` refused**, and the pull was a no-op anyway (0 ahead / 0 behind, checked directly). **I did not stash, did not `--autostash`, did not commit them.** Watch a4 destroyed an inherited uncommitted change exactly that way last night and wrote the warning four entries above this one. The peer committed its own work at 04:19:53Z and 04:23:34Z; CEO 141 verified the separation independently by reading both commits.
+- **A SEA TRIAL IS AT SEA.** `SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md`, started 03:41Z, gear FULL, **IN PROGRESS, no verdict**. `stray_probe_check` reports SKIP with **15 debug-port browsers up, expected**. **I launched no browser and started no server.** *(CEO 141's honest caveat: it could not verify that independently, because the gate SKIPs while a trial sails and process inspection is fenced here. It said so rather than calling it clean.)*
+
+**WHAT THE TRIAL RULED OUT, AND IT IS MOST OF THE CHART — named here so the next watch does not re-derive it.** A trial at sea means no `src/` change (it retires the trial), no `npm run bump`, no browser probe, and no edit to `playtest_gate.mjs`, the script the trial is running. That forecloses rank 2 (`T-088`, the art-library measurement — it needs a probe driven across five game surfaces), rank 3 (its other half), and rank 8 (`T-009`, the trial's hand-typed build key).
+
+**THE ITEM: rank 1, `T-017`.** Its fix has SHIPPED — the captain's name now sits inside the trade circle at all three sizes — and it is **waiting on two taste questions** put to him this morning. Neither question contained the string `T-017`, so `chartkeeper.mjs:934`'s `livePointer` was false and the −1000 blocked penalty at `:937` could not fire. The row kept its full +50 and stayed at the top of the list the Door tells every watch to read.
+
+**MEASURED, before → after.** rank **1 / +50** → rank **41 / −950**, why-now now leading *"waiting on your answer"*; the unattached-question warning gone; new rank 1 `T-088` at +46; `chartkeeper_check` **PASS, 98 ok / 0 FAIL**, gate untouched. Prediction written **46 seconds before** the fix (`.planning/PREDICTION-20260903T0425Z-T017-blocked.md`, verified by mtime and not by its own header), naming its own falsifiers; every clause held. Commit `075e553d`. CEO 141 — **YES**.
+
+**⚠ THE CORRECTION I OWE THE RECORD, AND THE CEO CAUGHT IT, NOT ME.** My claim was *"every watch tonight would have picked up a row that is waiting on him."* **That is an overstatement and the record contradicts it.** Watch a4 skipped row one correctly, under the Door's 90-minute hold on watch a3's claim. The honest sentence is the CEO's: **a fire alarm, not a fire** — a3's hold lapses around 04:40Z, and the fix landed at 04:23Z, seventeen minutes ahead of it. Rule 6's shape in miniature: I asserted a harm I had not measured.
+
+**⚠ FOUND WHILE SWEEPING, NOT MINE, AND RED RIGHT NOW.** `node scripts/qa/chart_sweep_conserves_check.mjs` **FAILS** on this tree — *"38 allocated handle(s) are owned by NOTHING in either file — T-002, T-008, T-011, T-014, …"*. It is in `npm test`. Independent of this edit: adding text to two blocked rows allocates no handle and removes no row, and `T-017` is not in the failing set. Filed on the Glass Chart. **`npm test` was not run in full**: a trial is at sea and `glass_longrun_status_check` borrows the live `LONG-RUN` marker it writes (`T-131`), so the suite cannot give an honest verdict while one sails.
+
+**FILED, NOT FIXED — CEO 141's one structural criticism, in its own words.** Nothing in the 114-gate chain reads `unattachedQuestions` against the **live** Chart; `chartkeeper_check.mjs:1449-1469` exercises it against fixtures only. So the only protection against this recurring is a watch noticing a warning — *"which is precisely the thing that did not happen tonight."* One item per watch; the CEO itself sized it as a row.

@@ -54,36 +54,6 @@ Bosun/Quartermaster/watchdog with the **Watch** (a relay of fresh one-item runs)
 https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
-- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
-      ⟨`T-017`⟩
-  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
-  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
-  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
-  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
-  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
-  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
-  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
-  `judge-1914Z-shots/` and are the "before" of the posed pair.
-  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
-  compact label as `short:` — the captain's name as line one of a two-line label inside a
-  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
-  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
-  shorten (his standing instruction on the call circles: *"Fix this universally, not through
-  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
-  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
-
-  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
-  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
-  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
-  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
-  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
-  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
-  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
-  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
-  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
-  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
-  name to the disc, written once.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 - [ ] **A THIRD OF THE ART LIBRARY HAS NO MEASURED GAMEPLAY MAXIMUM — 1.25 MB the resize question
       ⟨`T-088`⟩
       cannot see. Filed 2026-09-02T16:0xZ at CEO 109's finding.** Split into three, biggest first:
@@ -207,11 +177,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -267,6 +232,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -310,6 +279,37 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   screens were then opened blind, one per leg family, and **all four held**. So: of five PASS
   screens a human has examined, one was wrong — and four screens cannot bound an error rate across
   218. It says the judge is not wrong constantly; it does not say the pile is clean.
+
+- [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
+      ⟨`T-017`⟩
+  watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire
+  the trial sailing at the time).** In a trade, the circle telling you *whose* offer you are about to
+  accept is the one piece of text on it that does not fit. **Two independent legs, two sizes, both
+  settled screens:** `solo-tablet-014-settled.png` — *Crustbeard* clipped by its own disc, the C on
+  the left rim and the final d severed on the right, while "Walk away" in the identical circle beside
+  it fits with room to spare; and `crew-desktop-guest-012-settled.png` (build stamp `2026.09.01.7`
+  legible in the side rail) — *Flaky Jack* hanging out of both sides. Both images are preserved in
+  `judge-1914Z-shots/` and are the "before" of the posed pair.
+  **Where it comes from, read not guessed:** `src/ui/flow.js:2183-2184` builds each offer circle's
+  compact label as `short:` — the captain's name as line one of a two-line label inside a
+  fixed-diameter disc, with nothing sizing the name to the circle. **Every captain whose name is
+  longer than "Walk away" is a candidate**, so this is a rule to write once, not two names to
+  shorten (his standing instruction on the call circles: *"Fix this universally, not through
+  patches"*). Rule 26: pose it, before and after, same seed — do not go looking for a rate.
+  Account: [`.planning/JUDGED-2026-09-02T0152Z.md`](JUDGED-2026-09-02T0152Z.md).
+
+  **⚑ A THIRD INSTANCE, ON THE CURRENT BUILD AND A THIRD ENGINE/SIZE — and this one the AUTOMATIC
+  judge caught by itself. Watch 2026-09-02T03:00Z.** `solo-desktop-wk-021-settled.png` (in the
+  0137Z queue, build stamp **`2026.09.01.8`** legible in the side rail): the offer circle reads
+  **`rustbea`** — *Crustbeard* severed at BOTH ends, losing the leading `C` and the trailing `rd`,
+  while *"Walk away"* in the identical circle directly below it fits comfortably. The judge's own
+  words were *"showing only 'rustbea'"*; opening it confirms that exactly.
+  **What the third instance adds:** the first two were Chromium tablet and Chromium crew-desktop on
+  build `.7`. This is **WebKit desktop on `.8`** — so it is neither engine-specific, size-specific,
+  mode-specific, nor fixed by anything that has shipped since. **Three sightings, three
+  configurations, one cause.** It reinforces rather than changes the fix: one rule that sizes the
+  name to the disc, written once.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.02.1, so its evidence no longer describes this game
 
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩

@@ -28,6 +28,44 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
 
 ## STEP 1 CHECKLIST
 
+- [ ] **A QUESTION PUT TO WYATT THAT NAMES NO TASK LEAVES THE ROW IT IS HOLDING UP AT THE TOP OF THE
+      CHART — and the only thing standing between that and a watch is somebody noticing a warning.
+      Filed 2026-09-03T04:4xZ at CEO 141's structural criticism, in its own words.**
+      **What happened, tonight, exactly once and it will happen again.** Two taste questions were put
+      to him about `T-017`; neither contained the string `T-017`; so `chartkeeper.mjs:934`'s
+      `livePointer` was false, the −1000 blocked penalty at `:937` never fired, and a row sitting in
+      his hands stayed at **rank 1 of the list the Door tells every watch to take**. Repaired by hand
+      (commit `075e553d`), which is the third hand-repair of a Chart bookkeeping fault in two days.
+      **CEO 141, verbatim:** *"Nothing in `package.json:26`'s 114-gate chain reads `unattachedQuestions`
+      against the **live** `.planning/CHART.md` — `chartkeeper_check.mjs:1449-1469` exercises it
+      against throwaway fixtures only. So the sole protection against this recurring is a watch
+      noticing a warning, which is precisely the thing that did not happen tonight. The next question
+      filed without a handle re-creates this bug in full, silently."*
+      **The shape of the fix, not the fix:** the detector already exists and is already correct
+      (`chartkeeper.mjs:1552-1554`, guarded by case 13e). What is missing is something that goes RED
+      against the real Chart. **⚠ And the obvious version is a trap worth writing down before somebody
+      builds it:** a gate that fails whenever he has an unattached question makes `npm test` red for a
+      reason that is not a code defect — it would go red because *he has not answered something*, and
+      a suite that goes red at him is a suite watches learn to ignore. Whoever takes this decides
+      where the signal belongs (the Door's own orientation? `publish_status`? a REPORT a watch cannot
+      skip?) before writing a line.
+      **Deliberately NOT taken tonight:** deriving the handle from the `qid:` slug. There are three
+      qids on the live Chart and one carries no handle, so the convention is a two-sample coincidence.
+- [ ] **`chart_sweep_conserves_check` IS RED ON THE LIVE TREE AND HAS BEEN RED LONG ENOUGH THAT
+      NOBODY MENTIONS IT. Filed 2026-09-03T04:4xZ by watch a5, which did not cause it.**
+      `node scripts/qa/chart_sweep_conserves_check.mjs` fails: *"38 allocated handle(s) are owned by
+      NOTHING in either file — T-002, T-008, T-011, T-014, …"*. It is in `npm test`
+      (`package.json:26`). **Thirty-eight handles have been minted and their rows are gone from both
+      the Chart and the Glass Chart** — so every one of them is a pointer in the ledger, in
+      `CHART-LOG.md` and in git that now resolves to nothing.
+      **Why this is more than tidiness:** `close_item.mjs` and `chartkeeper.mjs` both key on handles,
+      and `handleIsAmbiguous` (`chartkeeper.mjs:754`) exists precisely because a handle naming two
+      jobs names neither. A handle naming NO job is the same family. Likely the same root as the
+      split Wyatt ordered (44 rows moved between two files) — check that first.
+      ⚠ **AND THE SECOND-ORDER COST IS THE REAL ONE: a permanently-red gate in `npm test` teaches
+      every watch that a red suite is normal.** Two separate watches tonight reported `npm test`
+      failures as "known and not mine" — accurately, both times. That is how a real regression gets
+      waved through.
 - [x] **`npm test` DESTROYS WHATEVER IS WAITING IN `GLASS-NOTE.md` — it consumed this watch's own (closed 2026-09-03 · CEO 135 · no game diff — Glass machinery, no game code: erasing his queued note is now opt-in (--consume-note); proved red then green, CEO 135 re-proved it independently)
       ⟨`T-112`⟩
       ⚑ **HIS NOTE, 2026-09-02 10:30 PM ET, on the backlog page — VERBATIM:** *"I'm not sure if this is closed or not -- investigate."*
