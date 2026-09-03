@@ -115,7 +115,37 @@ if (isInbox) {
   const heads = [];
   lines.forEach((l, i) => { if (l.startsWith("- [ ]")) heads.push(i); });
   const needle = item.toLowerCase();
-  const blockOf = (h, n) => lines.slice(h, n + 1 < heads.length ? heads[n + 1] : lines.length);
+  /* ⛔⛔ A ROW ENDS AT THE NEXT ROW **OR THE NEXT `## ` HEADING**, AND THE MISSING HALF OF THAT
+   * SENTENCE CORRUPTED HIS RECORD THREE TIMES IN ONE NIGHT.
+   *
+   * This read `: lines.length` — so THE LAST OPEN ROW'S BLOCK RAN TO END OF FILE and swallowed
+   * `## BLOCKED ON WYATT`, `## RULED` and the whole `## THE IDEA INBOX`. Any `--item=` string
+   * appearing anywhere below the last checkbox matched that row and nothing else.
+   *
+   * WHAT IT DID, found by watch c1 causing it a FOURTH time on purpose and reverting by hand:
+   *   CHART-LOG.md :1274 — archived under CEO 142, reason about `sitemap.xml`   ← T-098's close
+   *                :2228 — archived under CEO 150, reason "recommend, don't build" ← T-102's close
+   *                :2295 — archived under CEO 152, reason about the rulings box  ← c1's close
+   * **Three different items closed; the same innocent row ticked all three times, each stamped with
+   * the real item's verdict.** And the row it ate was `T-137` — a ruling of Wyatt's, GATED on his
+   * own look at the live page.
+   *
+   * ⚠ I READ THAT EVIDENCE BACKWARDS AND BLAMED THE SWEEP, TWICE, IN TWO COMMITS. The archive
+   * entries had *"no close pointer"* — I took that as proof they never went through `close_item`.
+   * They had pointers; **the pointers belonged to somebody else's item.** A stamp describing work
+   * nobody did to that row reads exactly like a missing stamp. *"No evidence of X" and "evidence of
+   * something else" are not the same finding.*
+   *
+   * AND WHY THIS FAULT PICKS ON HIM SPECIFICALLY: the LAST open row in a Chart is structurally the
+   * most likely to be a long-waiting GATED row, because those are the ones nothing ever moves. **So
+   * it preferentially eats the things waiting on Wyatt** — the one category a session can never
+   * finish, and therefore the one that drifts to the bottom and stays there. */
+  const blockOf = (h, n) => {
+    const hard = n + 1 < heads.length ? heads[n + 1] : lines.length;
+    let end = h + 1;
+    while (end < hard && !/^## /.test(lines[end])) end++;
+    return lines.slice(h, end);
+  };
   /* ⛔ A HANDLE THIS ROW *IS*, BEFORE A HANDLE THIS ROW *MENTIONS*. Added 2026-09-03, immediately
    * after the block-matching fix above created this exact problem and then refused a close because
    * of it: `--item="T-076"` matched TWO rows — the row whose handle is `T-076`, and a different row
@@ -133,6 +163,17 @@ if (isInbox) {
    * fix, because it is the one place a row asserts what it IS rather than what it is about. */
   const ownedBy = heads.filter((h, n) =>
     blockOf(h, n).some((l) => /^\s*⟨[^⟩]*⟩\s*$/.test(l) && l.toLowerCase().includes(needle)));
+  /* ⛔ A HANDLE THAT NO ROW OWNS IS "THERE IS NO SUCH ROW" -- NOT AN INVITATION TO GUESS.
+   * The prose fallback below is what lets --item="DESTROYS WHATEVER IS WAITING" work, and it stays.
+   * But when the caller names a HANDLE (T-nnn) and no row carries it on its handle line, falling
+   * through to a whole-block substring search is how watch c1's --item="T-087" -- an IDEA INBOX
+   * bullet with no Chart row at all -- was handed to an unrelated row and closed against it.
+   * **"There is no such row" was the honest answer and the tool already had it.** */
+  const looksLikeHandle = /^t-\d{3}$/.test(needle.trim());
+  if (looksLikeHandle && ownedBy.length === 0) {
+    refuse(`no open Chart row OWNS the handle "${item}"`,
+      "a row owns a handle on its ⟨T-nnn⟩ line. If the item has no Chart row (an INBOX idea, say) it cannot be closed here -- and being MENTIONED in another row is not ownership.");
+  }
   const hits = ownedBy.length === 1 ? ownedBy
     : heads.filter((h, n) => blockOf(h, n).join("\n").toLowerCase().includes(needle));
   if (hits.length === 0) refuse(`no open Chart row ("- [ ]") contains "${item}"`, `check the wording against ${CHART}`);

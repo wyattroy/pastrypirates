@@ -716,6 +716,7 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Regenerate sitemap.xml at the repo
       ⟨`T-102`⟩
+      ⚠ **THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW. The WORK IS DONE; only the tick went astray.** `close_item.mjs` ran its block from the last `- [ ]` to END OF FILE, so any `--item=` string below that row matched it and nothing else — the verdict and reason were stamped onto `T-137` instead. Found by watch c1 causing it a fourth time on purpose; fixed 2026-09-03T07:4xZ (block bounded at the next `## `, and a handle no row owns now REFUSES instead of guessing). **Re-close through the gate; do not redo the work.**
   root of playpastrypirates.com now that the new pages exist.
 
   Include every genuinely public page. Verified 2026-09-02, these are correctly EXCLUDED and
@@ -875,6 +876,7 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Fix sitemap.xml at the repo root of
       ⟨`T-098`⟩
+      ⚠ **THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW. The WORK IS DONE; only the tick went astray.** `close_item.mjs` ran its block from the last `- [ ]` to END OF FILE, so any `--item=` string below that row matched it and nothing else — the verdict and reason were stamped onto `T-137` instead. Found by watch c1 causing it a fourth time on purpose; fixed 2026-09-03T07:4xZ (block bounded at the next `## `, and a handle no row owns now REFUSES instead of guessing). **Re-close through the gate; do not redo the work.**
   playpastrypirates.com.
 
   Two problems, both verified 2026-09-02:
