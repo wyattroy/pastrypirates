@@ -435,3 +435,36 @@ and every reference in `CHART-LOG.md`, the ledger and git still resolves.
       direction. It should say, in the rank output, which rows it judged blocked and on what.
 - [ ] Pruning: kill-list generated (GSD phase machinery, dead files), archived in git, deleted; goes on the Glass for the record — GATED: same quiet moment
       ⟨`T-030`⟩
+- [ ] **EVERY VOYAGE FAILS ON "NEVER STOPPED MOVING", AND THE WAIT THAT DECIDES IT IS EXTENDED BY
+      ⟨`T-141`⟩
+      TEXT WHILE EVERY FAILURE IS GEOMETRY.** Diagnosed 2026-09-03T08:1xZ from the 0624Z trial;
+      **blocks `T-136`, the staging deploy he is waiting on.** Not fixed — handed over with the
+      measurement so nobody re-derives it.
+      **THE NUMBERS, from `SEA-TRIAL-2026-09-03T0624Z-Wy-Blade.md`:** ten voyages, ten FAILs, and
+      **every single "still moving" report says `geometry`. Ten out of ten. NOT ONE says words.**
+      Longest waits cluster at **2.6s, 2.7s, 2.8s, 3.0s** — i.e. at the cap and just past it.
+      **THE MECHANISM, read in `scripts/lib/checks.mjs:230-241` rather than guessed:**
+      `waitSettled(..., capMs = 2600)` and, in its own words, *"while the PAINTED text is still
+      growing, the deadline is pushed out — the wait tracks the reveal's own progress."*
+      **So the deadline extends on TEXT. The screens are failing on GEOMETRY. Geometry gets no
+      extension at all**, so a board still animating at 2.6s is graded "never stopped moving", every
+      time, on every leg.
+      ⚠ **AND THE 2600 WAS DERIVED FROM TEXT, WHICH THE FILE SAYS OUT LOUD:** *"the opening
+      narration paints at ~25ms/char and finishes at ~1890ms, so a 75-character line settles at
+      2202ms — inside the old flat 2600ms cap by a whisker."* **A text-derived number is being
+      applied to ships gliding and ripples pulsing.** That same comment warns against raising it —
+      *"exactly the constant rule 9 forbids: right for today's longest message, wrong for the next"* —
+      and the warning is right; **the fix is that geometry needs its own progress-tracked deadline,
+      not a bigger flat number.**
+      ⛔ **WHAT THIS DOES *NOT* PROVE, and the distinction is the whole value:** it does not prove
+      the game is fine. The board may genuinely be animating longer than it should. **What it proves
+      is that the instrument cannot currently tell those apart** — a screen that animates 2.7s and a
+      screen that animates forever produce the same verdict. **Rule 26: this is a POSED question, not
+      a rate.** Same seed, same prompt, before and after — photograph a board at 2.6s and at 4s and
+      look at whether it has stopped.
+      ⚠ **MY OWN PREDICTION WAS WRONG AND ITS FALSIFIER FIRED — second time in an hour.** I predicted
+      the budget had been tightened (trial bug) or settle times had grown (game bug), and named
+      *"wrong if neither moved"*. **Neither moved.** `git log -S 2600` on those files shows one
+      commit, a tree-wide refactor. The answer was in neither half of my dichotomy.
+      **Sizing: MEDIUM, and it is the trial's lane, not the Glass's. No game code to fix here — the
+      first job is deciding which of the two things is broken.**
