@@ -10526,3 +10526,5 @@ the decision") — none owed by this watch.
 **Browsers/servers:** none started by this watch.
 
 END OF WATCH.
+
+- 2026-09-04T04:22:28Z · close_item: "holding it back from the real site is a sentence on your fro" · CEO 200 · commit aa4c0c7 (1 game file) · no stated solution · privacy line moved off the front card to its own plain-English page, footer links outside the modal, sitemap fixed; fresh CEO 200 independently re-verified all four parts and re-ran npm test itself (137/137 green)

@@ -15258,4 +15258,42 @@ reaching the last gate proves every prior gate — including the new one — pas
 functional effect. The Chart row T-246 itself was still open/unchecked at review time — closed via
 `close_item.mjs` in the same commit citing this verdict.
 
+## CEO 200 — `t206-privacy-line` Chart row (`.planning/CHART.md:233`), commits `aa4c0c71` + `641513c9` — **YES**
+
+Watch, 2026-09-04T04xxZ, fresh context (`general-purpose`, no memory of any prior review). Brief
+named the Chart row verbatim (Wyatt's stated solution: "move all of it off of the main screen into
+a privacy policy that is in its own html, simple to read, and in plain english (not pirate) with
+small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the
+popup modal box"), what commits `aa4c0c71` and `641513c9` claimed, and both CEO 194 (PARTIAL — sitemap
+gap) and CEO 195 (YES — sitemap fix verified) as prior verdicts on the same underlying work.
+
+**Its one-sentence headline, in its own words:**
+
+> "The sentence you flagged is off the front screen, `privacy.html` says it in your own plain voice,
+> and the site-wide test suite (all 137 checks) is genuinely green — this one's done."
+
+**Verified itself, not on the prior claims — each part of the ask, independently re-checked:**
+`privacy.html` is a real standalone page (own head/style, explicitly does not import `index.html`'s
+style block); plain English confirmed by reading the full body and grepping for
+`ye/yer/Ahoy/Arr/matey/scallywag` (zero hits); `#legalFooter` (`index.html:2756-2759`) sits as a
+body-level sibling immediately before `#lobby.modalOverlay` opens, not inside it, with working
+`privacy.html`/`about.html` links; the old front-card sentence is gone (`grep "Anonymised move
+data" index.html` → nothing). Ran `npm test` itself: 137 gates, output grepped end-to-end for
+`FAIL`, every hit a red-proof fixture's own description, never a real failing verdict.
+`sitemap.xml`'s `<lastmod>2026-09-03</lastmod>` for `privacy.html` matches `git log -1` on
+`aa4c0c71`, not a hand-typed guess.
+
+**On the recurrence check (CEO 194's fault — npm test red because of the sitemap gap):** fixed, not
+recurred — the full 137-gate chain now runs to completion, including the ticket's own two new gates.
+
+**One judgment call flagged, not scope creep:** `about.html`'s longer privacy card was trimmed to a
+short pointer at the canonical `privacy.html`, consistent with the project's own one-canonical-copy
+principle rather than two texts that could drift.
+
+**One non-blocking gap named for the record, not a reason to withhold YES:** `rules.html` also
+carries the analytics tag but has no footer link to `privacy.html` — not part of what Wyatt actually
+asked for, so not counted against this item.
+
+### NET: **YES** — closed via `close_item.mjs` in the same watch, `.planning/CHART.md:233`.
+
 **Landed as commit `3451de5d`**, closing Chart row `T-246`.
