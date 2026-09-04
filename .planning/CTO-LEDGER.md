@@ -10130,3 +10130,5 @@ popup modal box)."*
 privacy content reusable for the new page. `#footerRow`, the only existing "bottom of screen"
 element with an About link, is invisible on the landing screen — it lives inside `#game`, which is
 `display:none` until gameplay starts.
+
+- 2026-09-04T01:38:23Z · close_item: "Move the privacy notice off the main screen into its own pri" · CEO 194 · commit aa4c0c7 (1 game file) · no stated solution · qid:t206-privacy-line: privacy.html, footer outside the popup modal (aa4c0c71); CEO 194 caught npm test actually red on a missing sitemap entry, fixed in 641513c9, CEO 195 confirmed and closed
