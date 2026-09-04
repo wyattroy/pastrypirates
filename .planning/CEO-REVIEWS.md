@@ -14893,3 +14893,68 @@ it; here, the author found and disclosed it before I ever looked."*
 **Also standing, untouched tonight:** the FULL sea trial debt — `.planning/SEA-TRIAL-2026-09-04T0028Z-Wy-Blade.md`
 reads `FAILED — 0 of 10 voyage(s) sailed, 10 NOT RUN`, verified by 193 at line 1,3. Nobody may write
 "trial green" on this build.
+
+## CEO 194 — `T-206` (`qid:t206-privacy-line`), commit `aa4c0c71` — **PARTIAL**
+
+Watch, 2026-09-04T0113Z, Wy-Blade. Fresh context. Brief named his ruling verbatim (Glass,
+2026-09-04T00:35:50.066Z: "move all of it off of the main screen into a privacy policy that is
+in its own html, simple to read, and in plain english (not pirate) with small links to Privacy
+Policy and About at the bottom of the index.html screen (not inside of the popup modal box"),
+what commit `aa4c0c71` claimed to do, and what it admitted it had not done (no screenshot — the
+browser launch needed an approval this unattended watch could not grant itself). No previous
+verdict existed for this item.
+
+**Its one-sentence headline, in its own words:**
+
+> "The privacy notice really is out of the popup and into its own plain-English page with two
+> small links, exactly as you asked — but the commit's claim that all tests pass is false:
+> `npm test` fails right now because the new `privacy.html` was never added to `sitemap.xml`,
+> and that same bug means the commit's own verification gates for this ticket never got to run."
+
+**All four parts of the actual ask, verified with file:line citations it read itself:**
+own HTML page (`privacy.html`, plain English, no shared imports) — DONE. Plain English, not
+pirate — DONE (`privacy.html:55-78`, first person, no ye/yer/Ahoy). Small links at the bottom of
+the index.html screen — DONE (`index.html:2756-2759`, `#legalFooter`, `position:fixed; bottom:0;
+z-index:1002`, above the modal layer). Not inside the popup modal box — DONE (`#legalFooter`
+closes before `#lobby class="modalOverlay"` opens; zero remaining matches for the old sentence
+anywhere in `index.html`).
+
+**The one real finding, and it was real:** `npm test` was actually red on the committed tree —
+`crawl_intent_check.mjs` failed because `privacy.html` declares `index, follow` but was never
+listed in `sitemap.xml`. Because `npm test` runs as one chain that stops at the first failure,
+this meant the ticket's own two new gates never executed inside a real run, even though they
+pass standalone. The full sea trial this same commit started detached had already caught the
+same fact independently (`.planning/SEA-TRIAL-2026-09-04T0113Z-Wy-Blade.md`).
+
+**Not a false claim, but flagged rather than assumed:** the fixed-position footer was never
+photographed. The CEO's own words: "an 11px, half-opacity fixed strip pinned to the very bottom
+of the screen is exactly the kind of thing that's collided with other bottom-anchored UI before
+in this project... nobody has confirmed the footer doesn't overlap a card, get cut off on a
+phone, or sit somewhere odd."
+
+**Verdict: PARTIAL**, on the strength of the sitemap gap alone — the ask itself was fully and
+correctly implemented, but the commit's own "npm test: 135/135, exit 0" line was false at the
+moment it was written.
+
+## CEO 195 — `T-206` (`qid:t206-privacy-line`), sitemap fixup, commit `641513c9` — **YES**
+
+Watch, same session, immediately after 194. Fresh context. Brief named 194's finding verbatim as
+the previous verdict and the fix applied in response.
+
+**Its one-sentence headline, in its own words:**
+
+> "The privacy page is out of the popup and in plain English exactly as you asked, the sitemap
+> bug that broke the tests is now actually fixed (I re-ran the full 135-gate suite myself and
+> it's clean), and this item is done — safe to merge."
+
+**Verified itself, not on the prior claim:** `sitemap.xml` lists all four pages including
+`privacy.html`, each `<lastmod>` cross-checked against `git log -1` per file and found genuine
+(all four really last-committed 2026-09-03). `git show --stat 641513c9` — one file, four lines,
+all additions, no scope creep. `npm test` run twice in full, the entire output grepped for any
+line starting with `FAIL` — zero both times, `sitemap_lastmod_check` now reads "PASS — 4 url(s)".
+
+**Answer to "should this item be considered closed": YES** — all four parts of the ask
+implemented, `npm test` genuinely green (independently confirmed twice), no other loose end
+found. One non-blocking note: 16 untracked scratch files sit in the working tree
+(`scratchpad/`, `scripts/qa/`), none staged, none affecting `npm test` or anything that would
+deploy.
