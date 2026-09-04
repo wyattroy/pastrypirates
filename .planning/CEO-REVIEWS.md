@@ -15297,3 +15297,38 @@ asked for, so not counted against this item.
 ### NET: **YES** — closed via `close_item.mjs` in the same watch, `.planning/CHART.md:233`.
 
 **Landed as commit `3451de5d`**, closing Chart row `T-246`.
+
+## CEO 201 — `t220-shallow-green` Chart row (`.planning/CHART.md`, ⟨T-220⟩) — **YES**
+
+Watch, 2026-09-04T04:2xZ, fresh context (`general-purpose`, no memory of any prior review). Brief
+named Wyatt's ruling verbatim (`RULING-20260903T213014Z-t220-shallow-green`, DECISIONS.md): "Let a
+depth you chose come back green when its own checks pass — much nicer to use, and it removes a
+guard that has caught a real failure once" — declined over leaving it red or requiring a typed
+reason.
+
+**Its one-sentence headline, in its own words:**
+
+> "The ruling was implemented exactly as described, isolated, and it doesn't reopen the guard rule
+> 6/24 depend on."
+
+**Verified independently, not on the watch's account:** read `scripts/sea_trial.mjs`'s verdict
+ternary (lines ~394-398) itself and confirmed `"NOTHING SAILED"` is reachable only when `unitOk` is
+true, `gateOk !== false`, and `notRun.length === 0` — no path to it through a failed or incomplete
+run. Confirmed the new exit line (`process.exit(verdict === "PASSED" || verdict === "NOTHING
+SAILED" ? 0 : 1)`) leaves `FAILED`/`INCOMPLETE` on the red branch, unchanged. Read the prediction
+file (`.planning/wyclau/PREDICTION-20260904T0428Z-T-220.md`) and confirmed it was written before
+the measurement, with a real falsifier. Reproduced the GREEN state itself by running
+`node scripts/qa/_redproof_t220.mjs` (a real `sea_trial.mjs --gear=COSMETIC` run) — got `NOTHING
+SAILED` / `EXIT:0`. Accepted the pre-fix RED claim from code reading rather than re-executing it
+(the old line is a pure ternary; no side effects to hide). Ran the full `npm test` itself, grepped
+the whole output for `FAIL`, all hits were fixture names, not real failures — ends "All checks
+passed." Confirmed via `git diff --stat scripts/sea_trial.mjs` the change is one isolated hunk (9
+insertions / 3 deletions, comment + exit line), and confirmed `scripts/qa/_redproof_t220.mjs` is
+not wired into `npm test`'s own chain (grepped `package.json`, empty) — so the stated
+recursion-avoidance reasoning for keeping the proof script out of the gate chain actually holds.
+
+**Scope:** untouched — `scripts/qa/gear.mjs` (the picker) has no diff; the separate open question
+`qid:t220-reason-required` (whether a shallower-than-picker choice with no typed reason should be
+refused) was correctly left alone as a different, still-open decision.
+
+### NET: **YES** — closed via `close_item.mjs` referencing this review, `.planning/CHART.md`.

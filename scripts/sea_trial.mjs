@@ -435,6 +435,12 @@ live, compare the build stamp above with the one in the game's ☰ menu.*
 fs.writeFileSync(REPORT, report);
 say(`\n⚓ ${verdict}  —  report: ${path.relative(REPO, REPORT)}  (sea trial ${TRIAL_VERSION}, build ${STAMP}, ${mins} min, ${WHERE})`);
 if (notRun.length) say(`   ${notRun.length} leg(s) did NOT run — read the report, they are not passes.`);
-/* INCOMPLETE and NOTHING SAILED both exit non-zero. Only a trial that actually sailed every leg
-   it promised, and passed, is allowed to be green. */
-process.exit(verdict === "PASSED" ? 0 : 1);
+/* INCOMPLETE exits non-zero always — a leg that was promised and did not run is never a pass.
+   NOTHING SAILED exits GREEN, per Wyatt's ruling 2026-09-03 (qid:t220-shallow-green): "Let a depth
+   you chose come back green when its own checks pass." The verdict ternary above (unitOk, gateOk,
+   notRun) can only REACH "NOTHING SAILED" after every check the chosen gear actually owes has
+   already passed — legs.length is 0, so the not-run loop adds nothing, and neither of the two
+   FAILED branches fired. So a red exit there was never guarding against an untested build; it was
+   penalising a shallow run for correctly promising nothing. PASSED and NOTHING SAILED are the only
+   two verdicts this line can ever see with every owed check green. */
+process.exit(verdict === "PASSED" || verdict === "NOTHING SAILED" ? 0 : 1);
