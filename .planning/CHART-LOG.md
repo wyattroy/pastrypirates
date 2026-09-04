@@ -2992,3 +2992,111 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 - [x] Your ruling: ⟨`T-220`⟩ **You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine.** You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: `--gear=COSMETIC` runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. **The one thing I did not change on my own:** the trial's final word for a no-voyage run is *NOTHING SAILED*, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week. — his answer: Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row. (closed 2026-09-04 · CEO 201 · no game diff — tooling fix: sea_trial.mjs's own exit-code logic, not game code (index.html/src/ untouched))
       ⟨`T-220`⟩
+
+## T-206 — 2026-09-04 — THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO. His (closed 2026-09-04 · CEO 203 · no game diff — built, gated, verified (analytics_consent_check.mjs PASS, wired in npm test) -- not yet on origin/main, merge tracked separately) sentence was two jobs — "Add google analytics to playpastrypirates.com and create a firebase admin console so I can see how many people are playing" (INBOX-20260902T214507Z). The console half is BUILT (2026-09-03, CEO 159). Google Analytics is not started. The INBOX entry sizes it and the sizing still holds: it touches index.html and every public page with a third-party script on the site real players are using — about.html, classic/, and the new stats.html all need a decision, and consent is his call, not a session's. Never a drive-by add. ⚠ AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG: the game already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the live database now, via src/ui/usage.js, with no third party involved and no consent banner. Ask him what Analytics buys on top of that before adding Google to a page children play on.
+
+- [x] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His (closed 2026-09-04 · CEO 203 · no game diff — built, gated, verified (analytics_consent_check.mjs PASS, wired in npm test) -- not yet on origin/main, merge tracked separately)
+      ⟨`T-206`⟩
+  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
+  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
+  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
+  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
+  third-party script on the site real players are using — `about.html`, `classic/`, and the new
+  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
+  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
+  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
+  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
+  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
+
+  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
+  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
+  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
+  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
+  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
+  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
+  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
+  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
+  account — **only he can confirm that, and this row must not claim it as verified.**
+  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
+  "unstarted, needs an account from him" skipped it for a reason that was never true.
+  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
+  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
+  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
+  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
+  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
+  the tag being deleted later.
+  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
+  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
+  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
+  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
+  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
+  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
+  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
+  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
+  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
+  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
+  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
+  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
+  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
+  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
+  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
+  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
+  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
+  switch Google on. Corrected.
+  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
+  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
+  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
+  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
+  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
+  page only, no other surface), the caveat above stated in his words, and the third option.
+  **Consent is left to him, explicitly, and not defaulted.**
+
+  ### ⛔ DONE — HE ANSWERED, AND THE ANSWER WAS ACTED ON 2026-09-03T17:0xZ. DO NOT RE-ASK HIM.
+  His ruling: *"Give me instructions to switch it on, and give me the full plan for analytics as
+  an artifact that I can understand more easily than this text."* **The artifact is published:
+  https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0** — his solution first, before any investigation of my own.
+  Photographed at 390px and 1280px (`.planning/posed/t206-analytics-plan-{phone,desktop}.png`);
+  the two measurements it quotes were re-read that hour, not carried over
+  (`_t206_dark_property_check.mjs`: id in 2 files, loaders in **0**; `_t206_usage_count.mjs`:
+  237/123/44/8, unchanged).
+  **WHAT IS STILL OPEN IS NOT A QUESTION FOR A SESSION TO SETTLE:** which pages get the tag, and
+  cookie or cookieless. Both are on the artifact with a numbered recommendation, in the shape he
+  asked for on 2026-09-03 (*"label your suggestions … with numbers, and a (recommended)"*).
+  **THREE THINGS THIS ROW'S OWN TEXT ABOVE GOT WRONG, corrected here rather than deleted:**
+  it said `about.html` and `stats.html` *"all need a decision"* and listed **three** surfaces —
+  there are **eight** tracked pages (`git ls-files`), and `classic/lab.html`,
+  `classic/stats.html` and `scripts/battle_sim.html` were missing from every previous count.
+  It also never noticed that **`pingVisit()` runs on the two GAME pages only**
+  (`src/orchestrator.js:2674`, `classic/src/orchestrator.js:1534`) — so About and the rules page
+  he shipped this morning are measured by **nothing at all**, which is the strongest argument for
+  the tag and no note had it.
+  **AND HIS THIRD SENTENCE IS ⟨`T-220`⟩**, not this row: a sea trial whose depth a person can
+  lower on the record. Deliberately split — this item is a plan, that one changes the testing
+  machinery.
+
+  ### ⚑ 2026-09-03T17:3xZ — HIS TWO CALLS NOW REACH HIM. THE INSTALL IS BLOCKED ON HIM, NOT ON US.
+  CEO 177's top finding was rule 27: both decisions were written onto `.planning/ANALYTICS-PLAN.html`
+  — a repo path he cannot tap — so **his Your Call card showed zero questions while two of his
+  decisions waited.** Both are now rows in `## BLOCKED ON WYATT`: `qid:t206-which-pages` and
+  `qid:t206-cookie-choice`, each numbered 1/2/3 with one marked `(recommended)` and the write-in box
+  as "other", which is the shape he asked for in `INBOX-20260903T1600Z` and `INBOX-20260903T1556Z`.
+  **Verified on the rendered page, not asserted:** `glass.mjs --out` draws both as `class="ask"
+  data-id="t206-which-pages"` / `"t206-cookie-choice"` with numbered buttons and the `recTag`.
+  **Red-first, and it earned its keep** — `scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this
+  tree, and then caught the fix landing in the WRONG TABLE (`## RULED`, not `## BLOCKED ON WYATT`)
+  while three real gates stayed green on it. Seven cases red-proofed
+  (`_t206_calls_redproof.mjs`) — ⚠ **and this sentence said "four branches red-proofed" while one of
+  them was RED**, because adding the `since` date two hours later turned that mutation into a no-op
+  against a hard-coded row shape. CEO 178 caught it. The mutation is now built from the row's own
+  cells, and three new cases assert every mutation actually changes the Chart, so a no-op one can
+  never again read as a proof. ⛔ **Still deliberately out of `npm test`** until the tag is
+  installed, for the reason stated above: a gate added red is a gate somebody disables.
+  ⚠ **AND A GATE WAS FOUND LYING ABOUT ITSELF IN PASSING:** `numbered_options_check.mjs` shadowed
+  its own `judged5` counter, so the line CEO 176 added to stop anyone reading its silence as
+  protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
+  the analytics tag is installed and nothing will be until he picks.
+
+## T-240 — 2026-09-04 — Your ruling: There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice. You asked for "google analytics on playpastrypirates.com". The game's Firebase settings carry a Google Analytics ID, G-2KK6EZDZSP. Google normally writes that line in only when Analytics is switched on for a project — but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check. What I did measure, across every one of the 38 pages and 71 script files in the repo: nothing anywhere loads it. No gtag.js, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. And here is what the game already tells you without Google, measured on the live site this morning, last 14 days: 237 page loads from 123 different browsers → 44 voyages started (by 19 of them) → 8 finished. Solo 35, pass-and-play 3, crew 6. ⚠ Those last two ratios read worse than the game deserves and I nearly quoted them at you flat: the counter only records a start for the person who begins a voyage, so every crew guest, and every player who resumes a saved game, counts as "opened it and never played" — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial ⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you. https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. Nothing installed — you asked for instructions, and consent is yours. Your two calls, both on the page with a recommendation marked: (1) which pages get the tag — public pages only (recommended), everything including /classic, or the game page alone; and (2) cookie notice or cookieless (cookieless recommended). Step 1 is ten seconds of yours: open analytics.google.com and confirm G-2KK6EZDZSP is there. The ruling itself is settled in [CHART-LOG.md](CHART-LOG.md); this row stays because the install is still outstanding. (closed 2026-09-04 · CEO 203 · no game diff — duplicate of T-206, same underlying ask, same evidence -- install is not outstanding)
+
+- [x] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding. (closed 2026-09-04 · CEO 203 · no game diff — duplicate of T-206, same underlying ask, same evidence -- install is not outstanding)
+      ⟨`T-240`⟩

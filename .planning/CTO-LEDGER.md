@@ -10707,3 +10707,92 @@ last watch, `pastrypirates-c7 [b2589f]` — messaged with what landed, per Door 
 **Browsers/servers:** none started by this watch.
 
 END OF WATCH.
+
+- 2026-09-04T05:39:02Z · close_item: "T-206" · CEO 203 · no game diff — built, gated, verified (analytics_consent_check.mjs PASS, wired in npm test) -- not yet on origin/main, merge tracked separately · no stated solution
+
+- 2026-09-04T05:39:04Z · close_item: "T-240" · CEO 203 · no game diff — duplicate of T-206, same underlying ask, same evidence -- install is not outstanding · no stated solution
+
+---
+
+**WATCH OPEN/CLOSE, 2026-09-04T06:0xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**State on arrival:** `can_push.mjs` healthy, real push confirmed (docs/GIT-AND-DEPLOY.md read
+per rule 17's first-touch fence). No `IN-HAND` claim, no detached trial marker. Ranked the Chart:
+row 1 (`T-073` SFX) still structurally blocked (no Artifact/Drive tools in a Bell-launched watch,
+confirmed by the two prior watches). Row 2, `T-206` ("THE OTHER HALF OF HIS ANALYTICS ASK"), and
+a duplicate at `T-240`, both carried a `chartkeeper.mjs` STALE-CANDIDATE marker. Investigated
+before touching anything.
+
+**Item taken and closed.** Wrote the prediction first
+(`.planning/wyclau/PREDICTION-20260904T060000Z-T206-T240-close.md`): both rows described the
+Google Analytics install as outstanding with two blocking sub-decisions; my read of the record
+said both decisions were answered 2026-09-03 and already implemented. Verified independently
+before acting: `analytics_consent_check.mjs` full PASS (10/10) and wired into `npm test`;
+commit `09f8658c` implements exactly his two rulings (public pages only, cookieless); the row's
+own stated falsifier, `_t206_dark_property_check.mjs`, has flipped from the FAIL it staked
+itself on to PASS; the privacy follow-up (`t206-privacy-line`) is separately shipped
+(`aa4c0c71`/`1b98ca8a`/`5c110f76`); `T-220` (referenced inside the row) closed same-day, CEO 201,
+commit `0fb2654c`. All five commits confirmed as real ancestors of HEAD before citing them.
+Fresh-context CEO 203 (`general-purpose`) independently re-verified every claim rather than
+trusting the prediction, returned **YES** with two carry-forwards (don't overstate "live" —
+it's on this branch only, not `origin/main`; file a question asking Wyatt to confirm the GA
+property id is real, since no session has web access to check it). Appended to
+`.planning/CEO-REVIEWS.md`. Filed `qid:t206-confirm-ga-property` in `## BLOCKED ON WYATT` per
+the second carry-forward. Closed both `T-206` and `T-240` via `close_item.mjs --reason=`.
+
+**Closing broke `npm test`, and fixing that became part of this same item, not a second one.**
+`chart_sweep_conserves_check.mjs` started failing: "T-240 owned by NOTHING in either file."
+Root cause, traced not guessed: `T-240`'s Chart row had an inline `⟨\`T-206\`⟩` mention in its
+OPENING line (quoting a different item for context) and its own real identity, `⟨\`T-240\`⟩`,
+alone on a dedicated line two lines down. `idOfRow()` in `scripts/wyclau/lib/chart_model.mjs`
+looped over every line and returned the FIRST bracket-shaped match — the prose mention, not the
+identity — so the automatic sweep archived the row under `## T-206`, a heading already spoken
+for, orphaning `T-240`. Fixed `idOfRow` to prefer a line that IS nothing but the bracket
+(`OWN_LINE_ID_RE`, whole-line anchored) before falling back to the old any-line-contains search —
+mirroring the distinction `close_item.mjs`'s own `ownedBy` lookup already draws. Hand-corrected
+the one already-mislabeled archive heading in `CHART-LOG.md` (`## T-206` → `## T-240`, the exact
+entry whose body owns `⟨\`T-240\`⟩`; verified no other legitimate `## T-206` entries were
+touched — `git diff --numstat` on that file is +108/−0, zero pre-existing lines modified).
+
+**A second fresh-context CEO caught the fix as unguarded and me as overstating "no game diff."**
+Sent a second `general-purpose` CEO to review the close + the bug fix + the heading repair + the
+new question row, independent of the first. Verdict: **NO** — correct but incomplete. Its
+strongest finding, verified by reproducing it myself: it disabled the `OWN_LINE_ID_RE` pass,
+ran full `npm test`, and got zero failures — nothing in the build would have noticed the fix
+being reverted. Added case 9 to `scripts/qa/one_ambiguity_rule_check.mjs` (already wired into
+`npm test`, already imports `idOfRow`) reproducing the exact `T-206`/`T-240` shape; red-proofed
+by hand (temporarily replacing the fix's loop body with `for (const l of [])`, confirmed the new
+case FAILS with the exact orphaning message, restored byte-identically, confirmed PASS). Also
+caught: my new question row had minted a brand-new handle, `T-256`, that nothing in the
+checklist/log ownership system would ever own (BLOCKED ON WYATT rows aren't checklist or log
+entries) — reproduced this myself by running `npm test` after the mint (real FAIL: "T-256 owned
+by NOTHING"), then reverted the row to reference the already-owned `⟨T-206⟩` instead, matching
+the established convention (`t206-which-pages`, `t206-cookie-choice`, `t206-privacy-line` all did
+the same — a BLOCKED ON WYATT row cites its parent item's handle, it does not mint its own).
+`npm test` re-run to completion — 0 failures — after every one of the above changes, not just
+the last one. The "no game diff" framing in the close reasons is accurate: `index.html` and
+`src/` are untouched; the game-code-shaped diff is entirely in `scripts/wyclau/lib/chart_model.mjs`
+and `scripts/qa/one_ambiguity_rule_check.mjs`, both tooling, not the game.
+
+**Scope:** untouched beyond the above — did not attempt to reconcile the pre-existing
+duplicate-handle REPORT (`T-206`, `T-220`, `T-237` carried by more than one open row), which
+`chart_sweep_conserves_check.mjs` explicitly defers to its own open Chart row, not this item's.
+
+**Gear: no game code.** `git diff --stat -- index.html src/` is empty. No sea trial owed.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) after the close — 0
+further rows archived this pass (the close's own automatic sweep already moved both).
+
+**No Artifact tool in this session** (Bell-launched watch, confirmed via `ListAgents`). Messaged
+the same peer as prior watches with what landed, per Door step 6b.
+
+**Daily lesson:** already given today by a prior watch — none owed by this watch.
+
+**Browsers/servers:** none started by this watch. Two untracked scratch probes
+(`scripts/qa/_idofrow_redproof.mjs`, `scratchpad/_idofrow_redproof.mjs`) and the fresh CEO's own
+leftovers (`_ceo_probe.mjs` in both directories) could not be deleted — `rm`/`Remove-Item` both
+refused by the harness's file-delete guard regardless of path, same as the prior watch's
+`_redproof_t220.mjs`. Harmless, untracked, not part of any gate chain; left for a session with
+delete permission.
+
+END OF WATCH.

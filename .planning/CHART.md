@@ -128,111 +128,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   him attaching the SFX files directly. Full account:
   `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
-- [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
-      ⟨`T-206`⟩
-  sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
-  admin console so I can see how many people are playing"* (`INBOX-20260902T214507Z`). **The
-  console half is BUILT** (2026-09-03, CEO 159). **Google Analytics is not started.** The INBOX
-  entry sizes it and the sizing still holds: it touches `index.html` and every public page with a
-  third-party script on the site real players are using — `about.html`, `classic/`, and the new
-  `stats.html` all need a decision, and consent is his call, not a session's. **Never a drive-by
-  add.** ⚠ **AND ONE MEASUREMENT THAT SHOULD REACH HIM BEFORE ANYONE INSTALLS A TAG:** the game
-  already collects this. 237 page boots from 123 distinct browsers in fourteen days are on the
-  live database now, via `src/ui/usage.js`, with no third party involved and no consent banner.
-  **Ask him what Analytics buys on top of that** before adding Google to a page children play on.
 
-  ### ⚑ MEASURED 2026-09-03T10:1xZ BY WATCH f1 — THE PREMISE OF THIS ROW WAS WRONG IN HIS FAVOUR
-  **HE ALREADY HAS THE GOOGLE ANALYTICS PROPERTY. IT HAS ALWAYS BEEN DARK.**
-  `src/net/index.js:84` and `classic/src/net/index.js:82` both carry
-  `measurementId: "G-2KK6EZDZSP"` — and **nothing in this repo loads it.** `index.html:40-41` pulls
-  only `firebase-app-compat` and `firebase-database-compat`; there is no `firebase-analytics`, no
-  `googletagmanager.com/gtag/js`, and `analytics()` is called **nowhere** (`about.html` and
-  `stats.html` load no Firebase at all). Firebase writes `measurementId` into a config only when
-  Analytics is enabled on the project, so the GA4 property almost certainly exists in his Google
-  account — **only he can confirm that, and this row must not claim it as verified.**
-  **SO THIS IS NOT A SETUP JOB, IT IS ONE SCRIPT TAG**, and every watch that skipped this row as
-  "unstarted, needs an account from him" skipped it for a reason that was never true.
-  **Red-proofed both ways:** `scripts/qa/_t206_dark_property_check.mjs` FAILS on this tree (id in 2
-  places, loaders in 0) and PASSES against a fixture that loads `gtag.js` —
-  `scripts/qa/_t206_redproof.mjs`, both verdicts reachable. ⛔ **Deliberately NOT in `npm test`: it
-  is red today, and a gate added red is a gate somebody disables.** Whoever installs the tag
-  renames it `ga_tag_reaches_a_page_check.mjs` and wires it into the chain — it then guards against
-  the tag being deleted later.
-  **RE-MEASURED, same window, same morning** (`scripts/qa/_t206_usage_count.mjs`): 237 boots / 123
-  browsers **unchanged**, and three numbers this row did not have — **44 voyages started by 19 of
-  those 123 browsers, and 8 finished** (solo 35 / pass 3 / crew 6).
-  ⛔ **DO NOT QUOTE THOSE AS "five in six never start a voyage, four in five are abandoned" — this
-  row did, and CEO 162 took it apart from the source file's own header.** `src/ui/usage.js:13-14`
-  writes a start for **solo / pass-and-play / net-HOST only**, so **every crew guest counts as a
-  boot with no start** (6 crew games were hosted), and *"resumes and replays never write"* — a
-  player returning to a saved voyage boots and starts nothing. `:26-27` — private tabs mint a fresh
-  id per tab, inflating the 123. `:15-18` — the file says the unfinished count is *"a slight
-  OVERcount, never under."* **All four biases push the same way: the real drop-off is better than
-  123→19, and nobody knows by how much.** The prediction fenced only whether the numbers had MOVED;
-  the RATIOS derived from them were fenced by nothing — CEO 153's finding, recurring exactly.
-  **THE ONE THING GOOGLE GIVES HIM THAT HE IS NOT COLLECTING TODAY: the referrer** — where the 123
-  came from. ⚠ **Not "cannot collect": `document.referrer` is available to any page**, and
-  `usage.js:55-57` simply stores the build string and nothing else. The first version of the
-  question row claimed a page *cannot* see its own referrer **while offering, two sentences later,
-  to add it in one line** — a self-contradiction inside one cell, and it was the stated reason to
-  switch Google on. Corrected.
-  ⚠ **AND THE SIZING WAS WRONG: this row first said "no sea trial".** Read off the picker rather
-  than felt — `scripts/qa/gear.mjs:78-85` has no PLUMBING pattern for a third-party script tag or
-  for `usage.js`, and `looksCosmetic` (`:114-121`) accepts only blanks, comments, CSS selectors and
-  CSS declarations — so **both options are GEAR: FULL.** One watch to write, a second to sail it.
-  **Put to him as `qid:t206-ga-turn-on`** in BLOCKED ON WYATT with a marked recommendation (game
-  page only, no other surface), the caveat above stated in his words, and the third option.
-  **Consent is left to him, explicitly, and not defaulted.**
-
-  ### ⛔ DONE — HE ANSWERED, AND THE ANSWER WAS ACTED ON 2026-09-03T17:0xZ. DO NOT RE-ASK HIM.
-  His ruling: *"Give me instructions to switch it on, and give me the full plan for analytics as
-  an artifact that I can understand more easily than this text."* **The artifact is published:
-  https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0** — his solution first, before any investigation of my own.
-  Photographed at 390px and 1280px (`.planning/posed/t206-analytics-plan-{phone,desktop}.png`);
-  the two measurements it quotes were re-read that hour, not carried over
-  (`_t206_dark_property_check.mjs`: id in 2 files, loaders in **0**; `_t206_usage_count.mjs`:
-  237/123/44/8, unchanged).
-  **WHAT IS STILL OPEN IS NOT A QUESTION FOR A SESSION TO SETTLE:** which pages get the tag, and
-  cookie or cookieless. Both are on the artifact with a numbered recommendation, in the shape he
-  asked for on 2026-09-03 (*"label your suggestions … with numbers, and a (recommended)"*).
-  **THREE THINGS THIS ROW'S OWN TEXT ABOVE GOT WRONG, corrected here rather than deleted:**
-  it said `about.html` and `stats.html` *"all need a decision"* and listed **three** surfaces —
-  there are **eight** tracked pages (`git ls-files`), and `classic/lab.html`,
-  `classic/stats.html` and `scripts/battle_sim.html` were missing from every previous count.
-  It also never noticed that **`pingVisit()` runs on the two GAME pages only**
-  (`src/orchestrator.js:2674`, `classic/src/orchestrator.js:1534`) — so About and the rules page
-  he shipped this morning are measured by **nothing at all**, which is the strongest argument for
-  the tag and no note had it.
-  **AND HIS THIRD SENTENCE IS ⟨`T-220`⟩**, not this row: a sea trial whose depth a person can
-  lower on the record. Deliberately split — this item is a plan, that one changes the testing
-  machinery.
-
-  ### ⚑ 2026-09-03T17:3xZ — HIS TWO CALLS NOW REACH HIM. THE INSTALL IS BLOCKED ON HIM, NOT ON US.
-  CEO 177's top finding was rule 27: both decisions were written onto `.planning/ANALYTICS-PLAN.html`
-  — a repo path he cannot tap — so **his Your Call card showed zero questions while two of his
-  decisions waited.** Both are now rows in `## BLOCKED ON WYATT`: `qid:t206-which-pages` and
-  `qid:t206-cookie-choice`, each numbered 1/2/3 with one marked `(recommended)` and the write-in box
-  as "other", which is the shape he asked for in `INBOX-20260903T1600Z` and `INBOX-20260903T1556Z`.
-  **Verified on the rendered page, not asserted:** `glass.mjs --out` draws both as `class="ask"
-  data-id="t206-which-pages"` / `"t206-cookie-choice"` with numbered buttons and the `recTag`.
-  **Red-first, and it earned its keep** — `scripts/qa/_t206_calls_reach_him_check.mjs` FAILED on this
-  tree, and then caught the fix landing in the WRONG TABLE (`## RULED`, not `## BLOCKED ON WYATT`)
-  while three real gates stayed green on it. Seven cases red-proofed
-  (`_t206_calls_redproof.mjs`) — ⚠ **and this sentence said "four branches red-proofed" while one of
-  them was RED**, because adding the `since` date two hours later turned that mutation into a no-op
-  against a hard-coded row shape. CEO 178 caught it. The mutation is now built from the row's own
-  cells, and three new cases assert every mutation actually changes the Chart, so a no-op one can
-  never again read as a proof. ⛔ **Still deliberately out of `npm test`** until the tag is
-  installed, for the reason stated above: a gate added red is a gate somebody disables.
-  ⚠ **AND A GATE WAS FOUND LYING ABOUT ITSELF IN PASSING:** `numbered_options_check.mjs` shadowed
-  its own `judged5` counter, so the line CEO 176 added to stop anyone reading its silence as
-  protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
-  the analytics tag is installed and nothing will be until he picks.
-      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
-
-- [ ] Your ruling: ⟨`T-206`⟩ **There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice.** You asked for *"google analytics on playpastrypirates.com"*. The game's Firebase settings carry a Google Analytics ID, `G-2KK6EZDZSP`. Google normally writes that line in only when Analytics is switched on for a project — **but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check.** What I did measure, across every one of the 38 pages and 71 script files in the repo: **nothing anywhere loads it.** No `gtag.js`, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. **And here is what the game already tells you without Google, measured on the live site this morning, last 14 days:** 237 page loads from **123 different browsers** → **44 voyages started** (by 19 of them) → **8 finished**. Solo 35, pass-and-play 3, crew 6. ⚠ **Those last two ratios read worse than the game deserves and I nearly quoted them at you flat**: the counter only records a start for the person who *begins* a voyage, so **every crew guest, and every player who resumes a saved game, counts as "opened it and never played"** — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much. — his answer: Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial **⚑ THE PLAN YOU ASKED FOR IS WRITTEN — and it needs two answers from you.** https://claude.ai/code/artifact/e2b9946d-93ec-4d4f-8c90-f9dd771bf6b0: what you already collect and why the drop-off reads worse than it is, the three things Google actually adds, and five numbered steps to switch it on. **Nothing installed** — you asked for instructions, and consent is yours. **Your two calls, both on the page with a recommendation marked:** (1) which pages get the tag — public pages only *(recommended)*, everything including `/classic`, or the game page alone; and (2) cookie notice or cookieless *(cookieless recommended)*. **Step 1 is ten seconds of yours:** open `analytics.google.com` and confirm `G-2KK6EZDZSP` is there. The ruling itself is settled in [`CHART-LOG.md`](CHART-LOG.md); this row stays because the install is still outstanding.
-      ⟨`T-240`⟩
-      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
       `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
@@ -276,11 +172,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
       deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
       npm test 124/124. No game code — `src/` and `index.html` untouched.
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
@@ -320,6 +211,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 
 - [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
       ⟨`T-211`⟩
@@ -572,7 +467,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   again within a watch or two, and a 90-minute trial of code about to move tests the wrong build —
   **but that is a reason, not an excuse, and the trial is owed before this ships.**
 
-
 - [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
       ⟨`T-238`⟩
   2026-08-01 bug, in the one path the 2026-08-23 fix never reached.** Measured and photographed
@@ -597,6 +491,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   ⚠ **AND IT AFFECTS THE INSTRUMENT, NOT ONLY THE PLAYER:** the sea trial's judge photographs
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
+
 
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
@@ -774,6 +669,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -782,7 +678,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
-
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
@@ -800,6 +695,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
+
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -884,7 +780,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
-
 - [ ] **A STRAIGHT DOUBLE QUOTE IN ANY QUESTION OPTION SILENTLY TRUNCATES THE LABEL HIS RULING IS
       ⟨`T-248`⟩
   STORED UNDER.** `glass.mjs` writes each option into `data-label="…"` without escaping, so an
@@ -1022,6 +917,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       correct and `vendor_check.mjs` reports it AHEAD, so this is the back-port pass working as
       designed rather than drift — **but the kit is the copy that leaves this machine**, and it
       still shows his old labels. Take it with the other seven files that copy is behind on.
+
 - [ ] **THE TRIAL CAN STAMP A VERDICT ON A BUILD IT NEVER SAILED, BECAUSE "HAVE I TESTED THIS?" IS
       ⟨`T-212`⟩
   KEYED ON A HAND-TYPED BUILD NUMBER.** Found 2026-09-03 by CEO 169 while reviewing `T-211`. Game
@@ -1031,7 +927,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   The shape of the fix is the project's own standing lesson: **derive the identity, never hand-type
   it** — a content hash of the game tree, or the commit sha, instead of a number a session remembers
   to bump. **Sizing: small, instrument only, no game code.**
-
 - [ ] **The release trial did not sail the code that would be staged — RE-SAIL LAUNCHED 2026-09-01T19:14:17Z, verdict pending. GATED: nothing to DO but read the report when it lands; do not start a second trial while pid 45256 is alive.**
       ⟨`T-026`⟩
   The original finding: `efa1f2f5` ("preload: recipe art and award emblems now load up front")
@@ -1070,6 +965,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Chase it only if it is seen again**, and then with a posed board (`docs/DRIVING-THE-GAME.md` §5e),
   never a rate over a voyage — a single still cannot tell a mid-paint from a bug.
   Evidence and the numbers: [`T005-2026-09-02-THE-COIN-AND-THE-RIG.md`](T005-2026-09-02-THE-COIN-AND-THE-RIG.md).
+
 
 - [ ] Your ruling: the cutover moment — **GATED: on the exit test verdict, which is his own stated condition.** Nothing for a watch to do.
       ⟨`T-007`⟩
@@ -1162,6 +1058,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 | Question | Recommendation | since |
 |---|---|---|
+| <!--qid:t206-confirm-ga-property--> ⟨`T-206`⟩ **The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is `G-2KK6EZDZSP` actually a live property in your Google account?** The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know. | 1. Open analytics.google.com and confirm `G-2KK6EZDZSP` is there (recommended) · 2. Ship it as-is and find out from real traffic · 3. Create a fresh property instead | 2026-09-04 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions

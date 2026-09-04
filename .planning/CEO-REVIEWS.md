@@ -15363,3 +15363,42 @@ gate-driven fix, not scope creep.
 
 ### NET: **YES** — this is the RULED table's own documented move-3 process, not a Chart "- [ ]"
 row close, so `close_item.mjs` does not apply; this review and the ledger entry are the record.
+
+## CEO 203 — 2026-09-04T06:0xZ — closing T-206 and T-240 (stale analytics rows)
+
+**Ask:** two Chart checklist rows (`.planning/CHART.md:131` handle `T-206`, `:233` handle
+`T-240`) both describe Google Analytics as "not started" / "install still outstanding" with two
+blocking sub-decisions (which pages, cookie-or-cookieless). Both carry a `chartkeeper.mjs`
+STALE-CANDIDATE marker reading "answered (close it (he already answered))". Independent
+fresh-context review requested before closing either row.
+
+**NET: YES** — closing both through `close_item.mjs --reason=` is honest, with two carry-forwards.
+
+Verified directly, not on the watch's account: his two rulings are on record verbatim
+(`CHART.md:1276-1279` which-pages, `:1294-1298` cookie-choice, both 2026-09-03T21:2x-21:3xZ).
+Commit `09f8658c` implements exactly those rulings — read `src/analytics.js` directly (denial
+before load, three-page restriction, live-host-only). `analytics_consent_check.mjs` passes
+(10/10) and is wired into `npm test` (`package.json` chain, not a dangling script). The row's own
+stated falsifier, `_t206_dark_property_check.mjs`, has flipped from the FAIL it staked itself on
+to PASS. The privacy follow-up (`t206-privacy-line`) is also live: `privacy.html` exists,
+`privacy_footer_outside_modal_check.mjs` passes. `T-220` (the row's own third sub-item) closed
+same-day via CEO 201, commit `0fb2654c`, confirmed present on this branch. Both sub-rulings
+already appear as SHIPPED in `CHART-LOG.md:747-748`; `## BLOCKED ON WYATT` and `## RULED` are
+both empty. Full `npm test` re-run to completion — 0 failures.
+
+**Carry-forward #1 (does not block the close):** the tag is built and gated on this branch only —
+not on `origin/main`, not live. The close's `--reason=` must say "built, gated, verified" and
+never "shipped to the live site" — CEO 189/190 caught this exact overstatement pattern before.
+The merge/staging step is already tracked elsewhere as a separate gated row (`CHART.md:1060`,
+`:284` for the console half), so it is not lost by closing these two.
+
+**Carry-forward #2 (filed, not fixed):** the one step only Wyatt can do — confirm
+`G-2KK6EZDZSP` is a real property in his Google account, ten seconds at analytics.google.com —
+has no `qid:` row anywhere. Filed as `qid:t206-confirm-ga-property` in `## BLOCKED ON WYATT` in
+the same act as this close, per the recommendation above.
+
+**Scope:** record-only close (no game-code diff from this act) — the diffs that satisfy these
+rows already landed in `09f8658c`, `aa4c0c71`, `1b98ca8a`, `5c110f76`, `0fb2654c`, all prior to
+this review.
+
+### NET: **YES** — closed via `close_item.mjs`, `.planning/CHART.md`.
