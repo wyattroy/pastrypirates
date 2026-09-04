@@ -160,6 +160,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is on this branch only. Shipping it means the staging publish — which `T-016` says needs
       another ~90-minute trial of the code that would actually ship — or the branch merge, which is
       GATED on your own ruling. **This row closes when you can load that URL, not before.**
+      ⚑ **2026-09-04T0745Z — the trial that looked fresh enough wasn't.** `PP4_STAMP` had drifted
+      from the tree (see the fresh instance filed under `T-009` above); stamp bumped to
+      `2026.09.04.1`, `npm test` green, and a new detached FULL trial started
+      (`2026-09-04T0744Z-Wy-Blade`, pid 27400) so the staging publish this row is waiting on has
+      real coverage once it lands. **Still not published — the trial has to finish first.**
       ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
       BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
       Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
@@ -500,6 +505,17 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
   first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
   file that can disagree with it.
+
+  ⚑ **A FRESH, CONCRETE INSTANCE, MEASURED 2026-09-04T0745Z, chasing `T-138` toward a staging
+  publish.** Four real game-code commits (`1ffe4960` src/engine/index.js, `aa4c0c71` index.html,
+  `7c6ec3cd` src/analytics.js + src/shared/host.js + src/shared/index.js + src/ui/usage.js,
+  `53a91f33` src/orchestrator.js) landed after the 2026-09-03T2031Z trial finished and
+  `PP4_STAMP` never moved — the exact shape this row describes, not a hypothetical. Mitigated
+  for today by hand: `npm run bump` (`2026.09.03.4` → `2026.09.04.1`), `npm test` 137/137 green
+  after, fresh detached FULL trial started (`2026-09-04T0744Z-Wy-Blade`, pid 27400). **The
+  underlying fix — deriving the cache key from the tree, not the hand-typed stamp — is still not
+  built; this was a one-time correction, not a repair.** Evidence:
+  `.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`.
 
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩

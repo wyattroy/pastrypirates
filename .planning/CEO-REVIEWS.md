@@ -1,5 +1,36 @@
 # CEO reviews — the standing record
 
+## CEO Review 207 — `T-138`/`T-009` stamp-staleness catch, stamp bump, fresh trial — **PARTIAL** — 2026-09-04
+
+*The work reviewed:* chasing `T-138` (the player-count console) toward a staging publish, this
+watch found the trial it planned to rely on was stale — four real game-code commits landed after
+the 2026-09-03T2031Z trial finished and nobody bumped `PP4_STAMP`. Bumped the stamp
+(`2026.09.03.4` → `2026.09.04.1`), reran `npm test` (137/137 green), started a fresh detached FULL
+trial (`2026-09-04T0744Z-Wy-Blade`, pid 27400), and updated `T-009`/`T-138` on the Chart with the
+evidence — without closing either row, since the trial had not finished and nothing shipped.
+
+### VERDICT: **PARTIAL**
+
+1. **The staleness claim is true, independently verified** — `git log`/`git show --stat` on all
+   four commits (`1ffe4960`, `aa4c0c71`, `7c6ec3cd`, `53a91f33`) confirm each postdates the
+   trial's 22:10Z finish and touches real game code.
+2. **The bump + fresh trial was the right, safe, minimal move** — a one-line diff
+   (`src/ui/stage.js`), `npm test` reran green, nothing published to staging or production.
+3. **One claim was false: "committed all changes, pushed" for `.planning/CHART.md`.** The Chart
+   annotations existed only in the local working tree at review time — `git status` showed it
+   modified, not committed, and `origin/HEAD` did not contain the T-138/T-009 notes despite
+   matching the branch's other pushed commits. Fixed immediately after the verdict landed.
+4. **`T-138` was not overstated on substance** — both records correctly said "still not
+   published, trial has to finish first."
+5. **Investigation was appropriately scoped** — targeted `git log`/`git show`, no bulk reading,
+   no new tooling built, the underlying `T-009` mechanism fix correctly left unbuilt and parked.
+6. **One sentence for Wyatt:** the staleness catch and fix are real and safe, but the watch
+   initially claimed a Chart edit was committed and pushed when it was still sitting uncommitted
+   on the machine — the single most-recurring fault class in this project's CEO history.
+
+*(Full agent transcript not reproduced here; this is the verdict as delivered. Fixed same turn:
+`.planning/CHART.md` committed and pushed after the review landed.)*
+
 ## CEO Review 198 — `T-235`/`T-237`, the trade-offer-circle sea trial — **PARTIAL** — 2026-09-04
 
 *The asks reviewed, verbatim.* `T-235`: **"Do bigger circles, not smaller text."** `T-237`, the
