@@ -193,8 +193,27 @@ if (reviews === null) refuse(`no ${REVIEWS}`, "the CEO record is missing entirel
    Found 2026-09-04 by the T-251 watch, which hit it closing its own item. scripts/qa/
    close_gate_sees_every_ceo_check.mjs now lifts THIS regex out of THIS file and runs it against the
    real record, so the two can never drift apart again — it tests the reader, not a copy of it. */
-const revSec = reviews.split(/^(?=## CEO (?:Review )?\d)/m)
-  .find((s) => new RegExp(`^## CEO (?:Review )?${ceoN}\\b`).test(s));
+/* ⚑ AND THE NUMBER IS NOT AN IDENTITY, SO `.find()` WAS A COIN TOSS. `.find` returns the FIRST
+   match and never mentions a second. 8 of the 177 numbers in this record name TWO DIFFERENT
+   REVIEWS — 31, 38, 73, 82, 83, 107, 135, 182 — so `--ceo=82` resolved by POSITION IN THE FILE, and
+   the traceability check below then passed or failed against a verdict nobody chose. A close
+   certified against the wrong verdict is worse than one that refuses.
+   THE DEFECT IS THE SILENCE, NOT THE DUPLICATION, and that is why this is `filter` and not a
+   renumbering: 51 pointers written by lines 262/282/300 of this very file already cite those eight
+   numbers across the Chart, the INBOX and the ledger, each attributable to only one half of its
+   pair by hand. Repairing the record would be a large error-prone edit to an append-only history,
+   made to satisfy a gate rather than to help a player. Refusing costs nothing, needs no list, and
+   makes a NINTH duplicate equally harmless the day somebody creates it. */
+const matches = reviews.split(/^(?=## CEO (?:Review )?\d)/m)
+  .filter((s) => new RegExp(`^## CEO (?:Review )?${ceoN}\\b`).test(s));
+if (matches.length > 1) {
+  const heads = matches.map((s) => "        " + s.split("\n")[0].slice(0, 100)).join("\n");
+  refuse(
+    `CEO ${ceoN} names ${matches.length} DIFFERENT verdicts in CEO-REVIEWS.md, so this close would ` +
+    `be certified against whichever one happens to come first in the file:\n${heads}`,
+    "pick a number that names exactly one verdict — if the verdict you mean really is one of these, give it its own number and re-append it, because a close that cites an ambiguous number is a close nobody can check later");
+}
+const revSec = matches[0];
 if (!revSec) {
   /* SAY WHAT WAS SEARCHED FOR AND WHAT IS ACTUALLY THERE. An instrument reporting NOT FOUND has
      told you something about ITSELF, not about the world (CLAUDE.md rule 6) — and the old wording
