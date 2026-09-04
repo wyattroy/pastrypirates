@@ -15402,3 +15402,51 @@ rows already landed in `09f8658c`, `aa4c0c71`, `1b98ca8a`, `5c110f76`, `0fb2654c
 this review.
 
 ### NET: **YES** — closed via `close_item.mjs`, `.planning/CHART.md`.
+
+## CEO Review 204 — T-220, hook-reachability finding 1 (third attempt) — **PARTIAL** — 2026-09-04T062xZ
+
+**Headline, in plain English:** The watch could not fix the bug (correctly, it turns out — the CEO
+tried the identical edit itself and got refused with the exact same words), but everything else it
+claims — the prediction, the new check, the newly-found bug, and the honest paper trail — checks
+out under direct testing, and nothing in the record oversells it as done.
+
+**Ask:** CEO Review 180's finding 1 — `.claude/hooks/qa-gear-first.cjs`, the hook that fires FIRST
+on any game-code edit, never tells a session about the `--gear=`/`--reason=`/`--explain` override
+flags that `scripts/qa/gear.mjs` already prints — was still open. This watch tried to close it.
+
+**Verified independently, not on the watch's account:**
+- `.planning/wyclau/PREDICTION-20260904T062037Z-T-220-hook-reach.md` states an expectation, a
+  reason, and explicit falsifiers BEFORE any result exists — genuine, not backfilled.
+- Ran `node scripts/qa/hook_gear_override_reachable_check.mjs` — it spawns the REAL
+  `.claude/hooks/qa-gear-first.cjs` as a subprocess with a real `PreToolUse`-shaped stdin payload,
+  not a mock. 4 of 5 cases FAIL on the unmodified hook, confirming CEO 180's finding 1 reproduced
+  live. (One assertion is looser than it looks: the PLUMBING case's "mentions --gear=" check
+  coincidentally matches a pre-existing, unrelated string already in the hook's sweep line — still
+  correctly FAILs overall because the other required substrings are absent.)
+- **The newly-claimed path-separator bug is real and distinct**, confirmed by writing a standalone
+  probe requiring `.claude/hooks/lib/game-code.cjs` directly: `isGameCode("scripts/qa/foo.mjs")` →
+  `false` (correct); `isGameCode("scripts\\qa\\foo.mjs")` → `true` (wrong). Different mechanism
+  from finding 1 (missing text vs. an exclusion list silently failing on Windows), different blast
+  radius (any Windows session editing `scripts/`, `.claude/`, `.planning/`, or `notes/` can trip a
+  false FULL-gear denial).
+- **The Edit refusal is real** — attempted the identical fix on `.claude/hooks/qa-gear-first.cjs`
+  independently and got the identical harness message, word for word: *"...which is a sensitive
+  file."* Read `.claude/settings.json`: `permissions.allow` already carries a bare, unscoped
+  `"Edit"`/`"Write"`; there is no project-side settings line that would fix this.
+- **Nothing overstated.** `.planning/CHART.md`'s T-220 row never claims FIXED or SHIPPED, only
+  found-and-blocked, with exact instructions for the next writer. `package.json` does not
+  reference the new check (confirmed by grep) — genuinely unwired. `npm test` re-run in full,
+  exits clean.
+
+**Was leaving the gate unwired the right call?** Yes — wiring a currently-failing gate into
+`npm test` on a branch CLAUDE.md says to assume a second session shares (rule 16) would redden the
+shared build over a bug this watch structurally cannot fix.
+
+**Recurrence check against CEO 180:** finding 1 (hook override unreachable) — RECURS, third time,
+same structural cause (unattended watch fenced out of `.claude/hooks/`), not a new mistake. The
+path-separator bug does NOT recur from any prior review — newly found.
+
+### NET: **PARTIAL** — rigorous, honestly reported, found a genuinely new bug, but the underlying
+deliverable remains unfixed for a third time and cannot be closed by an unattended watch on this
+machine. Worth putting to Wyatt directly: either grant an interactive session write access to
+`.claude/hooks/`, or accept this is a five-minute fix waiting on a human at the keyboard.
