@@ -91,6 +91,55 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 > it is here instead because an unattended watch on this machine is fenced out of that file — the
 > edit was attempted and refused. **A session that can write there should move it.***
 
+- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
+      ⟨`T-216`⟩
+      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
+      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
+      its own status line says what it is waiting for: *"the answer that unblocks
+      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
+      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
+      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
+      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
+      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
+      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
+      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
+      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
+      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
+      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
+      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
+      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
+      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
+      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
+      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
+      that code still states the OLD rule in full**, so reading the code's own commentary would have
+      confirmed the error.
+      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
+      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
+      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
+      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
+      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
+      found the first version would have passed green.
+      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
+      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
+      found them right. At that rate roughly three more wrong statements are still live. Closing now
+      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
+      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
+      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
+      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
+      don't end on one", crate prices as an island empties — each against the code that implements it,
+      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
+      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
+      cannot disagree.
+      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
+      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
+      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
+      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
+      finding recurring one item later** (*"a claim in the record that the record itself
+      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
+      the reusable half is narrower than "don't lie": **a note about work still to do must never live
+      inside a row you are closing** — the close is exactly what makes it unreadable.
+      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking — and nothing moved this row
+
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
   sentence was two jobs — *"Add google analytics to playpastrypirates.com and create a firebase
@@ -196,54 +245,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: ⟨`T-206`⟩ **Google Analytics is built and waiting, and the one thing holding it back from the real site is a sentence on your front card that stops being true the moment it goes live.** The line under "how to play" reads *"Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected."* Cookieless Analytics sets no cookie and never learns a name, but Google does receive the page visited, roughly which country, the browser, and **where the player came from** — the referrer, which is the one thing you said Google adds that your own counter cannot. ⚠ **Nothing has reached a player**: the live site carries none of this and staging cannot fire the tag, so there is no rush and no harm today. The words are yours, so I have not chosen them. Note that About and the new Rules page also carry the tag and have no privacy line at all. — his answer: move all of it off of the main screen into a privacy policy that is in its own html, simple to read, and in plain english (not pirate) with small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the popup modal box **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-206`⟩
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
-
-- [ ] **ONE OF HIS OWN ANSWERS IS SITTING IN THE QUEUE AS AN OPEN INSTRUCTION, AND THE JOB IT ASKS
-      ⟨`T-216`⟩
-      FOR WAS FINISHED YESTERDAY.** `INBOX-20260902T225008Z` — his ruling *"Do a new /rules.html that
-      explains the rules -- using the latest version of the game"* — still reads `status: OPEN`, and
-      its own status line says what it is waiting for: *"the answer that unblocks
-      `INBOX-20260902T190730Z` (build the rules page)"*. **The page was built and closed this
-      morning** (`T-100`, CEO 171, commit `4dbc7842`). So his instruction is queued behind work that
-      is already done. Same shape as the complaint he made 2026-09-02 6:57 PM ET.
-      ⛔ **THAT PREMISE WAS MEASURED FALSE ON 2026-09-03T18:xxZ, AND THE ROW STAYS OPEN BECAUSE OF
-      WHAT WAS FOUND WHILE CHECKING IT — CEO 181 (PARTIAL).** Two corrections to this row's own text,
-      in the open. **(a) The commit cited below is the WRONG ONE:** `4dbc7842` is
-      *"INBOX-20260903T142249Z CLOSED (CEO 172) — his buttons say Approve and Deny"*, a different
-      item. The rules-page work is `1efe53ab` (built it) and `067760a` (CEO 171's crawler link).
-      **(b) The job was NOT finished.** His sentence carries two instructions and only the first —
-      *a new page at `/rules.html`* — had happened. The second, *"using the latest version of the
-      game"*, had been skipped exactly as `INBOX-20260902T225008Z` warned in capitals that it would
-      be, **and the skip had put a FALSE RULE on a public page**: the page told a reader
-      *"a berth protects nobody, not even a captain who's already fired up the ovens"*, while
-      `src/engine/index.js:1761` has refused precisely that attack since his 2026-08-06 SANCTUARY
-      ruling. Measured by running `canAttack()`, not by reading it — **the comment four lines above
-      that code still states the OLD rule in full**, so reading the code's own commentary would have
-      confirmed the error.
-      **LANDED:** the sentence corrected in the modal (the one source), `rules.html` regenerated, both
-      surfaces photographed at 390px (`.planning/posed/t216-*-sanctuary-phone.png`), and a behavioural
-      fence — `scripts/qa/rules_sanctuary_matches_engine_check.mjs`, npm test 125 gates — that calls
-      `canAttack()` and goes red if the words and the game disagree **in either direction**. Its
-      classifier is fixture-tested against seven sentences, including the adversarial reword CEO 181
-      found the first version would have passed green.
-      **WHAT IS LEFT, AND IT IS WHY NOTHING WAS TICKED:** **5 of ~20 claims on that page have been
-      checked against the code; 4 were right and 1 was wrong.** CEO 181 checked two more itself and
-      found them right. At that rate roughly three more wrong statements are still live. Closing now
-      would mark his instruction DONE with three quarters unexamined. **The next watch audits the
-      remaining claims** — Attack's downwind/crosswind ladder, the wind cap and "across the wind
-      doesn't count", the trade winds' clockwise sweep, the storm's push and what stops it, the
-      bake-off's shuffle-and-name-back loop, docking one ship at a time, "sail past other ships but
-      don't end on one", crate prices as an island empties — each against the code that implements it,
-      **then** closes `INBOX-20260902T225008Z` through `scripts/wyclau/close_item.mjs`. **NOT hand-
-      patched** — the gate writes the INBOX fate, the tick and the ledger entry together so the three
-      cannot disagree.
-      ⚑ **THIS ROW EXISTS BECAUSE CEO 173 CAUGHT ME CLAIMING IT ALREADY DID.** Watch h1 wrote *"Filed
-      as its own row rather than fixed quietly"* into the `T-099` block — **and filed nothing**, in a
-      block the same edit had just declared `CLOSED`, which `chart_model.mjs` hides from his list.
-      So the only record of a live problem was inside a row built to disappear. **This is CEO 172's
-      finding recurring one item later** (*"a claim in the record that the record itself
-      contradicts… a gap that lies about itself is harder to catch than a gap that is silent"*), and
-      the reusable half is narrower than "don't lie": **a note about work still to do must never live
-      inside a row you are closing** — the close is exactly what makes it unreadable.
 - [ ] Your ruling: ⟨`T-206`⟩ **Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch?** You asked for the plan and you have it — the property `G-2KK6EZDZSP` almost certainly already exists in your Google account and has never been told anything. **Nothing is installed and nothing will be until you pick.** The size: one `<script>` tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: **where your 123 browsers came from** — and remember that About and the new Rules page are measured by *nothing at all* today, which is the real gap. — his answer: The public pages only — the game, About and Rules **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-206`⟩
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
