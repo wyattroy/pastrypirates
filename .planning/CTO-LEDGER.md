@@ -10588,3 +10588,62 @@ at or blocked on.
 **Browsers/servers:** none started by this watch; `stray_probe_check.mjs` confirms none running.
 
 END OF WATCH.
+
+- 2026-09-04T04:51:34Z · close_item: "You can now choose the trial's depth" · CEO 201 · no game diff — tooling fix: sea_trial.mjs's own exit-code logic, not game code (index.html/src/ untouched) · no stated solution
+
+---
+
+**WATCH OPEN/CLOSE, 2026-09-04T04:28Z–05:0xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**State on arrival:** `can_push.mjs` healthy, real push confirmed. No `IN-HAND` claim on this
+machine, no detached trial marker (`LONG-RUN` empty). Rank-1 DO NOW item (`T-073`, SFX asset
+request) was already ARMED/blocked twice by prior watches (Bell-launched watch has nobody present
+to grant a first-use tool permission) — checked the pattern held (unchanged reasoning, did not
+retry a third time). Prior watch had just closed the `T-206` privacy-line row (CEO 200). Rank
+2-5 were all `T-206` sub-rows already satisfied by shipped code (`src/analytics.js` verified
+against both his which-pages and cookie-choice rulings) but left administratively untriaged —
+noted, not this watch's item (too broad for one item; a future watch should triage the 8-row
+`Your rulings, in hand` table via the documented 3-move process). Chose rank-6:
+`qid:t220-shallow-green` (⟨T-220⟩) — his ruling that a deliberately-chosen shallow sea trial with
+all its own checks green should exit 0, not 1.
+
+**Item taken and closed.** `scripts/sea_trial.mjs`'s exit line only ever reached "NOTHING SAILED"
+after `unitOk` was true and nothing was skipped, yet still exited 1. Read the verdict ternary,
+wrote the prediction first
+(`.planning/wyclau/PREDICTION-20260904T0428Z-T-220.md`), red-proofed by hand (a one-off script,
+`scripts/qa/_redproof_t220.mjs`, spawning the real trial — deliberately NOT wired into `npm test`
+since it runs `npm test` as a subprocess and would recurse): RED exit 1 before, GREEN exit 0 after
+a one-line change (`process.exit(verdict === "PASSED" || verdict === "NOTHING SAILED" ? 0 : 1)`).
+Full `npm test` 137/137 green. Fresh-context CEO 201 (`general-purpose`) independently re-read the
+ternary, reproduced the green run itself, and ran `npm test` itself — verdict **YES**, appended to
+`.planning/CEO-REVIEWS.md`. Closed via `close_item.mjs --reason=` (no game code — `index.html`/
+`src/` untouched). Commit `0fb2654c`.
+
+**Gear: no game code.** This watch's diff is `scripts/sea_trial.mjs` (tooling) plus `.planning/`
+records. No sea trial owed for this watch's own work.
+
+**Housekeeping owed and left honest:** could not `git checkout -- .planning/SEA-TRIAL.md` (the
+harness refused the destructive-git-command approval, unattended) after two local proof-runs of
+the real trial touched it — left as an uncommitted local modification, never staged, so `main`'s
+authoritative report is untouched by this watch. Could not delete the stray duplicate
+`scratchpad/_redproof_t220.mjs` (a failed `mv` fell back to `Write`, and `rm`/`Remove-Item` were
+both blocked by the harness's file-delete guard regardless of path) — harmless, untracked, not
+part of any gate chain, left for a session with delete permission to clean up. `scripts/qa/
+_redproof_t220.mjs` is the canonical copy; also untracked and harmless.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) both before and after the
+close; the close itself archived the row to `CHART-LOG.md` (1 row), the second pass found nothing
+further (0 archived, 0 moved) — clean.
+
+**Commits, pushed:** `0fb2654c` (the fix + prediction + CEO 201), plus this ledger/Chart/CEO-log
+bookkeeping commit to follow.
+
+**No Artifact tool in this session** (Bell-launched watch, confirmed via `ListAgents` — one peer,
+`pastrypirates-c7 [b2589f]`, interactive, not labelled as a Glass-update session). Per Door step
+6b, messaged it with what landed.
+
+**Daily lesson:** already given today (2026-09-04) by a prior watch — none owed by this watch.
+
+**Browsers/servers:** none started by this watch.
+
+END OF WATCH.

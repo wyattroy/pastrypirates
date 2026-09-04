@@ -15300,6 +15300,10 @@ asked for, so not counted against this item.
 
 ## CEO 201 — `t220-shallow-green` Chart row (`.planning/CHART.md`, ⟨T-220⟩) — **YES**
 
+Chart row title, quoted verbatim so the close gate can trace this verdict to it: *"Your ruling:
+You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is
+right is your call, not mine."*
+
 Watch, 2026-09-04T04:2xZ, fresh context (`general-purpose`, no memory of any prior review). Brief
 named Wyatt's ruling verbatim (`RULING-20260903T213014Z-t220-shallow-green`, DECISIONS.md): "Let a
 depth you chose come back green when its own checks pass — much nicer to use, and it removes a
