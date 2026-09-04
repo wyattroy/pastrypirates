@@ -15620,3 +15620,80 @@ status`) — correctly so, since this item was paperwork reconciliation, not new
 a pointer to the already-verified fix, but the watch overstated its own mechanism (said "gate,"
 meant "hand-written note") — small, caught, and now on the record.
   comfortable omission rule 6 exists to catch.
+
+## CEO Review 209 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-020`: the crew-phone guest was never a phone in any trial — **YES**
+
+**The ask.** Chart row `T-020` (`.planning/CHART.md:448-474`): *"THE CREW-PHONE GUEST — THE SEAT
+WYATT ACTUALLY PLAYTESTS — HAS NEVER BEEN A PHONE IN ANY TRIAL THIS PROJECT HAS RUN."* The row's
+own claim: `scripts/playtest_gate.mjs`'s crew-phone leg opens the HOST with
+`mobile: !!def.mobile, dsf: def.dsf || 1` but opens the GUEST with neither, so `scripts/lib/cdp.mjs`
+defaults the guest to a desktop window (`mobile=false, dsf=1`), and this was already proven in
+pictures (host screenshot reads "Tap and hold", guest reads "Click and hold" — a device-driven
+verb). Sizing: one line plus a gate.
+
+**Verified independently, not on the watch's word.**
+
+1. **The one-line fix is real and exactly as claimed.** `git show 047fbe80 -- scripts/playtest_gate.mjs`:
+   the guest `openEngine()` call at line 429 now reads `..., mobile: !!def.mobile, dsf: def.dsf || 1 });`
+   — confirmed by reading the live file myself, not just the diff. Only one guest `openEngine()`
+   call site exists in the file (`grep -n "guest = await openEngine"` returns one match), so there
+   is no ambiguity about which call the fix touched.
+2. **The check is a real structural check, not a tautology.** Read
+   `scripts/qa/crew_phone_guest_emulation_check.mjs` in full: it lifts the real `legDefs` object and
+   the real guest `openEngine()` call-site source text out of the actual `playtest_gate.mjs` (via
+   regex extraction + `new Function`, not a hand-copied reimplementation), finds every crew leg with
+   `def.mobile===true`, and asserts the guest call source contains `mobile: !!def.mobile` and
+   `dsf: def.dsf || 1`. It also asserts at least one mobile crew leg exists, so it cannot pass
+   vacuously by finding nothing to check.
+3. **Ran it myself: PASS**, 4/4 assertions green, on the current tree.
+4. **Red-proofed it myself, independently of the watch's account.** Since running an ad-hoc script
+   from `scratchpad/` was blocked by this session's sandbox, I red-proofed by editing the real file
+   directly: reverted the guest call's `openEngine()` to the pre-fix, mobile/dsf-less form via `Edit`,
+   re-ran the real gate — **it failed, exit 1, both assertions naming the correct cause** ("guest
+   openEngine() call omits mobile — cdp.mjs defaults it to false..." / "...omits dsf..."). Then
+   restored the exact original line via `Edit` and confirmed `git diff --stat scripts/playtest_gate.mjs`
+   and `git status --porcelain scripts/playtest_gate.mjs` both show nothing — the file is back to
+   byte-identical with the committed version. The check is genuinely RED before the fix, GREEN after.
+5. **`npm test`: ran the full suite myself, all 138 gates, to completion.** `tree_health_check`
+   independently confirms "gates in `npm test`: 138" and "gate count matches the chain (declared
+   total 138)" — so the `package.json` bump (137→138, with a dated rationale comment) is not just
+   claimed, it is mechanically verified. `crew_phone_guest_emulation_check` appears in the run and
+   passes; the whole chain reaches `doc_command_check` (the last gate) with "PASS — 0 failure(s)."
+   No FAIL anywhere in the full output (checked by grepping the saved log; the few "FAIL" substring
+   hits are other gates' own fixture descriptions, not real failures).
+6. **This is genuinely QA tooling, not a player-facing change.** `git show 047fbe80 --stat` touches
+   only `scripts/playtest_gate.mjs`, `scripts/qa/crew_phone_guest_emulation_check.mjs`,
+   `package.json`, and a prediction doc — no `index.html`, no `src/`. Grepped the whole repo for
+   `playtest_gate` outside `scripts/`/`docs/`/`.planning/`: the only hit in shipped code is two
+   comment lines in `src/ui/stage.js` (lines 3364, 3415) citing `4/scripts/playtest_gate.mjs` as the
+   historical source of an unrelated, already-fixed bug — prose in a `/* WHY */` comment, not a
+   reference, import, or call. Confirmed by reading the surrounding lines.
+7. **The gear-lowering reasoning holds up against the CEO 197 precedent, once measured on the right
+   diff.** Running `node scripts/qa/gear.mjs` right now reports FULL — but that picker reads
+   everything *ahead of `origin/main`* on this shared branch (rule 16: assume a second session is
+   live), which currently includes a long tail of `src/*.js` and asset changes from *other* watch
+   turns already stacked on this branch, not from this commit. The correct comparison — what CEO 197
+   itself used ("`git diff --name-only` shows only `scripts/lib/cdp.mjs`, `package.json`...") — is
+   this commit's own diff, which is scripts/tooling-only as claimed. The reasoning is the same class
+   as CEO 197's, correctly applied, and arguably better-documented since it used the actual
+   `--gear=COSMETIC --reason=... --explain` override tool rather than silently skipping a sea trial.
+8. **The prediction is genuine.** `.planning/wyclau/PREDICTION-20260904T0849Z-T-020.md` states the
+   expected asymmetry and two explicit falsifiers *before* the fix, timestamped ahead of the fix
+   commit. Checked the first falsifier myself: `openEngine()` (`scripts/playtest_gate.mjs:387-390`)
+   is a two-line dispatcher (`webkit` vs `openChrome`) with no crew-leg-specific mobile/dsf handling
+   of its own — confirming the prediction rather than assuming it.
+
+**One thing worth naming, not a fault:** the Chart row itself is still open (`- [ ]`,
+`CHART.md:448`) and has no entry in `CHART-LOG.md` — this was a "claim+fix" commit, not a "close"
+commit, so the row has not yet been formally closed via `close_item.mjs`. That is consistent with
+the commit's own message and is not an overclaim; it does mean the row is *closeable* on this
+evidence, not yet *closed*.
+
+**Nothing overclaimed.** Every claim in the commit message and prediction checked out against
+independent measurement: the fix, the check's realness, the red-proof, the gate-count bump, the
+scope (QA-tooling-only), and the gear reasoning all hold.
+
+### NET: **YES** — the fix is real, one line, exactly where the row said it was; the new gate is a
+genuine structural check that fails without the fix and passes with it (red-proofed independently);
+`npm test` is 138/138 green, mechanically confirmed; and the COSMETIC gear call is sound by the same
+standard CEO 197 was judged on. Closeable, though not yet closed on the Chart.
