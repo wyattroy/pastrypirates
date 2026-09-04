@@ -2256,7 +2256,7 @@ status: DONE 2026-09-04 — CEO 192, no game diff — no game code is right: he 
 ## INBOX-20260904T004944Z — scripts/lib/cdp.mjs:51 has no timeout on any CDP call — send()'s promise only resolves whe
 > scripts/lib/cdp.mjs:51 has no timeout on any CDP call — send()'s promise only resolves when Chrome's WebSocket answers back, so if a Runtime.evaluate call ever waits on a page-side promise that never settles, the whole script (and anything awaiting it, like npm test) hangs forever instead of failing loud. That's a real gap worth fixing — is the right solution to add a timeout wrapper to cdp.mjs so a future hang self-kills in, say, 2 minutes instead of running for 7 hours?
 solution: none stated
-status: OPEN
+status: DONE 2026-09-04 — CEO 197, no game diff — no game code is right: scripts/lib/cdp.mjs is QA tooling, not the shipped game (commit 96d46c9d)
 
 ## INBOX-20260904T005038Z — ⚑ HE PRESSED DO NOW — My sound effects request that I put on the glass yesterday seems to be missing -- can you
 > My sound effects request that I put on the glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place on the chart?

@@ -10338,3 +10338,5 @@ has landed and pushed (commit `a72c6f9b`).
   against deletion on this machine. Left untouched; not part of this item's diff.
 
 END OF WATCH.
+
+- 2026-09-04T02:51:37Z · close_item: INBOX-20260904T004944Z · CEO 197 · no game diff — no game code is right: scripts/lib/cdp.mjs is QA tooling, not the shipped game (commit 96d46c9d) · no stated solution
