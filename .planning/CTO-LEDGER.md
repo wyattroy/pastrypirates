@@ -10160,3 +10160,77 @@ throwaway screenshot probe, `scratchpad/_t206b_privacy_shots.mjs`, was written b
 launched — the approval it needed was refused before any browser process existed).
 
 END OF WATCH.
+
+- 2026-09-04T01:56:17Z · close_item: "T-216" · CEO 193 · commit 1ffe496 (1 game file) · no stated solution · rules-page audit (24/24 claims measured green) plus the tiebreak fix CEO 193 verified; Chart row was the one thing left open
+
+- 2026-09-04T01:56:37Z · close_item: INBOX-20260902T225008Z · CEO 193 · commit 1ffe496 (1 game file) · his solution first: commit 1efe53a · half two (audit against the shipped game) finished: 24/24 claims measured green (CEO 191), tiebreak fix landed and CEO 193 confirmed the Chart row was the only thing left open
+
+## WATCH 2026-09-04T0156Z — Wy-Blade (Bell) — CLOSED `T-216` + `INBOX-20260902T225008Z`: the rules-page audit's last gap was paperwork, not code
+
+**Situation, six lines.**
+- **Watch started** 2026-09-04T0156Z-ish, on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+  reported healthy; the real push form (`git push origin claude/cloud-handoff-planning-a9ay1u`) was
+  exercised per Door rule and returned "Everything up-to-date" (after reading `docs/GIT-AND-DEPLOY.md`
+  once, to clear rule 17's first-touch gate).
+- **Last progress** — the 0113Z t206-privacy-line watch's close-out, and a detached FULL trial
+  (pid 58852) that had already finished by the time this watch started: `FAILED — 0 of 10 sailed,
+  10 NOT RUN`, but every leg was `RESUMED` from a prior build's results rather than re-sailed, and
+  the one real `npm test` failure it reported (missing sitemap entry) was already fixed two commits
+  later (`641513c9`). Stale report, not a live signal — not committed by this watch; no `LONG-RUN`
+  marker exists to say it is still running, and `.planning/wyclau/LONG-RUN` is absent.
+- **`IN-HAND` was empty**; the last ledger claim (`t206-privacy-line`, 0054Z) had already closed.
+  Nothing else HELD.
+- **Blocked on Wyatt** — unchanged from prior watches (analytics rulings, the trial-depth-green
+  question, the Chartkeeper drag removal, etc.) — not this watch's item.
+- **Detached trial in flight** — none confirmed live (pid 58852 unverified but its own report shows
+  it already finished 2 minutes after starting).
+- **THIS WATCH TOOK CHART RANK 1** (score 202, unheld): CEO Review 193 (fresh-context, already on
+  record from the Advisor) had verified two things and left one explicit gap: *"`.planning/CHART.md`
+  still shows `T-216` as `- [ ]`. The engine fix landed (`1ffe4960`); the item was never formally
+  closed through the gate."* The underlying work — the 24-claim rules-vs-engine audit (CEO 191) and
+  the Best-Baker tiebreak engine fix (CEO 193, commit `1ffe4960`) — was already done and verified.
+  What was missing was exactly what the Door's gate exists for: the tick.
+
+**Rows skipped:** none. Rank 1 was free.
+
+**What was verified before closing, not merely trusted:**
+- `node scripts/qa/rules_claims_match_engine_check.mjs` — re-ran it myself: 24/24 claims PASS, all
+  24 mutation red-proofs fired correctly.
+- `npm test` — full suite, no FAIL lines, ends clean (135 gates per package.json's ceiling).
+- Read CEO Review 193 directly rather than trusting the Chart row's paraphrase of it.
+
+**THE CLOSE.** Two `close_item.mjs` calls, both citing CEO 193 and commit `1ffe4960` (the tiebreak
+engine fix — the last game-code change the audit was waiting on):
+1. `--item="T-216"` — ticked the Chart row (line 94, "ONE OF HIS OWN ANSWERS..."), swept it to
+   `CHART-LOG.md` in the same act (1 row archived).
+2. `--item="INBOX-20260902T225008Z"` — flipped the INBOX entry to DONE, `--solution-commit=1efe53ab`
+   (the commit that built the actual new page — half one of his two-part solution; half two, "using
+   the latest version of the game," is what CEO 191's audit and the tiebreak fix together finished).
+
+**Why both, not one.** The Chart row and the INBOX entry are two records of the same instruction
+(`INBOX-20260902T225008Z`, his ruling "Do a new /rules.html... using the latest version of the
+game"), and `close_item.mjs` only updates whichever file `--item` targets — it does not cascade.
+Leaving either open after the other closed would have reproduced the exact "an answered question is
+still shown as OPEN" fault CEO 193 (and Wyatt, repeatedly, in `INBOX.md`'s standing priority box)
+already flagged as the worst failure mode this record has. Both are now traceable to CEO 193 and
+commit `1ffe4960` per the gate's own traceability check (it passed, not asserted).
+
+**Gear: no game code this watch.** `git status --short` shows only `.planning/CHART.md`,
+`.planning/CHART-LOG.md`, `.planning/CTO-LEDGER.md`, `.planning/wyclau/INBOX.md` — no `index.html`,
+no `src/`. This watch owes no trial of its own.
+
+**Untouched, named rather than silently left:** the untracked
+`.planning/SEA-TRIAL-2026-09-04T0113Z-Wy-Blade.md` (stale FAILED report, superseded by later
+commits, not committed here — committing a misleading FAILED verdict without the context above felt
+worse than leaving it untracked for the next watch to judge) and the dozen `scratchpad/`/
+`scripts/qa/_*` throwaway files prior watches already flagged as permission-fenced against deletion
+on this machine (`_ceo190_*`, `_ceo192_*`, `_t102_*`, `_t206_*`, `_t216_*`, `_t247_*`,
+`t017_needed_diameter.mjs`).
+
+**No Artifact tool in this session** (Bell-launched watch — `ListAgents` confirms only
+`SendMessage`/`Agent`/`ListAgents`). Per Door step 6b, will message the live `Glass update` peer
+session to harvest and republish once this closes.
+
+**Browsers:** none started by this watch.
+
+END OF WATCH.

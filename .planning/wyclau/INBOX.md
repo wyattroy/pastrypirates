@@ -1714,7 +1714,7 @@ status: OPEN — FOR A WATCH. **This entry stays OPEN deliberately: it is the BU
 
 solution: his own — **a NEW page at `/rules.html`**, not the About page and not the in-game modal promoted. And **written from the CURRENT game**, which is a second instruction inside the same sentence.
 
-status: OPEN — and it is open for a BETTER reason than it was this morning. **Half one is finished: the new page exists at `/rules.html`** (`INBOX-20260902T190730Z`, CEO 171, commits `1efe53ab` + `067760a`). **Half two — "using the latest version of the game" — is measurably NOT finished, and one contradiction is now fixed out of a page nobody has fully audited.** Watch 2026-09-03T18:09Z, **CEO 181 (PARTIAL)**, Chart row `T-216`.
+status: DONE 2026-09-04 — CEO 193, commit 1ffe496 (1 game file); his solution first: commit 1efe53a
 
   ⚑ **THE WARNING TWO PARAGRAPHS BELOW WAS RIGHT, AND IT WAS RIGHT ABOUT A RULE YOU MADE YOURSELF.**
   The page was generated from the in-game How-to-play modal — correct engineering, and exactly what
