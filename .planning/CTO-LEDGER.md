@@ -10981,3 +10981,24 @@ re-attempted; `T-219` is a tooling fix to the trial's own resume-cache mechanism
 watch explicitly declined to rush ("needs its own careful pass, not a rushed one layered on top
 of an already-fragile subsystem") and is tooling, not game code (rule 7). Prediction written
 first: `.planning/wyclau/PREDICTION-20260904T0758Z-T-237.md`.
+
+## WATCH CLAIM, 2026-09-04T0839Z, `claude/cloud-handoff-planning-a9ay1u`.
+
+Taking `T-216` — rank 5 on the ranked Chart (`chartkeeper --rank --sweep --write`), unheld
+(`IN-HAND` holds `T-237` only, claimed 0758Z, still within the 90-minute window — skipped).
+Skipped rank 1 (`T-073`, SFX) — already twice measured structurally blocked for an unattended
+watch (no interactive permission grant possible). Skipped rank 2 (`T-138`) and rank 3 (`T-219`)
+— both blocked: `T-138` on the detached sea trial (pid 27400, 6/10 legs as of 0838Z) finishing
+before staging can be attempted; `T-219` is a tooling fix a prior watch explicitly declined to
+rush. Skipped rank 4 (`T-237`) — held.
+
+**What this item actually is, measured before claiming:** the Chart carries a STALE DUPLICATE.
+`.planning/CHART.md:1179` ("t216-baker-tiebreak … which side should move?") is an open,
+unticked row carrying handle `⟨T-216⟩` — but the real work it describes (the Best Baker tiebreak
+engine fix, his stated solution "record the day each captain lights their ovens and rank on it")
+was already implemented, verified, and closed under the SAME handle at `CHART.md:94` on
+2026-09-04T0156Z (commit `1ffe4960`, CEO 193), then swept to `CHART-LOG.md` — grep confirms the
+closed copy now lives in `CHART-LOG.md` (3 hits), not `CHART.md`. Chartkeeper's duplicate-handle
+guard no longer flags `T-216` as ambiguous among open rows, confirming this is the only open
+copy left. Closing it through the gate, citing the same CEO 193 verdict (which names `T-216`
+directly, confirmed by grep) and the same commit.
