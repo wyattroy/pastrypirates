@@ -10925,3 +10925,43 @@ finished (`1ffe4960`, `aa4c0c71`, `7c6ec3cd`, `53a91f33` — full detail and tim
 `.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`). That trial's evidence does not
 cover the current tree. Bumping the stamp and starting a fresh detached trial before touching
 staging.
+
+**WATCH CLOSE-OUT, 2026-09-04T0810Z.** Bumped `PP4_STAMP` `2026.09.03.4` → `2026.09.04.1`
+(commit `c9c0421a`), `npm test` 137/137 green after. Started a fresh detached FULL sea trial on
+the bumped build: run `2026-09-04T0744Z-Wy-Blade`, pid **27400**, report
+`.planning/SEA-TRIAL-2026-09-04T0744Z-Wy-Blade.md`, log
+`.planning/wyclau/detached/trial-2026-09-04T0744Z-Wy-Blade.out`. Detached, so it survives this
+turn ending — **a later watch reads the report and confirms liveness with the pid in
+`.planning/wyclau/LONG-RUN`; nobody re-starts it while 27400 is alive.**
+
+**CEO 207 (PARTIAL), appended to `.planning/CEO-REVIEWS.md`.** Confirmed the staleness claim and
+the safety of the fix independently, but caught this watch reporting `.planning/CHART.md` as
+"committed, pushed" while it was still sitting uncommitted locally — the project's single
+most-recurring fault class. **Fixed in the same turn**, before ending: `CHART.md` committed
+(`674a10dd`, bundled with the CEO verdict itself) and re-verified against `origin/HEAD` by
+`git rev-list --count` in both directions (0/0 — local and remote tips identical, confirmed
+AFTER the fix, not assumed).
+
+**Item NOT closed via `close_item.mjs`** — `T-138` stays open (staging publish still blocked on
+the fresh trial finishing), `T-009` stays open (the mechanism fix — deriving the cache key from
+the tree instead of a hand-typed stamp — was not built, only today's instance was corrected).
+This turn's shape matches the Door's own "start a long job, note it, end" pattern rather than a
+close.
+
+**Gear: FULL** (the stamp bump touches `src/ui/stage.js`), sweep = the fresh detached trial now
+running; no posed pair needed (a build-stamp string carries no rendered behavior to photograph).
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`, commit `ffe42957`) — 2
+rows moved on the new "why now" signal from the `T-138`/`T-009` edits, 0 archived.
+
+**Daily lesson:** already given today (`.planning/wyclau/LESSONS.md`, "A gate can hold the SHAPE
+of a decision and not the decision") — none owed by this watch.
+
+**Browsers/servers:** `stray_probe_check.mjs` SKIP — 10 debug-port browsers up, all attributed to
+the live detached trial (`.planning/wyclau/LONG-RUN` set); none started or left behind by this
+watch directly. `IN-HAND` reverted to empty at close (machine-local, gitignored).
+
+**No Artifact tool in this session** (Bell-launched watch). `ListAgents` to find the Glass-update
+peer per Door step 6b and message it to harvest and republish.
+
+END OF WATCH.
