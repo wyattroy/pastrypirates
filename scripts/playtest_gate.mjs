@@ -426,7 +426,7 @@ async function runLeg(name, idx) {
       // gamelog rows are filterable. Two separate Chromes = separate localStorage/pp_id (§5c).
       const code = await bootHost(host, "test1");
       log(`[${name}] room ${code} created by test1`);
-      guest = await openEngine(def, { W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`) });
+      guest = await openEngine(def, { W: def.guestW, H: def.guestH, dbgPort: dbg + 1, httpPort: null, serveRoot: REPO, profileDir: path.join(OUT, `prof-${name}-b`), mobile: !!def.mobile, dsf: def.dsf || 1 });
       guest.httpPort = PORT0;
       await bootJoin(guest, "test2", code);
       log(`[${name}] test2 joined ${code}`);
