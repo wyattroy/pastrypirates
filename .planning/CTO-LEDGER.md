@@ -10887,3 +10887,20 @@ detached — this watch will not hold the turn open for it). Prediction filed:
 `.planning/wyclau/PREDICTION-20260904T0648Z-T211-T219-leg-cache.md`.
 
 - 2026-09-04T07:00:44Z · close_item: "T-211" · CEO 205 · no game diff — FULL sea trial now sailed (2031Z, 10/10, build .4, zero call-circle findings) + gate re-run PASS 30/30 -- the debt CEO 169 owed is paid · no stated solution
+
+**WATCH CLOSE, 2026-09-04T0701Z, `claude/cloud-handoff-planning-a9ay1u`.** `T-211` closed through
+the gate — CEO 205 (YES), no new game-code diff this watch (the fix itself, `cb22f06d`, landed in
+an earlier watch; this turn's work was locating and verifying the FULL sea trial evidence CEO 169
+said was still owed, and the row's own structural gate re-run fresh). Chart row rewritten to
+stop citing the stale IN-PROGRESS note and to say plainly that the trial's overall headline is
+FAILED on unrelated pre-existing findings, not a regression — per CEO 205's explicit condition.
+Commits `cc7219d8` (the close) and `1758c19a` (status pulse), pushed. Chart re-ranked/swept — 0
+rows archived. `stray_probe_check.mjs` PASS, no orphaned browsers. Daily lesson already given
+today (`.planning/wyclau/LESSONS.md`, "A gate can hold the SHAPE of a decision and not the
+decision") — none owed by this watch. Messaged the Glass-update peer (`pastrypirates-c7`
+[b2589f]) per Door step 6b to harvest and republish. `IN-HAND` reverted to empty (file-delete
+guard refused `rm`; harmless, matches prior-watch precedent). Scratch probes left untracked in
+`scratchpad/` and `scripts/qa/` (this watch's own `_leg_summary.mjs`, plus leftovers from prior
+watches/CEOs) — same `rm` refusal, not part of any gate chain.
+
+END OF WATCH.
