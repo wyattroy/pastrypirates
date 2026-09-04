@@ -10647,3 +10647,63 @@ bookkeeping commit to follow.
 **Browsers/servers:** none started by this watch.
 
 END OF WATCH.
+
+---
+
+**WATCH OPEN/CLOSE, 2026-09-04T05:0xZ–05:3xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**State on arrival:** `can_push.mjs` healthy, real push confirmed (docs/GIT-AND-DEPLOY.md read per
+rule 17's first-touch fence). No `IN-HAND` claim, no detached trial marker. No Artifact tool in
+this session (confirmed via a real tool call, not assumed — `mcp__claude_ai_Google_Drive__search_files`
+also confirmed still refused, same structural blocker as the two prior watches on `T-073` SFX;
+did not retry a third time). Rank 1 (`T-073`) stays blocked. Ranks 2-9 were the "Your rulings, in
+hand" 8-row RULED-table waiting room a prior watch flagged as "too broad for one item."
+
+**Item taken and closed.** `node scripts/qa/rulings_triage_check.mjs` was FAILING on arrival:
+`t220-shallow-green` sat in `## RULED` with no STEP 1 CHECKLIST row, on no surface Wyatt could
+see — a pure oversight from whoever wrote that ruling row. Wrote the prediction first
+(`.planning/wyclau/PREDICTION-20260904T0510Z-ruled-triage.md`), then independently verified all 8
+rows in `## RULED` (empty "now" cell) against real evidence rather than trusting their own
+"Untriaged" label: `t206-cookie-choice` and `t206-which-pages` — read `src/analytics.js`, ran
+`analytics_consent_check.mjs` (full PASS, 3 pages exactly); `t220-shallow-green` — already fixed
+this watch cycle by the prior watch (CEO 201, commit `0fb2654c`); `t102-search-console` — he did
+it himself ("Submitted successfully"); `t102-sitemap-coverage` — ran
+`sitemap_list_derived_check.mjs`, PASS; `t012-battle-card-clip` (T-207) — his answer was "Leave
+it.", nothing to build; `t102-working-files-indexable` — ran `crawl_intent_check.mjs`, PASS;
+`t121-drag-scope` — acknowledgment only, no fix requested. Moved all 8, verbatim, to `## SETTLED
+RULINGS` in `CHART-LOG.md`; deleted their 5 checklist rows (3 of the 8 never had one). Mid-fix,
+`chart_sweep_conserves_check.mjs` caught two handles (`T-207`, `T-236`) left owning nothing by the
+deletion — repaired with two minimal `## T-207 —` / `## T-236 —` archive headings pointing at the
+real verdict rows. `npm test` re-run to completion after every edit — 0 failures throughout.
+Fresh-context CEO 202 (`general-purpose`) independently re-ran every gate, read `src/analytics.js`
+and `robots.txt` directly rather than trusting gate output, confirmed the diff was record-only
+(zero touches to `index.html`/`src/`) — verdict **YES**, appended to `.planning/CEO-REVIEWS.md`.
+
+**Not closed via `close_item.mjs`** — this is the RULED table's own documented move-3 process
+(`CHART.md:1204-1223`), not a Chart "- [ ]" row close; there is no single checklist row this work
+corresponds to. This ledger entry and CEO 202 are the record.
+
+**Left deliberately untouched, for the record:** a THIRD T-206/analytics checklist row (handle
+`T-240`, "There is probably already a Google Analytics account…") sits in the STEP 1 CHECKLIST
+saying "this row stays because the install is still outstanding" — but the install is NOT
+outstanding (verified this watch: `src/analytics.js` is live on all 3 pages). That row isn't one
+of the 8 RULED-table entries this item scoped to (it has no matching empty-`now` RULED row), so
+closing it would need its own `close_item.mjs` pass with a fresh evidence citation — left for the
+next watch rather than scope-creeping this item.
+
+**Gear: no game code.** `git diff --stat -- .planning/CHART.md .planning/CHART-LOG.md` only —
+`index.html` and `src/` untouched. No sea trial owed.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) after the close — open
+rows dropped 45 → 40, and one of the four ambiguous-handle collisions (`T-102`) resolved as a side
+effect of removing the duplicate-handle checklist rows. 0 rows archived by this sweep pass (the
+close above already moved its own 8 rows directly, not through the sweep).
+
+**No Artifact tool in this session** (Bell-launched watch). `ListAgents` found the same peer as
+last watch, `pastrypirates-c7 [b2589f]` — messaged with what landed, per Door step 6b.
+
+**Daily lesson:** already given today by a prior watch — none owed by this watch.
+
+**Browsers/servers:** none started by this watch.
+
+END OF WATCH.

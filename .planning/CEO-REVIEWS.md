@@ -15336,3 +15336,30 @@ recursion-avoidance reasoning for keeping the proof script out of the gate chain
 refused) was correctly left alone as a different, still-open decision.
 
 ### NET: **YES** — closed via `close_item.mjs` referencing this review, `.planning/CHART.md`.
+
+## CEO 202 — 2026-09-04T05:2xZ — the RULED table triage (8 rows, move 3)
+
+**Ask:** the Chart's own documented lifecycle for the RULED table (`CHART.md:1204-1223`) says a
+harvested ruling with no further watch work owed must move to SETTLED RULINGS in `CHART-LOG.md`,
+verdict written, checklist row deleted. `rulings_triage_check.mjs` was FAILING on arrival
+(`t220-shallow-green` had no checklist row, so it was on no surface Wyatt could see). The watch
+fixed that and, finding 7 more rows genuinely idle in the same waiting room, triaged all 8.
+
+**NET: YES.** Independently re-verified, not taken on the watch's account: the RULED table now
+empty; all 8 rows present under SETTLED RULINGS in `CHART-LOG.md` with the original "item" and
+"HIS RULING" cells byte-identical to what was deleted, only the "now" verdict cell new.
+`rulings_triage_check.mjs`, `analytics_consent_check.mjs`, `sitemap_list_derived_check.mjs`,
+`crawl_intent_check.mjs`, `chart_sweep_conserves_check.mjs` all re-run independently — PASS. Full
+`npm test` re-run to completion — 0 failures. `git diff --stat` confirms record-only: `CHART.md`
+(-24), `CHART-LOG.md` (+19), zero touches to `index.html` or `src/`. Spot-checked
+`src/analytics.js:71-92` directly (consent-denial precedes tag load) and `robots.txt` (the 5
+fenced folders match the ruling) rather than trusting the gates alone. `t220-shallow-green`'s cited
+commit `0fb2654c` and CEO 201 both verified to exist.
+
+**Scope:** the two orphaned handles (`T-207`, `T-236`) the deletion created were caught by
+`chart_sweep_conserves_check.mjs` mid-work and repaired with minimal archive headings in
+`CHART-LOG.md` pointing at the real verdict rows rather than duplicating their text — a narrow,
+gate-driven fix, not scope creep.
+
+### NET: **YES** — this is the RULED table's own documented move-3 process, not a Chart "- [ ]"
+row close, so `close_item.mjs` does not apply; this review and the ledger entry are the record.
