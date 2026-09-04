@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-04T09:19:10.096Z	watch 2026-09-04T0908-0930Z: T-138's staging publish stayed blocked -- the fresh sea trial that just finished caught a real, new bug first: the just-added Privacy Policy/About footer overlaps the captains panel on every phone screen. Filed as T-256, CEO 210 verified. Not fixed yet -- needs its own posed before/after pass.
+2026-09-04T09:52:23.024Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -18,7 +18,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T13:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T134801Z.out/.err, kit: readable)
 2026-09-03T14:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T141801Z.out/.err, kit: readable)
 2026-09-03T14:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T142801Z.out/.err, kit: readable)
 2026-09-03T14:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T143801Z.out/.err, kit: readable)
@@ -58,4 +57,5 @@ None recorded.
 2026-09-04T08:38:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T083801Z.out/.err, kit: readable)
 2026-09-04T08:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T084801Z.out/.err, kit: readable)
 2026-09-04T09:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T090801Z.out/.err, kit: readable)
+2026-09-04T09:28:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T092801Z.out/.err, kit: readable)
 ```
