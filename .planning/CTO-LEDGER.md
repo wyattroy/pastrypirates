@@ -10103,3 +10103,5 @@ directly here. `Glass update [fda089]` is listed as a live peer session; it will
 publish once this item closes.
 
 **Browsers:** this watch started none directly (the detached sea trial spawns its own).
+
+- 2026-09-04T00:54:39Z · close_item: "Your rules page promises a tiebreak the game does not give" · CEO 193 · commit 1ffe496 (1 game file) · no stated solution
