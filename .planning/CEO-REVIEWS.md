@@ -1,5 +1,41 @@
 # CEO reviews — the standing record
 
+## CEO Review 212 — `T-009`: derive the sea trial's leg-resume cache key from the tree — **YES, against his sentence; PARTIAL against the Chart row** — 2026-09-04
+
+*The work reviewed:* `scripts/lib/game_tree_hash.mjs` (a content hash over every git-tracked file
+`.claude/hooks/lib/game-code.cjs`'s own `isGameCode()` already calls "the game"), `scripts/lib/leg_cache_key.mjs`
+(the pulled-out resume decision, `legIsFresh()`), and `scripts/playtest_gate.mjs` wired to both —
+the leg-resume cache filename and stored record are now keyed on the tree's own content hash, not
+the hand-typed `PP4_STAMP` alone. New gate `leg_cache_tree_hash_check.mjs`; `notrun_provenance_check.mjs`
+fixed to pass the new `TREE_HASH` free variable its regex-reconstructed `stampRun()` now needs.
+
+### VERDICT: **YES against the verbatim instruction, PARTIAL against the Chart row it was meant to close**
+
+1. **Done, verified independently, not on the summary's word.** Re-ran `git show HEAD:scripts/playtest_gate.mjs`
+   (the pre-fix committed file) — zero matches for `gameTreeHash`/`legIsFresh`/`TREE_HASH`, so the
+   new gate's structural-wiring check would genuinely have failed before this landed. Ran the fingerprint
+   directly: 239 files covered (`index.html`, all 30 of `src/`, all 149 art assets), zero `scripts/`
+   or `.planning/` leakage, 48ms — real, not a decorative constant.
+2. **Half the Chart row is still open, and it's the half he reads.** His `T-009` text asks for the
+   key to be folded into the cache **and the report's own stamp**. `scripts/sea_trial.mjs:68,241,400,436`
+   still names the build purely from the hand-typed `PP4_STAMP`, and `:433` still tells him to compare
+   it against the in-game menu — a comparison that will agree while the code has moved on past both.
+   So: the silent-stale-reuse bug is closed; the report can still be titled with a build name that
+   undersells what actually got tested. Not closing the Chart row on this evidence alone.
+3. **A real, if small, cost the prediction didn't own.** The live 10:13Z trial (pid 41776) had
+   already banked 2 of 10 legs under the old filename scheme when this edit landed; if that trial
+   has to restart, those two legs won't be found under the new naming and will re-sail (~15-20 min
+   cost, not a correctness fault). The prediction claimed the edit was safe with no caveat; it
+   should have named this.
+4. **Rule 16 (claim before you edit) was skipped.** No ledger claim was on record before
+   `scripts/playtest_gate.mjs` was touched, and the ledger explicitly warns other watches off that
+   exact file while a trial is at sea. Nothing broke this time. Recorded so it isn't quietly repeated.
+5. **The prior verdict's specific fault (claiming committed-when-still-local) did NOT recur** — the
+   work was accurately reported as staged/uncommitted at review time.
+6. **One sentence for Wyatt:** the trial can no longer silently reuse a test result for code that's
+   changed since — but the report you actually open still names the build purely by the number a
+   session has to remember to bump, so "nothing goes red when that number is wrong" is only half fixed.
+
 ## CEO Review 207 — `T-138`/`T-009` stamp-staleness catch, stamp bump, fresh trial — **PARTIAL** — 2026-09-04
 
 *The work reviewed:* chasing `T-138` (the player-count console) toward a staging publish, this

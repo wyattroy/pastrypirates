@@ -239,6 +239,39 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `2026.09.04.1` → `2026.09.04.2`, `npm test` 138/138 green, fresh detached FULL trial started
   (`2026-09-04T1013Z-Wy-Blade`, pid 41776). **Two hand corrections in one day is exactly the
   recurring cost this row's underlying fix would remove; still not built.**
+
+  ### ✅ THE CACHE-KEY HALF IS BUILT AND WIRED — 2026-09-04T1030Z-1100Z, CEO 212 (**YES against the
+  sentence; PARTIAL against this row**). NOT CLOSING THIS ROW — the other half is still open.
+  `scripts/lib/game_tree_hash.mjs` derives a sha256 over every git-tracked file
+  `.claude/hooks/lib/game-code.cjs`'s own `isGameCode()` already calls "the game" (239 files:
+  `index.html`, all of `src/`, all 149 art assets — checked, not assumed); `scripts/playtest_gate.mjs`
+  now keys the leg-resume cache filename AND the stored record on that hash via
+  `scripts/lib/leg_cache_key.mjs`'s `legIsFresh()`, so a game-code commit landing on an unmoved
+  `PP4_STAMP` — which happened twice today, above — can no longer be silently resumed as if
+  nothing changed: the hash differs, the filename differs, the leg re-sails. Red-proofed against
+  the real pre-fix committed file (`git show HEAD:scripts/playtest_gate.mjs` — zero matches for
+  the new symbols), new gate `leg_cache_tree_hash_check.mjs`, `notrun_provenance_check.mjs` fixed
+  for the new free variable its reconstructed `stampRun()` needs, `npm test` 139/139 (gate ceiling
+  raised 138→139, `quiet_gate_report.mjs`: 0 of 18 retirement candidates). Tooling only — `scripts/`
+  is excluded from "game code", so no sea trial gear applies; `index.html`/`src/` untouched.
+  ⛔ **STILL OPEN, AND IT IS THE HALF HE ACTUALLY READS:** this row's own text asked for the key
+  folded into the cache **and the report's own stamp**. `scripts/sea_trial.mjs:68,241,400,436`
+  still names the build purely from the hand-typed `PP4_STAMP`, and `:433` still tells him to
+  compare it against the in-game menu — a comparison that will agree while the code has moved on
+  past both. So a report can still be titled with a build name that undersells what was tested,
+  even though it can no longer LIE about whether a leg was resumed on stale evidence. Next step:
+  derive `sea_trial.mjs`'s own reported build identity the same way, or at minimum print the tree
+  hash alongside the stamp so a mismatch is visible.
+  ⚠ **A SMALL, NAMED COST, NOT A CORRECTNESS FAULT:** the live `2026-09-04T1013Z-Wy-Blade` trial
+  (pid 41776) had already banked 2 of 10 legs under the OLD filename scheme when this landed; if
+  that trial restarts, those two legs won't be found under the new naming and will re-sail
+  (~15-20 min). CEO 212 also flagged that `package.json` sits inside the hashed set (deliberately,
+  per `game-code.cjs`'s own comment), so every future gate added to the chain invalidates the
+  whole leg cache — safe direction, not costless, not yet written down anywhere else.
+  ⚠ **RULE 16 GAP, OWNED RATHER THAN HIDDEN:** this watch edited `scripts/playtest_gate.mjs` —
+  the one file the ledger repeatedly warns other watches off touching while a trial is at sea —
+  without a prior ledger claim. Nothing collided this time; CEO 212 caught the gap and it is
+  recorded here so the next watch claims before it edits, not after.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 

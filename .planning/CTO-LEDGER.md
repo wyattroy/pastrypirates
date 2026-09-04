@@ -11209,3 +11209,60 @@ peer per Door step 6b and message it to harvest and republish once this closes.
 This item does not close through `close_item.mjs` this turn — starting a long job is not a
 close (Door step 4's own distinction). It stays IN FLIGHT on the Chart until the trial
 finishes and its verdict is read.
+
+## WATCH CLAIM, 2026-09-04T1020Z-1105Z, claude/cloud-handoff-planning-a9ay1u.
+
+Situation: watch started 2026-09-04T1018Z (orientation). Last progress was the prior watch's
+`T-138`/`T-009` fresh-trial launch (`2026-09-04T1013Z-Wy-Blade`, pid 41776, ~5 min into its
+run at claim time). `T-073` (SFX) confirmed still structurally blocked for an unattended watch
+(no new signal). `T-138` correctly not actionable — nothing to do until its trial finishes.
+
+Took rank 3, `T-009` — the underlying mechanism fix (derive the sea trial's leg-resume cache
+key from the game tree, not the hand-typed `PP4_STAMP`) that two watches today (07:45Z, 10:13Z)
+had each patched by hand rather than built. ⚠ **RULE 16 GAP, OWNED:** did not claim this in
+`IN-HAND`/this ledger BEFORE editing `scripts/playtest_gate.mjs` — the file the ledger
+repeatedly warns other watches off touching while a trial is at sea. Nothing collided; CEO 212
+caught the gap during review and it is recorded here, not smoothed over. Claiming it now,
+retroactively, before the commit.
+
+Prediction written first: `.planning/wyclau/PREDICTION-20260904T1030Z-T-009-tree-hash-cache.md`.
+Built `scripts/lib/game_tree_hash.mjs` (a sha256 over every git-tracked file
+`.claude/hooks/lib/game-code.cjs`'s own `isGameCode()` already calls "the game" — one
+definition, reused a third time rather than re-decided) and `scripts/lib/leg_cache_key.mjs`
+(`legIsFresh()`, the resume decision pulled out so it's testable with no browser). Wired both
+into `scripts/playtest_gate.mjs`: `TREE_HASH` computed once at startup, folded into the leg
+cache filename and the stored record (`stampRun`), `readDone()` now calls `legIsFresh()`
+instead of a raw stamp comparison. Fixed `scripts/qa/notrun_provenance_check.mjs`, which
+reconstructs `stampRun()` by regex and re-executes it standalone — it needed `TREE_HASH` added
+as a third free variable or it threw `TREE_HASH is not defined`, caught by running the full
+suite rather than assumed clean. New gate `scripts/qa/leg_cache_tree_hash_check.mjs`: content-
+sensitivity/determinism of the hash primitive in a scratch temp dir (never the real repo, since
+a live trial was sailing while this was written), `legIsFresh()` rejecting the exact pre-fix
+record shape regardless of stamp match, and a structural check that `playtest_gate.mjs` actually
+calls these (this project's most-repeated fault: a capability nothing invokes). Red-proofed
+against the real pre-fix committed file (`git show HEAD:scripts/playtest_gate.mjs` — zero
+matches for the new symbols). `package.json`: gate wired into the chain, ceiling raised
+138→139 (`quiet_gate_report.mjs`: 0 of 18 retirement candidates). `npm test` 139/139 green.
+
+CEO 212 (**YES against the verbatim ask; PARTIAL against the Chart row**): the cache-key half
+is real, wired, and would have failed before the fix — confirmed independently by the reviewer,
+not taken on this session's word. Two things it is NOT: (1) the Chart row also asked for the
+cache key folded into `sea_trial.mjs`'s own REPORTED stamp, which is untouched —
+`sea_trial.mjs:68,241,400,436` still names the build purely from `PP4_STAMP`, so the report
+Wyatt actually reads can still undersell what was tested even though it can no longer silently
+resume stale evidence; (2) costless — the live 1013Z trial's already-banked 2 legs are keyed
+under the old filename and would re-sail (~15-20 min) if that trial restarts, and
+`package.json` sitting inside the hashed set means every future gate addition invalidates the
+whole leg cache (safe direction, not free). Both named on the Chart row rather than buried.
+Appended to `.planning/CEO-REVIEWS.md` as Review 212.
+
+**Not closed through `close_item.mjs`** — ticking `T-009` would misrepresent a two-part ask as
+fully done. Chart row updated with the CEO verdict, what shipped, and what remains, left
+unticked. Chart re-ranked and swept (`chartkeeper.mjs --rank --sweep --write`) before filing —
+0 rows archived, pre-existing duplicate-handle flags unchanged (not this turn's to fix).
+Browsers/servers: none started by this watch; `stray_probe_check` reports the live trial's own
+10 debug-port browsers as expected, none abandoned. `IN-HAND` reverted to empty at close.
+**No Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find the
+Glass-update peer per Door step 6b and message it to harvest and republish.
+
+END OF WATCH.
