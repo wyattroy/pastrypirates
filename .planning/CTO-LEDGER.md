@@ -10868,3 +10868,22 @@ uncommitted, matching prior-watch precedent — harmless, not part of any gate c
 by the harness's file-delete guard.
 
 END OF WATCH.
+
+---
+
+**WATCH CLAIM, 2026-09-04T0651Z, `claude/cloud-handoff-planning-a9ay1u`.** Taking `T-211` — its
+own row was blocked purely on "the FULL-gear sea trial has no verdict," citing an old IN-PROGRESS
+note on build `2026.09.03.2`. **The row's own STALE-CANDIDATE flag already says the tree is now
+`2026.09.03.4`.** Measured before touching it: all 10 fleet legs in `sea-trial-shots/legs/` are
+cached at `--2026.09.03.4.json`, `finished:true`, sharing one `__runId`
+(`2026.09.03.4-mtlzfii3`) — a single genuine complete sail, not junk. That runId matches
+`SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`, whose own headline reads **"10 of 10 voyage(s) sailed
+... 99 min ... gear FULL"** — a report other rows (`T-017`, `T-235`) already cite as their
+verdict, that `T-211`'s text never picked up. Read every judged verdict across all 10 legs
+(306 screens) and grepped the full report text: zero mentions of a call-circle, a stranded
+captain selector, or a captain named beside the wrong boat. Confirming with the row's own
+structural gate (`t211_reframe_on_new_captains_check.mjs`, a real driven browser, running
+detached — this watch will not hold the turn open for it). Prediction filed:
+`.planning/wyclau/PREDICTION-20260904T0648Z-T211-T219-leg-cache.md`.
+
+- 2026-09-04T07:00:44Z · close_item: "T-211" · CEO 205 · no game diff — FULL sea trial now sailed (2031Z, 10/10, build .4, zero call-circle findings) + gate re-run PASS 30/30 -- the debt CEO 169 owed is paid · no stated solution

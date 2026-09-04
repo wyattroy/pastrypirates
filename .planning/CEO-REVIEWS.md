@@ -15450,3 +15450,63 @@ path-separator bug does NOT recur from any prior review — newly found.
 deliverable remains unfixed for a third time and cannot be closed by an unattended watch on this
 machine. Worth putting to Wyatt directly: either grant an interactive session write access to
 `.claude/hooks/`, or accept this is a five-minute fix waiting on a human at the keyboard.
+
+---
+
+## CEO Review 205 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-211`: does the existing FULL sea trial finally close the call-circle-off-screen fix? — **YES, with two conditions on how it's written up**
+
+**VERDICT: YES — T-211 may close on this evidence, with two conditions attached to *how* it is
+closed (below). The debt CEO 169 named is genuinely paid.**
+
+**What CEO 169 actually owed:** its exact words, `.planning/CEO-REVIEWS.md:1520`: *"the sea trial
+that was supposed to check the rest of the game was never actually sailed... so that debt is
+still open."* That is a narrow claim — a real FULL trial, on the fixed build, needed to actually
+run and be read. It has now happened.
+
+**1. The fix commit is real and on-mechanism.** `git show cb22f06d --stat` confirms it touches
+`src/ui/stage.js` (23 lines) plus a new dedicated gate
+`scripts/qa/t211_reframe_on_new_captains_check.mjs`. The commit body matches the Chart row's
+description exactly: `S.frameKey` moved from the rendered transform to the logical board position
+(`players[i].pos`), fixing 18-of-30-off-screen down to 0-of-30 on a pinned board, with a
+red-proof that fails at 11/30 when the fix is reverted.
+
+**2. The build the FULL trial exercised really contains the fix.**
+`git merge-base --is-ancestor cb22f06d HEAD` confirms ancestry. `git log --oneline --all --
+src/ui/stage.js` shows the most recent commit touching that file is `4c6f1624` (T-017, unrelated
+trade-circle sizing, also lands after `cb22f06d`) — and that is the commit that bumped
+`PP4_STAMP` to `2026.09.03.4`. Current tree: `src/ui/stage.js:43` reads
+`const PP4_STAMP = "2026.09.03.4"`, and `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md:1`
+reads build `2026.09.03.4`. Stamps match, and nothing touching `stage.js` lands after the stamp
+bump that the trial could have missed.
+
+**3. The trial genuinely ran, all ten legs, at FULL, and surfaced zero call-circle findings.**
+`**FAILED** — 10 of 10 voyage(s) sailed · 2026-09-03T20:31:50.720Z · 99 min · gear **FULL**`,
+`voyages that did NOT run: none`. Grepping the report for `circle|stranded|wrong boat|off
+screen|off-screen|call-circle` returns nothing — none of the 306 judged screens flagged anything
+resembling the T-211 symptom.
+
+**4. The row's dedicated gate was re-run fresh, independently — not vacuous:**
+`judged 30, named captain fully on screen 30, NOT RUN 0 → PASS — all 30 named captains were
+framed, sentence unchanged.` Matches the claim exactly.
+
+**5. The one thing worth being honest about, and the reason this is not a bare PASS:** the sea
+trial's overall verdict is **FAIL**, not green. The report's own opening line says so — a
+background brief that quoted only "10 of 10 sailed... gear FULL" without the word "FAILED" would
+have been a misleading summary. What it actually failed on: a chronic `T-019` vision-judge
+finding pattern, several pre-existing rendering bugs (empty speech bubble, clipped award text,
+overlapping trade modal, geometry that "never stopped moving" on some screens per leg), one
+`no-cover-ask` structural hit, and coverage gaps. **None of these exist because of `cb22f06d`.**
+The geometry-not-settled pattern and overall FAIL predate the fix — the same pattern and the same
+overall FAIL shape appear in two earlier trials that sailed *before* `cb22f06d` landed
+(`SEA-TRIAL-2026-09-02T0137Z-Wy-Blade.md`, `SEA-TRIAL-2026-09-03T0341Z-Wy-Blade.md`) — a standing,
+unrelated condition, not a regression from this change.
+
+**Two conditions for closing, not blockers on the evidence itself:**
+- The Chart row's own text still said *"the FULL-gear sea trial has no verdict... Run
+  `2026-09-03T1248Z-Wy-Blade`, IN PROGRESS on build `2026.09.03.2`"* under a `STALE-CANDIDATE`
+  flag. That text is wrong now and must be **rewritten**, not merely ticked — pointing at
+  `SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md` and stating plainly the trial's overall result was FAIL
+  for reasons unconnected to this bug.
+- Whoever closes it must say so out loud: "the FULL trial ran and failed, but not on anything this
+  fix touches" — never "the sea trial passed," which would be false and exactly the kind of
+  comfortable omission rule 6 exists to catch.

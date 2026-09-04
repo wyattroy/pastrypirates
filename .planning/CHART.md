@@ -168,43 +168,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-- [ ] **THE OTHER HALF OF THE CALL-CIRCLE BUG, AND IT IS THE BIGGER HALF: on 34 of 42 posed fights
-      ⟨`T-211`⟩
-  THE CAPTAIN A BUTTON NAMES IS NOT ON THE SCREEN AT ALL.** Split off `T-013` on 2026-09-03 by the
-  watch that fixed the other mechanism, at CEO 146's own instruction not to assume one change cures
-  both. **There is no boat to be beside**, so the circle takes the nearest legal spot in the band and
-  is then "next to someone else" by luck — which is Wyatt's sentence
-  (`INBOX-20260901T1332Z`) arriving by a completely different road from the pill eviction.
-  **WHAT IS ALREADY KNOWN, so nobody re-derives it:** `src/ui/stage.js` asks the camera to frame the
-  fight (`camFitSeats(anchorSeats)`) only when `S.frameKey` changes, and that key is
-  `turnSerial + the ask's TEXT` — **it does not contain the seats the question is about**, although
-  `anchorSeats` is computed one line away and is already in the placement memo key.
-  **⚑ SETTLED AND FIXED 2026-09-03T12:4xZ by watch d4 — commit `cb22f06d`, CEO 169 (PARTIAL). THE
-  TEXT ABOVE WAS RIGHT ABOUT THE MECHANISM AND WRONG ABOUT THE VARIABLE, AND THAT COST A ROUND.**
-  It is not the *seats* — those are CONSTANT whenever the same two captains are asked about twice,
-  which is the whole case. It is **WHERE THEY ARE**. The key now carries the LOGICAL square
-  (`players[i].pos`), not the rendered transform, so it is still during a glide and the "cannot
-  re-aim at every frame" property is preserved.
-  **NOT A PROBE ARTIFACT — that question is answered.** `src/ui/flow.js:2538` asks **"Attack whom?"**,
-  a fixed sentence whose options include a `← Back` carrying the player's own seat. Open Attack, back
-  out, sail, open it again: same turn, same sentence, boats elsewhere, no re-aim. Confirmed
-  independently by CEO 169.
-  **THE NUMBERS, one pinned board, three legs:** new gate
-  `node scripts/qa/t211_reframe_on_new_captains_check.mjs` — **18 of 30 named captains off screen
-  before, 0 of 30 after**; planted red proof (the clause removed again) **FAIL at 11 of 30**. The
-  sibling `t013_call_circle_beside_check.mjs` went from **8 judged / 34 blind** to **28 judged /
-  28 beside / 14 blind**, so `T-013`'s fix is now tested against 3.5× the rows and holds.
-  **Posed pair:** `.planning/posed/t211-390w-BEFORE.png` (both circles clipped by the right edge with
-  no boat near them) and `t211-390w-AFTER.png` (each circle touching its own hull), same seed.
-  ⛔ **STILL OPEN, AND THAT IS WHY THIS ROW IS NOT TICKED: the FULL-gear sea trial has no verdict.**
-  Run `2026-09-03T1248Z-Wy-Blade`, IN PROGRESS on build `2026.09.03.2`.
-  ⚠ **AND THE FIRST TRIAL THIS WATCH STARTED SAILED NOTHING WHILE LOOKING LIKE IT HAD.** Report
-  `SEA-TRIAL-2026-09-03T1242Z-Wy-Blade.md` reads **FAILED — 0 of 10 sailed, 10 NOT RUN**: the trial
-  keys "have I tested this build?" on `PP4_STAMP`, the fix did not bump it, so every leg RESUMED a
-  complete run recorded **89 minutes before the fix existed**. Caught by CEO 169, not by any gate.
-  The stamp is now `2026.09.03.2` and the trial re-started for real. **Filed as `T-212`.**
-  **Sizing: the fix is landed and proven; what remains is the trial's verdict.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.2; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
