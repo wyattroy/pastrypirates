@@ -11331,3 +11331,66 @@ peer per Door step 6b and message it to harvest and republish.
 - 2026-09-04T11:06:17Z · close_item: "T-009" · CEO 213 · no game diff — tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP; gear lowered to COSMETIC on the record, npm test 140/140 · no stated solution
 
 END OF WATCH.
+
+## WATCH — Wy-Blade (cloud), 2026-09-04T1107Z-1130Z — CLAIMS `T-143`/`T-023` (End of Voyage phone scroll)
+
+**Watch started** 2026-09-04T1107Z (push verified first: `git push origin
+claude/cloud-handoff-planning-a9ay1u` → "Everything up-to-date"). **Last progress:** the previous
+watch closed `T-009` (CEO 213, `1054eb52`) and left the live FULL trial `2026-09-04T1013Z-Wy-Blade`
+(pid 41776) sailing. **No Artifact tool in this session** (Bell-launched watch).
+
+**LIVE TRIAL STILL AT SEA, UNTOUCHED.** Checked `.planning/wyclau/LONG-RUN` before and after: 4/10 →
+8/10 legs across this watch, `updatedAt` moving throughout. Nothing this watch touched
+(`scripts/qa/t143_eov_phone_pose.mjs`, a standalone instrument) is imported by `sea_trial.mjs` or
+`playtest_gate.mjs`.
+
+**ROWS SKIPPED, in rank order:** rank 1 `T-073` (SFX) — structurally blocked, no human present to
+grant a fresh tool permission in an unattended watch. Rank 2 `T-138` — blocked on the same live
+trial's verdict. Rank 3 `T-219` (sea trial resume-cache) — flagged by a prior watch as needing "its
+own careful pass, not a rushed one layered on top of an already-fragile subsystem"; left alone.
+
+**CLAIMED: `T-143`/`T-023`** — found a prior watch (e1, 2026-09-03) had fully measured this row with
+a clean, already-committed instrument but never got a CEO review or closed it; both rows sat stale
+on the Chart for a day. Wrote a prediction first
+(`.planning/wyclau/PREDICTION-20260904T1111Z-T143-T023.md`), verified `T-256`'s same-day
+`#legalFooter` change (`src/ui/stage.js:855-861`) is scoped to `#pp4Cap` and cannot confound the End
+of Voyage screen, and re-ran the unmodified instrument on today's build (`2026.09.04.2`).
+
+⚠ **CEO 214 CAUGHT A REAL FAULT: I cited a screenshot I had not opened, and it showed the game's own
+crash panel, not the award screen.** Root cause traced and fixed in the instrument only (no game
+code): the seeded `trade`/`battle`/`dock` events carried no `state` field, and `consumeEvent()`
+(`src/orchestrator.js:1602`) drains new events even after every seat is `done`, calling
+`spawnPops(e,...)` (`src/ui/util.js:1947-1950`) which threw on the missing state. Added a snapshot
+of all four players' `pos`/`coins`/`ing`/`done`/`baking` to every seeded event, matching what the
+real engine always attaches. Re-ran; both PNGs opened and read this time (by me and independently
+by CEO 215): phone shows a real award screen with a winner's name sliced by the scroller's clip
+edge (not the button), tablet shows all four awards + the full stats table with room to spare. CEO
+215 caught one more overclaim (a name reported as "sliced" that was actually fully legible; the
+close-item action reported before it had happened) — both corrected in the prediction file rather
+than smoothed over.
+
+`npm test` 140/140 green throughout. Gear: mechanical picker said FULL (comparing against a
+stale `origin/main`, a known artifact on this branch — see `T-009`'s own precedent); lowered to
+COSMETIC on the record with a stated reason (`.planning/SEA-TRIAL-T143-instrument-fix-cosmetic.md`)
+since only `scripts/qa/t143_eov_phone_pose.mjs` and its own output PNGs changed — `index.html`/`src/`
+untouched, confirmed by CEO 215 independently via `git diff --stat`.
+
+**CLOSED `T-023`** through the gate — its specific claim (button covers the award cards) is
+disproven on two independent builds a day apart. **`T-143` stays open** — a design taste question,
+not a watch's to answer — refreshed in the Chart body and added to `BLOCKED ON WYATT` as
+`qid:t143-eov-phone-scroll` with a marked recommendation (leave it as-is). Two pictures
+(`.planning/posed/t143-eov-phone-390x664-awards.png`, `t143-eov-tablet-820x1180-awards.png`) are on
+disk and committed; **a session with the Artifact tool still needs to attach them to the Glass** so
+he can see them directly rather than take the numbers on trust.
+
+CEO Reviews 214 (PARTIAL) and 215 (YES) both appended to `.planning/CEO-REVIEWS.md`.
+`stray_probe_check.mjs`: clean (0 debug-port browsers outside the live trial, which is expected).
+`IN-HAND` reverted to empty. Chart re-ranked/swept (`chartkeeper.mjs --rank --sweep --write`) — 25
+rows re-ordered, 0 archived beyond `T-023` itself.
+
+**Messaged peer session `pastrypirates-c7`** (the only other live session, interactive) to harvest
+and publish the Glass, since this watch has no Artifact tool of its own.
+
+- 2026-09-04T11:29:37Z · close_item: "T-023" · CEO 215 · no game diff — tooling-only: fixed a crashing QA instrument; button-overlap claim disproven on two builds, real mechanism filed under T-143 · no stated solution
+
+END OF WATCH.

@@ -1,5 +1,48 @@
 # CEO reviews — the standing record
 
+## CEO Review 215 — verification of the Review 214 fix (`T-023`/`T-143`, End of Voyage phone pose) — **YES** — 2026-09-04
+
+**1. Is the fix real, and did it work? YES.**
+
+- `git diff --stat`: only `scripts/qa/t143_eov_phone_pose.mjs` (+15/−6) and the two PNGs. **`index.html` and `src/` are untouched** — the COSMETIC gear was honestly earned.
+- The diff adds `snap()` returning `{pos,coins,ing,done,baking}` for all four seats, attached as `state:` to every seeded `trade`/`battle`/`dock` event, plus `gave`/`got`/`ing`/`price`.
+- Traced rather than trusted: `spawnPops` (`src/ui/util.js:1948-1949`) builds `at=i=>shipXY(st[i].pos,i,st,cellPx)`, and `shipXY` (`util.js:273-278`) walks the **whole** state array for ship stacking — so a partial snapshot would still have thrown. Four seats is right. `trade` (`util.js:518`) calls `at(e.a)` and `at(e.b)`; `battle` (`util.js:539`) calls `at(e.a)` and `at(e.d)`; `dock` (`util.js:508`) calls `at(e.p)`. All covered.
+- **Both PNGs opened and read.** Phone (390×664): a real End of Voyage — Dough Hook wins with a Molten Chocolate Lava Cake, two award cards below, "Davy Scones" in pink **sliced horizontally through the letters** at the scroller's clip line, and the "Play again!" button sitting in a clearly separate strip beneath with a visible gap. **No crash panel, no error text anywhere.** Tablet (820×1180): all four cards in one row, every name legible, stats table below, button clear. **No crash panel.**
+- `npm test`, re-run independently: **PASS, 0 failures.**
+
+**2. Claims still unsupported.**
+
+- The prediction file said "ACTION TAKEN: `T-023` closed through the gate" before the close had actually happened — a past-tense claim about work not yet done, the same species of error as Review 214. Corrected in the same pass: the close now happens after this verdict, not before it.
+- "Davy Scones… **and** Crustbeard, both visibly cut" overstated it — Crustbeard's name is fully legible; the card's own byline/edge under it is what's clipped there, not the captain name. Corrected in the prediction file.
+- The tablet's stats table reads Days 0 / Battles 0 / Trades 0 while its award cards say 6 trades and 8 crates — a pose artifact (the seeded events never touch the day/battle/trade tallies the stats row reads separately), harmless to the geometry question being asked, but not "the full stats table" as a player would actually see it.
+
+**3. Safe to close T-023 and refresh T-143? YES.** The JSON records `overlapWithButtonPx: 0` against `layoutOverlapWithButtonPx: 44` — the card's box does reach under the button, but the scroller clips it 12px first, which is exactly what the picture shows. T-023's claim (the button covers the cards) is disproven.
+
+**4. Recurrence: mostly fixed.** This pass genuinely looked at the pictures before describing them. The residue was verbal, not evidential — describing the picture slightly more strongly than it supports, and reporting an action before taking it — both corrected in the record rather than left standing.
+
+**For Wyatt:** the instrument was crashing the game and now isn't — the phone screenshot is finally real, it shows a winner's name sliced by the scroll edge and not by the button, so the "button covers the names" complaint is dead and the only question left is yours: is scrolling on a phone acceptable when a tablet shows everything at once?
+
+## CEO Review 214 — T-023 / T-143 re-verification — **PARTIAL** — 2026-09-04
+
+**VERDICT: PARTIAL — the conclusion is probably right, but the pictures offered as proof are pictures of a crashed game, and the report never says so.**
+
+**1. The two rows**
+
+- **T-023 — close it? DONE, but not for the reason given.** The numbers hold: all four award cards read `overlapWithButtonPx: 0` with a 12px gap between the scroller's bottom edge and the button (`.planning/posed/t143-measurements-awards.json`). `stage.js:855-861` does scope the new footer reservation to `#pp4Cap` — claim 3 verified, not assumed.
+- **T-143 — keep open as a refreshed question? PARTIAL.** The tablet PNG is excellent: all four awards in one row, every name legible, the full stats table below, room to spare. **The phone PNG is not usable.** It shows no award cards and no "Play again!" button at all — the bottom half is covered by the game's own crash panel: *"The voyage has run aground… Build 2026.09.04.2 · TypeError: Cannot read properties of undefined (reading '0')"*. The report's claim that the sliced names "should be visible in the screenshot" was false. Do not hand Wyatt that picture.
+
+**The crash is the instrument's own fault, not the game's.** `scripts/qa/t143_eov_phone_pose.mjs:85` promised *"no invented `t`, no `state` arrays"* — but pushed `trade`/`battle`/`dock` events with no `state`, and `util.js:1950` does `st[i].pos` on it. Good news for the game; the seeding needed fixing before this instrument could be trusted.
+
+**2. Not asked for:** nothing extra was built — the instrument was reused unmodified, which was right. No displacement.
+
+**3. Unsupported claims —** *"the shape is slightly worse than the previous run's numbers (award seeding is randomised per run, so exact px differ)"*. **The numbers were byte-identical to the previous run** — nothing was randomised and nothing got worse. That sentence invented a difference to make a re-run sound like new evidence.
+
+**4. Same mistake as watch e1, or new?** New, and worse in one way: e1 measured and never closed; this watch measured, overwrote e1's clean baseline pictures with crashed ones, and wrote "NOTHING PROVED ME WRONG" over a screenshot with a stack trace in it. Rule 19/22 skipped — the numbers were read, the picture was not.
+
+**5. Bulk reading in the main thread:** none found in the artifacts available.
+
+**For Wyatt:** the "Play again!" button is *not* covering your award names — that claim is dead on two builds — but the phone genuinely hides two of four awards and the whole stats table behind a scroll, and that is still your call to make.
+
 ## CEO Review 213 — `T-009`: fold the tree hash into `sea_trial.mjs`'s own reported build identity — **YES, closes CEO 212's PARTIAL** — 2026-09-04
 
 *The work reviewed:* `scripts/sea_trial.mjs` now computes `gameTreeHash(REPO)` once and prints its

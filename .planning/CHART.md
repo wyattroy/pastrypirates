@@ -310,25 +310,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
 
-- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
-      ⟨`T-143`⟩
-      award until you scroll. The tablet shows all four awards AND the whole stats table.**
-      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
-      **through the height of the letters** — content clipped at a scroller's edge.
-      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
-      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
-      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
-      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
-      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
-      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
-      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
-      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
-      covering."* That comment records this same judge flagging this same screen as its **eighth**
-      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
-      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
-      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
-      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
-
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -429,8 +410,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
-
-
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -482,6 +461,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
   opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
 
+
+
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -511,61 +492,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
-- [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
-      ⟨`T-023`⟩
-  found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
-  description. Not fixed (one item; and any `src/` change retires the trial at sea).**
-  `passplay-phone-039-settled.png`, End of Voyage, 390×664. The judge said *"Play again button
-  floats over the bottom achievement card, covering its content instead of sitting below the scroll
-  area."* Opening the picture shows the sharper version: the sticky button and its frosted backing
-  cover the BOTTOM of both award cards, and on the left card the winner's name — **Davy Scones, in
-  pink** — is sliced horizontally, with only the tops of the letters showing above the button's
-  edge. The right card's *Peg Leg Meg* survives only because it sits a few pixels higher.
-  **What a player sees:** the voyage ends, two awards are handed out, and you cannot read who won
-  one of them. This is the screen a new player sees last and the one most likely to be screenshotted
-  at launch. Rule 26: pose the End of Voyage at 390×664 before and after; do not go looking for a
-  rate. Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
-
-  **⚑ REPRODUCED ON THE CURRENT BUILD, IN A SECOND MODE — AND NOW SCOPED. Watch 2026-09-02T03:00Z,
-  judging the 0137Z queue.** The automatic judge found it again on its own, unprompted, at
-  `solo-phone-023-settled.png` — **solo**, not pass-and-play, on build `2026.09.01.8`, which is the
-  stamp in the tree. Opened by eye and it is the identical fault down to the detail: *The
-  Silver-Tongued Ledger*'s winner — **Davy Scones, in pink** — sliced horizontally with only the
-  tops of the letters clearing the button's frosted backing, while *Crustbeard* on the right card
-  survives by sitting a few pixels higher. **So it is not one screen in one mode; it is what the
-  End of Voyage does on a phone.**
-  **AND A THIRD SIGHTING IN THE SAME RUN, ON THE OTHER ENGINE:** `solo-phone-wk-028-settled.png`,
-  **WebKit** — the judge's own unaided words: *"'Play again!' button overlaps and obscures the award
-  cards below it, cutting off the 'Crustbeard' name and the left card's captain name mid-text."*
-  **So within this one run: three phone legs, two modes, BOTH engines, all failing the same way —
-  while the tablet and desktop legs are clean.** That is as well-characterised as a layout fault
-  gets short of a posed pair, and it makes this the one player-facing defect in the release
-  evidence rather than a suspicion.
-  **AND THE SCOPE IS NARROWER THAN THE ROW ASSUMED, WHICH MAKES THE FIX EASIER RATHER THAN HARDER:
-  it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-022-settled.png` — in the
-  0137Z queue, written 02:03Z, so same run and same build — is the same screen on a tablet: four
-  award cards in one row, **every winner's name fully legible** (Davy Scones, Crustbeard, Dough
-  Hook, Flaky Jack), the whole stats table readable, and *Play again!* sitting clear BELOW the
-  content. Nothing is covered. So the posed pair rule 26 asks for has a third picture already
-  taken: **pose 390×664 before and after, and check it against the tablet, which is what the screen
-  is supposed to look like.**
-  > **⚠ CORRECTED IN THE OPEN, BY THE WATCH THAT GOT IT WRONG — and the correction is worth more
-  > than the row.** This first cited `solo-tablet-031-settled.png`, calling it *"same run, same
-  > build"*. **It is neither.** Its mtime is 2026-09-01T14:52Z — hours before even the 1914Z run —
-  > and `grep` finds it **not in the 0137Z queue at all**. It was caught by reading the build stamp
-  > printed in its own corner: `2026.09.01.7`, not `.8`.
-  > **THE CAUSE IS THE STOPGAP ITSELF, AND IT IS THIS ROW'S TWIN.** `judge_the_queue.mjs --snapshot`
-  > copies every PNG in `sea-trial-shots/` older than its cutoff; run with a far-future `--before`
-  > it takes **820 files when only 315 are this run's**. The other ~505 are leftovers from earlier
-  > runs that this trial never overwrote, sitting in the snapshot under ordinary-looking names with
-  > nothing to mark them. **A session reading the snapshot by filename gets an older build's picture
-  > and no warning** — which is exactly *"a queue judged after a later run describes a mixture of
-  > runs, silently"*, reproduced inside the tool meant to prevent it. The JUDGED screens are safe
-  > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
-  > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
-  > make the snapshot take only what the queue names.**
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -574,6 +500,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
+
 
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
@@ -592,6 +519,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
+
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -601,7 +529,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
-
 - [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
       AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
       `npm test` fails, the report's "the browser-free checks failed" section prints **only the
@@ -621,6 +548,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       assert the report names THAT gate by filename.**
       Sizing: no game code. Not this watch's to take — filed where the next one will see it.
       ⟨`T-237`⟩
+
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
       watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
@@ -703,7 +631,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
-
 - [ ] **AN UNATTENDED WATCH CANNOT GRANT ITSELF A FIRST-TIME TOOL PERMISSION, EVER — MEASURED
       TWICE ON T-073, TWO DIFFERENT TOOL FAMILIES.**
       ⟨`T-255`⟩
@@ -848,6 +775,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.04.2, so its evidence no longer describes this game
+
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
       `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
@@ -929,6 +857,38 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       and `GEARS.PLUMBING` reason text; (b) in `game-code.cjs`'s `isGameCode()`, normalise `rel`
       with `.replace(/\\/g, "/")` before testing against `NOT_GAME`. Then wire the check above
       into `npm test`'s chain in the same commit.
+- [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
+      ⟨`T-143`⟩
+      award until you scroll. The tablet shows all four awards AND the whole stats table.**
+      `crew-phone-host-027`, `solo-phone-021`: the award cards end abruptly and their labels are cut
+      **through the height of the letters** — content clipped at a scroller's edge.
+      ⛔ **DO NOT FILE THIS AS A LAYERING BUG, AND DO NOT ADD A NINTH LAYERING RULE.** I first
+      reported it as *"the Play again! button overlaps the cards and cuts the right-hand label
+      mid-word"* and wrote **"verified by eye"** on it. **CEO 158 opened the same pictures: the cut
+      sits ~15px ABOVE the button with the card's own background in the gap. Nothing overlaps
+      anything, and nothing is cut mid-word.** On solo-phone BOTH labels are cut, not one.
+      ✅ **AND THE THING I CALLED THE BUG IS HIS OWN FIX, APPARENTLY WORKING.** `index.html`, above
+      `.pp4Again`, 2026-08-27, his call: *"A FOOTER OUTSIDE THE SCROLLER, NOT A STICKY BUTTON INSIDE
+      IT… #statsScroll takes the space that is left, and this takes its own. Always visible AND never
+      covering."* That comment records this same judge flagging this same screen as its **eighth**
+      flag, twice fixed. **The graveyard (rule 10) is warning against exactly the fix I proposed.**
+      **THE REAL QUESTION IS A DESIGN ONE AND IT IS HIS:** is it acceptable that a phone player must
+      scroll to see who won which award, when a tablet player sees all four at once? **Settled by the
+      posed 390×664 pair the Chart already asks for a few rows above — not by a rate, and not by me.**
+
+      ✅ **RE-VERIFIED 2026-09-04T1111Z-1130Z on TODAY'S build (`2026.09.04.2`), by a watch, CEO 215
+      (YES).** The evidence above (watch e1, `2026.09.03.2`) was correct but never got a CEO review or
+      close, and sat stale for a day. Re-ran the same instrument (`scripts/qa/t143_eov_phone_pose.mjs`)
+      unmodified; along the way CEO 214 caught this watch citing a phone screenshot it had never
+      opened, which turned out to show the GAME'S OWN CRASH PANEL (the instrument's seeded events were
+      missing a `state` field `spawnPops()` requires — `src/ui/util.js:1947-1950`). **Fixed in the
+      instrument only** (no game code) and re-run; both pictures opened and confirmed clean by two
+      independent CEOs: phone shows a real award screen with a name sliced by the scroller's edge, no
+      crash; tablet shows all four awards + table with room to spare. `T-023`'s specific claim (button
+      covers the cards) is now closed as disproven on two builds a day apart. `T-143` itself — the
+      design question above — stays open for Wyatt; it is now in `BLOCKED ON WYATT` as `qid:t143-eov-
+      phone-scroll` with a marked recommendation. Full account:
+      `.planning/wyclau/PREDICTION-20260904T1111Z-T143-T023.md`; verdicts: CEO Reviews 214-215.
 
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
@@ -1038,6 +998,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 |---|---|---|
 | <!--qid:t206-confirm-ga-property--> ⟨`T-206`⟩ **The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is `G-2KK6EZDZSP` actually a live property in your Google account?** The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know. | 1. Open analytics.google.com and confirm `G-2KK6EZDZSP` is there (recommended) · 2. Ship it as-is and find out from real traffic · 3. Create a fresh property instead | 2026-09-04 |
 | <!--qid:t220-hooks-write-access--> ⟨`T-220`⟩ **A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning `--gear=`/`--reason=`/`--explain`, and a NEW bug along the way (a Windows path-separator bug that makes `scripts/`, `.claude/`, `docs/` all misread as "game code" on this machine) — and every attempt to `Edit` `.claude/hooks/qa-gear-first.cjs` or `.claude/hooks/lib/game-code.cjs` is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in `.planning/CHART.md`'s T-220 row and `scripts/qa/hook_gear_override_reachable_check.mjs`.** | 1. You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row (recommended) · 2. Find whatever setting fences `.claude/hooks/` from an unattended watch and loosen it, if you want future watches to close items like this one · 3. Leave it — it's cosmetic-severity (a missing hint in a denial message, plus a hook that's stricter than it needs to be on this OS) and not worth your time | 2026-09-04 |
+| <!--qid:t143-eov-phone-scroll--> ⟨`T-143`⟩ **On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling.** `T-023`'s original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (`2026.09.04.2`) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (`.planning/posed/t143-eov-phone-390x664-awards.png`, `t143-eov-tablet-820x1180-awards.png`) to the Glass for you to see directly. | 1. Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern (recommended) · 2. Shrink the award cards/stats table on phone so all 4 fit without scrolling, at the cost of smaller text/art · 3. Show only the ONE card for the player's own seat by default on phone, with a tap/swipe to see the others | 2026-09-04 |
 
 <!-- The four blocks of historical bookkeeping that used to sit here — which questions were ruled,
      when, and where each went — moved to CHART-LOG.md on 2026-09-02 under "BOOKKEEPING — questions

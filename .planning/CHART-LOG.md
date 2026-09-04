@@ -3308,3 +3308,59 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   the one file the ledger repeatedly warns other watches off touching while a trial is at sea —
   without a prior ledger claim. Nothing collided this time; CEO 212 caught the gap and it is
   recorded here so the next watch claims before it edits, not after.
+
+## T-023 — 2026-09-04 — THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON — (closed 2026-09-04 · CEO 215 · no game diff — tooling-only: fixed a crashing QA instrument; button-overlap claim disproven on two builds, real mechanism filed under T-143) found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its description. Not fixed (one item; and any src/ change retires the trial at sea). passplay-phone-039-settled.png, End of Voyage, 390×664. The judge said "Play again button floats over the bottom achievement card, covering its content instead of sitting below the scroll area." Opening the picture shows the sharper version: the sticky button and its frosted backing cover the BOTTOM of both award cards, and on the left card the winner's name — Davy Scones, in pink — is sliced horizontally, with only the tops of the letters showing above the button's edge. The right card's Peg Leg Meg survives only because it sits a few pixels higher. What a player sees: the voyage ends, two awards are handed out, and you cannot read who won one of them. This is the screen a new player sees last and the one most likely to be screenshotted at launch. Rule 26: pose the End of Voyage at 390×664 before and after; do not go looking for a rate. Account: [.planning/JUDGED-2026-09-02T0219Z.md](JUDGED-2026-09-02T0219Z.md).
+
+- [x] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON — (closed 2026-09-04 · CEO 215 · no game diff — tooling-only: fixed a crashing QA instrument; button-overlap claim disproven on two builds, real mechanism filed under T-143)
+      ⟨`T-023`⟩
+  found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
+  description. Not fixed (one item; and any `src/` change retires the trial at sea).**
+  `passplay-phone-039-settled.png`, End of Voyage, 390×664. The judge said *"Play again button
+  floats over the bottom achievement card, covering its content instead of sitting below the scroll
+  area."* Opening the picture shows the sharper version: the sticky button and its frosted backing
+  cover the BOTTOM of both award cards, and on the left card the winner's name — **Davy Scones, in
+  pink** — is sliced horizontally, with only the tops of the letters showing above the button's
+  edge. The right card's *Peg Leg Meg* survives only because it sits a few pixels higher.
+  **What a player sees:** the voyage ends, two awards are handed out, and you cannot read who won
+  one of them. This is the screen a new player sees last and the one most likely to be screenshotted
+  at launch. Rule 26: pose the End of Voyage at 390×664 before and after; do not go looking for a
+  rate. Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+  **⚑ REPRODUCED ON THE CURRENT BUILD, IN A SECOND MODE — AND NOW SCOPED. Watch 2026-09-02T03:00Z,
+  judging the 0137Z queue.** The automatic judge found it again on its own, unprompted, at
+  `solo-phone-023-settled.png` — **solo**, not pass-and-play, on build `2026.09.01.8`, which is the
+  stamp in the tree. Opened by eye and it is the identical fault down to the detail: *The
+  Silver-Tongued Ledger*'s winner — **Davy Scones, in pink** — sliced horizontally with only the
+  tops of the letters clearing the button's frosted backing, while *Crustbeard* on the right card
+  survives by sitting a few pixels higher. **So it is not one screen in one mode; it is what the
+  End of Voyage does on a phone.**
+  **AND A THIRD SIGHTING IN THE SAME RUN, ON THE OTHER ENGINE:** `solo-phone-wk-028-settled.png`,
+  **WebKit** — the judge's own unaided words: *"'Play again!' button overlaps and obscures the award
+  cards below it, cutting off the 'Crustbeard' name and the left card's captain name mid-text."*
+  **So within this one run: three phone legs, two modes, BOTH engines, all failing the same way —
+  while the tablet and desktop legs are clean.** That is as well-characterised as a layout fault
+  gets short of a posed pair, and it makes this the one player-facing defect in the release
+  evidence rather than a suspicion.
+  **AND THE SCOPE IS NARROWER THAN THE ROW ASSUMED, WHICH MAKES THE FIX EASIER RATHER THAN HARDER:
+  it is PHONE-ONLY, and the tablet is a WORKING REFERENCE.** `solo-tablet-022-settled.png` — in the
+  0137Z queue, written 02:03Z, so same run and same build — is the same screen on a tablet: four
+  award cards in one row, **every winner's name fully legible** (Davy Scones, Crustbeard, Dough
+  Hook, Flaky Jack), the whole stats table readable, and *Play again!* sitting clear BELOW the
+  content. Nothing is covered. So the posed pair rule 26 asks for has a third picture already
+  taken: **pose 390×664 before and after, and check it against the tablet, which is what the screen
+  is supposed to look like.**
+  > **⚠ CORRECTED IN THE OPEN, BY THE WATCH THAT GOT IT WRONG — and the correction is worth more
+  > than the row.** This first cited `solo-tablet-031-settled.png`, calling it *"same run, same
+  > build"*. **It is neither.** Its mtime is 2026-09-01T14:52Z — hours before even the 1914Z run —
+  > and `grep` finds it **not in the 0137Z queue at all**. It was caught by reading the build stamp
+  > printed in its own corner: `2026.09.01.7`, not `.8`.
+  > **THE CAUSE IS THE STOPGAP ITSELF, AND IT IS THIS ROW'S TWIN.** `judge_the_queue.mjs --snapshot`
+  > copies every PNG in `sea-trial-shots/` older than its cutoff; run with a far-future `--before`
+  > it takes **820 files when only 315 are this run's**. The other ~505 are leftovers from earlier
+  > runs that this trial never overwrote, sitting in the snapshot under ordinary-looking names with
+  > nothing to mark them. **A session reading the snapshot by filename gets an older build's picture
+  > and no warning** — which is exactly *"a queue judged after a later run describes a mixture of
+  > runs, silently"*, reproduced inside the tool meant to prevent it. The JUDGED screens are safe
+  > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
+  > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
+  > make the snapshot take only what the queue names.**
