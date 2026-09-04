@@ -11394,3 +11394,58 @@ and publish the Glass, since this watch has no Artifact tool of its own.
 - 2026-09-04T11:29:37Z · close_item: "T-023" · CEO 215 · no game diff — tooling-only: fixed a crashing QA instrument; button-overlap claim disproven on two builds, real mechanism filed under T-143 · no stated solution
 
 END OF WATCH.
+
+- 2026-09-04T11:49:31Z · close_item: "T-241" · CEO 216 · no game diff — measured, not a defect: #legalFooter has 0px overlap with the Play again button at both seats (2px gap); small/low-opacity text by his own T-206 ruling, not clipped · no stated solution · fresh trial finding on passplay-desktop-041 triaged and disproven; T-138's new-findings condition satisfied
+
+## WATCH — Wy-Blade (cloud), 2026-09-04T1138Z-1153Z — CLAIMED and CLOSED `T-241`
+
+**Watch started** 2026-09-04T1138Z (push verified first: `git push origin
+claude/cloud-handoff-planning-a9ay1u` → "Everything up-to-date", after reading
+`docs/GIT-AND-DEPLOY.md` on the hook's demand). **No Artifact tool in this session**
+(Bell-launched watch). **Last progress:** the previous watch (1107Z-1130Z) closed `T-023`
+(CEO 215) and left the live FULL trial `2026-09-04T1013Z-Wy-Blade` (pid 41776) sailing.
+
+**RANKED THE CHART.** Rank 1 (`T-073`, SFX) skipped — structurally blocked, confirmed twice by
+prior watches (no human present in an unattended watch to grant a fresh tool permission). Rank 2
+(`T-138`) was blocked on the same trial's verdict, which had just finished (84 min, 10/10 legs,
+build `2026.09.04.2`, report `.planning/SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md`). Read the finished
+report in full (rule 22): one genuinely NEW finding not on the Chart before —
+`passplay-desktop-041-settled.png`, *"'Privacy Policy · About' footer text at bottom of the End of
+Voyage panel is clipped by the panel's bottom edge."* `T-138`'s own row says publish is blocked
+until any new finding from this trial is triaged, so this became the item.
+
+**Wrote a prediction before measuring** (`.planning/wyclau/PREDICTION-20260904T1142Z-EOV-footer.md`):
+hypothesized `#legalFooter` overlaps `.pp4Again` ("Play again!") because `#statsWrap` reserves no
+room for the footer's height, the same class of bug `T-256` fixed for `#pp4Cap` on phone width —
+named the falsifier (0px overlap → opacity artifact, not a clip) up front.
+
+**Built a geometric pose instrument** (`scripts/qa/t241_eov_footer_pose.mjs`, desktop 1280×900 +
+phone 390×844, reaches End of Voyage via `?endcard=1`, waits for the card to settle before
+measuring). **THE FALSIFIER FIRED — my hypothesis was wrong.** 0px overlap between `#legalFooter`
+and the button at both seats, clean 2px gap. Opened both posed screenshots by eye: the footer text
+renders complete and unclipped, just small and low-opacity (`.55`, `index.html:1244`) against the
+panel — exactly what a compressed trial screenshot and a vision judge (`T-019`'s own standing
+caveat) would misread as "cut off." No game code touched; `npm test` 140/140 throughout.
+
+**CEO 216 (YES)** — independently re-checked the overlap math, the settle-wait, the CSS, opened
+both screenshots itself, confirmed `index.html`/`src/` diff empty. Appended to
+`.planning/CEO-REVIEWS.md`.
+
+**Filed `T-241` on the Chart and closed it through the gate** (`--reason`, no game diff — a
+false-positive triage, not a fix). Updated `T-138`'s row: its "no new FULL-gear findings" condition
+is now satisfied by the 1013Z trial; the only thing left on that row is Wyatt's own staging-publish
+approval, not a watch's to give.
+
+`stray_probe_check.mjs`: clean (0 debug-port browsers). `IN-HAND`: never existed this turn (no
+file — nothing else claimed). Chart re-ranked/swept (`chartkeeper.mjs --rank --sweep --write`) —
+`T-241` archived to `CHART-LOG.md` by the close gate's own sweep; 0 further rows to archive.
+Also committing two SEA-TRIAL reports left uncommitted by the prior watch
+(`SEA-TRIAL-2026-09-04T0721Z-Wy-Blade.md`, `SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md` — not
+`.gitignore`d, and the 1013Z one is the evidence this whole item rests on) — everything else
+untracked in the tree (scratchpad debug scripts, an orphaned `t256` posed PNG already flagged by
+CEO 215 as harmless clutter) predates this watch and is left untouched.
+
+**No Artifact tool in this session.** `ListAgents` next to find a peer session to ask for a
+harvest+republish, per Door step 6b.
+
+END OF WATCH.

@@ -206,11 +206,18 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       new FULL-gear findings, both `T-138` and `T-009`'s fresh-trial condition are satisfied and
       `T-138` only needs Wyatt's own staging-publish approval. Commit `e7b07129`; ledger:
       `WATCH CLAIM+FILE, 2026-09-04T1007Z-1015Z`.
+      ⚑ **2026-09-04T1150Z — THAT TRIAL FINISHED (84 min, 10/10 legs sailed) AND ITS ONE NEW FINDING
+      IS NOW TRIAGED — `T-241`, CEO 216 (YES), measured NOT A DEFECT** (footer/button overlap 0px at
+      both seats). Every other finding in the report matches known open rows (`T-023`/`T-143`
+      already closed, `T-142`, the standing WebKit-settle-timing note). **`T-138`'s "no new
+      FULL-gear findings" condition is now satisfied — the only thing left on this row is Wyatt's
+      own staging-publish approval, not a watch's to give.**
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 
 
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —

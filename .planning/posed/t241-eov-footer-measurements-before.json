@@ -1,0 +1,80 @@
+{
+  "desktop-1280x900": {
+    "ok": true,
+    "viewport": {
+      "w": 1280,
+      "h": 900,
+      "dpr": 1
+    },
+    "footerVisible": true,
+    "footerRect": {
+      "top": 875,
+      "bottom": 900,
+      "left": 14,
+      "right": 872,
+      "h": 25,
+      "w": 858
+    },
+    "wrapRect": {
+      "top": 44,
+      "bottom": 888,
+      "left": 48,
+      "right": 839,
+      "h": 844,
+      "w": 791
+    },
+    "buttonRect": {
+      "top": 811,
+      "bottom": 873,
+      "left": 63,
+      "right": 824,
+      "h": 62,
+      "w": 761
+    },
+    "overlapWithWrapPx": 13,
+    "overlapWithButtonPx": 0,
+    "footerOpacity": "1",
+    "gapBelowButtonPx": 2,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t241-eov-footer-desktop-1280x900-before.png"
+  },
+  "phone-390x844": {
+    "ok": true,
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 2
+    },
+    "footerVisible": true,
+    "footerRect": {
+      "top": 819,
+      "bottom": 844,
+      "left": 0,
+      "right": 390,
+      "h": 25,
+      "w": 390
+    },
+    "wrapRect": {
+      "top": 44,
+      "bottom": 832,
+      "left": 14,
+      "right": 376,
+      "h": 788,
+      "w": 362
+    },
+    "buttonRect": {
+      "top": 755,
+      "bottom": 817,
+      "left": 29,
+      "right": 361,
+      "h": 62,
+      "w": 332
+    },
+    "overlapWithWrapPx": 13,
+    "overlapWithButtonPx": 0,
+    "footerOpacity": "1",
+    "gapBelowButtonPx": 2,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t241-eov-footer-phone-390x844-before.png"
+  }
+}

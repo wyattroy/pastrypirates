@@ -3364,3 +3364,22 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   > (the judge only reads `judge-queue.json`, and all 315 have mtimes inside the run's window);
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
+
+## T-241 — 2026-09-04 — THE 2026-09-04T1013Z FULL TRIAL'S NEW FINDING ON passplay-desktop-041 ("footer clipped (closed 2026-09-04 · CEO 216 · no game diff — measured, not a defect: #legalFooter has 0px overlap with the Play again button at both seats (2px gap); small/low-opacity text by his own T-206 ruling, not clipped) by End of Voyage panel") IS MEASURED AND IS NOT A DEFECT — closed on landing, filed for the record so nobody re-investigates it. The vision judge's own words were "'Privacy Policy · About' footer text at bottom of the End of Voyage panel is clipped by the panel's bottom edge." Geometric pose (scripts/qa/t241_eov_footer_pose.mjs, desktop 1280×900 and phone 390×844, both settled): #legalFooter and the .pp4Again "Play again!" button have 0px overlap at both seats (clean 2px gap) — nothing is clipped. The text is small and low- contrast by his own T-206 ruling ("small links... at the bottom", index.html:1244, .55 opacity on the anchor tags), not cut off by anything; both links stay fully tappable (pointer-events:auto, z-index 1002 above everything). Prediction, falsifier, and measured result: .planning/wyclau/PREDICTION-20260904T1142Z-EOV-footer.md. CEO 216 (YES) — independently opened both posed screenshots and confirmed the words render complete, not truncated. No game code touched (index.html/src/ diff empty), npm test 140/140. This satisfies T-138's "no new FULL-gear findings" condition for the 1013Z trial — the only new finding it produced beyond already-known rows has now been triaged.
+
+- [x] **THE 2026-09-04T1013Z FULL TRIAL'S NEW FINDING ON `passplay-desktop-041` ("footer clipped (closed 2026-09-04 · CEO 216 · no game diff — measured, not a defect: #legalFooter has 0px overlap with the Play again button at both seats (2px gap); small/low-opacity text by his own T-206 ruling, not clipped)
+      by End of Voyage panel") IS MEASURED AND IS NOT A DEFECT — closed on landing, filed for the
+      record so nobody re-investigates it.** The vision judge's own words were *"'Privacy Policy ·
+      About' footer text at bottom of the End of Voyage panel is clipped by the panel's bottom
+      edge."* Geometric pose (`scripts/qa/t241_eov_footer_pose.mjs`, desktop 1280×900 and phone
+      390×844, both settled): `#legalFooter` and the `.pp4Again` "Play again!" button have **0px
+      overlap** at both seats (clean 2px gap) — nothing is clipped. The text is small and low-
+      contrast by his own `T-206` ruling ("small links... at the bottom", `index.html:1244`, `.55`
+      opacity on the anchor tags), not cut off by anything; both links stay fully tappable
+      (`pointer-events:auto`, z-index 1002 above everything). Prediction, falsifier, and measured
+      result: `.planning/wyclau/PREDICTION-20260904T1142Z-EOV-footer.md`. CEO 216 (YES) —
+      independently opened both posed screenshots and confirmed the words render complete, not
+      truncated. No game code touched (`index.html`/`src/` diff empty), `npm test` 140/140.
+      **This satisfies `T-138`'s "no new FULL-gear findings" condition for the 1013Z trial** — the
+      only new finding it produced beyond already-known rows has now been triaged.
+      ⟨`T-241`⟩

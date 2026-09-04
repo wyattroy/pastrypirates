@@ -1,5 +1,42 @@
 # CEO reviews — the standing record
 
+## CEO Review 216 — `T-241`: fresh 2026-09-04T1013Z trial finding on `passplay-desktop-041` ("footer clipped by End of Voyage panel") — **NOT A DEFECT, measured** — 2026-09-04
+
+**The ask:** the 84-minute FULL sea trial `2026-09-04T1013Z-Wy-Blade` (build `2026.09.04.2`) flagged
+a new vision-judge finding: *"'Privacy Policy · About' footer text at bottom of the End of Voyage
+panel is clipped by the panel's bottom edge"* (`passplay-desktop-041-settled.png`). Never a known
+Chart row before this trial. This is the first FULL trial to sail since `T-256` fixed the
+phone-width `#legalFooter`/`#pp4Cap` overlap, and `T-138`'s staging-publish gate says any new
+FULL-gear finding must be triaged before publishing.
+
+**Verdict: YES — trust this.** Independently verified:
+- **Prediction file** (`.planning/wyclau/PREDICTION-20260904T1142Z-EOV-footer.md`) states a
+  falsifiable hypothesis (footer overlaps the "Play again!" button) BEFORE measuring, names the
+  falsifier (0px overlap → footer opacity artifact), then reports the measured result honestly
+  contradicting its own hypothesis.
+- **Instrument** (`scripts/qa/t241_eov_footer_pose.mjs:64-68`) uses correct interval-intersection
+  overlap math between `#legalFooter` and `.pp4Again`, waits for the End-of-Voyage card to stop
+  translating before measuring (settle guard, up to 4.8s + 300ms), and targets both the desktop
+  seat that produced the original finding and a phone control.
+- **CSS cross-check** (`index.html:2453,2501-2504,2513`): `wrapRect.bottom (888) − buttonRect.bottom
+  (873) ≈ #statsWrap`'s own 14px padding — confirming the 13px "overlap with wrap" the instrument
+  also reports is background padding, nothing drawn there, and the button itself sits a clean 2px
+  clear of the footer at both seats.
+- **Screenshots** (`.planning/posed/t241-eov-footer-{desktop-1280x900,phone-390x844}-before.png`),
+  opened and read pixel by pixel: "Privacy Policy · About" renders as complete, unclipped words —
+  small and low-contrast (`.55` opacity, `index.html:1244`) against the panel background, which is
+  what a compressed trial screenshot and a vision judge both misread as "clipped."
+- **Git diff confirmed empty** for `index.html`/`src/` — no game code touched, `npm test` 140/140.
+
+**Conclusion:** the trial's vision-judge finding was a false positive (`T-019`'s own standing
+caveat: "the judge's words are its guess at why, and it is wrong often enough that they are not
+quotable"). The footer is small and low-contrast by Wyatt's own `T-206` ruling ("small links... at
+the bottom"), not clipped, not covering any control, links fully tappable. No fix warranted.
+`T-138`'s "no new FULL-gear findings" condition is satisfied by this trial once this one is
+triaged — this review is that triage.
+
+---
+
 ## CEO Review 215 — verification of the Review 214 fix (`T-023`/`T-143`, End of Voyage phone pose) — **YES** — 2026-09-04
 
 **1. Is the fix real, and did it work? YES.**
