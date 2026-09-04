@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-04T06:10:44.018Z	self-publish check
+2026-09-04T06:41:12.312Z	T-220 hook-half attempted a 3rd time (CEO 204: PARTIAL). CEO 180's finding 1 still open: the game-code-edit hook never mentions the --gear/--reason/--explain override flags. Also found a NEW bug: Windows path-separator issue makes the hook misread scripts/, .claude/, docs/ as game code. Both fixes written out verbatim in CHART.md's T-220 row, but Edit tool refuses both target files as sensitive -- same wall CEO 180 hit. Filed t220-hooks-write-access in BLOCKED ON WYATT: his call whether to apply the two 5-min edits himself. No game code touched.
 ```
 
 ## In hand (IN-HAND)
@@ -16,8 +16,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T08:18:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T081802Z.out/.err, kit: readable)
-2026-09-03T08:58:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T085802Z.out/.err, kit: readable)
 2026-09-03T09:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T093802Z.out/.err, kit: readable)
 2026-09-03T10:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T100802Z.out/.err, kit: readable)
 2026-09-03T10:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T103802Z.out/.err, kit: readable)
@@ -56,4 +54,6 @@ None recorded.
 2026-09-04T04:28:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T042802Z.out/.err, kit: readable)
 2026-09-04T04:58:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T045802Z.out/.err, kit: readable)
 2026-09-04T05:28:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T052802Z.out/.err, kit: readable)
+2026-09-04T06:18:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T061802Z.out/.err, kit: readable)
+2026-09-04T06:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T064801Z.out/.err, kit: readable)
 ```
