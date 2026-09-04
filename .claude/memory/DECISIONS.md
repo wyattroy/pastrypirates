@@ -1120,3 +1120,38 @@ applied where it paid.
 
 **THE REUSABLE PART:** *an exclusion written from a paraphrase of what somebody wanted is invisible
 once it is in the code, because every later reader inherits the paraphrase and not the sentence.*
+
+---
+
+## THE WATCH RINGS ON SONNET 5 — his ruling, 2026-09-03
+
+**His words, verbatim, in the message that started this session:** *"Read
+HANDOFF-2026-09-03-ADVISOR-USAGE-STOP.md and continue. **Change the watch to use sonnet 5**."*
+
+**This closes a question that was open, not a preference that was guessed.** The handoff had put the
+model up as his call — *"the model is HIS pick and it is not made yet ... it is a cost-versus-quality
+call, which is taste, and taste is never defaulted"* — and a watch had meanwhile implemented Sonnet
+as a reversible recommendation while the question waited. **He has now ruled it.** The recommendation
+and the ruling agree, which is why nothing had to change; but the entry exists so that the next
+reader finds a DECISION and not a session's guess that nobody ever confirmed.
+
+**What it applies to:** `scripts/wyclau/bell.ps1` only — the relay that rings an unattended watch
+every forty minutes. `$watchModel = "claude-sonnet-5"`, one line, one place.
+
+**What it must NEVER be applied to:** `C:\Users\wyatt\.claude\settings.json`. That key governs
+**his own interactive sessions** as well as the relay's. Downgrading it would quietly downgrade him
+while he works. *The Watch is what should be cheap, not Wyatt.*
+
+⚑ **WHY THE QUESTION EXISTED AT ALL, and this is the part worth keeping.** Nobody ever chose Opus for
+the Watch either. `bell.ps1` carried **no `--model` flag**, so every watch silently inherited the CLI
+default from that same global settings file — and an unattended relay ran the most expensive model
+around the clock for days, until he ran out of usage and asked what it was using. **A launch line
+with no model flag is a launch line that picks one anyway.**
+
+That is this project's own recurring fault in new clothes, and it is now the fourth instance: the
+fleet's browser launcher (GEAR: NONE for every change to the live game), the deploy (staging served
+under production's stamp), `pkill` (an all-clear printed by a command that was not installed), and
+now this. **Every one was a launcher or an instrument doing something other than what everyone
+assumed, with nothing anywhere saying so** — and every one was fixed the same way: a gate that reads
+the REAL launch line instead of the comment beside it. Three assertions in
+`scripts/qa/bell_check.mjs` now hold this one, red-proofed with three mutants, three kills.

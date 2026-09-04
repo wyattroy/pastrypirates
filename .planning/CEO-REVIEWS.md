@@ -1,5 +1,122 @@
 # CEO reviews — the standing record
 
+## CEO 192 — `T-251`, the Watch's model — **PARTIAL** — 2026-09-04T00:0xZ
+
+*The ask reviewed: `INBOX-20260903T2340Z` — "we're running out of usage. i need to stop your work,
+and start you on a different model with smaller context. write a handoff file." / "we also need to
+start having the Watch use a different model setting -- what is it currently using?" — plus his
+ruling, "Change the watch to use sonnet 5."*
+
+**THE SENTENCE HE SHOULD READ FIRST.** *The Watch is off Opus and on Sonnet, the relay still parses
+and the whole 132-gate suite is green — I re-ran every one of the four break-it tests myself and
+they all bite. But the new guard only checks that SOME model is named: I put the Watch straight
+back on `claude-opus-5` and the gate printed PASS and the build stayed green, so the one thing you
+actually ruled is the one thing nothing is holding.*
+
+### 1. Each thing he asked for
+
+| his ask | verdict | what I checked |
+|---|---|---|
+| **"write a handoff file"** | **DONE** — by the previous session, not this watch | `.planning/HANDOFF-2026-09-03-ADVISOR-USAGE-STOP.md`, 8,800 bytes, committed in `b85ca8d3`. Opens with his instruction verbatim, names the branch, and carries the owed work. |
+| **"what is it currently using?"** | **ANSWERED — Opus 5 — and half of that answer I could not check myself** | The half I verified: at `HEAD`, `bell.ps1` built its launch list as `@("-p", "`"$doorPrompt`"") + $kitArgs` with **no `--model` anywhere** (read off the diff). So a watch inherited a default it never named — that much is measured. The half I could NOT verify: that the default is `"model": "claude-opus-5"` in `C:\Users\wyatt\.claude\settings.json`. **My permission fence refuses to read, list or `claude config get` that file.** I am not passing on an unverified fact as verified. It is corroborated only in that `b85ca8d3`'s author says they read it. |
+| **"Change the watch to use sonnet 5"** | **DONE, mechanically** | `scripts/wyclau/bell.ps1:128` `$watchModel = "claude-sonnet-5"`; `:134` one `$claudeArgs` array carrying `"--model", $watchModel`; `:157` `Start-Process … -ArgumentList $claudeArgs`. The CLI's own help documents both the short alias and the full-name form (`claude-fable-5`), and `scripts/lib/vision.mjs:173` and `:241` already launch `claude … --model claude-sonnet-5` in this repo, so the string is the form the CLI takes. |
+
+### 2. The four claimed red proofs — I re-ran them on the real file, not on a copy
+
+Backed the file up in memory, mutated the live `bell.ps1`, verified each mutation actually landed
+before reading the result, restored, and confirmed the file came back byte-identical
+(sha `b03e39c49e578a7d` before and after). Baseline exit 0.
+
+| mutant | result |
+|---|---|
+| remove `--model` from the array | exit 1, fails **"the launch names the model it rings a watch on"** |
+| let `Start-Process` rebuild its own inline array | exit 1, fails **"…in ONE argument array, and that array is what Start-Process is handed"** |
+| put the dry run back to printing a description | exit 1, fails **"…and the dry run prints that same array, not a description of it"** |
+| **an unclosed brace — the relay-killer** | exit 1, fails **"bell.ps1 parses"** with *"Unexpected token 'else'"* |
+
+**Each mutant kills exactly the assertion it is named for, and no others. The parse check is not
+decorative — it genuinely bites.** That matters more than the rest of this review put together: a
+`bell.ps1` that fails to parse is a relay that stops ringing and looks like a quiet night. This is
+the first edit to that file made by a session that could actually run PowerShell against its own
+work, and it took the trouble. `npm test`: 132 gates, chain runs to the last one, green. Ceiling
+untouched (`package.json` is not in the diff — no 133rd gate, no 25th raise). Three files changed,
+none of them game code.
+
+### 3. What the gate does NOT hold — and it is the ruling itself
+
+**I mutated `$watchModel` to `"claude-opus-5"`, verified it applied, and ran the gate:**
+
+```
+applied = true
+M6 bell_check exit = 0   (0 means the gate BLESSES the Watch running Opus)
+```
+
+**Put the Watch back on the most expensive model — the exact fault he stopped this session over —
+and every check goes green.** A nonsense string (`"not-a-model-at-all"`) also passes, which is the
+same hole from the other side: that launch would kill each watch at startup while
+`restarts.log` cheerfully records a ring.
+
+The three assertions hold the SHAPE of the launch line. His RULING is unguarded. And
+`.claude/memory/DECISIONS.md` closes by saying *"Three assertions in `scripts/qa/bell_check.mjs`
+now hold this one"* — **they do not; they hold the flag's existence.** That is CEO 191's finding
+wearing new clothes for the eleventh turn of the same screw: *an instrument announcing more than it
+looked at*, in the record file this time rather than in a gate's prose. The fix is one line —
+assert the string he ruled — and this repo already does exactly that for his sanctuary and forecast
+rulings.
+
+### 4. Three stale sentences, all inside this change
+
+- **`scripts/wyclau/bell.ps1:133`** cites `scripts/qa/bell_model_check.mjs` — **that file does not
+  exist**; it was superseded and deleted in the same watch. A comment pointing at a gate nobody can
+  open.
+- **`scripts/wyclau/bell.ps1:123`** says the model is *"HIS to overrule (asked on the Glass,
+  T-251)"*. **`.planning/CHART.md` contains no `T-251` row and no model question** (2,023 lines
+  searched). He has RULED it, which is recorded three files away in `DECISIONS.md` — so the comment
+  and the ruling contradict each other inside one commit, and the next reader of the Bell will
+  think a decision is still open.
+- **"every fifteen minutes"** — written into `bell.ps1:112`, `DECISIONS.md` and the inbox entry.
+  `.planning/wyclau/restarts.log` says otherwise: the last twelve rings are 20 to 50 minutes apart
+  (16:48, 17:18, 17:38, 18:08, 18:38, 19:18, 19:58, 20:48, 21:38, 22:08, 22:58, 23:38), because the
+  task ticks every ten minutes and only rings when no watch is on deck. `IN-HAND` says "forty".
+  A hand-typed number, three places, contradicted by a file two directories over — §5's own rule.
+- **`.planning/wyclau/INBOX.md:2255`** still reads *"The model change itself is UNMADE, waiting on
+  his pick."* It is made. That row must move before this item closes.
+
+### 5. The live half is unproven, and the watch says so — credit where due
+
+The last ring was **23:38:01Z**; the file was saved at **23:44:25Z**; at the time of this review
+(23:58Z) **no ring has happened since the change**. So the relay has not actually been observed to
+launch a watch on the new line. The prediction note records this honestly rather than claiming it
+(`PREDICTION-20260903T2345Z-bell-model.md:56, 70`), and it names why the first attempt at the live
+check would have printed `NOT CHECKED` forever — a gate calling `-DryRun` without the mandatory
+`-Repo`. **That is the standard this project keeps asking for and mostly does not get.** The
+residual risk is now small: the parse check passes on the Blade, and the argument array has the
+same shape it always had plus two elements.
+
+### 6. Delegation, and whether the taste was defaulted
+
+**Delegation: I cannot answer it and I will not guess.** The watch's own output file is still empty
+(it is the running session). Nothing in the repo shows what it read.
+
+**Defaulting on taste: no, and this is the part that was done right.** The previous session
+explicitly refused to pick (`b85ca8d3`: *"taste is never defaulted"*), left the relay's cost as a
+named open question, and wrote the recommendation down. The watch then implemented that
+recommendation as one loudly-flagged reversible line while the question waited — and his ruling,
+which arrived in flight, agrees with it. Grounded in something checkable, too: `vision.mjs` (four
+places) and `playtest_gate.mjs:56` already pin `claude-sonnet-5`, so the house default for machine
+work was Sonnet everywhere **except** the highest-volume caller. Nobody guessed his taste.
+
+**NET: PARTIAL.** *The expensive accident is fixed, the relay is safer than it was, and the honesty
+around what could not be proved is genuinely good. But the guard built to stop this recurring does
+not check the one value his ruling is about — I put the Watch back on Opus and the build stayed
+green — and three sentences shipped in the same commit already contradict the repo they are in.*
+
+**Two files this review left behind that the permission layer refused to let me delete:**
+`scripts/qa/_ceo192_mutate.mjs` and `scratchpad/_ceo192_mutate.mjs`. Neither is in the gate chain
+and `npm test` is green with them present; delete them at close-out.
+
+---
+
 ## CEO 191 — `T-216`, "using the latest version of the game" — **PARTIAL** — 2026-09-03T23:4xZ
 
 *Its words, not a paraphrase. The ask reviewed: `INBOX-20260902T225008Z`, "Do a new /rules.html that
