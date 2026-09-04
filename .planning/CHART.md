@@ -1276,6 +1276,24 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+**Harvested ruling, 2026-09-04, verbatim from the Glass (`glassState`, generatedAt
+2026-09-04T00:22:11.301Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
+
+- `t206-privacy-line` — **⟨`T-206`⟩ Google Analytics is built and waiting, and the one thing
+      ⟨`T-206`⟩
+  holding it back from the real site is a sentence on your front card that stops being true the
+  moment it goes live. The line under "how to play" reads "Anonymised move data is recorded to
+  help improve the game — nothing beyond the name ye confirm after picking how to play is
+  collected." Cookieless Analytics sets no cookie and never learns a name, but Google does receive
+  the page visited, roughly which country, the browser, and where the player came from — the
+  referrer, which is the one thing you said Google adds that your own counter cannot. Nothing has
+  reached a player: the live site carries none of this and staging cannot fire the tag, so there
+  is no rush and no harm today. Note that About and the new Rules page also carry the tag and have
+  no privacy line at all.** His answer (choice: note, at 2026-09-04T00:35:50.066Z):
+  *"move all of it off of the main screen into a privacy policy that is in its own html, simple to
+  read, and in plain english (not pirate) with small links to Privacy Policy and About at the
+  bottom of the index.html screen (not inside of the popup modal box"*
+
 **Harvested idea and rulings, 2026-09-03, verbatim from the Glass (`glassState`, generatedAt
 2026-09-03T21:22:07.082Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
 
