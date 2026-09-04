@@ -1,0 +1,92 @@
+{
+  "phone-390x664": {
+    "ok": true,
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "dpr": 2
+    },
+    "stage": true,
+    "side": false,
+    "footerVisible": true,
+    "footerRect": {
+      "top": 639,
+      "bottom": 664,
+      "left": 0,
+      "right": 390,
+      "h": 25,
+      "w": 390
+    },
+    "capVisible": true,
+    "capRect": {
+      "top": 474,
+      "bottom": 638,
+      "left": 0,
+      "right": 390,
+      "h": 164,
+      "w": 390
+    },
+    "overlapPx": 0,
+    "rowCount": 4,
+    "lastRowText": "Dough Hook 5 empty hold",
+    "lastRowRect": {
+      "top": 613,
+      "bottom": 646,
+      "left": 25,
+      "right": 365,
+      "h": 33,
+      "w": 340
+    },
+    "lastRowVisibleRect": {
+      "top": 613,
+      "bottom": 638
+    },
+    "lastRowCoveredPx": 0,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t256-footer-captains-phone-390x664-after.png"
+  },
+  "tablet-820x1180": {
+    "ok": true,
+    "viewport": {
+      "w": 820,
+      "h": 1180,
+      "dpr": 2
+    },
+    "stage": true,
+    "side": false,
+    "footerVisible": true,
+    "footerRect": {
+      "top": 1155,
+      "bottom": 1180,
+      "left": 0,
+      "right": 820,
+      "h": 25,
+      "w": 820
+    },
+    "capVisible": true,
+    "capRect": {
+      "top": 864,
+      "bottom": 1061,
+      "left": 0,
+      "right": 820,
+      "h": 197,
+      "w": 820
+    },
+    "overlapPx": 0,
+    "rowCount": 4,
+    "lastRowText": "Dough Hook 3 empty hold",
+    "lastRowRect": {
+      "top": 1003,
+      "bottom": 1036,
+      "left": 25,
+      "right": 795,
+      "h": 33,
+      "w": 770
+    },
+    "lastRowVisibleRect": {
+      "top": 1003,
+      "bottom": 1036
+    },
+    "lastRowCoveredPx": 0,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t256-footer-captains-tablet-820x1180-after.png"
+  }
+}

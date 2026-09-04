@@ -1762,6 +1762,10 @@
   }
   #pp4Cap { position:fixed; left:0; right:0; bottom:0; z-index:22; background:rgba(255,253,242,.97);
     border-radius:14px 14px 0 0; box-shadow:0 -6px 24px rgba(0,0,0,.28);
+    /* T-256 — `bottom` is overridden inline by src/ui/stage.js's camFrame() on true phone width
+       (<=600px, the only case where this base `bottom:0` isn't superseded by the desktop/tablet
+       @media override below), so the footer's clearance is reserved there, not here. See the
+       comment beside `phoneFootReserve` in camFrame(). */
     padding:10px 12px calc(10px + env(safe-area-inset-bottom)); overflow:auto; display:none; }
   body.pp4Stage #pp4Cap { display:block; }
   /* ⛔ T-142 — THE CAPTAINS BAR READ STRAIGHT THROUGH EVERY OPEN MODAL, AND THE FAULT IS NOT THE ONE
