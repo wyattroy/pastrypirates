@@ -10904,3 +10904,12 @@ guard refused `rm`; harmless, matches prior-watch precedent). Scratch probes lef
 watches/CEOs) — same `rm` refusal, not part of any gate chain.
 
 END OF WATCH.
+
+---
+
+**WATCH CLAIM, 2026-09-04T0711Z, `claude/cloud-handoff-planning-a9ay1u`.** Taking `T-249` — a
+captain who calls the winner of a battle that ends in a flight (both-tails escape) is never told
+anything: `src/orchestrator.js:817` is `if(fled)return;`, which leaves the function before
+`settleSideBets` is ever reached. Filed 2026-09-04T0156Z by the audit that also filed `T-250`, and
+never claimed since. Writing a red check first (rule 6/26 — the row itself is explicit this was
+observed in the code, not measured), then applying the fix, before anything else.
