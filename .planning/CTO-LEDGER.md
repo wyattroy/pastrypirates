@@ -10132,3 +10132,31 @@ element with an About link, is invisible on the landing screen — it lives insi
 `display:none` until gameplay starts.
 
 - 2026-09-04T01:38:23Z · close_item: "Move the privacy notice off the main screen into its own pri" · CEO 194 · commit aa4c0c7 (1 game file) · no stated solution · qid:t206-privacy-line: privacy.html, footer outside the popup modal (aa4c0c71); CEO 194 caught npm test actually red on a missing sitemap entry, fixed in 641513c9, CEO 195 confirmed and closed
+
+**WATCH CLOSE-OUT.** Also moved the `qid:t206-privacy-line` `## RULED` row to CHART-LOG.md's
+SETTLED RULINGS (commit `1b98ca8a`) — same stranded-ruling shape as the T-216 cleanup earlier
+this watch, and `chart_sweep_conserves_check.mjs` caught a genuine self-inflicted fault in the
+process: the sweep's archive-title generator picked up the row's own inline `⟨T-206⟩` mention
+(a duplicate handle already shared by 5 rows) ahead of the row's real `⟨T-253⟩` handle line, so
+`T-253` was reported "owned by nothing" after the sweep. Fixed by retitling the archive heading
+to `## T-253 — …`. `npm test`: 135/135, 0 lines starting with FAIL, confirmed by full-output
+grep on every run in this watch, not by reading the tail — the earlier `npm test: 135/135, exit
+0` claim in `aa4c0c71`'s own commit message was FALSE (CEO 194 caught it: `privacy.html` was
+never added to `sitemap.xml`), which is worth naming so a future reader does not trust a green
+claim in a commit message over running the suite itself.
+
+**FULL trial started detached, verdict not yet known.** `2026-09-04T0113Z-Wy-Blade`, pid 58852,
+report `.planning/SEA-TRIAL-2026-09-04T0113Z-Wy-Blade.md`, `.planning/wyclau/LONG-RUN` holds the
+marker. A later watch reads that report before calling this change fleet-proven, and should take
+the phone-width posed screenshot of `#legalFooter` that this watch could not (headless Chrome
+needed an approval an unattended watch cannot grant itself).
+
+**No Artifact tool in this session** (Bell-launched watch). `ListAgents` found a live peer,
+`Glass update [fda089]`, and it was sent a one-line notice per Door step 6b: harvest and
+republish now that `qid:t206-privacy-line` has landed and closed.
+
+**Browsers:** none started directly by this watch (the detached sea trial spawns its own; a
+throwaway screenshot probe, `scratchpad/_t206b_privacy_shots.mjs`, was written but never
+launched — the approval it needed was refused before any browser process existed).
+
+END OF WATCH.
