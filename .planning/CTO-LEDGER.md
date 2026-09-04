@@ -11154,3 +11154,58 @@ Prediction written first: .planning/wyclau/PREDICTION-20260904T0940Z-T-256-foote
 IN-HAND set to T-256 for this machine.
 
 - 2026-09-04T09:59:06Z · close_item: "T-256" · CEO 211 · commit fe87894 (2 game files) · no stated solution · camFrame() reserves #legalFooter's own rendered height on true phone width so #pp4Cap's last row never paints under it; red-proofed (neutralize-then-restore), npm test 138/138, tablet control unaffected
+
+## WATCH CLAIM+FILE, 2026-09-04T1007Z-1015Z, claude/cloud-handoff-planning-a9ay1u.
+
+Situation: watch started 2026-09-04T1007Z (orientation, `can_push.mjs` doc-read gate fired
+once and cleared). Last progress was the prior watch's T-256 close (CEO 211, commit
+`fe87894a`) and its `publish_status` pulse (`020da27c`). No detached trial in flight at
+claim time; no other machine's claim in `IN-HAND` or recent ledger entries.
+
+Rank 1 (`T-073`, SFX) confirmed still structurally blocked for an unattended watch — no new
+signal since two watches measured this earlier today (no interactive permission grant
+possible for a Bell-launched session). Skipped, not re-attempted.
+
+Took rank 2, `T-138`/`T-009` — the launch-line item whose only remaining blocker (per the
+0930Z watch's own note) is "a fresh FULL sea trial of the code that would actually ship,"
+covering commit `fe87894a` (T-256's footer/captains-panel fix). Measured: the last finished
+trial (`2026-09-04T0744Z-Wy-Blade`, build `2026.09.04.1`) bumped its stamp at 07:44:52Z and
+finished around 09:12Z — BEFORE the T-256 fix landed at 09:58:24Z. So its evidence does not
+cover the fix. Prediction written first:
+`.planning/wyclau/PREDICTION-20260904T1015Z-T-138-fresh-trial.md`.
+
+Bumped `PP4_STAMP` 2026.09.04.1 -> 2026.09.04.2 (`node scripts/bump-build.mjs`, not
+`npm run bump` — the npm wrapper form is not on this session's allowlist, the underlying
+script is). `npm test` then surfaced one unrelated FAIL: `sitemap_lastmod_check` (index.html's
+T-206 commit moved its own lastmod past sitemap.xml's hand-checked date) — fixed by
+regenerating (`node scripts/qa/sitemap_write.mjs`, never hand-typed). Re-ran `npm test`:
+138/138 green, no FAIL lines anywhere in the output (grepped, not skimmed). Committed
+(`e7b07129`): the stamp bump, the sitemap regen, and the prediction file.
+
+Started the trial detached: `node scripts/wyclau/start_trial_detached.mjs` — pid **41776**,
+run `2026-09-04T1013Z-Wy-Blade`, build `2026.09.04.2`, FULL gear (mechanically derived — the
+last committed game-code touches `src/ui/stage.js`). Report:
+`.planning/SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md`. Log:
+`.planning/wyclau/detached/trial-2026-09-04T1013Z-Wy-Blade.out`. `.planning/wyclau/LONG-RUN`
+holds pid 41776 for liveness confirmation (machine-local, gitignored, not committed).
+
+**No fix attempted this turn and none was owed** — this item's job was getting a trial that
+actually covers the shipped fix running, not writing new game code. This is a long job per
+Door step 4: started detached, survives this session ending, and this watch does not wait on
+it. **The next watch (or a later one, once ~80-90 minutes have passed) reads the finished
+report and, if it confirms the footer/captains-panel fix generalizes with no other new
+FULL-gear findings, `T-138` and `T-009`'s fresh-trial condition are both satisfied** — `T-138`
+would then only need Wyatt's own staging-publish approval (already GATED on him elsewhere in
+the Chart), not further watch work.
+
+Chart re-ranked and swept (`chartkeeper.mjs --rank --sweep --write`) before taking this item —
+0 rows archived, 9 pre-existing flags unchanged (duplicate-handle/multi-note warnings already
+on record, not this turn's to fix). Browsers/servers: none started by this watch directly;
+the detached trial's own browsers are its business, not a stray probe (attributable to a live
+detached run). `IN-HAND` set to `T-138` for this machine, reverted to empty at close. **No
+Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find the Glass-update
+peer per Door step 6b and message it to harvest and republish once this closes.
+
+This item does not close through `close_item.mjs` this turn — starting a long job is not a
+close (Door step 4's own distinction). It stays IN FLIGHT on the Chart until the trial
+finishes and its verdict is read.
