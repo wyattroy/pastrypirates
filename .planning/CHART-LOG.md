@@ -3151,3 +3151,30 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   so none of it is a regression from this fix. **The FULL trial ran and failed, but not on
   anything T-211 touches** — which is exactly what CEO 169 was owed.
   **Sizing: fix landed, proven, and now sea-trial-verified. Closing.**
+
+## T-249 — 2026-09-04 — A CAPTAIN WHO CALLS THE WINNER OF A FIGHT THAT ENDS IN A FLIGHT IS NEVER TOLD ANYTHING. (closed 2026-09-04 · CEO 206 · commit 53a91f3 (1 game file)) Filed 2026-09-03T23:5xZ by the T-216 watch, out of the rules-page audit rather than from a playtest. ⚠ OBSERVED IN THE CODE, NOT MEASURED — and it is written that way on purpose (rule 6). Nobody has seen this happen on a screen; do not report it to Wyatt as confirmed, and pose it before fixing it. WHAT THE CODE SAYS. src/orchestrator.js:639 collects the side bets before the first broadside, so by the time the flip resolves a spectating captain has already been asked to call the winner. The fight then has three exits, and only two of them settle: :824 pays nobody on a NULL (settleSideBets(bets,null)) and :857 pays the right callers on a win — but :817 is if(fled)return;, which leaves the function before either. So on a both-tails escape the bets array is dropped: no sidebet event, no coins, and no "🔭 The Lookout settles" line, which is the only thing that tells a caller their call was resolved at all. WHY IT IS NOT A RULES-PAGE FAULT, which is how it was found. The page says "Nobody's paid on a battle that ends with no winner", and a flight IS such a battle, so the words stay true and nobody is wrongly paid. The defect is silence, not arithmetic — a captain is asked a question and never hears the answer, and from that seat it is indistinguishable from the game having forgotten them. THE FIX IS PROBABLY ONE LINE (await settleSideBets(bets,null) before the early return), but the ORDER is the part to think about: :813 has already torn the battle panel down. HOW TO PROVE IT FIRST: a posed crew game with three captains — one attacks, one is attacked holding a recipe crate it has no spare of (so holdingCritical makes the bot flee), and one spectates and calls. Watch the third screen.
+
+- [x] **A CAPTAIN WHO CALLS THE WINNER OF A FIGHT THAT ENDS IN A FLIGHT IS NEVER TOLD ANYTHING.** (closed 2026-09-04 · CEO 206 · commit 53a91f3 (1 game file))
+      ⟨`T-249`⟩
+      Filed 2026-09-03T23:5xZ by the `T-216` watch, out of the rules-page audit rather than from a
+      playtest. **⚠ OBSERVED IN THE CODE, NOT MEASURED — and it is written that way on purpose
+      (rule 6).** Nobody has seen this happen on a screen; do not report it to Wyatt as confirmed,
+      and pose it before fixing it.
+      **WHAT THE CODE SAYS.** `src/orchestrator.js:639` collects the side bets before the first
+      broadside, so by the time the flip resolves a spectating captain has already been asked to
+      call the winner. The fight then has three exits, and only two of them settle:
+      `:824` pays nobody on a NULL (`settleSideBets(bets,null)`) and `:857` pays the right callers on
+      a win — but **`:817` is `if(fled)return;`**, which leaves the function before either. So on a
+      both-tails escape the `bets` array is dropped: no `sidebet` event, no coins, and **no
+      "🔭 The Lookout settles" line**, which is the only thing that tells a caller their call was
+      resolved at all.
+      **WHY IT IS NOT A RULES-PAGE FAULT, which is how it was found.** The page says *"Nobody's paid
+      on a battle that ends with no winner"*, and a flight IS such a battle, so the words stay true
+      and nobody is wrongly paid. **The defect is silence, not arithmetic** — a captain is asked a
+      question and never hears the answer, and from that seat it is indistinguishable from the game
+      having forgotten them.
+      **THE FIX IS PROBABLY ONE LINE** (`await settleSideBets(bets,null)` before the early return),
+      **but the ORDER is the part to think about**: `:813` has already torn the battle panel down.
+      **HOW TO PROVE IT FIRST:** a posed crew game with three captains — one attacks, one is
+      attacked holding a recipe crate it has no spare of (so `holdingCritical` makes the bot flee),
+      and one spectates and calls. Watch the third screen.

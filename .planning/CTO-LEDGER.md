@@ -10913,3 +10913,5 @@ anything: `src/orchestrator.js:817` is `if(fled)return;`, which leaves the funct
 `settleSideBets` is ever reached. Filed 2026-09-04T0156Z by the audit that also filed `T-250`, and
 never claimed since. Writing a red check first (rule 6/26 — the row itself is explicit this was
 observed in the code, not measured), then applying the fix, before anything else.
+
+- 2026-09-04T07:28:30Z · close_item: "T-249" · CEO 206 · commit 53a91f3 (1 game file) · no stated solution · a flee's early-return skipped settleSideBets; now calls settleSideBets(bets,null), same NULL semantics as the NULL-battle exit
