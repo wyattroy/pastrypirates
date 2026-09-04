@@ -10965,3 +10965,19 @@ watch directly. `IN-HAND` reverted to empty at close (machine-local, gitignored)
 peer per Door step 6b and message it to harvest and republish.
 
 END OF WATCH.
+
+---
+
+**WATCH CLAIM, 2026-09-04T0758Z, `claude/cloud-handoff-planning-a9ay1u`.** Taking `T-237` (rank 4
+on the ranked Chart) — CEO 198's recommended next step: pose the trade-offer "table answers"
+prompt (rule 26, same seed, before/after) to check whether the `T-235` bigger-circle fix causes
+its own predicted risk (CEO 184 finding 5) to fire — a trade-offer circle covering its own
+prompt's ask-pill text. Skipped rank 1 (`T-073`, SFX) — already measured twice as structurally
+blocked for an unattended watch (no interactive permission grant possible) and re-armed for an
+Advisor session or direct file delivery, not this watch's to re-attempt a third time. Skipped
+rank 2 (`T-138`) and rank 3 (`T-219`) — both genuinely blocked: `T-138` on the detached sea trial
+(pid 27400, started 0744Z, 1/10 legs as of 0758Z, ~90min total) finishing before staging can be
+re-attempted; `T-219` is a tooling fix to the trial's own resume-cache mechanism that a prior
+watch explicitly declined to rush ("needs its own careful pass, not a rushed one layered on top
+of an already-fragile subsystem") and is tooling, not game code (rule 7). Prediction written
+first: `.planning/wyclau/PREDICTION-20260904T0758Z-T-237.md`.
