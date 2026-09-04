@@ -93,24 +93,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **AN UNATTENDED WATCH CANNOT GRANT ITSELF A FIRST-TIME TOOL PERMISSION, EVER — MEASURED
-      TWICE ON T-073, TWO DIFFERENT TOOL FAMILIES.**
-      ⟨`T-255`⟩
-  Watch 2026-09-04T03:30Z measured `mcp__claude_ai_Google_Drive__*` and a bare `curl` to a
-  non-allowlisted host both refused ("you haven't granted it yet" / "requires approval"). This
-  watch (03:40Z), with those exact Drive tools AND `WebFetch` actually loaded this time, hit the
-  identical harness refusal on all four calls — before any network request happened. **The common
-  factor is not the tool, it's that nobody is present to click "allow" the first time a Bell-
-  launched session invokes something new.** Any future Chart row whose first step needs a
-  not-yet-granted tool (a new MCP server, a host outside `.claude/settings.json`'s allowlist, a
-  script needing `bash …/*.sh` where only `node …` is pre-approved) will hit this same wall and
-  should be recognized immediately rather than re-measured from scratch. **Not this item's to fix**
-  — the fix is either (a) Wyatt pre-granting specific tools/hosts once from an interactive session
-  so they persist for future watches, or (b) routing anything needing a fresh grant to the Advisor
-  (where he is present) instead of the Watch. Recommendation for him: when he next opens an
-  Advisor session, grant `WebFetch` and the Drive tools once each (even on an unrelated harmless
-  URL) so the grant persists project-wide for future Bell watches.
-
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
   **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
@@ -247,6 +229,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   protection could only ever print *"BLOCKED ON WYATT is empty"*. It now prints **2**. Nothing about
   the analytics tag is installed and nothing will be until he picks.
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
+
 - [ ] Your ruling: ⟨`T-206`⟩ **Google Analytics is built and waiting, and the one thing holding it back from the real site is a sentence on your front card that stops being true the moment it goes live.** The line under "how to play" reads *"Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected."* Cookieless Analytics sets no cookie and never learns a name, but Google does receive the page visited, roughly which country, the browser, and **where the player came from** — the referrer, which is the one thing you said Google adds that your own counter cannot. ⚠ **Nothing has reached a player**: the live site carries none of this and staging cannot fire the tag, so there is no rush and no harm today. The words are yours, so I have not chosen them. Note that About and the new Rules page also carry the tag and have no privacy line at all. — his answer: move all of it off of the main screen into a privacy policy that is in its own html, simple to read, and in plain english (not pirate) with small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the popup modal box **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-206`⟩
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
@@ -302,14 +285,13 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       GREEN 9/9. Nine red-proofs, eight isolating to one clause; clause 9 additionally proved by
       deleting the fix from the real file (fails, and ONLY it, then restored byte-identical).**
       npm test 124/124. No game code — `src/` and `index.html` untouched.
+- [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-207`⟩
 
 
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] Your ruling: ⟨`T-207`⟩ **Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs?** You reported *"the 2nd line is cut off during writing, but only sometimes"*. That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. **A battle card has no typing to wait for**, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; **on Safari's engine it is a flat fifth of a second with the whole line missing**, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: `.planning/posed/t012-seq-webkit-2-cut.png` and `t012-seq-webkit-3-settled.png`. — his answer: Leave it. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-207`⟩
 
 - [ ] Your ruling: ⟨`T-102`⟩ **Your own reminder, and it is the one step nobody here can take for you: resubmit `sitemap.xml` in Google Search Console.** The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: *"under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical)."* — his answer: Submitted successfully. **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-236`⟩
@@ -418,7 +400,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
       makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
       exact evasion Wyatt chose the words "sea trial" to make impossible.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
   ⚑ **MEASURED FURTHER 2026-09-04T03:5xZ BY A WATCH THAT DID NOT FIX THIS — the danger is real but
   smaller/different than this row implies, and it needs its own careful pass, not a rushed one
@@ -439,6 +420,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   carefully). **Filed here rather than guessed at; the content-hash fix this row proposes may not
   even be the right fix once that's answered.** Full account:
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
 
 - [ ] **A CAPTAIN WHO CALLS THE WINNER OF A FIGHT THAT ENDS IN A FLIGHT IS NEVER TOLD ANYTHING.**
       ⟨`T-249`⟩
@@ -536,7 +518,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         sibling of it answers this in minutes. Full account: CEO Review 198,
         `.planning/CEO-REVIEWS.md`; sea trial evidence above; CTO-LEDGER has the working history.
 
-
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
   circle is often nearest the WRONG captain, and the two instruments disagree about how often.**
@@ -611,6 +592,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   the trial is owed. It was not started because the second mechanism will change this same function
   again within a watch or two, and a 90-minute trial of code about to move tests the wrong build —
   **but that is a reason, not an excuse, and the trial is owed before this ships.**
+
 
 - [ ] **GATED ON HIS ANSWER: THE BATTLE CARD IS PAINTED BEFORE ITS BOX HAS FINISHED OPENING — his own
       ⟨`T-238`⟩
@@ -758,6 +740,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
 - [ ] **THE LAST SCREEN OF THE GAME HIDES THE AWARD WINNERS' NAMES BEHIND THE "PLAY AGAIN!" BUTTON —
       ⟨`T-023`⟩
   found by the automatic judge 2026-09-02, then confirmed by eye and found to be WORSE than its
@@ -812,7 +795,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   > it is BY-EYE reading of the folder that is unsafe. **Whoever does the derived-path fix should
   > make the snapshot take only what the queue names.**
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.03.4, so its evidence no longer describes this game
-
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -821,6 +803,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
@@ -910,7 +893,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
-
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -951,6 +933,24 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   — `sea-trial-shots/<runId>/` — so the queue and its pictures cannot come apart, rather than a
   session remembering to snapshot. `scripts/qa/judge_the_queue.mjs --snapshot=` is this watch's
   stopgap and is NOT the fix; it protects one run, by hand, after the fact.
+
+- [ ] **AN UNATTENDED WATCH CANNOT GRANT ITSELF A FIRST-TIME TOOL PERMISSION, EVER — MEASURED
+      TWICE ON T-073, TWO DIFFERENT TOOL FAMILIES.**
+      ⟨`T-255`⟩
+  Watch 2026-09-04T03:30Z measured `mcp__claude_ai_Google_Drive__*` and a bare `curl` to a
+  non-allowlisted host both refused ("you haven't granted it yet" / "requires approval"). This
+  watch (03:40Z), with those exact Drive tools AND `WebFetch` actually loaded this time, hit the
+  identical harness refusal on all four calls — before any network request happened. **The common
+  factor is not the tool, it's that nobody is present to click "allow" the first time a Bell-
+  launched session invokes something new.** Any future Chart row whose first step needs a
+  not-yet-granted tool (a new MCP server, a host outside `.claude/settings.json`'s allowlist, a
+  script needing `bash …/*.sh` where only `node …` is pre-approved) will hit this same wall and
+  should be recognized immediately rather than re-measured from scratch. **Not this item's to fix**
+  — the fix is either (a) Wyatt pre-granting specific tools/hosts once from an interactive session
+  so they persist for future watches, or (b) routing anything needing a fresh grant to the Advisor
+  (where he is present) instead of the Watch. Recommendation for him: when he next opens an
+  Advisor session, grant `WebFetch` and the Drive tools once each (even on an unrelated harmless
+  URL) so the grant persists project-wide for future Bell watches.
 
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
@@ -1037,23 +1037,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   is awake before judging, so this is invisible to that gate by design — the wait itself is the
   measurement. **Sizing: unscoped. Widen the time horizon: what is still up 2 seconds earlier?**
 
-- [ ] **THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER.**
-      ⟨`T-246`⟩
-      CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real
-      run, so this is a live mechanism and not damage.
-      **(4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST.** Where a row that merely MENTIONS
-      ⟨`T-017`⟩ sits above the row whose owner line DECLARES it, the mentioner keeps the id and the
-      real owner is renamed. `assign_handles.mjs:23-25` promises the opposite in its own header.
-      T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`, so a wrong rename
-      there is a citation trail pointing at the wrong task — and nothing outside one commit message
-      records the T-017 → T-235/T-237 mapping that was made.
-      **(5) A PARTIAL WRITE ACROSS TWO CHARTS.** `:161-172` writes inside the per-file loop and the
-      refusal exits per file, so `CHART.md` can be written, `GLASS-CHART.md` refused, and the
-      message then says nothing was written. There is no backup.
-      **AND IT CANNOT BE TESTED AT ALL: no `--chart=` flag, so it only ever runs against the live
-      record.** That is the first fix, because it is what makes the other two provable.
-      **Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player
-      sees: nothing. This is record safety, and the record is what every watch steers by.**
 - [ ] **THE KIT'S COPY OF THE GLASS STILL SAYS "Do it" AND "Don't".**
       ⟨`T-217`⟩
       `claude-kit/plugins/wyclau/bin/glass.mjs:661-662`, found by CEO 172. The project copy is

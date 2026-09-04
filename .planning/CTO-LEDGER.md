@@ -10455,3 +10455,5 @@ END OF WATCH.
   rank-1 DO NOW item. Prior watch (03:30Z close) left it ARMED — its own Drive/WebFetch calls were
   refused as ungranted. This session has `mcp__claude_ai_Google_Drive__*` tools loaded via
   ToolSearch; attempting to reach the two Drive links now before concluding anything.
+
+- 2026-09-04T04:05:36Z · close_item: "THE HANDLE SPLITTER CAN RENAME THE WRONG ROW" · CEO 199 · no game diff — tooling fix, no game code: assign_handles.mjs owner-precedence + atomic-write bugs fixed, red-proofed by hand, npm test 137/137 · no stated solution · owner-precedence + atomic write fixed, red-proofed by hand, npm test 137/137, commit 3451de5d

@@ -2943,3 +2943,23 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
 
 - [x] Your ruling: ⟨`T-017`⟩ **The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read?** Your three screenshots of *Crustbeard* and *Flaky Jack* hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: `.planning/posed/t017-before.png`, `t017-after.png`, `t017-after-circle.png`. — his answer: Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can't see them in the glass **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row. (closed 2026-09-04 · CEO 198 · commit 4c6f162 (1 game file))
       ⟨`T-235`⟩
+
+## T-246 — 2026-09-04 — THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER. (closed 2026-09-04 · CEO 199 · no game diff — tooling fix, no game code: assign_handles.mjs owner-precedence + atomic-write bugs fixed, red-proofed by hand, npm test 137/137) CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real run, so this is a live mechanism and not damage. (4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST. Where a row that merely MENTIONS sits above the row whose owner line DECLARES it, the mentioner keeps the id and the real owner is renamed. assign_handles.mjs:23-25 promises the opposite in its own header. T-017 carries 26 references in CTO-LEDGER.md and 14 in CEO-REVIEWS.md, so a wrong rename there is a citation trail pointing at the wrong task — and nothing outside one commit message records the T-017 → T-235/T-237 mapping that was made. (5) A PARTIAL WRITE ACROSS TWO CHARTS. :161-172 writes inside the per-file loop and the refusal exits per file, so CHART.md can be written, GLASS-CHART.md refused, and the message then says nothing was written. There is no backup. AND IT CANNOT BE TESTED AT ALL: no --chart= flag, so it only ever runs against the live record. That is the first fix, because it is what makes the other two provable. Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player sees: nothing. This is record safety, and the record is what every watch steers by.
+
+- [x] **THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE OTHER.** (closed 2026-09-04 · CEO 199 · no game diff — tooling fix, no game code: assign_handles.mjs owner-precedence + atomic-write bugs fixed, red-proofed by hand, npm test 137/137)
+      ⟨`T-246`⟩
+      CEO 182, findings 4 and 5 — both demonstrated in an isolated copy, neither fired on the real
+      run, so this is a live mechanism and not damage.
+      **(4) IDENTITY GOES TO WHICHEVER ROW COMES FIRST.** Where a row that merely MENTIONS
+      ⟨`T-017`⟩ sits above the row whose owner line DECLARES it, the mentioner keeps the id and the
+      real owner is renamed. `assign_handles.mjs:23-25` promises the opposite in its own header.
+      T-017 carries 26 references in `CTO-LEDGER.md` and 14 in `CEO-REVIEWS.md`, so a wrong rename
+      there is a citation trail pointing at the wrong task — and nothing outside one commit message
+      records the T-017 → T-235/T-237 mapping that was made.
+      **(5) A PARTIAL WRITE ACROSS TWO CHARTS.** `:161-172` writes inside the per-file loop and the
+      refusal exits per file, so `CHART.md` can be written, `GLASS-CHART.md` refused, and the
+      message then says nothing was written. There is no backup.
+      **AND IT CANNOT BE TESTED AT ALL: no `--chart=` flag, so it only ever runs against the live
+      record.** That is the first fix, because it is what makes the other two provable.
+      **Sizing: SMALL — a flag, an owner-line-first match, and one write at the end. What a player
+      sees: nothing. This is record safety, and the record is what every watch steers by.**

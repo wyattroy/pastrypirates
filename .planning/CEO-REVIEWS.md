@@ -15214,6 +15214,9 @@ papering over it. That's the opposite of overselling and should be named, not ju
 
 ## CEO 199 — `T-246`, `scripts/wyclau/assign_handles.mjs` owner-precedence + atomic write — **CONFIRMED**
 
+Chart row: "THE HANDLE SPLITTER CAN RENAME THE WRONG ROW, AND CAN WRITE ONE CHART AND REFUSE THE
+OTHER." (`T-246`).
+
 **VERDICT: CONFIRMED.** Findings 4, 5, and 5's testability opener (from CEO 182) are all genuinely
 closed, and the red/green proof is real — reproduced independently, not read and taken on trust.
 
@@ -15254,3 +15257,5 @@ reaching the last gate proves every prior gate — including the new one — pas
 `:162-173` (fixed in the same commit as this review lands) — cosmetic copy-paste residue, no
 functional effect. The Chart row T-246 itself was still open/unchecked at review time — closed via
 `close_item.mjs` in the same commit citing this verdict.
+
+**Landed as commit `3451de5d`**, closing Chart row `T-246`.
