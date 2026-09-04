@@ -11071,3 +11071,68 @@ gitignored). **No Artifact tool in this session** (Bell-launched watch) — `Lis
 the Glass-update peer per Door step 6b and message it to harvest and republish.
 
 END OF WATCH.
+
+## WATCH CLAIM+FILE, 2026-09-04T0908Z-0930Z, `claude/cloud-handoff-planning-a9ay1u`.
+
+Took `T-138` (rank 2 on the ranked Chart at claim time — rank 1, `T-073` SFX, remains
+structurally blocked for an unattended watch: no interactive permission grant is possible,
+confirmed again by a prior watch this same morning). `T-138`'s only remaining blocker was
+"no fresh FULL sea trial of the code that would actually ship for staging"; the detached trial
+`2026-09-04T0744Z-Wy-Blade` (pid 27400) finished mid-claim — 81 min, 10/10 legs sailed, build
+`2026.09.04.1`, matching the tree exactly.
+
+**Rather than treat "10/10 legs sailed" as automatic clearance to publish, read the report
+first** — and it surfaced something new. 11 screenshots across three modes (solo-phone,
+passplay-phone, crew-phone-host, crew-phone-guest) all flagged the same pattern: the just-shipped
+`#legalFooter` (Privacy Policy / About links, Wyatt's own `T-206` ruling, delivered today) sits on
+top of the captains panel's bottom row on every phone-width screen. Verified by eye, not by the
+judge's paraphrase alone (rule 22): opened `solo-phone-011-settled.png` and
+`crew-phone-host-018-settled.png` directly — both real, plainly visible collisions ("2Privacy
+Policy" running together with no gap; links crowding cargo icons against the coin count).
+
+**Mechanism, read from source, not guessed:** `#legalFooter` (`index.html:1241-1245`) is
+`position:fixed; left:0; right:0; bottom:0; z-index:1002`; `#pp4Cap`, the captains panel
+(`index.html:1763`), is ALSO `position:fixed; left:0; right:0; bottom:0; z-index:22` on
+non-`.pp4Side` (phone-width) viewports. Two bottom-anchored fixed bars, same edge — the footer's
+higher z-index wins the stack, unconditionally, on every in-game screen (not gated by modal state,
+unlike `T-142`'s fix, which only hides `#pp4Cap` behind `.modalOverlay`/`.pp4ModalOpen` and does
+not touch this).
+
+Cross-checked the rest of the trial's findings against the existing Chart: settle-timing geometry
+churn, wind-arrow icon clipping, dock-highlight-under-modal, and EOV award-name clipping all match
+already-open rows (`T-023`, `T-142`, the standing WebKit settle-timing note) — nothing else new.
+
+Prediction written first: `.planning/wyclau/PREDICTION-20260904T0912Z-T-138-footer-overlap.md`
+— confirmed on both counts (real regression, not a judge artifact; falsifier not triggered).
+
+**Filed as new row `T-256`** (fresh handle allocated by `chartkeeper.mjs --rank --sweep --write`,
+confirmed not previously owned — `T-256` had been minted and reverted once before by an unrelated
+item per this ledger's own history, so re-minting it onto a real checklist row is legitimate, not
+a collision). `T-138`'s own row updated to stay blocked on this rather than being published over.
+**No fix attempted this turn** — a scoped layout fix deserves its own posed before/after pass
+(rule 26), not one rushed onto an already-finished 81-minute trial. `npm test` 138/138 green
+throughout; `node scripts/qa/one_ambiguity_rule_check.mjs` and `node scripts/gate_count_check.js`
+both re-run independently after the mint, both PASS. No game-code diff (`index.html`/`src/`
+untouched) — correct for a measure-and-file item, not a fix.
+
+Commit `b74d5f12`.
+
+**CLOSE-OUT.** CEO 210 (**YES**) — independently opened both cited screenshots and confirmed the
+same collisions by eye; independently read `index.html:1241-1245`, `1763`, `2753-2759` and
+confirmed the z-index/position claims verbatim; independently read `T-023` and `T-142`'s own Chart
+text and confirmed this is a genuinely distinct third case, not a relabel; and judged blocking
+`T-138` rather than fixing-in-turn or publishing-anyway as the correct, proportionate call given
+rule 24 and the sea trial's whole purpose. Appended to `.planning/CEO-REVIEWS.md` as Review 210.
+**This is a measure-and-file item, not a close** — `T-256` stays open on the Chart for whoever
+takes the scoped fix; `T-138` also stays open, now correctly blocked on `T-256` rather than on a
+missing trial. Chart re-ranked and swept (`chartkeeper.mjs --rank --sweep --write`) before and
+after filing — 0 rows archived (nothing newly finished), 1 fresh handle allocated (`T-256`), 9
+pre-existing flags unchanged (duplicate-handle and multi-note warnings already on record, not
+this turn's to fix). Daily lesson already given today (`.planning/wyclau/LESSONS.md`); none owed.
+Browsers/servers: none started by this watch (only read existing PNGs on disk);
+`stray_probe_check` PASS, 0 debug-port browsers running — the 0744Z trial's own process has
+finished and exited. `IN-HAND` reverted to empty at close (machine-local, gitignored). **No
+Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find the Glass-update peer
+per Door step 6b and message it to harvest and republish.
+
+END OF WATCH.

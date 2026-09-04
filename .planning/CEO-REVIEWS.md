@@ -15697,3 +15697,45 @@ scope (QA-tooling-only), and the gear reasoning all hold.
 genuine structural check that fails without the fix and passes with it (red-proofed independently);
 `npm test` is 138/138 green, mechanically confirmed; and the COSMETIC gear call is sound by the same
 standard CEO 197 was judged on. Closeable, though not yet closed on the Chart.
+
+## CEO Review 210 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-256`: the just-shipped Privacy/About footer sits on top of the captains panel on every phone screen, found while checking `T-138`'s deploy-readiness — **YES**
+
+**Verdict: YES.**
+
+**1. Screenshots — confirmed, independently, by eye.** `solo-phone-011-settled.png`: the
+"Crustbeard  2" row (bottom-most visible captain) has "Privacy Policy" and "About" printed
+directly across it — the digit "2" runs straight into "Privacy Policy" with no gap
+("2Privacy Policy"), crowding the ingredient icons toward the right edge of the row.
+`crew-phone-host-018-settled.png`: same pattern on the "Flaky Jack  8" row (again the last
+visible row) — the two links sit on top of it, crowding the cargo icons against the coin count.
+Both images show a real, plainly visible collision, not a subtle or arguable one.
+
+**2. Code citations — accurate, verified by reading `index.html` directly.**
+`#legalFooter` (`index.html:1241-1245`): `position:fixed; left:0; right:0; bottom:0; z-index:1002`,
+the actual markup at `index.html:2756-2759` (his own `T-206` ruling, just shipped). `#pp4Cap`
+(`index.html:1763`): also `position:fixed; left:0; right:0; bottom:0; z-index:22` on non-`.pp4Side`
+(phone-width) viewports. Two fixed, bottom-anchored bars sharing the same edge; the footer's higher
+z-index wins the stack, exactly as claimed — read from source, not guessed.
+
+**3. Not a relabel of an old bug.** `T-023` (End-of-Voyage "Play Again" button covering award
+names) and `T-142` (captains panel showing through modal overlays, fixed by hiding `#pp4Cap`
+behind `.modalOverlay`/`.pp4ModalOpen`) are both genuinely distinct, pre-existing, and correctly
+left alone — `T-142`'s fix only triggers on modals and does not touch this footer, which overlaps
+on every in-game screen with no modal involved. This is a real third case.
+
+**4. The judgment call is right.** The footer is brand-new (today), the overlap is real and
+reproduces across three modes on 11 independent screenshots, and it obscures gameplay-critical
+info (ingredients, coin counts) on the exact screen a phone player lives in. A sea trial exists to
+catch precisely this before a publish — treating "10/10 legs sailed" as clearance and deploying
+anyway would have been the failure the trial is for. A rushed one-line fix in the same turn (rather
+than a posed before/after pair, rule 26) risks a second regression on an already-fragile captains-
+panel area (`T-142`'s own history: a fix that missed 5 of 5 cited screens on its first attempt).
+Blocking `T-138` and filing this cleanly as `T-256` for its own scoped fix-and-pose pass is the
+correct, proportionate call — not under-reacting, not over-reacting.
+
+**Scope check:** no game-code diff this turn (`index.html`/`src/` untouched) — correct for a
+measure-and-file item. `npm test` 138/138 green (verified independently:
+`node scripts/qa/one_ambiguity_rule_check.mjs` and `node scripts/gate_count_check.js` both PASS
+after the fresh handle `T-256` was minted). Prediction written before measuring
+(`.planning/wyclau/PREDICTION-20260904T0912Z-T-138-footer-overlap.md`), falsifier named and not
+triggered.
