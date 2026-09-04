@@ -2041,6 +2041,22 @@ session's mandate is harvest-and-publish only.**
   it — see `.planning/wyclau/INBOX.md`, entries dated 21:46–21:49). Filed here for the same reason
   as the two rows above.
 
+**Harvested ideas, 2026-09-04, verbatim from the Glass (`glassState`, generatedAt
+2026-09-04T00:37:38.571Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
+
+- **New idea, untriaged**: *"scripts/lib/cdp.mjs:51 has no timeout on any CDP call — send()'s
+      ⟨`T-251`⟩
+  promise only resolves when Chrome's WebSocket answers back, so if a Runtime.evaluate call ever
+  waits on a page-side promise that never settles, the whole script (and anything awaiting it, like
+  npm test) hangs forever instead of failing loud. That's a real gap worth fixing — is the right
+  solution to add a timeout wrapper to cdp.mjs so a future hang self-kills in, say, 2 minutes
+  instead of running for 7 hours?"* (at 2026-09-04T00:49:44.965Z)
+
+- **New idea, untriaged, DO NOW**: *"My sound effects request that I put on the glass yesterday
+      ⟨`T-252`⟩
+  seems to be missing -- can you find it, and prioritize it in 3rd place on the chart?"* (at
+  2026-09-04T00:50:38.324Z) — carried `"now": true` on the Glass.
+
 ## FATES DECIDED
 
 - **"The Glass becomes our two-way interface"** (Wyatt, 2026-08-31) → **SCHEDULED**: Glass v2
