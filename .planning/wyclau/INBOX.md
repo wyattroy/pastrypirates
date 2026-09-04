@@ -2252,3 +2252,13 @@ solution: none stated for WHICH model — that half is his and is unanswered.
   fault here is a flag that was never there and nothing ever said so — this project's recurring
   fault (a launcher silently doing something other than what everyone assumed) wearing new clothes.
 status: DONE 2026-09-04 — CEO 192, no game diff — no game code is right: he asked what model the unattended Watch relay runs on and told us to change it -- that is the Bell's launch line (commit 20dace86), not the game; index.html and src/ untouched
+
+## INBOX-20260904T004944Z — scripts/lib/cdp.mjs:51 has no timeout on any CDP call — send()'s promise only resolves whe
+> scripts/lib/cdp.mjs:51 has no timeout on any CDP call — send()'s promise only resolves when Chrome's WebSocket answers back, so if a Runtime.evaluate call ever waits on a page-side promise that never settles, the whole script (and anything awaiting it, like npm test) hangs forever instead of failing loud. That's a real gap worth fixing — is the right solution to add a timeout wrapper to cdp.mjs so a future hang self-kills in, say, 2 minutes instead of running for 7 hours?
+solution: none stated
+status: OPEN
+
+## INBOX-20260904T005038Z — ⚑ HE PRESSED DO NOW — My sound effects request that I put on the glass yesterday seems to be missing -- can you
+> My sound effects request that I put on the glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place on the chart?
+solution: none stated
+status: OPEN — PINNED by him on the Glass; take this before anything ranked
