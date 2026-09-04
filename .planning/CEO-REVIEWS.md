@@ -1,5 +1,128 @@
 # CEO reviews — the standing record
 
+## CEO Review 198 — `T-235`/`T-237`, the trade-offer-circle sea trial — **PARTIAL** — 2026-09-04
+
+*The asks reviewed, verbatim.* `T-235`: **"Do bigger circles, not smaller text."** `T-237`, the
+original filing: a trade-offer circle cannot hold its own captain's name — *Crustbeard* clipped by
+its own disc, *Flaky Jack* hanging out both sides, three sightings across two engines and three
+sizes — with his standing instruction on call circles, *"Fix this universally, not through
+patches."*
+
+*The narrow question I was handed:* does `.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md`
+discharge CEO 184's sole remaining blocker — *"the fix has not been sea-trialled at all"* — and
+should both rows close on it?
+
+### VERDICT: **PARTIAL**
+
+**YES to the ask itself. NO to "it sailed clean."** His ruling is genuinely implemented and is
+proven by an instrument that does not depend on this trial at all. But the claim I was asked to
+confirm — that nothing in the report touches the `T-235`/`T-237` defect class — **is wrong on the
+facts, and I can name the file, the line and the screenshot.** The single structural failure in ten
+legs is a trade-offer circle sitting on the trade question.
+
+### 1. THE ASK WAS EXECUTED, AND THE PROOF IS NOT THE TRIAL
+
+I re-ran `node scripts/qa/trade_circle_type_size_check.mjs` myself: **PASS** — *Davy Scones*,
+*Crustbeard*, *Dough Hook*, *Flaky Jack* and the *"Walk away"* control every one drawn at the
+stylesheet's full **9.5px**, inside the rim, on a **105.8px / 103.2px / 103.7px** disc at phone,
+tablet and desktop. Against `index.html:1909`'s declared 9.5px and `index.html:1903`'s declared
+66px box, that is a disc grown by half again and type at full size. **That is his sentence, built.**
+
+I read the mechanism rather than trusting the label. `src/ui/stage.js:2601-2604` steps the diameter
+**up** in 2px increments until every label is inside its rim, and only then (`:2606`) does
+`fitLabelToDisc` shrink anything — so growth is first and shrinking is the fallback, which is his
+other ruling, not a contradiction of this one. `fanDiscCeiling` (`:2549-2556`) reads `--pp4GrowPeak`
+off the document and `room` off `boardBand()`/`capBandBottom()`; I checked for a smuggled constant
+and did not find one. The stale-cache defect CEO 184 caught is fixed the way it says: the key lives
+on each button (`:2594`, `:2606`), not in module state.
+
+**This evidence is deterministic and posed. It is worth more than any trial for this question**, and
+rule 26 says so out loud.
+
+### 2. THE TRIAL DID NOT SAIL CLEAN FOR THIS DEFECT CLASS — AND THE BRIEF I WAS GIVEN SAID IT DID
+
+The brief handed to me characterised the one structural failure as *"a button covering a DIFFERENT
+prompt's text, not a name-in-circle issue."* **Both halves of that are wrong.**
+
+- The rule is scoped to the prompt's **own** message: `scripts/lib/checks.mjs:135-142` compares
+  interactive controls against `.apMsg` only, *"so narration bubbles over the sea are left alone."*
+  A `no-cover-ask` hit is by construction a control on the question it answers — never a different
+  prompt's text.
+- The ask it covered, *"Fer yer  Cacao Pods the table answers:"*, is `src/ui/flow.js:2209` — **the
+  trade-offer prompt**. The control that covered it, *"Flaky Jack"*, is one of that same prompt's
+  petals, built at `src/ui/flow.js:2171` (`short:` = the captain's name). **`T-237` cites
+  `flow.js:2183-2184` — the line beside it, the same `opts.push` block.** This is not an adjacent
+  screen. It is the screen.
+
+`sea-trial-shots/report.json:5366-5376` names the shot and the fan:
+`crew-desktop-guest-021-settled.png`, signature `radial … Flaky Jack|Walk away … Fer yer  Cacao Pods
+the table answers`. **I opened it.** Build stamp **`2026.09.03.4`** is legible in the side rail — the
+build carrying the fix — and the *"Flaky Jack"* disc is drawn across the right edge of the ask pill,
+over the end of the line that tells you what the deal is.
+
+**And it is the exact risk CEO 184 left open.** Its finding 5: bigger circles cover more of the ask
+pill, *"probably an artifact of the pose and it is NOT yet measured either way."* One trial later it
+is **still** not measured either way, and there is now a real driven voyage on the wrong side of it.
+
+### 3. WHAT I CANNOT SAY, SAID PLAINLY
+
+**I cannot show that the fix CAUSED that overlap, and I am not claiming it.** Two things cut the
+other way and both belong in the record:
+
+- **The picture does not look like grown circles.** Reading `crew-desktop-guest-021-settled.png`,
+  both discs read close to the stylesheet's 66px base, not the ~104px the gate reports for a
+  five-petal desktop fan — and `stage.js:2601` exits the growth loop immediately when every label
+  already fits, which a two-petal fan of *"✅/Flaky Jack"* and *"Walk away"* plausibly does. **I
+  could not measure those pixels in this session, so this is observed, not measured.**
+- **The rule fired on this same prompt before the fix existed:**
+  `.planning/SEA-TRIAL-2026-09-01T1644Z-Wy-Blade.md:68` — *"test2" over "Fer yer  Speckled Eggs the
+  tab"*. Same shape, build `2026.09.01.6`.
+
+**But the mechanism is available and nobody has closed it off:** `stage.js:3822` clamps the pill's
+lift at `Math.max(tSafe - 34, …)`, so a taller block of circles can outrun the pill's room to move.
+Growing every trade disc by half again makes that clamp easier to reach. *Not established. Not
+excluded either.*
+
+### 4. THE HALF THAT WENT RIGHT, AND IT IS REAL
+
+The last **complete** pre-fix trial — `.planning/SEA-TRIAL-2026-09-03T1845Z-Wy-Blade.md`, build
+`2026.09.03.3`, 10 of 10 sailed — caught this defect class in the judge's own words at line 78:
+*"left 'Call Dough Hook' selection circle is overlapped and its label text clipped by the front
+'Call Crustbeard' circle"*, plus `not-occluded×1, no-pile×1` on *Call Dough Hook* at line 76. **In
+the post-fix trial's ten legs there is no clipping finding at all**, and no `Call …` structural
+failure. That is the right direction.
+
+**It is one board, not a rate.** Different seeds, different legs; rule 26's own warning about
+22 → 26 → 31 applies in the flattering direction too. I record it as encouraging, not as proof.
+
+### 5. SHOULD THEY CLOSE?
+
+- **`T-235` — YES, close it.** It is a RULING, and the ruling was executed. The posed gate settles
+  it without the trial.
+- **`T-237` — its clipping half is answered; do not close the row silently on this report.** The
+  Chart's own closing sentence is *"if it sails clean"* (`.planning/CHART.md:370`). **It did not.**
+  Closing it while the only structural failure in the run is a trade-offer circle on the trade
+  question is how a fault becomes a phantom. Either hold the row, or close it and **file
+  `crew-desktop-guest-021-settled.png` as its own row in the same commit** — with the shot named, so
+  it survives the next `sea-trial-shots/` overwrite.
+
+**And the way to settle it is minutes, not another 99.** `scripts/qa/w54_call_clear_of_ask.mjs`
+already poses this exact question for the CALL fan and — per its own header, lines 21-28 — reports
+`wantTop` against `pillTop` so it can say **which** cause it was: clamp-bound, or something else
+defeating the lift. **A trade-fan sibling of that probe, posed before and after, is the rule-26
+answer to a question a stochastic voyage will never settle.**
+
+### DOES A PREVIOUS FAULT RECUR?
+
+**Yes, and it is CEO 184's own, one turn later.** 184's lesson was *"the prediction is only worth
+anything if somebody reads it back at the end."* Its finding 5 named a risk and marked it unmeasured.
+The trial then produced a hit on precisely that surface, and the brief that reached me had already
+reclassified it as *unrelated* before anyone opened the shot or read
+`scripts/lib/checks.mjs:135`. **A finding parked as "probably a pose artifact" is a finding that the
+next reader will file under noise.** Park it as a row with a name, or measure it.
+
+---
+
 ## CEO Review 197 — `cdp.mjs` timeout wrapper — **YES** — 2026-09-04
 
 *The ask reviewed: `INBOX-20260904T004944Z` — "scripts/lib/cdp.mjs:51 has no timeout on any CDP

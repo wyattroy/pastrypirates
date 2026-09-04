@@ -10374,3 +10374,7 @@ not the decision", `.planning/wyclau/LESSONS.md`) — none owed by this watch.
 **Browsers/servers:** none started by this watch.
 
 END OF WATCH.
+
+- 2026-09-04T03:07:57Z · close_item: "T-017" · CEO 184 · commit 4c6f162 (1 game file) · no stated solution · sea trial 2026-09-03T2031Z sailed clean for T-017: 10/10 legs, no trade-circle/captain-name failure in any leg; trade_circle_type_size_check.mjs PASS on current tree; npm test full green
+
+- 2026-09-04T03:15:37Z · close_item: "T-235" · CEO 198 · commit 4c6f162 (1 game file) · no stated solution · CEO 198: gate green (9.5px on 103-106px disc, all sizes), fitFanToLabels grows disc before any shrink -- his ruling executed and settled independent of the trial's unrelated FAIL
