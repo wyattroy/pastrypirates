@@ -10318,4 +10318,23 @@ has landed and pushed (commit `a72c6f9b`).
 
 **Browsers:** none started by this watch.
 
+---
+
+**Watch claim, 2026-09-04T02:40Z, `claude/cloud-handoff-planning-a9ay1u`.**
+- **Item taken:** `INBOX-20260904T004944Z` — his Inbox question about `scripts/lib/cdp.mjs:51`:
+  `send()` has no timeout on any CDP call, so a hung `Runtime.evaluate` (or a crashed tab) hangs
+  the whole script forever instead of failing loud. He proposed the fix himself (a timeout
+  wrapper, ~2 minutes) and asked whether that's the right call.
+- **Checked first:** the other three items ahead of it in the INBOX
+  (`INBOX-20260903T182856Z`, `INBOX-20260903T2010Z`, `INBOX-20260903T2015Z`, all Chart
+  drag/move-to-top work) are already SHIPPED — commits `6f526772`, `091120be`, `9896dc46` — their
+  INBOX status lines just never got updated to DONE. Not touching those labels this watch; naming
+  it here so the next session doesn't re-work them by mistake.
+- **IN-HAND:** none held by another live session per ledger tail at claim time.
+- **Prediction written first:** `.planning/wyclau/PREDICTION-20260904T024027Z-INBOX-20260904T004944Z.md`.
+- **Dirty tree at entry, not this watch's:** three modified `.planning/posed/t206-*.png` and a
+  dozen untracked `scratchpad/`/`scripts/qa/_*` files were already sitting in the working tree at
+  session start — the same cruft prior watches (see entry above) named as permission-fenced
+  against deletion on this machine. Left untouched; not part of this item's diff.
+
 END OF WATCH.

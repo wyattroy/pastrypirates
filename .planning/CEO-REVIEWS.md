@@ -1,5 +1,49 @@
 # CEO reviews — the standing record
 
+## CEO Review 197 — `cdp.mjs` timeout wrapper — **YES** — 2026-09-04
+
+*The ask reviewed: `INBOX-20260904T004944Z` — "scripts/lib/cdp.mjs:51 has no timeout on any CDP
+call — send()'s promise only resolves when Chrome's WebSocket answers back, so if a
+Runtime.evaluate call ever waits on a page-side promise that never settles, the whole script (and
+anything awaiting it, like npm test) hangs forever instead of failing loud. That's a real gap
+worth fixing — is the right solution to add a timeout wrapper to cdp.mjs so a future hang
+self-kills in, say, 2 minutes instead of running for 7 hours?"*
+
+**VERDICT: YES.**
+
+He asked whether wrapping CDP calls in a timeout was the right fix and asked to have it built and
+proven. It was, and it works.
+
+**What I checked myself, not just read:**
+
+1. **`scripts/lib/cdp.mjs:17-22`** — `withTimeout(promise, ms, label)` races the real promise
+   against a timer; on timeout it rejects with `"CDP call timed out after Xms: <label>"`, a clear,
+   specific message.
+2. **`scripts/lib/cdp.mjs:64-68`** — `send()` now wraps its own promise in `withTimeout` with a
+   `timeoutMs = 120000` default (exactly Wyatt's "say, 2 minutes"), overridable per call. On
+   rejection (timeout or otherwise) it deletes the pending entry (`pend.delete(i)`) so a Chrome
+   answer that shows up after the fact can't resolve an abandoned promise into the wrong place.
+3. **`scripts/qa/cdp_timeout_check.mjs`** — this is a real measurement, not a decoration. It hands
+   `withTimeout` a promise built with `new Promise(() => {})` — one that genuinely never resolves,
+   the exact shape of the bug he described — races it against the gate's own outer bound, and
+   checks (a) it rejects rather than hanging, (b) it fires on schedule (100ms timeout, checked
+   against a 20-300ms tolerance window), and (c) the error message actually says "timeout." A
+   separate static check confirms `send()` itself calls `withTimeout`, not just that the export
+   exists unused. Ran it standalone (passed: rejected at 103-105ms) and reasoned through what
+   happens if the fix were absent or partial: no export → import fails loud; export present but
+   unused in `send()` → the static check fails. Either broken state is caught.
+4. **`npm test`** — ran the full 136-gate suite twice; zero failures, exit clean,
+   `cdp_timeout_check.mjs` is wired into the chain (`package.json`'s `gates.total`/`ceiling`
+   correctly bumped 135→136 with a documented reason).
+5. **Scope** — `git diff --name-only` shows only `scripts/lib/cdp.mjs`, `package.json`, and
+   pre-existing untouched `.planning/` files. No `index.html` or `src/` (game code) touched, as
+   claimed.
+
+**Problems found:** none worth flagging. This is a tight, correctly-scoped fix that answers
+exactly what was asked and proves itself with a real, un-fakeable test.
+
+---
+
 ## CEO Review 196 — `T-073`, the SFX request found and pinned — **DONE** — 2026-09-04
 
 *The ask reviewed: `INBOX-20260904T005038Z`, his DO NOW press — "My sound effects request that I
