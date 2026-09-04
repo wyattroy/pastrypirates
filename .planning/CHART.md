@@ -173,6 +173,45 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       every gate still green. Its own finding, handed over rather than shipped past.
       **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
       **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+      ⚑ **2026-09-04T0912Z — THE TRIAL FINISHED (81 min, 10/10 legs sailed, `2026-09-04T0744Z-Wy-Blade`,
+      build `2026.09.04.1`) — BUT IT SAILED THE FIRST TRIAL OF A BRAND-NEW FEATURE AND CAUGHT IT
+      BREAKING SOMETHING ELSE. DO NOT PUBLISH TO STAGING UNTIL THAT IS TRIAGED.** See the new row
+      immediately below (`T-248`) — the just-added `#legalFooter` (Privacy Policy / About links,
+      his own `T-206` ruling) sits on top of the captains panel on every phone-width screen, not
+      gated by mode or state. This watch verified it by eye on two independent screenshots across
+      two different modes (solo, crew) — real, not a judge artifact. **This is exactly what a sea
+      trial exists to catch before a publish, so this row stays blocked on it rather than treating
+      "10/10 legs sailed" as clearance.** The rest of the trial's findings (settle-timing geometry
+      churn, wind-arrow icon clipping, dock-highlight-under-modal, EOV award-name clipping) all
+      match known Chart rows already open (`T-023`, `T-142`, and the standing WebKit-settle-timing
+      note) and are not new.
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
+
+- [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
+      ⟨`T-009`⟩
+  `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
+  a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
+  four game commits landed on `.6` and nothing anywhere went red**, and three of those landed
+  DURING an 88-minute trial that then reported on code it had never sailed. Nothing protects `.7`
+  either. The player-facing cost is exact: a release decision made on a report about a different
+  build. **Rule 9's shape is a key derived from the tree** — e.g. `git rev-parse HEAD:src` folded
+  into the cache key and the report's own stamp — which makes "did the trial sail the staged code?"
+  mechanical instead of a duty somebody must remember. Sizing, honestly: one small change to the
+  cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
+  first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
+  file that can disagree with it.
+
+  ⚑ **A FRESH, CONCRETE INSTANCE, MEASURED 2026-09-04T0745Z, chasing `T-138` toward a staging
+  publish.** Four real game-code commits (`1ffe4960` src/engine/index.js, `aa4c0c71` index.html,
+  `7c6ec3cd` src/analytics.js + src/shared/host.js + src/shared/index.js + src/ui/usage.js,
+  `53a91f33` src/orchestrator.js) landed after the 2026-09-03T2031Z trial finished and
+  `PP4_STAMP` never moved — the exact shape this row describes, not a hypothetical. Mitigated
+  for today by hand: `npm run bump` (`2026.09.03.4` → `2026.09.04.1`), `npm test` 137/137 green
+  after, fresh detached FULL trial started (`2026-09-04T0744Z-Wy-Blade`, pid 27400). **The
+  underlying fix — deriving the cache key from the tree, not the hand-typed stamp — is still not
+  built; this was a one-time correction, not a repair.** Evidence:
+  `.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`.
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
@@ -273,6 +312,37 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         sibling of it answers this in minutes. Full account: CEO Review 198,
         `.planning/CEO-REVIEWS.md`; sea trial evidence above; CTO-LEDGER has the working history.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.1, so its evidence no longer describes this game
+
+- [ ] **⛔ NEW, REAL, WIDESPREAD: THE JUST-SHIPPED PRIVACY/ABOUT FOOTER SITS ON TOP OF THE CAPTAINS
+      ⟨`T-256`⟩
+      PANEL ON EVERY PHONE-WIDTH SCREEN, IN EVERY MODE. Found 2026-09-04T0912Z, this trial's first
+      sail of `#legalFooter` (his ruling `T-206`), verified by eye (not the judge's paraphrase
+      alone), not fixed.**
+      The sea trial's vision judge flagged the same pattern independently on 11 screens across
+      THREE modes — solo-phone (3), passplay-phone (2), crew-phone-host (5), crew-phone-guest (1)
+      — in `SEA-TRIAL-2026-09-04T0744Z-Wy-Blade.md`. Opened two of the cited screenshots by eye:
+      `solo-phone-011-settled.png` — "Privacy Policy" and "About" render directly on the
+      Crustbeard row, text running together with no spacing ("2Privacy Policy"), crowding its
+      ingredient icons off to the right; `crew-phone-host-018-settled.png` — same links overlap
+      the Flaky Jack row (the last visible row), crowding its cargo icons against the coin count.
+      **THE MECHANISM, read not guessed:** `#legalFooter` (`index.html:2756-2759`) is
+      `position:fixed; left:0; right:0; bottom:0; z-index:1002` (`index.html:1241-1245`) —
+      deliberately global and always-on so the privacy line is reachable before a player picks how
+      to play (his ruling, comment at `index.html:1235-1240`). But `#pp4Cap`, the captains panel,
+      is ALSO `position:fixed; left:0; right:0; bottom:0; z-index:22` (`index.html:1763`) on
+      narrow (non-`.pp4Side`) viewports — i.e. phone width, once a voyage actually starts. Two
+      bottom-anchored fixed bars, same viewport edge, and the footer's z-index (1002) wins,
+      painting on top of whichever captain row is last in the panel's own list — on EVERY in-game
+      screen, not gated by mode, state, or a modal (unlike `T-142`'s fix, which only hides
+      `#pp4Cap` behind `.modalOverlay`/`.pp4ModalOpen` and does not touch this).
+      **Same bug-class as `T-142` (something painting over the captains panel), a different
+      culprit, and NOT covered by that fix.** Rule 26 applies: pose it (390×844, in-voyage, no
+      seed needed — the footer is present from the very first screen), before/after, once a fix
+      shape is chosen. Likely shapes, not evaluated here: hide `#legalFooter` while
+      `body.pp4Stage` (same derivation `T-142` already uses for modals), or move it above `#pp4Cap`
+      in the stacking with its own scoped clearance so it never touches the panel.
+      **Sizing: SMALL, index.html only. FULL gear (game code, live UI path).**
+      **THIS IS WHY `T-138`'s STAGING PUBLISH STAYS BLOCKED** — see the note on that row.
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
@@ -393,6 +463,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
+
+
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -444,8 +516,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
   opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
 
-
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -465,31 +535,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
-
-- [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
-      ⟨`T-009`⟩
-  `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
-  a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
-  four game commits landed on `.6` and nothing anywhere went red**, and three of those landed
-  DURING an 88-minute trial that then reported on code it had never sailed. Nothing protects `.7`
-  either. The player-facing cost is exact: a release decision made on a report about a different
-  build. **Rule 9's shape is a key derived from the tree** — e.g. `git rev-parse HEAD:src` folded
-  into the cache key and the report's own stamp — which makes "did the trial sail the staged code?"
-  mechanical instead of a duty somebody must remember. Sizing, honestly: one small change to the
-  cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
-  first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
-  file that can disagree with it.
-
-  ⚑ **A FRESH, CONCRETE INSTANCE, MEASURED 2026-09-04T0745Z, chasing `T-138` toward a staging
-  publish.** Four real game-code commits (`1ffe4960` src/engine/index.js, `aa4c0c71` index.html,
-  `7c6ec3cd` src/analytics.js + src/shared/host.js + src/shared/index.js + src/ui/usage.js,
-  `53a91f33` src/orchestrator.js) landed after the 2026-09-03T2031Z trial finished and
-  `PP4_STAMP` never moved — the exact shape this row describes, not a hypothetical. Mitigated
-  for today by hand: `npm run bump` (`2026.09.03.4` → `2026.09.04.1`), `npm test` 137/137 green
-  after, fresh detached FULL trial started (`2026-09-04T0744Z-Wy-Blade`, pid 27400). **The
-  underlying fix — deriving the cache key from the tree, not the hand-typed stamp — is still not
-  built; this was a one-time correction, not a repair.** Evidence:
-  `.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`.
 
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
