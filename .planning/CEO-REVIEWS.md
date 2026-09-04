@@ -15510,3 +15510,34 @@ unrelated condition, not a regression from this change.
 - Whoever closes it must say so out loud: "the FULL trial ran and failed, but not on anything this
   fix touches" — never "the sea trial passed," which would be false and exactly the kind of
   comfortable omission rule 6 exists to catch.
+
+## CEO Review 206 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-249`: a captain who calls a fight that ends in a flee is never told anything — **YES**
+
+**The ask.** Chart row `T-249`, filed 2026-09-04T0156Z, "OBSERVED IN THE CODE, NOT MEASURED": a
+spectating captain can place a free side-bet call before any battle
+(`collectSideBets`, `src/ui/flow.js:3098`). `asyncBattleRun` (`src/orchestrator.js`) has three
+terminal exits after that call — flee, NULL, and a decided win — and only the flee exit skipped
+`settleSideBets`, leaving a caller with no "🔭 The Lookout settles" line and no resolution at all.
+
+**Verified independently, not on the watch's word.** Read `asyncBattleRun` myself: confirmed the
+three exits and that, before the fix, `if(fled)return;` was the only one bypassing settlement.
+Confirmed the diff is exactly `if(fled){await settleSideBets(bets,null);return;}`, one line plus
+a WHY-comment, `src/orchestrator.js` only. Read `settleSideBets(bets,winSide)`
+(`src/ui/flow.js:3131`) myself: with `winSide=null`, `won` is `false` for every bettor and
+`delta=0` — identical payout semantics to the pre-existing NULL-battle call two branches below.
+Nobody is paid on a flee; only the missing notification was added.
+
+**Red-proofed the check myself, not trusted from the watch's report.** Ran
+`scripts/qa/t249_flee_settles_sidebets_check.mjs` green on the tree, reverted the fix to
+`if(fled){return;}`, reran — FAILED with the correct diagnostic — restored the exact original
+line (`git diff` confirms byte-for-byte), reran — PASSED again. The check isolates the flee-guard
+substring and requires both the settle call and the `return`, so it is not a tautology.
+
+**`npm test`: fully green, 0 failures**, confirmed by running it myself.
+
+**What this is NOT: a live-browser repro.** No screenshot, no driven scenario — consistent with
+how the bug itself was found (by reading, not by playing), and proportionate to a rare
+flee-plus-spectator-caller combination. A FULL-gear sea trial was started detached for this
+watch's game-code change but is not expected to specifically exercise this path; that limitation
+is stated plainly rather than glossed over.
+  comfortable omission rule 6 exists to catch.
