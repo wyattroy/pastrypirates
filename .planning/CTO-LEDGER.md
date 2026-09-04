@@ -10796,3 +10796,75 @@ refused by the harness's file-delete guard regardless of path, same as the prior
 delete permission.
 
 END OF WATCH.
+
+---
+
+**WATCH OPEN/CLOSE, 2026-09-04T062xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**State on arrival:** `can_push.mjs` healthy; real push confirmed
+(`git push origin claude/cloud-handoff-planning-a9ay1u` → "Everything up-to-date", after reading
+`docs/GIT-AND-DEPLOY.md` per rule 17's first-touch fence). No `IN-HAND` claim. Ranked the Chart:
+row 1 (`T-073` SFX, DO NOW pinned) re-tested with `WebFetch` on his real Drive link — identical
+"Claude requested permissions to use WebFetch, but you haven't granted it yet" refusal as the two
+prior watches (third confirmation; genuinely structural, not this watch's to solve). Skipped to
+row 2, `T-220` ("LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES"), whose sub-item
+(CEO Review 180, finding 1) was still open.
+
+**Item taken, NOT closed — blocked, with a new finding along the way.** Wrote the prediction
+first (`.planning/wyclau/PREDICTION-20260904T062037Z-T-220-hook-reach.md`): expected either to
+close CEO 180's finding 1 (the sea-trial-depth hook `.claude/hooks/qa-gear-first.cjs` never
+mentions `--gear=`/`--reason=`/`--explain`) or to reproduce its "blocked, unattended watch fenced
+out of `.claude/hooks/`" verdict for real, not assumed.
+
+Wrote `scripts/qa/hook_gear_override_reachable_check.mjs` — spawns the real hook as a subprocess
+with a genuine `PreToolUse`-shaped stdin payload; RED on the unmodified file (4/5 cases), matching
+CEO 180. **While writing that check under `scripts/qa/`, the Write itself tripped the hook's
+FULL-gear denial — structurally impossible if `game-code.cjs`'s exclusion list were working.**
+Traced: `NOT_GAME` is forward-slash regexes; the hook's `rel` comes from a raw Windows
+`file_path` (backslashes), so on this OS the whole exclusion list silently fails and `scripts/`,
+`.claude/`, `docs/`, `.planning/`, `notes/` all misread as "the game." Confirmed directly with a
+standalone probe requiring `game-code.cjs`: `isGameCode("scripts/qa/foo.mjs")` → false (right),
+`isGameCode("scripts\\qa\\foo.mjs")` → true (wrong). New finding, distinct from CEO 180's.
+
+Both fixes (the override-note text, and normalising the separator) are written out verbatim in
+`.planning/CHART.md`'s T-220 row for whoever can apply them. **Both `Edit` attempts —
+`.claude/hooks/qa-gear-first.cjs` and `.claude/hooks/lib/game-code.cjs` — were refused: "which is
+a sensitive file."** Third watch in a row to hit this exact wall on this exact file (CEO 180, this
+watch). Deliberately did NOT wire the new check into `npm test` — it cannot currently pass, and a
+red gate on a shared branch (rule 16) is worse than an honest unwired one.
+
+**Fresh-context CEO 204** (`general-purpose`) independently reproduced every claim — including
+attempting the identical `Edit` itself and hitting the identical refusal text. Verdict **PARTIAL**:
+prediction genuine, check proves what it claims, the new bug is real and distinct, nothing in the
+record overstates FIXED/SHIPPED, leaving the gate unwired was the right call. Appended to
+`.planning/CEO-REVIEWS.md`. Filed `qid:t220-hooks-write-access` in `## BLOCKED ON WYATT` — his
+call: apply the two five-minute edits himself, loosen whatever fences an unattended watch from
+`.claude/hooks/`, or leave it (cosmetic severity).
+
+*(One CEO subagent turn in this watch had its output flagged by the harness as containing
+"instruction-shaped pattern(s)" — quoted `.claude/settings.json` content inside the review's own
+prose, almost certainly benign quoting rather than injection, but noted here per standing
+instruction to flag anything that trips that detector.)*
+
+**Item NOT closed via `close_item.mjs`** — no game-code diff, no shippable fix landed; this is
+record-only, matching the shape of a "found and blocked" turn (CEO 180's own precedent). Both
+`INBOX` and the Chart row itself now carry the current, non-stale state.
+
+**Gear: no game code.** `git diff --stat -- index.html src/` empty across this whole watch. No
+sea trial owed.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) after the edits — 0 rows
+archived (nothing newly finished this pass).
+
+**No Artifact tool in this session** (Bell-launched watch, per Door's stated capability set).
+`ListAgents` to find the Glass-update peer per Door step 6b.
+
+**Daily lesson:** already given today by a prior watch — none owed by this watch.
+
+**Browsers/servers:** none started. Left the CEO subagent's own scratch probe
+(`scripts/qa/_ceoreview_gamecode_probe.cjs`) and this watch's own
+(`scripts/qa/_gamecode_sep_probe.cjs`, `scratchpad/_gamecode_sep_probe.{cjs,mjs}`) untracked and
+uncommitted, matching prior-watch precedent — harmless, not part of any gate chain, `rm` refused
+by the harness's file-delete guard.
+
+END OF WATCH.
