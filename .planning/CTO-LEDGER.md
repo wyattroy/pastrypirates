@@ -11266,3 +11266,22 @@ Browsers/servers: none started by this watch; `stray_probe_check` reports the li
 Glass-update peer per Door step 6b and message it to harvest and republish.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-04T1048Z-, claude/cloud-handoff-planning-a9ay1u.
+
+Situation: watch started 2026-09-04T1048Z (orientation). Last progress was the prior watch's
+cache-key half of T-009 (CEO 212, PARTIAL). Live detached trial (pid 41776, run
+2026-09-04T1013Z-Wy-Blade) confirmed alive via `.planning/wyclau/LONG-RUN` (4/10 legs as of
+10:46Z) — not this watch's to wait on. `T-073` (rank 1, DO NOW) remains structurally blocked
+for an unattended watch (no new signal). `T-138` (rank 2) is blocked on the same live trial's
+verdict.
+
+Taking T-009's remaining, explicitly-scoped half (`CHART.md:257-264`): fold
+`scripts/lib/game_tree_hash.mjs` into `sea_trial.mjs`'s OWN reported build identity (the console
+banner and the written report), not just the leg-resume cache. Prediction written first:
+`.planning/wyclau/PREDICTION-20260904T1050Z-T-009-report-stamp.md`. Claiming here BEFORE
+editing (`IN-HAND` set) — the previous watch's rule-16 gap on this same row is the reason this
+claim comes first, not an afterthought. `sea_trial.mjs` is the long-running process pid 41776
+already has loaded in memory (it spawns `playtest_gate.mjs` once via `spawnSync`, never
+re-imports itself), so editing it on disk does not touch the live run — checked, not assumed,
+before editing.
