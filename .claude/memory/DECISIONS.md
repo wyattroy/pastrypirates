@@ -1,5 +1,19 @@
 # Wyatt's standing decisions
 
+## ⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sente — 2026-09-04T00:35:50.066Z
+
+Asked on the Glass: *"⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sentence on your front card that stops being true the moment it goes live. The line under "how to play" reads "Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected." Cookieless Analytics sets no cookie and never learns a name, but Google does receive the page visited, roughly which country, the browser, and where the player came from — the referrer, which is the one thing you said Google adds that your own counter cannot. ⚠ Nothing has reached a player: the live site carries none of this and staging cannot fire the tag, so there is no rush and no harm today. The words are yours, so I have not chosen them. Note that About and the new Rules page also carry the tag and have no privacy line at all."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-04T00:35:50.066Z.
+
+**His note, verbatim:** *"move all of it off of the main screen into a privacy policy that is in its own html, simple to read, and in plain english (not pirate) with small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the popup modal box"*
+
+**The alternatives he did not pick**, as his card showed them:
+- Add one clause to the line you already have, and leave the voice alone — keep the pirate wording and name Google inside it, along the lines of “…and Google Analytics counts visits — it sets no cookies and never learns yer name.” Shortest, honest, and the game page is the one a child actually reads.
+- That clause, and the same one line added to About and Rules — those two are measured by nothing today and say nothing either, so this closes all three at once.
+- Write the sentence yourself — tell me the words and I will put them on whichever pages you name.
+
+<!-- harvest-id: RULING-20260904T003550Z-t206-privacy-line -->
+
+
 
 ## ⟨T-206⟩ The front card promises something Google Analytics makes untrue — how should it read? — 2026-09-03 (asked in the question UI, not on the Glass)
 
