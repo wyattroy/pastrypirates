@@ -11286,4 +11286,48 @@ already has loaded in memory (it spawns `playtest_gate.mjs` once via `spawnSync`
 re-imports itself), so editing it on disk does not touch the live run — checked, not assumed,
 before editing.
 
+RED (`scripts/qa/sea_trial_report_tree_hash_check.mjs`, written first): 4 of 4 checks FAIL
+against the pre-fix `sea_trial.mjs`. FIX: imported `gameTreeHash`, computed `TREE_HASH`/
+`SHORT_TREE_HASH` once near where `STAMP` is read, spliced `(tree ${SHORT_TREE_HASH})` into all
+five build-identity print sites (console banner open/close, in-progress placeholder header+body,
+final report header) plus a footer note. GREEN: same gate, 4/4 OK. Wired into `package.json`'s
+`scripts.test` chain (ceiling 139→140, `_ceiling_raise_140` comment). `npm test` 140/140 green.
+
+SWEEP: `node scripts/qa/gear.mjs` said `GEAR: FULL` — not because of `sea_trial.mjs` (`scripts/`
+is `NOT_GAME`) but because `package.json` is deliberately NOT excluded from "game code"
+(`.claude/hooks/lib/game-code.cjs:36-38` — arguing a `package.json` change can't reach a player
+takes more than one sentence, so the strict answer is the default). Argued the one sentence and
+lowered on the record: `node scripts/sea_trial.mjs --gear=COSMETIC --reason="..."
+--report=.planning/SEA-TRIAL-T009-report-stamp-cosmetic.md` — npm test PASS inside it, judge eyes
+open, 0 legs (correct for COSMETIC), and its own banner is live proof the fix works: `build
+2026.09.04.2 (tree 69d1f368dcd9)`. `.planning/wyclau/LONG-RUN` checked before and after (4/10 →
+5/10 legs, `updatedAt` moving) — the live trial (pid 41776) kept progressing throughout, undisturbed.
+
+CEO 213 (**YES — closes CEO 212's PARTIAL**), spawned via `Agent` (fresh context, no priming from
+this session's reasoning), independently ran `npm test`, `gear.mjs`, and the new gate itself
+rather than trusting the summary, and traced `sea_trial.mjs`'s own structure to confirm the
+live-trial-safety claim rather than accepting it. Found one inaccuracy: `package.json`'s comment
+claimed the gate was "4 of 4 checks red" pre-fix; only 3 of 4 are actually fix-sensitive (the 4th
+is a sanity check on the gate's own setup). **Corrected in the same commit** before appending the
+verdict. Appended to `.planning/CEO-REVIEWS.md` as Review 213.
+
+Closed through the gate: `node scripts/wyclau/close_item.mjs --item="T-009" --ceo=213
+--reason="tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP;
+gear lowered to COSMETIC on the record, npm test 140/140"` (commit `1054eb52` touches no
+`index.html`/`src/`, so `--commit` was correctly refused and `--reason` used instead — both
+options tried, the tool's own refusal read and followed rather than argued with). Row swept to
+`CHART-LOG.md` by the gate itself. Chart re-ranked (`chartkeeper.mjs --rank --sweep --write`) —
+0 further rows to archive, 8 pre-existing flags unchanged (not this turn's to fix). `IN-HAND`
+reverted to empty. `stray_probe_check.mjs`: 15 debug-port browsers, all attributed to the live
+trial, none abandoned by this watch. **One stray file this watch could not clean up**:
+`scripts/qa/_tmp_inspect_test_script.mjs` (a throwaway inspection script for reading
+`package.json`'s single-line `scripts.test` field) — `rm` on it was blocked by a sandbox
+restriction unrelated to this item ("may only remove files from the allowed working
+directories," despite the path being inside one); left untracked, never staged, does not affect
+`npm test` since nothing references it. A later watch with a working `rm` can delete it.
+**No Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find the Glass-update
+peer per Door step 6b and message it to harvest and republish.
+
 - 2026-09-04T11:06:17Z · close_item: "T-009" · CEO 213 · no game diff — tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP; gear lowered to COSMETIC on the record, npm test 140/140 · no stated solution
+
+END OF WATCH.
