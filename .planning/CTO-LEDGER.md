@@ -10340,3 +10340,37 @@ has landed and pushed (commit `a72c6f9b`).
 END OF WATCH.
 
 - 2026-09-04T02:51:37Z · close_item: INBOX-20260904T004944Z · CEO 197 · no game diff — no game code is right: scripts/lib/cdp.mjs is QA tooling, not the shipped game (commit 96d46c9d) · no stated solution
+
+---
+
+**WATCH CLOSE, ~2026-09-04T03:00Z, `claude/cloud-handoff-planning-a9ay1u`.**
+Full account of the item claimed above. `npm test`: 136/136 gates green, both before and after
+wiring the new gate in. Fresh-context CEO Review 197: **YES**, no problems found (full text in
+`.planning/CEO-REVIEWS.md`). Commits pushed: `96d46c9d` (the fix + gate + prediction + CEO review)
+and `e8043d50` (close_item's own writes to INBOX.md and this ledger). `origin/claude/cloud-handoff-planning-a9ay1u`
+confirmed at `e8043d50` after push (0 ahead, 0 behind).
+
+**Concurrent-session collision, named rather than hidden (same pattern the 0203Z watch above
+recorded — `Blade [53b082]` is live and busy per `ListAgents`).** Mid-task, `scripts/dev_flag_gate_check.js`
+appeared modified in the working tree, uncommitted, referencing "CEO 194" — a widened
+`playpastrypirates` domain-token match, closing a template-literal bypass. **Not this watch's
+edit and not committed by this watch.** Left exactly as found; not swept into either of this
+watch's two commits. Whoever owns that fix should commit it under its own message.
+
+**Dirty tree at entry was pre-existing, not this watch's**, confirmed unchanged at close: the same
+three modified `.planning/posed/t206-*.png` and the same dozen untracked `scratchpad/`/`scripts/qa/_*`
+files noted at claim time. Still untouched.
+
+**Chart:** `chartkeeper.mjs --rank --sweep --write` run — 0 rows moved, 0 archived (the item lived
+only in INBOX.md, no Chart row to touch). Nothing to commit from that step.
+
+**Glass:** no Artifact tool in this session (Bell-launched watch). Messaged the live `Glass update [fda089]`
+peer per Door step 6b; it replied that it only dispatches a publish on Wyatt's explicit
+instruction and will pick this up on the next one — noted, not chased further.
+
+**Daily lesson:** already given today (2026-09-04, "A gate can hold the SHAPE of a decision and
+not the decision", `.planning/wyclau/LESSONS.md`) — none owed by this watch.
+
+**Browsers/servers:** none started by this watch.
+
+END OF WATCH.
