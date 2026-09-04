@@ -185,6 +185,16 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       churn, wind-arrow icon clipping, dock-highlight-under-modal, EOV award-name clipping) all
       match known Chart rows already open (`T-023`, `T-142`, and the standing WebKit-settle-timing
       note) and are not new.
+      ✅ **2026-09-04T0930Z-1015Z — `T-256` IS FIXED AND CLOSED (CEO 211, YES, commit `fe87894a`).**
+      `camFrame()` (`src/ui/stage.js`) now measures `#legalFooter`'s own rendered height and
+      reserves it in the same board/captains-card budget it already computes, on true phone width
+      only; `#pp4Cap`'s own bottom edge now sits above the footer instead of touching the raw
+      viewport edge. Red-proofed (neutralize the reservation, confirm the same 7px defect
+      reproduces; restore it, confirm 0px on both a phone seat and a tablet control), posed
+      screenshots in `.planning/posed/t256-*`, `npm test` 138/138 green. **This row (`T-138`) is
+      still blocked on a fresh FULL sea trial of the code that would actually ship** — the same
+      trial `T-009`/`T-016` already say is owed, now also covering this fix, not a second one to
+      start separately.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 - [ ] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.**
@@ -313,36 +323,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         `.planning/CEO-REVIEWS.md`; sea trial evidence above; CTO-LEDGER has the working history.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.1, so its evidence no longer describes this game
 
-- [ ] **⛔ NEW, REAL, WIDESPREAD: THE JUST-SHIPPED PRIVACY/ABOUT FOOTER SITS ON TOP OF THE CAPTAINS
-      ⟨`T-256`⟩
-      PANEL ON EVERY PHONE-WIDTH SCREEN, IN EVERY MODE. Found 2026-09-04T0912Z, this trial's first
-      sail of `#legalFooter` (his ruling `T-206`), verified by eye (not the judge's paraphrase
-      alone), not fixed.**
-      The sea trial's vision judge flagged the same pattern independently on 11 screens across
-      THREE modes — solo-phone (3), passplay-phone (2), crew-phone-host (5), crew-phone-guest (1)
-      — in `SEA-TRIAL-2026-09-04T0744Z-Wy-Blade.md`. Opened two of the cited screenshots by eye:
-      `solo-phone-011-settled.png` — "Privacy Policy" and "About" render directly on the
-      Crustbeard row, text running together with no spacing ("2Privacy Policy"), crowding its
-      ingredient icons off to the right; `crew-phone-host-018-settled.png` — same links overlap
-      the Flaky Jack row (the last visible row), crowding its cargo icons against the coin count.
-      **THE MECHANISM, read not guessed:** `#legalFooter` (`index.html:2756-2759`) is
-      `position:fixed; left:0; right:0; bottom:0; z-index:1002` (`index.html:1241-1245`) —
-      deliberately global and always-on so the privacy line is reachable before a player picks how
-      to play (his ruling, comment at `index.html:1235-1240`). But `#pp4Cap`, the captains panel,
-      is ALSO `position:fixed; left:0; right:0; bottom:0; z-index:22` (`index.html:1763`) on
-      narrow (non-`.pp4Side`) viewports — i.e. phone width, once a voyage actually starts. Two
-      bottom-anchored fixed bars, same viewport edge, and the footer's z-index (1002) wins,
-      painting on top of whichever captain row is last in the panel's own list — on EVERY in-game
-      screen, not gated by mode, state, or a modal (unlike `T-142`'s fix, which only hides
-      `#pp4Cap` behind `.modalOverlay`/`.pp4ModalOpen` and does not touch this).
-      **Same bug-class as `T-142` (something painting over the captains panel), a different
-      culprit, and NOT covered by that fix.** Rule 26 applies: pose it (390×844, in-voyage, no
-      seed needed — the footer is present from the very first screen), before/after, once a fix
-      shape is chosen. Likely shapes, not evaluated here: hide `#legalFooter` while
-      `body.pp4Stage` (same derivation `T-142` already uses for modals), or move it above `#pp4Cap`
-      in the stacking with its own scoped clearance so it never touches the panel.
-      **Sizing: SMALL, index.html only. FULL gear (game code, live UI path).**
-      **THIS IS WHY `T-138`'s STAGING PUBLISH STAYS BLOCKED** — see the note on that row.
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩

@@ -11152,3 +11152,5 @@ GATED for an unattended watch, (b) not already claimed by T-138's own blocked-on
 
 Prediction written first: .planning/wyclau/PREDICTION-20260904T0940Z-T-256-footer-overlap.md.
 IN-HAND set to T-256 for this machine.
+
+- 2026-09-04T09:59:06Z · close_item: "T-256" · CEO 211 · commit fe87894 (2 game files) · no stated solution · camFrame() reserves #legalFooter's own rendered height on true phone width so #pp4Cap's last row never paints under it; red-proofed (neutralize-then-restore), npm test 138/138, tablet control unaffected

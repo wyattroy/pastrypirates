@@ -15739,3 +15739,57 @@ measure-and-file item. `npm test` 138/138 green (verified independently:
 after the fresh handle `T-256` was minted). Prediction written before measuring
 (`.planning/wyclau/PREDICTION-20260904T0912Z-T-138-footer-overlap.md`), falsifier named and not
 triggered.
+
+## CEO Review 211 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-256`: the fix for the footer/captains-panel overlap (Review 210 reviewed the FILING; this reviews the FIX) — **YES**
+
+**Verdict: YES — ships.**
+
+**1. Diff matches the claims — confirmed by reading it directly.** `git diff` (commit `fe87894a`)
+shows exactly two hunks: a comment-only addition in `index.html:1762-1768` (no property change to
+`#pp4Cap`), and the `phoneFootReserve` logic in `src/ui/stage.js`'s `camFrame()` (~lines 846-895).
+`phoneFootReserve` is read from `foot.getBoundingClientRect().height`, not a typed constant (rule
+9). The gating (`!side && vwPx()<=600`) is applied consistently in three places — the reserve
+computation, the `squareRoom`/`availH` budget, and the final `cap.style.bottom` set/clear — with no
+place where phone gets the reserve but the budget forgets it, or vice versa. Worked the
+`squareRoom`/`CAP_BASE`/`availH` arithmetic by hand: when `squareRoom` is the binding term, the two
+subtractions of `phoneFootReserve` algebraically cancel and `availH` still resolves to `vwPx()` —
+the same cancellation identity the pre-existing code already relied on for its other terms, not a
+new bug.
+
+**2. Screenshots — opened all four, read the two measurement JSONs.** Phone before
+(`t256-footer-captains-phone-390x664-before.png`): "Flaky Jack 5 ... empty hold" (last row) sits
+directly against the footer bar with no gap; JSON: `capRect.bottom=664` (pinned to the literal
+viewport edge), `footerRect.top=639`, `lastRowRect` 613–646 → footer covers the last **7px** of
+that row. Phone after: `capRect.bottom=638`, one pixel clear of `footerRect.top=639`,
+`lastRowCoveredPx: 0` — the last visible row ends cleanly, no footer text overlapping it. Tablet
+control before/after: `overlapPx: 0` and `lastRowCoveredPx: 0` in both — the tablet was never
+broken and the fix doesn't touch it.
+
+⚠ **Honesty note, not a blocker:** the before/after phone shots are two real, independently driven
+voyages at the same viewport (different wind, islands, captain gold, row order) — not a literal
+same-seed rule-26 pose. Doesn't undermine the conclusion, since the measured quantity (`capRect`
+vs `footerRect`, both purely CSS/viewport-driven) doesn't depend on what's drawn on the board, but
+it should be named as "two real measured voyages at the same viewport," not a strict pose. Also:
+`.planning/posed/t256-footer-captains-phone-390x844-before.png` is an orphaned artifact from an
+earlier wrong-viewport draft (390×844 instead of this project's standard 390×664 phone seat) with
+no `-after` counterpart — harmless clutter, not evidence used in the verdict.
+
+**3. Scoping — checked for other writers of `cap.style.bottom`/`.top`.** Grepped every `pp4Cap` /
+`cap.style` reference in `src/ui/stage.js` (13 functions touch the element). Only `camFrame()` ever
+sets or clears `cap.style.bottom` — `computeStageGeometry()` (`stage.js:2331-2447`, the
+side-by-side/stacked layout function), the ceremony-lift code (`:2692`), the menu-framing code
+(`:2998`), and the prompt-card placement code (`:3919`) only read `top` or set `max-height`. No
+second writer to collide with the new inline `bottom` — exactly the `T-142` regression class the
+code's own comments warn about. The side-by-side (`.pp4Side`) branch explicitly clears
+`cap.style.bottom` (`stage.js:881`); the stacked/desktop (>600px) branch also explicitly removes it
+(`stage.js:895`) so `bottom:auto` CSS is never fought by a stale inline value.
+
+**4. What was not independently re-run this pass:** `npm test`, the new
+`t256_footer_clear_of_captains_check.mjs`, and `stray_probe_check.mjs` — taken on the strength of
+the diff's small surgical footprint plus the measurement JSONs/screenshots, which are sufficient
+evidence for the layout claim itself.
+
+**Bottom line:** real fix, correctly scoped, numbers back it up — 7px covered before, 0px after,
+tablet/desktop paths untouched (measured, not assumed). `T-138`'s staging publish is unblocked by
+this half of its blocker; the next FULL sea trial (already owed to `T-138` regardless) will provide
+trial-level re-confirmation.

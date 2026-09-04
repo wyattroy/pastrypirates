@@ -3208,3 +3208,36 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   `docs/INTENDED-BEHAVIOUR.md:272` carries the Click/Tap guest-vs-host difference as *"Observed once,
   2026-08-30. Not measured"* — it is now measured, and it is the instrument.
   Account: [`.planning/JUDGED-2026-09-02T0219Z.md`](JUDGED-2026-09-02T0219Z.md).
+
+## T-256 — 2026-09-04 — ⛔ NEW, REAL, WIDESPREAD: THE JUST-SHIPPED PRIVACY/ABOUT FOOTER SITS ON TOP OF THE CAPTAINS (closed 2026-09-04 · CEO 211 · commit fe87894 (2 game files)) PANEL ON EVERY PHONE-WIDTH SCREEN, IN EVERY MODE. Found 2026-09-04T0912Z, this trial's first sail of #legalFooter (his ruling T-206), verified by eye (not the judge's paraphrase alone), not fixed. The sea trial's vision judge flagged the same pattern independently on 11 screens across THREE modes — solo-phone (3), passplay-phone (2), crew-phone-host (5), crew-phone-guest (1) — in SEA-TRIAL-2026-09-04T0744Z-Wy-Blade.md. Opened two of the cited screenshots by eye: solo-phone-011-settled.png — "Privacy Policy" and "About" render directly on the Crustbeard row, text running together with no spacing ("2Privacy Policy"), crowding its ingredient icons off to the right; crew-phone-host-018-settled.png — same links overlap the Flaky Jack row (the last visible row), crowding its cargo icons against the coin count. THE MECHANISM, read not guessed: #legalFooter (index.html:2756-2759) is position:fixed; left:0; right:0; bottom:0; z-index:1002 (index.html:1241-1245) — deliberately global and always-on so the privacy line is reachable before a player picks how to play (his ruling, comment at index.html:1235-1240). But #pp4Cap, the captains panel, is ALSO position:fixed; left:0; right:0; bottom:0; z-index:22 (index.html:1763) on narrow (non-.pp4Side) viewports — i.e. phone width, once a voyage actually starts. Two bottom-anchored fixed bars, same viewport edge, and the footer's z-index (1002) wins, painting on top of whichever captain row is last in the panel's own list — on EVERY in-game screen, not gated by mode, state, or a modal (unlike T-142's fix, which only hides #pp4Cap behind .modalOverlay/.pp4ModalOpen and does not touch this). Same bug-class as T-142 (something painting over the captains panel), a different culprit, and NOT covered by that fix. Rule 26 applies: pose it (390×844, in-voyage, no seed needed — the footer is present from the very first screen), before/after, once a fix shape is chosen. Likely shapes, not evaluated here: hide #legalFooter while body.pp4Stage (same derivation T-142 already uses for modals), or move it above #pp4Cap in the stacking with its own scoped clearance so it never touches the panel. Sizing: SMALL, index.html only. FULL gear (game code, live UI path). THIS IS WHY T-138's STAGING PUBLISH STAYS BLOCKED — see the note on that row.
+
+- [x] **⛔ NEW, REAL, WIDESPREAD: THE JUST-SHIPPED PRIVACY/ABOUT FOOTER SITS ON TOP OF THE CAPTAINS (closed 2026-09-04 · CEO 211 · commit fe87894 (2 game files))
+      ⟨`T-256`⟩
+      PANEL ON EVERY PHONE-WIDTH SCREEN, IN EVERY MODE. Found 2026-09-04T0912Z, this trial's first
+      sail of `#legalFooter` (his ruling `T-206`), verified by eye (not the judge's paraphrase
+      alone), not fixed.**
+      The sea trial's vision judge flagged the same pattern independently on 11 screens across
+      THREE modes — solo-phone (3), passplay-phone (2), crew-phone-host (5), crew-phone-guest (1)
+      — in `SEA-TRIAL-2026-09-04T0744Z-Wy-Blade.md`. Opened two of the cited screenshots by eye:
+      `solo-phone-011-settled.png` — "Privacy Policy" and "About" render directly on the
+      Crustbeard row, text running together with no spacing ("2Privacy Policy"), crowding its
+      ingredient icons off to the right; `crew-phone-host-018-settled.png` — same links overlap
+      the Flaky Jack row (the last visible row), crowding its cargo icons against the coin count.
+      **THE MECHANISM, read not guessed:** `#legalFooter` (`index.html:2756-2759`) is
+      `position:fixed; left:0; right:0; bottom:0; z-index:1002` (`index.html:1241-1245`) —
+      deliberately global and always-on so the privacy line is reachable before a player picks how
+      to play (his ruling, comment at `index.html:1235-1240`). But `#pp4Cap`, the captains panel,
+      is ALSO `position:fixed; left:0; right:0; bottom:0; z-index:22` (`index.html:1763`) on
+      narrow (non-`.pp4Side`) viewports — i.e. phone width, once a voyage actually starts. Two
+      bottom-anchored fixed bars, same viewport edge, and the footer's z-index (1002) wins,
+      painting on top of whichever captain row is last in the panel's own list — on EVERY in-game
+      screen, not gated by mode, state, or a modal (unlike `T-142`'s fix, which only hides
+      `#pp4Cap` behind `.modalOverlay`/`.pp4ModalOpen` and does not touch this).
+      **Same bug-class as `T-142` (something painting over the captains panel), a different
+      culprit, and NOT covered by that fix.** Rule 26 applies: pose it (390×844, in-voyage, no
+      seed needed — the footer is present from the very first screen), before/after, once a fix
+      shape is chosen. Likely shapes, not evaluated here: hide `#legalFooter` while
+      `body.pp4Stage` (same derivation `T-142` already uses for modals), or move it above `#pp4Cap`
+      in the stacking with its own scoped clearance so it never touches the panel.
+      **Sizing: SMALL, index.html only. FULL gear (game code, live UI path).**
+      **THIS IS WHY `T-138`'s STAGING PUBLISH STAYS BLOCKED** — see the note on that row.
