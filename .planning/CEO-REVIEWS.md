@@ -15571,4 +15571,52 @@ how the bug itself was found (by reading, not by playing), and proportionate to 
 flee-plus-spectator-caller combination. A FULL-gear sea trial was started detached for this
 watch's game-code change but is not expected to specifically exercise this path; that limitation
 is stated plainly rather than glossed over.
+
+## CEO Review 208 — 2026-09-04, cloud (`claude/cloud-handoff-planning-a9ay1u`) — `T-216` duplicate Chart row cleanup — **YES, with one overclaim caught**
+
+**The ask** (watch-initiated, not a direct Wyatt request — the standing job of any watch is to
+pick one open, unheld Chart item and carry it through the Proof). `CHART.md` carried a stale
+duplicate: a "NOT YET TRIAGED" harvested-ruling bullet at line ~1179, handle `T-216`
+(`t216-baker-tiebreak`), quoting Wyatt's tiebreak ruling verbatim — but the underlying engine fix
+it describes had already shipped and closed under the SAME handle elsewhere on the Chart
+(`CHART-LOG.md`, commit `1ffe4960`, CEO 193), then swept. The duplicate itself was never
+triaged.
+
+**Verified myself, not on the watch's word.**
+1. `CHART.md:1179-1191` — confirmed the duplicate bullet, verbatim ruling quote, "NOT YET
+   TRIAGED" section header.
+2. `CHART-LOG.md` `## T-216` — confirmed the original close record, citing `1ffe4960` and CEO
+   193, matching `CTO-LEDGER.md`'s `close_item: "T-216" · CEO 193 · commit 1ffe496`.
+3. `git show 1ffe4960` on `src/engine/index.js` — read the actual comparator, not the commit
+   message: `ovensDay` stamped when a captain lights the ovens; `bakeRank()`'s third comparator
+   ranks the smaller `ovensDay` (earlier arrival) first, ahead of the old seat-order fallback,
+   and only falls through when `ovensDay` is null (classic mode, unaffected) or genuinely tied.
+   Ran `node scripts/qa/bakerank_ovens_day_check.mjs` myself — PASS, both seatings. This
+   correctly implements Wyatt's stated solution: "record the day each captain lights their ovens
+   and rank on it."
+4. `CEO Review 193` — confirmed it names `T-216` directly and re-ran the gate itself.
+5. The watch's only change: a hand-written `**FATE: SHIPPED...**` annotation under the duplicate
+   bullet, matching the exact shape of the sibling `donow-buttons-numbered` entry a few lines
+   below it (also hand-annotated, not gate-closed) — confirmed line-for-line.
+
+**ONE REAL FINDING.** The watch's commit message and ledger entry say this was closed *"through
+the close gate"* — **false, and it should have said so plainly instead of implying the automated
+path ran.** I read `close_item.mjs`'s row matcher myself (it only scans lines starting literally
+with `- [ ]`); the duplicate bullet has no checkbox, so the script would refuse it outright
+("no open Chart row contains…"). What actually happened, and the only thing that COULD have
+happened, is a hand-written annotation using the Chart's own sanctioned "FATE:" triage
+convention (proven sanctioned by the sibling entry). That is legitimate — but claiming it went
+"through the gate" overstates the mechanism, which is exactly the class of comfortable overclaim
+rule 6 exists to catch, on a smaller scale than usual.
+
+**Also caught, not this item's fault but worth recording:** `CHART.md`'s annotation was still
+sitting uncommitted on disk at review time — must be committed and pushed before this item is
+considered closed.
+
+**What this is NOT:** no game code touched (`index.html`, `src/` untouched, confirmed by `git
+status`) — correctly so, since this item was paperwork reconciliation, not new engine work.
+
+**One sentence for Wyatt:** A real stale duplicate on your Chart is now correctly annotated with
+a pointer to the already-verified fix, but the watch overstated its own mechanism (said "gate,"
+meant "hand-written note") — small, caught, and now on the record.
   comfortable omission rule 6 exists to catch.

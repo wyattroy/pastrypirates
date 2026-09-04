@@ -11000,5 +11000,23 @@ was already implemented, verified, and closed under the SAME handle at `CHART.md
 2026-09-04T0156Z (commit `1ffe4960`, CEO 193), then swept to `CHART-LOG.md` — grep confirms the
 closed copy now lives in `CHART-LOG.md` (3 hits), not `CHART.md`. Chartkeeper's duplicate-handle
 guard no longer flags `T-216` as ambiguous among open rows, confirming this is the only open
-copy left. Closing it through the gate, citing the same CEO 193 verdict (which names `T-216`
-directly, confirmed by grep) and the same commit.
+copy left. **Correction, same watch, before push:** `close_item.mjs`'s row matcher only scans
+lines starting literally with `- [ ]`; this duplicate is a plain bullet (`- \`t216-baker-tiebreak\`
+...`) under a "NOT YET TRIAGED" harvested-ruling section, not a checklist row, so the script
+would refuse it outright. **It was NOT closed through the gate — it was hand-annotated** with a
+`FATE: SHIPPED...` line, matching the sanctioned convention already used for the sibling
+`donow-buttons-numbered` entry a few lines below it. CEO 208 caught this exact overclaim in an
+earlier draft of this entry and it is corrected here rather than left standing.
+
+**CLOSE-OUT.** CEO 208 (**YES, with the overclaim above caught and now fixed**), appended to
+`.planning/CEO-REVIEWS.md`. Verified independently: the underlying fix (`1ffe4960`) correctly
+implements Wyatt's stated solution (re-ran `bakerank_ovens_day_check.mjs` itself, PASS), and the
+FATE annotation on `CHART.md` matches the sibling convention exactly. No game-code diff this
+turn — `index.html` and `src/` untouched (paperwork reconciliation, not new work), which is
+correct for this item. Gear: none (Chart bookkeeping only). Sweep: N/A, no rendered behaviour to
+photograph. Daily lesson already given today (`.planning/wyclau/LESSONS.md`); none owed.
+Browsers/servers: none started. `IN-HAND` reverted to empty at close (machine-local, gitignored).
+**No Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find the Glass-update
+peer per Door step 6b and message it to harvest and republish.
+
+END OF WATCH.

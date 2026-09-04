@@ -1183,6 +1183,13 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches
   the end-of-voyage ranking"*
 
+  **FATE: SHIPPED 2026-09-04, already closed as `T-216`** — this is a leftover duplicate copy of
+  the same ruling, harvested from a later Glass snapshot after the original had already shipped.
+  Full record archived in `CHART-LOG.md` (`## T-216`): new `ovensDay` field stamped in
+  `lightOvens()`, `bakeRank()`'s third comparator reads it ahead of the old seat-order fallback,
+  gate `bakerank_ovens_day_check.mjs` RED→GREEN, commit `1ffe4960`, CEO 193. Triaged rather than
+  re-worked — the fix already matches his stated solution exactly.
+
 - `t206-cookie-choice` — **⟨`T-206`⟩ Second analytics call: cookie notice, or not?** His answer
       ⟨`T-206`⟩
   (choice: `opt-1cqjffl`, at 2026-09-03T21:30:55.944Z): *"Cookieless, no banner — you keep the
