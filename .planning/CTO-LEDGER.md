@@ -9935,3 +9935,87 @@ superseded by the gate. Both are **overwritten with a stub that exits 1** so nob
 second copy of the same measurements, and both are untracked. `rm` is fenced here. A session with
 those permissions should delete them, along with the four `_ceo190_*` / `_t102_*` scratch files the
 previous watches left for the same reason.
+
+- 2026-09-04T00:06:37Z · close_item: INBOX-20260903T2340Z · CEO 192 · no game diff — no game code is right: he asked what model the unattended Watch relay runs on and told us to change it -- that is the Bell's launch line (commit 20dace86), not the game; index.html and src/ untouched · no stated solution · the Bell now names the model it rings a watch on, and it is claude-sonnet-5 -- his ruling, pinned by a gate
+
+---
+
+## WATCH 2026-09-03T23:38Z — `T-251` / `INBOX-20260903T2340Z` CLOSED (CEO 192): the Bell names the model it rings a watch on
+
+**Situation at the start.** Last progress 23:37Z (the `T-216` gate watch's close-out). `IN-HAND`
+held `T-216`, claimed 23:00Z — 38 minutes old, so **HELD, and skipped**, which is why the top-ranked
+Chart row was not taken. No detached trial in flight. Push verified before any work
+(`can_push.mjs` healthy, then a real `git push` — "Everything up-to-date").
+
+**WHY THIS ITEM AND NOT THE CHART'S TOP ROW.** The Door says the Inbox outranks the Chart, and his
+newest instruction — `INBOX-20260903T2340Z`, *"we're running out of usage… we also need to start
+having the Watch use a different model setting"* — **had no Chart row at all.** It therefore ranked
+nowhere, which is the exact inversion he has complained about repeatedly. A watch running on Opus
+taking the item that says the Watch must not run on Opus is the right session for it.
+
+**WHAT WAS WRONG.** `bell.ps1` launched every watch as `claude -p "<door prompt>"` with an optional
+`--add-dir` and **no `--model`**, so each one inherited the CLI default from his own global
+`settings.json` — the file that also governs HIS interactive sessions. Nobody chose Opus; it fell
+out of an argument list nobody read. **Same species as three faults already on this record** (the
+browser launcher reporting `GEAR: NONE`, the deploy serving staging under production's stamp,
+`pkill` printing an all-clear on a machine where it was not installed): a launcher doing something
+other than what everyone assumed, with nothing saying so.
+
+**THE CHANGE.** `$watchModel = "claude-sonnet-5"` — **his ruling**, not a recommendation
+(*"Change the watch to use sonnet 5"*, DECISIONS.md) — pinned in the Bell, deliberately NOT in
+`~/.claude/settings.json`, which would have quietly downgraded him while he works. One
+`$claudeArgs` array now serves both the dry run and `Start-Process`, which previously rebuilt its
+own list inline; the ring line names the model. **Four assertions went into the EXISTING
+`bell_check.mjs`** — no 133rd gate, no ceiling raise, which also avoids repeating CEO 174's finding
+of a gate that was written, green, and run by nothing. Plus an opportunistic PowerShell parse check
+that skips loudly off Windows: the Bell is launched into a hidden window, so a syntax error in it
+produces a relay that stops ringing and looks exactly like a quiet night.
+
+**CEO 192 — PARTIAL, and its finding is in the commit.** The first three assertions held the SHAPE
+of the launch line and not his ruling: *"I put the Watch straight back on `claude-opus-5` and the
+gate printed PASS… the one thing you actually ruled is the one thing nothing is holding."* A
+nonsense model string passed too — a launch that would kill every watch at startup while
+`restarts.log` recorded a ring. **The fourth assertion pins `claude-sonnet-5` by name**, red-proofed
+with the CEO's own mutation. It also caught three sentences of mine that had already rotted (a
+pointer to a file that no longer exists, "his to overrule" after he had ruled, and "every fifteen
+minutes" against a log whose rings are 20–50 minutes apart) — all corrected.
+
+**⚠ A GATE THAT COULD NOT SEE ITS SUBJECT, FOUND WHILE CLOSING.** `close_item.mjs:188` splits
+`CEO-REVIEWS.md` on `^## CEO Review ` — and **CEO 191 and 192 were both written as `## CEO <n> —`,
+without the word "Review".** So both verdicts were invisible to the close gate, which refused with
+*"CEO Review 192 is not in CEO-REVIEWS.md"* — a message that is true about its own search and false
+about the file, and which would send the next reader to re-run a CEO that had already run. Both
+headings normalised, neither verdict's text touched. **`T-216` could not have been closed last night
+either**, whatever else was owed on it. The durable fix — the gate should say "no heading matches",
+or accept both forms — is filed, not done.
+
+**WHAT IS NOT PROVEN, recorded as unproven.** The LIVE half. `bell.ps1 -DryRun` could not be
+exercised: the last ring was 23:38:01Z and the file was saved minutes later, **inside the launch
+grace window, where silence is the Bell working as designed.** The real proof writes itself on the
+first ring — the `restarts.log` line will end `rang the next one on claude-sonnet-5`, where 22:08,
+22:58 and 23:38 do not. **Nobody should read this as verified until that line appears.**
+
+**⚠ TWO SESSIONS WERE ON THIS ITEM AT ONCE, in one working tree.** The Advisor (`Blade [53b082]`)
+was recording his ruling and appending an OUTCOME section to my own prediction file while I was
+editing the code. Resolved by `SendMessage`, not by luck: it yielded both code files, confirmed it
+had nothing uncommitted in them, and had independently red-proofed my three assertions with its own
+mutants (3 killed, 0 survived). **This is the hazard CLAUDE.md §3 names, and the only reason it cost
+nothing is that we were editing different files.**
+
+**Gear: no game code.** `index.html` and `src/` untouched — this is the launcher for the relay, not
+the game. **The branch's FULL sea trial debt on the analytics change (`09f8658c`) still stands and
+is not mine.** `npm test`: 132 gates, exit 0, run three times across the watch.
+
+**Browsers:** this watch started none.
+
+**⛔ ONE THING I COULD NOT DO, named rather than left to be found.**
+`.claude/memory/DECISIONS.md` is permission-fenced for edits in this session; one correction landed
+before the fence, a second was refused. Its entry for this ruling still says *"Three assertions in
+`scripts/qa/bell_check.mjs` now hold this one"* — **there are four, and the fourth is the one that
+holds his ruling rather than the shape.** **I did NOT ask the peer session to make the edit for me**
+— a permission I do not have is not one a teammate may spend on my behalf. Surfaced here and to
+Wyatt instead.
+
+**Scratch files the permission layer would not let their authors delete:**
+`scripts/qa/_ceo192_mutate.mjs` and `scratchpad/_ceo192_mutate.mjs` (CEO 192's), on top of the
+`_ceo190_*` / `_t102_*` / `_t216_*` files the previous watches named. None is in the gate chain.

@@ -5,21 +5,17 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-03T23:29:42.070Z	self-publish check
+2026-09-04T00:04:32.370Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-```
-T-216 claimed by watch Blade 2026-09-03T23:00Z — auditing the remaining ~15 claims on /rules.html
-against the engine code that implements them, then closing INBOX-20260902T225008Z through the gate.
-```
+None recorded.
 
 ## Long run in flight (LONG-RUN)
 None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T02:28:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T022801Z.out/.err, kit: readable)
 2026-09-03T02:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T023801Z.out/.err, kit: readable)
 2026-09-03T03:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T030801Z.out/.err, kit: readable)
 2026-09-03T03:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T034802Z.out/.err, kit: readable)
@@ -59,4 +55,5 @@ None recorded.
 2026-09-03T21:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T213802Z.out/.err, kit: readable)
 2026-09-03T22:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T220802Z.out/.err, kit: readable)
 2026-09-03T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T225802Z.out/.err, kit: readable)
+2026-09-03T23:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T233802Z.out/.err, kit: readable)
 ```

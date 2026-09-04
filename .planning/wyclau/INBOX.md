@@ -2251,5 +2251,4 @@ solution: none stated for WHICH model — that half is his and is unanswered.
   read it, so a gate asserting the launch line carries an explicit `--model` is cheap. The whole
   fault here is a flag that was never there and nothing ever said so — this project's recurring
   fault (a launcher silently doing something other than what everyone assumed) wearing new clothes.
-status: OPEN — the handoff is written (`.planning/HANDOFF-2026-09-03-ADVISOR-USAGE-STOP.md`) and
-  this session stopped as he asked. The model change itself is UNMADE, waiting on his pick.
+status: DONE 2026-09-04 — CEO 192, no game diff — no game code is right: he asked what model the unattended Watch relay runs on and told us to change it -- that is the Bell's launch line (commit 20dace86), not the game; index.html and src/ untouched

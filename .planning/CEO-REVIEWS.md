@@ -1,6 +1,14 @@
 # CEO reviews — the standing record
 
-## CEO 192 — `T-251`, the Watch's model — **PARTIAL** — 2026-09-04T00:0xZ
+## CEO Review 192 — `T-251`, the Watch's model — **PARTIAL** — 2026-09-04T00:0xZ
+
+> ⚠ **THE WORD "Review" IN THIS HEADING IS LOAD-BEARING, AND IT WAS MISSING.** `close_item.mjs:188`
+> splits this file on `^## CEO Review ` and refuses to close an item whose verdict it cannot find.
+> Written as `## CEO 192 —`, this verdict was **invisible to the close gate**, which then refused
+> with *"CEO Review 192 is not in CEO-REVIEWS.md"* — a message that is true about the gate's own
+> search and false about the file, and would send the next reader off to re-run a CEO that had
+> already run. **CEO 191's heading has the same fault** and was corrected in the same edit; it is
+> the only other one in 192 reviews. Neither verdict's text was changed.
 
 *The ask reviewed: `INBOX-20260903T2340Z` — "we're running out of usage. i need to stop your work,
 and start you on a different model with smaller context. write a handoff file." / "we also need to
@@ -117,7 +125,10 @@ and `npm test` is green with them present; delete them at close-out.
 
 ---
 
-## CEO 191 — `T-216`, "using the latest version of the game" — **PARTIAL** — 2026-09-03T23:4xZ
+## CEO Review 191 — `T-216`, "using the latest version of the game" — **PARTIAL** — 2026-09-03T23:4xZ
+<!-- heading normalised 2026-09-04 by the T-251 watch: it read "## CEO 191 —", which close_item.mjs
+     cannot see (it splits on "^## CEO Review "). The verdict text is untouched. -->
+
 
 *Its words, not a paraphrase. The ask reviewed: `INBOX-20260902T225008Z`, "Do a new /rules.html that
 explains the rules -- using the latest version of the game."*
