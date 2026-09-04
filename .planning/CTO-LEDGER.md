@@ -11020,3 +11020,54 @@ Browsers/servers: none started. `IN-HAND` reverted to empty at close (machine-lo
 peer per Door step 6b and message it to harvest and republish.
 
 END OF WATCH.
+
+- 2026-09-04T09:03:04Z · close_item: "THE CREW-PHONE GUEST" · CEO 209 · no game diff — no game code is right: QA-harness fix (playtest_gate.mjs guest emulation, commit 047fbe80); index.html and src/ untouched · no stated solution
+
+## WATCH CLAIM+CLOSE, 2026-09-04T0849Z-0903Z, `claude/cloud-handoff-planning-a9ay1u`.
+
+Took `T-020` (rank 10 on the ranked Chart at claim time) — unheld, unclaimed. Skipped rank 1
+(`T-073`, SFX, structurally blocked for an unattended watch — no interactive permission grant
+possible), rank 2 (`T-138`, blocked on the detached sea trial `2026-09-04T0744Z-Wy-Blade` pid
+27400, 7/10 legs as of 0843Z), rank 3 (`T-219`, a prior watch explicitly declined to rush a fix
+to the trial's own resume-cache mechanism), rank 4 (`T-237`, HELD — claimed 0758Z by a prior
+watch, still inside the 90-minute window, and a leftover uncommitted probe file
+`scripts/qa/t237_trade_clear_of_ask.mjs` sits in the tree from that unfinished turn — left
+untouched, not this watch's item). Rank 5 (the `T-216` stale-duplicate row) was already closed
+by the prior watch's FATE annotation before this turn started.
+
+**The item:** `scripts/playtest_gate.mjs`'s "crew-phone" leg opened the HOST with
+`mobile:!!def.mobile, dsf:def.dsf||1` but the GUEST with neither, so `scripts/lib/cdp.mjs`'s
+parameter defaults (`mobile=false, dsf=1`) silently made the guest a desktop window — proven in
+the row's own cited pictures (host screenshot reads "Tap and hold", guest reads "Click and
+hold", same run). Most of Wyatt's 35 playtest findings came from crew-on-a-phone, so half that
+leg's evidence had never actually been measured on a phone.
+
+Prediction written first: `.planning/wyclau/PREDICTION-20260904T0849Z-T-020.md` — confirmed
+correct on both falsifiers (the guest call omitted mobile/dsf exactly as read from source;
+`openEngine()` is a thin 2-line dispatcher with no crew-leg-specific handling to hide behind).
+
+RED->GREEN: `scripts/qa/crew_phone_guest_emulation_check.mjs` lifts the real `legDefs` object
+and the real guest `openEngine()` call-site source out of `playtest_gate.mjs` (not a
+reimplementation) and asserts mobile/dsf parity for any crew leg with `def.mobile` true. FAILED
+(2 failures) pre-fix, PASSED post-fix. Wired into `npm test` (137->138 gates, declaration bumped
+same edit). Gear: picker said FULL (package.json changed); lowered to COSMETIC by stated reason
+(`node scripts/sea_trial.mjs --gear=COSMETIC --reason="..." --explain`) — QA-tooling-only,
+`index.html`/`src/` untouched, same class as CEO 197's `cdp.mjs` timeout fix. `npm test`:
+138/138 green. Commit `047fbe80`.
+
+**CLOSE-OUT.** CEO 209 (**YES**) — independently red-proofed the check itself (reverted the fix
+in place, confirmed the same 2 failures, restored byte-identical, confirmed via `git diff`),
+independently ran `npm test` (138/138), confirmed `playtest_gate.mjs` is never referenced from
+`index.html`/`src/` (only two historical comment mentions in `stage.js`), and confirmed the
+gear-lowering reasoning holds against the CEO 197 precedent. Appended to `.planning/CEO-
+REVIEWS.md` as Review 209. Closed via `close_item.mjs --reason=` (no game-code diff is correct
+for this item). Chart re-ranked and swept (`chartkeeper.mjs --rank --sweep --write`) — 1
+finished row archived to `CHART-LOG.md`, 0 new flags beyond the standing duplicate-handle/
+citation warnings already on record. Daily lesson already given today
+(`.planning/wyclau/LESSONS.md`); none owed. Browsers/servers: none started by this watch;
+`stray_probe_check` SKIP (a sea trial is at sea, 0 debug-port browsers up at last check — all
+attributable to the detached trial). `IN-HAND` reverted to empty at close (machine-local,
+gitignored). **No Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find
+the Glass-update peer per Door step 6b and message it to harvest and republish.
+
+END OF WATCH.
