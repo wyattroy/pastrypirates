@@ -10528,3 +10528,63 @@ the decision") — none owed by this watch.
 END OF WATCH.
 
 - 2026-09-04T04:22:28Z · close_item: "holding it back from the real site is a sentence on your fro" · CEO 200 · commit aa4c0c7 (1 game file) · no stated solution · privacy line moved off the front card to its own plain-English page, footer links outside the modal, sitemap fixed; fresh CEO 200 independently re-verified all four parts and re-ran npm test itself (137/137 green)
+
+---
+
+**WATCH CLOSE, 2026-09-04T04:5xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**Item taken:** rank-1 (DO NOW, `T-073`, SFX asset request) was checked first — still structurally
+blocked for a Bell-launched watch (confirmed twice already by prior watches;
+`.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`), left ARMED/DO NOW, not retried a third
+time. `T-219` (sea-trial resume-cache) had already been investigated and correctly redirected by the
+prior watch. Moved to rank 2's underlying subject: the Google Analytics ask (`T-206`), which the
+Chart described in multiple rows as "still open" / "not started."
+
+**Finding: most of `T-206` was already done, just never closed.** `src/analytics.js`,
+`scripts/qa/analytics_consent_check.mjs`, `privacy.html` and their gates were all already committed
+on this branch (commits through `641513c9`), fully green (`npm test` 137/137), and had TWO existing
+CEO verdicts (194 PARTIAL, 195 YES) — but neither verdict named the specific stale Chart row at
+`.planning/CHART.md:233` ("Your ruling: Google Analytics is built and waiting... privacy line"), so
+`close_item.mjs` correctly refused to close it against either (traceability check: neither the
+item's own text nor a commit sha it named appeared in those reviews' text). This is exactly the
+"done rows never leave" failure mode the Chartkeeper audit (`INBOX-20260902T04xxZ`) already
+diagnosed — work finished, record stale.
+
+**Fix: closed it properly rather than hand-patching.** Spawned a fresh, independent CEO
+(`general-purpose`, no memory of prior reviews) with the row's text verbatim, Wyatt's stated
+solution, and both prior verdicts as context. It did not trust the record — read `privacy.html` in
+full (plain English, zero pirate-speak markers), confirmed `#legalFooter` sits outside the modal in
+`index.html` (`:2756-2759`, before `#lobby.modalOverlay` opens), confirmed the old front-card
+sentence is gone, ran the full `npm test` itself and grepped the entire output for `FAIL` (all 137
+gates, zero real failures), and cross-checked `sitemap.xml`'s `<lastmod>` against `git log -1`.
+**Verdict: YES.** Appended as CEO 200 in `.planning/CEO-REVIEWS.md`. Closed via `close_item.mjs
+--ceo=200 --commit=aa4c0c71` (game-code diff: `index.html`). Chart swept in the same act per
+Wyatt's own sweep ruling — the row moved to `CHART-LOG.md`. Commit `5c110f76`.
+
+**Gear: no game code changed by this watch itself.** The actual analytics/privacy code was written
+by earlier watches; this watch's own diff is `.planning/` bookkeeping only (the CEO review, the
+Chart tick, the ledger, the sweep). No sea trial owed for this watch's own work.
+
+**Still genuinely open on `T-206`, not touched by this watch, correctly left alone:** which-pages
+and cookie-choice rulings are already recorded as answered elsewhere on the Chart; the analytics
+work as a whole still lives only on this un-merged branch (1291 commits ahead of `main`, `main`
+fully contained in `HEAD` — confirmed via `git rev-list --count`), so nothing here is live for real
+players yet. That merge is its own GATED Chart row, explicitly not this watch's call.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) both before and after the
+close; the second pass found nothing further to move (0 archived, 0 rows moved) — clean.
+
+**Commits, all pushed, `origin/claude/cloud-handoff-planning-a9ay1u` confirmed at HEAD after each
+push:** `5c110f76` (CEO 200 + close + Chart sweep), `46d0799f` (this machine's instrument status
+publish).
+
+**No Artifact tool in this session** (Bell-launched watch). `ListAgents` shows one peer,
+`pastrypirates-c7 [b2589f]` (interactive, started before this watch), not labeled as a Glass-update
+session — no Glass-update peer found to message per Door step 6b. Recorded here rather than guessed
+at or blocked on.
+
+**Daily lesson:** already given today (2026-09-04) by a prior watch — none owed by this watch.
+
+**Browsers/servers:** none started by this watch; `stray_probe_check.mjs` confirms none running.
+
+END OF WATCH.
