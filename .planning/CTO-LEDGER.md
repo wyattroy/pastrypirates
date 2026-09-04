@@ -10019,3 +10019,87 @@ Wyatt instead.
 **Scratch files the permission layer would not let their authors delete:**
 `scripts/qa/_ceo192_mutate.mjs` and `scratchpad/_ceo192_mutate.mjs` (CEO 192's), on top of the
 `_ceo190_*` / `_t102_*` / `_t216_*` files the previous watches named. None is in the gate chain.
+
+## WATCH 2026-09-04T0018Z — t216-baker-tiebreak: ovensDay stamp lands, CEO verification IN PROGRESS
+
+**Situation at the start.** Last progress: the 23:38Z watch closed `T-251` (Bell model pin, CEO
+192) and ended. `IN-HAND` empty on this machine; the ledger's `T-216` claim (23:00Z, "Chart rank
+1 — audit the rest of /rules.html") was still under 90 minutes old at start (78 min), so **HELD,
+and skipped** — same call the 23:38Z watch made. No detached trial was in flight
+(`.planning/wyclau/LONG-RUN` absent). Push verified before any work: `can_push.mjs` healthy, then
+a real `git push origin claude/cloud-handoff-planning-a9ay1u` — "Everything up-to-date".
+
+**ITEM TAKEN: rank 2 on the ranked Chart** (`chartkeeper --rank --sweep --write`, score 146) —
+the `t216-baker-tiebreak` ruling, unheld and distinct from the rank-1 audit row despite sharing
+the `T-216` handle (chartkeeper flags this handle as carried by 6 duplicate rows; the ledger's
+claim named "Chart rank 1" specifically, so this row was free).
+
+**HIS RULING, HIS SOLUTION FIRST.** *"Change the game to match the page — record the day each
+captain lights their ovens and rank on it."* Measured before touching anything:
+`endBakeDay()` (`src/engine/index.js:2948-2953`) fills `finishOrder` from
+`players.filter(q=>q.bakedToday)` — array order, i.e. seat order — and `bakeRank()`'s third
+comparator was `finishOrder.indexOf(a)-finishOrder.indexOf(b)`. Nothing recorded the day a
+captain lit the ovens.
+
+**Prediction written first:** `.planning/wyclau/PREDICTION-20260904T0021Z-t216-baker-tiebreak.md`.
+
+**THE FIX.** Added `ovensDay:null` to the player-init literal, stamped `p.ovensDay=this.round` at
+the top of `lightOvens()` (the arrival moment), and gave `bakeRank()` a new comparator between
+coins and the old seat-order fallback:
+`if(pa.ovensDay!=null&&pb.ovensDay!=null&&pa.ovensDay!==pb.ovensDay)return pa.ovensDay-pb.ovensDay;`.
+Classic (non-bakeoff) play never sets `ovensDay`, so both guards fail there and the comparator
+falls through unchanged to the pre-existing `finishOrder` order — no behaviour change outside
+bake-off.
+
+**RED then GREEN, on a new gate, not a scratch probe.** `scripts/qa/bakerank_ovens_day_check.mjs`
+drives the real engine (`lightOvens -> endBakeDay -> bakeRank -> resolveEnd`), two players tied on
+crates and coins, one arriving round 3 and the other round 9, both finishing baking the same day,
+seats swapped both ways. RED on the unmodified engine: 1 of 2 seatings failed — the early arriver
+only won when also holding the lower seat, matching the previous watch's own
+`scripts/qa/_t216_bakerank_probe.mjs` measurement. GREEN after the fix, both seatings.
+
+**Determinism.** `ev(o)` (`src/engine/index.js`) assigns exactly
+`{round, wind, storm, wind2, state, tokens, draw}` onto an event — confirmed by reading it and by
+`npm test`'s own determinism-contract gate, which asserts that exact set. `ovensDay` is never
+passed to `ev()` and consumes no `r()`, so `scripts/determinism_baseline.js` and
+`scripts/bakeoff_baseline.js` (both hash `g.events`, not player fields) should be untouched by
+this change — not independently re-run against the 30/31-seed corpus this watch, since neither
+baseline script's `--verify` mode is wired into `npm test` (`test:determinism` is marked BROKEN
+BY THE CUTOVER in `package.json`); the reasoning rests on what `ev()` actually assigns, not on a
+corpus re-capture.
+
+**Gate wired in, not left as a scratch file.** `scripts/qa/bakerank_ovens_day_check.mjs` added to
+`package.json`'s `scripts.test` chain and to `gates.total`/`gates.ceiling` (132 -> 133), with a
+`_ceiling_raise_133` justification. `npm test`: **133/133 gates, exit 0**, run twice across this
+watch (once before wiring the gate in with 132, once after with 133).
+
+**Gear FULL** (end-of-voyage ranking, per the previous watch's own note on this row). The FULL
+sea trial was **started detached rather than run inline** (Door rule 4 — a long job never runs
+inside a session): `node scripts/wyclau/start_trial_detached.mjs`, pid **40568**, run
+`2026-09-04T0028Z-Wy-Blade`, report `.planning/SEA-TRIAL-2026-09-04T0028Z-Wy-Blade.md`, log
+`.planning/wyclau/detached/trial-2026-09-04T0028Z-Wy-Blade.out`. `.planning/wyclau/LONG-RUN`
+holds the marker. **Precedent for deferring a FULL trial to a detached run rather than blocking
+the commit on it**: CEO-REVIEWS.md line 9191-9193, the sail-cam-clip fix — "the FULL sea trial is
+DELIBERATELY DEFERRED to the upcoming release trial (orchestrator's call, stated in CTO-LEDGER,
+not hidden)". A later watch reads this trial's verdict before calling the change fleet-proven.
+
+**Committed:** `1ffe4960` — `src/engine/index.js`, `scripts/qa/bakerank_ovens_day_check.mjs`,
+`package.json`, the prediction file, the trial report stub. Pushed to
+`claude/cloud-handoff-planning-a9ay1u`.
+
+**CEO VERIFICATION IN PROGRESS — spawned fresh-context, not yet returned as this line is
+written.** Its brief: re-derive the bug and the fix independently (read `lightOvens`, `bakeRank`,
+`endBakeDay`, the player-init literal), confirm `lightOvens()` is the only bake-off arrival path,
+run the new gate and `npm test` itself rather than trust this session's report, verify the
+classic-mode no-op claim, verify the determinism claim by reading `ev()` itself, confirm the fix
+implements the ruling he actually picked (rank on arrival day) and not the one he declined (share
+Best Baker on a true dead-heat), and judge the detached-trial deferral on its own terms. Its
+verdict will be appended to `.planning/CEO-REVIEWS.md` and the item closed through
+`scripts/wyclau/close_item.mjs` citing it, in this same watch.
+
+**No Artifact tool in this session** (Bell-launched watch, `ListAgents` confirms only
+`SendMessage`/`Agent`/`ListAgents` are available) — the Glass cannot be harvested or republished
+directly here. `Glass update [fda089]` is listed as a live peer session; it will be asked to
+publish once this item closes.
+
+**Browsers:** this watch started none directly (the detached sea trial spawns its own).
