@@ -10105,3 +10105,28 @@ publish once this item closes.
 **Browsers:** this watch started none directly (the detached sea trial spawns its own).
 
 - 2026-09-04T00:54:39Z · close_item: "Your rules page promises a tiebreak the game does not give" · CEO 193 · commit 1ffe496 (1 game file) · no stated solution
+
+## WATCH 2026-09-04T0054Z — t206-privacy-line: privacy.html + a footer outside the popup modal
+
+**CLAIMED before editing.** `can_push.mjs` healthy, real `git push origin
+claude/cloud-handoff-planning-a9ay1u` verified ("Everything up-to-date") before any work, per Door
+rule. `IN-HAND` was empty on this machine; the only recent ledger claim (t216-baker-tiebreak, rank
+2, 00:18Z) closed through the gate at 00:54:39Z — CEO 193 — so nothing else is HELD. No detached
+trial in flight (`.planning/wyclau/LONG-RUN` absent).
+
+**ITEM: `qid:t206-privacy-line`**, chartkeeper rank 2 (score 178) after the sweep this watch ran.
+His ruling landed on the Glass 2026-09-04T00:35:50.066Z, harvested into `CHART.md`'s RULED table
+and idea inbox, NOT YET actioned by any watch: *"move all of it off of the main screen into a
+privacy policy that is in its own html, simple to read, and in plain english (not pirate) with
+small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the
+popup modal box)."*
+
+**Solution-first, prediction written before touching anything:**
+`.planning/wyclau/PREDICTION-20260904T0055Z-t206-privacy-line.md`.
+
+**Measured before building:** the privacy line (`index.html:2767`) lives inside `#lobby`
+(`class="modalOverlay"`) — literally inside the popup modal box his ruling excludes. No
+`privacy.html` exists. `about.html#privacy` (commit `09f8658c`) already carries full plain-English
+privacy content reusable for the new page. `#footerRow`, the only existing "bottom of screen"
+element with an About link, is invisible on the landing screen — it lives inside `#game`, which is
+`display:none` until gameplay starts.
