@@ -10457,3 +10457,72 @@ END OF WATCH.
   ToolSearch; attempting to reach the two Drive links now before concluding anything.
 
 - 2026-09-04T04:05:36Z · close_item: "THE HANDLE SPLITTER CAN RENAME THE WRONG ROW" · CEO 199 · no game diff — tooling fix, no game code: assign_handles.mjs owner-precedence + atomic-write bugs fixed, red-proofed by hand, npm test 137/137 · no stated solution · owner-precedence + atomic write fixed, red-proofed by hand, npm test 137/137, commit 3451de5d
+
+---
+
+**WATCH CLOSE, 2026-09-04T04:1xZ, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**Item taken:** rank-1 (DO NOW, T-073, SFX asset request) was re-attempted with
+`mcp__claude_ai_Google_Drive__*` and `WebFetch` actually loaded this time (unlike the prior watch,
+which had neither). All four calls returned the identical harness string — *"you haven't granted it
+yet"* / *"requires approval"* — before any network call. **Confirmed structural, not tool-specific:**
+a Bell-launched watch has nobody present to click "allow" the first time any new tool is invoked, so
+a fresh permission can never be granted inside one. Filed as `T-255` on the Chart (new row, checked
+for handle collisions against the real max of T-254 first — caught and fixed my own first attempt at
+reusing `T-249`, already taken). T-073 left ARMED/DO NOW for an Advisor session (Wyatt present) or
+him attaching the files directly. Full account:
+`.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
+
+**Redirected to `T-246`** (`scripts/wyclau/assign_handles.mjs` — CEO 182 findings 4/5: identity went
+to whichever duplicate-handle row came first in the document instead of the real owner-line row, and
+a refusal on the second chart file left the first one already written with no backup). Investigated
+`T-219` first (sea-trial resume-cache staleness) and traced `sailedHere()` far enough to find the
+danger is narrower than the row claims — fail-safe NOT-RUN reporting, not a false pass — with a
+separate, unresolved question about cross-restart `RUN_ID` stability left open rather than guessed
+at in a subsystem with a long history of subtle breakage (CEO 64, 74, 169). Chose not to ship a fix
+for the wrong half of that problem; correction filed on the row and in
+`.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`, effort redirected to the smaller, fully
+verifiable `T-246`.
+
+**T-246, closed.** Added `--chart=`/`--log=` override flags (finding 5's own opener: the script
+could previously only be exercised against the live Chart, so neither bug could be red-proofed).
+Fixed owner-precedence (group duplicate-token rows, prefer the real owner-line row regardless of
+document order) and atomic writes (validate every chart's new content before writing any of them).
+New gate `scripts/qa/assign_handles_owner_precedence_check.mjs`, wired into `npm test` (136→137,
+`package.json` gates counters + `_ceiling_raise_137` note). **Red-proofed by hand**: reverted both
+fixes in place, watched the gate's three targeted assertions go RED, restored the fixes, watched all
+five go GREEN. Full `npm test` run clean afterward. Fresh-context CEO 199 (`general-purpose`, Opus)
+independently reproduced the red/green revert-and-restore itself rather than trusting the account,
+verdict **CONFIRMED**, appended to `.planning/CEO-REVIEWS.md`. One cosmetic finding (a duplicated
+comment block) fixed in the same pass. Closed via `close_item.mjs --reason=` (tooling, no game
+code) — commit `3451de5d` touches no `index.html`/`src/`, so `--commit` alone was refused by the
+gate's own game-code check; `--reason` was used instead, and the CEO review had to literally quote
+the Chart row's title for the traceability check to pass (worth knowing for the next tooling-only
+close: `--commit` and `--reason` are mutually exclusive, and non-INBOX traceability requires either
+the commit's first 7 hex chars or the item title's first 40 characters verbatim inside the cited
+CEO review section).
+
+**Gear: no game code.** `git status --short` throughout showed only `.planning/`, `package.json`,
+and `scripts/` changes — `index.html` and `src/` untouched. This watch owes no sea trial.
+
+**Chart re-ranked and swept** (`chartkeeper.mjs --rank --sweep --write`) both before and after the
+close; T-246's row was archived to `CHART-LOG.md` by `close_item.mjs`'s own sweep, committed in the
+same batch.
+
+**Commits, all pushed, `origin/claude/cloud-handoff-planning-a9ay1u` confirmed at HEAD after each
+push:** `3451de5d` (the fix + CEO 199 verdict + T-219/T-255 records), `545e3dd4` (the close-item
+bookkeeping), `759cd886` (this machine's instrument status publish).
+
+**No Artifact tool in this session** (Bell-launched watch, confirmed via `ListAgents` — lists `Glass
+update [fda089]`, `Blade [53b082]` (idle), `claude-video-59 [f0dca8]`, `pastrypirates-c7 [b2589f]`
+(a fourth peer, started 16m before this watch closed — not investigated, not this watch's item, no
+claim conflict observed), none named self). Per Door step 6b, messaged the `Glass update [fda089]`
+peer with what landed; it replied that it only dispatches a publish tick on Wyatt's own explicit
+instruction, so this will surface on his page at the next one, not immediately.
+
+**Daily lesson:** already given today (2026-09-04, "A gate can hold the SHAPE of a decision and not
+the decision") — none owed by this watch.
+
+**Browsers/servers:** none started by this watch.
+
+END OF WATCH.
