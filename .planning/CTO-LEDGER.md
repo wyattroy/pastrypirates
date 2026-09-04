@@ -10378,3 +10378,75 @@ END OF WATCH.
 - 2026-09-04T03:07:57Z · close_item: "T-017" · CEO 184 · commit 4c6f162 (1 game file) · no stated solution · sea trial 2026-09-03T2031Z sailed clean for T-017: 10/10 legs, no trade-circle/captain-name failure in any leg; trade_circle_type_size_check.mjs PASS on current tree; npm test full green
 
 - 2026-09-04T03:15:37Z · close_item: "T-235" · CEO 198 · commit 4c6f162 (1 game file) · no stated solution · CEO 198: gate green (9.5px on 103-106px disc, all sizes), fitFanToLabels grows disc before any shrink -- his ruling executed and settled independent of the trial's unrelated FAIL
+
+---
+
+**WATCH CLOSE, 2026-09-04T03:30Z, `claude/cloud-handoff-planning-a9ay1u`.**
+
+**Item taken:** rank-1 on the ranked Chart was `T-073` (SFX asset request, DO NOW-pinned) — its first
+step (reach two Google Drive share links) needs either the Drive MCP tool or general web/curl access,
+both of which require interactive permission this unattended watch cannot grant itself (measured:
+`mcp__claude_ai_Google_Drive__get_file_metadata` and `WebFetch` both returned "you haven't granted it
+yet"; a bare `curl` to the Drive export URL also required approval — only the specific hosts already
+allowlisted in `.claude/settings.json` are reachable). Left pinned/ARMED for a watch that can reach
+it, and moved down to the next real item: **commit `4c6f1624`'s own unfinished business** —
+`.planning/CHART.md:366-373` (as it read at claim time) said the T-017/T-235/T-237 trade-offer-circle
+fix was "NOT CLOSED... blocked only on the trial," naming
+`.planning/SEA-TRIAL-2026-09-03T2031Z-Wy-Blade.md` as the thing to read.
+
+**What this watch did.** Wrote a prediction first
+(`.planning/wyclau/PREDICTION-20260904T030122Z-T-017.md`), then read the finished trial report in
+full: 10/10 legs sailed, overall verdict FAIL, but no leg's failure bullets name the trade-circle /
+captain-name-clipping defect class anywhere. Re-ran `trade_circle_type_size_check.mjs` on the current
+tree myself (PASS) rather than trusting the commit's claim, and confirmed `npm test`'s `&&` chain ran
+to its final gate (only possible if every gate before it, including that one mid-chain, exited 0).
+Closed `T-017` through `close_item.mjs` under CEO 184 (already traceable). `T-235` was NOT traceable
+to CEO 184's text (it only names `T-017` in its header), so spawned a fresh CEO (Review 198,
+`general-purpose` agent, Opus) with his ruling verbatim, what was measured, and CEO 184's prior
+verdict, per rule 25. **CEO 198 found something real:** T-235's fix (bigger circles) is genuinely
+done and closed clean, but the same trial caught the fix's OWN predicted risk (CEO 184 finding 5,
+left unmeasured) actually firing — `crew-desktop-guest-021-settled.png`, a `no-cover-ask` structural
+hit, the "Flaky Jack" trade-offer disc drawn over its own prompt's ask-pill text. **Closed `T-235`
+under CEO 198; deliberately did NOT close `T-237`** (the original defect filing) — rewrote its Chart
+row instead to record the new finding and point at CEO 198's recommended next step (pose it, rule 26,
+don't re-run a full trial for a yes/no question).
+
+**Bookkeeping fault found and fixed, not this item's but blocking `npm test`:** moving the two closed
+checklist rows to `## SETTLED RULINGS` (per the Chart's own documented triage process, since the
+"Your rulings, in hand" card that used to make an untriaged `## RULED` row visible to him is gone)
+tripped `rulings_triage_check.mjs` twice — once on a stray word ("pending") in my own new prose
+matching its OUTSTANDING-work regex, fixed by rewording; once on `chart_sweep_conserves_check.mjs`
+finding `T-235` "owned by nothing," because `close_item.mjs` had archived that row under the heading
+`## T-017` — it reads a split-handle row's INLINE mention (the sibling's kept-verbatim tag) instead of
+its true owner line two lines below. Corrected the one heading to `## T-235`; filed the underlying
+`close_item.mjs` bug in the same edit rather than fixing the tool (out of scope for this item).
+`npm test` verified green via an exit-code marker (`&& echo ALLGOOD`), not by reading a possibly
+truncated tail — the truncation itself is worth knowing: this session's Bash tool caps output at
+30000 characters, and `npm test`'s real output is much longer, so `| tail -N` after a truncated run
+shows the truncation point, not the chain's real end. Cost about twenty minutes of false confidence
+mid-watch before the marker technique replaced it.
+
+**Gear: no game code.** `git status --short` throughout showed only `.planning/` files —
+`index.html` and `src/` untouched. This watch owes no trial of its own.
+
+**Concurrent session, observed not fought:** a peer (the Glass-update session, per its own commit
+messages) auto-committed this watch's then-uncommitted working-tree changes at 23:21-23:23 ET while
+this watch was mid-measurement (three commits: `bccb83f1`, `06cc15f9`, `1082784c`), evidently while
+doing its own `git pull --rebase`. Nothing was lost; verified every intended edit survived across
+those three commits before adding the final heading fix on top. No claim conflict — this watch's item
+(`T-017`/`T-235`/`T-237`) was never touched by the peer.
+
+**Commits:** `745ec4da` (this watch's own — the heading fix); the three CEO-198/T-017/T-235 closing
+edits landed via the peer's carry-forward commits above, content unchanged from what this watch wrote.
+`origin/claude/cloud-handoff-planning-a9ay1u` confirmed at `745ec4da` after push (0 ahead, 0 behind).
+
+**No Artifact tool in this session** (Bell-launched watch — confirmed via `ListAgents`, which lists
+`Glass update [fda089]`, `Blade [53b082]` (idle), `claude-video-59 [f0dca8]`, none named self). Per
+Door step 6b, messaged the live `Glass update [fda089]` peer to publish now that `T-017`/`T-235` have
+landed and `T-237` carries a new finding worth surfacing.
+
+**Daily lesson:** already given today (2026-09-04) — none owed by this watch.
+
+**Browsers/servers:** none started by this watch.
+
+END OF WATCH.
