@@ -1153,5 +1153,19 @@ fleet's browser launcher (GEAR: NONE for every change to the live game), the dep
 under production's stamp), `pkill` (an all-clear printed by a command that was not installed), and
 now this. **Every one was a launcher or an instrument doing something other than what everyone
 assumed, with nothing anywhere saying so** — and every one was fixed the same way: a gate that reads
-the REAL launch line instead of the comment beside it. Three assertions in
-`scripts/qa/bell_check.mjs` now hold this one, red-proofed with three mutants, three kills.
+the REAL launch line instead of the comment beside it. **Four** assertions in
+`scripts/qa/bell_check.mjs` now hold this one.
+
+⚠ **AND THE FOURTH IS THE ONLY ONE THAT HOLDS HIS RULING. The first three held the SHAPE.** Corrected
+here by the session that wrote the sentence above, after CEO 192 found the gap: with only the shape
+assertions in place, you could set `$watchModel = "claude-opus-5"`, run the gate, and get PASS — the
+whole suite green. A nonsense model string passed too. In the CEO's words, *"the one thing you
+actually ruled is the one thing nothing is holding."*
+
+**My own red proof missed it for the same reason, and that is the lesson worth more than the fix.**
+Three mutants were run and three were killed — revert the flag, let `Start-Process` rebuild its own
+list, let the dry run print a description — **and every one of them attacked the STRUCTURE of the
+launch line. Not one attacked the VALUE in it.** A mutation set inherits the blind spot of whoever
+wrote it; three kills out of three felt like proof and was proof of the wrong thing. *When you
+red-proof a gate that exists to hold a DECISION, mutate the decision, not only the machinery around
+it.* `bell_check.mjs:101` now pins `claude-sonnet-5` by name, red-proofed with the CEO's own mutation.
