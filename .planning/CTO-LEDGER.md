@@ -11136,3 +11136,19 @@ Artifact tool in this session** (Bell-launched watch) — `ListAgents` to find t
 per Door step 6b and message it to harvest and republish.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-04T0930Z, claude/cloud-handoff-planning-a9ay1u.
+
+Situation: watch started 2026-09-04T09:07Z (orientation), last progress was watch
+2026-09-04T0908Z-0930Z closing T-138 measure-and-file (CEO 210, commit b74d5f12) and filing
+T-256 (footer/captains-panel overlap) as a fresh, unfixed row. No detached trial currently in
+flight (0744Z trial finished and its report was already read by the prior watch). T-073 (SFX)
+remains structurally blocked for an unattended watch (no interactive permission grant possible).
+
+Taking T-256 — rank 7 on the freshly re-ranked Chart, but the highest-ranked row that is (a) not
+GATED for an unattended watch, (b) not already claimed by T-138's own blocked-on note, and
+(c) measured on the CURRENT tree (2026.09.04.1), not a stale-candidate. It is also what T-138
+(a bigger launch-line item) is directly blocked on, so closing it unblocks two rows.
+
+Prediction written first: .planning/wyclau/PREDICTION-20260904T0940Z-T-256-footer-overlap.md.
+IN-HAND set to T-256 for this machine.
