@@ -1,5 +1,43 @@
 # CEO reviews — the standing record
 
+## CEO Review 213 — `T-009`: fold the tree hash into `sea_trial.mjs`'s own reported build identity — **YES, closes CEO 212's PARTIAL** — 2026-09-04
+
+*The work reviewed:* `scripts/sea_trial.mjs` now computes `gameTreeHash(REPO)` once and prints its
+short form (`SHORT_TREE_HASH`) alongside the hand-typed `PP4_STAMP` at all five build-identity
+print sites (console banner open/close, the in-progress placeholder's header and body, the final
+report's header), plus a footer note. New structural gate
+`scripts/qa/sea_trial_report_tree_hash_check.mjs`, wired into `npm test` (ceiling 139→140).
+`package.json` deliberately is not excluded from "game code" (`.claude/hooks/lib/game-code.cjs`),
+so touching it picked `GEAR: FULL`; lowered explicitly on the record via `--gear=COSMETIC
+--reason=...`, report `.planning/SEA-TRIAL-T009-report-stamp-cosmetic.md`.
+
+### VERDICT: **YES — this closes CEO 212's PARTIAL. One documentation inaccuracy found and fixed in the same commit.**
+
+1. Every claim (import, `TREE_HASH`/`SHORT_TREE_HASH` constants, all five print sites, the footer
+   note, the gate, the `package.json` wiring, `npm test` 140/140, the gear-lowering with a stated
+   reason, the live proof in the COSMETIC report itself) verified **DONE** by independent
+   inspection — the reviewer ran `npm test`, `gear.mjs`, and the new gate directly rather than
+   trusting the summary. `git diff --name-only`: only `scripts/sea_trial.mjs`,
+   `scripts/qa/sea_trial_report_tree_hash_check.mjs`, and `package.json` changed; `index.html`/`src/`
+   untouched.
+2. **One inaccurate claim found and cited:** `package.json`'s ceiling-raise comment said the gate
+   was "verified failing (4 of 4 checks red)" pre-fix; the reviewer's own count against
+   `git show HEAD:scripts/sea_trial.mjs` found only 3 of 4 checks are actually fix-sensitive (the
+   4th is a sanity check on the test's own setup and passes regardless). **Corrected in the same
+   commit** rather than left standing.
+3. **Rule 16 (claim before edit) held up under inspection**, not just on its own say-so: the claim
+   commit (`ef91ad25`) precedes the fix commit, and the reviewer independently traced
+   `sea_trial.mjs`'s structure to confirm editing it on disk cannot disturb the live detached trial
+   (pid 41776) — it spawns `playtest_gate.mjs` once via `spawnSync`, never re-imports itself.
+4. **Nothing extraneous delivered.** The verbose `_ceiling_raise_140` comment matches this
+   project's own established convention (every prior ceiling raise carries one).
+5. **T-009 as a Chart row can now close** — both halves CEO 212 scoped (the cache key, and the
+   report's own build identity) are done and independently verified.
+
+**For Wyatt:** the sea trial's report now shows a second identity number — a hash of the actual
+game files — next to the build number you already read, so if code changes without anyone
+remembering to bump the number, the report visibly disagrees with itself instead of quietly lying.
+
 ## CEO Review 212 — `T-009`: derive the sea trial's leg-resume cache key from the tree — **YES, against his sentence; PARTIAL against the Chart row** — 2026-09-04
 
 *The work reviewed:* `scripts/lib/game_tree_hash.mjs` (a content hash over every git-tracked file
