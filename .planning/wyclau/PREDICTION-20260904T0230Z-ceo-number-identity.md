@@ -94,3 +94,30 @@ the record, and a ninth can still be created. Both are now harmless, because the
 names them instead of guessing. Renumbering would mean re-attributing 51 pointers by hand to one
 half of each pair — a large, error-prone edit to an append-only history, made to satisfy a gate
 rather than to help a player.
+
+---
+
+## ⚠ CORRECTION — CEO 194, and the fault it names is the one CEO 193 named
+
+**"Suite stays at 134" was WRONG. It was 135, before and after.** Verified against
+`package.json`'s own `gates.total` at `4866f70d^`, `4866f70d` and `7c6ec3cd` — 135 at all three. I
+read 134 from `gate_count_check.js` while working, a peer added a gate before I committed, and I
+**re-typed the number I remembered instead of re-deriving it**. That is CEO 193's finding
+("26 commits stale" when it was 31) recurring one commit later, in the same session, after I had
+written it into the record myself.
+
+**"185 verdict headings, 177 distinct" was WRONG. It was 186/178** at the commit — stale for the
+same reason: I counted before appending CEO 193, then wrote the earlier number down afterwards. **The
+eight colliding numbers were right**, which is the part the argument actually rests on.
+
+**"51 pointers, CEO 83 alone has 15" reproduces exactly — but the citation was unusable.** Re-running
+the identical command returns 51 and 15. CEO 194 could not reconstruct it and got 46 / 56 / 6 under
+three different readings, because **I never said what I had counted.** The scope was
+`.planning/CHART.md`, `.planning/CHART-LOG.md`, `.planning/CTO-LEDGER.md` and
+`.claude/memory/DECISIONS.md`, any mention of `CEO (Review )?N` (the `.planning/INBOX*` glob in the
+command matched no file). **A count without its scope is a number nobody can check, which is most of
+the way to a number that is wrong.** The finding stands even though the figure does not move.
+
+**THE REUSABLE PART:** every one of these was a number that existed in a file at commit time and was
+typed from memory instead. `node -e "require('./package.json').gates.total"` costs nothing. *Derive
+it in the same command that commits it, or do not write it down.*

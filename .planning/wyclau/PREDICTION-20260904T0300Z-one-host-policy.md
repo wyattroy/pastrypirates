@@ -99,3 +99,31 @@ sweep failed at `audio.js:374` naming the file and line; removing it restored gr
 
 **⚠ THE SEA TRIAL IS OWED AND IS NOT CLAIMED.** `gear.mjs` reads FULL for this change. Tonight's
 trial FAILED — `0 of 10 voyage(s) sailed, 10 NOT RUN`. Nobody may write "trial green" on this build.
+
+---
+
+## ⚠ CORRECTION — CEO 194
+
+**"npm test 134/134" was WRONG here too. It was 135.** Same fault, same session, same cause: a
+remembered number instead of a derived one. See the correction on the CEO-number prediction note.
+
+**AND CEO 194 DEFEATED THE SWEEP ON ITS FIRST ATTEMPT**, which is the finding that mattered more
+than the arithmetic. It appended
+
+```js
+const evilHost = `playpastrypirates.com`;
+```
+
+to `src/ui/audio.js` and the gate printed a **full PASS** — including the line *"no file outside
+src\shared\host.js compares a hostname to a live-domain literal"* — with the bypass sitting in the
+file. My regex matched the domain only inside `'` or `"` quotes; a template literal walked past it.
+**I had called it "strict by default". It was strict against one spelling of one thing.**
+
+Fixed: the sweep now matches the domain token **anywhere in the stripped code**, whatever quoting
+carries it. Measured before widening it — after comment-stripping, the token appears in exactly
+three lines of `src/`, all in `host.js` — so there is nothing legitimate for it to trip over.
+Red-proofed with CEO 194's own bypass verbatim: it now fails at `audio.js:374`, and removing it
+restores green.
+
+**What it still does NOT stop, said plainly rather than papered over:** a deliberate obfuscation
+such as `"playpastry" + "pirates.com"`. This gate stops the accident, not an adversary.

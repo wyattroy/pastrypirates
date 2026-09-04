@@ -137,7 +137,17 @@ for (const file of files) {
     .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
     .replace(/(^|[^:'"])\/\/.*$/gm, (m, p) => p);
   stripped.split("\n").forEach((line, i) => {
-    if (/["'][\w.-]*playpastrypirates\.com["']/.test(line)) {
+    /* ⚠ THE FIRST VERSION OF THIS LINE READ `/["'][\w.-]*playpastrypirates\.com["']/` — the domain
+       inside a SINGLE- OR DOUBLE-QUOTED literal — and CEO 194 defeated it on its first attempt with
+       a template literal:  const evilHost = `playpastrypirates.com`;
+       The gate printed a full PASS with the bypass sitting in the file. I had described it as
+       "strict by default"; it was strict against one spelling. So it now matches the DOMAIN TOKEN
+       ANYWHERE in the stripped code, whatever quoting carries it. Measured before widening: after
+       comment-stripping, the token appears in exactly three lines of src/, all of them in
+       host.js — so there is no legitimate use for this to trip over.
+       A determined obfuscation ("playpastry" + "pirates.com") still walks past, and that is stated
+       rather than papered over: this stops the accident, not an adversary. */
+    if (/playpastrypirates/.test(line)) {
       deciders++;
       bad(`${rel}:${i + 1}  decides the host itself — import from ${OWNER} instead`);
     }
