@@ -14849,3 +14849,47 @@ What did not happen is the thing the commit leads with. It says the gate now gua
 **Harness: control green, 8 mutations caught each by the right case, 1 negative case green. `npm test` exit 0 at 131 gates.**
 
 ⚠ **AND THE CEO'S OWN TWO SCRATCH FILES ARE STILL THERE.** `scripts/qa/_ceo190_mutate.mjs` and `_ceo190_crashproof.mjs` — this watch tried to delete them and hit the same permission fence the CEO hit. Untracked, inert, and still owed.
+
+---
+
+## CEO Review 193 — `T-216` + the close-gate bug + the merge-readiness answer — **YES**
+
+Advisor session, 2026-09-04, Wy-Blade. Fresh context. Brief named his two picked items verbatim,
+the three questions he asked alongside them, and CEO 192 as the previous verdict.
+
+**Its one-sentence headline, in its own words:**
+
+> *"Both items he picked are genuinely done and independently verified — the tiebreak gate really
+> enforces his ruling and the close-gate really sees every verdict — but the "26 commits stale" he
+> was told is now 31, and the eight duplicate CEO numbers that can make `--ceo=N` resolve to the
+> wrong verdict are still live and unfixed."*
+
+**What it verified rather than accepted.** It re-ran `bakerank_ovens_day_check.mjs` itself instead
+of reading the log (exit 0, both seatings, real engine path `lightOvens`→`endBakeDay`→`bakeRank`→
+`resolveEnd`, no hand-forged `finishOrder`); ran `close_gate_sees_every_ceo_check.mjs` (182/182
+visible) and `npm test` (exit 0); **curled the live staging stamp** and confirmed
+`2026.09.03.4-staging@401674f8`; and independently grepped every CEO heading, landing on **exactly**
+the same eight duplicate numbers claimed in `f61273e0` — 31, 38, 73, 82, 83, 107, 135, 182.
+
+**THE FINDING THAT LANDED, and it is mine:** *"the '26 commits stale' figure is wrong right now:
+`git rev-list --count 401674f8..HEAD` = 31, not 26."* It traced when 26 **was** exact — commit
+`52e84e46` — so the number was not invented; five real commits landed after I computed it, including
+my own close-gate fix. **That is CLAUDE.md's own rule — never hand-type a number that can be
+counted — broken inside the answer I handed Wyatt.** Restated to him as 31.
+
+**On the recurrence check, which is why 192 was handed over.** CEO 192 found a gate holding the
+SHAPE of the Bell's launch line but not the DECISION Wyatt ruled. 193's answer: *"No, and the
+difference is instructive... The one place a 'shape not value' gap does still exist — the duplicate-
+CEO-number traceability hole — was found and NAMED, not swept under a green check. That is the
+opposite of what happened with the Bell model gate: there, the gap was invisible until CEO 192 found
+it; here, the author found and disclosed it before I ever looked."*
+
+**Two things it confirmed are still OPEN, neither claimed done:**
+1. **`.planning/CHART.md` still shows `T-216` as `- [ ]`.** The engine fix landed (`1ffe4960`); the
+   item was never formally closed through the gate.
+2. **The eight duplicate CEO numbers.** `--ceo=N` can resolve to the wrong verdict, and the
+   traceability check downstream can then pass against it. Filed, unfixed, needs its own item.
+
+**Also standing, untouched tonight:** the FULL sea trial debt — `.planning/SEA-TRIAL-2026-09-04T0028Z-Wy-Blade.md`
+reads `FAILED — 0 of 10 voyage(s) sailed, 10 NOT RUN`, verified by 193 at line 1,3. Nobody may write
+"trial green" on this build.
