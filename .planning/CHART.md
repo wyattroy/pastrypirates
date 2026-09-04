@@ -93,6 +93,24 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
+- [ ] **AN UNATTENDED WATCH CANNOT GRANT ITSELF A FIRST-TIME TOOL PERMISSION, EVER — MEASURED
+      TWICE ON T-073, TWO DIFFERENT TOOL FAMILIES.**
+      ⟨`T-255`⟩
+  Watch 2026-09-04T03:30Z measured `mcp__claude_ai_Google_Drive__*` and a bare `curl` to a
+  non-allowlisted host both refused ("you haven't granted it yet" / "requires approval"). This
+  watch (03:40Z), with those exact Drive tools AND `WebFetch` actually loaded this time, hit the
+  identical harness refusal on all four calls — before any network request happened. **The common
+  factor is not the tool, it's that nobody is present to click "allow" the first time a Bell-
+  launched session invokes something new.** Any future Chart row whose first step needs a
+  not-yet-granted tool (a new MCP server, a host outside `.claude/settings.json`'s allowlist, a
+  script needing `bash …/*.sh` where only `node …` is pre-approved) will hit this same wall and
+  should be recognized immediately rather than re-measured from scratch. **Not this item's to fix**
+  — the fix is either (a) Wyatt pre-granting specific tools/hosts once from an interactive session
+  so they persist for future watches, or (b) routing anything needing a fresh grant to the Advisor
+  (where he is present) instead of the Watch. Recommendation for him: when he next opens an
+  Advisor session, grant `WebFetch` and the Drive tools once each (even on an unrelated harmless
+  URL) so the grant persists project-wide for future Bell watches.
+
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
   **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
@@ -115,6 +133,18 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   set safely until that collision is resolved — a separate, larger fix, not this item's to make.
   Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
   he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
+
+  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
+  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
+  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
+  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
+  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
+  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
+  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
+  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
+  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
+  him attaching the SFX files directly. Full account:
+  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
 - [ ] **THE OTHER HALF OF HIS ANALYTICS ASK IS STILL OPEN, AND NOTHING ON HIS PAGE SAYS SO.** His
       ⟨`T-206`⟩
@@ -389,6 +419,26 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
       exact evasion Wyatt chose the words "sea trial" to make impossible.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.03.4, so its evidence no longer describes this game
+
+  ⚑ **MEASURED FURTHER 2026-09-04T03:5xZ BY A WATCH THAT DID NOT FIX THIS — the danger is real but
+  smaller/different than this row implies, and it needs its own careful pass, not a rushed one
+  layered on top of an already-fragile subsystem.** Traced `sea_trial.mjs:344`'s `sailedHere()`:
+  a resumed leg keeps the OLD run's `__runId`, and `RUN_ID` is `${STAMP}-${Date.now()}` (fresh per
+  process start), so a stale-cache resume can **never** be credited as sailed by a LATER run — the
+  "0 sailed, all NOT RUN" shape in the evidence above is the report correctly refusing to lie, not
+  a silent false-pass. **So this is not "an untested build gets reported as tested."** The actual
+  cost is narrower: the resume cache can make a trial spin uselessly (every leg RESUMED, nothing
+  re-driven, report says FAILED) until a human notices and bumps the stamp by hand.
+  ⚠ **A SEPARATE, DEEPER QUESTION SURFACED AND IS UNRESOLVED: does resumability across a container
+  recycle (the reason this cache exists at all — see the comment at `playtest_gate.mjs:526-538`)
+  survive its OWN `RUN_ID` being freshly generated on every process restart?** If the outer
+  supervisor restarts the whole `node scripts/sea_trial.mjs` process after a recycle, the new
+  process's `RUN_ID` cannot match the killed process's, so genuinely-just-captured legs from the
+  dying attempt could ALSO read as NOT RUN by the next attempt — the resiliency feature defeating
+  itself. Not traced end to end (would need `start_trial_detached.mjs`'s restart path read
+  carefully). **Filed here rather than guessed at; the content-hash fix this row proposes may not
+  even be the right fix once that's answered.** Full account:
+  `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
 
 - [ ] **A CAPTAIN WHO CALLS THE WINNER OF A FIGHT THAT ENDS IN A FLIGHT IS NEVER TOLD ANYTHING.**
       ⟨`T-249`⟩

@@ -10450,3 +10450,8 @@ landed and `T-237` carries a new finding worth surfacing.
 **Browsers/servers:** none started by this watch.
 
 END OF WATCH.
+
+- 2026-09-04T03:38:56Z · CLAIM: T-073 (Add New SFX to the game) · watch claiming this Bell run ·
+  rank-1 DO NOW item. Prior watch (03:30Z close) left it ARMED — its own Drive/WebFetch calls were
+  refused as ungranted. This session has `mcp__claude_ai_Google_Drive__*` tools loaded via
+  ToolSearch; attempting to reach the two Drive links now before concluding anything.

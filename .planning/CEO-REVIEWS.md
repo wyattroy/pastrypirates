@@ -15211,3 +15211,46 @@ by hand rather than trusted.
 **It also named something in our favour, which is why it is quoted in full above and here:**
 *"the commit explicitly flags 'SEA TRIAL OWED, NOT CLAIMED... FAILED, 0 of 10 sailed' rather than
 papering over it. That's the opposite of overselling and should be named, not just the faults."*
+
+## CEO 199 — `T-246`, `scripts/wyclau/assign_handles.mjs` owner-precedence + atomic write — **CONFIRMED**
+
+**VERDICT: CONFIRMED.** Findings 4, 5, and 5's testability opener (from CEO 182) are all genuinely
+closed, and the red/green proof is real — reproduced independently, not read and taken on trust.
+
+**Finding 5's opener (testability):** `scripts/wyclau/assign_handles.mjs:42-45` adds `--chart=`/
+`--log=` flags, and every read/write site (`:53-54` high-water scan, `:127` plan-build, `:176`
+write loop) consistently uses `resolve(ROOT, f)`, not `join` — `path.resolve` is used everywhere a
+chart/log path is touched, which matters because `join(ROOT, absolutePath)` silently
+mis-concatenates on Windows.
+
+**Finding 4 (owner precedence):** `:136-150` groups rows by shared token, then sorts each group so
+`r.owner === token` (a real owner-line row) always outranks a mention-only row. Read by eye — logic
+is sound.
+
+**Finding 5 (atomicity):** `:174-208` builds and validates every file's new content into a
+`writes[]` array before any `writeFileSync` call; a refusal on any file aborts before any write
+happens.
+
+**Test wiring:** `scripts/qa/assign_handles_owner_precedence_check.mjs` is wired into
+`package.json`'s `scripts.test` chain (`gates.total`/`gates.ceiling` bumped 136→137, documented).
+It drives the real script as a subprocess against `mkdtempSync` fixtures via the new flags — never
+touches `.planning/CHART.md` or `GLASS-CHART.md`.
+
+**Red/green proof — reproduced independently.** Reverted exactly the two logic blocks (grouping→
+sorting back to a document-order rename; validate-all-then-write-all back to per-file immediate
+write) in place, keeping the `--chart=`/`--log=` plumbing. Ran the test: **3 of 5 checks FAILED** —
+the two Test 1 owner-precedence assertions and the Test 2 "fixture C left untouched" assertion.
+Restored the original blocks verbatim, re-ran: **all 5 PASS.** Genuine, reproducible.
+
+**Full `npm test`:** ran the complete ~137-gate chain; it reached the final gate
+(`doc_command_check`, "0 failure(s)") and printed "All checks passed." The chain is `&&`-joined, so
+reaching the last gate proves every prior gate — including the new one — passed.
+
+**Game untouched:** `git status --short` confirms no changes to `index.html` or anything under
+`src/` — only `.planning/CHART.md`, `.planning/CTO-LEDGER.md`, `package.json`, and
+`scripts/wyclau/assign_handles.mjs`, plus the new test file.
+
+**Open issues, minor, don't change the verdict:** a verbatim-duplicated comment block was found at
+`:162-173` (fixed in the same commit as this review lands) — cosmetic copy-paste residue, no
+functional effect. The Chart row T-246 itself was still open/unchecked at review time — closed via
+`close_item.mjs` in the same commit citing this verdict.
