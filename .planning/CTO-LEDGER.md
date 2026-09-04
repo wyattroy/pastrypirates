@@ -10915,3 +10915,13 @@ never claimed since. Writing a red check first (rule 6/26 — the row itself is 
 observed in the code, not measured), then applying the fix, before anything else.
 
 - 2026-09-04T07:28:30Z · close_item: "T-249" · CEO 206 · commit 53a91f3 (1 game file) · no stated solution · a flee's early-return skipped settleSideBets; now calls settleSideBets(bets,null), same NULL semantics as the NULL-battle exit
+
+---
+
+**WATCH CLAIM, 2026-09-04T0745Z, `claude/cloud-handoff-planning-a9ay1u`.** Chasing `T-138`
+(rank 2) toward a staging publish. Found the blocking assumption false: `PP4_STAMP`
+(`2026.09.03.4`) has not moved since four real game-code commits landed after the 2031Z trial
+finished (`1ffe4960`, `aa4c0c71`, `7c6ec3cd`, `53a91f33` — full detail and timestamps in
+`.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`). That trial's evidence does not
+cover the current tree. Bumping the stamp and starting a fresh detached trial before touching
+staging.
