@@ -3241,3 +3241,70 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       in the stacking with its own scoped clearance so it never touches the panel.
       **Sizing: SMALL, index.html only. FULL gear (game code, live UI path).**
       **THIS IS WHY `T-138`'s STAGING PUBLISH STAYS BLOCKED** — see the note on that row.
+
+## T-009 — 2026-09-04 — THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it. (closed 2026-09-04 · CEO 213 · no game diff — tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP; gear lowered to COSMETIC on the record, npm test 140/140) scripts/playtest_gate.mjs:572 keys the leg-resume cache on PP4_STAMP (src/ui/stage.js:43), a literal that moves only when somebody remembers to run npm run bump. This is not a one-off: four game commits landed on .6 and nothing anywhere went red, and three of those landed DURING an 88-minute trial that then reported on code it had never sailed. Nothing protects .7 either. The player-facing cost is exact: a release decision made on a report about a different build. Rule 9's shape is a key derived from the tree — e.g. git rev-parse HEAD:src folded into the cache key and the report's own stamp — which makes "did the trial sail the staged code?" mechanical instead of a duty somebody must remember. Sizing, honestly: one small change to the cache key plus a gate, not a rewrite. Whoever takes it, read scripts/bump-build.mjs's header first — the stamp is deliberately its own counter, and the fix must not reintroduce a second file that can disagree with it.
+
+- [x] **THE TRIAL DECIDES "have I tested this build?" FROM A HAND-TYPED NUMBER, and nothing goes red when that number is wrong — its own item, filed 2026-09-01T19:30Z at CEO 76's finding 4, deliberately NOT fixed by the watch that found it.** (closed 2026-09-04 · CEO 213 · no game diff — tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP; gear lowered to COSMETIC on the record, npm test 140/140)
+      ⟨`T-009`⟩
+  `scripts/playtest_gate.mjs:572` keys the leg-resume cache on `PP4_STAMP` (`src/ui/stage.js:43`),
+  a literal that moves only when somebody remembers to run `npm run bump`. **This is not a one-off:
+  four game commits landed on `.6` and nothing anywhere went red**, and three of those landed
+  DURING an 88-minute trial that then reported on code it had never sailed. Nothing protects `.7`
+  either. The player-facing cost is exact: a release decision made on a report about a different
+  build. **Rule 9's shape is a key derived from the tree** — e.g. `git rev-parse HEAD:src` folded
+  into the cache key and the report's own stamp — which makes "did the trial sail the staged code?"
+  mechanical instead of a duty somebody must remember. Sizing, honestly: one small change to the
+  cache key plus a gate, not a rewrite. Whoever takes it, read `scripts/bump-build.mjs`'s header
+  first — the stamp is deliberately its own counter, and the fix must not reintroduce a second
+  file that can disagree with it.
+
+  ⚑ **A FRESH, CONCRETE INSTANCE, MEASURED 2026-09-04T0745Z, chasing `T-138` toward a staging
+  publish.** Four real game-code commits (`1ffe4960` src/engine/index.js, `aa4c0c71` index.html,
+  `7c6ec3cd` src/analytics.js + src/shared/host.js + src/shared/index.js + src/ui/usage.js,
+  `53a91f33` src/orchestrator.js) landed after the 2026-09-03T2031Z trial finished and
+  `PP4_STAMP` never moved — the exact shape this row describes, not a hypothetical. Mitigated
+  for today by hand: `npm run bump` (`2026.09.03.4` → `2026.09.04.1`), `npm test` 137/137 green
+  after, fresh detached FULL trial started (`2026-09-04T0744Z-Wy-Blade`, pid 27400). **The
+  underlying fix — deriving the cache key from the tree, not the hand-typed stamp — is still not
+  built; this was a one-time correction, not a repair.** Evidence:
+  `.planning/wyclau/PREDICTION-20260904T0745Z-stamp-staleness.md`.
+
+  ⚑ **THE SAME GAP HIT AGAIN WITHIN THREE HOURS, MEASURED 2026-09-04T1013Z.** A real game-code
+  commit (`fe87894a`, T-256) landed after the 0744Z trial's stamp bump and the stamp still had not
+  moved — same shape, second instance same day. Mitigated by hand again: `PP4_STAMP` bumped
+  `2026.09.04.1` → `2026.09.04.2`, `npm test` 138/138 green, fresh detached FULL trial started
+  (`2026-09-04T1013Z-Wy-Blade`, pid 41776). **Two hand corrections in one day is exactly the
+  recurring cost this row's underlying fix would remove; still not built.**
+
+  ### ✅ THE CACHE-KEY HALF IS BUILT AND WIRED — 2026-09-04T1030Z-1100Z, CEO 212 (**YES against the
+  sentence; PARTIAL against this row**). NOT CLOSING THIS ROW — the other half is still open.
+  `scripts/lib/game_tree_hash.mjs` derives a sha256 over every git-tracked file
+  `.claude/hooks/lib/game-code.cjs`'s own `isGameCode()` already calls "the game" (239 files:
+  `index.html`, all of `src/`, all 149 art assets — checked, not assumed); `scripts/playtest_gate.mjs`
+  now keys the leg-resume cache filename AND the stored record on that hash via
+  `scripts/lib/leg_cache_key.mjs`'s `legIsFresh()`, so a game-code commit landing on an unmoved
+  `PP4_STAMP` — which happened twice today, above — can no longer be silently resumed as if
+  nothing changed: the hash differs, the filename differs, the leg re-sails. Red-proofed against
+  the real pre-fix committed file (`git show HEAD:scripts/playtest_gate.mjs` — zero matches for
+  the new symbols), new gate `leg_cache_tree_hash_check.mjs`, `notrun_provenance_check.mjs` fixed
+  for the new free variable its reconstructed `stampRun()` needs, `npm test` 139/139 (gate ceiling
+  raised 138→139, `quiet_gate_report.mjs`: 0 of 18 retirement candidates). Tooling only — `scripts/`
+  is excluded from "game code", so no sea trial gear applies; `index.html`/`src/` untouched.
+  ⛔ **STILL OPEN, AND IT IS THE HALF HE ACTUALLY READS:** this row's own text asked for the key
+  folded into the cache **and the report's own stamp**. `scripts/sea_trial.mjs:68,241,400,436`
+  still names the build purely from the hand-typed `PP4_STAMP`, and `:433` still tells him to
+  compare it against the in-game menu — a comparison that will agree while the code has moved on
+  past both. So a report can still be titled with a build name that undersells what was tested,
+  even though it can no longer LIE about whether a leg was resumed on stale evidence. Next step:
+  derive `sea_trial.mjs`'s own reported build identity the same way, or at minimum print the tree
+  hash alongside the stamp so a mismatch is visible.
+  ⚠ **A SMALL, NAMED COST, NOT A CORRECTNESS FAULT:** the live `2026-09-04T1013Z-Wy-Blade` trial
+  (pid 41776) had already banked 2 of 10 legs under the OLD filename scheme when this landed; if
+  that trial restarts, those two legs won't be found under the new naming and will re-sail
+  (~15-20 min). CEO 212 also flagged that `package.json` sits inside the hashed set (deliberately,
+  per `game-code.cjs`'s own comment), so every future gate added to the chain invalidates the
+  whole leg cache — safe direction, not costless, not yet written down anywhere else.
+  ⚠ **RULE 16 GAP, OWNED RATHER THAN HIDDEN:** this watch edited `scripts/playtest_gate.mjs` —
+  the one file the ledger repeatedly warns other watches off touching while a trial is at sea —
+  without a prior ledger claim. Nothing collided this time; CEO 212 caught the gap and it is
+  recorded here so the next watch claims before it edits, not after.

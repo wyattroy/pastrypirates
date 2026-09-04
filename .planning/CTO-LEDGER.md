@@ -11285,3 +11285,5 @@ claim comes first, not an afterthought. `sea_trial.mjs` is the long-running proc
 already has loaded in memory (it spawns `playtest_gate.mjs` once via `spawnSync`, never
 re-imports itself), so editing it on disk does not touch the live run — checked, not assumed,
 before editing.
+
+- 2026-09-04T11:06:17Z · close_item: "T-009" · CEO 213 · no game diff — tooling-only, no game code: report now prints the tree's own hash beside PP4_STAMP; gear lowered to COSMETIC on the record, npm test 140/140 · no stated solution
