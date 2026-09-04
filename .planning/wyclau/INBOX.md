@@ -2261,4 +2261,4 @@ status: OPEN
 ## INBOX-20260904T005038Z — ⚑ HE PRESSED DO NOW — My sound effects request that I put on the glass yesterday seems to be missing -- can you
 > My sound effects request that I put on the glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place on the chart?
 solution: none stated
-status: OPEN — PINNED by him on the Glass; take this before anything ranked
+status: DONE 2026-09-04 — CEO 196, no game diff — no game code is right: found T-073, promoted to a visible chart row, pinned DO NOW rank 1 (commit e0e2292b)

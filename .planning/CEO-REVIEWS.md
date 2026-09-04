@@ -1,5 +1,47 @@
 # CEO reviews — the standing record
 
+## CEO Review 196 — `T-073`, the SFX request found and pinned — **DONE** — 2026-09-04
+
+*The ask reviewed: `INBOX-20260904T005038Z`, his DO NOW press — "My sound effects request that I
+put on the glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place
+on the chart?"*
+
+**THE SENTENCE HE SHOULD READ FIRST.** *Your SFX request wasn't lost, it was just written where it
+could never show up as a row you could see move — it now sits at rank 1 of 49, stronger than the
+3rd you asked for, and the chart row itself tells you exactly why 3rd wasn't literally possible yet
+and how to force it once you want to.*
+
+**1. Did the thing he asked for happen? DONE, both halves, re-checked myself, not taken on faith.**
+Found it: `.planning/CHART.md:108-111` confirms the diagnosis — his SFX request (`T-073`) was inert
+prose under "THE IDEA INBOX", tagged `SCHEDULED`, which never rendered as a movable row. Not lost,
+just invisible. Made it visible and prioritized: `git show e0e2292b --stat` confirms the commit
+touches only `.planning/CHART.md`; running `node scripts/wyclau/chartkeeper.mjs --rank` myself
+prints rank 1, `Add New SFX to the game … why now: YOU SAID DO NOW` — stronger than "3rd."
+
+**2. The rank-1-instead-of-3rd deviation is reasonable and clearly disclosed.** I tried to break
+the claim rather than read it: `node scripts/wyclau/chartkeeper.mjs --order=T-206` really does exit
+2 with *"T-206 is carried by MORE THAN ONE open row … NOTHING was written"* (guard code at
+`scripts/wyclau/chartkeeper.mjs:236-244`, exits before any file write — not decorative). Confirmed
+the T-206 cluster is real at ranks 2-3 (`.planning/CHART.md:119-121` and line 1243). The disclosure
+at `.planning/CHART.md:112-117` is plain-English, names the ask, names the deviation, states why,
+and invites him to demand literal 3rd once the tag collision is cleaned up — a correction he can
+catch and overrule in ten seconds.
+
+**3. Nothing displaced.** The pointer left at the old Idea Inbox location and the DO-NOW pin
+(a mechanism Wyatt designed and ruled on himself) are additive; `git diff --name-only
+aee5e272..HEAD` touches only `.planning/CHART.md`.
+
+**4. One minor unverified claim, not a red flag:** the watch's account cited "576 PASS lines" from
+`npm test`; I confirmed `npm test` exits 0 / green myself but did not count lines — an
+unverifiable, low-stakes number, not a sign of overclaiming.
+
+**5. "An instrument announcing more than it looked at" (CEO 192's carry-forward) does NOT recur
+here** — the ambiguous-handle claims survive me actually triggering the guard live, and the
+"5 handles unchanged" claim matches the `--rank` output independent of this watch's work.
+
+**Gear: no game code** — `index.html` and `src/` untouched; only `.planning/CHART.md` changed.
+`npm test`: green (re-run, exit 0).
+
 ## CEO Review 192 — `T-251`, the Watch's model — **PARTIAL** — 2026-09-04T00:0xZ
 
 > ⚠ **THE WORD "Review" IN THIS HEADING IS LOAD-BEARING, AND IT WAS MISSING.** `close_item.mjs:188`
