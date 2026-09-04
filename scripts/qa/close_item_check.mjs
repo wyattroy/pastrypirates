@@ -91,7 +91,14 @@ let r = run("--item=repair the dock ramp", "--commit=" + gameSha);
 check("no --ceo is a usage error", r.status === 2, `exit ${r.status}`);
 
 r = run("--item=repair the dock ramp", "--ceo=99", "--commit=" + gameSha);
-check("a CEO review that does not exist refuses", r.status === 1 && /not in CEO-REVIEWS/.test(r.stdout), `exit ${r.status}: ${r.stdout.slice(0, 120)}`);
+/* This used to assert the refusal said "not in CEO-REVIEWS.md" — and THAT SENTENCE WAS THE BUG
+   (2026-09-04): a claim about the FILE made on the strength of one regex, which was false for every
+   verdict headed `## CEO 189 —` instead of `## CEO Review 189 —`. The assertion is now STRICTER,
+   not looser: the refusal must still fire, AND it must name what was actually searched for, so a
+   future reader cannot quietly go back to blaming the record for what the reader could not see. */
+check("a CEO review that does not exist refuses — and says what it SEARCHED FOR, not what the file lacks",
+  r.status === 1 && /no section headed/.test(r.stdout) && /verdict heading\(s\) searched/.test(r.stdout),
+  `exit ${r.status}: ${r.stdout.slice(0, 160)}`);
 
 r = run("--item=repair the dock ramp", "--ceo=8", "--commit=" + gameSha);
 check("a CEO review that never mentions the item refuses (traceability)", r.status === 1 && /never mentions/.test(r.stdout), `exit ${r.status}: ${r.stdout.slice(0, 120)}`);

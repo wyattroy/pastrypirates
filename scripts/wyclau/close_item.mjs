@@ -185,9 +185,28 @@ if (isInbox) {
 const reviews = read(REVIEWS);
 if (reviews === null) refuse(`no ${REVIEWS}`, "the CEO record is missing entirely");
 // Split-based for the same \Z reason as the INBOX lookup above.
-const revSec = reviews.split(/^(?=## CEO Review )/m)
-  .find((s) => new RegExp(`^## CEO Review ${ceoN}\\b`).test(s));
-if (!revSec) refuse(`CEO Review ${ceoN} is not in CEO-REVIEWS.md`, "run the CEO (fresh context), append its verdict, then close");
+/* ⚑ "Review" IS OPTIONAL, AND IT COST THREE DAYS THAT IT WASN'T. This read `## CEO Review ` in both
+   places, so a verdict headed `## CEO 189 —` was invisible — and the refusal below then said it was
+   "not in CEO-REVIEWS.md", which was a claim about the FILE made on the strength of one regex. It
+   was false: the verdict was sitting there. Nobody typed the short form on purpose; it drifted, the
+   way an unenforced shape always does, and the gate blamed the record instead of itself.
+   Found 2026-09-04 by the T-251 watch, which hit it closing its own item. scripts/qa/
+   close_gate_sees_every_ceo_check.mjs now lifts THIS regex out of THIS file and runs it against the
+   real record, so the two can never drift apart again — it tests the reader, not a copy of it. */
+const revSec = reviews.split(/^(?=## CEO (?:Review )?\d)/m)
+  .find((s) => new RegExp(`^## CEO (?:Review )?${ceoN}\\b`).test(s));
+if (!revSec) {
+  /* SAY WHAT WAS SEARCHED FOR AND WHAT IS ACTUALLY THERE. An instrument reporting NOT FOUND has
+     told you something about ITSELF, not about the world (CLAUDE.md rule 6) — and the old wording
+     is precisely why three days of a blind reader looked like three days of missing reviews. */
+  const present = [...reviews.matchAll(/^## CEO (?:Review )?(\d+)\b/gm)].map((m) => Number(m[1]));
+  const near = present.filter((n) => Math.abs(n - ceoN) <= 3).sort((a, b) => a - b);
+  refuse(
+    `no section headed "## CEO ${ceoN}" or "## CEO Review ${ceoN}" was found in CEO-REVIEWS.md ` +
+    `(${present.length} verdict heading(s) searched` +
+    `${near.length ? `; nearest present: ${near.join(", ")}` : ""})`,
+    "run the CEO (fresh context), append its verdict, then close — or, if you believe it IS there, check the heading's shape against the two forms named above");
+}
 const rev = [revSec];
 const short = args.commit ? String(args.commit).slice(0, 7) : null;
 const traceable =
