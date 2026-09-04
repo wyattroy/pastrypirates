@@ -5,18 +5,27 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-04T07:26:49.484Z	self-publish check
+2026-09-04T07:48:47.489Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
-None recorded.
+```
+
+```
 
 ## Long run in flight (LONG-RUN)
-None recorded.
+```
+{
+  "what": "sea trial, 10 legs",
+  "startedAt": "2026-09-04T07:44:59.494Z",
+  "updatedAt": "2026-09-04T07:46:48.403Z",
+  "progress": "0/10 legs",
+  "staleAfterMinutes": 53
+}
+```
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T10:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T100802Z.out/.err, kit: readable)
 2026-09-03T10:38:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T103802Z.out/.err, kit: readable)
 2026-09-03T11:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T110802Z.out/.err, kit: readable)
 2026-09-03T12:08:02Z	ring: no watch on deck -- rang the next one (output: watch-20260903T120802Z.out/.err, kit: readable)
@@ -56,4 +65,5 @@ None recorded.
 2026-09-04T06:18:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T061802Z.out/.err, kit: readable)
 2026-09-04T06:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T064801Z.out/.err, kit: readable)
 2026-09-04T07:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T070801Z.out/.err, kit: readable)
+2026-09-04T07:38:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T073801Z.out/.err, kit: readable)
 ```
