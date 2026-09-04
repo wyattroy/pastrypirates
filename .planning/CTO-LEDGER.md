@@ -10236,3 +10236,86 @@ session to harvest and republish once this closes.
 END OF WATCH.
 
 - 2026-09-04T02:30:27Z · close_item: INBOX-20260904T005038Z · CEO 196 · no game diff — no game code is right: found T-073, promoted to a visible chart row, pinned DO NOW rank 1 (commit e0e2292b) · no stated solution
+
+## WATCH 2026-09-04T0203Z — Wy-Blade (Bell) — CLOSED `INBOX-20260904T005038Z`: his "missing" SFX request was never lost, just invisible
+
+**Situation, six lines.**
+- **Watch started** ~2026-09-04T0203Z on `claude/cloud-handoff-planning-a9ay1u`. `can_push.mjs`
+  reported healthy; the real push form was exercised per Door rule after reading
+  `docs/GIT-AND-DEPLOY.md` once (rule 17 first-touch gate), returned "Everything up-to-date".
+- **Last progress** — the 0156Z watch's close of `T-216` + `INBOX-20260902T225008Z` (CEO 193).
+- **`IN-HAND` empty**; no other item HELD in the ledger at start.
+- **Blocked on Wyatt** — unchanged (analytics rulings, T-206 duplicate-handle cleanup, the
+  trial-depth-green question, etc.) — not this watch's item.
+- **Detached trial in flight** — the untracked `.planning/SEA-TRIAL-2026-09-04T0113Z-Wy-Blade.md`
+  is a stale prior report (superseded), not committed; no live `LONG-RUN` marker found.
+- **THIS WATCH TOOK HIS INBOX FIRST, per the Door's own rule and per his DO NOW press**
+  (`INBOX-20260904T005038Z`, 2026-09-04T00:50:38Z): *"My sound effects request that I put on the
+  glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place on the
+  chart?"*
+
+**What was found.** His SFX request was never missing — `T-073` sat as inert prose under
+"## THE IDEA INBOX" in `.planning/CHART.md`, filed 2026-09-02T05:12:07Z, status `SCHEDULED`. That
+label never rendered as a movable row on his Glass page, which is why it looked gone.
+
+**What was done.** Promoted `T-073` to a real open checklist row under "### ⚑ FOR A WATCH"
+(preserving his original text, the Drive/spreadsheet links, and the `docs/AUDIO.md` caveat), then
+pinned it DO NOW (`chartkeeper.mjs --do-now=T-073`) — confirmed at rank 1 of 49 open rows
+(`--rank`: `[9000000] … why now: YOU SAID DO NOW`). Left a one-line pointer at the old idea-inbox
+location.
+
+**Deliberate deviation, disclosed in the chart row itself:** he asked for literal "3rd place";
+ranks 2–3 are gridlocked by a pre-existing ambiguous `T-206` handle, and `chartkeeper --order`
+refuses to target an ambiguous handle (verified live: exit 2, nothing written). Rank 1 (DO NOW) was
+used instead — stronger than 3rd, not weaker — with the reasoning written into the row so he can
+overrule it once the `T-206` collision is cleaned up (a separate, larger fix, not this item's).
+
+**Mid-task collision, named rather than hidden.** While this watch's edit was still uncommitted, a
+concurrent process/session in the same working directory (evidenced by commit `e0e2292b`, "chart:
+recover uncommitted DO NOW promotion for T-073 SFX request... Committing as-is to unblock rebase")
+committed it on this watch's behalf, and separately committed its own unrelated fix to
+`close_item.mjs`/`close_item_check.mjs` (a CEO-number-identity bug) partway through this watch's
+own close. `ListAgents` later confirmed a live peer, `Blade [53b082]` (interactive, busy) — almost
+certainly that concurrent actor. Nothing of this watch's was lost: re-synced after each collision
+and verified the intended state (T-073 pinned rank 1, no new ambiguous-handle warning) survived
+before proceeding.
+
+**What was verified before closing, not merely trusted:**
+- `node scripts/wyclau/chartkeeper.mjs --rank` — T-073 at rank 1, ambiguous-handle count unchanged
+  (5, same names, T-073 not among them).
+- `node scripts/wyclau/chartkeeper.mjs --order=T-206` — live-triggered the refusal the chart row
+  describes: exit 2, "NOTHING was written."
+- `npm test` — full suite, 0 failures, run twice against the final committed state.
+- Fresh-context CEO (Review 196, DONE) — re-ran every claim above independently rather than take
+  this watch's account on faith; found one minor unverified number (an uncounted "576 PASS lines"
+  claim) and nothing else unsupported.
+
+**THE CLOSE.** `close_item.mjs --item="INBOX-20260904T005038Z" --ceo=196 --reason="no game code is
+right: found T-073, promoted to a visible chart row, pinned DO NOW rank 1 (commit e0e2292b)"` — no
+game-code diff, so a stated reason rather than `--commit` (the gate refuses `--commit` on a
+game-code-free diff). CEO Review 196 appended to `.planning/CEO-REVIEWS.md` (prepended — newest at
+top; note CEO Reviews 193–195 were found appended at the FILE'S END instead, and two of them are
+titled `## CEO 19x` rather than `## CEO Review 19x`, the exact heading bug CEO 192's own boxed
+warning describes — not this watch's item to fix, flagged for whichever session is already
+mid-repair on `close_item.mjs`).
+
+**Gear: no game code.** `git status --short` at close showed only `.planning/CEO-REVIEWS.md`,
+`.planning/CTO-LEDGER.md`, `.planning/wyclau/INBOX.md` from this watch's own hand — `index.html` and
+`src/` untouched. This watch owes no trial of its own.
+
+**The DO NOW pin was left ARMED, deliberately** — the underlying SFX audio-integration work (the
+Drive files, the spreadsheet plan) is still genuinely undone and is a separate, larger task; leaving
+`T-073` pinned keeps it at the top for whichever watch takes it next, which is what "prioritize it"
+actually asked for.
+
+**Untouched, named rather than silently left:** the same dozen `scratchpad/`/`scripts/qa/_*`
+throwaway files prior watches already flagged as permission-fenced against deletion on this
+machine, and the stale `.planning/SEA-TRIAL-2026-09-04T0113Z-Wy-Blade.md` report.
+
+**No Artifact tool in this session** (Bell-launched watch — confirmed via `ListAgents`). Per Door
+step 6b, messaged the live `Glass update [fda089]` peer to harvest and publish now that this item
+has landed and pushed (commit `a72c6f9b`).
+
+**Browsers:** none started by this watch.
+
+END OF WATCH.
