@@ -7,6 +7,10 @@ the Captain's log — so this file is the source of truth and the page only poin
 five minutes to read. At most one entry per day; a day with none shows honestly on the Glass as
 "the day's close owes one".*
 
+## 2026-09-06 — A size match across six files beats a guessed filename
+
+Before wiring anything from Luis's new SFX delivery, the six sounds already shipped in the game were checked against his new files by byte size alone -- all six matched exactly, including a 5,343-byte file, which isn't coincidence at that size. That single check reframed the whole PRD: fishing.mp3 and ship-move.mp3 turned out to be Luis's own anchor and navigation files under generic names, which means two old audio defects (docs/AUDIO.md DEFECT-1/2) were a naming problem, not a wrong mapping, this whole time. A five-second size comparison found something a week of reading the code never surfaced.
+
 ## 2026-09-04 — A gate can hold the SHAPE of a decision and not the decision
 
 The Bell rang every watch on Opus for weeks because its launch line carried no --model flag. Nobody chose Opus; it fell out of an argument list nobody read. The fix was one line, and it came with three checks so it could never silently un-happen. Then the CEO put the Watch back on Opus, ran those checks, and they all said PASS. They were asserting that SOME model was named -- the shape of the launch line -- while the thing Wyatt actually ruled, sonnet 5, was held by nothing. A nonsense model string passed too, which would have killed every watch at startup while the log cheerfully recorded a ring. The lesson is not 'write more checks'. It is that a check written straight after a fix tends to describe the fix rather than the decision behind it, because the fix is what is in your head. Ask instead: what did he actually decide, and what edit would reverse it without failing anything? Here that edit was one word in one string. A ruling that one line can undo silently is a default wearing a ruling's clothes.
