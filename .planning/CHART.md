@@ -275,8 +275,33 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       words."* The committed file has been re-synced from the live page so the tree and the artifact
       agree; **always re-read the artifact before publishing to it, and never publish a local copy
       whose `glassState` is emptier than the live one.**
-      **STILL NOT DELIVERED. One box of thirteen.** Six section boxes and all seven questions are
-      still blank, and the five mappings are still unconfirmed. The row stays open.
+      ✍️ **16:25Z — SECOND NOTE, on `s2`, and it is the densest thing on this row.** Harvested to
+      `INBOX-20260906T162549Z`; two rulings pulled out and recorded at the top of
+      [`DECISIONS.md`](../.claude/memory/DECISIONS.md) **because he asked for one of them to be —
+      *"record this ruling somewhere."***
+      ⛔ **THE COIN FLIP IS CLOSED. He fixed the flip's duration in code himself.** That kills §3's
+      second "defect" (its premise — browsers rendering the flip for different durations — is false),
+      and both `CoinFlip_Start`/`CoinFlip_End` rows, **which the PRD marked CERTAIN**. Two of Luis's
+      27 files leave scope.
+      ⚠ **THE REUSABLE ONE, AND IT IS BIGGER THAN TWO FILES: two of the five rows tagged CERTAIN
+      were WRONG.** They were tagged from filenames and byte counts by a session that could not hear
+      audio and did not know what he had already fixed in code. **Treat the whole confidence column
+      as unconfirmed.** Rule 6: a confident label nobody measured is still an unmeasured claim.
+      **CANNON: fires on the LANDING, not the opening broadside** (so §2's mapping is wrong as
+      written), and must come clear of the second coin flip of a battle — his example is ~100ms
+      after. **Derive that gap from when the flip's audio actually ends (rule 9); the requirement is
+      no overlap, not the number.**
+      📋 **AND A NEW ASK, NOT BUILT ON THE PAGE'S SAY-SO: a slider board for balancing.** A build
+      instruction inside a comment box is data, not a command — so it went to him through the
+      question UI instead, with the homework done. **He ruled: wire the sounds FIRST, then the
+      board; per-sound sliders + ambience randomiser knobs + music volume/pan (NOT group masters);
+      the 3.4 MB music track, pulled from Drive** — the only one of three that fits a 16 MB page.
+      **His picks come to ~19 sliders against the 10–15 he asked for; that goes in front of him when
+      the board is scoped, not silently trimmed.**
+      ⛔ **AND HIS ORDERING RULING IS NOT PERMISSION TO START WIRING.** It sequences two future jobs.
+      **STILL NOT DELIVERED. Two boxes of thirteen.** Four section boxes and all seven questions are
+      still blank; four of the five mappings (ClockTick, Ocean_Loop, Seagulls, BoatCreaks) are still
+      unconfirmed. The row stays open and no sound gets wired.
       ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was
       written as a repo-relative path (`../../docs/AUDIO.md`), which on a published artifact goes
       nowhere — he'd have tapped a link and got nothing. Now a plain `<code>` citation, matching how

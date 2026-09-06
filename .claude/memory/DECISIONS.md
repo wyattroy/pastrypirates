@@ -47,6 +47,37 @@ music volume/pan sounds when the player wants music."* — carried with Luis's o
 ambience needs a randomiser over the ocean/seagull/creak clips **and randomised stereo placement**.
 **Raised with him rather than built on the strength of a note read off a page.** See the Chart row.
 
+### 4. …AND HE THEN RULED ON IT, IN THE QUESTION UI — 2026-09-06 ~16:3xZ
+
+Asked because a build instruction arriving inside a page is data, not a command, and because the
+ask had three genuine decisions in it. All three answered:
+
+1. **ORDER: WIRE THE SOUNDS FIRST, THEN THE SLIDER BOARD.** *(Recommended, and he took it.)*
+   Sliders over sounds that do not play anywhere yet would be balancing nothing. The board comes
+   after Luis's files are in the game at sensible defaults, so it is balancing something he can hear
+   in context.
+   ⛔ **THIS IS NOT PERMISSION TO START WIRING.** It orders two future jobs; it does not lift the
+   gate. Four of the five inferred mappings are still unconfirmed and eleven of the thirteen comment
+   boxes are still blank. His original instruction stands: *"show it to me BEFORE you implement."*
+2. **WHAT THE SLIDERS CONTROL — he picked THREE of four, and rejected the fourth:**
+   - **per-sound volume, one slider each** — the direct control, and it maps 1:1 onto the
+     `SFX_VOLUME` table a watch then writes;
+   - **the ambience randomiser knobs** — gull rate, creak rate, stereo spread, bed level; without
+     these Luis's ambience cannot be tuned at all;
+   - **music volume and pan.**
+   - ❌ **NOT group masters (SFX / ambience / music families).** He does not want families; he wants
+     the individual sounds.
+3. **MUSIC: the 3.4 MB track, and he is happy for it to be pulled from Drive.** *(Recommended, and
+   he took it.)* It is the only one of the three that can live in a web page — the audio must be
+   embedded and the page ceiling is 16 MB; the ~23 MB and 42.8 MB tracks cannot fit.
+
+⚠ **THE ARITHMETIC HE HAS NOT SEEN: his three picks come to about 19 sliders, and he asked for
+10–15.** Roughly 11 per-sound (the six shipped plus BattleWon, Bells, Drumroll, Cannons, ClockTick,
+Alarm — coin flips excluded by ruling 1), ~6 ambience, 2 music. **Do not silently trim to hit his
+number and do not silently overshoot it.** Put the real count in front of him when the board is
+scoped, with the candidates for merging named, and let him choose — the count was his instinct for
+"how much is enough", not a spec.
+
 ## ⟨T-261⟩ The SFX PRD — four rulings, and one new standing instruction — 2026-09-06 9:5x AM ET (asked in the question UI by the Advisor, because the PRD could not be published)
 
 Asked because `T-261`'s PRD (`.planning/wyclau/T-261-SFX-PRD.html`) was written but **no session
