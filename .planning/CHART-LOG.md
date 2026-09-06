@@ -3766,3 +3766,23 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
       No game code touched — this is triage only. `npm test` not re-run (no code changed).
       Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
+
+## T-003 — 2026-09-06 — Judge the 267 screenshots the release trial queued — his ruling, question UI 2026-09-02: (closed 2026-09-06 · CEO 231 · no game diff — satisfied by a fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md) that already judges live on the current build 2026.09.04.2, independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed) "Judge the screenshots first", chosen over staging-in-parallel and over production. Trial SEA-TRIAL-2026-09-01T1914Z-Wy-Blade sailed 10/10 legs on 2026.09.01.7 with NOTHING in the not-run column, but its own report says "THE JUDGE CANNOT SEE — every visual verdict below is worthless; the structural half still stands." The screens are queued, marked NOT cleared. His reasoning: the untappable sail square that cost days was caught by looking, not structure.
+
+- [x] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02: (closed 2026-09-06 · CEO 231 · no game diff — satisfied by a fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md) that already judges live on the current build 2026.09.04.2, independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed)
+      ⟨`T-003`⟩
+      *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
+      `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
+      not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
+      is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
+      His reasoning: the untappable sail square that cost days was caught by looking, not structure.
+
+## T-016 — 2026-09-06 — THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the (closed 2026-09-06 · CEO 231 · no game diff — satisfied by the same fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md), ~82 min, 10/10 legs, current build 2026.09.04.2, matching PP4_STAMP; independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed) launch date. CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build 2026.09.01.7; the fix above bumped it to .8, so staging now needs another ~90-minute trial. npm test is GREEN again (another session cleared the vendored-file failure), so the gate that blocked staging is open — the only thing missing is a trial of the code that would actually ship.
+
+- [x] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the (closed 2026-09-06 · CEO 231 · no game diff — satisfied by the same fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md), ~82 min, 10/10 legs, current build 2026.09.04.2, matching PP4_STAMP; independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed)
+      ⟨`T-016`⟩
+  launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
+  `2026.09.01.7`; the fix above bumped it to `.8`, so **staging now needs another ~90-minute
+  trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
+  gate that blocked staging is open — the only thing missing is a trial of the code that would
+  actually ship.

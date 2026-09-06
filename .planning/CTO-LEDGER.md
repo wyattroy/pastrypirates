@@ -12396,3 +12396,23 @@ the Cloudflare/build-site work (committed, nothing deployed yet, needs Wyatt for
 **One item closed this watch.** Ending the turn here, per the Door's own rule.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-06 (session continuing on claude/cloud-handoff-planning-a9ay1u)
+
+**Claiming `T-003` and `T-016`** — both flagged STALE-CANDIDATE (stale-evidence), both about the
+release trial's visual-judging coverage being out of date. A fresh FULL-gear sea trial
+(`SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md`) sailed 10/10 legs on the CURRENT build `2026.09.04.2`
+(matches `PP4_STAMP` in `src/ui/stage.js`), using sea-trial-v2's live judging (no queue — "the eyes
+see EVERY distinct screen"), and its findings were already independently triaged as `T-262` and
+CEO-verified (CEO 220 YES + a second independent fresh-context review, both confirming zero new
+player-facing defects beyond pre-existing known rows). Investigating whether that satisfies the
+substantive intent of both rows well enough to close them through the gate.
+
+Skipped: `T-073` (SFX) — still marked CLAIMED on Wyatt's Mac, explicit DO NOT TAKE. Also attempted
+`T-239` (copy "number or letter" rule into `.claude/CLAUDE.md`) first — Edit tool refused
+`.claude/CLAUDE.md` as a sensitive file (matches the row's own prior finding, re-confirmed, not a
+new discovery) — parking that row exactly as its own text already anticipates, moving to T-003/T-016.
+
+- 2026-09-06T18:25:52Z · close_item: "Judge the 267 screenshots the release trial queued" · CEO 231 · no game diff — satisfied by a fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md) that already judges live on the current build 2026.09.04.2, independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution
+
+- 2026-09-06T18:26:17Z · close_item: "T-016" · CEO 231 · no game diff — satisfied by the same fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md), ~82 min, 10/10 legs, current build 2026.09.04.2, matching PP4_STAMP; independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution

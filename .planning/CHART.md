@@ -507,24 +507,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
-      ⟨`T-003`⟩
-      *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
-      `SEA-TRIAL-2026-09-01T1914Z-Wy-Blade` sailed 10/10 legs on `2026.09.01.7` with NOTHING in the
-      not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
-      is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
-      His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
 
-- [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
-      ⟨`T-016`⟩
-  launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
-  `2026.09.01.7`; the fix above bumped it to `.8`, so **staging now needs another ~90-minute
-  trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
-  gate that blocked staging is open — the only thing missing is a trial of the code that would
-  actually ship.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩

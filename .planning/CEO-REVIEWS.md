@@ -17029,3 +17029,48 @@ Fresh CEO (general-purpose agent, independent): confirmed the two-line diff is e
 **Gear: NONE.** Only `.planning/CHART.md` (2 lines) and the prediction file touched — no `index.html`/`src/` diff, no sea trial owed.
 
 **Its one thing for Wyatt:** two already-shipped duplicate rows were quietly inflating his Tasks-list count and out-ranking real open bugs; the fix is two characters each, and the same parser gap likely still affects other rows written in the `**FATE:**`/`✅` style — filed as a note for whoever next touches `chart_model.mjs`, not attempted here because a safe general fix needs more care than one watch turn allows.
+
+## CEO Review 231 — closing `T-003` and `T-016` on the 2026-09-06 sea trial + `T-262`/CEO 220 triage — 2026-09-06
+
+**Ask verified:** do `T-003` ("judge the 267 screenshots the release trial queued" before shipping)
+and `T-016` ("staging needs another ~90-minute trial of the code that would actually ship, since
+the last one was retired by a fix") both close on the strength of a trial that already exists —
+`SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md`, run earlier by a different watch for the unrelated
+purpose of triaging `T-262` — rather than this watch running a third, redundant trial?
+
+**VERDICT: YES on both.**
+
+1. **Build match, checked directly:** `src/ui/stage.js`'s live `PP4_STAMP` is `2026.09.04.2`; the
+   trial report's own header states the same build. It tested the code on the branch right now, not
+   a stale snapshot.
+2. **FULL gear, 10 of 10 legs sailed, none skipped** ("voyages that did NOT run: none").
+3. **The judge can see, verified in the report's own words:** *"the eyes see EVERY distinct screen
+   (no judge cap)"* and *"can the vision judge see? yes — checked just before sailing — the judge
+   opened a real screenshot and described it."* This is the direct fix for `T-003`'s own stated
+   blocker ("THE JUDGE CANNOT SEE").
+4. **`T-016`'s literal ask — "another ~90-minute trial of the code that would actually ship" —
+   is met almost word for word:** an ~82-minute FULL trial of the exact current build exists.
+5. **CEO 220's YES verdict on the same trial was independently re-checked, not trusted on
+   citation alone:** its most technical claim (the "empty speech bubble" explanation) was
+   confirmed against the actual code — `src/ui/panel.js:783-786` and `src/ui/stage.js:1584,1588`
+   match the review's citation exactly.
+6. **The trial's result is FAIL, and that is disclosed rather than hidden:** every failing finding
+   traces to a pre-existing known row (`T-143`, blocked on Wyatt; the phone-radial-overlap family)
+   or the newly-named instrument quirk above — zero new player-facing defects.
+
+**What was delivered that he did not ask for, and whether it displaced anything:** nothing
+displaced. The trial was not produced to satisfy these rows — it already existed, run for `T-262`,
+and sat unconnected to these two older rows until this watch pointed them at it. Running a fourth
+trial today to reproduce the same kind of answer would burn ~90 more minutes for no new safety.
+
+**Any unsupported claim:** none found. Build match, "no judge cap" language, 10/10 sailed, and the
+empty-bubble code citations all check out against the files directly.
+
+**Recurrence check:** this is the healthy pattern, not the "kind paraphrase" failure — a real,
+judged, current-build trial exists, its FAIL-labeled findings were read leg-by-leg against the
+record rather than at the headline, and the one genuinely new observation was named as an
+instrument quirk rather than inflated into a bug.
+
+**One sentence Wyatt should read first:** both rows can close — a real, current-build, fully-judged
+trial already exists and was independently checked to have zero new player-facing bugs, so
+re-running another 90-minute trial today would only repeat work already done.
