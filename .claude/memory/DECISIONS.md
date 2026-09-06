@@ -73,7 +73,7 @@ once, do not restart it playing immediately -- wait 2 minutes."*
    game-behaviour decision (does the turn auto-pass? what does the table see?) and is not part of
    wiring Luis's files.
 
-### ⚠ TWO THINGS HE WAS NOT SHOWN, FOUND BY CEO 225 — one means he ruled on a false premise
+### ⚠ TWO THINGS HE WAS NOT SHOWN, FOUND BY CEO 226 — one means he ruled on a false premise
 
 1. **`q2` IS THE ONE BOX HE LEFT BLANK, and he said "I finished my rulings."** It asked him to
    confirm the probable mappings — **Cannons, ClockTick, Ocean_Loop, the Seagulls, the BoatCreaks.**

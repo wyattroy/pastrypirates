@@ -303,7 +303,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ✅ **16:36Z — HE FINISHED. *"I finished my rulings."* 12 comment-box entries, all harvested.**
       Digest at the top of [`DECISIONS.md`](../.claude/memory/DECISIONS.md); his exact words in
       `INBOX.md`. The committed page is re-synced from the live one so nothing can overwrite him.
-      ⛔ **CORRECTED BY CEO 225: an earlier version of this row said his clash ruling "MOVES" the
+      ⛔ **CORRECTED BY CEO 226: an earlier version of this row said his clash ruling "MOVES" the
       sound because "it currently plays on the resolve." THAT WAS FALSE — the clash already
       plays at battle-engage** (`src/orchestrator.js:631`, `playBattleEngage()` one line before
       the opening ⚔️ line; `EVENT_SOUND` has `battle: null` because that event only fires after
@@ -313,7 +313,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **ONE of his rulings really does move something:** the narration box moves to fit the
       drumroll audio, rather than the audio being cut to the box's 2.55s.
       ⛔ **~~FOUR COLLISIONS, AND THE ROW STILL DOES NOT CLOSE BECAUSE OF TWO OF THEM~~ — STRUCK BY
-      CEO 225. That was a FOURTH definition of "delivered" stacked on a row that got the
+      CEO 226. That was a FOURTH definition of "delivered" stacked on a row that got the
       one-definition block above eight hours earlier to stop exactly this, and I wrote it.**
       By the row's own test — he has written, a watch has harvested — **this row is DELIVERED.**
       The collisions are real and they are the NEXT job, not this one; they leave as their own
@@ -1678,7 +1678,7 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Regenerate sitemap.xml at the repo
       ⟨`T-243`⟩
-      ✅ **CLOSED PROPERLY 2026-09-06, CEO 225 (YES), through the gate this time.** The old warning
+      ✅ **CLOSED PROPERLY 2026-09-06, CEO 226 (YES), through the gate this time.** The old warning
       here (about a prior close landing on `T-137` instead) described a bug in `close_item.mjs`
       fixed 2026-09-03 — but nobody had actually re-run this row's close since. This watch verified
       directly on the live tree that every part of his ask is satisfied (sitemap.xml lists all 5

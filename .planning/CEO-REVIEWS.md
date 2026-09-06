@@ -1,6 +1,6 @@
 # CEO reviews — the standing record
 
-## CEO Review 225 — `T-261`: "I finished my rulings" — **NO, not as it stands** — 2026-09-06
+## CEO Review 226 — `T-261`: "I finished my rulings" — **NO, not as it stands** — 2026-09-06
 
 **Wyatt's ask, verbatim:** *"I finished my rulings in https://claude.ai/code/artifact/ed82256e-…"*
 
