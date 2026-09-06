@@ -11905,3 +11905,59 @@ credits page itself needs no Glass — it is a static site page, not a Glass art
 the next watch skips it.
 
 END OF WATCH.
+
+- 2026-09-06T16:01:59Z · close_item: INBOX-20260906T1520Z · CEO 223 · no game diff — doc/tooling work (CLAUDE.md, hooks, a static reference page) -- no game code changed · his solution first: commit aee848e · closed: two-machines.html live at staging.playpastrypirates.com/two-machines.html; CEO 223 PARTIAL, both findings fixed same watch
+
+---
+
+**WATCH START, 2026-09-06T1553Z, `claude/cloud-handoff-planning-a9ay1u`, session `pastrypirates-29`.**
+
+Ranked the Chart (0 archived, 6 flags — duplicate handles T-237/T-220/T-206 and ambiguous inbox
+stamps, none new). No Artifact tool in this session. Ranks 1-9 were each already genuinely blocked
+(T-261 on publish, T-138 on his own look, T-219/T-237/T-013 deliberately deferred by prior watches
+as needing careful non-rushed passes on fragile geometry, T-216 a dead duplicate, T-238 GATED, T-250
+a documented non-defect, T-262 a standing note with nothing to act on).
+
+**First item attempted: `T-239`** (move his "number or letter the options" rule from
+`.planning/wyclau/CHARTER.md` into `.claude/CLAUDE.md`/`DECISIONS.md`). **Edit tool refused on
+`.claude/CLAUDE.md`** ("sensitive file") — third confirmation of the same block a prior watch (15:13Z)
+already reported. This is a structural fence on an unattended watch, not transient; not repeating the
+attempt. `T-239` stays open for an interactive session or Wyatt himself to move.
+
+**Before any further commit could land, the CEO-cadence fence fired**: 3 non-record commits (the
+Advisor's TWO-MACHINES.html growth/move, T-101 bookkeeping, this watch's own T-263-queue commit) had
+landed since CEO 222 with no review appended. Ran a fresh CEO against the outstanding item —
+`INBOX-20260906T1520Z`, his "explain the repo architecture" ask — rather than against T-239, since
+that was what the fence was actually blocking on.
+
+**CEO 223 (PARTIAL)**: the machinery (`.claude/CLAUDE.md` §3/§6, `where_is_my_work.mjs`, the two
+hooks) and the page (`two-machines.html`, root, live at
+https://staging.playpastrypirates.com/two-machines.html) genuinely cure CEO 221's "he asked a
+designer's question and got infrastructure" finding — verified independently (curl 200, page read
+in full, both his named sub-questions re: which repo locally and HEAD/detached-HEAD directly
+answered on the page). Two findings, both fixed same watch before recording: (1) the page overclaimed
+"a hook now does both halves" of the pull/push bookend — `machine-handoff.cjs` only auto-pulls,
+pushing stays his on purpose — line corrected to say so and why; (2) `INBOX.md`'s
+`INBOX-20260906T1520Z` still read OPEN/QUEUED for a page that was already closed and live —
+mismatch between two records the same page was supposed to prevent.
+
+**Closed:** `INBOX-20260906T1520Z` via `close_item.mjs`, CEO 223, reason "doc/tooling work — no game
+code changed", `--solution-commit=aee848e8` (the page's move to the root). Commit `5bb40020` carries
+the overclaim fix and CEO 223 together (staged with CEO-REVIEWS.md so the fence's own review-landing
+exemption applied).
+
+**A second, live session (`pastrypirates-14`, the Advisor) is editing this same checkout right now** —
+`.claude/CLAUDE.md` and `.planning/wyclau/GLASS-UPDATE-SESSION.md` sit uncommitted with real content
+(28 and 53 lines respectively) that this watch did not touch, did not stage, and is not committing.
+Left exactly as found for that session to finish and commit itself.
+
+**No Artifact tool** (Bell-launched watch) — nothing new to publish; `two-machines.html` needed no
+Artifact, it publishes via the normal staging deploy, already live.
+
+**One item worked and closed this watch: `INBOX-20260906T1520Z` / CEO 223.** Gear: NONE (no
+`index.html`/`src/` file touched — a static reference page and a record fix). `npm test` not
+re-run (no game code changed; the hook that would demand it fires only on game-code edits).
+
+Ending the turn here — one item, closed through the gate, per the Door's own rule.
+
+END OF WATCH.

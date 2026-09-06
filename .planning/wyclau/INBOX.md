@@ -2353,14 +2353,4 @@ status: BUILT AND TESTED, NOT YET PUBLISHED — for the Watch still, until a ses
 > is there a way to automatically hook mac pastrypirates sessions to do these tasks?
 solution: two repos named in the file every session loads; a command that reads the live stamps;
   hooks that fire at the moment of the mistake; and a SIMPLE page written for HIM, not for Claude
-status: OPEN — the machinery half is done (`.claude/CLAUDE.md` §3+§6, `scripts/where_is_my_work.mjs`,
-  `.claude/hooks/staging-is-not-main.cjs`, `.claude/hooks/machine-handoff.cjs`). **CEO 221 said the
-  simple half was NOT done**: *"He asked a designer's question and got infrastructure."*
-  `.planning/wyclau/TWO-MACHINES.html` is written for him and is QUEUED FOR PUBLISH — this closes
-  when he can tap it, not when the file exists.
-  ⚠ **AND THE REASON THIS ENTRY EXISTS AT ALL IS THE FAULT CEO 218 CAUGHT AND CEO 221 CAUGHT AGAIN,
-  ONE ITEM LATER**: his words lived only in a session transcript. Greps for "so bogged down",
-  "very very simple terms" and "staging vs production" across `.planning/` and `.claude/` all
-  returned ZERO while the work they caused was being committed. The Advisor rule is that his words
-  land here VERBATIM in the same turn — it was followed for `T-261` and skipped for the ask that
-  came after it.
+status: DONE 2026-09-06 — CEO 223, no game diff — doc/tooling work (CLAUDE.md, hooks, a static reference page) -- no game code changed; his solution first: commit aee848e
