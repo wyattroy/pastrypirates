@@ -270,9 +270,17 @@ checkTrue("soundDurationMs returns 0 (not NaN, not a throw) before any buffer is
      on BOTH twins. Host-only was the actual defect (finding 1), so counting the call sites is the
      assertion that would have caught it. */
   {
+    /* ⛔ THIS CHECK USED TO DEMAND *TWO* CALL SITES, AND DEMANDING TWO IS DEMANDING DRIFT.
+       It was written to catch the drumroll being host-only, and it did — but it enshrined the wrong
+       cure: two calls kept in step by memory. Wyatt, 2026-09-06: "DO NOT ARCHITECT DRIFTABLE CODE",
+       and "there should be NO more precedent for drift, we have been fixing that tech debt for
+       weeks". So the assertion is inverted: the drumroll must be wired in ZERO hand-placed call
+       sites. When it returns it goes through the ONE dispatcher both clients already run — the
+       shape the your-turn bell uses — and this check will then be rewritten to pin THAT, not to
+       count copies. */
     const sites = (orch.match(/^\s*[^/\n]*playDrumroll\(\);/gm) || []).length;
-    checkTrue(`the drumroll is played on BOTH the host and guest end-of-voyage twins (found ${sites} call site(s), want 2)`,
-      sites === 2);
+    checkTrue(`the drumroll is wired in NO hand-placed call site — one path or none (found ${sites})`,
+      sites === 0);
   }
 }
 
@@ -318,6 +326,57 @@ checkTrue("cannon is a loadable stem", SFX_FILES.includes("cannon"));
     checkTrue("no hand-typed delay sits beside the cannon — the existing flip pacing IS the gap",
       i >= 0 && !/sleep\(\s*\d{2,4}\s*\)/.test(near.replace(/sleep\(hold\)/g, "")));
   }
+}
+
+/* ================= T-073: the YOUR-TURN bell — D-07's ONE sanctioned exception =================
+   His ruling (s4/q4): "Your Turn should use the Bell SFX sound. New day should NOT use this sound."
+   And, put to him in the question UI with `src/ui/audio.js`'s own "ever" quoted at him, he chose
+   the per-player cue over the rule-preserving version knowingly: a bell that rings four times a
+   round is not a signal to YOU. docs/INTENDED-BEHAVIOUR.md carries it so a two-tab session does not
+   report it as a host/guest defect.
+
+   WHY THE GATE LIVES WHERE IT DOES, because this is the whole design:
+     - `soundForEvent` stays PURE and simply LABELS the cue `localOnly` — no appState, no DOM, so
+       the harness can still assert the whole map under plain Node.
+     - `playForEvent` takes the locality as an ARGUMENT rather than reaching for it, because
+       src/ui/audio.js imports NOTHING (checked: zero import lines) and that purity is load-bearing.
+     - There is exactly ONE caller of playForEvent (src/orchestrator.js), so host and guest both
+       run that same line and each evaluates it FOR ITSELF. One path, two correct answers — not two
+       paths kept in step, which is the drumroll mistake CEO 232 caught.
+   THE EXCEPTION MUST STAY EXACTLY ONE SOUND WIDE, and the third case below is what enforces that:
+   the next sound that wants a seat gate is a fresh decision for Wyatt, not a precedent. */
+
+checkTrue("bells is a loadable stem", SFX_FILES.includes("bells"));
+{
+  let got = -1; try { got = statSync(new URL("../sfx/bells.mp3", import.meta.url)).size; } catch {}
+  check("sfx/bells.mp3 is present and byte-exact against Luis's delivery", got, 42414);
+}
+check("a turn plays the bell", (soundForEvent({ t: "turn", p: 1 }) || {}).name, "bells");
+checkTrue("the turn bell is labelled localOnly — the one sound not heard by the whole table",
+  (soundForEvent({ t: "turn", p: 1 }) || {}).localOnly === true);
+{
+  /* D-07 IS STILL THE RULE FOR EVERYTHING ELSE. Walk every event the map knows and prove exactly
+     one carries the exception — so a second one cannot be added quietly. */
+  const leaky = Object.keys(EVENT_SOUND)
+    .filter((t) => t !== "turn")
+    .filter((t) => ((soundForEvent({ t, p: 1 }) || {}).localOnly === true));
+  checkTrue(`the whole table still hears everything else — exactly one localOnly cue${leaky.length ? ` — ALSO GATED: ${leaky.join(", ")}` : ""}`,
+    leaky.length === 0);
+}
+checkTrue("NEW DAY stays silent — his ruling: 'New day should NOT use this sound'",
+  !EVENT_SOUND.newround);
+{
+  const orch = fs.readFileSync(new URL("../src/orchestrator.js", import.meta.url), "utf8");
+  checkTrue("the single playForEvent call passes the seat's locality, so each client answers for itself",
+    /playForEvent\(\s*e\s*,/.test(orch));
+  const aud = fs.readFileSync(new URL("../src/ui/audio.js", import.meta.url), "utf8");
+  /* THE COMMENT IS PART OF THE CHANGE, NOT DECORATION. audio.js said the whole table is audible
+     "ever". Leaving an absolute NEVER beside code that does it once is how the next reader reports
+     working code as broken — the exact rot docs/AUDIO.md just had corrected in three places. */
+  checkTrue("audio.js's D-07 comment no longer claims 'ever' without naming the exception",
+    !/no appState\.mySeat\/isLocalTo gate anywhere on this path, ever/.test(aud));
+  checkTrue("audio.js still imports NOTHING — the leaf-tier purity the gate was designed around",
+    !/^import\s/m.test(aud));
 }
 
 /* ================= The two flagged placeholders ================= */

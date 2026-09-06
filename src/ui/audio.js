@@ -32,7 +32,7 @@
 const SFX_DIR = "sfx/";
 // The closed literal array — the ONLY source of a fetch URL anywhere in this module, never a
 // runtime string (threat T-21-02). Adding a 7th stem later means adding it here, nowhere else.
-const SFX_FILES = ["battle-swords", "battle-won", "cannon", "coin-flip", "drumroll", "fishing", "ship-move", "store-ingredient", "storm"];
+const SFX_FILES = ["battle-swords", "battle-won", "bells", "cannon", "coin-flip", "drumroll", "fishing", "ship-move", "store-ingredient", "storm"];
 // Per-stem relative gain — CONTEXT.md "Claude's Discretion": the single tuning point for loudness
 // normalising, so a by-ear browser pass adjusts one number per sound without restructuring
 // anything else. Every stem defaults to 1 (no normalising applied yet).
@@ -65,6 +65,7 @@ const SFX_VOLUME = {
      absent key looks like an oversight and this looks like the decision it is. The levelling pass
      replaces these two numbers along with all six above. */
   "battle-won": 1,
+  "bells": 1,
   "cannon": 1,
   "drumroll": 1,
 };
@@ -150,7 +151,12 @@ const EVENT_SOUND = {
   // v2.1: nothing runs aground any more — the storm keeps its own cue via `newround`
   shipwrecked: "storm",
   // D-06 — explicit silence, not merely absent from the table
-  blocked: null, moored: null, turn: null, newround: null, tradewind: null, bakeoff: null,
+  blocked: null, moored: null,
+  /* T-073 — YOUR TURN. His ruling (s4/q4): "Your Turn should use the Bell SFX sound. New day
+     should NOT use this sound." So `newround` stays null below; the bell is on the TURN.
+     ⭐ THIS IS THE ONE SOUND NOT HEARD BY THE WHOLE TABLE — see LOCAL_ONLY_SOUND_EVENTS. */
+  turn: "bells",
+  newround: null, tradewind: null, bakeoff: null,
   // playtest 21 item 3: the storm's one summary line. Deliberately SILENT — every ship in it has
   // already played its own cue (windmove/blownOut -> ship-move, anchorHold -> fishing) as it moved,
   // so a sound here would be a fifth noise describing four that just happened.
@@ -202,10 +208,26 @@ const EVENT_SOUND = {
 // it on the PAIR (e.t is "newround" AND e.storm) is correct, and because `newround` is emitted
 // exactly once per round (src/orchestrator.js's two live `newround` emissions), D-08's fires-once
 // falls out of this pure lookup with no dedup state needed at all.
+/* ⭐ D-07'S ONE SANCTIONED EXCEPTION, AND IT IS A SET SO THAT ADDING A SECOND IS A VISIBLE ACT.
+ * Everything on this path is heard by the whole table. "Your turn" cannot be — a cue meant for
+ * YOU that also fires on three other screens is not a signal, it is noise, and at a four-handed
+ * table it would ring four times a round. Wyatt was shown this file's own "ever" and the
+ * rule-preserving alternative (everyone hears it on every turn change) and chose the seat gate
+ * knowingly, 2026-09-06. Recorded in docs/INTENDED-BEHAVIOUR.md so a two-tab session does not
+ * report the difference as a host/guest defect.
+ * THE NEXT SOUND THAT WANTS A GATE IS A FRESH DECISION FOR HIM, not a precedent this set grants. */
+const LOCAL_ONLY_SOUND_EVENTS = new Set(["turn"]);
+
+/* STILL PURE. It only LABELS the cue; it never asks who is playing. The seat test needs appState,
+ * and this file imports nothing by design (leaf tier) — so the answer is handed to playForEvent
+ * by its single caller instead. That keeps the whole map assertable under plain Node. */
 function soundForEvent(e) {
   if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm" };
   const name = EVENT_SOUND[e.t];
-  return name ? { name, bus: "master" } : null;
+  if (!name) return null;
+  const out = { name, bus: "master" };
+  if (LOCAL_ONLY_SOUND_EVENTS.has(e.t)) out.localOnly = true;
+  return out;
 }
 
 /* ================= Lazy audio graph — built ONLY by initAudio(), nothing at module load ================= */
@@ -340,8 +362,15 @@ function fadeStorm() {
 }
 
 // The impure dispatcher — called once per event that just arrived, on both host (liveRender())
-// and guest (watchEvents()). D-07: no appState.mySeat/isLocalTo gate anywhere on this path, ever —
-// the whole table is audible. Never writes a field onto the event object to communicate with this
+// and guest (watchEvents()). D-07: the whole table is audible, and that is still the rule for
+// every cue but ONE.
+// ⚠ THIS COMMENT USED TO END "no appState.mySeat/isLocalTo gate anywhere on this path, EVER".
+// That absolute stopped being true on 2026-09-06 when Wyatt ruled the your-turn bell is heard by
+// that player alone (LOCAL_ONLY_SOUND_EVENTS above). It is corrected here rather than left
+// standing, because a "never" beside code that does it once is how the next reader reports
+// working code as a bug — the exact rot that had to be cleaned out of docs/AUDIO.md the same day.
+// The gate is NOT taken here: `isLocalSeat` is passed IN by the single caller, so this file still
+// imports nothing and the seat logic stays where appState already lives. Never writes a field onto the event object to communicate with this
 // module: all dedup/fade state (stormNode above) lives in this file's own module-locals, never on
 // an object game.ev() produced or that netPushEvent carries — that risks drifting the determinism
 // corpus the v1.3 engine fence exists to protect.
@@ -374,7 +403,7 @@ function fadeStorm() {
    can only ever mean "this exact event again". Nothing is written onto the event object — the module
    header forbids it, because an event field would risk drifting the determinism corpus. */
 let lastSounded = null;
-function playForEvent(e) {
+function playForEvent(e, isLocalSeat) {
   if (e === lastSounded) return;                 // the same event replayed by a second liveRender()
   lastSounded = e;
   // The arrival of the next round header or the voyage's end is the exact game-state signal that
@@ -384,6 +413,10 @@ function playForEvent(e) {
   if (e.t === "newround" || e.t === "end") fadeStorm();
   const s = soundForEvent(e);
   if (!s) return;
+  /* The exception, applied. `isLocalSeat` is UNDEFINED for every caller that does not pass it, so
+     a localOnly cue stays SILENT rather than leaking to the whole table when the answer is unknown
+     — silence is the safe failure here, not sound. */
+  if (s.localOnly && isLocalSeat !== true) return;
   const bus = s.bus === "storm" ? stormGain : masterGain;
   const node = play(s.name, { bus });
   if (s.bus === "storm") stormNode = node || null;

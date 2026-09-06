@@ -76,7 +76,7 @@ import {
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
   subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, playBattleEngage, playDrumroll, playCannon, soundDurationMs, DRUMROLL_SOUND, isMuted, setMuted } from "./ui/audio.js";
+import { initAudio, playForEvent, playWinScreen, playBattleEngage, playCannon, isMuted, setMuted } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip,
   netDeleteRoom,
@@ -942,13 +942,21 @@ export async function applyEndMeta(){
   appState.game.round=m.round;appState.game.battles=m.battles;appState.game.trades=m.trades;appState.game.attWins=m.attWins;
   appState.game.finishOrder=m.finishOrder||[];appState.game.winner=m.winner;
   (m.flips||[]).forEach((f,i)=>{if(appState.game.players[i]){appState.game.players[i].flips=f;appState.game.players[i].heads=(m.heads||[])[i]||0;}});
-  /* T-073 — THE GUEST HEARS THE DRUMROLL TOO. Added 2026-09-06 after CEO 227 caught it host-only:
-     playDrumroll() went into liveResolveEndNet() alone, so the roll played on one screen and not
-     the other. That is rule 23 — host/guest decides who COMPUTES, never what a player experiences.
-     It is paired here deliberately, in the same statement as playWinScreen, because this twin is
-     the established shape for an end-of-voyage cue (D-05 did exactly this for the win sound) — a
-     future reader moving one must see the other on the same line. */
-  appState.liveDone=true;playDrumroll();playWinScreen();render(); // D-05: the guest's win-screen cue, tied to the screen appearing — end/finish stay silent as events per D-06
+  /* ⛔ NO DRUMROLL CALL HERE, AND NONE IN THE HOST EITHER — REMOVED 2026-09-06, DELIBERATELY.
+     A playDrumroll() was briefly pasted into BOTH end-of-voyage twins so the roll would not be
+     host-only. That "fix" was worse than the bug and Wyatt named it: two call sites kept in step by
+     memory IS drift, and citing playWinScreen's own twinning as precedent only spread the debt the
+     project has spent weeks paying down. It also produced two different MOMENTS — the host plays
+     the roll, holds a box, then the fanfare; this line fired both back to back — so the two screens
+     did not even hear the same thing.
+     WHAT IT NEEDS, and it is design rather than a line: ONE thing both clients run. The bell shows
+     the shape — EVENT_SOUND plus the single playForEvent dispatcher, where host and guest run the
+     same line and each answers for itself. The candidate is the `end` event through that same
+     dispatcher; what is UNMEASURED is whether `end` drains at the right instant relative to the
+     "Drumroll..." box (a comment at liveResolveEndNet says it is consumed "lines ago"), and that
+     timing is exactly the kind of thing this session has already been wrong about twice.
+     So: MEASURE FIRST, then wire once, in one place. Not two. */
+  appState.liveDone=true;playWinScreen();render();
 }
 
 /* ================= host game loop (networked) ================= */
@@ -1436,7 +1444,6 @@ export async function liveResolveEndNet(){
      unsupported browser, fetch still in flight — and `|| undefined` then hands flash() no opinion
      at all, so the box falls back to exactly the reading-speed hold it used before this existed.
      A silent game must never hold the reveal open waiting for audio that is not coming. */
-  playDrumroll();
   /* ⛔ THE HOLD OVERRIDE WAS REMOVED, 2026-09-06, AND IT MUST NOT COME BACK THIS WAY.
      It read: flash("Drumroll...", undefined, soundDurationMs(DRUMROLL_SOUND) || undefined) — the
      box held for the file's own 3148ms instead of the reading-speed 1130ms, which is exactly what
@@ -1677,7 +1684,16 @@ export async function consumeEvent(e){
   await animateSailRoute(e);      // W7: the guest walks the squares the boat crossed instead of gliding across the islands. THE EVENT BEING CONSUMED, not the top of the pile — W7b measured the guest sliding on 3 of 8 sails because watchEvents pushes each arriving event before awaiting this consumer, so the pile's top is regularly not the sail. Idempotent (a WeakSet of ridden events), so a host call site that already awaited the ride makes this a no-op.
   render();
   spawnPops(e,boardCell());
-  playForEvent(e);                // AUDIO-01/D-07: the per-event sound moment, every tier, no isLocalTo gate
+  /* AUDIO-01/D-07: the per-event sound moment, every tier — and THE ONE PLACE the whole game turns
+     an event into a sound, host and guest alike. That is why the seat answer is computed HERE and
+     handed down: both clients run this same line and each answers for ITSELF, so the your-turn bell
+     rings on exactly one screen without there being two code paths to keep in step. (Two paths kept
+     in step is the drumroll fault CEO 232 caught the same day; this is the shape that avoids it.)
+     ⚠ THIS LINE USED TO SAY "no isLocalTo gate". There is one now, for the bell alone — see
+     LOCAL_ONLY_SOUND_EVENTS in src/ui/audio.js. Every other cue stays audible to the whole table.
+     decisionIsLocal() rather than a bare seat compare, because it also answers TRUE on a shared
+     device in pass-and-play, where the player whose turn it is IS at this browser. */
+  playForEvent(e, decisionIsLocal(e.p));
   if(e.t==="end")applyEndMeta();  // self-guarded: host/already-applied return immediately
 }
 
