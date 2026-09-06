@@ -18,6 +18,15 @@
 # `scripts/qa/crawl_intent_check.mjs` derives both sets and fails the build on a served page
 # that states neither, so a page added tomorrow cannot slip through the way these thirteen did.
 #
+# /cloudflare-cutover.html is Wyatt's private cutover checklist, and it is FENCED rather
+# than noindex'd because it is an ARTIFACT FRAGMENT — no <head> of its own, so it can carry
+# no meta tag at all (crawl_sets.mjs scopes declaredIntent to a literal <head> on purpose:
+# Google ignores a robots meta that lands in the body). PRECISELY: playpastrypirates.com answers
+# 404 for it and always has, so no crawler has ever held the URL and the Disallow traps nothing.
+# It IS served on staging.playpastrypirates.com — but that host's own robots.txt disallows the
+# entire site, so the distinction changes nothing here. (CEO 235 finding 8: the first draft of
+# this note said "this domain", which is two domains.) Its real home is the artifact.
+#
 # TWO PAGES ARE DELIBERATELY BOTH, AND THAT IS NOT THE MISTAKE ABOVE. /stats.html and
 # /classic/stats.html carry a noindex AND sit in the Disallow list, because the Disallow is HIS
 # OWN RULING, quoted in stats.html's own header: "put it at /stats.html behind a simple curtain
@@ -46,6 +55,7 @@ Disallow: /stats.html
 Disallow: /classic/lab.html
 Disallow: /classic/stats.html
 Disallow: /scratchpad/
+Disallow: /cloudflare-cutover.html
 Disallow: /4/
 Disallow: /scripts/
 Disallow: /art-review/

@@ -17195,3 +17195,55 @@ kept committed per house convention for underscore-prefixed one-off measurement 
 bugs on your Tasks list — the exact complaint behind CEO Review 230 — is now general rather than
 patched row-by-row, and it was red-proofed against the specific trap case your own SFX row would
 have hit if a lazier fix had shipped instead.
+
+---
+
+## CEO Review 235 — 2026-09-06, Wyatts-MacBook-Air — the Artifact check, the handoff, and publishing his cutover checklist
+
+**Wyatt asked, verbatim:** *"Before anything else: do you have the Artifact tool? Check with ToolSearch select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck and answer yes or no. Then read .planning/wyclau/HANDOFF-20260906-CLOUDFLARE.md on branch claude/cloud-handoff-planning-a9ay1u."* Then, mid-turn: *"what branch are you on?? you should also be on your own branch, sep06-cloudflare"*
+
+### VERDICT: PARTIAL
+
+Its words: *"He asked two small things and got both, honestly — I re-ran every measurement in this session's account and all of them reproduce to the character, which after CEO 227 and 228 is the finding that matters most. What is wrong is downstream of the ask: the page he can now tap tells him in its own footer that his ticks are 'saved in this browser only', which is the exact opposite of the one thing he chose; the syncing that replaced it has never once run; and the session walked away leaving `npm test` red in his working tree while the page it published assures him 142 of 142 gates are green."*
+
+**1. DONE — the Artifact question, answered honestly.** I ran the identical `ToolSearch` myself: only `Artifact` returns. Its schema carries `comments`/`reply`/`resolve`, `read_db`/`write_db`, and the asset actions as `action:` values, so "the other three are actions on the one tool" is accurate for Comments and Data. It is looser for `ArtifactCheck` — there is no `check` action either; that name simply does not exist. Minor, and the answer he needed (yes) was right.
+
+**2. DONE — the handoff was read, and step 1 was measured, not assumed.** Every wire figure reproduces exactly: staging `PP4_STAMP = "2026.09.06.1-staging@b67b0d7a"`, `/sfx/cannon.mp3` 200, `/cloudflare-cutover.html` 200 on staging, production `2026-08-26k-CUTOVER`. Concluding the other session had already repaired it and doing nothing was correct.
+
+**3. LEGITIMATE — changing the page instead of publishing it "unchanged."** The handoff (`.planning/wyclau/HANDOFF-20260906-CLOUDFLARE.md:71`) said publish unchanged; the session asked him first and he chose cross-device saving. A previous session's note does not outrank his live answer. Not scope creep.
+
+**4. FINDING — the page tells him the opposite of what he chose.** `cloudflare-cutover.html:248`: *"Your ticks and notes are saved in this browser only."* That is now false, and it is in the published artifact — I read the live page back and the sentence is there. He asked for the ticks to follow him between devices; the footer of the page he opens says they will not.
+
+**5. FINDING — the feature he chose has never been executed.** The QA (rule 19) was a local wrap where `window.claude` does not exist, so the entire capability branch at `cloudflare-cutover.html:349-374` never ran. What the screenshot proved was the `localStorage` floor, which already worked before the change. I checked the live store myself: `read_db` on `cutover`/`state` returns *"No document"* — the artifact does declare `db` (the call resolved rather than being refused), but nothing has ever been written through it. **The half that was verified is the half that was not new.**
+
+**6. FINDING — a comment makes a behavioural claim that the code does not keep.** `cloudflare-cutover.html:293-294` says *"a snapshot landing mid-sentence must never take the sentence away."* `applyState()` (`:296-306`) protects the **display** of a focused notes box. The snapshot handler at `:361-364` then replaces the whole state object (`state = d.steps`) and writes it to `localStorage`, and the debounced save at `:312-321` fires 700 ms later sending that replaced object. Two devices: a tick made on his phone writes a document that does not contain the sentence he is typing on the Mac; the Mac's pending save then persists the phone's version over it. Narrow, but real — and CLAUDE.md §1 specifically forbids comments that assert runtime behaviour, because they rot exactly this way.
+
+**7. FINDING — his checklist is shared, not private, and nothing says so.** `DOC_PATH = "cutover/state"` (`:260`) is a shared collection; only the `data/users/` prefix is per-viewer, and the session correctly established that the `user` capability is unavailable so that route was closed. Fine for a private artifact — but anyone he ever sends the link to can overwrite his ticks, and he has not been told.
+
+**8. CORRECT — the robots.txt Disallow is the right tool, not a dodge.** I checked it against the file's own doctrine (`robots.txt:11-20`: already-live pages get a noindex meta and are *not* listed; never-reachable paths are fenced). Measured: production answers **404**; staging answers 200 but staging's own robots.txt is `Disallow: /` for the entire site, so no crawler has ever held the URL. And `scripts/qa/crawl_sets.mjs:47-56` returns `null` for a page with no literal `<head>` — so the meta the gate suggested would have been invisible to the gate *and* ignored by Google. The session measured that, removed the meta, and fenced instead. `crawl_intent_check.mjs` now PASSes for the right reason. One word is imprecise: `robots.txt:24` says *"never been reachable on this domain"* — true of `playpastrypirates.com`, not of `staging.playpastrypirates.com`.
+
+**9. FINDING — `npm test` is RED in his tree right now, and this session left it that way.** I ran it: `scripts/qa/asset_paths_exist_check.mjs` fails with *"24 of 100 pictures named in HTML are not on disk"*, and every one of the 24 is inside `_site/` — a gitignored build output stamped **16:36:09**, five minutes *after* the session's last file edit at 16:31:18. `scripts/qa/site_build_check.mjs:37-47` documents this precise poisoning and fixed it only for its own temp build; a manual `npm run build:site` still lays the trap. So the reported "exit 0" was presumably true when run and **is not reproducible**, and the machine was left dirty. It also makes the published page's line *"142 of 142 green"* (`cloudflare-cutover.html:104`) a claim he can disprove by running the suite.
+
+**10. FINDING — no sea trial, and no recorded decision not to run one.** `node scripts/qa/gear.mjs` says **GEAR: FULL** for these two files. `.planning/SEA-TRIAL.md:1-3` is a Wy-Blade report reading **NOTHING SAILED**, gear COSMETIC, build `2026.09.04.2` — so rule 24's "open the report" hands him another machine's account of nothing. On the merits the skip is defensible: `scripts/build-site.mjs:163` excludes this page from the publish set entirely and neither file is loaded by the game. **The skip is reasonable; the silence is not.** The sanctioned route was `node scripts/sea_trial.mjs --gear=COSMETIC --reason="..."`, which puts it on the record. Nothing was recorded.
+
+**11. DONE — the branch instruction.** On `sep06-cloudflare`, four commits ahead, nothing committed to `claude/cloud-handoff-planning-a9ay1u`. Note that **nothing is committed at all**: `git status` still shows `cloudflare-cutover.html`, `robots.txt` and `.planning/wyclau/PUBLISH-QUEUE.md` as modified, so the published artifact currently has no committed source behind it.
+
+**12. THE RECURRING FAULT DOES NOT RECUR — in this session's own work.** CEO 227 and 228 both named asserting a third party's plan/price as fact, and hand-typing a countable number. Every figure this session stated, I reproduced over the wire. But it **republished** the previous session's numbers to him without re-checking them, and finding 9 shows one of them ("142 of 142 green") no longer holds in this tree. The fault did not recur; its output was carried forward unexamined.
+
+**13. THE OWED CEO VERDICT — partly discharged.** The handoff's debt was a fresh-context review of the staging clobber, its repair, and whether the handoff hands off. This review verified the repair independently (finding 2) and can say the handoff handed off well — its step-1 table let a new session settle the question in one command. **What remains unreviewed is the clobber itself**: the decision to deploy over another session's live staging build, and whether anything now prevents a third session doing it again. Book that separately; do not treat this entry as closing it.
+
+**One sentence for Wyatt:** You got a straight yes and a working link, and every number in the session's account holds up when re-measured — but the page itself still tells you your ticks are saved in this browser only, the cross-device saving you asked for has never actually run once, and the test suite is red on your Mac right now because a leftover build folder was left behind.
+
+### WHAT THE SESSION DID WITH IT — all findings actioned, 2026-09-06
+
+| # | action |
+|---|---|
+| 1 | Correction accepted and stated to Wyatt: `ArtifactCheck` does not exist in any form, it is not an action either |
+| 4 | Footer rewritten — it now says the ticks follow him between devices, and that anyone he sends the link to can change them (also closes 7) |
+| 5 | **The db branch has now been executed.** A stubbed `window.claude.use("db")` harness ran the real code: doc path `cutover/state`, subscription opened, sync line green, and **zero writes on load**. Ticking fires exactly one `set` with `{steps:{s1:{done:true}}}`; a pushed snapshot repaints the other device's tick and note |
+| 6 | **Real bug, fixed and red-proofed.** The snapshot now clones (the platform freezes `data()`) and carries the focused notes box's live text into the merged state. Measured on the OLD code: his sentence stayed *on screen* while `localStorage` and the next write both went to `note: ""` — silent loss, worse than visible loss. On the new code the sentence survives on screen, in storage and in the write, while the other device's tick is still adopted. The rotted comment was rewritten to state the reason, not the behaviour |
+| 8 | `robots.txt` wording corrected — it now names the production domain rather than claiming "this domain" |
+| 9 | `_site/` removed; suite back to exit 0. `asset_paths_exist_check.mjs` now skips it, with the reason written down and the note that the hand-kept list is the real rot. Red-proofed: still FAILS on a genuinely missing picture in `index.html`, PASSes when restored |
+| 10 | Recorded, not silent: `sea_trial.mjs --gear=COSMETIC --reason="..." --report=.planning/SEA-TRIAL-sep06-cloudflare.md`, its own report file so it cannot overwrite the Blade's. Wyatt is asked to confirm the lowering as item 7 of his checklist |
+| 12 | The carried-forward number was re-counted rather than repeated: **144**, not 142 — `gate_count_check.js` and the `package.json` chain agree |
+| 13 | Left open deliberately. The staging clobber itself is still unreviewed and is NOT closed by this entry |
