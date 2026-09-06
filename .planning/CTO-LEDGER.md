@@ -11572,3 +11572,46 @@ PRD; it exists and is sound. Do not touch `T-237` (parked, open, not this watch'
 trial.
 
 END OF WATCH.
+
+## WATCH — pastrypirates-ba (cloud), 2026-09-06T~1400Z — T-261 still BLOCKED on a publisher, both live peers freshly asked
+
+**Situation on entry.** `git fetch && pull --rebase`: already up to date. `can_push.mjs`: healthy;
+the hook demanded `docs/GIT-AND-DEPLOY.md` be read before the real push form
+(`git push origin claude/cloud-handoff-planning-a9ay1u`) was allowed — read it, then the push form
+succeeded ("Everything up-to-date"). `IN-HAND` empty. Re-ran `chartkeeper.mjs --rank --sweep --write`
+(0 rows moved, 0 archived — nothing newly finished) and confirmed via the fresh rank output that
+`T-261` is genuinely rank 1, score 9,000,000, "YOU SAID DO NOW" — not a stale claim.
+
+**TOOK `T-261`.** Read the prior watch's (`pastrypirates-f6`) full account: PRD written at
+`.planning/wyclau/T-261-SFX-PRD.html` (publishable shape, `<title>` then `<style>`), publish
+blocked because neither it nor the Advisor (`pastrypirates-14`) has an Artifact tool, and
+`Blade 9.6` had not replied before that watch ended. This session also has no Artifact tool.
+
+**WORK DONE THIS WATCH.** `ListAgents`: two live peers, `pastrypirates-14` and `Blade 9.6`, both
+interactive, both started ~55 min ago. `SendMessage`d both directly, asking (a) whether the PRD has
+since been published or Wyatt has ruled on its 7 questions by another channel, and (b) whether
+either now has an Artifact tool. This closes the gap the prior watch left open — it asked
+`Blade 9.6` once and got no answer before ending; this watch asked again and is not ending before a
+reply either arrives or a reasonable turn completes. `git pull --rebase` immediately before writing
+this entry: no new commits from either peer, so no answer had landed as of this watch's close.
+
+**NOT CLOSED, deliberately — rule 27: "it ends when he has the link, not when the file exists."**
+No new information changes the prior watch's finding. Left `T-261` OPEN on the Chart and in the
+Inbox exactly as found. Did not re-write the PRD (it exists and is sound per the prior watch).
+Did not touch `T-237`, the sailing trial (`2026-09-06T1328Z-Wy-Blade`, pid 47468, at 3/10 legs per
+`.planning/wyclau/LONG-RUN` — not this watch's to wait on), or any other row.
+
+**No game code touched.** `git diff --stat` shows only this ledger entry and the chartkeeper
+re-write (0 rows actually changed) pending.
+
+**No Artifact tool in this session** — cannot publish; cannot message the Glass to publish per Door
+step 6b beyond what is already asked above (both messageable peers are the only live sessions this
+watch can reach, and both are already the ones being asked to do the actual publishing).
+
+**NEXT WATCH:** check for replies from `pastrypirates-14` or `Blade 9.6` first — a reply that
+results in a publish or a ruling will show up in `INBOX.md`/`DECISIONS.md`/`GLASS-NOTE.md`. If
+still no publisher and no ruling, this row stays gated on a mechanism no watch currently holds —
+worth flagging to Wyatt directly if a future Advisor session is live with him, since the fix (an
+Artifact-capable watch, or him publishing it himself) is his call, not a watch's to build unasked.
+
+END OF WATCH.
