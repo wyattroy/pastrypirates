@@ -67,6 +67,25 @@ why"* is a designer's job and he is explicitly asking for it.
 **Do not build tooling when the ask is to fix the game.** If you think tooling is needed, say so in
 one line and park it.
 
+**Before he walks away, make sure he can still reach the work from his phone.** Wyatt,
+2026-08-19: *"it seems like the /remote-control session got killed somehow, because i couldn't
+check in on this on my phone... always make sure these sessions are running in such a way that i
+can receive updates and approve things on my phone as well, even when i'm away from my laptop."*
+
+- **When he says he is stepping away, ask him to confirm the phone link works** — one line, in that
+  same reply. It is the only reliable signal there is.
+- **NEVER TELL HIM IT IS DOWN.** You cannot know that: the log has no "down" state, and the
+  `WarmLifecycle` lines that look like one are a different subsystem entirely. Two separate sessions
+  read them and told him his phone access was gone *while he was reading on his phone*. Say what you
+  observed and ask.
+- **He re-arms it himself** by typing `/remote-control`. A session cannot — the tool refuses. So ask
+  him; never imply a watcher will handle it.
+- **In a remote session, ask with `--text` mode.** The menus do not render through the Claude app, so
+  a question asked the normal way is one he physically cannot answer — to him the run just stopped.
+- **Front-load every decision before he goes.** A run that blocks twenty minutes after he leaves
+  burns the whole window for one question. And never leave a run silently blocked: if you must stop,
+  the reason and the options go in a message that reads on a phone screen.
+
 **His rulings live in [`.claude/memory/DECISIONS.md`](memory/DECISIONS.md).** Answer from them.
 Never re-ask a settled question.
 
@@ -128,7 +147,10 @@ safety signal reports success. Ask the repo where it is: `git rev-parse --show-t
 
 **He works on two machines** — a MacBook Air and a Windows laptop called `Wy-Blade`. Which machine
 he is sitting at is not which machine you are running on. Say which one you are on when it matters,
-and let him tell you where he is.
+and let him tell you where he is. **Both machines share the one `dev` branch, so `git pull --rebase`
+before every commit** — and never end a session holding commits that exist on no other machine. On
+2026-09-03 a Mac session was archived mid-rebase and sat for three days holding 40 hours of work and
+a drawing he had made by hand, which existed nowhere else on Earth.
 
 ---
 

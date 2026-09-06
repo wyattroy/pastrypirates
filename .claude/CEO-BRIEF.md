@@ -6,7 +6,7 @@
 
 Wyatt, 2026-08-28: *"I want CEO to review after every item."* His second time saying it — CEO
 Review 9 caught the once-at-the-end pattern recurring across two windows. **Each thing he asked
-for closes with its own fresh-context verdict, appended to `.planning/CEO-REVIEWS.md` before the
+for closes with its own fresh-context verdict, given to Wyatt in the reply he reads, before the
 next item starts.** A short item gets a short verdict; no item gets none. A batch review at the
 end is the documented failure, not a substitute.
 

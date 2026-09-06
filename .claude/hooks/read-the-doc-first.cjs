@@ -7,7 +7,7 @@
  * renumbered underneath it, silently, the way a number always will. So the hooks now quote the rule
  * TEXT, which does not renumber, and the gate fails the build if the quoted text is not in the
  * table. Point, do not restate (CLAUDE.md §5) — and if you must restate, have a machine check it. */
-/* CLAUDE-RULE: Read the subsystem's own design doc before writing a line */
+/* CLAUDE-RULE: Read the subsystem's own doc before writing a line */
 
 /* read-the-doc-first.cjs — the structural half of CLAUDE.md's rule "Read the subsystem's own
  * design doc before writing a line".
@@ -56,7 +56,7 @@ const SUBSYSTEMS = [
     // BEFORE it added the prose row and skipped this one, and a CEO review is what noticed.
     // scripts/doc_command_check.js now fails the build when these two tables disagree.
     match: (f) => /(^|\/)(4\/)?scripts\/.*(check|test|gate|trial|drill|probe)/i.test(f)
-                || /(^|\/)4\/scripts\/lib\//.test(f),
+                || /(^|\/)scripts\/lib\//.test(f),
   },
   {
     id: "ceo",
@@ -150,7 +150,7 @@ function readStdin() {
  * A command counts as inspection only when EVERY segment of it is one of these verbs, so a real
  * launch piped into grep is still a launch. */
 /* `cd` LEADS ALMOST EVERY COMMAND IN THIS REPO, because the rulebook requires absolute paths
-   and the Bash tool's cwd resets (CLAUDE-RULE: Absolute paths always — two trees share one internal
+   and the Bash tool's cwd resets (CLAUDE-RULE: Absolute paths, always
    layout). It was missing from this list until 2026-09-06, so
    `cd <repo> && sed -n 1,12p scripts/deploy-staging.sh` — pure reading — was classified as an
    ACTION and denied. The hook fired on a `sed`, in the middle of an audit of why sessions ignore
@@ -235,7 +235,7 @@ function main() {
   );
 
   const reason =
-`CLAUDE.md — "Read the subsystem's own design doc before writing a line."
+`CLAUDE.md — "Read the subsystem's own doc before writing a line."
 
 This action touches:
 ${lines.join("\n")}

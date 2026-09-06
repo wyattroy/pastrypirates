@@ -39,11 +39,15 @@ that misses the ask is exactly what this exists to catch.
 # line silently runs `node /bin/ceo_brief.mjs`. Caught by a CEO review 2026-08-27: a silent wrong
 # answer, in the first instruction of a system whose whole claim is that nothing is skipped quietly.
 BIN=""
-[ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR/.claude/officers/bin" ] && BIN="$CLAUDE_PROJECT_DIR/.claude/officers/bin"
-[ -z "$BIN" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "$CLAUDE_PLUGIN_ROOT/bin" ] && BIN="$CLAUDE_PLUGIN_ROOT/bin"
-[ -n "$BIN" ] || { echo "STOP: cannot find the officer engines. Neither CLAUDE_PROJECT_DIR/.claude/officers/bin nor CLAUDE_PLUGIN_ROOT/bin resolved. Do not guess a path — tell Wyatt."; exit 1; }
+# THE ENGINE LIVES IN THE REPO. This resolved `.claude/officers/bin` first until 2026-09-06 — a
+# directory that has NEVER existed here (`git ls-tree -d .claude/` shows `org`, not `officers`), so
+# the skill exited 1 every time it was invoked while CLAUDE.md advertised it as available. Found by
+# an independent audit, not by running it. `.claude/org/bin/` was retired with the machinery; the
+# working copy is and was `scripts/qa/ceo_brief.mjs`.
+[ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -f "$CLAUDE_PROJECT_DIR/scripts/qa/ceo_brief.mjs" ] && BIN="$CLAUDE_PROJECT_DIR/scripts/qa"
+[ -z "$BIN" ] && [ -f "scripts/qa/ceo_brief.mjs" ] && BIN="scripts/qa"
+[ -n "$BIN" ] || { echo "STOP: cannot find scripts/qa/ceo_brief.mjs. Do not guess a path — tell Wyatt."; exit 1; }
 echo "engine: $BIN"
-test -f "$CLAUDE_PROJECT_DIR/.claude/OFFICERS.md" && echo "adapter: yes" || echo "adapter: MISSING"
 ```
 
 **A repo's own `.claude/officers/bin` wins over the plugin copy when both exist.** That is

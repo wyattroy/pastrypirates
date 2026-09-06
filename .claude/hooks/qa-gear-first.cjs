@@ -10,7 +10,7 @@
  * is a prompt you can skip." A document describing a QA process is a document a tired session
  * skips. So the process gets a gate at the moment of the action, the same way rule 17 did.
  *
- * WHAT IT DOES. On an edit to game source it works out the GEAR — Quick, Normal or Full — from the
+ * WHAT IT DOES. On an edit to game source it works out the GEAR — COSMETIC, PLUMBING or FULL — from the
  * files being touched, and denies the FIRST such edit in a session with the four steps and the
  * exact sweep command. A marker lets the retry through. A speed bump, not a wall.
  *
@@ -132,10 +132,14 @@ function main() {
                       Earned the hard way: three changes shipped on run-to-run counts on the
                       night of 2026-08-29, and all three reverted.
 
-STEP 0c. WRITE THE PREDICTION DOWN — one file, BEFORE you measure anything.
+STEP 0c. SAY WHAT YOU EXPECT, BEFORE you measure anything.
 
-     .planning/wyclau/PREDICTION-<UTC>-<handle>.md : what you expect, WHY, and
-     WHAT WOULD PROVE YOU WRONG. Then measure, then say plainly which parts were wrong.
+     In your reply, in two lines: what you expect, WHY, and WHAT WOULD PROVE YOU
+     WRONG. Then measure, then say plainly which parts were wrong.
+
+     (This used to demand a file under .planning/wyclau/. Wyatt retired the
+     prediction FILES on 2026-09-06 -- 101 of them had accumulated. The thinking is
+     what paid off, not the filing, so it moves into the reply he actually reads.)
 
      This is here because it kept being skipped while sitting in CLAUDE.md. Three CEO
      verdicts in a row (149, 151, 153) found the same session conceding it and then

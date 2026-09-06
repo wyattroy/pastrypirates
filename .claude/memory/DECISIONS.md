@@ -144,8 +144,8 @@ were decisions, not code**, which is why the estimate came DOWN (3–4 days → 
 and per CEO 233 it must be READ before it is edited, because per-path rules already exist there and
 nobody has seen them.
 
-**Related:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md),
-re-sized 3–4 days, and CEO Review 233 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+**Related:** `SCOPE-GLASS-OFF-ARTIFACT.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`)*,
+re-sized 3–4 days, and CEO Review 233 in `CEO-REVIEWS.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/CEO-REVIEWS.md`)*.
 
 > ### ⚑ AND `T-265` NOW HAS A MEASURED CAUSE — it was recorded as UNKNOWN on purpose, and CEO 233 settled it.
 >
@@ -186,7 +186,7 @@ carry its work.
 
 **AND IT BREAKS A HOOK, WHICH IS HOW IT WAS FOUND.** `playtest-checklist-last.cjs` attributed the
 neighbour's uncommitted `src/ui/stage.js` edit to this session and demanded a playtest sheet for it.
-Full account and the repair: [`.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`](../../.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md).
+Full account and the repair: `CLAUDE-DIR-REPAIRS-PENDING.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`)*.
 **A sheet was NOT written** — it would have described somebody else's unfinished audio work, which
 this session cannot see or verify, and handing him fabricated QA is the thing today already went
 wrong twice by doing.
@@ -290,7 +290,7 @@ answer that sounds reasonable.
   (`INBOX-20260906T2010Z`), no rules exist in this repo, and staging is a public URL. Real auth
   covers both axes, which is what the extra day buys.
 
-**Scope:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md).
+**Scope:** `SCOPE-GLASS-OFF-ARTIFACT.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`)*.
 Sized 2–3 days, tooling not game code. **Related:** the defect it closes is his own —
 *"once the blade woke up, the page did not update"* — recorded above.
 
@@ -372,9 +372,9 @@ is `claude -p`. So the note file is a relay pointed at a publisher that does not
 machine, and each half looks healthy on its own: watches run, notes get written, and the page
 never moves. **A handoff whose receiving end was never built does not report as broken.**
 
-**Related:** [`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../../.planning/wyclau/GLASS-UPDATE-SESSION.md)
+**Related:** `GLASS-UPDATE-SESSION.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/GLASS-UPDATE-SESSION.md`)*
 (only an interactive session can publish; every Bell-rung watch is `claude -p` and never can), and
-CEO Review 229 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+CEO Review 229 in `CEO-REVIEWS.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/CEO-REVIEWS.md`)*.
 
 
 ## ⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rest — 2026-09-06T17:23:03.302Z
@@ -426,7 +426,7 @@ exact words.
 | **Battle CALLED** (the shout, not the outcome) | the sword clash, latest clip | *"I want the clashing sound to happen when battles are first called; the sound is exciting."* ⛔ **~~This MOVES it — it currently plays on the resolve.~~ THAT WAS FALSE. HIS RULING IS ALREADY SATISFIED IN CODE — change nothing.** `src/orchestrator.js:631` calls `playBattleEngage()` one line BEFORE the opening ⚔️ line, and `EVENT_SOUND` has `battle: null` (`src/ui/audio.js:120`) because the `battle` event only fires once the fight has resolved — *"the clash moved to engage time"*. The claim came from the PRD's own "fight-resolves / clash slot" framing, repeated without opening the file. **Rule 6, and it nearly sent a watch to "fix" correct code.** What is left: confirm by ear, and use Luis's latest clip. |
 | **A shot LANDS** | `PP_SFX_Cannons` | strictly after the 2nd coin flip of a battle, ~100ms, **no overlap**. Derive from when the flip audio ends (rule 9); the 100ms is his example, not a constant. |
 | **Your turn** | `PP_SFX_Bells` | ⚠ **supersedes his own morning ruling** — see below |
-| **New day** | **NOTHING** | *"New Day should NOT use this sound. New Day should use nothing right now."* Later: a wind whoosh or weather-vane creak, because the wind changes direction daily. Brief written: [`LUIS-SFX-ROUND-3-BRIEF.md`](../../.planning/wyclau/LUIS-SFX-ROUND-3-BRIEF.md) |
+| **New day** | **NOTHING** | *"New Day should NOT use this sound. New Day should use nothing right now."* Later: a wind whoosh or weather-vane creak, because the wind changes direction daily. Brief written: [`LUIS-SFX-ROUND-3-BRIEF.md`](../../.planning/his-words/LUIS-SFX-ROUND-3-BRIEF.md) |
 | **Turn timer runs out** | `PP_SFX_Alarm` | ⚠ **the feature does not exist** — see below |
 | **Coin flip** | unchanged, existing file | **CLOSED. Do not touch.** `CoinFlip_Start`/`_End` are out of scope. |
 | **Drumroll** | `PP_SFX_Drumroll` | *"do the drumroll audio timing check, and match the narration box timing to the sfx file"* — **the box moves to fit the audio, not the reverse.** The 2.55s window is no longer fixed. |
@@ -588,7 +588,7 @@ scoped, with the candidates for merging named, and let him choose — the count 
 
 ## ⟨T-261⟩ The SFX PRD — four rulings, and one new standing instruction — 2026-09-06 9:5x AM ET (asked in the question UI by the Advisor, because the PRD could not be published)
 
-Asked because `T-261`'s PRD (`.planning/wyclau/T-261-SFX-PRD.html`) was written but **no session
+Asked because `T-261`'s PRD (`.planning/his-words/T-261-SFX-PRD.html`) was written but **no session
 anywhere had an Artifact tool to publish it** — so its seven questions were relayed inline rather
 than left waiting for a page he could not be shown.
 
@@ -1542,15 +1542,15 @@ hour, same day.
 fast, so I want learnings or lessons every day, not once per week."*
 
 **Say "the charter" and any session must resolve it to
-[`.planning/wyclau/CHARTER.md`](../../.planning/wyclau/CHARTER.md)** (canonical; the published copy
+[`.planning/his-words/CHARTER.md`](../../.planning/his-words/CHARTER.md)** (canonical; the published copy
 is https://claude.ai/code/artifact/5e6f19bf-654b-4d27-9563-597ef8f55d7b). Its seven principles and
 seven parts govern how work runs; its interview rulings
-([`.planning/wyclau/INTERVIEW-2026-08-30.md`](../../.planning/wyclau/INTERVIEW-2026-08-30.md))
+([`.planning/his-words/INTERVIEW-2026-08-30.md`](../../.planning/his-words/INTERVIEW-2026-08-30.md))
 answer questions before they are re-asked. **The amendment: one short lesson per DAY, tied to the
 live work** — the alternative was weekly, and he struck it because he learns fast.
 
 *The alternative to the charter was continuing the accreted process it replaces; his founding note
-(`.planning/wyclau/WYATTS-NOTE-2026-08-30.md`) records why that was rejected.*
+(`.planning/his-words/WYATTS-NOTE-2026-08-30.md`) records why that was rejected.*
 
 ## 2026-08-30 — the organisation
 

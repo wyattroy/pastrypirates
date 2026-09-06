@@ -1,0 +1,341 @@
+<title>SFX Expansion — the PRD, before any sound is wired</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f2f5f6; --card:#fbfcfc; --ink:#16232b; --muted:#5c6e77; --line:#dce4e7;
+  --accent:#0b5d75; --accent-soft:#e3eef2; --rust:#a8452f; --rust-soft:#f7e9e5;
+  --good:#1c7a5e; --good-soft:#e4f2ec; --gold:#9a6a10; --gold-soft:#f6ecd6;
+  --shadow:0 1px 2px rgba(16,40,50,.05),0 8px 24px rgba(16,40,50,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0c1519; --card:#132228; --ink:#e4edf0; --muted:#93a9b2; --line:#25404a;
+  --accent:#5ac8e0; --accent-soft:#12313c; --rust:#ff8a6b; --rust-soft:#3a1f18;
+  --good:#4fc79b; --good-soft:#12312a; --gold:#e0b64a; --gold-soft:#3a2f10;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 20px 90px;background:var(--paper);color:var(--ink);
+  font:400 17px/1.62 "IBM Plex Sans",system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto}
+h1{font:700 30px/1.18 Fraunces,Georgia,serif;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px;margin:0 0 28px}
+h2{font:600 22px/1.25 Fraunces,Georgia,serif;margin:40px 0 12px;padding-top:20px;border-top:1px solid var(--line)}
+h3{font:600 16px/1.3 "IBM Plex Sans",sans-serif;margin:22px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin:0 0 8px}
+strong{font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88em}
+code{background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 18px;box-shadow:var(--shadow)}
+.tldr{border-left:4px solid var(--accent)}
+.warn{border-left:4px solid var(--rust);background:var(--rust-soft)}
+.warn code{background:rgba(0,0,0,.06)}
+.yours{border-left:4px solid var(--good);background:var(--good-soft)}
+.yours code{background:rgba(0,0,0,.06)}
+.gold{border-left:4px solid var(--gold);background:var(--gold-soft)}
+table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 16px;box-shadow:var(--shadow)}
+.q .num{display:inline-block;background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;font-weight:600;font-size:13px;margin-right:8px}
+.rec{color:var(--good);font-weight:600}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:6px}
+.tag.certain{background:var(--good-soft);color:var(--good)}
+.tag.probable{background:var(--gold-soft);color:var(--gold)}
+.tag.unknown{background:var(--rust-soft);color:var(--rust)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.cbox{margin:0 0 18px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;background:var(--accent-soft)}
+.q .cbox{margin:12px 0 0}
+.cbox .clabel{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.cmine{font-size:14px;margin:0 0 6px;padding:6px 8px;background:var(--card);border-radius:6px;border:1px solid var(--line)}
+.cta{width:100%;min-height:52px;font:400 15px/1.4 "IBM Plex Sans",sans-serif;padding:8px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);resize:vertical;box-sizing:border-box}
+.cbtnrow{display:flex;align-items:center;gap:10px;margin-top:8px}
+.csend{font:600 14px "IBM Plex Sans",sans-serif;padding:7px 14px;border:none;border-radius:7px;
+  background:var(--accent);color:#fff;cursor:pointer}
+.csend:active{opacity:.85}
+.csaid{font-size:13px;color:var(--muted)}
+.capnote{font-size:14px;color:var(--rust);background:var(--rust-soft);border-radius:8px;padding:10px 14px;margin:0 0 20px}
+</style>
+<div class="wrap">
+  <h1>SFX Expansion — the PRD, before any sound is wired</h1>
+  <p class="sub">Written by the Watch at your instruction, 2026-09-06. Nothing below has been implemented — this is the scoping pass you asked for. Build stamp at time of writing: <code>2026.09.04.2</code>.</p>
+
+  <div class="card tldr">
+    <strong>Your words, this morning:</strong> "I do want you to add a new task to the watch at the
+    beginning of the SFX changes, which is to scope the full SFX changes into a PRD artifact and show
+    it to me BEFORE you implement the SFX, because I have ideas that I want to express before that
+    work is started." This page is that scope. Nothing in it is decided — every open point is
+    numbered below and waits on you.
+  </div>
+
+  <h2>1. The headline finding: 6 of the game's 6 sounds are already Luis's</h2>
+  <p>Before touching the new Drive folder, the six files already in <code>sfx/</code> were checked
+  against the sizes Luis's 27 delivered files carry. <strong>All six are identical in size</strong>
+  to a Luis file — including a 5,343-byte match, which is not plausible as coincidence. Nobody had
+  told this project that; it was assumed the shipped six were placeholder library sounds.</p>
+  <table>
+    <tr><th>Shipped today</th><th>Bytes</th><th>Matches Luis's file</th><th>Currently used for</th></tr>
+    <tr><td><code>battle-swords.mp3</code></td><td>35,631</td><td><code>PP_SFX_Battle.mp3</code></td><td>Battle resolves (the hit) — <strong>this is the file your sheet flags as "clipped a bit," and docs/AUDIO.md independently measured it at +0.2 dBFS true peak, genuinely clipping.</strong></td></tr>
+    <tr><td><code>coin-flip.mp3</code></td><td>15,504</td><td><code>PP_SFX_CoinFlip.mp3</code></td><td>The whole coin flip — the file your sheet says has "a landing embedded," which is exactly the defect it names.</td></tr>
+    <tr><td><code>fishing.mp3</code></td><td>54,615</td><td><code>PP_SFX_Anchor.mp3</code></td><td>Anchor-hold cue (<code>anchorHold</code> event)</td></tr>
+    <tr><td><code>ship-move.mp3</code></td><td>17,568</td><td><code>PP_SFX_Navigation.mp3</code></td><td>Ship movement / wind cue</td></tr>
+    <tr><td><code>storm.mp3</code></td><td>177,567</td><td><code>PP_SFX_Storm.mp3</code></td><td>Storm arriving (the <code>newround</code>+<code>storm</code> weather bed, 8.0s)</td></tr>
+    <tr><td><code>store-ingredient.mp3</code></td><td>5,343</td><td><code>PP_SFX_StoreGoods.mp3</code></td><td>Currently doubling as the <strong>victory</strong> sound (it's the quietest file in the game playing the biggest moment — see DEFECT-3 in docs/AUDIO.md)</td></tr>
+  </table>
+  <p><strong>What this changes about the ask:</strong> this is not "add 28 new sounds to a game that
+  has none." It's "the first 6 of Luis's sounds already shipped, generically renamed, and 21 more of
+  his files — plus a proper win sound and a proper drumroll — are sitting unintegrated." The scope is
+  smaller than it looked, and three defects already on record fix themselves once the right files are
+  swapped in (§3).</p>
+  <p class="mono" style="color:var(--muted);font-size:13px">Verified by file size, not by a content
+  hash — the Drive files themselves were not downloaded and diffed byte-for-byte in this pass, and
+  independently re-checked by a second session against the same table with the same result. Six
+  exact size matches across a 5.3–177.6 KB range is treated as conclusive for the purposes of this
+  PRD; hashing the actual files is a five-minute follow-up once they're fetched, not a blocker to
+  ruling on the questions below.</p>
+  <div class="card yours">
+    <strong>The sharper version of this finding, worth reading on its own:</strong> <code>fishing.mp3</code>
+    is Luis's <em>anchor</em> sound, and <code>ship-move.mp3</code> is his <em>navigation</em> sound —
+    they were correctly named at the source and given generic names in this repo.
+    <code>docs/AUDIO.md</code>'s DEFECT-1 and DEFECT-2 (the dead <code>fishing.mp3</code>
+    key, the 8-second full-volume storm blast on anchoring) exist because <code>EVENT_SOUND</code> maps
+    <code>anchorHold</code> to a file literally named "fishing" — which reads as an obvious mismatch
+    until you know the file is actually the anchor cue under a name that never matched its purpose.
+    The mapping the code settled on was <em>right</em>; the file's name inside this repo was what was
+    wrong. Worth renaming <code>fishing.mp3</code> → <code>anchor.mp3</code> and
+    <code>ship-move.mp3</code> → <code>navigation.mp3</code> as part of whatever pass wires the rest
+    of this in, so the source names match what they are.
+  </div>
+  <div class="cbox" data-handle="s1"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>2. What Luis's remaining 21 files are, and how sure the mapping is</h2>
+  <table>
+    <tr><th>File</th><th>Bytes</th><th>Reads as</th><th></th></tr>
+    <tr><td><code>PP_SFX_BattleWon.mp3</code></td><td>52,068</td><td>Victory fanfare</td><td><span class="tag certain">certain</span></td></tr>
+    <tr><td><code>PP_SFX_Bells.mp3</code></td><td>42,414</td><td>Ship's bell — a new day</td><td><span class="tag certain">certain</span></td></tr>
+    <tr><td><code>PP_SFX_Drumroll.mp3</code></td><td>55,021</td><td>The End-of-Voyage drumroll</td><td><span class="tag certain">certain</span></td></tr>
+    <tr><td><code>PP_SFX_CoinFlip_Start.mp3</code></td><td>13,140</td><td>Coin flip motion (no landing)</td><td><span class="tag certain">certain</span></td></tr>
+    <tr><td><code>PP_SFX_CoinFlip_End.mp3</code></td><td>3,494</td><td>Coin landing, split from the flip</td><td><span class="tag certain">certain</span></td></tr>
+    <tr><td><code>PP_SFX_Cannons.mp3</code></td><td>33,540</td><td>Cannon — the opening broadside</td><td><span class="tag probable">probable</span></td></tr>
+    <tr><td><code>PP_SFX_ClockTick.mp3</code></td><td>40,694</td><td>Timer running low — the tick</td><td><span class="tag probable">probable</span></td></tr>
+    <tr><td><code>PP_SFX_Ocean_Loop.mp3</code></td><td>364,923</td><td>The sea — ambient bed (the <code>.wav</code> sibling, 2.8 MB, is not usable per §5)</td><td><span class="tag probable">probable</span></td></tr>
+    <tr><td><code>PP_SFX_Seagull_1..5.mp3</code></td><td>63–75 KB ea.</td><td>Seagull ambient scatter (5, up from 4 in the old library set)</td><td><span class="tag probable">probable</span></td></tr>
+    <tr><td><code>PP_SFX_BoatCreak_1..6.mp3</code></td><td>27–47 KB ea.</td><td>Rigging creak ambient scatter (6, up from a 2-file library pair)</td><td><span class="tag probable">probable</span></td></tr>
+    <tr><td><code>PP_SFX_Alarm.mp3</code></td><td>53,116</td><td>No matching row on your sheet — guessing wastes the file</td><td><span class="tag unknown">needs you</span></td></tr>
+  </table>
+  <p><strong>Q1</strong> below is the "Alarm" question and the confirm on the "probable" row — see §7.</p>
+  <div class="cbox" data-handle="s2"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>3. Three defects this delivery can retire — already on the record, not new findings</h2>
+  <ol>
+    <li><strong>The sword-clash clipping</strong> (docs/AUDIO.md DEFECT-3): your sheet independently
+    flags the same file as "clipped a bit." A fresh export from Luis is the actual fix — turning the
+    existing clipped file down changes the balance, not the clipping baked into it.</li>
+    <li><strong>The coin-flip's embedded landing</strong>, which today can't be separated because
+    different browsers render the flip animation for different durations. <code>CoinFlip_Start</code>
+    + <code>CoinFlip_End</code> is a straight fix for a real defect, not an added feature.</li>
+    <li><strong>The silent drumroll</strong> — <code>src/orchestrator.js:1078</code> already calls
+    <code>await flash("Drumroll...")</code> for a hard 2.55-second window and nothing plays.
+    <code>PP_SFX_Drumroll.mp3</code> is sized to fit that exact window if it lands close to 2.55s;
+    needs a timing check once fetched, not assumed from the byte count.</li>
+  </ol>
+  <div class="cbox" data-handle="s3"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>4. What this delivery does NOT cover</h2>
+  <p>Your sheet has 28 rows; Luis's 27 files map to roughly 16 of them once the certain/probable rows
+  above are counted. <strong>The rest still need the library/fill route your original 2026-08-19
+  ruling set up</strong> ("Luis for the hero moments, library/fill elsewhere") — several already have
+  a chosen file sitting in <code>.planning/research/audio-sourcing/PICKS.json</code> and were simply
+  never wired in:</p>
+  <table>
+    <tr><th>Sheet item</th><th>Status</th></tr>
+    <tr><td>Bake-off: covers down, correct, wrong, shuffle, verdict, crates reveal (6 sounds)</td><td>Already <strong>settled</strong> in <code>PICKS.json</code> — chosen files, never integrated</td></tr>
+    <tr><td>Interface tap · Something in the water · Blocked · Ovens fire up · Hailing the table · A deal struck · The anchor bites (library version) · Storm shoves your ship</td><td>Already <strong>settled</strong> in <code>PICKS.json</code></td></tr>
+    <tr><td>"Your turn"</td><td>Open in <code>PICKS.json</code> — flagged for ElevenLabs, and it carries its own unresolved question: does a per-player cue break the standing "everyone hears the whole table" rule (<code>audio.js</code> D-07)? <strong>Not in Luis's 27 files by any obvious name.</strong> Possibly <code>PP_SFX_Navigation</code> — but that name-match is already claimed by the shipped <code>ship-move.mp3</code> in §1. One file, two candidate meanings — flagging rather than guessing.</td></tr>
+    <tr><td>"The fight resolves" — a second sound distinct from the sword clash, on top of the cannon</td><td>Open in <code>PICKS.json</code> as <code>clash</code> (round 3, unjudged). Superseded by §1's finding that the existing sword sound already IS a Luis file, if that's the one being kept.</td></tr>
+  </table>
+  <p>None of this needs new sourcing work — it needs a wiring pass over decisions you already made
+  three weeks ago. Whether it ships in the same batch as Luis's files is <strong>Q3</strong> below.</p>
+  <div class="cbox" data-handle="s4"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>5. The ambient sea bed — cost, not aesthetics</h2>
+  <p><code>PP_SFX_Ocean_Loop.mp3</code> is 365 KB — a 15–30s loop plus randomly scattered gulls/creaks
+  on top, as your sheet describes. docs/AUDIO.md already has the mechanism worked out: MP3 pads
+  silence on both ends, so looping needs <code>loopStart</code>/<code>loopEnd</code> markers set
+  inside the decoded buffer, not a naive full-file loop — that's a code change, not just a file drop.
+  The <code>.wav</code> sibling (2.8 MB) should never ship; the doc already rules WAV out on size
+  (~10 MB/minute) and the MP3 is the delivered alternative.</p>
+  <p><strong>Also blocking:</strong> <code>initAudio()</code> currently
+  <code>await Promise.all(...)</code>s every SFX file before anything can play. Adding a ~365 KB bed
+  to that same list means every sound effect in the game goes silent on a phone until the whole bed
+  has downloaded. It needs its own load path that fades in when ready — already flagged in
+  docs/AUDIO.md §3, not a new finding, just a real cost of doing this.</p>
+  <div class="cbox" data-handle="s5"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>6. The three music tracks — explicitly not scoped here</h2>
+  <p>Separate from Luis's 27 SFX files: three tracks from <code>wyatty@gmail.com</code>, totalling
+  <strong>69 MB</strong> — the smallest is 3.4 MB, the largest 42.8 MB. Your image-weight work this
+  week took the whole game from 17.79 MB to 3.89 MB. <strong>This PRD does not recommend committing
+  any of them</strong>, and treats "music at the big beats" (your 2026-08-19 ruling) as a later,
+  separately-scoped decision once the SFX layer is settled. Confirm in <strong>Q6</strong>.</p>
+  <div class="cbox" data-handle="s6"><div class="clabel">Your notes on this section</div><div class="cmine-list"></div>
+    <textarea class="cta" placeholder="Correct or add anything here — read before anything is wired."></textarea>
+    <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+
+  <h2>7. Questions — numbered, your call on every one</h2>
+  <p class="mono" style="color:var(--muted);font-size:13px">A multiple-choice card is the wrong shape for corrections to a document — so every question below just has a comment box instead. Write whatever you want in it; there is no "select one" to force your answer into a lane it doesn't fit.</p>
+
+  <div class="q"><span class="num">1</span><strong>The unmapped file, <code>PP_SFX_Alarm.mp3</code></strong> — no row on your sheet names it. What does it cover, or should it wait?
+    <p class="rec">No recommendation — this one only you can answer.</p>
+    <div class="cbox" data-handle="q1"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">2</span><strong>The "probable" mappings in §2</strong> (Cannons, ClockTick, Ocean_Loop, the Seagull and BoatCreak sets) — confirm, or correct any of them before a watch wires them to the wrong moment?
+    <p class="rec">Recommendation: confirm as read; the names and byte sizes are consistent with your sheet's descriptions and nothing else on the sheet competes for them.</p>
+    <div class="cbox" data-handle="q2"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">3</span><strong>Scope of the first pass</strong> — ship all of Luis's mapped files (§1 + §2's certain/probable rows) together with the already-settled library sounds from §4 in one pass, or split it (Luis's files first, library wiring as a second item)?
+    <p class="rec">Recommendation: <strong>one pass</strong>. The library sounds are zero-research (already chosen), so splitting only adds a second sea trial for no reduction in risk.</p>
+    <div class="cbox" data-handle="q3"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">4</span><strong>"Your turn"</strong> — does it use <code>PP_SFX_Navigation.mp3</code> (currently claimed by ship-move, §4), wait for a dedicated file from Luis, or go to ElevenLabs as originally planned? And separately: are you ready to rule on whether a your-turn cue may break the "whole table hears everything" rule, or should it still wait?
+    <p class="rec">No recommendation on the file — genuinely underdetermined. Recommendation on the rule question: still open, still yours.</p>
+    <div class="cbox" data-handle="q4"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">5</span><strong>The fight-resolves / clash slot</strong> — with §1's finding that the currently-shipped sword sound is already a Luis file (and independently flagged as clipped by both you and the measured audit), is a fresh, unclipped export from Luis the fix, or do you want a second, different sound layered with the cannon per the original <code>clash</code> plan?
+    <p class="rec">Recommendation: a fresh unclipped export of the same sound — it already does the job you described, it's just distorted in the current file.</p>
+    <div class="cbox" data-handle="q5"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">6</span><strong>The 3 music tracks (§6)</strong> — confirm they stay out of this pass entirely?
+    <p class="rec">Recommendation: yes, out of scope here — revisit once the SFX layer ships and the 69 MB question can be sized against a game that's actually shipping.</p>
+    <div class="cbox" data-handle="q6"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="q"><span class="num">7</span><strong>Levelling</strong> — <code>SFX_VOLUME</code> exists in <code>src/ui/audio.js</code> as the one tuning point and every value is still <code>1</code> (DEFECT-3, measured 15.6 dB spread across the current six). Once the new files land, should a watch measure and set levels for the whole expanded set in the same pass, or ship unlevelled and level everything once, later, in one pass covering old and new together?
+    <p class="rec">Recommendation: <strong>level everything together, once</strong>, after all files are in — partial levelling now would need redoing anyway once BattleWon/Drumroll/the bed are in the mix.</p>
+    <div class="cbox" data-handle="q7"><div class="cmine-list"></div>
+      <textarea class="cta" placeholder="Your answer or correction…"></textarea>
+      <div class="cbtnrow"><button class="csend" type="button">Save note</button><span class="csaid" hidden></span></div></div>
+  </div>
+
+  <div class="card gold">
+    <strong>What happens once you rule:</strong> a watch fetches exactly the files your answers name,
+    places them in <code>sfx/</code>, wires <code>EVENT_SOUND</code>/<code>EVENT_NARRATION</code>
+    per the mapping above, measures and sets <code>SFX_VOLUME</code> per Q7, and runs the standard
+    four-step proof (red check, fix, green check, sweep) plus a FULL-gear sea trial before anything
+    reaches staging — this is live game code touching every mode. No sound ships before that trial,
+    per the standing rule.
+  </div>
+
+  <footer>
+    Written by a Bell-launched watch with no Drive access and no ability to hear audio — every claim
+    above is a file size, a name, or a citation to <code>docs/AUDIO.md</code> / <code>PICKS.json</code>,
+    never a judgement about how anything sounds. Sources:
+    <code>.planning/wyclau/T-073-SFX-BRIEF.md</code>,
+    <code>.planning/research/audio-sourcing/PICKS.json</code>, <code>docs/AUDIO.md</code>.
+    Comment boxes added at your instruction, 2026-09-06: "make comment boxes in the artifact that i
+    can write notes in for you, and you can read them" — write anything, anywhere; there is no
+    multiple-choice card to refuse the shape of.
+  </footer>
+</div>
+<script type="application/json" id="glassState">{"comments":{"s1":[{"text":"Luis did all the SFX for round 1 (currently in the game) and this round 2 (many missing artifacts). Beacuse so many sfx were missing during round 1, i intentionally used the same sfx for multiple moments of gameplay; but this is not ideal.","at":"2026-09-06T16:22:03.602Z"}],"s2":[{"text":"The coin flips can be ignored -- i ensured through code that all coin flips are the same consistent length, and that they match the original SFX file; so you don't need to do anything with teh coin flip sfx. record this ruling somewhere. The cannon sound should fire when a shot has LANDED -- make sure that this does not overlap with teh second coin flip in a battle, but comes a moment after it (eg. 100ms after). Note from luis on the ambience: \"Also, for the ambient, I got you the looping ocean + seagull and creak clips. You'll need to come up with a randomizer for these clips. also randomize the stereo placement as you play them\" -- i want you to scope this and create an artifact with 10-15 sliders for me to adjust to get the sound balance correct. Include the short music mp3 file in this artifact, so I can adjust how the music volume/pan sounds when the player wants music.","at":"2026-09-06T16:25:49.069Z"},{"text":"SFX alarm should go when the timer is up.","at":"2026-09-06T16:28:43.605Z"}],"s3":[{"text":"1. the swords are not clipped according to Luis; accept his ruling and use the latest clip available. \n2. Coin flip is good as is; ignore the new coin flip sfx\n3. do the drumroll audio timing check, and match the narration box timing to the sfx file.","at":"2026-09-06T16:27:02.519Z"}],"s4":[{"text":"Your Turn should use the Bell SFX sound. New day should NOT use this sound. New Day should use nothing right now; eventually it might use a wind whoosh or a weather vane creak (because the wind changes direction every day). write this note somewhere durable to give luis for the next round of his sfx.","at":"2026-09-06T16:30:11.987Z"}],"s5":[{"text":"See my above note from Luis about how the ambient sea bed should be designed and built. convert WAVs to mp3s.","at":"2026-09-06T16:32:00.821Z"}],"s6":[{"text":"Use the smallest music track as a looping music track. Design a 3-phase switch for the sound as the player clicks the sound button:  Music+SFX; then SFX only; then mute; and return to Music + sfx after. When the song plays through once, do not restart it playing immediately -- wait 2 minutes.","at":"2026-09-06T16:33:36.954Z"}],"q1":[{"text":"It should cover the turn timer running out of time. This is not built into the current game though.","at":"2026-09-06T16:34:04.572Z"}],"q3":[{"text":"one pass.","at":"2026-09-06T16:34:29.405Z"}],"q4":[{"text":"use Bell.","at":"2026-09-06T16:34:39.123Z"},{"text":"do NOT use bell for new day.","at":"2026-09-06T16:34:48.655Z"}],"q5":[{"text":"this file is not clipped, per luis's ruling. use it. I want the clashing sound to happen when battles are first called; the sound is exciting. cannon sound happens only when a shot lands, per my previous note.","at":"2026-09-06T16:35:50.305Z"}],"q6":[{"text":"yes, see above.","at":"2026-09-06T16:35:58.023Z"}],"q7":[{"text":"yes, do your recommendation.","at":"2026-09-06T16:36:15.440Z"}]}}</script>
+<script id="prdClient">
+(function(){
+  "use strict";
+  var state;
+  try { state = JSON.parse(document.getElementById("glassState").textContent); } catch (e) { state = { comments: {} }; }
+  if (!state.comments) state.comments = {};
+
+  var TPL = "\u003ctitle>SFX Expansion — the PRD, before any sound is wired\u003c/title>\n\u003clink rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap\">\n\u003cstyle>\n:root{\n  --paper:#f2f5f6; --card:#fbfcfc; --ink:#16232b; --muted:#5c6e77; --line:#dce4e7;\n  --accent:#0b5d75; --accent-soft:#e3eef2; --rust:#a8452f; --rust-soft:#f7e9e5;\n  --good:#1c7a5e; --good-soft:#e4f2ec; --gold:#9a6a10; --gold-soft:#f6ecd6;\n  --shadow:0 1px 2px rgba(16,40,50,.05),0 8px 24px rgba(16,40,50,.06);\n}\n@media (prefers-color-scheme:dark){:root{\n  --paper:#0c1519; --card:#132228; --ink:#e4edf0; --muted:#93a9b2; --line:#25404a;\n  --accent:#5ac8e0; --accent-soft:#12313c; --rust:#ff8a6b; --rust-soft:#3a1f18;\n  --good:#4fc79b; --good-soft:#12312a; --gold:#e0b64a; --gold-soft:#3a2f10;\n  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);\n}}\n*{box-sizing:border-box}\nbody{margin:0;padding:28px 20px 90px;background:var(--paper);color:var(--ink);\n  font:400 17px/1.62 \"IBM Plex Sans\",system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%}\n.wrap{max-width:820px;margin:0 auto}\nh1{font:700 30px/1.18 Fraunces,Georgia,serif;margin:0 0 6px;letter-spacing:-.01em}\n.sub{color:var(--muted);font-size:15px;margin:0 0 28px}\nh2{font:600 22px/1.25 Fraunces,Georgia,serif;margin:40px 0 12px;padding-top:20px;border-top:1px solid var(--line)}\nh3{font:600 16px/1.3 \"IBM Plex Sans\",sans-serif;margin:22px 0 8px}\np{margin:0 0 14px}\nul,ol{margin:0 0 16px;padding-left:22px}\nli{margin:0 0 8px}\nstrong{font-weight:600}\ncode,.mono{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:.88em}\ncode{background:var(--accent-soft);padding:1px 5px;border-radius:4px}\n.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 18px;box-shadow:var(--shadow)}\n.tldr{border-left:4px solid var(--accent)}\n.warn{border-left:4px solid var(--rust);background:var(--rust-soft)}\n.warn code{background:rgba(0,0,0,.06)}\n.yours{border-left:4px solid var(--good);background:var(--good-soft)}\n.yours code{background:rgba(0,0,0,.06)}\n.gold{border-left:4px solid var(--gold);background:var(--gold-soft)}\ntable{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px}\nth,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top}\nth{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}\n.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 16px;box-shadow:var(--shadow)}\n.q .num{display:inline-block;background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;font-weight:600;font-size:13px;margin-right:8px}\n.rec{color:var(--good);font-weight:600}\n.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:6px}\n.tag.certain{background:var(--good-soft);color:var(--good)}\n.tag.probable{background:var(--gold-soft);color:var(--gold)}\n.tag.unknown{background:var(--rust-soft);color:var(--rust)}\nfooter{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}\n.cbox{margin:0 0 18px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;background:var(--accent-soft)}\n.q .cbox{margin:12px 0 0}\n.cbox .clabel{font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}\n.cmine{font-size:14px;margin:0 0 6px;padding:6px 8px;background:var(--card);border-radius:6px;border:1px solid var(--line)}\n.cta{width:100%;min-height:52px;font:400 15px/1.4 \"IBM Plex Sans\",sans-serif;padding:8px 10px;\n  border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);resize:vertical;box-sizing:border-box}\n.cbtnrow{display:flex;align-items:center;gap:10px;margin-top:8px}\n.csend{font:600 14px \"IBM Plex Sans\",sans-serif;padding:7px 14px;border:none;border-radius:7px;\n  background:var(--accent);color:#fff;cursor:pointer}\n.csend:active{opacity:.85}\n.csaid{font-size:13px;color:var(--muted)}\n.capnote{font-size:14px;color:var(--rust);background:var(--rust-soft);border-radius:8px;padding:10px 14px;margin:0 0 20px}\n\u003c/style>\n\u003cdiv class=\"wrap\">\n  \u003ch1>SFX Expansion — the PRD, before any sound is wired\u003c/h1>\n  \u003cp class=\"sub\">Written by the Watch at your instruction, 2026-09-06. Nothing below has been implemented — this is the scoping pass you asked for. Build stamp at time of writing: \u003ccode>2026.09.04.2\u003c/code>.\u003c/p>\n\n  \u003cdiv class=\"card tldr\">\n    \u003cstrong>Your words, this morning:\u003c/strong> \"I do want you to add a new task to the watch at the\n    beginning of the SFX changes, which is to scope the full SFX changes into a PRD artifact and show\n    it to me BEFORE you implement the SFX, because I have ideas that I want to express before that\n    work is started.\" This page is that scope. Nothing in it is decided — every open point is\n    numbered below and waits on you.\n  \u003c/div>\n\n  \u003ch2>1. The headline finding: 6 of the game's 6 sounds are already Luis's\u003c/h2>\n  \u003cp>Before touching the new Drive folder, the six files already in \u003ccode>sfx/\u003c/code> were checked\n  against the sizes Luis's 27 delivered files carry. \u003cstrong>All six are identical in size\u003c/strong>\n  to a Luis file — including a 5,343-byte match, which is not plausible as coincidence. Nobody had\n  told this project that; it was assumed the shipped six were placeholder library sounds.\u003c/p>\n  \u003ctable>\n    \u003ctr>\u003cth>Shipped today\u003c/th>\u003cth>Bytes\u003c/th>\u003cth>Matches Luis's file\u003c/th>\u003cth>Currently used for\u003c/th>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>battle-swords.mp3\u003c/code>\u003c/td>\u003ctd>35,631\u003c/td>\u003ctd>\u003ccode>PP_SFX_Battle.mp3\u003c/code>\u003c/td>\u003ctd>Battle resolves (the hit) — \u003cstrong>this is the file your sheet flags as \"clipped a bit,\" and docs/AUDIO.md independently measured it at +0.2 dBFS true peak, genuinely clipping.\u003c/strong>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>coin-flip.mp3\u003c/code>\u003c/td>\u003ctd>15,504\u003c/td>\u003ctd>\u003ccode>PP_SFX_CoinFlip.mp3\u003c/code>\u003c/td>\u003ctd>The whole coin flip — the file your sheet says has \"a landing embedded,\" which is exactly the defect it names.\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>fishing.mp3\u003c/code>\u003c/td>\u003ctd>54,615\u003c/td>\u003ctd>\u003ccode>PP_SFX_Anchor.mp3\u003c/code>\u003c/td>\u003ctd>Anchor-hold cue (\u003ccode>anchorHold\u003c/code> event)\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>ship-move.mp3\u003c/code>\u003c/td>\u003ctd>17,568\u003c/td>\u003ctd>\u003ccode>PP_SFX_Navigation.mp3\u003c/code>\u003c/td>\u003ctd>Ship movement / wind cue\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>storm.mp3\u003c/code>\u003c/td>\u003ctd>177,567\u003c/td>\u003ctd>\u003ccode>PP_SFX_Storm.mp3\u003c/code>\u003c/td>\u003ctd>Storm arriving (the \u003ccode>newround\u003c/code>+\u003ccode>storm\u003c/code> weather bed, 8.0s)\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>store-ingredient.mp3\u003c/code>\u003c/td>\u003ctd>5,343\u003c/td>\u003ctd>\u003ccode>PP_SFX_StoreGoods.mp3\u003c/code>\u003c/td>\u003ctd>Currently doubling as the \u003cstrong>victory\u003c/strong> sound (it's the quietest file in the game playing the biggest moment — see DEFECT-3 in docs/AUDIO.md)\u003c/td>\u003c/tr>\n  \u003c/table>\n  \u003cp>\u003cstrong>What this changes about the ask:\u003c/strong> this is not \"add 28 new sounds to a game that\n  has none.\" It's \"the first 6 of Luis's sounds already shipped, generically renamed, and 21 more of\n  his files — plus a proper win sound and a proper drumroll — are sitting unintegrated.\" The scope is\n  smaller than it looked, and three defects already on record fix themselves once the right files are\n  swapped in (§3).\u003c/p>\n  \u003cp class=\"mono\" style=\"color:var(--muted);font-size:13px\">Verified by file size, not by a content\n  hash — the Drive files themselves were not downloaded and diffed byte-for-byte in this pass, and\n  independently re-checked by a second session against the same table with the same result. Six\n  exact size matches across a 5.3–177.6 KB range is treated as conclusive for the purposes of this\n  PRD; hashing the actual files is a five-minute follow-up once they're fetched, not a blocker to\n  ruling on the questions below.\u003c/p>\n  \u003cdiv class=\"card yours\">\n    \u003cstrong>The sharper version of this finding, worth reading on its own:\u003c/strong> \u003ccode>fishing.mp3\u003c/code>\n    is Luis's \u003cem>anchor\u003c/em> sound, and \u003ccode>ship-move.mp3\u003c/code> is his \u003cem>navigation\u003c/em> sound —\n    they were correctly named at the source and given generic names in this repo.\n    \u003ccode>docs/AUDIO.md\u003c/code>'s DEFECT-1 and DEFECT-2 (the dead \u003ccode>fishing.mp3\u003c/code>\n    key, the 8-second full-volume storm blast on anchoring) exist because \u003ccode>EVENT_SOUND\u003c/code> maps\n    \u003ccode>anchorHold\u003c/code> to a file literally named \"fishing\" — which reads as an obvious mismatch\n    until you know the file is actually the anchor cue under a name that never matched its purpose.\n    The mapping the code settled on was \u003cem>right\u003c/em>; the file's name inside this repo was what was\n    wrong. Worth renaming \u003ccode>fishing.mp3\u003c/code> → \u003ccode>anchor.mp3\u003c/code> and\n    \u003ccode>ship-move.mp3\u003c/code> → \u003ccode>navigation.mp3\u003c/code> as part of whatever pass wires the rest\n    of this in, so the source names match what they are.\n  \u003c/div>\n  \u003cdiv class=\"cbox\" data-handle=\"s1\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>2. What Luis's remaining 21 files are, and how sure the mapping is\u003c/h2>\n  \u003ctable>\n    \u003ctr>\u003cth>File\u003c/th>\u003cth>Bytes\u003c/th>\u003cth>Reads as\u003c/th>\u003cth>\u003c/th>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_BattleWon.mp3\u003c/code>\u003c/td>\u003ctd>52,068\u003c/td>\u003ctd>Victory fanfare\u003c/td>\u003ctd>\u003cspan class=\"tag certain\">certain\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Bells.mp3\u003c/code>\u003c/td>\u003ctd>42,414\u003c/td>\u003ctd>Ship's bell — a new day\u003c/td>\u003ctd>\u003cspan class=\"tag certain\">certain\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Drumroll.mp3\u003c/code>\u003c/td>\u003ctd>55,021\u003c/td>\u003ctd>The End-of-Voyage drumroll\u003c/td>\u003ctd>\u003cspan class=\"tag certain\">certain\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_CoinFlip_Start.mp3\u003c/code>\u003c/td>\u003ctd>13,140\u003c/td>\u003ctd>Coin flip motion (no landing)\u003c/td>\u003ctd>\u003cspan class=\"tag certain\">certain\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_CoinFlip_End.mp3\u003c/code>\u003c/td>\u003ctd>3,494\u003c/td>\u003ctd>Coin landing, split from the flip\u003c/td>\u003ctd>\u003cspan class=\"tag certain\">certain\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Cannons.mp3\u003c/code>\u003c/td>\u003ctd>33,540\u003c/td>\u003ctd>Cannon — the opening broadside\u003c/td>\u003ctd>\u003cspan class=\"tag probable\">probable\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_ClockTick.mp3\u003c/code>\u003c/td>\u003ctd>40,694\u003c/td>\u003ctd>Timer running low — the tick\u003c/td>\u003ctd>\u003cspan class=\"tag probable\">probable\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Ocean_Loop.mp3\u003c/code>\u003c/td>\u003ctd>364,923\u003c/td>\u003ctd>The sea — ambient bed (the \u003ccode>.wav\u003c/code> sibling, 2.8 MB, is not usable per §5)\u003c/td>\u003ctd>\u003cspan class=\"tag probable\">probable\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Seagull_1..5.mp3\u003c/code>\u003c/td>\u003ctd>63–75 KB ea.\u003c/td>\u003ctd>Seagull ambient scatter (5, up from 4 in the old library set)\u003c/td>\u003ctd>\u003cspan class=\"tag probable\">probable\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_BoatCreak_1..6.mp3\u003c/code>\u003c/td>\u003ctd>27–47 KB ea.\u003c/td>\u003ctd>Rigging creak ambient scatter (6, up from a 2-file library pair)\u003c/td>\u003ctd>\u003cspan class=\"tag probable\">probable\u003c/span>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\u003ccode>PP_SFX_Alarm.mp3\u003c/code>\u003c/td>\u003ctd>53,116\u003c/td>\u003ctd>No matching row on your sheet — guessing wastes the file\u003c/td>\u003ctd>\u003cspan class=\"tag unknown\">needs you\u003c/span>\u003c/td>\u003c/tr>\n  \u003c/table>\n  \u003cp>\u003cstrong>Q1\u003c/strong> below is the \"Alarm\" question and the confirm on the \"probable\" row — see §7.\u003c/p>\n  \u003cdiv class=\"cbox\" data-handle=\"s2\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>3. Three defects this delivery can retire — already on the record, not new findings\u003c/h2>\n  \u003col>\n    \u003cli>\u003cstrong>The sword-clash clipping\u003c/strong> (docs/AUDIO.md DEFECT-3): your sheet independently\n    flags the same file as \"clipped a bit.\" A fresh export from Luis is the actual fix — turning the\n    existing clipped file down changes the balance, not the clipping baked into it.\u003c/li>\n    \u003cli>\u003cstrong>The coin-flip's embedded landing\u003c/strong>, which today can't be separated because\n    different browsers render the flip animation for different durations. \u003ccode>CoinFlip_Start\u003c/code>\n    + \u003ccode>CoinFlip_End\u003c/code> is a straight fix for a real defect, not an added feature.\u003c/li>\n    \u003cli>\u003cstrong>The silent drumroll\u003c/strong> — \u003ccode>src/orchestrator.js:1078\u003c/code> already calls\n    \u003ccode>await flash(\"Drumroll...\")\u003c/code> for a hard 2.55-second window and nothing plays.\n    \u003ccode>PP_SFX_Drumroll.mp3\u003c/code> is sized to fit that exact window if it lands close to 2.55s;\n    needs a timing check once fetched, not assumed from the byte count.\u003c/li>\n  \u003c/ol>\n  \u003cdiv class=\"cbox\" data-handle=\"s3\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>4. What this delivery does NOT cover\u003c/h2>\n  \u003cp>Your sheet has 28 rows; Luis's 27 files map to roughly 16 of them once the certain/probable rows\n  above are counted. \u003cstrong>The rest still need the library/fill route your original 2026-08-19\n  ruling set up\u003c/strong> (\"Luis for the hero moments, library/fill elsewhere\") — several already have\n  a chosen file sitting in \u003ccode>.planning/research/audio-sourcing/PICKS.json\u003c/code> and were simply\n  never wired in:\u003c/p>\n  \u003ctable>\n    \u003ctr>\u003cth>Sheet item\u003c/th>\u003cth>Status\u003c/th>\u003c/tr>\n    \u003ctr>\u003ctd>Bake-off: covers down, correct, wrong, shuffle, verdict, crates reveal (6 sounds)\u003c/td>\u003ctd>Already \u003cstrong>settled\u003c/strong> in \u003ccode>PICKS.json\u003c/code> — chosen files, never integrated\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>Interface tap · Something in the water · Blocked · Ovens fire up · Hailing the table · A deal struck · The anchor bites (library version) · Storm shoves your ship\u003c/td>\u003ctd>Already \u003cstrong>settled\u003c/strong> in \u003ccode>PICKS.json\u003c/code>\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\"Your turn\"\u003c/td>\u003ctd>Open in \u003ccode>PICKS.json\u003c/code> — flagged for ElevenLabs, and it carries its own unresolved question: does a per-player cue break the standing \"everyone hears the whole table\" rule (\u003ccode>audio.js\u003c/code> D-07)? \u003cstrong>Not in Luis's 27 files by any obvious name.\u003c/strong> Possibly \u003ccode>PP_SFX_Navigation\u003c/code> — but that name-match is already claimed by the shipped \u003ccode>ship-move.mp3\u003c/code> in §1. One file, two candidate meanings — flagging rather than guessing.\u003c/td>\u003c/tr>\n    \u003ctr>\u003ctd>\"The fight resolves\" — a second sound distinct from the sword clash, on top of the cannon\u003c/td>\u003ctd>Open in \u003ccode>PICKS.json\u003c/code> as \u003ccode>clash\u003c/code> (round 3, unjudged). Superseded by §1's finding that the existing sword sound already IS a Luis file, if that's the one being kept.\u003c/td>\u003c/tr>\n  \u003c/table>\n  \u003cp>None of this needs new sourcing work — it needs a wiring pass over decisions you already made\n  three weeks ago. Whether it ships in the same batch as Luis's files is \u003cstrong>Q3\u003c/strong> below.\u003c/p>\n  \u003cdiv class=\"cbox\" data-handle=\"s4\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>5. The ambient sea bed — cost, not aesthetics\u003c/h2>\n  \u003cp>\u003ccode>PP_SFX_Ocean_Loop.mp3\u003c/code> is 365 KB — a 15–30s loop plus randomly scattered gulls/creaks\n  on top, as your sheet describes. docs/AUDIO.md already has the mechanism worked out: MP3 pads\n  silence on both ends, so looping needs \u003ccode>loopStart\u003c/code>/\u003ccode>loopEnd\u003c/code> markers set\n  inside the decoded buffer, not a naive full-file loop — that's a code change, not just a file drop.\n  The \u003ccode>.wav\u003c/code> sibling (2.8 MB) should never ship; the doc already rules WAV out on size\n  (~10 MB/minute) and the MP3 is the delivered alternative.\u003c/p>\n  \u003cp>\u003cstrong>Also blocking:\u003c/strong> \u003ccode>initAudio()\u003c/code> currently\n  \u003ccode>await Promise.all(...)\u003c/code>s every SFX file before anything can play. Adding a ~365 KB bed\n  to that same list means every sound effect in the game goes silent on a phone until the whole bed\n  has downloaded. It needs its own load path that fades in when ready — already flagged in\n  docs/AUDIO.md §3, not a new finding, just a real cost of doing this.\u003c/p>\n  \u003cdiv class=\"cbox\" data-handle=\"s5\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>6. The three music tracks — explicitly not scoped here\u003c/h2>\n  \u003cp>Separate from Luis's 27 SFX files: three tracks from \u003ccode>wyatty@gmail.com\u003c/code>, totalling\n  \u003cstrong>69 MB\u003c/strong> — the smallest is 3.4 MB, the largest 42.8 MB. Your image-weight work this\n  week took the whole game from 17.79 MB to 3.89 MB. \u003cstrong>This PRD does not recommend committing\n  any of them\u003c/strong>, and treats \"music at the big beats\" (your 2026-08-19 ruling) as a later,\n  separately-scoped decision once the SFX layer is settled. Confirm in \u003cstrong>Q6\u003c/strong>.\u003c/p>\n  \u003cdiv class=\"cbox\" data-handle=\"s6\">\u003cdiv class=\"clabel\">Your notes on this section\u003c/div>\u003cdiv class=\"cmine-list\">\u003c/div>\n    \u003ctextarea class=\"cta\" placeholder=\"Correct or add anything here — read before anything is wired.\">\u003c/textarea>\n    \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n\n  \u003ch2>7. Questions — numbered, your call on every one\u003c/h2>\n  \u003cp class=\"mono\" style=\"color:var(--muted);font-size:13px\">A multiple-choice card is the wrong shape for corrections to a document — so every question below just has a comment box instead. Write whatever you want in it; there is no \"select one\" to force your answer into a lane it doesn't fit.\u003c/p>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">1\u003c/span>\u003cstrong>The unmapped file, \u003ccode>PP_SFX_Alarm.mp3\u003c/code>\u003c/strong> — no row on your sheet names it. What does it cover, or should it wait?\n    \u003cp class=\"rec\">No recommendation — this one only you can answer.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q1\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">2\u003c/span>\u003cstrong>The \"probable\" mappings in §2\u003c/strong> (Cannons, ClockTick, Ocean_Loop, the Seagull and BoatCreak sets) — confirm, or correct any of them before a watch wires them to the wrong moment?\n    \u003cp class=\"rec\">Recommendation: confirm as read; the names and byte sizes are consistent with your sheet's descriptions and nothing else on the sheet competes for them.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q2\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">3\u003c/span>\u003cstrong>Scope of the first pass\u003c/strong> — ship all of Luis's mapped files (§1 + §2's certain/probable rows) together with the already-settled library sounds from §4 in one pass, or split it (Luis's files first, library wiring as a second item)?\n    \u003cp class=\"rec\">Recommendation: \u003cstrong>one pass\u003c/strong>. The library sounds are zero-research (already chosen), so splitting only adds a second sea trial for no reduction in risk.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q3\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">4\u003c/span>\u003cstrong>\"Your turn\"\u003c/strong> — does it use \u003ccode>PP_SFX_Navigation.mp3\u003c/code> (currently claimed by ship-move, §4), wait for a dedicated file from Luis, or go to ElevenLabs as originally planned? And separately: are you ready to rule on whether a your-turn cue may break the \"whole table hears everything\" rule, or should it still wait?\n    \u003cp class=\"rec\">No recommendation on the file — genuinely underdetermined. Recommendation on the rule question: still open, still yours.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q4\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">5\u003c/span>\u003cstrong>The fight-resolves / clash slot\u003c/strong> — with §1's finding that the currently-shipped sword sound is already a Luis file (and independently flagged as clipped by both you and the measured audit), is a fresh, unclipped export from Luis the fix, or do you want a second, different sound layered with the cannon per the original \u003ccode>clash\u003c/code> plan?\n    \u003cp class=\"rec\">Recommendation: a fresh unclipped export of the same sound — it already does the job you described, it's just distorted in the current file.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q5\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">6\u003c/span>\u003cstrong>The 3 music tracks (§6)\u003c/strong> — confirm they stay out of this pass entirely?\n    \u003cp class=\"rec\">Recommendation: yes, out of scope here — revisit once the SFX layer ships and the 69 MB question can be sized against a game that's actually shipping.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q6\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"q\">\u003cspan class=\"num\">7\u003c/span>\u003cstrong>Levelling\u003c/strong> — \u003ccode>SFX_VOLUME\u003c/code> exists in \u003ccode>src/ui/audio.js\u003c/code> as the one tuning point and every value is still \u003ccode>1\u003c/code> (DEFECT-3, measured 15.6 dB spread across the current six). Once the new files land, should a watch measure and set levels for the whole expanded set in the same pass, or ship unlevelled and level everything once, later, in one pass covering old and new together?\n    \u003cp class=\"rec\">Recommendation: \u003cstrong>level everything together, once\u003c/strong>, after all files are in — partial levelling now would need redoing anyway once BattleWon/Drumroll/the bed are in the mix.\u003c/p>\n    \u003cdiv class=\"cbox\" data-handle=\"q7\">\u003cdiv class=\"cmine-list\">\u003c/div>\n      \u003ctextarea class=\"cta\" placeholder=\"Your answer or correction…\">\u003c/textarea>\n      \u003cdiv class=\"cbtnrow\">\u003cbutton class=\"csend\" type=\"button\">Save note\u003c/button>\u003cspan class=\"csaid\" hidden>\u003c/span>\u003c/div>\u003c/div>\n  \u003c/div>\n\n  \u003cdiv class=\"card gold\">\n    \u003cstrong>What happens once you rule:\u003c/strong> a watch fetches exactly the files your answers name,\n    places them in \u003ccode>sfx/\u003c/code>, wires \u003ccode>EVENT_SOUND\u003c/code>/\u003ccode>EVENT_NARRATION\u003c/code>\n    per the mapping above, measures and sets \u003ccode>SFX_VOLUME\u003c/code> per Q7, and runs the standard\n    four-step proof (red check, fix, green check, sweep) plus a FULL-gear sea trial before anything\n    reaches staging — this is live game code touching every mode. No sound ships before that trial,\n    per the standing rule.\n  \u003c/div>\n\n  \u003cfooter>\n    Written by a Bell-launched watch with no Drive access and no ability to hear audio — every claim\n    above is a file size, a name, or a citation to \u003ccode>docs/AUDIO.md\u003c/code> / \u003ccode>PICKS.json\u003c/code>,\n    never a judgement about how anything sounds. Sources:\n    \u003ccode>.planning/wyclau/T-073-SFX-BRIEF.md\u003c/code>,\n    \u003ccode>.planning/research/audio-sourcing/PICKS.json\u003c/code>, \u003ccode>docs/AUDIO.md\u003c/code>.\n    Comment boxes added at your instruction, 2026-09-06: \"make comment boxes in the artifact that i\n    can write notes in for you, and you can read them\" — write anything, anywhere; there is no\n    multiple-choice card to refuse the shape of.\n  \u003c/footer>\n\u003c/div>\n\u003cscript type=\"application/json\" id=\"glassState\">__PRD_STATE__\u003c/script>\n\u003cscript id=\"prdClient\">\n(function(){\n  \"use strict\";\n  var state;\n  try { state = JSON.parse(document.getElementById(\"glassState\").textContent); } catch (e) { state = { comments: {} }; }\n  if (!state.comments) state.comments = {};\n\n  var TPL = __PRD_TPL__;\n  function jsEsc(s){ return JSON.stringify(s).replace(/\u003c/g, \"\\\\u003c\"); }\n  function buildDoc(st){\n    var d = TPL;\n    d = d.replace(\"__PRD_TPL__\", function(){ return jsEsc(TPL); });\n    d = d.replace(\"__PRD_STATE__\", function(){ return JSON.stringify(st).replace(/\u003c/g, \"\\\\u003c\"); });\n    return d;\n  }\n\n  var cap = null;\n  var useFn = (window.claude && window.claude.use) ? window.claude.use.bind(window.claude) : null;\n  (useFn ? useFn(\"artifact\") : Promise.resolve(null)).then(function(a){\n    cap = a;\n    if (!cap) {\n      var n = document.createElement(\"p\");\n      n.className = \"capnote\";\n      n.textContent = \"This view can't save notes back to the page (preview, or the grant is missing) — anything you type stays in the box on this device only.\";\n      var wrap = document.querySelector(\".wrap\");\n      wrap.insertBefore(n, wrap.children[1] || null);\n    }\n  });\n\n  function paint(box){\n    var h = box.getAttribute(\"data-handle\");\n    var list = box.querySelector(\".cmine-list\");\n    if (!list) return;\n    while (list.firstChild) list.removeChild(list.firstChild);\n    (state.comments[h] || []).forEach(function(c){\n      var p = document.createElement(\"div\");\n      p.className = \"cmine\";\n      p.textContent = c.text + \"  (\" + String(c.at).slice(0, 16).replace(\"T\", \" \") + \"Z)\";\n      list.appendChild(p);\n    });\n  }\n\n  Array.prototype.forEach.call(document.querySelectorAll(\".cbox[data-handle]\"), function(box){\n    paint(box);\n    var ta = box.querySelector(\".cta\");\n    var btn = box.querySelector(\".csend\");\n    var said = box.querySelector(\".csaid\");\n    if (!ta || !btn) return;\n    btn.addEventListener(\"click\", function(){\n      var v = ta.value.trim();\n      if (!v) return;\n      if (!cap) {\n        if (said) { said.hidden = false; said.textContent = \"Can't save from this view.\"; }\n        return;\n      }\n      var h = box.getAttribute(\"data-handle\");\n      if (!state.comments[h]) state.comments[h] = [];\n      state.comments[h].push({ text: v, at: new Date().toISOString() });\n      ta.value = \"\";\n      paint(box);\n      if (said) { said.hidden = false; said.textContent = \"Saved.\"; }\n      cap.publish(buildDoc(state)).then(null, function(){\n        ta.value = v;\n        var arr = state.comments[h] || [];\n        for (var i = arr.length - 1; i >= 0; i--) { if (arr[i].text === v) { arr.splice(i, 1); break; } }\n        paint(box);\n        if (said) { said.hidden = false; said.textContent = \"Didn't save — your words are back in the box, try again.\"; }\n      });\n    });\n  });\n})();\n\u003c/script>\n";
+  function jsEsc(s){ return JSON.stringify(s).replace(/</g, "\\u003c"); }
+  function buildDoc(st){
+    var d = TPL;
+    d = d.replace("__PRD_TPL__", function(){ return jsEsc(TPL); });
+    d = d.replace("__PRD_STATE__", function(){ return JSON.stringify(st).replace(/</g, "\\u003c"); });
+    return d;
+  }
+
+  var cap = null;
+  var useFn = (window.claude && window.claude.use) ? window.claude.use.bind(window.claude) : null;
+  (useFn ? useFn("artifact") : Promise.resolve(null)).then(function(a){
+    cap = a;
+    if (!cap) {
+      var n = document.createElement("p");
+      n.className = "capnote";
+      n.textContent = "This view can't save notes back to the page (preview, or the grant is missing) — anything you type stays in the box on this device only.";
+      var wrap = document.querySelector(".wrap");
+      wrap.insertBefore(n, wrap.children[1] || null);
+    }
+  });
+
+  function paint(box){
+    var h = box.getAttribute("data-handle");
+    var list = box.querySelector(".cmine-list");
+    if (!list) return;
+    while (list.firstChild) list.removeChild(list.firstChild);
+    (state.comments[h] || []).forEach(function(c){
+      var p = document.createElement("div");
+      p.className = "cmine";
+      p.textContent = c.text + "  (" + String(c.at).slice(0, 16).replace("T", " ") + "Z)";
+      list.appendChild(p);
+    });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".cbox[data-handle]"), function(box){
+    paint(box);
+    var ta = box.querySelector(".cta");
+    var btn = box.querySelector(".csend");
+    var said = box.querySelector(".csaid");
+    if (!ta || !btn) return;
+    btn.addEventListener("click", function(){
+      var v = ta.value.trim();
+      if (!v) return;
+      if (!cap) {
+        if (said) { said.hidden = false; said.textContent = "Can't save from this view."; }
+        return;
+      }
+      var h = box.getAttribute("data-handle");
+      if (!state.comments[h]) state.comments[h] = [];
+      state.comments[h].push({ text: v, at: new Date().toISOString() });
+      ta.value = "";
+      paint(box);
+      if (said) { said.hidden = false; said.textContent = "Saved."; }
+      cap.publish(buildDoc(state)).then(null, function(){
+        ta.value = v;
+        var arr = state.comments[h] || [];
+        for (var i = arr.length - 1; i >= 0; i--) { if (arr[i].text === v) { arr.splice(i, 1); break; } }
+        paint(box);
+        if (said) { said.hidden = false; said.textContent = "Didn't save — your words are back in the box, try again."; }
+      });
+    });
+  });
+})();
+</script>
