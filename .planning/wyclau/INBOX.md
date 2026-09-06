@@ -2431,3 +2431,9 @@ status: OPEN — left on `q7` via the Glass's comment box
 > scope out using netlify to push staging and production from one repo (pastrypirates) so that we can move away from publishing through githubpages and make the repo private
 solution: none stated
 status: OPEN — scope written to `.planning/wyclau/SCOPE-NETLIFY-ONE-REPO.md`; four decisions put to him
+
+## INBOX-20260906T2035Z — GitHub holds the repo, Cloudflare serves it? And: 10,000x traffic, pre-launch
+> can we continue to use github to hold the repo and simply serve/publish it with cloudflare? tell me the costs/benefits.
+> my traffic is about to increase 10000 fold -- i'm pre-launch right now
+solution: none stated
+status: OPEN — answered in the reply; scope doc updated with launch-scale arithmetic. THIS CHANGES THE HOST DECISION: at 10,000x his measured traffic, Netlify and GitHub Pages both fail on cost/limits and Cloudflare is the only one of the three that holds. Two launch blockers found that are NOT hosting: Firebase RTDB free tier (10 GB/month, 100 simultaneous connections) and the usage database answering an UNAUTHENTICATED read.
