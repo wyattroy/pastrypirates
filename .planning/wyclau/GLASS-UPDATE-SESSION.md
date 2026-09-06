@@ -499,3 +499,42 @@ anywhere in the chain. **Any watch can put a page in front of him this way.**
 READS. It does not work for pages he WRITES INTO. His Glass comments and the PRD's comment boxes
 live in `glassState`, which only an artifact has. **One-way: staging. Two-way: artifact, hand-started
 session, publish queue.**
+
+### ⚑ 2026-09-06, LATER — THE PROCESS TABLE, READ AGAIN, AND A THIRD MODE NOBODY HAS MEASURED
+
+Wyatt asked, before opening a new session: *"is there anything specific I need to do when i start
+that session to ensure that it is able to make artifacts? eg, do i need to start that FROM the
+blade?"* Read live on the Blade rather than recalled:
+
+```
+PID 27268   claude.exe --print --sdk-url .../sessions/cse_018Jz7…    <- the session talking to him
+PID 49468   claude.exe rc                                            <- the Remote Control host
+PID 22148   claude.exe -p "/door — the Bell rings you as a WATCH…"   <- the Bell watch
+PID 46468   claude.exe --output-format stream-json --verbose --input-format stream-json --effort high
+```
+
+**The first line confirms the settled finding from the other direction:** the session he was
+talking to carried `--print`, and it had no Artifact tool — verified in that same session by
+`ToolSearch select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck` returning *"No matching
+deferred tools found"*. **Remote Control is `--print`. That is now measured twice, on two different
+days, on this machine.**
+
+**PID 46468 IS THE NEW PART, AND IT IS AN HONEST UNKNOWN.** It is a Claude Code session spawned by
+the **Claude desktop app** (its parent is the `Claude.exe` WindowsApps process tree), and it carries
+**`--output-format stream-json --input-format stream-json`, NOT `--print`.** So the desktop app is a
+**third launch mode**, distinct from both "typed in a terminal" and `claude -p`.
+
+⚠ **DO NOT CONCLUDE FROM THIS THAT THE DESKTOP APP CAN PUBLISH.** All that has been observed is the
+absence of the known disqualifier on its command line. **Nobody has run the tool check inside a
+desktop-app session.** The table above says what launches a session, not what the harness granted
+it — and this file's whole point is that the grant is a decision made at launch that only the
+session itself can report.
+
+**THE ONE-LINE CHECK, and it should be the first thing typed into any session that is meant to
+publish:**
+
+> *"Before anything else: do you have the Artifact tool? Check with `ToolSearch`
+> `select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck` and answer yes or no."*
+
+Five seconds, and it removes the failure this file exists to document — finding out at the END of a
+session that the one thing it was opened to do was never possible.
