@@ -3845,3 +3845,87 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       `src/ui/usage.js:57` really does swallow every error silently, and the game really does
       authenticate nowhere. Neither is evidence of an outage; both are worth a separate look, on
       their own merits, by somebody who measures a path the game uses.
+
+## T-237 — 2026-09-06 — ⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE (closed 2026-09-06 · CEO 235 · no game diff — no game code -- tooling only (scripts/lib/npm_test_culprit.mjs, sea_trial.mjs, a red-proofed gate); index.html and src/ untouched) AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item. When npm test fails, the report's "the browser-free checks failed" section prints only the tail of the output, which on this branch is fixture chatter from two gates that PASS — chartkeeper: 2 rows carry DO NOW — T-802, T-803 and temp-dir paths from do_now_check's own red-proofs. The gate that actually failed is never named. In the report this watch produced, the real failure was chart_sweep_conserves_check on the orphaned handles T-233/T-234, and nothing in the file says so. WHY THIS IS WORSE THAN A COSMETIC BUG: CEO 185's words — "anyone opening that report concludes the Chartkeeper is broken." Rule 24 exists because "did you QA it?" can be answered evasively and "did you run the sea trial?" cannot, since a sea trial leaves a report he can open. A report that misnames its own failure gives that mechanism back its evasiveness, with nobody lying. Start here: the npm-test capture in scripts/sea_trial.mjs — it needs to surface the FAILING gate (the last && link to exit non-zero), not the last N lines of stdout, which on a chain of 129 gates is whoever printed most recently. Red-proof: make a known gate fail and assert the report names THAT gate by filename. Sizing: no game code. Not this watch's to take — filed where the next one will see it. ✅ FIXED 2026-09-06 (CEO 235, YES). scripts/lib/npm_test_culprit.mjs (new): on npm-test failure only, re-runs package.json's own && chain one entry at a time and identifies the culprit by ITS OWN exit code, never by tail-slicing combined text. Wired into scripts/sea_trial.mjs, replacing the old slice(-14) guess. Red-proofed: scripts/qa/sea_trial_names_failing_gate_check.mjs (gate 144, package.json gates.total/ ceiling bumped 143→144) constructs a synthetic 4-step chain (verbose-passing → short-failing → never-should-run) and (1) proves the OLD tail(-14) formula loses the failing gate's own identifying text behind trailing noise — a faithful reconstruction of CEO 185's real incident shape, (2) proves the NEW approach names the right gate every time. A fresh CEO independently re-broke the fix (if (r.status !== 0) → if (false)), confirmed RED 2/4, reverted, confirmed GREEN 4/4 — then found and ran findCulprit against a REAL live failure on this branch (crawl_intent_check.mjs, unrelated — see the new row immediately below) and confirmed it correctly named that gate too, not just the synthetic fixture. No game code (index.html/src/ untouched). Full account, including one corrected overstatement in the watch's own prediction file ("144/144 green" was not true on the HEAD it was written against, because of the unrelated regression below): CEO Review 235.
+
+- [x] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE (closed 2026-09-06 · CEO 235 · no game diff — no game code -- tooling only (scripts/lib/npm_test_culprit.mjs, sea_trial.mjs, a red-proofed gate); index.html and src/ untouched)
+      AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
+      `npm test` fails, the report's "the browser-free checks failed" section prints **only the
+      tail of the output**, which on this branch is fixture chatter from two gates that **PASS** —
+      `chartkeeper: 2 rows carry DO NOW — T-802, T-803` and temp-dir paths from `do_now_check`'s
+      own red-proofs. **The gate that actually failed is never named.** In the report this watch
+      produced, the real failure was `chart_sweep_conserves_check` on the orphaned handles
+      `T-233`/`T-234`, and nothing in the file says so.
+      **WHY THIS IS WORSE THAN A COSMETIC BUG:** CEO 185's words — *"anyone opening that report
+      concludes the Chartkeeper is broken."* Rule 24 exists because *"did you QA it?"* can be
+      answered evasively and *"did you run the sea trial?"* cannot, since a sea trial **leaves a
+      report he can open**. A report that misnames its own failure gives that mechanism back its
+      evasiveness, with nobody lying.
+      **Start here:** the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
+      FAILING gate (the last `&&` link to exit non-zero), not the last N lines of stdout, which on a
+      chain of 129 gates is whoever printed most recently. **Red-proof: make a known gate fail and
+      assert the report names THAT gate by filename.**
+      Sizing: no game code. Not this watch's to take — filed where the next one will see it.
+      ✅ **FIXED 2026-09-06 (CEO 235, YES).** `scripts/lib/npm_test_culprit.mjs` (new): on npm-test
+      failure only, re-runs `package.json`'s own `&&` chain one entry at a time and identifies the
+      culprit by ITS OWN exit code, never by tail-slicing combined text. Wired into
+      `scripts/sea_trial.mjs`, replacing the old `slice(-14)` guess. Red-proofed:
+      `scripts/qa/sea_trial_names_failing_gate_check.mjs` (gate 144, `package.json` `gates.total`/
+      `ceiling` bumped 143→144) constructs a synthetic 4-step chain (verbose-passing → short-failing
+      → never-should-run) and (1) proves the OLD tail(-14) formula loses the failing gate's own
+      identifying text behind trailing noise — a faithful reconstruction of CEO 185's real incident
+      shape, (2) proves the NEW approach names the right gate every time. A fresh CEO independently
+      re-broke the fix (`if (r.status !== 0)` → `if (false)`), confirmed RED 2/4, reverted, confirmed
+      GREEN 4/4 — then found and ran `findCulprit` against a REAL live failure on this branch
+      (`crawl_intent_check.mjs`, unrelated — see the new row immediately below) and confirmed it
+      correctly named that gate too, not just the synthetic fixture. No game code
+      (`index.html`/`src/` untouched). Full account, including one corrected overstatement in the
+      watch's own prediction file ("144/144 green" was not true on the HEAD it was written against,
+      because of the unrelated regression below): CEO Review 235.
+      ⟨`T-237`⟩
+
+## T-265 — 2026-09-06 — ⛔ npm test IS CURRENTLY RED ON THIS BRANCH — crawl_intent_check.mjs fails because (closed 2026-09-06 · CEO 236 · no game diff — no game code changed -- cloudflare-cutover.html (an admin checklist outside index.html/src/) was wrapped in a real head with a noindex robots meta tag (commit 5c6eabb3), fixing the crawl_intent_check.mjs failure; full npm test is green again) cloudflare-cutover.html (added by a concurrent session's commit, 2026-09-06) has no crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not this row's fault or scope, filed fresh because a red npm test is exactly what rule 24 exists to make impossible to miss. Confirmed via scripts/lib/npm_test_culprit.mjs's own findCulprit(), which correctly named this gate as the real, current, live failure in ~70 seconds. Sizing: unknown until read — likely small (probably a robots/crawl-intent flag or an entry crawl_intent_check.mjs expects for every root-level HTML page, missing for the new one). Start with node scripts/qa/crawl_intent_check.mjs and read what it names. Not this watch's to take — its own item was the fix for reporting failures like this one, not fixing this one.
+
+- [x] **⛔ `npm test` IS CURRENTLY RED ON THIS BRANCH — `crawl_intent_check.mjs` fails because (closed 2026-09-06 · CEO 236 · no game diff — no game code changed -- cloudflare-cutover.html (an admin checklist outside index.html/src/) was wrapped in a real head with a noindex robots meta tag (commit 5c6eabb3), fixing the crawl_intent_check.mjs failure; full npm test is green again)
+      ⟨`T-265`⟩
+      `cloudflare-cutover.html` (added by a concurrent session's commit, 2026-09-06) has no
+      crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not
+      this row's fault or scope, filed fresh because a red `npm test` is exactly what rule 24 exists
+      to make impossible to miss.** Confirmed via `scripts/lib/npm_test_culprit.mjs`'s own
+      `findCulprit()`, which correctly named this gate as the real, current, live failure in ~70
+      seconds. Sizing: unknown until read — likely small (probably a `robots`/crawl-intent flag or
+      an entry `crawl_intent_check.mjs` expects for every root-level HTML page, missing for the new
+      one). Start with `node scripts/qa/crawl_intent_check.mjs` and read what it names. Not this
+      watch's to take — its own item was the fix for reporting failures like this one, not fixing
+      this one.
+
+## T-222 — 2026-09-06 — ⛔ chartkeeper --rank --write CORRUPTED TWO ROWS OF GLASS-CHART.md BY INSERTING A HANDLE (closed 2026-09-06 · CEO 237 · no game diff — chartkeeper's duplicate-handle splice does not reproduce on current code -- red-proofed with a real behavioural gate (scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs, commit 98c37700), no product fix needed) INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the watch that ran it. It allocated T-233 and T-234 and spliced each marker mid-title, splitting a timestamp in half: Filed 2026-09-01T19:30 / marker / blank line / Z, measured, not fixed (one item).. Both rows ALREADY CARRIED A HANDLE — T-014 and T-092 — sitting on the very next line, so this is not "an unhandled row got one", it is a second handle allocated to a row that had one and written into the prose. WHY THIS IS WORSE THAN IT LOOKS: GLASS-CHART.md is one of the two lists his Glass renders, three sessions write it, and the damage is INVISIBLE in a rank summary — the run printed a cheerful 2 id(s) allocated · 30 row(s) moved. Nothing failed. It was found only because the commit's git diff was read line by line before staging. AND IT WAS A SIDE EFFECT NOBODY ASKED FOR: the command was run with no --chart=, so it was pointed at CHART.md; it wrote into the sibling anyway. The two spurious ids T-233/T-234 were reverted with the text, so nothing references them and they are free again. NEVER OWNED A ROW: T-233, T-234 (That marker is load-bearing, not decoration. chart_sweep_conserves_check accuses any handle it can SEE that no row OWNS — and this write-up was the only trace either id ever had, so the record was being punished for describing its own accident. The marker is the record saying so on purpose, the same way RENUMBERED T-nnn → does. It failed the shared branch for hours before it existed, and a keyword-sniffing version of the exemption was worse: CEO 186 hid a real lost row behind eleven ordinary words. Never widen it back into prose.) Start here: the id-allocation writer in scripts/wyclau/chartkeeper.mjs — why it chose a column inside a title, and why openHandleCarriers did not see the handle one line below. Rule 1: a row that already carries a handle must never be allocated a second one. Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture shaped like the REAL chart — multi-line titles, marker on the following line.
+
+- [x] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE (closed 2026-09-06 · CEO 237 · no game diff — chartkeeper's duplicate-handle splice does not reproduce on current code -- red-proofed with a real behavioural gate (scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs, commit 98c37700), no product fix needed)
+      INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
+      watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
+      splitting a timestamp in half: `Filed 2026-09-01T19:30` / marker / blank line /
+      `Z, measured, not fixed (one item).**`. **Both rows ALREADY CARRIED A HANDLE** — `T-014` and
+      `T-092` — sitting on the very next line, so this is not "an unhandled row got one", it is a
+      second handle allocated to a row that had one and written into the prose.
+      **WHY THIS IS WORSE THAN IT LOOKS:** `GLASS-CHART.md` is one of the two lists his Glass
+      renders, three sessions write it, and the damage is INVISIBLE in a rank summary — the run
+      printed a cheerful `2 id(s) allocated · 30 row(s) moved`. Nothing failed. It was found only
+      because the commit's `git diff` was read line by line before staging.
+      **AND IT WAS A SIDE EFFECT NOBODY ASKED FOR:** the command was run with no `--chart=`, so it
+      was pointed at `CHART.md`; it wrote into the sibling anyway.
+      **The two spurious ids `T-233`/`T-234` were reverted with the text**, so nothing references
+      them and they are free again.
+      NEVER OWNED A ROW: T-233, T-234
+      *(That marker is load-bearing, not decoration. `chart_sweep_conserves_check` accuses any handle
+      it can SEE that no row OWNS — and this write-up was the only trace either id ever had, so the
+      record was being punished for describing its own accident. The marker is the record saying so
+      on purpose, the same way `RENUMBERED T-nnn →` does. It failed the shared branch for hours
+      before it existed, and a keyword-sniffing version of the exemption was worse: CEO 186 hid a
+      real lost row behind eleven ordinary words. Never widen it back into prose.)*
+      **Start here:** the id-allocation writer in `scripts/wyclau/chartkeeper.mjs` — why it chose a
+      column inside a title, and why `openHandleCarriers` did not see the handle one line below.
+      Rule 1: a row that already carries a handle must never be allocated a second one.
+      Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
+      shaped like the REAL chart — multi-line titles, marker on the following line.
+      ⟨`T-222`⟩

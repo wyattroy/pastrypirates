@@ -1,5 +1,44 @@
 # CEO reviews — the standing record
 
+## CEO Review 237 — `T-222`: chartkeeper's duplicate-handle splice does not reproduce on current code, red-proofed with a real gate — **YES** — 2026-09-06
+
+**The ask:** a `chartkeeper.mjs --rank --write` run once spliced a fresh handle into the MIDDLE of a
+wrapped title on two rows that already carried their own handle (`T-014`/`T-092` corrupted with
+`T-233`/`T-234`, caught and repaired by hand 2026-09-03T2040Z). The row asked for a gate case
+"red-proofed on a fixture shaped like the REAL chart — multi-line titles, marker on the following
+line," and named `chartkeeper.mjs`'s id-allocation writer and `openHandleCarriers` as the place to
+start.
+
+**What this watch did:** wrote the prediction first
+(`.planning/wyclau/PREDICTION-20260906T2350Z-T-222-chartkeeper-duplicate-handle.md`) — expected the
+2026-09-04 identity fixes for a DIFFERENT bug (`T-090`/`T-240`, commit `b6ac211d`) to have already
+closed this hole as a side effect, because they made `idOfRow()` (`scripts/wyclau/lib/chart_model.mjs`)
+and `withId()`'s guard (`scripts/wyclau/chartkeeper.mjs`) scan every line of a row for a handle
+marker instead of only line index 1. Built `scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs`
+— a real behavioural gate: it writes a fixture Chart into an OS tmpdir with two rows shaped exactly
+like the corrupted ones (title wraps across two physical lines before the row's own `⟨T-nnn⟩`
+marker), runs the real `chartkeeper.mjs --rank --write` against the throwaway copy, and asserts each
+existing handle still appears exactly once, zero new ids were allocated, and the title-then-handle
+sequence was never spliced.
+
+**Confirmed, not assumed:** the gate PASSES against real, unmodified code. Red-proofed the gate
+itself by temporarily narrowing `idOfRow`/`withId` to the old line-index-1-only check — the gate then
+FAILS exactly as T-222 describes (new ids allocated, both titles spliced) — then reverted both
+sabotage edits, confirmed clean via `git diff --stat` (zero residual diff on either file). Wired into
+`npm test` (`gates.total`/`ceiling` 144 → 145, `_ceiling_raise_145`); full suite 145/145 green. No
+game code touched; gear mechanically read FULL (any `package.json` diff does, per the known `T-205`
+blind spot) and was downgraded to COSMETIC with a written reason, same precedent as `T-264`'s own
+package.json-only gate addition.
+
+**Fresh CEO verdict: YES.** Independently re-ran the gate, performed its own separate sabotage of
+`idOfRow`/`withId` and confirmed the gate goes red, confirmed the revert left zero diff via its own
+`git diff --stat`, read `package.json` directly to confirm 145/145 and the chain wiring, ran the full
+`npm test` itself, read the prediction file and judged it genuinely falsifiable (not post-hoc), and
+confirmed `git status --short` shows only the expected files touched. Judged that closing a row
+whose own text anticipated "a gate case belongs with it" as "already fixed, now provably so" —
+rather than requiring a product-code change nothing showed was needed — is a legitimate closure, not
+a dodge.
+
 ## CEO Review 233 — `INBOX-20260903T182856Z`: his mobile move-to-top button was already shipped — **YES**, closing the stale label — 2026-09-06
 
 **What happened, in one line:** Wyatt pinned DO NOW on the Glass, 2026-09-03T18:28:56Z: *"Def to
@@ -17374,3 +17413,67 @@ Its words: *"The thing this audit was pointed at first — 'is the threat model 
 ---
 
 **ITS ONE THING FOR WYATT:** *"The plan is right about the danger, and right about the fix. Build it — but not in three days, and not before two things you have to do yourself… I checked your database directly rather than taking its word: five of the doors the game actually uses are standing open to anyone who knows the address… **But there is a knot in the middle of it that would stop the build cold.** The plan says the page must refuse to answer strangers, and it also says the Blade must be able to read it while you are asleep. Both cannot be true unless the Blade carries a key — and the plan never says where that key lives… **And it does not say how your existing words get moved.** This project has already lost your words once that way. The safety check it points at as protection has a note in its own file saying it cannot catch this. **One useful surprise:** you already have security settings in place — that is why the front door is locked while the side doors are open… **My recommendation:** say yes to the direction, and ask for those three answers — where the key lives, how your existing writing moves, and which single page you type into on the changeover day — written down before a line is built."*
+## CEO Review 235 — A failed sea trial report names the wrong culprit (CEO 185's finding) — 2026-09-06
+
+**The ask:** CEO Review 185 (2026-09-03) found `scripts/sea_trial.mjs`'s npm-test-failure report
+section named the wrong gate — it tail-sliced the whole run's combined output and surfaced chatter
+from two PASSING gates while the real failure (`chart_sweep_conserves_check`) was never named.
+Filed as a Chart row: "the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
+FAILING gate... not the last N lines of stdout... Red-proof: make a known gate fail and assert the
+report names THAT gate by filename."
+
+### VERDICT: YES
+
+A fresh general-purpose agent, with no shared context with the watch that did the work, independently
+verified — not just read — every claim:
+
+- Read `scripts/lib/npm_test_culprit.mjs` in full: `findCulprit()` re-runs `package.json`'s own `&&`
+  chain one entry at a time and identifies the culprit by its own exit code, never by parsing text.
+- Confirmed the OLD tail-slice code path in `scripts/sea_trial.mjs` is fully replaced, not merely
+  supplemented.
+- Ran `scripts/qa/sea_trial_names_failing_gate_check.mjs` itself: PASS 4/4.
+- **Red-proofed it independently**, on its own initiative, with its own edit: changed
+  `if (r.status !== 0)` to `if (false)` in `npm_test_culprit.mjs`, reran the gate, got RED (2/4),
+  reverted, got GREEN (4/4) again.
+- Confirmed gate counts (144/144) via `gate_count_check.js` and `gate_ceiling_check.mjs` directly,
+  and confirmed no game code touched (`index.html`/`src/` empty in this fix's diff).
+- **Went further than asked**: found `npm test` on the live branch is CURRENTLY failing for a real,
+  unrelated reason — `scripts/qa/crawl_intent_check.mjs`, because `cloudflare-cutover.html` (added
+  by a concurrent session's bundled commit) has no crawl-intent declaration — and ran `findCulprit`
+  against that live real failure, which correctly named the right gate in ~70 seconds. Stronger
+  proof than the synthetic fixture alone: the fix works on the actual class of failure it exists to
+  diagnose, not just a contrived one.
+
+**One overstated claim, caught and corrected:** the watch's own prediction file said "Full `npm
+test`: 144/144 green" — **not true on current HEAD**. A concurrent session's later, unrelated
+commits broke `crawl_intent_check.mjs` (index 126 of 144) three commits after this fix landed. This
+fix's own files are untouched by that regression and its new gate (index 142) is never even reached
+by the current failure — so the "green" claim is not this fix's fault, but it was stated without the
+caveat and should not be repeated that way. **Filed as a fresh, separate Chart row below rather than
+folded into this one** — a different gate, a different session's commit, not this watch's scope.
+
+**Its one thing for Wyatt:** the next time a sea trial fails, the report he opens will name the
+actual broken gate by its file path and show that gate's own output — not a plausible-looking
+wrong answer built from whichever gate happened to print last. Rule 24 depended on that report
+being honest; it was not, and now it is, independently confirmed rather than taken on the watch's
+word.
+
+## CEO Review 236 — T-265: npm test red on crawl_intent_check.mjs (cloudflare-cutover.html) — 2026-09-06
+
+**Verdict: YES**
+
+The claim checks out on every leg measured directly, not just read.
+
+1. **The gate that was red now passes.** Ran `node scripts/qa/crawl_intent_check.mjs` directly: `PASS 26 served page(s) each state whether Google may index them (5 public, 21 withheld)`. `declaredIntent()` in `scripts/qa/crawl_sets.mjs:49-56` requires a literal `<head>...</head>` containing a `<meta name="robots">` tag — the diff at `cloudflare-cutover.html:1-8` adds exactly that, with `<meta name="robots" content="noindex, nofollow">` inside a real `<head>`, matching `two-machines.html:1-6`'s identical pattern for internal/reference pages verbatim (same comment wording, same tag).
+
+2. **The whole suite is green, not just the one gate.** Ran `npm test` in full: zero lines matching FAIL/cross-mark anywhere in the output, and the final line reads the suite's own gate ceiling passing. `crawl_intent_check.mjs` is present in the printed `&&` chain. This is the real bar per the ask, and it holds.
+
+3. **No game code touched.** `git show 5c6eabb3 --stat`: only `cloudflare-cutover.html`, `.planning/SEA-TRIAL.md`, an archived sea-trial report, and a new screenshot. `index.html` and `src/` do not appear.
+
+4. **The gear-downgrade reasoning is honest, not a dodge.** `.claude/hooks/lib/game-code.cjs:18-45`: `NOT_GAME` excludes `.planning/`, `docs/`, `.claude/`, `notes/`, `art-review/`, `scripts/`, `4/`, `staging/`, `.gitignore`, `.gitattributes` — a root-level file like `cloudflare-cutover.html` matches none of those, so `isGameCode()` returns true purely because the exclusion list is deliberately strict-by-default. The FULL verdict from `gear.mjs` is a mechanical artifact of that strictness, not evidence the file is reachable by a player. The file is an admin-only checklist wrapped in `noindex`, confirmed rendering correctly and unbroken in `.planning/posed/t265-cloudflare-cutover-after.png` (title, progress bar, checklist steps all present, zero console errors).
+
+5. **No weakening of the check.** `crawl_intent_check.mjs` and `crawl_sets.mjs` are untouched in this diff — the fix is entirely in the content of the offending page, never in the instrument.
+
+No criticism survives verification. This is a clean, correctly-scoped fix that closes exactly the obligation filed at T-265.
+
+**Its one thing for Wyatt:** `npm test` is green again on this branch, and the fix that got it there touched nothing in `index.html`/`src/` — a private admin checklist page now correctly tells Google to leave it alone, same as `two-machines.html` and `stats.html` already do.
