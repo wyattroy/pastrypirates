@@ -12175,3 +12175,73 @@ turn here, per the Door's own rule.
 END OF WATCH.
 
 - 2026-09-06T17:31:45Z · close_item: "T-219" · CEO 229 · no game diff — tooling-only fix already shipped under sibling T-009 (a56559da, 1054eb52); no game-code diff for this row · no stated solution · closed on record: the fix landed 2026-09-04 under T-009, never carried back to T-219
+
+## WATCH 2026-09-06 (this turn) — T-219 closed on paperwork, CEO 229 (YES)
+
+**Orientation:** synced, confirmed push works (`can_push.mjs` healthy, real push succeeded after
+the rule-17 hook), confirmed no Artifact tool this session (Bell-launched watch), publish queue
+EMPTY, no `IN-HAND` claim on this machine. Ranked/swept the Chart at orientation — nothing to
+archive yet. **Found the working tree already carried a second, live session's uncommitted work**
+(`.claude/memory/DECISIONS.md`, `.gitignore`, `package.json`, plus untracked
+`scripts/build-site.mjs`, `scripts/qa/site_build_check.mjs`, `wrangler.toml` — a Cloudflare/Netlify
+publish-set effort, per the untracked `PREDICTION-20260906T2100Z-cloudflare-publish-set.md`) — left
+entirely untouched throughout, staged and committed only the files this watch's own item changed.
+
+**Rank 1 (`T-073`, DO NOW) is CLAIMED on the Mac — correctly skipped, not touched.** Confirmed via
+`caa879b2` and the row's own claim block; also observed mid-watch that the Mac session moved that
+work to its own branch (`sep06-sfx`) and reverted the game-code diff off this shared branch
+(`6ec2e1ba`) — exactly the isolation rule 16 asks for, done by someone else, worth noting so the
+next watch doesn't go looking for `T-073`'s game files here. **Rank 2 (`T-138`) is genuinely blocked
+on Wyatt's own staging-publish approval** — nothing for a watch to do; skipped.
+
+**Rank 3, `T-219` ("the sea trial replays old results instead of sailing"), turned out to already be
+FIXED.** `git log -S gameTreeHash` found commit `a56559da` (2026-09-04, subject literally says
+"T-009/T-219") had already derived the leg-resume cache key from the game tree's own content hash
+instead of the hand-typed `PP4_STAMP` — the exact fix this row asked for — and a follow-up
+(`1054eb52`) made `sea_trial.mjs` print that hash on the report too. Both were CEO-reviewed (212,
+213) and shipped, but filed only under the sibling handle `T-009`, so `T-219`'s own Chart row never
+closed — the same "record disagrees with itself" shape as the last watch's `T-073` gate-note fix.
+
+**Split rather than smuggled shut:** `T-219`'s row also named a second, deeper, never-traced
+question (does the trial's `RUN_ID` survive a mid-run process restart, or under-credit a leg that
+really sailed?) — untouched by the `T-009` fix. Filed as its own row, `T-263`, before closing `T-219`,
+so that thread is not lost.
+
+**Fresh-context CEO (general-purpose agent): YES.** Independently traced the cache-key derivation in
+`game_tree_hash.mjs`/`leg_cache_key.mjs`/`playtest_gate.mjs`, confirmed `sea_trial.mjs` prints the
+tree hash at all five build-identity sites, ran `npm test` (both new gates green), read CEO 212/213
+directly, and judged the `T-263` split as genuinely distinct rather than a fig leaf. Appended as CEO
+Review 229 (229 was free — checked the live file first).
+
+**Closed through the gate:** `node scripts/wyclau/close_item.mjs --item="T-219" --ceo=229 --reason=…`
+(no game-code diff — the fix lives in `scripts/`, tooling, not `index.html`/`src/`). Tick, ledger
+line, and the sweep into `CHART-LOG.md` written together by the gate.
+
+**Gear: NONE.** Only `.planning/CHART.md`, `.planning/CHART-LOG.md`, `.planning/CEO-REVIEWS.md`
+touched — no game diff, no sea trial owed.
+
+**Sync note, for the record:** origin had moved 2 commits (the Mac's stray-probe-gate fix and its
+own T-073 revert) by the time this watch went to push. `git pull --rebase` refused (unstaged
+changes present — the other session's WIP, deliberately not stashed or touched). Used a plain
+`git pull` (merge) instead, which succeeded cleanly with zero overlap against the untouched foreign
+files, then pushed. `origin/claude/cloud-handoff-planning-a9ay1u` confirmed at HEAD, both directions
+0. `npm test` re-run after the merge: clean, 0 failures.
+
+**No Artifact tool this session** — nothing to publish; this item needed no Glass republish (a
+record-only close, no Glass-facing change). Publish queue not touched (still empty). Ran
+`publish_status.mjs` (this machine's instrument snapshot) — committed with the rest below.
+
+**Browsers/servers:** none started this watch.
+
+**Daily lesson:** already given today (`.planning/wyclau/LESSONS.md`, "2026-09-06 — A size match
+across six files beats a guessed filename") — not duplicating it.
+
+**Still open for the next watch:** the foreign Cloudflare/build-site WIP sitting uncommitted in this
+tree (see above) is a live session's in-progress work, not abandoned — leave it alone unless you can
+confirm otherwise. `T-138` and the SEO/analytics-adjacent rows remain genuinely blocked on Wyatt.
+`T-263` (the RUN_ID-across-restart question) is now on the record and open for whoever wants to
+trace it next.
+
+**One item closed this watch.** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.
