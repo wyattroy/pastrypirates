@@ -1016,50 +1016,42 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
   that should not be reachable in a real game at all, before treating this as a layout fix.
 
-- [ ] **`deploy:staging` can print an rsync error and still report success** — reported by the
-      ⟨`T-266`⟩
-      SFX session 2026-09-06, and the MECHANISM IS VERIFIED FROM SOURCE while the EXIT CODE IS NOT.
-      **Verified:** `scripts/deploy-staging.sh:156` excludes `--exclude=.git/` — **with a trailing
-      slash, which in rsync matches a DIRECTORY only.** In the main checkout `.git` is a directory,
-      so it is excluded and every deploy is fine. **In a worktree `.git` is a FILE**, so it is not
-      matched, gets synced, and rsync tries to replace the destination's `.git` directory with a
-      file: `rsync: error: .git: unlinkat: Directory not empty`.
-      **NOT verified, and named rather than assumed:** its claim that the script then *"exits 0"*.
-      `set -euo pipefail` is on line 33 and should abort on rsync's non-zero. Reproducing needs a
-      worktree, and worktrees are retired here (`CLAUDE.md` §3), so nobody re-created it. **If that
-      half is true it is the bigger half by far** — a deploy that prints an error, publishes
-      nothing, and hands back success is a gate lying about its own outcome, and staging then
-      silently keeps serving the previous build. The SFX session says it caught it only by curling
-      the stamp off the wire afterwards.
-      **The one-character candidate fix, NOT applied:** `--exclude=.git` without the slash matches
-      both a file and a directory. It is strictly safer than what is there — **and this is the
-      script that protects `CNAME`, the file that can take the live game down (rule 14), so it is
-      not a change to make casually or unasked.** `scripts/qa/deploy_rsync_paths_check.mjs` is the
-      gate that guards this script's path handling and would need a case added.
-      ⚠ **Whoever takes it: settle the exit code FIRST, because it decides how big this is.** A
-      wrong-exclude that fails loudly is a nuisance; one that fails silently is the failure class
-      this project keeps paying for. Sized SMALL, tooling not game code.
-
-- [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
-      GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
-      ⟨`T-245`⟩
-      **His words, 2026-09-03:** *"it looks like not all the Glass Chart rows have buttons next to
-      them that allow them to be moved up; but they all need to be moveable. can you explain why,
-      and design an elegant solution?"* — and from the numbered options he picked **"Give every row
-      a real tag."**
-      **WHAT SHIPPED WAS THE SWEEP, NOT THE PROPERTY.** `assign_handles.mjs` tagged the untagged
-      rows once, and today the count is honest: 68 rows, 68 arrows, verified by the CEO rendering
-      the page and counting both. **But `glass.mjs:1395` still draws the button only when a row
-      already has a handle**, nothing writes a handle onto a newly harvested idea, and
-      `assign_handles.mjs` is invoked by NOTHING — no npm script, no hook, no gate, no doc. So the
-      arrows are a photograph of one afternoon.
-      **THE SENTENCE THIS PROJECT HAS NOW WRITTEN FOUR TIMES: a capability nothing invokes is a
-      capability that never runs.** The elegant form is that a row cannot EXIST without a tag —
-      assign at the moment a row enters the Chart (harvest, and `chartkeeper --rank --write`, which
-      the Door already makes every watch run) rather than in a sweep somebody remembers.
-      **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
-      row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
-      new ideas can be moved to the top, which today they cannot.**
+- [ ] **`deploy:staging` mis-excludes `.git` when run from a worktree — a NUISANCE, downgraded
+      ⟨`T-268`⟩
+      from what it was first filed as.** Reported by the SFX session 2026-09-06 in two halves; the
+      alarming half was retracted by that session within the hour and the retraction was verified
+      here rather than taken on trust.
+      **WHAT IS TRUE:** `scripts/deploy-staging.sh:156` excludes `--exclude=.git/` — **trailing
+      slash, so rsync matches a DIRECTORY only.** Main checkout: `.git` is a directory, excluded,
+      every deploy fine. Worktree: `.git` is a FILE, unmatched, synced, and rsync cannot replace the
+      destination's `.git` directory with it — `rsync: error: .git: unlinkat: Directory not empty`.
+      **One character. And it can only bite from a worktree, which `CLAUDE.md` §3 retires anyway,
+      so the honest severity is LOW.**
+      > ### ⛔ THIS ROW FIRST SAID "AND STILL REPORTS SUCCESS — A GATE LYING ABOUT ITS OUTCOME." THAT WAS FALSE.
+      >
+      > It was filed as **unverified**, explicitly, and that is the only reason it never became a
+      > fact. **Measured three ways, all agreeing the script aborts correctly:**
+      > 1. `deploy-staging.sh:33` is `set -euo pipefail`, **at top level** — no function opened
+      >    before it.
+      > 2. The rsync at `:195` is a **bare command** — it follows an `fi`, is not piped, not in a
+      >    condition, and carries no `|| true`. Under `-e` a non-zero rsync ABORTS.
+      > 3. The reported `0` was the reporter's own **measuring apparatus**: it ran
+      >    `npm run deploy:staging … 2>&1 | tail -4`, and without `pipefail` a pipeline's status is
+      >    the LAST command's. Run here: `false | tail -4` → **0**; `set -o pipefail; false | tail -4`
+      >    → **1**.
+      >
+      > Its scrollback agrees — output stops dead at the rsync error, no `LIVE …` line, no stamp
+      > confirmation, staging still serving the previous build. **That is an abort behaving
+      > correctly, not a silent success.**
+      >
+      > **THE REUSABLE PART, and it is worth more than the bug:** a claim was filed as UNVERIFIED,
+      > and an hour later that exact half turned out to be wrong. **Marking it kept a false "our
+      > deploy gate lies" out of the permanent record**, in a project whose worst days come from
+      > believing instruments. The discipline paid on its first outing.
+      **NOT FIXED, and both sessions agree on why:** `--exclude=.git` without the slash is strictly
+      safer, but this is the script that protects `CNAME` — the file that can take the live game
+      down (rule 14) — and neither session has a mandate for it. `scripts/qa/deploy_rsync_paths_check.mjs`
+      guards this script's path handling and would want a case added. Sized SMALL, tooling not game code.
 
 - [ ] **Nothing allocates CEO review numbers, and ten of them now name more than one verdict** —
       ⟨`T-267`⟩
