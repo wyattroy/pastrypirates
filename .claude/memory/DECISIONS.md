@@ -1,5 +1,38 @@
 # Wyatt's standing decisions
 
+## THE BLADE GOING QUIET IS NOT A FAULT — HE SHUTS IT DOWN WHEN HE CAPS OUT
+
+**Wyatt, 2026-09-06, unprompted, correcting two sessions in a row:** *"THe blade went quiet because
+i ran out of usage for the week and shut it down intentionally -- not a fault"*
+
+**So a gap in `.planning/wyclau/status/Wy-Blade.md`'s Bell log is a DELIBERATE SHUTDOWN until he
+says otherwise. Do not open an investigation into one, and do not report it to him as a symptom.**
+
+**What it cost to learn, and why this entry exists rather than a line in a commit.** On 2026-09-06
+his Glass had not rebuilt in 53 hours. Two causes were put to him in turn and **both were wrong**:
+
+1. *"the interactive publisher session died"* — asserted from `ListAgents` **run on the Mac**, which
+   cannot see a Blade session whether it is alive or dead. Rule 6: an instrument answering honestly
+   about the wrong subject.
+2. *"the Blade stopped — so guard against that machine taking the status page with it"* — CEO 229's
+   correction of (1), and its timing was exact (last Bell ring 11:58:01Z, five minutes after the
+   page last rebuilt, same machine). **The arithmetic was right and the reading was still wrong.**
+   It turned his own deliberate act into a hardware risk to engineer against.
+
+**THE REUSABLE LESSON, and it is sharper than either finding: a machine going quiet is an
+OBSERVATION, never a diagnosis — and this project has a person who can simply be asked.** Both
+sessions reasoned from logs toward a cause when the cause was a decision he had made and would have
+stated in one line. **Ask him before building a theory about his own machines.**
+
+**WHAT IS ACTUALLY WORTH FIXING, per his own framing:** the freeze is a normal consequence of the
+Blade being off and will recur every time he caps out. It is not the freezing that is the defect —
+**it is that nothing told him.** He found out by opening the page and seeing a red clock.
+
+**Related:** [`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../../.planning/wyclau/GLASS-UPDATE-SESSION.md)
+(only an interactive session can publish; every Bell-rung watch is `claude -p` and never can), and
+CEO Review 229 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+
+
 ## ⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rest — 2026-09-06T17:23:03.302Z
 
 Asked on the Glass: *"⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is G-2KK6EZDZSP actually a live property in your Google account? The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know."* — **Wyatt ruled "Open analytics.google.com and confirm G-2KK6EZDZSP is there"**, 2026-09-06T17:23:03.302Z.
