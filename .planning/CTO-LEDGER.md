@@ -11961,3 +11961,5 @@ re-run (no game code changed; the hook that would demand it fires only on game-c
 Ending the turn here — one item, closed through the gate, per the Door's own rule.
 
 END OF WATCH.
+
+- 2026-09-06T16:27:40Z · close_item: INBOX-20260902T190743Z · CEO 225 · no game diff — sitemap.xml already regenerated+gated; his generator ruling and Search Console reminder both already answered on the Glass · his solution first: commit 25dbac7 · closing old paperwork, no new code — sitemap ask fully satisfied on live tree

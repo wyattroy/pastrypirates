@@ -1205,7 +1205,7 @@ status: DONE 2026-09-06 — CEO 222, commit 66b0446 (1 game file); his solution 
 
 solution: his own: `lastmod` only, derived from git; every genuinely public page, with `classic/`, `lab.html`, `stats.html`, `/4/`, `art-review/`, `scripts/` and `.planning/` staying OUT. RECOMMEND rather than build on whether it should be script-generated, and let him decide. Then remind him to resubmit in Google Search Console under the **playpastrypirates.com** property.
 
-status: OPEN — FOR A WATCH.
+status: DONE 2026-09-06 — CEO 225, no game diff — sitemap.xml already regenerated+gated; his generator ruling and Search Console reminder both already answered on the Glass; his solution first: commit 25dbac7
 
   ⚠ **BLOCKED ON THE TWO PAGES EXISTING** — *"now that the new pages exist"*. Until then the first sitemap item stands on its own.
 
