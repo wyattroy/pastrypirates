@@ -427,6 +427,34 @@ verdict, an architecture change a long one — but every item gets one, appended
 [`.planning/CEO-REVIEWS.md`](../.planning/CEO-REVIEWS.md) as it lands, so the recurrence check
 never has a gap again.
 
+### WHETHER YOU CAN PUBLISH A PAGE IS DECIDED BY HOW YOU WERE LAUNCHED — CHECK, NEVER ASSUME
+
+**Settled 2026-09-06, at his direct ask** (*"research what defines whether or not a session can
+create an artifact or not -- we need to know"*). Full account and the measurements:
+[`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../.planning/wyclau/GLASS-UPDATE-SESSION.md).
+
+| how this session runs | `Artifact` |
+|---|---|
+| **interactive** — a person opened Claude Code in a terminal and types | **YES**, and its subagents inherit it |
+| **`claude -p` / `--print`** — headless: Bell watches, cron ticks, **and Remote Control** | **NO**, and **its subagents do NOT inherit it either** |
+
+**⚠ REMOTE CONTROL IS `--print`.** It feels interactive — he is right there, talking — and it is
+not. That single fact cost a whole morning on 2026-09-06: a session told him twice that publishing
+was impossible "for everyone", while an interactive session on the same machine had already
+published the page an hour earlier.
+
+**SPAWNING A SUBAGENT DOES NOT GET YOU ONE.** Measured: a subagent under a `-p` parent reports NOT
+AVAILABLE for all four artifact tools and `ToolSearch` matches none. The harness *knows* the names
+— they are listed in the agent-type definitions — and withholds them. **It is a grant decision at
+launch, so no amount of searching from inside a `-p` session will ever find one.**
+
+- **Say UNKNOWN, never "nobody can".** You can only measure YOUR OWN session. Another one may hold
+  the tool right now, and on 2026-09-06 one did.
+- **The queue is the mechanism, not a workaround:** append the finished page to
+  [`.planning/wyclau/PUBLISH-QUEUE.md`](../.planning/wyclau/PUBLISH-QUEUE.md) and commit. A session
+  that HAS the tool runs `node scripts/wyclau/publish_queue.mjs` and clears it.
+- **A page that is written is not a page he has.** The row closes when he can tap it (rule 27).
+
 ### Hand him a LINK he can tap. Never a file path.
 
 Wyatt, 2026-08-30: *"your html files must always be clickable for me to open on a phone — this link

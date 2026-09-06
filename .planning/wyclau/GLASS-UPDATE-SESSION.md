@@ -397,3 +397,56 @@ platform's own conflict guard fired three times.* An earlier version of this fil
 open. It cannot resurrect itself after a reboot the way the Bell can, because the Bell's whole
 advantage — a scheduled task — is also what forces print mode, which is what removes the tool. That
 trade is the reason this file exists rather than a scheduled task.
+
+---
+
+## ⚑ SETTLED 2026-09-06 — WHAT ACTUALLY DECIDES WHETHER A SESSION CAN PUBLISH
+
+**Wyatt asked directly: *"research what defines whether or not a session can create an artifact or
+not -- we need to know."*** Here is the whole answer, measured rather than inferred, so nobody
+re-derives it a fourth time.
+
+### IT IS THE LAUNCH MODE. Nothing else.
+
+| how the session runs | `Artifact` |
+|---|---|
+| **Interactive** — a person opens Claude Code in a terminal and types | **YES** (measured 2026-09-01, and 2026-09-02 for its subagents) |
+| **`claude -p` / `--print`** — headless, prompt passed as an argument | **NO** |
+| a subagent **under an interactive** session | **YES** — a live `action:"list"` returned real data, 2026-09-02 |
+| a subagent **under a `--print`** session | **NO — measured 2026-09-06, and this is the new fact** |
+
+### THE NEW MEASUREMENT, because it kills the obvious workaround
+
+A general-purpose subagent was spawned from a `--print` parent and asked only *"do you have an
+Artifact tool?"*. It reported **NOT AVAILABLE for all four** (`Artifact`, `ArtifactComments`,
+`ArtifactData`, `ArtifactCheck`), and `ToolSearch select:Artifact,…` returned **"No matching
+deferred tools found"** — zero matches, so there was no schema to call.
+
+**So the capability is inherited from the parent's launch mode.** "Spawn a subagent to publish" does
+NOT work from a watch, and nobody needs to try it again.
+
+**Its incidental observation is the sharpest part:** the agent-type listing describes Explore and
+Plan as *"All tools except Agent, **Artifact, ArtifactComments, ArtifactData, ArtifactCheck**, …"* —
+**the harness knows those names and withholds them.** This is a deliberate grant decision at launch,
+not an absent feature, which is why no amount of searching from inside a `-p` session will ever find
+one.
+
+### ⚠ AND THE PART NOBODY KNEW, WHICH EXPLAINS A WHOLE LOST MORNING: REMOTE CONTROL IS `--print`.
+
+On 2026-09-06 the Advisor session talking to Wyatt all morning had no Artifact tool, and this looked
+inexplicable — he was *right there*, conversing, which is the definition of interactive from where he
+sat. The process table settled it:
+
+```
+claude.exe --print --sdk-url https://api.anthropic.com/v1/code/sessions/cse_018Jz7…
+```
+
+**He was driving a HEADLESS session on the Blade from his Mac, over Remote Control.** It feels
+interactive and is not. So the honest rule for him, in one line:
+
+> **Artifacts need a session started by typing in a terminal ON that machine. Remote Control, Bell
+> watches, cron ticks and anything scripted are all `-p`, and none of them can publish.**
+
+**This is exactly why `PUBLISH-QUEUE.md` and `scripts/wyclau/publish_queue.mjs` exist**, and it is
+why the queue is the right design rather than a workaround: on any given day most sessions on this
+project structurally cannot publish, and the ones that can are hand-started by him.
