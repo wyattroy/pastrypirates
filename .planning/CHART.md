@@ -94,6 +94,43 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
+- [ ] **STOP RULE 23 BEING BROKEN AGAIN — a gate, not a reminder.** *Filed 2026-09-06 at his
+      instruction. NOT SFX WORK; the SFX session is not taking it.*
+      **Why it exists, and the SFX session is the culprit, not the reporter.** CEO 232 caught the
+      end-of-voyage drumroll playing on the host only. It was "fixed" by pasting `playDrumroll()`
+      into the guest twin as well — two call sites kept in step by memory — and the comment
+      justified it by citing `playWinScreen()`'s own twinning as *"the established shape"*. Wyatt:
+      *"DO NOT ARCHITECT DRIFTABLE CODE OR I WILL FIRE YOU"* and *"there should be NO more
+      precedent for drift, we have been fixing that tech debt for weeks now!!!"*
+      **The rule was in context the whole time and was pattern-matched over.** `CLAUDE.md` rule 23
+      names the exact moment: *"the existing one already works, I'll just add a
+      listener/branch/path for the new case… When a SECOND consumer of the same thing appears,
+      CONVERGE: make the FIRST one go through the new path too."* An existing violation was read as
+      a precedent. **Both calls are now removed** (`a426dece`); the drumroll is wired nowhere until
+      it goes through the one event consumer.
+
+      **(a) A GATE THAT FAILS ON ANY SOUND CALL OUTSIDE THE ONE CONSUMER — build this one first.**
+      Today's audio checks only ask *"does this sound play?"*, never *"how many places play it?"*,
+      which is why a duplicated call passed every gate. Read `src/` and FAIL when any `play*()`
+      appears outside `playForEvent`'s dispatch, except a short named allow-list.
+      **Red-proof it against this exact mistake:** commit `c28f92b4` (the two-call-site drumroll)
+      must go RED; `a426dece` must go green.
+      ⚠ **IT WILL ALSO CATCH `playWinScreen()`, which is hand-placed in BOTH twins today**
+      (`src/orchestrator.js:959` and `:1467`, "D-05… tied to the screen appearing"). That is real
+      pre-existing debt, older than the Wave 1 convergence — **the SFX session did not create it and
+      has not touched it.** Whoever takes this decides: converge it onto the event channel, or
+      record it as a sanctioned exception with his ruling behind it. Do not let it quietly widen
+      the allow-list.
+
+      **(b) MAKE THE TRIGGER SENTENCE FIRE AT THE MOMENT, NOT AT SESSION START.** Rule 23 is read
+      hours before it gets broken. `.claude/hooks/qa-gear-first.cjs` already interrupts the first
+      game-code edit; the same hook should inspect the diff and, when it ADDS a call to a function
+      that is already called elsewhere, ask one question: **"you are about to add a SECOND caller of
+      `X` — rule 23 says converge the first, not duplicate. What makes these two agree?"** That is
+      the rule's own design-time question, arriving at design time.
+      **Sizing, honestly:** (a) is mechanical and red-proofable against a real commit; (b) is a
+      heuristic that will have false positives, so it should ASK rather than block.
+
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
       🔒 **CLAIMED — `T-073` IS IN HAND ON WYATT'S MAC, 2026-09-06 (session "SFX"). DO NOT TAKE IT.**
