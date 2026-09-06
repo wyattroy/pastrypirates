@@ -2437,3 +2437,8 @@ status: OPEN — scope written to `.planning/wyclau/SCOPE-NETLIFY-ONE-REPO.md`; 
 > my traffic is about to increase 10000 fold -- i'm pre-launch right now
 solution: none stated
 status: OPEN — answered in the reply; scope doc updated with launch-scale arithmetic. THIS CHANGES THE HOST DECISION: at 10,000x his measured traffic, Netlify and GitHub Pages both fail on cost/limits and Cloudflare is the only one of the three that holds. Two launch blockers found that are NOT hosting: Firebase RTDB free tier (10 GB/month, 100 simultaneous connections) and the usage database answering an UNAUTHENTICATED read.
+
+## INBOX-20260906T2210Z — checklists are ARTIFACTS, never .md files. Standing.
+> always create artifacts of the checklist, never send me md files (they are hard to read and not user friendly)
+solution: publish it as a real page he can tap and tick — never hand over a repo path or a markdown file
+status: OPEN — applied immediately (`cloudflare-cutover.html`, published to staging) and written into the rules. THIS SESSION HAS NO ARTIFACT TOOL — measured, not assumed: `ToolSearch` for `select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck` returns "No matching deferred tools found", and a keyword search matches none. Queued for a session that has one.

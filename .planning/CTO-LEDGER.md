@@ -12637,3 +12637,21 @@ the next Artifact-holding session reads at Door orientation.
 Ending the turn here, per the Door's own rule — never take a second item.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-06T23xxZ (Bell-launched, claude/cloud-handoff-planning-a9ay1u)
+
+Claiming the row **"A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT"** (CEO 185's finding,
+handle `T-237` — ambiguous, shared with the unrelated trade-offer-circle-name row; will close by
+prose substring, not the handle). Scoped to `scripts/sea_trial.mjs`'s npm-test failure capture plus
+a new lib module and a red-proofed gate. No game code (`index.html`/`src/` untouched). Not
+colliding with `T-073` (SFX, claimed on the Mac) or any `stage.js`-adjacent row (`T-237`-trade,
+`T-013`, `T-238`) other watches have deliberately deferred — this is tooling only.
+
+Rank survey before picking: rank 1 `T-073` (SFX, DO NOW, claimed on the Mac — skip), rank 2 `T-138`
+(blocked purely on Wyatt's own staging-publish approval — skip), ranks 3-6 (`T-237`-trade, `T-013`,
+`T-238`, `T-250`) are real player-visible bugs repeatedly and deliberately deferred by prior watches
+as needing careful non-rushed empirical work on a 900-line high-risk function or requiring his
+answer first. This row sits further down the list but is small, well-scoped, mechanical, and
+already fully diagnosed by CEO 185 — a good match for one watch's turn.
+
+Prediction written first: `.planning/wyclau/PREDICTION-20260906T2300Z-sea-trial-culprit.md`.

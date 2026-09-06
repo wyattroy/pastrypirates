@@ -480,6 +480,26 @@ was correct, current, and honest, and it was worthless — **because a repo path
 produces a session that stops one step short and believes it finished.** When you write a process
 step, end it at the person.
 
+> ### ⛔ AND A MARKDOWN FILE IS NOT A DELIVERABLE. HE HAD TO SAY THIS SEPARATELY.
+>
+> **Wyatt, 2026-09-06:** *"always create artifacts of the checklist, never send me md files (they
+> are hard to read and not user friendly)."*
+>
+> **He had already given this rule once**, and a session still handed him `docs/CLOUDFLARE-CUTOVER.md`
+> — eleven cutover steps, correct and current, in a file he cannot tick, cannot read comfortably on
+> a phone, and cannot reply into. **The rule said "never a file path" and the session heard "never a
+> BAD file path."** A `.md` in the repo is the same failure as a GitHub blob URL wearing a different
+> extension: the work stops at the artifact instead of at HIM.
+>
+> - **A CHECKLIST IS AN ARTIFACT.** Tickable, with a notes box per row, state in `localStorage`
+>   (guarded — a private tab *throws*), and a progress bar. Not a list of `- [ ]` lines.
+> - **Markdown is for the NEXT SESSION to read. HTML is for him.** If a document is genuinely for
+>   the record, write the `.md` *and* publish the page — never the `.md` alone.
+> - **If you cannot publish, say so with the measurement, not a guess** — `ToolSearch` for
+>   `select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck`, and report what it returned —
+>   then queue it (`publish_queue.mjs --add`) **and** publish to staging so he has something tappable
+>   *today*. §6: publishing to staging needs no approval, from any branch, at any time.
+
 - **PUBLISH IT AND GIVE HIM THE URL** — for a checklist, a report, a comparison, anything he is meant
   to read or use. Not a path, not a GitHub blob URL, not "it's in `.planning/`".
 - **Write it in the shape that can be published**: no `<!doctype>`, `<html>`, `<head>` or `<body>` of

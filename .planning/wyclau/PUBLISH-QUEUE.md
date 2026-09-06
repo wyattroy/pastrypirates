@@ -9,3 +9,4 @@ never be read. A session that DOES hold the Artifact tool runs
 
 - [x] `T-261` — comment boxes added (13, glassState-backed), needs republish so Wyatt can use them — `.planning/wyclau/T-261-SFX-PRD.html` — published: https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d
 - [x] `T-263` — his Mac/Blade + staging/production page, written for HIM not for Claude (CEO 221 finding 6) — `two-machines.html` — published: https://staging.playpastrypirates.com/two-machines.html
+- [ ] `T-264` — the Cloudflare cutover checklist he ticks — his standing instruction: artifacts, never .md — `cloudflare-cutover.html`
