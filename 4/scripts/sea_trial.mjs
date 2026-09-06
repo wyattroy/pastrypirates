@@ -32,7 +32,14 @@ const arg = (k, d) => { const a = process.argv.find(s => s.startsWith(`--${k}=`)
 const say = (...a) => console.log(...a);
 
 /* ---- what build is this? -------------------------------------------------- */
-const stampSrc = fs.readFileSync(path.join(REPO, "4/src/ui/stage.js"), "utf8");
+/* THE STAMP MOVED TO src/ui/stage.js WITH THE CUTOVER. This line read the 4/ path and THREW, so
+   `node 4/scripts/sea_trial.mjs` — the command CLAUDE.md gives for rule 24 — did nothing but print
+   an ENOENT stack from 2026-08-26 to 2026-09-06. Wyatt chose the name "sea trial" over "QA"
+   precisely because "did you run it?" cannot be answered evasively: a sea trial leaves a report
+   with a build stamp in it. For eleven days it could not be answered at all. Guarded now, so a
+   missing stamp costs the report a field instead of the whole run. */
+const stampFile = path.join(REPO, "src/ui/stage.js");
+const stampSrc = fs.existsSync(stampFile) ? fs.readFileSync(stampFile, "utf8") : "";
 const STAMP = (stampSrc.match(/PP4_STAMP\s*=\s*"([^"]+)"/) || [])[1] || "unknown";
 const started = new Date();
 

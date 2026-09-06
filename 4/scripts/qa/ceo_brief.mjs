@@ -42,7 +42,16 @@ if (fs.existsSync(recPath)) {
   if (i >= 0) { const j = t.indexOf("\n## ", i + 4); prev = t.slice(i + 1, j < 0 ? undefined : j).trim(); }
 }
 
-const stamp = (fs.readFileSync(path.join(REPO, "4/src/ui/stage.js"), "utf8").match(/PP4_STAMP\s*=\s*"([^"]+)"/) || [])[1] || "unknown";
+/* THE BUILD STAMP LIVES AT src/ui/stage.js. This read "4/src/ui/stage.js" until 2026-09-06 and
+   THREW — not degraded, crashed — so `node 4/scripts/qa/ceo_brief.mjs` had been dead since the
+   cutover deleted that tree on 2026-08-26. Rule 25's own command, unrunnable for eleven days,
+   found only by running it. doc_command_check §1 could not see this: the SCRIPT exists, and what
+   rotted is a path INSIDE it. §10 now checks those too. Guarded rather than bare, because a brief
+   that cannot name the build is still worth more than no brief at all. */
+const stampFile = path.join(REPO, "src/ui/stage.js");
+const stamp = (fs.existsSync(stampFile)
+  ? (fs.readFileSync(stampFile, "utf8").match(/PP4_STAMP\s*=\s*"([^"]+)"/) || [])[1]
+  : null) || "unknown";
 const trial = fs.existsSync(path.join(REPO, ".planning/SEA-TRIAL.md"))
   ? fs.readFileSync(path.join(REPO, ".planning/SEA-TRIAL.md"), "utf8").split("\n").slice(0, 4).join("\n")
   : "no .planning/SEA-TRIAL.md on disk";

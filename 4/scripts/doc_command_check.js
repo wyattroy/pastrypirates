@@ -312,5 +312,52 @@ for (const b of [...new Set(numbered)]) {
 }
 if (!numbered.length) pass(`no hook cites a CLAUDE.md rule by number`);
 
+
+/* ---- 10. the scripts the docs tell you to run must not READ a path that is gone ----------- */
+/* §1 proves the script exists. It cannot see a dead path INSIDE it, and that is where rule 25 died:
+ * `node 4/scripts/qa/ceo_brief.mjs` — the command CLAUDE.md gives for the CEO review — threw
+ * ENOENT on "4/src/ui/stage.js" from the cutover (2026-08-26) until 2026-09-06. Eleven days, a
+ * green build the whole time, and it was found by RUNNING it, not by reading anything.
+ *
+ * Only unambiguous literals: a quoted repo-relative path with a real extension, no interpolation,
+ * no glob. A path a script BUILDS at runtime is beyond a static check and is left alone rather than
+ * guessed at — a check that fires on what it cannot actually know is the noise this file exists to
+ * remove. */
+const docScripts = new Set();
+for (const doc of DOCS) {
+  if (!exists(doc)) continue;
+  const text = fs.readFileSync(path.join(REPO, doc), "utf8");
+  for (const m of text.matchAll(/\bnode\s+([A-Za-z0-9_./-]+\.(?:mjs|js|cjs))/g)) {
+    if (!m[1].startsWith("~") && exists(m[1])) docScripts.add(m[1]);
+  }
+}
+let innerPaths = 0, deadInner = [];
+for (const sc of docScripts) {
+  /* COMMENTS OUT FIRST. The very first run of this check failed on ceo_brief.mjs and on this
+     file's own §10 comment, both of which QUOTE the dead path while explaining that it was dead —
+     a check condemning the note that records the fix. Strip line and block comments, the same way
+     §5 strips them before reading the hooks. */
+  const src = fs.readFileSync(path.join(REPO, sc), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+  for (const m of src.matchAll(/["']((?:4\/)?(?:src|scripts|docs|classic|staging)\/[A-Za-z0-9_./-]+\.(?:js|mjs|cjs|json|html|css|md|sh))["']/g)) {
+    const rel = m[1];
+    if (rel.includes("*") || rel.includes("${")) continue;
+    /* A path a check WRITES as a synthetic fixture is not a path it reads from the tree.
+       ui_contract_check.js builds `src/ui/bad.js` in a temp dir to prove its own rule can fail —
+       red-proofing, the thing this repo insists on — and flagging that would punish the practice
+       it protects. Skip anything handed to a fixture()/write()/mkdir() call. */
+    const before = src.slice(Math.max(0, m.index - 40), m.index);
+    if (/\b(fixture|writeFileSync|write|mkdirSync|mkdir|tmp\w*)\s*\(\s*$/.test(before)) continue;
+    innerPaths++;
+    if (!exists(rel)) deadInner.push(`${sc} reads ${rel}`);
+  }
+}
+for (const b of [...new Set(deadInner)]) {
+  fail(`a script the docs tell you to run points at a file that does not exist: ${b}`);
+}
+if (!deadInner.length) {
+  pass(`all ${innerPaths} repo path(s) inside the ${docScripts.size} script(s) the docs name exist`);
+}
+
 console.log(`\n${failures === 0 ? "PASS" : "FAIL"} — ${failures} failure(s)`);
 process.exit(failures === 0 ? 0 : 1);
