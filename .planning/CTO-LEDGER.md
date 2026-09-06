@@ -11806,3 +11806,26 @@ END OF WATCH.
   Artifact, ArtifactComments..."). So "update the Blade and watches can publish" is dead — if
   anything the capability is absent in the later build, and updating THIS Mac might lose it. Per
   machine is the honest scope; neither session has evidence for a general rule.
+
+---
+
+**WATCH START, 2026-09-06T1512Z, `claude/cloud-handoff-planning-a9ay1u`.**
+
+Ranked the Chart (`chartkeeper.mjs --rank --sweep --write`, 0 archived). Top three open rows are
+each genuinely blocked and were skipped for stated reasons, not by guess:
+- rank 1 (`T-261`, DO NOW) — the SFX PRD comment boxes are built, tested, and queued for publish;
+  this session has no Artifact tool (confirmed via `ToolSearch "Artifact"`, no match), so it cannot
+  be the one that republishes. Nothing new to add beyond what the prior two watches already asked.
+- rank 2 (`T-138`) — the row's own closing condition (staging URL loads) is now met; what's left is
+  Wyatt's own look at the page, not a watch action.
+- rank 3 (`T-219`, sea-trial resume-cache) — already investigated and correctly redirected by a
+  prior watch (2026-09-04): the danger is narrower than the row claims (fail-safe NOT-RUN, not a
+  false pass) and a real fix needs a careful pass on a fragile subsystem, not a rushed one. Taking
+  it up again with no new information would repeat that watch's work for no gain.
+
+**Item taken: `T-101`, "Pull the Credits modal out into its own page"** — his own direct
+instruction (Glass, 2026-09-02 3:07 PM ET), harvested but never fated or built (`credits.html` does
+not exist). Genuinely open, genuinely unblocked. Prediction written before touching anything:
+`.planning/wyclau/PREDICTION-20260906T1512Z-T-101.md`.
+
+Claiming it now, before any edit.
