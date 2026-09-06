@@ -1,5 +1,55 @@
 # Wyatt's standing decisions
 
+## ⟨T-261⟩ The SFX PRD — four rulings, and one new standing instruction — 2026-09-06 9:5x AM ET (asked in the question UI by the Advisor, because the PRD could not be published)
+
+Asked because `T-261`'s PRD (`.planning/wyclau/T-261-SFX-PRD.html`) was written but **no session
+anywhere had an Artifact tool to publish it** — so its seven questions were relayed inline rather
+than left waiting for a page he could not be shown.
+
+### ⚠ THE ONE THAT IS NOT AN ANSWER — IT IS A NEW STANDING INSTRUCTION, AND IT OUTRANKS THE OTHERS
+
+**His words, verbatim:** *"i want to correct many assumptions made in the artifact -- make comment
+boxes in the artifact that i can write notes in for you, and you can read them"*
+
+He was asked to confirm five inferred sound mappings and **declined the question's shape rather than
+the question**. Read it as what it is: **a multiple-choice card is the wrong instrument for a
+document he wants to mark up.** He has many corrections and no way to give them — the PRD is
+read-only prose and the question UI only offers picks.
+
+**What it requires, and the mechanism is already proven — do not invent a second one:** his Glass
+already carries exactly this. `glassState.comments`, shaped `{"T-nnn": [{"text": "…", "at": "…"}]}`,
+is his per-item comment box, and `harvest_glass.mjs` already carries what he writes back into the
+INBOX. **Build the PRD's boxes on that same path** (ONE DISPLAY PATH, rule 23) rather than a fresh
+textarea nobody can read. A comment box he can type into and nobody can read back is worse than no
+box, because it silently eats his corrections.
+
+**Consequence for `T-261`: the row is NOT delivered until the page has working comment boxes AND he
+can open it.** Being written is not being shown.
+
+### The four he did answer
+
+1. **`PP_SFX_Alarm.mp3` is "Time up — the buzzer."** *(Recommended, and he took it.)* Not on his
+   sheet by name; `ClockTick` covers the warning tick, leaving the buzzer with no file and Alarm
+   with no row. **His own sheet asks for both timer sounds to be mechanical, not digital — worth a
+   listen before wiring.**
+2. **Scope of the first pass: ONE PASS, everything mapped.** *(Recommended, and he took it.)*
+   Luis's files plus the library sounds already chosen months ago, together. The alternatives he did
+   not pick: Luis's files first with library wiring as a second item; or priority-1 only, stopping
+   so he can judge the core feel first.
+3. **"Your turn": WAIT FOR A DEDICATED FILE FROM LUIS.** *(Recommended, and he took it.)* Not
+   `PP_SFX_Navigation.mp3` (already shipping as `ship-move`), and not ElevenLabs as originally
+   planned. His sheet says he is *"a bit clueless"* what would be exciting rather than annoying
+   here, and it fires every single round — the cue most likely to grate.
+4. **The five inferred mappings (Cannons, ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks)
+   are NOT confirmed** — see the standing instruction above. Do not wire them as read.
+
+**Still unanswered, because the card never reached him:** the PRD's Q5 (fight-resolves — a fresh
+unclipped export from Luis, or a second sound layered with the cannon), Q6 (the 3 music tracks stay
+out of this pass), and Q7 (level everything once at the end, or as it lands).
+
+<!-- harvest-id: RULING-20260906T1355Z-t261-sfx-prd -->
+
+
 ## ⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sente — 2026-09-04T00:35:50.066Z
 
 Asked on the Glass: *"⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sentence on your front card that stops being true the moment it goes live. The line under "how to play" reads "Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected." Cookieless Analytics sets no cookie and never learns a name, but Google does receive the page visited, roughly which country, the browser, and where the player came from — the referrer, which is the one thing you said Google adds that your own counter cannot. ⚠ Nothing has reached a player: the live site carries none of this and staging cannot fire the tag, so there is no rush and no harm today. The words are yours, so I have not chosen them. Note that About and the new Rules page also carry the tag and have no privacy line at all."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-04T00:35:50.066Z.

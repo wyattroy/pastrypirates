@@ -2303,3 +2303,18 @@ status: OPEN — filed as Chart row `T-261`, pinned DO NOW and placed physically
   sound both he and the old audio audit independently flagged as clipped. So this is 21 new files and
   some already-chosen library sounds to wire, not 28 sounds into a silent game. Seven numbered
   questions wait in the PRD. **Still OPEN — this is not a fate an unpublished page can claim.**
+
+## INBOX-20260906T1355Z — put COMMENT BOXES in the artifact so he can correct it
+> i want to correct many assumptions made in the artifact -- make comment boxes in the artifact that i can write notes in for you, and you can read them
+solution: comment boxes in the PRD page, writable by him, readable by us
+status: OPEN — for the Watch, and it REOPENS `T-261`. He read the published PRD
+  (https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d) and said it contains many
+  wrong assumptions. Asked to confirm five inferred sound mappings, he refused the QUESTION'S SHAPE,
+  not the question: a multiple-choice card cannot take the corrections he has. **Those five mappings
+  (Cannons, ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are NOT confirmed.**
+  ⛔ Build the boxes on `glassState.comments` — the mechanism his Glass already uses and
+  `harvest_glass.mjs` already reads back — never a fresh textarea (rule 23). A box he types into
+  that nobody reads back is worse than no box: it silently eats his corrections.
+  ⚠ THIS ENTRY WAS WRITTEN ONCE AND LOST to a stash/pull/pop at ~10:00 AM ET, and survived only in
+  `.claude/memory/DECISIONS.md`. CEO 218 finding 4 predicted exactly that fragility while it was
+  already happening. Re-written here on purpose.

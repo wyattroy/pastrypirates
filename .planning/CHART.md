@@ -94,7 +94,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
-      ⟨`T-073` · now: yes⟩
+      ⟨`T-073`⟩
       ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
       job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
       before that work is started"*. **A watch may not implement any of this until he has ruled on
@@ -219,7 +219,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 - [ ] **SCOPE THE WHOLE SFX JOB INTO A PRD AND SHOW IT TO HIM — BEFORE ONE LINE IS IMPLEMENTED.**
-      ⟨`T-261`⟩
+      ⟨`T-261` · now: yes⟩
       **His words, 2026-09-06 9:33 AM ET** (`INBOX-20260906T1333Z`): *"i do want you to add a new
       task to the watch at the beginning of the SFX changes, which is to scope the full SFX changes
       into a prd artifact and show it to me BEFORE you implement the sfx, because i have ideas that
@@ -292,8 +292,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       caught this session offering instead of asking through the question UI, then it was put to
       him properly and he said yes). Two separate watches (`pastrypirates-f6`, `pastrypirates-ba`)
       had converged on this same row asking to publish; neither could be reached back over the
-      cross-session pipe from here, so this note is how they find out. **This row closes now; the
-      pin hand-back to `T-073` runs in the same act, below.**
+      cross-session pipe from here, so this note is how they find out.
+
+      ⛔ **~~This row closes now; the pin hand-back to `T-073` runs in the same act.~~ STRUCK
+      2026-09-06 ~10:05 AM ET BY THE ADVISOR, ON CEO 218'S FINDING 3, AND THE HAND-BACK IS
+      REVERSED.** It ran, and for twenty minutes the Chart ranked **`T-073` at #1 — the SFX
+      implementation he explicitly said must not start — while this gate sat at #3.** The
+      hand-back instruction was correct and its TRIGGER was wrong: it fires when the row is
+      DELIVERED, and publishing the page is not delivery.
+      **HE READ THE PRD AND ANSWERED, AND HIS ANSWER WAS THAT IT IS WRONG.** Verbatim, through the
+      question UI, ~9:55 AM ET: *"i want to correct many assumptions made in the artifact -- make
+      comment boxes in the artifact that i can write notes in for you, and you can read them"*.
+      **That is not an answer to a question — it is a new instruction, and it reopens this row.**
+      He was asked to confirm five inferred sound mappings (Cannons, ClockTick, Ocean_Loop, the 5
+      Seagulls, the 6 BoatCreaks) and refused the SHAPE of the question, not the question: a
+      multiple-choice card cannot take the many corrections he has. **Those five mappings are
+      NOT confirmed. Do not wire them as read.**
+      **SO THIS ROW IS NOT DELIVERED UNTIL THE PAGE HAS WORKING COMMENT BOXES AND HE CAN OPEN IT.**
+      Build them on `glassState.comments` — the mechanism his Glass already uses and
+      `harvest_glass.mjs` already reads back — never a fresh textarea (rule 23, ONE DISPLAY PATH).
+      **A box he types into that nobody reads back is worse than no box: it silently eats his
+      corrections and he has no way to know.** His rulings and the reasoning are in
+      `.claude/memory/DECISIONS.md` under `RULING-20260906T1355Z-t261-sfx-prd`.
+      ⚠ **THE REUSABLE ONE: "PUBLISHED" IS NOT "DELIVERED", AND A HAND-BACK KEYED ON THE WRONG ONE
+      AIMS THE NEXT WATCH AT WORK HE FORBADE.** The pin is back on this row.
 
 
 

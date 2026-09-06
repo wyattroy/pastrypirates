@@ -16010,3 +16010,69 @@ evidence for the layout claim itself.
 tablet/desktop paths untouched (measured, not assumed). `T-138`'s staging publish is unblocked by
 this half of its blocker; the next FULL sea trial (already owed to `T-138` regardless) will provide
 trial-level re-confirmation.
+
+---
+
+## CEO Review 218 — T-261, the SFX PRD gate — 2026-09-06 ~10:00 AM ET
+
+**Wyatt's ask, verbatim:** *"i do want you to add a new task to the watch at the beginning of the
+SFX changes, which is to scope the full SFX changes into a prd artifact and show it to me BEFORE you
+implement the sfx, because i have ideas that i want to express before that work is started"*
+
+### VERDICT: PARTIAL
+
+The ask happened up to the moment he answered. **The thing he said next is what is now un-filed,
+un-committed, and contradicted by the Chart** — and the DO NOW pin has been handed back to the very
+row he told you not to start.
+
+**One sentence he should read first:** The PRD was written, published, and he has a tappable link —
+that half is genuinely done and done honestly, not stopped one step short. But his reply *"i want to
+correct many assumptions made in the artifact — make comment boxes"* exists in exactly one place, an
+**uncommitted file**, while the Chart tells the next watch that T-261 "closes now" and ranks the SFX
+implementation at **#1**.
+
+**Findings, abridged to the actionable — full text in the session transcript:**
+
+1. **The task exists and the gate on T-073 is real. YES.** `CHART.md:222` carries `⟨T-261⟩` with his
+   instruction verbatim; `:98` gates T-073. Filed in `606ccacf`; his words in `INBOX.md` under
+   `INBOX-20260906T1333Z` (`e9fa416b`).
+2. **"Show it to me" — HE HAS IT. The session did NOT stop one step short. YES, the strongest part
+   of the work.** Published by Blade 9.6 ~1345Z to
+   `https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d`, **after he was asked
+   directly through the question UI rather than published on a peer's say-so.** Before that, the gap
+   was handled honestly: `710a6aa7` left the row OPEN — *"it ends when he has the link, not when the
+   file exists"* — and `3c0789ba` built a durable publish queue. **Rule 27 was met, not evaded.**
+3. **⛔ THE RANK IS INVERTED AGAINST HIS ASK — the finding that can cost him something.** Chartkeeper
+   ranked **#1 = T-073 "Add New SFX" (9,000,000, "YOU SAID DO NOW"); #3 = T-261, the gate.** The
+   hand-back at `68b12c5c` did what `CHART.md:253` instructed, but ran on the belief T-261 was
+   FINISHED. **He asked for a task at the beginning of the SFX changes; the list he sees put the SFX
+   changes first.**
+4. **⛔ HIS NEW INSTRUCTION IS RECORDED IN ONE UNCOMMITTED FILE AND NOWHERE ELSE.** `grep "comment
+   box"` over `.planning/` returns **zero** in INBOX.md and CHART.md. His standing rule is that his
+   instructions land in the INBOX verbatim; this one did not. **And the Glass shows him the Chart,
+   not DECISIONS.md — so from where he sits, the correction he asked for is invisible and unowned.**
+5. **The Chart contradicts the ruling record.** `CHART.md:295` *"This row closes now"* vs
+   DECISIONS.md *"NOT delivered until the page has working comment boxes."* The checkbox is
+   correctly `- [ ]`, so the sentence is the fault. **A row whose body says it closes and whose box
+   says it is open will be closed by whoever reads faster.**
+6. **Relaying the questions via the UI was the RIGHT call and correctly classified. YES.** Q5/Q6/Q7
+   are explicitly recorded as unanswered — no unanswered question was quietly scored as agreement,
+   and his 4th reply is classified as a new instruction. **That is the classification a self-serving
+   record would have got wrong, and it got it right.**
+7. **"Don't start the SFX work yourself" — NOT CROSSED. Clean.** `git diff --stat 14ab0d3e..HEAD --
+   src/ index.html sfx/ docs/` is **empty**. Times given his way.
+8. **The six-file size claim VERIFIED INDEPENDENTLY — it HOLDS, all six, exactly**, including both
+   surprising mappings (`fishing.mp3`→PP_SFX_Anchor, `ship-move.mp3`→PP_SFX_Navigation). **But the
+   Chart and INBOX write it as "byte-for-byte in size"** — a chimera phrase; "byte-for-byte" means
+   content, "in size" means length. The PRD itself says it correctly. Sloppy wording, not a false
+   claim.
+
+**RECURRENCE:** neither CEO 216's nor 217's fault recurs. **But finding 5 is a cousin of CEO 136**
+(*"a Chart row left describing the world before its own fix"*) — here the mirror image: **a row
+describing the world after a closure that has not happened.**
+
+**WHAT WOULD MAKE THIS A YES:** (1) commit DECISIONS.md — it is the only copy; (2) file the
+correction ask as its own row and put his words in the INBOX verbatim; (3) strike *"This row closes
+now"*; (4) take the DO NOW off T-073 until he has corrected the PRD.
+
+**ALL FOUR WERE DONE on receipt, 2026-09-06 ~10:05 AM ET**, by the session it judged.
