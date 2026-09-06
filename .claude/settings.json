@@ -49,6 +49,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-base.cjs\"",
             "timeout": 15,
             "statusMessage": "Marking where this session started"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --arrive 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Sync this machine in — pull, or say why it could not"
           }
         ]
       }
@@ -125,6 +131,12 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/qa/kill_stray_probes.mjs\" --quiet 2>/dev/null || true",
             "timeout": 20,
             "statusMessage": "Killing any abandoned headless browsers (rule 17)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --leave 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Is this machine holding work nobody else can see?"
           }
         ]
       }
