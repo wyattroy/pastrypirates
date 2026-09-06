@@ -300,8 +300,31 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       the board is scoped, not silently trimmed.**
       ⛔ **AND HIS ORDERING RULING IS NOT PERMISSION TO START WIRING.** It sequences two future jobs.
       **STILL NOT DELIVERED. Two boxes of thirteen.** Four section boxes and all seven questions are
-      still blank; four of the five mappings (ClockTick, Ocean_Loop, Seagulls, BoatCreaks) are still
-      unconfirmed. The row stays open and no sound gets wired.
+      ✅ **16:36Z — HE FINISHED. *"I finished my rulings."* 12 comment-box entries, all harvested.**
+      Digest at the top of [`DECISIONS.md`](../.claude/memory/DECISIONS.md); his exact words in
+      `INBOX.md`. The committed page is re-synced from the live one so nothing can overwrite him.
+      **TWO OF HIS RULINGS MOVE SOUNDS RATHER THAN FILL BLANKS** — the sword clash goes to when a
+      battle is CALLED (not when it resolves), and the narration box moves to fit the drumroll audio
+      rather than the audio being cut to the box's 2.55s.
+      ⛔ **FOUR COLLISIONS, AND THE ROW STILL DOES NOT CLOSE BECAUSE OF TWO OF THEM:**
+      1. **He overrode his own morning ruling** — *"wait for a dedicated file from Luis"* for "your
+         turn" became *"use Bell."* The later wins outright; do not average them.
+      2. ⛔ **"Your turn" still collides with `audio.js` D-07** — everyone hears the whole table; a
+         your-turn cue is per-player. **He gave it a FILE, not a RULE.** Asked once, still open.
+         **Must be asked again before wiring.**
+      3. ⛔ **The Alarm has no trigger** — *"This is not built into the current game though."*
+         Wiring it means BUILDING turn-timer expiry. **Price it separately and put it to him.**
+      4. ⚠ **His sword ruling vs this project's own measurement** (+0.2 dBFS true peak, DEFECT-3).
+         Likely reconcilable: the measurement was of the SHIPPED file, not Luis's LATEST clip.
+         **Fetch the latest, re-measure THAT, report the number.** Do not drop either.
+      🆕 **AND A NEW FEATURE, not a sound swap: the 3-phase sound button** (Music+SFX → SFX only →
+      mute → back) plus a 2-minute wait before the music loops. Changes an existing control, needs
+      its own consistency sweep (rule 8) over every surface that shows that button, and is **not**
+      part of "wire Luis's files".
+      📄 **`LUIS-SFX-ROUND-3-BRIEF.md` written at his instruction** — New Day wants a wind whoosh or
+      a weather-vane creak, because the wind changes direction daily.
+      **ClockTick is the one mapping never explicitly confirmed** — he ruled Alarm = timer expiry,
+      which leaves ClockTick as the warning tick by elimination, but he never said so.
       ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was
       written as a repo-relative path (`../../docs/AUDIO.md`), which on a published artifact goes
       nowhere — he'd have tapped a link and got nothing. Now a plain `<code>` citation, matching how
