@@ -2452,3 +2452,12 @@ status: OPEN
 > Bug: When refreshing the page in solo, the boats all reappear at totuga until a sail square is clicked.
 solution: none stated
 status: OPEN
+## INBOX-20260906T161511Z — Problem: the privacy policy footer appears incorrectly: 1) it appears over the game board
+> Problem: the privacy policy footer appears incorrectly: 1) it appears over the game board 2) it appears on its own privacy policy page. expectation: this footer should only show up in the homepage, nowhere else.
+solution: none stated
+status: OPEN
+
+## INBOX-20260906T161921Z — ⚑ HE PRESSED DO NOW — Problem: The stage is darkened incorrectly in tablet and widescreen view -- the gameboard
+> Problem: The stage is darkened incorrectly in tablet and widescreen view -- the gameboard div is darkened, including the top navbar row with the four ship circles and the wind pill; and the bottom right/left corners around the gameboard. Expectation: in tablet and widescreen, only the gameboard rounded-square area is darkened.
+solution: none stated
+status: OPEN — PINNED by him on the Glass; take this before anything ranked

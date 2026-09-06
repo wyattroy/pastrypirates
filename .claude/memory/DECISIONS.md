@@ -94,6 +94,324 @@ this session's wrong claims were exactly that shape: his Firebase plan (wrong), 
 pricing (right, but uncited — so a fresh CEO could not tell it from memory, and reasonably called
 it out). CEO 227 named it as CEO 223's overclaim fault recurring. **Cite the source and the date,
 or write UNVERIFIED.**
+## THE GLASS'S FIREBASE KEY: A SERVICE KEY, OUTSIDE THE REPO, ONE PER MACHINE
+
+**His ruling, 2026-09-06, through the question UI**, closing the build-stopper CEO 233 found:
+**"A Firebase service key, kept outside the repo on each machine."**
+
+**THE PROBLEM IT SOLVES, in CEO 233's words:** *"The plan says the page must refuse to answer
+strangers, and it also says the Blade must be able to read it while you are asleep. Both cannot be
+true unless the Blade carries a key — and the plan never says where that key lives."* This repo is
+**public** (`CURTAIN-DELIVERED.md:3`), so the key can never be committed.
+
+**WHAT HIS RULING MAKES NON-NEGOTIABLE:**
+
+1. **The key path is in `.gitignore` BEFORE the first key is written.** A gate asserts it. Not after.
+2. **A watch with no key FAILS LOUDLY.** It must never quietly skip the harvest and publish anyway
+   — that is a republish without a harvest, the single act that deletes his words.
+3. **Per-machine, hand-installed.** Blade and Mac separately; a fresh machine is a two-step setup,
+   written where the Door finds it rather than in a session's memory.
+
+**⚑ AND CEO 233 FOUND THAT HE ALREADY HAS RULES, which nobody had read.** Measured: `visits`,
+`starts`, `rooms`, `fins`, `presence` answer **200** unauthenticated; `usage`, `games` and the root
+answer **401**. A factory-default database answers the root read — **his does not, so non-default
+per-path rules exist in his console today.** The job is *editing rules whose text is unknown*, not
+writing them from nothing. **Read them first; do not estimate this work before someone has.**
+*(Reads only were measured. No write was attempted and nothing here claims anything about writes.)*
+
+**✅ MIGRATION — HIS RULING, same day: "Start the new store empty — the Chart already has it all."**
+And the reasoning is his and it is correct: an idea or ruling reaches the Chart within minutes of
+him typing it, so `glassState` is a **staging area, not the record.** There is nothing to migrate,
+so CEO 233's finding 4 is answered by a DECISION rather than by code — the cheapest kind of answer.
+⚠ **The one gap he accepted is closed by building, not banked:** anything typed between the last
+harvest and the switch would live only in the artifact. **So the final act before cutover is a
+harvest, gated — refuse to switch while it returns anything at all.** A clean read proves the gap
+is empty. Minutes, and it removes the only way his choice can cost him a word.
+
+**✅ CUTOVER — HIS RULING, same day: "Clean cut — one moment, old page retired immediately."**
+CEO 233's finding 5 is answered by REMOVING the two-store day rather than managing it, so rule 23
+has nothing to bite on. **The order is the safety, and it is one sitting:** harvest the artifact
+and gate on EMPTY → switch → retire the artifact in the same minute, marked dead on its own face →
+**hand him the new link in the reply he reads.** ⚠ **His link CHANGES here; a cutover that does not
+put the new URL in front of him has not finished** (rule 27). Retiring before harvesting loses the
+gap; handing him the link before switching sends him to a page that is not live. Neither is
+recoverable by apology.
+
+**NOTHING IS OPEN. The plan is ready to build** — and **two of CEO 233's three required answers
+were decisions, not code**, which is why the estimate came DOWN (3–4 days → 2–3) rather than up.
+
+**THE ONE REMAINING BLOCKER IS HIS HANDS, not a session's:** the Firebase rule, in his console —
+and per CEO 233 it must be READ before it is edited, because per-path rules already exist there and
+nobody has seen them.
+
+**Related:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md),
+re-sized 3–4 days, and CEO Review 233 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+
+> ### ⚑ AND `T-265` NOW HAS A MEASURED CAUSE — it was recorded as UNKNOWN on purpose, and CEO 233 settled it.
+>
+> The game's real paths are `rooms/<code>/…` (`src/net/watchers.js:33-165`,
+> `src/net/writers.js:50-138`) and `visits`/`starts`/`fins` (`src/ui/usage.js:36,56`). **Every one
+> answers 200.** The probe that declared multiplayer down read `games`, `usage` and the root —
+> **the three that hold nothing.** So the cause is not a rules change, an expiry, or anything about
+> his console: **I read the wrong doors.** Written here so the UNKNOWN can be retired honestly
+> rather than left as a permanent open question.
+
+
+## ⚠ "WORK ON A NEW BRANCH" CANNOT ISOLATE YOU — ONE MACHINE HAS ONE CHECKOUT
+
+**Wyatt, 2026-09-06, after a session filed a false production outage:** *"do your work on a new
+branch so you stop breaking things."* **The instruction is right and it does not do what it sounds
+like, and the next session must know that before it obeys.**
+
+**`git checkout -b` moved the SHARED WORKING TREE.** Worktrees are retired here (`CLAUDE.md` §3),
+so this Mac has exactly one checkout and one `HEAD`. Creating `sep06-glass` did not give this
+session a private branch — **it moved every session on this machine onto it**, including the live
+SFX session holding `T-073`, which had uncommitted edits to `src/ui/stage.js` at that moment and was
+never told. Its edits came along for the ride.
+
+**Nothing was lost this time** — `sep06-glass` contains everything `sep06-sfx` had, plus two
+commits — **and the failure mode is real and quiet:** the neighbour still believes it is on
+`sep06-sfx`, and a later `git push origin sep06-sfx` from it would push a branch that does not
+carry its work.
+
+**WHAT TO DO INSTEAD, when he asks you to get out of another session's way:**
+
+1. **Read `IN-HAND` and the `🔒 CLAIMED` blocks in `CHART.md` FIRST.** If another session holds an
+   item on this machine, a branch switch is not yours to make alone.
+2. **Separate by FILES, not by branch** — the mechanism this project already uses. Commit by
+   explicit pathspec, never `git add -A`. The Glass tick did exactly that the same hour and left
+   the neighbour's `src/ui/stage.js` untouched, which is the worked example.
+3. **If a switch really is needed, say so in the reply he reads and name who else is on the
+   machine**, so the collision is visible rather than discovered later by a push that goes nowhere.
+
+**AND IT BREAKS A HOOK, WHICH IS HOW IT WAS FOUND.** `playtest-checklist-last.cjs` attributed the
+neighbour's uncommitted `src/ui/stage.js` edit to this session and demanded a playtest sheet for it.
+Full account and the repair: [`.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`](../../.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md).
+**A sheet was NOT written** — it would have described somebody else's unfinished audio work, which
+this session cannot see or verify, and handing him fabricated QA is the thing today already went
+wrong twice by doing.
+
+
+## ⛔ I TOLD HIM HIS LIVE GAME WAS BROKEN. IT WAS NOT. HE DISPROVED IT IN A MINUTE.
+
+**2026-09-06, ~18:2xZ.** A session filed `T-265` — *"MULTIPLAYER IS DOWN ON THE LIVE SITE, AND IT
+FAILS SILENTLY"* — pushed it to the shared branch, and published it to his Glass **as the page's
+headline**, with a paragraph telling him to go change a rule in his Firebase console.
+
+**Wyatt, within the hour:** *"you are wrong, it is not down -- i just started a nultiplayer game"*,
+with a screenshot of two windows on `playpastrypirates.com`, one of them Private, both on DAY 1 of
+an identical board, CAPTAINS showing **wyhost, wyguest, Dough Hook, Flaky Jack** in each. Two real
+people in one synced room. **The game had been working the entire time.**
+
+### WHAT THE PROBE ACTUALLY MEASURED, AND WHY IT PROVED NOTHING
+
+It read `games/<code>`, `games`, `usage` and the database root, and wrote to an invented
+`_glassgate_probe` path. Every one refused. **Not one of those is a path the game uses.** The four
+"confirmations" were four readings of the same wrong subject, and stacking them felt like rigour.
+
+### THE RULE THAT WAS BROKEN IS THE OLDEST ONE IN `CLAUDE.md`, AND IT WAS QUOTED ON THE WAY PAST
+
+> *"When a check condemns something known to work, suspect the check first."* (§1)
+
+**A probe said the live game was broken. The live game was not broken. The probe was believed.**
+Worse: minutes earlier the same session had written *"a gate that goes green on its first run is
+exactly what rule 6 says to distrust"* — and then trusted that identical instrument completely the
+moment it turned red. **Scepticism was applied to the green and abandoned at the red**, which is
+not scepticism; it is looking for a finding.
+
+### THE PART THAT MAKES IT WORSE THAN A WRONG ANSWER: THE BLAST RADIUS
+
+An ordinary wrong conclusion costs a correction. This one was **pushed to a shared branch and
+published to the one page he trusts for status**, headline position, with an action item pointing
+at his own console. **He had to go and disprove his own status page with two browsers.**
+
+**SO: A CLAIM THAT PRODUCTION IS BROKEN IS NOT AN ORDINARY FINDING AND MUST NOT TRAVEL LIKE ONE.**
+Before it reaches his Glass, the shared branch, or a sentence addressed to him:
+
+1. **PLAY THE THING (rule 19).** Two tabs, host and guest, as a person. That is thirty seconds and
+   it is decisive. *This session drove the browser and still never completed a join* — it read the
+   database instead of finishing the game it had already started.
+2. **Name the path/flow the real product uses, and check THAT.** A probe on a path invented for the
+   probe measures the probe.
+3. **Say UNKNOWN rather than DOWN.** The record already carries three wrong causes in one day
+   (see the frozen-Glass entries above). A fourth confident one is a pattern, not an accident.
+
+### AND THE FIX FOR THE *NEXT* WRONG THEORY IS NOT ANOTHER THEORY
+
+Why the probe was refused is **still unknown, deliberately**. A plausible mechanism exists (RTDB
+rules do not cascade upward, so a parent read can be denied while the children the game uses are
+fine) — **unverified, recorded as a guess, and not to be repeated as a cause.**
+
+**His instruction the same minute, and it stands:** *"do your work on a new branch so you stop
+breaking things."* Work moved to `sep06-glass`. The retraction went to `sep06-sfx` first
+(`2eca2438`), because leaving a fabricated outage on a branch other sessions read is itself the
+breakage he is talking about.
+
+**Related:** `scripts/qa/glass_store_write_locked_check.mjs` was DELETED, not fixed — it measured an
+invented path and concluded *"PASS — only he can write"*, equally unearned. **A gate that cannot see
+its subject is worse than no gate, because it is reassuring** (`docs/HARD-WON-LESSONS.md` §3).
+
+
+## THE GLASS MOVES OFF THE ARTIFACT — AND THE THREAT IS **WRITE**, NOT READ
+
+**His ruling, 2026-09-06, two questions through the UI.** First: move his writing off the artifact
+into Firebase, so the page becomes an ordinary page any session can publish — chosen over a
+read-only staging mirror, a Mac hand-off, and doing nothing. Then, asked how private it needed to
+be, he picked real authentication and said why:
+
+> *"2 -- If other people are able to add or change parts of my Glass watch, they could completely
+> break the game."*
+
+**HE WAS OFFERED A MENU ABOUT CONFIDENTIALITY AND ANSWERED ABOUT INTEGRITY.** All four options put
+to him traded off **who can READ his notes** — curtain, `noindex`, `robots.txt`, a rule to stop the
+database handing his words out. **None of them was the danger, and the axis he named was not on the
+table.**
+
+**WHY HE IS RIGHT, AND IT GENERALISES BEYOND THIS BUILD: the Glass is not a page a watch DISPLAYS,
+it is a page a watch OBEYS.** An idea he types becomes a Chart row a watch takes as its one item. A
+**DO NOW** press becomes `chartkeeper --do-now` at rank 9,000,000, displacing whatever was pinned. A
+ruling becomes an entry in this file that every later session treats as settled law. **So an open
+write path is not a leak — it is a stranger holding commit-adjacent authority over an autonomous
+build system.** The harvest is the trust boundary, and it trusts the store totally, because until
+now the store was an artifact only he could write.
+
+**THE STANDING LESSON FOR ANY FUTURE "HOW LOCKED DOWN SHOULD THIS BE?" QUESTION: ask about WRITES
+FIRST.** This project's surfaces feed instructions to unattended sessions. Confidentiality is the
+second axis here, not the first, and a question that only offers the second one invites a wrong
+answer that sounds reasonable.
+
+**CONSEQUENCES, so nobody re-litigates them:**
+- **Auth on writes is load-bearing, not hardening.** Shipping reads-locked and writes-open solves
+  the lesser half and leaves the whole danger standing.
+- **A signed-out page must REFUSE to write, visibly** — never silently drop what he typed.
+- **The Firebase rule is HIS HANDS**, in his console; no session can reach it, like the `T-220`
+  hook edits. It is a blocker to name now, not on the day the work is ready.
+- Confidentiality still applies: the database answers unauthenticated reads
+  (`INBOX-20260906T2010Z`), no rules exist in this repo, and staging is a public URL. Real auth
+  covers both axes, which is what the extra day buys.
+
+**Scope:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md).
+Sized 2–3 days, tooling not game code. **Related:** the defect it closes is his own —
+*"once the blade woke up, the page did not update"* — recorded above.
+
+
+## ⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — — 2026-09-06T17:54:55.080Z
+
+Asked on the Glass: *"⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — "choose yer recipe" — because that card is not a modal and the fix already shipped only watches modals. Measured fresh, not reasoned: posed a real tablet (820×1180) solo voyage to the recipe-choice prompt, screenshot at .planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png. The card sits at CSS z-index 30 with no dimming behind it at all (confirmed: #pp4Prompt carries class pp4Recipes, which paints no backdrop), while the shipped fix only hides the bar when a .modalOverlay is open. In this run the top captain row (Davy Scones, pink) is entirely covered by the card — not a sliver cut mid-word this time, but the same mechanism the row already named. Two fixes were considered and NOT built, because they trade off differently and it's a taste call:"* — **Wyatt ruled "Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide"**, 2026-09-06T17:54:55.080Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Extend the existing
+- Instead, shrink/reposition ONLY the recipe-choice card so it never physically overlaps #pp4Cap on tablet — narrower fix, but now two different rules decide when the bar is covered instead of one
+- Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide  ← **his pick**
+
+<!-- harvest-id: RULING-20260906T175455Z-t142-recipe-choice-captains-bar -->
+
+## ⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206  — 2026-09-06T17:55:06.580Z
+
+Asked on the Glass: *"⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206 ruling named three pages for analytics — "the game, About and Rules" — and Credits wasn't one of them, because it didn't exist yet when you ruled. CEO 222 flagged this rather than guess: read as a list, Credits is excluded; read as your underlying principle ("the public pages only"), Credits is a new public page and belongs. If people open the link you send them, you'd probably want to know."* — **Wyatt ruled "Add it — one line, <script type="**, 2026-09-06T17:55:06.580Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Add it — one line, <script type=  ← **his pick**
+- Leave it out — Credits stays exactly as ruled, a fourth page needs its own ask
+- Something narrower — count views but not who they are, if that's even a meaningful distinction here
+
+<!-- harvest-id: RULING-20260906T175506Z-t101-credits-analytics -->
+
+
+## THE BLADE GOING QUIET IS NOT A FAULT — HE SHUTS IT DOWN WHEN HE CAPS OUT
+
+**Wyatt, 2026-09-06, unprompted, correcting two sessions in a row:** *"THe blade went quiet because
+i ran out of usage for the week and shut it down intentionally -- not a fault"*
+
+**So a gap in `.planning/wyclau/status/Wy-Blade.md`'s Bell log is a DELIBERATE SHUTDOWN until he
+says otherwise. Do not open an investigation into one, and do not report it to him as a symptom.**
+
+**What it cost to learn, and why this entry exists rather than a line in a commit.** On 2026-09-06
+his Glass had not rebuilt in 53 hours. Two causes were put to him in turn and **both were wrong**:
+
+1. *"the interactive publisher session died"* — asserted from `ListAgents` **run on the Mac**, which
+   cannot see a Blade session whether it is alive or dead. Rule 6: an instrument answering honestly
+   about the wrong subject.
+2. *"the Blade stopped — so guard against that machine taking the status page with it"* — CEO 229's
+   correction of (1), and its timing was exact (last Bell ring 11:58:01Z, five minutes after the
+   page last rebuilt, same machine). **The arithmetic was right and the reading was still wrong.**
+   It turned his own deliberate act into a hardware risk to engineer against.
+
+**THE REUSABLE LESSON, and it is sharper than either finding: a machine going quiet is an
+OBSERVATION, never a diagnosis — and this project has a person who can simply be asked.** Both
+sessions reasoned from logs toward a cause when the cause was a decision he had made and would have
+stated in one line. **Ask him before building a theory about his own machines.**
+
+> ### ⛔ THE PARAGRAPH THAT WAS HERE NAMED THE WRONG DEFECT, AND HE CORRECTED IT WITHIN THE HOUR
+>
+> It said: *"It is not the freezing that is the defect — it is that nothing told him."* **Wyatt,
+> 2026-09-06, immediately:** *"No -- the actual gap is that once the blade woke up, the page did
+> not update."*
+>
+> **He is right and the evidence was already on the page nobody re-read.** `status/Wy-Blade.md`
+> shows the Bell ringing again at **13:01:30Z** and then **at least ten more times** — 13:18,
+> 13:48, 13:58, 14:08, 14:48, 15:08, 15:48, 16:08, 16:38, 16:58 — while the Glass sat at its
+> 09-04 11:53Z generation the whole time. **The relay was alive for very nearly four hours
+> (13:01:30Z to 16:58:02Z = 3h57m) and his status page moved not at all.**
+>
+> ⚠ **"AT LEAST", AND THE COMMIT THAT LANDED THIS ENTRY (`56b309ce`) SAID "ELEVEN MORE" AND THEN
+> LISTED TEN.** Counted off the file: eleven timestamps total, so ten AFTER the wake. And the file
+> was published at 17:10Z, so any ring later than 16:58:02Z is simply not in it — the true figure
+> is a floor, not a total. **Corrected here rather than left standing, because this entry exists
+> to stop the next session re-deriving the wrong defect, and a record that miscounts its own
+> evidence is exactly the overclaiming CEO 227 and 229 both named.**
+
+**SO THE DEFECT IS NOT THE FREEZE AND NOT THE SILENCE — IT IS THAT A RUNNING RELAY CANNOT MOVE HIS
+PAGE.** The page being still while the Blade is off is correct and expected. **The four hours after
+it woke are the fault**, and they are a fault every single time, not just after a shutdown.
+
+**AND THE DESIGNED CHANNEL FOR THIS IS BROKEN END TO END, WHICH IS WHY NOBODY NOTICED.**
+`GLASS-NOTE.md`'s own header promises *"The next watch (the relay session the Bell rings) reads
+this on its pulse, folds it into the page."* **No watch the Bell rings can publish** — every one
+is `claude -p`. So the note file is a relay pointed at a publisher that does not exist on that
+machine, and each half looks healthy on its own: watches run, notes get written, and the page
+never moves. **A handoff whose receiving end was never built does not report as broken.**
+
+**Related:** [`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../../.planning/wyclau/GLASS-UPDATE-SESSION.md)
+(only an interactive session can publish; every Bell-rung watch is `claude -p` and never can), and
+CEO Review 229 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+
+
+## ⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rest — 2026-09-06T17:23:03.302Z
+
+Asked on the Glass: *"⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is G-2KK6EZDZSP actually a live property in your Google account? The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know."* — **Wyatt ruled "Open analytics.google.com and confirm G-2KK6EZDZSP is there"**, 2026-09-06T17:23:03.302Z.
+
+**His note, verbatim:** *"Confirmed -- it's there."*
+
+**The alternatives he did not pick**, as his card showed them:
+- Open analytics.google.com and confirm G-2KK6EZDZSP is there  ← **his pick**
+- Ship it as-is and find out from real traffic
+- Create a fresh property instead
+
+<!-- harvest-id: RULING-20260906T172303Z-t206-confirm-ga-property -->
+
+## ⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 20 — 2026-09-06T17:23:26.136Z
+
+Asked on the Glass: *"⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning --gear=/--reason=/--explain, and a NEW bug along the way (a Windows path-separator bug that makes scripts/, .claude/, docs/ all misread as "game code" on this machine) — and every attempt to Edit .claude/hooks/qa-gear-first.cjs or .claude/hooks/lib/game-code.cjs is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in .planning/CHART.md's T-220 row and scripts/qa/hook_gear_override_reachable_check.mjs."* — **Wyatt ruled "You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row"**, 2026-09-06T17:23:26.136Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row  ← **his pick**
+- Find whatever setting fences .claude/hooks/ from an unattended watch and loosen it, if you want future watches to close items like this one
+- Leave it — it's cosmetic-severity (a missing hint in a denial message, plus a hook that's stricter than it needs to be on this OS) and not worth your time
+
+<!-- harvest-id: RULING-20260906T172326Z-t220-hooks-write-access -->
+
+## ⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won eac — 2026-09-06T17:23:31.304Z
+
+Asked on the Glass: *"⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling. T-023's original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (2026.09.04.2) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (.planning/posed/t143-eov-phone-390x664-awards.png, t143-eov-tablet-820x1180-awards.png) to the Glass for you to see directly."* — **Wyatt ruled "Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern"**, 2026-09-06T17:23:31.304Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern  ← **his pick**
+- Shrink the award cards/stats table on phone so all 4 fit without scrolling, at the cost of smaller text/art
+- Show only the ONE card for the player's own seat by default on phone, with a tap/swipe to see the others
+
+<!-- harvest-id: RULING-20260906T172331Z-t143-eov-phone-scroll -->
+
 
 ## ⟨T-261⟩ HE FINISHED THE PRD — 12 rulings in the comment boxes, 2026-09-06 16:27–16:36Z
 

@@ -39,6 +39,7 @@ been sitting on top of your task list for three days pointing at work already do
 > allocates these numbers, so parallel sessions collide silently, and `close_item.mjs` REFUSES
 > a close that cites an ambiguous number (it refused one earlier today). A verdict nobody can
 > cite is a verdict nobody can check.
+## CEO Review 227 — `T-073` slice 1: "Start the SFX wiring now" — **NO, not as it stands** — 2026-09-06
 
 **VERDICT: NO.** In its words: *"Two of Luis's stems really are wired and really are on staging — that
 half is genuine and I verified it on the wire, not from the account. But **this change makes the
@@ -17312,3 +17313,64 @@ Its words: *"He asked two small things and got both, honestly — I re-ran every
 | 10 | Recorded, not silent: `sea_trial.mjs --gear=COSMETIC --reason="..." --report=.planning/SEA-TRIAL-sep06-cloudflare.md`, its own report file so it cannot overwrite the Blade's. Wyatt is asked to confirm the lowering as item 7 of his checklist |
 | 12 | The carried-forward number was re-counted rather than repeated: **144**, not 142 — `gate_count_check.js` and the `package.json` chain agree |
 | 13 | Left open deliberately. The staging clobber itself is still unreviewed and is NOT closed by this entry |
+## CEO Review 229 — 2026-09-06T~1740Z, Wyatts-MacBook-Air — the frozen Glass: unfreeze, harvest, re-arm
+
+**Wyatt asked, verbatim:** *"the Glass hasn't updated in a LONG time -- apparently that's because the session that had been updating it is disconnected. tell me what my options are. read the full documentation to understand how our architecture uses Blade and Mac"* — then, through the question UI, he picked **"Unfreeze it now, then re-arm the recurring publisher (Recommended)."**
+
+### VERDICT: PARTIAL
+
+Its words: *"The mechanical work is real and better-evidenced than most... **Two things miss.** One is the thing he pressed a button for and did not get. The other is a causal story told with more confidence than the evidence carries — the same shape of fault CEO 227 and CEO 223 both named."*
+
+**Does CEO 227's fault recur? Its answer: YES, in a narrower form.** *"This session did not open with a blanket 'everything was measured' claim, and the great majority of its numbers survived checking exactly. But it stated a cause on a Wyatt-facing surface that its own evidence does not establish, and it did so while holding the fact that contradicts it."* Third occurrence.
+
+**CONFIRMED (verified independently, not read off commit messages):**
+
+1. **The six-times fault did NOT recur.** `## BLOCKED ON WYATT` holds exactly two rows and none is t206/t220/t143; all three sit in `## RULED` (`.planning/CHART.md:1285-1287`) with his verdict and a `- [ ] Your ruling:` row each. `rulings_triage_check.mjs` and `answered_question_retired_check.mjs` both exit 0.
+2. **Both ideas landed byte-verbatim.** Compared the artifact's `text` fields against `INBOX.md` character by character — em-dashes, `1)`/`2)` numbering and his `--` all survived.
+3. **The 49-hour Bell hole is real, not a truncation artifact.** `publish_status.mjs:53` caps the log at 40 lines, but the gap is INTERIOR — 29 retained lines before it, 11 after. The right thing to doubt, and it held.
+7. **The re-arm is real** — `CronList` shows `7b3e531c`, correct schedule, dispatcher-pointer prompt.
+8. **The step 1 path fix is real and worth having** — caught before the first tick, not after.
+
+**FINDING 4 — NO. Item 10 inverted his own design. He pressed a button and did not get what it does.**
+
+Its words: *"'One slot, not a queue' is the reason a second press **must displace** the first. It was cited as a reason to refuse the second press."* Citation, his own words at `scripts/wyclau/chartkeeper.mjs:107`: *"ONE SLOT, NOT A QUEUE. Ticking it on a second item must displace the first, deliberately. An interrupt with a queue is just another backlog, which is the fault this whole design removes."* And `:972`: *"the interrupt he typed most recently should not be buried by a list he arranged this morning."* His darkening press is `2026-09-06T16:19:21.936Z`; T-073's pin traces to his **09-04** press, re-applied by a *session*. **The mid-flight worry was legitimate but was already a DIFFERENT mechanism's job** — the `🔒 CLAIMED` block at `.planning/CHART.md:99`. Two mechanisms collapsed into one, and his press paid.
+
+**FINDING 5 — his two new items reached no Chart row at all**, so the pin was invisible as work; the collision was "named on his page" only as commit prose in the feed, not put to him through the question UI.
+
+**FINDING 6 — the causal story overclaimed, twice over.** (a) *"A `ListAgents` run on the Mac is not evidence about a Blade session's death; a Blade session would not appear there whether alive or dead."* (b) A simpler single cause fits and was never named: the Glass's last generation is `2026-09-04T11:53:19Z` and the Blade's last Bell ring before the hole is `11:58:01Z` — **five minutes apart, on the same machine.** So the Bell hole is plausibly the CAUSE, presented as corroboration.
+
+**WHAT WAS DONE ABOUT IT, before Wyatt read this:** findings 4 and 5 fixed — both ideas promoted to real Chart rows (`T-263` darkening, `T-264` privacy footer), `chartkeeper.mjs --do-now=T-263` fired (*"released 1 earlier pin: one slot, not a queue"*), re-ranked, and `T-263` is now rank 1 with the SFX claim lock untouched. Finding 6 corrected in the open on his page and in the reply, naming the machine-quiet explanation as the likelier one.
+
+---
+
+**ITS ONE THING FOR WYATT:** *"Your page is alive again and everything you wrote is safe — but the thing you actually pressed the button for didn't happen... At 12:19 your time you hit DO NOW on the gameboard-darkening bug. That button has one job: shove whatever you just pressed straight to the top. This session decided not to, because the sound-effects work was already sitting in that top slot... But your own design says the newer press wins. It's written into the tool, in your words: pressing DO NOW on a second thing must knock the first one off, on purpose — because 'an interrupt with a queue is just another backlog.' The slot you pressed into was being held by something you'd pressed two days earlier. So the button did the opposite of what you built it to do."* And: *"you were told the page froze because a session quietly died. That may be right, but the evidence points somewhere simpler — your Windows laptop went quiet at 11:58 that morning, five minutes after the page last updated, and stayed quiet for two days. Same clock, same machine. If it turns out the laptop just went to sleep, then the thing to guard against isn't 'sessions are fragile' — it's 'that machine stopping takes the page with it.'"*
+
+## CEO Review 233 — 2026-09-06, Wyatts-MacBook-Air — audit of `SCOPE-GLASS-OFF-ARTIFACT.md`, at his ask *"get ceo to audit your firebase plan"*
+
+### VERDICT: PARTIAL
+
+Its words: *"The thing this audit was pointed at first — 'is the threat model the retracted `T-265` probe wearing a plan's clothes?' — **it is not.** I measured it independently and the plan's factual claims hold. But the plan contains one internal contradiction that its own gate list would make unbuildable, hand-waves the migration of the only store in this project that holds words nobody can regenerate, and asserts rule-23 compliance in the same paragraph that schedules a day of two live stores. The spine is sound. Four load-bearing pieces are missing."*
+
+**1. THE FIREBASE CLAIMS SURVIVE — re-measured independently, not by repeating the bad probe.** Unauthenticated shallow GETs, no writes: `visits` **200**, `starts` **200**, `rooms` **200** (`{"VUTB":true,"YZHG":true,…}`), `fins` **200**, `presence` **200**; `usage` 401, `games` 401, root 401. No `database.rules.json`, no `firebase.json`, no `.firebaserc`; `package.json` declares zero dependencies; `grep -rn "signIn\|firebase.auth\|getAuth" src/ scripts/` returns nothing.
+
+**⚑ AND IT SETTLED `T-265` FOR GOOD, which this session had recorded as UNKNOWN on purpose.** The game's real paths are `rooms/<code>/…` (`src/net/watchers.js:33-165`, `src/net/writers.js:50-138`) and `visits`/`starts`/`fins` (`src/ui/usage.js:36,56`). Its words: *"Every path the game uses answers 200; the three the probe chose are the three that hold nothing. **The plan did not inherit the bad measurement — it happens to be sitting on a good one nobody had taken.**"*
+
+**2. THE REASONING FROM "no rules in this repo" IS A NON-SEQUITUR, and the truth is more useful.** Rules live in the console, not a repo. *"His root read is denied while five children are open — so non-default, per-path rules already exist in his console, and nobody has read them."* So `:63-64` frames the blocker as writing a rule from scratch when the job is **editing rules whose current text is unknown to this plan**. It also notes `:63` overstates the blocker's form: *"The blocker is the credential"*, not console reachability.
+
+**3. ⛔ THE FINDING THAT BREAKS THE BUILD — the plan requires a read-locked store AND a headless watch that reads it, and names no credential.** `:73-74` wants `harvest_glass.mjs` to read the store so a headless watch can harvest; `:82-83` requires a gate that FAILS while the store answers an unauthenticated read. *"A signed-out watch cannot read a store that refuses signed-out reads. The harvest is the whole point of the move, and the plan's own second gate forbids it."* And the repo is public (`CURTAIN-DELIVERED.md:3`), so the credential cannot be committed. **A second blocker in his hands; the plan names only one.**
+
+**4. THE MIGRATION OF `glassState` IS NOT IN THE PLAN AT ALL.** `:70-71` says the page reads RTDB *"instead of"* the inline block and never says how existing words cross. Its sharpest citation: the plan offers `harvest_glass`'s idempotence proof as protection, and that file's own header (`:38-42`) says *"it verifies the new entry ARRIVED. It does not verify the destination's OTHER content survived."* — ***"The plan cites, as its loss-protection, a gate whose own source says it cannot see this failure."***
+
+**5. IT CLAIMS RULE 23 IN THE SAME BREATH AS SCHEDULING TWO STORES FOR A DAY.** `:71-72` asserts one display path; `:75-76` keeps the artifact live through cutover. *"Read both and his words duplicate; read one and the other's words are lost silently."* The rule-23 claim is true of the renderer and asserted where a reader takes it to cover the store.
+
+**6. HIS RULING IS CARRIED FAITHFULLY ON THE POINT THAT MATTERS.** The RED-first list leads with the unauthenticated-WRITE gate and puts confidentiality second **saying why**; `:31-36` retracts the earlier section in the open. Capability claims verified: `bell.ps1:139` is `@("-p", …)`; `glass.mjs:121`; `package.json:61`.
+
+**7. WHAT IT DOES NOT SAY: WHICH PAGE HE OPENS AFTERWARDS.** Publishing via `deploy:staging` lands at a different address from the artifact URL hardcoded in `CLAUDE.md` §5 — *"the fix, if it works, changes his link"*, never stated. And a public staging page ships the Chart rows as plain generated HTML: *"the confidentiality gate at `:82` protects the ideas and rulings and cannot protect the half of the page that is baked in before auth exists."*
+
+**8. SIZING: optimistic, not dishonest.** Findings 3, 4 and 5 are each an unmade design decision, two blocked on him.
+
+**9. THE CEO 229 RECURRENCE, asked directly.** *"It appears here in a much reduced form, and I will not inflate it."* Finding 2 is the same shape — an inference stated as established. And `:55` cites `INBOX-20260906T2010Z`, which is Wyatt's own Netlify request, **not a measurement**; the measurement is `SCOPE-NETLIFY-ONE-REPO.md:115`. Its line: ***"A true claim behind a citation that does not contain it is how a false one gets through next time."*** Fifth occurrence in form, not in consequence.
+
+---
+
+**ITS ONE THING FOR WYATT:** *"The plan is right about the danger, and right about the fix. Build it — but not in three days, and not before two things you have to do yourself… I checked your database directly rather than taking its word: five of the doors the game actually uses are standing open to anyone who knows the address… **But there is a knot in the middle of it that would stop the build cold.** The plan says the page must refuse to answer strangers, and it also says the Blade must be able to read it while you are asleep. Both cannot be true unless the Blade carries a key — and the plan never says where that key lives… **And it does not say how your existing words get moved.** This project has already lost your words once that way. The safety check it points at as protection has a note in its own file saying it cannot catch this. **One useful surprise:** you already have security settings in place — that is why the front door is locked while the side doors are open… **My recommendation:** say yes to the direction, and ask for those three answers — where the key lives, how your existing writing moves, and which single page you type into on the changeover day — written down before a line is built."*

@@ -129,6 +129,29 @@ publish. This session IS the terminal.
 > than overclaiming. `CronList` costs two seconds and the downside of skipping it is a status page
 > that stops updating without saying so. **Run it anyway; if it ever comes back empty, correct this
 > box rather than assuming the run was odd.**
+>
+> ### 🔴 2026-09-06 — IT CAME BACK **EMPTY**, AND THE PAGE HAD BEEN FROZEN FOR 53 HOURS.
+>
+> **Step 4 asks which of the three happened. It was the third: empty, and armed.** `CronList`
+> returned *"No scheduled jobs"* in the session that checked. Re-armed as job `7b3e531c`,
+> `7,22,37,52 * * * *` — the doc's own 15-minute cadence, moved off the `:00`/`:30` marks the
+> whole fleet lands on — carrying the dispatcher line and nothing else.
+>
+> **THE BOX ABOVE SAID "RUN IT ANYWAY; IF IT EVER COMES BACK EMPTY, CORRECT THIS BOX." THIS IS
+> THAT CORRECTION.** One observation of survival is now one of survival and one of loss, so
+> **`/clear` surviving is not a property to rely on** — the cron was gone, the session that held
+> it was gone from `ListAgents`, and **nothing anywhere reported either.** The only signal Wyatt
+> ever got was the page's own red clock, on a page he had to open to see.
+>
+> ⚠ **AND THE ARMING IS ON THE MAC THIS TIME, NOT THE BLADE** — which is what exposed the
+> hardcoded Windows path in step 1 below. **Whoever re-arms this next: say which machine, because
+> the runbook is no longer allowed to assume one.**
+>
+> ⚠ **WHAT THIS DOES NOT FIX, said plainly rather than left to be discovered again: the publisher
+> is still MORTAL and still SILENT when it dies.** A cron lives only inside its session, expires
+> after 7 days on its own, and the Bell can only ever ring `-p` watches that have no Artifact tool.
+> So this buys time; it does not close the hole. The hole is that **nothing outside the page
+> notices the page has stopped.**
 
 ## The instruction to paste into it
 
@@ -137,7 +160,16 @@ publish. This session IS the terminal.
 >
 > Every time you run, do exactly this, in this order:
 >
-> 1. `cd C:\Users\wyatt\Projects\pastrypirates` and `git pull --rebase origin claude/cloud-handoff-planning-a9ay1u`
+> 1. **ASK THE REPO WHERE IT IS AND WHICH BRANCH IT IS ON — NEVER HARDCODE EITHER.**
+>    `cd "$(git rev-parse --show-toplevel)" && git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)"`
+>    ⚠ **THIS LINE USED TO READ `cd C:\Users\wyatt\Projects\pastrypirates` AND
+>    `git pull --rebase origin claude/cloud-handoff-planning-a9ay1u`, AND BOTH HALVES WERE WRONG
+>    THE MOMENT THE PUBLISHER MOVED MACHINES.** It is CLAUDE.md §3's home-rooted-path fault sitting
+>    inside the runbook that §3's own status page depends on: the path exists on exactly one
+>    machine, the branch was retired, **and a failed `cd` short-circuits the `&&` so the pull
+>    silently does nothing and the tick goes on to publish a stale tree.** Corrected 2026-09-06,
+>    when the publisher was re-armed on the **Mac** and this step would have aimed it at a Windows
+>    directory that is not there.
 > 2. **HARVEST FIRST.** Read the live page with the Artifact tool, `action: "read"`, url
 >    `https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2`. Find its
 >    `id="glassState"` block. If `ideas`, `rulings` **or `comments`** is non-empty, copy every entry

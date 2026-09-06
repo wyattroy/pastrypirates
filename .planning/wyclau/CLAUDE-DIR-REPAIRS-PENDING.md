@@ -347,3 +347,45 @@ because the hook's deny text was a known offender. Leaving it makes case 9 weake
 edits to that same file had already pushed it to 265 — a stale citation written by the session that
 made it stale, which is the cheapest kind of rot there is. CEO 126 caught it.)*
 Then `npm test`, and close `T-105` through `scripts/wyclau/close_item.mjs`.
+
+---
+
+## `playtest-checklist-last.cjs` — it cannot see a SECOND SESSION sharing the checkout
+
+**Found 2026-09-06T18:3xZ, by being blocked by it wrongly.**
+
+**What it did:** blocked the stop with *"THIS SESSION CHANGED GAME CODE… changed by this session:
+`src/ui/stage.js`"* and demanded a playtest sheet. **This session never touched game code.**
+
+**What it was actually looking at:** an UNCOMMITTED working-tree modification belonging to the
+concurrent **SFX session**, which holds `T-073` on this same Mac (`IN-HAND`, claimed 17:00:51Z).
+Both sessions share one checkout, so they share one working tree. The edit appeared, and had
+vanished again ninety seconds later when that session discarded it.
+
+**Why its two exclusions could not catch it.** The hook excludes a file whose last change is
+*"already published on another branch"* or that *"arrived by PULL rather than being committed in
+this checkout."* **An uncommitted edit by a live neighbour is neither.** It has no commit, so there
+is no branch to check and no reflog entry to read — it falls straight through into "yours."
+
+**The evidence it had available and did not use:**
+
+| check | answer |
+|---|---|
+| last commit touching `src/ui/stage.js` | `e7b07129`, **2026-09-04 06:13** — days before this session began |
+| is that commit on other branches? | yes — `sep06-sfx` and `claude/cloud-handoff-planning-a9ay1u` |
+| is the file modified now? | **no.** Tree clean; the neighbour discarded it |
+| does anyone else hold a claim on this machine? | yes — `IN-HAND` names `T-073` on `Wyatts-MacBook-Air.local` |
+
+**The repair, and it is small:** when the only thing making a file "changed by this session" is an
+UNCOMMITTED working-tree modification, do not attribute it — this project's §3 says outright to
+assume a second session is live, and `IN-HAND` is right there to be read. Attribute a file only
+when a commit **in this session's own range** touches it.
+
+**⚠ WHY IT MATTERS MORE THAN A NUISANCE BLOCK.** The demanded sheet would have described somebody
+else's unfinished audio work, which this session cannot see, verify or photograph. **A hook that
+compels a fabricated QA sheet is worse than one that stays silent** — Wyatt would have received a
+confident checklist about a change nobody made, and spent his eyes on it. `docs/HARD-WON-LESSONS.md`
+§3: a gate aimed at the wrong subject is not silent, it is reassuring.
+
+**Cannot be fixed from here** — `.claude/hooks/` is refused to an unattended session, the same
+fence `T-220` documents. Wyatt's hands, or an Advisor with him present.
