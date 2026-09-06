@@ -41,5 +41,29 @@ guess from tail-slicing the whole run.
 
 ## What happened (filled in after measuring)
 
-See the ledger entry and commit for the result. If any of the above falsifiers fired, this section
-says which one.
+**One falsifier fired, partially.** A minimal 3-step synthetic repro run directly through
+`execSync` (no `npm` wrapper, no trailing error banner) did NOT reproduce the bug — its `tail(-3)`
+happened to contain the failing step's marker, because the total output was tiny and nothing
+followed it. That does not mean the diagnosis is wrong; it means the bug needs BOTH ingredients
+CEO 185's real incident had: (a) enough passing-gate chatter before the failure to threaten the
+tail window, and (b) enough trailing noise AFTER the failing gate's own (short) output — in the
+real incident that trailing noise is presumably npm's own error banner and/or later intervening
+gates' brief PASS lines — to push the failing gate's identifying text out of a fixed-size tail
+window. Built a faithful adversarial reconstruction of that exact shape (verbose 20-line passing
+gate, then a 1-line-stderr failing gate, then a 15-line fake trailing banner) and confirmed the OLD
+`slice(-14)` formula does lose the failing gate's own "boom" line under it — this is the red-proof
+in `scripts/qa/sea_trial_names_failing_gate_check.mjs` case 2.
+
+**The fix does not rely on tail-slicing at all**, so the exact shape of the trailing noise is moot:
+`findCulprit()` (`scripts/lib/npm_test_culprit.mjs`) re-runs `package.json`'s own `scripts.test`
+chain one entry at a time and identifies the culprit by each entry's own exit code, never by
+reading text. Confirmed correct on a 4-step fixture chain (cases 3-4), and confirmed the gate can
+actually FAIL by deliberately breaking `findCulprit`'s success-detection twice (RED 2/4, then
+RED differently 2/4) before restoring it (GREEN 4/4).
+
+No other falsifier fired: the `&& `-split parsing assumption held (case 1), and re-running the
+chain per-entry was fast enough to be a non-issue (the 4-fixture chain and the full 144-gate
+`npm test` both completed well within normal time — this path only ever runs on the rare failing
+case, never on green).
+
+Full `npm test`: 144/144 green (143 pre-existing + this new gate). No game code touched.
