@@ -11508,3 +11508,67 @@ predates this watch and was left untouched: `.planning/sea-trials/SEA-TRIAL-2031
 harvest+republish, per Door step 6b.
 
 END OF WATCH.
+
+## WATCH — pastrypirates-f6 (cloud), 2026-09-06T~1000Z-1020Z — T-261, PRD written, publish BLOCKED
+
+**Situation on entry.** `git fetch && pull --rebase`: already up to date. `can_push.mjs`: healthy;
+verified the real push form (`git push origin claude/cloud-handoff-planning-a9ay1u`) works after
+reading `docs/GIT-AND-DEPLOY.md` on the hook's demand. `IN-HAND` empty — the prior watch had parked
+`T-237` and cleared its claim. A FULL sea trial (`2026-09-06T1328Z-Wy-Blade`, build `2026.09.04.2`)
+was already sailing from an earlier turn — left untouched, not this watch's to wait on. A
+cross-session message from `pastrypirates-14` (the Advisor, live with Wyatt) briefed this watch on
+the current top row (`T-261`, DO NOW) and flagged the publish-gate risk before this watch took it.
+
+**TOOK `T-261` — his own DO NOW pin, rank 1: scope the SFX work into a PRD and show him BEFORE any
+implementation, per his 2026-09-06 9:33 AM ET instruction (`INBOX-20260906T1333Z`).** No game code;
+his own words are the solution (scope it, publish it, get his ideas first).
+
+**WORK DONE.** Read `docs/AUDIO.md` (three live-ish audio findings, one corrected 2026-08-31),
+`.planning/wyclau/T-073-SFX-BRIEF.md` (Luis's 27-file delivery + his 28-sound plan sheet, captured
+2026-09-06 by the Advisor with Wyatt present for the Drive permission), and
+`.planning/research/audio-sourcing/PICKS.json` (the 2026-08-19 library-sourced picks — 22 settled,
+3 open, 2 flagged for ElevenLabs). **Measured, not assumed:** compared the byte SIZES of the 6
+files currently in `sfx/` against Luis's 27 delivered files' listed sizes — all 6 match exactly
+(5,343 to 177,567 bytes), independently re-checked by `pastrypirates-14` against the same table
+with the same result. Not a content hash — flagged as such in the PRD. This means the shipped
+sounds are already Luis's work under generic names, including the fight-resolve sword sound both
+Wyatt and the old audit independently flagged as clipped, and — the sharper read `pastrypirates-14`
+pushed back with — that `fishing.mp3`/`ship-move.mp3` are literally Luis's anchor/navigation files,
+which means `docs/AUDIO.md` DEFECT-1/DEFECT-2 were a misleading filename, not a wrong mapping.
+Reframes the ask: 21 new files plus several already-chosen-but-never-wired library sounds, not 28
+sounds into a silent game.
+
+**Wrote the PRD**: `.planning/wyclau/T-261-SFX-PRD.html`, publishable shape (starts `<title>` then
+`<style>`, no `<html>`/`<head>`/`<body>`). Seven numbered questions, each with a recommendation:
+the one unmapped file (`PP_SFX_Alarm.mp3`), confirming five "probable" name-to-moment mappings,
+first-pass scope (Luis's files + already-settled library sounds together, recommended), the "your
+turn" and fight-resolve slots (both complicated by the byte-match finding), keeping the 3 music
+tracks (69 MB, from a different Drive owner) out of scope, and when to level the expanded sound set
+against `SFX_VOLUME` (recommended: once, after everything lands). Checked `.claude/memory/DECISIONS.md`
+before finalizing Q4 (whether a "your turn" cue may break the whole-table-hears-everything rule,
+D-07) — no existing ruling found, so it stands as genuinely open, not a re-ask of a settled question.
+
+**PUBLISHING: BLOCKED, and said so rather than claimed done.** No Artifact tool in this session.
+`SendMessage`d `pastrypirates-14` (confirmed it also has none, and gave it the headline finding +
+question summary directly since it's live with Wyatt — it is putting the 7 questions to him inline
+via the question UI as a stopgap) and `Blade 9.6` (asked whether it has Artifact; no reply by the
+time this watch ended). Per rule 27, "it ends when he has the link, not when the file exists" —
+**left `T-261` OPEN on the Chart and in the Inbox**, not closed through the gate, with the PRD
+content and headline finding also written to `GLASS-NOTE.md` so Wyatt is not left with nothing if
+he checks before a publisher is found.
+
+**No game code touched.** `git diff --stat`: `.planning/CHART.md`, `.planning/wyclau/GLASS-NOTE.md`,
+`.planning/wyclau/INBOX.md` modified; `.planning/wyclau/T-261-SFX-PRD.html` new. One pre-existing
+untracked file, `.planning/sea-trials/SEA-TRIAL-2031-2026.09.03.3.md`, predates this watch and was
+left untouched (noted by the prior watch too).
+
+**NEXT WATCH:** check `.claude/memory/DECISIONS.md` and the INBOX first — `pastrypirates-14` is
+putting the PRD's questions to Wyatt live via the question UI, so his rulings may already be on
+record by the time you read this. If so, act on them rather than re-asking. Separately: check
+whether `T-261-SFX-PRD.html` got published (ask around via `ListAgents` / `SendMessage` for an
+Artifact-capable session before assuming not) — if Wyatt now has the link, close `T-261` through
+the gate; if not, keep looking for a publisher before taking a different item. Do not re-write the
+PRD; it exists and is sound. Do not touch `T-237` (parked, open, not this watch's) or the sailing
+trial.
+
+END OF WATCH.

@@ -137,6 +137,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Both commands or neither** — `--do-now` flags the row and stops; without the re-rank his
       page still shows the old order, which from where he sits is the press failing.
 
+      ⚑ **2026-09-06T~1010Z — THE PRD IS WRITTEN, AND THIS ROW STAYS OPEN BECAUSE IT ISN'T
+      PUBLISHED YET — rule 27, "it ends when he has the link, not when the file exists."** Full
+      page: `.planning/wyclau/T-261-SFX-PRD.html` (publishable shape, `<title>` then `<style>`,
+      no `<html>`/`<head>`/`<body>`). **No publisher was available this watch**: this session has
+      no Artifact tool; the Advisor (`pastrypirates-14`) confirmed the same; `Blade 9.6` was asked
+      by cross-session message and had not replied before this watch ended. A copy of the content
+      and the headline finding is in `GLASS-NOTE.md` and was sent directly to the Advisor so Wyatt
+      is not left with nothing in the meantime.
+      **THE FINDING WORTH READING BEFORE THE PAGE IS UP:** the 6 sound files already shipped in the
+      game (`battle-swords.mp3`, `coin-flip.mp3`, `fishing.mp3`, `ship-move.mp3`, `storm.mp3`,
+      `store-ingredient.mp3`) match 6 of Luis's 27 new Drive files **byte-for-byte in size** —
+      including the fight-resolve sword sound both Wyatt and `docs/AUDIO.md`'s own audit
+      independently flagged as clipped. Verified by file size only (6 exact matches, 5.3–177.6 KB
+      range), not by downloading and diffing the Drive files, and the PRD says so. **This changes
+      the shape of the ask: 21 new files plus several already-chosen library sounds from the
+      2026-08-19 audit (never wired in) are what's actually left, not 28 sounds into a silent
+      game.** Seven numbered questions are in the PRD, each with a recommendation, covering the one
+      unmapped file (`PP_SFX_Alarm.mp3`), confirming the "probable" mappings, first-pass scope, the
+      "your turn" and fight-resolve slots given the byte-match finding, keeping the 3 music tracks
+      (69 MB) out of scope, and when to level the expanded sound set.
+      **NEXT WATCH: check whether Blade 9.6 (or any session with an Artifact tool) published it —
+      `.planning/wyclau/T-261-SFX-PRD.html` unchanged means it hasn't. If it's live, this closes
+      through the gate the moment Wyatt has the link — do not tick it on a guess.**
+
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.

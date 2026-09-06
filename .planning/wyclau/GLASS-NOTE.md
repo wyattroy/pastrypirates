@@ -30,3 +30,31 @@ two whole circles sit squarely on the offer message, blotting out two of its thr
 **Left OPEN on the Chart, not closed** — the watch traced a plausible cause in the board's
 fan-placement code and deliberately did not touch it: ~900 lines where naive fixes have repeatedly
 re-broken things already paid for. Sized SMALL-to-MEDIUM, game code, needs a sea trial.
+
+---
+
+**2026-09-06, ~10:0x AM ET — watch pastrypirates-f6, closing `T-261`.**
+
+**THE SFX PRD IS WRITTEN. IT IS NOT PUBLISHED — NO SESSION AVAILABLE COULD PUBLISH IT.** Full page
+at `.planning/wyclau/T-261-SFX-PRD.html` (publishable shape, starts `<title>` then `<style>`).
+Checked for a publisher before falling back here: this session has no Artifact tool; the Advisor
+(`pastrypirates-14`) confirmed it has none either; `Blade 9.6` was asked and had not answered by the
+time this watch ended. **Wyatt, if you are reading this, the PRD exists and is ready — someone with
+an Artifact tool needs to publish `.planning/wyclau/T-261-SFX-PRD.html` for you, or a session can
+read it and walk you through it directly.**
+
+**THE HEADLINE FINDING, worth knowing even before the page is up:** the 6 sound files already
+shipped in the game (`battle-swords.mp3`, `coin-flip.mp3`, `fishing.mp3`, `ship-move.mp3`,
+`storm.mp3`, `store-ingredient.mp3`) match 6 of Luis's new Drive files **byte-for-byte in size** —
+including his fight-resolve sword sound, which is the exact file both you and the earlier audio
+audit independently flagged as clipped. **This is not "add 28 sounds to a silent game."** 6 of
+Luis's files already shipped under generic names; the PRD scopes the other 21, plus several
+already-chosen library sounds from the 2026-08-19 audit that were never wired in.
+
+**Seven numbered questions wait in the PRD** — the unmapped `PP_SFX_Alarm.mp3`, confirming five
+"probable" file-to-moment mappings, whether the first pass covers Luis's files + the already-settled
+library sounds together or splits them, where "your turn" and the fight-resolve slot land given the
+byte-match finding, whether the 3 music tracks (69 MB) stay out of scope (recommended: yes), and
+whether to level the whole expanded sound set in one pass once everything is in (recommended: yes).
+
+`T-073` stays GATED behind this until you rule. No game code touched this watch.

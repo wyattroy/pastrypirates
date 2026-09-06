@@ -2292,3 +2292,14 @@ status: OPEN — filed as Chart row `T-261`, pinned DO NOW and placed physically
   path (rule 27) — and a Bell-launched watch has no Artifact tool, so it writes the page in
   publishable shape and asks the Glass session to publish it (Door step 6b). Source material is
   already in the repo: `.planning/wyclau/T-073-SFX-BRIEF.md` (commit `0fdbe853`) plus `docs/AUDIO.md`.
+
+  ⚑ **2026-09-06T~1010Z — THE PRD IS WRITTEN. PUBLISHING IS BLOCKED, NOT DONE.** Full page at
+  `.planning/wyclau/T-261-SFX-PRD.html`. Checked before falling back: this watch has no Artifact
+  tool; the Advisor session (`pastrypirates-14`) confirmed it has none either; `Blade 9.6` was asked
+  by cross-session message and had not answered by the time this watch ended. Copy relayed to
+  `GLASS-NOTE.md` and to the Advisor directly so he is not left with nothing while a publisher is
+  found. **Headline finding, worth reading even off the raw file:** the 6 sound files already in the
+  game match 6 of Luis's new Drive files byte-for-byte in size — including the fight-resolve sword
+  sound both he and the old audio audit independently flagged as clipped. So this is 21 new files and
+  some already-chosen library sounds to wire, not 28 sounds into a silent game. Seven numbered
+  questions wait in the PRD. **Still OPEN — this is not a fate an unpublished page can claim.**
