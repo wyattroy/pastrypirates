@@ -113,6 +113,25 @@ says so instead of being confirmed. **A republish without the harvest deletes hi
 If this session has no Artifact tool, write that fact to the ledger — plainly, as "no Artifact tool
 in this session", never as a guess about why — and continue; the next capable session harvests.
 
+**If this session DOES have the Artifact tool, also check the publish queue before anything else:**
+
+```bash
+node scripts/wyclau/publish_queue.mjs
+```
+
+Exit 10 (EMPTY) means nothing is waiting; move on. Exit 0 means one or more finished pages are
+sitting unpublished because whichever session wrote them held no Artifact tool — **built
+2026-09-06** after two separate watches (`pastrypirates-f6`, `pastrypirates-ba`) both tried
+cross-session `SendMessage` for the same page and neither delivery could be confirmed from the
+receiving side (`mcp__ccd_session_mgmt__send_message` returned "session not found" for a peer
+`ListAgents` had just listed as live — the pipe address a peer names is not the address space that
+tool resolves). **Do not publish on the strength of the queue entry alone** — rule "explicit
+permission required" for publishing still applies every time, in every session; the queue only
+proves a page EXISTS, never that Wyatt has agreed to put it in front of anyone. Ask him, through the
+question UI, once for everything the queue lists (batch it — do not spend four separate questions
+on four separate rows), then for whatever he approves: publish it and
+`node scripts/wyclau/publish_queue.mjs --mark-published --ticket=T-NNN --url=<url>`.
+
 ---
 
 ## THE WATCH — one item, full loop, then END
@@ -269,22 +288,29 @@ Glass) died when the relay replaced the long-lived engine (Wyatt's ruling, 2026-
    `node scripts/wyclau/publish_status.mjs` — exit 0 means this machine's instruments changed:
    include `.planning/wyclau/status/` in your commit so no machine's log ever needs Wyatt as its
    transport. Commit (`git pull --rebase` first), push.
-6b. **THEN TELL THE GLASS TO PUBLISH — do not leave him looking at a page that predates your work.**
-   `ListAgents` to find the Glass-update session (it is the interactive peer, named for the Glass),
-   then `SendMessage` it one line: *"I just landed <what>, please publish."*
-   **YOU CANNOT PUBLISH AND IT CAN.** Measured 2026-09-02 by running a real `claude -p`: a watch has
+6b. **THEN GET IT PUBLISHED — do not leave him looking at a page that predates your work, and never
+   depend on a single message landing.**
+   **YOU CANNOT PUBLISH.** Measured 2026-09-02 by running a real `claude -p`: a watch has
    **`SendMessage`, `Agent` and `ListAgents`, and NO `Artifact`.** So the page is not yours to
-   update — but asking is, and asking takes one call.
-   **WHY THIS LINE EXISTS.** Wyatt spent 2026-09-02 repeatedly looking at an unchanged page and
-   reasonably concluding nothing had happened, while watches were committing real work. Without this
-   message his page waits for the Glass session's own clock — **up to a quarter of an hour after the
-   work is already done.** His words: *"let the watch say 'I just landed something, publish'."*
-   ⚠ **AND THE CLAIM THIS REPLACES WAS WRONG, WHICH IS WHY IT SAT UNBUILT.** The runbook and two
-   sessions asserted that a `-p` watch *"has no SendMessage, no Task, no Artifact"* — inherited,
-   repeated, and never tested. Only the Artifact half was ever measured. **One `claude -p` run
-   settled it in under a minute, and the capability had been there the whole time.**
-   **If no Glass session is listed, say so in the ledger and end** — never block on it, and never
-   try to publish yourself.
+   update — two things are yours: asking, and leaving a trail that does not depend on the asking
+   working.
+   **FIRST, THE DURABLE HANDOFF — do this for EVERY finished publishable page, the Glass included:**
+   ```bash
+   node scripts/wyclau/publish_queue.mjs --add --ticket=<T-nnn> --path=<file> --desc="one line"
+   ```
+   This is the record that survives even if nobody is listening right now — a git-tracked file the
+   next Artifact-holding session checks at Door orientation (above), not a message that can silently
+   fail to arrive. **Built 2026-09-06** after `SendMessage` to a live, `ListAgents`-listed peer
+   returned "session not found" on the receiving end, twice, for two different watches chasing the
+   same page (`T-261`) — the cross-session pipe a peer names is not always an address this session's
+   tools can resolve, and a watch has no way to tell from its side whether delivery worked.
+   **SECOND, IF THE GLASS SPECIFICALLY NEEDS REPUBLISHING** (not a one-off page — the recurring
+   dashboard), also try the live nudge for speed: `ListAgents` to find the Glass-update session, then
+   `SendMessage` it one line, *"I just landed <what>, please publish."* This can save him up to a
+   quarter of an hour versus the session's own clock **when it lands** — but the queue entry above is
+   what guarantees it happens at all if it doesn't. **Treat this step as a bonus, never as the plan.**
+   **If no Glass session is listed, that is fine — the queue entry already covers it.** Say so in the
+   ledger, never block on it, and never try to publish yourself.
 7. **END THE TURN.** One item per watch. Blocked mid-item? Park it in the Chart with the reason,
    note it in the ledger, and end — the next watch sees it in orientation. Nothing unblocked at
    all? Write that to the ledger, pulse the Glass, and end. Never wait, never spin, never take a
