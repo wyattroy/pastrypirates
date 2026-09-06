@@ -1,5 +1,65 @@
 # Wyatt's standing decisions
 
+## ⛔ I TOLD HIM HIS LIVE GAME WAS BROKEN. IT WAS NOT. HE DISPROVED IT IN A MINUTE.
+
+**2026-09-06, ~18:2xZ.** A session filed `T-265` — *"MULTIPLAYER IS DOWN ON THE LIVE SITE, AND IT
+FAILS SILENTLY"* — pushed it to the shared branch, and published it to his Glass **as the page's
+headline**, with a paragraph telling him to go change a rule in his Firebase console.
+
+**Wyatt, within the hour:** *"you are wrong, it is not down -- i just started a nultiplayer game"*,
+with a screenshot of two windows on `playpastrypirates.com`, one of them Private, both on DAY 1 of
+an identical board, CAPTAINS showing **wyhost, wyguest, Dough Hook, Flaky Jack** in each. Two real
+people in one synced room. **The game had been working the entire time.**
+
+### WHAT THE PROBE ACTUALLY MEASURED, AND WHY IT PROVED NOTHING
+
+It read `games/<code>`, `games`, `usage` and the database root, and wrote to an invented
+`_glassgate_probe` path. Every one refused. **Not one of those is a path the game uses.** The four
+"confirmations" were four readings of the same wrong subject, and stacking them felt like rigour.
+
+### THE RULE THAT WAS BROKEN IS THE OLDEST ONE IN `CLAUDE.md`, AND IT WAS QUOTED ON THE WAY PAST
+
+> *"When a check condemns something known to work, suspect the check first."* (§1)
+
+**A probe said the live game was broken. The live game was not broken. The probe was believed.**
+Worse: minutes earlier the same session had written *"a gate that goes green on its first run is
+exactly what rule 6 says to distrust"* — and then trusted that identical instrument completely the
+moment it turned red. **Scepticism was applied to the green and abandoned at the red**, which is
+not scepticism; it is looking for a finding.
+
+### THE PART THAT MAKES IT WORSE THAN A WRONG ANSWER: THE BLAST RADIUS
+
+An ordinary wrong conclusion costs a correction. This one was **pushed to a shared branch and
+published to the one page he trusts for status**, headline position, with an action item pointing
+at his own console. **He had to go and disprove his own status page with two browsers.**
+
+**SO: A CLAIM THAT PRODUCTION IS BROKEN IS NOT AN ORDINARY FINDING AND MUST NOT TRAVEL LIKE ONE.**
+Before it reaches his Glass, the shared branch, or a sentence addressed to him:
+
+1. **PLAY THE THING (rule 19).** Two tabs, host and guest, as a person. That is thirty seconds and
+   it is decisive. *This session drove the browser and still never completed a join* — it read the
+   database instead of finishing the game it had already started.
+2. **Name the path/flow the real product uses, and check THAT.** A probe on a path invented for the
+   probe measures the probe.
+3. **Say UNKNOWN rather than DOWN.** The record already carries three wrong causes in one day
+   (see the frozen-Glass entries above). A fourth confident one is a pattern, not an accident.
+
+### AND THE FIX FOR THE *NEXT* WRONG THEORY IS NOT ANOTHER THEORY
+
+Why the probe was refused is **still unknown, deliberately**. A plausible mechanism exists (RTDB
+rules do not cascade upward, so a parent read can be denied while the children the game uses are
+fine) — **unverified, recorded as a guess, and not to be repeated as a cause.**
+
+**His instruction the same minute, and it stands:** *"do your work on a new branch so you stop
+breaking things."* Work moved to `sep06-glass`. The retraction went to `sep06-sfx` first
+(`2eca2438`), because leaving a fabricated outage on a branch other sessions read is itself the
+breakage he is talking about.
+
+**Related:** `scripts/qa/glass_store_write_locked_check.mjs` was DELETED, not fixed — it measured an
+invented path and concluded *"PASS — only he can write"*, equally unearned. **A gate that cannot see
+its subject is worse than no gate, because it is reassuring** (`docs/HARD-WON-LESSONS.md` §3).
+
+
 ## THE GLASS MOVES OFF THE ARTIFACT — AND THE THREAT IS **WRITE**, NOT READ
 
 **His ruling, 2026-09-06, two questions through the UI.** First: move his writing off the artifact
