@@ -641,28 +641,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
   the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
   posed (rule 26).
-- [ ] **A ROW CAN DECLARE ITSELF CLOSED IN PROSE AND STILL NEVER LEAVE WYATT'S TASKS LIST — the
-      ⟨`T-264`⟩
-      parser only recognizes one exact marker, and watches keep writing a different one.**
-      Found and fixed for two clean instances 2026-09-06 (CEO 230, YES); the mechanism is the
-      remaining work. `hasFate()`/`stateOf()` (`scripts/wyclau/lib/chart_model.mjs:58-112`) only
-      count an IDEA INBOX row as finished when its verdict is written `→ **X**` — an arrow
-      immediately before bold text. At least four rows in `.planning/CHART.md` have declared their
-      own closure a different way (`**FATE: SHIPPED ...**` at :1340/:1365, both now fixed by adding
-      the arrow; `✅ **CLOSED ...**`/`✅ **FATED AND ANSWERED ...**` at :1455 and :1504, the `T-243`
-      sitemap row, NOT fixed — too tangled to hand-edit safely) and every one of them silently kept
-      re-ranking as open work, wasting a watch's time re-verifying a closure that already happened.
-      **A general regex fix is NOT safe as a drop-in**: matching any bare `✅ **...**` would wrongly
-      close `T-073` (rank 1, DO NOW) — its own sub-note *"✅ **THE GATE IS CLEAR — `T-261` CLOSED
-      2026-09-06...**"* mentions a DIFFERENT ticket's closure inside a row that is very much still
-      open. Whoever takes this needs to design a marker (or a row-position rule) that distinguishes
-      "this row's own final verdict" from "a mention, anywhere in the row's body, of some other
-      ticket closing" — and then sweep `.planning/CHART.md` for every row using the wrong
-      convention, not just re-patch the next one somebody happens to notice.
-      Full account: `.planning/wyclau/PREDICTION-20260906T2130Z-chart-stale-fate-rows.md`, CEO
-      Review 230 in `.planning/CEO-REVIEWS.md`.
-      **Sizing: SMALL-TO-MEDIUM** — the marker design is the hard part; the sweep is mechanical
-      once it exists.
 
 - [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
       ⟨`T-258`⟩

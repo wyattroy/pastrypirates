@@ -12611,3 +12611,5 @@ plus a new red-proof gate and the `.planning/CHART.md` sweep. No game code (`ind
 untouched). Not colliding with `T-073` (SFX, claimed on the Mac) or any of the `stage.js`-adjacent
 rows (`T-237`/`T-013`/`T-238`) other watches have deliberately deferred. Prediction written first:
 `.planning/wyclau/PREDICTION-20260906T2245Z-T264-checkmark-fate.md`.
+
+- 2026-09-06T19:48:58Z · close_item: "T-264" · CEO 234 · no game diff — tooling only -- scripts/wyclau/lib/chart_model.mjs, a new QA gate, package.json bookkeeping; index.html and src/ untouched · no stated solution
