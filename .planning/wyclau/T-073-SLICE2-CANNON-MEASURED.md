@@ -50,3 +50,36 @@ says the cannonballs collided.
 Held while CEO review of slice 1 reads `src/ui/audio.js` and `src/orchestrator.js` — changing those
 under a reviewer makes its verdict meaningless. `PP_SFX_Cannons.mp3` is 1.92 s, 33,540 bytes, and
 already on the Mac at `~/Downloads/Pastry Pirates SFX/`.
+
+---
+
+## 4. VERIFIED IN A REAL BROWSER, not just with a file tool — 2026-09-06
+
+`ffprobe` reads a container header. It does not prove the browser can DECODE the file, and the
+whole drumroll change rests on `soundDurationMs()` returning a real number from a real
+`AudioBuffer`. So the module was imported into headless Chrome against a local server, `initAudio()`
+awaited, and the function called:
+
+```
+soundDurationMs("drumroll")  BEFORE any decode ->  0          (not NaN, not a throw)
+soundDurationMs("drumroll")  AFTER  initAudio  ->  3148 ms
+soundDurationMs("battle-won")                  ->  2900 ms
+soundDurationMs("coin-flip")                   ->   965 ms
+soundDurationMs("no-such-stem")                ->     0
+WIN_SOUND = "battle-won"   DRUMROLL_SOUND = "drumroll"   SFX_FILES.length = 8
+```
+
+**3148 against ffprobe's 3150** — a 2 ms container-vs-decoder rounding difference, so the number the
+narration box will actually use is confirmed by the decoder itself and not inferred from a header.
+
+⭐ **THE ZERO IS THE IMPORTANT ONE.** The call site is
+`flash("Drumroll...", undefined, soundDurationMs(DRUMROLL_SOUND) || undefined)` — the `|| undefined`
+only saves the game from hanging the winner reveal if the function really does return a FALSY value
+before decode. Measured, it returns `0`. A muted boot, an unsupported browser or a slow phone
+therefore falls back to exactly the reading-speed hold it had before this change, rather than
+holding the reveal open waiting for audio that is never coming.
+
+**And `coin-flip` measured 965 ms in the browser too**, matching §1's figure from the file — so the
+630 ms of clear air before the cannon is confirmed on both paths.
+
+**Browser and local server were killed before this note was written** (`stray_probe_check`: none).
