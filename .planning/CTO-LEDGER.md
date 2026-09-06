@@ -11449,3 +11449,62 @@ CEO 215 as harmless clutter) predates this watch and is left untouched.
 harvest+republish, per Door step 6b.
 
 END OF WATCH.
+
+## WATCH — Wy-Blade (cloud), 2026-09-06T~1300Z-1345Z — CONTINUED and PARKED `T-237`
+
+**Watch started mid-flight.** This session had already claimed `T-237` and written a prediction
+(`.planning/wyclau/PREDICTION-20260906T1500Z-T-237.md`) before this context window; picked up
+where that left off rather than claiming a fresh item. Confirmed push works
+(`git push origin claude/cloud-handoff-planning-a9ay1u` -> "Everything up-to-date") after reading
+`docs/GIT-AND-DEPLOY.md` on the hook's demand. **No Artifact tool in this session.** A detached
+FULL sea trial (`.planning/SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md`, started 13:28:34Z, build
+`2026.09.04.2`) was already sailing from an earlier turn — left untouched and still IN PROGRESS at
+the end of this watch; it belongs to the machine, not this session.
+
+**RAN THE MEASUREMENT THE PREDICTION WAS WRITTEN FOR:** `node
+scripts/qa/t237_trade_clear_of_ask.mjs` (existing instrument, not written by this watch) — the
+posed sibling script CEO 198 asked for. Full run, 3 sizes x 7 board positions x 2 scenarios: **42
+measured, 0 NOT RUN, 10 covered.** The falsifier did not fire; more precisely than predicted, the
+hit is **100% phone-only** (390x844) at 5 of 7 swept board positions, all near the top of the
+board — 0 of 28 tablet/desktop poses hit. Opened two covered screenshots by eye (rule 22, not just
+the numbers): `mp-rig-shots/t237-phone-accept-and-counter-20.png` and `-00.png` both show two
+whole offer circles sitting squarely on the message pill, obscuring most of the question text —
+worse than the single sighting this row was originally filed on.
+
+**Traced a plausible, honestly-hedged mechanism** in `src/ui/stage.js`'s radial-fan placement
+function (~2955-3860): the own-boat "ordinary fan" path (which trade opts take, carrying no
+`seat`) calls `pillSpotFor(sy, sy)` with no `below` argument, unlike the `onBoats` path which
+passes one; the final pill-lift safety net that should rescue an overlap is clamped at the band's
+own ceiling (`stage.js:3848`), so on a phone with the boat near the top rows there is not enough
+room to lift a 3-5 line trade pill clear of the circles. Named as the SAME failure class already
+documented and partly fixed for `onBoats` (`stage.js:3258-3269`, 2 of 14 posed fights) —
+unmitigated here, hitting 10 of 14 phone poses. **Deliberately did not attempt a fix**: this
+function carries ~900 lines of hard-won layout history (`T-013`, `D-38`, `D-44`, `D-48`, W5-2) and
+a rushed change risks re-breaking something already paid for — the same caution `T-219`'s row
+states for its own subsystem. Updated `T-237`'s Chart row with the full finding and cleared its
+stale-evidence flag (measured on the tree's current build, `2026.09.04.2`).
+
+**No game code touched** — `git diff --stat` shows only `.planning/CHART.md`; `npm test` stayed
+green throughout (140/140). Also noted a separate, unexplained anomaly in the prediction file:
+every one of the 42 poses read "STILL MOVING" on the instrument's own settle-detector (never 3
+consecutive identical reads in 10s) — cause untraced, does not appear to affect the `covered`
+count itself (both scenarios agree at every hit position), filed as its own open question rather
+than swept under this row.
+
+**CEO 217 (YES)** — spawned fresh via `Agent`, independently opened both screenshots itself,
+verified the code citations (`pillSpotFor` call-site asymmetry, the lift clamp, the `onBoats`
+precedent comment, the T-013/D-38/D-44/D-48 history), confirmed the Chart edit and the clean
+`npm test`/`git diff`. One honest gap it named: it could not re-run the browser instrument itself
+(read-only, no browser) so the exact 42/10 split is trusted from the report rather than
+independently reproduced — everything else checked out. Appended to `.planning/CEO-REVIEWS.md`.
+
+**NOT closed through the gate** — the defect is real and unfixed, so this stays open on the Chart
+rather than being ticked; the correct move per the Door's own "park it with the reason" instruction
+for an item that cannot be finished this turn. `IN-HAND` cleared. One pre-existing untracked file
+predates this watch and was left untouched: `.planning/sea-trials/SEA-TRIAL-2031-2026.09.03.3.md`
+(dated Sep 4).
+
+**No Artifact tool in this session.** `ListAgents` next to find a peer session to ask for a
+harvest+republish, per Door step 6b.
+
+END OF WATCH.

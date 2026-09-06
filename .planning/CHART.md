@@ -320,7 +320,43 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         "pill clamped against the safe line" from "something else" for the call fan; a trade-fan
         sibling of it answers this in minutes. Full account: CEO Review 198,
         `.planning/CEO-REVIEWS.md`; sea trial evidence above; CTO-LEDGER has the working history.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
+
+  ⚑ **RE-MEASURED 2026-09-06 WITH THE SIBLING SCRIPT CEO 198 ASKED FOR — THE DEFECT IS LIVE,
+  PHONE-ONLY, AND CHARACTERIZED. STILL NOT FIXED — DELIBERATELY.** `node
+  scripts/qa/t237_trade_clear_of_ask.mjs`, full run: **42 poses (3 sizes × 7 board positions × 2
+  scenarios), 0 NOT RUN, 10 covered.** Every one of the 10 hits is on the **390×844 phone leg**;
+  all 28 tablet/desktop poses read clean. The hits cluster at 5 of 7 swept ship positions, all near
+  the TOP of the board — `(2,0)`, `(2,1)`, `(2,2)`, `(2,6)`, `(0,0)` — both scenarios each; the two
+  near-bottom positions never hit. Opened two of the ten screenshots by eye (rule 22):
+  `mp-rig-shots/t237-phone-accept-and-counter-20.png` and `-00.png` — both show two whole offer
+  circles ("Crustbeard", "Walk away") sitting squarely on the message pill, blotting out most of
+  two of its three lines. Worse than the original single sighting this row was filed on.
+  **MECHANISM TRACED (not fix-confirmed):** trade opts carry no `seat`, so they take the "ordinary
+  fan" path in `src/ui/stage.js` (~2955-3860), not the `onBoats` path `T-013`/`T-017`/`T-235`
+  already hardened. That path has a final safety net that lifts the pill above the circle block if
+  the formation search still lands on it — but the lift is clamped at the band's own ceiling
+  (`Math.max(tSafe - 34, …)`), so when the boat is near the top rows on a narrow phone there is not
+  enough vertical room to fit a 3-5 line trade pill above the circles, and the clamp wins. **This is
+  the same failure class already documented and partly fixed for the `onBoats` branch** (this
+  file's own comment near `stage.js:3258`, "the two landed on each other with nowhere left to
+  move," measured there as 2 of 14 posed fights) — unmitigated here, and hitting 10 of 14 phone
+  poses because a trade pill runs far taller than a call's.
+  ⚠ **A separate, unexplained anomaly, named so it is not re-discovered cold:** all 42 poses read
+  "STILL MOVING" on the instrument's own settle-detector (never 3 consecutive identical reads in
+  10s) — cause untraced (candidates: sub-pixel-bucket oscillation in the signature, or a genuine
+  continuous re-layout). Does not appear to affect the `covered` count itself (both scenarios agree
+  at every hit position, independently timed), but no screenshot here can be called strictly
+  "settled" the way the instrument's name promises.
+  **NOT FIXED THIS WATCH, DELIBERATELY** — this exact function carries ~900 lines of hard-won,
+  heavily commented history (`T-013`, `D-38`, `D-44`, `D-48`, W5-2) precisely because a rushed
+  change here has repeatedly re-broken something already paid for, the same caution `T-219`'s row
+  states for its own subsystem. Next step is empirical: instrument the own-boat `pillSpotFor`
+  branch and the final lift to log live values on a phone-top-row trade prompt, confirm which value
+  actually needs to change, then fix once. Full account:
+  `.planning/wyclau/PREDICTION-20260906T1500Z-T-237.md`.
+      ✅ RE-MEASURED ON THE CURRENT BUILD — the 2026-09-06 sweep above ran on `2026.09.04.2`, the
+      tree's own current stamp, so the stale-candidate flag that used to sit here (measured on
+      `2026.09.01.7`) is resolved; this evidence describes the live game.
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩

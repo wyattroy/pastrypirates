@@ -1,5 +1,68 @@
 # CEO reviews — the standing record
 
+## CEO Review 217 — `T-237`: re-measurement of "trade-offer circle covers its own ask" with a posed sibling script — **YES** — 2026-09-06
+
+**The ask:** did this watch actually run the posed measurement CEO 198 asked for, report the
+result honestly, ground its mechanism trace in real code, and leave the item open rather than
+rushing a fix?
+
+**1. Prediction genuinely precedes the measurement. CONFIRMED.**
+`.planning/wyclau/PREDICTION-20260906T1500Z-T-237.md:1-28` predicts `covered > 0`, names the
+falsifier (`covered === 0` across every pose), and explicitly flags an unresolved uncertainty ("I
+have not confirmed whether `pillSpotFor`'s eviction is even called for the trade fan at all") that
+only gets resolved in the appended section below the `---`. That is not a sentence a retrofitted
+prediction would contain — it reads like real uncertainty at write time.
+
+**2. The instrument is real and matches its own description. CONFIRMED.**
+`scripts/qa/t237_trade_clear_of_ask.mjs:63-95` builds `humanTrade()`'s exact prompt via
+`flow.js`'s own helpers (icon markup, `short:` labels) and calls `localAsk()` directly — a
+faithful pose, not an approximation. `LEGS` (line 154) is 3 sizes; `POSES` (169-172) is 7
+positions (5 at x=2, plus two corners) × 2 scenarios = 42, matching the claimed total exactly.
+`MEASURE` (109-129) computes `covered` from a circle-to-message-box distance test.
+
+**3. The 42/0/10 breakdown is internally consistent with the code**, and I independently confirmed
+the mechanism-relevant asymmetry it rests on: `src/ui/stage.js:3324` (`onBoats` branch) calls
+`pillSpotFor(min, max, belowCircles)` with a `below` value; `src/ui/stage.js:3342` (the own-boat
+"ordinary fan" the trade prompt actually takes) calls `pillSpotFor(sy, sy)` — no third argument. I
+did not re-run the browser instrument myself (out of scope, no server/browser per instructions),
+so the specific 10-covered figure is trusted from the report, but nothing about it is implausible
+or self-contradictory.
+
+**4. Screenshots verified by me, independently, pixel by pixel. CONFIRMED, not an overclaim.** I
+opened both `mp-rig-shots/t237-phone-accept-and-counter-20.png` and `-00.png`. In both, two
+full-size circles ("Crustbeard" and "Walk away") sit squarely on top of the message pill, blotting
+out the entire middle line and most of the third line of "Fer yer Cacao Pods the table answers…" —
+text is genuinely unreadable behind the discs. This is a severe, obvious overlap, not a 1px edge
+clip.
+
+**5. Mechanism trace is code-grounded and honestly hedged. CONFIRMED.** `src/ui/stage.js:3848` —
+`const lifted = Math.max(tSafe - 34, blockTop - pillB.height - under - 10);` — is real and is the
+clamp described. The comment at `stage.js:3258-3269` describing the same failure class for the
+`onBoats` path ("the two landed on each other with nowhere left to move," 2 of 14) is real.
+`grep -n "T-013\|D-38\|D-44\|D-48\|W5-2" src/ui/stage.js` returns dozens of genuine hits — this is
+not an invented citation. The watch labels this "TRACED, NOT YET FIX-CONFIRMED" throughout, which
+matches how thin the evidence actually is (one clamp expression, not an instrumented value trace).
+
+**6. Chart row updated correctly, item left open. CONFIRMED.** `.planning/CHART.md:324-359`
+carries the "⚑ RE-MEASURED 2026-09-06…" block verbatim as described, still under an open `- [ ]`
+row (not closed via `close_item.mjs`), which is the right call for a live, unfixed, real defect.
+
+**7. No game code touched. CONFIRMED.** `git diff --stat` shows only `.planning/CHART.md` modified
+(37 insertions, 1 deletion) against a tracked file; the only untracked additions are all under
+`.planning/`. `npm test` is green: PASS suite ceiling 140/140 gates.
+
+**One honest gap, not disqualifying:** I could not independently re-execute the browser
+measurement (read-only, no server/browser), so the exact 42/10 split is trusted from the report
+rather than reproduced. Everything checkable independently — the script's existence and logic, the
+code-level asymmetry it's built to detect, the screenshots, the Chart edit, the clean `git diff`,
+and the green test suite — checks out.
+
+**Bottom line: YES.** The watch did what it claims: predicted before measuring, ran a real posed
+sibling instrument, found and honestly characterized a genuine, severe, phone-only defect,
+verified it by eye rather than trusting the number alone, traced a plausible and correctly-hedged
+mechanism, touched no game code, and left the item open with a concrete next step instead of
+rushing a fix into a 900-line, heavily-scarred function.
+
 ## CEO Review 216 — `T-241`: fresh 2026-09-04T1013Z trial finding on `passplay-desktop-041` ("footer clipped by End of Voyage panel") — **NOT A DEFECT, measured** — 2026-09-04
 
 **The ask:** the 84-minute FULL sea trial `2026-09-04T1013Z-Wy-Blade` (build `2026.09.04.2`) flagged
