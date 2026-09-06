@@ -12812,3 +12812,86 @@ across six files beats a guessed filename") — nothing to add.
 own rule — never take a second item.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-06T23xxZ-c (Bell-launched, claude/cloud-handoff-planning-a9ay1u)
+
+**Situation on arrival:** synced clean, `can_push.mjs` healthy; first real `git push` refused by
+rule 17's read-the-doc-first hook (`docs/GIT-AND-DEPLOY.md`, first push of this session) — read it,
+retried, `Everything up-to-date`. No Artifact tool (`ToolSearch` confirmed empty). Same delete-fence
+the prior watch hit: `rm`/PowerShell `Remove-Item` on that watch's leftover `_tmp_*` files still
+refused ("may only remove files from the allowed working directories," despite the paths being
+inside one) — left untouched, not this watch's to force.
+
+`chartkeeper.mjs --rank --sweep --write` (0 rows moved, already ranked). Surveyed the top of the
+ranked Chart: rank 1 `T-073` (SFX, CLAIMED on the Mac — skip), rank 2 `T-138` (blocked purely on
+Wyatt's own staging-publish approval — skip), ranks 3-6 `T-237`(trade-circle)/`T-013`(call-circle)/
+`T-238`(GATED)/`T-250` — all in or adjacent to the same ~900-line fragile `stage.js` positioning
+function that a long, consistent chain of prior watches (visible throughout this ledger's last
+several hundred lines) has explicitly and repeatedly declined to rush a fix on. Followed that same
+considered precedent rather than re-litigating it. `T-239` needs an interactive session (confirmed
+twice already by name in this ledger) — skip. `T-214` is the same camera-framing family — deferred
+for the same reason.
+
+**Claimed `T-222`** — the chartkeeper duplicate-handle-splice bug (2026-09-03T2040Z), a well-scoped,
+no-game-code row with its own diagnosed cause and requested gate shape already on record. Not
+colliding with any claimed or stage.js-adjacent row.
+
+**Wrote the prediction first**
+(`.planning/wyclau/PREDICTION-20260906T2350Z-T-222-chartkeeper-duplicate-handle.md`): predicted the
+2026-09-04 identity fixes for a different bug (`T-090`/`T-240`, commit `b6ac211d`) already closed
+this hole as a side effect, because `idOfRow()` and `withId()`'s guard now scan every line of a row
+for a handle marker rather than only line index 1. Named the falsifier: the fixture reproducing the
+corruption on current code.
+
+**Measured, not assumed.** Built `scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs` — a
+real behavioural gate (not a source grep): writes a fixture Chart into an OS tmpdir shaped exactly
+like the two real corrupted rows (title wraps across two physical lines before the row's own
+`⟨T-nnn⟩` marker), runs the real `chartkeeper.mjs --rank --write` against the throwaway copy, and
+reads what actually landed. **Ran clean against real code first** (0 ids allocated, both handles
+intact, no splice) — the prediction held. **Red-proofed the gate itself**, not just the row's
+absence: temporarily narrowed `idOfRow` (`scripts/wyclau/lib/chart_model.mjs`) and `withId`'s guard
+(`scripts/wyclau/chartkeeper.mjs`) to check only line index 1, simulating the historical narrow
+check — the SAME gate then failed exactly as T-222 describes (new ids allocated, both titles
+spliced). Reverted both sabotage edits; `git diff --stat` on both files confirmed zero residual
+change before either was staged.
+
+**Wired into `npm test`**: `package.json`'s `scripts.test` chain gained the new gate (right after its
+sibling `chartkeeper_check.mjs`); `gates.total`/`gates.ceiling` 144 → 145, documented in
+`_ceiling_raise_145`. Full suite: **145/145 green**, new gate's own output confirmed present and
+passing inside the real run. `gear.mjs` mechanically read FULL (any `package.json` diff does — the
+known `T-205` blind spot); downgraded to COSMETIC with a written `--reason` via `sea_trial.mjs`, same
+precedent as `T-264`'s own package.json-only gate addition. No game code (`index.html`/`src/`)
+touched anywhere. `stray_probe_check.mjs`: PASS, no abandoned browsers.
+
+**Fresh CEO** (general-purpose agent, no shared context) independently re-ran the gate, performed its
+OWN separate sabotage/revert cycle on `idOfRow`/`withId` and confirmed the same red→green behavior,
+confirmed `git diff --stat` shows zero residual sabotage, read `package.json` directly for the
+145/145 figures and chain wiring, ran the full `npm test` itself, judged the prediction file as
+genuinely falsifiable rather than post-hoc, and confirmed `git status --short` touched only the
+expected files. **Verdict: YES.** Appended as **CEO Review 237** to `.planning/CEO-REVIEWS.md`.
+
+Commit `98c37700` (the gate, package.json, prediction, CEO review, sea-trial bookkeeping).
+
+- 2026-09-06T21:29:12Z · close_item: "T-222" · CEO 237 · no game diff — chartkeeper's duplicate-handle splice does not reproduce on current code -- red-proofed with a real behavioural gate (scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs, commit 98c37700), no product fix needed · no stated solution
+
+**Three scratch files from a prior watch still on disk, still not this watch's to remove** (same
+sandbox refusal, re-measured, not re-litigated): `.planning/wyclau/_tmp_ceo236.md`,
+`.planning/wyclau/_tmp_final_ledger.md`, `.planning/wyclau/_tmp_ledger_append.md`,
+`scripts/qa/_tmp_t265_screenshot.mjs`. None staged or committed by any watch; harmless, inert.
+
+**No Artifact tool this session** (confirmed via `ToolSearch`) — nothing new to queue for publish;
+the closed item and its gate are already in the tracked files the next Artifact-holding session
+reads at Door orientation.
+
+**Daily lesson:** already given today (`.planning/wyclau/LESSONS.md`) — not duplicating it.
+
+**Still open for the next watch, unchanged in substance:** `T-237`/`T-013`/`T-238`/`T-250`/`T-214`
+(the fragile `stage.js` positioning family, real player-visible bugs needing careful non-rushed
+work); `T-073` (SFX, claimed on the Mac — do not touch); `T-138` (blocked on Wyatt's own
+staging-publish approval); `T-239` (needs an interactive session); the four stray `_tmp_*` scratch
+files above (sandbox will not let an unattended watch delete them).
+
+**One item worked and closed through the gate this watch.** Ending the turn here, per the Door's own
+rule — never take a second item.
+
+END OF WATCH.
