@@ -34,8 +34,21 @@ harvest and the switch would live only in the artifact. **So the final act befor
 harvest, gated — refuse to switch while it returns anything at all.** A clean read proves the gap
 is empty. Minutes, and it removes the only way his choice can cost him a word.
 
-**STILL OPEN AND HIS TO ANSWER, before a line is built:**
-- **Which page is authoritative on cutover day**, while two surfaces are live.
+**✅ CUTOVER — HIS RULING, same day: "Clean cut — one moment, old page retired immediately."**
+CEO 233's finding 5 is answered by REMOVING the two-store day rather than managing it, so rule 23
+has nothing to bite on. **The order is the safety, and it is one sitting:** harvest the artifact
+and gate on EMPTY → switch → retire the artifact in the same minute, marked dead on its own face →
+**hand him the new link in the reply he reads.** ⚠ **His link CHANGES here; a cutover that does not
+put the new URL in front of him has not finished** (rule 27). Retiring before harvesting loses the
+gap; handing him the link before switching sends him to a page that is not live. Neither is
+recoverable by apology.
+
+**NOTHING IS OPEN. The plan is ready to build** — and **two of CEO 233's three required answers
+were decisions, not code**, which is why the estimate came DOWN (3–4 days → 2–3) rather than up.
+
+**THE ONE REMAINING BLOCKER IS HIS HANDS, not a session's:** the Firebase rule, in his console —
+and per CEO 233 it must be READ before it is edited, because per-path rules already exist there and
+nobody has seen them.
 
 **Related:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md),
 re-sized 3–4 days, and CEO Review 233 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).

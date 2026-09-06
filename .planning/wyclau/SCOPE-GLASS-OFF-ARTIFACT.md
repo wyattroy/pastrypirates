@@ -109,13 +109,20 @@ ever enters the public repo.
   generator, the same page, the same harvest script; only the STORE changes (rule 23).
 - `harvest_glass.mjs` gains a mode that reads the store directly, so a headless watch harvests
   without an Artifact tool. Its idempotence key stays his own `at` timestamp.
-- ⛔ **THE CUTOVER DAY IS AN OPEN DESIGN QUESTION, NOT A DETAIL — CEO 233 finding 5, and it is
-  UNANSWERED.** The plan says the artifact stays alive until the new page has carried a full day
-  without loss. **For that day there are TWO live surfaces he can type into, and nothing says which
-  one the harvest reads.** Its words: *"Read both and his words duplicate; read one and the other's
-  words are lost silently."* `CLAUDE.md` rule 23 names this exact shape — *"two things kept in sync
-  by discipline are two things that will drift."* **This must be settled by him before a line is
-  built; it is not ours to pick.**
+- ✅ **THE CUTOVER IS A CLEAN CUT — HIS RULING, 2026-09-06: "one moment, old page retired
+  immediately."** CEO 233 finding 5 is therefore answered by REMOVING the two-store day rather than
+  managing it. **There is never a moment when two live surfaces exist**, so rule 23's *"two things
+  kept in sync by discipline are two things that will drift"* has nothing to bite on.
+  **THE CUTOVER, IN ORDER, AND IT IS ONE SITTING:**
+  1. **Harvest the artifact and gate on it returning EMPTY.** Not empty → carry those entries and
+     re-run. This is the whole of the migration risk under his "start empty" ruling.
+  2. **Switch.** The new store goes live.
+  3. **Retire the artifact in the same minute** — marked dead on its own face, not merely abandoned.
+  4. **Hand him the new link, in the reply he reads** (rule 27). ⚠ **His link CHANGES at this
+     moment; a cutover that does not put the new URL in front of him has not finished.**
+  ⚑ **AND THE ORDER IS THE SAFETY.** Retiring before harvesting loses whatever sat in the gap;
+  handing him the link before switching sends him to a page that is not live yet. Neither is
+  recoverable by apology.
 - ⛔ **AND HIS LINK CHANGES, WHICH THIS PLAN NEVER SAID (CEO 233 finding 7).** Publishing through
   `deploy:staging` lands at a different address from the artifact URL hardcoded in `CLAUDE.md` §5.
   **The fix, if it works, changes the page he opens** — he needs to know that before, not after.
@@ -160,7 +167,13 @@ ever enters the public repo.
 
 ## Sizing, honestly
 
-**RE-SIZED AGAIN AFTER HIS TWO RULINGS: 2½–3½ days, tooling not game code, ONE open question left.**
+**RE-SIZED AFTER HIS THREE RULINGS: 2–3 days, tooling not game code, and NOTHING IS OPEN — this
+plan is ready to build.** All three of CEO 233's required answers are in: the service key
+(finding 3), start-empty (finding 4), and the clean cut (finding 5). **Two of the three were
+answered by a DECISION rather than by code**, which is why the figure came back down rather than
+up. **One blocker remains and it is his hands, not ours:** the Firebase rule in his console, which
+must be read before it is edited — see below. The previous figure was **2½–3½ days, ONE open
+question left.**
 His "start empty" ruling removes the migration work entirely — CEO 233's finding 4 is answered by a
 decision rather than by code, which is the cheapest kind of answer there is. **The only question
 still open is which single page is authoritative on cutover day.** The previous figure was
