@@ -16,8 +16,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T22:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T220802Z.out/.err, kit: readable)
-2026-09-03T22:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T225802Z.out/.err, kit: readable)
 2026-09-03T23:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T233802Z.out/.err, kit: readable)
 2026-09-04T00:18:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T001802Z.out/.err, kit: readable)
 2026-09-04T00:48:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T004802Z.out/.err, kit: readable)
@@ -56,4 +54,6 @@ None recorded.
 2026-09-06T15:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T150801Z.out/.err, kit: readable)
 2026-09-06T15:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T154802Z.out/.err, kit: readable)
 2026-09-06T16:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T160802Z.out/.err, kit: readable)
+2026-09-06T16:38:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T163802Z.out/.err, kit: readable)
+2026-09-06T16:58:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T165802Z.out/.err, kit: readable)
 ```
