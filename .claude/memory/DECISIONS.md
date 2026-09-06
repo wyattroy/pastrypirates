@@ -1,5 +1,40 @@
 # Wyatt's standing decisions
 
+## ⚠ "WORK ON A NEW BRANCH" CANNOT ISOLATE YOU — ONE MACHINE HAS ONE CHECKOUT
+
+**Wyatt, 2026-09-06, after a session filed a false production outage:** *"do your work on a new
+branch so you stop breaking things."* **The instruction is right and it does not do what it sounds
+like, and the next session must know that before it obeys.**
+
+**`git checkout -b` moved the SHARED WORKING TREE.** Worktrees are retired here (`CLAUDE.md` §3),
+so this Mac has exactly one checkout and one `HEAD`. Creating `sep06-glass` did not give this
+session a private branch — **it moved every session on this machine onto it**, including the live
+SFX session holding `T-073`, which had uncommitted edits to `src/ui/stage.js` at that moment and was
+never told. Its edits came along for the ride.
+
+**Nothing was lost this time** — `sep06-glass` contains everything `sep06-sfx` had, plus two
+commits — **and the failure mode is real and quiet:** the neighbour still believes it is on
+`sep06-sfx`, and a later `git push origin sep06-sfx` from it would push a branch that does not
+carry its work.
+
+**WHAT TO DO INSTEAD, when he asks you to get out of another session's way:**
+
+1. **Read `IN-HAND` and the `🔒 CLAIMED` blocks in `CHART.md` FIRST.** If another session holds an
+   item on this machine, a branch switch is not yours to make alone.
+2. **Separate by FILES, not by branch** — the mechanism this project already uses. Commit by
+   explicit pathspec, never `git add -A`. The Glass tick did exactly that the same hour and left
+   the neighbour's `src/ui/stage.js` untouched, which is the worked example.
+3. **If a switch really is needed, say so in the reply he reads and name who else is on the
+   machine**, so the collision is visible rather than discovered later by a push that goes nowhere.
+
+**AND IT BREAKS A HOOK, WHICH IS HOW IT WAS FOUND.** `playtest-checklist-last.cjs` attributed the
+neighbour's uncommitted `src/ui/stage.js` edit to this session and demanded a playtest sheet for it.
+Full account and the repair: [`.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`](../../.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md).
+**A sheet was NOT written** — it would have described somebody else's unfinished audio work, which
+this session cannot see or verify, and handing him fabricated QA is the thing today already went
+wrong twice by doing.
+
+
 ## ⛔ I TOLD HIM HIS LIVE GAME WAS BROKEN. IT WAS NOT. HE DISPROVED IT IN A MINUTE.
 
 **2026-09-06, ~18:2xZ.** A session filed `T-265` — *"MULTIPLAYER IS DOWN ON THE LIVE SITE, AND IT
