@@ -12613,3 +12613,27 @@ rows (`T-237`/`T-013`/`T-238`) other watches have deliberately deferred. Predict
 `.planning/wyclau/PREDICTION-20260906T2245Z-T264-checkmark-fate.md`.
 
 - 2026-09-06T19:48:58Z · close_item: "T-264" · CEO 234 · no game diff — tooling only -- scripts/wyclau/lib/chart_model.mjs, a new QA gate, package.json bookkeeping; index.html and src/ untouched · no stated solution
+
+**CLOSED, detail for the record.** `stateOf()`/`hasFate()` (`scripts/wyclau/lib/chart_model.mjs`)
+now recognize a row's own bare `✅ **...**` closure, not only `→ **...**`, filtering out any
+checkmark that quotes a DIFFERENT `T-nnn` handle (the T-073 trap CEO 230 flagged). First design
+("any arrow beats any checkmark") was wrong — T-243's block is not single-threaded, a stale arrow
+sits after its own real close — caught by the new gate's own case 6 before shipping, not after.
+New gate `scripts/qa/chart_own_verdict_check.mjs` (6/6 green, 3/6 red before the fix — measured,
+not the 2/6 first written down; corrected in `package.json`'s `_ceiling_raise_143` by CEO 234
+finding 1). Gates 142 -> 143. Live effect measured: `chartkeeper --rank` header 68 -> 67 tasks,
+`T-243` gone from the open list, no other row affected (scanned all 44 IDEA INBOX rows). No game
+code (`index.html`/`src/` untouched); gear COSMETIC override (`gear.mjs` flags any `package.json`
+diff FULL regardless of content — known blind spot, `T-205`), `npm test` 143/143 green. CEO
+Review 234 (YES) — independent agent replayed the rejected first design against the real fixtures
+and confirmed the account rather than trusting the prose; found and this watch fixed two
+bookkeeping defects (a wrong red-proof count, a duplicate `_ceiling_raise_142` JSON key silently
+shadowed by `site_build_check.mjs`'s own entry) before closing. Commits `8149fdf6` (the fix) and
+`56036d9f` (the close-gate sweep + status publish). No Artifact tool this session (confirmed via
+`ToolSearch`) — nothing new queued for publish; the closed item is already in the tracked files
+the next Artifact-holding session reads at Door orientation.
+
+**No stray browsers/servers started this watch.** One item worked and closed through the gate.
+Ending the turn here, per the Door's own rule — never take a second item.
+
+END OF WATCH.
