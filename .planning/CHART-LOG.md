@@ -3811,3 +3811,41 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       Review 230 in `.planning/CEO-REVIEWS.md`.
       **Sizing: SMALL-TO-MEDIUM** — the marker design is the hard part; the sweep is mechanical
       once it exists.
+
+## T-237 — 2026-09-06 — ⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE (closed 2026-09-06 · CEO 235 · no game diff — no game code -- tooling only (scripts/lib/npm_test_culprit.mjs, sea_trial.mjs, a red-proofed gate); index.html and src/ untouched) AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item. When npm test fails, the report's "the browser-free checks failed" section prints only the tail of the output, which on this branch is fixture chatter from two gates that PASS — chartkeeper: 2 rows carry DO NOW — T-802, T-803 and temp-dir paths from do_now_check's own red-proofs. The gate that actually failed is never named. In the report this watch produced, the real failure was chart_sweep_conserves_check on the orphaned handles T-233/T-234, and nothing in the file says so. WHY THIS IS WORSE THAN A COSMETIC BUG: CEO 185's words — "anyone opening that report concludes the Chartkeeper is broken." Rule 24 exists because "did you QA it?" can be answered evasively and "did you run the sea trial?" cannot, since a sea trial leaves a report he can open. A report that misnames its own failure gives that mechanism back its evasiveness, with nobody lying. Start here: the npm-test capture in scripts/sea_trial.mjs — it needs to surface the FAILING gate (the last && link to exit non-zero), not the last N lines of stdout, which on a chain of 129 gates is whoever printed most recently. Red-proof: make a known gate fail and assert the report names THAT gate by filename. Sizing: no game code. Not this watch's to take — filed where the next one will see it. ✅ FIXED 2026-09-06 (CEO 235, YES). scripts/lib/npm_test_culprit.mjs (new): on npm-test failure only, re-runs package.json's own && chain one entry at a time and identifies the culprit by ITS OWN exit code, never by tail-slicing combined text. Wired into scripts/sea_trial.mjs, replacing the old slice(-14) guess. Red-proofed: scripts/qa/sea_trial_names_failing_gate_check.mjs (gate 144, package.json gates.total/ ceiling bumped 143→144) constructs a synthetic 4-step chain (verbose-passing → short-failing → never-should-run) and (1) proves the OLD tail(-14) formula loses the failing gate's own identifying text behind trailing noise — a faithful reconstruction of CEO 185's real incident shape, (2) proves the NEW approach names the right gate every time. A fresh CEO independently re-broke the fix (if (r.status !== 0) → if (false)), confirmed RED 2/4, reverted, confirmed GREEN 4/4 — then found and ran findCulprit against a REAL live failure on this branch (crawl_intent_check.mjs, unrelated — see the new row immediately below) and confirmed it correctly named that gate too, not just the synthetic fixture. No game code (index.html/src/ untouched). Full account, including one corrected overstatement in the watch's own prediction file ("144/144 green" was not true on the HEAD it was written against, because of the unrelated regression below): CEO Review 235.
+
+- [x] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE (closed 2026-09-06 · CEO 235 · no game diff — no game code -- tooling only (scripts/lib/npm_test_culprit.mjs, sea_trial.mjs, a red-proofed gate); index.html and src/ untouched)
+      AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
+      `npm test` fails, the report's "the browser-free checks failed" section prints **only the
+      tail of the output**, which on this branch is fixture chatter from two gates that **PASS** —
+      `chartkeeper: 2 rows carry DO NOW — T-802, T-803` and temp-dir paths from `do_now_check`'s
+      own red-proofs. **The gate that actually failed is never named.** In the report this watch
+      produced, the real failure was `chart_sweep_conserves_check` on the orphaned handles
+      `T-233`/`T-234`, and nothing in the file says so.
+      **WHY THIS IS WORSE THAN A COSMETIC BUG:** CEO 185's words — *"anyone opening that report
+      concludes the Chartkeeper is broken."* Rule 24 exists because *"did you QA it?"* can be
+      answered evasively and *"did you run the sea trial?"* cannot, since a sea trial **leaves a
+      report he can open**. A report that misnames its own failure gives that mechanism back its
+      evasiveness, with nobody lying.
+      **Start here:** the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
+      FAILING gate (the last `&&` link to exit non-zero), not the last N lines of stdout, which on a
+      chain of 129 gates is whoever printed most recently. **Red-proof: make a known gate fail and
+      assert the report names THAT gate by filename.**
+      Sizing: no game code. Not this watch's to take — filed where the next one will see it.
+      ✅ **FIXED 2026-09-06 (CEO 235, YES).** `scripts/lib/npm_test_culprit.mjs` (new): on npm-test
+      failure only, re-runs `package.json`'s own `&&` chain one entry at a time and identifies the
+      culprit by ITS OWN exit code, never by tail-slicing combined text. Wired into
+      `scripts/sea_trial.mjs`, replacing the old `slice(-14)` guess. Red-proofed:
+      `scripts/qa/sea_trial_names_failing_gate_check.mjs` (gate 144, `package.json` `gates.total`/
+      `ceiling` bumped 143→144) constructs a synthetic 4-step chain (verbose-passing → short-failing
+      → never-should-run) and (1) proves the OLD tail(-14) formula loses the failing gate's own
+      identifying text behind trailing noise — a faithful reconstruction of CEO 185's real incident
+      shape, (2) proves the NEW approach names the right gate every time. A fresh CEO independently
+      re-broke the fix (`if (r.status !== 0)` → `if (false)`), confirmed RED 2/4, reverted, confirmed
+      GREEN 4/4 — then found and ran `findCulprit` against a REAL live failure on this branch
+      (`crawl_intent_check.mjs`, unrelated — see the new row immediately below) and confirmed it
+      correctly named that gate too, not just the synthetic fixture. No game code
+      (`index.html`/`src/` untouched). Full account, including one corrected overstatement in the
+      watch's own prediction file ("144/144 green" was not true on the HEAD it was written against,
+      because of the unrelated regression below): CEO Review 235.
+      ⟨`T-237`⟩

@@ -553,25 +553,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
-      AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
-      `npm test` fails, the report's "the browser-free checks failed" section prints **only the
-      tail of the output**, which on this branch is fixture chatter from two gates that **PASS** —
-      `chartkeeper: 2 rows carry DO NOW — T-802, T-803` and temp-dir paths from `do_now_check`'s
-      own red-proofs. **The gate that actually failed is never named.** In the report this watch
-      produced, the real failure was `chart_sweep_conserves_check` on the orphaned handles
-      `T-233`/`T-234`, and nothing in the file says so.
-      **WHY THIS IS WORSE THAN A COSMETIC BUG:** CEO 185's words — *"anyone opening that report
-      concludes the Chartkeeper is broken."* Rule 24 exists because *"did you QA it?"* can be
-      answered evasively and *"did you run the sea trial?"* cannot, since a sea trial **leaves a
-      report he can open**. A report that misnames its own failure gives that mechanism back its
-      evasiveness, with nobody lying.
-      **Start here:** the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
-      FAILING gate (the last `&&` link to exit non-zero), not the last N lines of stdout, which on a
-      chain of 129 gates is whoever printed most recently. **Red-proof: make a known gate fail and
-      assert the report names THAT gate by filename.**
-      Sizing: no game code. Not this watch's to take — filed where the next one will see it.
-      ⟨`T-237`⟩
 
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
@@ -601,6 +582,19 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
+
+- [ ] **⛔ `npm test` IS CURRENTLY RED ON THIS BRANCH — `crawl_intent_check.mjs` fails because
+      ⟨`T-265`⟩
+      `cloudflare-cutover.html` (added by a concurrent session's commit, 2026-09-06) has no
+      crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not
+      this row's fault or scope, filed fresh because a red `npm test` is exactly what rule 24 exists
+      to make impossible to miss.** Confirmed via `scripts/lib/npm_test_culprit.mjs`'s own
+      `findCulprit()`, which correctly named this gate as the real, current, live failure in ~70
+      seconds. Sizing: unknown until read — likely small (probably a `robots`/crawl-intent flag or
+      an entry `crawl_intent_check.mjs` expects for every root-level HTML page, missing for the new
+      one). Start with `node scripts/qa/crawl_intent_check.mjs` and read what it names. Not this
+      watch's to take — its own item was the fix for reporting failures like this one, not fixing
+      this one.
 
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩

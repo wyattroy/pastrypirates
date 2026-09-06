@@ -17195,3 +17195,48 @@ kept committed per house convention for underscore-prefixed one-off measurement 
 bugs on your Tasks list — the exact complaint behind CEO Review 230 — is now general rather than
 patched row-by-row, and it was red-proofed against the specific trap case your own SFX row would
 have hit if a lazier fix had shipped instead.
+
+## CEO Review 235 — A failed sea trial report names the wrong culprit (CEO 185's finding) — 2026-09-06
+
+**The ask:** CEO Review 185 (2026-09-03) found `scripts/sea_trial.mjs`'s npm-test-failure report
+section named the wrong gate — it tail-sliced the whole run's combined output and surfaced chatter
+from two PASSING gates while the real failure (`chart_sweep_conserves_check`) was never named.
+Filed as a Chart row: "the npm-test capture in `scripts/sea_trial.mjs` — it needs to surface the
+FAILING gate... not the last N lines of stdout... Red-proof: make a known gate fail and assert the
+report names THAT gate by filename."
+
+### VERDICT: YES
+
+A fresh general-purpose agent, with no shared context with the watch that did the work, independently
+verified — not just read — every claim:
+
+- Read `scripts/lib/npm_test_culprit.mjs` in full: `findCulprit()` re-runs `package.json`'s own `&&`
+  chain one entry at a time and identifies the culprit by its own exit code, never by parsing text.
+- Confirmed the OLD tail-slice code path in `scripts/sea_trial.mjs` is fully replaced, not merely
+  supplemented.
+- Ran `scripts/qa/sea_trial_names_failing_gate_check.mjs` itself: PASS 4/4.
+- **Red-proofed it independently**, on its own initiative, with its own edit: changed
+  `if (r.status !== 0)` to `if (false)` in `npm_test_culprit.mjs`, reran the gate, got RED (2/4),
+  reverted, got GREEN (4/4) again.
+- Confirmed gate counts (144/144) via `gate_count_check.js` and `gate_ceiling_check.mjs` directly,
+  and confirmed no game code touched (`index.html`/`src/` empty in this fix's diff).
+- **Went further than asked**: found `npm test` on the live branch is CURRENTLY failing for a real,
+  unrelated reason — `scripts/qa/crawl_intent_check.mjs`, because `cloudflare-cutover.html` (added
+  by a concurrent session's bundled commit) has no crawl-intent declaration — and ran `findCulprit`
+  against that live real failure, which correctly named the right gate in ~70 seconds. Stronger
+  proof than the synthetic fixture alone: the fix works on the actual class of failure it exists to
+  diagnose, not just a contrived one.
+
+**One overstated claim, caught and corrected:** the watch's own prediction file said "Full `npm
+test`: 144/144 green" — **not true on current HEAD**. A concurrent session's later, unrelated
+commits broke `crawl_intent_check.mjs` (index 126 of 144) three commits after this fix landed. This
+fix's own files are untouched by that regression and its new gate (index 142) is never even reached
+by the current failure — so the "green" claim is not this fix's fault, but it was stated without the
+caveat and should not be repeated that way. **Filed as a fresh, separate Chart row below rather than
+folded into this one** — a different gate, a different session's commit, not this watch's scope.
+
+**Its one thing for Wyatt:** the next time a sea trial fails, the report he opens will name the
+actual broken gate by its file path and show that gate's own output — not a plausible-looking
+wrong answer built from whichever gate happened to print last. Rule 24 depended on that report
+being honest; it was not, and now it is, independently confirmed rather than taken on the watch's
+word.

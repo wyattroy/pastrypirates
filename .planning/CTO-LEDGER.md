@@ -12655,3 +12655,83 @@ answer first. This row sits further down the list but is small, well-scoped, mec
 already fully diagnosed by CEO 185 — a good match for one watch's turn.
 
 Prediction written first: `.planning/wyclau/PREDICTION-20260906T2300Z-sea-trial-culprit.md`.
+
+- 2026-09-06T20:27:25Z · close_item: "A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT" · CEO 235 · no game diff — no game code -- tooling only (scripts/lib/npm_test_culprit.mjs, sea_trial.mjs, a red-proofed gate); index.html and src/ untouched · no stated solution
+
+**CLOSED, detail for the record.** `scripts/lib/npm_test_culprit.mjs` (new): on `npm test` failure
+only, re-runs `package.json`'s own `&&` chain one entry at a time and identifies the culprit by ITS
+OWN exit code — never by tail-slicing the whole run's combined output, which is what the old
+`sea_trial.mjs` code did (`slice(-14)` of `stdout+stderr`) and which CEO 185 caught naming two
+PASSING gates while the real failure went unnamed. Wired into `scripts/sea_trial.mjs`, fully
+replacing the old path. Red-proofed: new gate `scripts/qa/sea_trial_names_failing_gate_check.mjs`
+(package.json `gates.total`/`ceiling` 143→144) builds a synthetic 4-step fixture chain
+(`scripts/qa/_fixtures/npm_test_culprit/`: verbose-passing → short-failing → never-should-run) and
+proves both that the OLD formula loses the failing gate's identifying text behind trailing noise
+(a faithful reconstruction of the real incident's shape) and that the NEW approach names the right
+gate every time, never over-running past the failure.
+
+**Own red-proof, measured, not assumed:** deliberately broke `findCulprit`'s success detection
+(`if (r.status !== 0)` → `if (false)`), confirmed the new gate went RED (2 of 4 cases), reverted,
+confirmed GREEN (4/4). Full `npm test` (144 gates) ran green on this watch's own tree before the
+close.
+
+**Fresh CEO** (general-purpose agent, no shared context with this watch) independently re-verified
+everything rather than trusting the account — read the lib module, ran the gate itself, **re-broke
+and re-fixed the code itself** to confirm the gate can actually fail, confirmed gate counts via
+`gate_count_check.js`/`gate_ceiling_check.mjs` directly, confirmed no game code touched, and **went
+further than asked**: found `npm test` is currently RED on this branch for an unrelated reason
+(`crawl_intent_check.mjs`, because a concurrent session's commit added `cloudflare-cutover.html`
+with no crawl-intent declaration) and ran `findCulprit` against that REAL live failure — correctly
+named the right gate in ~70 seconds, stronger evidence than the synthetic fixture alone. **Verdict:
+YES.** Appended as **CEO Review 235** to `.planning/CEO-REVIEWS.md`. It also caught one overstated
+line in this watch's own prediction file ("144/144 green" — true when written, no longer true on
+HEAD after later unrelated commits landed) and that correction is recorded in the CEO review rather
+than silently fixed.
+
+**Filed fresh, not fixed, not this watch's scope:** the `crawl_intent_check.mjs` regression CEO 235
+found is now its own Chart row, immediately below the closed one — a different gate, caused by a
+different (concurrent) session's commit, unrelated to this item's own scope.
+
+**⚠ A GIT HYGIENE INCIDENT BY A CONCURRENT SESSION, NOTED FOR THE RECORD, NOT THIS WATCH'S FAULT OR
+TO FIX.** While this watch was mid-work, a separate live session on the same branch (interactive —
+it edited `.claude/CLAUDE.md`, which unattended watches are fenced from) committed a broad sweep
+(`git show --stat c6052541`) that bundled THIS watch's uncommitted files (all of them, correctly,
+with no content loss — confirmed byte-for-byte) together with its own unrelated Cloudflare-checklist
+work AND several other watches' long-abandoned scratch files
+(`scripts/wyclau/_ceo_scratch_old_stateof_test.mjs`, `_ceo_scratch_pkg_dup_check.mjs`,
+`_tmp_probe_arrow.mjs` — none of them this watch's, all now permanently in history) into one commit
+under a message that names none of it. Nothing was lost and this watch's own diff is cleanly
+isolable within that commit (verified via `git show --stat c6052541 -- <this watch's files>`), so no
+recovery action was needed — but §3's "claim before editing, `git add` specific files, review what's
+staged" rules exist exactly to prevent this, and a git-status check mid-turn is what caught it here.
+Two more commits landed on this branch from that same session in the few minutes after (`4a0fc285`,
+`88f13222`) — this branch is under active, fast-moving concurrent development right now.
+
+**Gear: NONE.** Touched only `.planning/CEO-REVIEWS.md`, `.planning/CTO-LEDGER.md`,
+`.planning/CHART.md`, `.planning/CHART-LOG.md` (via the gate's sweep), `.planning/wyclau/status/`
+(via `publish_status.mjs`), and the prediction file. This watch's own code diff
+(`scripts/lib/npm_test_culprit.mjs`, `scripts/sea_trial.mjs`, the new gate + fixtures,
+`package.json`) already landed inside the concurrent session's commit `c6052541` — no new game-code
+diff from this watch's own commit. `index.html`/`src/` untouched throughout. No sea trial owed.
+
+**Browsers/servers:** none started. No headless Chrome, no local server.
+
+**No Artifact tool this session** — confirmed directly via `ToolSearch`, not inferred. Nothing new to
+queue for publish (no page produced this watch).
+
+**Daily lesson:** not given yet today by this watch's check of the record — leaving it for now
+rather than inventing one; a later watch or the Advisor can supply it if the day's close still owes
+one by end of day.
+
+**Still open for the next watch:** the new `crawl_intent_check.mjs` regression (filed fresh, small,
+likely quick); `T-073` (SFX, claimed on the Mac — do not touch); `T-138` (blocked on Wyatt's own
+staging-publish approval); `T-237`-trade/`T-013`/`T-238` (real player-visible bugs needing careful
+non-rushed empirical work on a high-risk function, or his own answer first); `T-239` (needs an
+interactive session, confirmed twice fenced for an unattended one); the ambiguous-handle warnings
+chartkeeper prints every run (`T-237`, `T-220`, `T-206` each carried by more than one row) — worth a
+future watch's five minutes to disambiguate before they cause a wrong close.
+
+**One item worked and closed through the gate this watch.** Ending the turn here, per the Door's own
+rule — never take a second item, even though a second, smaller regression was found along the way.
+
+END OF WATCH.
