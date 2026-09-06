@@ -2442,3 +2442,13 @@ status: OPEN — answered in the reply; scope doc updated with launch-scale arit
 > always create artifacts of the checklist, never send me md files (they are hard to read and not user friendly)
 solution: publish it as a real page he can tap and tick — never hand over a repo path or a markdown file
 status: OPEN — applied immediately (`cloudflare-cutover.html`, published to staging) and written into the rules. THIS SESSION HAS NO ARTIFACT TOOL — measured, not assumed: `ToolSearch` for `select:Artifact,ArtifactComments,ArtifactData,ArtifactCheck` returns "No matching deferred tools found", and a keyword search matches none. Queued for a session that has one.
+
+## INBOX-20260906T211224Z — Currently the "sailing" SFX sound plays AFTER the boat sails -- it should be triggered at
+> Currently the "sailing" SFX sound plays AFTER the boat sails -- it should be triggered at the beginning of the sail animation, not the end
+solution: none stated
+status: OPEN
+
+## INBOX-20260906T211321Z — Bug: When refreshing the page in solo, the boats all reappear at totuga until a sail squar
+> Bug: When refreshing the page in solo, the boats all reappear at totuga until a sail square is clicked.
+solution: none stated
+status: OPEN
