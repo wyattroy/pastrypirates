@@ -12735,3 +12735,13 @@ future watch's five minutes to disambiguate before they cause a wrong close.
 rule — never take a second item, even though a second, smaller regression was found along the way.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-06T23xxZ-b (Bell-launched, claude/cloud-handoff-planning-a9ay1u)
+
+Claiming the row **"npm test IS CURRENTLY RED ON THIS BRANCH — crawl_intent_check.mjs"** (T-265,
+filed by the prior watch off CEO 235's finding). Scoped to cloudflare-cutover.html only — giving
+it a real head with a noindex robots meta tag, matching two-machines.html's convention for
+internal/reference pages. No game code (index.html/src/ untouched). Not colliding with T-073
+(SFX, claimed on the Mac) or any stage.js-adjacent row.
+
+Prediction written first: .planning/wyclau/PREDICTION-20260906T2330Z-T-265-crawl-intent.md
