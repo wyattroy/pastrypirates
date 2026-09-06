@@ -325,6 +325,28 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ **THE REUSABLE ONE: "PUBLISHED" IS NOT "DELIVERED", AND A HAND-BACK KEYED ON THE WRONG ONE
       AIMS THE NEXT WATCH AT WORK HE FORBADE.** The pin is back on this row.
 
+      ✅ **2026-09-06T~1430Z — THE COMMENT BOXES ARE BUILT, TESTED, AND CEO-VERIFIED. STILL NOT
+      CLOSED — STILL NOT PUBLISHED.** CEO 219 (YES). 13 boxes (`s1`..`s6` under the six findings
+      sections, `q1`..`q7` inside the seven questions), built on `<script type="application/json"
+      id="glassState">` — the exact id `harvest_glass.mjs` matches, confirmed unmodified against a
+      real saved read: `node scripts/wyclau/harvest_glass.mjs --html=<page> --dry-run` finds and
+      would carry his comments. New reusable generator, `scripts/wyclau/build_annotatable_artifact.mjs`,
+      bakes the same TPL/STATE self-publish quine `glass.mjs` uses into a one-off static page (no
+      live Node generator needed for a page that only ever needs Wyatt's own future saves).
+      ⚠ **A REAL CORRUPTION WAS FOUND AND FIXED BEFORE THIS SHIPPED — exactly the failure mode this
+      whole ask exists to prevent.** The self-publish mechanism worked perfectly on first load and
+      would have silently mangled the page (a doubled-quote break in the self-templating string) the
+      FIRST time anyone actually saved a comment — invisible until a second generation of the page
+      was tested. Caught by `scripts/qa/_t261_prd_comment_probe.mjs`'s round-trip check (save →
+      capture the published output → load THAT as a fresh page → confirm the comments survive →
+      confirm a THIRD save still works), which is the check this class of page needs and a simple
+      "does Save work once" test would have missed. All checks pass now, including the round-trip.
+      Shipped file's own state confirmed empty (`{"comments":{}}`) — nothing from testing leaked in.
+      ⛔ **STILL NOT DELIVERED — no Artifact tool this watch, so still not republished.** Queued:
+      `node scripts/wyclau/publish_queue.mjs --add --ticket=T-261 …` (done). **The next session with
+      an Artifact tool republishes `.planning/wyclau/T-261-SFX-PRD.html` exactly as committed** —
+      nothing else needs to change first. Full account: `INBOX-20260906T1355Z`, CEO Review 219.
+
 
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build

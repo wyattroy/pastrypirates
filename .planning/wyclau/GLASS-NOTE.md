@@ -58,3 +58,23 @@ byte-match finding, whether the 3 music tracks (69 MB) stay out of scope (recomm
 whether to level the whole expanded sound set in one pass once everything is in (recommended: yes).
 
 `T-073` stays GATED behind this until you rule. No game code touched this watch.
+
+---
+
+**2026-09-06, ~2:35 PM UTC (~10:35 AM ET) — a watch, on `T-261`. This supersedes the note above —
+the PRD IS published now (link below), and the "someone needs to publish it" ask above is done.**
+
+**Wyatt: you told a live session the PRD has wrong assumptions and asked for comment boxes you can
+type into. They're built.** The page — same link you already have,
+https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d — now has 13 comment boxes:
+one under each of the six findings sections, one inside each of the seven questions. Type a
+correction, tap Save, and it's recorded the same way your Glass's own comments are — a session reads
+it back and files it. A fresh CEO checked the mechanism itself (not just that it looks right) and
+found a real bug in an early build — it would have silently eaten your first saved comment — and
+caught it before this reached you.
+
+**One catch: this file's own copy of the page hasn't been pushed to the live artifact yet.** A watch
+without an Artifact tool built and tested it, queued it (`publish_queue.mjs`), and is handing it to
+whichever session publishes the Glass next. If you're reading this note on the Glass and the PRD
+link above still shows the old version with no comment boxes, that republish hasn't landed yet —
+tell whichever session you're talking to, and it can push the update in under a minute.

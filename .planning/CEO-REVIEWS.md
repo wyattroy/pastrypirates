@@ -1,5 +1,33 @@
 # CEO reviews — the standing record
 
+## CEO Review 219 — `T-261`: the PRD's new comment-box mechanism — **YES** — 2026-09-06
+
+**The ask:** does the mechanism actually do what Wyatt asked — give him a real way to write
+corrections into the SFX PRD that a session can read back, built on the Glass's existing
+`glassState.comments`/`harvest_glass.mjs` pattern rather than a fresh invention, and trustworthy
+enough that his first real use of it won't silently eat his words?
+
+Verified directly by the reviewer (not taken on the building session's word): all 13 `.cbox`
+elements exist and are wired (`.planning/wyclau/T-261-SFX-PRD.html:111-113`, `202-204`, etc — one
+per §1-6 finding, one per Q1-Q7); the state block is literally `id="glassState"` (line 269),
+matching `harvest_glass.mjs:84`'s regex and confirmed to generically iterate any handle shape
+(`harvest_glass.mjs:153-168`) with no dependency on Chart-specific structure; `glass.mjs:1867-1897`'s
+save/paint/revert-on-failure pattern is faithfully mirrored; `build_annotatable_artifact.mjs` hard-
+refuses a wrong id or a quoted token (citing the exact prior corruption this caught); the shipped
+file's live state is empty (`grep` confirmed `{"comments":{}}`, no leaked test data); and the probe's
+own round-trip check (publish → reload → third save on the "second-generation" template) is the
+correct check for a bake-once TPL/STATE quine's actual failure mode. Not independently re-run
+(browser/server out of scope for this review) — code-and-transcript verified instead, cross-checked
+against the already-proven sibling pattern.
+
+**Open, disclosed rather than hidden:** not yet republished (no Artifact tool this watch — Wyatt
+cannot see it yet, consistent with CEO 218's standing "published is not delivered" finding on this
+same item); no localStorage draft persistence (judged acceptable — a save either lands or visibly
+fails, never silently vanishes, which was the actual bar he set); the three new/changed files were
+uncommitted at review time (flagged as a real but easily-closed handoff risk).
+
+VERDICT: YES
+
 ## CEO Review 217 — `T-237`: re-measurement of "trade-offer circle covers its own ask" with a posed sibling script — **YES** — 2026-09-06
 
 **The ask:** did this watch actually run the posed measurement CEO 198 asked for, report the

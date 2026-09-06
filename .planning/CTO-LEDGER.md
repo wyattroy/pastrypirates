@@ -11615,3 +11615,71 @@ worth flagging to Wyatt directly if a future Advisor session is live with him, s
 Artifact-capable watch, or him publishing it himself) is his call, not a watch's to build unasked.
 
 END OF WATCH.
+
+## WATCH — Sonnet 5 (Bell), 2026-09-06T~1420Z-1435Z — T-261 comment boxes built, tested, CEO-verified, queued for publish
+
+**Situation on entry.** `git fetch && pull --rebase`: already up to date, no dirty state blocking it.
+`can_push.mjs` + the real push form both succeeded after reading `docs/GIT-AND-DEPLOY.md` (first
+gear hook of the session). Read INBOX, CHART, DECISIONS (top), ledger tail. Found `T-261` at the top
+of the Chart, and a live cross-session message from `pastrypirates-14` (the Advisor) arrived mid-task
+carrying his fresh instruction — comment boxes, not a re-ask of the multiple-choice mappings — and a
+handoff file (`HANDOFF-20260906.md`) making the exact requirement explicit: build on
+`glassState.comments`/`harvest_glass.mjs`, not a new mechanism.
+
+**TOOK `T-261`.** Started by trying to close the item on the strength of its earlier publish (a CEO
+review found the publish real but the item not yet closed through the gate) — that plan was
+superseded mid-task by the peer's message and the handoff, both making clear the item had REOPENED:
+Wyatt read the published PRD and said its inferred mappings need correction he can't give through a
+multiple-choice card. Pivoted to the actual remaining work rather than closing on stale evidence.
+
+**WORK DONE.**
+- Added 13 comment boxes to `.planning/wyclau/T-261-SFX-PRD.html` (`s1`..`s6` under the six findings
+  sections, `q1`..`q7` inside the seven questions), each a textarea + save button + rendered list of
+  his prior notes.
+- Built the save mechanism on the exact Glass pattern per the handoff's instruction: state block is
+  `<script type="application/json" id="glassState">`, client script calls
+  `window.claude.use("artifact")` → `cap.publish(buildDoc(state))`, mirroring `glass.mjs:1867-1897`.
+  Confirmed `scripts/wyclau/harvest_glass.mjs`, UNMODIFIED, reads this page's comments (dry-run
+  against a captured page: "would carry 2 of 2").
+- New reusable tool, `scripts/wyclau/build_annotatable_artifact.mjs` — bakes the same TPL/STATE
+  self-publish quine `glass.mjs`'s live generator produces, but for a one-off static page baked once
+  by hand rather than regenerated on demand.
+- New test probe, `scripts/qa/_t261_prd_comment_probe.mjs` — same fake-artifact-host + real-CDP
+  technique as the sibling `_t076_row_ui_probe.mjs`, plus a round-trip check unique to this page's
+  risk (publish → reload the published output → confirm survival → confirm a third save still works
+  on the "second-generation" template).
+- **The round-trip check caught a real bug before it shipped:** a quote-doubling corruption in the
+  self-templating string, invisible on first load, that would have silently mangled the page the
+  FIRST time anyone actually saved a comment — the exact "silently eats his corrections" failure this
+  whole ask exists to prevent. Root cause: the shell's `var TPL = "__PRD_TPL__";` (token wrapped in
+  quotes) disagreed with the client-side `buildDoc()`'s bare-token search (copied from `glass.mjs`,
+  where the token is never quoted). Fixed by matching `glass.mjs`'s bare-token convention in both the
+  shell and the generator; re-verified — all checks pass, including the round-trip and a third save
+  on the regenerated page.
+- Fresh-context CEO review (219, YES) verified the boxes are real and wired, the mechanism genuinely
+  reuses Glass's pattern (not a fresh invention), the generator's refusals are load-bearing not
+  decorative, the probe's round-trip check is the right one for this page's failure mode, and the
+  shipped file's own state is confirmed empty. Appended to `.planning/CEO-REVIEWS.md`.
+- `npm test`: ran twice after these changes, both times clean through the full gate chain (these are
+  not game code — no `index.html`/`src/` touched — so no sea trial owed; the live FULL trial, pid
+  47468, was left untouched and not duplicated).
+
+**STILL NOT DELIVERED, AND NOT CLOSED.** This session has no Artifact tool (confirmed, not assumed)
+and cannot republish. Queued: `node scripts/wyclau/publish_queue.mjs --add --ticket=T-261
+--path=.planning/wyclau/T-261-SFX-PRD.html --desc="comment boxes added, needs republish"`. INBOX and
+CHART both updated to reflect BUILT+TESTED, NOT PUBLISHED — never hand-ticked, per the record's own
+convention that closing runs through `close_item.mjs` once delivery is real.
+
+**No game code touched.** `git diff --stat` (about to commit): `.planning/CHART.md`,
+`.planning/wyclau/INBOX.md`, `.planning/CEO-REVIEWS.md`, `.planning/wyclau/T-261-SFX-PRD.html`,
+two new files under `scripts/`. `src/` and `index.html` untouched. One pre-existing untracked file,
+`.planning/sea-trials/SEA-TRIAL-2031-2026.09.03.3.md`, predates this watch (multiple prior watches
+have noted the same) and was left untouched.
+
+**NEXT WATCH / NEXT ARTIFACT-CAPABLE SESSION:** republish `.planning/wyclau/T-261-SFX-PRD.html`
+exactly as committed — nothing else needs to change first. Once Wyatt can see and use the boxes,
+this item is delivered and can close through the gate. Do not re-ask the five mapping questions
+(Cannons, ClockTick, Ocean_Loop, Seagulls, BoatCreaks) — they are open BECAUSE the comment boxes are
+now how he answers them, not because nobody has asked.
+
+END OF WATCH.

@@ -2307,14 +2307,40 @@ status: OPEN — filed as Chart row `T-261`, pinned DO NOW and placed physically
 ## INBOX-20260906T1355Z — put COMMENT BOXES in the artifact so he can correct it
 > i want to correct many assumptions made in the artifact -- make comment boxes in the artifact that i can write notes in for you, and you can read them
 solution: comment boxes in the PRD page, writable by him, readable by us
-status: OPEN — for the Watch, and it REOPENS `T-261`. He read the published PRD
+status: BUILT AND TESTED, NOT YET PUBLISHED — for the Watch still, until a session with an Artifact
+  tool republishes it. He read the published PRD
   (https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d) and said it contains many
   wrong assumptions. Asked to confirm five inferred sound mappings, he refused the QUESTION'S SHAPE,
   not the question: a multiple-choice card cannot take the corrections he has. **Those five mappings
-  (Cannons, ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are NOT confirmed.**
+  (Cannons, ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are STILL NOT confirmed.**
   ⛔ Build the boxes on `glassState.comments` — the mechanism his Glass already uses and
   `harvest_glass.mjs` already reads back — never a fresh textarea (rule 23). A box he types into
   that nobody reads back is worse than no box: it silently eats his corrections.
   ⚠ THIS ENTRY WAS WRITTEN ONCE AND LOST to a stash/pull/pop at ~10:00 AM ET, and survived only in
   `.claude/memory/DECISIONS.md`. CEO 218 finding 4 predicted exactly that fragility while it was
   already happening. Re-written here on purpose.
+
+  ✅ **2026-09-06T~1430Z — BUILT, EXACTLY AS SPECIFIED, AND ROUND-TRIP TESTED. CEO 219 (YES).**
+  `.planning/wyclau/T-261-SFX-PRD.html` now carries 13 comment boxes — one under each of its 6
+  numbered findings sections (`data-handle="s1"`..`"s6"`) and one inside each of its 7 numbered
+  questions (`data-handle="q1"`..`"q7"`). The state block is literally
+  `<script type="application/json" id="glassState">` — same id, same `{handle:[{text,at}]}` shape
+  Glass uses — so `scripts/wyclau/harvest_glass.mjs`, **completely unmodified**, reads this page's
+  comments and would carry them into this file (confirmed: `node scripts/wyclau/harvest_glass.mjs
+  --html=<a saved read of the page> --dry-run`).
+  **A real bug was found and fixed before this shipped, not after:** the self-publish mechanism
+  (`cap.publish(buildDoc(state))`, mirroring `glass.mjs`'s own TPL/STATE self-templating quine) had a
+  quote-doubling corruption that was invisible on first load and would have silently mangled the
+  page the FIRST time anyone actually saved a comment — exactly the "box that eats his corrections
+  and he has no way to know" failure this ask exists to prevent. Caught by
+  `scripts/qa/_t261_prd_comment_probe.mjs`'s round-trip check (publish → reload the published output
+  → confirm comments survive → confirm a THIRD save still works on that regenerated page), fixed in
+  `scripts/wyclau/build_annotatable_artifact.mjs` (the small reusable generator that bakes the
+  mechanism into a one-off static page the way `glass.mjs` does it live), re-verified: **all checks
+  pass, including the round-trip and second-generation save.** The live repo file's own state is
+  confirmed empty (`{"comments":{}}`) — no test data leaked into what ships.
+  **STILL NOT DELIVERED (rule 27 / CEO 218's standing finding) — this session has no Artifact tool
+  and cannot republish.** Queued: `node scripts/wyclau/publish_queue.mjs --add --ticket=T-261
+  --path=.planning/wyclau/T-261-SFX-PRD.html --desc="comment boxes added, needs republish"`. The
+  next session with an Artifact tool republishes this exact file (unchanged from what's committed)
+  and Wyatt has real comment boxes on the page he already has open.
