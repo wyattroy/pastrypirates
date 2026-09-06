@@ -1174,7 +1174,7 @@ status: DONE 2026-09-03 — CEO 171, commit 067760a (1 game file); his solution 
 
 solution: his own: one page, one source, and the credits keep his own plain first-person voice — a `ye`/`you` difference from the rest of the game is correct and must never be "fixed".
 
-status: OPEN — FOR A WATCH.
+status: DONE 2026-09-06 — CEO 222, commit 66b0446 (1 game file); his solution first: commit 66b0446
 
 ## INBOX-20260902T190743Z — regenerate `sitemap.xml` once the new pages exist — and consider generating it
 
