@@ -46,7 +46,7 @@ const SUBSYSTEMS = [
     id: "trade",
     docs: ["docs/TRADE-SYSTEM.md"],
     why: "anything that trades",
-    paths: [/trade/i, /4\/src\/ui\/flow\.js$/],
+    paths: [/trade/i, /^src\/ui\/flow\.js$/],   // 4/src/ was deleted by the cutover, 2026-08-26
     code: [/humanTrade|counterOffer|respondToOffer|composeOffer|openingBid|settleTrade|botOpenOffer/],
   },
   {
@@ -60,7 +60,7 @@ const SUBSYSTEMS = [
     id: "board",
     docs: ["docs/BOARD-RENDERING.md"],
     why: "anything drawn on the board",
-    paths: [/4\/src\/ui\/(board|stage)\.js$/],
+    paths: [/^src\/ui\/(board|stage)\.js$/],    // 4/src/ was deleted by the cutover, 2026-08-26
     code: [/CAM_HTML_LAYERS|camFit|sailHighlightRect|buildStage|boatUXY/],
   },
   {
@@ -91,7 +91,13 @@ const SUBSYSTEMS = [
     paths: [/^(CNAME|robots\.txt|sitemap\.xml)$/],
     bash: [
       /git\s+push/i,
-      /deploy-preview/i,
+      /\b(deploy|publish)-[a-z0-9-]+\.(sh|mjs|js)\b/i,   /* THE SHAPE, NOT THE NAME. This read
+         /deploy-preview/i until 2026-09-06, three weeks after `scripts/deploy-preview.sh` was
+         renamed to `deploy-staging.sh` — so the one command that can take the live domain down
+         stopped tripping this hook, and nothing said so. Naming a script by hand is a promise to
+         come back and edit this line on the day somebody renames it, and that promise was already
+         broken once. doc_command_check §6 now drives every deploy/publish script in scripts/ through
+         this hook and fails the build if any of them comes back silent. */
       /\brsync\b/i,
       /playpastrypirates\.com/i,
       /gh-pages/i,

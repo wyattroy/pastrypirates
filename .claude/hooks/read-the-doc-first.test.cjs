@@ -35,7 +35,9 @@ const BASH = [
   ["a REAL local server", "s6", "python3 -m http.server 8613", true],
   ["plain ls", "s7", "ls -la", false],
   ["grep whose PATTERN mentions the live domain", "s8", "grep -rn 'playpastrypirates.com' docs/", false],
-  ["the deploy script for real", "s9", "bash scripts/deploy-preview.sh", true],
+  ["the deploy script for real", "s9", "bash scripts/deploy-staging.sh", true],
+  ["the staging publisher for real", "s11", "bash scripts/publish-staging-path.sh", true],
+  ["the deploy script by its OLD, deleted name", "s12", "bash scripts/deploy-preview.sh", true],
   ["pgrep COUNTING browsers (inspection, not driving)", "s10", "pgrep -f remote-debugging-port | wc -l", false],
   ["pkill cleaning up strays (housekeeping)", "s11", "pkill -f remote-debugging-port", false],
   ["a real launch PIPED into grep is still a launch", "s12",
@@ -43,11 +45,17 @@ const BASH = [
 ];
 
 const EDITS = [
-  ["editing the board renderer", "e1", `${REPO}/4/src/ui/stage.js`, BOARD_FN, true],
+  /* THE PATH, NOT THE CONTENT. These two rows named `4/src/ui/...` until 2026-09-06 and still
+     passed, because the fixture text happens to contain a `code:` matcher too — so they went on
+     reporting "ok" for three weeks after the cutover deleted that tree, while the PATH rule they
+     are named for matched nothing at all. A test passing for a reason other than the one in its
+     own label is the quietest way to lose a guard. Content stripped to prove the path alone. */
+  ["editing the board renderer (by PATH alone)", "e1", `${REPO}/src/ui/stage.js`, "", true],
+  ["editing the board renderer (by CODE alone)", "e6", `${REPO}/src/util/anything.js`, BOARD_FN, true],
   ["editing a planning record", "e2", `${REPO}/.planning/STATE.md`, "notes about " + BOARD_FN, false],
   ["editing a design doc", "e3", `${REPO}/docs/BOARD-RENDERING.md`, "prose about " + BOARD_FN, false],
   ["editing this hook's own test file", "e4", `${REPO}/.claude/hooks/read-the-doc-first.test.cjs`, BOARD_FN, false],
-  ["editing the trade flow", "e5", `${REPO}/4/src/ui/flow.js`, "humanTrade(p)", true],
+  ["editing the trade flow (by PATH alone)", "e5", `${REPO}/src/ui/flow.js`, "", true],
 ];
 
 let bad = 0;

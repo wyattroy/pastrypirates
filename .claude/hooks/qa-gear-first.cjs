@@ -42,7 +42,7 @@ const path = require("path");
 
    PLUMBING MUST BE EARNED. Everything else is FULL. */
 const PLUMBING = [
-  { re: /^4\/src\/ui\/lobby\.js$/, mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
+  { re: /^src\/ui\/lobby\.js$/,     mode: "crew",     what: "the room screens — creating, joining, naming, leaving" },
   { re: /\bpassGate\b/,             mode: "passplay", what: "pass-and-play's hand-the-device gate" },
   { re: /\bnetCreateRoom\b|\bnetJoinRoom\b|\bnetLeaveRoom\b|\bgenCode\b|\bhostGoneGrace\b/,
                                      mode: "crew",     what: "crew's room lifecycle and the host-gone grace" },
@@ -83,10 +83,15 @@ function main() {
   const content = String(ti.content || ti.new_string || "");
 
   // only the game the milestone ships
-  const isGame = /^4\/(src\/|index\.html$)/.test(rel);
+  /* THE GAME IS AT THE ROOT NOW. This read /^4\/(src\/|index\.html$)/ until 2026-09-06 — nine days
+     after the cutover promoted 4/ to the root and deleted it. So the hook that CLAUDE.md line 832
+     advertises as "stops the first edit to game code in a session and states the gear" went silent
+     on src/ui/board.js, src/ui/stage.js and index.html, and fired only on paths that no longer
+     exist. Measured by driving it, not by reading it. */
+  const isGame = /^(src\/|index\.html$)/.test(rel);
   if (!isGame) process.exit(0);
   // writing a check is STEP ONE. Never stand in front of it.
-  if (/^4\/scripts\//.test(rel)) process.exit(0);
+  if (/^(4\/)?scripts\//.test(rel)) process.exit(0);   // both script trees are checks, not the game
 
   let gear = "FULL", mode = null;
   let why = `${rel} can change what a captain sees or can do`;
