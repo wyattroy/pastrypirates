@@ -89,6 +89,12 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/staging-is-not-main.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Staging is a different repo — git ancestry cannot answer 'did it ship?'"
           }
         ]
       }
