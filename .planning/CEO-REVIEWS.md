@@ -1,5 +1,35 @@
 # CEO reviews — the standing record
 
+## CEO Review 228 — `T-073`: the stale "GATED ON T-261" note was blocking his #1 pinned SFX item — **YES** — 2026-09-06
+
+**What happened, in one line:** `T-261` (his SFX PRD rulings) closed through the gate hours earlier
+(commit `826e26fd`, CEO 226 accepted the fix), but `T-073`'s own Chart row still read "GATED ON
+`T-261` AND ON HIS ANSWER TO IT" — and `CHART.md`'s own rule says a watch skips GATED rows. So the
+item he pinned DO NOW at rank 1 was mechanically unreachable by every watch since the gate cleared,
+purely because nobody updated the note.
+
+**Fix:** replaced the stale line with an 8-point checklist pointing at `.claude/memory/DECISIONS.md`'s
+three corrected `⟨T-261⟩` entries (not the PRD page itself, which is known to carry at least one
+false premise CEO 226 caught). Commit `6e0da6f6`. Only `.planning/CHART.md` touched — gear NONE, no
+sea trial owed. The row stays unchecked (`- [ ]`) — this fixed the paperwork, not the SFX feature.
+
+**Independently verified, fresh context, general-purpose agent:**
+1. Confirmed the GATED marker is gone and the replacement text matches DECISIONS.md's actual content
+   (read both files side by side, found no distortion).
+2. Spot-checked 3 of the 8 claims against live source: `SFX_VOLUME` (`src/ui/audio.js:54-61`) really
+   carries six non-`1` values; `playBattleEngage()` really fires at `src/orchestrator.js:631`, before
+   the battle-opening line, confirming no code move is needed for the sword-clash timing; no
+   turn-timer-expiry event exists anywhere (the shot clock was fully removed, gated by
+   `scripts/qa/shotclock_removed_check.mjs`). All three held.
+3. `git show --stat 6e0da6f6`: exactly one file changed, matches the commit message.
+4. Row correctly left as `- [ ]`, not ticked.
+5. No new unverified runtime claims introduced — the one failure mode this exact ticket chain had
+   already produced once (CEO 226's false "the clash MOVES" finding).
+
+**One sentence for Wyatt:** This fix is real and clean — it correctly un-stuck your #1 SFX ticket
+(it had been telling every watch to skip it for hours after you'd already answered everything), and
+every fact it points a future watch toward checks out against the actual code, not just the paperwork.
+
 ## CEO Review 227 — `T-098`: the leftover duplicate sitemap-fix row on the Chart — **YES** — 2026-09-06
 
 **Wyatt's ask (harvested twice on 2026-09-02, one word-for-word subset of the other):** fix
