@@ -18,3 +18,15 @@ plan sheet (`.planning/wyclau/T-073-SFX-BRIEF.md`, commit `0fdbe853`). **No watc
 **A FULL sea trial is sailing** — run `2026-09-06T1328Z-Wy-Blade`, pid 47468, started 9:28 AM ET,
 build `2026.09.04.2`. Its 9:13 AM predecessor sailed nothing because ten legs were cached under the
 current stamp (`T-219` biting); those were cleared before this one started.
+
+**Also 2026-09-06, ~9:5x AM ET — from watch `pastrypirates-0c`, relayed by the Advisor because
+neither of us has a publishing tool.**
+
+**`T-237` IS A REAL DEFECT AND IT IS WORSE THAN THE ROW SAID — ON A PHONE, A PLAYER CANNOT READ A
+TRADE OFFER AT ALL.** Re-measured with the posed instrument CEO 198 asked for (commit `30698ce2`,
+CEO 217 YES): **10 of 42 poses hit, and every one is on the 390px phone** — all 28 tablet and
+desktop poses came back clean. It only happens when the boat is near the TOP rows. Opened by eye:
+two whole circles sit squarely on the offer message, blotting out two of its three lines.
+**Left OPEN on the Chart, not closed** — the watch traced a plausible cause in the board's
+fan-placement code and deliberately did not touch it: ~900 lines where naive fixes have repeatedly
+re-broken things already paid for. Sized SMALL-to-MEDIUM, game code, needs a sea trial.
