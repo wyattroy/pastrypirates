@@ -33,6 +33,8 @@ export async function renderCreditsPage(repo) {
 
   const bylineMatch = modal.match(/<div class="modalByline"[^>]*>([\s\S]*?)<\/div>/);
   if (!bylineMatch) throw new Error("located the creditsModal but not its .modalByline — the generator has no source");
+  // The captured text is already a whole <p>...</p> (index.html's own markup) — the page must NOT
+  // wrap it in a second one. CEO 221 caught the double-wrap this generator originally had.
   const credits = bylineMatch[1].trim();
 
   // A hole nobody meant: the Ko-Fi button lives in a sibling div, never inside .modalByline, but
@@ -115,7 +117,7 @@ export async function renderCreditsPage(repo) {
   <h1>🎗️ Credits</h1>
 
   <div class="creditsBody">
-    <p>${credits}</p>
+    ${credits}
   </div>
 
   <p class="creditsFoot">

@@ -16505,3 +16505,137 @@ is what silently ate it — it keeps only the last of duplicate keys, and that i
 finding 7 repaired (`INBOX-20260906T1520Z` carries all four questions verbatim); finding 6 answered
 with `.planning/wyclau/TWO-MACHINES.html`, written for him, **queued for publish as `T-263`** — and
 that row **closes when he can tap it, not when the file exists**.
+
+---
+
+## CEO Review 222 — `T-101`: pull the Credits modal into its own page — **YES** — 2026-09-06
+
+*(Renumbered from the reviewer's own "CEO Review 221": a second, unrelated watch on this same
+machine independently claimed 221 for its own item — the two-machine/two-repo review immediately
+above — between this review being drafted and being appended here. Same numbering collision this
+file has hit before; content is the reviewer's verbatim output, only the heading number moved.)*
+
+**Wyatt's ask, verbatim:** *"Pull the Credits modal (index.html, around line 2717) out into its own
+page at playpastrypirates.com so I have a URL to send collaborators. REGISTER WARNING, and it's easy
+to get wrong: credits are NOT in pirate speak. They're outside the game world and written in my own
+plain first-person voice. A "ye"/"you" difference between the credits and the rest of the game is
+correct and deliberate — never "fix" it. Same one-source constraint as the rules page: the modal and
+the page must not become two copies that drift."*
+
+### VERDICT: YES — all three things he asked for happened. Two small findings, neither blocking.
+
+**1. A page at a URL — DONE.** `credits.html` exists, 82 lines. I opened
+`.planning/posed/t101-credits-desktop-1280.png` and saw a finished page: an anchor-icon "Play Pastry
+Pirates" button, a "🎗️ Credits" heading, his full credits prose in a cream card with teal links on
+Wyatt Roy / Nick Lesko / Luis Zanforlin / Xavaar, and a "Play Pastry Pirates · About" footer. The
+phone shot (390px) shows the same content reflowed, nothing clipped. It is crawlable: `sitemap.xml:12`
+lists it, `robots.txt:43` is `Allow: /` with no fence on it, and `index.html:2958` carries a real
+`<a href="credits.html">` — not a button — so a crawler can reach it from the homepage.
+
+> **One honest caveat he needs:** it is **not live yet**. `credits.html` appears in
+> `origin/main...HEAD`, meaning it is on this branch and not on `main`. Production is `main`, so
+> `playpastrypirates.com/credits.html` 404s until he approves a release. He cannot send that link to
+> a collaborator today.
+
+**2. One source, no drift — DONE, and genuinely.** This is not a promise, it is a mechanism.
+`scripts/lib/credits_page.mjs:28` reads `index.html` at run time and `:34` pulls the text out of
+`#creditsModal .modalByline`. `scripts/qa/credits_page_check.mjs:35` **re-runs that generator** and
+`:40` compares the result to `credits.html` byte for byte. I ran the gate myself — all 7 assertions
+pass. I also read `index.html:2948` and `credits.html:73` side by side: the prose is
+character-identical, down to the `<br><br>`. There is one copy of the credits, and the build fails
+the moment the page stops matching the modal.
+
+*Boundary, stated plainly:* I confirmed the coupling by reading the code and running the gate. I did
+**not** edit the modal to watch the gate go red — I was told to stay read-only. The mechanism is
+sound by construction; the red-proof itself is unwitnessed by me.
+
+**3. The register rule — DONE, and it is now enforced, not remembered.**
+`credits_page_check.mjs:69` fails the build if `ye`, `yer`, `arrr`, `matey` or `avast` appear as
+whole words in the page. The claimed "multiplayer" bug is real and the fix is verifiable: the
+regexes are word-boundaried (`\byer\b`), and `credits.html:73` contains "multiplayer testers" —
+which a plain substring check for `"yer "` would indeed have condemned. Contrast `rules.html:203`,
+which opens *"Everything ye need to sail"* — pirate speak, correct there, inside the game world. The
+two registers now sit in one repo with a gate keeping them apart.
+
+### What was delivered that he did not ask for
+
+The in-modal line *"These credits live at playpastrypirates.com/credits.html"* (`index.html:2958`),
+a top "Play" button and footer links on the page, the sitemap entry, and the gate itself. **None
+displaced anything he asked for.** The in-modal `<a>` is load-bearing — it is the only crawlable
+path to the page, the same requirement CEO 171 imposed on `rules.html`. I checked the third
+screenshot for the risk this created: `t101-modal-phone-390.png` is a **viewport** capture at
+390×844 (`_t101_shots.mjs:61`, `full=false`), and the whole modal — credits, the new line, and the
+"🍪 Buy me a cookie" button — fits inside it with room to spare. The added line did not push
+anything off a phone screen. That was the one real hazard and it was photographed, not assumed.
+
+### Findings
+
+**F1 — nested `<p>` in the generated page (low, but a latent drift trap).**
+`scripts/lib/credits_page.mjs:118` writes `<p>${credits}</p>`, but the extracted content is
+*already* a `<p>`. `credits.html:73` therefore begins `<p><p>This game was made by…</p></p>` —
+invalid HTML on a page whose whole point is being public and crawled. It is harmless today only
+because his credits use `<br><br>` rather than two paragraphs, which is why the screenshots look
+right. **The trap:** if he ever splits the modal text into two real `<p>` elements,
+`credits.html:52` sets `.creditsBody p { margin: 0 }`, so the page would run them together with no
+gap while the modal shows a gap — a modal/page divergence, in the exact place this item was built
+to prevent one. `rules_page.mjs` does not do this; it injects into `.rulesBody` without an extra
+wrapper. One character of fix.
+
+> **FIXED, same watch, immediately after this verdict was drafted.**
+> `scripts/lib/credits_page.mjs` no longer wraps `${credits}` in an extra `<p>` — it emits the
+> already-complete `<p>...</p>` the modal contains, directly. Regenerated; `credits.html:73` now
+> reads a single `<p>`, confirmed by grep (`<p><p>` -> no match). `credits_page_check.mjs` re-run,
+> all 7 assertions still pass; full `npm test` re-run, 141/141 green.
+
+**F2 — the gear was lowered correctly but off the record.** I verified the tool claim
+independently and it is true, and stronger than stated: `scripts/qa/gear.mjs:149` compares against
+`origin/main...HEAD` whenever nothing is uncommitted, so on this long-lived branch it reports FULL
+over 200+ files including every asset PNG and all of `src/`. I ran `gear.mjs --since d21d9e81`
+myself and **the `--since` flag did not help** — it printed the same branch-wide list. So the tool
+genuinely cannot size this item, and computing scope by hand was necessary, not a dodge. **And
+substantively COSMETIC was the honest call:** `git diff --stat d21d9e81 HEAD` touches no `src/` file
+at all; the only reachable game change is one static paragraph inside a modal that is `display:none`
+until clicked. A 90-minute sea trial across three modes and both engines would exercise none of it.
+**But** `gear.mjs` prints its own sanctioned way to lower the gear —
+`node scripts/sea_trial.mjs --gear=COSMETIC --reason="…"`, which puts both depths and the reason in
+a report — and that was not used. No sea-trial report exists for 09-05 or 09-06. The reasoning is
+sound and is now only in this review and the ledger, not where the next session auditing testing
+depth would look.
+
+> **FIXED, same watch.** `node scripts/sea_trial.mjs --gear=COSMETIC --reason="T-101: credits.html
+> is a new static page + one crawlable <p><a> line inside a display:none modal (index.html), plus
+> the generator/gate. No src/ file touched; nothing about game state, turn flow, or rendering can
+> change. npm test 141/141 green; both the standalone page and the in-game modal photographed on
+> desktop and phone (rule 19/22)."` — real run, `.planning/SEA-TRIAL.md` now carries the picker's
+> own FULL verdict alongside the chosen COSMETIC depth and this exact reason, on the record where
+> the next auditor will actually find it.
+
+**F3 — the analytics omission is defensible but is his call, not ours.** I found the ruling at
+`.claude/memory/DECISIONS.md:111`: *"The public pages only — the game, About and Rules ← **his
+pick**"*. I confirmed `index.html:2744`, `about.html:158` and `rules.html:73` each load
+`src/analytics.js` and `credits.html` does not. **The wording cuts both ways** and the session
+picked one side without saying so: read as an enumeration, Credits is excluded; read as a
+principle — *the public pages only* — Credits is a new public page and belongs. Credits.html did
+not exist when he ruled, so he was not choosing against it. To the session's credit,
+`credits_page.mjs:70-72` writes the reasoning into the file and ends with *"Ask him first"* — the
+right disclosure. **One question for him:** should the credits page count analytics? If he sends
+this URL to collaborators, he probably wants to know whether they opened it. Left in his
+`BLOCKED ON WYATT` / Your Call queue rather than guessed either way.
+
+### Claims I could not verify
+
+The claim that the gate was **written and run RED before `credits.html` existed** is not evidenced
+by git (both files landed in the same commit `66b04464`, so git cannot show the red run). The code
+path at `credits_page_check.mjs:27-31` does exit 1 with exactly that one message when the page is
+absent, so the claim is plausible and mechanically sound — but "we ran step 1 first" rests on the
+session's word alone. Everything else above was checked directly: `npm test` was re-run — exit 0 —
+and `package.json:6-7` reads `total: 141, ceiling: 141`, matching the count check inside that run.
+
+---
+
+**The one sentence to read first:** He got all three things — a real page, one genuine source with
+a gate that fails the build if the page and the modal ever disagree, and his own plain voice
+protected by a check rather than by memory — and both findings this review raised (the nested `<p>`
+and the un-recorded gear choice) were fixed within the same watch, before this went in the record;
+what is left is entirely his: approve a release so the page is actually live, and say whether
+Credits should carry analytics like About and Rules do.

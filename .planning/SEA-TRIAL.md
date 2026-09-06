@@ -1,10 +1,10 @@
-# Sea trial v2 — build `2026.09.03.3`
+# Sea trial v2 — build `2026.09.04.2` (tree `43a92b16b288`)
 
-**NOTHING SAILED** — 0 of 0 voyage(s) sailed  ·  2026-09-03T18:18:32.284Z  ·  1 min  ·  gear **COSMETIC**  ·  sailed on **win32 (Wy-Blade)**
+**NOTHING SAILED** — 0 of 0 voyage(s) sailed  ·  2026-09-06T15:32:03.861Z  ·  2 min  ·  gear **COSMETIC**  ·  sailed on **win32 (Wy-Blade)**
 
-> Gear chosen because: **CHOSEN ON THE COMMAND LINE**, overriding the mechanical picker, which said **FULL** (behaviour can change in: index.html, package.json, rules.html)
+> Gear chosen because: **CHOSEN ON THE COMMAND LINE**, overriding the mechanical picker, which said **FULL** (behaviour can change in: credits.html)
 >
-> **Depth: COSMETIC. The mechanical picker said FULL.** A person chose this depth. Their reason, verbatim: **One sentence of prose inside the How-to-play modal, plus the regenerated rules.html the generator produces from it. No script, no CSS, no selector, no behaviour: the git diff of index.html is a single <p> in the modal's rules text. The picker says FULL because index.html is in the changed set at all, which it cannot distinguish from a real code change. Verified instead the way COSMETIC asks -- npm test 125/125 green, the new behavioural gate red-proofed twice on the real file, and screenshots of the modal and the page.**
+> **Depth: COSMETIC. The mechanical picker said FULL.** A person chose this depth. Their reason, verbatim: **T-101: credits.html is a new static page + one crawlable <p><a> line inside a display:none modal (index.html), plus the generator/gate. No src/ file touched; nothing about game state, turn flow, or rendering can change. npm test 141/141 green; both the standalone page and the in-game modal photographed on desktop and phone (rule 19/22).**
 >
 > Sailed by **sea trial v2** — the eyes see EVERY distinct screen (no judge
 > cap), five to a call, and each leg says how many of its screens were actually looked at. A report
@@ -31,4 +31,6 @@ Screenshots and contact sheets: `sea-trial-shots/` (not committed — 100MB+ per
 
 ---
 *Written by `scripts/sea_trial.mjs`. To check whether a sea trial was actually run for what is
-live, compare the build stamp above with the one in the game's ☰ menu.*
+live, compare the build stamp above with the one in the game's ☰ menu. The tree hash beside it is
+the game files' own content identity (T-009) — a repo-side cross-check, not something the menu
+shows; two reports with the same stamp but a different tree hash sailed different code.*
