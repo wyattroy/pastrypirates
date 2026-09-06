@@ -11,6 +11,48 @@ about the reviewer and belongs on the record exactly as it was written.
 
 ---
 
+## CEO review 6 — 2026-09-06 · the documentation audit (`sep06-claudit`)
+
+**Verdict in its own words, unedited.**
+
+> He asked "are the docs too long?" and "suggest changes" — he got a real, well-measured answer to
+> the first and six genuinely broken gates repaired, but the "suggest changes" half was quietly
+> converted into "make changes," the one instruction he personally gave on it (a hard 350-line
+> limit) was swapped for a ceiling set to today's exact size, and in the middle of it the session
+> overwrote the last real sea-trial report — the 8-voyage FULL run that recorded two visual
+> failures — with a blank "NOTHING SAILED."
+
+**DONE:** the branch; the length verdict (every growth figure re-derived and exact — 399 / 936 /
+492 / 990); the daily routine (`trig_01MChsBg2WWHcnCY4TCbfeB5`, verified live via the API,
+enabled, next run 2026-09-07T11:03Z) — though it correctly does nothing until this branch merges.
+
+**PARTIAL — "suggest changes and improvements":** six fixes and a gate landed; **no written
+suggestions exist on disk.** Anything proposed lives only in chat, which vanishes.
+
+**CONFIRMED INDEPENDENTLY,** by driving the hooks before and after with distinct session ids:
+five live paths SILENT → FIRES, false positives silent in both states; `sea_trial.mjs:35` read the
+deleted path at `be66da06^`; and the gate run against the RED tree produced **exactly the 8 named
+failures** — *"the first drill in this project I have been able to make fail on demand."*
+
+**CHARGES UPHELD, and acted on the same day:**
+- The last real `SEA-TRIAL.md` (8 voyages, FAILED, two named visual defects) was overwritten by a
+  `--gear=COSMETIC` smoke run. **Restored from `f9238345^`.**
+- `.claude/DAILY-DOC-AUDIT.md` hand-typed "nine checks" and was wrong within the hour — the rule it
+  broke is CLAUDE.md §5's *"never hand-type a number that can be counted"*, inside the document
+  written to stop that. **Number removed rather than corrected.**
+- `4/scripts/playtest_gate.mjs:496` named `4/src/ui/stage.js` — a **seventh** defect of the same
+  shape, so "six, all found" was a floor and not a total. **Fixed.**
+- The size **ratchet** (CEILING = 990 = today's size) is not the hard 350-line limit Wyatt chose,
+  and he was told only in a commit message. **Put to him directly instead of shipped silently.**
+- The sea trial was proven only to STOP CRASHING, never to actually sail. Still true.
+
+**PRIOR FAULT (review 5: lessons became prose not machinery; a pointer added to the prose copy of a
+table and not the code copy; a drill that could not fail):** *"Mostly fixed — the best answer any of
+these six reviews has produced to a prior charge."* Recurring in new clothing twice, both small: a
+ratchet born green, and the hand-typed count above.
+
+---
+
 ## Review 5 — 2026-08-26 · are today's learnings PERMANENT?
 **One sentence:** *"He got the writing he asked for, and it is good writing — but almost none of
 today's lessons are enforced by a machine, the one new pointer that WAS added to an enforced table

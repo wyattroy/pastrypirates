@@ -17,10 +17,16 @@ is doing the damage it was sent to prevent.
 npm test
 ```
 
-`4/scripts/doc_command_check.js` is nine checks: every command and script path a doc names must
-exist, every link must resolve, every path pattern in the two PreToolUse hooks must match a real
-file, every deploy script must trip the deploy hook, every rule the hooks cite must exist in
-CLAUDE.md by name, and CLAUDE.md may not grow past its ceiling.
+`4/scripts/doc_command_check.js` prints one line per check and its own count. It covers: every
+command and script path a doc names must exist, every link must resolve, every path pattern in the
+two PreToolUse hooks must match a real file, every deploy script must trip the deploy hook, every
+rule the hooks cite must exist in CLAUDE.md by name, every repo path inside a doc-named script must
+resolve, and CLAUDE.md may not grow past its ceiling.
+
+*(This paragraph said "nine checks" for about an hour, and was wrong within the same session that
+wrote it — a tenth check landed one commit later. CLAUDE.md §5: never hand-type a number that can
+be counted. Broken here, inside the document written to stop exactly this. Read the count off the
+run.)*
 
 **If it is red, that is the whole job.** Fix it, open the PR, stop.
 
