@@ -335,6 +335,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
+  ✅ **RE-MEASURED 2026-09-06 — THE HEADLINE DEFECT IS FIXED AND SHIPPED; THE SEPARATE QUESTION
+  ABOVE IS SPLIT OUT TO ITS OWN ROW, NOT SILENTLY CLOSED WITH IT.** `git log -S gameTreeHash --
+  scripts/playtest_gate.mjs` shows the exact fix this row proposed already landed 2026-09-04
+  (`a56559da`, "derive the sea trial's leg-resume cache key from the tree, not a hand-typed
+  stamp (T-009/T-219)"): the leg-resume cache filename and stored record are now keyed on
+  `gameTreeHash()` — a content hash over every git-tracked file the game-code hook already calls
+  "the game" — not `PP4_STAMP` alone. `sea_trial.mjs` was further fixed (`1054eb52`) to print that
+  same hash beside `PP4_STAMP` at all five build-identity sites, so a stale number is visible on
+  the report itself. Both CEO-verified (Review 212 YES on the cache-key half, Review 213 YES
+  closing 212's one open half) under the sibling handle `T-009`, and confirmed still wired and
+  green this watch: `npm test` passing, including `leg_cache_tree_hash_check.mjs` and
+  `sea_trial_report_tree_hash_check.mjs` (both new gates named in those reviews).
+  **What this does NOT cover, and why closing here is honest rather than convenient:** the RUN_ID-
+  across-process-restart question two paragraphs up was never traced and is not touched by either
+  fix — `RUN_ID` is still `${STAMP}-${Date.now()}`, freshly generated every process start, in both
+  the pre- and post-fix code. It is real, narrower than this row's original headline (a labelling
+  artifact — a resumed leg's genuine result under-reports as "not sailed by this run", not a
+  silent stale-code lie), and unmeasured. Split out as its own row, `T-263`, immediately below,
+  so it is not lost when this row closes.
+
+- [ ] **DOES A SEA TRIAL'S RESUME CACHE SURVIVE ITS OWN SUPERVISOR RESTARTING THE WHOLE PROCESS,
+      ⟨`T-263`⟩
+  OR DOES THAT DEFEAT THE RESILIENCY IT EXISTS FOR? Split out of `T-219` 2026-09-06, so the fix
+  that closed the bigger defect there does not also bury this one.** `RUN_ID` is
+  `${STAMP}-${Date.now().toString(36)}` (`scripts/playtest_gate.mjs`), freshly generated on every
+  process start — untouched by the T-009/T-219 tree-hash fix, which changed the CACHE KEY (per-leg
+  result file naming) but not this RUN_ID. **The open question, traced this far and no further:**
+  if a container recycle kills the whole `node scripts/sea_trial.mjs` process mid-trial and a later
+  watch restarts it via `start_trial_detached.mjs`, the new process's `RUN_ID` cannot equal the
+  dead process's. A leg genuinely captured moments before the kill still has a fresh, valid result
+  file (keyed on stamp+tree-hash, so `legIsFresh()` credits it and `readDone()` reuses it) — but
+  that file carries the OLD `__runId`, and `sea_trial.mjs`'s `sailedHere()` checks `__runId ===
+  RUN_ID` for THIS run. So a leg that really did sail, seconds before the recycle, reports as
+  RESUMED-not-credited under the new run, same as a leg from a stale old build would.
+  **Why this is a labelling question, not a rule-24 lie, unlike the original T-219 defect:** the
+  report never claims untested code was tested — it under-credits code that WAS tested. The
+  player-facing risk is a trial that looks incomplete (or spins re-running legs it does not need
+  to) after a recycle, not a release decision made on stale evidence.
+  **Next step, not done here:** read `start_trial_detached.mjs`'s restart path and `sailedHere()`
+  together to confirm this trace, then decide whether `RUN_ID` should also derive from something
+  stable across a restart (e.g. the report path, which IS stable per run) rather than a fresh
+  timestamp. Full account of the original trace: `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
+  Sizing: SMALL, tooling not game code, investigation-first (rule: write the prediction before you fix).
+
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
   watch that judged the queue, deliberately not fixed by it (one item; and a stamp bump would retire

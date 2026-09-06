@@ -1,5 +1,46 @@
 # CEO reviews — the standing record
 
+## CEO Review 229 — `T-219`: the stale-stamp cache-reuse defect was already fixed under sibling handle `T-009` — **YES**, split honored, safe to close — 2026-09-06
+
+**What happened, in one line:** `T-219`'s Chart row (`.planning/CHART.md`) described the sea trial's
+per-leg resume cache being keyed only on the hand-typed `PP4_STAMP`, so a real game-code change
+landing without a stamp bump could be silently, invisibly resumed from a stale result — rule 24's
+own lie. That defect was already fixed on 2026-09-04, under the sibling handle `T-009`, and never
+carried back to close `T-219`'s own row.
+
+**Fix, verified not assumed:** commit `a56559da` ("T-009/T-219" in its own subject) added
+`scripts/lib/game_tree_hash.mjs` (a content hash of every git-tracked file the game-code hook already
+calls "the game") and `scripts/lib/leg_cache_key.mjs`, and wired `scripts/playtest_gate.mjs`'s
+`legFile()`/`readDone()`/`stampRun()` to key the cache on that hash, not the stamp alone. Commit
+`1054eb52` made `scripts/sea_trial.mjs` print that same hash beside `PP4_STAMP` at all five
+build-identity sites, so a stale stamp is now visible on the report itself. Both already
+CEO-reviewed under `T-009` (Review 212: YES on the cache-key half, PARTIAL on the report-stamp half;
+Review 213: YES, closing that PARTIAL).
+
+**The split, not a silent close:** `T-219`'s own row also named a second, deeper, unresolved
+question — whether the trial's `RUN_ID` (fresh every process start) survives a supervisor restart
+after a container recycle, or under-credits a leg that genuinely sailed just before the recycle.
+That question is untouched by the `T-009` fix (`RUN_ID` generation is unchanged) and was split out
+to its own row, `T-263`, rather than closed along with the rest.
+
+**Independently verified, fresh context, general-purpose agent:**
+1. Read `T-219`'s and `T-263`'s full Chart text; confirmed `T-263` describes a materially different,
+   narrower concern (a labelling under-report, not a stale-code lie) — not a fig leaf.
+2. Traced the cache-key derivation directly in `game_tree_hash.mjs`, `leg_cache_key.mjs`, and
+   `playtest_gate.mjs` (`TREE_HASH`, `legFile()`, `readDone()`, `legIsFresh()`, `stampRun()`) —
+   genuine content derivation, not a decorative constant.
+3. Confirmed `sea_trial.mjs` prints the tree hash at all five build-identity sites by direct read.
+4. Ran `npm test`: both purpose-built gates (`leg_cache_tree_hash_check.mjs`,
+   `sea_trial_report_tree_hash_check.mjs`) pass; suite ceiling 142/142. One unrelated FAIL noted
+   (`asset_paths_exist_check.mjs` against a gitignored `_site/classic/` build dir from separate
+   in-progress staging work) — not a regression from this fix, not this item's to fix.
+5. Read CEO Reviews 212 and 213 directly; confirmed they say what is claimed above.
+
+**One sentence for Wyatt:** the sea trial's stale-cache-reuse bug (`T-219`) is genuinely fixed and
+was already shipped and CEO-verified two days ago under a different ticket number — this closes the
+paperwork gap, and the one real loose thread (does a mid-trial process restart under-count a leg
+that actually sailed?) is now its own tracked row, `T-263`, instead of disappearing.
+
 ## CEO Review 228 — `T-073`: the stale "GATED ON T-261" note was blocking his #1 pinned SFX item — **YES** — 2026-09-06
 
 **What happened, in one line:** `T-261` (his SFX PRD rulings) closed through the gate hours earlier
