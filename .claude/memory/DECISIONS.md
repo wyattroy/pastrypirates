@@ -1,5 +1,52 @@
 # Wyatt's standing decisions
 
+## ⟨T-261⟩ TWO RULINGS HE WROTE HIMSELF, IN THE PRD'S COMMENT BOXES — 2026-09-06 16:25Z
+
+**He asked for the first one to be recorded, in those words: *"record this ruling somewhere."*** This
+is that somewhere. Both came through the comment boxes on
+https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d, harvested verbatim into
+`INBOX-20260906T162549Z`.
+
+### 1. ⛔ THE COIN FLIP IS SETTLED AND CLOSED. DO NOT TOUCH IT.
+
+**His words:** *"The coin flips can be ignored -- i ensured through code that all coin flips are the
+same consistent length, and that they match the original SFX file; so you don't need to do anything
+with teh coin flip sfx."*
+
+**THIS KILLS THREE THINGS THE PRD PROPOSES, and the PRD has not been corrected yet:**
+- §3's second "defect" — *"the coin-flip's embedded landing, which today can't be separated because
+  different browsers render the flip animation for different durations."* **The premise is false.**
+  He fixed the duration in code; the flip is a consistent length and matches the file.
+- §2's `PP_SFX_CoinFlip_Start.mp3` and `PP_SFX_CoinFlip_End.mp3` rows, both marked **certain**. They
+  are not needed. **Two of Luis's 27 files are out of scope.**
+- Any levelling or re-wiring of `coin-flip.mp3`.
+
+⚠ **A "certain" tag in that PRD was an inference by a session that could not hear the audio and did
+not know what he had already fixed in code. Two of the five "certain" rows were wrong. Treat the
+whole confidence column as unconfirmed until he says otherwise.**
+
+### 2. THE CANNON FIRES ON THE LANDING, NOT THE SHOT — AND IT MUST NOT COLLIDE WITH THE COIN
+
+**His words:** *"The cannon sound should fire when a shot has LANDED -- make sure that this does not
+overlap with teh second coin flip in a battle, but comes a moment after it (eg. 100ms after)."*
+
+This **answers half of Q2** and **corrects §2's mapping**, which reads *"Cannon — the opening
+broadside."* It is not the opening broadside. It is the landing.
+- **Trigger: the shot LANDING.**
+- **Ordering: strictly after the second coin flip of a battle, by about 100ms.** The `100ms` is his
+  example, not a constant to enshrine — derive it from when the flip's audio actually ends (rule 9),
+  and the requirement it must satisfy is *no overlap*.
+- **The other four "probable" mappings (ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are
+  STILL NOT CONFIRMED.**
+
+### 3. AND ONE THING THAT IS NOT A RULING — IT IS A NEW ASK, NOT YET SCOPED
+
+*"i want you to scope this and create an artifact with 10-15 sliders for me to adjust to get the
+sound balance correct. Include the short music mp3 file in this artifact, so I can adjust how the
+music volume/pan sounds when the player wants music."* — carried with Luis's own note that the
+ambience needs a randomiser over the ocean/seagull/creak clips **and randomised stereo placement**.
+**Raised with him rather than built on the strength of a note read off a page.** See the Chart row.
+
 ## ⟨T-261⟩ The SFX PRD — four rulings, and one new standing instruction — 2026-09-06 9:5x AM ET (asked in the question UI by the Advisor, because the PRD could not be published)
 
 Asked because `T-261`'s PRD (`.planning/wyclau/T-261-SFX-PRD.html`) was written but **no session

@@ -2359,3 +2359,8 @@ status: DONE 2026-09-06 — CEO 223, no game diff — doc/tooling work (CLAUDE.m
 > Luis did all the SFX for round 1 (currently in the game) and this round 2 (many missing artifacts). Beacuse so many sfx were missing during round 1, i intentionally used the same sfx for multiple moments of gameplay; but this is not ideal.
 solution: none stated
 status: OPEN — left on `s1` via the Glass's comment box
+
+## INBOX-20260906T162549Z — his comment on `s2`
+> The coin flips can be ignored -- i ensured through code that all coin flips are the same consistent length, and that they match the original SFX file; so you don't need to do anything with teh coin flip sfx. record this ruling somewhere. The cannon sound should fire when a shot has LANDED -- make sure that this does not overlap with teh second coin flip in a battle, but comes a moment after it (eg. 100ms after). Note from luis on the ambience: "Also, for the ambient, I got you the looping ocean + seagull and creak clips. You'll need to come up with a randomizer for these clips. also randomize the stereo placement as you play them" -- i want you to scope this and create an artifact with 10-15 sliders for me to adjust to get the sound balance correct. Include the short music mp3 file in this artifact, so I can adjust how the music volume/pan sounds when the player wants music.
+solution: none stated
+status: OPEN — left on `s2` via the Glass's comment box
