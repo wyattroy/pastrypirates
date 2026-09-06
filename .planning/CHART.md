@@ -158,8 +158,16 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       of that same sentence in this same pass.
       **THE REUSABLE ONE: A–D WERE ALL GREEN ON A PAGE ITS ONLY READER COULD NOT OPEN.** A gate that
       checks a secret exists is not a gate that the person it is for HAS it.
-      ⛔ **WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
-      `staging.playpastrypirates.com/stats.html` are both 404 today** (`curl`, 2026-09-03). The page
+      ✅ **THE 404 BELOW EXPIRED — YOU CAN LOAD IT NOW. Measured 2026-09-06 ~10:30 AM ET:**
+      **https://staging.playpastrypirates.com/stats.html** returns **200 and renders**
+      (`<title>Pastry Pirates — usage</title>`), because staging now carries this branch
+      (`2026.09.04.2-staging@0fdbe853`). **This row set its own closing condition as "you can load
+      that URL" — that condition is MET.** What is left is your look at it, and separately the
+      PRODUCTION release, which is a different decision and still yours;
+      `playpastrypirates.com/stats.html` is still 404, correctly, because production is deliberately
+      unreleased on `2026-08-26k-CUTOVER`.
+      ⛔ **~~WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
+      `staging.playpastrypirates.com/stats.html` are both 404 today~~** (`curl`, 2026-09-03). The page
       is on this branch only. Shipping it means the staging publish — which `T-016` says needs
       another ~90-minute trial of the code that would actually ship — or the branch merge, which is
       GATED on your own ruling. **This row closes when you can load that URL, not before.**
