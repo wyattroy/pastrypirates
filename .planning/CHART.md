@@ -96,10 +96,47 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
-      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
-      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
-      before that work is started"*. **A watch may not implement any of this until he has ruled on
-      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
+      ✅ **THE GATE IS CLEAR — `T-261` CLOSED 2026-09-06 (commit `826e26fd`, CEO 226 accepted the
+      fix), AND THIS ROW'S OWN "GATED ON T-261" LINE WAS LEFT STANDING FOR HOURS AFTER THAT.**
+      Corrected by this watch (2026-09-06, orientation pass) — the line above told every watch to
+      SKIP this row (`CHART.md:42-43`: "a watch picking its one item skips GATED rows") while it
+      sat pinned DO NOW at rank 1. **The authoritative spec for what to build is
+      [`.claude/memory/DECISIONS.md`](../.claude/memory/DECISIONS.md), the three `⟨T-261⟩` entries
+      at the top of the file — read those, not the PRD page**, which is now known to contain at
+      least one false premise the PRD itself never corrected (see below). What a watch does BEFORE
+      wiring anything:
+      1. **`PP_SFX_Alarm` is PARKED.** No turn-timer-expiry event exists in the game (his own
+         words: *"this is not built into the current game though"*). Do not wire it. Building the
+         timer feature is a separate, bigger, un-scoped decision — price it and put it to him if it
+         ever comes up.
+      2. **"Your turn" → `PP_SFX_Bells`, heard by that player ONLY — a SANCTIONED exception to
+         D-07**, his direct, informed choice (commit `35975eba`). `src/ui/audio.js:300`'s own
+         comment says every sound is audible to the whole table "ever" — **update that comment in
+         the same commit that wires this**, or the next reader reports it as a bug.
+      3. **`ClockTick` is still NOT confirmed anywhere in his rulings** (CEO 226 finding: `q2` is
+         the one comment box he left blank). Treat it as unconfirmed — leave it out of the first
+         wiring pass rather than guess, or ask him directly if the pass depends on it.
+      4. **`SFX_VOLUME` already carries six real, non-`1` values** (`src/ui/audio.js:54-61`) — the
+         PRD told him otherwise (`q7`'s false premise, corrected in DECISIONS.md). His "level
+         everything together, once, at the end" ruling still applies; start from those numbers, not
+         from a blank slate.
+      5. **Coin flip is CLOSED. Do not touch it.** His code already guarantees a consistent length
+         matching the shipped file; `PP_SFX_CoinFlip_Start`/`_End` are OUT OF SCOPE.
+      6. **The sword clash needs a file swap, not a code move.** The PRD's "this MOVES the cue"
+         framing was FALSE — `playBattleEngage()` already fires the clash at battle-call time, not
+         on resolve (`src/orchestrator.js:631`). Fetch Luis's latest (unclipped, by his own ruling)
+         clip and swap the file; do not touch the call site.
+      7. **The 3-phase sound button (Music+SFX → SFX-only → Mute → back, with a 2-minute
+         no-immediate-restart) is a NEW FEATURE, not part of "wire Luis's files."** Its own
+         consistency sweep (rule 8), its own place in the plan — do not fold it into this pass
+         silently.
+      8. **The ambient balance slider board (10-15 sliders + music preview) is explicitly ordered
+         AFTER this wiring pass, his own ruling** — do not build it first.
+      **STILL UNMEASURED BEFORE ANY OF THIS CAN START: no audio bytes have been fetched into the
+      repo yet** (`.planning/wyclau/T-073-SFX-BRIEF.md` is the brief, not the delivery). Whether an
+      unattended watch's Drive tools will actually fetch content (rather than refuse a first-time
+      grant, as measured twice before under `T-255`) is unmeasured by this watch and is the next
+      practical question, not this row's prose.
   **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
   available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
   You can see the spreadsheet with our plan for the SFX here:
