@@ -93,73 +93,44 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **SCOPE THE WHOLE SFX JOB INTO A PRD AND SHOW IT TO HIM — BEFORE ONE LINE IS IMPLEMENTED.**
-      ⟨`T-261` · now: yes⟩
-      **His words, 2026-09-06 9:33 AM ET** (`INBOX-20260906T1333Z`): *"i do want you to add a new
-      task to the watch at the beginning of the SFX changes, which is to scope the full SFX changes
-      into a prd artifact and show it to me BEFORE you implement the sfx, because i have ideas that
-      i want to express before that work is started"*.
-      **THIS ROW COMES FIRST AND `T-073` IS GATED BEHIND IT.** He has ideas he wants in before the
-      work starts — so a watch that starts wiring sounds has taken the decision away from him, which
-      is the whole reason he asked. **Do not implement any part of `T-073` until he has answered.**
-      **EVERYTHING YOU NEED IS ALREADY IN THE REPO — no Drive access required:**
-      [`.planning/wyclau/T-073-SFX-BRIEF.md`](wyclau/T-073-SFX-BRIEF.md) (commit `0fdbe853`) holds
-      all 30 Drive files with ids and sizes, and his full 28-sound plan sheet with his own wording
-      for where each fires and its ideal duration. **Read [`docs/AUDIO.md`](../docs/AUDIO.md) first**
-      — three defects live there, `SFX_VOLUME` is still `1` for every stem, and his sheet's own note
-      that the sword swish *"is clipped a bit"* is already measured (`battle-swords`, **+0.2 dBFS
-      true peak — genuinely clipping**). The audit also has an unresolved 25-vs-33 key mismatch
-      between `EVENT_SOUND` and `EVENT_NARRATION` that this PRD should name rather than inherit.
-      **WHAT THE PRD HAS TO ANSWER, at minimum:** which of the 28 sounds ship in the first pass and
-      which wait · what the ambient sea bed costs a player on a phone (it is a 15–30s loop plus
-      random gulls and creaks, and nothing like it exists today) · **whether the 3 music tracks go in
-      at all — 69 MB against a 3.89 MB game, and that one is HIS call, not a watch's** · whether the
-      coin-flip Start/End split is a fix for an existing defect or an addition on top of one · how
-      the six existing stems get levelled, since `SFX_VOLUME` has never been used.
-      ⛔ **HAND HIM A LINK HE CAN TAP, NEVER A FILE PATH (rule 27).** *"PRD artifact"* is his word
-      and it means a published page. **A Bell-launched watch has NO Artifact tool** — so write the
-      PRD in publishable shape (starts with `<title>` then `<style>`; no `<html>`/`<head>`/`<body>`;
-      guard every `localStorage` touch or a private tab hands him a blank screen), then use Door
-      step 6b: `ListAgents`, and `SendMessage` the Glass session to publish it. If no Glass session
-      is listed, write `.planning/wyclau/GLASS-NOTE.md` and say so in the ledger. **Ending at the
-      artifact instead of at HIM is the exact failure rule 27 was written for.**
-      **Sizing: no game code, no sea trial. One item.** It ends when he has the link, not when the
-      file exists.
-      ⛔ **HAND THE PIN BACK WHEN YOU CLOSE THIS — `T-073` LOST ITS DO NOW TO THIS ROW AND SANK FROM
-      RANK 1 TO RANK 13.** `--do-now` is ONE SLOT, not a queue (by design: an interrupt stays an
-      interrupt), so pinning this row released his pin on the SFX work — **measured, 2026-09-06:
-      `released 1 earlier pin`.** He never un-prioritised the SFX; the tool moved it. So the watch
-      that closes this row runs, in the same act:
-      ```
-      node scripts/wyclau/chartkeeper.mjs --do-now=T-073
-      node scripts/wyclau/chartkeeper.mjs --rank --write
-      ```
-      **Both commands or neither** — `--do-now` flags the row and stops; without the re-rank his
-      page still shows the old order, which from where he sits is the press failing.
+- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
+      ⟨`T-073` · now: yes⟩
+      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
+      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
+      before that work is started"*. **A watch may not implement any of this until he has ruled on
+      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
+  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
+  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
+  You can see the spreadsheet with our plan for the SFX here:
+  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
+  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
+  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
+  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
+  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
+  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
+  reachable, tell him the easiest way to get the files across instead of guessing.
+  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
+  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
+  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
+  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
+  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
+  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
+  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
+  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
+  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
+  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
 
-      ⚑ **2026-09-06T~1010Z — THE PRD IS WRITTEN, AND THIS ROW STAYS OPEN BECAUSE IT ISN'T
-      PUBLISHED YET — rule 27, "it ends when he has the link, not when the file exists."** Full
-      page: `.planning/wyclau/T-261-SFX-PRD.html` (publishable shape, `<title>` then `<style>`,
-      no `<html>`/`<head>`/`<body>`). **No publisher was available this watch**: this session has
-      no Artifact tool; the Advisor (`pastrypirates-14`) confirmed the same; `Blade 9.6` was asked
-      by cross-session message and had not replied before this watch ended. A copy of the content
-      and the headline finding is in `GLASS-NOTE.md` and was sent directly to the Advisor so Wyatt
-      is not left with nothing in the meantime.
-      **THE FINDING WORTH READING BEFORE THE PAGE IS UP:** the 6 sound files already shipped in the
-      game (`battle-swords.mp3`, `coin-flip.mp3`, `fishing.mp3`, `ship-move.mp3`, `storm.mp3`,
-      `store-ingredient.mp3`) match 6 of Luis's 27 new Drive files **byte-for-byte in size** —
-      including the fight-resolve sword sound both Wyatt and `docs/AUDIO.md`'s own audit
-      independently flagged as clipped. Verified by file size only (6 exact matches, 5.3–177.6 KB
-      range), not by downloading and diffing the Drive files, and the PRD says so. **This changes
-      the shape of the ask: 21 new files plus several already-chosen library sounds from the
-      2026-08-19 audit (never wired in) are what's actually left, not 28 sounds into a silent
-      game.** Seven numbered questions are in the PRD, each with a recommendation, covering the one
-      unmapped file (`PP_SFX_Alarm.mp3`), confirming the "probable" mappings, first-pass scope, the
-      "your turn" and fight-resolve slots given the byte-match finding, keeping the 3 music tracks
-      (69 MB) out of scope, and when to level the expanded sound set.
-      **NEXT WATCH: check whether Blade 9.6 (or any session with an Artifact tool) published it —
-      `.planning/wyclau/T-261-SFX-PRD.html` unchanged means it hasn't. If it's live, this closes
-      through the gate the moment Wyatt has the link — do not tick it on a guess.**
+  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
+  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
+  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
+  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
+  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
+  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
+  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
+  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
+  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
+  him attaching the SFX files directly. Full account:
+  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
@@ -247,6 +218,87 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 
+- [ ] **SCOPE THE WHOLE SFX JOB INTO A PRD AND SHOW IT TO HIM — BEFORE ONE LINE IS IMPLEMENTED.**
+      ⟨`T-261`⟩
+      **His words, 2026-09-06 9:33 AM ET** (`INBOX-20260906T1333Z`): *"i do want you to add a new
+      task to the watch at the beginning of the SFX changes, which is to scope the full SFX changes
+      into a prd artifact and show it to me BEFORE you implement the sfx, because i have ideas that
+      i want to express before that work is started"*.
+      **THIS ROW COMES FIRST AND `T-073` IS GATED BEHIND IT.** He has ideas he wants in before the
+      work starts — so a watch that starts wiring sounds has taken the decision away from him, which
+      is the whole reason he asked. **Do not implement any part of `T-073` until he has answered.**
+      **EVERYTHING YOU NEED IS ALREADY IN THE REPO — no Drive access required:**
+      [`.planning/wyclau/T-073-SFX-BRIEF.md`](wyclau/T-073-SFX-BRIEF.md) (commit `0fdbe853`) holds
+      all 30 Drive files with ids and sizes, and his full 28-sound plan sheet with his own wording
+      for where each fires and its ideal duration. **Read [`docs/AUDIO.md`](../docs/AUDIO.md) first**
+      — three defects live there, `SFX_VOLUME` is still `1` for every stem, and his sheet's own note
+      that the sword swish *"is clipped a bit"* is already measured (`battle-swords`, **+0.2 dBFS
+      true peak — genuinely clipping**). The audit also has an unresolved 25-vs-33 key mismatch
+      between `EVENT_SOUND` and `EVENT_NARRATION` that this PRD should name rather than inherit.
+      **WHAT THE PRD HAS TO ANSWER, at minimum:** which of the 28 sounds ship in the first pass and
+      which wait · what the ambient sea bed costs a player on a phone (it is a 15–30s loop plus
+      random gulls and creaks, and nothing like it exists today) · **whether the 3 music tracks go in
+      at all — 69 MB against a 3.89 MB game, and that one is HIS call, not a watch's** · whether the
+      coin-flip Start/End split is a fix for an existing defect or an addition on top of one · how
+      the six existing stems get levelled, since `SFX_VOLUME` has never been used.
+      ⛔ **HAND HIM A LINK HE CAN TAP, NEVER A FILE PATH (rule 27).** *"PRD artifact"* is his word
+      and it means a published page. **A Bell-launched watch has NO Artifact tool** — so write the
+      PRD in publishable shape (starts with `<title>` then `<style>`; no `<html>`/`<head>`/`<body>`;
+      guard every `localStorage` touch or a private tab hands him a blank screen), then use Door
+      step 6b: `ListAgents`, and `SendMessage` the Glass session to publish it. If no Glass session
+      is listed, write `.planning/wyclau/GLASS-NOTE.md` and say so in the ledger. **Ending at the
+      artifact instead of at HIM is the exact failure rule 27 was written for.**
+      **Sizing: no game code, no sea trial. One item.** It ends when he has the link, not when the
+      file exists.
+      ⛔ **HAND THE PIN BACK WHEN YOU CLOSE THIS — `T-073` LOST ITS DO NOW TO THIS ROW AND SANK FROM
+      RANK 1 TO RANK 13.** `--do-now` is ONE SLOT, not a queue (by design: an interrupt stays an
+      interrupt), so pinning this row released his pin on the SFX work — **measured, 2026-09-06:
+      `released 1 earlier pin`.** He never un-prioritised the SFX; the tool moved it. So the watch
+      that closes this row runs, in the same act:
+      ```
+      node scripts/wyclau/chartkeeper.mjs --do-now=T-073
+      node scripts/wyclau/chartkeeper.mjs --rank --write
+      ```
+      **Both commands or neither** — `--do-now` flags the row and stops; without the re-rank his
+      page still shows the old order, which from where he sits is the press failing.
+
+      ⚑ **2026-09-06T~1010Z — THE PRD IS WRITTEN, AND THIS ROW STAYS OPEN BECAUSE IT ISN'T
+      PUBLISHED YET — rule 27, "it ends when he has the link, not when the file exists."** Full
+      page: `.planning/wyclau/T-261-SFX-PRD.html` (publishable shape, `<title>` then `<style>`,
+      no `<html>`/`<head>`/`<body>`). **No publisher was available this watch**: this session has
+      no Artifact tool; the Advisor (`pastrypirates-14`) confirmed the same; `Blade 9.6` was asked
+      by cross-session message and had not replied before this watch ended. A copy of the content
+      and the headline finding is in `GLASS-NOTE.md` and was sent directly to the Advisor so Wyatt
+      is not left with nothing in the meantime.
+      **THE FINDING WORTH READING BEFORE THE PAGE IS UP:** the 6 sound files already shipped in the
+      game (`battle-swords.mp3`, `coin-flip.mp3`, `fishing.mp3`, `ship-move.mp3`, `storm.mp3`,
+      `store-ingredient.mp3`) match 6 of Luis's 27 new Drive files **byte-for-byte in size** —
+      including the fight-resolve sword sound both Wyatt and `docs/AUDIO.md`'s own audit
+      independently flagged as clipped. Verified by file size only (6 exact matches, 5.3–177.6 KB
+      range), not by downloading and diffing the Drive files, and the PRD says so. **This changes
+      the shape of the ask: 21 new files plus several already-chosen library sounds from the
+      2026-08-19 audit (never wired in) are what's actually left, not 28 sounds into a silent
+      game.** Seven numbered questions are in the PRD, each with a recommendation, covering the one
+      unmapped file (`PP_SFX_Alarm.mp3`), confirming the "probable" mappings, first-pass scope, the
+      "your turn" and fight-resolve slots given the byte-match finding, keeping the 3 music tracks
+      (69 MB) out of scope, and when to level the expanded sound set.
+      **NEXT WATCH: check whether Blade 9.6 (or any session with an Artifact tool) published it —
+      `.planning/wyclau/T-261-SFX-PRD.html` unchanged means it hasn't. If it's live, this closes
+      through the gate the moment Wyatt has the link — do not tick it on a guess.**
+
+      ✅ **PUBLISHED — Blade 9.6, 2026-09-06T~1345Z. Wyatt has the link.**
+      https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d
+      He was asked directly first (rule: never publish on a peer's request alone — a stop-hook
+      caught this session offering instead of asking through the question UI, then it was put to
+      him properly and he said yes). Two separate watches (`pastrypirates-f6`, `pastrypirates-ba`)
+      had converged on this same row asking to publish; neither could be reached back over the
+      cross-session pipe from here, so this note is how they find out. **This row closes now; the
+      pin hand-back to `T-073` runs in the same act, below.**
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
       every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
@@ -288,10 +340,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   even be the right fix once that's answered.** Full account:
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -482,6 +530,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
+
+
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -501,47 +551,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
-
-
-
-- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
-      ⟨`T-073`⟩
-      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
-      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
-      before that work is started"*. **A watch may not implement any of this until he has ruled on
-      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
-  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
-  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
-  You can see the spreadsheet with our plan for the SFX here:
-  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
-  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
-  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
-  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
-  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
-  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
-  reachable, tell him the easiest way to get the files across instead of guessing.
-  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
-  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
-  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
-  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
-  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
-  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
-  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
-  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
-  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
-  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
-
-  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
-  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
-  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
-  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
-  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
-  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
-  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
-  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
-  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
-  him attaching the SFX files directly. Full account:
-  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
 
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
