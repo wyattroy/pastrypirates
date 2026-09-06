@@ -1,5 +1,54 @@
 # Wyatt's standing decisions
 
+## PUBLISH TO STAGING FROM A THROWAWAY CLONE, NEVER FROM THE SHARED CHECKOUT
+
+**Earned 2026-09-06, the day three sessions worked in one folder and HEAD was moved under a working
+session three times.**
+
+**THE FACT THAT MAKES THIS NECESSARY, in plain terms: publishing to staging COPIES A FOLDER onto
+the website exactly as it sits.** It does not read git, does not care which branch you are on, and
+does not care what is committed. `deploy-staging.sh:180` says so in its own output — *"note: working
+tree has uncommitted changes; deploying them as-is."* **So whatever is sitting in the folder goes
+live**, including another session's half-finished work.
+
+**THE RECIPE, and it costs about thirty seconds:**
+
+```bash
+git clone --no-hardlinks "$(git rev-parse --show-toplevel)" /path/to/scratch/deploy
+cd /path/to/scratch/deploy && git remote set-url origin https://github.com/wyattroy/pastrypirates
+git fetch origin && git checkout -B pub origin/<the branch you mean>
+bash scripts/deploy-staging.sh "what changed"        # NOT piped — see below
+```
+
+**WHY IT WORKS:** `deploy-staging.sh:38` derives `SRC` from **the script's own location**
+(`dirname "${BASH_SOURCE[0]}"/..`), so running the copy's script publishes the copy. Nothing else
+needs changing.
+
+**WHAT IT BUYS, all four measured on 2026-09-06:**
+
+1. **HEAD in the shared checkout never moves** — so no live session is knocked onto a branch it does
+   not know it is on. That happened three times in one day before this.
+2. **Another session's uncommitted files are not swept onto the live page.** Three were dirty at the
+   moment of that publish and none reached staging.
+3. **`.git` is a real DIRECTORY in a clone**, so the trailing-slash `--exclude=.git/` fault
+   (`deploy-staging.sh:156`) cannot fire. That fault only bites from a worktree, where `.git` is a
+   file — a real clone sidesteps it entirely.
+4. **The tree is CLEAN by construction**, so what ships is exactly the commit you named.
+
+**AND READ THE EXIT CODE OUTSIDE A PIPE, THEN IGNORE IT AND CHECK THE WIRE.**
+`bash scripts/deploy-staging.sh … > log 2>&1; RC=$?` — **never `… | tail`**. Without `pipefail` a
+pipeline's status is the LAST command's, so `false | tail -4` returns **0**. That is exactly how a
+session read a failed deploy as a success this afternoon. Then prove it anyway, because a script's
+own word is not evidence:
+
+```bash
+curl -s "https://staging.playpastrypirates.com/src/ui/stage.js?cb=$(date +%s)" | grep -o 'PP4_STAMP = "[^"]*"'
+```
+
+**Related:** the shared-checkout entry above (a branch switch moves every session on the machine),
+and `docs/GIT-AND-DEPLOY.md` §5 — *"Staging is an address, not a branch."*
+
+
 ## ⟨HOSTING⟩ CLOUDFLARE PAGES, ONE REPO, DNS MOVED — and he is on Firebase BLAZE, 2026-09-06
 
 **His ask:** *"scope out using netlify to push staging and production from one repo (pastrypirates)
