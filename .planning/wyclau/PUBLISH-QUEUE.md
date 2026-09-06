@@ -8,4 +8,4 @@ never be read. A session that DOES hold the Artifact tool runs
 `--mark-published --ticket=T-NNN --url=<url>`. See the script's own header for the full contract.
 
 - [ ] `T-261` — comment boxes added (13, glassState-backed), needs republish so Wyatt can use them — `.planning/wyclau/T-261-SFX-PRD.html`
-- [ ] `T-263` — his Mac/Blade + staging/production page, written for HIM not for Claude (CEO 221 finding 6) — `.planning/wyclau/TWO-MACHINES.html`
+- [ ] `T-263` — his Mac/Blade + staging/production page, written for HIM not for Claude (CEO 221 finding 6) — `two-machines.html`
