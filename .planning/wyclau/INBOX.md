@@ -2437,3 +2437,13 @@ status: OPEN — scope written to `.planning/wyclau/SCOPE-NETLIFY-ONE-REPO.md`; 
 > my traffic is about to increase 10000 fold -- i'm pre-launch right now
 solution: none stated
 status: OPEN — answered in the reply; scope doc updated with launch-scale arithmetic. THIS CHANGES THE HOST DECISION: at 10,000x his measured traffic, Netlify and GitHub Pages both fail on cost/limits and Cloudflare is the only one of the three that holds. Two launch blockers found that are NOT hosting: Firebase RTDB free tier (10 GB/month, 100 simultaneous connections) and the usage database answering an UNAUTHENTICATED read.
+
+## INBOX-20260906T161511Z — Problem: the privacy policy footer appears incorrectly: 1) it appears over the game board
+> Problem: the privacy policy footer appears incorrectly: 1) it appears over the game board 2) it appears on its own privacy policy page. expectation: this footer should only show up in the homepage, nowhere else.
+solution: none stated
+status: OPEN
+
+## INBOX-20260906T161921Z — ⚑ HE PRESSED DO NOW — Problem: The stage is darkened incorrectly in tablet and widescreen view -- the gameboard
+> Problem: The stage is darkened incorrectly in tablet and widescreen view -- the gameboard div is darkened, including the top navbar row with the four ship circles and the wind pill; and the bottom right/left corners around the gameboard. Expectation: in tablet and widescreen, only the gameboard rounded-square area is darkened.
+solution: none stated
+status: OPEN — PINNED by him on the Glass; take this before anything ranked

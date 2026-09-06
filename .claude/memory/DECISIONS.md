@@ -1,5 +1,41 @@
 # Wyatt's standing decisions
 
+## ⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rest — 2026-09-06T17:23:03.302Z
+
+Asked on the Glass: *"⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is G-2KK6EZDZSP actually a live property in your Google account? The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know."* — **Wyatt ruled "Open analytics.google.com and confirm G-2KK6EZDZSP is there"**, 2026-09-06T17:23:03.302Z.
+
+**His note, verbatim:** *"Confirmed -- it's there."*
+
+**The alternatives he did not pick**, as his card showed them:
+- Open analytics.google.com and confirm G-2KK6EZDZSP is there  ← **his pick**
+- Ship it as-is and find out from real traffic
+- Create a fresh property instead
+
+<!-- harvest-id: RULING-20260906T172303Z-t206-confirm-ga-property -->
+
+## ⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 20 — 2026-09-06T17:23:26.136Z
+
+Asked on the Glass: *"⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning --gear=/--reason=/--explain, and a NEW bug along the way (a Windows path-separator bug that makes scripts/, .claude/, docs/ all misread as "game code" on this machine) — and every attempt to Edit .claude/hooks/qa-gear-first.cjs or .claude/hooks/lib/game-code.cjs is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in .planning/CHART.md's T-220 row and scripts/qa/hook_gear_override_reachable_check.mjs."* — **Wyatt ruled "You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row"**, 2026-09-06T17:23:26.136Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row  ← **his pick**
+- Find whatever setting fences .claude/hooks/ from an unattended watch and loosen it, if you want future watches to close items like this one
+- Leave it — it's cosmetic-severity (a missing hint in a denial message, plus a hook that's stricter than it needs to be on this OS) and not worth your time
+
+<!-- harvest-id: RULING-20260906T172326Z-t220-hooks-write-access -->
+
+## ⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won eac — 2026-09-06T17:23:31.304Z
+
+Asked on the Glass: *"⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling. T-023's original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (2026.09.04.2) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (.planning/posed/t143-eov-phone-390x664-awards.png, t143-eov-tablet-820x1180-awards.png) to the Glass for you to see directly."* — **Wyatt ruled "Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern"**, 2026-09-06T17:23:31.304Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern  ← **his pick**
+- Shrink the award cards/stats table on phone so all 4 fit without scrolling, at the cost of smaller text/art
+- Show only the ONE card for the player's own seat by default on phone, with a tap/swipe to see the others
+
+<!-- harvest-id: RULING-20260906T172331Z-t143-eov-phone-scroll -->
+
+
 ## ⟨T-261⟩ HE FINISHED THE PRD — 12 rulings in the comment boxes, 2026-09-06 16:27–16:36Z
 
 **He said so himself: *"I finished my rulings."*** All twelve carried verbatim into `INBOX.md`
