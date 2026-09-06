@@ -6,7 +6,12 @@ repo private"*
 
 **Verdict up front: it works, it is the right shape, and it is smaller than it looks — but it is
 gated on one number he has to choose (a plan), and one act only he can perform (DNS at
-Squarespace).** Everything below was measured on 2026-09-06, not assumed. Nothing has been changed.
+Squarespace).**
+
+**The repo, traffic and DNS numbers below were measured on this machine on 2026-09-06.** The Netlify
+plan numbers come from Netlify's own pricing documentation, fetched the same day and cited where they
+are used — not from memory, and not from opening his account, which nobody has seen. Nothing has been
+changed and nothing has been built.
 
 ---
 
@@ -24,9 +29,11 @@ both available. A host move is the price of privacy, and it is the whole reason 
 | `playpastrypirates.com/scripts/deploy-staging.sh` | **HTTP 200** — the whole `scripts/` folder is public |
 | `playpastrypirates.com/.planning/CHART.md` | 404 — the planning folder is NOT served (Jekyll hides dot-folders) |
 
-**Today's site publishes 519 MB of art-review PSDs and 9.9 MB of QA scripts to anyone who asks.**
-That is not a leak of anything dangerous, but it is not the game either, and it goes away for free
-in this move.
+**Today's site publishes his art-review folder — 519 MB on disk, 114 PNGs plus 2 Photoshop files —
+and 9.9 MB of QA scripts, to anyone who asks.** One of those files was actually fetched over HTTP to
+prove it (the 5.5 MB coin PNG above); the 519 MB is `du` on local disk, not measured traffic. This is
+not a leak of anything dangerous, but it is not the game either. **Whether it SHOULD stop being
+public is a real question and not a formality — see section 6.**
 
 ---
 
@@ -46,7 +53,7 @@ wyattroy/pastrypirates          <- ONE repo. The only repo. Goes private.
   being remembered.
 - **`robots.txt` / `sitemap.xml` as hazards.** They become one file each, swapped at publish time by
   environment.
-- **`scripts/deploy-staging.sh`'s 260 lines** of rsync, excludes, CNAME guards, Windows path
+- **`scripts/deploy-staging.sh`'s 351 lines** (counted, not estimated) of rsync, excludes, CNAME guards, Windows path
   rewriting and cross-platform `sed`. All of it exists to make a COPY safe. There is no copy.
 - **The confusion the `staging-is-not-main.cjs` hook was written for.** With staging as a branch of
   this repo, `git merge-base --is-ancestor HEAD origin/staging` finally answers the question he was
@@ -67,14 +74,16 @@ Netlify uploads whatever the publish directory contains, so something has to sep
 | # | item | size |
 |---|---|---|
 | 1 | `netlify.toml` + `scripts/build-site.mjs` — assemble the 222-file game set into `_site/`, stamp the build, swap `robots.txt` by context | half a day |
-| 2 | Retire `scripts/deploy-staging.sh` and its gate `deploy_rsync_paths_check.mjs`; drop the gate ceiling 141 -> 140 in `package.json` | 1 hour |
+| 2 | Retire `scripts/deploy-staging.sh` and its gate `deploy_rsync_paths_check.mjs`; move BOTH `gates.total` AND `gates.ceiling` 141 -> 140 in `package.json` — they are two separate numbers and `gate_count_check.js` fails the build if either disagrees | 1 hour |
 | 3 | Rewrite `scripts/where_is_my_work.mjs` — with one repo, git ancestry works for both environments; keep the stamp curls | 1 hour |
 | 4 | Rewrite `.claude/hooks/staging-is-not-main.cjs` — its premise inverts; it gets much smaller | 1 hour |
 | 5 | Rewrite `docs/GIT-AND-DEPLOY.md` sections 1 and 5, `.claude/CLAUDE.md` section 3 rule 14 and section 6, `.claude/hooks/cto-staging-only.cjs` | half a day |
 | 6 | Cutover: Netlify sites, DNS, certificates, verification, then flip the repo private | 2 hours + waiting |
 
-**Roughly two working days, and none of it touches the game.** `src/`, `index.html` and every asset
-are byte-identical afterwards.
+**Roughly two working days of WORK, and none of it touches the game** — `src/`, `index.html` and
+every asset are byte-identical afterwards. **On the calendar it is about a week**, because step 3 of
+the cutover is "live on staging for a few days" and the two DNS acts are his, at whatever hour suits
+him. Two days of effort, a week of elapsed time. Those are different numbers and both are honest.
 
 ### What is NOT affected — checked, not assumed
 
@@ -82,16 +91,20 @@ are byte-identical afterwards.
   untouched, and analytics, usage pings and dev flags all keep working. Verified by reading the file.
 - **Firebase** — the game uses the Realtime Database only (no Auth sign-in calls). The RTDB has no
   origin allowlist, and the hostname is unchanged regardless.
-- **`playpastrypirates.com/classic`** — a plain directory with its own `index.html`; Netlify serves
-  it identically.
+- **`playpastrypirates.com/classic`** — **24 files, and all 24 ARE inside the 222-file publish set.**
+  Counted, not assumed. It is a plain directory with its own `index.html`, which Netlify serves
+  identically, and `docs/GIT-AND-DEPLOY.md` §5 step 8 already makes `curl .../classic/` -> 200 a
+  release check. That check stays, and it is the thing that would catch this going dark.
 - **The build stamp** gets BETTER. Today `deploy-staging.sh` rewrites `PP4_STAMP` with `sed` on a
   copied tree. Netlify hands the build `$CONTEXT`, `$BRANCH` and `$COMMIT_REF` as environment
   variables, so the stamp is derived rather than string-substituted.
 
 ### One Netlify default to switch OFF on day one
 
-**Pretty URLs is on by default and rewrites `/rules.html` to `/rules` with a redirect.** This project
-has gates (`rules_page_check.mjs`, `credits_page_check.mjs`) that assert canonical URLs and
+**UNVERIFIED — open the site settings and check before the first public deploy.** Netlify's Pretty
+URLs setting rewrites `/rules.html` to `/rules` with a redirect, and has historically defaulted to
+on. Nobody has opened his dashboard, so treat this as a thing to look at, not a fact. If it is on,
+this project has gates (`rules_page_check.mjs`, `credits_page_check.mjs`) that assert canonical URLs and
 `sitemap.xml` coverage against the `.html` names. Left on, it silently creates two live URLs for
 every page. Turn it off in site settings before the first public deploy.
 
@@ -110,7 +123,10 @@ counts the live hosts):
 
 **Call it 500 visits a month.** At a generous 4 MB per visit that is **2 GB of bandwidth a month**.
 
-Netlify's Free plan is **300 credits/month, a hard limit with no auto-recharge**:
+Netlify's Free plan is **300 credits/month, a hard limit with no auto-recharge**. Every figure in the
+table below was read on 2026-09-06 from Netlify's own docs — `docs.netlify.com` →
+*Credit-based pricing plans* — and from `netlify.com/pricing`. **Nobody has opened his Netlify
+account; these are the published rates, not his bill.**
 
 | what | credits | his month |
 |---|---|---|
@@ -118,6 +134,12 @@ Netlify's Free plan is **300 credits/month, a hard limit with no auto-recharge**
 | web requests | 2 per 10,000 | ~30k -> **6** |
 | **production deploys** | **15 each** | 10 deploys -> **150** |
 | branch + preview deploys | **not metered — free** | staging is free, unlimited |
+| **build minutes** | **not metered at all** | the build step this scope adds costs **nothing** |
+
+**That last row matters and was checked deliberately, because this scope is the thing that introduces
+a build step where today there is none.** Netlify's docs list what is *not* metered — deploy
+previews, branch deploys and failed deploys — and build execution is not a credit line item. Only a
+production deployment is charged, at 15 credits, whatever it built.
 
 **About 200 of 300 credits. It fits — but the binding constraint is DEPLOYS, not traffic.** At 15
 credits each, the Free plan is **20 production releases a month, ever**, and a busy week could hit

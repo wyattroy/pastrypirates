@@ -16887,3 +16887,29 @@ STAGING IS CARRYING THIS TREE. Your work is published and he can play it.
 ---
 
 **ITS ONE THING FOR WYATT:** The page you asked for is real and it's live — I checked it myself and it loads at `staging.playpastrypirates.com/two-machines.html`, written in plain terms with your two machines explained ("Blade is home, Mac is a visitor"), which repo to have locally (`pastrypirates`, never `pastrypirates-staging`), and what HEAD and detached HEAD actually mean, with the story of your stranded drawing as the example. That's the part a prior review said was missing, and it's not missing anymore. One thing on the page was wrong, and it's fixed now: it used to say a hook "does both halves" of pulling and pushing automatically, when it actually only auto-pulls — it will never push your work for you without you typing `git push`, on purpose, because a hook silently pushing your unreviewed work behind your back is its own kind of risk. That line now says so.
+
+## CEO Review 227 — 2026-09-06T~2015Z, Wy-Blade — INBOX-20260906T2010Z, scope Netlify one-repo
+
+**Wyatt asked, verbatim:** *"scope out using netlify to push staging and production from one repo (pastrypirates) so that we can move away from publishing through githubpages and make the repo private"*
+
+### VERDICT: PARTIAL
+
+Its words: *"The document does scope the thing he asked for — Netlify, one repo, staging and production, off GitHub Pages, repo private — with no drift into adjacent work and nothing built. Where it falls short is the same place CEO 223 fell short: it opens with a blanket claim that 'Everything below was measured on 2026-09-06, not assumed' and then states several things as measured that were not, one of which is verifiably wrong, and one of which is the number his whole decision turns on."*
+
+**Does CEO 223's fault recur? Its answer: YES.** *"Both of 223's findings were claiming more than was true on a Wyatt-facing page. Here the mechanism is a single sentence… that extends a genuine measurement warrant over third-party pricing, a third-party default setting, and a hand-typed line count that is wrong. Milder than 223, same shape."*
+
+**Nine findings; eight fixed in the same turn, before Wyatt read the document.**
+
+1. **`deploy-staging.sh` is 351 lines, not 260** — hand-typed number, wrong by 26%, in a doc arguing from measurements. **FIXED** (counted).
+2. **The Netlify pricing table was uncited.** The numbers WERE fetched from `docs.netlify.com` and `netlify.com/pricing` on 2026-09-06 — the CEO could not see that and reasonably read them as memory. **FIXED**: sources and date now named in the table, and the opening warrant is scoped to the repo/traffic/DNS facts only, with the plan numbers marked as published rates, not his bill.
+3. **Build metering was missing from the table, and this scope is the thing that ADDS a build step.** A real gap. **FIXED, and re-checked against the docs**: build execution is not a credit line item at all; only a production deployment is charged, at 15 credits, whatever it built.
+4. **`package.json` holds TWO numbers (`gates.total` and `gates.ceiling`, both 141) and the doc named only the ceiling.** **FIXED** — naming one would have broken the build.
+5. **Self-contradiction: losing the public `art-review/` was sold as "free" in section 1 and flagged as a real open question in section 6.** **FIXED** — section 1 now points at section 6.
+6. **"519 MB of art-review PSDs" is the wrong noun** — it is 114 PNGs and 2 PSDs, and 519 MB is `du` on disk, not served traffic. **FIXED.**
+7. **`/classic` was asserted safe in one section and put at risk by the publish-set option in another.** **FIXED, by counting**: 24 files, all 24 inside the 222-file set, and §5 step 8's `curl .../classic/` release check stays.
+8. **Two days of work vs a multi-day staging soak.** **FIXED** — two days of effort, about a week elapsed, stated as two different numbers.
+9. **"Pretty URLs is on by default" is an unverified claim about a third party's default.** **FIXED** — now marked UNVERIFIED, with the instruction to open the dashboard.
+
+**What it verified as solid:** the forcing function (Pages will not serve a private repo on a free account); every repo artifact named exists (`deploy_rsync_paths_check.mjs`, `staging-is-not-main.cjs`, `cto-staging-only.cjs`, `rules_page_check.mjs`, `credits_page_check.mjs`, `CNAME`); `src/shared/host.js:29-39` confirms the hostname lists are untouched by the move; no `.github/workflows`, so no Actions cost hides in the privacy flip; rule 14's retirement argument is sound against `docs/GIT-AND-DEPLOY.md` §1.
+
+**Its one thing for Wyatt:** *"The plan is the right plan… But do not decide between the free plan and the $9 plan on the numbers in this document"* — now cited and dated so he can. And: *"the frozen v1 game at `playpastrypirates.com/classic` is 24 files, and the plan's 'publish only the game' option never says whether those 24 are in or out."* They are in; it is counted and written down.
