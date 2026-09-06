@@ -253,6 +253,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       > wrote. Not when the page is published. Not when the boxes work. Not when he can open it.**
       The earlier two conditions are both now TRUE and neither closes the row. Test it with
       `node scripts/wyclau/harvest_glass.mjs` against the artifact: nothing carried = not delivered.
+
+      ✍️ **2026-09-06T16:22Z — HE WROTE HIS FIRST NOTE, AND IT SAVED. THE MECHANISM IS PROVEN IN
+      PRODUCTION, NOT JUST IN THE PROBE.** He typed into `s1` and pressed Save; the page republished
+      itself. Harvested with the unmodified tool — `harvest_glass.mjs --html=<the read's saved file>`
+      — which carried 1 of 1 into `INBOX-20260906T162203Z`. **The live page came back byte-identical
+      to the committed file except the state line**, so his save round-tripped the quine exactly as
+      `_t261_prd_comment_probe.mjs` predicted it would.
+      **HIS WORDS, and they correct §1's framing:** *"Luis did all the SFX for round 1 (currently in
+      the game) and this round 2 (many missing artifacts). Beacuse so many sfx were missing during
+      round 1, i intentionally used the same sfx for multiple moments of gameplay; but this is not
+      ideal."*
+      ⚠ **SO THE PRD'S HEADLINE FINDING IS PARTLY WRONG AND MUST BE CORRECTED BEFORE ANYONE ACTS ON
+      IT.** §1 says *"Nobody had told this project that; it was assumed the shipped six were
+      placeholder library sounds"* and presents the six byte-matches as a discovery. **They are not a
+      discovery — Luis did round 1 too, and Wyatt knew.** And the doubling-up (`store-ingredient`
+      also playing victory, `fishing` also serving anchor) was **his deliberate stopgap for missing
+      files, which he says plainly is not ideal** — so round 2's job includes un-doubling them.
+      ⛔ **DO NOT REPUBLISH THIS PAGE FROM AN OLD COPY — IT WOULD DELETE HIS NOTE.** The harvest tool
+      says it outright: *"Now commit these files, THEN republish. Republishing first deletes his
+      words."* The committed file has been re-synced from the live page so the tree and the artifact
+      agree; **always re-read the artifact before publishing to it, and never publish a local copy
+      whose `glassState` is emptier than the live one.**
+      **STILL NOT DELIVERED. One box of thirteen.** Six section boxes and all seven questions are
+      still blank, and the five mappings are still unconfirmed. The row stays open.
       ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was
       written as a repo-relative path (`../../docs/AUDIO.md`), which on a published artifact goes
       nowhere — he'd have tapped a link and got nothing. Now a plain `<code>` citation, matching how

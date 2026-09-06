@@ -2354,3 +2354,8 @@ status: BUILT AND TESTED, NOT YET PUBLISHED — for the Watch still, until a ses
 solution: two repos named in the file every session loads; a command that reads the live stamps;
   hooks that fire at the moment of the mistake; and a SIMPLE page written for HIM, not for Claude
 status: DONE 2026-09-06 — CEO 223, no game diff — doc/tooling work (CLAUDE.md, hooks, a static reference page) -- no game code changed; his solution first: commit aee848e
+
+## INBOX-20260906T162203Z — his comment on `s1`
+> Luis did all the SFX for round 1 (currently in the game) and this round 2 (many missing artifacts). Beacuse so many sfx were missing during round 1, i intentionally used the same sfx for multiple moments of gameplay; but this is not ideal.
+solution: none stated
+status: OPEN — left on `s1` via the Glass's comment box
