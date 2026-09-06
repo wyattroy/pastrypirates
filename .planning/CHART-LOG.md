@@ -3720,3 +3720,49 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
   artifact — a resumed leg's genuine result under-reports as "not sailed by this run", not a
   silent stale-code lie), and unmeasured. Split out as its own row, `T-263`, immediately below,
   so it is not lost when this row closes.
+
+## T-262 — 2026-09-06 — TRIAGE OF SEA-TRIAL-2026-09-06T1328Z-Wy-Blade — ZERO NEW PLAYER-FACING DEFECTS, and a (closed 2026-09-06 · CEO 220 · no game diff — investigation-only triage, zero new player-facing defects found and independently re-verified by CEO 220 and a second fresh-context review this watch commissioned; no game-code change owed) NEW judge/instrument false-positive family named and traced. Watch pastrypirates-76, 2026-09-06T~1450Z. This FULL trial (10/10 legs sailed, build 2026.09.04.2) had not been opened by any prior watch — the two watches that touched T-237/T-261 around it left it "sailing, not this watch's to wait on" and it finished at 13:28:34Z, ~83 minutes before this triage. Read leg-by-leg (not just the FAIL headline) and opened the actual screenshots (rule 22, not the judge's caption alone): 1. solo-phone-018/solo-phone-wk-025 — "Play again! button clips award text." Same symptom already fully explained and BLOCKED ON WYATT as T-143 — a phone's screen is too short for 4 award cards + stats table to fit above the fold, not a button overlap (that cause was measured and disproven twice already). Not new; his three options are still waiting on him. 2. solo-phone-wk-023 — "Call Crustbeard radial overlaps ships." Matches the documented pre-existing "phone radial overlaps" family (CTO-LEDGER.md 2026-08-28, explicitly including a prior "wk-012 Walk-away/Crustbeard" instance). Not new. 3. solo-tablet-005/passplay-desktop-008 — "empty speech bubble/tooltip, no text." Opened both screenshots: a correctly-shaped, correctly-sized, correctly-positioned narration bubble (tail and all) with literally nothing written in it. This does NOT match the known "active-seat ring misread" false-positive (that one is a judge hallucinating text onto a ring, not a real blank box) — this is a genuinely blank box. Traced to a real mechanism, not guessed: stageFlash() (src/ui/stage.js:1483) builds the bubble's full HTML in one shot, then hands it to typewriterReveal() (src/ui/panel.js:752), which immediately splits every text node into a shownEl (starts empty, textContent="") and a hiddenEl (holds the full text, visibility:hidden, reserves the box's real width/height from frame one — that's deliberate, so words never jump lines as they grow). The box is therefore full-size and "settled" from the instant it is created, while its visible text stays blank until the first reveal tick fires (16–32ms later, or after startDelayMs). A screenshot landing in that sub-frame window — which the trial's own settle-detector cannot see as "still moving" because the box's geometry never changes — captures exactly what these two screenshots show. ⚠ NOT INDEPENDENTLY RED-PROOFED — flagged rather than overstated. This explanation matches the code and the pictures precisely and was not confirmed by deliberately forcing a capture at frame zero. No player is affected: at 60fps this window is at most one or two frames, invisible in real play, and the box's stable size means it never causes layout shift either. NOT FIXED — there is nothing to fix for a player. Filed so no future watch re-opens this as a new bug: it is a fourth entry in this project's "judge/settle-detector false-positive" family, alongside the active-seat ring and the two-tap selection-state misreads. 4. The standing "N screens never stopped moving" geometry churn on every leg — already the documented WebKit/general settle-timing note; not new. CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on. No game code touched — this is triage only. npm test not re-run (no code changed). Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
+
+- [x] **TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade` — ZERO NEW PLAYER-FACING DEFECTS, and a (closed 2026-09-06 · CEO 220 · no game diff — investigation-only triage, zero new player-facing defects found and independently re-verified by CEO 220 and a second fresh-context review this watch commissioned; no game-code change owed)
+      ⟨`T-262`⟩
+      NEW judge/instrument false-positive family named and traced.** Watch pastrypirates-76,
+      2026-09-06T~1450Z. This FULL trial (10/10 legs sailed, build `2026.09.04.2`) had not been
+      opened by any prior watch — the two watches that touched `T-237`/`T-261` around it left it
+      "sailing, not this watch's to wait on" and it finished at 13:28:34Z, ~83 minutes before this
+      triage. Read leg-by-leg (not just the FAIL headline) and opened the actual screenshots (rule
+      22, not the judge's caption alone):
+      1. **`solo-phone-018`/`solo-phone-wk-025` — "Play again! button clips award text."** Same
+         symptom already fully explained and BLOCKED ON WYATT as `T-143` — a phone's screen is too
+         short for 4 award cards + stats table to fit above the fold, not a button overlap (that
+         cause was measured and disproven twice already). Not new; his three options are still
+         waiting on him.
+      2. **`solo-phone-wk-023` — "Call Crustbeard radial overlaps ships."** Matches the documented
+         pre-existing "phone radial overlaps" family (`CTO-LEDGER.md` 2026-08-28, explicitly
+         including a prior "wk-012 Walk-away/Crustbeard" instance). Not new.
+      3. **`solo-tablet-005`/`passplay-desktop-008` — "empty speech bubble/tooltip, no text."**
+         Opened both screenshots: a correctly-shaped, correctly-sized, correctly-positioned
+         narration bubble (tail and all) with literally nothing written in it. **This does NOT match
+         the known "active-seat ring misread" false-positive** (that one is a judge hallucinating
+         text onto a ring, not a real blank box) — this is a genuinely blank box. **Traced to a real
+         mechanism, not guessed:** `stageFlash()` (`src/ui/stage.js:1483`) builds the bubble's full
+         HTML in one shot, then hands it to `typewriterReveal()` (`src/ui/panel.js:752`), which
+         immediately splits every text node into a `shownEl` (starts empty, `textContent=""`) and a
+         `hiddenEl` (holds the full text, `visibility:hidden`, reserves the box's real width/height
+         from frame one — that's deliberate, so words never jump lines as they grow). **The box is
+         therefore full-size and "settled" from the instant it is created, while its visible text
+         stays blank until the first reveal tick fires** (16–32ms later, or after `startDelayMs`).
+         A screenshot landing in that sub-frame window — which the trial's own settle-detector
+         cannot see as "still moving" because the box's geometry never changes — captures exactly
+         what these two screenshots show.
+      ⚠ **NOT INDEPENDENTLY RED-PROOFED — flagged rather than overstated.** This explanation matches
+      the code and the pictures precisely and was not confirmed by deliberately forcing a capture at
+      frame zero. **No player is affected**: at 60fps this window is at most one or two frames,
+      invisible in real play, and the box's stable size means it never causes layout shift either.
+      **NOT FIXED — there is nothing to fix for a player.** Filed so no future watch re-opens this as
+      a new bug: it is a fourth entry in this project's "judge/settle-detector false-positive"
+      family, alongside the active-seat ring and the two-tap selection-state misreads.
+      4. **The standing "N screens never stopped moving" geometry churn on every leg** — already the
+         documented WebKit/general settle-timing note; not new.
+      **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
+      No game code touched — this is triage only. `npm test` not re-run (no code changed).
+      Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.

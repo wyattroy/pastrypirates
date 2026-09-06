@@ -12313,3 +12313,86 @@ review nothing is deployed yet — Cloudflare account, Pages project, DNS all st
 turn here, per the Door's own rule.
 
 END OF WATCH.
+
+- 2026-09-06T18:08:15Z · close_item: "TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade`" · CEO 220 · no game diff — investigation-only triage, zero new player-facing defects found and independently re-verified by CEO 220 and a second fresh-context review this watch commissioned; no game-code change owed · no stated solution
+
+---
+
+## WATCH 2026-09-06T~2140Z-2230Z — T-262 (sea-trial triage) closed through the gate; two claimed/blocked rows skipped correctly
+
+**Orientation:** `git fetch && git pull --rebase` — already up to date. `can_push.mjs` refused the
+first pass (an unaddressed rule 17 doc-first gate on `git push`); read `docs/GIT-AND-DEPLOY.md`
+per its own instruction, re-ran, `git push origin claude/cloud-handoff-planning-a9ay1u` succeeded
+("Everything up-to-date"). No Artifact tool this session (confirmed via `ToolSearch` — no
+`Artifact`/`ArtifactComments`/`ArtifactData`/`ArtifactCheck` match). `publish_queue.mjs` — EMPTY
+(exit 10), nothing waiting. No `IN-HAND` claim on this machine.
+
+**Ranked/swept the Chart** (`chartkeeper.mjs --rank --sweep --write`, 0 archived, 5 flags — 3
+ambiguous-handle warnings and 2 unfated-approval warnings, none new, none this watch's to fix).
+Rank 1 (`T-073`, SFX, DO NOW) is **CLAIMED — IN HAND ON WYATT'S MAC** per the row's own lock
+banner; skipped per the Door's own rule ("skip a row somebody else holds"). Rank 2 (`T-138`,
+player-count console) is genuinely blocked on Wyatt's own staging-publish approval, nothing left
+for a watch. Rank 3 (the `T-243` sitemap mega-row) is the exact tangled, already-flagged-unsafe row
+named in `T-264` ("too tangled to hand-edit safely") — left untouched, per two prior watches'
+explicit caution.
+
+**Checked whether the FULL sea trial blocking `src/` edits (noted in `INBOX-20260906T1329Z`, pid
+47468, run `2026-09-06T1328Z-Wy-Blade`) was still sailing before considering any game-code fix**
+(`T-237`/`T-013`, both real player-visible bugs further down the rank, both explicitly marked
+"NOT FIXED THIS WATCH, DELIBERATELY" by prior watches pending careful empirical instrumentation of
+~900 lines of hard-won `stage.js` placement logic). **The trial had already finished** —
+`.planning/SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md` ends in a full `RESULT: FAIL` block at 4782s —
+but its findings were already triaged by watch pastrypirates-76 as Chart row `T-262`, itself
+unclosed (checkbox never ticked, no `close_item.mjs` run against it) despite the row's own text
+already concluding "nothing to act on." Given `T-237`/`T-013` carry explicit prior-watch warnings
+against a rushed fix in an unfamiliar, high-risk function, and `T-262` was a clean, well-evidenced,
+already-investigated paperwork close, took `T-262` as this watch's one item.
+
+**Verification before closing (rule 6 — did not take the row's own word for it):** commissioned an
+independent fresh-context review (general-purpose agent) to re-check T-262's claims against the
+actual trial report and code, without telling it a CEO review already existed. It independently
+confirmed the trial really sailed 10/10 legs on build `2026.09.04.2`, all five cited screenshot
+findings match the report verbatim, the `stageFlash()`/`typewriterReveal()` mechanism trace holds
+against the real code (`src/ui/stage.js:1483`, `src/ui/panel.js:752-790`), and the other two
+findings genuinely match pre-existing rows (`T-143`, the 2026-08-28 "phone radial overlaps"
+family) rather than being newly discovered. It then surfaced, unprompted, that **CEO Review 220**
+(`.planning/CEO-REVIEWS.md:16680`) had already run the identical independent check the same day
+with the same YES verdict — two independent fresh-context reviews agreeing, not one.
+
+**Closed through the gate:**
+`node scripts/wyclau/close_item.mjs --item="TRIAGE OF \`SEA-TRIAL-2026-09-06T1328Z-Wy-Blade\`" --ceo=220 --reason="investigation-only triage, zero new player-facing defects found and independently re-verified by CEO 220 and a second fresh-context review this watch commissioned; no game-code change owed"`
+— CLOSED, swept off `CHART.md` into `CHART-LOG.md` (1 row archived), ledger line appended by the
+gate itself.
+
+**Gear: NONE.** Only `.planning/CHART.md`, `.planning/CHART-LOG.md`, `.planning/CTO-LEDGER.md`
+touched — no `index.html`/`src/` diff, no sea trial owed. `npm test` re-run after the close: clean,
+no `FAIL` lines.
+
+**No Artifact tool this session** — nothing to publish; this is not a Glass-facing change beyond
+what the Chart's own content already carries (a session with the Artifact tool will show one fewer
+open row next time it republishes). Publish queue not touched (still empty, confirmed).
+
+**Browsers/servers:** none started this watch. One stray untracked scratch file
+(`scripts/wyclau/_tmp_probe_arrow.mjs`, a throwaway probe used to test a since-abandoned theory
+about `chart_model.mjs`'s `DECLARED` regex reading the FIRST arrow-marker in a multi-update row
+rather than the last) — this session's `rm`/`Remove-Item` calls were both refused by the sandbox
+("may only remove files from the allowed working directories," despite the path being inside one),
+so it is left on disk, untracked, not staged, not committed. **The next session that can delete a
+file should remove it.** The theory itself: 3 of 44 idea-inbox chunks in `CHART.md` carry 2+ arrow
+markers, and the two that matter (`SCHEDULED` rows) still read correctly under first-match — this
+is NOT the mechanism behind `T-264`'s open gap, which is genuinely the unrecognized-glyph
+(`✅ **CLOSED`/`✅ **FATED AND ANSWERED`) convention already documented there. Not worth its own
+Chart row; noted here so nobody re-derives it.
+
+**Daily lesson:** already given today (per the last watch's entry) — not duplicating it.
+
+**Still open for the next watch, unchanged from the last entry's list, minus `T-262`:** `T-264`
+(the stale-fate-marker mechanism, small-to-medium, still needs a careful marker/position design —
+this watch's own dead-end above is worth reading before trying again); `T-237`/`T-013`
+(real player-visible bugs, both explicitly flagged as needing careful empirical work before a fix,
+not a rushed one); `T-073` (SFX, claimed on the Mac — do not touch); `T-138` (blocked on Wyatt);
+the Cloudflare/build-site work (committed, nothing deployed yet, needs Wyatt for the account/DNS).
+
+**One item closed this watch.** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.
