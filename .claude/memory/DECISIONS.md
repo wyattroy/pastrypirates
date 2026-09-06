@@ -52,6 +52,27 @@ recommendation).
 Music+SFX; then SFX only; then mute; and return to Music + sfx after. When the song plays through
 once, do not restart it playing immediately -- wait 2 minutes."*
 
+### THE TWO BLOCKERS, PUT TO HIM AND SETTLED — 2026-09-06 ~16:4xZ, question UI
+
+1. ⭐ **"YOUR TURN" IS HEARD BY THAT PLAYER ONLY. The first sanctioned exception to D-07, ever.**
+   He was shown `src/ui/audio.js:300` verbatim (*"no `appState.mySeat`/`isLocalTo` gate anywhere on
+   this path, ever — the whole table is audible"*), was offered the rule-preserving alternative
+   (everyone hears the bell on every turn change), and **rejected it** — a bell ringing four times a
+   round is not a signal to you. **He took the cost knowingly.**
+   - **The exception is THIS SOUND ONLY.** Everything else on that path stays ungated.
+   - **The next sound that wants a seat gate is a fresh decision and comes back to him.**
+   - **Whoever wires it MUST update the `audio.js:300` comment in the same commit** — it says
+     "ever", and leaving that beside code that breaks it is how the next reader reports a bug.
+   - Recorded in [`docs/INTENDED-BEHAVIOUR.md`](../../docs/INTENDED-BEHAVIOUR.md) at the top,
+     because a per-player sound is exactly what a two-tab session reports as a host/guest defect.
+2. **THE ALARM IS PARKED.** *(Recommended, and he took it.)* No turn-timer-expiry event exists —
+   searched, nothing fires when a turn's time runs out — so the buzzer has nothing to attach to.
+   **Wire everything else; the Alarm waits for the feature.** Building turn-timer expiry is a real
+   game-behaviour decision (does the turn auto-pass? what does the table see?) and is not part of
+   wiring Luis's files.
+
+### AND ONE NEW FEATURE, restated — it is not a sound swap
+
 **This changes an existing control's behaviour** — today the button is a two-state mute. Three
 states, cycling, plus a 2-minute silence between loops of the track. **Real game code, its own
 consistency sweep (rule 8: every surface that shows the sound button), and its own place in the
