@@ -17004,3 +17004,35 @@ Its words: *"The document does scope the thing he asked for — Netlify, one rep
 **What it verified as solid:** the forcing function (Pages will not serve a private repo on a free account); every repo artifact named exists (`deploy_rsync_paths_check.mjs`, `staging-is-not-main.cjs`, `cto-staging-only.cjs`, `rules_page_check.mjs`, `credits_page_check.mjs`, `CNAME`); `src/shared/host.js:29-39` confirms the hostname lists are untouched by the move; no `.github/workflows`, so no Actions cost hides in the privacy flip; rule 14's retirement argument is sound against `docs/GIT-AND-DEPLOY.md` §1.
 
 **Its one thing for Wyatt:** *"The plan is the right plan… But do not decide between the free plan and the $9 plan on the numbers in this document"* — now cited and dated so he can. And: *"the frozen v1 game at `playpastrypirates.com/classic` is 24 files, and the plan's 'publish only the game' option never says whether those 24 are in or out."* They are in; it is counted and written down.
+
+## CEO Review 229 — 2026-09-06T~1740Z, Wyatts-MacBook-Air — the frozen Glass: unfreeze, harvest, re-arm
+
+**Wyatt asked, verbatim:** *"the Glass hasn't updated in a LONG time -- apparently that's because the session that had been updating it is disconnected. tell me what my options are. read the full documentation to understand how our architecture uses Blade and Mac"* — then, through the question UI, he picked **"Unfreeze it now, then re-arm the recurring publisher (Recommended)."**
+
+### VERDICT: PARTIAL
+
+Its words: *"The mechanical work is real and better-evidenced than most... **Two things miss.** One is the thing he pressed a button for and did not get. The other is a causal story told with more confidence than the evidence carries — the same shape of fault CEO 227 and CEO 223 both named."*
+
+**Does CEO 227's fault recur? Its answer: YES, in a narrower form.** *"This session did not open with a blanket 'everything was measured' claim, and the great majority of its numbers survived checking exactly. But it stated a cause on a Wyatt-facing surface that its own evidence does not establish, and it did so while holding the fact that contradicts it."* Third occurrence.
+
+**CONFIRMED (verified independently, not read off commit messages):**
+
+1. **The six-times fault did NOT recur.** `## BLOCKED ON WYATT` holds exactly two rows and none is t206/t220/t143; all three sit in `## RULED` (`.planning/CHART.md:1285-1287`) with his verdict and a `- [ ] Your ruling:` row each. `rulings_triage_check.mjs` and `answered_question_retired_check.mjs` both exit 0.
+2. **Both ideas landed byte-verbatim.** Compared the artifact's `text` fields against `INBOX.md` character by character — em-dashes, `1)`/`2)` numbering and his `--` all survived.
+3. **The 49-hour Bell hole is real, not a truncation artifact.** `publish_status.mjs:53` caps the log at 40 lines, but the gap is INTERIOR — 29 retained lines before it, 11 after. The right thing to doubt, and it held.
+7. **The re-arm is real** — `CronList` shows `7b3e531c`, correct schedule, dispatcher-pointer prompt.
+8. **The step 1 path fix is real and worth having** — caught before the first tick, not after.
+
+**FINDING 4 — NO. Item 10 inverted his own design. He pressed a button and did not get what it does.**
+
+Its words: *"'One slot, not a queue' is the reason a second press **must displace** the first. It was cited as a reason to refuse the second press."* Citation, his own words at `scripts/wyclau/chartkeeper.mjs:107`: *"ONE SLOT, NOT A QUEUE. Ticking it on a second item must displace the first, deliberately. An interrupt with a queue is just another backlog, which is the fault this whole design removes."* And `:972`: *"the interrupt he typed most recently should not be buried by a list he arranged this morning."* His darkening press is `2026-09-06T16:19:21.936Z`; T-073's pin traces to his **09-04** press, re-applied by a *session*. **The mid-flight worry was legitimate but was already a DIFFERENT mechanism's job** — the `🔒 CLAIMED` block at `.planning/CHART.md:99`. Two mechanisms collapsed into one, and his press paid.
+
+**FINDING 5 — his two new items reached no Chart row at all**, so the pin was invisible as work; the collision was "named on his page" only as commit prose in the feed, not put to him through the question UI.
+
+**FINDING 6 — the causal story overclaimed, twice over.** (a) *"A `ListAgents` run on the Mac is not evidence about a Blade session's death; a Blade session would not appear there whether alive or dead."* (b) A simpler single cause fits and was never named: the Glass's last generation is `2026-09-04T11:53:19Z` and the Blade's last Bell ring before the hole is `11:58:01Z` — **five minutes apart, on the same machine.** So the Bell hole is plausibly the CAUSE, presented as corroboration.
+
+**WHAT WAS DONE ABOUT IT, before Wyatt read this:** findings 4 and 5 fixed — both ideas promoted to real Chart rows (`T-263` darkening, `T-264` privacy footer), `chartkeeper.mjs --do-now=T-263` fired (*"released 1 earlier pin: one slot, not a queue"*), re-ranked, and `T-263` is now rank 1 with the SFX claim lock untouched. Finding 6 corrected in the open on his page and in the reply, naming the machine-quiet explanation as the likelier one.
+
+---
+
+**ITS ONE THING FOR WYATT:** *"Your page is alive again and everything you wrote is safe — but the thing you actually pressed the button for didn't happen... At 12:19 your time you hit DO NOW on the gameboard-darkening bug. That button has one job: shove whatever you just pressed straight to the top. This session decided not to, because the sound-effects work was already sitting in that top slot... But your own design says the newer press wins. It's written into the tool, in your words: pressing DO NOW on a second thing must knock the first one off, on purpose — because 'an interrupt with a queue is just another backlog.' The slot you pressed into was being held by something you'd pressed two days earlier. So the button did the opposite of what you built it to do."* And: *"you were told the page froze because a session quietly died. That may be right, but the evidence points somewhere simpler — your Windows laptop went quiet at 11:58 that morning, five minutes after the page last updated, and stayed quiet for two days. Same clock, same machine. If it turns out the laptop just went to sleep, then the thing to guard against isn't 'sessions are fragile' — it's 'that machine stopping takes the page with it.'"*
