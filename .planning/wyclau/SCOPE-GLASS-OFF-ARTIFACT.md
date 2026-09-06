@@ -133,23 +133,38 @@ ever enters the public repo.
   second because he ranked it second, not because it is optional
 - a check that FAILS if a signed-out page can silently swallow something he typed instead of
   refusing visibly
-- ⛔ **A CHECK THAT FAILS IF THE MIGRATION LOSES ANYTHING — AND THE ONE THIS PLAN USED TO NAME
-  CANNOT DO IT.** CEO 233 finding 4, and it is the sharpest thing in that review: this line offered
+- **A CHECK THAT FAILS IF THE FINAL PRE-CUTOVER HARVEST RETURNS ANYTHING** — the whole of the
+  migration risk under his ruling, and the only gate that half of it needs now. The paragraph below
+  is kept because its lesson outlives this decision.
+- ⛔ **(HISTORICAL, AND STILL WORTH READING) A CHECK THAT FAILS IF A MIGRATION LOSES ANYTHING — AND
+  THE ONE THIS PLAN USED TO NAME CANNOT DO IT.** CEO 233 finding 4, and it is the sharpest thing in that review: this line offered
   *"the existing `harvest_glass` idempotence proof, re-pointed at the new store"*, and
   `scripts/wyclau/harvest_glass.mjs:38-42` says in its own header that it **verifies the new entry
   ARRIVED and does NOT verify the destination's other content survived** — *"A write that lands and
   wipes everything else counts as a success here."* **This plan cited, as its loss-protection, a
   gate whose own source says it cannot see this failure.** The real check counts every entry before
   and after and fails on any drop, and it is written before the migration runs, not after.
-- ⛔ **AND HOW HIS EXISTING WORDS CROSS IS NOT IN THIS PLAN AT ALL** — CEO 233 finding 4's other
-  half. `:70-71` says the page reads the store *"instead of"* the inline block and never describes
-  carrying the contents over. **This project has already lost his writing once this way.**
-  **OPEN, and it needs his answer before a line is built.**
+- ✅ **HOW HIS EXISTING WORDS CROSS — HIS RULING, 2026-09-06: "Start the new store empty — the
+  Chart already has it all."** And his reasoning is right and is the thing that makes it safe: an
+  idea or ruling is harvested onto the Chart within minutes of him typing it, so `glassState` is a
+  **staging area, not the record**. Nothing durable lives only there. No copy, no reconciliation,
+  no count-both-sides migration — **there is nothing to migrate.**
+  ⚠ **THE ONE GAP HE ACCEPTED, AND IT IS CLOSED BY BUILDING RATHER THAN BANKED.** Anything he types
+  between the last harvest and the switch exists ONLY in the artifact and would be dropped — small,
+  and exactly the kind of loss he would never notice. **So the cutover's final act, before the new
+  store goes live, is a HARVEST of the artifact, gated:** run it, and **refuse to switch while it
+  returns anything at all.** A clean read is the proof the gap is empty; a non-empty one means carry
+  those entries and re-run. That costs minutes and removes the only way his choice can cost him a
+  word. *(This is his ruling implemented safely, not overridden — he chose no migration, and this is
+  how "no migration" is made true rather than assumed.)*
 
 ## Sizing, honestly
 
-**RE-SIZED AFTER CEO 233: 3–4 days, tooling not game code, and TWO of the open questions are his,
-not ours.** The audit's words: *"The estimate is honest about the work the plan describes and does
+**RE-SIZED AGAIN AFTER HIS TWO RULINGS: 2½–3½ days, tooling not game code, ONE open question left.**
+His "start empty" ruling removes the migration work entirely — CEO 233's finding 4 is answered by a
+decision rather than by code, which is the cheapest kind of answer there is. **The only question
+still open is which single page is authoritative on cutover day.** The previous figure was
+**3–4 days, tooling not game code, and TWO of the open questions are his, not ours.** The audit's words: *"The estimate is honest about the work the plan describes and does
 not cover the work the plan is missing."* One blocker is now closed (the service key, his ruling);
 two remain open and unanswered — **how his existing writing migrates, and which single page is
 authoritative on cutover day.** The old figure was **2–3 days, tooling not game code** (his choice of real authentication adds about a day over the curtain, and it buys integrity as well as confidentiality). It is not hard; it is delicate, because the thing being moved

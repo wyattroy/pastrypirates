@@ -25,10 +25,17 @@ per-path rules exist in his console today.** The job is *editing rules whose tex
 writing them from nothing. **Read them first; do not estimate this work before someone has.**
 *(Reads only were measured. No write was attempted and nothing here claims anything about writes.)*
 
-**STILL OPEN AND HIS TO ANSWER, both before a line is built:**
-- **How his existing writing migrates** off `glassState`. The plan never said, and the gate it
-  named as protection says in its own header it cannot see that failure.
-- **Which single page is authoritative on cutover day**, while two surfaces are live.
+**✅ MIGRATION — HIS RULING, same day: "Start the new store empty — the Chart already has it all."**
+And the reasoning is his and it is correct: an idea or ruling reaches the Chart within minutes of
+him typing it, so `glassState` is a **staging area, not the record.** There is nothing to migrate,
+so CEO 233's finding 4 is answered by a DECISION rather than by code — the cheapest kind of answer.
+⚠ **The one gap he accepted is closed by building, not banked:** anything typed between the last
+harvest and the switch would live only in the artifact. **So the final act before cutover is a
+harvest, gated — refuse to switch while it returns anything at all.** A clean read proves the gap
+is empty. Minutes, and it removes the only way his choice can cost him a word.
+
+**STILL OPEN AND HIS TO ANSWER, before a line is built:**
+- **Which page is authoritative on cutover day**, while two surfaces are live.
 
 **Related:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md),
 re-sized 3–4 days, and CEO Review 233 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
