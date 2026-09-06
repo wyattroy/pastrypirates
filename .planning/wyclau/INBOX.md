@@ -2344,3 +2344,23 @@ status: BUILT AND TESTED, NOT YET PUBLISHED — for the Watch still, until a ses
   --path=.planning/wyclau/T-261-SFX-PRD.html --desc="comment boxes added, needs republish"`. The
   next session with an Artifact tool republishes this exact file (unchanged from what's committed)
   and Wyatt has real comment boxes on the page he already has open.
+
+## INBOX-20260906T1520Z — explain the repo architecture; he is bogged down by MY confusion
+> can you explain the architecture of our repo? it must be written in our documentation. i designed it 2 weeks ago with you and now am really confused why you are so confused.
+> what terminology do you need me to use so you don't get confused in the future? where do you need to write down our process so that you don't accidentally push our in-progress test work to production instead of staging? what repo should I have locally -- perhaps not pastrypirates at all, given that we're actually working in pastrypirates-staging? is that even what the staging repo is called?
+> i just want to build pastry pirates features, but i'm getting so bogged down stuck and confused every time that YOU get confused by our staging vs production structure.
+> what do you recommend I do, going forward, so this doesn't happen again? please suggest in very very simple terms how i should use my mac (which i bring out of the house with me, work on most often, and turn on/off frequently) and the Blade (which is always on, at home, running The Watch, and remotely controlled)?
+> is there a way to automatically hook mac pastrypirates sessions to do these tasks?
+solution: two repos named in the file every session loads; a command that reads the live stamps;
+  hooks that fire at the moment of the mistake; and a SIMPLE page written for HIM, not for Claude
+status: OPEN — the machinery half is done (`.claude/CLAUDE.md` §3+§6, `scripts/where_is_my_work.mjs`,
+  `.claude/hooks/staging-is-not-main.cjs`, `.claude/hooks/machine-handoff.cjs`). **CEO 221 said the
+  simple half was NOT done**: *"He asked a designer's question and got infrastructure."*
+  `.planning/wyclau/TWO-MACHINES.html` is written for him and is QUEUED FOR PUBLISH — this closes
+  when he can tap it, not when the file exists.
+  ⚠ **AND THE REASON THIS ENTRY EXISTS AT ALL IS THE FAULT CEO 218 CAUGHT AND CEO 221 CAUGHT AGAIN,
+  ONE ITEM LATER**: his words lived only in a session transcript. Greps for "so bogged down",
+  "very very simple terms" and "staging vs production" across `.planning/` and `.claude/` all
+  returned ZERO while the work they caused was being committed. The Advisor rule is that his words
+  land here VERBATIM in the same turn — it was followed for `T-261` and skipped for the ask that
+  came after it.

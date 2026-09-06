@@ -16434,3 +16434,74 @@ re-litigated, and a genuinely new observation about the INSTRUMENT (not the game
 such rather than filed as a player-facing bug.
 
 **Nothing required on receipt.** No corrections owed.
+
+---
+
+## CEO Review 221 — the two-machine / two-repo explanation and its automation — 2026-09-06 ~11:4x AM ET
+
+**Wyatt asked, verbatim (four messages):** *"can you explain the architecture of our repo? it must
+be written in our documentation..."* · *"what terminology do you need me to use so you don't get
+confused in the future? where do you need to write down our process...?"* · *"what do you recommend
+I do, going forward... please suggest in very very simple terms how i should use my mac... and the
+Blade...?"* · *"is there a way to automatically hook mac pastrypirates sessions to do these tasks?"*
+**His underlying complaint, which is the real bar:** *"i just want to build pastry pirates features,
+but i'm getting so bogged down stuck and confused every time that YOU get confused by our staging vs
+production structure."*
+
+### VERDICT: PARTIAL
+
+> The rescue and the plumbing are real and verified. **The question he actually asked in his own
+> words — "what do you recommend *I* do, in very very simple terms" — was answered with machinery
+> aimed at Claude, and nothing was produced that Wyatt himself can read.** And CEO 218's central
+> fault recurs, verbatim in shape.
+
+**1. The union merge kept BOTH sides. YES — verified, not taken on trust.** Both CEO sequences are
+present; every non-blank line from the pre-rescue Blade tree (`d7c6c30f`) that is now missing:
+`DECISIONS.md → 0`, `CTO-LEDGER.md → 0`, `CEO-REVIEWS.md → 0`. Zero conflict markers anywhere.
+**"This is the highest-stakes claim and it holds."**
+
+**2. His drawing is there and it is the original. YES.** IHDR reads **265 × 284**, exactly what
+`DECISIONS.md:402` names, not the 149×160 downscale `:407` warns against. Byte size and blob hash
+identical to `e0bf25cd`. **"Nothing was recompressed in transit."**
+
+**3. The ceiling raise: derived from his ruling but NOT CITED — and it silently ate a sibling note.
+PARTIAL.** The raise rests on `DECISIONS.md:402/407` and the commit message never cites it.
+**The undisclosed part:** the same diff resolved a duplicate `_ceiling_raise_134` by **deleting**
+the Blade's note, leaving **a hole at 135** — *"a commit whose stated principle is 'keeping both
+sides' dropped one side of a collision in a file it does not mention."*
+
+**4. Both hooks would fire, and would fire quietly. YES.** `staging-is-not-main.cjs` triggers on
+five ancestry shapes and lets `git log main` / `git checkout main` pass; does not block; once per
+session. `machine-handoff.cjs` is silent when current and when nothing is held, refuses to pull over
+uncommitted changes, and never pushes. Its stuck-state branch keys on exactly the state the Mac was
+in — **"so it would have caught the real fault on day one rather than day three."** *Not verified:
+`where_is_my_work.mjs` was not run (network is outside the CEO's brief).*
+
+**5. He did not cross the SFX standing rule. YES, clean.** No `src/`, `sfx/` or `index.html` in any
+of this session's commits.
+
+**6. ⛔ "VERY VERY SIMPLE TERMS" — NO. This is where the ask was missed.**
+> *"He asked a designer's question and got infrastructure."* There is no published page, no tappable
+> link (rule 27), no five-line "Mac = visitor, Blade = home, push before you close the lid" note
+> anywhere he would encounter it. **The one genuinely simple thing in the work — the PUBLISH/RELEASE
+> vocabulary pair — exists only inside a hook's stderr banner and inside CLAUDE.md. He will never
+> see either.**
+
+**7. ⛔ CEO 218's CENTRAL FAULT RECURS, one item later.** Greps for his own words across all of
+`.planning/` and `.claude/`: *"so bogged down"* → 0, *"automatically hook mac"* → 0, *"what
+terminology"* → 0, *"very very simple terms"* → 0, *"staging vs production"* → 0.
+**"All four of this morning's questions exist only in the session transcript."** *"The fault that
+218 caught was fixed for `T-261` and immediately repeated for the ask that came after it."*
+
+**8. Minor:** `0ddb0b43`'s message narrates the rescue while its diff changes `package.json` only.
+
+**WHAT WOULD CLOSE THIS OUT, in its words:** *"one short published page, in his words, that says
+where his Mac fits, where the Blade fits, and the two verbs — and a line in the record carrying his
+four questions. Roughly twenty minutes, and it is the half he actually asked for."*
+
+**ACTED ON IMMEDIATELY, by the session it judged:** finding 3 repaired (`_ceiling_raise_135`
+restored from `aa4c0c71` with its text byte-identical, extracted **textually** because `JSON.parse`
+is what silently ate it — it keeps only the last of duplicate keys, and that is the reusable lesson);
+finding 7 repaired (`INBOX-20260906T1520Z` carries all four questions verbatim); finding 6 answered
+with `.planning/wyclau/TWO-MACHINES.html`, written for him, **queued for publish as `T-263`** — and
+that row **closes when he can tap it, not when the file exists**.

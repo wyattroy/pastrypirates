@@ -1,0 +1,125 @@
+<title>Your two computers — the whole thing on one page</title>
+<style>
+  body { font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; color: #1d2430; background: #fbfaf6; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
+  .sub { color: #5b6675; margin: 0 0 30px; font-size: 16px; }
+  h2 { font-size: 21px; margin: 38px 0 10px; padding-top: 18px; border-top: 2px solid #e6e2d6; }
+  .big { background: #fff; border: 2px solid #1d2430; border-radius: 12px; padding: 18px 20px; margin: 24px 0; }
+  .big p { margin: 0; font-size: 20px; font-weight: 600; }
+  .cols { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0; }
+  .col { flex: 1 1 300px; background: #fff; border: 1px solid #ddd8c9; border-radius: 10px; padding: 16px 18px; }
+  .col h3 { margin: 0 0 4px; font-size: 17px; }
+  .col .role { color: #7a6a3f; font-size: 14px; font-weight: 600; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .col ul { margin: 0; padding-left: 18px; } .col li { margin: 5px 0; }
+  code { background: #efece0; border-radius: 5px; padding: 2px 7px; font-size: 15px;
+         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: #1d2430; color: #f4f1e6; padding: 14px 16px; border-radius: 9px; overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .rule { display: flex; gap: 14px; align-items: flex-start; margin: 18px 0; }
+  .n { flex: 0 0 34px; height: 34px; border-radius: 50%; background: #1d2430; color: #fff;
+       display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .rule > div { flex: 1; } .rule h3 { margin: 4px 0 4px; font-size: 18px; }
+  .warn { background: #fff6ed; border-left: 4px solid #d97b28; padding: 12px 16px; margin: 18px 0; border-radius: 0 8px 8px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #e6e2d6; vertical-align: top; }
+  th { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: #5b6675; }
+  .foot { margin-top: 44px; color: #7a8494; font-size: 14px; border-top: 1px solid #e6e2d6; padding-top: 14px; }
+</style>
+
+<h1>Your two computers</h1>
+<p class="sub">Everything you need to know, on one page. Written 6 September 2026, after a morning lost to this.</p>
+
+<div class="big">
+  <p>The Blade is <b>home</b>. The Mac is a <b>visitor</b>.</p>
+</div>
+
+<p>The Blade never moves and never sleeps, so it can hold things. The Mac goes in your bag. So the
+Mac should never be the <em>only</em> place something lives — it arrives, does its bit, and hands
+it back.</p>
+
+<div class="cols">
+  <div class="col">
+    <h3>The Blade</h3>
+    <p class="role">Home</p>
+    <ul>
+      <li>Runs the Watch, all day</li>
+      <li>Runs sea trials (85 minutes each)</li>
+      <li>Anything that must not be interrupted</li>
+    </ul>
+  </div>
+  <div class="col">
+    <h3>The Mac</h3>
+    <p class="role">Visitor</p>
+    <ul>
+      <li>Thinking, reviewing, talking to Claude</li>
+      <li>Small edits</li>
+      <li>Then push, and walk away</li>
+    </ul>
+  </div>
+</div>
+
+<p><b>Don't start a sea trial on the Mac.</b> It takes 85 minutes and you'll close the lid.</p>
+
+<h2>Three rules</h2>
+
+<div class="rule"><div class="n">1</div><div>
+  <h3>Bookend every Mac session</h3>
+  <p>Sit down: <code>git pull --rebase</code> &nbsp;·&nbsp; Before you close the lid: <code>git push</code></p>
+  <p>If either one complains, <b>stop and paste it to Claude.</b> This is now automatic — a hook
+  pulls for you when you open a session, and warns you if the machine is holding anything when one
+  ends. The rules are here anyway, because you should know what it's doing.</p>
+</div></div>
+
+<div class="rule"><div class="n">2</div><div>
+  <h3>On the Mac, start Claude with <code>/door</code></h3>
+  <p>It syncs and runs the check that asks <em>“can this machine actually publish?”</em> — the one
+  that would have caught September 3rd on day one instead of day three.</p>
+</div></div>
+
+<div class="rule"><div class="n">3</div><div>
+  <h3>Never close the Mac when git is mid-something</h3>
+  <p>If you see <b>“continue”</b>, <b>“abort”</b>, or <b>“rebase in progress”</b>, git is holding
+  the door open, waiting for you. Closing the laptop there is what stranded your hand-drawn X for
+  three days.</p>
+</div></div>
+
+<h2>Two commands, when you're unsure of anything</h2>
+<pre><code>node scripts/where_is_my_work.mjs     is my work on staging? is it live?
+node scripts/wyclau/can_push.mjs      can this machine publish? yes/no + the fix</code></pre>
+<p>Between them they answer every question that went wrong on 6 September.</p>
+
+<h2>The other thing: two websites, two different actions</h2>
+
+<p>There is <b>one repo you work in</b> — <code>pastrypirates</code>, on both machines. There are
+<b>two websites</b>, and getting to each one is a different action.</p>
+
+<table>
+  <tr><th></th><th>Staging</th><th>Production</th></tr>
+  <tr><td><b>Address</b></td><td>staging.playpastrypirates.com</td><td>playpastrypirates.com</td></tr>
+  <tr><td><b>Who's there</b></td><td>you, playing work-in-progress</td><td>real players</td></tr>
+  <tr><td><b>The action</b></td><td>a <b>copy</b> — you <b>publish</b></td><td>a <b>merge</b> — you <b>release</b></td></tr>
+  <tr><td><b>The command</b></td><td><code>npm run deploy:staging</code></td><td><code>git merge</code> into <code>main</code></td></tr>
+  <tr><td><b>Approval</b></td><td>none needed, do it daily</td><td><b>always yours</b>, live instantly</td></tr>
+</table>
+
+<div class="warn">
+  <p style="margin:0"><b>You never “merge to staging.”</b> Staging is an address, not a branch. That
+  one wrong verb is what confused Claude for a whole morning.</p>
+</div>
+
+<p>There <em>is</em> a second repo on GitHub called <code>pastrypirates-staging</code> — but it is
+just a <b>web host</b> that happens to be a git repo, like an FTP folder. Nobody develops in it.
+<b>Don't clone it.</b> It exists only because GitHub Pages can serve one branch per repo at one
+address, so a second address needs a second repo.</p>
+
+<div class="warn">
+  <p style="margin:0"><b>Production being older than your branch is normal.</b> It's deliberately
+  unreleased. It is not a bug, and nobody should alarm you about it.</p>
+</div>
+
+<p class="foot">Earned the hard way on 6 September 2026: Claude read a git command that answers a
+question about <em>production</em>, concluded your merge had failed, and told you so twice. Three
+mechanisms now exist so that neither of us has to remember any of this — a command, and two hooks
+that fire at the moment of the mistake rather than sitting in a document.</p>
