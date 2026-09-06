@@ -24,6 +24,7 @@
 //
 // House convention: no test runner, one PASS/FAIL line per case, every case runs before exit.
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -98,6 +99,157 @@ if (!exists(hookPath)) {
   } else {
     pass(`all ${tableDocs.size} doc(s) in CLAUDE.md §4 are also in the hook's SUBSYSTEMS table`);
   }
+}
+
+
+/* ---- 4. `bash <path>` commands and bare script paths ------------------------------------- */
+/* Section 1 checks `node …` only, and that hole let a real one through for a day.
+ *
+ * On 2026-09-06 `scripts/deploy-preview.sh` was renamed to `scripts/deploy-staging.sh`. CLAUDE.md
+ * §3 — the CNAME rule, the single most damaging thing in the file to get wrong — still said
+ * "Deploy with `scripts/deploy-preview.sh` only", and GIT-AND-DEPLOY.md said it twice more. This
+ * gate ran green through all of it, because it was looking for `node` and the deploy script is
+ * `bash`. Honest check, wrong subject: the exact failure CLAUDE.md §1 describes about the day a
+ * green suite blessed a broken build.
+ *
+ * So: any script path a doc names, whatever runs it. */
+let shCmds = 0, badSh = [];
+for (const doc of DOCS) {
+  if (!exists(doc)) continue;
+  const text = fs.readFileSync(path.join(REPO, doc), "utf8");
+  for (const m of text.matchAll(/(?:\bbash\s+|\bsh\s+|(?<![\w./-])\.\/)([A-Za-z0-9_./-]+\.(?:sh|bash))/g)) {
+    const rel = m[1].replace(/^\.\//, "");
+    if (rel.startsWith("~") || rel.includes("node_modules")) continue;
+    shCmds++;
+    if (!exists(rel)) badSh.push(`${doc} -> ${rel}`);
+  }
+  /* A doc naming `scripts/foo.sh` in prose or backticks is telling you to run it just as surely
+     as one prefixing it with `bash`. CLAUDE.md's CNAME rule is written exactly that way. */
+  for (const m of text.matchAll(/`((?:scripts|4\/scripts)\/[A-Za-z0-9_./-]+\.(?:sh|mjs|js|cjs))`/g)) {
+    shCmds++;
+    if (!exists(m[1])) badSh.push(`${doc} -> ${m[1]}`);
+  }
+}
+for (const b of [...new Set(badSh)]) fail(`a doc names a script that does not exist: ${b}`);
+if (!badSh.length) pass(`all ${shCmds} script paths named in the docs exist`);
+
+/* ---- 5. every PATH-ANCHORED regex in a hook must match a real file ------------------------ */
+/* THE ROT THAT MADE THIS WHOLE SECTION NECESSARY, measured 2026-09-06 by feeding the hooks real
+ * input and watching what they did:
+ *
+ *   Edit src/ui/board.js   (the live game today)     -> SILENT
+ *   Edit src/ui/stage.js   (the live game today)     -> SILENT
+ *   Edit index.html        (the live game today)     -> SILENT
+ *   Edit 4/src/ui/stage.js (deleted by the cutover)  -> FIRES
+ *
+ * Both PreToolUse hooks still matched the `4/` tree the cutover deleted. They fired only on files
+ * that do not exist and stayed quiet on every file that does — for nine days, while CLAUDE.md line
+ * 832 went on asserting "a hook stops the first edit to game code in a session and states the
+ * gear." Section 3 above could not see it: it checks that the DOCS named in the table are also
+ * named in the hook, and both lists were fine. What rotted was the hook's aim.
+ *
+ * A gate pointed at the wrong tree is not silent, it is REASSURING (HARD-WON-LESSONS §3).
+ *
+ * Only regexes carrying a path SEPARATOR (`\/`) are checked — those claim "this is where that file
+ * lives." Fuzzy content matchers like /bot|planner/i make no claim about the tree and are left
+ * alone. The first draft of this check required a leading `^` as well, and found ZERO patterns
+ * while reporting "all 0 path patterns match a real file" — a green line from a check that could
+ * not fail, in a gate written to catch exactly that. Caught by printing what it had matched
+ * before believing the verdict (CLAUDE.md §1, red-proof the instrument). */
+const HOOKS = [".claude/hooks/read-the-doc-first.cjs", ".claude/hooks/qa-gear-first.cjs"];
+const tracked = execFileSync("git", ["ls-files"], { cwd: REPO, encoding: "utf8" })
+  .split("\n").filter(Boolean);
+let pathRes = 0, deadRes = [];
+for (const h of HOOKS) {
+  if (!exists(h)) { fail(`${h} is missing — a rule in CLAUDE.md has lost its enforcement`); continue; }
+  const src = fs.readFileSync(path.join(REPO, h), "utf8")
+    .split("\n").filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");   // not the war stories
+  for (const m of src.matchAll(/\/((?:\\.|\[[^\]]*\]|[^/\n\\])+)\/([gimsuy]*)/g)) {
+    const body = m[1];
+    if (!body.includes("\\/")) continue;                 // no path separator => not a path claim
+    let re; try { re = new RegExp(body, m[2].replace(/[gy]/g, "")); } catch { continue; }
+    pathRes++;
+    if (!tracked.some(f => re.test(f))) deadRes.push(`${h} -> /${body}/`);
+  }
+}
+for (const b of deadRes) {
+  fail(`a hook's path pattern matches NO file in the repo — it can never fire: ${b}`
+     + `\n        -> repoint it at the tree that exists today, or delete the rule`);
+}
+if (!deadRes.length) pass(`all ${pathRes} path patterns in the hooks match a real file`);
+
+/* ---- 6. every deploy/publish script must actually TRIP the deploy hook -------------------- */
+/* Section 5 proves a hook's patterns point at real files. It cannot prove the hook still fires on
+ * the thing that matters, because `deploy-preview` carries no file extension and looks like any
+ * other word. So this drives the hook for real, the way its own test file does.
+ *
+ * DERIVED FROM THE DIRECTORY, NOT TYPED. doc_command_check learned this once already, in section
+ * 1's own comment: "a hand-kept list of what to guard is the same shape as the bug it is guarding
+ * against — it rots silently, and nothing says so." A script added to scripts/ tomorrow is covered
+ * the day it lands. */
+const deployScripts = fs.existsSync(path.join(REPO, "scripts"))
+  ? fs.readdirSync(path.join(REPO, "scripts"))
+      .filter(f => /\.(sh|mjs|js)$/.test(f) && /deploy|publish/i.test(f))
+      .map(f => "scripts/" + f)
+  : [];
+const docHook = path.join(REPO, ".claude/hooks/read-the-doc-first.cjs");
+let silentDeploys = [];
+if (deployScripts.length && fs.existsSync(docHook)) {
+  for (const s of deployScripts) {
+    const payload = JSON.stringify({
+      session_id: "doccheck-" + Math.random().toString(36).slice(2),
+      tool_name: "Bash",
+      tool_input: { command: (s.endsWith(".sh") ? "bash " : "node ") + s },
+    });
+    let out = "";
+    try {
+      out = execFileSync("node", [docHook], {
+        cwd: REPO, input: payload, encoding: "utf8",
+        env: { ...process.env, CLAUDE_PROJECT_DIR: REPO },
+      });
+    } catch (e) { out = (e.stdout || "") + (e.stderr || ""); }
+    if (!out.trim()) silentDeploys.push(s);
+  }
+}
+for (const s of silentDeploys) {
+  fail(`running ${s} does NOT trip the read-the-doc-first hook — the live domain is unguarded`
+     + `\n        -> add its name to the deploy rule's bash[] in .claude/hooks/read-the-doc-first.cjs`);
+}
+if (deployScripts.length && !silentDeploys.length) {
+  pass(`all ${deployScripts.length} deploy/publish script(s) trip the deploy hook`);
+}
+
+/* ---- 7. CLAUDE.md may only ever get SHORTER ---------------------------------------------- */
+/* Wyatt, 2026-09-06, on being shown the growth curve: a hard size limit, gate-enforced, so adding
+ * a rule forces removing or relocating one.
+ *
+ * THE CURVE THAT EARNED IT. CLAUDE.md was 399 lines on 2026-07-22 and 936 by 08-14. On 08-18 it
+ * was pruned to 492 — cut nearly in half — and by 08-26 it was 990, BIGGER than before the prune,
+ * with every line in it true. Accuracy was never the constraint. The file's own opening sentence
+ * ("deliberately short so that it survives being read") describes a file whose rules table is 28
+ * lines out of 990, and its own note under that table says three rules had to be merged because
+ * they were competing for the same slot.
+ *
+ * A RATCHET, NOT A CLIFF. A gate that goes red on the day it is written, and stays red until
+ * somebody finds a day to rewrite the rulebook, is a gate that teaches its reader to skip it —
+ * which is the precise disease being treated. So: the file may hold or shrink, never grow. Every
+ * trim lowers the ceiling permanently and the ceiling never rises again. Regrowth becomes
+ * impossible rather than merely discouraged, and the build is green the whole way down.
+ *
+ * WHEN YOU TRIM IT, LOWER THIS NUMBER IN THE SAME COMMIT. That is the whole mechanism. */
+const CEILING = 990;          // high-water mark. Only ever edit this DOWNWARD.
+const TARGET  = 350;          // the goal: one screen of rules plus pointers.
+const claudeText  = fs.readFileSync(path.join(REPO, ".claude/CLAUDE.md"), "utf8");
+const claudeLines = claudeText.split("\n").length - (claudeText.endsWith("\n") ? 1 : 0);   // `wc -l`
+if (claudeLines > CEILING) {
+  fail(`.claude/CLAUDE.md grew to ${claudeLines} lines, over its ${CEILING}-line ceiling`
+     + `\n        -> it is loaded into EVERY session. Move the story to a docs/ file and link it,`
+     + `\n           or retire a rule that no longer earns its line. The ceiling never rises.`);
+} else if (claudeLines > TARGET) {
+  pass(`.claude/CLAUDE.md is ${claudeLines} lines — under its ${CEILING} ceiling `
+     + `(${claudeLines - TARGET} above the ${TARGET} target; lower CEILING when you trim it)`);
+} else {
+  pass(`.claude/CLAUDE.md is ${claudeLines} lines — at or under the ${TARGET}-line target`);
 }
 
 console.log(`\n${failures === 0 ? "PASS" : "FAIL"} — ${failures} failure(s)`);
