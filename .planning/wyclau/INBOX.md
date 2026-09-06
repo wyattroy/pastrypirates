@@ -2426,3 +2426,8 @@ status: OPEN — left on `q6` via the Glass's comment box
 > yes, do your recommendation.
 solution: none stated
 status: OPEN — left on `q7` via the Glass's comment box
+
+## INBOX-20260906T2010Z — scope Netlify: one repo for staging + production, repo private
+> scope out using netlify to push staging and production from one repo (pastrypirates) so that we can move away from publishing through githubpages and make the repo private
+solution: none stated
+status: OPEN — scope written to `.planning/wyclau/SCOPE-NETLIFY-ONE-REPO.md`; four decisions put to him
