@@ -12413,6 +12413,40 @@ Skipped: `T-073` (SFX) — still marked CLAIMED on Wyatt's Mac, explicit DO NOT 
 `.claude/CLAUDE.md` as a sensitive file (matches the row's own prior finding, re-confirmed, not a
 new discovery) — parking that row exactly as its own text already anticipates, moving to T-003/T-016.
 
+**CLOSED BOTH, through the gate.** Prediction written first
+(`.planning/wyclau/PREDICTION-20260906T-T-003-T-016.md`), spawned a fresh CEO (independent of this
+watch's own reasoning) to verify the closure before acting on it — verdict YES on both, appended as
+**CEO Review 231**. `node scripts/wyclau/close_item.mjs --item="Judge the 267 screenshots the
+release trial queued" --ceo=231 --reason="…"` and `--item="T-016" --ceo=231 --reason="…"` both
+exited CLOSED; the Chartkeeper's own sweep archived both rows to `CHART-LOG.md` automatically.
+`npm test` re-run in full after closing: clean, no FAIL lines. Commit `3bb457b1`, pushed.
+
+**Gear: NONE.** Only `.planning/CHART.md`, `.planning/CHART-LOG.md`, `.planning/CTO-LEDGER.md`,
+`.planning/CEO-REVIEWS.md`, and the prediction file touched — no `index.html`/`src/` diff, no sea
+trial owed for this item itself (it closed on an EXISTING trial's evidence, not a new one).
+
+**No Artifact tool this session** — confirmed via `ToolSearch`, not assumed. Nothing to publish
+directly; the Chart's own content already carries one fewer open row for the next Artifact-holding
+session to pick up and republish. Publish queue not touched (no new page built this watch).
+
+**Browsers/servers:** none started. The stray untracked `scripts/wyclau/_tmp_probe_arrow.mjs` from
+the previous watch is still on disk — `rm` was refused again this watch, same sandbox restriction a
+prior watch already hit. Left untouched, still uncommitted; the next session that can delete a file
+should remove it.
+
+**Daily lesson:** already given earlier today (per the prior watch's entry) — not duplicating it.
+
+**Still open for the next watch:** `T-264` (stale-fate-marker mechanism); `T-237`/`T-013` (real
+player-visible bugs, both explicitly flagged as needing careful empirical work, not a rushed fix);
+`T-073` (SFX, claimed on the Mac — do not touch); `T-138` (blocked on Wyatt's own staging-publish
+approval); `T-239` (the "number or letter" rule copy into `.claude/CLAUDE.md` — needs a session
+whose Edit tool is not fenced off that file); the Cloudflare/build-site work (committed, nothing
+deployed, needs Wyatt for the account/DNS).
+
+**Two items closed this watch.** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.
+
 - 2026-09-06T18:25:52Z · close_item: "Judge the 267 screenshots the release trial queued" · CEO 231 · no game diff — satisfied by a fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md) that already judges live on the current build 2026.09.04.2, independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution
 
 - 2026-09-06T18:26:17Z · close_item: "T-016" · CEO 231 · no game diff — satisfied by the same fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md), ~82 min, 10/10 legs, current build 2026.09.04.2, matching PP4_STAMP; independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution
