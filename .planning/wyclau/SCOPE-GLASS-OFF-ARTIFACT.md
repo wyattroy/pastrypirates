@@ -52,7 +52,22 @@ is the trust boundary**, and today it trusts the store completely because the st
 only he could write.
 
 **CONFIDENTIALITY IS STILL REAL AND IS NOW THE SECOND REQUIREMENT, NOT THE FIRST.** The database
-answers unauthenticated reads (`INBOX-20260906T2010Z`), there are no security rules in this repo —
+answers unauthenticated reads on the paths the game uses — and **CEO 233 re-measured this rather
+than repeating the probe that produced today's false outage:** `visits`, `starts`, `rooms`, `fins`
+and `presence` all answer **HTTP 200** to an unauthenticated shallow GET (`rooms` handed back live
+room codes), while `usage`, `games` and the root answer 401. **Reads only were measured; no write
+was attempted, and nothing here claims anything about write access.**
+⚠ **CORRECTED, CEO 233 finding 9: this sentence used to cite `INBOX-20260906T2010Z`, which is
+Wyatt's own Netlify request and NOT a measurement.** The traffic measurement lives in
+`SCOPE-NETLIFY-ONE-REPO.md:115`. Its line is worth keeping: *"A true claim behind a citation that
+does not contain it is how a false one gets through next time."*
+⚑ **AND THE INFERENCE THIS SECTION USED TO DRAW WAS A NON-SEQUITUR (CEO 233 finding 2).** It read
+"no rules file in the repo" as "the database is unprotected." **Firebase rules never live in a
+repo; they live in the console.** A database on its factory default answers the root read — **his
+root read is DENIED while five children are open, so non-default per-path rules ALREADY EXIST in
+his console and nobody has read them.** That changes the job from *write rules from scratch* to
+**edit rules whose current text is unknown to this plan** — and it is why the first hour of this
+work is reading what is already there, not writing. There are no security rules in this repo —
 `find` returns no `database.rules.json` and no `firebase.json` — and staging is a public URL. His
 choice of real auth covers both axes at once, which is why it is worth the extra day.
 
@@ -65,15 +80,50 @@ choice of real auth covers both axes at once, which is why it is worth the extra
 3. **A signed-out page must REFUSE to write, visibly** — never silently drop what he typed. Losing
    his words is the one failure this whole subsystem exists to prevent.
 
+## ✅ THE BUILD-STOPPER, AND HIS RULING THAT CLOSES IT
+
+**CEO 233's finding 3, and it would have stopped the build cold:** this plan requires a store that
+**refuses signed-out reads** and a **headless watch that reads it**. Both cannot be true unless the
+watch carries a credential — and this repo is public (`CURTAIN-DELIVERED.md:3`), so it cannot be
+committed. **The plan named one blocker in his hands and there were two.**
+
+**HIS RULING, 2026-09-06, through the question UI — "A Firebase service key, kept outside the repo
+on each machine":** Google issues a service-account key for exactly this. It sits in a
+git-ignored path, **installed once per machine** — Blade and Mac separately — and nothing secret
+ever enters the public repo.
+
+**What that makes non-negotiable in the build:**
+
+1. **The key path is in `.gitignore` BEFORE the first key is written**, not after. A gate asserts it.
+2. **A watch with no key FAILS LOUDLY.** It must never quietly skip the harvest and publish anyway —
+   that is a republish without a harvest, which is the one act that deletes his words.
+3. **The key is per-machine and hand-installed**, so a fresh machine is a two-step setup, and that
+   step is written down where the Door can find it rather than in somebody's memory.
+
 ## The shape of the build
 
 - `glass.mjs` reads `ideas`/`rulings`/`comments` from the RTDB path instead of the inline
-  `glassState` block, and the page writes them back there. **One display path** — the same
+  `glassState` block, and the page writes them back there. **One display path FOR THE RENDERER,
+  and that claim is scoped deliberately (CEO 233 finding 5) — it used to be asserted where a reader
+  took it to cover the STORE, and the store is the thing this plan doubles.** The same
   generator, the same page, the same harvest script; only the STORE changes (rule 23).
 - `harvest_glass.mjs` gains a mode that reads the store directly, so a headless watch harvests
   without an Artifact tool. Its idempotence key stays his own `at` timestamp.
-- The artifact stays alive as-is during the cutover and is retired only once the staging page has
-  carried a full day without loss.
+- ⛔ **THE CUTOVER DAY IS AN OPEN DESIGN QUESTION, NOT A DETAIL — CEO 233 finding 5, and it is
+  UNANSWERED.** The plan says the artifact stays alive until the new page has carried a full day
+  without loss. **For that day there are TWO live surfaces he can type into, and nothing says which
+  one the harvest reads.** Its words: *"Read both and his words duplicate; read one and the other's
+  words are lost silently."* `CLAUDE.md` rule 23 names this exact shape — *"two things kept in sync
+  by discipline are two things that will drift."* **This must be settled by him before a line is
+  built; it is not ours to pick.**
+- ⛔ **AND HIS LINK CHANGES, WHICH THIS PLAN NEVER SAID (CEO 233 finding 7).** Publishing through
+  `deploy:staging` lands at a different address from the artifact URL hardcoded in `CLAUDE.md` §5.
+  **The fix, if it works, changes the page he opens** — he needs to know that before, not after.
+- ⛔ **A PUBLIC STAGING PAGE SHIPS THE CHART AS PLAIN HTML, and the confidentiality gate cannot see
+  it (CEO 233 finding 7).** The gate protects `ideas`/`rulings`/`comments` in the store; the rows,
+  the progress and the notes are **baked into the page before any auth exists**, so the gate list
+  as written would go green over them. Either the page goes behind his `stats.html`-style curtain
+  as well, or he accepts that half being readable. **His call, and it is not currently asked.**
 
 ## What must be RED first (rule 24, four steps)
 
@@ -83,12 +133,26 @@ choice of real auth covers both axes at once, which is why it is worth the extra
   second because he ranked it second, not because it is optional
 - a check that FAILS if a signed-out page can silently swallow something he typed instead of
   refusing visibly
-- a check that FAILS if his writing can be lost — the existing `harvest_glass` idempotence proof,
-  re-pointed at the new store
+- ⛔ **A CHECK THAT FAILS IF THE MIGRATION LOSES ANYTHING — AND THE ONE THIS PLAN USED TO NAME
+  CANNOT DO IT.** CEO 233 finding 4, and it is the sharpest thing in that review: this line offered
+  *"the existing `harvest_glass` idempotence proof, re-pointed at the new store"*, and
+  `scripts/wyclau/harvest_glass.mjs:38-42` says in its own header that it **verifies the new entry
+  ARRIVED and does NOT verify the destination's other content survived** — *"A write that lands and
+  wipes everything else counts as a success here."* **This plan cited, as its loss-protection, a
+  gate whose own source says it cannot see this failure.** The real check counts every entry before
+  and after and fails on any drop, and it is written before the migration runs, not after.
+- ⛔ **AND HOW HIS EXISTING WORDS CROSS IS NOT IN THIS PLAN AT ALL** — CEO 233 finding 4's other
+  half. `:70-71` says the page reads the store *"instead of"* the inline block and never describes
+  carrying the contents over. **This project has already lost his writing once this way.**
+  **OPEN, and it needs his answer before a line is built.**
 
 ## Sizing, honestly
 
-**2–3 days, tooling not game code** (his choice of real authentication adds about a day over the curtain, and it buys integrity as well as confidentiality). It is not hard; it is delicate, because the thing being moved
+**RE-SIZED AFTER CEO 233: 3–4 days, tooling not game code, and TWO of the open questions are his,
+not ours.** The audit's words: *"The estimate is honest about the work the plan describes and does
+not cover the work the plan is missing."* One blocker is now closed (the service key, his ruling);
+two remain open and unanswered — **how his existing writing migrates, and which single page is
+authoritative on cutover day.** The old figure was **2–3 days, tooling not game code** (his choice of real authentication adds about a day over the curtain, and it buys integrity as well as confidentiality). It is not hard; it is delicate, because the thing being moved
 is the one store in this project that holds words only he can produce. **And it is BLOCKED on one
 thing only he can do** — the Firebase rule — which is worth knowing before the work starts rather
 than on the day it is ready to ship.

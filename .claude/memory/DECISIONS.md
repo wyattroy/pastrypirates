@@ -1,5 +1,48 @@
 # Wyatt's standing decisions
 
+## THE GLASS'S FIREBASE KEY: A SERVICE KEY, OUTSIDE THE REPO, ONE PER MACHINE
+
+**His ruling, 2026-09-06, through the question UI**, closing the build-stopper CEO 233 found:
+**"A Firebase service key, kept outside the repo on each machine."**
+
+**THE PROBLEM IT SOLVES, in CEO 233's words:** *"The plan says the page must refuse to answer
+strangers, and it also says the Blade must be able to read it while you are asleep. Both cannot be
+true unless the Blade carries a key — and the plan never says where that key lives."* This repo is
+**public** (`CURTAIN-DELIVERED.md:3`), so the key can never be committed.
+
+**WHAT HIS RULING MAKES NON-NEGOTIABLE:**
+
+1. **The key path is in `.gitignore` BEFORE the first key is written.** A gate asserts it. Not after.
+2. **A watch with no key FAILS LOUDLY.** It must never quietly skip the harvest and publish anyway
+   — that is a republish without a harvest, the single act that deletes his words.
+3. **Per-machine, hand-installed.** Blade and Mac separately; a fresh machine is a two-step setup,
+   written where the Door finds it rather than in a session's memory.
+
+**⚑ AND CEO 233 FOUND THAT HE ALREADY HAS RULES, which nobody had read.** Measured: `visits`,
+`starts`, `rooms`, `fins`, `presence` answer **200** unauthenticated; `usage`, `games` and the root
+answer **401**. A factory-default database answers the root read — **his does not, so non-default
+per-path rules exist in his console today.** The job is *editing rules whose text is unknown*, not
+writing them from nothing. **Read them first; do not estimate this work before someone has.**
+*(Reads only were measured. No write was attempted and nothing here claims anything about writes.)*
+
+**STILL OPEN AND HIS TO ANSWER, both before a line is built:**
+- **How his existing writing migrates** off `glassState`. The plan never said, and the gate it
+  named as protection says in its own header it cannot see that failure.
+- **Which single page is authoritative on cutover day**, while two surfaces are live.
+
+**Related:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md),
+re-sized 3–4 days, and CEO Review 233 in [`.planning/CEO-REVIEWS.md`](../../.planning/CEO-REVIEWS.md).
+
+> ### ⚑ AND `T-265` NOW HAS A MEASURED CAUSE — it was recorded as UNKNOWN on purpose, and CEO 233 settled it.
+>
+> The game's real paths are `rooms/<code>/…` (`src/net/watchers.js:33-165`,
+> `src/net/writers.js:50-138`) and `visits`/`starts`/`fins` (`src/ui/usage.js:36,56`). **Every one
+> answers 200.** The probe that declared multiplayer down read `games`, `usage` and the root —
+> **the three that hold nothing.** So the cause is not a rules change, an expiry, or anything about
+> his console: **I read the wrong doors.** Written here so the UNKNOWN can be retired honestly
+> rather than left as a permanent open question.
+
+
 ## ⚠ "WORK ON A NEW BRANCH" CANNOT ISOLATE YOU — ONE MACHINE HAS ONE CHECKOUT
 
 **Wyatt, 2026-09-06, after a session filed a false production outage:** *"do your work on a new
