@@ -11683,3 +11683,82 @@ this item is delivered and can close through the gate. Do not re-ask the five ma
 now how he answers them, not because nobody has asked.
 
 END OF WATCH.
+
+## WATCH — pastrypirates-76 (Bell), 2026-09-06T~1435Z-1520Z — TRIAGED `SEA-TRIAL-2026-09-06T1328Z`: zero new defects, one new false-positive family named (`T-262`)
+
+**Situation on entry.** `git fetch && pull --rebase`: already up to date. `can_push.mjs` flagged
+that session-level push permission can't be measured from inside the repo; read
+`docs/GIT-AND-DEPLOY.md` on the hook's demand, then the real push form
+(`git push origin claude/cloud-handoff-planning-a9ay1u`) returned "Everything up-to-date" — confirmed
+working. `IN-HAND` empty. Read INBOX, CHART, DECISIONS (top), ledger tail. `ListAgents`: 4 peers,
+including `pastrypirates-14` (the live Advisor, ~1h old) and three `ppjudge-*` sessions (unrelated
+judge subprocesses). `chartkeeper.mjs --rank --sweep --write`: 0 rows moved/archived; confirmed rank
+1 is `T-261` (DO NOW, score 9,000,000) and rank 2 is `T-138` — both genuinely blocked (no Artifact
+tool this session either; `T-138` waits on Wyatt's own staging-approval, not a watch's to give).
+
+**TOOK the untriaged fresh sea trial**, not an existing Chart row. `.planning/SEA-TRIAL-
+2026-09-06T1328Z-Wy-Blade.md` (10/10 legs, FULL gear, build `2026.09.04.2`) finished at 13:28:34Z —
+confirmed via `date -u` (14:51Z at read time, so ~83 min old) — and had been explicitly left
+untouched by the two prior watches that worked around it (`T-237`'s and `T-261`'s watches both wrote
+"not this watch's to wait on"). Per rule 24, an unopened finished trial is exactly the gap a watch
+should close.
+
+**WORK DONE.** Read every leg's failure summary, not just the FAIL headline. Opened the actual
+screenshots for every genuinely visual finding (rule 22) rather than trusting the judge's caption:
+- `solo-phone-018`/`solo-phone-wk-025` ("Play again! clips award text") — matches `T-143`
+  (`CHART.md`, `qid:t143-eov-phone-scroll`) exactly; that row already disproves the overlap cause
+  twice and is waiting on Wyatt's own pick among three options. Not new.
+- `solo-phone-wk-023` ("Call Crustbeard radial overlaps ships") — matches the documented
+  pre-existing "phone radial overlaps" family (this file, 2026-08-28 entries, explicitly including
+  a prior "wk-012 Walk-away/Crustbeard" instance). Not new.
+- `solo-tablet-005`/`passplay-desktop-008` ("empty speech bubble"/"empty tooltip") — opened both
+  screenshots: a correctly-shaped, correctly-positioned, well-formed bubble with a tail and
+  literally zero visible text. Traced a real, specific mechanism rather than guessing: `stageFlash()`
+  (`src/ui/stage.js:1483-1588`) builds the bubble's full HTML, appends it, then immediately calls
+  `typewriterReveal()` (`src/ui/panel.js:752-830`), which splits every text node into an empty
+  `shownEl` and a `visibility:hidden` `hiddenEl` holding the full text — the box's real width/height
+  is reserved from the very first frame (by design, so words never jump lines as they grow), while
+  the visible text stays blank until the first reveal tick fires (16-32ms later). A screenshot
+  landing in that sub-frame window is geometrically "settled" (nothing about the box's size or
+  position ever changes) while showing zero text — exactly what both screenshots show. **Not
+  independently red-proofed** (a well-evidenced explanation from code + screenshots, not a forced
+  repro) and said so in the Chart row rather than overclaiming. No player impact — the window is at
+  most 1-2 frames at 60fps and the box never reflows either way, so **not fixed, deliberately**.
+- The standing "N screens never stopped moving" geometry churn on every leg is the already-
+  documented settle-timing note; not new.
+
+**Filed as `T-262`** in `.planning/CHART.md` (end of the `### ⚑ FOR A WATCH` section), naming this
+as a fourth entry in the project's "judge/settle-detector false-positive" family (alongside the
+active-seat ring and two-tap selection-state misreads) so no future watch re-opens it as a bug.
+
+**CEO 220 (YES)**, spawned fresh via `Agent` — independently verified the trial's untriaged status
+against the ledger, re-checked `T-143` and the "phone radial overlaps" precedent against their own
+sources, read `panel.js:783-786` and `stage.js:1584-1588` itself, opened both screenshots itself and
+confirmed they show a well-formed but textless bubble, and confirmed the row's own honesty about not
+being red-proofed. Appended to `.planning/CEO-REVIEWS.md`.
+
+**MY OWN PROCESS MISS, OWNED.** The first version of the `T-262` edit accidentally deleted the
+`## BLOCKED ON WYATT` heading line itself (my `Edit` call's replacement text ended one line early),
+which flipped `npm test` red (`glass_calm_check.mjs`: "the Glass's Your Call card has no source").
+Caught by re-running `npm test` before committing rather than after — exactly the check this project
+keeps naming as the one that must run before a claim of "clean." Fixed in a second `Edit`, re-ran
+`npm test`: full chain green (confirmed via the final `doc_command_check` PASS at the end of the
+`&&`-chain, since any earlier gate failing would have stopped it there).
+
+**No game code touched.** `git diff --stat`: `.planning/CHART.md`, `.planning/CEO-REVIEWS.md`, and
+`.planning/SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md` (this report was mid-commit from an earlier watch
+and simply finished writing its remaining legs — its diff is the completed trial content, not new
+work). `src/` and `index.html` untouched. One pre-existing untracked file,
+`.planning/sea-trials/SEA-TRIAL-2031-2026.09.03.3.md`, predates this watch (multiple prior watches
+have noted the same) and was left untouched.
+
+**No Artifact tool in this session** — did not attempt to publish or nudge for `T-261` beyond what
+the two prior watches already did (both live peers already asked; re-asking a third time with no new
+information would be noise, not progress).
+
+**NEXT WATCH:** `T-262` is filed as a standing false-positive note, not an open task — nothing to
+pick up on it unless a future trial shows the same "empty bubble" shape at a moment that genuinely
+lasts longer than a frame (which would mean this explanation is incomplete). `T-261` and `T-138`
+remain rank 1/2, both genuinely blocked on mechanisms this watch does not hold.
+
+END OF WATCH.

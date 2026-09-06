@@ -93,139 +93,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
-      ⟨`T-073`⟩
-      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
-      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
-      before that work is started"*. **A watch may not implement any of this until he has ruled on
-      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
-  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
-  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
-  You can see the spreadsheet with our plan for the SFX here:
-  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
-  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
-  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
-  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
-  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
-  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
-  reachable, tell him the easiest way to get the files across instead of guessing.
-  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
-  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
-  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
-  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
-  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
-  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
-  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
-  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
-  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
-  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
-
-  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
-  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
-  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
-  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
-  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
-  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
-  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
-  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
-  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
-  him attaching the SFX files directly. Full account:
-  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
-
-- [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
-      ⟨`T-138`⟩
-      His ask: *"a firebase admin console so I can see how many people are playing"*.
-      ✅ **BUILT 2026-09-03** at `/stats.html`, behind the curtain he asked for, blocked from search
-      — commit `b13a68c0`, CEO 159. Driven and photographed with the real database on a 390px
-      phone: **0 playing right now · 123 unique players (14d) · 44 voyages started · 8 finished**
-      (`.planning/posed/stats-open-390w-t138.png`). ⚠ **The 123 is a HEADLESS browser's number and
-      yours will read 122 or fewer** — the card excludes *you* by reading `pp_id` out of
-      localStorage (`stats.html:170-172`), and the shot was taken in a fresh browser that had none,
-      so nothing was excluded. CEO 159 asked for this to be written down a day ago and it was not;
-      it is written down now so it never becomes a phantom bug.
-      ⚠ **AND FOR A DAY THE ONLY MEASURABLE EFFECT OF THE CURTAIN WAS TO LOCK HIM OUT.** The word
-      was changed on 2026-09-03 to get it out of this public repo (CEO 159, correctly), the record
-      says it *"lives with Wyatt"* — and **nothing anywhere shows anybody ever told him.** Every
-      gate was green through it. Fixed 2026-09-03T11:0xZ: a fresh word, **delivered to his Glass by
-      cross-session message** (the only channel a watch has that is his and not this public repo),
-      the delivered SHA-256 recorded in [`CURTAIN-DELIVERED.md`](wyclau/CURTAIN-DELIVERED.md) — the
-      hash, never the word — and `stats_console_check.mjs` **clause E** now fails the build the day
-      the page's word and that record disagree. **The Glass session confirmed it is on your page**,
-      and separately confirmed the word appears in neither its staged nor its unstaged diff — a
-      second session, holding the word, checking that it never entered the repo.
-      Eight red-proofs; **six isolate to one clause, `--red=nocurtain` trips two** (deleting the
-      hash leaves E nothing to join to). Said exactly because CEO 164 caught the flattering version
-      of that same sentence in this same pass.
-      **THE REUSABLE ONE: A–D WERE ALL GREEN ON A PAGE ITS ONLY READER COULD NOT OPEN.** A gate that
-      checks a secret exists is not a gate that the person it is for HAS it.
-      ✅ **THE 404 BELOW EXPIRED — YOU CAN LOAD IT NOW. Measured 2026-09-06 ~10:30 AM ET:**
-      **https://staging.playpastrypirates.com/stats.html** returns **200 and renders**
-      (`<title>Pastry Pirates — usage</title>`), because staging now carries this branch
-      (`2026.09.04.2-staging@0fdbe853`). **This row set its own closing condition as "you can load
-      that URL" — that condition is MET.** What is left is your look at it, and separately the
-      PRODUCTION release, which is a different decision and still yours;
-      `playpastrypirates.com/stats.html` is still 404, correctly, because production is deliberately
-      unreleased on `2026-08-26k-CUTOVER`.
-      ⛔ **~~WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
-      `staging.playpastrypirates.com/stats.html` are both 404 today~~** (`curl`, 2026-09-03). The page
-      is on this branch only. Shipping it means the staging publish — which `T-016` says needs
-      another ~90-minute trial of the code that would actually ship — or the branch merge, which is
-      GATED on your own ruling. **This row closes when you can load that URL, not before.**
-      ⚑ **2026-09-04T0745Z — the trial that looked fresh enough wasn't.** `PP4_STAMP` had drifted
-      from the tree (see the fresh instance filed under `T-009` above); stamp bumped to
-      `2026.09.04.1`, `npm test` green, and a new detached FULL trial started
-      (`2026-09-04T0744Z-Wy-Blade`, pid 27400) so the staging publish this row is waiting on has
-      real coverage once it lands. **Still not published — the trial has to finish first.**
-      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
-      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
-      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
-      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
-      only surface.** Removing it would have dropped all four off the page he reads, silently, with
-      every gate still green. Its own finding, handed over rather than shipped past.
-      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
-      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-      ⚑ **2026-09-04T0912Z — THE TRIAL FINISHED (81 min, 10/10 legs sailed, `2026-09-04T0744Z-Wy-Blade`,
-      build `2026.09.04.1`) — BUT IT SAILED THE FIRST TRIAL OF A BRAND-NEW FEATURE AND CAUGHT IT
-      BREAKING SOMETHING ELSE. DO NOT PUBLISH TO STAGING UNTIL THAT IS TRIAGED.** See the new row
-      immediately below (`T-248`) — the just-added `#legalFooter` (Privacy Policy / About links,
-      his own `T-206` ruling) sits on top of the captains panel on every phone-width screen, not
-      gated by mode or state. This watch verified it by eye on two independent screenshots across
-      two different modes (solo, crew) — real, not a judge artifact. **This is exactly what a sea
-      trial exists to catch before a publish, so this row stays blocked on it rather than treating
-      "10/10 legs sailed" as clearance.** The rest of the trial's findings (settle-timing geometry
-      churn, wind-arrow icon clipping, dock-highlight-under-modal, EOV award-name clipping) all
-      match known Chart rows already open (`T-023`, `T-142`, and the standing WebKit-settle-timing
-      note) and are not new.
-      ✅ **2026-09-04T0930Z-1015Z — `T-256` IS FIXED AND CLOSED (CEO 211, YES, commit `fe87894a`).**
-      `camFrame()` (`src/ui/stage.js`) now measures `#legalFooter`'s own rendered height and
-      reserves it in the same board/captains-card budget it already computes, on true phone width
-      only; `#pp4Cap`'s own bottom edge now sits above the footer instead of touching the raw
-      viewport edge. Red-proofed (neutralize the reservation, confirm the same 7px defect
-      reproduces; restore it, confirm 0px on both a phone seat and a tablet control), posed
-      screenshots in `.planning/posed/t256-*`, `npm test` 138/138 green. **This row (`T-138`) is
-      still blocked on a fresh FULL sea trial of the code that would actually ship** — the same
-      trial `T-009`/`T-016` already say is owed, now also covering this fix, not a second one to
-      start separately.
-      ⚑ **2026-09-04T1013Z — THAT FRESH TRIAL IS NOW SAILING.** Watch 1007Z-1015Z measured that the
-      0744Z trial (build `2026.09.04.1`) finished BEFORE the T-256 fix landed (07:44:52Z bump vs.
-      09:58:24Z fix commit), so its evidence does not cover `fe87894a`. Bumped `PP4_STAMP` to
-      `2026.09.04.2`, fixed an unrelated `sitemap_lastmod_check` FAIL along the way (regenerated,
-      never hand-typed), `npm test` 138/138 green, then started a fresh detached FULL trial:
-      run `2026-09-04T1013Z-Wy-Blade`, **pid 41776**, report
-      `.planning/SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md`. **Not this watch's to wait on** (Door
-      step 4) — the next watch reads the finished report (~80-90 min out) and, if it confirms no
-      new FULL-gear findings, both `T-138` and `T-009`'s fresh-trial condition are satisfied and
-      `T-138` only needs Wyatt's own staging-publish approval. Commit `e7b07129`; ledger:
-      `WATCH CLAIM+FILE, 2026-09-04T1007Z-1015Z`.
-      ⚑ **2026-09-04T1150Z — THAT TRIAL FINISHED (84 min, 10/10 legs sailed) AND ITS ONE NEW FINDING
-      IS NOW TRIAGED — `T-241`, CEO 216 (YES), measured NOT A DEFECT** (footer/button overlap 0px at
-      both seats). Every other finding in the report matches known open rows (`T-023`/`T-143`
-      already closed, `T-142`, the standing WebKit-settle-timing note). **`T-138`'s "no new
-      FULL-gear findings" condition is now satisfied — the only thing left on this row is Wyatt's
-      own staging-publish approval, not a watch's to give.**
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
-
-
 - [ ] **SCOPE THE WHOLE SFX JOB INTO A PRD AND SHOW IT TO HIM — BEFORE ONE LINE IS IMPLEMENTED.**
       ⟨`T-261` · now: yes⟩
       **His words, 2026-09-06 9:33 AM ET** (`INBOX-20260906T1333Z`): *"i do want you to add a new
@@ -347,9 +214,99 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       an Artifact tool republishes `.planning/wyclau/T-261-SFX-PRD.html` exactly as committed** —
       nothing else needs to change first. Full account: `INBOX-20260906T1355Z`, CEO Review 219.
 
+- [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
+      ⟨`T-138`⟩
+      His ask: *"a firebase admin console so I can see how many people are playing"*.
+      ✅ **BUILT 2026-09-03** at `/stats.html`, behind the curtain he asked for, blocked from search
+      — commit `b13a68c0`, CEO 159. Driven and photographed with the real database on a 390px
+      phone: **0 playing right now · 123 unique players (14d) · 44 voyages started · 8 finished**
+      (`.planning/posed/stats-open-390w-t138.png`). ⚠ **The 123 is a HEADLESS browser's number and
+      yours will read 122 or fewer** — the card excludes *you* by reading `pp_id` out of
+      localStorage (`stats.html:170-172`), and the shot was taken in a fresh browser that had none,
+      so nothing was excluded. CEO 159 asked for this to be written down a day ago and it was not;
+      it is written down now so it never becomes a phantom bug.
+      ⚠ **AND FOR A DAY THE ONLY MEASURABLE EFFECT OF THE CURTAIN WAS TO LOCK HIM OUT.** The word
+      was changed on 2026-09-03 to get it out of this public repo (CEO 159, correctly), the record
+      says it *"lives with Wyatt"* — and **nothing anywhere shows anybody ever told him.** Every
+      gate was green through it. Fixed 2026-09-03T11:0xZ: a fresh word, **delivered to his Glass by
+      cross-session message** (the only channel a watch has that is his and not this public repo),
+      the delivered SHA-256 recorded in [`CURTAIN-DELIVERED.md`](wyclau/CURTAIN-DELIVERED.md) — the
+      hash, never the word — and `stats_console_check.mjs` **clause E** now fails the build the day
+      the page's word and that record disagree. **The Glass session confirmed it is on your page**,
+      and separately confirmed the word appears in neither its staged nor its unstaged diff — a
+      second session, holding the word, checking that it never entered the repo.
+      Eight red-proofs; **six isolate to one clause, `--red=nocurtain` trips two** (deleting the
+      hash leaves E nothing to join to). Said exactly because CEO 164 caught the flattering version
+      of that same sentence in this same pass.
+      **THE REUSABLE ONE: A–D WERE ALL GREEN ON A PAGE ITS ONLY READER COULD NOT OPEN.** A gate that
+      checks a secret exists is not a gate that the person it is for HAS it.
+      ✅ **THE 404 BELOW EXPIRED — YOU CAN LOAD IT NOW. Measured 2026-09-06 ~10:30 AM ET:**
+      **https://staging.playpastrypirates.com/stats.html** returns **200 and renders**
+      (`<title>Pastry Pirates — usage</title>`), because staging now carries this branch
+      (`2026.09.04.2-staging@0fdbe853`). **This row set its own closing condition as "you can load
+      that URL" — that condition is MET.** What is left is your look at it, and separately the
+      PRODUCTION release, which is a different decision and still yours;
+      `playpastrypirates.com/stats.html` is still 404, correctly, because production is deliberately
+      unreleased on `2026-08-26k-CUTOVER`.
+      ⛔ **~~WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
+      `staging.playpastrypirates.com/stats.html` are both 404 today~~** (`curl`, 2026-09-03). The page
+      is on this branch only. Shipping it means the staging publish — which `T-016` says needs
+      another ~90-minute trial of the code that would actually ship — or the branch merge, which is
+      GATED on your own ruling. **This row closes when you can load that URL, not before.**
+      ⚑ **2026-09-04T0745Z — the trial that looked fresh enough wasn't.** `PP4_STAMP` had drifted
+      from the tree (see the fresh instance filed under `T-009` above); stamp bumped to
+      `2026.09.04.1`, `npm test` green, and a new detached FULL trial started
+      (`2026-09-04T0744Z-Wy-Blade`, pid 27400) so the staging publish this row is waiting on has
+      real coverage once it lands. **Still not published — the trial has to finish first.**
+      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
+      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
+      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
+      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
+      only surface.** Removing it would have dropped all four off the page he reads, silently, with
+      every gate still green. Its own finding, handed over rather than shipped past.
+      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
+      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
+      ⚑ **2026-09-04T0912Z — THE TRIAL FINISHED (81 min, 10/10 legs sailed, `2026-09-04T0744Z-Wy-Blade`,
+      build `2026.09.04.1`) — BUT IT SAILED THE FIRST TRIAL OF A BRAND-NEW FEATURE AND CAUGHT IT
+      BREAKING SOMETHING ELSE. DO NOT PUBLISH TO STAGING UNTIL THAT IS TRIAGED.** See the new row
+      immediately below (`T-248`) — the just-added `#legalFooter` (Privacy Policy / About links,
+      his own `T-206` ruling) sits on top of the captains panel on every phone-width screen, not
+      gated by mode or state. This watch verified it by eye on two independent screenshots across
+      two different modes (solo, crew) — real, not a judge artifact. **This is exactly what a sea
+      trial exists to catch before a publish, so this row stays blocked on it rather than treating
+      "10/10 legs sailed" as clearance.** The rest of the trial's findings (settle-timing geometry
+      churn, wind-arrow icon clipping, dock-highlight-under-modal, EOV award-name clipping) all
+      match known Chart rows already open (`T-023`, `T-142`, and the standing WebKit-settle-timing
+      note) and are not new.
+      ✅ **2026-09-04T0930Z-1015Z — `T-256` IS FIXED AND CLOSED (CEO 211, YES, commit `fe87894a`).**
+      `camFrame()` (`src/ui/stage.js`) now measures `#legalFooter`'s own rendered height and
+      reserves it in the same board/captains-card budget it already computes, on true phone width
+      only; `#pp4Cap`'s own bottom edge now sits above the footer instead of touching the raw
+      viewport edge. Red-proofed (neutralize the reservation, confirm the same 7px defect
+      reproduces; restore it, confirm 0px on both a phone seat and a tablet control), posed
+      screenshots in `.planning/posed/t256-*`, `npm test` 138/138 green. **This row (`T-138`) is
+      still blocked on a fresh FULL sea trial of the code that would actually ship** — the same
+      trial `T-009`/`T-016` already say is owed, now also covering this fix, not a second one to
+      start separately.
+      ⚑ **2026-09-04T1013Z — THAT FRESH TRIAL IS NOW SAILING.** Watch 1007Z-1015Z measured that the
+      0744Z trial (build `2026.09.04.1`) finished BEFORE the T-256 fix landed (07:44:52Z bump vs.
+      09:58:24Z fix commit), so its evidence does not cover `fe87894a`. Bumped `PP4_STAMP` to
+      `2026.09.04.2`, fixed an unrelated `sitemap_lastmod_check` FAIL along the way (regenerated,
+      never hand-typed), `npm test` 138/138 green, then started a fresh detached FULL trial:
+      run `2026-09-04T1013Z-Wy-Blade`, **pid 41776**, report
+      `.planning/SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md`. **Not this watch's to wait on** (Door
+      step 4) — the next watch reads the finished report (~80-90 min out) and, if it confirms no
+      new FULL-gear findings, both `T-138` and `T-009`'s fresh-trial condition are satisfied and
+      `T-138` only needs Wyatt's own staging-publish approval. Commit `e7b07129`; ledger:
+      `WATCH CLAIM+FILE, 2026-09-04T1007Z-1015Z`.
+      ⚑ **2026-09-04T1150Z — THAT TRIAL FINISHED (84 min, 10/10 legs sailed) AND ITS ONE NEW FINDING
+      IS NOW TRIAGED — `T-241`, CEO 216 (YES), measured NOT A DEFECT** (footer/button overlap 0px at
+      both seats). Every other finding in the report matches known open rows (`T-023`/`T-143`
+      already closed, `T-142`, the standing WebKit-settle-timing note). **`T-138`'s "no new
+      FULL-gear findings" condition is now satisfied — the only thing left on this row is Wyatt's
+      own staging-publish approval, not a watch's to give.**
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
@@ -392,6 +349,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   even be the right fix once that's answered.** Full account:
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
+
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -582,8 +543,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
-
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -603,6 +562,47 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
+
+
+
+- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
+      ⟨`T-073`⟩
+      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
+      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
+      before that work is started"*. **A watch may not implement any of this until he has ruled on
+      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
+  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
+  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
+  You can see the spreadsheet with our plan for the SFX here:
+  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
+  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
+  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
+  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
+  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
+  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
+  reachable, tell him the easiest way to get the files across instead of guessing.
+  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
+  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
+  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
+  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
+  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
+  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
+  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
+  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
+  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
+  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
+
+  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
+  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
+  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
+  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
+  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
+  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
+  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
+  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
+  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
+  him attaching the SFX files directly. Full account:
+  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
 
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
@@ -1180,6 +1180,50 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
+
+- [ ] **TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade` — ZERO NEW PLAYER-FACING DEFECTS, and a
+      ⟨`T-262`⟩
+      NEW judge/instrument false-positive family named and traced.** Watch pastrypirates-76,
+      2026-09-06T~1450Z. This FULL trial (10/10 legs sailed, build `2026.09.04.2`) had not been
+      opened by any prior watch — the two watches that touched `T-237`/`T-261` around it left it
+      "sailing, not this watch's to wait on" and it finished at 13:28:34Z, ~83 minutes before this
+      triage. Read leg-by-leg (not just the FAIL headline) and opened the actual screenshots (rule
+      22, not the judge's caption alone):
+      1. **`solo-phone-018`/`solo-phone-wk-025` — "Play again! button clips award text."** Same
+         symptom already fully explained and BLOCKED ON WYATT as `T-143` — a phone's screen is too
+         short for 4 award cards + stats table to fit above the fold, not a button overlap (that
+         cause was measured and disproven twice already). Not new; his three options are still
+         waiting on him.
+      2. **`solo-phone-wk-023` — "Call Crustbeard radial overlaps ships."** Matches the documented
+         pre-existing "phone radial overlaps" family (`CTO-LEDGER.md` 2026-08-28, explicitly
+         including a prior "wk-012 Walk-away/Crustbeard" instance). Not new.
+      3. **`solo-tablet-005`/`passplay-desktop-008` — "empty speech bubble/tooltip, no text."**
+         Opened both screenshots: a correctly-shaped, correctly-sized, correctly-positioned
+         narration bubble (tail and all) with literally nothing written in it. **This does NOT match
+         the known "active-seat ring misread" false-positive** (that one is a judge hallucinating
+         text onto a ring, not a real blank box) — this is a genuinely blank box. **Traced to a real
+         mechanism, not guessed:** `stageFlash()` (`src/ui/stage.js:1483`) builds the bubble's full
+         HTML in one shot, then hands it to `typewriterReveal()` (`src/ui/panel.js:752`), which
+         immediately splits every text node into a `shownEl` (starts empty, `textContent=""`) and a
+         `hiddenEl` (holds the full text, `visibility:hidden`, reserves the box's real width/height
+         from frame one — that's deliberate, so words never jump lines as they grow). **The box is
+         therefore full-size and "settled" from the instant it is created, while its visible text
+         stays blank until the first reveal tick fires** (16–32ms later, or after `startDelayMs`).
+         A screenshot landing in that sub-frame window — which the trial's own settle-detector
+         cannot see as "still moving" because the box's geometry never changes — captures exactly
+         what these two screenshots show.
+      ⚠ **NOT INDEPENDENTLY RED-PROOFED — flagged rather than overstated.** This explanation matches
+      the code and the pictures precisely and was not confirmed by deliberately forcing a capture at
+      frame zero. **No player is affected**: at 60fps this window is at most one or two frames,
+      invisible in real play, and the box's stable size means it never causes layout shift either.
+      **NOT FIXED — there is nothing to fix for a player.** Filed so no future watch re-opens this as
+      a new bug: it is a fourth entry in this project's "judge/settle-detector false-positive"
+      family, alongside the active-seat ring and the two-tap selection-state misreads.
+      4. **The standing "N screens never stopped moving" geometry churn on every leg** — already the
+         documented WebKit/general settle-timing note; not new.
+      **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
+      No game code touched — this is triage only. `npm test` not re-run (no code changed).
+      Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT

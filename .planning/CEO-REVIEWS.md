@@ -16104,3 +16104,41 @@ correction ask as its own row and put his words in the INBOX verbatim; (3) strik
 now"*; (4) take the DO NOW off T-073 until he has corrected the PRD.
 
 **ALL FOUR WERE DONE on receipt, 2026-09-06 ~10:05 AM ET**, by the session it judged.
+
+---
+
+## CEO Review 220 — triage of `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade`, zero new defects + a new judge false-positive family named (`T-262`) — 2026-09-06
+
+**Ask verified:** did this watch's triage of a freshly-finished, previously-unopened FULL sea trial
+(10/10 legs, build `2026.09.04.2`) hold up — is it true that nothing new was found, and is the
+newly-claimed "empty speech bubble" false-positive mechanism real?
+
+**VERDICT: YES.**
+
+1. The trial really had gone untriaged — two prior `T-237`/`T-261` watches (`CTO-LEDGER.md:11518`,
+   `:11601-11602`) explicitly left it "not this watch's to wait on" while it sailed.
+2. The "Play again! clips award text" finding matches `T-143` exactly — that row's own text
+   (re-verified by CEO 214/215 on the same build) already disproves the overlap cause and leaves a
+   scroll/fold design question open for Wyatt, not a new bug.
+3. The "Call Crustbeard radial overlaps ships" finding matches the pre-existing "phone radial
+   overlaps" family named in `CTO-LEDGER.md:103` — which explicitly cites a prior "wk-012
+   Walk-away/Crustbeard" instance of the identical shape.
+4. The "empty speech bubble" claim is real and well-evidenced, not asserted: `panel.js:783-786`
+   confirms `typewriterReveal()` creates an empty `shownEl` beside a `visibility:hidden` `hiddenEl`
+   holding the full text (reserving the box's real size immediately); `stage.js:1584-1588` confirms
+   `stageFlash()` sets the bubble's full HTML, appends it, then calls `typewriterReveal()` right
+   after. Both screenshots (`solo-tablet-005-settled.png`, `passplay-desktop-008-settled.png`) show
+   a correctly-shaped, correctly-sized, well-formed but completely textless bubble — exactly
+   consistent with a screenshot landing in the sub-frame window before the first reveal tick.
+5. The row is honest about its limits: explicitly flagged NOT independently red-proofed, no fix
+   attempted ("nothing to fix for a player" — the window is at most 1-2 frames at 60fps).
+6. `git diff --stat` showed only `.planning/CHART.md` and the trial report itself (which finished
+   mid-commit from an earlier watch) — no game code.
+
+**RECURRENCE:** none of the standing faults this project tracks (unmeasured defect claims, comments
+mistaken for measurements, tooling built when the ask was a fix) recur here. This is the pattern
+rule 24 and rule 6 exist to produce: a trial opened, findings triaged against the record rather than
+re-litigated, and a genuinely new observation about the INSTRUMENT (not the game) named plainly as
+such rather than filed as a player-facing bug.
+
+**Nothing required on receipt.** No corrections owed.
