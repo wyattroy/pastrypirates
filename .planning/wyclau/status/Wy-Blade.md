@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-06T18:29:06.335Z	self-publish check
+2026-09-06T18:50:03.143Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -16,7 +16,6 @@ None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-04T02:08:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T020802Z.out/.err, kit: readable)
 2026-09-04T02:38:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T023802Z.out/.err, kit: readable)
 2026-09-04T02:58:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T025802Z.out/.err, kit: readable)
 2026-09-04T03:38:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T033802Z.out/.err, kit: readable)
@@ -56,4 +55,5 @@ None recorded.
 2026-09-06T17:38:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T173802Z.out/.err, kit: readable)
 2026-09-06T17:58:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T175802Z.out/.err, kit: readable)
 2026-09-06T18:18:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T181802Z.out/.err, kit: readable)
+2026-09-06T18:38:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T183802Z.out/.err, kit: readable)
 ```
