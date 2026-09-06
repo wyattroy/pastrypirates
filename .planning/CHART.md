@@ -94,6 +94,52 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
+- [ ] **STOP RULE 23 BEING BROKEN AGAIN — a gate, not a reminder.** *Filed 2026-09-06 at his
+      instruction. NOT SFX WORK; the SFX session is not taking it.*
+      **Why it exists, and the SFX session is the culprit, not the reporter.** CEO 232 caught the
+      end-of-voyage drumroll playing on the host only. It was "fixed" by pasting `playDrumroll()`
+      into the guest twin as well — two call sites kept in step by memory — and the comment
+      justified it by citing `playWinScreen()`'s own twinning as *"the established shape"*. Wyatt:
+      *"DO NOT ARCHITECT DRIFTABLE CODE OR I WILL FIRE YOU"* and *"there should be NO more
+      precedent for drift, we have been fixing that tech debt for weeks now!!!"*
+      **The rule was in context the whole time and was pattern-matched over.** `CLAUDE.md` rule 23
+      names the exact moment: *"the existing one already works, I'll just add a
+      listener/branch/path for the new case… When a SECOND consumer of the same thing appears,
+      CONVERGE: make the FIRST one go through the new path too."* An existing violation was read as
+      a precedent. **Both calls are now removed** (`a426dece`); the drumroll is wired nowhere until
+      it goes through the one event consumer.
+
+      **(a) A GATE THAT FAILS ON ANY SOUND CALL OUTSIDE THE ONE CONSUMER — build this one first.**
+      Today's audio checks only ask *"does this sound play?"*, never *"how many places play it?"*,
+      which is why a duplicated call passed every gate. Read `src/` and FAIL when any `play*()`
+      appears outside `playForEvent`'s dispatch, except a short named allow-list.
+      **Red-proof it against this exact mistake:** commit `c28f92b4` (the two-call-site drumroll)
+      must go RED; `a426dece` must go green.
+      ⭐ **HE HAS ALREADY RULED ON THE ONE THING THIS GATE WILL CATCH FIRST — DO NOT RE-ASK IT.**
+      `playWinScreen()` is hand-placed in BOTH end-of-voyage twins today (`src/orchestrator.js:959`
+      and `:1467`, *"D-05… tied to the screen appearing"*) — pre-existing debt, older than the Wave 1
+      convergence, which the SFX session did not create and has not touched.
+      **Wyatt, 2026-09-06, verbatim: *"tell the chart to converge playWinScreen onto the event
+      channel."*** So it is NOT a sanctioned exception and the allow-list must NOT be widened to
+      accommodate it. **Converge it**: the win cue rides the shared event stream through the single
+      `playForEvent` dispatcher every tier reaches, exactly like the your-turn bell.
+      ⚠ **WHAT MAKES THIS MORE THAN A MOVE, and it is why D-05 tied it to the screen in the first
+      place:** the win sound is currently pinned to the *screen appearing*, while `end`/`finish` are
+      deliberately silent AS EVENTS (D-06, `src/ui/audio.js`). Converging means the ending's sound
+      and the ending's screen become the same beat again. **Measure when `end` actually drains
+      relative to the win screen before wiring** — `liveResolveEndNet`'s own comment says `end` is
+      consumed *"lines ago"*, so the moment may not be where it looks. This session has been wrong
+      about audio timing twice; do not add a third.
+
+      **(b) MAKE THE TRIGGER SENTENCE FIRE AT THE MOMENT, NOT AT SESSION START.** Rule 23 is read
+      hours before it gets broken. `.claude/hooks/qa-gear-first.cjs` already interrupts the first
+      game-code edit; the same hook should inspect the diff and, when it ADDS a call to a function
+      that is already called elsewhere, ask one question: **"you are about to add a SECOND caller of
+      `X` — rule 23 says converge the first, not duplicate. What makes these two agree?"** That is
+      the rule's own design-time question, arriving at design time.
+      **Sizing, honestly:** (a) is mechanical and red-proofable against a real commit; (b) is a
+      heuristic that will have false positives, so it should ASK rather than block.
+
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
       🔒 **CLAIMED — `T-073` IS IN HAND ON WYATT'S MAC, 2026-09-06 (session "SFX"). DO NOT TAKE IT.**

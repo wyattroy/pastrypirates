@@ -1,0 +1,224 @@
+<title>Pastry Pirates — three sounds ye have never heard</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+
+/* THE SAME DARK PALETTE AGAIN, and the duplication is deliberate rather than sloppy. The block
+   above only fires when the reader has made no explicit choice and their OS is dark; a reader who
+   taps a light/dark toggle gets data-theme stamped on the root instead, and a media query cannot
+   see that. Plain CSS has no way to give one palette two selectors across a media boundary, so
+   these two lists are ONE palette in two places: change a colour and change it in both. */
+:root[data-theme=dark]{
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — three sounds ye have never heard</h1>
+  <div class="sub">Build <strong id="stamp">2026.09.06.1-staging@b67b0d7a</strong> ·
+   <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
+   — <strong>The tab must read “[STAGING]”</strong> and the ☰ stamp must end <code>-staging@b67b0d7a</code>.
+   Confirmed on the wire before this sheet was written. A different stamp = a different build; stop and tell me.
+   <strong>TURN YER SOUND ON.</strong> Every item below is something ye listen to, not something ye look at.</div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"⛔ STOP — STAGING IS NOT SHOWING THE SOUNDS RIGHT NOW"},
+ {note:"<strong>Do not test yet. As of 2026-09-06 evening, staging serves <code>2026.09.04.2-staging@5c6eabb3</code> — the RELEASE CANDIDATE ye asked to play, not the sound build.</strong> All three new sounds return 404 there: I checked, rather than assuming. This sheet describes <code>2026.09.06.1-staging@b67b0d7a</code>, which is a different build.<br><br><strong>Nothing is lost.</strong> The sound work is safe on <code>sep06-sfx-only</code> and putting it back on staging is one command. <strong>Say the sounds are what ye want to hear and staging returns to this build</strong> — then every item below is accurate again. Until then the stamp in the header will not match what ye see, and that mismatch is the sheet doing its job."},
+
+ {h:"Start here — and this is a SMALL sheet on purpose"},
+ {note:"<strong>⚠ THIS SHEET WAS REVISED AFTER A REVIEW CAUGHT A REAL FAULT — item 4 changed.</strong> The first version told ye the drumroll would finish before the winner appeared. It would have, on YER screen only, while every guest saw the winner two seconds early. That is reverted; the roll is now clipped equally for everyone, and item 4 explains it. The build stamp has moved twice since (a parity fix, then a proper build bump) and now reads <code>2026.09.06.1-staging@b67b0d7a</code> — check it before ye start."},
+ {note:"<strong>Three sounds now — the cannon landed since ye last opened this.</strong> Ye ruled twelve things on the SFX page this afternoon; this is the first slice of them wired — the two that a player hears without being told to listen for. The yer-turn bell, the sea ambience, the 3-phase sound button and the levelling pass are NOT in this build. <strong>Nothing has been merged to the live game</strong>, and the full sea trial (three modes, three screen sizes, both engines) has NOT been run yet — that is owed before any of this reaches players."},
+ {note:"<strong>Both items live at the same moment — the End of Voyage.</strong> So ye do not have to sail sixteen days to reach it, every item below uses <code>?endcard=1</code>, which poses the ending. <strong>The trap, and it has caught a session before: that shortcut fires when a VOYAGE STARTS, not when the page loads.</strong> So: open the link, THEN press Play Solo and name yer captain as normal. If ye just open the link and wait, ye get the title screen and nothing else."},
+
+ {h:"1. Yer victory sound was the quietest file in the game"},
+ {n:1,look:"Open <a href='https://staging.playpastrypirates.com/?endcard=1' target='_blank' rel='noopener'>staging.playpastrypirates.com/?endcard=1</a>, then press Play Solo and name yer captain. Let it run to the ending and LISTEN when the winner is revealed.",right:"A proper brass-and-drums fanfare — a moment that sounds like winning. It should feel like the loudest, biggest thing in the voyage.",why:"Until this build the victory played <code>store-ingredient</code> — the sound of a crate being loaded, and measured as the QUIETEST file in the whole game at −31.9 LUFS. It had been a stand-in since the win screen was built and nobody swapped it. It is now Luis's <code>PP_SFX_BattleWon</code>, which yer own §2 ruling marked <em>certain</em> for exactly this."},
+ {n:2,look:"Same run. Is the fanfare too loud, too quiet, or wrong against everything else?",right:"Yer call entirely — there is no correct answer here, only yer ear.",why:"<strong>THIS IS YER DECISION, NOT A DEFECT.</strong> Ye ruled (q7): “level everything together, once”, AFTER every file is in. So this stem is deliberately UNLEVELLED — it plays at raw gain while the six older sounds carry real values. If it is jarring, that is expected and gets fixed in the levelling pass, not now. But tell me if it is so far out that ye cannot judge the rest."},
+
+ {h:"2. The drumroll finally makes a sound"},
+ {n:3,look:"Same run, same link — <a href='https://staging.playpastrypirates.com/?endcard=1' target='_blank' rel='noopener'>staging.playpastrypirates.com/?endcard=1</a>. Watch the beat JUST BEFORE the winner is named, when the blue box says “Drumroll…”.",right:"An actual drumroll plays. <strong>It WILL be cut short by the winner reveal — that part is not fixed yet and is expected.</strong> What I need from ye: does a roll that starts and gets cut still add to the moment, or is a clipped roll worse than none?",why:"That box has said “Drumroll…” in total silence since the moment was built. The sound is now there; the TIMING half of yer ruling is not — see item 4."},
+ {n:4,look:"Nothing to test here — this is me telling ye what I did NOT deliver.",right:"—",why:"<strong>⛔ YER TIMING RULING IS NOT DONE, and I nearly shipped something worse than not doing it.</strong> Ye asked to “match the narration box timing to the sfx file”. Measured: the box holds that line <strong>1,130ms</strong> and the roll runs <strong>3,148ms</strong>. My first fix stretched the box to fit — and a fresh reviewer caught that the setting NEVER CROSSES THE WIRE. So the HOST's box would have held 3,148ms while every GUEST's held 1,130ms: the winner revealed two seconds earlier on their screens than on yers. That is the host/guest split ye called terrible engineering, introduced by a timing fix. <strong>It is reverted.</strong> The roll is now cut short equally on every screen, which is a smaller fault than a split table. Doing it properly needs both sides to read the file's length for themselves — real work, not one argument, and it is next."},
+
+ {h:"3. The cannon — a sound the game has never had"},
+ {n:6,look:"Start a normal solo game (<a href='https://staging.playpastrypirates.com/' target='_blank' rel='noopener'>staging.playpastrypirates.com</a>) and pick a fight. Watch both coins, then LISTEN as the result line appears.",right:"A cannon fires as the hit lands — cleanly AFTER the second coin, never on top of it.",why:"Yer ruling: “The cannon sound should fire when a shot has LANDED... comes a moment after it (eg. 100ms after).” I measured instead of typing yer number: the coin sound runs 965ms, and the spin (795ms) plus the landed-face hold (800ms) put the result 1,595ms later — so there is already <strong>630ms of silence</strong>, six times the gap ye asked for. No delay was added; two constants the game already has produce it."},
+ {n:7,look:"Keep fighting until ye get a battle where NOBODY lands a hit — both miss, or both fire heads and the line says the cannonballs collide.",right:"<strong>NO cannon.</strong> Silence on those two outcomes.",why:"“Cannon sound happens only when a shot lands.” Two of the four battle outcomes land nothing, and a cannon over the line saying the cannonballs collided would contradict the game's own words. It fires on the engine's own hit test, not on “a battle happened”. <strong>If ye hear a cannon on a miss, that is a real bug.</strong>"},
+
+ {h:"4. One thing that should NOT have changed"},
+ {n:8,look:"Play a normal solo game for a few turns. Call a battle. Anchor. Sail into a storm. Flip the coin.",right:"Every other sound in the game is exactly as ye remember it. Nothing new, nothing missing, nothing moved.",why:"Only two stems were added and one line of timing changed. If anything else sounds different, that is unintended and worth telling me — it would mean I touched something I did not mean to."},
+
+ {h:"Already known — please do NOT spend yer eyes or ears on these"},
+ {note:"<strong>1. The sword clash needs nothing at all.</strong> Ye ruled “use the latest clip available” — I checked, and Luis's latest <code>PP_SFX_Battle.mp3</code> is byte-for-byte IDENTICAL to what is already in the game. There is no newer export; the latest clip IS the one ye have been hearing.<br><strong>2. The clipping argument is settled and ye were BOTH right.</strong> Measured: sample peak −0.2 dBFS, true peak +0.2 dBFS. Luis masters to sample peak, so he is correct it is not clipped; the project's true-peak figure is also correct. Different measurements of the same file. And it is moot in play — that stem is already turned down to 0.46, so the overshoot never reaches yer ears. <strong>Nobody needs to ask Luis for a re-export.</strong><br><strong>3. The ClockTick is not wired</strong> — it is the one box ye left blank (q2), so it stays unconfirmed rather than guessed.<br><strong>4. The Alarm is parked</strong> — yer own note: the turn timer it belongs to “is not built into the current game”. I searched the code and confirmed: nothing fires when a turn runs out.<br><strong>5. The music is <code>.m4a</code>, not mp3</strong> — the 3.4 MB track ye chose needs converting before it can ship. Not in this build.<br><strong>6. New Day is silent</strong> and stays that way by yer ruling, until Luis makes a wind whoosh or a weather-vane creak."}
+];
+
+const KEY="pp4-sfx-slice1-2026-09-06";
+/* EVERY TOUCH OF localStorage IS GUARDED, and it is not defensive habit. This sheet is opened as
+   a hosted page on his PHONE, where a private tab or blocked site data makes the accessor itself
+   THROW rather than return null -- and an unguarded read at the top of this script would take the
+   whole page down with it, leaving him a blank screen instead of a checklist. The marks are a
+   convenience; the sheet working is not. So a storage failure costs him his saved marks and
+   nothing else. */
+const store = {
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
+  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+};
+let state=store.read();
+const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; store.drop(); location.reload(); };
+</script>
