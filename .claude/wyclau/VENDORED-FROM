@@ -1,8 +1,0 @@
-claude-kit wyclau 6825e43ca944b00a13fb35352687492eb3f9c924
-vendored 2026-09-02T00:46:12Z from claude-kit on Wy-Blade
-
-Do not edit these files here. Edit them in claude-kit and re-vendor.
-From YOUR claude-kit checkout, wherever it lives:
-  bash install.sh vendor <path to this repo> wyclau
-Check this copy against the kit from there too:
-  bash install.sh check <path to this repo> wyclau

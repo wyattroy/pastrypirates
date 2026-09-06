@@ -49,37 +49,14 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-base.cjs\"",
             "timeout": 15,
             "statusMessage": "Marking where this session started"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --arrive 2>/dev/null || true",
-            "timeout": 30,
-            "statusMessage": "Sync this machine in — pull, or say why it could not"
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Artifact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/glass-harvest-first.cjs\" 2>/dev/null || true",
-            "timeout": 10,
-            "statusMessage": "Harvest his words off the Glass before republishing over them"
-          }
-        ]
-      },
-      {
         "matcher": "Bash|Edit|Write|NotebookEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cto-staging-only.cjs\" 2>/dev/null || true",
-            "timeout": 10,
-            "statusMessage": "CTO lock held? then main is unreachable"
-          },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
@@ -91,10 +68,6 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-gear-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Which QA gear is this change in? (docs/QA-PROCESS.md)"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ceo-cadence-fence.cjs\" 2>/dev/null || true"
           },
           {
             "type": "command",
@@ -116,27 +89,9 @@
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/org/hooks/no-idle-offer.cjs\"",
-            "timeout": 10,
-            "statusMessage": "Does this turn end on an offer? An offer ends the run"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/file-his-words.cjs\" 2>/dev/null || true",
-            "timeout": 10,
-            "statusMessage": "Did his words reach the record, or only this session?"
-          },
-          {
-            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/qa/kill_stray_probes.mjs\" --quiet 2>/dev/null || true",
             "timeout": 20,
             "statusMessage": "Killing any abandoned headless browsers (rule 17)"
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --leave 2>/dev/null || true",
-            "timeout": 30,
-            "statusMessage": "Is this machine holding work nobody else can see?"
           }
         ]
       }
@@ -144,12 +99,6 @@
     "SubagentStop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/org/hooks/no-idle-offer.cjs\"",
-            "timeout": 10,
-            "statusMessage": "Does this turn end on an offer? An offer ends the run"
-          },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/qa/kill_stray_probes.mjs\" --quiet 2>/dev/null || true",

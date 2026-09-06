@@ -1,8 +1,0 @@
-claude-kit 663d37560a4abf2d193b83b523bed5ad3d10c885
-vendored 2026-08-30T23:08:07Z from claude-kit on vm
-
-Do not edit these files here. Edit them in claude-kit and re-vendor.
-From YOUR claude-kit checkout, wherever it lives:
-  bash install.sh vendor <path to this repo>
-Check this copy against the kit from there too:
-  bash install.sh check <path to this repo>

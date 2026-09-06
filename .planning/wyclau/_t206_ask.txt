@@ -1,1 +1,0 @@
-Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial
