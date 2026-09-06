@@ -2282,3 +2282,13 @@ solution: none stated
 status: OPEN — a RE-STATEMENT of his 2026-09-02 ruling (commit `04d73d21`, "always write to me in
   my local time"), broken by the Advisor this morning in UTC. Same shape as `T-239`: the rule is on
   record and is not reaching sessions. Chart row `T-239` carries the move into `.claude/CLAUDE.md`.
+
+## INBOX-20260906T1333Z — scope the SFX work into a PRD and show him BEFORE implementing
+> i do want you to add a new task to the watch at the beginning of the SFX changes, which is to scope the full SFX changes into a prd artifact and show it to me BEFORE you implement the sfx, because i have ideas that i want to express before that work is started
+solution: a new task at the START of the SFX work — scope the full changes into a PRD artifact,
+  publish it, and get his ideas before implementing anything
+status: OPEN — filed as Chart row `T-261`, pinned DO NOW and placed physically above `T-073`, which
+  is now marked GATED on his answer. ⛔ "PRD artifact" means a PUBLISHED PAGE HE CAN TAP, not a repo
+  path (rule 27) — and a Bell-launched watch has no Artifact tool, so it writes the page in
+  publishable shape and asks the Glass session to publish it (Door step 6b). Source material is
+  already in the repo: `.planning/wyclau/T-073-SFX-BRIEF.md` (commit `0fdbe853`) plus `docs/AUDIO.md`.

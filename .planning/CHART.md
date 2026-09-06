@@ -93,41 +93,49 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
-- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
-      ⟨`T-073` · now: yes⟩
-  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
-  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
-  You can see the spreadsheet with our plan for the SFX here:
-  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
-  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
-  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
-  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
-  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
-  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
-  reachable, tell him the easiest way to get the files across instead of guessing.
-  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
-  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
-  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
-  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
-  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
-  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
-  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
-  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
-  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
-  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
-
-  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
-  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
-  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
-  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
-  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
-  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
-  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
-  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
-  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
-  him attaching the SFX files directly. Full account:
-  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
-
+- [ ] **SCOPE THE WHOLE SFX JOB INTO A PRD AND SHOW IT TO HIM — BEFORE ONE LINE IS IMPLEMENTED.**
+      ⟨`T-261` · now: yes⟩
+      **His words, 2026-09-06 9:33 AM ET** (`INBOX-20260906T1333Z`): *"i do want you to add a new
+      task to the watch at the beginning of the SFX changes, which is to scope the full SFX changes
+      into a prd artifact and show it to me BEFORE you implement the sfx, because i have ideas that
+      i want to express before that work is started"*.
+      **THIS ROW COMES FIRST AND `T-073` IS GATED BEHIND IT.** He has ideas he wants in before the
+      work starts — so a watch that starts wiring sounds has taken the decision away from him, which
+      is the whole reason he asked. **Do not implement any part of `T-073` until he has answered.**
+      **EVERYTHING YOU NEED IS ALREADY IN THE REPO — no Drive access required:**
+      [`.planning/wyclau/T-073-SFX-BRIEF.md`](wyclau/T-073-SFX-BRIEF.md) (commit `0fdbe853`) holds
+      all 30 Drive files with ids and sizes, and his full 28-sound plan sheet with his own wording
+      for where each fires and its ideal duration. **Read [`docs/AUDIO.md`](../docs/AUDIO.md) first**
+      — three defects live there, `SFX_VOLUME` is still `1` for every stem, and his sheet's own note
+      that the sword swish *"is clipped a bit"* is already measured (`battle-swords`, **+0.2 dBFS
+      true peak — genuinely clipping**). The audit also has an unresolved 25-vs-33 key mismatch
+      between `EVENT_SOUND` and `EVENT_NARRATION` that this PRD should name rather than inherit.
+      **WHAT THE PRD HAS TO ANSWER, at minimum:** which of the 28 sounds ship in the first pass and
+      which wait · what the ambient sea bed costs a player on a phone (it is a 15–30s loop plus
+      random gulls and creaks, and nothing like it exists today) · **whether the 3 music tracks go in
+      at all — 69 MB against a 3.89 MB game, and that one is HIS call, not a watch's** · whether the
+      coin-flip Start/End split is a fix for an existing defect or an addition on top of one · how
+      the six existing stems get levelled, since `SFX_VOLUME` has never been used.
+      ⛔ **HAND HIM A LINK HE CAN TAP, NEVER A FILE PATH (rule 27).** *"PRD artifact"* is his word
+      and it means a published page. **A Bell-launched watch has NO Artifact tool** — so write the
+      PRD in publishable shape (starts with `<title>` then `<style>`; no `<html>`/`<head>`/`<body>`;
+      guard every `localStorage` touch or a private tab hands him a blank screen), then use Door
+      step 6b: `ListAgents`, and `SendMessage` the Glass session to publish it. If no Glass session
+      is listed, write `.planning/wyclau/GLASS-NOTE.md` and say so in the ledger. **Ending at the
+      artifact instead of at HIM is the exact failure rule 27 was written for.**
+      **Sizing: no game code, no sea trial. One item.** It ends when he has the link, not when the
+      file exists.
+      ⛔ **HAND THE PIN BACK WHEN YOU CLOSE THIS — `T-073` LOST ITS DO NOW TO THIS ROW AND SANK FROM
+      RANK 1 TO RANK 13.** `--do-now` is ONE SLOT, not a queue (by design: an interrupt stays an
+      interrupt), so pinning this row released his pin on the SFX work — **measured, 2026-09-06:
+      `released 1 earlier pin`.** He never un-prioritised the SFX; the tool moved it. So the watch
+      that closes this row runs, in the same act:
+      ```
+      node scripts/wyclau/chartkeeper.mjs --do-now=T-073
+      node scripts/wyclau/chartkeeper.mjs --rank --write
+      ```
+      **Both commands or neither** — `--do-now` flags the row and stops; without the re-rank his
+      page still shows the old order, which from where he sits is the press failing.
 
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
@@ -215,56 +223,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
 
 
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
-- [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
-      ⟨`T-257`⟩
-  filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
-  closed `T-241` (build `2026.09.04.2`, 10/10 legs, CEO 216) reported that trial's one NEW finding
-  as fully triaged and said every other finding matched known rows. Four did not — this is one.
-  Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
-  the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
-  posed (rule 26).
-
-- [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
-      ⟨`T-258`⟩
-  ZONE, PASS-AND-PLAY PHONE.** Same source trial as `T-257`. **Structural, not a judge guess** —
-  the trial's `no-cover-ask` check measures real bounding-box overlap: `sailCell` sits over "Peg Leg
-  Meg: tap to sail — blu…". Harder evidence than the vision-judge rows in this section; closer to
-  confirmed.
-
-- [ ] **DEBUG-LOOKING TEXT ("test2") SITS OVER THE REAL CACAO PODS TRADE TABLE, CREW PHONE.**
-      ⟨`T-259`⟩
-  Same source trial as `T-257`, same structural `no-cover-ask` class as `T-258` — real bounding-box
-  overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
-  that should not be reachable in a real game at all, before treating this as a layout fix.
-
-- [ ] **ROCK/ISLAND ARTWORK OVERLAPS THE "TAP AND HOLD THE SEA" ONBOARDING TEXT, WEBKIT PHONE
-      ⟨`T-260`⟩
-  (SAFARI FAMILY).** Same source trial as `T-257`. Vision judge, `solo-phone-wk-015-settled.png` —
-  per `T-019` open the image before trusting the judge's wording. Engine-specific (WebKit only);
-  check whether it reproduces on Chromium phone before assuming it is universal.
-
-  ⚠ **ALL FOUR ROWS ABOVE (`T-257`–`T-260`) COME FROM THE SAME REPORT A PRIOR WATCH ALREADY CLOSED
-  OUT AS "every other finding … matches known open rows."** That note (line ~209 above) covered
-  `T-241`, `T-023`, `T-143`, `T-142` and the WebKit-settle-timing note — it did not actually check
-  these four, which sit in the same report under different voyage legs (`solo-phone`,
-  `passplay-phone`, `crew-phone`, `solo-phone-wk`). **The reusable lesson: a closing note that says
-  "everything else matches" is itself a claim, not a measurement — read the full voyage log, not a
-  summary of it, before relying on "nothing new here."** Two other legs of the SAME report also
-  corroborate or extend rows already open, not new tickets: `solo-tablet`/`solo-tablet-wk`
-  independently reproduce `T-142` (captain row clipped by the recipe-choice card — matches the
-  posed measurement filed the same day, `.planning/posed/t142-*`); `passplay-phone-022`
-  (award-card name clipped by the sticky "Play again!" button) is the same symptom `T-143` already
-  tracks as Wyatt's open design question, now also seen in pass-and-play mode, not solo only.
-  `T-241` itself (the footer-clipping row this watch closed) is genuinely resolved, not a live
-  contradiction — `scripts/qa/t241_eov_footer_pose.mjs` measured 0px overlap at both seats,
-  CEO 216 verified; a session reporting it back as still-open on 2026-09-06 simply hadn't found
-  that commit yet.
-
-
-
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
       every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
@@ -307,6 +265,9 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -360,7 +321,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
         sibling of it answers this in minutes. Full account: CEO Review 198,
         `.planning/CEO-REVIEWS.md`; sea trial evidence above; CTO-LEDGER has the working history.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
@@ -484,6 +444,46 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 
 
+- [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
+      ⟨`T-073`⟩
+      ⛔ **GATED ON `T-261` AND ON HIS ANSWER TO IT, 2026-09-06 9:33 AM ET.** He asked for the whole
+      job scoped into a PRD and shown to him first, *"because i have ideas that i want to express
+      before that work is started"*. **A watch may not implement any of this until he has ruled on
+      that PRD.** The Drive blocker below is CLEARED — see `.planning/wyclau/T-073-SFX-BRIEF.md`.
+  **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
+  available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
+  You can see the spreadsheet with our plan for the SFX here:
+  https://docs.google.com/spreadsheets/d/12l3IEp8KslOEeGHJm_B8r7l_NPF4_wxN02uqW7PoEc4/edit?usp=sharing
+  If you cannot access either of those drive docs/folders (try multiple ways) then tell me the
+  easiest way to get the files to you"* — an asset request, not a code defect. Read `docs/AUDIO.md`
+  first (CLAUDE.md §4) — three audio defects are already live there and this should not be layered
+  on top of them blind. First step for whoever picks this up: try to actually reach both Drive links
+  (a browser-driving session has a real shot; a plain fetch likely does not), and if neither link is
+  reachable, tell him the easiest way to get the files across instead of guessing.
+  ⚑ **RE-SURFACED 2026-09-04 on his direct DO NOW press** (`INBOX-20260904T005038Z`): *"My sound
+  effects request that I put on the glass yesterday seems to be missing -- can you find it, and
+  prioritize it in 3rd place on the chart?"* **It was never missing** — it sat in "THE IDEA INBOX"
+  below as prose, under a `SCHEDULED` label that never became a visible row he could see move.
+  Promoted here and pinned DO NOW (rank 1) rather than the literal 3rd he asked for: the rows
+  currently sitting at #1–#3 share an ambiguous `T-206` tag (chartkeeper's own duplicate-handle
+  guard refuses `--order` against an ambiguous handle), so no numbered position among them can be
+  set safely until that collision is resolved — a separate, larger fix, not this item's to make.
+  Rank 1 satisfies "prioritize it" without gambling on a row nobody can currently name precisely; if
+  he genuinely wants literal 3rd once the tags are cleaned up, that is a one-line `--order=` away.
+
+  ⚑ **RE-ATTEMPTED 2026-09-04T03:40Z BY A DIFFERENT WATCH — SAME BLOCKER, MEASURED, NOT A NEW ONE.**
+  This watch had `mcp__claude_ai_Google_Drive__*` tools and `WebFetch` actually loaded (unlike the
+  prior watch, which had neither). Both Drive calls (folder + sheet, by their file IDs) and both
+  WebFetch calls (the exact two links he gave) returned the identical harness string: *"Claude
+  requested permissions to use X, but you haven't granted it yet"* — a refusal before any network
+  call, not a Drive-side denial. **The real blocker is structural, not this item's**: an unattended
+  Bell-launched watch has nobody present to click "allow" the first time a tool is invoked, so a
+  brand-new permission can never be granted inside one. Filed as its own row below. **Still ARMED,
+  DO NOW** — this needs either an Advisor session where he is present to grant the prompt once, or
+  him attaching the SFX files directly. Full account:
+  `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
+
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -492,6 +492,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
+
 
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
@@ -520,7 +521,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
 
-
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -530,6 +530,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
+
+
 
 - [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
       AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
@@ -550,6 +552,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       assert the report names THAT gate by filename.**
       Sizing: no game code. Not this watch's to take — filed where the next one will see it.
       ⟨`T-237`⟩
+
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
       watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
@@ -595,6 +598,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
+
+
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -607,6 +612,22 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
+
+- [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
+      ⟨`T-257`⟩
+  filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
+  closed `T-241` (build `2026.09.04.2`, 10/10 legs, CEO 216) reported that trial's one NEW finding
+  as fully triaged and said every other finding matched known rows. Four did not — this is one.
+  Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
+  the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
+  posed (rule 26).
+- [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
+      ⟨`T-258`⟩
+  ZONE, PASS-AND-PLAY PHONE.** Same source trial as `T-257`. **Structural, not a judge guess** —
+  the trial's `no-cover-ask` check measures real bounding-box overlap: `sailCell` sits over "Peg Leg
+  Meg: tap to sail — blu…". Harder evidence than the vision-judge rows in this section; closer to
+  confirmed.
+
 - [ ] **A STRAIGHT DOUBLE QUOTE IN ANY QUESTION OPTION SILENTLY TRUNCATES THE LABEL HIS RULING IS
       ⟨`T-248`⟩
   STORED UNDER.** `glass.mjs` writes each option into `data-label="…"` without escaping, so an
@@ -650,6 +671,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   (where he is present) instead of the Watch. Recommendation for him: when he next opens an
   Advisor session, grant `WebFetch` and the Drive tools once each (even on an unrelated harmless
   URL) so the grant persists project-wide for future Bell watches.
+- [ ] **DEBUG-LOOKING TEXT ("test2") SITS OVER THE REAL CACAO PODS TRADE TABLE, CREW PHONE.**
+      ⟨`T-259`⟩
+  Same source trial as `T-257`, same structural `no-cover-ask` class as `T-258` — real bounding-box
+  overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
+  that should not be reachable in a real game at all, before treating this as a layout fix.
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
       ⟨`T-245`⟩
@@ -670,7 +696,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
       row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
       new ideas can be moved to the top, which today they cannot.**
-
 - [ ] **NOTHING AUTOMATIC GUARDS THE TRADE-CIRCLE FIX, AND `npm test` IS THE WRONG HOME FOR IT —
       filed 2026-09-03T2035Z off CEO 184's finding 3, whose diagnosis is right and whose remedy is
       wrong on the facts.** It said to add `trade_circle_type_size_check.mjs` to the suite, citing
@@ -687,6 +712,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **The question this row owes: where do the 40 browser checks belong?** The trial's own leg set
       is the obvious candidate. Sizing: no game code; a mechanism decision, so it may want Wyatt.
       ⟨`T-221`⟩
+
+- [ ] **ROCK/ISLAND ARTWORK OVERLAPS THE "TAP AND HOLD THE SEA" ONBOARDING TEXT, WEBKIT PHONE
+      ⟨`T-260`⟩
+  (SAFARI FAMILY).** Same source trial as `T-257`. Vision judge, `solo-phone-wk-015-settled.png` —
+  per `T-019` open the image before trusting the judge's wording. Engine-specific (WebKit only);
+  check whether it reproduces on Chromium phone before assuming it is universal.
+
+  ⚠ **ALL FOUR ROWS ABOVE (`T-257`–`T-260`) COME FROM THE SAME REPORT A PRIOR WATCH ALREADY CLOSED
+  OUT AS "every other finding … matches known open rows."** That note (line ~209 above) covered
+  `T-241`, `T-023`, `T-143`, `T-142` and the WebKit-settle-timing note — it did not actually check
+  these four, which sit in the same report under different voyage legs (`solo-phone`,
+  `passplay-phone`, `crew-phone`, `solo-phone-wk`). **The reusable lesson: a closing note that says
+  "everything else matches" is itself a claim, not a measurement — read the full voyage log, not a
+  summary of it, before relying on "nothing new here."** Two other legs of the SAME report also
+  corroborate or extend rows already open, not new tickets: `solo-tablet`/`solo-tablet-wk`
+  independently reproduce `T-142` (captain row clipped by the recipe-choice card — matches the
+  posed measurement filed the same day, `.planning/posed/t142-*`); `passplay-phone-022`
+  (award-card name clipped by the sticky "Play again!" button) is the same symptom `T-143` already
+  tracks as Wyatt's open design question, now also seen in pass-and-play mode, not solo only.
+  `T-241` itself (the footer-clipping row this watch closed) is genuinely resolved, not a live
+  contradiction — `scripts/qa/t241_eov_footer_pose.mjs` measured 0px overlap at both seats,
+  CEO 216 verified; a session reporting it back as still-open on 2026-09-06 simply hadn't found
+  that commit yet.
 
 - [ ] The 48-hour shakedown (DECISIONS ruling 14; supersedes the 24h exit test): cargo is the
       ⟨`T-022`⟩
