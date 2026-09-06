@@ -12037,3 +12037,74 @@ live peer session, `pastrypirates-14` (the Advisor, interactive, ~3h old) with u
 taking the top unclaimed, unblocked row.
 
 - 2026-09-06T16:47:32Z · close_item: "T-261" · CEO 226 · no game diff — no game code by design: this row was the GATE that had to be answered BEFORE any sound is wired — his 12 rulings are harvested verbatim and digested, and the wiring is T-073's job · no stated solution
+
+## WATCH 2026-09-06T1638Z — Wy-Blade (Bell) — CLOSED `T-098` (leftover duplicate sitemap-fix row on the Chart)
+
+**Work.** Ranked the Chart (`chartkeeper.mjs --rank --sweep --write`) — rank 1 (`T-261`) blocked on
+reading the live artifact for new comments, which this session cannot do (no Artifact tool); rank 2
+(`T-138`) blocked on Wyatt's own look; rank 3 (`T-219`) repeatedly and deliberately deferred by prior
+watches as fragile tooling needing a careful non-rushed pass. **Rank 4, `t216-baker-tiebreak`, was
+already fully triaged** (its own text already said "FATE: SHIPPED ... Triaged rather than
+re-worked") — traced why it still ranked as open: `chart_model.mjs`'s `stateOf()` only recognizes a
+fate declared as `→ **WORD**` (arrow + bold), and that row's "**FATE: SHIPPED...**" text has no
+arrow, so the tool can never see it as finished. Left as-is rather than reworded (not this watch's
+item — noting the mechanism for whoever next touches `chart_model.mjs`). **Rank 5, the Chart's own
+copy of `T-098` (a "Fix sitemap.xml..." duplicate), was the real item**: same defect class as
+`T-243` closed last watch — a Chart-side prose duplicate of an already-closed INBOX record.
+
+**Traced the authoritative record, not trusted from prose.** `.planning/CHART.md` lines ~1595-1613
+already document that `T-098`-`T-104` are Chart-side duplicates of `INBOX-20260902T1907*` entries,
+and that the INBOX copy is authoritative. Found `T-098`'s real record: `INBOX-20260902T190715Z`,
+`status: DONE 2026-09-02 — CEO 122, ... commit a13c365`. Verified `a13c3655` directly (`git show
+--stat`): strips `<changefreq>`/`<priority>`, adds `<lastmod>` derived from `git log -1
+--format=%cs`, red-proofed against a hand-typed date. Re-verified live, not on the old record's
+word: `sitemap.xml` today (5 entries, grown under the separate `T-243` ask) carries neither tag,
+every `<lastmod>` matches `git log -1 --format=%cs -- <page>` exactly, `node
+scripts/qa/sitemap_lastmod_check.mjs` PASS.
+
+**Two fresh CEOs, both YES** (general-purpose agents, no shared context, each independently re-ran
+the gate and the git dates itself rather than trusting this watch): first confirmed the underlying
+ask is genuinely done; second confirmed nothing from `T-098`'s fuller wording (a generator script,
+the Search Console reminder — both already live under the adjacent `T-102` row) is being dropped by
+treating this as paperwork. Recorded as **CEO Review 227** (renumbered from a first guess of 226 —
+`T-261`'s NO-verdict watch had already taken 226 on the shared branch; re-checked against the live
+file before appending, no collision).
+
+**Closed.** `.planning/CHART.md`'s `T-098` row annotated closed in place (idea-inbox prose, not a
+`- [ ]` checkbox — `close_item.mjs`'s tick mechanism does not apply, same precedent as `T-216` and
+`T-243`), the stale "re-close through the gate" note (describing a `close_item.mjs` bug fixed
+2026-09-03) struck rather than acted on. No `close_item.mjs` run — the authoritative INBOX record
+was already closed on 2026-09-02, nothing left to close there. Commit `ea771fb3`.
+
+**⚠ A live rebase collision, found and resolved, not caused by this watch's edits.** Mid-sync
+(`git pull --rebase`), found the shared checkout already held an interactive rebase in progress —
+`pastrypirates-14` (the Advisor, live on this same machine) had a local, unpushed commit
+(`scope: Netlify, one repo, staging + production — and the repo private`, adding
+`.planning/wyclau/SCOPE-NETLIFY-ONE-REPO.md` and one INBOX entry) that conflicted textually with
+newly-pushed origin commits touching the same tail of `.planning/wyclau/INBOX.md` (13 harvested SFX
+comment entries). Resolved by inspection, not by discarding anything: both additions land at
+different points in the same file with no actual semantic overlap, so `git add` on the merged file
+(content read back and confirmed line-by-line: all 13 origin entries plus the Netlify entry present,
+no conflict markers left, nothing lost) let the rebase complete cleanly. **Nothing of the Advisor's
+was touched, edited, or authored by this watch** — its commit rode through the rebase intact
+(`f0921f2d`), this watch only resolved the mechanical text conflict. Recorded here because a stuck
+rebase in a shared checkout is exactly the rule-16 hazard this file exists to make visible across
+sessions.
+
+**Gear: NONE.** No `index.html`/`src/` file touched — a site-identity config file and Chart/ledger
+paperwork, not game code. No sea trial owed. `npm test` not re-run (no game code changed).
+
+**Commits, pushed:** `ea771fb3` (T-098 close + ledger orientation), CEO 227 appended in a follow-up
+commit before push. `origin/claude/cloud-handoff-planning-a9ay1u` confirmed at HEAD after push.
+
+**No Artifact tool this session** — nothing to publish; this item needed no Glass republish (a
+record-only close). Publish queue not touched.
+
+**Browsers/servers:** none started this watch.
+
+**Daily lesson:** not checked this watch — the next watch should verify whether one has already been
+given today before skipping it.
+
+**One item worked and closed this watch.** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.

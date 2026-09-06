@@ -1,5 +1,40 @@
 # CEO reviews — the standing record
 
+## CEO Review 227 — `T-098`: the leftover duplicate sitemap-fix row on the Chart — **YES** — 2026-09-06
+
+**Wyatt's ask (harvested twice on 2026-09-02, one word-for-word subset of the other):** fix
+`sitemap.xml` — drop `<changefreq>`/`<priority>`, add a `<lastmod>` derived from `git log`, not
+hand-typed. Filed properly into `.planning/wyclau/INBOX.md` as `INBOX-20260902T190715Z`, and
+separately duplicated as a second, never-updated prose row on `.planning/CHART.md` under the same
+handle `T-098` (the Chart's own idea-inbox section cannot be closed by the gate — it isn't a `- [ ]`
+checkbox).
+
+**Two fresh agents checked this independently, from different angles, both YES:**
+
+**First pass — is the underlying ask actually done?** Read the live `sitemap.xml` directly: 5
+entries, no `changefreq`/`priority` anywhere, every `<lastmod>` matches
+`git log -1 --format=%cs -- <page>` for its page exactly. Ran `node
+scripts/qa/sitemap_lastmod_check.mjs` live: PASS. Cross-checked the INBOX record
+(`INBOX-20260902T190715Z`, `status: DONE 2026-09-02 — CEO 122 ... commit a13c365`) against the real
+commit `a13c3655` — its diff genuinely strips both tags and adds git-derived dates, red-proofed
+against a hand-typed date. One real gap flagged: the Chart-row annotation describing all this had
+been *planned* but not yet *written* at the moment of that check — fixed in the same watch,
+immediately after.
+
+**Second pass — is anything from the Chart row's FULLER wording (a "consider a generator script",
+"remind me about Search Console") being silently dropped by treating this as paperwork?** No. Both
+extras live under the adjacent `T-102` row (`CHART.md` line ~1650), already answered: the generator
+(`scripts/qa/sitemap_write.mjs`) shipped under CEO 150, and the Search Console reminder was already
+carried to Wyatt and answered by him directly ("Submitted successfully," 2026-09-03T15:58:17.602Z,
+recorded on the Chart). Nothing of his is left unaddressed by closing `T-098`'s duplicate row.
+
+**One sentence for Wyatt:** your sitemap fix from 2026-09-02 shipped, works, and is still correct
+today — this was just a duplicate to-do note for work that was already finished, corrected in place
+rather than re-done.
+
+**Verdict: YES.** `.planning/CHART.md`'s `T-098` row annotated closed in place (commit `ea771fb3`);
+no game code touched (site-identity config, not `index.html`/`src/`); no sea trial owed.
+
 ## CEO Review 226 — `T-261`: "I finished my rulings" — **NO, not as it stands** — 2026-09-06
 
 **Wyatt's ask, verbatim:** *"I finished my rulings in https://claude.ai/code/artifact/ed82256e-…"*
