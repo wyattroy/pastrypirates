@@ -11963,3 +11963,65 @@ Ending the turn here — one item, closed through the gate, per the Door's own r
 END OF WATCH.
 
 - 2026-09-06T16:27:40Z · close_item: INBOX-20260902T190743Z · CEO 225 · no game diff — sitemap.xml already regenerated+gated; his generator ruling and Search Console reminder both already answered on the Glass · his solution first: commit 25dbac7 · closing old paperwork, no new code — sitemap ask fully satisfied on live tree
+
+## WATCH 2026-09-06T~1610Z — Wy-Blade (Bell) — CLOSED `INBOX-20260902T190743Z` (`T-243`): the sitemap regeneration ask, old paperwork not new work
+
+**Situation at start.** Repo synced, `can_push.mjs` healthy, real push confirmed (`git push origin
+claude/cloud-handoff-planning-a9ay1u` → "Everything up-to-date"). **No Artifact tool this session**
+(Bell-launched watch) — confirmed via `ToolSearch`, no Artifact/ArtifactComments/etc. surfaced.
+Publish queue held one item (`T-261`) waiting for an Artifact-holding session; another live session
+cleared it mid-watch (CEO 224, seen in the ledger tail after a mid-watch `git pull --rebase`).
+
+**Ranked the Chart** (`chartkeeper.mjs --rank --sweep --write`): rank 1 (`T-261`) blocked on
+Artifact/publish, rank 2 (`T-138`) blocked on Wyatt's own look, rank 3 (`T-219`) repeatedly and
+deliberately deferred by prior watches as fragile tooling needing a careful non-rushed pass, rank 4
+(`t216-baker-tiebreak`) a dead duplicate of an already-closed item, ranks 5-9 (`T-237`, `T-013`,
+`T-238`, `T-250`, `T-262`) each GATED on Wyatt or explicitly not-a-defect/deliberately-deferred.
+Went past the ranker's checkbox list into "THE IDEA INBOX" prose entries and found three
+sitemap-related rows (`T-098`, `T-100`, `T-243`) each carrying a stale "re-close through the gate;
+do not redo the work" warning from a documented `close_item.mjs` bug (fixed 2026-09-03) that nobody
+had actually acted on.
+
+**Measured directly, not trusted from prose:** `T-098` and `T-100`'s underlying INBOX/Chart records
+were already genuinely closed. `T-243`'s INBOX entry (`INBOX-20260902T190743Z`) was still `status:
+OPEN — FOR A WATCH`. Verified on the live tree: `sitemap.xml` lists exactly 5 URLs including the
+"new pages" (rules.html/credits.html/privacy.html) his ask was gated on existing; every `<lastmod>`
+matches `git log -1 --format=%cs -- <page>` exactly for all 5; no `<changefreq>`/`<priority>`
+anywhere; `node scripts/qa/sitemap_lastmod_check.mjs` and `sitemap_list_derived_check.mjs` both PASS
+live; his "recommend, don't just build" question on the generator was answered "yes" by him in
+commit `25dbac76` (read directly, not taken from the message alone); his Search Console reminder was
+answered "Submitted successfully" (`CHART.md`, his own words, 2026-09-03T15:58:17.602Z).
+
+**Fresh CEO spawned** (general-purpose agent, no shared context) per rule 25/the `ceo` skill, brief
+assembled via `scripts/qa/ceo_brief.mjs`. It independently re-ran both gates, read `sitemap.xml`,
+the git dates, commit `25dbac76`'s actual diff, and the CHART/INBOX lines itself rather than trusting
+this watch's account — and additionally checked for any other public-looking root page the sitemap
+might be missing (found `two-machines.html`, confirmed it correctly self-declares `noindex,nofollow`
+so its absence is correct, not a gap). **VERDICT: YES**, recorded as **CEO Review 225** (another live
+session had taken 224 mid-watch; renumbered cleanly, no collision, confirmed via `grep` before
+appending).
+
+**Closed** `INBOX-20260902T190743Z` via `close_item.mjs --item="INBOX-20260902T190743Z" --ceo=225
+--reason="sitemap.xml already regenerated+gated; his generator ruling and Search Console reminder
+both already answered on the Glass" --solution-commit=25dbac76`. Also hand-corrected the stale Chart
+prose at `T-243`'s row (idea-inbox entry, not a `- [ ]` checkbox — the gate's tick mechanism does not
+apply to it) to record the real close rather than leave the old bug-warning standing.
+
+**Gear: NONE.** No `index.html`/`src/` file touched — sitemap.xml is a site-identity file
+(`docs/GIT-AND-DEPLOY.md` §1), not game code. No sea trial owed. `npm test` not re-run (no game code
+changed).
+
+**Commits, all pushed, `origin/claude/cloud-handoff-planning-a9ay1u` confirmed at HEAD after each
+push:** `7ed9d9fd` (CEO 225 + INBOX close + ledger), `13718f9d` (Chart row annotation).
+
+**No Artifact tool this session** — nothing to publish directly. This item needed no Glass republish
+of its own (a record-only close, not a UI change), so nothing queued.
+
+**Browsers/servers:** none started this watch.
+
+**Daily lesson:** not checked this watch — the next watch should verify whether one has already been
+given today before skipping it.
+
+**One item worked and closed this watch.** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.
