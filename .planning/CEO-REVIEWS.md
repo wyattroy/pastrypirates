@@ -16984,3 +16984,32 @@ Its words: *"The document does scope the thing he asked for — Netlify, one rep
 **What it verified as solid:** the forcing function (Pages will not serve a private repo on a free account); every repo artifact named exists (`deploy_rsync_paths_check.mjs`, `staging-is-not-main.cjs`, `cto-staging-only.cjs`, `rules_page_check.mjs`, `credits_page_check.mjs`, `CNAME`); `src/shared/host.js:29-39` confirms the hostname lists are untouched by the move; no `.github/workflows`, so no Actions cost hides in the privacy flip; rule 14's retirement argument is sound against `docs/GIT-AND-DEPLOY.md` §1.
 
 **Its one thing for Wyatt:** *"The plan is the right plan… But do not decide between the free plan and the $9 plan on the numbers in this document"* — now cited and dated so he can. And: *"the frozen v1 game at `playpastrypirates.com/classic` is 24 files, and the plan's 'publish only the game' option never says whether those 24 are in or out."* They are in; it is counted and written down.
+
+## CEO Review 228 — 2026-09-06T~2140Z, Wy-Blade — the Cloudflare publish pipeline, staging first
+
+**Wyatt asked, verbatim (three messages):** *"scope out using netlify to push staging and production from one repo (pastrypirates) so that we can move away from publishing through githubpages and make the repo private"* · *"can we continue to use github to hold the repo and simply serve/publish it with cloudflare? tell me the costs/benefits."* · *"my traffic is about to increase 10000 fold -- i'm pre-launch right now"*. **Then he chose:** Cloudflare + move the DNS · game-only publish set · **"Build it, staging first"** · and on Firebase, *"I am pretty sure i'm in a firebase plan that scales with usage -- can you recheck this?"* → *"yes -- i'm on Blaze"*.
+
+### VERDICT: PARTIAL
+
+Its words: *"The machinery he asked for is genuinely built and genuinely works — I verified five of the six claims independently, including the hardest one. But it stops one step short of 'staging first' (nothing is deployed), it publishes an internal document, and three hand-typed numbers in this commit are wrong, which is CEO 227's fault recurring for the third time."*
+
+**WHAT IT CONFIRMED BY RUNNING IT, not by reading:**
+- **The five staging tells, both directions.** It built with `--branch=feature-x --commit=abcdef1234` and got stamp `2026.09.04.2-staging@abcdef12`, `<title>[STAGING]`, `robots.txt` = `Disallow: /`, no `sitemap.xml`, `_headers` line 5 `X-Robots-Tag: noindex`; and a production build with none of them. *"Five for five, both directions."*
+- **`npm test` exit 0 at 142 gates**, `gate_count_check.js` agreeing 142 declared = 142 run.
+- **`CNAME` excluded from the publish set and still in the repo** — *"Correct and load-bearing."*
+- **`curl https://playpastrypirates.com/RULES-V2.md` → HTTP 200, 16,685 bytes.** *"CONFIRMED to the byte. This one was measured properly."*
+- **Byte-identity, and it went further than the gate did:** *"I compared every file, not the claimed sample: compared=222 differs=0."*
+
+**FIVE FINDINGS. ALL FIVE FIXED IN THE SAME TURN, before he read any of it.**
+
+1. **The gate only compared SIX files.** Its words: *"a build step that rewrote a seventh file would pass the gate. The property holds today; the gate is not what holds it."* **FIXED** — case 6 now compares every published file: `byte-identical to the repo: 221 of 221 game files`.
+2. **`two-machines.html` was in the publish set, and it is HTTP 404 on production today** — so this move would have ADDED an internal document to the live site while claiming to remove three. And it named `pastrypirates-staging`. **FIXED** — excluded by name, which is the one honest use of a name list: a root `.html` is exactly the shape of `about.html` and `rules.html`, so neither the kind-rule nor the size ceiling can separate them. **It leaves staging too**, deliberately: `GIT-AND-DEPLOY.md` §5 rule 3 forbids environments differing by CONTENT. One line to restore, and that is his call.
+3. **Three hand-typed numbers wrong.** The session reported "225 files / 7.4 MB" and recorded that as his ruling in `DECISIONS.md`; the CEO measured 222/7.3, and a re-measure three ways (build script, independent `find`, the gate) agreed with the CEO. **The earlier figure does not reproduce and was not defended.** **FIXED** in `DECISIONS.md` and in the gate's ceiling comment: **221 game files, 7.3 MB**, plus the generated `_headers`.
+4. **Netlify's pricing in `DECISIONS.md` was uncited** — the exact fault CEO 227 raised. Its sharpest line: *"the entry's own closing lesson reads 'Cite the source and the date, or write UNVERIFIED' — sitting eight lines below a row that records his ruling with a file count and a byte size that are both wrong. The commit that writes down the lesson breaks it in the same file."* **FIXED** — both sources and the read date are now in the row.
+5. **No checklist for the steps only he can perform.** *"He asked for staging first, and what he can act on right now is a script and a green gate."* **FIXED** — [`docs/CLOUDFLARE-CUTOVER.md`](../docs/CLOUDFLARE-CUTOVER.md), eleven steps, each marked with who does it, staging fully proved before anything touches production, with the rollback and the four GitHub Pages A records written down.
+
+**Does the overclaim fault recur? Its answer: YES, a third time** — while also crediting the part that improved: *"Cloudflare's limits in `site_build_check.mjs` are cited with a source and a date... and the Firebase section in DECISIONS.md is built on real unauthenticated probes rather than assertion. That is a genuine improvement."*
+
+**STILL OPEN, and honestly so:** nothing is deployed. No Cloudflare account, no Pages project, no DNS change — all of which need him. That is now step 1 of a written list rather than an unstated gap.
+
+**ITS ONE THING FOR WYATT (its words):** *"a production build of your site is byte-for-byte the same game you have in the repo — all 222 files, not a sample — and a staging build correctly wears all five 'this is not the real thing' markers... Two things before you act on it. First, one file that ships is not the game: `two-machines.html`... Second, 'staging first' is not finished: nobody has created the Cloudflare projects or moved your DNS, and there is no step-by-step list waiting for you to follow."* Both are now done: the file is out, and the list exists.

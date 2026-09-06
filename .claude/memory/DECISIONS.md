@@ -1,5 +1,51 @@
 # Wyatt's standing decisions
 
+## ⟨HOSTING⟩ CLOUDFLARE PAGES, ONE REPO, DNS MOVED — and he is on Firebase BLAZE, 2026-09-06
+
+**His ask:** *"scope out using netlify to push staging and production from one repo (pastrypirates)
+so that we can move away from publishing through githubpages and make the repo private"* — then,
+mid-turn: ***"my traffic is about to increase 10000 fold -- i'm pre-launch right now."***
+
+### THE FOUR RULINGS
+
+| he chose | over | why it matters |
+|---|---|---|
+| **Cloudflare Pages, and move the nameservers off Squarespace** | Netlify (which would keep Squarespace DNS); Cloudflare-for-staging-only | At 5,000,000 visits/month Cloudflare is **$0** and Netlify is **~$1,950/month**; GitHub Pages is ~150× over its 100 GB soft limit and **not viable at any price**. *(Sources, both read 2026-09-06: `developers.cloudflare.com/pages/platform/limits` and the Pages pricing page — static assets are unmetered for bandwidth and requests on the free plan; `docs.netlify.com` → Credit-based pricing plans — 20 credits/GB, Free is 300 credits = 15 GB, $0.13/GB at the published Pro rate. Neither figure is from his account, which nobody has opened.)* The apex needs Cloudflare DNS; the risk was measured first — **no MX on the domain**, two TXT records, so the migration risks almost nothing |
+| **Game only — 221 game files, 7.3 MB** | everything as today; game plus `art-review/` kept public | `art-review/` (519 MB), `scripts/` (9.9 MB) and three root design documents stop being public. **`RULES-V2.md` was returning HTTP 200 / 16,685 bytes on the live game** until this |
+| **Build it, staging first** | rewrite the scope first; do production this week too | Staging is the whole proof and it costs nothing — if it is wrong, production is untouched |
+| **Firebase: he is on BLAZE** | — | ⛔ **HE CORRECTED ME AND HE WAS RIGHT** — see below |
+
+### THE FIREBASE CORRECTION, RECORDED BECAUSE THE FAULT MATTERS MORE THAN THE FACT
+
+A session asserted *"your multiplayer runs on Firebase's free tier"* — inferred from the free-tier
+numbers, never checked against his project. He pushed back: *"i am pretty sure i'm in a firebase
+plan that scales with usage -- can you recheck this?"* and then confirmed: ***"yes -- i'm on
+Blaze"***.
+
+**WHAT BLAZE CHANGES: it inverts one risk rather than removing it.**
+
+Multiplayer does **not** break at launch. Simultaneous connections go from 100 to **200,000 per
+database**, so the ceiling that would have taken crew games down in the first hour is not there.
+Download is **$1/GB after the first 10 GB/month** — a bill, not an outage.
+
+⚠ **BUT THE OPEN DATABASE IS NOW A BILLING EXPOSURE, NOT A PRIVACY ONE, AND THAT IS WORSE.**
+Measured unauthenticated, with no credentials: `/` 401, `/games` 401, `/usage` 401 — but
+**`/visits`, `/starts`, `/fins` and `/rooms` all return 200.** `src/net/writers.js` puts every piece
+of live multiplayer state under `rooms/<code>/`, and there is **no sign-in step anywhere in
+`src/net/`** — so whatever the game can write unauthenticated, so can anyone.
+
+**On Spark, abuse hits a ceiling and stops. On Blaze, it bills him.** The ten-minute pre-launch
+action is a Google Cloud **budget alert**; the real fix is scoped security rules. Neither is done,
+and nobody has claimed it.
+
+### THE STANDING LESSON, EARNED TWICE IN ONE SESSION
+
+**Do not state a third party's plan, price or default as fact without opening the page.** Two of
+this session's wrong claims were exactly that shape: his Firebase plan (wrong), and Netlify's
+pricing (right, but uncited — so a fresh CEO could not tell it from memory, and reasonably called
+it out). CEO 227 named it as CEO 223's overclaim fault recurring. **Cite the source and the date,
+or write UNVERIFIED.**
+
 ## ⟨T-261⟩ HE FINISHED THE PRD — 12 rulings in the comment boxes, 2026-09-06 16:27–16:36Z
 
 **He said so himself: *"I finished my rulings."*** All twelve carried verbatim into `INBOX.md`
