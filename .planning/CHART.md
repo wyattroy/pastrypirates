@@ -1259,6 +1259,18 @@ convergences. Every row below was checked against the tree, not against the docu
 *Drop ideas here in any words, any time, through any session ("add to the chart: …"). Each gets a
 fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, within a day.*
 
+**Harvested ideas, 2026-09-06, verbatim from the Glass (`glassState`, generatedAt
+2026-09-06T21:00:56.069Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
+Both were found by Wyatt playing the staging build (`2026.09.04.2-staging@5c6eabb3`) minutes before
+this harvest.
+
+- **New idea, untriaged** (`i1788729144049`, at 2026-09-06T21:12:24.049Z): *"Currently the
+  "sailing" SFX sound plays AFTER the boat sails -- it should be triggered at the beginning of the
+  sail animation, not the end"*
+
+- **New idea, untriaged** (`i1788729201783`, at 2026-09-06T21:13:21.783Z): *"Bug: When refreshing
+  the page in solo, the boats all reappear at totuga until a sail square is clicked."*
+
 **Harvested ruling, 2026-09-04, verbatim from the Glass (`glassState`, generatedAt
 2026-09-04T00:22:11.301Z).** NOT YET TRIAGED — this session's mandate is harvest-and-publish only.
 
