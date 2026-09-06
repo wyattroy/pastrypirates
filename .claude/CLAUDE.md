@@ -1161,6 +1161,41 @@ No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skill
 | **production** | `playpastrypirates.com` | the game real players are in the middle of — `main`, repo root, **no build step** |
 | frozen | `playpastrypirates.com/classic` | v1 |
 
+> ### ⚠ TWO REPOSITORIES. THIS FILE DID NOT SAY SO UNTIL 2026-09-06, AND THAT COST HIM A MORNING.
+>
+> | | repo | what it is |
+> |---|---|---|
+> | **the source** | `wyattroy/pastrypirates` | **this checkout.** Your branches, and `main`. All work happens here |
+> | **the staging host** | `wyattroy/pastrypirates-staging` | **a publish target, not a codebase.** One branch, no development, overwritten by every publish |
+>
+> **Nobody clones the staging repo and nobody works in it.** It exists only because **GitHub Pages
+> serves one branch per repo at one domain** — pointing this repo's Pages at a staging branch would
+> take production down. Detail: [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) §5.
+>
+> **THE VOCABULARY, because the wrong verb is what caused the confusion:**
+> - **PUBLISH to staging** — `npm run deploy:staging -- "what changed"`. It **COPIES** your working
+>   tree into the staging repo. Any branch, any time, no approval. ***Staging is an address, not a
+>   branch — you never "merge to staging."***
+> - **RELEASE to production** — that one **IS** a merge, into `main` **in this repo**, and it is
+>   served to real players instantly. **His approval, always.**
+>
+> ⛔ **SO GIT ANCESTRY CANNOT ANSWER "DID MY WORK SHIP?"** Staging is published by copy, so there is
+> no ancestry to measure. On 2026-09-06 a session ran `git merge-base --is-ancestor HEAD
+> origin/main` → NO, and `git rev-list --count origin/main..HEAD` → 1355, and told him his merge had
+> failed. **Both numbers were true and about the wrong subject** — they measured PRODUCTION while he
+> was talking about STAGING — and it went on to alarm him that players were on an eleven-day-old
+> build, which is accurate, intentional, and not a fault. **Rule 6 again: an instrument that answers
+> honestly about the WRONG SUBJECT is the most convincing kind of wrong.**
+>
+> **ASK THE SITES, NOT GIT. One command, and it prints all three:**
+>
+> ```bash
+> node scripts/where_is_my_work.mjs     # working tree · staging · production, side by side
+> ```
+>
+> **`playpastrypirates.com` being older than your branch is NORMAL** — production is deliberately
+> unreleased. That is not a bug to report to him.
+
 **TWO ENVIRONMENTS, ONE SOURCE TREE. Promotion is a MERGE, never a copy.**
 
 1. **ONE SOURCE TREE** — `index.html` + `src/`. **Never a second folder holding "the staging
