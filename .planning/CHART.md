@@ -1609,7 +1609,16 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Regenerate sitemap.xml at the repo
       ⟨`T-243`⟩
-      ⚠ **THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW. The WORK IS DONE; only the tick went astray.** `close_item.mjs` ran its block from the last `- [ ]` to END OF FILE, so any `--item=` string below that row matched it and nothing else — the verdict and reason were stamped onto `T-137` instead. Found by watch c1 causing it a fourth time on purpose; fixed 2026-09-03T07:4xZ (block bounded at the next `## `, and a handle no row owns now REFUSES instead of guessing). **Re-close through the gate; do not redo the work.**
+      ✅ **CLOSED PROPERLY 2026-09-06, CEO 225 (YES), through the gate this time.** The old warning
+      here (about a prior close landing on `T-137` instead) described a bug in `close_item.mjs`
+      fixed 2026-09-03 — but nobody had actually re-run this row's close since. This watch verified
+      directly on the live tree that every part of his ask is satisfied (sitemap.xml lists all 5
+      public pages incl. rules.html/credits.html/privacy.html, lastmod derived from git with no
+      changefreq/priority — both gates PASS, the page-list generator he was asked to rule on is
+      built per his "yes" in commit `25dbac76`, and his Search Console reminder was answered
+      "Submitted successfully" 2026-09-03) and closed `INBOX-20260902T190743Z` with `--reason` (no
+      new game code — this is a site-identity file, not the game) and `--solution-commit=25dbac76`.
+      No work was redone; this was old paperwork, not a new job.
   root of playpastrypirates.com now that the new pages exist.
 
   Include every genuinely public page. Verified 2026-09-02, these are correctly EXCLUDED and
