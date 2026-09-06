@@ -8,9 +8,13 @@
  *
  * His answer, and he had already learned it once for the mentor charter: "a prompt you are holding
  * is a prompt you can skip." A document describing a QA process is a document a tired session
- * skips. So the process gets a gate at the moment of the action, the same way rule 17 did.
+ * skips. So the process gets a gate at the moment of the action, the same way the read-the-doc
+ * rule did.
  *
- * WHAT IT DOES. On an edit to game source it works out the GEAR — Quick, Normal or Full — from the
+ * CLAUDE-RULE: Every change to the game goes through a SEA TRIAL
+ *
+ * WHAT IT DOES. On an edit to game source it works out the GEAR — COSMETIC, PLUMBING or FULL (this
+ * line said "Quick, Normal or Full" until 2026-09-06, three gear names that no longer exist) — from the
  * files being touched, and denies the FIRST such edit in a session with the four steps and the
  * exact sweep command. A marker lets the retry through. A speed bump, not a wall.
  *

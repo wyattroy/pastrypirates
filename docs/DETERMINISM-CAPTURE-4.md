@@ -181,6 +181,7 @@ there is no second tree. `4/scripts/lib_twin_check.js` has nothing to watch here
 - **The ruleset.** `roundCfg()` returns `bakeoff: true` headless, so `play()` routes to
   `playBakeoff()`, not `playClassic()` (`HARD-WON-LESSONS.md` §3). That IS the right ruleset for
   `/4` — it is what ships — but the manifest must say which one it recorded.
+<!-- doc-check: allow 4/scripts/determinism_baseline.js -->
 - **The twin question.** `4/scripts/determinism_baseline.js` would be a byte-identical copy of a
   root file that is NOT under `scripts/lib/`, so `4/scripts/lib_twin_check.js` does not currently
   watch it. Either extend that gate's pair list (it already special-cases the `no_undef_check.js`

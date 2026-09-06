@@ -130,8 +130,29 @@ for (const doc of DOCS) {
     if (!exists(m[1])) badSh.push(`${doc} -> ${m[1]}`);
   }
 }
-for (const b of [...new Set(badSh)]) fail(`a doc names a script that does not exist: ${b}`);
-if (!badSh.length) pass(`all ${shCmds} script paths named in the docs exist`);
+/* AN EXPLICIT, VISIBLE ESCAPE HATCH — because one real exception exists and weakening the whole
+   check to fit it would be the wrong trade.
+   DETERMINISM-CAPTURE-4 §"The twin question" discusses `4/scripts/determinism_baseline.js` — a file
+   that DELIBERATELY does not exist, in a paragraph about whether it should. That is a doc reasoning
+   about a path, not handing one to a session, and failing the build over it is the same false-
+   positive noise that teaches a reader to dismiss a gate. So a doc may opt one path out by writing
+       <!-- doc-check: allow <path> -->
+   near it. Visible in the diff, greppable, and per-path — never a blanket suppression. Consistency
+   is a core value; exceptions are fine when somebody CHOSE them (CLAUDE.md rule 8). */
+const allowed = new Set();
+for (const doc of DOCS) {
+  if (!exists(doc)) continue;
+  for (const m of fs.readFileSync(path.join(REPO, doc), "utf8")
+                    .matchAll(/<!--\s*doc-check:\s*allow\s+([^\s>]+)\s*-->/g)) {
+    allowed.add(`${doc} -> ${m[1]}`);
+  }
+}
+const realBadSh = [...new Set(badSh)].filter(b => !allowed.has(b));
+for (const b of realBadSh) fail(`a doc names a script that does not exist: ${b}`);
+if (!realBadSh.length) {
+  pass(`all ${shCmds} script paths named in the docs exist`
+     + (allowed.size ? ` (${allowed.size} explicitly allowed as deliberate non-existence)` : ""));
+}
 
 /* ---- 5. every PATH-ANCHORED regex in a hook must match a real file ------------------------ */
 /* THE ROT THAT MADE THIS WHOLE SECTION NECESSARY, measured 2026-09-06 by feeding the hooks real
@@ -251,6 +272,45 @@ if (claudeLines > CEILING) {
 } else {
   pass(`.claude/CLAUDE.md is ${claudeLines} lines — at or under the ${TARGET}-line target`);
 }
+
+
+/* ---- 8. a hook citing a rule must cite one that exists, BY NAME -------------------------- */
+/* read-the-doc-first.cjs said "CLAUDE.md rule 17" in three places, including in the message a
+ * session actually reads when it is denied. Rule 17 is "kill every headless Chrome and server you
+ * start". The rule that hook enforces is 20. Nobody wrote it wrong — the number was right when it
+ * was written, and the table renumbered underneath it. It always will: the table has been
+ * renumbered repeatedly, and its own note records three rules being merged into one slot.
+ *
+ * So the hooks quote the rule TEXT, which does not renumber, marked `CLAUDE-RULE: <text>`, and this
+ * asserts the text is really in the table. "Point, don't restate" (CLAUDE.md §5) — and where a
+ * restatement is unavoidable, a machine checks the copy against the original. */
+const claudeMd = fs.readFileSync(path.join(REPO, ".claude/CLAUDE.md"), "utf8");
+let cites = 0, badCites = [];
+for (const h of HOOKS) {
+  if (!exists(h)) continue;
+  for (const m of fs.readFileSync(path.join(REPO, h), "utf8").matchAll(/CLAUDE-RULE:\s*(.+?)\s*(?:\*\/|$)/gm)) {
+    cites++;
+    if (!claudeMd.includes(m[1])) badCites.push(`${h} -> "${m[1]}"`);
+  }
+}
+for (const b of badCites) {
+  fail(`a hook cites a CLAUDE.md rule whose text is not in the file: ${b}`
+     + `\n        -> the rule was reworded or retired. Update the hook, or delete it with the rule.`);
+}
+if (!badCites.length) pass(`all ${cites} rule(s) cited by the hooks exist in CLAUDE.md, by name`);
+
+/* ---- 9. a hook citing NUMBERED rules is a hook that will rot ------------------------------ */
+let numbered = [];
+for (const h of HOOKS) {
+  if (!exists(h)) continue;
+  const src = fs.readFileSync(path.join(REPO, h), "utf8");
+  for (const m of src.matchAll(/CLAUDE\.md\s+rule\s+(\d+)/gi)) numbered.push(`${h} -> "rule ${m[1]}"`);
+}
+for (const b of [...new Set(numbered)]) {
+  fail(`a hook cites a CLAUDE.md rule by NUMBER, which renumbers silently: ${b}`
+     + `\n        -> quote the rule text instead, marked \`CLAUDE-RULE: <text>\` (see §8).`);
+}
+if (!numbered.length) pass(`no hook cites a CLAUDE.md rule by number`);
 
 console.log(`\n${failures === 0 ? "PASS" : "FAIL"} — ${failures} failure(s)`);
 process.exit(failures === 0 ? 0 : 1);
