@@ -216,8 +216,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ⟨`T-206`⟩
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
 
-
-
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
       `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
@@ -300,12 +298,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       with `.replace(/\\/g, "/")` before testing against `NOT_GAME`. Then wire the check above
       into `npm test`'s chain in the same commit.
 
-
-
-### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
-
 - [ ] Your ruling: ⟨`T-101`⟩ **Should the new credits page (`credits.html`) carry Google Analytics like About and Rules do?** Your T-206 ruling named three pages for analytics — "the game, About and Rules" — and Credits wasn't one of them, because it didn't exist yet when you ruled. CEO 222 flagged this rather than guess: read as a *list*, Credits is excluded; read as your underlying *principle* ("the public pages only"), Credits is a new public page and belongs. If people open the link you send them, you'd probably want to know. — his answer: Add it — one line, <script type="module" src="src/analytics.js"></script>, same as the other three public pages (recommended, matches the apparent principle) **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-101`⟩
+
+
 
 - [ ] **The privacy-policy footer shows where it should not** — his own bug report. Wyatt, written
       ⟨`T-264`⟩
@@ -316,17 +312,18 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       once, not two pages to patch (his standing instruction on the call circles: *"Fix this
       universally, not through patches"*). Sized SMALL, game code, needs a sea trial.
 
+
+
+### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
+
 - [ ] Your ruling: ⟨`T-220`⟩ **A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning `--gear=`/`--reason=`/`--explain`, and a NEW bug along the way (a Windows path-separator bug that makes `scripts/`, `.claude/`, `docs/` all misread as "game code" on this machine) — and every attempt to `Edit` `.claude/hooks/qa-gear-first.cjs` or `.claude/hooks/lib/game-code.cjs` is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in `.planning/CHART.md`'s T-220 row and `scripts/qa/hook_gear_override_reachable_check.mjs`.** — his answer: You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-220`⟩
 
 - [ ] Your ruling: ⟨`T-143`⟩ **On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling.** `T-023`'s original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (`2026.09.04.2`) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (`.planning/posed/t143-eov-phone-390x664-awards.png`, `t143-eov-tablet-820x1180-awards.png`) to the Glass for you to see directly. — his answer: Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-143`⟩
 
-
-
 - [ ] Your ruling: ⟨`T-142`⟩ **The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — "choose yer recipe" — because that card is not a modal and the fix already shipped only watches modals.** Measured fresh, not reasoned: posed a real tablet (820×1180) solo voyage to the recipe-choice prompt, screenshot at `.planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png`. The card sits at CSS z-index 30 with **no dimming behind it at all** (confirmed: `#pp4Prompt` carries class `pp4Recipes`, which paints no backdrop), while the shipped fix only hides the bar when a `.modalOverlay` is open. In this run the top captain row (**Davy Scones**, pink) is entirely covered by the card — not a sliver cut mid-word this time, but the same mechanism the row already named. Two fixes were considered and NOT built, because they trade off differently and it's a taste call: — his answer: Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-142`⟩
-
 
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073`⟩
@@ -430,6 +427,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/PREDICTION-20260904T033856Z-T-073.md`.
 
 
+
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
       ⟨`T-219`⟩
       every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
@@ -472,6 +470,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -504,6 +503,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       design question above — stays open for Wyatt; it is now in `BLOCKED ON WYATT` as `qid:t143-eov-
       phone-scroll` with a marked recommendation. Full account:
       `.planning/wyclau/PREDICTION-20260904T1111Z-T143-T023.md`; verdicts: CEO Reviews 214-215.
+
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -593,8 +593,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ✅ RE-MEASURED ON THE CURRENT BUILD — the 2026-09-06 sweep above ran on `2026.09.04.2`, the
       tree's own current stamp, so the stale-candidate flag that used to sit here (measured on
       `2026.09.01.7`) is resolved; this evidence describes the live game.
-
-
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
@@ -696,6 +694,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
+
+
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -764,7 +764,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   him in `## BLOCKED ON WYATT` (`qid:t142-recipe-choice-captains-bar`) with a marked
   recommendation and the posed picture as evidence, rather than guessed at.**
 
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -828,6 +827,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
       No game code touched — this is triage only. `npm test` not re-run (no code changed).
       Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
+
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -862,6 +863,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
+
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -934,7 +936,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   project's record says does not survive.)* **Size: teach `close_item.mjs` to take a ruling by its
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
-
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -947,7 +948,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
-
 - [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
       ⟨`T-257`⟩
   filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
@@ -1016,6 +1016,30 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
   that should not be reachable in a real game at all, before treating this as a layout fix.
 
+- [ ] **`deploy:staging` can print an rsync error and still report success** — reported by the
+      ⟨`T-266`⟩
+      SFX session 2026-09-06, and the MECHANISM IS VERIFIED FROM SOURCE while the EXIT CODE IS NOT.
+      **Verified:** `scripts/deploy-staging.sh:156` excludes `--exclude=.git/` — **with a trailing
+      slash, which in rsync matches a DIRECTORY only.** In the main checkout `.git` is a directory,
+      so it is excluded and every deploy is fine. **In a worktree `.git` is a FILE**, so it is not
+      matched, gets synced, and rsync tries to replace the destination's `.git` directory with a
+      file: `rsync: error: .git: unlinkat: Directory not empty`.
+      **NOT verified, and named rather than assumed:** its claim that the script then *"exits 0"*.
+      `set -euo pipefail` is on line 33 and should abort on rsync's non-zero. Reproducing needs a
+      worktree, and worktrees are retired here (`CLAUDE.md` §3), so nobody re-created it. **If that
+      half is true it is the bigger half by far** — a deploy that prints an error, publishes
+      nothing, and hands back success is a gate lying about its own outcome, and staging then
+      silently keeps serving the previous build. The SFX session says it caught it only by curling
+      the stamp off the wire afterwards.
+      **The one-character candidate fix, NOT applied:** `--exclude=.git` without the slash matches
+      both a file and a directory. It is strictly safer than what is there — **and this is the
+      script that protects `CNAME`, the file that can take the live game down (rule 14), so it is
+      not a change to make casually or unasked.** `scripts/qa/deploy_rsync_paths_check.mjs` is the
+      gate that guards this script's path handling and would need a case added.
+      ⚠ **Whoever takes it: settle the exit code FIRST, because it decides how big this is.** A
+      wrong-exclude that fails loudly is a nuisance; one that fails silently is the failure class
+      this project keeps paying for. Sized SMALL, tooling not game code.
+
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
       ⟨`T-245`⟩
@@ -1036,6 +1060,23 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **Sizing: SMALL-to-MEDIUM — one call site plus a gate that renders a Chart with an untagged
       row and asserts the page still offers it. What a player sees: nothing. What HE sees: his own
       new ideas can be moved to the top, which today they cannot.**
+
+- [ ] **Nothing allocates CEO review numbers, and ten of them now name more than one verdict** —
+      ⟨`T-267`⟩
+      reported by the SFX session and **measured here, where it turned out to be worse than
+      reported**. It flagged `CEO Review 227` used three times. Counting the file: **227 ×3, and
+      31, 38, 73, 77, 78, 79, 80, 81 and 107 each ×2** — ten collisions across 215 recorded reviews.
+      **Why it bites rather than being untidy:** `scripts/wyclau/close_item.mjs:214` REFUSES a close
+      that cites an ambiguous number, in its own words — *"pick a number that names exactly one
+      verdict… a close that cites an ambiguous number is a close nobody can check later."* It
+      already refused one of the SFX session's closes today for exactly this.
+      **Cause: nothing hands out the numbers.** Every session reads the file, picks what looks like
+      the next one, and three sessions running the same afternoon pick the same one. Rule 9's shape
+      — a quantity a human maintains by eye, in a file several sessions append to at once.
+      **Checked, so nobody has to re-check it:** `CEO Review 229` (the frozen-Glass review) is
+      unique, so no close of this session's is at risk. The SFX session renumbered its own to 232.
+      Sized SMALL, tooling not game code. The durable fix is allocation at append time, not a
+      renumbering pass — a renumber done by hand today collides again tomorrow.
 
 - [ ] **NOTHING AUTOMATIC GUARDS THE TRADE-CIRCLE FIX, AND `npm test` IS THE WRONG HOME FOR IT —
       filed 2026-09-03T2035Z off CEO 184's finding 3, whose diagnosis is right and whose remedy is
