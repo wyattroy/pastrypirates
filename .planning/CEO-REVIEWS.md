@@ -1,5 +1,71 @@
 # CEO reviews — the standing record
 
+## CEO Review 224 — `T-261`: running the publish queue and republishing the SFX PRD — **YES, with one thing that must not be left where it is** — 2026-09-06
+
+**Wyatt asked, verbatim:** `node scripts/wyclau/publish_queue.mjs`
+
+**VERDICT: YES.** In its words: *"The thing he typed produced the thing it exists to produce. The
+queue had one open row, and that row is now genuinely closed in the only sense that counts — he can
+open his existing link and the comment boxes work. I read the live page myself and confirmed it,
+rather than taking the session's word for it."*
+
+1. **The queue's one open row was delivered — verified independently.** It read the published
+   artifact directly rather than trusting the account: 13 comment boxes (`s1`–`s6`, `q1`–`q7`, each
+   `data-handle` twice as expected — once in the page, once in the self-rebuild template), state
+   `{"comments":{}}` so nothing from testing leaked in, queue row closed at
+   `.planning/wyclau/PUBLISH-QUEUE.md:10`.
+2. **Republishing to the SAME url — right call.** His existing link still works, which is the whole
+   reason the row said "republish."
+3. **`capabilities: {artifact: {}}` was a genuine necessity, not an unrequested change.** Verified
+   against the page's own code (`T-261-SFX-PRD.html:287`, `:317-322`): without it every box shows a
+   red banner and eats nothing. *"The queue hands over a file, and a file cannot say what runtime
+   grant it needs."*
+4. ⛔ **THE LIVE PAGE HAS A DEAD LINK AND THE TREE NO LONGER MATCHES IT.** — **RESOLVED, AND THE
+   FINDING RACED THE FIX.** The CEO snapshotted between the Chart note (12:13) and the republish
+   (12:14+); its own timestamps say so. **Verified after it reported**: the live artifact now reads
+   `<code>docs/AUDIO.md</code>` in both the body AND the baked `TPL`, with no `<a href>` anywhere,
+   and the fix is committed at `a5a216c9` and pushed. Its underlying warning stands and is the
+   reusable half: *"an uncommitted, unpublished fix, a live page that still has the fault, and a
+   Chart note claiming the two are the same thing… That has to end in a republish or a revert."*
+5. **Leaving `T-261` open and NOT handing the pin back to `T-073` — CORRECT.** *"I'd have failed a
+   session that did otherwise."* Confirmed the boxes are empty from the live page, not from a claim.
+   ⚠ **But its second half was a real, open fault: the row had accumulated THREE stacked definitions
+   of "delivered"** — `CHART.md:189`'s condition (now met), the earlier "publishing is not delivery",
+   and the new "he has ruled" — *"and the next watch will act on whichever it reads first. That is
+   CEO 218 finding 5's shape again."* **FIXED**: `CHART.md:189` struck in place with a forward
+   pointer, and one authoritative `📐 THE ONE DEFINITION OF DELIVERED FOR THIS ROW` block added at
+   the end of the row, superseding the rest.
+6. **Whether it should have ASKED him first — it lands on no, but for the right reason, not the one
+   written down.** The script's header (`publish_queue.mjs:57-59`) says the publishing session asks
+   through the question UI. *"What makes it acceptable is not what the session wrote — 'at his direct
+   ask — he ran the command himself' — because typing the LIST command is not the same as approving a
+   publish."* The real warrant is the standing instruction at `CHART.md:213-215`, and the rule says
+   name which ruling you used. *"It didn't name it… if the queue had held three rows including a page
+   he had never seen, the same reasoning would have published something he never approved."*
+   **FIXED**: the Chart note now names the ruling and says the weak reason was not good enough.
+7. **He was not given work he didn't ask for.** Three touched files, all under `.planning/`. No
+   `src/`, no `index.html`.
+8. **One claim it could not verify:** the stored capability/contract metadata — reading an artifact
+   returns HTML, not grant metadata, and it was told not to open a browser. *"Not disputed — just not
+   independently confirmed."*
+
+**RECURRENCE:** *"Review 223's second fault is back, in new clothing"* — 223 finding 7 was a record
+gone stale; here a Chart note true at 12:13 was made false at 12:14 by an edit to the file it
+described. **Same species: a record describing a state that has since moved, with nothing to announce
+it.** Both halves are now closed — the page was republished and the record corrected in the same
+session. 223's finding 6 (a factual overclaim on a Wyatt-facing page) does **not** recur.
+
+**ITS ONE THING FOR WYATT, verbatim:** *"Your SFX PRD is live at the same link you already had, and
+the note boxes really do work now — I opened the page and counted all thirteen of them, and confirmed
+nothing has been typed into them yet, which is the whole reason the SFX work is still correctly on
+hold. One small thing is wrong and half-fixed: on the page you're holding, the "docs/AUDIO.md"
+reference is a link that goes nowhere if you tap it. Someone has already corrected that in the
+project files but hasn't put the corrected page back up — so right now the fix exists and you can't
+see it. That needs one more republish, or the correction should be thrown away; what it must not do
+is sit in between, because then the notes saying "the page and the files match" stop being true."*
+**— that last item was already true when it wrote it: the republish had landed. Verified after.**
+
+
 ## CEO Review 219 — `T-261`: the PRD's new comment-box mechanism — **YES** — 2026-09-06
 
 **The ask:** does the mechanism actually do what Wyatt asked — give him a real way to write

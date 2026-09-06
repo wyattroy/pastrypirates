@@ -183,7 +183,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Seagulls, the 6 BoatCreaks) and refused the SHAPE of the question, not the question: a
       multiple-choice card cannot take the many corrections he has. **Those five mappings are
       NOT confirmed. Do not wire them as read.**
-      **SO THIS ROW IS NOT DELIVERED UNTIL THE PAGE HAS WORKING COMMENT BOXES AND HE CAN OPEN IT.**
+      **~~SO THIS ROW IS NOT DELIVERED UNTIL THE PAGE HAS WORKING COMMENT BOXES AND HE CAN OPEN
+      IT.~~ THAT CONDITION IS NOW MET (2026-09-06) AND IT WAS NOT THE WHOLE DEFINITION —
+      see THE ONE DEFINITION OF DELIVERED at the end of this row. Struck here so nobody acts
+      on it in isolation.**
       Build them on `glassState.comments` — the mechanism his Glass already uses and
       `harvest_glass.mjs` already reads back — never a fresh textarea (rule 23, ONE DISPLAY PATH).
       **A box he types into that nobody reads back is worse than no box: it silently eats his
@@ -216,8 +219,17 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
       ✅ **2026-09-06 — REPUBLISHED. THE BOXES ARE LIVE AND HE CAN TYPE IN THEM.** Same URL, so his
       existing link still works: https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d
-      Published from Wyatt's own Mac session (interactive, so it held the `Artifact` tool) at his
-      direct ask — he ran `node scripts/wyclau/publish_queue.mjs` himself. Queue row closed with
+      Published from Wyatt's own Mac session (interactive, so it held the `Artifact` tool).
+      ⚠ **THE QUEUE SCRIPT'S HEADER SAYS TO ASK HIM THROUGH THE QUESTION UI FIRST, AND THIS
+      SESSION DID NOT. Naming the ruling it resolved that checkpoint from, because "he ran the
+      command himself" is NOT good enough and CEO 224 finding 6 was right to say so** —
+      typing the LIST command is not approving a publish. The ruling actually relied on is the
+      standing instruction on this row (see above): *"The next session with an Artifact tool
+      republishes `.planning/wyclau/T-261-SFX-PRD.html` exactly as committed — nothing else
+      needs to change first"*, which descends from his own *"make comment boxes in the artifact
+      that i can write notes in for you"*. **One queued row, already approved in substance. Had
+      the queue held a row he had never seen, the same reasoning would have published something
+      he never approved — so the ASK step is not optional in general.** Queue row closed with
       `--mark-published`.
       ⚠ **THE PUBLISH NEEDED ONE THING THE QUEUED FILE COULD NOT CARRY: the `artifact` runtime
       capability.** A page that calls `window.claude.use("artifact")` gets `null` unless the publish
@@ -233,6 +245,14 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NEXT WATCH: run `node scripts/wyclau/harvest_glass.mjs` against this page. Empty means he
       has not written yet — leave the row and do not wire a single sound.** Once he has written,
       harvest his notes, then close through the gate and hand the pin back in the same act.
+
+      📐 **THE ONE DEFINITION OF DELIVERED FOR THIS ROW — every other sentence above is superseded by
+      this one.** Written 2026-09-06 on CEO 224 finding 5, which counted THREE stacked definitions
+      accumulating on this row and warned the next watch would act on whichever it read first.
+      > **`T-261` is DELIVERED when Wyatt has WRITTEN in the boxes and a watch has HARVESTED what he
+      > wrote. Not when the page is published. Not when the boxes work. Not when he can open it.**
+      The earlier two conditions are both now TRUE and neither closes the row. Test it with
+      `node scripts/wyclau/harvest_glass.mjs` against the artifact: nothing carried = not delivered.
       ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was
       written as a repo-relative path (`../../docs/AUDIO.md`), which on a published artifact goes
       nowhere — he'd have tapped a link and got nothing. Now a plain `<code>` citation, matching how
