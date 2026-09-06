@@ -885,14 +885,36 @@ Rule 24 stands on opening that file and believing it. Fixed by `--report=` plus 
   and whether it may change game code at all. A handoff that assumes it is the only session is the
   bug this rule exists to stop.
 
-**The only working directory is `/Users/wyattroy/Documents/Projects/pastrypirates`.** `.planning/` is
-a tracked directory, so it is **branch-scoped**: a worktree on a stale branch reports an older
-project, with no error and no warning. One did exactly that, reporting "0 of 5 phases, nothing
-started" when four of five had shipped.
+> ### ⚠ HE WORKS ON **TWO MACHINES**, AND THIS PARAGRAPH USED TO NAME ONE OF THEM AS "THE ONLY" ONE
+>
+> It read: ***"The only working directory is `/Users/wyattroy/Documents/Projects/pastrypirates`"***
+> — **a Mac path, declared as the only one, in the file every session loads** — while the Bell, the
+> Watch and **42 of the 49 sea trials on record** run on **Windows**, at a different path entirely.
+> That is the home-rooted-path fault this same file already documents in §5, sitting in §3 unnoticed.
+>
+> | machine | path | what runs there |
+> |---|---|---|
+> | **`Wy-Blade`** (Windows) | `C:\Users\wyatt\Projects\pastrypirates` | **the Bell and the Watch relay**; 42 sea trials |
+> | **`Wyatts-MacBook-Air.local`** | `/Users/wyattroy/Documents/Projects/pastrypirates` | Wyatt's own sessions; 1 sea trial |
+> | cloud containers | varies | 6 sea trials |
+>
+> **NEVER `cd` TO A HARDCODED PATH — every way into the Door already starts in the repo root, and a
+> failed `cd` short-circuits the `&&` chain so the sync silently does nothing.** Ask the repo where
+> it is instead; this works on every machine:
+>
+> ```bash
+> git rev-parse --show-toplevel
+> ```
+>
+> **AND WHICH MACHINE HE IS SITTING AT IS NOT WHICH MACHINE YOU ARE RUNNING ON.** On 2026-09-06 he
+> was at the Mac while this session ran on the Blade. **Do not infer his device from yours** — say
+> which machine you are on when it matters, and let him tell you where he is (rule 4).
 
-```bash
-cd /Users/wyattroy/Documents/Projects/pastrypirates && git rev-parse --show-toplevel
-```
+**Two clones of one repo means two checkouts on one branch — §3's whole subject.** `.planning/` is a
+tracked directory, so it is **branch-scoped**: a checkout on a stale branch reports an older project,
+with no error and no warning. One did exactly that, reporting "0 of 5 phases, nothing started" when
+four of five had shipped. **`git pull --rebase` before every commit, and claim the item in the ledger
+before editing it** — the other machine cannot see your `IN-HAND`, which is gitignored.
 
 ### Kill every headless Chrome and local server you start — before you reply
 
