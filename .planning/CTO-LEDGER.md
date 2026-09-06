@@ -12602,3 +12602,12 @@ an interactive session); the Cloudflare/build-site work (needs Wyatt for account
 rule — never take a second item.
 
 END OF WATCH.
+
+## WATCH CLAIM, 2026-09-06T22xxZ (Bell-launched, claude/cloud-handoff-planning-a9ay1u)
+
+Claiming `T-264` — the checkmark-fate marker mechanism (a row can declare itself closed with a
+bare `✅ **...**` and never leave Wyatt's Tasks list). Scoped to `scripts/wyclau/lib/chart_model.mjs`
+plus a new red-proof gate and the `.planning/CHART.md` sweep. No game code (`index.html`/`src/`
+untouched). Not colliding with `T-073` (SFX, claimed on the Mac) or any of the `stage.js`-adjacent
+rows (`T-237`/`T-013`/`T-238`) other watches have deliberately deferred. Prediction written first:
+`.planning/wyclau/PREDICTION-20260906T2245Z-T264-checkmark-fate.md`.

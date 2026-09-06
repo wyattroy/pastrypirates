@@ -17138,3 +17138,60 @@ prompt once).
 
 **Not this watch's to build:** the underlying capability question (should an unattended watch ever
 be grantable that permission) is his call, not a watch's — noted, not acted on.
+
+## CEO Review 234 — T-264, the checkmark-fate marker mechanism — 2026-09-06
+
+**The ask:** CEO Review 230 (above) found T-243 was already closed but still ranking as open work,
+built a two-character fix for two OTHER rows, and deliberately left T-243 and the general mechanism
+as follow-up — naming the exact trap in the open: a bare `✅ **...**` regex would wrongly close
+`T-073` (rank 1, DO NOW) because its own sub-note reads `✅ **THE GATE IS CLEAR — `T-261`
+CLOSED...**`, about a DIFFERENT ticket. That follow-up was filed as Chart row `T-264`.
+
+### VERDICT: YES
+
+Fresh CEO (general-purpose agent, independent, no shared context with this watch): read the T-264
+row, the prediction file (`.planning/wyclau/PREDICTION-20260906T2245Z-T264-checkmark-fate.md`), the
+diff, and the new gate; re-ran everything rather than trusting the prose.
+
+Confirmed `stateOf()` (`scripts/wyclau/lib/chart_model.mjs`) now pools arrow AND checkmark
+candidates, sorts by position in the row's raw text, and filters any checkmark whose captured text
+quotes a different `T-nnn` handle. Ran the new gate's 6 assertions directly, including the T-073
+trap string verbatim from T-264's own row text — it correctly stays non-finished. Reconstructed the
+pre-fix `stateOf()` from the diff and replayed it against all 6 fixtures independently: **3 of 6
+failed before the fix** (cases 1, 3, and 6 — the bare-checkmark case, the multi-marker-order case,
+and the stale-arrow-vs-earlier-checkmark case), all 6 pass after. Re-ran the live-file scan
+(`scripts/wyclau/_t264_scan.mjs`, 44 IDEA INBOX rows) and `chartkeeper.mjs --rank` independently:
+header "68 tasks" → "67 tasks", `T-243` absent from the ranked list, no other row's classification
+changed. Confirmed `chart_model_agrees_with_glass_check.mjs` and `glass_shows_scheduled_ideas_check.mjs`
+(the two existing gates whose fixtures could plausibly interact with this change) both still pass,
+and `npm test` is 143/143 green including the new `chart_own_verdict_check.mjs`. Confirmed
+`index.html`/`src/` genuinely untouched (`git diff --name-only`) and judged the COSMETIC gear
+override reasonable given `gear.mjs` flags any `package.json` diff FULL regardless of content
+(a known blind spot, filed separately as `T-205`).
+
+**The first design was wrong, and the CEO verified that account rather than taking it on trust.**
+An initial "any arrow anywhere in the block beats any checkmark" implementation picked a STALE,
+superseded `→ **NOT YET FATED...**` note buried mid-block over T-243's own real close sitting
+earlier in the same block. Case 6 in the gate is what forced the earliest-text-position design that
+shipped; the CEO independently reconstructed and re-ran the rejected first version to confirm this
+account was true rather than narrative color.
+
+**Two bookkeeping defects found and fixed before this closed, not after:** (1) `package.json`'s new
+`_ceiling_raise_142` entry originally claimed "2 of 6 assertions failed before the fix" — the CEO's
+own independent replay measured 3 of 6, and the entry (renumbered `_ceiling_raise_143` per finding 2
+below) now says so correctly. (2) The new ceiling-raise key collided with an already-existing
+`_ceiling_raise_142` key (used by `site_build_check.mjs`'s own raise, 141→142) — JSON's last-key-wins
+rule silently shadowed the T-264 entry. Renamed to `_ceiling_raise_143`, matching the actual raise
+(142→143). Neither defect affected the shipped fix's correctness; both are now corrected in the
+record this project is strictest about keeping honest.
+
+**Gear: NONE / COSMETIC override.** `scripts/wyclau/lib/chart_model.mjs`, a new gate
+(`scripts/qa/chart_own_verdict_check.mjs`), `package.json` (test chain + gate count/ceiling
+bookkeeping), plus the prediction file and a scratch scan script (`scripts/wyclau/_t264_scan.mjs`,
+kept committed per house convention for underscore-prefixed one-off measurement scripts). No
+`index.html`/`src/` diff. `npm test`: 143/143 green.
+
+**Its one thing for Wyatt:** the mechanism that let already-closed work keep out-ranking real open
+bugs on your Tasks list — the exact complaint behind CEO Review 230 — is now general rather than
+patched row-by-row, and it was red-proofed against the specific trap case your own SFX row would
+have hit if a lazier fix had shipped instead.
