@@ -12524,3 +12524,5 @@ account/DNS).
 interactive session or Wyatt can supply).** Ending the turn here, per the Door's own rule.
 
 END OF WATCH.
+
+- 2026-09-06T19:07:04Z · close_item: INBOX-20260903T182856Z · CEO 233 · no game diff — already shipped 2026-09-03, commit 6f526772 (never marked DONE) -- verified fresh, no later regression report · no stated solution

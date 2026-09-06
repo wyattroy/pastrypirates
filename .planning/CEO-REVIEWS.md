@@ -1,5 +1,38 @@
 # CEO reviews — the standing record
 
+## CEO Review 233 — `INBOX-20260903T182856Z`: his mobile move-to-top button was already shipped — **YES**, closing the stale label — 2026-09-06
+
+**What happened, in one line:** Wyatt pinned DO NOW on the Glass, 2026-09-03T18:28:56Z: *"Def to
+move doesn't work on mobile. New idea: add a 'move to top' button to the right of each item in the
+list. I click it once, it puts it at the top of the list."* The button was built about 14 minutes
+later, commit `6f526772`, and never marked DONE — the INBOX status line still read `OPEN — PINNED...
+take this before anything ranked` three days later, ranking it above real open work every time a
+watch orients.
+
+**Fix, verified not assumed:** `scripts/wyclau/glass.mjs` (lines ~1150-1158, 1406, 1979-1994) has a
+`.totop` "▲ top" button on every row: `position:absolute` (always rendered, not hover-gated for
+visibility — only its color shifts on `:hover`), sized `min-height:32px`/`min-width:44px` with
+`touch-action:manipulation`, wired via a plain `click` listener plus a `pointerdown` that only calls
+`stopPropagation()` (so the row underneath doesn't also expand on the same tap). No mouse-only event
+(`dragstart`/`mousedown`) gates it. The commit's own measurement, on a real emulated phone
+(390×844, touch enabled, real `touchStart`/`touchEnd` at the button — not `element.click()`): 27
+buttons found, one tap moved the last of 27 rows to the top, one publish call, survived reload,
+confirmation text shown, no errors, no sideways scroll, button did not cover row text. Before/after
+screenshots exist on disk: `.planning/posed/totop-phone-{before,after}.png` (~3.5MB each, non-trivial
+binary content).
+
+**Independently verified, fresh context, general-purpose agent:** confirmed the commit diff, read
+the live code at the cited lines, confirmed the two screenshot files exist and match the commit's
+`--stat` sizes, and searched `.planning/CHART.md`, `.planning/wyclau/INBOX.md`, and
+`.planning/CEO-REVIEWS.md` for any later report that this button broke, was reverted, or drew a
+repeat complaint — none found. `.planning/CTO-LEDGER.md:10328-10332` (2026-09-04, a different watch)
+already independently found the same thing — *"already SHIPPED... their INBOX status lines just
+never got updated to DONE"* — and explicitly declined to touch the label itself.
+
+**One sentence for Wyatt:** the move-to-top button you asked for on 2026-09-03 was built the same
+day and has drawn no complaint since — this only closes the stale "OPEN, take first" label that's
+been sitting on top of your task list for three days pointing at work already done.
+
 ## CEO Review 229 — `T-219`: the stale-stamp cache-reuse defect was already fixed under sibling handle `T-009` — **YES**, split honored, safe to close — 2026-09-06
 
 **What happened, in one line:** `T-219`'s Chart row (`.planning/CHART.md`) described the sea trial's

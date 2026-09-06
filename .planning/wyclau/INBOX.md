@@ -2179,7 +2179,7 @@ status: STANDING — never closed, applied every time he uses the word.
 ## INBOX-20260903T182856Z — ⚑ HE PRESSED DO NOW — Def to move doesn’t work on mobile. New idea: add a “move to top” button to the right of e
 > Def to move doesn’t work on mobile. New idea: add a “move to top” button to the right of each item in the list. I click it once, it puts it at the top of the list.
 solution: none stated
-status: OPEN — PINNED by him on the Glass; take this before anything ranked
+status: DONE 2026-09-06 — CEO 233, no game diff — already shipped 2026-09-03, commit 6f526772 (never marked DONE) -- verified fresh, no later regression report
 
 ## INBOX-20260903T2010Z — every Chart row must be moveable; he chose: give every row a real tag
 > "it looks like not all the Glass Chart rows have buttons next to them that allow them to be moved
