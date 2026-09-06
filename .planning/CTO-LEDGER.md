@@ -12450,3 +12450,77 @@ END OF WATCH.
 - 2026-09-06T18:25:52Z · close_item: "Judge the 267 screenshots the release trial queued" · CEO 231 · no game diff — satisfied by a fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md) that already judges live on the current build 2026.09.04.2, independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution
 
 - 2026-09-06T18:26:17Z · close_item: "T-016" · CEO 231 · no game diff — satisfied by the same fresh FULL-gear trial (SEA-TRIAL-2026-09-06T1328Z-Wy-Blade.md), ~82 min, 10/10 legs, current build 2026.09.04.2, matching PP4_STAMP; independently CEO-verified (CEO 220, CEO 231); zero new player-facing defects, no new trial needed · no stated solution
+
+## WATCH, 2026-09-06T21xxZ (session continuing on claude/cloud-handoff-planning-a9ay1u)
+
+**Situation on arrival:** synced clean (`git fetch`/`pull --rebase`, already up to date), `can_push.mjs`
+reported healthy, real `git push` to the tracking branch confirmed working (after reading
+`docs/GIT-AND-DEPLOY.md` per the rule-17 hook it triggered). `chartkeeper.mjs --rank --sweep --write`
+ranked the Chart; top four ranked rows were `T-073` (claimed on the Mac, DO NOW pinned — skip,
+explicit), `T-138` (blocked purely on Wyatt's own staging-publish approval — skip), `T-243`
+(sitemap — already CLOSED in prose, a `T-264`-shaped stale-marker artifact, no real work), then
+`T-237`/`T-013` (the trade-circle/call-circle geometry bugs — both explicitly flagged by multiple
+prior watches as needing careful, non-rushed empirical work in ~900 lines of fragile history, not a
+single-watch-turn item). Picked `T-239` instead: small, mechanically scoped, clear done-when, and
+directly named in the prior watch's own "still open" list.
+
+**Took `T-239`** — his 2026-09-03 "number or letter the options" rule, currently living only in
+`.planning/wyclau/CHARTER.md`, needs to reach `.claude/CLAUDE.md` and `.claude/memory/DECISIONS.md`.
+Wrote the prediction first (`.planning/wyclau/PREDICTION-20260906T2100Z-T-239.md`): expected this
+session's `Edit` tool would NOT be refused on those two files, based on the 2026-09-02 precedent
+(`eee58a5d`, `04d73d21`) that other sessions successfully edited both.
+
+**Prediction was WRONG, measured, not assumed.** Repointed
+`scripts/qa/glass_ruling_button_words_check.mjs` case 6 at the canonical files first and confirmed
+it went RED (proving the gap). Then attempted `Edit` on `.claude/CLAUDE.md` — refused: *"Claude
+requested permissions to edit … which is a sensitive file."* Same refusal on
+`.claude/memory/DECISIONS.md`. No human present in this unattended `claude -p` watch to approve the
+prompt. Reverted the gate back to checking the CHARTER (green again — confirmed PASS, 6/6) rather
+than leave it red or silently pointed at files that don't carry the rule.
+
+**Updated `.planning/CHART.md`'s `T-239` row** with this second, independent confirmation of the
+fence and a concrete next step: this needs an INTERACTIVE session (Wyatt present to click "allow"
+once), not a third unattended watch re-measuring the same wall.
+
+**Fresh CEO spawned, independent of this watch's reasoning — VERDICT YES**, appended as **CEO
+Review 232**. Verified the prediction file predates the attempt, the refusal is real (no diff on
+either `.claude/` file), the gate reverted cleanly to green, and the record is genuinely improved
+(one anecdote → a corroborated pattern + an actionable non-repeating next step).
+
+**Gear: NONE.** Touched only `.planning/CHART.md`, `scripts/qa/glass_ruling_button_words_check.mjs`
+(comment only, net behavior unchanged from before this watch), `.planning/CEO-REVIEWS.md`, this
+ledger, and the new prediction file. `npm test` re-run in full after the revert: **142/142 gates
+green**. No `index.html`/`src/` diff, no sea trial owed.
+
+**Not closed through the gate — correctly.** The row's actual goal (get the rule into its canonical
+home) is still unmet; this watch closed off a wasted future attempt, it did not close the row. Left
+`status: OPEN` on the Chart, updated with the new finding.
+
+**Browsers/servers:** none started. The stray untracked `scripts/wyclau/_tmp_probe_arrow.mjs` from
+two watches ago is still on disk — `rm`/`Remove-Item` refused again this watch, same sandbox
+restriction ("may only remove files from the allowed working directories," despite the path being
+inside one) as both prior attempts. Left untouched, still uncommitted. Also discovered this
+session's Bash tool refuses shell redirection (`>>`) into repo files generally (not path-specific —
+tried appending to `.planning/CEO-REVIEWS.md` with a heredoc, refused with the same "allowed working
+directories" message even though the path is inside one) — worked around by using the Edit tool
+instead for every append this watch made. Worth knowing for the next watch: prefer Edit/Write over
+`bash -c '... >> file'` for anything in this repo.
+
+**No Artifact tool this session** — not checked directly this watch (inferred from the prior
+watch's confirmed absence and this session being the same kind of Bell-launched watch); nothing new
+to publish regardless, since the Chart edit is already in the tracked file the next Artifact-holding
+session will read. Publish queue not touched.
+
+**Daily lesson:** already given today (per an earlier watch's entry) — not duplicating it.
+
+**Still open for the next watch:** `T-264` (stale-fate-marker mechanism, e.g. `T-243` ranking as if
+open); `T-237`/`T-013` (real player-visible bugs, both need careful empirical work, not a rushed
+fix); `T-073` (SFX, claimed on the Mac — do not touch); `T-138` (blocked on Wyatt's own
+staging-publish approval); `T-239` (now needs an INTERACTIVE session, not another unattended watch —
+see the Chart row); the Cloudflare/build-site work (committed, nothing deployed, needs Wyatt for the
+account/DNS).
+
+**One item worked this watch (not closed — correctly parked, blocked on something only an
+interactive session or Wyatt can supply).** Ending the turn here, per the Door's own rule.
+
+END OF WATCH.

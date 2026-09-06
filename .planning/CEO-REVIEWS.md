@@ -17074,3 +17074,34 @@ instrument quirk rather than inflated into a bug.
 **One sentence Wyatt should read first:** both rows can close — a real, current-build, fully-judged
 trial already exists and was independently checked to have zero new player-facing bugs, so
 re-running another 90-minute trial today would only repeat work already done.
+
+## CEO Review 232 — T-239 re-attempt, permission fence re-confirmed — 2026-09-06
+
+**Ask verified:** did this watch's re-attempt at moving his "number or letter the options" rule
+into `.claude/CLAUDE.md` and `.claude/memory/DECISIONS.md` honestly report a failed attempt, and
+is the record now better than before it?
+
+**VERDICT: YES.**
+
+Fresh CEO (general-purpose agent, independent): confirmed the prediction file
+(`.planning/wyclau/PREDICTION-20260906T2100Z-T-239.md`) was written before the Edit attempts and
+states a falsifiable expectation; confirmed `Edit` was genuinely refused on both `.claude/CLAUDE.md`
+and `.claude/memory/DECISIONS.md` (`git status --short .claude/` and `git diff --stat` against both
+files are empty — no trace of a successful edit); ran
+`node scripts/qa/glass_ruling_button_words_check.mjs` independently and got PASS (6/6); confirmed
+the gate's case 6 was reverted to check the CHARTER (its original, working home) rather than left
+red or silently repointed; confirmed the `.planning/CHART.md` T-239 row now records a second,
+independent confirmation of the fence and recommends routing the next attempt to an interactive
+(Advisor) session rather than a third unattended watch.
+
+**Gear: NONE.** `.planning/CHART.md` (one paragraph), `scripts/qa/glass_ruling_button_words_check.mjs`
+(a comment, reverted to green), and the new prediction file — no `index.html`/`src/` diff, no sea
+trial owed. `npm test` re-run in full: 142/142 gates green.
+
+**What this item is, honestly:** not a fix — a second measurement that turns one prior watch's
+anecdote into a corroborated, standing fence, and closes off a wasted third unattended attempt by
+naming the actual next step (an interactive session, with Wyatt present to approve the permission
+prompt once).
+
+**Not this watch's to build:** the underlying capability question (should an unattended watch ever
+be grantable that permission) is his call, not a watch's — noted, not acted on.

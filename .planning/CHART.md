@@ -527,6 +527,19 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       (`04d73d21`), and `04d73d21` is his *"always write to me in my local time"* rule, the exact
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
+      ⚠ **RE-MEASURED 2026-09-06T21xxZ ON A DIFFERENT WATCH, SAME RESULT — THIS IS NOW A CONFIRMED
+      STANDING FENCE, NOT A ONE-OFF.** Wrote the prediction first
+      (`.planning/wyclau/PREDICTION-20260906T2100Z-T-239.md`), expecting the fence NOT to recur
+      given the 2026-09-02 precedent — it recurred. Direct `Edit` calls on both
+      `.claude/CLAUDE.md` and `.claude/memory/DECISIONS.md` were refused with *"Claude requested
+      permissions to edit … which is a sensitive file"* — a permission prompt with no human
+      present to click allow, in an unattended `claude -p` watch. **Per this row's own prior
+      instruction, said so here rather than writing the rule anywhere else.** No `.claude/` file
+      was touched; the CHARTER copy stands as the working home, unchanged.
+      **WHAT THIS ROW ACTUALLY NEEDS NOW, since two separate unattended watches have both hit the
+      same wall: an interactive session (the Advisor, with Wyatt present to approve the
+      permission prompt once) — not another Bell-launched watch. A third unattended attempt would
+      just re-measure the same fence a third time.**
 
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
