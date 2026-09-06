@@ -1669,7 +1669,28 @@ session's mandate is harvest-and-publish only.**
 
 - **Wyatt, written on the Glass, 2026-09-02, 3:07 PM ET**: *"Fix sitemap.xml at the repo root of
       ⟨`T-098`⟩
-      ⚠ **THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW. The WORK IS DONE; only the tick went astray.** `close_item.mjs` ran its block from the last `- [ ]` to END OF FILE, so any `--item=` string below that row matched it and nothing else — the verdict and reason were stamped onto `T-137` instead. Found by watch c1 causing it a fourth time on purpose; fixed 2026-09-03T07:4xZ (block bounded at the next `## `, and a handle no row owns now REFUSES instead of guessing). **Re-close through the gate; do not redo the work.**
+      ✅ **CLOSED — this is a leftover duplicate copy, and the real work was done and closed long
+      ago. Corrected here 2026-09-06 rather than re-worked, CEO-verified.** This Chart-side prose
+      row is a second copy of the same ask his Advisor-side session filed as
+      `INBOX-20260902T190715Z` within minutes, on 2026-09-02 (documented above at line ~1595: "T-098
+      – T-104 ARE THE SAME SEVEN THINGS AS INBOX-20260902T1907* — WORK THEM FROM THE INBOX, the
+      INBOX copy is authoritative"). That INBOX entry has read `status: DONE 2026-09-02 — CEO 122,
+      no game diff ... his solution first: commit a13c365` since the day it was written —
+      `a13c3655` strips `<changefreq>`/`<priority>` and adds a `git`-derived `<lastmod>`, exactly
+      his two complaints below, RED-then-GREEN with a red-proof against a hand-typed date. This
+      watch re-verified it live rather than trusting the old record: `sitemap.xml` today (grown to
+      5 pages under the later, separate `T-243` ask) still carries no changefreq/priority, every
+      `<lastmod>` matches `git log -1 --format=%cs -- <page>` exactly, and
+      `node scripts/qa/sitemap_lastmod_check.mjs` PASSes. The stale warning immediately below —
+      about a close landing on `T-137` — describes a `close_item.mjs` bug fixed 2026-09-03; it is
+      no longer true of anything and is struck rather than acted on. The other two things his
+      fuller wording raises (a generator script, the Search Console reminder) are not dropped: both
+      live under the adjacent `T-102` row (line ~1650), already answered. Fresh CEO, YES: nothing
+      of his is being skipped by treating this as paperwork. No game code touched; no sea trial
+      owed (gear: NONE, a site-identity config file per docs/GIT-AND-DEPLOY.md §1, not the game).
+      ~~⚠ THIS ROW'S CLOSE LANDED ON A DIFFERENT ROW... Re-close through the gate; do not redo the
+      work.~~ (struck: describes a mechanism bug fixed 2026-09-03; nothing here still needs the
+      gate — the authoritative INBOX record is already closed.)
   playpastrypirates.com.
 
   Two problems, both verified 2026-09-02:
@@ -1689,9 +1710,9 @@ session's mandate is harvest-and-publish only.**
   Note: sitemap.xml is a site-identity file (docs/GIT-AND-DEPLOY.md §1). It must never be copied
   to the preview/staging repo. Don't touch scripts/deploy-preview.sh — just be aware.
 
-  Gear: COSMETIC. This is not game code."* → **NOT YET FATED — harvested verbatim, not
-  investigated. This session's mandate is harvest-and-publish only.** Reads as: a small, scoped
-  SEO fix to the live sitemap, self-contained and already speced by him.
+  Gear: COSMETIC. This is not game code."* → **CLOSED 2026-09-06** — see the annotation above; the
+  underlying ask was done and closed 2026-09-02 (CEO 122, commit a13c365), this row was the
+  never-updated duplicate copy.
 
 - **Wyatt, ruled on the Glass, 2026-09-02T17:06:59.448Z** (question: *"That black window you asked
       ⟨`T-096`⟩
