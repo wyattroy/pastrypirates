@@ -454,6 +454,15 @@ launch, so no amount of searching from inside a `-p` session will ever find one.
   [`.planning/wyclau/PUBLISH-QUEUE.md`](../.planning/wyclau/PUBLISH-QUEUE.md) and commit. A session
   that HAS the tool runs `node scripts/wyclau/publish_queue.mjs` and clears it.
 - **A page that is written is not a page he has.** The row closes when he can tap it (rule 27).
+- ⛔ **AND STAGING IS A PUBLISHING CHANNEL A HEADLESS SESSION *CAN* USE — proven 2026-09-06.** A
+  `--print` session wrote `two-machines.html`, ran `npm run deploy:staging`, and he had a permanent
+  tappable URL with no Artifact tool in the chain. **ONE-WAY (he reads it): staging. TWO-WAY (he
+  types into it): only a real artifact**, because his comments live in `glassState`.
+- ⛔ **DO NOT PROPOSE MAKING THE BELL LAUNCH AN INTERACTIVE WATCH.** He proposed it himself and it
+  was worked through and rejected — it would halt the relay (an interactive session never exits, so
+  the Bell never rings again), a session cannot close itself, and it turns `T-255`'s instant
+  permission refusal into a silent forever-hang. Full reasoning:
+  [`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../.planning/wyclau/GLASS-UPDATE-SESSION.md).
 
 ### Hand him a LINK he can tap. Never a file path.
 

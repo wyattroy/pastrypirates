@@ -450,3 +450,52 @@ interactive and is not. So the honest rule for him, in one line:
 **This is exactly why `PUBLISH-QUEUE.md` and `scripts/wyclau/publish_queue.mjs` exist**, and it is
 why the queue is the right design rather than a workaround: on any given day most sessions on this
 project structurally cannot publish, and the ones that can are hand-started by him.
+
+---
+
+## ⛔ CONSIDERED AND REJECTED 2026-09-06: "make the Bell start an INTERACTIVE watch"
+
+**Wyatt proposed it himself**, and it is the obvious idea once you know the launch mode is what
+decides publishing: *"should the Bell start an interactive session instead of headless? would that
+solve this problem? it would have to then archive the session after the watch; but this could solve
+it?"*
+
+**It would solve the publishing half and break three larger things.** Written down so it is not
+re-proposed every few weeks — the answer is no, and the reasons are the interesting part.
+
+**1. THE RELAY WOULD STOP AFTER ONE WATCH. This one is fatal.** `bell.ps1`'s whole liveness test is
+*"is a door-launched `claude.exe` alive right now?"* — the one question the OS answers truthfully,
+and the reason the watchdog's guessing stack was deleted rather than tuned. **A headless watch EXITS
+when its item is done; that exit is what tells the Bell to ring the next one.** An interactive
+session does not exit — it sits at a prompt. So the Bell would see it alive forever and never ring
+again.
+
+**And his own caveat — *"it would have to then archive the session after the watch"* — is the part
+that cannot be built.** A session cannot close itself: exiting is a UI command, the same class as
+`/remote-control`, which this project already measured as un-invokable from inside a session. So
+something OUTSIDE would have to decide the watch was finished and kill it — **which is the watchdog,
+rebuilt, the thing Wyatt's 2026-09-01 rulings deleted for guessing wrong in both directions.**
+
+**2. INTERACTIVE NEEDS A TERMINAL, AND THE BELL DELIBERATELY HAS NONE.** It launches with
+`-WindowStyle Hidden` and BOTH streams redirected to files (`watch-<stamp>.out/.err`) — that
+redirect exists because a watch once died at launch with its output going nowhere and left one
+indistinguishable symptom for three different faults. An interactive watch would need a real console
+window **popping up on his desktop every few minutes**, which is already an open complaint of his
+about the detached trial (`INBOX-20260901T1440Z`).
+
+**3. IT WOULD MAKE THE PERMISSION WALL WORSE, NOT BETTER.** `T-255` measured that an unattended
+watch is REFUSED instantly when it needs a first-time tool permission. Interactive would instead
+**raise a permission prompt and wait forever** with nobody there to answer it. A fast, legible
+failure becomes a silent hang — and a hung watch also never exits, which is problem 1 again.
+
+### WHAT TO DO INSTEAD, AND IT IS ALREADY PROVEN
+
+**STAGING IS A PUBLISHING CHANNEL THAT A HEADLESS SESSION CAN USE.** Demonstrated the same day: a
+`--print` session wrote `two-machines.html`, ran `npm run deploy:staging`, and he had a permanent
+tappable URL — https://staging.playpastrypirates.com/two-machines.html — with no Artifact tool
+anywhere in the chain. **Any watch can put a page in front of him this way.**
+
+⚠ **THE HONEST LIMIT, and it is why `T-261` still needs a real artifact:** staging works for pages he
+READS. It does not work for pages he WRITES INTO. His Glass comments and the PRD's comment boxes
+live in `glassState`, which only an artifact has. **One-way: staging. Two-way: artifact, hand-started
+session, publish queue.**
