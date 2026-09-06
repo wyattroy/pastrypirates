@@ -37,6 +37,31 @@ that mid-sea-trial and spent ten minutes trialling a tree with the sound files r
 
 ---
 
+## 0b. ⛔ STAGING IS NOT SHOWING THE SOUNDS (as of 2026-09-06 evening)
+
+Staging serves **`2026.09.04.2-staging@5c6eabb3`** — the cloud-handoff release candidate Wyatt
+asked to play before deciding whether to ship it to `main` (frozen since 27 August, 1,427 commits
+behind). **All three sound files 404 there — verified by curl, not assumed.**
+
+**Nothing is lost.** Publishing from `sep06-sfx-only` puts them straight back. **Ask him first** —
+staging is where he plays, and he is mid-decision on the release candidate.
+
+His playtest sheet now carries a STOP banner saying so, so he cannot open the link and test a
+build with no sounds in it.
+
+⭐ **PUBLISH FROM A CLONE, NOT THE SHARED CHECKOUT.** `deploy-staging.sh` derives `SRC` from the
+script's own location, so running it inside a clone publishes that clone: HEAD never moves, another
+session's uncommitted files are not swept in, and `.git` is a real directory so the trailing-slash
+`--exclude=.git/` bug cannot fire. **Both live sessions have now independently arrived at this;
+treat it as the pattern while more than one session shares the tree.**
+
+⚠ **AND `.planning/SEA-TRIAL.md` IS CURRENTLY LYING BY OMISSION** — it holds a 2-minute
+`NOTHING SAILED / COSMETIC` run from Wy-Blade at 19:36Z, which overwrote the authoritative
+82-minute FULL run from 13:28Z at the same build. Anyone opening the default file to answer *"did
+the trial run?"* now gets the cosmetic one. **This is CLAUDE.md §3's shared-filename hazard, not a
+cache.** It was not written by the SFX session — every trial here used `--report=` to its own path,
+which is the documented defence. **Write your reports to `--report=` too.**
+
 ## 1. HIS RULINGS — the authority, and none of it is re-askable
 
 **`.claude/memory/DECISIONS.md`, the `⟨T-261⟩` entries at the top.** His exact words are in
