@@ -96,6 +96,20 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 - [ ] **Add New SFX to the game** — his own asset request, re-surfaced on his direct ask.
       ⟨`T-073` · now: yes⟩
+      🔒 **CLAIMED — `T-073` IS IN HAND ON WYATT'S MAC, 2026-09-06 (session "SFX"). DO NOT TAKE IT.**
+      **A WATCH THAT WAKES AND READS THIS ROW AS ITS TOP ITEM MUST SKIP IT AND TAKE THE NEXT ONE.**
+      Wyatt asked directly — *"can you make sure that the Watch is not working on this SFX work
+      simultaneously"* — and he is right that the risk is real and was CREATED by the hand-back:
+      closing `T-261` pinned `T-073` DO NOW, which is exactly what a Bell-launched watch picks up.
+      ⚠ **`claim_item.mjs` WRITES `IN-HAND`, WHICH IS GITIGNORED — SO THE OTHER MACHINE CANNOT SEE
+      IT.** That is the whole hole in the coordination story (§3: "there is no lock across machines
+      and a lock file in git would lie"). **This git-tracked line is the claim the Blade can
+      actually read.** When the Mac session finishes or dies, this block is struck and the row is
+      free again.
+      **IN FLIGHT AS OF THIS LINE:** `sfx/battle-won.mp3` and `sfx/drumroll.mp3` added; `src/ui/audio.js`
+      (SFX_FILES, WIN_SOUND, DRUMROLL_SOUND, soundDurationMs, playDrumroll) and
+      `src/orchestrator.js` (the Drumroll flash) edited; `scripts/audio_mapping_test.js` extended.
+      **Touch none of those files.**
       ✅ **THE GATE IS CLEAR — `T-261` CLOSED 2026-09-06 (commit `826e26fd`, CEO 226 accepted the
       fix), AND THIS ROW'S OWN "GATED ON T-261" LINE WAS LEFT STANDING FOR HOURS AFTER THAT.**
       Corrected by this watch (2026-09-06, orientation pass) — the line above told every watch to
@@ -122,21 +136,32 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
          from a blank slate.
       5. **Coin flip is CLOSED. Do not touch it.** His code already guarantees a consistent length
          matching the shipped file; `PP_SFX_CoinFlip_Start`/`_End` are OUT OF SCOPE.
-      6. **The sword clash needs a file swap, not a code move.** The PRD's "this MOVES the cue"
-         framing was FALSE — `playBattleEngage()` already fires the clash at battle-call time, not
-         on resolve (`src/orchestrator.js:631`). Fetch Luis's latest (unclipped, by his own ruling)
-         clip and swap the file; do not touch the call site.
+      6. **The sword clash needs NOTHING — not a code move, and now not a file swap either.** The
+         PRD's "this MOVES the cue" framing was FALSE (`playBattleEngage()` already fires the clash
+         at battle-call time, `src/orchestrator.js:631`). ✅ **AND THE FILE SWAP IS ALSO A NO-OP,
+         MEASURED 2026-09-06: Luis's latest `PP_SFX_Battle.mp3` is SHA-256 IDENTICAL to the shipped
+         `sfx/battle-swords.mp3`.** There is no newer export; "use the latest clip available" IS
+         what is already in the game.
+         ⚖ **AND THE CLIPPING ARGUMENT IS RESOLVED — BOTH SIDES WERE RIGHT.** Measured with ffmpeg:
+         **sample peak −0.2 dBFS** (nothing at full scale, flat factor 0) and **true peak +0.2
+         dBFS** (inter-sample overshoot). Luis, mastering to sample peak, is correct that it is not
+         clipped; `docs/AUDIO.md`'s +0.2 true-peak figure is also correct. They measure different
+         things. And it is moot in play: `SFX_VOLUME` already attenuates this stem to 0.46 (≈−6.7
+         dB), so the overshoot never reaches the output. **Nobody needs to ask Luis for a re-export.**
       7. **The 3-phase sound button (Music+SFX → SFX-only → Mute → back, with a 2-minute
          no-immediate-restart) is a NEW FEATURE, not part of "wire Luis's files."** Its own
          consistency sweep (rule 8), its own place in the plan — do not fold it into this pass
          silently.
       8. **The ambient balance slider board (10-15 sliders + music preview) is explicitly ordered
          AFTER this wiring pass, his own ruling** — do not build it first.
-      **STILL UNMEASURED BEFORE ANY OF THIS CAN START: no audio bytes have been fetched into the
-      repo yet** (`.planning/wyclau/T-073-SFX-BRIEF.md` is the brief, not the delivery). Whether an
-      unattended watch's Drive tools will actually fetch content (rather than refuse a first-time
-      grant, as measured twice before under `T-255`) is unmeasured by this watch and is the next
-      practical question, not this row's prose.
+      ✅ **THE FETCH QUESTION IS ANSWERED AND WAS NEVER THE BLOCKER: ALL 27 OF LUIS'S FILES ARE
+      ALREADY ON WYATT'S MAC**, at `~/Downloads/Pastry Pirates SFX/`, and every one matches Drive's
+      byte count exactly (27/27, verified 2026-09-06). No Drive grant, no download, no `T-255`
+      permission risk — `cp` from that folder. `ffmpeg` is installed there too, for the WAV→MP3 and
+      the m4a music conversions his rulings call for.
+      ⚠ **THE MUSIC IS `.m4a`, NOT `.mp3`** — he called it "the short music mp3", but the three
+      tracks are m4a (3.4 MB / 22.5 MB / 42.8 MB). The 3.4 MB one he chose needs converting before
+      it can ship.
   **Wyatt, written on the Glass, 2026-09-02T05:12:07Z**: *"Add New SFX to the game -- they are all
   available here: https://drive.google.com/drive/folders/1-QPmngfYHbizxNNj7-SjNQVHoVJl1zlW?usp=share_link.
   You can see the spreadsheet with our plan for the SFX here:
