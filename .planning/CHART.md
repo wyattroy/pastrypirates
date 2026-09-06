@@ -293,91 +293,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
-- [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
-      ⟨`T-219`⟩
-      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
-      `pastrypirates-07` when its own trial finished in **one minute**:
-      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
-      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
-      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
-      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
-      change that does not happen to touch that one string is invisible to the cache and every leg
-      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
-      invariant it is breaking** — *"a result from a different build is a result about different
-      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
-      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
-      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
-      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
-      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
-      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
-      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
-      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
-      exact evasion Wyatt chose the words "sea trial" to make impossible.
-
-  ⚑ **MEASURED FURTHER 2026-09-04T03:5xZ BY A WATCH THAT DID NOT FIX THIS — the danger is real but
-  smaller/different than this row implies, and it needs its own careful pass, not a rushed one
-  layered on top of an already-fragile subsystem.** Traced `sea_trial.mjs:344`'s `sailedHere()`:
-  a resumed leg keeps the OLD run's `__runId`, and `RUN_ID` is `${STAMP}-${Date.now()}` (fresh per
-  process start), so a stale-cache resume can **never** be credited as sailed by a LATER run — the
-  "0 sailed, all NOT RUN" shape in the evidence above is the report correctly refusing to lie, not
-  a silent false-pass. **So this is not "an untested build gets reported as tested."** The actual
-  cost is narrower: the resume cache can make a trial spin uselessly (every leg RESUMED, nothing
-  re-driven, report says FAILED) until a human notices and bumps the stamp by hand.
-  ⚠ **A SEPARATE, DEEPER QUESTION SURFACED AND IS UNRESOLVED: does resumability across a container
-  recycle (the reason this cache exists at all — see the comment at `playtest_gate.mjs:526-538`)
-  survive its OWN `RUN_ID` being freshly generated on every process restart?** If the outer
-  supervisor restarts the whole `node scripts/sea_trial.mjs` process after a recycle, the new
-  process's `RUN_ID` cannot match the killed process's, so genuinely-just-captured legs from the
-  dying attempt could ALSO read as NOT RUN by the next attempt — the resiliency feature defeating
-  itself. Not traced end to end (would need `start_trial_detached.mjs`'s restart path read
-  carefully). **Filed here rather than guessed at; the content-hash fix this row proposes may not
-  even be the right fix once that's answered.** Full account:
-  `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
-  ✅ **RE-MEASURED 2026-09-06 — THE HEADLINE DEFECT IS FIXED AND SHIPPED; THE SEPARATE QUESTION
-  ABOVE IS SPLIT OUT TO ITS OWN ROW, NOT SILENTLY CLOSED WITH IT.** `git log -S gameTreeHash --
-  scripts/playtest_gate.mjs` shows the exact fix this row proposed already landed 2026-09-04
-  (`a56559da`, "derive the sea trial's leg-resume cache key from the tree, not a hand-typed
-  stamp (T-009/T-219)"): the leg-resume cache filename and stored record are now keyed on
-  `gameTreeHash()` — a content hash over every git-tracked file the game-code hook already calls
-  "the game" — not `PP4_STAMP` alone. `sea_trial.mjs` was further fixed (`1054eb52`) to print that
-  same hash beside `PP4_STAMP` at all five build-identity sites, so a stale number is visible on
-  the report itself. Both CEO-verified (Review 212 YES on the cache-key half, Review 213 YES
-  closing 212's one open half) under the sibling handle `T-009`, and confirmed still wired and
-  green this watch: `npm test` passing, including `leg_cache_tree_hash_check.mjs` and
-  `sea_trial_report_tree_hash_check.mjs` (both new gates named in those reviews).
-  **What this does NOT cover, and why closing here is honest rather than convenient:** the RUN_ID-
-  across-process-restart question two paragraphs up was never traced and is not touched by either
-  fix — `RUN_ID` is still `${STAMP}-${Date.now()}`, freshly generated every process start, in both
-  the pre- and post-fix code. It is real, narrower than this row's original headline (a labelling
-  artifact — a resumed leg's genuine result under-reports as "not sailed by this run", not a
-  silent stale-code lie), and unmeasured. Split out as its own row, `T-263`, immediately below,
-  so it is not lost when this row closes.
-
-- [ ] **DOES A SEA TRIAL'S RESUME CACHE SURVIVE ITS OWN SUPERVISOR RESTARTING THE WHOLE PROCESS,
-      ⟨`T-263`⟩
-  OR DOES THAT DEFEAT THE RESILIENCY IT EXISTS FOR? Split out of `T-219` 2026-09-06, so the fix
-  that closed the bigger defect there does not also bury this one.** `RUN_ID` is
-  `${STAMP}-${Date.now().toString(36)}` (`scripts/playtest_gate.mjs`), freshly generated on every
-  process start — untouched by the T-009/T-219 tree-hash fix, which changed the CACHE KEY (per-leg
-  result file naming) but not this RUN_ID. **The open question, traced this far and no further:**
-  if a container recycle kills the whole `node scripts/sea_trial.mjs` process mid-trial and a later
-  watch restarts it via `start_trial_detached.mjs`, the new process's `RUN_ID` cannot equal the
-  dead process's. A leg genuinely captured moments before the kill still has a fresh, valid result
-  file (keyed on stamp+tree-hash, so `legIsFresh()` credits it and `readDone()` reuses it) — but
-  that file carries the OLD `__runId`, and `sea_trial.mjs`'s `sailedHere()` checks `__runId ===
-  RUN_ID` for THIS run. So a leg that really did sail, seconds before the recycle, reports as
-  RESUMED-not-credited under the new run, same as a leg from a stale old build would.
-  **Why this is a labelling question, not a rule-24 lie, unlike the original T-219 defect:** the
-  report never claims untested code was tested — it under-credits code that WAS tested. The
-  player-facing risk is a trial that looks incomplete (or spins re-running legs it does not need
-  to) after a recycle, not a release decision made on stale evidence.
-  **Next step, not done here:** read `start_trial_detached.mjs`'s restart path and `sailedHere()`
-  together to confirm this trace, then decide whether `RUN_ID` should also derive from something
-  stable across a restart (e.g. the report path, which IS stable per run) rather than a fresh
-  timestamp. Full account of the original trace: `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
-  Sizing: SMALL, tooling not game code, investigation-first (rule: write the prediction before you fix).
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -568,8 +483,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
-
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -589,6 +502,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
+
 
 
 - [ ] **TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade` — ZERO NEW PLAYER-FACING DEFECTS, and a
@@ -645,6 +559,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
 
+
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -672,8 +587,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
 
-
-
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -683,6 +596,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
+
+
 
 - [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
       AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
@@ -733,7 +648,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
 
-
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -751,6 +665,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `qid`, tick it into SETTLED itself, and refuse without a CEO — the same contract it already
   applies to a task row.**
 
+
 - [ ] **⛔ THE GEAR PICKER IS BLIND TO A FILE THAT DOES NOT EXIST YET, SO A BRAND-NEW PAGE SERVED
       ⟨`T-205`⟩
   TO REAL PLAYERS SCORES `NONE`.** Found 2026-09-03 by the watch that built `stats.html`, and it
@@ -763,6 +678,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
+
 - [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
       ⟨`T-257`⟩
   filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
@@ -771,13 +687,13 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
   the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
   posed (rule 26).
-
 - [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
       ⟨`T-258`⟩
   ZONE, PASS-AND-PLAY PHONE.** Same source trial as `T-257`. **Structural, not a judge guess** —
   the trial's `no-cover-ask` check measures real bounding-box overlap: `sailCell` sits over "Peg Leg
   Meg: tap to sail — blu…". Harder evidence than the vision-judge rows in this section; closer to
   confirmed.
+
 - [ ] **A STRAIGHT DOUBLE QUOTE IN ANY QUESTION OPTION SILENTLY TRUNCATES THE LABEL HIS RULING IS
       ⟨`T-248`⟩
   STORED UNDER.** `glass.mjs` writes each option into `data-label="…"` without escaping, so an
@@ -826,6 +742,29 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Same source trial as `T-257`, same structural `no-cover-ask` class as `T-258` — real bounding-box
   overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
   that should not be reachable in a real game at all, before treating this as a layout fix.
+- [ ] **DOES A SEA TRIAL'S RESUME CACHE SURVIVE ITS OWN SUPERVISOR RESTARTING THE WHOLE PROCESS,
+      ⟨`T-263`⟩
+  OR DOES THAT DEFEAT THE RESILIENCY IT EXISTS FOR? Split out of `T-219` 2026-09-06, so the fix
+  that closed the bigger defect there does not also bury this one.** `RUN_ID` is
+  `${STAMP}-${Date.now().toString(36)}` (`scripts/playtest_gate.mjs`), freshly generated on every
+  process start — untouched by the T-009/T-219 tree-hash fix, which changed the CACHE KEY (per-leg
+  result file naming) but not this RUN_ID. **The open question, traced this far and no further:**
+  if a container recycle kills the whole `node scripts/sea_trial.mjs` process mid-trial and a later
+  watch restarts it via `start_trial_detached.mjs`, the new process's `RUN_ID` cannot equal the
+  dead process's. A leg genuinely captured moments before the kill still has a fresh, valid result
+  file (keyed on stamp+tree-hash, so `legIsFresh()` credits it and `readDone()` reuses it) — but
+  that file carries the OLD `__runId`, and `sea_trial.mjs`'s `sailedHere()` checks `__runId ===
+  RUN_ID` for THIS run. So a leg that really did sail, seconds before the recycle, reports as
+  RESUMED-not-credited under the new run, same as a leg from a stale old build would.
+  **Why this is a labelling question, not a rule-24 lie, unlike the original T-219 defect:** the
+  report never claims untested code was tested — it under-credits code that WAS tested. The
+  player-facing risk is a trial that looks incomplete (or spins re-running legs it does not need
+  to) after a recycle, not a release decision made on stale evidence.
+  **Next step, not done here:** read `start_trial_detached.mjs`'s restart path and `sailedHere()`
+  together to confirm this trace, then decide whether `RUN_ID` should also derive from something
+  stable across a restart (e.g. the report path, which IS stable per run) rather than a fresh
+  timestamp. Full account of the original trace: `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
+  Sizing: SMALL, tooling not game code, investigation-first (rule: write the prediction before you fix).
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
       ⟨`T-245`⟩

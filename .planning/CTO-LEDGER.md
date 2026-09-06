@@ -12173,3 +12173,5 @@ gear with a sea trial before anything reaches staging, per the PRD's own footer.
 turn here, per the Door's own rule.
 
 END OF WATCH.
+
+- 2026-09-06T17:31:45Z · close_item: "T-219" · CEO 229 · no game diff — tooling-only fix already shipped under sibling T-009 (a56559da, 1054eb52); no game-code diff for this row · no stated solution · closed on record: the fix landed 2026-09-04 under T-009, never carried back to T-219

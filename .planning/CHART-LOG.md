@@ -3657,3 +3657,66 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       absolute path it passes 15/15. Rule 18, and rule 6's other half: the instrument had told me
       something about ITSELF, not the page. Worth making the probe REFUSE a relative path rather
       than silently measure the wrong thing.
+
+## T-219 — 2026-09-06 — ⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO — (closed 2026-09-06 · CEO 229 · no game diff — tooling-only fix already shipped under sibling T-009 (a56559da, 1054eb52); no game-code diff for this row) every FULL-gear change on this machine is affected, not just one. Found 2026-09-03 by watch pastrypirates-07 when its own trial finished in one minute: .planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md reads "FAILED — 0 of 10 voyage(s) sailed, 10 NOT RUN", "voyages played with a real mouse: none", every leg RESUMED, not re-sailed. THE MECHANISM: scripts/playtest_gate.mjs:546-549 keys the per-leg resume cache on PP4_STAMP, which is bumped BY HAND (src/ui/stage.js:43, still 2026.09.03.3). So any change that does not happen to touch that one string is invisible to the cache and every leg replays the PREVIOUS build's verdict. The gate's own comment at :540-542 states the invariant it is breaking — "a result from a different build is a result about different code, and reusing one would be exactly the lie rule 24 exists to prevent." It is that lie. WHY IT IS A ROW AND NOT A ONE-LINE FIX: deleting sea-trial-shots/legs/ clears it today and the hole reopens the next time somebody forgets to bump a hand-typed number — which is rule 9 (nothing is a constant) pointed at the safety key of rule 24's own instrument. The cache key should DERIVE from the tree it is testing (a hash of the game files it sails, say) rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code. ⚠ Until it is fixed, a trial report on this machine may describe code nobody sailed. That makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the exact evasion Wyatt chose the words "sea trial" to make impossible.
+
+- [x] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO — (closed 2026-09-06 · CEO 229 · no game diff — tooling-only fix already shipped under sibling T-009 (a56559da, 1054eb52); no game-code diff for this row)
+      ⟨`T-219`⟩
+      every FULL-gear change on this machine is affected, not just one.** Found 2026-09-03 by watch
+      `pastrypirates-07` when its own trial finished in **one minute**:
+      `.planning/SEA-TRIAL-2026-09-03T1630Z-Wy-Blade.md` reads *"FAILED — 0 of 10 voyage(s) sailed,
+      10 NOT RUN"*, *"voyages played with a real mouse: none"*, every leg **RESUMED, not re-sailed**.
+      **THE MECHANISM:** `scripts/playtest_gate.mjs:546-549` keys the per-leg resume cache on
+      `PP4_STAMP`, which is **bumped BY HAND** (`src/ui/stage.js:43`, still `2026.09.03.3`). So any
+      change that does not happen to touch that one string is invisible to the cache and every leg
+      replays the PREVIOUS build's verdict. **The gate's own comment at `:540-542` states the
+      invariant it is breaking** — *"a result from a different build is a result about different
+      code, and reusing one would be exactly the lie rule 24 exists to prevent."* It is that lie.
+      **WHY IT IS A ROW AND NOT A ONE-LINE FIX:** deleting `sea-trial-shots/legs/` clears it today
+      and the hole reopens the next time somebody forgets to bump a hand-typed number — which is
+      rule 9 (*nothing is a constant*) pointed at the safety key of rule 24's own instrument. **The
+      cache key should DERIVE from the tree it is testing** (a hash of the game files it sails, say)
+      rather than from a string a human maintains. Sizing: SMALL–MEDIUM, tooling not game code.
+      ⚠ **Until it is fixed, a trial report on this machine may describe code nobody sailed.** That
+      makes rule 24's "did you run the sea trial?" answerable YES on evidence that is stale — the
+      exact evasion Wyatt chose the words "sea trial" to make impossible.
+
+  ⚑ **MEASURED FURTHER 2026-09-04T03:5xZ BY A WATCH THAT DID NOT FIX THIS — the danger is real but
+  smaller/different than this row implies, and it needs its own careful pass, not a rushed one
+  layered on top of an already-fragile subsystem.** Traced `sea_trial.mjs:344`'s `sailedHere()`:
+  a resumed leg keeps the OLD run's `__runId`, and `RUN_ID` is `${STAMP}-${Date.now()}` (fresh per
+  process start), so a stale-cache resume can **never** be credited as sailed by a LATER run — the
+  "0 sailed, all NOT RUN" shape in the evidence above is the report correctly refusing to lie, not
+  a silent false-pass. **So this is not "an untested build gets reported as tested."** The actual
+  cost is narrower: the resume cache can make a trial spin uselessly (every leg RESUMED, nothing
+  re-driven, report says FAILED) until a human notices and bumps the stamp by hand.
+  ⚠ **A SEPARATE, DEEPER QUESTION SURFACED AND IS UNRESOLVED: does resumability across a container
+  recycle (the reason this cache exists at all — see the comment at `playtest_gate.mjs:526-538`)
+  survive its OWN `RUN_ID` being freshly generated on every process restart?** If the outer
+  supervisor restarts the whole `node scripts/sea_trial.mjs` process after a recycle, the new
+  process's `RUN_ID` cannot match the killed process's, so genuinely-just-captured legs from the
+  dying attempt could ALSO read as NOT RUN by the next attempt — the resiliency feature defeating
+  itself. Not traced end to end (would need `start_trial_detached.mjs`'s restart path read
+  carefully). **Filed here rather than guessed at; the content-hash fix this row proposes may not
+  even be the right fix once that's answered.** Full account:
+  `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
+
+  ✅ **RE-MEASURED 2026-09-06 — THE HEADLINE DEFECT IS FIXED AND SHIPPED; THE SEPARATE QUESTION
+  ABOVE IS SPLIT OUT TO ITS OWN ROW, NOT SILENTLY CLOSED WITH IT.** `git log -S gameTreeHash --
+  scripts/playtest_gate.mjs` shows the exact fix this row proposed already landed 2026-09-04
+  (`a56559da`, "derive the sea trial's leg-resume cache key from the tree, not a hand-typed
+  stamp (T-009/T-219)"): the leg-resume cache filename and stored record are now keyed on
+  `gameTreeHash()` — a content hash over every git-tracked file the game-code hook already calls
+  "the game" — not `PP4_STAMP` alone. `sea_trial.mjs` was further fixed (`1054eb52`) to print that
+  same hash beside `PP4_STAMP` at all five build-identity sites, so a stale number is visible on
+  the report itself. Both CEO-verified (Review 212 YES on the cache-key half, Review 213 YES
+  closing 212's one open half) under the sibling handle `T-009`, and confirmed still wired and
+  green this watch: `npm test` passing, including `leg_cache_tree_hash_check.mjs` and
+  `sea_trial_report_tree_hash_check.mjs` (both new gates named in those reviews).
+  **What this does NOT cover, and why closing here is honest rather than convenient:** the RUN_ID-
+  across-process-restart question two paragraphs up was never traced and is not touched by either
+  fix — `RUN_ID` is still `${STAMP}-${Date.now()}`, freshly generated every process start, in both
+  the pre- and post-fix code. It is real, narrower than this row's original headline (a labelling
+  artifact — a resumed leg's genuine result under-reports as "not sailed by this run", not a
+  silent stale-code lie), and unmeasured. Split out as its own row, `T-263`, immediately below,
+  so it is not lost when this row closes.
