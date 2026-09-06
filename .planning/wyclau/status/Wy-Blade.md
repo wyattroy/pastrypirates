@@ -5,7 +5,7 @@
 
 ## Last pulse (HEARTBEAT)
 ```
-2026-09-04T11:31:46.755Z	self-publish check
+2026-09-06T15:45:13.918Z	self-publish check
 ```
 
 ## In hand (IN-HAND)
@@ -14,27 +14,10 @@
 ```
 
 ## Long run in flight (LONG-RUN)
-```
-{
-  "what": "sea trial, 10 legs",
-  "startedAt": "2026-09-04T10:13:35.419Z",
-  "updatedAt": "2026-09-04T11:22:59.174Z",
-  "progress": "8/10 legs",
-  "staleAfterMinutes": 53
-}
-```
+None recorded.
 
 ## The Bell's log (restarts.log, last 40 lines)
 ```
-2026-09-03T15:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T154802Z.out/.err, kit: readable)
-2026-09-03T16:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T160801Z.out/.err, kit: readable)
-2026-09-03T16:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T164801Z.out/.err, kit: readable)
-2026-09-03T17:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T171801Z.out/.err, kit: readable)
-2026-09-03T17:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T173801Z.out/.err, kit: readable)
-2026-09-03T18:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T180801Z.out/.err, kit: readable)
-2026-09-03T18:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T183801Z.out/.err, kit: readable)
-2026-09-03T19:18:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T191801Z.out/.err, kit: readable)
-2026-09-03T19:58:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T195802Z.out/.err, kit: readable)
 2026-09-03T20:48:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T204802Z.out/.err, kit: readable)
 2026-09-03T21:38:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T213802Z.out/.err, kit: readable)
 2026-09-03T22:08:01Z	ring: no watch on deck -- rang the next one (output: watch-20260903T220802Z.out/.err, kit: readable)
@@ -66,4 +49,13 @@
 2026-09-04T10:18:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T101801Z.out/.err, kit: readable)
 2026-09-04T10:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T104801Z.out/.err, kit: readable)
 2026-09-04T11:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T110801Z.out/.err, kit: readable)
+2026-09-04T11:38:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T113801Z.out/.err, kit: readable)
+2026-09-04T11:58:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260904T115801Z.out/.err, kit: readable)
+2026-09-06T13:01:30Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T130132Z.out/.err, kit: readable)
+2026-09-06T13:18:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T131801Z.out/.err, kit: readable)
+2026-09-06T13:48:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T134801Z.out/.err, kit: readable)
+2026-09-06T13:58:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T135802Z.out/.err, kit: readable)
+2026-09-06T14:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T140802Z.out/.err, kit: readable)
+2026-09-06T14:48:02Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T144802Z.out/.err, kit: readable)
+2026-09-06T15:08:01Z	ring: no watch on deck -- rang the next one on claude-sonnet-5 (output: watch-20260906T150801Z.out/.err, kit: readable)
 ```
