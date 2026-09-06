@@ -1,5 +1,48 @@
 # Wyatt's standing decisions
 
+## THE GLASS MOVES OFF THE ARTIFACT — AND THE THREAT IS **WRITE**, NOT READ
+
+**His ruling, 2026-09-06, two questions through the UI.** First: move his writing off the artifact
+into Firebase, so the page becomes an ordinary page any session can publish — chosen over a
+read-only staging mirror, a Mac hand-off, and doing nothing. Then, asked how private it needed to
+be, he picked real authentication and said why:
+
+> *"2 -- If other people are able to add or change parts of my Glass watch, they could completely
+> break the game."*
+
+**HE WAS OFFERED A MENU ABOUT CONFIDENTIALITY AND ANSWERED ABOUT INTEGRITY.** All four options put
+to him traded off **who can READ his notes** — curtain, `noindex`, `robots.txt`, a rule to stop the
+database handing his words out. **None of them was the danger, and the axis he named was not on the
+table.**
+
+**WHY HE IS RIGHT, AND IT GENERALISES BEYOND THIS BUILD: the Glass is not a page a watch DISPLAYS,
+it is a page a watch OBEYS.** An idea he types becomes a Chart row a watch takes as its one item. A
+**DO NOW** press becomes `chartkeeper --do-now` at rank 9,000,000, displacing whatever was pinned. A
+ruling becomes an entry in this file that every later session treats as settled law. **So an open
+write path is not a leak — it is a stranger holding commit-adjacent authority over an autonomous
+build system.** The harvest is the trust boundary, and it trusts the store totally, because until
+now the store was an artifact only he could write.
+
+**THE STANDING LESSON FOR ANY FUTURE "HOW LOCKED DOWN SHOULD THIS BE?" QUESTION: ask about WRITES
+FIRST.** This project's surfaces feed instructions to unattended sessions. Confidentiality is the
+second axis here, not the first, and a question that only offers the second one invites a wrong
+answer that sounds reasonable.
+
+**CONSEQUENCES, so nobody re-litigates them:**
+- **Auth on writes is load-bearing, not hardening.** Shipping reads-locked and writes-open solves
+  the lesser half and leaves the whole danger standing.
+- **A signed-out page must REFUSE to write, visibly** — never silently drop what he typed.
+- **The Firebase rule is HIS HANDS**, in his console; no session can reach it, like the `T-220`
+  hook edits. It is a blocker to name now, not on the day the work is ready.
+- Confidentiality still applies: the database answers unauthenticated reads
+  (`INBOX-20260906T2010Z`), no rules exist in this repo, and staging is a public URL. Real auth
+  covers both axes, which is what the extra day buys.
+
+**Scope:** [`.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`](../../.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md).
+Sized 2–3 days, tooling not game code. **Related:** the defect it closes is his own —
+*"once the blade woke up, the page did not update"* — recorded above.
+
+
 ## ⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — — 2026-09-06T17:54:55.080Z
 
 Asked on the Glass: *"⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — "choose yer recipe" — because that card is not a modal and the fix already shipped only watches modals. Measured fresh, not reasoned: posed a real tablet (820×1180) solo voyage to the recipe-choice prompt, screenshot at .planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png. The card sits at CSS z-index 30 with no dimming behind it at all (confirmed: #pp4Prompt carries class pp4Recipes, which paints no backdrop), while the shipped fix only hides the bar when a .modalOverlay is open. In this run the top captain row (Davy Scones, pink) is entirely covered by the card — not a sliver cut mid-word this time, but the same mechanism the row already named. Two fixes were considered and NOT built, because they trade off differently and it's a taste call:"* — **Wyatt ruled "Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide"**, 2026-09-06T17:54:55.080Z.
