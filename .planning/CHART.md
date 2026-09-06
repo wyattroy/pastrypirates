@@ -214,6 +214,44 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       an Artifact tool republishes `.planning/wyclau/T-261-SFX-PRD.html` exactly as committed** —
       nothing else needs to change first. Full account: `INBOX-20260906T1355Z`, CEO Review 219.
 
+      ✅ **2026-09-06 — REPUBLISHED. THE BOXES ARE LIVE AND HE CAN TYPE IN THEM.** Same URL, so his
+      existing link still works: https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d
+      Published from Wyatt's own Mac session (interactive, so it held the `Artifact` tool) at his
+      direct ask — he ran `node scripts/wyclau/publish_queue.mjs` himself. Queue row closed with
+      `--mark-published`.
+      ⚠ **THE PUBLISH NEEDED ONE THING THE QUEUED FILE COULD NOT CARRY: the `artifact` runtime
+      capability.** A page that calls `window.claude.use("artifact")` gets `null` unless the publish
+      declares `capabilities: {artifact: {}}` — and `null` is exactly the silent "Save note does
+      nothing" failure this row exists to prevent. Declared, plus `contract: latest` (0.2.41) so the
+      capability name resolves. Verified by reading the published page back: 13 boxes present
+      (`s1`..`s6`, `q1`..`q7`), `glassState` `{"comments":{}}`, capabilities stored as `artifact`.
+      **A future queue row for a self-saving page must carry the capability it needs, or the
+      publisher has to know to add it — the file alone does not say.**
+      ⛔ **THIS ROW STILL DOES NOT CLOSE, AND THE PIN DOES NOT GO BACK TO `T-073`.** Delivery here is
+      not "he can open it" — it is **he has ruled**. The five mappings (Cannons, ClockTick,
+      Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are still NOT confirmed; the boxes are empty.
+      **NEXT WATCH: run `node scripts/wyclau/harvest_glass.mjs` against this page. Empty means he
+      has not written yet — leave the row and do not wire a single sound.** Once he has written,
+      harvest his notes, then close through the gate and hand the pin back in the same act.
+      ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was
+      written as a repo-relative path (`../../docs/AUDIO.md`), which on a published artifact goes
+      nowhere — he'd have tapped a link and got nothing. Now a plain `<code>` citation, matching how
+      the rest of the page cites that file.
+      **Fixed the safe way, and the way is the reusable part:** the page is a QUINE — its own source
+      is baked into it as a JS string so it can republish itself — so a hand-edit has to change the
+      body AND the baked copy identically or the first save silently reverts it. Instead: recovered
+      the un-baked shell out of the baked template (`JSON.parse` of the `var TPL = "…"` literal),
+      **proved the recovery by re-baking it and confirming it was byte-identical to the file on
+      disk**, edited the shell, re-baked through `build_annotatable_artifact.mjs`, and re-ran
+      `_t261_prd_comment_probe.mjs` — 15/15 including the round-trip and the third save on a
+      second-generation page. State still `{"comments":{}}`; nothing from testing leaked in.
+      ⚠ **THE PROBE TAKES AN ABSOLUTE PATH AND FAILS MISLEADINGLY ON A RELATIVE ONE.** Given
+      `.planning/wyclau/T-261-SFX-PRD.html` it reported `expected 13 comment boxes, got 0` and 4
+      more failures — which reads exactly like "your edit broke the page." Given the same file by
+      absolute path it passes 15/15. Rule 18, and rule 6's other half: the instrument had told me
+      something about ITSELF, not the page. Worth making the probe REFUSE a relative path rather
+      than silently measure the wrong thing.
+
 - [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
       ⟨`T-138`⟩
       His ask: *"a firebase admin console so I can see how many people are playing"*.
