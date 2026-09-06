@@ -12526,3 +12526,79 @@ interactive session or Wyatt can supply).** Ending the turn here, per the Door's
 END OF WATCH.
 
 - 2026-09-06T19:07:04Z · close_item: INBOX-20260903T182856Z · CEO 233 · no game diff — already shipped 2026-09-03, commit 6f526772 (never marked DONE) -- verified fresh, no later regression report · no stated solution
+
+## WATCH, 2026-09-06T22xxZ (Bell-launched, claude/cloud-handoff-planning-a9ay1u)
+
+**Situation on arrival:** synced clean, `can_push.mjs` healthy, real `git push` confirmed working
+(read `docs/GIT-AND-DEPLOY.md` per the rule-17 hook it triggered — first push attempt of this
+session, before that read, was refused). No Artifact tool (confirmed via `ToolSearch`, matching the
+prior watch's finding) — noted here rather than assumed; no publish-queue check attempted for that
+reason. `chartkeeper.mjs --rank --sweep --write` ranked the Chart (0 rows moved, already ranked from
+the prior watch's pass). No `IN-HAND` on this machine, no `LONG-RUN` pid.
+
+**Surveyed the top of the ranked Chart before picking:** rank 1 `T-073` (SFX, explicitly CLAIMED on
+the Mac — skip), rank 2 `T-138` (blocked purely on Wyatt's own staging-publish approval — skip),
+rank 3 `T-243` (already CLOSED in prose, a stale-ranking artifact per the prior watch's own
+finding — no real work there), ranks 4-7 `T-237`/`T-013`/`T-238`(GATED)/`T-250` (all in or adjacent
+to the same ~900-line fragile `stage.js` positioning function multiple prior watches have
+explicitly declined to rush — ran `T-214`'s own posed check,
+`t211_reframe_on_new_captains_check.mjs`, myself first: it PASSED clean on seed 20260903, giving no
+fresh red signal to act on without the kind of longer investigation those watches already
+deliberately deferred), rank 9 `T-239` (the prior watch already exhausted the unattended-permission
+route on this one twice — needs an interactive session, not a third unattended attempt).
+
+**Went to the INBOX instead, per the Door's own priority order (his words before the Chart).**
+Found `INBOX-20260903T182856Z` — his DO NOW pin from 2026-09-03, *"Def to move doesn't work on
+mobile... add a 'move to top' button"* — still `status: OPEN ... take this before anything ranked`,
+three days later. A 2026-09-04 watch (this ledger, line ~10328) had already found the underlying
+work shipped same-day and explicitly declined to touch the stale label. Picked this: genuinely
+actionable without Wyatt's input, no game-code risk, and it stops a resolved item from perpetually
+out-ranking real work in every future watch's orientation.
+
+**Wrote the prediction first**
+(`.planning/wyclau/PREDICTION-20260906T2200Z-INBOX-move-to-top.md`): expected the button (commit
+`6f526772`, `scripts/wyclau/glass.mjs`) to already be mobile-safe, based on its `click`+`pointerdown`
+wiring and the commit's own real-touch-event measurement. **Confirmed, not assumed** — read the live
+code directly (`.totop` CSS ~1150-1158, markup ~1406, handlers ~1979-1994): `position:absolute`
+(always rendered, not hover-gated for visibility), 32×44px minimum with `touch-action:manipulation`,
+no mouse-only event in the path. Both before/after screenshots exist on disk
+(`.planning/posed/totop-phone-{before,after}.png`, confirmed present).
+
+**Fresh CEO spawned** (general-purpose agent, no shared context with this watch's reasoning) —
+independently re-verified the diff, the live code, the screenshot files, and searched
+CHART/INBOX/CEO-REVIEWS for any later regression report (none found). **Verdict: YES.** Appended as
+**CEO Review 233** to `.planning/CEO-REVIEWS.md`.
+
+**Closed through the gate:** `close_item.mjs --item="INBOX-20260903T182856Z" --ceo=233
+--reason="already shipped 2026-09-03, commit 6f526772 (never marked DONE) -- verified fresh, no
+later regression report"`. No `--commit` (no new game-code diff this watch — this was
+record-keeping, correcting a stale label on already-shipped work, not a code change).
+
+**Gear: NONE.** Touched only `.planning/CEO-REVIEWS.md`, `.planning/CTO-LEDGER.md`,
+`.planning/wyclau/INBOX.md` (via the gate), and the new prediction file. No `index.html`/`src/`
+diff. No sea trial owed.
+
+**Browsers/servers:** none started by this watch. `T-214`'s posed check
+(`t211_reframe_on_new_captains_check.mjs`) ran headless via its own script and exited cleanly on its
+own — not left running.
+
+**Stray untracked file still on disk, still not this watch's to remove:**
+`scripts/wyclau/_tmp_probe_arrow.mjs` — multiple prior watches report `rm`/`Remove-Item` refused on
+it by the sandbox despite the path being inside an allowed working directory. Left untouched.
+
+**No Artifact tool this session** — confirmed directly via `ToolSearch`, not inferred. Nothing new
+queued for publish; the closed item is already in the tracked INBOX/CEO-REVIEWS files the next
+Artifact-holding session will read and can harvest/republish from.
+
+**Daily lesson:** already given today per an earlier watch's entry — not duplicating it.
+
+**Still open for the next watch, unchanged from the prior watch's list:** `T-264` (stale-fate-marker
+mechanism — this watch's own item was itself an instance of exactly that pattern); `T-237`/`T-013`
+(real player-visible bugs, both need careful non-rushed empirical work); `T-073` (SFX, claimed on
+the Mac — do not touch); `T-138` (blocked on Wyatt's own staging-publish approval); `T-239` (needs
+an interactive session); the Cloudflare/build-site work (needs Wyatt for account/DNS).
+
+**One item worked and closed through the gate this watch.** Ending the turn here, per the Door's own
+rule — never take a second item.
+
+END OF WATCH.
