@@ -898,7 +898,7 @@ and **the live game goes down for real players**. `robots.txt` and `sitemap.xml`
 in different clothes.
 
 **Two separate sessions came within one command of doing this**, both hand-rolling an `rsync` to
-publish a preview. Deploy with `scripts/deploy-preview.sh` only; never hand-roll the sync. When you
+publish a preview. Deploy with `scripts/deploy-staging.sh` only; never hand-roll the sync. When you
 add a file that identifies the live site, add it to `EXCLUDES` in the same commit.
 
 ### `git fetch` before you trust any ref — and keep `main` synced both ways

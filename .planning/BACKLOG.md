@@ -812,3 +812,20 @@ show five chips while a rival with nothing shows a word.
 
 **NOT SCOPED, AND DELIBERATELY NOT DESIGNED HERE.** Wording, placement and how much is enough are
 his. Recorded because he asked for it to be recorded, at the moment he noticed it.
+## A cheap sea trial can overwrite an expensive one's report — 2026-09-06
+
+`node 4/scripts/sea_trial.mjs --gear=COSMETIC` writes `.planning/SEA-TRIAL.md` unconditionally. On
+2026-09-06 a 25-second smoke run — used only to prove the script had stopped crashing — replaced an
+8-voyage FULL report that recorded two named visual failures (overlapping "Call Crustbeard" /
+"Call Flaky Jack" buttons; the "Play again!" button covering the award-card subtitles) with:
+
+> **NOTHING SAILED** — 0 of 0 voyage(s) sailed · 0 min
+
+Restored from `f9238345^`, and found by a CEO review rather than by anything in the repo.
+
+Rule 24's whole point is that *"did you run the sea trial?"* is answered by opening the report. A
+report that a 25-second run can silently replace is not that. Options, none chosen: keep the last
+FULL report beside the newest one; refuse to overwrite a FAILED report with a lesser gear; or write
+per-gear files and have `SEA-TRIAL.md` point at the strongest recent run.
+
+Not fixed here because it changes how the sea trial behaves, which is Wyatt's call.

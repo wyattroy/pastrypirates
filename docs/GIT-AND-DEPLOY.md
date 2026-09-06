@@ -11,8 +11,8 @@ If you are here because a rule in CLAUDE.md pointed you here, read only the sect
 ## 1. Site-identity files never leave this repo
 
 **The rule:** `CNAME`, `robots.txt` and `sitemap.xml` never get copied to any other repo, gist,
-artifact, bucket or deploy target. Deploy to the preview site with `scripts/deploy-preview.sh` only.
-Never hand-roll the sync.
+artifact, bucket or deploy target. Deploy to staging (`staging.playpastrypirates.com`) with
+`scripts/deploy-staging.sh` only. Never hand-roll the sync.
 
 ### Why CNAME is not a style preference
 
@@ -28,7 +28,7 @@ Two separate Claude sessions came within one command of doing this. Both were wr
 a copy of this one, so "copy everything across" feels obviously correct, and `CNAME` is a 21-byte
 file nobody notices in a 130-file diff.
 
-`scripts/deploy-preview.sh` excludes it and re-checks the checkout before pushing, **because the
+`scripts/deploy-staging.sh` excludes it and re-checks the checkout before pushing, **because the
 part that failed twice was the judgement of whoever ran the command** — so the protection cannot
 live in judgement.
 
