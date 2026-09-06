@@ -17240,3 +17240,23 @@ actual broken gate by its file path and show that gate's own output — not a pl
 wrong answer built from whichever gate happened to print last. Rule 24 depended on that report
 being honest; it was not, and now it is, independently confirmed rather than taken on the watch's
 word.
+
+## CEO Review 236 — T-265: npm test red on crawl_intent_check.mjs (cloudflare-cutover.html) — 2026-09-06
+
+**Verdict: YES**
+
+The claim checks out on every leg measured directly, not just read.
+
+1. **The gate that was red now passes.** Ran `node scripts/qa/crawl_intent_check.mjs` directly: `PASS 26 served page(s) each state whether Google may index them (5 public, 21 withheld)`. `declaredIntent()` in `scripts/qa/crawl_sets.mjs:49-56` requires a literal `<head>...</head>` containing a `<meta name="robots">` tag — the diff at `cloudflare-cutover.html:1-8` adds exactly that, with `<meta name="robots" content="noindex, nofollow">` inside a real `<head>`, matching `two-machines.html:1-6`'s identical pattern for internal/reference pages verbatim (same comment wording, same tag).
+
+2. **The whole suite is green, not just the one gate.** Ran `npm test` in full: zero lines matching FAIL/cross-mark anywhere in the output, and the final line reads the suite's own gate ceiling passing. `crawl_intent_check.mjs` is present in the printed `&&` chain. This is the real bar per the ask, and it holds.
+
+3. **No game code touched.** `git show 5c6eabb3 --stat`: only `cloudflare-cutover.html`, `.planning/SEA-TRIAL.md`, an archived sea-trial report, and a new screenshot. `index.html` and `src/` do not appear.
+
+4. **The gear-downgrade reasoning is honest, not a dodge.** `.claude/hooks/lib/game-code.cjs:18-45`: `NOT_GAME` excludes `.planning/`, `docs/`, `.claude/`, `notes/`, `art-review/`, `scripts/`, `4/`, `staging/`, `.gitignore`, `.gitattributes` — a root-level file like `cloudflare-cutover.html` matches none of those, so `isGameCode()` returns true purely because the exclusion list is deliberately strict-by-default. The FULL verdict from `gear.mjs` is a mechanical artifact of that strictness, not evidence the file is reachable by a player. The file is an admin-only checklist wrapped in `noindex`, confirmed rendering correctly and unbroken in `.planning/posed/t265-cloudflare-cutover-after.png` (title, progress bar, checklist steps all present, zero console errors).
+
+5. **No weakening of the check.** `crawl_intent_check.mjs` and `crawl_sets.mjs` are untouched in this diff — the fix is entirely in the content of the offending page, never in the instrument.
+
+No criticism survives verification. This is a clean, correctly-scoped fix that closes exactly the obligation filed at T-265.
+
+**Its one thing for Wyatt:** `npm test` is green again on this branch, and the fix that got it there touched nothing in `index.html`/`src/` — a private admin checklist page now correctly tells Google to leave it alone, same as `two-machines.html` and `stats.html` already do.
