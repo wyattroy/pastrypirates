@@ -1,5 +1,44 @@
 # CEO reviews — the standing record
 
+## CEO Review 237 — `T-222`: chartkeeper's duplicate-handle splice does not reproduce on current code, red-proofed with a real gate — **YES** — 2026-09-06
+
+**The ask:** a `chartkeeper.mjs --rank --write` run once spliced a fresh handle into the MIDDLE of a
+wrapped title on two rows that already carried their own handle (`T-014`/`T-092` corrupted with
+`T-233`/`T-234`, caught and repaired by hand 2026-09-03T2040Z). The row asked for a gate case
+"red-proofed on a fixture shaped like the REAL chart — multi-line titles, marker on the following
+line," and named `chartkeeper.mjs`'s id-allocation writer and `openHandleCarriers` as the place to
+start.
+
+**What this watch did:** wrote the prediction first
+(`.planning/wyclau/PREDICTION-20260906T2350Z-T-222-chartkeeper-duplicate-handle.md`) — expected the
+2026-09-04 identity fixes for a DIFFERENT bug (`T-090`/`T-240`, commit `b6ac211d`) to have already
+closed this hole as a side effect, because they made `idOfRow()` (`scripts/wyclau/lib/chart_model.mjs`)
+and `withId()`'s guard (`scripts/wyclau/chartkeeper.mjs`) scan every line of a row for a handle
+marker instead of only line index 1. Built `scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs`
+— a real behavioural gate: it writes a fixture Chart into an OS tmpdir with two rows shaped exactly
+like the corrupted ones (title wraps across two physical lines before the row's own `⟨T-nnn⟩`
+marker), runs the real `chartkeeper.mjs --rank --write` against the throwaway copy, and asserts each
+existing handle still appears exactly once, zero new ids were allocated, and the title-then-handle
+sequence was never spliced.
+
+**Confirmed, not assumed:** the gate PASSES against real, unmodified code. Red-proofed the gate
+itself by temporarily narrowing `idOfRow`/`withId` to the old line-index-1-only check — the gate then
+FAILS exactly as T-222 describes (new ids allocated, both titles spliced) — then reverted both
+sabotage edits, confirmed clean via `git diff --stat` (zero residual diff on either file). Wired into
+`npm test` (`gates.total`/`ceiling` 144 → 145, `_ceiling_raise_145`); full suite 145/145 green. No
+game code touched; gear mechanically read FULL (any `package.json` diff does, per the known `T-205`
+blind spot) and was downgraded to COSMETIC with a written reason, same precedent as `T-264`'s own
+package.json-only gate addition.
+
+**Fresh CEO verdict: YES.** Independently re-ran the gate, performed its own separate sabotage of
+`idOfRow`/`withId` and confirmed the gate goes red, confirmed the revert left zero diff via its own
+`git diff --stat`, read `package.json` directly to confirm 145/145 and the chain wiring, ran the full
+`npm test` itself, read the prediction file and judged it genuinely falsifiable (not post-hoc), and
+confirmed `git status --short` shows only the expected files touched. Judged that closing a row
+whose own text anticipated "a gate case belongs with it" as "already fixed, now provably so" —
+rather than requiring a product-code change nothing showed was needed — is a legitimate closure, not
+a dodge.
+
 ## CEO Review 233 — `INBOX-20260903T182856Z`: his mobile move-to-top button was already shipped — **YES**, closing the stale label — 2026-09-06
 
 **What happened, in one line:** Wyatt pinned DO NOW on the Glass, 2026-09-03T18:28:56Z: *"Def to
