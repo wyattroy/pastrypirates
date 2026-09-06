@@ -583,18 +583,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
 
-- [ ] **⛔ `npm test` IS CURRENTLY RED ON THIS BRANCH — `crawl_intent_check.mjs` fails because
-      ⟨`T-265`⟩
-      `cloudflare-cutover.html` (added by a concurrent session's commit, 2026-09-06) has no
-      crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not
-      this row's fault or scope, filed fresh because a red `npm test` is exactly what rule 24 exists
-      to make impossible to miss.** Confirmed via `scripts/lib/npm_test_culprit.mjs`'s own
-      `findCulprit()`, which correctly named this gate as the real, current, live failure in ~70
-      seconds. Sizing: unknown until read — likely small (probably a `robots`/crawl-intent flag or
-      an entry `crawl_intent_check.mjs` expects for every root-level HTML page, missing for the new
-      one). Start with `node scripts/qa/crawl_intent_check.mjs` and read what it names. Not this
-      watch's to take — its own item was the fix for reporting failures like this one, not fixing
-      this one.
 
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩

@@ -12745,3 +12745,5 @@ internal/reference pages. No game code (index.html/src/ untouched). Not collidin
 (SFX, claimed on the Mac) or any stage.js-adjacent row.
 
 Prediction written first: .planning/wyclau/PREDICTION-20260906T2330Z-T-265-crawl-intent.md
+
+- 2026-09-06T21:02:58Z · close_item: "T-265" · CEO 236 · no game diff — no game code changed -- cloudflare-cutover.html (an admin checklist outside index.html/src/) was wrapped in a real head with a noindex robots meta tag (commit 5c6eabb3), fixing the crawl_intent_check.mjs failure; full npm test is green again · no stated solution

@@ -3849,3 +3849,18 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       watch's own prediction file ("144/144 green" was not true on the HEAD it was written against,
       because of the unrelated regression below): CEO Review 235.
       ⟨`T-237`⟩
+
+## T-265 — 2026-09-06 — ⛔ npm test IS CURRENTLY RED ON THIS BRANCH — crawl_intent_check.mjs fails because (closed 2026-09-06 · CEO 236 · no game diff — no game code changed -- cloudflare-cutover.html (an admin checklist outside index.html/src/) was wrapped in a real head with a noindex robots meta tag (commit 5c6eabb3), fixing the crawl_intent_check.mjs failure; full npm test is green again) cloudflare-cutover.html (added by a concurrent session's commit, 2026-09-06) has no crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not this row's fault or scope, filed fresh because a red npm test is exactly what rule 24 exists to make impossible to miss. Confirmed via scripts/lib/npm_test_culprit.mjs's own findCulprit(), which correctly named this gate as the real, current, live failure in ~70 seconds. Sizing: unknown until read — likely small (probably a robots/crawl-intent flag or an entry crawl_intent_check.mjs expects for every root-level HTML page, missing for the new one). Start with node scripts/qa/crawl_intent_check.mjs and read what it names. Not this watch's to take — its own item was the fix for reporting failures like this one, not fixing this one.
+
+- [x] **⛔ `npm test` IS CURRENTLY RED ON THIS BRANCH — `crawl_intent_check.mjs` fails because (closed 2026-09-06 · CEO 236 · no game diff — no game code changed -- cloudflare-cutover.html (an admin checklist outside index.html/src/) was wrapped in a real head with a noindex robots meta tag (commit 5c6eabb3), fixing the crawl_intent_check.mjs failure; full npm test is green again)
+      ⟨`T-265`⟩
+      `cloudflare-cutover.html` (added by a concurrent session's commit, 2026-09-06) has no
+      crawl-intent declaration. Found by CEO 235 while independently verifying the row above — not
+      this row's fault or scope, filed fresh because a red `npm test` is exactly what rule 24 exists
+      to make impossible to miss.** Confirmed via `scripts/lib/npm_test_culprit.mjs`'s own
+      `findCulprit()`, which correctly named this gate as the real, current, live failure in ~70
+      seconds. Sizing: unknown until read — likely small (probably a `robots`/crawl-intent flag or
+      an entry `crawl_intent_check.mjs` expects for every root-level HTML page, missing for the new
+      one). Start with `node scripts/qa/crawl_intent_check.mjs` and read what it names. Not this
+      watch's to take — its own item was the fix for reporting failures like this one, not fixing
+      this one.
