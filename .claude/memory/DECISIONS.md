@@ -1,5 +1,62 @@
 # Wyatt's standing decisions
 
+## ⟨T-261⟩ HE FINISHED THE PRD — 12 rulings in the comment boxes, 2026-09-06 16:27–16:36Z
+
+**He said so himself: *"I finished my rulings."*** All twelve carried verbatim into `INBOX.md`
+(`INBOX-20260906T1627…`–`163615Z`) by `harvest_glass.mjs`. This is the digest; the INBOX has his
+exact words.
+
+### THE MAPPINGS, AS HE RULED THEM
+
+| moment | file | note |
+|---|---|---|
+| **Battle CALLED** (the shout, not the outcome) | the sword clash, latest clip | *"I want the clashing sound to happen when battles are first called; the sound is exciting."* **This MOVES it — it currently plays on the resolve.** |
+| **A shot LANDS** | `PP_SFX_Cannons` | strictly after the 2nd coin flip of a battle, ~100ms, **no overlap**. Derive from when the flip audio ends (rule 9); the 100ms is his example, not a constant. |
+| **Your turn** | `PP_SFX_Bells` | ⚠ **supersedes his own morning ruling** — see below |
+| **New day** | **NOTHING** | *"New Day should NOT use this sound. New Day should use nothing right now."* Later: a wind whoosh or weather-vane creak, because the wind changes direction daily. Brief written: [`LUIS-SFX-ROUND-3-BRIEF.md`](../../.planning/wyclau/LUIS-SFX-ROUND-3-BRIEF.md) |
+| **Turn timer runs out** | `PP_SFX_Alarm` | ⚠ **the feature does not exist** — see below |
+| **Coin flip** | unchanged, existing file | **CLOSED. Do not touch.** `CoinFlip_Start`/`_End` are out of scope. |
+| **Drumroll** | `PP_SFX_Drumroll` | *"do the drumroll audio timing check, and match the narration box timing to the sfx file"* — **the box moves to fit the audio, not the reverse.** The 2.55s window is no longer fixed. |
+| **Ambience** | ocean bed + 5 gulls + 6 creaks | per Luis's spec: a randomiser over the clips **with randomised stereo placement**. Convert any WAV to MP3. |
+| **Music** | the smallest track, looping | see the 3-phase switch below |
+
+**Also ruled:** ONE PASS for the whole thing (`q3`); music tracks stay out of the game bundle except
+the smallest (`q6`); **level everything together, once, after all files are in** (`q7`, he took the
+recommendation).
+
+### ⚠ FOUR THINGS THAT COLLIDE, AND NONE OF THEM SHOULD BE SMOOTHED OVER
+
+1. **HE OVERRODE HIS OWN RULING FROM THIS MORNING.** The 9:5x AM block below says *"'Your turn':
+   WAIT FOR A DEDICATED FILE FROM LUIS"*, chosen over using an existing file. **That is superseded:
+   `q4`, *"use Bell."*** The morning ruling stands only as history. **Do not resolve this by
+   averaging the two — the later one wins outright.**
+2. ⛔ **"YOUR TURN" STILL COLLIDES WITH `audio.js` D-07 AND HE HAS NOT RULED ON THAT.** The standing
+   rule is that **everyone hears the whole table**; a your-turn cue is by definition per-player. He
+   assigned it a FILE; he did not lift the RULE. He was asked once and it stayed open. **Ask again
+   before wiring it — this is a genuine design contradiction, not an oversight to route around.**
+3. ⛔ **THE ALARM HAS NO TRIGGER TO ATTACH TO. His own words: *"This is not built into the current
+   game though."*** There is no turn-timeout event. **Wiring this sound means BUILDING the
+   turn-timer-expiry feature first** — a game-behaviour change, not a file drop, and much bigger
+   than the rest of the pass. **Price it separately and put it to him.**
+4. ⚠ **HIS SWORD RULING CONTRADICTS A MEASUREMENT ON THIS PROJECT'S OWN RECORD, and he has chosen.**
+   `docs/AUDIO.md` DEFECT-3 measured the shipped `battle-swords.mp3` at **+0.2 dBFS true peak** —
+   genuinely clipping. He rules: *"the swords are not clipped according to Luis; accept his ruling
+   and use the latest clip available."* **These are reconcilable and that is the likely answer: the
+   measurement was of the file SHIPPED, which may not be Luis's LATEST clip.** So — fetch the latest
+   clip, **re-measure THAT one**, and report the number. **Do not quietly drop the measurement, and
+   do not re-litigate his ruling.**
+
+### AND ONE NEW FEATURE HE SLIPPED IN — it is not a sound swap
+
+**`s6`, verbatim:** *"Design a 3-phase switch for the sound as the player clicks the sound button:
+Music+SFX; then SFX only; then mute; and return to Music + sfx after. When the song plays through
+once, do not restart it playing immediately -- wait 2 minutes."*
+
+**This changes an existing control's behaviour** — today the button is a two-state mute. Three
+states, cycling, plus a 2-minute silence between loops of the track. **Real game code, its own
+consistency sweep (rule 8: every surface that shows the sound button), and its own place in the
+plan.** It is not part of "wire Luis's files".
+
 ## ⟨T-261⟩ TWO RULINGS HE WROTE HIMSELF, IN THE PRD'S COMMENT BOXES — 2026-09-06 16:25Z
 
 **He asked for the first one to be recorded, in those words: *"record this ruling somewhere."*** This

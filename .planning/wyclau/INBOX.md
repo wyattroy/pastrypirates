@@ -2364,3 +2364,65 @@ status: OPEN — left on `s1` via the Glass's comment box
 > The coin flips can be ignored -- i ensured through code that all coin flips are the same consistent length, and that they match the original SFX file; so you don't need to do anything with teh coin flip sfx. record this ruling somewhere. The cannon sound should fire when a shot has LANDED -- make sure that this does not overlap with teh second coin flip in a battle, but comes a moment after it (eg. 100ms after). Note from luis on the ambience: "Also, for the ambient, I got you the looping ocean + seagull and creak clips. You'll need to come up with a randomizer for these clips. also randomize the stereo placement as you play them" -- i want you to scope this and create an artifact with 10-15 sliders for me to adjust to get the sound balance correct. Include the short music mp3 file in this artifact, so I can adjust how the music volume/pan sounds when the player wants music.
 solution: none stated
 status: OPEN — left on `s2` via the Glass's comment box
+
+## INBOX-20260906T162843Z — his comment on `s2`
+> SFX alarm should go when the timer is up.
+solution: none stated
+status: OPEN — left on `s2` via the Glass's comment box
+
+## INBOX-20260906T162702Z — his comment on `s3`
+> 1. the swords are not clipped according to Luis; accept his ruling and use the latest clip available. 
+> 2. Coin flip is good as is; ignore the new coin flip sfx
+> 3. do the drumroll audio timing check, and match the narration box timing to the sfx file.
+solution: none stated
+status: OPEN — left on `s3` via the Glass's comment box
+
+## INBOX-20260906T163011Z — his comment on `s4`
+> Your Turn should use the Bell SFX sound. New day should NOT use this sound. New Day should use nothing right now; eventually it might use a wind whoosh or a weather vane creak (because the wind changes direction every day). write this note somewhere durable to give luis for the next round of his sfx.
+solution: none stated
+status: OPEN — left on `s4` via the Glass's comment box
+
+## INBOX-20260906T163200Z — his comment on `s5`
+> See my above note from Luis about how the ambient sea bed should be designed and built. convert WAVs to mp3s.
+solution: none stated
+status: OPEN — left on `s5` via the Glass's comment box
+
+## INBOX-20260906T163336Z — his comment on `s6`
+> Use the smallest music track as a looping music track. Design a 3-phase switch for the sound as the player clicks the sound button:  Music+SFX; then SFX only; then mute; and return to Music + sfx after. When the song plays through once, do not restart it playing immediately -- wait 2 minutes.
+solution: none stated
+status: OPEN — left on `s6` via the Glass's comment box
+
+## INBOX-20260906T163404Z — his comment on `q1`
+> It should cover the turn timer running out of time. This is not built into the current game though.
+solution: none stated
+status: OPEN — left on `q1` via the Glass's comment box
+
+## INBOX-20260906T163429Z — his comment on `q3`
+> one pass.
+solution: none stated
+status: OPEN — left on `q3` via the Glass's comment box
+
+## INBOX-20260906T163439Z — his comment on `q4`
+> use Bell.
+solution: none stated
+status: OPEN — left on `q4` via the Glass's comment box
+
+## INBOX-20260906T163448Z — his comment on `q4`
+> do NOT use bell for new day.
+solution: none stated
+status: OPEN — left on `q4` via the Glass's comment box
+
+## INBOX-20260906T163550Z — his comment on `q5`
+> this file is not clipped, per luis's ruling. use it. I want the clashing sound to happen when battles are first called; the sound is exciting. cannon sound happens only when a shot lands, per my previous note.
+solution: none stated
+status: OPEN — left on `q5` via the Glass's comment box
+
+## INBOX-20260906T163558Z — his comment on `q6`
+> yes, see above.
+solution: none stated
+status: OPEN — left on `q6` via the Glass's comment box
+
+## INBOX-20260906T163615Z — his comment on `q7`
+> yes, do your recommendation.
+solution: none stated
+status: OPEN — left on `q7` via the Glass's comment box
