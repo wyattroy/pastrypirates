@@ -1,5 +1,28 @@
 # Wyatt's standing decisions
 
+## ⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — — 2026-09-06T17:54:55.080Z
+
+Asked on the Glass: *"⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — "choose yer recipe" — because that card is not a modal and the fix already shipped only watches modals. Measured fresh, not reasoned: posed a real tablet (820×1180) solo voyage to the recipe-choice prompt, screenshot at .planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png. The card sits at CSS z-index 30 with no dimming behind it at all (confirmed: #pp4Prompt carries class pp4Recipes, which paints no backdrop), while the shipped fix only hides the bar when a .modalOverlay is open. In this run the top captain row (Davy Scones, pink) is entirely covered by the card — not a sliver cut mid-word this time, but the same mechanism the row already named. Two fixes were considered and NOT built, because they trade off differently and it's a taste call:"* — **Wyatt ruled "Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide"**, 2026-09-06T17:54:55.080Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Extend the existing
+- Instead, shrink/reposition ONLY the recipe-choice card so it never physically overlaps #pp4Cap on tablet — narrower fix, but now two different rules decide when the bar is covered instead of one
+- Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide  ← **his pick**
+
+<!-- harvest-id: RULING-20260906T175455Z-t142-recipe-choice-captains-bar -->
+
+## ⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206  — 2026-09-06T17:55:06.580Z
+
+Asked on the Glass: *"⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206 ruling named three pages for analytics — "the game, About and Rules" — and Credits wasn't one of them, because it didn't exist yet when you ruled. CEO 222 flagged this rather than guess: read as a list, Credits is excluded; read as your underlying principle ("the public pages only"), Credits is a new public page and belongs. If people open the link you send them, you'd probably want to know."* — **Wyatt ruled "Add it — one line, <script type="**, 2026-09-06T17:55:06.580Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Add it — one line, <script type=  ← **his pick**
+- Leave it out — Credits stays exactly as ruled, a fourth page needs its own ask
+- Something narrower — count views but not who they are, if that's even a meaningful distinction here
+
+<!-- harvest-id: RULING-20260906T175506Z-t101-credits-analytics -->
+
+
 ## THE BLADE GOING QUIET IS NOT A FAULT — HE SHUTS IT DOWN WHEN HE CAPS OUT
 
 **Wyatt, 2026-09-06, unprompted, correcting two sessions in a row:** *"THe blade went quiet because
@@ -24,9 +47,28 @@ OBSERVATION, never a diagnosis — and this project has a person who can simply 
 sessions reasoned from logs toward a cause when the cause was a decision he had made and would have
 stated in one line. **Ask him before building a theory about his own machines.**
 
-**WHAT IS ACTUALLY WORTH FIXING, per his own framing:** the freeze is a normal consequence of the
-Blade being off and will recur every time he caps out. It is not the freezing that is the defect —
-**it is that nothing told him.** He found out by opening the page and seeing a red clock.
+> ### ⛔ THE PARAGRAPH THAT WAS HERE NAMED THE WRONG DEFECT, AND HE CORRECTED IT WITHIN THE HOUR
+>
+> It said: *"It is not the freezing that is the defect — it is that nothing told him."* **Wyatt,
+> 2026-09-06, immediately:** *"No -- the actual gap is that once the blade woke up, the page did
+> not update."*
+>
+> **He is right and the evidence was already on the page nobody re-read.** `status/Wy-Blade.md`
+> shows the Bell ringing again from **13:01:30Z** and then ELEVEN more times — 13:18, 13:48,
+> 13:58, 14:08, 14:48, 15:08, 15:48, 16:08, 16:38, 16:58 — while the Glass sat at its 09-04
+> 11:53Z generation the whole time. **The relay was alive for roughly four hours and his status
+> page moved not at all.**
+
+**SO THE DEFECT IS NOT THE FREEZE AND NOT THE SILENCE — IT IS THAT A RUNNING RELAY CANNOT MOVE HIS
+PAGE.** The page being still while the Blade is off is correct and expected. **The four hours after
+it woke are the fault**, and they are a fault every single time, not just after a shutdown.
+
+**AND THE DESIGNED CHANNEL FOR THIS IS BROKEN END TO END, WHICH IS WHY NOBODY NOTICED.**
+`GLASS-NOTE.md`'s own header promises *"The next watch (the relay session the Bell rings) reads
+this on its pulse, folds it into the page."* **No watch the Bell rings can publish** — every one
+is `claude -p`. So the note file is a relay pointed at a publisher that does not exist on that
+machine, and each half looks healthy on its own: watches run, notes get written, and the page
+never moves. **A handoff whose receiving end was never built does not report as broken.**
 
 **Related:** [`.planning/wyclau/GLASS-UPDATE-SESSION.md`](../../.planning/wyclau/GLASS-UPDATE-SESSION.md)
 (only an interactive session can publish; every Bell-rung watch is `claude -p` and never can), and
