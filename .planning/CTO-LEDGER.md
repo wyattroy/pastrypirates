@@ -12025,3 +12025,5 @@ given today before skipping it.
 **One item worked and closed this watch.** Ending the turn here, per the Door's own rule.
 
 END OF WATCH.
+
+- 2026-09-06T16:47:32Z · close_item: "T-261" · CEO 226 · no game diff — no game code by design: this row was the GATE that had to be answered BEFORE any sound is wired — his 12 rulings are harvested verbatim and digested, and the wiring is T-073's job · no stated solution
