@@ -54,10 +54,17 @@ stated in one line. **Ask him before building a theory about his own machines.**
 > not update."*
 >
 > **He is right and the evidence was already on the page nobody re-read.** `status/Wy-Blade.md`
-> shows the Bell ringing again from **13:01:30Z** and then ELEVEN more times — 13:18, 13:48,
-> 13:58, 14:08, 14:48, 15:08, 15:48, 16:08, 16:38, 16:58 — while the Glass sat at its 09-04
-> 11:53Z generation the whole time. **The relay was alive for roughly four hours and his status
-> page moved not at all.**
+> shows the Bell ringing again at **13:01:30Z** and then **at least ten more times** — 13:18,
+> 13:48, 13:58, 14:08, 14:48, 15:08, 15:48, 16:08, 16:38, 16:58 — while the Glass sat at its
+> 09-04 11:53Z generation the whole time. **The relay was alive for very nearly four hours
+> (13:01:30Z to 16:58:02Z = 3h57m) and his status page moved not at all.**
+>
+> ⚠ **"AT LEAST", AND THE COMMIT THAT LANDED THIS ENTRY (`56b309ce`) SAID "ELEVEN MORE" AND THEN
+> LISTED TEN.** Counted off the file: eleven timestamps total, so ten AFTER the wake. And the file
+> was published at 17:10Z, so any ring later than 16:58:02Z is simply not in it — the true figure
+> is a floor, not a total. **Corrected here rather than left standing, because this entry exists
+> to stop the next session re-deriving the wrong defect, and a record that miscounts its own
+> evidence is exactly the overclaiming CEO 227 and 229 both named.**
 
 **SO THE DEFECT IS NOT THE FREEZE AND NOT THE SILENCE — IT IS THAT A RUNNING RELAY CANNOT MOVE HIS
 PAGE.** The page being still while the Blade is off is correct and expected. **The four hours after
