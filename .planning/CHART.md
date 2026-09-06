@@ -210,191 +210,12 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       already closed, `T-142`, the standing WebKit-settle-timing note). **`T-138`'s "no new
       FULL-gear findings" condition is now satisfied — the only thing left on this row is Wyatt's
       own staging-publish approval, not a watch's to give.**
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running; measured on build 2026.09.04.2; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] Your ruling: ⟨`T-206`⟩ **The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is `G-2KK6EZDZSP` actually a live property in your Google account?** The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know. — his answer: Open analytics.google.com and confirm G-2KK6EZDZSP is there — his note: "Confirmed -- it's there." **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-206`⟩
       ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
 
-- [x] **~~MULTIPLAYER IS DOWN ON THE LIVE SITE~~ — DISPROVEN BY WYATT, SAME HOUR. It was never
-      down; my instrument was wrong.** Filed 2026-09-06T18:2xZ, retracted 18:3xZ.
-      **HIS PROOF, and it is conclusive:** two browser windows on `playpastrypirates.com` — one
-      normal, one **Private** — both showing DAY 1 on an identical board (same islands, same lone
-      pink sail), with the CAPTAINS panel listing **wyhost, wyguest, Dough Hook, Flaky Jack** in
-      both, each window putting its own player first. Two real humans in one synced room. His
-      words: *"you are wrong, it is not down -- i just started a nultiplayer game"*.
-      **WHAT I ACTUALLY MEASURED, and why it proved nothing:** I read `games/<code>`, `games`,
-      `usage` and the database root, plus a write to an invented `_glassgate_probe` path — every
-      one denied. **Not one of those is a path the game uses.** The game was working the whole
-      time, three feet away, and I never checked a path it actually touches.
-      ⛔ **AND I AM NOT REPLACING IT WITH A SECOND CONFIDENT THEORY. THE MECHANISM IS UNKNOWN.**
-      A plausible one exists (RTDB rules do not cascade upward, so a parent read can be denied
-      while the children the game uses are fine) — **it is a guess, it is unverified, and this row
-      is where it stays until somebody measures it.** This morning's `DECISIONS.md` entry records
-      two sessions producing two wrong causes in a row for the frozen Glass; a third confident
-      cause an hour later would be the same fault a third time.
-      **THE REAL LESSON, and it is this project's oldest one:** *"when a check condemns something
-      known to work, suspect the check first"* (`.claude/CLAUDE.md` §1). A probe said the live
-      game was broken. The live game was not broken. **I believed the probe over the game** — and
-      then published it to his Glass as the headline before he could stop me.
-      **⚠ COST, said plainly rather than softened:** a false production outage reached his status
-      page as its top item, and he had to go and disprove it himself with two browsers.
-      **What IS still true and unaffected:** his usage counter's `.catch(function(){})` at
-      `src/ui/usage.js:57` really does swallow every error silently, and the game really does
-      authenticate nowhere. Neither is evidence of an outage; both are worth a separate look, on
-      their own merits, by somebody who measures a path the game uses.
-
-- [ ] **The stage darkens the whole board area, not just the board** — his own bug report, and he
-      ⟨`T-263` · now: yes⟩
-      pressed DO NOW on it. Wyatt, written on the Glass, 2026-09-06T16:19:21Z: *"Problem: The stage
-      is darkened incorrectly in tablet and widescreen view -- the gameboard div is darkened,
-      including the top navbar row with the four ship circles and the wind pill; and the bottom
-      right/left corners around the gameboard. Expectation: in tablet and widescreen, only the
-      gameboard rounded-square area is darkened."*
-      Source: `INBOX-20260906T161921Z`. Read [`docs/BOARD-RENDERING.md`](../docs/BOARD-RENDERING.md)
-      before touching this (CLAUDE.md §4) and check
-      [`docs/INTENDED-BEHAVIOUR.md`](../docs/INTENDED-BEHAVIOUR.md) before calling any of it a bug.
-      **Rule 26 applies — this is a picture question, not a rate question: pose the same seeded
-      board at tablet and widescreen, before and after, two screenshots. Do not go looking for a
-      rate.** Sized SMALL-to-MEDIUM, game code, needs a sea trial.
-      ⚑ **WHY THIS ROW EXISTS AND WHY IT IS PINNED, written down because the first attempt got it
-      backwards.** He pressed DO NOW at 16:19:21Z. A session harvested it at 17:30Z, found `T-073`
-      already holding the single pin slot, and DECLINED to displace it — reasoning that a live
-      session was mid-flight on the SFX work. CEO 229 caught that: his own design says the opposite,
-      in his own words at `scripts/wyclau/chartkeeper.mjs:107` — *"ONE SLOT, NOT A QUEUE. Ticking it
-      on a second item must displace the first, deliberately. An interrupt with a queue is just
-      another backlog, which is the fault this whole design removes."* **The sentence quoted as the
-      reason to refuse the press is the reason the press must land.** And the mid-flight worry was
-      already covered by a DIFFERENT mechanism: the `🔒 CLAIMED` block on `T-073` tells a waking
-      watch to skip that row whatever its rank. The pin says what is most urgent; the claim lock
-      stops two sessions grabbing one job. Collapsing the two cost him the button press.
-
-- [ ] Your ruling: your player-count console — where should it live? **BUILT at the place you named, and you can now open it. It is not LIVE yet, and that half is your call.**
-      ⟨`T-138`⟩
-      His ask: *"a firebase admin console so I can see how many people are playing"*.
-      ✅ **BUILT 2026-09-03** at `/stats.html`, behind the curtain he asked for, blocked from search
-      — commit `b13a68c0`, CEO 159. Driven and photographed with the real database on a 390px
-      phone: **0 playing right now · 123 unique players (14d) · 44 voyages started · 8 finished**
-      (`.planning/posed/stats-open-390w-t138.png`). ⚠ **The 123 is a HEADLESS browser's number and
-      yours will read 122 or fewer** — the card excludes *you* by reading `pp_id` out of
-      localStorage (`stats.html:170-172`), and the shot was taken in a fresh browser that had none,
-      so nothing was excluded. CEO 159 asked for this to be written down a day ago and it was not;
-      it is written down now so it never becomes a phantom bug.
-      ⚠ **AND FOR A DAY THE ONLY MEASURABLE EFFECT OF THE CURTAIN WAS TO LOCK HIM OUT.** The word
-      was changed on 2026-09-03 to get it out of this public repo (CEO 159, correctly), the record
-      says it *"lives with Wyatt"* — and **nothing anywhere shows anybody ever told him.** Every
-      gate was green through it. Fixed 2026-09-03T11:0xZ: a fresh word, **delivered to his Glass by
-      cross-session message** (the only channel a watch has that is his and not this public repo),
-      the delivered SHA-256 recorded in [`CURTAIN-DELIVERED.md`](wyclau/CURTAIN-DELIVERED.md) — the
-      hash, never the word — and `stats_console_check.mjs` **clause E** now fails the build the day
-      the page's word and that record disagree. **The Glass session confirmed it is on your page**,
-      and separately confirmed the word appears in neither its staged nor its unstaged diff — a
-      second session, holding the word, checking that it never entered the repo.
-      Eight red-proofs; **six isolate to one clause, `--red=nocurtain` trips two** (deleting the
-      hash leaves E nothing to join to). Said exactly because CEO 164 caught the flattering version
-      of that same sentence in this same pass.
-      **THE REUSABLE ONE: A–D WERE ALL GREEN ON A PAGE ITS ONLY READER COULD NOT OPEN.** A gate that
-      checks a secret exists is not a gate that the person it is for HAS it.
-      ✅ **THE 404 BELOW EXPIRED — YOU CAN LOAD IT NOW. Measured 2026-09-06 ~10:30 AM ET:**
-      **https://staging.playpastrypirates.com/stats.html** returns **200 and renders**
-      (`<title>Pastry Pirates — usage</title>`), because staging now carries this branch
-      (`2026.09.04.2-staging@0fdbe853`). **This row set its own closing condition as "you can load
-      that URL" — that condition is MET.** What is left is your look at it, and separately the
-      PRODUCTION release, which is a different decision and still yours;
-      `playpastrypirates.com/stats.html` is still 404, correctly, because production is deliberately
-      unreleased on `2026-08-26k-CUTOVER`.
-      ⛔ **~~WHAT IS LEFT, AND IT IS YOURS, NOT A WATCH'S: `playpastrypirates.com/stats.html` and
-      `staging.playpastrypirates.com/stats.html` are both 404 today~~** (`curl`, 2026-09-03). The page
-      is on this branch only. Shipping it means the staging publish — which `T-016` says needs
-      another ~90-minute trial of the code that would actually ship — or the branch merge, which is
-      GATED on your own ruling. **This row closes when you can load that URL, not before.**
-      ⚑ **2026-09-04T0745Z — the trial that looked fresh enough wasn't.** `PP4_STAMP` had drifted
-      from the tree (see the fresh instance filed under `T-009` above); stamp bumped to
-      `2026.09.04.1`, `npm test` green, and a new detached FULL trial started
-      (`2026-09-04T0744Z-Wy-Blade`, pid 27400) so the staging publish this row is waiting on has
-      real coverage once it lands. **Still not published — the trial has to finish first.**
-      ⚠ **TRIAGED OUT OF `## RULED` 2026-09-03T07:1xZ FOR ONE REASON: THE CARD THAT CARRIED IT IS
-      BEING REMOVED.** Wyatt, 2026-09-02T13:18Z: *"Remove the 'Your rulings in hand' box from the
-      Glass."* Watch c1 is doing that and **checked first whether it would blind the detector** — it
-      does not — **but four rulings sat in `## RULED` with empty `now` cells and that card was their
-      only surface.** Removing it would have dropped all four off the page he reads, silently, with
-      every gate still green. Its own finding, handed over rather than shipped past.
-      **THE REUSABLE ONE: A SURFACE BEING RETIRED IS A MOMENT TO ASK WHAT ONLY LIVED THERE.**
-      **Sizing: unscoped — he answered WHERE, nobody has scoped WHAT.**
-      ⚑ **2026-09-04T0912Z — THE TRIAL FINISHED (81 min, 10/10 legs sailed, `2026-09-04T0744Z-Wy-Blade`,
-      build `2026.09.04.1`) — BUT IT SAILED THE FIRST TRIAL OF A BRAND-NEW FEATURE AND CAUGHT IT
-      BREAKING SOMETHING ELSE. DO NOT PUBLISH TO STAGING UNTIL THAT IS TRIAGED.** See the new row
-      immediately below (`T-248`) — the just-added `#legalFooter` (Privacy Policy / About links,
-      his own `T-206` ruling) sits on top of the captains panel on every phone-width screen, not
-      gated by mode or state. This watch verified it by eye on two independent screenshots across
-      two different modes (solo, crew) — real, not a judge artifact. **This is exactly what a sea
-      trial exists to catch before a publish, so this row stays blocked on it rather than treating
-      "10/10 legs sailed" as clearance.** The rest of the trial's findings (settle-timing geometry
-      churn, wind-arrow icon clipping, dock-highlight-under-modal, EOV award-name clipping) all
-      match known Chart rows already open (`T-023`, `T-142`, and the standing WebKit-settle-timing
-      note) and are not new.
-      ✅ **2026-09-04T0930Z-1015Z — `T-256` IS FIXED AND CLOSED (CEO 211, YES, commit `fe87894a`).**
-      `camFrame()` (`src/ui/stage.js`) now measures `#legalFooter`'s own rendered height and
-      reserves it in the same board/captains-card budget it already computes, on true phone width
-      only; `#pp4Cap`'s own bottom edge now sits above the footer instead of touching the raw
-      viewport edge. Red-proofed (neutralize the reservation, confirm the same 7px defect
-      reproduces; restore it, confirm 0px on both a phone seat and a tablet control), posed
-      screenshots in `.planning/posed/t256-*`, `npm test` 138/138 green. **This row (`T-138`) is
-      still blocked on a fresh FULL sea trial of the code that would actually ship** — the same
-      trial `T-009`/`T-016` already say is owed, now also covering this fix, not a second one to
-      start separately.
-      ⚑ **2026-09-04T1013Z — THAT FRESH TRIAL IS NOW SAILING.** Watch 1007Z-1015Z measured that the
-      0744Z trial (build `2026.09.04.1`) finished BEFORE the T-256 fix landed (07:44:52Z bump vs.
-      09:58:24Z fix commit), so its evidence does not cover `fe87894a`. Bumped `PP4_STAMP` to
-      `2026.09.04.2`, fixed an unrelated `sitemap_lastmod_check` FAIL along the way (regenerated,
-      never hand-typed), `npm test` 138/138 green, then started a fresh detached FULL trial:
-      run `2026-09-04T1013Z-Wy-Blade`, **pid 41776**, report
-      `.planning/SEA-TRIAL-2026-09-04T1013Z-Wy-Blade.md`. **Not this watch's to wait on** (Door
-      step 4) — the next watch reads the finished report (~80-90 min out) and, if it confirms no
-      new FULL-gear findings, both `T-138` and `T-009`'s fresh-trial condition are satisfied and
-      `T-138` only needs Wyatt's own staging-publish approval. Commit `e7b07129`; ledger:
-      `WATCH CLAIM+FILE, 2026-09-04T1007Z-1015Z`.
-      ⚑ **2026-09-04T1150Z — THAT TRIAL FINISHED (84 min, 10/10 legs sailed) AND ITS ONE NEW FINDING
-      IS NOW TRIAGED — `T-241`, CEO 216 (YES), measured NOT A DEFECT** (footer/button overlap 0px at
-      both seats). Every other finding in the report matches known open rows (`T-023`/`T-143`
-      already closed, `T-142`, the standing WebKit-settle-timing note). **`T-138`'s "no new
-      FULL-gear findings" condition is now satisfied — the only thing left on this row is Wyatt's
-      own staging-publish approval, not a watch's to give.**
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 27400, which is not running
-
-- [ ] Your ruling: ⟨`T-206`⟩ **The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is `G-2KK6EZDZSP` actually a live property in your Google account?** The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know. — his answer: Open analytics.google.com and confirm G-2KK6EZDZSP is there — his note: "Confirmed -- it's there." **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-206`⟩
-      ⚠ STALE-CANDIDATE — answered (close it (he already answered)) — your answer landed — Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this-- it clearly doesn't need a full one given that you're just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial — and nothing moved this row
-
-- [ ] **⛔ MULTIPLAYER IS DOWN ON THE LIVE SITE, AND IT FAILS SILENTLY** — every Firebase path
-      ⟨`T-265`⟩
-      answers `Permission denied`, so a host is shown a normal lobby and a room code that reaches
-      nobody. **Measured on `playpastrypirates.com` itself, 2026-09-06T18:1xZ, not reasoned:**
-      clicked Host a Crew as a player, got room code `PBNM` and a full "Captains at the table"
-      lobby — **and `games/PBNM` does not exist in the database.** Read refused, write refused,
-      from the host's own page and again from a second browser as a joiner:
-      `permission_denied at /games/PBNM: Client doesn't have permission to access the desired
-      data.` **So the host shares a code, the guest cannot join, and nothing on the host's screen
-      says anything is wrong.**
-      **THE GAME AUTHENTICATES NOWHERE** — no `signInAnonymously`, no auth import anywhere in
-      `src/` — it calls `firebase.database()` as an anonymous client (`src/net/index.js:104`), and
-      `src/ui/usage.js:57` writes by plain REST `fetch` PUT. Both are refused now.
-      **WHAT ELSE IS DEAD WITH IT, unmeasured on the page but the same root:** the usage counter
-      (its `.catch(function(){})` at `usage.js:57` swallows every error, so it has been failing
-      silently), and therefore his player-count console at `/stats.html` (`T-138`), which reads
-      that data and last showed real numbers — 123 unique players — on 2026-09-03.
-      **⚠ THE FIX IS IN HIS FIREBASE CONSOLE AND NO SESSION CAN REACH IT** — same shape as the
-      `T-220` hook edits. **First thing to check, because it fits exactly and is the commonest
-      cause: RTDB test-mode rules carry an expiry date and deny everything the day they lapse.**
-      The record from 2026-09-06 still describes this database as *"answering an UNAUTHENTICATED
-      read"* (`INBOX-20260906T2010Z`), so the change is recent — hours or days, not weeks.
-      **NOT YET MEASURED, and named rather than assumed:** exactly when it broke, and whether
-      solo play is affected (it should not be — solo never touches Firebase, and the home screen
-      and Pass & Play rendered fine). Sized: the console fix is minutes and is HIS; deciding what
-      the rules should SAY is a real design question and touches the launch.
-      ⚑ **FOUND SIDEWAYS.** Nobody was looking for this. It surfaced while red-proofing the
-      integrity gate for the Glass store move — the gate went green on its first run, that was
-      distrusted per rule 6, and the probe that checked it found every path denied.
 
 
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
@@ -486,6 +307,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 - [ ] Your ruling: ⟨`T-101`⟩ **Should the new credits page (`credits.html`) carry Google Analytics like About and Rules do?** Your T-206 ruling named three pages for analytics — "the game, About and Rules" — and Credits wasn't one of them, because it didn't exist yet when you ruled. CEO 222 flagged this rather than guess: read as a *list*, Credits is excluded; read as your underlying *principle* ("the public pages only"), Credits is a new public page and belongs. If people open the link you send them, you'd probably want to know. — his answer: Add it — one line, <script type="module" src="src/analytics.js"></script>, same as the other three public pages (recommended, matches the apparent principle) **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-101`⟩
 
+- [ ] Your ruling: ⟨`T-143`⟩ **On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling.** `T-023`'s original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (`2026.09.04.2`) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (`.planning/posed/t143-eov-phone-390x664-awards.png`, `t143-eov-tablet-820x1180-awards.png`) to the Glass for you to see directly. — his answer: Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
+      ⟨`T-143`⟩
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.04.2; the tree is 2026.09.06.1, so its evidence no longer describes this game
+
 - [ ] **The privacy-policy footer shows where it should not** — his own bug report. Wyatt, written
       ⟨`T-264`⟩
       on the Glass, 2026-09-06T16:15:11Z: *"Problem: the privacy policy footer appears incorrectly:
@@ -497,9 +322,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 - [ ] Your ruling: ⟨`T-220`⟩ **A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning `--gear=`/`--reason=`/`--explain`, and a NEW bug along the way (a Windows path-separator bug that makes `scripts/`, `.claude/`, `docs/` all misread as "game code" on this machine) — and every attempt to `Edit` `.claude/hooks/qa-gear-first.cjs` or `.claude/hooks/lib/game-code.cjs` is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in `.planning/CHART.md`'s T-220 row and `scripts/qa/hook_gear_override_reachable_check.mjs`.** — his answer: You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
       ⟨`T-220`⟩
-
-- [ ] Your ruling: ⟨`T-143`⟩ **On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling.** `T-023`'s original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (`2026.09.04.2`) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (`.planning/posed/t143-eov-phone-390x664-awards.png`, `t143-eov-tablet-820x1180-awards.png`) to the Glass for you to see directly. — his answer: Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern **Untriaged.** A watch decides whether this still owes work, then moves the ruling to SETTLED RULINGS and deletes this row.
-      ⟨`T-143`⟩
 
 
 
@@ -649,7 +471,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   carefully). **Filed here rather than guessed at; the content-hash fix this row proposes may not
   even be the right fix once that's answered.** Full account:
   `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.04.2, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.03.3; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
@@ -683,6 +505,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       design question above — stays open for Wyatt; it is now in `BLOCKED ON WYATT` as `qid:t143-eov-
       phone-scroll` with a marked recommendation. Full account:
       `.planning/wyclau/PREDICTION-20260904T1111Z-T143-T023.md`; verdicts: CEO Reviews 214-215.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.04.2; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] **A TRADE-OFFER CIRCLE CANNOT HOLD ITS OWN CAPTAIN'S NAME — filed 2026-09-02T02:4xZ by the
       ⟨`T-237`⟩
@@ -772,8 +595,54 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ✅ RE-MEASURED ON THE CURRENT BUILD — the 2026-09-06 sweep above ran on `2026.09.04.2`, the
       tree's own current stamp, so the stale-candidate flag that used to sit here (measured on
       `2026.09.01.7`) is resolved; this evidence describes the live game.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 
+
+- [ ] **TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade` — ZERO NEW PLAYER-FACING DEFECTS, and a
+      ⟨`T-262`⟩
+      NEW judge/instrument false-positive family named and traced.** Watch pastrypirates-76,
+      2026-09-06T~1450Z. This FULL trial (10/10 legs sailed, build `2026.09.04.2`) had not been
+      opened by any prior watch — the two watches that touched `T-237`/`T-261` around it left it
+      "sailing, not this watch's to wait on" and it finished at 13:28:34Z, ~83 minutes before this
+      triage. Read leg-by-leg (not just the FAIL headline) and opened the actual screenshots (rule
+      22, not the judge's caption alone):
+      1. **`solo-phone-018`/`solo-phone-wk-025` — "Play again! button clips award text."** Same
+         symptom already fully explained and BLOCKED ON WYATT as `T-143` — a phone's screen is too
+         short for 4 award cards + stats table to fit above the fold, not a button overlap (that
+         cause was measured and disproven twice already). Not new; his three options are still
+         waiting on him.
+      2. **`solo-phone-wk-023` — "Call Crustbeard radial overlaps ships."** Matches the documented
+         pre-existing "phone radial overlaps" family (`CTO-LEDGER.md` 2026-08-28, explicitly
+         including a prior "wk-012 Walk-away/Crustbeard" instance). Not new.
+      3. **`solo-tablet-005`/`passplay-desktop-008` — "empty speech bubble/tooltip, no text."**
+         Opened both screenshots: a correctly-shaped, correctly-sized, correctly-positioned
+         narration bubble (tail and all) with literally nothing written in it. **This does NOT match
+         the known "active-seat ring misread" false-positive** (that one is a judge hallucinating
+         text onto a ring, not a real blank box) — this is a genuinely blank box. **Traced to a real
+         mechanism, not guessed:** `stageFlash()` (`src/ui/stage.js:1483`) builds the bubble's full
+         HTML in one shot, then hands it to `typewriterReveal()` (`src/ui/panel.js:752`), which
+         immediately splits every text node into a `shownEl` (starts empty, `textContent=""`) and a
+         `hiddenEl` (holds the full text, `visibility:hidden`, reserves the box's real width/height
+         from frame one — that's deliberate, so words never jump lines as they grow). **The box is
+         therefore full-size and "settled" from the instant it is created, while its visible text
+         stays blank until the first reveal tick fires** (16–32ms later, or after `startDelayMs`).
+         A screenshot landing in that sub-frame window — which the trial's own settle-detector
+         cannot see as "still moving" because the box's geometry never changes — captures exactly
+         what these two screenshots show.
+      ⚠ **NOT INDEPENDENTLY RED-PROOFED — flagged rather than overstated.** This explanation matches
+      the code and the pictures precisely and was not confirmed by deliberately forcing a capture at
+      frame zero. **No player is affected**: at 60fps this window is at most one or two frames,
+      invisible in real play, and the box's stable size means it never causes layout shift either.
+      **NOT FIXED — there is nothing to fix for a player.** Filed so no future watch re-opens this as
+      a new bug: it is a fourth entry in this project's "judge/settle-detector false-positive"
+      family, alongside the active-seat ring and the two-tap selection-state misreads.
+      4. **The standing "N screens never stopped moving" geometry churn on every leg** — already the
+         documented WebKit/general settle-timing note; not new.
+      **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
+      No game code touched — this is triage only. `npm test` not re-run (no code changed).
+      Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.04.2; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] **AND THE OTHER HALF OF THAT MEASUREMENT, WHICH IS HIS QUESTION AND IS STILL OPEN: a call
       ⟨`T-013`⟩
@@ -875,6 +744,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
+
 - [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
       ⟨`T-142`⟩
       thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
@@ -943,7 +813,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   him in `## BLOCKED ON WYATT` (`qid:t142-recipe-choice-captains-bar`) with a marked
   recommendation and the posed picture as evidence, rather than guessed at.**
 
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -963,50 +832,16 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       second gate that lifts the decision out of the UI the way `notrun_provenance_check.mjs` lifts
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
+- [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
+      ⟨`T-257`⟩
+  filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
+  closed `T-241` (build `2026.09.04.2`, 10/10 legs, CEO 216) reported that trial's one NEW finding
+  as fully triaged and said every other finding matched known rows. Four did not — this is one.
+  Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
+  the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
+  posed (rule 26).
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.04.2; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
-- [ ] **TRIAGE OF `SEA-TRIAL-2026-09-06T1328Z-Wy-Blade` — ZERO NEW PLAYER-FACING DEFECTS, and a
-      ⟨`T-262`⟩
-      NEW judge/instrument false-positive family named and traced.** Watch pastrypirates-76,
-      2026-09-06T~1450Z. This FULL trial (10/10 legs sailed, build `2026.09.04.2`) had not been
-      opened by any prior watch — the two watches that touched `T-237`/`T-261` around it left it
-      "sailing, not this watch's to wait on" and it finished at 13:28:34Z, ~83 minutes before this
-      triage. Read leg-by-leg (not just the FAIL headline) and opened the actual screenshots (rule
-      22, not the judge's caption alone):
-      1. **`solo-phone-018`/`solo-phone-wk-025` — "Play again! button clips award text."** Same
-         symptom already fully explained and BLOCKED ON WYATT as `T-143` — a phone's screen is too
-         short for 4 award cards + stats table to fit above the fold, not a button overlap (that
-         cause was measured and disproven twice already). Not new; his three options are still
-         waiting on him.
-      2. **`solo-phone-wk-023` — "Call Crustbeard radial overlaps ships."** Matches the documented
-         pre-existing "phone radial overlaps" family (`CTO-LEDGER.md` 2026-08-28, explicitly
-         including a prior "wk-012 Walk-away/Crustbeard" instance). Not new.
-      3. **`solo-tablet-005`/`passplay-desktop-008` — "empty speech bubble/tooltip, no text."**
-         Opened both screenshots: a correctly-shaped, correctly-sized, correctly-positioned
-         narration bubble (tail and all) with literally nothing written in it. **This does NOT match
-         the known "active-seat ring misread" false-positive** (that one is a judge hallucinating
-         text onto a ring, not a real blank box) — this is a genuinely blank box. **Traced to a real
-         mechanism, not guessed:** `stageFlash()` (`src/ui/stage.js:1483`) builds the bubble's full
-         HTML in one shot, then hands it to `typewriterReveal()` (`src/ui/panel.js:752`), which
-         immediately splits every text node into a `shownEl` (starts empty, `textContent=""`) and a
-         `hiddenEl` (holds the full text, `visibility:hidden`, reserves the box's real width/height
-         from frame one — that's deliberate, so words never jump lines as they grow). **The box is
-         therefore full-size and "settled" from the instant it is created, while its visible text
-         stays blank until the first reveal tick fires** (16–32ms later, or after `startDelayMs`).
-         A screenshot landing in that sub-frame window — which the trial's own settle-detector
-         cannot see as "still moving" because the box's geometry never changes — captures exactly
-         what these two screenshots show.
-      ⚠ **NOT INDEPENDENTLY RED-PROOFED — flagged rather than overstated.** This explanation matches
-      the code and the pictures precisely and was not confirmed by deliberately forcing a capture at
-      frame zero. **No player is affected**: at 60fps this window is at most one or two frames,
-      invisible in real play, and the box's stable size means it never causes layout shift either.
-      **NOT FIXED — there is nothing to fix for a player.** Filed so no future watch re-opens this as
-      a new bug: it is a fourth entry in this project's "judge/settle-detector false-positive"
-      family, alongside the active-seat ring and the two-tap selection-state misreads.
-      4. **The standing "N screens never stopped moving" geometry churn on every leg** — already the
-         documented WebKit/general settle-timing note; not new.
-      **CONCLUSION: this trial confirms rule 24's promise rather than finding anything to act on.**
-      No game code touched — this is triage only. `npm test` not re-run (no code changed).
-      Sizing: investigation, closed with a Chart row and a ledger entry, not a fix.
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -1014,8 +849,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       not-run column, but its own report says **"THE JUDGE CANNOT SEE — every visual verdict below
       is worthless; the structural half still stands."** The screens are queued, marked NOT cleared.
       His reasoning: the untappable sail square that cost days was caught by looking, not structure.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.06.1, so its evidence no longer describes this game
 - [ ] **THE RELEASE TRIAL'S EVIDENCE WAS RETIRED BY THE FIX, and that is a real number about the
       ⟨`T-016`⟩
   launch date.** CEO 84: the 88-minute trial that was ruling 12's whole cargo tested build
@@ -1023,7 +857,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   trial.** `npm test` is GREEN again (another session cleared the vendored-file failure), so the
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.06.1, so its evidence no longer describes this game
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
       His words, DO NOW pin 2026-09-03 10:22 AM ET (`INBOX-20260903T142249Z`): *"always when giving
@@ -1097,6 +931,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
+
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -1126,15 +961,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   **Size: small — teach it to see untracked files. Red-proof: add an untracked root `.html` on a
   clean tree and it must not say NONE.** Not fixed in that pass on purpose: changing what counts
   as game code is not a drive-by.
-
-- [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
-      ⟨`T-257`⟩
-  filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
-  closed `T-241` (build `2026.09.04.2`, 10/10 legs, CEO 216) reported that trial's one NEW finding
-  as fully triaged and said every other finding matched known rows. Four did not — this is one.
-  Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
-  the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
-  posed (rule 26).
 
 - [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
       ⟨`T-258`⟩
@@ -1343,11 +1169,11 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Run `2026-09-01T1914Z-Wy-Blade`, pid 45256, report
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
-      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.04.2, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
-      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.04.2, so its evidence no longer describes this game
+      ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.06.1, so its evidence no longer describes this game
 
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩

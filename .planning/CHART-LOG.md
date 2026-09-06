@@ -3657,3 +3657,34 @@ wrote; `scripts/qa/rulings_triage_check.mjs` keeps each one matched to its settl
       absolute path it passes 15/15. Rule 18, and rule 6's other half: the instrument had told me
       something about ITSELF, not the page. Worth making the probe REFUSE a relative path rather
       than silently measure the wrong thing.
+
+## T-265 — date not recorded — MULTIPLAYER IS DOWN ON THE LIVE SITE — DISPROVEN BY WYATT, SAME HOUR. It was never down; my instrument was wrong. Filed 2026-09-06T18:2xZ, retracted 18:3xZ. HIS PROOF, and it is conclusive: two browser windows on playpastrypirates.com — one normal, one Private — both showing DAY 1 on an identical board (same islands, same lone pink sail), with the CAPTAINS panel listing wyhost, wyguest, Dough Hook, Flaky Jack in both, each window putting its own player first. Two real humans in one synced room. His words: "you are wrong, it is not down -- i just started a nultiplayer game". WHAT I ACTUALLY MEASURED, and why it proved nothing: I read games/<code>, games, usage and the database root, plus a write to an invented _glassgate_probe path — every one denied. Not one of those is a path the game uses. The game was working the whole time, three feet away, and I never checked a path it actually touches. ⛔ AND I AM NOT REPLACING IT WITH A SECOND CONFIDENT THEORY. THE MECHANISM IS UNKNOWN. A plausible one exists (RTDB rules do not cascade upward, so a parent read can be denied while the children the game uses are fine) — it is a guess, it is unverified, and this row is where it stays until somebody measures it. This morning's DECISIONS.md entry records two sessions producing two wrong causes in a row for the frozen Glass; a third confident cause an hour later would be the same fault a third time. THE REAL LESSON, and it is this project's oldest one: "when a check condemns something known to work, suspect the check first" (.claude/CLAUDE.md §1). A probe said the live game was broken. The live game was not broken. I believed the probe over the game — and then published it to his Glass as the headline before he could stop me. ⚠ COST, said plainly rather than softened: a false production outage reached his status page as its top item, and he had to go and disprove it himself with two browsers. What IS still true and unaffected: his usage counter's .catch(function(){}) at src/ui/usage.js:57 really does swallow every error silently, and the game really does authenticate nowhere. Neither is evidence of an outage; both are worth a separate look, on their own merits, by somebody who measures a path the game uses.
+
+- [x] **~~MULTIPLAYER IS DOWN ON THE LIVE SITE~~ — DISPROVEN BY WYATT, SAME HOUR. It was never
+      ⟨`T-265`⟩
+      down; my instrument was wrong.** Filed 2026-09-06T18:2xZ, retracted 18:3xZ.
+      **HIS PROOF, and it is conclusive:** two browser windows on `playpastrypirates.com` — one
+      normal, one **Private** — both showing DAY 1 on an identical board (same islands, same lone
+      pink sail), with the CAPTAINS panel listing **wyhost, wyguest, Dough Hook, Flaky Jack** in
+      both, each window putting its own player first. Two real humans in one synced room. His
+      words: *"you are wrong, it is not down -- i just started a nultiplayer game"*.
+      **WHAT I ACTUALLY MEASURED, and why it proved nothing:** I read `games/<code>`, `games`,
+      `usage` and the database root, plus a write to an invented `_glassgate_probe` path — every
+      one denied. **Not one of those is a path the game uses.** The game was working the whole
+      time, three feet away, and I never checked a path it actually touches.
+      ⛔ **AND I AM NOT REPLACING IT WITH A SECOND CONFIDENT THEORY. THE MECHANISM IS UNKNOWN.**
+      A plausible one exists (RTDB rules do not cascade upward, so a parent read can be denied
+      while the children the game uses are fine) — **it is a guess, it is unverified, and this row
+      is where it stays until somebody measures it.** This morning's `DECISIONS.md` entry records
+      two sessions producing two wrong causes in a row for the frozen Glass; a third confident
+      cause an hour later would be the same fault a third time.
+      **THE REAL LESSON, and it is this project's oldest one:** *"when a check condemns something
+      known to work, suspect the check first"* (`.claude/CLAUDE.md` §1). A probe said the live
+      game was broken. The live game was not broken. **I believed the probe over the game** — and
+      then published it to his Glass as the headline before he could stop me.
+      **⚠ COST, said plainly rather than softened:** a false production outage reached his status
+      page as its top item, and he had to go and disprove it himself with two browsers.
+      **What IS still true and unaffected:** his usage counter's `.catch(function(){})` at
+      `src/ui/usage.js:57` really does swallow every error silently, and the game really does
+      authenticate nowhere. Neither is evidence of an outage; both are worth a separate look, on
+      their own merits, by somebody who measures a path the game uses.
