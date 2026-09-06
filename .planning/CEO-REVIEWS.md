@@ -16639,3 +16639,44 @@ protected by a check rather than by memory — and both findings this review rai
 and the un-recorded gear choice) were fixed within the same watch, before this went in the record;
 what is left is entirely his: approve a release so the page is actually live, and say whether
 Credits should carry analytics like About and Rules do.
+
+## CEO Review 223 — 2026-09-06T~2000Z, Wy-Blade — INBOX-20260906T1520Z, explain the repo architecture
+
+**Wyatt asked, verbatim:** *"can you explain the architecture of our repo? it must be written in our documentation. i designed it 2 weeks ago with you and now am really confused why you are so confused. what terminology do you need me to use so you don't get confused in the future? where do you need to write down our process so that you don't accidentally push our in-progress test work to production instead of staging? what repo should I have locally — perhaps not pastrypirates at all, given that we're actually working in pastrypirates-staging? is that even what the staging repo is called? i just want to build pastry pirates features, but i'm getting so bogged down stuck and confused every time that YOU get confused by our staging vs production structure. what do you recommend I do, going forward, so this doesn't happen again? please suggest in very very simple terms how i should use my mac... and the Blade... is there a way to automatically hook mac pastrypirates sessions to do these tasks?"*
+
+### VERDICT: PARTIAL
+
+The machinery is real, verified, and CEO 221's specific complaint — *"He asked a designer's question and got infrastructure"* — is genuinely cured. But the flagship page built to close that gap contains one factual overclaim about the very mechanism he asked about most directly ("automatically hook"), and a second ledger has gone stale describing this same item as still open when it is done.
+
+**1. `.claude/CLAUDE.md` §3 and §6 name both repos and explain the confusion — YES.** §6 has a boxed section titled "TWO REPOSITORIES," naming `wyattroy/pastrypirates` (source) vs `wyattroy/pastrypirates-staging` (publish target, never cloned/developed in), the PUBLISH-vs-RELEASE vocabulary pair, and points at `scripts/where_is_my_work.mjs` instead of git ancestry. §3 similarly names both machines with a table (Blade = home, runs the Watch, 42 sea trials; Mac = visitor). This is written for Claude, not Wyatt, which is correct — the page below is the Wyatt-facing half.
+
+**2. `scripts/where_is_my_work.mjs` — ran it via a subagent. Output:**
+```
+your working tree   2026.09.04.2  (branch claude/cloud-handoff-planning-a9ay1u)
+staging             2026.09.04.2-staging@aee848e8
+production          2026-08-26k-CUTOVER
+STAGING IS CARRYING THIS TREE. Your work is published and he can play it.
+```
+**This is plain, correct, and directly answers "is my work on staging."** No jargon, one clear verdict sentence a designer could act on.
+
+**3. The two hooks — mostly fire at the right moment, but one is described inaccurately to Wyatt (see finding 6 below).** `staging-is-not-main.cjs` triggers on exactly the ancestry-diagnostic shapes that caused the original incident (`merge-base…main`, `rev-list…main`), and prints, never blocks — matches its own claim. `machine-handoff.cjs` auto-pulls on `--arrive` when clean and behind, and warns (never pushes) on `--leave` when commits are unpushed — its own header is explicit: **"IT DOES NOT PUSH FOR HIM, DELIBERATELY."**
+
+**4. `two-machines.html` at repo root — exists, and `.planning/wyclau/TWO-MACHINES.html` is confirmed gone (no stale duplicate).** Read the whole page. It is genuinely written for him: opens with a two-line takeaway ("The Blade is home. The Mac is a visitor."), then three numbered rules, a repo table, a plain-English HEAD/detached-HEAD explainer tied to the real three-day incident, an architecture table, the QA layers, and the Watch/Chart/Glass loop. This is a real cure of CEO 221 finding 6.
+
+**5. Live and reachable — YES, verified.** `curl`-equivalent check returned **HTTP 200** for `https://staging.playpastrypirates.com/two-machines.html`. `.planning/wyclau/PUBLISH-QUEUE.md` shows `T-263` marked `[x]` with `published: https://staging.playpastrypirates.com/two-machines.html` — matches the live URL and the current build stamp.
+
+**6. ⚠ ONE FACTUAL OVERCLAIM ON THE PAGE ITSELF (found, then fixed the same watch) — `two-machines.html`, the "Bookend every Mac session" rule.** It read *"A hook now does both halves for you — these are here so you know what it's doing,"* directly answering his "automatically hook mac sessions" question — but overstated it: the **pull half is automatic**, the **push half is explicitly, deliberately never automatic** (`machine-handoff.cjs`'s own comment: pushing unreviewed work behind his back "is not a thing a hook should do"). **Fixed in this same watch**, before this review was recorded: the line now says the sit-down half is automatic and the push half stays his, on purpose, and states why.
+
+**7. ⚠ A second record had gone stale — `.planning/wyclau/INBOX.md`, this same entry.** It still read `status: OPEN` and described T-263 as "QUEUED FOR PUBLISH," while `PUBLISH-QUEUE.md` shows it closed and live. **Also fixed this watch**, closed through `close_item.mjs` with a pointer to the live URL.
+
+**8. His specific sub-questions, checked individually:**
+- *"what repo should I have locally?"* — **directly answered** on the page: "one repo you work in — `pastrypirates`, cloned on both machines... a second GitHub repo, `pastrypirates-staging`... Nobody develops in it. **Don't clone it.**"
+- *"is that even what the staging repo is called?"* — **yes, named explicitly** in the same passage.
+- *"automatically hook mac sessions"* — **addressed, corrected this watch (finding 6).**
+- *HEAD/detached HEAD* — **addressed well**, plain metaphor tied to the real incident.
+
+**WHAT THIS WATCH DID ABOUT IT, before recording this review:** fixed the overclaim on `two-machines.html` (the push half is his, on purpose, and why), and closed `INBOX-20260906T1520Z` through the gate with a pointer to the live page and the `T-263` queue row.
+
+---
+
+**ITS ONE THING FOR WYATT:** The page you asked for is real and it's live — I checked it myself and it loads at `staging.playpastrypirates.com/two-machines.html`, written in plain terms with your two machines explained ("Blade is home, Mac is a visitor"), which repo to have locally (`pastrypirates`, never `pastrypirates-staging`), and what HEAD and detached HEAD actually mean, with the story of your stranded drawing as the example. That's the part a prior review said was missing, and it's not missing anymore. One thing on the page was wrong, and it's fixed now: it used to say a hook "does both halves" of pulling and pushing automatically, when it actually only auto-pulls — it will never push your work for you without you typing `git push`, on purpose, because a hook silently pushing your unreviewed work behind your back is its own kind of risk. That line now says so.
