@@ -218,6 +218,51 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
 
 ### ⚑ FOR A WATCH — filed by the Advisor 2026-09-02, none of it this session's to build
 
+- [ ] **A "DOUGH HOOK DECLINES" TOAST FLOATS DETACHED OVER THE "FLAKY JACK +5" BUTTON, MID-GAME —
+      ⟨`T-257`⟩
+  filed 2026-09-06, from the 2026-09-04T1013Z FULL trial's own unread findings.** The watch that
+  closed `T-241` (build `2026.09.04.2`, 10/10 legs, CEO 216) reported that trial's one NEW finding
+  as fully triaged and said every other finding matched known rows. Four did not — this is one.
+  Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
+  the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
+  posed (rule 26).
+
+- [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
+      ⟨`T-258`⟩
+  ZONE, PASS-AND-PLAY PHONE.** Same source trial as `T-257`. **Structural, not a judge guess** —
+  the trial's `no-cover-ask` check measures real bounding-box overlap: `sailCell` sits over "Peg Leg
+  Meg: tap to sail — blu…". Harder evidence than the vision-judge rows in this section; closer to
+  confirmed.
+
+- [ ] **DEBUG-LOOKING TEXT ("test2") SITS OVER THE REAL CACAO PODS TRADE TABLE, CREW PHONE.**
+      ⟨`T-259`⟩
+  Same source trial as `T-257`, same structural `no-cover-ask` class as `T-258` — real bounding-box
+  overlap, not a judge guess. Check first whether "test2" is leftover debug/placeholder content
+  that should not be reachable in a real game at all, before treating this as a layout fix.
+
+- [ ] **ROCK/ISLAND ARTWORK OVERLAPS THE "TAP AND HOLD THE SEA" ONBOARDING TEXT, WEBKIT PHONE
+      ⟨`T-260`⟩
+  (SAFARI FAMILY).** Same source trial as `T-257`. Vision judge, `solo-phone-wk-015-settled.png` —
+  per `T-019` open the image before trusting the judge's wording. Engine-specific (WebKit only);
+  check whether it reproduces on Chromium phone before assuming it is universal.
+
+  ⚠ **ALL FOUR ROWS ABOVE (`T-257`–`T-260`) COME FROM THE SAME REPORT A PRIOR WATCH ALREADY CLOSED
+  OUT AS "every other finding … matches known open rows."** That note (line ~209 above) covered
+  `T-241`, `T-023`, `T-143`, `T-142` and the WebKit-settle-timing note — it did not actually check
+  these four, which sit in the same report under different voyage legs (`solo-phone`,
+  `passplay-phone`, `crew-phone`, `solo-phone-wk`). **The reusable lesson: a closing note that says
+  "everything else matches" is itself a claim, not a measurement — read the full voyage log, not a
+  summary of it, before relying on "nothing new here."** Two other legs of the SAME report also
+  corroborate or extend rows already open, not new tickets: `solo-tablet`/`solo-tablet-wk`
+  independently reproduce `T-142` (captain row clipped by the recipe-choice card — matches the
+  posed measurement filed the same day, `.planning/posed/t142-*`); `passplay-phone-022`
+  (award-card name clipped by the sticky "Play again!" button) is the same symptom `T-143` already
+  tracks as Wyatt's open design question, now also seen in pass-and-play mode, not solo only.
+  `T-241` itself (the footer-clipping row this watch closed) is genuinely resolved, not a live
+  contradiction — `scripts/qa/t241_eov_footer_pose.mjs` measured 0px overlap at both seats,
+  CEO 216 verified; a session reporting it back as still-open on 2026-09-06 simply hadn't found
+  that commit yet.
+
 
 
 - [ ] **⛔ THE SEA TRIAL HAS BEEN REPLAYING OLD RESULTS INSTEAD OF SAILING, AND NOTHING SAYS SO —
@@ -417,76 +462,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   whatever moment it lands on, so this is a standing generator of "a sentence is cut off" FAILs that
   are really a 180ms artifact. Worth a line in `docs/INTENDED-BEHAVIOUR.md` whichever way he rules.
 
-- [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
-      ⟨`T-142`⟩
-      thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
-      **THE MECHANISM, and it is one bug not two:** `#pp4Cap` is `position:fixed; left:0; right:0;
-      bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` **with
-      no scrim over the fixed bar**. So the bar shows wherever the card does not reach it — down the
-      LEFT under the recipe modal, and out BOTH SIDES under the End of Voyage modal.
-      **VERIFIED BY EYE:** `solo-tablet-002` — the recipe card's edge cuts the top two captain rows
-      to pink **"Davy"** and green **"Dou"**, both losing their dubloon counts, while Flaky Jack and
-      Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
-      Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
-      **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
-
-  ### ⛔ WORKED 2026-09-03T16:1x–17:0xZ BY WATCH `pastrypirates-07`. HALF OF IT IS FIXED AND SHIPPED. THIS ROW STAYS OPEN FOR THE OTHER HALF — WHICH IS THE HALF THE FIVE SCREENS ABOVE ACTUALLY SHOW.
-  **EVERYTHING FROM "THE MECHANISM" TO "Tablet only" IS WRONG, AND IT IS WRONG IN A WAY THAT AIMS
-  THE NEXT READER AT THE GRAVE.** Do not work from it; work from this block.
-
-  **1. "No scrim over the fixed bar" is false.** `.modalOverlay` IS a full-viewport scrim —
-  `position:fixed; inset:0; z-index:1000` (`index.html:1232`), stacked well above `#pp4Cap`'s 22.
-  It is merely **22–40% translucent** (`rgba(69,223,166,.22)` → `rgba(41,163,178,.40)`), and the bar
-  is `rgba(255,253,242,.97)` cream, which reads clean through it. **Not missing, not mis-stacked.**
-  The line citation is also off by four: the rule is `index.html:1752`, and 1748 is a comment.
-
-  **2. "One bug not two" is false — it is two bugs wearing one title, and only one is fixed.**
-  ⟨FIXED, `12187c7e`⟩ **The `.modalOverlay` half**: How-to-play, the ship's log, credits, feedback,
-  the recipe modal. `body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden }` plus a
-  MutationObserver that DERIVES the class from the DOM (`src/orchestrator.js`, after the modal
-  wiring) rather than a toggle in each of the eight-plus openers. Red→green, posed, three seats:
-  tablet 340px exposed and 3 rows cut → 0/0; phone 32px → 0; desktop 540px → 0; and the bar comes
-  back on close with its box unmoved. Instrument `scripts/qa/t142_captains_under_modal_check.mjs`.
-
-  **⛔ 3. STILL OPEN, AND IT IS WHAT `solo-tablet-002` ACTUALLY SHOWS.** Open that file. The board
-  behind the card is at **FULL, UNTINTED BRIGHTNESS — there is no wash on that screen at all**,
-  because the white card is **not a modal**: it is the recipe-CHOICE prompt *"Davy Scones, choose
-  yer recipe:"* built through the ACTION PANEL (`src/orchestrator.js:951`). No `.modalOverlay`, no
-  `.modalCard`. It overlaps `#pp4Cap` and cuts the top row to **"Davy"**, exactly as the row says —
-  and **the shipped fix above cannot touch it**, because it keys on `.modalOverlay`.
-  `solo-tablet-029` has no modal open at all, so the "End of Voyage modal" reading was a misread
-  too — the EOV card is `#statsWrap` at `z-index:32` (`index.html:2421`), which covers the bar
-  outright. **So: 5 of 5 cited screens are still unfixed.**
-  **WHAT THE NEXT WATCH SHOULD DO:** pose the recipe-choice prompt on a tablet (it is up at the
-  very start of a solo voyage — no seeding needed) and decide with Wyatt whether the prompt should
-  be kept clear of the bar or the bar should hide under a centre-stage prompt the way it now hides
-  under a modal. **That second option is the consistent one (rule 8) and is a taste call, not a
-  mechanism call — it is his.**
-  ⚑ **HOW THIS WAS MISSED, because the lesson is reusable:** the watch wrote a falsifier for exactly
-  this (*"if the bar is painted at FULL, untinted brightness, the scrim is not over it at all"*) and
-  then **tested it against a modal it posed itself instead of against the five files the row names**.
-  A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
-  opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
-
-  ⚑ **2026-09-04T12xxZ — DONE: THE THING THE PREVIOUS WATCH ASKED FOR ("pose the recipe-choice
-  prompt on a tablet") IS NOW POSED, AND THE MECHANISM IS CONFIRMED, NOT MERELY THEORISED.**
-  Prediction written first: `.planning/wyclau/PREDICTION-20260904T1210Z-T-142.md`. New instrument,
-  `scripts/qa/t142_captains_under_recipe_choice_pose.mjs` (adapted from the modal check, but
-  reaching the recipe-CHOICE prompt directly rather than a `.modalOverlay`). Real solo voyage,
-  tablet 820×1180, screenshot `.planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png`.
-  **Confirmed: `#pp4Prompt` carries class `pp4Recipes` (not `.pp4Center`, not `.modalOverlay`) —
-  no backdrop of any kind — and the top captain row (Davy Scones) is fully covered by the card.**
-  The prediction's guessed CSS class (`.centered`) was wrong; the underlying claim (no scrim,
-  card overlaps the bar, shipped fix cannot see it) was right. This is the SAME live defect the
-  five-screens note above describes, not a new one.
-  **NOT fixed, deliberately: the decision the previous watch flagged as his taste call — hide the
-  bar under every centre-stage prompt (consistent, but changes behaviour project-wide) vs. keep
-  only this one card clear of the bar (narrower, keeps two rules instead of one) — is now put to
-  him in `## BLOCKED ON WYATT` (`qid:t142-recipe-choice-captains-bar`) with a marked
-  recommendation and the posed picture as evidence, rather than guessed at.**
-
-
-
 - [ ] **THE SIX RULES-PAGE CLAIMS THAT LIVE IN THE LIVE UI PATH ARE STILL READ-VERIFIED ONLY.**
       ⟨`T-250`⟩
       Filed 2026-09-03T23:5xZ by the `T-216` watch, **as the honest remainder of its own gate rather
@@ -507,6 +482,8 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       the trial's reconciliation loop. **Not urgent and not a known defect** — nothing here is
       believed wrong. It is a named gap in a fence, filed so it is not mistaken for covered ground.
 
+
+
 - [ ] **Judge the 267 screenshots the release trial queued** — his ruling, question UI 2026-09-02:
       ⟨`T-003`⟩
       *"Judge the screenshots first"*, chosen over staging-in-parallel and over production. Trial
@@ -524,7 +501,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   gate that blocked staging is open — the only thing missing is a trial of the code that would
   actually ship.
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.7; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
 
 - [ ] **HIS "NUMBER OR LETTER THE OPTIONS" RULE IS IN THE WRONG FILE, AND A WATCH CANNOT MOVE IT.**
       ⟨`T-239`⟩
@@ -544,6 +520,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       precedent this one follows. **So try it; if your tool is refused too, say so in the ledger
       rather than writing it somewhere else again.**
 
+
 - [ ] **ON A 390px PHONE THE TOP ROW OF THE BOARD CANNOT BE BROUGHT FULLY ON SCREEN.** Measured
       ⟨`T-214`⟩
   2026-09-03 by watch d4: with the frame key forced to change, **6 of 42** posed fights still had a
@@ -553,6 +530,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `T-211`'s fix, on a narrower population.** `t211_reframe_on_new_captains_check.mjs` poses rows 2
   and below and says so in its header, so it cannot pass by hiding this.
   **Sizing: small-to-medium, `camFitSeats`/the band. FULL gear, posed pair.**
+
 - [ ] **⛔ A FAILED SEA TRIAL REPORT NAMES THE WRONG CULPRIT — RULE 24 STANDS ON OPENING THAT FILE
       AND BELIEVING IT. Found by CEO 185, 2026-09-03, while auditing a different item.** When
       `npm test` fails, the report's "the browser-free checks failed" section prints **only the
@@ -572,7 +550,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       assert the report names THAT gate by filename.**
       Sizing: no game code. Not this watch's to take — filed where the next one will see it.
       ⟨`T-237`⟩
-
 - [ ] **⛔ `chartkeeper --rank --write` CORRUPTED TWO ROWS OF `GLASS-CHART.md` BY INSERTING A HANDLE
       INTO THE MIDDLE OF A SENTENCE — caught and repaired by hand 2026-09-03T2040Z, filed by the
       watch that ran it.** It allocated `T-233` and `T-234` and spliced each marker mid-title,
@@ -601,6 +578,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       Sizing: no game code, no sea trial. A gate case belongs with it, red-proofed on a fixture
       shaped like the REAL chart — multi-line titles, marker on the following line.
       ⟨`T-222`⟩
+
 - [ ] **⛔ THE CLOSE GATE CANNOT CLOSE ONE OF YOUR RULINGS — SO FOR THAT WHOLE CLASS OF WORK, "CEO
       ⟨`T-204`⟩
   AFTER EVERY ITEM" IS BACK TO BEING A RULE SOMEBODY REMEMBERS.** Measured 2026-09-03, not
@@ -672,7 +650,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   (where he is present) instead of the Watch. Recommendation for him: when he next opens an
   Advisor session, grant `WebFetch` and the Drive tools once each (even on an unrelated harmless
   URL) so the grant persists project-wide for future Bell watches.
-
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
       ⟨`T-245`⟩
@@ -881,6 +858,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       and `GEARS.PLUMBING` reason text; (b) in `game-code.cjs`'s `isGameCode()`, normalise `rel`
       with `.replace(/\\/g, "/")` before testing against `NOT_GAME`. Then wire the check above
       into `npm test`'s chain in the same commit.
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -913,6 +891,73 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       design question above — stays open for Wyatt; it is now in `BLOCKED ON WYATT` as `qid:t143-eov-
       phone-scroll` with a marked recommendation. Full account:
       `.planning/wyclau/PREDICTION-20260904T1111Z-T143-T023.md`; verdicts: CEO Reviews 214-215.
+- [ ] **THE CAPTAINS PANEL SHOWS THROUGH EVERY MODAL ON TABLET — the one unambiguously broken
+      ⟨`T-142`⟩
+      thing in the ten screens the trial's eyes rejected.** Five of those ten screens are this.
+      **THE MECHANISM, and it is one bug not two:** `#pp4Cap` is `position:fixed; left:0; right:0;
+      bottom:0; z-index:22` (`index.html:1748`); modals are centred cards at `z-index:1000` **with
+      no scrim over the fixed bar**. So the bar shows wherever the card does not reach it — down the
+      LEFT under the recipe modal, and out BOTH SIDES under the End of Voyage modal.
+      **VERIFIED BY EYE:** `solo-tablet-002` — the recipe card's edge cuts the top two captain rows
+      to pink **"Davy"** and green **"Dou"**, both losing their dubloon counts, while Flaky Jack and
+      Crustbeard below are complete. *(The judge wrote "Dav"; the screenshot says "Davy".)*
+      Screens: `solo-tablet-002/003`, `solo-tablet-wk-002/003`, `solo-tablet-029`. **Tablet only.**
+      **Sizing: SMALL. Game code, so FULL gear and a posed pair (rule 26), not a rate.**
+
+  ### ⛔ WORKED 2026-09-03T16:1x–17:0xZ BY WATCH `pastrypirates-07`. HALF OF IT IS FIXED AND SHIPPED. THIS ROW STAYS OPEN FOR THE OTHER HALF — WHICH IS THE HALF THE FIVE SCREENS ABOVE ACTUALLY SHOW.
+  **EVERYTHING FROM "THE MECHANISM" TO "Tablet only" IS WRONG, AND IT IS WRONG IN A WAY THAT AIMS
+  THE NEXT READER AT THE GRAVE.** Do not work from it; work from this block.
+
+  **1. "No scrim over the fixed bar" is false.** `.modalOverlay` IS a full-viewport scrim —
+  `position:fixed; inset:0; z-index:1000` (`index.html:1232`), stacked well above `#pp4Cap`'s 22.
+  It is merely **22–40% translucent** (`rgba(69,223,166,.22)` → `rgba(41,163,178,.40)`), and the bar
+  is `rgba(255,253,242,.97)` cream, which reads clean through it. **Not missing, not mis-stacked.**
+  The line citation is also off by four: the rule is `index.html:1752`, and 1748 is a comment.
+
+  **2. "One bug not two" is false — it is two bugs wearing one title, and only one is fixed.**
+  ⟨FIXED, `12187c7e`⟩ **The `.modalOverlay` half**: How-to-play, the ship's log, credits, feedback,
+  the recipe modal. `body.pp4Stage.pp4ModalOpen #pp4Cap { visibility:hidden }` plus a
+  MutationObserver that DERIVES the class from the DOM (`src/orchestrator.js`, after the modal
+  wiring) rather than a toggle in each of the eight-plus openers. Red→green, posed, three seats:
+  tablet 340px exposed and 3 rows cut → 0/0; phone 32px → 0; desktop 540px → 0; and the bar comes
+  back on close with its box unmoved. Instrument `scripts/qa/t142_captains_under_modal_check.mjs`.
+
+  **⛔ 3. STILL OPEN, AND IT IS WHAT `solo-tablet-002` ACTUALLY SHOWS.** Open that file. The board
+  behind the card is at **FULL, UNTINTED BRIGHTNESS — there is no wash on that screen at all**,
+  because the white card is **not a modal**: it is the recipe-CHOICE prompt *"Davy Scones, choose
+  yer recipe:"* built through the ACTION PANEL (`src/orchestrator.js:951`). No `.modalOverlay`, no
+  `.modalCard`. It overlaps `#pp4Cap` and cuts the top row to **"Davy"**, exactly as the row says —
+  and **the shipped fix above cannot touch it**, because it keys on `.modalOverlay`.
+  `solo-tablet-029` has no modal open at all, so the "End of Voyage modal" reading was a misread
+  too — the EOV card is `#statsWrap` at `z-index:32` (`index.html:2421`), which covers the bar
+  outright. **So: 5 of 5 cited screens are still unfixed.**
+  **WHAT THE NEXT WATCH SHOULD DO:** pose the recipe-choice prompt on a tablet (it is up at the
+  very start of a solo voyage — no seeding needed) and decide with Wyatt whether the prompt should
+  be kept clear of the bar or the bar should hide under a centre-stage prompt the way it now hides
+  under a modal. **That second option is the consistent one (rule 8) and is a taste call, not a
+  mechanism call — it is his.**
+  ⚑ **HOW THIS WAS MISSED, because the lesson is reusable:** the watch wrote a falsifier for exactly
+  this (*"if the bar is painted at FULL, untinted brightness, the scrim is not over it at all"*) and
+  then **tested it against a modal it posed itself instead of against the five files the row names**.
+  A falsifier you get to choose the subject of is one you cannot fail. Found by CEO 175, which
+  opened the screens. Full account: `.planning/wyclau/PREDICTION-20260903T1710Z-T-142.md`.
+
+  ⚑ **2026-09-04T12xxZ — DONE: THE THING THE PREVIOUS WATCH ASKED FOR ("pose the recipe-choice
+  prompt on a tablet") IS NOW POSED, AND THE MECHANISM IS CONFIRMED, NOT MERELY THEORISED.**
+  Prediction written first: `.planning/wyclau/PREDICTION-20260904T1210Z-T-142.md`. New instrument,
+  `scripts/qa/t142_captains_under_recipe_choice_pose.mjs` (adapted from the modal check, but
+  reaching the recipe-CHOICE prompt directly rather than a `.modalOverlay`). Real solo voyage,
+  tablet 820×1180, screenshot `.planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png`.
+  **Confirmed: `#pp4Prompt` carries class `pp4Recipes` (not `.pp4Center`, not `.modalOverlay`) —
+  no backdrop of any kind — and the top captain row (Davy Scones) is fully covered by the card.**
+  The prediction's guessed CSS class (`.centered`) was wrong; the underlying claim (no scrim,
+  card overlaps the bar, shipped fix cannot see it) was right. This is the SAME live defect the
+  five-screens note above describes, not a new one.
+  **NOT fixed, deliberately: the decision the previous watch flagged as his taste call — hide the
+  bar under every centre-stage prompt (consistent, but changes behaviour project-wide) vs. keep
+  only this one card clear of the bar (narrower, keeps two rules instead of one) — is now put to
+  him in `## BLOCKED ON WYATT` (`qid:t142-recipe-choice-captains-bar`) with a marked
+  recommendation and the posed picture as evidence, rather than guessed at.**
 
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩

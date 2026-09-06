@@ -2262,3 +2262,23 @@ status: DONE 2026-09-04 — CEO 197, no game diff — no game code is right: scr
 > My sound effects request that I put on the glass yesterday seems to be missing -- can you find it, and prioritize it in 3rd place on the chart?
 solution: none stated
 status: DONE 2026-09-04 — CEO 196, no game diff — no game code is right: found T-073, promoted to a visible chart row, pinned DO NOW rank 1 (commit e0e2292b)
+
+## INBOX-20260906T1329Z — the Advisor does NOT make game-facing changes; the Watch does
+> don't start the sfx work yourself -- i want the Watch to do all gamefacing changes.
+solution: hand T-073 to the Watch; the Advisor unblocks, records and advises only
+status: OPEN — for the Watch. The blocker is already cleared: `.planning/wyclau/T-073-SFX-BRIEF.md`
+  (commit `0fdbe853`) holds all 30 Drive files with their ids and his full 28-sound plan sheet, so
+  no watch needs Drive access. Read `docs/AUDIO.md` first (three defects, one of them the clipped
+  sword his own sheet complains about). ⚠ A FULL sea trial is sailing on build `2026.09.04.2`
+  (pid 47468, run `2026-09-06T1328Z-Wy-Blade`) — game-code wiring during it tests a build that
+  will not exist, so read that report before changing `src/`.
+  ⚠ THIS IS THE THIRD TIME HE HAS RULED IT. See `INBOX-20260902T0058Z` ("the ADVISOR triages; the
+  WATCH works. Never the same code.") and `INBOX-20260902T0400Z` ("the Advisor is RECORD-ONLY,
+  permanently"). A rule he has to repeat is a rule with no mechanism behind it.
+
+## INBOX-20260906T1317Z — always give times in his LOCAL time
+> Always give me times in my local time.
+solution: none stated
+status: OPEN — a RE-STATEMENT of his 2026-09-02 ruling (commit `04d73d21`, "always write to me in
+  my local time"), broken by the Advisor this morning in UTC. Same shape as `T-239`: the rule is on
+  record and is not reaching sessions. Chart row `T-239` carries the move into `.claude/CLAUDE.md`.
